@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -34,7 +35,6 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.viewer.R
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.common.CutoutMode
@@ -64,8 +64,15 @@ fun ViewerToolbarCard(
         label = "cardPadding",
     )
 
+    val minHeight by animateDpAsState(
+        targetValue = if (isCollapsed) WorkspaceButtonDefaults.sizeCompact else WorkspaceButtonDefaults.sizeDefault,
+        label = "minHeight",
+    )
+
     CutoutCard(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .requiredHeightIn(min = minHeight),
         cutoutContent = if (design.isSingle) {
             {
                 WorkspaceButton(
@@ -88,12 +95,6 @@ fun ViewerToolbarCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 onBackClick?.let { ViewerBackButton(onClick = it) }
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    imageVector = Workspace.Type.VIEWER.icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                )
                 Text(
                     modifier = Modifier.weight(1f),
                     text = fileName,
@@ -115,15 +116,8 @@ fun ViewerToolbarCard(
                 ) {
                     onBackClick?.let {
                         ViewerBackButton(onClick = it)
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        imageVector = Workspace.Type.VIEWER.icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         modifier = Modifier.weight(1f),
                         text = fileName,
