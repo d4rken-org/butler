@@ -82,6 +82,7 @@ fun AdaptiveWorkspaceLayout(
                 selected = visibleSelected,
                 focusedId = focusedId,
                 onTabAction = { workspaceActionHandler?.executeWorkspaceAction(it) },
+                onAddTab = { workspaceActionHandler?.createTemplatesWorkspace() },
                 onPaneAssignment = { workspaceId, paneIndex ->
                     // Create new selection with the workspace at the specified pane index
                     val currentSelection = selected.toMutableMap()

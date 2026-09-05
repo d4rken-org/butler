@@ -227,6 +227,8 @@ fun WorkspaceNavigationRail(
     focusedId: Workspace.Id?,
     design: WorkspaceDesign = WorkspaceDesign(),
     onTabAction: (WorkspaceAction) -> Unit,
+    /** The "+" was tapped. The rail does not decide what a new tab is. */
+    onAddTab: () -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     onPaneUnassign: (workspaceId: Workspace.Id) -> Unit,
     onRename: (Workspace.Id) -> Unit = {},
@@ -376,11 +378,7 @@ fun WorkspaceNavigationRail(
         Spacer(modifier = sectionSpacer)
 
         FloatingActionButton(
-            onClick = {
-                onTabAction(
-                    WorkspaceAction.Create()
-                )
-            },
+            onClick = onAddTab,
             modifier = Modifier.size(48.dp),
             containerColor = MaterialTheme.colorScheme.primaryContainer,
         ) {
@@ -1006,6 +1004,7 @@ private fun WorkspaceNavigationRailStates(placement: RailPlacement) {
             railPlacement = placement,
         ),
         onTabAction = {},
+        onAddTab = {},
         onPaneAssignment = { _, _ -> },
         onPaneUnassign = {},
         onPaneMenuToggle = {},
