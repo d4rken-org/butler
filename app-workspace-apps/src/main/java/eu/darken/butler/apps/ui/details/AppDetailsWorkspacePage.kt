@@ -462,6 +462,7 @@ private fun LazyListScope.overviewItems(
                 canForceStop = state.canForceStop,
                 canClearData = state.canClearData,
                 isUninstalled = appInfo.isUninstalled,
+                enabled = !state.isPkgActionRunning,
             )
         }
     }

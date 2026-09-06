@@ -126,6 +126,7 @@ fun ActionsSection(
     canForceStop: Boolean = true,
     canClearData: Boolean = true,
     isUninstalled: Boolean = false,
+    enabled: Boolean = true,
 ) {
     if (app == null) return
 
@@ -181,6 +182,7 @@ fun ActionsSection(
                 group = group,
                 actionHandlers = actionHandlers,
                 showDivider = index < actionGroups.size - 1,
+                enabled = enabled,
             )
         }
     }
@@ -191,6 +193,7 @@ private fun ActionGroupSection(
     group: ActionGroup,
     actionHandlers: Map<AppAction, () -> Unit>,
     showDivider: Boolean,
+    enabled: Boolean = true,
 ) {
     group.actions.forEach { action ->
         val isDestructive = group is ActionGroup.Destructive
@@ -199,6 +202,7 @@ private fun ActionGroupSection(
             title = stringResource(action.titleRes),
             description = stringResource(action.descriptionRes),
             onClick = actionHandlers[action] ?: {},
+            enabled = enabled,
             tintColor = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
         )
     }
@@ -219,12 +223,13 @@ private fun ActionItem(
     description: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     tintColor: Color = MaterialTheme.colorScheme.primary,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -289,6 +294,24 @@ private fun ActionsSectionInstalledPreview() {
         onShareApk = {},
         onForceStop = {},
         onClearData = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ActionsSectionBusyPreview() {
+    ActionsSection(
+        app = AppsMockDataProvider.Presets.chrome,
+        onLaunchApp = {},
+        onShowAppInfo = {},
+        onEnableDisable = {},
+        onUninstall = {},
+        onExportApk = {},
+        onShareApk = {},
+        onForceStop = {},
+        onClearData = {},
+        enabled = false,
     )
 }
 

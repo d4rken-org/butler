@@ -75,6 +75,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
+import java.util.concurrent.atomic.AtomicBoolean
 
 class AppDetailsWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
@@ -300,6 +301,24 @@ class AppDetailsWorkspace @AssistedInject constructor(
         null
     }
 
+    /**
+     * Number of package operations (enable/disable/uninstall/clear/component toggle) currently
+     * running. Package operations don't go through OperationsManager, so this is the only signal
+     * that keeps a pause from releasing the workspace mid-operation.
+     *
+     * Declared before [state], which reads it: properties initialise in declaration order.
+     */
+    private val pkgOpsInFlight = MutableStateFlow(0)
+
+    private suspend fun <T> trackPkgOp(block: suspend () -> T): T {
+        pkgOpsInFlight.update { it + 1 }
+        try {
+            return block()
+        } finally {
+            pkgOpsInFlight.update { it - 1 }
+        }
+    }
+
     data class State(
         val appState: AppInfoState = AppInfoState.Loading,
         val selectedTab: DetailTab = DetailTab.OVERVIEW,
@@ -311,6 +330,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
         val hasAdb: Boolean = false,
         val componentToggleState: ComponentToggleState = ComponentToggleState.UNSUPPORTED,
         val packageInfo: PackageInfoState = PackageInfoState.Loading,
+        val isPkgActionRunning: Boolean = false,
     ) {
         val app: AppInfo? get() = (appState as? AppInfoState.Ready)?.info
         val isLoading: Boolean get() = appState is AppInfoState.Loading
@@ -330,8 +350,9 @@ class AppDetailsWorkspace @AssistedInject constructor(
         _sizeLoading,
         packageInfoLoader.state,
         pathInsights,
+        pkgOpsInFlight,
     ) { appState, selectedTab, hasRoot, hasAdb, componentToggleState, sizeSnapshot, sizesAvailable, isLoadingSize,
-        packageInfo, insights ->
+        packageInfo, insights, opsInFlight ->
         val withSize = when (appState) {
             is AppInfoState.Ready -> when (val size = sizeSnapshot.sizes[appState.info.installId]) {
                 null -> appState
@@ -358,28 +379,13 @@ class AppDetailsWorkspace @AssistedInject constructor(
             hasAdb = hasAdb,
             componentToggleState = componentToggleState,
             packageInfo = packageInfo,
+            isPkgActionRunning = opsInFlight > 0,
         )
     }
 
     // Same derivation the factory hands the paused stand-in, so both name this tab identically.
     // The live tab enriches this to the app label once package data resolves.
     private val seedDisplay = deriveAppDetailsDisplay(args)
-
-    /**
-     * Number of package operations (enable/disable/uninstall/clear/component toggle) currently
-     * running. Package operations don't go through OperationsManager, so this is the only signal
-     * that keeps a pause from releasing the workspace mid-operation.
-     */
-    private val pkgOpsInFlight = MutableStateFlow(0)
-
-    private suspend fun <T> trackPkgOp(block: suspend () -> T): T {
-        pkgOpsInFlight.update { it + 1 }
-        try {
-            return block()
-        } finally {
-            pkgOpsInFlight.update { it - 1 }
-        }
-    }
 
     override val info: StateFlow<Workspace.Info> = combine(
         appInfoOrNull,
@@ -453,27 +459,60 @@ class AppDetailsWorkspace @AssistedInject constructor(
     // Package operations live here, not on the ViewModel, so pkgOpsInFlight actually covers them.
     // Exceptions propagate to the caller, which owns error surfacing and any fallback.
 
-    suspend fun uninstallApp(app: AppInfo): Boolean = trackPkgOp {
-        log(tag) { "uninstallApp(${app.packageName})" }
-        pkgOps.uninstall(app.installId).also { refreshAfterPkgOp() }
+    /**
+     * Rejects a second app-wide package action while one is running. The rows going disabled is
+     * feedback only - two taps can both be delivered before a recomposition, so this is what
+     * actually stops the second one.
+     *
+     * Component toggles stay out of it: they have their own selection and confirmation flow, and
+     * one lock across both would let a component toggle block an uninstall.
+     */
+    private val pkgActionRunning = AtomicBoolean(false)
+
+    private suspend fun singleFlightPkgOp(name: String, block: suspend () -> Unit) {
+        if (!pkgActionRunning.compareAndSet(false, true)) {
+            log(tag, WARN) { "$name rejected, another package action is still running" }
+            return
+        }
+        try {
+            block()
+        } finally {
+            pkgActionRunning.set(false)
+        }
+    }
+
+    suspend fun uninstallApp(app: AppInfo) = singleFlightPkgOp("uninstallApp(${app.packageName})") {
+        trackPkgOp {
+            log(tag) { "uninstallApp(${app.packageName})" }
+            pkgOps.uninstall(app.installId)
+            refreshAfterPkgOp()
+        }
     }
 
     // No refresh: a force-stop changes no package data, and every refresh re-gathers every source.
-    suspend fun forceStopApp(app: AppInfo): Boolean = trackPkgOp {
-        log(tag) { "forceStopApp(${app.packageName})" }
-        pkgOps.forceStop(app.id)
+    suspend fun forceStopApp(app: AppInfo) = singleFlightPkgOp("forceStopApp(${app.packageName})") {
+        trackPkgOp {
+            log(tag) { "forceStopApp(${app.packageName})" }
+            pkgOps.forceStop(app.id)
+        }
     }
 
-    suspend fun clearDataApp(app: AppInfo): Boolean = trackPkgOp {
-        log(tag) { "clearDataApp(${app.packageName})" }
-        pkgOps.clearData(app.installId).also { refreshAfterPkgOp() }
+    suspend fun clearDataApp(app: AppInfo) = singleFlightPkgOp("clearDataApp(${app.packageName})") {
+        trackPkgOp {
+            log(tag) { "clearDataApp(${app.packageName})" }
+            pkgOps.clearData(app.installId)
+            refreshAfterPkgOp()
+        }
     }
 
-    suspend fun setAppEnabled(app: AppInfo, enabled: Boolean) = trackPkgOp {
-        log(tag) { "setAppEnabled(${app.packageName}, enabled=$enabled)" }
-        pkgOps.changePackageState(app.id, enabled = enabled)
-        refreshAfterPkgOp()
-    }
+    suspend fun setAppEnabled(app: AppInfo, enabled: Boolean) =
+        singleFlightPkgOp("setAppEnabled(${app.packageName}, enabled=$enabled)") {
+            trackPkgOp {
+                log(tag) { "setAppEnabled(${app.packageName}, enabled=$enabled)" }
+                pkgOps.changePackageState(app.id, enabled = enabled)
+                refreshAfterPkgOp()
+            }
+        }
 
     /**
      * Deliberately not in a `finally`: [PkgRepo.refresh] rethrows a source error, which would then
