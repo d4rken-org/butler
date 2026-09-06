@@ -399,10 +399,13 @@ class PkgOps @Inject constructor(
         } catch (e: Exception) {
             if (e is ElevatedAccessUnavailableException) {
                 log(TAG, DEBUG) { "uninstall(...): $mode unavailable for $id" }
-            } else {
-                log(TAG, WARN) { "uninstall($id, mode=$mode) failed: $e" }
+                // No cause text: this branch is consumed by the caller's cause-walk, not rendered.
+                throw PkgOpsException(message = "uninstall($id, $mode) failed", cause = e)
             }
-            throw PkgOpsException(message = "uninstall($id, $mode) failed", cause = e)
+            log(TAG, WARN) { "uninstall($id, mode=$mode) failed: $e" }
+            // The cause's text carries the shell's reason and only survives here: what the user is
+            // shown renders the top-level message and nothing from the cause chain.
+            throw PkgOpsException(message = "uninstall($id, $mode) failed: ${e.message}", cause = e)
         }
     }
 
@@ -429,10 +432,13 @@ class PkgOps @Inject constructor(
         } catch (e: Exception) {
             if (e is ElevatedAccessUnavailableException) {
                 log(TAG, DEBUG) { "clearData(...): $mode unavailable for $id" }
-            } else {
-                log(TAG, WARN) { "clearData($id, mode=$mode) failed: $e" }
+                // No cause text: this branch is consumed by the caller's cause-walk, not rendered.
+                throw PkgOpsException(message = "clearData($id, $mode) failed", cause = e)
             }
-            throw PkgOpsException(message = "clearData($id, $mode) failed", cause = e)
+            log(TAG, WARN) { "clearData($id, mode=$mode) failed: $e" }
+            // The cause's text carries the shell's reason and only survives here: what the user is
+            // shown renders the top-level message and nothing from the cause chain.
+            throw PkgOpsException(message = "clearData($id, $mode) failed: ${e.message}", cause = e)
         }
     }
 
