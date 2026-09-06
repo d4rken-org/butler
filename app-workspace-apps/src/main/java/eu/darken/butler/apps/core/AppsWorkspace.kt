@@ -212,40 +212,40 @@ class AppsWorkspace @AssistedInject constructor(
                     viewStyle = viewStyle,
                     isLoading = true,
                 )
+
+                // Monitor engine state and elevated access availability
+                combine(
+                    appsEngine.state,
+                    rootManager.useRoot,
+                    adbManager.useAdb,
+                    // Derived from the tab's slot rather than mirroring it, so a write another tab's sheet
+                    // made to this tab's slot reaches this workspace.
+                    tabViewStore.observeViewStyle(id),
+                ) { engineState, hasRoot, hasAdb, viewStyle ->
+                    updateReady {
+                        copy(
+                            apps = engineState.apps,
+                            filteredApps = engineState.filteredApps,
+                            filterConfig = engineState.filterConfig,
+                            sortSettings = engineState.sortSettings,
+                            searchQuery = engineState.searchQuery,
+                            viewStyle = viewStyle ?: this.viewStyle,
+                            selectedAppIds = engineState.selectedAppIds,
+                            hasRoot = hasRoot,
+                            hasAdb = hasAdb,
+                            isLoading = engineState.isLoading,
+                            isRefreshing = engineState.isRefreshing,
+                            isResolvingSizes = engineState.isResolvingSizes,
+                            error = engineState.error,
+                        )
+                    }
+                }.launchIn(scope)
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to initialize: ${e.asLog()}" }
                 Bugs.report(e)
                 _state.value = State.Error(e)
             }
         }
-
-        // Monitor engine state and elevated access availability
-        combine(
-            appsEngine.state,
-            rootManager.useRoot,
-            adbManager.useAdb,
-            // Derived from the tab's slot rather than mirroring it, so a write another tab's sheet
-            // made to this tab's slot reaches this workspace.
-            tabViewStore.observeViewStyle(id),
-        ) { engineState, hasRoot, hasAdb, viewStyle ->
-            updateReady {
-                copy(
-                    apps = engineState.apps,
-                    filteredApps = engineState.filteredApps,
-                    filterConfig = engineState.filterConfig,
-                    sortSettings = engineState.sortSettings,
-                    searchQuery = engineState.searchQuery,
-                    viewStyle = viewStyle ?: this.viewStyle,
-                    selectedAppIds = engineState.selectedAppIds,
-                    hasRoot = hasRoot,
-                    hasAdb = hasAdb,
-                    isLoading = engineState.isLoading,
-                    isRefreshing = engineState.isRefreshing,
-                    isResolvingSizes = engineState.isResolvingSizes,
-                    error = engineState.error,
-                )
-            }
-        }.launchIn(scope)
     }
 
     // Delegate methods for engine operations
