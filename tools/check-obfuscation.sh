@@ -112,8 +112,11 @@ check_bundle_mapping() {
         return
     fi
 
-    if unzip -l "$aab" 'BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map' \
-        | grep -q 'proguard.map'; then
+    # grep -c, not grep -q: under pipefail an early grep exit SIGPIPEs unzip/strings and fails the pipeline.
+    local hits
+    hits=$(unzip -l "$aab" 'BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map' \
+        | grep -c 'proguard.map' || true)
+    if [ "${hits:-0}" -gt 0 ]; then
         ok "bundle carries the mapping: $(basename "$aab")"
     else
         fail "bundle has no BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map: $(basename "$aab")"
@@ -140,7 +143,9 @@ check_map_id() {
         return
     fi
 
-    if unzip -p "$apk" classes.dex | strings | grep -q "r8-map-id-$map_id"; then
+    local hits
+    hits=$(unzip -p "$apk" classes.dex | strings | grep -cF "r8-map-id-$map_id" || true)
+    if [ "${hits:-0}" -gt 0 ]; then
         ok "map id survives in the dex: r8-map-id-$map_id"
     else
         fail "r8-map-id-$map_id not found in $(basename "$apk") classes.dex"
