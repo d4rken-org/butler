@@ -6,6 +6,7 @@ import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
 import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.pkgs.container.UninstalledPkg
 import eu.darken.butler.common.user.UserHandle2
 import eu.darken.butler.common.user.UserProfile2
@@ -33,11 +34,28 @@ class AppsWorkspaceUninstalledGateTest : BaseTest() {
         packageName = "com.example.installed",
         label = "Installed App",
     )
-    private val uninstalledApp = AppItem.from(
+    // Assembled by hand instead of via AppItem.from(): that reads PackageInfo.longVersionCode,
+    // which an unmocked android.jar stub refuses to answer in a plain unit test. What the gate
+    // reads is AppItem.isUninstalled, and that derives from the pkg being an UninstalledPkg.
+    private val uninstalledApp = AppItem(
         pkg = UninstalledPkg(
             packageInfo = PackageInfo().apply { packageName = "com.example.uninstalled" },
             userHandle = UserHandle2(0),
         ),
+        label = "Uninstalled App".toCaString(),
+        icon = null,
+        packageName = "com.example.uninstalled",
+        versionName = null,
+        versionCode = 0L,
+        appSize = null,
+        isSystemApp = false,
+        isEnabled = true,
+        isUpdatedSystemApp = false,
+        installedAt = null,
+        updatedAt = null,
+        installerInfo = null,
+        isSplitApk = false,
+        isDebuggable = false,
         userProfile = UserProfile2(handle = UserHandle2(0)),
     )
 
