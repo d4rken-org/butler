@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * [mode] is persisted under the wire key `type`, and stored payloads rely on that: renaming it
- * silently resets every saved view style to the default.
+ * silently resets the saved mode of every tab and every default, keeping their density.
  */
 @Serializable
 @Parcelize
