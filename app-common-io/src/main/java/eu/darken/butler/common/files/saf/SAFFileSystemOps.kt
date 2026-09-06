@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
+import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileSystem
@@ -112,6 +113,24 @@ class SAFFileSystemOps @Inject constructor(
         }
     )
 
+    private data class ChildrenEntry(
+        /** Child paths the listing carried exactly once, to the handle the provider returned. */
+        val resolved: Map<SAFPath, SAFDocFile>,
+        /** Child paths the listing carried more than once. */
+        val duplicated: Set<SAFPath>,
+        /** The provider flagged the listing as still loading or errored. */
+        val partial: Boolean,
+        val cachedAt: Instant,
+    )
+
+    private val childrenCache = java.util.Collections.synchronizedMap(
+        object : LinkedHashMap<SAFPath, ChildrenEntry>(INITIAL_CHILDREN_CACHE_SIZE, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<SAFPath, ChildrenEntry>?): Boolean {
+                return size > MAX_CHILDREN_CACHE_PARENTS
+            }
+        }
+    )
+
     // Attribute operation support cache (null = unknown, true = supported, false = not supported)
     @Volatile private var supportsSetModifiedAt: Boolean? = null
     @Volatile private var supportsSetPermissions: Boolean? = null
@@ -124,11 +143,13 @@ class SAFFileSystemOps @Inject constructor(
     private fun cacheCreated(path: SAFPath, docFile: SAFDocFile) {
         docFileCache[path] = CacheEntry(docFile, Clock.System.now())
         lookupCache.remove(path)
+        path.parent?.let { childrenCache.remove(it) }
     }
 
     private fun invalidatePath(path: SAFPath) {
         docFileCache.remove(path)
         lookupCache.remove(path)
+        childrenCache.remove(path)
     }
 
     /** Invalidate a path and all cached descendants (stale after directory move/delete). */
@@ -141,38 +162,176 @@ class SAFFileSystemOps @Inject constructor(
         }
         synchronized(docFileCache) { docFileCache.keys.removeAll { isDescendant(it) } }
         synchronized(lookupCache) { lookupCache.keys.removeAll { isDescendant(it) } }
+        synchronized(childrenCache) { childrenCache.keys.removeAll { isDescendant(it) } }
     }
 
     /** Drop the cached lookup of a path's parent (child count/mtime changed). */
     private fun invalidateParentLookup(path: SAFPath) {
-        path.parent?.let { lookupCache.remove(it) }
+        path.parent?.let {
+            lookupCache.remove(it)
+            childrenCache.remove(it)
+        }
     }
 
-    private fun SAFPath.resolveDocFile(): SAFDocFile {
+    /** Fresh cache entry for this path, or null; an expired entry is evicted on the way. */
+    private fun SAFPath.cachedDocFile(now: Instant): SAFDocFile? {
+        val cached = docFileCache[this] ?: return null
+
+        val age = now - cached.cachedAt
+        if (age < CACHE_TTL) {
+            if (Bugs.isTrace) log(TAG, VERBOSE) { "resolveDocFile() $this -> ${cached.docFile} (cached)" }
+            return cached.docFile
+        }
+
+        // Expired entry
+        docFileCache.remove(this)
+        return null
+    }
+
+    /**
+     * Lists [parentDocFile] once, records the listing under [parentPath], and returns it.
+     *
+     * @return every child in provider order (duplicates included) plus the recorded listing
+     */
+    private suspend fun cacheChildren(
+        parentPath: SAFPath,
+        parentDocFile: SAFDocFile,
+        now: Instant,
+    ): Pair<List<SAFPath>, ChildrenEntry> {
+        // Batch query: files + metadata in one go
+        val listing = parentDocFile.listFilesWithLookupData()
+
+        val childPaths = mutableListOf<SAFPath>()
+        val byPath = mutableMapOf<SAFPath, MutableList<SAFDocFile.ChildEntry>>()
+
+        listing.entries.forEachIndexed { index, entry ->
+            if (index % 50 == 0) currentCoroutineContext().ensureActive()
+
+            val name = entry.name ?: entry.docFile.uri.pathSegments.last().split('/').last()
+            val childPath = parentPath.child(name)
+            childPaths.add(childPath)
+            byPath.getOrPut(childPath) { mutableListOf() }.add(entry)
+        }
+
+        // Grouped before publishing: publishing per row would let the last of two same-named
+        // documents win, hiding an ambiguity that resolution has to refuse to answer.
+        val resolved = mutableMapOf<SAFPath, SAFDocFile>()
+        val duplicated = mutableSetOf<SAFPath>()
+
+        byPath.forEach { (childPath, entries) ->
+            if (entries.size > 1) {
+                log(TAG, WARN) { "cacheChildren(): $parentPath lists '${childPath.name}' ${entries.size} times" }
+                invalidatePath(childPath)
+                duplicated.add(childPath)
+                return@forEach
+            }
+
+            val entry = entries.single()
+            resolved[childPath] = entry.docFile
+
+            // Populate lookup cache with batch-queried metadata (basic only - no extended)
+            val lookup = SAFPathLookup(
+                lookedUp = childPath,
+                fileType = entry.lookupData.fileType,
+                size = entry.lookupData.size,
+                modifiedAt = entry.lookupData.lastModified,
+                ownership = null, // Not available in batch listing
+                permissions = null, // Not available in batch listing
+                createdAt = null, // SAF doesn't support creation time
+            )
+            lookupCache[childPath] = LookupCacheEntry(lookup, now)
+        }
+
+        val cacheEntry = ChildrenEntry(
+            resolved = resolved,
+            duplicated = duplicated,
+            partial = listing.partial,
+            cachedAt = now,
+        )
+        childrenCache[parentPath] = cacheEntry
+
+        return childPaths to cacheEntry
+    }
+
+    private suspend fun SAFPath.resolveDocFile(): SAFDocFile =
+        resolveDocFileOrNull() ?: throw PathNotFoundException(this)
+
+    /**
+     * Null ONLY when a complete, unambiguous parent listing proves this path absent - the one answer
+     * that may authorize a create, a delete-returns-false or an [Existence.ABSENT].
+     *
+     * A listing that cannot answer - flagged as loading/errored, or carrying the name more than once -
+     * raises instead, so a transient provider hiccup never reads as absence.
+     *
+     * Document ids are opaque by contract, so only [EXTERNAL_STORAGE_AUTHORITY] keeps the zero-query
+     * synthesized resolution; every other authority walks the granted tree through the handles the
+     * provider itself handed out.
+     */
+    private suspend fun SAFPath.resolveDocFileOrNull(): SAFDocFile? {
         val now = Clock.System.now()
 
-        // Check cache first
-        val cached = docFileCache[this]
-        if (cached != null) {
-            val age = now - cached.cachedAt
-            if (age < CACHE_TTL) {
-                if (Bugs.isTrace) log(TAG, VERBOSE) { "resolveDocFile() $this -> ${cached.docFile} (cached)" }
-                return cached.docFile
-            } else {
-                // Expired entry
-                docFileCache.remove(this)
+        cachedDocFile(now)?.let { return it }
+
+        if (treeRootUri.authority == EXTERNAL_STORAGE_AUTHORITY) {
+            val docFile = locationManager.getDocFileFor(this)
+            if (Bugs.isTrace) log(TAG, VERBOSE) { "resolveDocFile() $this -> $docFile" }
+            if (docFile != null) docFileCache[this] = CacheEntry(docFile, now)
+            return docFile ?: throw MissingUriPermissionException(path = this)
+        }
+
+        val match = locationManager.findPermissionFor(this) ?: throw MissingUriPermissionException(path = this)
+        val rootPath = SAFPath.build(match.location.treeUri)
+        val missing = match.missingSegments
+        fun key(i: Int) = if (i == 0) rootPath else rootPath.child(*missing.take(i).toTypedArray())
+
+        val cachedAncestor = (missing.size - 1 downTo 1).firstNotNullOfOrNull { i ->
+            key(i).cachedDocFile(now)?.let { i to it }
+        }
+        val start = cachedAncestor?.first ?: 0
+        var current = cachedAncestor?.second ?: run {
+            val root = locationManager.getDocFileFor(rootPath) ?: throw MissingUriPermissionException(path = this)
+            docFileCache[rootPath] = CacheEntry(root, now)
+            root
+        }
+
+        for (j in start until missing.size) {
+            val parentPath = key(j)
+            val wanted = key(j + 1)
+
+            val listing = childrenCache[parentPath]?.takeIf { now - it.cachedAt < CACHE_TTL }
+                ?: run {
+                    childrenCache.remove(parentPath)
+                    cacheChildren(parentPath, current, now).second
+                }
+
+            if (wanted in listing.duplicated) {
+                throw ReadException(
+                    "Provider listed more than one child named '${missing[j]}' under $parentPath",
+                    this,
+                )
             }
+
+            val child = listing.resolved[wanted]
+            if (child != null) {
+                current = child
+                docFileCache[wanted] = CacheEntry(child, now)
+                continue
+            }
+
+            if (listing.partial) {
+                throw ReadException(
+                    "Provider listing of $parentPath was incomplete; cannot prove '${missing[j]}' absent",
+                    this,
+                )
+            }
+
+            // An absent path is never cached, so a document another app creates is found on the next miss.
+            return null
         }
 
-        // Cache miss or expired - fetch fresh
-        val docFile = locationManager.getDocFileFor(this)
-        if (Bugs.isTrace) log(TAG, VERBOSE) { "resolveDocFile() $this -> $docFile" }
-
-        if (docFile != null) {
-            docFileCache[this] = CacheEntry(docFile, now)
-        }
-
-        return docFile ?: throw MissingUriPermissionException(path = this)
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "resolveDocFile() $this -> $current" }
+        docFileCache[this] = CacheEntry(current, now)
+        return current
     }
 
     private fun SAFDocFile.performLookup(path: SAFPath, options: LookupOptions): SAFPathLookup {
@@ -273,32 +432,7 @@ class SAFFileSystemOps @Inject constructor(
         val docFile = path.resolveDocFile()
         log(TAG, VERBOSE) { "listFiles($path) -> $docFile" }
 
-        val now = Clock.System.now()
-
-        // Use batch query to get files + metadata in one query
-        val filesWithMetadata = docFile.listFilesWithLookupData()
-
-        // Map to SAFPath and populate lookup cache
-        filesWithMetadata.mapIndexed { index, (file, lookupData) ->
-            if (index % 50 == 0) currentCoroutineContext().ensureActive()
-
-            val name = file.name ?: file.uri.pathSegments.last().split('/').last()
-            val childPath = path.child(name)
-
-            // Populate lookup cache with batch-queried metadata (basic only - no extended)
-            val lookup = SAFPathLookup(
-                lookedUp = childPath,
-                fileType = lookupData.fileType,
-                size = lookupData.size,
-                modifiedAt = lookupData.lastModified,
-                ownership = null, // Not available in batch listing
-                permissions = null, // Not available in batch listing
-                createdAt = null, // SAF doesn't support creation time
-            )
-            lookupCache[childPath] = LookupCacheEntry(lookup, now)
-
-            childPath
-        }
+        cacheChildren(path, docFile, Clock.System.now()).first
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
@@ -307,9 +441,11 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     override suspend fun exists(path: SAFPath): Boolean = try {
-        val docFile = path.resolveDocFile()
+        val docFile = path.resolveDocFileOrNull()
         log(TAG, VERBOSE) { "exists(): $path -> $docFile" }
-        docFile.exists
+        docFile?.exists ?: false
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         throw ReadException(path = path, cause = e)
     }
@@ -318,20 +454,22 @@ class SAFFileSystemOps @Inject constructor(
      * Uses [SAFDocFile.existsStrict], which addresses the provider through a client: no client means
      * nobody was asked, while [SAFDocFile.exists] cannot tell that from a document that is gone.
      */
-    override suspend fun existsStrict(path: SAFPath): Existence = try {
-        val docFile = path.resolveDocFile()
-        if (docFile.existsStrict()) Existence.PRESENT else Existence.ABSENT
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        log(TAG, WARN) { "existsStrict($path) could not be answered: ${e.asLog()}" }
-        Existence.UNKNOWN
+    override suspend fun existsStrict(path: SAFPath): Existence {
+        return try {
+            val docFile = path.resolveDocFileOrNull() ?: return Existence.ABSENT
+            if (docFile.existsStrict()) Existence.PRESENT else Existence.ABSENT
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, WARN) { "existsStrict($path) could not be answered: ${e.asLog()}" }
+            Existence.UNKNOWN
+        }
     }
 
     override suspend fun delete(path: SAFPath, recursive: Boolean): Boolean {
         return try {
             log(TAG, VERBOSE) { "delete(recursive=$recursive): $path" }
-            val docFile = path.resolveDocFile()
+            val docFile = path.resolveDocFileOrNull() ?: return false
 
             if (!docFile.exists) {
                 return false
@@ -500,16 +638,13 @@ class SAFFileSystemOps @Inject constructor(
         // If parent is tree root (no segments), it always exists
         if (parentPath.segments.isEmpty()) return
 
-        // Try to resolve the parent DocFile
-        val parentDocFile = try {
-            parentPath.resolveDocFile()
-        } catch (e: MissingUriPermissionException) {
-            // Permission issue - can't proceed
-            throw e
-        } catch (e: Exception) {
-            // Parent might not exist
+        // Only proven absence may authorize a create here; anything the provider couldn't answer
+        // (permission, dead provider, ambiguous listing, cancellation) propagates.
+        val parentDocFile = parentPath.resolveDocFileOrNull()
+
+        if (parentDocFile == null || !parentDocFile.exists) {
             if (!createParents) {
-                throw WriteException("Parent directory does not exist: $parentPath", path, e)
+                throw WriteException("Parent directory does not exist: $parentPath", path)
             }
 
             // Recursively ensure the parent's parent exists
@@ -520,18 +655,7 @@ class SAFFileSystemOps @Inject constructor(
             return
         }
 
-        // Parent DocFile resolved - check if it exists
-        if (!parentDocFile.exists) {
-            if (!createParents) {
-                throw WriteException("Parent directory does not exist: $parentPath", path)
-            }
-
-            // Recursively ensure the parent's parent exists
-            ensureParentExists(parentPath, createParents = true)
-
-            // Now create this missing parent directory
-            createMissingParentDir(parentPath)
-        } else if (!parentDocFile.isDirectory) {
+        if (!parentDocFile.isDirectory) {
             // Parent exists but is not a directory - this is an error
             throw WriteException("Parent exists but is not a directory: $parentPath", path)
         }
@@ -563,9 +687,9 @@ class SAFFileSystemOps @Inject constructor(
 
             ensureParentExists(path, createParents)
 
-            val docFile = path.resolveDocFile()
+            val docFile = path.resolveDocFileOrNull()
 
-            if (docFile.existsStrict()) {
+            if (docFile != null && docFile.existsStrict()) {
                 if (docFile.isDirectory) return // Already exists - idempotent
 
                 throw PathAlreadyExistsException(
@@ -596,8 +720,8 @@ class SAFFileSystemOps @Inject constructor(
 
             ensureParentExists(path, createParents)
 
-            val docFile = path.resolveDocFile()
-            if (docFile.existsStrict()) throw PathAlreadyExistsException(path = path)
+            val docFile = path.resolveDocFileOrNull()
+            if (docFile != null && docFile.existsStrict()) throw PathAlreadyExistsException(path = path)
 
             val created = createDocumentFile("application/octet-stream", path)
             cacheCreated(path, created)
@@ -623,26 +747,27 @@ class SAFFileSystemOps @Inject constructor(
         // DocumentsProvider operates in a different permission context than direct file access.
         contentResolver.openInputStream(docFile.uri)
             ?: throw IOException("Couldn't open input stream for $path")
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         log(TAG, WARN) { "openInputStream($path) failed: ${e.asLog()}" }
         throw ReadException(path = path, cause = e)
     }
 
     override suspend fun openOutputStream(path: SAFPath, append: Boolean): OutputStream = try {
-        var docFile = path.resolveDocFile()
-        log(TAG, VERBOSE) { "openOutputStream(append=$append): $path -> $docFile" }
+        val existing = path.resolveDocFileOrNull()?.takeIf { it.existsStrict() }
+        log(TAG, VERBOSE) { "openOutputStream(append=$append): $path -> $existing" }
 
         // Match Local's create-on-write semantics (StandardOpenOption.CREATE, both modes).
         // The parent must already exist — createDocumentFile enforces that.
-        val created = if (!docFile.existsStrict()) {
-            docFile = createDocumentFile("application/octet-stream", path)
-            cacheCreated(path, docFile)
+        val created = existing == null
+        val docFile = existing ?: createDocumentFile("application/octet-stream", path).also {
+            cacheCreated(path, it)
             invalidateParentLookup(path)
-            true
-        } else {
+        }
+        if (!created) {
             // Size/mtime become stale once the caller writes
             lookupCache.remove(path)
-            false
         }
 
         val mode = if (append) "wa" else "w"
@@ -686,6 +811,8 @@ class SAFFileSystemOps @Inject constructor(
 
             val pfd = openPFD(path, if (readWrite) FileMode.READ_WRITE else FileMode.READ)
             pfd.toFileHandle(readWrite)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "file($path, readWrite=$readWrite) failed: ${e.asLog()}" }
             throw ReadException(path = path, cause = e)
@@ -713,6 +840,8 @@ class SAFFileSystemOps @Inject constructor(
             }
 
             success
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "setModifiedAt($path, $modifiedAt) failed: $e" }
             supportsSetModifiedAt = false
@@ -741,6 +870,8 @@ class SAFFileSystemOps @Inject constructor(
             }
 
             success
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "setPermissions($path, $permissions) failed: ${e.asLog()}" }
             supportsSetPermissions = false
@@ -769,6 +900,8 @@ class SAFFileSystemOps @Inject constructor(
             }
 
             success
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "setOwnership($path, $ownership) failed: ${e.asLog()}" }
             supportsSetOwnership = false
@@ -843,7 +976,7 @@ class SAFFileSystemOps @Inject constructor(
         }
 
         // renameDocument/moveDocument may collide or silently auto-suffix on an existing destination
-        if (destination.resolveDocFile().existsStrict()) {
+        if (destination.resolveDocFileOrNull()?.existsStrict() == true) {
             return MoveOutcome.NotSupported("Destination already exists: $destination")
         }
 
@@ -920,6 +1053,8 @@ class SAFFileSystemOps @Inject constructor(
         val docFile = path.resolveDocFile()
         log(TAG, VERBOSE) { "canRead(): $path -> $docFile" }
         docFile.readable
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         log(TAG, WARN) { "canRead($path): $e" }
         false
@@ -929,12 +1064,14 @@ class SAFFileSystemOps @Inject constructor(
         val docFile = path.resolveDocFile()
         log(TAG, VERBOSE) { "canWrite(): $path -> $docFile" }
         docFile.writable
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         log(TAG, WARN) { "canWrite($path): $e" }
         false
     }
 
-    fun openPFD(path: SAFPath, mode: FileMode): ParcelFileDescriptor {
+    suspend fun openPFD(path: SAFPath, mode: FileMode): ParcelFileDescriptor {
         return path.resolveDocFile().openPFD(mode)
     }
 
@@ -944,6 +1081,8 @@ class SAFFileSystemOps @Inject constructor(
 
             val pfd = openPFD(path, FileMode.READ)
             pfd.use { android.system.Os.fstatvfs(it.fileDescriptor) }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "getFileSystem($path) failed: ${e.asLog()}" }
             null
@@ -996,6 +1135,10 @@ class SAFFileSystemOps @Inject constructor(
 
         private const val INITIAL_CACHE_SIZE = 16
         private const val MAX_CACHE_SIZE = 1000
+        private const val INITIAL_CHILDREN_CACHE_SIZE = 4
+        private const val MAX_CHILDREN_CACHE_PARENTS = 4
         private val CACHE_TTL = 10.seconds
+
+        private const val EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
     }
 }

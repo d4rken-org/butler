@@ -167,6 +167,19 @@ data class SAFDocFile(
         val lastModified: Instant,
     )
 
+    data class ChildEntry(
+        val docFile: SAFDocFile,
+        /** The display name the cursor carried, null when the provider left the column empty. */
+        val name: String?,
+        val lookupData: LookupData,
+    )
+
+    /** [partial] = the provider flagged this listing as still loading or errored; entries may be missing. */
+    data class ChildListing(
+        val entries: List<ChildEntry>,
+        val partial: Boolean,
+    )
+
     fun getLookupData(): LookupData = resolver.query(
         uri,
         arrayOf(
@@ -267,10 +280,10 @@ data class SAFDocFile(
      * Instead of N+1 queries (1 for listing, N for metadata), this uses just 1 query.
      * For 10,000 files, this reduces ~10,001 queries to 1 query.
      *
-     * @return List of pairs containing the file and its lookup data
+     * @return the children with their handles, display names and metadata
      */
     @SuppressLint("Recycle")
-    fun listFilesWithLookupData(): List<Pair<SAFDocFile, LookupData>> {
+    fun listFilesWithLookupData(): ChildListing {
         val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, DocumentsContract.getDocumentId(uri))
 
         val results = resolver.query(
@@ -279,17 +292,19 @@ data class SAFDocFile(
                 DocumentsContract.Document.COLUMN_DOCUMENT_ID,
                 DocumentsContract.Document.COLUMN_MIME_TYPE,
                 DocumentsContract.Document.COLUMN_SIZE,
-                DocumentsContract.Document.COLUMN_LAST_MODIFIED
+                DocumentsContract.Document.COLUMN_LAST_MODIFIED,
+                DocumentsContract.Document.COLUMN_DISPLAY_NAME,
             ),
             null,
             null,
             null
         )?.useQuietly { cursor ->
-            cursor.asSequence().map {
+            val entries = cursor.asSequence().map {
                 val documentId = it.getString(0)
                 val mimeType = it.getString(1)
                 val size = if (!it.isNull(2)) it.getLong(2) else 0L
                 val lastModifiedMs = if (!it.isNull(3)) it.getLong(3) else 0L
+                val displayName = if (!it.isNull(4)) it.getString(4) else null
 
                 val fileUri = DocumentsContract.buildDocumentUriUsingTree(uri, documentId)
                 val docFile = SAFDocFile(context, resolver, fileUri)
@@ -303,8 +318,16 @@ data class SAFDocFile(
                     lastModified = Instant.fromEpochMilliseconds(lastModifiedMs)
                 )
 
-                docFile to lookupData
+                ChildEntry(docFile = docFile, name = displayName, lookupData = lookupData)
             }.toList()
+
+            // Read inside the block, the cursor is closed on exit.
+            val extras = cursor.extras
+            ChildListing(
+                entries = entries,
+                partial = extras.getBoolean(DocumentsContract.EXTRA_LOADING, false) ||
+                    extras.getString(DocumentsContract.EXTRA_ERROR) != null,
+            )
         }
 
         requireNotNull(results) { "Unable to list files for $uri" }
