@@ -144,13 +144,13 @@ fun SelectableFileGrid(
             ) {
                 // Icon or checkbox in top-left
                 Box(
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(density.gridIconSize)
                 ) {
                     if (isSelectionMode) {
                         Checkbox(
                             checked = isSelected,
                             onCheckedChange = { onClick() },
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(density.gridIconSize)
                         )
                     } else {
                         // Use Material TwoTone icons like Explorer
@@ -159,13 +159,13 @@ fun SelectableFileGrid(
                                 imageVector = Icons.TwoTone.Folder,
                                 contentDescription = "Folder",
                                 tint = MaterialTheme.colorScheme.onScrim,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(density.gridIconSize)
                             )
                             else -> Icon(
                                 imageVector = Icons.TwoTone.Description,
                                 contentDescription = "File",
                                 tint = MaterialTheme.colorScheme.onScrim,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(density.gridIconSize)
                             )
                         }
                     }

@@ -44,6 +44,13 @@ val SearcherViewStyle.Density.gridMinSize: Dp
         SearcherViewStyle.Density.DETAILED -> 160.dp
     }
 
+val SearcherViewStyle.Density.gridIconSize: Dp
+    get() = when (this) {
+        SearcherViewStyle.Density.COMPACT -> 16.dp
+        SearcherViewStyle.Density.COMFORTABLE -> 20.dp
+        SearcherViewStyle.Density.DETAILED -> 24.dp
+    }
+
 /** A compact tile carries the name alone; the metadata overlays need room to read as text. */
 val SearcherViewStyle.Density.showsTileMetadata: Boolean
     get() = this != SearcherViewStyle.Density.COMPACT
