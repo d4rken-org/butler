@@ -13,12 +13,15 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 
 @Composable
 fun TrashNestedItemRow(
     modifier: Modifier = Modifier,
     item: ExplorerItem.Trash.Nested,
+    density: ExplorerViewStyle.Density,
     isSelected: Boolean = false,
     onToggleSelection: () -> Unit = {},
     onClick: () -> Unit = {},
@@ -30,6 +33,7 @@ fun TrashNestedItemRow(
     FileRowBase(
         modifier = modifier,
         item = item,
+        density = density,
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
         onClick = onClick,
@@ -39,7 +43,7 @@ fun TrashNestedItemRow(
             TintedAsyncImage(
                 model = item.lookup,
                 contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(density.rowIconSize),
             )
         },
         primaryText = item.displayName.get(context),
@@ -54,6 +58,27 @@ fun TrashNestedItemRow(
 private fun TrashNestedItemRowPreview() {
     TrashNestedItemRow(
         item = eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider.createMockTrashNestedItem(),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TrashNestedItemRowCompactPreview() {
+    TrashNestedItemRow(
+        item = eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider.createMockTrashNestedItem(),
+        density = ExplorerViewStyle.Density.COMPACT,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TrashNestedItemRowDetailedPreview() {
+    TrashNestedItemRow(
+        item = eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider.createMockTrashNestedItem(),
+        density = ExplorerViewStyle.Density.DETAILED,
     )
 }
 
@@ -63,6 +88,7 @@ private fun TrashNestedItemRowPreview() {
 private fun TrashNestedItemRowSelectedPreview() {
     TrashNestedItemRow(
         item = eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider.createMockTrashNestedItem("photo.jpg"),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         isSelected = true,
         showSelection = true,
     )
@@ -74,5 +100,6 @@ private fun TrashNestedItemRowSelectedPreview() {
 private fun TrashNestedItemRowDirectoryPreview() {
     TrashNestedItemRow(
         item = eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider.createMockTrashNestedDirectory(),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
     )
 }

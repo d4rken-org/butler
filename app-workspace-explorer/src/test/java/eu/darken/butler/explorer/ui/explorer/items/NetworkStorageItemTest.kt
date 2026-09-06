@@ -8,6 +8,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.grid.StorageGrid
 import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
@@ -38,7 +39,7 @@ class NetworkStorageItemTest : ComposeTest() {
     fun `the row shows the label and endpoint, never the internal path`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                StorageRow(item = available, onClick = {})
+                StorageRow(item = available, density = ExplorerViewStyle.Density.COMFORTABLE, onClick = {})
             }
         }
 
@@ -51,7 +52,7 @@ class NetworkStorageItemTest : ComposeTest() {
     fun `the row badges a location that needs a sign-in`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                StorageRow(item = signInRequired, onClick = {})
+                StorageRow(item = signInRequired, density = ExplorerViewStyle.Density.COMFORTABLE, onClick = {})
             }
         }
 
@@ -63,7 +64,7 @@ class NetworkStorageItemTest : ComposeTest() {
         composeTestRule.setContent {
             PreviewWrapper {
                 Box(Modifier.size(200.dp)) {
-                    StorageGrid(item = available, onClick = {})
+                    StorageGrid(item = available, density = ExplorerViewStyle.Density.COMFORTABLE, onClick = {})
                 }
             }
         }
@@ -83,7 +84,7 @@ class NetworkStorageItemTest : ComposeTest() {
         composeTestRule.setContent {
             PreviewWrapper {
                 Box(Modifier.size(200.dp)) {
-                    StorageGrid(item = signInRequired, onClick = {})
+                    StorageGrid(item = signInRequired, density = ExplorerViewStyle.Density.COMFORTABLE, onClick = {})
                 }
             }
         }

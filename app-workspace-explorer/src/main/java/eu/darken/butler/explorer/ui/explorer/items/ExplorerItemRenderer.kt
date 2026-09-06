@@ -130,6 +130,7 @@ private fun ItemContent(
             when (viewStyle.mode) {
                 ExplorerViewStyle.Mode.LIST -> LookupItemRow(
                     item = item,
+                    density = viewStyle.density,
                     isSelected = isSelected,
                     onToggleSelection = { onToggleSelection(item) },
                     onClick = { onItemClick(item) },
@@ -141,6 +142,7 @@ private fun ItemContent(
                 )
                 ExplorerViewStyle.Mode.GRID -> LookupItemGrid(
                     item = item,
+                    density = viewStyle.density,
                     isSelected = isSelected,
                     onToggleSelection = { onToggleSelection(item) },
                     onClick = { onItemClick(item) },
@@ -156,8 +158,8 @@ private fun ItemContent(
 
         is ExplorerItem.Peek -> {
             when (viewStyle.mode) {
-                ExplorerViewStyle.Mode.LIST -> PeekRow(item = item)
-                ExplorerViewStyle.Mode.GRID -> PeekGrid(item = item)
+                ExplorerViewStyle.Mode.LIST -> PeekRow(item = item, density = viewStyle.density)
+                ExplorerViewStyle.Mode.GRID -> PeekGrid(item = item, density = viewStyle.density)
             }
         }
 
@@ -165,11 +167,13 @@ private fun ItemContent(
             when (viewStyle.mode) {
                 ExplorerViewStyle.Mode.LIST -> ShortcutRow(
                     item = item,
+                    density = viewStyle.density,
                     isEnabled = isEnabled,
                     onClick = { onNavigate(item) },
                 )
                 ExplorerViewStyle.Mode.GRID -> ShortcutGrid(
                     item = item,
+                    density = viewStyle.density,
                     isEnabled = isEnabled,
                     onClick = { onNavigate(item) },
                 )
@@ -187,6 +191,7 @@ private fun ItemContent(
             when (viewStyle.mode) {
                 ExplorerViewStyle.Mode.LIST -> StorageRow(
                     item = item,
+                    density = viewStyle.density,
                     isSelected = isSelected,
                     onToggleSelection = { onToggleSelection(item) },
                     onClick = { onItemClick(item) },
@@ -197,6 +202,7 @@ private fun ItemContent(
                 )
                 ExplorerViewStyle.Mode.GRID -> StorageGrid(
                     item = item,
+                    density = viewStyle.density,
                     isSelected = isSelected,
                     onToggleSelection = { onToggleSelection(item) },
                     onClick = { onItemClick(item) },
@@ -212,6 +218,7 @@ private fun ItemContent(
             when (viewStyle.mode) {
                 ExplorerViewStyle.Mode.LIST -> TrashItemRow(
                     item = item,
+                    density = viewStyle.density,
                     isSelected = isSelected,
                     onToggleSelection = { onToggleSelection(item) },
                     onClick = { onItemClick(item) },
@@ -220,6 +227,7 @@ private fun ItemContent(
                 )
                 ExplorerViewStyle.Mode.GRID -> TrashItemGrid(
                     item = item,
+                    density = viewStyle.density,
                     isSelected = isSelected,
                     onToggleSelection = { onToggleSelection(item) },
                     onClick = { onItemClick(item) },
@@ -233,6 +241,7 @@ private fun ItemContent(
             when (viewStyle.mode) {
                 ExplorerViewStyle.Mode.LIST -> TrashNestedItemRow(
                     item = item,
+                    density = viewStyle.density,
                     isSelected = isSelected,
                     onToggleSelection = { onToggleSelection(item) },
                     onClick = { onItemClick(item) },
@@ -241,6 +250,7 @@ private fun ItemContent(
                 )
                 ExplorerViewStyle.Mode.GRID -> TrashNestedItemGrid(
                     item = item,
+                    density = viewStyle.density,
                     isSelected = isSelected,
                     onToggleSelection = { onToggleSelection(item) },
                     onClick = { onItemClick(item) },

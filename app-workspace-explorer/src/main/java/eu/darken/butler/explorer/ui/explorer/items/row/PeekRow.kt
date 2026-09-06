@@ -23,13 +23,16 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 internal fun PeekRow(
     modifier: Modifier = Modifier,
     item: ExplorerItem.Peek,
+    density: ExplorerViewStyle.Density,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "peek_loading")
     val alpha by infiniteTransition.animateFloat(
@@ -44,6 +47,7 @@ internal fun PeekRow(
 
     FileRowBase(
         item = item,
+        density = density,
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -55,7 +59,7 @@ internal fun PeekRow(
                 imageVector = Icons.TwoTone.HourglassEmpty,
                 contentDescription = stringResource(R.string.explorer_file_peek_content_desc),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(density.rowIconSize)
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
@@ -68,6 +72,7 @@ internal fun PeekRow(
 @Composable
 private fun PeekRowPreview() {
     PeekRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockPeek()
     )
 }
@@ -77,6 +82,7 @@ private fun PeekRowPreview() {
 @Composable
 private fun PeekRowSelectedPreview() {
     PeekRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockPeek("loading.txt")
     )
 }

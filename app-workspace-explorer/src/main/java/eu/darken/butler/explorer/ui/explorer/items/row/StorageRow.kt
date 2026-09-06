@@ -32,7 +32,9 @@ import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.items.statusLabel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
@@ -40,6 +42,7 @@ import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 fun StorageRow(
     modifier: Modifier = Modifier,
     item: ExplorerItem.Storage,
+    density: ExplorerViewStyle.Density,
     isSelected: Boolean = false,
     onToggleSelection: () -> Unit = {},
     onClick: () -> Unit,
@@ -53,6 +56,7 @@ fun StorageRow(
     FileRowBase(
         modifier = modifier,
         item = item,
+        density = density,
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
         onClick = onClick,
@@ -65,13 +69,13 @@ fun StorageRow(
             if (providerApp != null) {
                 AppIconImage(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(density.rowIconSize)
                         .clip(RoundedCornerShape(8.dp)),
                     pkg = providerApp,
-                    fallback = { StorageIcon(item) },
+                    fallback = { StorageIcon(item, density) },
                 )
             } else {
-                StorageIcon(item)
+                StorageIcon(item, density)
             }
         },
         primaryText = item.displayName.get(context),
@@ -118,10 +122,10 @@ fun StorageRow(
 }
 
 @Composable
-private fun StorageIcon(item: ExplorerItem.Storage) {
+private fun StorageIcon(item: ExplorerItem.Storage, density: ExplorerViewStyle.Density) {
     Box(
         modifier = Modifier
-            .size(32.dp)
+            .size(density.rowIconSize)
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center
@@ -130,7 +134,7 @@ private fun StorageIcon(item: ExplorerItem.Storage) {
             imageVector = item.displayIcon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.size(16.dp)
+            modifier = Modifier.size(density.rowIconSize / 2)
         )
     }
 }
@@ -209,6 +213,29 @@ private fun PermissionIndicator(location: SAFLocation) {
 private fun StorageRowLocalPreview() {
     StorageRow(
         item = MockDataProvider.createMockStorageLocal(),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageRowLocalCompactPreview() {
+    StorageRow(
+        item = MockDataProvider.createMockStorageLocal(),
+        density = ExplorerViewStyle.Density.COMPACT,
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageRowLocalDetailedPreview() {
+    StorageRow(
+        item = MockDataProvider.createMockStorageLocal(),
+        density = ExplorerViewStyle.Density.DETAILED,
         onClick = {}
     )
 }
@@ -219,6 +246,7 @@ private fun StorageRowLocalPreview() {
 private fun StorageRowNetworkCheckingPreview() {
     StorageRow(
         item = MockDataProvider.createMockStorageNetwork(),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         onClick = {}
     )
 }
@@ -228,6 +256,7 @@ private fun StorageRowNetworkCheckingPreview() {
 @Composable
 private fun StorageRowNetworkReachablePreview() {
     StorageRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockStorageNetwork(
             endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
         ),
@@ -240,6 +269,7 @@ private fun StorageRowNetworkReachablePreview() {
 @Composable
 private fun StorageRowNetworkUnreachablePreview() {
     StorageRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockStorageNetwork(
             endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
         ),
@@ -252,6 +282,7 @@ private fun StorageRowNetworkUnreachablePreview() {
 @Composable
 private fun StorageRowNetworkUnreachableSincePreview() {
     StorageRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockStorageNetwork(
             endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
             lastSeenAt = MockDataProvider.MockTimes.hoursAgo(3),
@@ -265,6 +296,7 @@ private fun StorageRowNetworkUnreachableSincePreview() {
 @Composable
 private fun StorageRowNetworkSignInRequiredPreview() {
     StorageRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockStorageNetwork(
             name = "Work NAS",
             status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
@@ -279,6 +311,7 @@ private fun StorageRowNetworkSignInRequiredPreview() {
 private fun StorageRowSAFPreview() {
     StorageRow(
         item = MockDataProvider.createMockStorageSAF(),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         onClick = {}
     )
 }
@@ -288,6 +321,7 @@ private fun StorageRowSAFPreview() {
 @Composable
 private fun StorageRowSAFAppPreview() {
     StorageRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockStorageSAF(
             name = "Termux",
             treeUri = "content://com.termux.documents/tree/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome",
@@ -302,6 +336,7 @@ private fun StorageRowSAFAppPreview() {
 @Composable
 private fun StorageRowSAFReadOnlyPreview() {
     StorageRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockStorageSAF(
             name = "SD Card (Read-only)",
             hasReadPermission = true,
@@ -316,6 +351,7 @@ private fun StorageRowSAFReadOnlyPreview() {
 @Composable
 private fun StorageRowSAFWriteOnlyPreview() {
     StorageRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockStorageSAF(
             name = "SD Card (Write-only)",
             hasReadPermission = false,

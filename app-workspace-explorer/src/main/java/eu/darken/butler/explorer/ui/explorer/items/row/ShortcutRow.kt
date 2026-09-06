@@ -30,13 +30,18 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.rowBadgeSize
+import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
+import eu.darken.butler.explorer.ui.explorer.items.rowPadding
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 fun ShortcutRow(
     modifier: Modifier = Modifier,
     item: ExplorerItem.Shortcut,
+    density: ExplorerViewStyle.Density,
     isEnabled: Boolean = true,
     onClick: () -> Unit,
 ) {
@@ -48,7 +53,7 @@ fun ShortcutRow(
             .alpha(if (isEnabled) 1f else 0.38f)
             .clip(RoundedCornerShape(8.dp))
             .then(if (isEnabled) Modifier.clickable { onClick() } else Modifier)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = density.rowPadding + 4.dp, vertical = density.rowPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -60,7 +65,7 @@ fun ShortcutRow(
         }
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(density.rowIconSize + 8.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(
                     if (hasBadge) MaterialTheme.colorScheme.surfaceVariant
@@ -71,8 +76,8 @@ fun ShortcutRow(
             BadgedIcon(
                 icon = item.displayIcon,
                 badge = badgeIcon,
-                iconSize = 20.dp,
-                badgeSize = 12.dp,
+                iconSize = density.rowIconSize * 0.625f,
+                badgeSize = density.rowBadgeSize,
                 iconTint = if (hasBadge) MaterialTheme.colorScheme.onSurfaceVariant
                 else MaterialTheme.colorScheme.onPrimaryContainer,
                 badgeTint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -112,6 +117,29 @@ fun ShortcutRow(
 private fun ShortcutRowPreview() {
     ShortcutRow(
         item = MockDataProvider.createMockShortcut(),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ShortcutRowCompactPreview() {
+    ShortcutRow(
+        item = MockDataProvider.createMockShortcut(),
+        density = ExplorerViewStyle.Density.COMPACT,
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ShortcutRowDetailedPreview() {
+    ShortcutRow(
+        item = MockDataProvider.createMockShortcut(),
+        density = ExplorerViewStyle.Density.DETAILED,
         onClick = {}
     )
 }

@@ -32,9 +32,13 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.isProblematicInvisible
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.ui.explorer.items.LeadingIconSlot
+import eu.darken.butler.explorer.ui.explorer.items.rowBadgeSize
+import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
+import eu.darken.butler.explorer.ui.explorer.items.rowPadding
 
 private fun String.withProblematicCharsUnderlined(color: Color): AnnotatedString {
     if (this.trim { it.isProblematicInvisible() } == this) return AnnotatedString(this)
@@ -75,6 +79,7 @@ private fun String.withProblematicCharsUnderlined(color: Color): AnnotatedString
 internal fun FileRowBase(
     modifier: Modifier = Modifier,
     item: ExplorerItem,
+    density: ExplorerViewStyle.Density,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -126,7 +131,7 @@ internal fun FileRowBase(
                     )
                 } else Modifier
             )
-            .padding(8.dp),
+            .padding(density.rowPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Leading content area - shows either checkbox or decorated icon. Decorations
@@ -134,7 +139,7 @@ internal fun FileRowBase(
         // checkbox and intentionally hides decorations.
         if (showSelection) {
             Box(
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(density.rowIconSize),
                 contentAlignment = Alignment.Center,
             ) {
                 Checkbox(
@@ -144,8 +149,9 @@ internal fun FileRowBase(
             }
         } else {
             LeadingIconSlot(
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(density.rowIconSize),
                 decorations = decorations,
+                badgeSize = density.rowBadgeSize,
             ) {
                 leadingContent()
             }

@@ -35,6 +35,7 @@ import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectItems
 import eu.darken.butler.explorer.ui.explorer.dragselect.explorerDragSelectKeys
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
+import eu.darken.butler.explorer.ui.explorer.items.gridMinSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
@@ -76,7 +77,7 @@ internal fun ExplorerGridContent(
 
     LazyVerticalGrid(
         state = effectiveGridState,
-        columns = GridCells.Adaptive(minSize = 120.dp),
+        columns = GridCells.Adaptive(minSize = state.viewStyle.density.gridMinSize),
         modifier = modifier.gridDragSelect(
             state = effectiveGridState,
             orderedKeys = { explorerDragSelectKeys(state) },

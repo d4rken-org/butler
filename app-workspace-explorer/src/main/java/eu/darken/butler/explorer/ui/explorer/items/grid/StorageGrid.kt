@@ -37,7 +37,10 @@ import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
+import eu.darken.butler.explorer.ui.explorer.items.showsTileMetadata
 import eu.darken.butler.explorer.ui.explorer.items.statusLabel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
@@ -87,6 +90,7 @@ private fun PermissionIndicator(location: SAFLocation) {
 fun StorageGrid(
     modifier: Modifier = Modifier,
     item: ExplorerItem.Storage,
+    density: ExplorerViewStyle.Density,
     isSelected: Boolean = false,
     onToggleSelection: () -> Unit = {},
     onClick: () -> Unit,
@@ -100,6 +104,7 @@ fun StorageGrid(
     FileGridBase(
         modifier = modifier,
         item = item,
+        density = density,
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
         onClick = onClick,
@@ -112,13 +117,13 @@ fun StorageGrid(
             if (providerApp != null) {
                 AppIconImage(
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(density.gridIconSize)
                         .clip(RoundedCornerShape(5.dp)),
                     pkg = providerApp,
-                    fallback = { StorageIcon(item) },
+                    fallback = { StorageIcon(item, density) },
                 )
             } else {
-                StorageIcon(item)
+                StorageIcon(item, density)
             }
         },
         primaryText = item.displayName.get(context),
@@ -139,10 +144,11 @@ fun StorageGrid(
                 }
                 // Network tiles carry their status in the trailing slot, icon and wording together.
                 else -> null
-            }
+            }.takeIf { density.showsTileMetadata }
         },
         // A network path is a UUID, the location's own subtitle is what identifies it to the user.
-        tertiaryText = item.subtitle?.get(context) ?: item.target.path.userReadablePath.get(context),
+        tertiaryText = (item.subtitle?.get(context) ?: item.target.path.userReadablePath.get(context))
+            .takeIf { density.showsTileMetadata },
         backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
         trailingContent = when {
             item is ExplorerItem.Storage.SAF -> {
@@ -160,12 +166,12 @@ fun StorageGrid(
 }
 
 @Composable
-private fun StorageIcon(item: ExplorerItem.Storage) {
+private fun StorageIcon(item: ExplorerItem.Storage, density: ExplorerViewStyle.Density) {
     Icon(
         imageVector = item.displayIcon,
         contentDescription = null,
         tint = Color.White,
-        modifier = Modifier.size(20.dp)
+        modifier = Modifier.size(density.gridIconSize)
     )
 }
 
@@ -231,6 +237,47 @@ private fun StorageGridLocalPreview() {
         items(3) {
             StorageGrid(
                 item = MockDataProvider.createMockStorageLocal(),
+                density = ExplorerViewStyle.Density.COMFORTABLE,
+                onClick = {}
+            )
+        }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageGridLocalCompactPreview() {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(3) {
+            StorageGrid(
+                item = MockDataProvider.createMockStorageLocal(),
+                density = ExplorerViewStyle.Density.COMPACT,
+                onClick = {}
+            )
+        }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageGridLocalDetailedPreview() {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(3) {
+            StorageGrid(
+                item = MockDataProvider.createMockStorageLocal(),
+                density = ExplorerViewStyle.Density.DETAILED,
                 onClick = {}
             )
         }
@@ -250,11 +297,13 @@ private fun StorageGridNetworkPreview() {
         item {
             StorageGrid(
                 item = MockDataProvider.createMockStorageNetwork(),
+                density = ExplorerViewStyle.Density.COMFORTABLE,
                 onClick = {}
             )
         }
         item {
             StorageGrid(
+                density = ExplorerViewStyle.Density.COMFORTABLE,
                 item = MockDataProvider.createMockStorageNetwork(
                     endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
                 ),
@@ -263,6 +312,7 @@ private fun StorageGridNetworkPreview() {
         }
         item {
             StorageGrid(
+                density = ExplorerViewStyle.Density.COMFORTABLE,
                 item = MockDataProvider.createMockStorageNetwork(
                     endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
                 ),
@@ -271,6 +321,7 @@ private fun StorageGridNetworkPreview() {
         }
         item {
             StorageGrid(
+                density = ExplorerViewStyle.Density.COMFORTABLE,
                 item = MockDataProvider.createMockStorageNetwork(
                     name = "Work NAS",
                     status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
@@ -295,6 +346,7 @@ private fun StorageGridSAFPreview() {
         items(3) {
             StorageGrid(
                 item = MockDataProvider.createMockStorageSAF(),
+                density = ExplorerViewStyle.Density.COMFORTABLE,
                 onClick = {}
             )
         }
@@ -313,6 +365,7 @@ private fun StorageGridSAFAppPreview() {
     ) {
         items(3) {
             StorageGrid(
+                density = ExplorerViewStyle.Density.COMFORTABLE,
                 item = MockDataProvider.createMockStorageSAF(
                     name = "Termux",
                     treeUri = "content://com.termux.documents/tree/%2Fdata%2Fdata%2Fcom.termux%2Ffiles%2Fhome",
@@ -336,6 +389,7 @@ private fun StorageGridSAFReadOnlyPreview() {
     ) {
         items(3) {
             StorageGrid(
+                density = ExplorerViewStyle.Density.COMFORTABLE,
                 item = MockDataProvider.createMockStorageSAF(
                     name = "SD Card (Read-only)",
                     hasReadPermission = true,
@@ -359,6 +413,7 @@ private fun StorageGridSAFWriteOnlyPreview() {
     ) {
         items(3) {
             StorageGrid(
+                density = ExplorerViewStyle.Density.COMFORTABLE,
                 item = MockDataProvider.createMockStorageSAF(
                     name = "SD Card (Write-only)",
                     hasReadPermission = false,

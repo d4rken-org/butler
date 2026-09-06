@@ -12,6 +12,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import eu.darken.butler.workspace.ui.preview.TEST_TAG_FOLDER_PREVIEW_COLLAGE
@@ -43,6 +44,7 @@ class DirectoryGridCollageTest : ComposeTest() {
                     Box(Modifier.size(200.dp)) {
                         LookupItemGrid(
                             item = MockDataProvider.createMockDirectory(name = "Photos"),
+                            density = ExplorerViewStyle.Density.COMFORTABLE,
                             isSelected = false,
                             onToggleSelection = {},
                             onClick = {},
@@ -63,6 +65,7 @@ class DirectoryGridCollageTest : ComposeTest() {
                 Box(Modifier.size(200.dp)) {
                     LookupItemGrid(
                         item = MockDataProvider.createMockDirectory(name = "Photos"),
+                        density = ExplorerViewStyle.Density.COMFORTABLE,
                         isSelected = false,
                         onToggleSelection = {},
                         onClick = {},
@@ -85,6 +88,7 @@ class DirectoryGridCollageTest : ComposeTest() {
                     Box(Modifier.size(200.dp)) {
                         LookupItemGrid(
                             item = MockDataProvider.createMockDirectory(name = "Photos"),
+                            density = ExplorerViewStyle.Density.COMFORTABLE,
                             isSelected = false,
                             onToggleSelection = {},
                             onClick = {},
@@ -112,6 +116,7 @@ class DirectoryGridCollageTest : ComposeTest() {
                     Box(Modifier.size(200.dp)) {
                         LookupItemGrid(
                             item = MockDataProvider.createMockDirectory(name = "Photos"),
+                            density = ExplorerViewStyle.Density.COMFORTABLE,
                             isSelected = false,
                             onToggleSelection = {},
                             onClick = {},
@@ -139,6 +144,7 @@ class DirectoryGridCollageTest : ComposeTest() {
                     Box(Modifier.size(200.dp)) {
                         LookupItemGrid(
                             item = MockDataProvider.createMockDirectory(name = "Photos"),
+                            density = ExplorerViewStyle.Density.COMFORTABLE,
                             isSelected = false,
                             onToggleSelection = {},
                             onClick = {},
@@ -163,6 +169,7 @@ class DirectoryGridCollageTest : ComposeTest() {
                     Box(Modifier.size(200.dp)) {
                         LookupItemGrid(
                             item = MockDataProvider.createMockRegularFile("readme.txt"),
+                            density = ExplorerViewStyle.Density.COMFORTABLE,
                             isSelected = false,
                             onToggleSelection = {},
                             onClick = {},

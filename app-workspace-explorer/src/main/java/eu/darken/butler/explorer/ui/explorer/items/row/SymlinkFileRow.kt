@@ -18,13 +18,17 @@ import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.isProblematicInvisible
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.rowDateStyle
+import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 internal fun SymlinkFileRow(
     modifier: Modifier = Modifier,
     item: ExplorerItem.SymbolicLink,
+    density: ExplorerViewStyle.Density,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -39,6 +43,7 @@ internal fun SymlinkFileRow(
 
     FileRowBase(
         item = item,
+        density = density,
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
         onClick = onClick,
@@ -57,7 +62,7 @@ internal fun SymlinkFileRow(
                 } else {
                     MaterialTheme.colorScheme.primary
                 },
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(density.rowIconSize)
             )
         },
         primaryText = primaryText,
@@ -66,7 +71,10 @@ internal fun SymlinkFileRow(
             item.targetPath?.let { "→ $it" },
             stringResource(R.string.explorer_file_broken_link_label).takeIf { item.isBroken },
         ).joinToString(" • ").takeIf { it.isNotEmpty() },
-        secondaryEndText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.FULL) },
+        secondaryEndText = item.lookup.modifiedAt?.let { formatDateTime(it, density.rowDateStyle) },
+        tertiaryText = item.createdAt
+            ?.takeIf { density == ExplorerViewStyle.Density.DETAILED }
+            ?.let { stringResource(R.string.explorer_view_detail_created_label, formatDateTime(it, DateTimeStyle.FULL)) },
     )
 }
 
@@ -76,6 +84,35 @@ internal fun SymlinkFileRow(
 private fun SymlinkFileRowPreview() {
     SymlinkFileRow(
         item = MockDataProvider.createMockSymbolicLink(),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SymlinkFileRowCompactPreview() {
+    SymlinkFileRow(
+        item = MockDataProvider.createMockSymbolicLink(),
+        density = ExplorerViewStyle.Density.COMPACT,
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SymlinkFileRowDetailedPreview() {
+    SymlinkFileRow(
+        item = MockDataProvider.createMockSymbolicLink(),
+        density = ExplorerViewStyle.Density.DETAILED,
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -89,6 +126,7 @@ private fun SymlinkFileRowPreview() {
 private fun SymlinkFileRowBrokenPreview() {
     SymlinkFileRow(
         item = MockDataProvider.createMockSymbolicLink("broken_link", "/path/to/missing/file", true),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         isSelected = true,
         onToggleSelection = {},
         onClick = {},
@@ -102,6 +140,7 @@ private fun SymlinkFileRowBrokenPreview() {
 private fun SymlinkFileRowLeadingWhitespacePreview() {
     SymlinkFileRow(
         item = MockDataProvider.createMockSymbolicLink(" link_to_docs", "/home/user/documents"),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -115,6 +154,7 @@ private fun SymlinkFileRowLeadingWhitespacePreview() {
 private fun SymlinkFileRowWhitespaceSelectedPreview() {
     SymlinkFileRow(
         item = MockDataProvider.createMockSymbolicLink("my_link ", "/opt/data/shared"),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         isSelected = true,
         onToggleSelection = {},
         onClick = {},
@@ -128,6 +168,7 @@ private fun SymlinkFileRowWhitespaceSelectedPreview() {
 private fun SymlinkFileRowHighlightedPreview() {
     SymlinkFileRow(
         item = MockDataProvider.createMockSymbolicLink("new_link", "/home/user/target"),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         isSelected = false,
         onToggleSelection = {},
         onClick = {},

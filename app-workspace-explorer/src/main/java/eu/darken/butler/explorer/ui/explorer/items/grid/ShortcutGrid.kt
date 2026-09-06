@@ -13,13 +13,17 @@ import eu.darken.butler.common.compose.BadgedIcon
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.gridBadgeSize
+import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 fun ShortcutGrid(
     modifier: Modifier = Modifier,
     item: ExplorerItem.Shortcut,
+    density: ExplorerViewStyle.Density,
     isEnabled: Boolean = true,
     onClick: () -> Unit,
 ) {
@@ -31,6 +35,7 @@ fun ShortcutGrid(
     FileGridBase(
         modifier = modifier,
         item = item,
+        density = density,
         isSelected = false,
         onToggleSelection = {},
         onClick = onClick,
@@ -41,8 +46,8 @@ fun ShortcutGrid(
             BadgedIcon(
                 icon = item.displayIcon,
                 badge = badgeIcon,
-                iconSize = 20.dp,
-                badgeSize = 10.dp,
+                iconSize = density.gridIconSize,
+                badgeSize = density.gridBadgeSize,
                 iconTint = if (hasBadge) Color.White.copy(alpha = 0.7f) else Color.White,
                 badgeTint = Color.White,
             )
@@ -63,6 +68,29 @@ fun ShortcutGrid(
 private fun ShortcutGridPreview() {
     ShortcutGrid(
         item = MockDataProvider.createMockShortcut(),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ShortcutGridCompactPreview() {
+    ShortcutGrid(
+        item = MockDataProvider.createMockShortcut(),
+        density = ExplorerViewStyle.Density.COMPACT,
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ShortcutGridDetailedPreview() {
+    ShortcutGrid(
+        item = MockDataProvider.createMockShortcut(),
+        density = ExplorerViewStyle.Density.DETAILED,
         onClick = {}
     )
 }

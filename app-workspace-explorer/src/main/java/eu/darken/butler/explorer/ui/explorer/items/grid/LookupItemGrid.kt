@@ -12,6 +12,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -20,6 +21,7 @@ import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 fun LookupItemGrid(
     modifier: Modifier = Modifier,
     item: ExplorerItem.Lookup,
+    density: ExplorerViewStyle.Density,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -34,6 +36,7 @@ fun LookupItemGrid(
         is ExplorerItem.RegularDirectory -> DirectoryGrid(
             modifier = modifier,
             item = item,
+            density = density,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
             onClick = onClick,
@@ -48,6 +51,7 @@ fun LookupItemGrid(
         is ExplorerItem.SymbolicLink -> SymlinkFileGrid(
             modifier = modifier,
             item = item,
+            density = density,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
             onClick = onClick,
@@ -61,6 +65,7 @@ fun LookupItemGrid(
         is ExplorerItem.RegularFile -> RegularFileGrid(
             modifier = modifier,
             item = item,
+            density = density,
             isSelected = isSelected,
             onToggleSelection = onToggleSelection,
             onClick = onClick,
@@ -86,6 +91,7 @@ private fun LookupItemGridPreview() {
         items(MockDataProvider.createAllFileTypes()) { item ->
             LookupItemGrid(
                 item = item,
+                density = ExplorerViewStyle.Density.COMFORTABLE,
                 isSelected = false,
                 onToggleSelection = {},
                 onClick = {},
@@ -108,6 +114,7 @@ private fun LookupItemGridWithSelectionPreview() {
         items(MockDataProvider.createAllFileTypes()) { item ->
             LookupItemGrid(
                 item = item,
+                density = ExplorerViewStyle.Density.COMFORTABLE,
                 isSelected = item is ExplorerItem.RegularDirectory,
                 onToggleSelection = {},
                 onClick = {},

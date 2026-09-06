@@ -24,13 +24,16 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 internal fun PeekGrid(
     modifier: Modifier = Modifier,
     item: ExplorerItem.Peek,
+    density: ExplorerViewStyle.Density,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "peek_loading")
     val alpha by infiniteTransition.animateFloat(
@@ -46,6 +49,7 @@ internal fun PeekGrid(
     FileGridBase(
         modifier = modifier.alpha(alpha),
         item = item,
+        density = density,
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -56,7 +60,7 @@ internal fun PeekGrid(
                 imageVector = Icons.TwoTone.HourglassEmpty,
                 contentDescription = stringResource(R.string.explorer_file_peek_content_desc),
                 tint = Color.White,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(density.gridIconSize)
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
@@ -70,6 +74,7 @@ internal fun PeekGrid(
 @Composable
 private fun PeekGridPreview() {
     PeekGrid(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockPeek()
     )
 }
@@ -79,6 +84,7 @@ private fun PeekGridPreview() {
 @Composable
 private fun PeekGridSelectedPreview() {
     PeekGrid(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockPeek("loading.txt")
     )
 }

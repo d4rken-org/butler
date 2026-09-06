@@ -18,13 +18,17 @@ import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
+import eu.darken.butler.explorer.ui.explorer.items.showsTileMetadata
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 internal fun SymlinkFileGrid(
     modifier: Modifier = Modifier,
     item: ExplorerItem.SymbolicLink,
+    density: ExplorerViewStyle.Density,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
@@ -37,6 +41,7 @@ internal fun SymlinkFileGrid(
     FileGridBase(
         modifier = modifier,
         item = item,
+        density = density,
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
         onClick = onClick,
@@ -50,12 +55,14 @@ internal fun SymlinkFileGrid(
                 imageVector = Icons.Default.Link,
                 contentDescription = stringResource(R.string.explorer_file_symlink_content_desc),
                 tint = Color.White,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(density.gridIconSize)
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
         secondaryText = null, // Don't show target path in top corner to avoid overlap
-        tertiaryText = item.lookup.modifiedAt?.let { formatDateTime(it, DateTimeStyle.COMPACT) },
+        tertiaryText = item.lookup.modifiedAt
+            ?.takeIf { density.showsTileMetadata }
+            ?.let { formatDateTime(it, DateTimeStyle.COMPACT) },
         backgroundColor = if (item.isBroken) {
             MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
         } else {
@@ -70,6 +77,35 @@ internal fun SymlinkFileGrid(
 private fun SymlinkFileGridPreview() {
     SymlinkFileGrid(
         item = MockDataProvider.createMockSymbolicLink(),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SymlinkFileGridCompactPreview() {
+    SymlinkFileGrid(
+        item = MockDataProvider.createMockSymbolicLink(),
+        density = ExplorerViewStyle.Density.COMPACT,
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SymlinkFileGridDetailedPreview() {
+    SymlinkFileGrid(
+        item = MockDataProvider.createMockSymbolicLink(),
+        density = ExplorerViewStyle.Density.DETAILED,
         isSelected = false,
         onToggleSelection = {},
         onClick = {},
@@ -83,6 +119,7 @@ private fun SymlinkFileGridPreview() {
 private fun SymlinkFileGridBrokenPreview() {
     SymlinkFileGrid(
         item = MockDataProvider.createMockSymbolicLink("broken_link", "/path/to/missing/file", true),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         isSelected = true,
         onToggleSelection = {},
         onClick = {},
@@ -96,6 +133,7 @@ private fun SymlinkFileGridBrokenPreview() {
 private fun SymlinkFileGridHighlightedPreview() {
     SymlinkFileGrid(
         item = MockDataProvider.createMockSymbolicLink("new_link", "/home/user/target"),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         isSelected = false,
         onToggleSelection = {},
         onClick = {},

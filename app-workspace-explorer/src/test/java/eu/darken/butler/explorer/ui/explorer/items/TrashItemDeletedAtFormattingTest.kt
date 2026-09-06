@@ -8,6 +8,7 @@ import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatRelativeTime
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.grid.TrashItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
@@ -70,7 +71,7 @@ class TrashItemDeletedAtFormattingTest : ComposeTest() {
 
         composeTestRule.setContent {
             PreviewWrapper {
-                TrashItemGrid(item = oldItem)
+                TrashItemGrid(item = oldItem, density = ExplorerViewStyle.Density.COMFORTABLE)
             }
         }
 
@@ -97,7 +98,7 @@ class TrashItemDeletedAtFormattingTest : ComposeTest() {
     private fun renderRow(item: ExplorerItem.Trash.Root) {
         composeTestRule.setContent {
             PreviewWrapper {
-                TrashItemRow(item = item)
+                TrashItemRow(item = item, density = ExplorerViewStyle.Density.COMFORTABLE)
             }
         }
     }

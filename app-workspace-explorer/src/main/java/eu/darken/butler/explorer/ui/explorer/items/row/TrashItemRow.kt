@@ -21,13 +21,16 @@ import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.formatSmartTime
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 fun TrashItemRow(
     modifier: Modifier = Modifier,
     item: ExplorerItem.Trash.Root,
+    density: ExplorerViewStyle.Density,
     isSelected: Boolean = false,
     onToggleSelection: () -> Unit = {},
     onClick: () -> Unit = {},
@@ -39,6 +42,7 @@ fun TrashItemRow(
     FileRowBase(
         modifier = modifier.alpha(if (item.isAvailable) 1f else 0.5f),
         item = item,
+        density = density,
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
         onClick = onClick,
@@ -49,13 +53,13 @@ fun TrashItemRow(
                 TintedAsyncImage(
                     model = item.trashLookup,
                     contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(density.rowIconSize),
                 )
             } else {
                 Icon(
                     imageVector = Icons.TwoTone.QuestionMark,
                     contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(density.rowIconSize),
                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 )
             }
@@ -73,6 +77,27 @@ fun TrashItemRow(
 private fun TrashItemRowPreview() {
     TrashItemRow(
         item = MockDataProvider.createMockTrashItem(),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TrashItemRowCompactPreview() {
+    TrashItemRow(
+        item = MockDataProvider.createMockTrashItem(),
+        density = ExplorerViewStyle.Density.COMPACT,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TrashItemRowDetailedPreview() {
+    TrashItemRow(
+        item = MockDataProvider.createMockTrashItem(),
+        density = ExplorerViewStyle.Density.DETAILED,
     )
 }
 
@@ -82,6 +107,7 @@ private fun TrashItemRowPreview() {
 private fun TrashItemRowSelectedPreview() {
     TrashItemRow(
         item = MockDataProvider.createMockTrashItem("photo.jpg"),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         isSelected = true,
         showSelection = true,
     )
@@ -93,6 +119,7 @@ private fun TrashItemRowSelectedPreview() {
 private fun TrashItemRowOldPreview() {
     TrashItemRow(
         item = MockDataProvider.createMockTrashItemOld(),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
     )
 }
 
@@ -102,6 +129,7 @@ private fun TrashItemRowOldPreview() {
 @Composable
 private fun TrashItemRowNarrowPreview() {
     TrashItemRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         modifier = Modifier.width(200.dp),
         item = MockDataProvider.createMockTrashItemOld(sizeKB = 1_289_748),
     )
@@ -112,6 +140,7 @@ private fun TrashItemRowNarrowPreview() {
 @Composable
 private fun TrashItemRowUnavailablePreview() {
     TrashItemRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockTrashItem(
             name = "missing_file.txt",
             isAvailable = false,
