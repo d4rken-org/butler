@@ -1381,7 +1381,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             // Templates
             is SearcherPageAction.Templates.Apply -> applyTemplate(action.template)
 
-            // Filter - Condition-based actions
+            // View style, one branch per write scope of the view options sheet
             is SearcherPageAction.ViewStyle.ApplyToTab -> {
                 // The live path: every control change in the view options sheet lands here.
                 tabViewStore.setViewStyle(id, action.style)
@@ -1396,6 +1396,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 // sequencing a slot write after the suspending persist could reapply a stale one.
                 searcherSettings.defaultViewStyle.value(action.style)
             }
+
+            // Filter - Condition-based actions
             is SearcherPageAction.Filter.OpenSizeConditionEditor -> {
                 dialogStateFlow.value = SearcherDialogState.EditSizeCondition(existing = null)
             }
