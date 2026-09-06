@@ -136,6 +136,12 @@
     <string name="apps_details_uninstalled_title">Uninstalled for this user</string>
     <string name="apps_details_uninstalled_message">The app is no longer installed for this user, but its files are still on the device.</string>
 
+    <!-- App Details confirmations -->
+    <string name="apps_details_confirm_clear_data_title">Clear app data?</string>
+    <string name="apps_details_confirm_clear_data_message">All data and settings of %1$s will be deleted. This cannot be undone.</string>
+    <string name="apps_details_confirm_uninstall_title">Uninstall app?</string>
+    <string name="apps_details_confirm_uninstall_message">%1$s will be removed from this device.</string>
+
     <!-- App Information -->
     <string name="apps_type_label">Type</string>
     <string name="apps_type_system">System app</string>

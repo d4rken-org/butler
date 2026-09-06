@@ -3,7 +3,6 @@ package eu.darken.butler.apps.core.details
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.provider.Settings
 import androidx.core.net.toUri
 import dagger.assisted.Assisted
@@ -17,6 +16,7 @@ import eu.darken.butler.apps.core.details.components.AppComponentsController
 import eu.darken.butler.apps.core.details.components.AppComponentsLoader
 import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.apps.core.details.components.ComponentToggleState
+import eu.darken.butler.apps.ui.details.AppDetailsConfirmRequest
 import eu.darken.butler.apps.ui.details.components.ComponentsActionBarItem
 import eu.darken.butler.apps.ui.details.components.ComponentsConfirmRequest
 import eu.darken.butler.common.ElevatedAccessUnavailableException
@@ -118,6 +118,11 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     // shadows the kotlinx one inside every subclass and returns a plain Flow.
     val componentConfirm: StateFlow<ComponentsConfirmRequest?> = componentConfirmFlow
 
+    private val appConfirmFlow = MutableStateFlow<AppDetailsConfirmRequest?>(null)
+
+    // Assigned for the same reason as componentConfirm above.
+    val appConfirm: StateFlow<AppDetailsConfirmRequest?> = appConfirmFlow
+
     init {
         // Driven from the nullable source, not from `state`: that one filters the absent workspace
         // away and would never emit, leaving the controller holding data, a live selection and a
@@ -127,6 +132,7 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
             .onEach { workspaceState ->
                 componentsController.onAppChanged(workspaceState?.app)
                 componentsController.onComponentsRouteActive(workspaceState?.selectedTab == DetailTab.COMPONENTS)
+                retireStaleAppConfirm(workspaceState)
             }
             .launchInViewModel()
 
@@ -269,20 +275,73 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun onUninstall(app: AppInfo) = launch {
+        val hasElevatedAccess = state.first().let { it.hasRoot || it.hasAdb }
+        if (!hasElevatedAccess) {
+            // Android's dialog IS the confirmation on this path, and it is launched directly rather
+            // than through the workspace: deciding on availability and then dispatching would
+            // re-read root/ADB a moment later, so a flip to available in between would run an
+            // elevated uninstall that nobody ever confirmed.
+            log(tag) { "onUninstall(${app.packageName}): no elevated access, using the system dialog" }
+            startSystemUninstall(app)
+            return@launch
+        }
+        log(tag) { "onUninstall(${app.packageName}): asking for confirmation" }
+        appConfirmFlow.value = AppDetailsConfirmRequest.Uninstall(app)
+    }
+
+    private fun startSystemUninstall(app: AppInfo) {
+        val intent = Intent(Intent.ACTION_DELETE).apply {
+            data = "package:${app.packageName}".toUri()
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
+    }
+
+    /** A pending dialog must not outlive its target: the package can vanish or change under it. */
+    private fun retireStaleAppConfirm(workspaceState: AppDetailsWorkspace.State?) {
+        val pending = appConfirmFlow.value ?: return
+        val live = (workspaceState?.appState as? AppInfoState.Ready)?.info
+        if (live == null || live.installId != pending.app.installId) {
+            log(tag, WARN) { "Retiring pending confirmation, its target is gone" }
+            appConfirmFlow.value = null
+        }
+    }
+
+    fun onAppConfirm(request: AppDetailsConfirmRequest) = launch {
+        // Consumed atomically before dispatching, so a duplicated callback cannot act twice.
+        if (!appConfirmFlow.compareAndSet(request, null)) {
+            log(tag, WARN) { "onAppConfirm($request): request is no longer pending, ignoring" }
+            return@launch
+        }
+        log(tag) { "onAppConfirm($request)" }
+        when (request) {
+            is AppDetailsConfirmRequest.ClearData -> {
+                getWorkspace().clearDataApp(request.app)
+                appSizeCache.invalidate(listOf(request.app.installId))
+            }
+
+            is AppDetailsConfirmRequest.Uninstall -> performUninstall(request.app)
+        }
+    }
+
+    fun onAppConfirmDismiss() {
+        log(tag) { "onAppConfirmDismiss()" }
+        appConfirmFlow.value = null
+    }
+
+    private suspend fun performUninstall(app: AppInfo) {
         log(tag) { "Uninstalling app: ${app.packageName}" }
         try {
             getWorkspace().uninstallApp(app)
             // Don't close here — auto-close in AppDetailsWorkspace handles it reactively
         } catch (e: Exception) {
+            // The safety net for the opposite flip: elevated access lost between the confirmation
+            // and the dispatch, which leaves the user with Android's dialog after Butler's.
             val isElevatedUnavailable = generateSequence<Throwable>(e) { it.cause }
                 .any { it is ElevatedAccessUnavailableException }
             if (isElevatedUnavailable) {
                 log(tag) { "Elevated access unavailable, falling back to system uninstall intent" }
-                val intent = Intent(Intent.ACTION_DELETE).apply {
-                    data = Uri.parse("package:${app.packageName}")
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(intent)
+                startSystemUninstall(app)
             } else {
                 throw e
             }
@@ -363,10 +422,10 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().forceStopApp(app)
     }
 
-    fun onClearData(app: AppInfo) = launch {
-        log(tag) { "Clearing data: ${app.packageName}" }
-        getWorkspace().clearDataApp(app)
-        appSizeCache.invalidate(listOf(app.installId))
+    /** Always confirmed: there is no undo, and no system dialog stands between tap and wipe. */
+    fun onClearData(app: AppInfo) {
+        log(tag) { "onClearData(${app.packageName}): asking for confirmation" }
+        appConfirmFlow.value = AppDetailsConfirmRequest.ClearData(app)
     }
 
     fun onOpenSizePermissionSetup() = launch {
