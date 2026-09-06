@@ -34,7 +34,6 @@ import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
 import eu.darken.butler.common.pkgs.features.SourceAvailable
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.pkgs.pkgops.PkgOpsException
-import eu.darken.butler.common.pkgs.pkgs
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.permissions.core.PathPermissionCheck
@@ -62,7 +61,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -126,25 +124,30 @@ class AppDetailsWorkspace @AssistedInject constructor(
     private val selectedTabFlow = MutableStateFlow(args.initialTab)
     private var wasAppSeen = false
 
-    // Fetch app info from package manager; shared so `state` and `info` collect pkgs() once.
-    // Plain stateIn (not shareLatest): null is a legitimate value meaning "package gone".
-    private val appInfoFlow: StateFlow<AppInfo?> = pkgRepo.pkgs().map { pkgs ->
-        val pkg = pkgs.firstOrNull { it.installId == args.installId } ?: return@map null
-
-        AppInfo(
-            install = pkg,
-        )
-    }
-        .catch { error ->
-            log(tag, ERROR) { "Failed to resolve app info: ${error.asLog()}" }
-            emit(null)
+    // Fetch app info from package manager; shared so `state` and `info` collect the repo once.
+    // Built from `data` rather than `pkgs()`: `catch` is terminal, so a source error would end the
+    // flow for good and leave the workspace stuck with no way to retry. Reading `error` first keeps
+    // `pkgs` - which throws while an error is set - out of reach until it cannot throw.
+    private val appInfoFlow: StateFlow<AppInfoState> = pkgRepo.data
+        .map { data ->
+            data.error?.let { error ->
+                log(tag, ERROR) { "Failed to resolve app info: ${error.asLog()}" }
+                return@map AppInfoState.SourceError(error)
+            }
+            val pkg = data.pkgs.firstOrNull { it.installId == args.installId }
+            if (pkg == null) AppInfoState.Gone else AppInfoState.Ready(AppInfo(install = pkg))
         }
+        .stateIn(scope, SharingStarted.Eagerly, AppInfoState.Loading)
+
+    /** For consumers that only ever cared about the app itself; anything else reads as null. */
+    private val appInfoOrNull: StateFlow<AppInfo?> = appInfoFlow
+        .map { (it as? AppInfoState.Ready)?.info }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
     // Declared after appInfoFlow on purpose: it reads that flow, so it has to see the shared one.
     private val packageInfoLoader = PackageInfoLoader(
         scope = scope,
-        appInfo = appInfoFlow,
+        appInfo = appInfoOrNull,
         load = { app -> loadPackageInfo(app) },
     )
 
@@ -187,7 +190,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
     // Declared after appInfoFlow on purpose: it probes that flow, so it has to see the shared one.
     private val componentToggleAvailability = ComponentToggleAvailability(
         scope = scope,
-        appInfo = appInfoFlow,
+        appInfo = appInfoOrNull,
         rootManager = rootManager,
         adbManager = adbManager,
         ownPackageName = context.packageName,
@@ -298,10 +301,9 @@ class AppDetailsWorkspace @AssistedInject constructor(
     }
 
     data class State(
-        val app: AppInfo? = null,
+        val appState: AppInfoState = AppInfoState.Loading,
         val selectedTab: DetailTab = DetailTab.OVERVIEW,
         val availablePaths: List<AppPath> = emptyList(),
-        val isLoading: Boolean = true,
         val isLoadingSize: Boolean = false,
         val sizesAvailable: Boolean = true,
         val callerWorkspaceId: Workspace.Id? = null,
@@ -310,6 +312,8 @@ class AppDetailsWorkspace @AssistedInject constructor(
         val componentToggleState: ComponentToggleState = ComponentToggleState.UNSUPPORTED,
         val packageInfo: PackageInfoState = PackageInfoState.Loading,
     ) {
+        val app: AppInfo? get() = (appState as? AppInfoState.Ready)?.info
+        val isLoading: Boolean get() = appState is AppInfoState.Loading
         val canEnableDisable: Boolean get() = hasRoot || hasAdb
         val canForceStop: Boolean get() = hasRoot || hasAdb
         val canClearData: Boolean get() = hasRoot || hasAdb
@@ -326,22 +330,27 @@ class AppDetailsWorkspace @AssistedInject constructor(
         _sizeLoading,
         packageInfoLoader.state,
         pathInsights,
-    ) { app, selectedTab, hasRoot, hasAdb, componentToggleState, sizeSnapshot, sizesAvailable, isLoadingSize,
+    ) { appState, selectedTab, hasRoot, hasAdb, componentToggleState, sizeSnapshot, sizesAvailable, isLoadingSize,
         packageInfo, insights ->
-        val withSize = app?.let { info ->
-            val size = sizeSnapshot.sizes[info.installId] ?: return@let info
-            info.copy(
-                appSize = size.appBytes,
-                dataSize = size.dataBytes,
-                cacheSize = size.cacheBytes,
-            )
+        val withSize = when (appState) {
+            is AppInfoState.Ready -> when (val size = sizeSnapshot.sizes[appState.info.installId]) {
+                null -> appState
+                else -> AppInfoState.Ready(
+                    appState.info.copy(
+                        appSize = size.appBytes,
+                        dataSize = size.dataBytes,
+                        cacheSize = size.cacheBytes,
+                    )
+                )
+            }
+
+            else -> appState
         }
-        val paths = if (withSize != null) buildAppPaths(insights) else emptyList()
+        val paths = if (withSize is AppInfoState.Ready) buildAppPaths(insights) else emptyList()
         State(
             selectedTab = selectedTab,
-            app = withSize,
+            appState = withSize,
             availablePaths = paths,
-            isLoading = withSize == null,
             isLoadingSize = isLoadingSize,
             sizesAvailable = sizesAvailable,
             callerWorkspaceId = args.callerWorkspaceId,
@@ -373,7 +382,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
     }
 
     override val info: StateFlow<Workspace.Info> = combine(
-        appInfoFlow,
+        appInfoOrNull,
         selectedTabFlow,
         pkgOpsInFlight,
     ) { app, _, opsInFlight ->
@@ -433,6 +442,12 @@ class AppDetailsWorkspace @AssistedInject constructor(
         selectedTabFlow.value = tab
         // Every entry re-runs the load, which is also the retry after a transient Unavailable.
         if (tab == DetailTab.PACKAGE_INFO) packageInfoLoader.onRequested()
+    }
+
+    /** Retry after a [AppInfoState.SourceError]; the result arrives through [state]. */
+    suspend fun refreshPackageData() {
+        log(tag) { "refreshPackageData()" }
+        pkgRepo.refresh()
     }
 
     // Package operations live here, not on the ViewModel, so pkgOpsInFlight actually covers them.
@@ -495,16 +510,22 @@ class AppDetailsWorkspace @AssistedInject constructor(
         // Auto-close when the package is removed (e.g. after uninstall)
         // Only close after app was seen at least once (to avoid closing during initial load)
         appInfoFlow
-            .onEach { appInfo ->
+            .onEach { appState ->
                 // Only ever upgrades: a gone package must not erase the cached label.
-                normalizedAppLabel(appInfo?.label?.get(context), args.packageName)
+                normalizedAppLabel((appState as? AppInfoState.Ready)?.info?.label?.get(context), args.packageName)
                     ?.let { cachedAppLabel = it }
 
-                if (appInfo != null) {
-                    wasAppSeen = true
-                } else if (wasAppSeen) {
-                    log(tag, INFO) { "Package ${args.packageName} removed, auto-closing workspace" }
-                    workspaceRemote.execute(WorkspaceAction.Close(id))
+                when (appState) {
+                    is AppInfoState.Ready -> wasAppSeen = true
+
+                    AppInfoState.Gone -> if (wasAppSeen) {
+                        log(tag, INFO) { "Package ${args.packageName} removed, auto-closing workspace" }
+                        workspaceRemote.execute(WorkspaceAction.Close(id))
+                    }
+
+                    // Neither says the package is gone, and closing on a source error would take
+                    // the screen away from the user with nothing left to retry from.
+                    AppInfoState.Loading, is AppInfoState.SourceError -> Unit
                 }
             }
             .launchIn(scope)
@@ -514,7 +535,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
         // stay empty forever after any invalidation.
         scope.launch {
             combine(
-                appInfoFlow,
+                appInfoOrNull,
                 appSizeCache.snapshot,
                 appSizeCache.isAvailable,
             ) { app, snapshot, isAvailable ->

@@ -225,6 +225,19 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().updateSelectedTab(tab)
     }
 
+    fun onRetryAppInfo() = launch {
+        log(tag) { "onRetryAppInfo()" }
+        try {
+            getWorkspace().refreshPackageData()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Swallowed on purpose: a failed retry arrives on the screen through the state flow as
+            // the same error card, so raising a dialog on top of it would say it twice.
+            log(tag, WARN) { "onRetryAppInfo() failed: ${e.asLog()}" }
+        }
+    }
+
     fun onLaunchApp(app: AppInfo) = launch {
         log(tag) { "Launching app: ${app.packageName}" }
         val launchIntent = context.packageManager.getLaunchIntentForPackage(app.packageName)

@@ -36,6 +36,7 @@ import eu.darken.butler.apps.core.AppPath
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
 import eu.darken.butler.apps.core.details.AppDetailsWorkspaceViewModel
 import eu.darken.butler.apps.core.details.AppInfo
+import eu.darken.butler.apps.core.details.AppInfoState
 import eu.darken.butler.apps.core.details.PackageInfoState
 import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.apps.core.details.components.ComponentsData
@@ -70,6 +71,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlinx.coroutines.flow.drop
+import java.io.IOException
 
 sealed interface AppDetailsPageAction {
     data object Close : AppDetailsPageAction
@@ -90,6 +92,7 @@ sealed interface AppDetailsPageAction {
     data class ForceStop(val app: AppInfo) : AppDetailsPageAction
     data class ClearData(val app: AppInfo) : AppDetailsPageAction
     data object OpenSizeSetup : AppDetailsPageAction
+    data object RetryAppInfo : AppDetailsPageAction
 }
 
 @Composable
@@ -138,6 +141,7 @@ fun AppDetailsWorkspacePageHost(
                     is AppDetailsPageAction.ForceStop -> vm.onForceStop(action.app)
                     is AppDetailsPageAction.ClearData -> vm.onClearData(action.app)
                     is AppDetailsPageAction.OpenSizeSetup -> vm.onOpenSizePermissionSetup()
+                    is AppDetailsPageAction.RetryAppInfo -> vm.onRetryAppInfo()
                 }
             },
         )
@@ -280,6 +284,17 @@ fun AppDetailsWorkspacePage(
             // Cards on the overview are spaced apart; the flat component list stays dense.
             verticalArrangement = Arrangement.spacedBy(if (showComponents) 0.dp else 8.dp),
         ) {
+            // Outside the tab guard below: a source error while the user is on Components or
+            // Package info would otherwise leave a blank page with no way back.
+            (state.appState as? AppInfoState.SourceError)?.let { sourceError ->
+                item {
+                    AppInfoErrorCard(
+                        error = sourceError.error,
+                        onRetry = { onPageAction(AppDetailsPageAction.RetryAppInfo) },
+                    )
+                }
+            }
+
             if (appInfo != null) {
                 when (state.selectedTab) {
                     DetailTab.COMPONENTS -> appComponentsItems(
@@ -521,7 +536,7 @@ private fun AppDetailsWorkspacePageComponentsPreview() {
     AppDetailsWorkspacePage(
         design = WorkspaceDesign(),
         state = AppDetailsWorkspace.State(
-            app = AppsMockDataProvider.Presets.chrome,
+            appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
             selectedTab = DetailTab.COMPONENTS,
         ),
         componentsState = ComponentsUiState.Ready(previewComponentsData),
@@ -538,7 +553,7 @@ private fun AppDetailsWorkspacePageComponentsSelectionPreview() {
     AppDetailsWorkspacePage(
         design = WorkspaceDesign(),
         state = AppDetailsWorkspace.State(
-            app = AppsMockDataProvider.Presets.chrome,
+            appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
             selectedTab = DetailTab.COMPONENTS,
         ),
         componentsState = ComponentsUiState.Ready(previewComponentsData),
@@ -559,7 +574,7 @@ private fun AppDetailsWorkspacePagePackageInfoPreview() {
     AppDetailsWorkspacePage(
         design = WorkspaceDesign(),
         state = AppDetailsWorkspace.State(
-            app = AppsMockDataProvider.Presets.chrome,
+            appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
             selectedTab = DetailTab.PACKAGE_INFO,
             packageInfo = PackageInfoState.Ready(previewPackageInfo),
         ),
@@ -575,7 +590,7 @@ private fun AppDetailsWorkspacePagePackageInfoUnavailablePreview() {
     AppDetailsWorkspacePage(
         design = WorkspaceDesign(),
         state = AppDetailsWorkspace.State(
-            app = AppsMockDataProvider.Presets.chrome,
+            appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
             selectedTab = DetailTab.PACKAGE_INFO,
             packageInfo = PackageInfoState.Unavailable,
         ),
@@ -591,7 +606,7 @@ private fun AppDetailsWorkspacePagePreview() {
     AppDetailsWorkspacePage(
         design = WorkspaceDesign(),
         state = AppDetailsWorkspace.State(
-            app = AppsMockDataProvider.Presets.chrome,
+            appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
             availablePaths = listOf(
                 AppPath(
                     label = "App Data".toCaString(),
@@ -607,6 +622,21 @@ private fun AppDetailsWorkspacePagePreview() {
                 ),
             ),
         ),
+        onPageAction = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppDetailsWorkspacePageSourceErrorPreview() {
+    AppDetailsWorkspacePage(
+        design = WorkspaceDesign(),
+        state = AppDetailsWorkspace.State(
+            appState = AppInfoState.SourceError(IOException("Package manager query timed out")),
+            selectedTab = DetailTab.COMPONENTS,
+        ),
+        workspaceId = Workspace.Id(),
         onPageAction = {},
     )
 }

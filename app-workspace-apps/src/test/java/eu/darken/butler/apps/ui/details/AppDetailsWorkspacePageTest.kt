@@ -17,6 +17,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
+import eu.darken.butler.apps.core.details.AppInfoState
 import eu.darken.butler.apps.core.details.PackageInfoState
 import eu.darken.butler.apps.core.details.components.ComponentsUiState
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
@@ -29,6 +30,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
+import java.io.IOException
 
 class AppDetailsWorkspacePageTest : ComposeTest() {
 
@@ -51,7 +53,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
                 AppDetailsWorkspacePage(
                     design = multiPane,
                     state = AppDetailsWorkspace.State(
-                        app = AppsMockDataProvider.Presets.chrome,
+                        appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
                         selectedTab = DetailTab.COMPONENTS,
                         callerWorkspaceId = stackedOnCaller,
                     ),
@@ -76,7 +78,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
                 AppDetailsWorkspacePage(
                     design = multiPane,
                     state = AppDetailsWorkspace.State(
-                        app = AppsMockDataProvider.Presets.chrome,
+                        appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
                         selectedTab = DetailTab.PACKAGE_INFO,
                         packageInfo = packageInfo,
                         callerWorkspaceId = stackedOnCaller,
@@ -134,7 +136,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
                 AppDetailsWorkspacePage(
                     design = multiPane,
                     state = AppDetailsWorkspace.State(
-                        app = AppsMockDataProvider.Presets.chrome,
+                        appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
                         selectedTab = DetailTab.OVERVIEW,
                         callerWorkspaceId = stackedOnCaller,
                     ),
@@ -158,7 +160,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
                 AppDetailsWorkspacePage(
                     design = multiPane,
                     state = AppDetailsWorkspace.State(
-                        app = AppsMockDataProvider.Presets.chrome,
+                        appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
                         selectedTab = DetailTab.OVERVIEW,
                         // Modal so the toolbar renders a back button.
                         callerWorkspaceId = Workspace.Id(),
@@ -174,6 +176,40 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
         composeTestRule.onNodeWithText("com.android.chrome").assertIsDisplayed()
     }
 
+    /**
+     * The tab branches are all guarded on a resolved app, so an error rendered inside that guard
+     * would leave Components and Package info blank with no route back.
+     */
+    @Test
+    fun `a source error is offered on every tab`() {
+        val actions = mutableListOf<AppDetailsPageAction>()
+        var tab by mutableStateOf(DetailTab.OVERVIEW)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                AppDetailsWorkspacePage(
+                    design = multiPane,
+                    state = AppDetailsWorkspace.State(
+                        appState = AppInfoState.SourceError(IOException("Package source unavailable")),
+                        selectedTab = tab,
+                        callerWorkspaceId = stackedOnCaller,
+                    ),
+                    workspaceId = Workspace.Id(),
+                    onPageAction = { actions += it },
+                )
+            }
+        }
+
+        DetailTab.entries.forEach { entry ->
+            composeTestRule.runOnIdle { tab = entry }
+            composeTestRule.waitForIdle()
+
+            composeTestRule.onNodeWithText("Could not load app data").assertIsDisplayed()
+            composeTestRule.onNodeWithText("Retry").performClick()
+        }
+
+        actions shouldBe DetailTab.entries.map { AppDetailsPageAction.RetryAppInfo }
+    }
+
     private fun setComponentsPage(
         selectedComponentKeys: Set<String>,
         componentActions: List<ComponentsActionBarItem>,
@@ -183,7 +219,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
                 AppDetailsWorkspacePage(
                     design = multiPane,
                     state = AppDetailsWorkspace.State(
-                        app = AppsMockDataProvider.Presets.chrome,
+                        appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
                         selectedTab = DetailTab.COMPONENTS,
                         callerWorkspaceId = stackedOnCaller,
                     ),
@@ -240,7 +276,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
                     AppDetailsWorkspacePage(
                         design = multiPane,
                         state = AppDetailsWorkspace.State(
-                            app = AppsMockDataProvider.Presets.chrome,
+                            appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
                             selectedTab = DetailTab.COMPONENTS,
                             callerWorkspaceId = stackedOnCaller,
                         ),
@@ -277,7 +313,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
                 AppDetailsWorkspacePage(
                     design = multiPane,
                     state = AppDetailsWorkspace.State(
-                        app = AppsMockDataProvider.Presets.chrome,
+                        appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
                         selectedTab = DetailTab.COMPONENTS,
                         callerWorkspaceId = stackedOnCaller,
                     ),

@@ -131,6 +131,9 @@
     <!-- App Details Action Bar -->
     <string name="apps_details_more_options">More options</string>
 
+    <!-- App Details package data -->
+    <string name="apps_details_pkgdata_error_title">Could not load app data</string>
+
     <!-- App Information -->
     <string name="apps_type_label">Type</string>
     <string name="apps_type_system">System app</string>
