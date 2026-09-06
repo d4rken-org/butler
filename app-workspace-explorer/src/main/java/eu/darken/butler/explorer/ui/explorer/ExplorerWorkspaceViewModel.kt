@@ -2277,24 +2277,14 @@ internal fun ExplorerDialogState.withLiveNetworkItem(items: List<ExplorerItem>?)
 /**
  * Whether two listings would render the same, i.e. whether the newer one can be dropped.
  *
- * Lookups are compared by id and type, which lets a phase transition (Peek to Lookup) through while
- * filtering same-phase duplicates. A storage row instead carries its whole presentation - name,
- * status, address - in its own fields, so those are compared in full: by id alone a renamed or
- * re-probed location would keep rendering its old row.
+ * Rows are compared in full. Every variant is a data class, so this drops an exact re-emission and
+ * lets everything else through: a phase transition (Peek to Lookup), a renamed or re-probed storage
+ * row, and the extended pass that fills in a lookup's child count, ownership and permissions after
+ * the first listing was already published.
  *
  * Top-level for the same reason as `applyFavoritePriority`: unit-testable without VM scaffolding.
  */
-internal fun List<ExplorerItem>?.hasSameItemsAs(other: List<ExplorerItem>?): Boolean {
-    if (this === other) return true
-    if (this == null || other == null) return false
-    if (size != other.size) return false
-    return zip(other).all { (a, b) ->
-        when {
-            a is ExplorerItem.Storage || b is ExplorerItem.Storage -> a == b
-            else -> a.id == b.id && a::class == b::class
-        }
-    }
-}
+internal fun List<ExplorerItem>?.hasSameItemsAs(other: List<ExplorerItem>?): Boolean = this == other
 
 /**
  * Waits for the tab to actually be SHOWING [location]: a settled [ExplorerWorkspace.State] whose
