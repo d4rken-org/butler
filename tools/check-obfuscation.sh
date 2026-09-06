@@ -130,7 +130,7 @@ check_map_id() {
     require_file "$GPLAY_MAPPING" "gplayRelease mapping" || return
 
     local map_id
-    map_id=$(head -n 20 "$GPLAY_MAPPING" | grep -o '# pg_map_id: [0-9a-f]\{64\}' | head -n 1 | awk '{print $3}')
+    map_id=$(head -n 20 "$GPLAY_MAPPING" | grep -o '# pg_map_id: [0-9a-f]\{64\}' | head -n 1 | awk '{print $3}' || true)
     if [ -z "$map_id" ]; then
         fail "no '# pg_map_id: <64 hex>' header in the first 20 lines of mapping.txt"
         return
