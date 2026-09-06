@@ -10,6 +10,7 @@ import eu.darken.butler.common.ca.toCaDrawable
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
@@ -74,7 +75,7 @@ fun <T : Progress.Client> T.increaseProgress(value: Int = 1) {
             is Progress.Count.Counter -> it.copy(count = it.count.increment(value))
             is Progress.Count.Percent -> it.copy(count = it.count.increment(value))
             else -> {
-                log(ERROR) { "Can't increaseProgress() on type: ${it?.count}" }
+                log(TAG, ERROR) { "Can't increaseProgress() on type: ${it?.count}" }
                 it
             }
         }
@@ -110,3 +111,5 @@ suspend fun <T : Progress.Host, R> T.withProgress(
         scope.cancel("Finished scope")
     }
 }
+
+private val TAG = logTag("Progress", "Extensions")

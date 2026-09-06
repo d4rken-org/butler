@@ -8,6 +8,7 @@ import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.HasLocalizedError
 import eu.darken.butler.common.error.LocalizedError
 import eu.darken.butler.common.error.LocalizedErrorContext
@@ -50,10 +51,12 @@ class GplayServiceUnavailableException(cause: Throwable) :
     }
 
     private fun onLaunchFailed(e: Exception) {
-        log(ERROR) { "Can't launch settings intent for Google Play: $e" }
+        log(TAG, ERROR) { "Can't launch settings intent for Google Play: $e" }
     }
 
     companion object {
         private const val GPLAY_PKG = "com.android.vending"
     }
 }
+
+private val TAG = logTag("Upgrade", "Gplay", "ServiceUnavailable")

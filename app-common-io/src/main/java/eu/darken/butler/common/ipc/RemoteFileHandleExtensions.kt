@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.errors.ServiceConnectionLostException
 import okio.FileHandle
 import okio.FileSystem
@@ -34,18 +35,18 @@ internal fun FileHandle.remoteFileHandle(): RemoteFileHandle.Stub = object : Rem
     override fun read(fileOffset: Long, array: ByteArray, arrayOffset: Int, byteCount: Int): Int = try {
         this@remoteFileHandle.read(fileOffset, array, arrayOffset, byteCount).also {
             if (Bugs.isTrace) {
-                log(VERBOSE) { "read(rootside-p): $fileOffset, ${array.size}, $arrayOffset, $byteCount, read $it into ${array.toHex()}" }
+                log(TAG, VERBOSE) { "read(rootside-p): $fileOffset, ${array.size}, $arrayOffset, $byteCount, read $it into ${array.toHex()}" }
             }
         }
     } catch (e: IOException) {
-        log(ERROR) { "read() failed: ${e.asLog()}" }
+        log(TAG, ERROR) { "read() failed: ${e.asLog()}" }
         -2
     }
 
     override fun write(fileOffset: Long, array: ByteArray, arrayOffset: Int, byteCount: Int) = try {
         this@remoteFileHandle.write(fileOffset, array, arrayOffset, byteCount)
     } catch (e: IOException) {
-        log(ERROR) { "write() failed: ${e.asLog()}" }
+        log(TAG, ERROR) { "write() failed: ${e.asLog()}" }
     }
 
     override fun flush() = this@remoteFileHandle.flush()
@@ -55,7 +56,7 @@ internal fun FileHandle.remoteFileHandle(): RemoteFileHandle.Stub = object : Rem
     override fun size(): Long = try {
         this@remoteFileHandle.size()
     } catch (e: IOException) {
-        log(ERROR) { "size() failed: ${e.asLog()}" }
+        log(TAG, ERROR) { "size() failed: ${e.asLog()}" }
         -2
     }
 
@@ -74,7 +75,7 @@ internal fun RemoteFileHandle.fileHandle(readWrite: Boolean): FileHandle = objec
     override fun protectedRead(fileOffset: Long, array: ByteArray, arrayOffset: Int, byteCount: Int): Int = try {
         this@fileHandle.read(fileOffset, array, arrayOffset, byteCount).also {
             if (Bugs.isTrace) {
-                log(VERBOSE) { "read(appside-p): $fileOffset, ${array.size}, $arrayOffset, $byteCount, read $it into ${array.toHex()}" }
+                log(TAG, VERBOSE) { "read(appside-p): $fileOffset, ${array.size}, $arrayOffset, $byteCount, read $it into ${array.toHex()}" }
             }
             if (it == -2) throw ServiceConnectionLostException()
         }
@@ -120,3 +121,5 @@ internal fun RemoteFileHandle.fileHandle(readWrite: Boolean): FileHandle = objec
     }
 
 }
+
+private val TAG = logTag("IPC", "RemoteFileHandle")

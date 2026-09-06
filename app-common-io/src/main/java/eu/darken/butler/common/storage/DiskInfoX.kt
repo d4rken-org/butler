@@ -5,6 +5,7 @@ import android.os.Build
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
@@ -20,7 +21,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         try {
             diskInfoClass.getMethod("getId")
         } catch (e: Exception) {
-            log(WARN) { "diskInfoClass.getMethod(\"getId\"): ${e.asLog()}" }
+            log(TAG, WARN) { "diskInfoClass.getMethod(\"getId\"): ${e.asLog()}" }
             null
         }
     }
@@ -28,7 +29,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         get() = try {
             methodGetId?.invoke(diskInfoObject) as? String
         } catch (e: ReflectiveOperationException) {
-            log(WARN) { "DiskInfoX.id reflection failed" }
+            log(TAG, WARN) { "DiskInfoX.id reflection failed" }
             null
         }
 
@@ -36,7 +37,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         try {
             diskInfoClass.getMethod("getDescription")
         } catch (e: Exception) {
-            log(WARN) { "diskInfoClass.getMethod(\"getDescription\"): ${e.asLog()}" }
+            log(TAG, WARN) { "diskInfoClass.getMethod(\"getDescription\"): ${e.asLog()}" }
             null
         }
     }
@@ -44,7 +45,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         get() = try {
             methodGetDescription?.invoke(diskInfoObject) as? String?
         } catch (e: ReflectiveOperationException) {
-            log(WARN) { "DiskInfoX.description reflection failed" }
+            log(TAG, WARN) { "DiskInfoX.description reflection failed" }
             null
         }
 
@@ -52,7 +53,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         try {
             diskInfoClass.getMethod("isAdoptable")
         } catch (e: Exception) {
-            log(WARN) { "diskInfoClass.getMethod(\"isAdoptable\"): ${e.asLog()}" }
+            log(TAG, WARN) { "diskInfoClass.getMethod(\"isAdoptable\"): ${e.asLog()}" }
             null
         }
     }
@@ -60,7 +61,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         get() = try {
             methodIsAdoptable?.invoke(diskInfoObject) as? Boolean
         } catch (e: ReflectiveOperationException) {
-            log(WARN) { "DiskInfoX.isAdoptable reflection failed" }
+            log(TAG, WARN) { "DiskInfoX.isAdoptable reflection failed" }
             null
         }
 
@@ -68,7 +69,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         try {
             diskInfoClass.getMethod("isDefaultPrimary")
         } catch (e: Exception) {
-            log(WARN) { "diskInfoClass.getMethod(\"isDefaultPrimary\"): ${e.asLog()}" }
+            log(TAG, WARN) { "diskInfoClass.getMethod(\"isDefaultPrimary\"): ${e.asLog()}" }
             null
         }
     }
@@ -76,7 +77,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         get() = try {
             methodIsDefaultPrimary?.invoke(diskInfoObject) as? Boolean
         } catch (e: ReflectiveOperationException) {
-            log(WARN) { "DiskInfoX.isDefaultPrimary reflection failed" }
+            log(TAG, WARN) { "DiskInfoX.isDefaultPrimary reflection failed" }
             null
         }
 
@@ -84,7 +85,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         try {
             diskInfoClass.getMethod("isSd")
         } catch (e: Exception) {
-            log(WARN) { "diskInfoClass.getMethod(\"isSd\"): ${e.asLog()}" }
+            log(TAG, WARN) { "diskInfoClass.getMethod(\"isSd\"): ${e.asLog()}" }
             null
         }
     }
@@ -92,7 +93,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         get() = try {
             methodIsSd?.invoke(diskInfoObject) as? Boolean
         } catch (e: ReflectiveOperationException) {
-            log(WARN) { "DiskInfoX.isSd reflection failed" }
+            log(TAG, WARN) { "DiskInfoX.isSd reflection failed" }
             null
         }
 
@@ -100,7 +101,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         try {
             diskInfoClass.getMethod("isUsb")
         } catch (e: Exception) {
-            log(WARN) { "diskInfoClass.getMethod(\"isUsb\"): ${e.asLog()}" }
+            log(TAG, WARN) { "diskInfoClass.getMethod(\"isUsb\"): ${e.asLog()}" }
             null
         }
     }
@@ -108,7 +109,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         get() = try {
             methodIsUsb?.invoke(diskInfoObject) as? Boolean
         } catch (e: ReflectiveOperationException) {
-            log(WARN) { "DiskInfoX.isUsb reflection failed" }
+            log(TAG, WARN) { "DiskInfoX.isUsb reflection failed" }
             null
         }
 
@@ -116,7 +117,7 @@ class DiskInfoX(private val diskInfoObject: Any) {
         try {
             diskInfoClass.getField("label")
         } catch (e: Exception) {
-            log(WARN) { "diskInfoClass.getField(\"label\"): ${e.asLog()}" }
+            log(TAG, WARN) { "diskInfoClass.getField(\"label\"): ${e.asLog()}" }
             null
         }
     }
@@ -129,10 +130,12 @@ class DiskInfoX(private val diskInfoObject: Any) {
         get() = try {
             fieldLabel?.get(diskInfoObject) as? String
         } catch (e: Exception) {
-            log(WARN) { "DiskInfoX.label reflection failed: ${e.asLog()}" }
+            log(TAG, WARN) { "DiskInfoX.label reflection failed: ${e.asLog()}" }
             null
         }
 
     override fun toString(): String = "DiskInfoX($diskInfoObject)"
 
 }
+
+private val TAG = logTag("Storage", "DiskInfoX")

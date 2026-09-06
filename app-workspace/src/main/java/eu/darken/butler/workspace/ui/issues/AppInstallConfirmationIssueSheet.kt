@@ -28,6 +28,7 @@ import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.pkgs.installer.AppInstallConfirmationIssue
 import eu.darken.butler.common.io.R as IoR
 
@@ -70,7 +71,7 @@ fun AppInstallConfirmationIssueSheet(
                 try {
                     context.startActivity(issue.confirmIntent)
                 } catch (e: Exception) {
-                    log(ERROR) { "Failed to re-open the install confirmation: ${e.asLog()}" }
+                    log(TAG, ERROR) { "Failed to re-open the install confirmation: ${e.asLog()}" }
                 }
                 onConfirmed()
             },
@@ -99,3 +100,5 @@ private fun AppInstallConfirmationIssueSheetPreview() {
         onConfirmed = {},
     )
 }
+
+private val TAG = logTag("Workspace", "AppInstallConfirmationSheet")
