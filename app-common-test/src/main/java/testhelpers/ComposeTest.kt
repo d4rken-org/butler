@@ -12,7 +12,12 @@ import org.robolectric.annotation.Config
  * Known limitations with Robolectric Compose testing:
  * - No native bitmap (ImageBitmap() leads to NullPointerException)
  * - No drawing (captureToImage() deadlocks)
- * - Text measurement is incorrect (fixed ~20px height, 1px width per character)
+ * - Text measurement is synthetic: about 1px of width per character, and a line height that does
+ *   not follow the text style (labelSmall, bodyMedium and titleMedium all measure 36dp).
+ *
+ * A test whose assertion depends on real font metrics can annotate its class with
+ * `@GraphicsMode(GraphicsMode.Mode.NATIVE)`, which measures text through the real font stack
+ * (bodyMedium then measures its 20dp line height).
  *
  * Use for testing component behavior, clicks, and content - not visual appearance.
  */
