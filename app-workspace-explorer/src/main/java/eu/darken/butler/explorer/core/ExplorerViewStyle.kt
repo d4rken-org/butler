@@ -3,42 +3,31 @@ package eu.darken.butler.explorer.core
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * [mode] keeps the wire key `type` a sealed hierarchy once wrote its discriminator under, so a
+ * payload written by an older version still decodes: the mode survives, unknown keys are ignored
+ * and [density] falls back to its default.
+ */
 @Serializable
-sealed class ExplorerViewStyle {
+data class ExplorerViewStyle(
+    @SerialName("type") val mode: Mode = Mode.LIST,
+    @SerialName("density") val density: Density = Density.COMFORTABLE,
+) {
 
     @Serializable
-    @SerialName("list")
-    data class List(
-        @SerialName("density") val density: Density = Density.COMFORTABLE,
-    ) : ExplorerViewStyle() {
-        @Serializable
-        enum class Density {
-            @SerialName("compact") COMPACT,
-            @SerialName("comfortable") COMFORTABLE,
-            @SerialName("detailed") DETAILED,
-        }
+    enum class Mode {
+        @SerialName("list") LIST,
+        @SerialName("grid") GRID,
     }
 
     @Serializable
-    @SerialName("grid")
-    data class Grid(
-        @SerialName("size") val size: GridSize = GridSize.MEDIUM,
-    ) : ExplorerViewStyle() {
-        @Serializable
-        enum class GridSize {
-            @SerialName("small") SMALL,      // 90dp min width
-            @SerialName("medium") MEDIUM,    // 120dp min width
-            @SerialName("large") LARGE,      // 160dp min width
-        }
+    enum class Density {
+        @SerialName("compact") COMPACT,
+        @SerialName("comfortable") COMFORTABLE,
+        @SerialName("detailed") DETAILED,
     }
 
     companion object {
-        fun default(): ExplorerViewStyle = List()
+        fun default(): ExplorerViewStyle = ExplorerViewStyle()
     }
-}
-
-/** The style the view-style action switches to. */
-fun ExplorerViewStyle.toggled(): ExplorerViewStyle = when (this) {
-    is ExplorerViewStyle.List -> ExplorerViewStyle.Grid()
-    is ExplorerViewStyle.Grid -> ExplorerViewStyle.List()
 }

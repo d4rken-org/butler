@@ -339,6 +339,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         folderSortRules = folderSortRules,
         tabSortStore = tabSortStore,
         tabViewStore = tabViewStore,
+        workspaceRemote = workspaceRemote,
         json = json,
         workspaceId = id,
         currentLocation = workspaceReadyState.map { it?.currentLocation },
@@ -1056,8 +1057,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     )
                 )
             }
-            is ExplorerActionBarItem.Common.UpdateViewStyle -> {
-                viewSettings.updateViewStyle(action.viewStyle)
+            is ExplorerActionBarItem.Common.ViewOptions -> {
+                dialogs.show(ExplorerDialogState.EditViewStyle)
             }
             is ExplorerActionBarItem.Common.Refresh -> {
                 if (selection.selectedItems.value.isNotEmpty()) {
@@ -1819,6 +1820,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 fileTypeFilter = result.fileTypeFilter,
             )
         )
+    }
+
+    fun onViewStyleApplyToTab(style: ExplorerViewStyle) {
+        log(tag) { "onViewStyleApplyToTab($style)" }
+        viewSettings.applyToTab(style)
+    }
+
+    fun onViewStyleApplyToAllTabs(style: ExplorerViewStyle) {
+        log(tag) { "onViewStyleApplyToAllTabs($style)" }
+        viewSettings.applyToAllTabs(style)
+    }
+
+    fun onViewStyleSetAsDefault(style: ExplorerViewStyle) {
+        log(tag) { "onViewStyleSetAsDefault($style)" }
+        viewSettings.setAsDefault(style)
     }
 
     fun resetFilters() = launch {

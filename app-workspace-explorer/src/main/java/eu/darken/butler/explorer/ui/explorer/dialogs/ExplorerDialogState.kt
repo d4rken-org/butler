@@ -62,6 +62,12 @@ sealed interface ExplorerDialogState {
         val tabRuleCount: Int = 0,
     ) : ExplorerDialogState
 
+    /**
+     * Payload-free: the sheet renders from the page's live view style, so a control change is
+     * reflected by the controls themselves and not just by the listing behind them.
+     */
+    data object EditViewStyle : ExplorerDialogState
+
     data class FilterOptions(
         val includePattern: String,
         val excludePattern: String,

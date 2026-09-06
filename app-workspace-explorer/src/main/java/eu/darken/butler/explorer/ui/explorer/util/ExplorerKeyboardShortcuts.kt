@@ -141,24 +141,24 @@ fun Modifier.explorerKeyboardShortcuts(
 
         // Arrow key navigation
         on(KeyboardShortcut.ArrowUp) {
-            when (viewStyle) {
-                is ExplorerViewStyle.List -> onMoveFocusUp()
-                is ExplorerViewStyle.Grid -> onMoveFocusLeft()
+            when (viewStyle.mode) {
+                ExplorerViewStyle.Mode.LIST -> onMoveFocusUp()
+                ExplorerViewStyle.Mode.GRID -> onMoveFocusLeft()
             }
         }
         on(KeyboardShortcut.ArrowDown) {
-            when (viewStyle) {
-                is ExplorerViewStyle.List -> onMoveFocusDown()
-                is ExplorerViewStyle.Grid -> onMoveFocusRight()
+            when (viewStyle.mode) {
+                ExplorerViewStyle.Mode.LIST -> onMoveFocusDown()
+                ExplorerViewStyle.Mode.GRID -> onMoveFocusRight()
             }
         }
         on(KeyboardShortcut.ArrowLeft) {
-            if (viewStyle is ExplorerViewStyle.Grid) {
+            if (viewStyle.mode == ExplorerViewStyle.Mode.GRID) {
                 onMoveFocusUp()
             }
         }
         on(KeyboardShortcut.ArrowRight) {
-            if (viewStyle is ExplorerViewStyle.Grid) {
+            if (viewStyle.mode == ExplorerViewStyle.Mode.GRID) {
                 onMoveFocusDown()
             }
         }

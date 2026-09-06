@@ -101,10 +101,10 @@ fun Modifier.explorerDropTarget(
 
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val scroller = remember(session, state.viewStyle, listState, gridState, scope, density) {
-        val target = when (state.viewStyle) {
-            is ExplorerViewStyle.Grid -> LazyGridAutoScrollTarget(gridState)
-            is ExplorerViewStyle.List -> LazyListAutoScrollTarget(listState)
+    val scroller = remember(session, state.viewStyle.mode, listState, gridState, scope, density) {
+        val target = when (state.viewStyle.mode) {
+            ExplorerViewStyle.Mode.GRID -> LazyGridAutoScrollTarget(gridState)
+            ExplorerViewStyle.Mode.LIST -> LazyListAutoScrollTarget(listState)
         }
         EdgeAutoScroller(
             scope = scope,

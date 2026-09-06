@@ -4,7 +4,6 @@ import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
-import eu.darken.butler.explorer.core.toggled
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import javax.inject.Inject
 
@@ -47,7 +46,7 @@ class DeviceActionProvider @Inject constructor(
             actions.add(ExplorerActionBarItem.Common.Sort())
             actions.add(ExplorerActionBarItem.Common.Filter())
 
-            actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()))
+            actions.add(ExplorerActionBarItem.Common.ViewOptions(viewStyle))
             actions.add(ExplorerActionBarItem.Common.Refresh())
         }
 

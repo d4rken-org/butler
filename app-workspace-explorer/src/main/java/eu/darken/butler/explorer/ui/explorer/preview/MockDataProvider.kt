@@ -40,7 +40,6 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
-import eu.darken.butler.explorer.core.toggled
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
@@ -1155,7 +1154,7 @@ object MockDataProvider {
     ): List<ExplorerActionBarItem> = listOf(
         ExplorerActionBarItem.Common.Sort(),
         ExplorerActionBarItem.Common.Filter(),
-        ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()),
+        ExplorerActionBarItem.Common.ViewOptions(viewStyle),
         ExplorerActionBarItem.Common.Refresh(),
     )
 

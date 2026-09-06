@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.files.validation.FilenameValidator
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
@@ -14,6 +15,7 @@ import eu.darken.butler.workspace.ui.dialogs.MultipleItemsInfoBottomSheet
 @Composable
 fun ExplorerDialogHost(
     dialogState: ExplorerDialogState,
+    viewStyle: ExplorerViewStyle,
     trashEnabled: Boolean,
     fileOpenActionsEnabled: Boolean = true,
     vm: ExplorerWorkspaceViewModel?,
@@ -79,6 +81,18 @@ fun ExplorerDialogHost(
                 onDismiss = { vm?.dismissDialog() },
                 onConfirm = { result -> vm?.onSortOptions(result) },
                 onClearTabOverrides = { vm?.clearTabSortOverrides() },
+                topInset = topInset,
+                bottomInset = bottomInset,
+            )
+        }
+
+        is ExplorerDialogState.EditViewStyle -> {
+            ViewStyleOptionsSheet(
+                currentViewStyle = viewStyle,
+                onApplyToTab = { style -> vm?.onViewStyleApplyToTab(style) },
+                onApplyToAllTabs = { style -> vm?.onViewStyleApplyToAllTabs(style) },
+                onSetAsDefault = { style -> vm?.onViewStyleSetAsDefault(style) },
+                onDismiss = { vm?.dismissDialog() },
                 topInset = topInset,
                 bottomInset = bottomInset,
             )

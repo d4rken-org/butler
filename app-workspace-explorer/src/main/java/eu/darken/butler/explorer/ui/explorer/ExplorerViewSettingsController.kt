@@ -24,6 +24,7 @@ import eu.darken.butler.explorer.core.sorting.rules.TabSortOverrides
 import eu.darken.butler.explorer.core.sorting.rules.sortAncestorKeys
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceRemote
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +33,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
@@ -46,6 +49,7 @@ class ExplorerViewSettingsController(
     private val folderSortRules: FolderSortRulesRepo,
     private val tabSortStore: ExplorerTabSortStore,
     private val tabViewStore: ExplorerTabViewStore,
+    private val workspaceRemote: WorkspaceRemote,
     private val json: Json,
     private val workspaceId: Workspace.Id,
     currentLocation: Flow<ExplorerLocation?>,
@@ -53,10 +57,17 @@ class ExplorerViewSettingsController(
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
 ) {
 
-    private val viewStyleFlow = MutableStateFlow<ExplorerViewStyle>(
-        tabViewStore.currentViewStyle(workspaceId) ?: explorerSettings.defaultViewStyle.valueBlocking,
-    )
-    val viewStyle: StateFlow<ExplorerViewStyle> = viewStyleFlow
+    private val viewStyleSeed: ExplorerViewStyle =
+        tabViewStore.currentViewStyle(workspaceId) ?: explorerSettings.defaultViewStyle.valueBlocking
+
+    /**
+     * Derived from the slot rather than mirroring it, so a write another tab's sheet made to this
+     * tab's slot reaches this page too. The seed keeps the first composed frame correct.
+     */
+    val viewStyle: StateFlow<ExplorerViewStyle> = tabViewStore
+        .observeViewStyle(workspaceId)
+        .map { it ?: viewStyleSeed }
+        .stateIn(scope, SharingStarted.Eagerly, viewStyleSeed)
 
     private val filterStateFlow = MutableStateFlow(tabViewStore.currentFilter(workspaceId))
     val filterState: StateFlow<FilterState> = filterStateFlow
@@ -64,7 +75,7 @@ class ExplorerViewSettingsController(
     init {
         // Materializes the style at tab creation, so a later change of the global default cannot
         // retroactively restyle a tab the user already has open.
-        tabViewStore.ensureViewStyle(workspaceId, viewStyleFlow.value)
+        tabViewStore.ensureViewStyle(workspaceId, viewStyleSeed)
     }
 
     /**
@@ -152,9 +163,24 @@ class ExplorerViewSettingsController(
         null
     }
 
-    fun updateViewStyle(style: ExplorerViewStyle) {
-        viewStyleFlow.value = style
+    /** The live path: every control change in the view options sheet lands here. */
+    fun applyToTab(style: ExplorerViewStyle) {
         tabViewStore.setViewStyle(workspaceId, style)
+    }
+
+    fun applyToAllTabs(style: ExplorerViewStyle) {
+        doLaunch {
+            workspaceRemote.state.first().infos
+                .filter { it.type == Workspace.Type.EXPLORER }
+                .forEach { tabViewStore.setViewStyle(it.id, style) }
+        }
+    }
+
+    /**
+     * Only the setting. The tab already carries [style] through [applyToTab], and sequencing a slot
+     * write after the suspending persist could reapply it over a newer choice.
+     */
+    fun setAsDefault(style: ExplorerViewStyle) {
         doLaunch {
             explorerSettings.defaultViewStyle.value(style)
         }

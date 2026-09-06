@@ -205,7 +205,7 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.Common.Refresh,
             is ExplorerActionBarItem.Common.Sort,
             is ExplorerActionBarItem.Common.Filter,
-            is ExplorerActionBarItem.Common.UpdateViewStyle,
+            is ExplorerActionBarItem.Common.ViewOptions,
             is ExplorerActionBarItem.Directory.Create,
             is ExplorerActionBarItem.Directory.DeselectAll -> true
 

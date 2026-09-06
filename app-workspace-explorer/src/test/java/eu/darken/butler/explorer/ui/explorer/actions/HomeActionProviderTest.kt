@@ -16,7 +16,7 @@ class HomeActionProviderTest : BaseTest() {
     private fun actionsFor(vararg selected: ExplorerItem) = HomeActionProvider().getActions(
         location = ExplorerLocation.Home(items = listOf(shortcut)),
         selectionState = ExplorerSelectionState(selectedItems = selected.toSet()),
-        viewStyle = ExplorerViewStyle.List(),
+        viewStyle = ExplorerViewStyle(),
         trashEnabled = false,
     )
 
@@ -33,7 +33,7 @@ class HomeActionProviderTest : BaseTest() {
 
         actions.any { it is ExplorerActionBarItem.Common.Sort } shouldBe true
         actions.any { it is ExplorerActionBarItem.Common.Filter } shouldBe true
-        actions.any { it is ExplorerActionBarItem.Common.UpdateViewStyle } shouldBe true
+        actions.any { it is ExplorerActionBarItem.Common.ViewOptions } shouldBe true
     }
 
     @Test
@@ -42,6 +42,6 @@ class HomeActionProviderTest : BaseTest() {
 
         actions.any { it is ExplorerActionBarItem.Common.Sort } shouldBe false
         actions.any { it is ExplorerActionBarItem.Common.Filter } shouldBe false
-        actions.any { it is ExplorerActionBarItem.Common.UpdateViewStyle } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Common.ViewOptions } shouldBe false
     }
 }

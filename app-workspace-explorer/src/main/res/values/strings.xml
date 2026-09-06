@@ -367,6 +367,18 @@
     <string name="explorer_sort_tab_overrides_default_notice">This tab uses its own default sort order</string>
     <string name="explorer_sort_tab_overrides_clear_action">Clear</string>
 
+    <!-- View Options -->
+    <string name="explorer_view_mode_label">Layout</string>
+    <string name="explorer_view_mode_list_label">List</string>
+    <string name="explorer_view_mode_grid_label">Grid</string>
+    <string name="explorer_view_density_label">Density</string>
+    <string name="explorer_view_density_compact_label">Compact</string>
+    <string name="explorer_view_density_comfortable_label">Comfortable</string>
+    <string name="explorer_view_density_detailed_label">Detailed</string>
+    <string name="explorer_view_apply_all_tabs_action">Apply to all tabs</string>
+    <string name="explorer_view_set_default_action">Set as default</string>
+    <string name="explorer_view_detail_created_label">Created %1$s</string>
+
     <!-- Folder Sort Rules -->
     <string name="explorer_settings_folder_sort_rules_title">Folder sort rules</string>
     <string name="explorer_settings_folder_sort_rules_desc">Sort settings you saved for individual folders</string>

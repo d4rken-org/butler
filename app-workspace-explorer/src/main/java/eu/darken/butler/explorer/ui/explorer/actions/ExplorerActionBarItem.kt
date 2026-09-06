@@ -72,14 +72,15 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
             override val label = R.string.explorer_action_filter.toCaString()
         }
 
-        data class UpdateViewStyle(
-            val viewStyle: ExplorerViewStyle,
+        /** Opens the view options sheet, so the icon shows where the listing is, not where a tap leads. */
+        data class ViewOptions(
+            val currentViewStyle: ExplorerViewStyle,
             override val isEnabled: Boolean = true,
             override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
         ) : Common {
-            override val icon = when (viewStyle) {
-                is ExplorerViewStyle.Grid -> Icons.TwoTone.GridView
-                is ExplorerViewStyle.List -> Icons.AutoMirrored.TwoTone.ViewList
+            override val icon = when (currentViewStyle.mode) {
+                ExplorerViewStyle.Mode.GRID -> Icons.TwoTone.GridView
+                ExplorerViewStyle.Mode.LIST -> Icons.AutoMirrored.TwoTone.ViewList
             }
             override val label = R.string.explorer_action_view.toCaString()
         }

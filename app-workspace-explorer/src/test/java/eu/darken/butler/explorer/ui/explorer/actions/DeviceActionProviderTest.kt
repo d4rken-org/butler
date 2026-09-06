@@ -23,7 +23,7 @@ class DeviceActionProviderTest : BaseTest() {
     private fun actionsFor(vararg selected: ExplorerItem) = DeviceActionProvider(favoritesRepo).getActions(
         location = ExplorerLocation.Device(items = listOf(storage)),
         selectionState = ExplorerSelectionState(selectedItems = selected.toSet()),
-        viewStyle = ExplorerViewStyle.List(),
+        viewStyle = ExplorerViewStyle(),
         trashEnabled = false,
     )
 
@@ -40,7 +40,7 @@ class DeviceActionProviderTest : BaseTest() {
 
         actions.any { it is ExplorerActionBarItem.Common.Sort } shouldBe true
         actions.any { it is ExplorerActionBarItem.Common.Filter } shouldBe true
-        actions.any { it is ExplorerActionBarItem.Common.UpdateViewStyle } shouldBe true
+        actions.any { it is ExplorerActionBarItem.Common.ViewOptions } shouldBe true
     }
 
     @Test
@@ -49,6 +49,6 @@ class DeviceActionProviderTest : BaseTest() {
 
         actions.any { it is ExplorerActionBarItem.Common.Sort } shouldBe false
         actions.any { it is ExplorerActionBarItem.Common.Filter } shouldBe false
-        actions.any { it is ExplorerActionBarItem.Common.UpdateViewStyle } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Common.ViewOptions } shouldBe false
     }
 }

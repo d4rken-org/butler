@@ -21,7 +21,7 @@ class NetworkActionProviderTest : BaseTest() {
     private fun actionsFor(vararg selected: ExplorerItem) = NetworkActionProvider().getActions(
         location = ExplorerLocation.Network(items = listOf(first, second)),
         selectionState = ExplorerSelectionState(selectedItems = selected.toSet()),
-        viewStyle = ExplorerViewStyle.List(),
+        viewStyle = ExplorerViewStyle(),
         trashEnabled = false,
     )
 
@@ -75,7 +75,7 @@ class NetworkActionProviderTest : BaseTest() {
 
         actions.any { it is ExplorerActionBarItem.Common.Sort } shouldBe true
         actions.any { it is ExplorerActionBarItem.Common.Filter } shouldBe true
-        actions.any { it is ExplorerActionBarItem.Common.UpdateViewStyle } shouldBe true
+        actions.any { it is ExplorerActionBarItem.Common.ViewOptions } shouldBe true
     }
 
     @Test
@@ -84,6 +84,6 @@ class NetworkActionProviderTest : BaseTest() {
 
         actions.any { it is ExplorerActionBarItem.Common.Sort } shouldBe false
         actions.any { it is ExplorerActionBarItem.Common.Filter } shouldBe false
-        actions.any { it is ExplorerActionBarItem.Common.UpdateViewStyle } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Common.ViewOptions } shouldBe false
     }
 }

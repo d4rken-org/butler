@@ -112,8 +112,8 @@ internal fun ExplorerReadyContent(
             topBarStackState = topBarStackState,
             state = pullToRefreshState,
         ) {
-            when (state.viewStyle) {
-                is ExplorerViewStyle.List -> ExplorerListContent(
+            when (state.viewStyle.mode) {
+                ExplorerViewStyle.Mode.LIST -> ExplorerListContent(
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(topBarStackState.nestedScrollConnection)
@@ -126,7 +126,7 @@ internal fun ExplorerReadyContent(
                     dragPayloadFactory = dragPayloadFactory,
                 )
 
-                is ExplorerViewStyle.Grid -> ExplorerGridContent(
+                ExplorerViewStyle.Mode.GRID -> ExplorerGridContent(
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(topBarStackState.nestedScrollConnection)

@@ -6,6 +6,8 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import javax.inject.Inject
@@ -27,8 +29,15 @@ class ExplorerTabViewStore @Inject constructor(
     private val json: Json,
 ) {
 
-    fun currentViewStyle(id: Workspace.Id): ExplorerViewStyle? {
-        val stored = viewPrefs.current(id, SLOT_VIEWSTYLE) ?: return null
+    fun currentViewStyle(id: Workspace.Id): ExplorerViewStyle? = decodeViewStyle(viewPrefs.current(id, SLOT_VIEWSTYLE))
+
+    /** The tab's style as it changes, including writes another tab's page made to this slot. */
+    fun observeViewStyle(id: Workspace.Id): Flow<ExplorerViewStyle?> = viewPrefs
+        .observe(id, SLOT_VIEWSTYLE)
+        .map { decodeViewStyle(it) }
+
+    private fun decodeViewStyle(stored: JsonElement?): ExplorerViewStyle? {
+        if (stored == null) return null
         return try {
             json.decodeFromJsonElement(ExplorerViewStyle.serializer(), stored)
         } catch (e: Exception) {

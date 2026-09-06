@@ -18,6 +18,7 @@ import eu.darken.butler.explorer.core.sorting.rules.FolderSortRulesRepo
 import eu.darken.butler.explorer.core.sorting.rules.SortRuleLayer
 import eu.darken.butler.explorer.core.sorting.rules.sortPathKey
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -103,11 +104,13 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
         rules: FolderSortRulesRepo = mockRules(),
         location: Flow<ExplorerLocation?> = flowOf(null),
         tabId: Workspace.Id = workspaceId,
+        openTabs: List<Workspace.Info> = emptyList(),
     ) = ExplorerViewSettingsController(
         explorerSettings = settings,
         folderSortRules = rules,
         tabSortStore = tabSortStore,
         tabViewStore = tabViewStore,
+        workspaceRemote = mockRemote(openTabs),
         json = json,
         workspaceId = tabId,
         currentLocation = location,
@@ -116,6 +119,16 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
     ).also { controller ->
         backgroundScope.launch { controller.resolvedSort.collect { } }
     }
+
+    private fun mockRemote(infos: List<Workspace.Info>): WorkspaceRemote = mockk<WorkspaceRemote>().apply {
+        every { state } returns flowOf(WorkspaceRemote.State(infos))
+    }
+
+    private fun tabInfo(id: Workspace.Id, type: Workspace.Type = Workspace.Type.EXPLORER) =
+        mockk<Workspace.Info>().apply {
+            every { this@apply.id } returns id
+            every { this@apply.type } returns type
+        }
 
     private fun directory(path: LocalPath) = mockk<ExplorerLocation.Directory>().apply {
         every { this@apply.path } returns path
@@ -209,18 +222,65 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
         names(result) shouldContainExactly listOf("img_001.png")
     }
 
+    /** The live path touches the tab only; the global default is what a new tab starts from. */
     @Test
-    fun `view style updates immediately and persists async`() = runTest {
+    fun `applying to the tab writes the slot and leaves the default alone`() = runTest {
         val controller = controller()
-        val grid = ExplorerViewStyle.Grid()
+        val grid = ExplorerViewStyle(mode = ExplorerViewStyle.Mode.GRID)
 
-        controller.updateViewStyle(grid)
+        controller.applyToTab(grid)
+        runCurrent()
 
         controller.viewStyle.value shouldBe grid
         tabViewStore.currentViewStyle(workspaceId) shouldBe grid
+        globalStyle.value shouldBe initialStyle
+        coVerify(exactly = 0) { styleStore.update(any()) }
+    }
+
+    @Test
+    fun `applying to all tabs writes every explorer tab's slot`() = runTest {
+        val otherTab = Workspace.Id()
+        val searcherTab = Workspace.Id()
+        val controller = controller(
+            openTabs = listOf(
+                tabInfo(workspaceId),
+                tabInfo(otherTab),
+                tabInfo(searcherTab, Workspace.Type.SEARCHER),
+            ),
+        )
+        val detailed = ExplorerViewStyle(density = ExplorerViewStyle.Density.DETAILED)
+
+        controller.applyToAllTabs(detailed)
         runCurrent()
+
+        tabViewStore.currentViewStyle(workspaceId) shouldBe detailed
+        tabViewStore.currentViewStyle(otherTab) shouldBe detailed
+        tabViewStore.currentViewStyle(searcherTab) shouldBe null
+    }
+
+    /** A tab whose page is composed has to see a write another pane made to its slot. */
+    @Test
+    fun `a cross-tab write reaches the live value`() = runTest {
+        val controller = controller()
+        val grid = ExplorerViewStyle(mode = ExplorerViewStyle.Mode.GRID)
+
+        tabViewStore.setViewStyle(workspaceId, grid)
+        runCurrent()
+
+        controller.viewStyle.value shouldBe grid
+    }
+
+    @Test
+    fun `setting the default writes only the setting`() = runTest {
+        val controller = controller()
+        val grid = ExplorerViewStyle(mode = ExplorerViewStyle.Mode.GRID)
+
+        controller.setAsDefault(grid)
+        runCurrent()
+
         coVerify { styleStore.update(any()) }
         globalStyle.value shouldBe grid
+        tabViewStore.currentViewStyle(workspaceId) shouldBe initialStyle
     }
 
     @Test
@@ -241,7 +301,10 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
     @Test
     fun `a restored tab starts with its own style and filters`() = runTest {
         val restoredFilter = FilterState(excludePattern = "tmp", fileTypeFilter = FileTypeFilter.FOLDERS_ONLY)
-        val restoredStyle = ExplorerViewStyle.Grid(size = ExplorerViewStyle.Grid.GridSize.LARGE)
+        val restoredStyle = ExplorerViewStyle(
+            mode = ExplorerViewStyle.Mode.GRID,
+            density = ExplorerViewStyle.Density.DETAILED,
+        )
         tabViewStore.setViewStyle(workspaceId, restoredStyle)
         tabViewStore.setFilter(workspaceId, restoredFilter)
 
@@ -263,11 +326,12 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
     fun `one tab's view style does not follow another's`() = runTest {
         val tabA = Workspace.Id()
         val tabB = Workspace.Id()
-        val grid = ExplorerViewStyle.Grid()
+        val grid = ExplorerViewStyle(mode = ExplorerViewStyle.Mode.GRID)
         val controllerA = controller(tabId = tabA)
         val controllerB = controller(tabId = tabB)
 
-        controllerB.updateViewStyle(grid)
+        controllerB.applyToTab(grid)
+        runCurrent()
 
         controllerA.viewStyle.value shouldBe initialStyle
         controllerB.viewStyle.value shouldBe grid
@@ -281,13 +345,18 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
         controller(tabId = tabB).viewStyle.value shouldBe grid
     }
 
-    /** The global default still tracks the last used style, so a new tab opens the way the user left off. */
+    /** Only "Set as default" moves the global default; a live change stays with its tab. */
     @Test
-    fun `a new tab opens with the last used style`() = runTest {
-        val grid = ExplorerViewStyle.Grid()
+    fun `a new tab opens on the default rather than another tab's style`() = runTest {
+        val grid = ExplorerViewStyle(mode = ExplorerViewStyle.Mode.GRID)
         val controllerB = controller(tabId = Workspace.Id())
 
-        controllerB.updateViewStyle(grid)
+        controllerB.applyToTab(grid)
+        runCurrent()
+
+        controller(tabId = Workspace.Id()).viewStyle.value shouldBe initialStyle
+
+        controllerB.setAsDefault(grid)
         runCurrent()
 
         controller(tabId = Workspace.Id()).viewStyle.value shouldBe grid
@@ -298,7 +367,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
     fun `a global default change does not restyle an open tab`() = runTest {
         val controller = controller()
 
-        globalStyle.value = ExplorerViewStyle.Grid()
+        globalStyle.value = ExplorerViewStyle(mode = ExplorerViewStyle.Mode.GRID)
 
         controller.viewStyle.value shouldBe initialStyle
         tabViewStore.currentViewStyle(workspaceId) shouldBe initialStyle

@@ -53,10 +53,18 @@ class ExplorerTabViewStoreTest : BaseTest() {
     )
 
     private val goldenStylePayload = """
-        {"type":"grid","size":"large"}
+        {"type":"grid","density":"detailed"}
     """.trimIndent()
 
-    private val goldenStyle = ExplorerViewStyle.Grid(size = ExplorerViewStyle.Grid.GridSize.LARGE)
+    private val goldenStyle = ExplorerViewStyle(
+        mode = ExplorerViewStyle.Mode.GRID,
+        density = ExplorerViewStyle.Density.DETAILED,
+    )
+
+    /** What a version that stored a sealed hierarchy wrote; the tab must survive reading it. */
+    private val legacyStylePayload = """
+        {"type":"grid","size":"large"}
+    """.trimIndent()
 
     @Test
     fun `the stored filter payload shape is the wire contract`() {
@@ -128,12 +136,19 @@ class ExplorerTabViewStoreTest : BaseTest() {
         store.currentViewStyle(id) shouldBe null
     }
 
+    @Test
+    fun `a legacy view style payload still names its mode`() {
+        viewPrefs.mutateSlot(id, ExplorerTabViewStore.SLOT_VIEWSTYLE) { json.parseToJsonElement(legacyStylePayload) }
+
+        store.currentViewStyle(id) shouldBe ExplorerViewStyle(mode = ExplorerViewStyle.Mode.GRID)
+    }
+
     /** A restored tab keeps the style it was closed with, whatever the current global default is. */
     @Test
     fun `ensuring a view style does not clobber a restored one`() {
         viewPrefs.mutateSlot(id, ExplorerTabViewStore.SLOT_VIEWSTYLE) { json.parseToJsonElement(goldenStylePayload) }
 
-        store.ensureViewStyle(id, ExplorerViewStyle.List())
+        store.ensureViewStyle(id, ExplorerViewStyle())
 
         store.currentViewStyle(id) shouldBe goldenStyle
     }
@@ -149,9 +164,9 @@ class ExplorerTabViewStoreTest : BaseTest() {
     fun `setting a view style overwrites the stored one`() {
         store.setViewStyle(id, goldenStyle)
 
-        store.setViewStyle(id, ExplorerViewStyle.List())
+        store.setViewStyle(id, ExplorerViewStyle())
 
-        store.currentViewStyle(id) shouldBe ExplorerViewStyle.List()
+        store.currentViewStyle(id) shouldBe ExplorerViewStyle()
     }
 
     @Test

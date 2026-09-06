@@ -39,14 +39,14 @@ class DirectoryActionProviderTest : BaseTest() {
     private fun actionsFor(items: List<ExplorerItem.Path>?) = provider().getActions(
         location = directory(items),
         selectionState = ExplorerSelectionState(),
-        viewStyle = ExplorerViewStyle.List(),
+        viewStyle = ExplorerViewStyle(),
         trashEnabled = false,
     )
 
     private fun List<ExplorerActionBarItem>.hasSecondaryBrowsingActions(): Boolean =
         any { it is ExplorerActionBarItem.Common.Sort } &&
             any { it is ExplorerActionBarItem.Common.Filter } &&
-            any { it is ExplorerActionBarItem.Common.UpdateViewStyle }
+            any { it is ExplorerActionBarItem.Common.ViewOptions }
 
     @Test
     fun `empty folder hides sort, filter and view-style actions`() {
@@ -54,7 +54,7 @@ class DirectoryActionProviderTest : BaseTest() {
 
         actions.any { it is ExplorerActionBarItem.Common.Sort } shouldBe false
         actions.any { it is ExplorerActionBarItem.Common.Filter } shouldBe false
-        actions.any { it is ExplorerActionBarItem.Common.UpdateViewStyle } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Common.ViewOptions } shouldBe false
         // The always-relevant browsing actions stay.
         actions.any { it is ExplorerActionBarItem.Directory.Create } shouldBe true
         actions.any { it is ExplorerActionBarItem.Common.Refresh } shouldBe true
@@ -92,7 +92,7 @@ class DirectoryActionProviderTest : BaseTest() {
     ) = provider().getActions(
         location = location,
         selectionState = ExplorerSelectionState(selectedItems = selected),
-        viewStyle = ExplorerViewStyle.List(),
+        viewStyle = ExplorerViewStyle(),
         trashEnabled = false,
     )
 

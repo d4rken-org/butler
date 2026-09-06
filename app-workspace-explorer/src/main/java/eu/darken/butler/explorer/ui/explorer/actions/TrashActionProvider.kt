@@ -8,7 +8,6 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.toggled
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import javax.inject.Inject
 
@@ -70,7 +69,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
             if (!isEmpty) {
                 actions.add(ExplorerActionBarItem.Common.Sort())
                 actions.add(ExplorerActionBarItem.Common.Filter())
-                actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()))
+                actions.add(ExplorerActionBarItem.Common.ViewOptions(viewStyle))
             }
 
             actions.add(
@@ -125,7 +124,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
             if (!isEmpty) {
                 actions.add(ExplorerActionBarItem.Common.Sort())
                 actions.add(ExplorerActionBarItem.Common.Filter())
-                actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle.toggled()))
+                actions.add(ExplorerActionBarItem.Common.ViewOptions(viewStyle))
             }
         }
 

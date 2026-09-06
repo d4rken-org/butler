@@ -141,20 +141,20 @@ fun ExplorerWorkspacePage(
     val pullToRefreshState = rememberPullToRefreshState()
 
     SyncScrollPositionOnViewStyleChange(
-        viewStyle = state.viewStyle,
+        mode = state.viewStyle.mode,
         items = state.items,
         listState = listState,
         gridState = gridState,
     )
     ScrollToTopOnSortChange(
         resolvedSort = state.resolvedSort,
-        viewStyle = state.viewStyle,
+        mode = state.viewStyle.mode,
         listState = listState,
         gridState = gridState,
     )
     ScrollToFocusedItem(
         focusedItemIndex = state.focusedItemIndex,
-        viewStyle = state.viewStyle,
+        mode = state.viewStyle.mode,
         listState = listState,
         gridState = gridState,
     )
@@ -324,21 +324,23 @@ private fun rememberRefreshIndication(refreshId: Int, isRefreshing: Boolean): Bo
 // switch overrides the incoming one.
 @Composable
 private fun SyncScrollPositionOnViewStyleChange(
-    viewStyle: ExplorerViewStyle,
+    mode: ExplorerViewStyle.Mode,
     items: List<ExplorerItem>?,
     listState: LazyListState,
     gridState: LazyGridState,
 ) {
     val hasItems = !items.isNullOrEmpty()
-    OnValueChange(viewStyle) { previous, current ->
+    // Keyed on the mode alone: a density change keeps the same lazy state, so the carry-over would
+    // be a list-to-list self-scroll.
+    OnValueChange(mode) { previous, current ->
         if (!hasItems) return@OnValueChange
         val outgoingIndex = when (previous) {
-            is ExplorerViewStyle.Grid -> gridState.firstVisibleItemIndex
-            is ExplorerViewStyle.List -> listState.firstVisibleItemIndex
+            ExplorerViewStyle.Mode.GRID -> gridState.firstVisibleItemIndex
+            ExplorerViewStyle.Mode.LIST -> listState.firstVisibleItemIndex
         }
         when (current) {
-            is ExplorerViewStyle.Grid -> gridState.scrollToItem(outgoingIndex)
-            is ExplorerViewStyle.List -> listState.scrollToItem(outgoingIndex)
+            ExplorerViewStyle.Mode.GRID -> gridState.scrollToItem(outgoingIndex)
+            ExplorerViewStyle.Mode.LIST -> listState.scrollToItem(outgoingIndex)
         }
     }
 }
@@ -354,7 +356,7 @@ private fun SyncScrollPositionOnViewStyleChange(
 @Composable
 private fun ScrollToTopOnSortChange(
     resolvedSort: ExplorerViewSettingsController.ResolvedSort?,
-    viewStyle: ExplorerViewStyle,
+    mode: ExplorerViewStyle.Mode,
     listState: LazyListState,
     gridState: LazyGridState,
 ) {
@@ -362,9 +364,9 @@ private fun ScrollToTopOnSortChange(
         if (old == null || new == null) return@OnValueChange
         if (old.locationKey != new.locationKey) return@OnValueChange
         if (old.resolution.settings == new.resolution.settings) return@OnValueChange
-        when (viewStyle) {
-            is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(0)
-            is ExplorerViewStyle.List -> listState.animateScrollToItem(0)
+        when (mode) {
+            ExplorerViewStyle.Mode.GRID -> gridState.animateScrollToItem(0)
+            ExplorerViewStyle.Mode.LIST -> listState.animateScrollToItem(0)
         }
     }
 }
@@ -373,15 +375,15 @@ private fun ScrollToTopOnSortChange(
 @Composable
 private fun ScrollToFocusedItem(
     focusedItemIndex: Int?,
-    viewStyle: ExplorerViewStyle,
+    mode: ExplorerViewStyle.Mode,
     listState: LazyListState,
     gridState: LazyGridState,
 ) {
     LaunchedEffect(focusedItemIndex) {
         val focusedIndex = focusedItemIndex ?: return@LaunchedEffect
-        when (viewStyle) {
-            is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(focusedIndex)
-            is ExplorerViewStyle.List -> listState.animateScrollToItem(focusedIndex)
+        when (mode) {
+            ExplorerViewStyle.Mode.GRID -> gridState.animateScrollToItem(focusedIndex)
+            ExplorerViewStyle.Mode.LIST -> listState.animateScrollToItem(focusedIndex)
         }
     }
 }
@@ -421,7 +423,7 @@ private fun ExplorerRevealEffect(
                         }
                     }
                     log(tag) { "Index search result: $index" }
-                    index?.takeIf { it >= 0 }?.let { it to emittedState.viewStyle }
+                    index?.takeIf { it >= 0 }?.let { it to emittedState.viewStyle.mode }
                 }
                 .timeout(2.seconds)
                 .catch { e -> log(tag) { "Timeout or error waiting for item: $e" } }
@@ -432,11 +434,11 @@ private fun ExplorerRevealEffect(
                 return@collect
             }
 
-            val (targetIndex, currentViewStyle) = result
-            log(tag) { "Scrolling to index: $targetIndex (centered), viewStyle: $currentViewStyle" }
+            val (targetIndex, currentMode) = result
+            log(tag) { "Scrolling to index: $targetIndex (centered), mode: $currentMode" }
 
-            when (currentViewStyle) {
-                is ExplorerViewStyle.Grid -> {
+            when (currentMode) {
+                ExplorerViewStyle.Mode.GRID -> {
                     val layoutInfo = gridState.layoutInfo
                     val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
                     val avgItemHeight = layoutInfo.visibleItemsInfo
@@ -447,7 +449,7 @@ private fun ExplorerRevealEffect(
                     log(tag) { "Grid: viewportHeight=$viewportHeight, avgItemHeight=$avgItemHeight, centerOffset=$centerOffset" }
                     gridState.animateScrollToItem(targetIndex, centerOffset)
                 }
-                is ExplorerViewStyle.List -> {
+                ExplorerViewStyle.Mode.LIST -> {
                     val layoutInfo = listState.layoutInfo
                     val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
                     val avgItemHeight = layoutInfo.visibleItemsInfo
@@ -636,7 +638,7 @@ private fun ExplorerWorkspacePagePickerPreview() {
 private fun ExplorerWorkspacePageGridPreview() {
     ExplorerWorkspacePagePreviewBase(
         mockState = MockDataProvider.createReadyState().copy(
-            viewStyle = ExplorerViewStyle.Grid(),
+            viewStyle = ExplorerViewStyle(mode = ExplorerViewStyle.Mode.GRID),
             availableActions = listOf(
                 ExplorerActionBarItem.Directory.Create(isEnabled = false),
                 ExplorerActionBarItem.Common.Sort(),

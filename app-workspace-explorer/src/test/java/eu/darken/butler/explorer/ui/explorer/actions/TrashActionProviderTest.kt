@@ -29,7 +29,7 @@ class TrashActionProviderTest : BaseTest() {
 
     private fun actionsFor(
         location: ExplorerLocation,
-        viewStyle: ExplorerViewStyle = ExplorerViewStyle.List(),
+        viewStyle: ExplorerViewStyle = ExplorerViewStyle(),
     ) = provider().getActions(
         location = location,
         selectionState = ExplorerSelectionState(),
@@ -38,12 +38,12 @@ class TrashActionProviderTest : BaseTest() {
     )
 
     private fun List<ExplorerActionBarItem>.viewStyleAction(): ExplorerViewStyle =
-        filterIsInstance<ExplorerActionBarItem.Common.UpdateViewStyle>().single().viewStyle
+        filterIsInstance<ExplorerActionBarItem.Common.ViewOptions>().single().currentViewStyle
 
     private fun List<ExplorerActionBarItem>.hasSecondaryBrowsingActions(): Boolean =
         any { it is ExplorerActionBarItem.Common.Sort } &&
             any { it is ExplorerActionBarItem.Common.Filter } &&
-            any { it is ExplorerActionBarItem.Common.UpdateViewStyle }
+            any { it is ExplorerActionBarItem.Common.ViewOptions }
 
     @Test
     fun `empty root trash hides sort, filter and view-style actions`() {
@@ -51,7 +51,7 @@ class TrashActionProviderTest : BaseTest() {
 
         actions.any { it is ExplorerActionBarItem.Common.Sort } shouldBe false
         actions.any { it is ExplorerActionBarItem.Common.Filter } shouldBe false
-        actions.any { it is ExplorerActionBarItem.Common.UpdateViewStyle } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Common.ViewOptions } shouldBe false
         // Refresh and EmptyBin stay (EmptyBin disabled when empty).
         actions.any { it is ExplorerActionBarItem.Common.Refresh } shouldBe true
         actions.any { it is ExplorerActionBarItem.Trash.EmptyBin } shouldBe true
@@ -77,7 +77,7 @@ class TrashActionProviderTest : BaseTest() {
 
         actions.any { it is ExplorerActionBarItem.Common.Sort } shouldBe false
         actions.any { it is ExplorerActionBarItem.Common.Filter } shouldBe false
-        actions.any { it is ExplorerActionBarItem.Common.UpdateViewStyle } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Common.ViewOptions } shouldBe false
         actions.any { it is ExplorerActionBarItem.Common.Refresh } shouldBe true
     }
 
@@ -89,18 +89,20 @@ class TrashActionProviderTest : BaseTest() {
     }
 
     @Test
-    fun `root trash view-style action offers the opposite style`() {
+    fun `root trash view-style action carries the current style`() {
         val location = root(listOf(MockDataProvider.createMockTrashItem()))
+        val grid = ExplorerViewStyle(mode = ExplorerViewStyle.Mode.GRID)
 
-        actionsFor(location, ExplorerViewStyle.List()).viewStyleAction() shouldBe ExplorerViewStyle.Grid()
-        actionsFor(location, ExplorerViewStyle.Grid()).viewStyleAction() shouldBe ExplorerViewStyle.List()
+        actionsFor(location, ExplorerViewStyle()).viewStyleAction() shouldBe ExplorerViewStyle()
+        actionsFor(location, grid).viewStyleAction() shouldBe grid
     }
 
     @Test
-    fun `nested trash view-style action offers the opposite style`() {
+    fun `nested trash view-style action carries the current style`() {
         val location = nested(listOf(MockDataProvider.createMockRegularFile()))
+        val grid = ExplorerViewStyle(mode = ExplorerViewStyle.Mode.GRID)
 
-        actionsFor(location, ExplorerViewStyle.List()).viewStyleAction() shouldBe ExplorerViewStyle.Grid()
-        actionsFor(location, ExplorerViewStyle.Grid()).viewStyleAction() shouldBe ExplorerViewStyle.List()
+        actionsFor(location, ExplorerViewStyle()).viewStyleAction() shouldBe ExplorerViewStyle()
+        actionsFor(location, grid).viewStyleAction() shouldBe grid
     }
 }

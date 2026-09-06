@@ -19,6 +19,7 @@ import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.BrowsingAbortedDialog
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
@@ -63,6 +64,7 @@ fun ExplorerWorkspaceOverlaysHost(
     ExplorerWorkspaceOverlays(
         design = design,
         dialogState = state?.dialogState ?: ExplorerDialogState.None,
+        viewStyle = state?.viewStyle ?: ExplorerViewStyle.default(),
         trashEnabled = state?.trashEnabled == true,
         fileOpenActionsEnabled = state?.fileOpenActionsEnabled != false,
         operationsState = operationsState,
@@ -85,6 +87,7 @@ fun ExplorerWorkspaceOverlaysHost(
 fun ExplorerWorkspaceOverlays(
     design: WorkspaceDesign = WorkspaceDesign(),
     dialogState: ExplorerDialogState = ExplorerDialogState.None,
+    viewStyle: ExplorerViewStyle = ExplorerViewStyle.default(),
     trashEnabled: Boolean = false,
     fileOpenActionsEnabled: Boolean = true,
     // Null while the operations flow has not emitted; the cancel confirmation needs to tell that
@@ -105,6 +108,7 @@ fun ExplorerWorkspaceOverlays(
 
     ExplorerDialogHost(
         dialogState = dialogState,
+        viewStyle = viewStyle,
         trashEnabled = trashEnabled,
         fileOpenActionsEnabled = fileOpenActionsEnabled,
         vm = vm,

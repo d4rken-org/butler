@@ -101,7 +101,7 @@ class ExplorerItemRendererDragTest : ComposeTest() {
             PreviewWrapper {
                 ExplorerItemRenderer(
                     item = item,
-                    viewStyle = ExplorerViewStyle.List(),
+                    viewStyle = ExplorerViewStyle(),
                     state = MockDataProvider.createReadyState(
                         selectionState = ExplorerSelectionState(
                             selectableItems = setOf(file, otherFile, storage),

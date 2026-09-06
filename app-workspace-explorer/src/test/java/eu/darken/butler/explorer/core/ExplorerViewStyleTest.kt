@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.core
 
+import eu.darken.butler.common.serialization.SerializationCommonModule
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
@@ -12,10 +13,12 @@ class ExplorerViewStyleTest : BaseTest() {
         encodeDefaults = true
     }
 
+    /** Legacy payloads carry keys this type no longer has, which only the app's own Json tolerates. */
+    private val productionJson = SerializationCommonModule().json()
+
     @Test
-    fun `serialize List with defaults`() {
-        val style = ExplorerViewStyle.List()
-        val serialized = json.encodeToString<ExplorerViewStyle>(style)
+    fun `serialize with defaults`() {
+        val serialized = json.encodeToString(ExplorerViewStyle())
 
         serialized.toComparableJson() shouldBe """
             {
@@ -26,158 +29,90 @@ class ExplorerViewStyleTest : BaseTest() {
     }
 
     @Test
-    fun `serialize List with custom values`() {
-        val style = ExplorerViewStyle.List(
-            density = ExplorerViewStyle.List.Density.DETAILED,
+    fun `serialize with custom values`() {
+        val style = ExplorerViewStyle(
+            mode = ExplorerViewStyle.Mode.GRID,
+            density = ExplorerViewStyle.Density.DETAILED,
         )
-        val serialized = json.encodeToString<ExplorerViewStyle>(style)
+        val serialized = json.encodeToString(style)
 
         serialized.toComparableJson() shouldBe """
             {
-                "type": "list",
+                "type": "grid",
                 "density": "detailed"
             }
         """.toComparableJson()
     }
 
     @Test
-    fun `serialize Grid with defaults`() {
-        val style = ExplorerViewStyle.Grid()
-        val serialized = json.encodeToString<ExplorerViewStyle>(style)
-
-        serialized.toComparableJson() shouldBe """
-            {
-                "type": "grid",
-                "size": "medium"
-            }
-        """.toComparableJson()
-    }
-
-    @Test
-    fun `serialize Grid with custom values`() {
-        val style = ExplorerViewStyle.Grid(
-            size = ExplorerViewStyle.Grid.GridSize.SMALL,
-        )
-        val serialized = json.encodeToString<ExplorerViewStyle>(style)
-
-        serialized.toComparableJson() shouldBe """
-            {
-                "type": "grid",
-                "size": "small"
-            }
-        """.toComparableJson()
-    }
-
-    @Test
-    fun `deserialize List from JSON`() {
+    fun `deserialize from JSON`() {
         val jsonString = """
             {
-                "type": "list",
+                "type": "grid",
                 "density": "compact"
             }
         """
 
-        val style = json.decodeFromString<ExplorerViewStyle>(jsonString)
-
-        style shouldBe ExplorerViewStyle.List(
-            density = ExplorerViewStyle.List.Density.COMPACT,
+        json.decodeFromString<ExplorerViewStyle>(jsonString) shouldBe ExplorerViewStyle(
+            mode = ExplorerViewStyle.Mode.GRID,
+            density = ExplorerViewStyle.Density.COMPACT,
         )
-    }
-
-    @Test
-    fun `deserialize Grid from JSON`() {
-        val jsonString = """
-            {
-                "type": "grid",
-                "size": "large"
-            }
-        """
-
-        val style = json.decodeFromString<ExplorerViewStyle>(jsonString)
-
-        style shouldBe ExplorerViewStyle.Grid(
-            size = ExplorerViewStyle.Grid.GridSize.LARGE,
-        )
-    }
-
-    @Test
-    fun `roundtrip List serialization`() {
-        val original = ExplorerViewStyle.List(
-            density = ExplorerViewStyle.List.Density.DETAILED,
-        )
-
-        val serialized = json.encodeToString<ExplorerViewStyle>(original)
-        val deserialized = json.decodeFromString<ExplorerViewStyle>(serialized)
-
-        deserialized shouldBe original
-    }
-
-    @Test
-    fun `roundtrip Grid serialization`() {
-        val original = ExplorerViewStyle.Grid(
-            size = ExplorerViewStyle.Grid.GridSize.SMALL,
-        )
-
-        val serialized = json.encodeToString<ExplorerViewStyle>(original)
-        val deserialized = json.decodeFromString<ExplorerViewStyle>(serialized)
-
-        deserialized shouldBe original
     }
 
     @Test
     fun `deserialize with missing optional fields uses defaults`() {
-        val jsonString = """
-            {
-                "type": "list"
-            }
-        """
-
-        val style = json.decodeFromString<ExplorerViewStyle>(jsonString)
-
-        style shouldBe ExplorerViewStyle.List()
+        json.decodeFromString<ExplorerViewStyle>("""{"type":"list"}""") shouldBe ExplorerViewStyle()
+        json.decodeFromString<ExplorerViewStyle>("{}") shouldBe ExplorerViewStyle()
     }
 
+    /** A list user keeps both the mode and the density they had. */
     @Test
-    fun `deserialize Grid with partial fields`() {
-        val jsonString = """
+    fun `a legacy list payload keeps its mode and density`() {
+        val legacy = """
             {
-                "type": "grid"
+                "type": "list",
+                "density": "comfortable"
             }
         """
 
-        val style = json.decodeFromString<ExplorerViewStyle>(jsonString)
+        productionJson.decodeFromString<ExplorerViewStyle>(legacy) shouldBe ExplorerViewStyle(
+            mode = ExplorerViewStyle.Mode.LIST,
+            density = ExplorerViewStyle.Density.COMFORTABLE,
+        )
+    }
 
-        style shouldBe ExplorerViewStyle.Grid(
-            size = ExplorerViewStyle.Grid.GridSize.MEDIUM,
+    /** A grid user keeps the grid; the retired tile size has no density to map onto. */
+    @Test
+    fun `a legacy grid payload keeps grid and falls back to the default density`() {
+        val legacy = """
+            {
+                "type": "grid",
+                "size": "medium"
+            }
+        """
+
+        productionJson.decodeFromString<ExplorerViewStyle>(legacy) shouldBe ExplorerViewStyle(
+            mode = ExplorerViewStyle.Mode.GRID,
+            density = ExplorerViewStyle.Density.COMFORTABLE,
         )
     }
 
     @Test
-    fun `all List Density values roundtrip correctly`() {
-        ExplorerViewStyle.List.Density.values().forEach { density ->
-            val style = ExplorerViewStyle.List(density = density)
-            val serialized = json.encodeToString<ExplorerViewStyle>(style)
-            val deserialized = json.decodeFromString<ExplorerViewStyle>(serialized)
+    fun `all modes and densities roundtrip correctly`() {
+        ExplorerViewStyle.Mode.entries.forEach { mode ->
+            ExplorerViewStyle.Density.entries.forEach { density ->
+                val original = ExplorerViewStyle(mode = mode, density = density)
 
-            (deserialized as ExplorerViewStyle.List).density shouldBe density
+                json.decodeFromString<ExplorerViewStyle>(json.encodeToString(original)) shouldBe original
+            }
         }
     }
 
     @Test
-    fun `all Grid GridSize values roundtrip correctly`() {
-        ExplorerViewStyle.Grid.GridSize.values().forEach { size ->
-            val style = ExplorerViewStyle.Grid(size = size)
-            val serialized = json.encodeToString<ExplorerViewStyle>(style)
-            val deserialized = json.decodeFromString<ExplorerViewStyle>(serialized)
-
-            (deserialized as ExplorerViewStyle.Grid).size shouldBe size
-        }
-    }
-
-    @Test
-    fun `default returns List style`() {
-        val style = ExplorerViewStyle.default()
-
-        style shouldBe ExplorerViewStyle.List()
+    fun `default is a comfortable list`() {
+        ExplorerViewStyle.default() shouldBe ExplorerViewStyle(
+            mode = ExplorerViewStyle.Mode.LIST,
+            density = ExplorerViewStyle.Density.COMFORTABLE,
+        )
     }
 }
