@@ -6,6 +6,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -58,6 +59,6 @@ abstract class ViewModel2(
     )
 
     companion object {
-        private fun defaultTag(): String = this::class.simpleName ?: "VM2"
+        private fun defaultTag(): String = logTag("VM2")
     }
 }
