@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Search
@@ -35,6 +36,7 @@ import eu.darken.butler.workspace.ui.common.CutoutAwareColumn
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.common.CutoutMode
+import eu.darken.butler.workspace.ui.common.WorkspaceToolbarDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -59,7 +61,9 @@ fun AppsToolbarCard(
     val filterCount = filterConfig.includeTags.size + filterConfig.excludeTags.size
 
     CutoutCard(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .requiredHeightIn(min = WorkspaceToolbarDefaults.animatedMinHeight(isCollapsed)),
         cutoutContent = if (design.isSingle) {
             {
                 WorkspaceButton(

@@ -53,6 +53,7 @@ import eu.darken.butler.workspace.ui.common.CutoutAwareColumn
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.common.CutoutMode
+import eu.darken.butler.workspace.ui.common.WorkspaceToolbarDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -83,15 +84,10 @@ fun EditorToolbarCard(
         label = "cardPadding"
     )
 
-    val minHeight by animateDpAsState(
-        targetValue = if (isCollapsed) WorkspaceButtonDefaults.sizeCompact else WorkspaceButtonDefaults.sizeDefault,
-        label = "minHeight",
-    )
-
     CutoutCard(
         modifier = modifier
             .fillMaxWidth()
-            .requiredHeightIn(min = minHeight),
+            .requiredHeightIn(min = WorkspaceToolbarDefaults.animatedMinHeight(isCollapsed)),
         cutoutContent = if (design.isSingle) {
             {
                 WorkspaceButton(

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -81,6 +82,7 @@ import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.common.CutoutMode
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
+import eu.darken.butler.workspace.ui.common.WorkspaceToolbarDefaults
 import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
@@ -293,7 +295,7 @@ private fun BugReportToolbarCard(
     val isRecordingExpanded = isRecording && !isCollapsed
     // Collapsed, the card should be exactly as tall as the compact workspace ("manager") button so it
     // lines up with the other workspaces' toolbars; expanded, it matches the default-size button.
-    val headerMinHeight = if (isCollapsed) WorkspaceButtonDefaults.sizeCompact else WorkspaceButtonDefaults.sizeDefault
+    val headerMinHeight = WorkspaceToolbarDefaults.animatedMinHeight(isCollapsed)
     val horizontalPadding by animateDpAsState(
         targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "bugReportCardPaddingH",
@@ -317,7 +319,9 @@ private fun BugReportToolbarCard(
     }
 
     CutoutCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .requiredHeightIn(min = headerMinHeight),
         cutoutContent = if (design.isSingle) {
             {
                 WorkspaceButton(
