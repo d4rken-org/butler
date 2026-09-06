@@ -119,6 +119,8 @@ enum class SheetContentScroll {
  * @param contentKey Identity of the content currently being shown. A sheet that stays [visible]
  *        while its content is replaced (e.g. the next file conflict) passes the new identity here so
  *        the content starts at the top instead of inheriting the previous scroll offset.
+ * @param scrimAlpha Opacity of the black scrim behind the sheet. Lower it for a sheet whose
+ *        controls change the content behind it, so that content stays readable while being judged.
  * @param dragHandle Optional drag handle composable. Pass null to hide the handle.
  * @param includeImePadding Whether the sheet content should pad for the soft keyboard. Enable
  *        only for sheets containing an editable text field. When `false` the sheet ignores the
@@ -136,6 +138,7 @@ fun PaneScopedBottomSheet(
     includeImePadding: Boolean = false,
     contentScroll: SheetContentScroll = SheetContentScroll.SheetOwned,
     contentKey: Any? = null,
+    scrimAlpha: Float = 0.4f,
     dragHandle: @Composable (() -> Unit)? = { DefaultDragHandle() },
     content: @Composable () -> Unit,
 ) {
@@ -225,7 +228,7 @@ fun PaneScopedBottomSheet(
                 modifier = Modifier
                     .fillMaxSize()
                     .testTag(PaneScopedBottomSheetDefaults.SCRIM_TEST_TAG)
-                    .background(Color.Black.copy(alpha = 0.4f))
+                    .background(Color.Black.copy(alpha = scrimAlpha))
                     .requestPaneFocusOnPress()
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
