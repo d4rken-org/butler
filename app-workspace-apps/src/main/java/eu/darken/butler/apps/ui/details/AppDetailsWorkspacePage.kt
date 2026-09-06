@@ -436,6 +436,12 @@ private fun LazyListScope.overviewItems(
         }
     }
 
+    if (appInfo.isUninstalled) {
+        item {
+            UninstalledNotice()
+        }
+    }
+
     // Actions Section (full-width row highlight → no content horizontal padding)
     item {
         DetailSectionCard(
@@ -455,6 +461,7 @@ private fun LazyListScope.overviewItems(
                 canEnableDisable = state.canEnableDisable,
                 canForceStop = state.canForceStop,
                 canClearData = state.canClearData,
+                isUninstalled = appInfo.isUninstalled,
             )
         }
     }
@@ -499,6 +506,43 @@ private fun LazyListScope.overviewItems(
             )
         }
     }
+}
+
+/** The package is still listed and its metadata still valid, only the install is gone. */
+@Composable
+private fun UninstalledNotice(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.apps_details_uninstalled_title),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = stringResource(R.string.apps_details_uninstalled_message),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun UninstalledNoticePreview() {
+    UninstalledNotice()
 }
 
 @Composable

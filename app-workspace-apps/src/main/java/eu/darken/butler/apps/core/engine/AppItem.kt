@@ -11,6 +11,7 @@ import eu.darken.butler.common.pkgs.features.InstallDetails
 import eu.darken.butler.common.pkgs.features.Installed
 import eu.darken.butler.common.pkgs.features.InstallerInfo
 import eu.darken.butler.common.pkgs.features.SourceAvailable
+import eu.darken.butler.common.pkgs.isUninstalled
 import eu.darken.butler.common.user.UserProfile2
 import eu.darken.butler.workspace.contracts.apps.AppTag
 import eu.darken.butler.workspace.contracts.apps.SortSettings
@@ -39,6 +40,8 @@ data class AppItem(
 
     // Body properties, not constructor defaults: the generated copy() passes existing property
     // values instead of re-evaluating defaults, which would keep stale derived values around.
+    val isUninstalled: Boolean = pkg.isUninstalled
+
     val isSideloaded: Boolean = if (isSystemApp) {
         false
     } else {

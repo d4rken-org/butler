@@ -234,6 +234,9 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
     private fun buildSelectionActions(wsState: AppsWorkspace.State.Ready): List<AppsActionBarItem> {
         val selectedApps = wsState.selectedApps
+        // Package commands would target an install that is no longer there. Opening, selecting,
+        // exporting and sharing still make sense for those entries, so they keep the full selection.
+        val commandable = selectedApps.filter { !it.isUninstalled }
         return buildList {
             add(AppsActionBarItem.OpenInTab(selectedApps))
 
@@ -241,19 +244,19 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 add(AppsActionBarItem.SelectAll)
             }
 
-            if (wsState.canEnableDisable) {
-                val disableAction = AppsActionBarItem.Disable(selectedApps)
+            if (wsState.canEnableDisable && commandable.isNotEmpty()) {
+                val disableAction = AppsActionBarItem.Disable(commandable)
                 if (disableAction.isVisible) add(disableAction)
 
-                val enableAction = AppsActionBarItem.Enable(selectedApps)
+                val enableAction = AppsActionBarItem.Enable(commandable)
                 if (enableAction.isVisible) add(enableAction)
             }
 
-            if (wsState.canClearData) {
-                add(AppsActionBarItem.ClearData(selectedApps))
+            if (wsState.canClearData && commandable.isNotEmpty()) {
+                add(AppsActionBarItem.ClearData(commandable))
             }
 
-            add(AppsActionBarItem.Uninstall(selectedApps))
+            if (commandable.isNotEmpty()) add(AppsActionBarItem.Uninstall(commandable))
             add(AppsActionBarItem.ExportApk(selectedApps))
 
             val shareAction = AppsActionBarItem.Share(selectedApps)
@@ -532,6 +535,18 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    /**
+     * The barrier for package commands, placed at the dispatch point because the long-press dialog
+     * builds its own action items and never passes through [buildSelectionActions]. Null means
+     * nothing is left to act on.
+     */
+    private fun commandableOrNull(apps: List<AppItem>, what: String): List<AppItem>? {
+        val commandable = apps.filter { !it.isUninstalled }
+        if (commandable.isNotEmpty()) return commandable
+        log(tag, WARN) { "$what: every selected app is uninstalled, nothing to do" }
+        return null
+    }
+
     private fun onActionBarClick(action: AppsActionBarItem) {
         log(tag) { "onActionBarClick: ${action.javaClass.simpleName}" }
 
@@ -551,23 +566,27 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             }
 
             is AppsActionBarItem.Disable -> launch {
-                log(tag) { "Disable action for ${action.apps.size} apps" }
-                dialogStateFlow.value = AppsDialogState.ConfirmDisable(action.apps)
+                val apps = commandableOrNull(action.apps, "Disable") ?: return@launch
+                log(tag) { "Disable action for ${apps.size} apps" }
+                dialogStateFlow.value = AppsDialogState.ConfirmDisable(apps)
             }
 
             is AppsActionBarItem.Enable -> launch {
-                log(tag) { "Enable action for ${action.apps.size} apps" }
-                dialogStateFlow.value = AppsDialogState.ConfirmEnable(action.apps)
+                val apps = commandableOrNull(action.apps, "Enable") ?: return@launch
+                log(tag) { "Enable action for ${apps.size} apps" }
+                dialogStateFlow.value = AppsDialogState.ConfirmEnable(apps)
             }
 
             is AppsActionBarItem.Uninstall -> launch {
-                log(tag) { "Uninstall action for ${action.apps.size} apps" }
-                dialogStateFlow.value = AppsDialogState.ConfirmUninstall(action.apps)
+                val apps = commandableOrNull(action.apps, "Uninstall") ?: return@launch
+                log(tag) { "Uninstall action for ${apps.size} apps" }
+                dialogStateFlow.value = AppsDialogState.ConfirmUninstall(apps)
             }
 
             is AppsActionBarItem.ClearData -> launch {
-                log(tag) { "Clear data action for ${action.apps.size} apps" }
-                dialogStateFlow.value = AppsDialogState.ConfirmClearData(action.apps)
+                val apps = commandableOrNull(action.apps, "Clear data") ?: return@launch
+                log(tag) { "Clear data action for ${apps.size} apps" }
+                dialogStateFlow.value = AppsDialogState.ConfirmClearData(apps)
             }
 
             is AppsActionBarItem.ExportApk -> launch {

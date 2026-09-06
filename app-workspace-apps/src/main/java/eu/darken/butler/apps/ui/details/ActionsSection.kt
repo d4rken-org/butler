@@ -31,6 +31,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppInfo
+import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -98,17 +99,13 @@ sealed class AppAction {
 sealed class ActionGroup {
     abstract val actions: List<AppAction>
 
-    data object Primary : ActionGroup() {
-        override val actions = listOf(AppAction.Launch, AppAction.OpenInfo)
-    }
+    data class Primary(override val actions: List<AppAction>) : ActionGroup()
 
     data class Management(
         override val actions: List<AppAction>,
     ) : ActionGroup()
 
-    data object Export : ActionGroup() {
-        override val actions = listOf(AppAction.ExportApk, AppAction.ShareApk)
-    }
+    data class Export(override val actions: List<AppAction>) : ActionGroup()
 
     data class Destructive(override val actions: List<AppAction>) : ActionGroup()
 }
@@ -128,24 +125,40 @@ fun ActionsSection(
     canEnableDisable: Boolean = true,
     canForceStop: Boolean = true,
     canClearData: Boolean = true,
+    isUninstalled: Boolean = false,
 ) {
     if (app == null) return
 
+    // Nothing that needs an installed package is offered: there is no launch intent, no APK to
+    // export, and every package command would target something that is no longer there. Sharing
+    // stays, it shares text about the app rather than the APK.
+    val primaryActions = buildList {
+        if (!isUninstalled) add(AppAction.Launch)
+        add(AppAction.OpenInfo)
+    }
+
     val managementActions = buildList {
+        if (isUninstalled) return@buildList
         if (canEnableDisable) add(AppAction.EnableDisable(app.isEnabled))
         if (canForceStop) add(AppAction.ForceStop)
     }
 
+    val exportActions = buildList {
+        if (!isUninstalled) add(AppAction.ExportApk)
+        add(AppAction.ShareApk)
+    }
+
     val destructiveActions = buildList {
+        if (isUninstalled) return@buildList
         if (canClearData) add(AppAction.ClearData)
         add(AppAction.Uninstall)
     }
 
     val actionGroups = buildList {
-        add(ActionGroup.Primary)
+        add(ActionGroup.Primary(primaryActions))
         if (managementActions.isNotEmpty()) add(ActionGroup.Management(managementActions))
-        add(ActionGroup.Export)
-        add(ActionGroup.Destructive(destructiveActions))
+        add(ActionGroup.Export(exportActions))
+        if (destructiveActions.isNotEmpty()) add(ActionGroup.Destructive(destructiveActions))
     }
 
     val actionHandlers = mapOf<AppAction, () -> Unit>(
@@ -259,5 +272,40 @@ private fun ActionsSectionPreview() {
         onShareApk = {},
         onForceStop = {},
         onClearData = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ActionsSectionInstalledPreview() {
+    ActionsSection(
+        app = AppsMockDataProvider.Presets.chrome,
+        onLaunchApp = {},
+        onShowAppInfo = {},
+        onEnableDisable = {},
+        onUninstall = {},
+        onExportApk = {},
+        onShareApk = {},
+        onForceStop = {},
+        onClearData = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ActionsSectionUninstalledPreview() {
+    ActionsSection(
+        app = AppsMockDataProvider.Presets.chrome,
+        onLaunchApp = {},
+        onShowAppInfo = {},
+        onEnableDisable = {},
+        onUninstall = {},
+        onExportApk = {},
+        onShareApk = {},
+        onForceStop = {},
+        onClearData = {},
+        isUninstalled = true,
     )
 }

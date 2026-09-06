@@ -280,53 +280,54 @@ private fun AppDetailsContent(
                 Text(stringResource(R.string.apps_action_open_info))
             }
 
-            // Enable/Disable
-            if (app.isEnabled) {
-                FilledTonalButton(
-                    onClick = {
-                        onAction(AppsActionBarItem.Disable(listOf(app)))
-                        onDismiss()
+            // Enable/Disable and Uninstall need an install to act on.
+            if (!app.isUninstalled) {
+                if (app.isEnabled) {
+                    FilledTonalButton(
+                        onClick = {
+                            onAction(AppsActionBarItem.Disable(listOf(app)))
+                            onDismiss()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Block,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(stringResource(R.string.apps_action_disable))
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Block,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(stringResource(R.string.apps_action_disable))
-                }
-            } else {
-                FilledTonalButton(
-                    onClick = {
-                        onAction(AppsActionBarItem.Enable(listOf(app)))
-                        onDismiss()
+                } else {
+                    FilledTonalButton(
+                        onClick = {
+                            onAction(AppsActionBarItem.Enable(listOf(app)))
+                            onDismiss()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.TwoTone.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(stringResource(R.string.apps_action_enable))
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.CheckCircle,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(stringResource(R.string.apps_action_enable))
                 }
-            }
 
-            // Uninstall
-            FilledTonalButton(
-                onClick = {
-                    onAction(AppsActionBarItem.Uninstall(listOf(app)))
-                    onDismiss()
+                FilledTonalButton(
+                    onClick = {
+                        onAction(AppsActionBarItem.Uninstall(listOf(app)))
+                        onDismiss()
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(stringResource(R.string.apps_action_uninstall))
                 }
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.Delete,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(stringResource(R.string.apps_action_uninstall))
             }
 
             // Export APK
