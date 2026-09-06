@@ -155,6 +155,9 @@ class SAFFileSystemOps @Inject constructor(
     /** Invalidate a path and all cached descendants (stale after directory move/delete). */
     private fun invalidateSubtree(path: SAFPath) {
         invalidatePath(path)
+        // The parent's listing holds this path's handle under the parent's key, so dropping only
+        // the path's own keys would leave it resolvable through the listing.
+        path.parent?.let { childrenCache.remove(it) }
         val isDescendant = { candidate: SAFPath ->
             candidate.treeRootUri == path.treeRootUri &&
                 candidate.segments.size > path.segments.size &&
@@ -221,7 +224,10 @@ class SAFFileSystemOps @Inject constructor(
         byPath.forEach { (childPath, entries) ->
             if (entries.size > 1) {
                 log(TAG, WARN) { "cacheChildren(): $parentPath lists '${childPath.name}' ${entries.size} times" }
-                invalidatePath(childPath)
+                // Descendants were resolved through a name that is now ambiguous; their handles
+                // cannot stand. Runs before childrenCache[parentPath] is written below, which the
+                // subtree invalidation would otherwise delete.
+                invalidateSubtree(childPath)
                 duplicated.add(childPath)
                 return@forEach
             }
@@ -245,7 +251,9 @@ class SAFFileSystemOps @Inject constructor(
         val cacheEntry = ChildrenEntry(
             resolved = resolved,
             duplicated = duplicated,
-            partial = listing.partial,
+            // A row we could not name is indexed under a URI-derived fallback, so this listing
+            // cannot prove any name absent.
+            partial = listing.partial || listing.entries.any { it.name == null },
             cachedAt = now,
         )
         childrenCache[parentPath] = cacheEntry
