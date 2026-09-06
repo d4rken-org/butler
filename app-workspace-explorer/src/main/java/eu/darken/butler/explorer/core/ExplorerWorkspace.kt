@@ -46,7 +46,6 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.awaitCompletion
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
-import eu.darken.butler.workspace.core.operations.submitAndGet
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.stateInWorkspace
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
@@ -578,7 +577,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     suspend fun execute(command: ExplorerCommand): Operation.State.Completed {
         log(tag) { "execute(): $command" }
         val executable = createOperation(command)
-        val managed = operationsManager.submitAndGet(executable)
+        val managed = operationsManager.submitManaged(executable)
         log(tag) { "execute(): Submitted ${managed.id}, awaiting completion" }
         val completed = managed.awaitCompletion()
         log(tag) { "execute(): ${managed.id} completed" }

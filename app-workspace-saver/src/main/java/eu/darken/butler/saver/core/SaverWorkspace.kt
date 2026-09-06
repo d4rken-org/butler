@@ -45,12 +45,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -115,21 +115,16 @@ class SaverWorkspace @AssistedInject constructor(
     // Serializes the check-and-set below so a rapid double-tap can't submit two operations.
     private val saveMutex = Mutex()
 
-    private val _currentOperationId = MutableStateFlow<Operation.Id?>(null)
-    val currentOperation: Flow<ManagedOperation?> = _currentOperationId
-        .flatMapLatest { opId ->
-            if (opId == null) {
+    // The operation itself, not its id looked up in OperationsManager.operations: a finished
+    // operation is evicted from that list once retention is over its cap, and the save it belongs to
+    // would stop being reportable the moment it succeeded.
+    private val _currentOperation = MutableStateFlow<ManagedOperation?>(null)
+    val currentOperation: Flow<ManagedOperation?> = _currentOperation
+        .flatMapLatest { managedOp ->
+            if (managedOp == null) {
                 flowOf(null)
             } else {
-                operationsManager.operations
-                    .map { ops -> ops.find { it.id == opId } }
-                    .flatMapLatest { managedOp ->
-                        if (managedOp == null) {
-                            flowOf(null)
-                        } else {
-                            managedOp.state.map { managedOp }
-                        }
-                    }
+                managedOp.state.map { managedOp }
             }
         }
 
@@ -400,14 +395,20 @@ class SaverWorkspace @AssistedInject constructor(
             ),
         )
 
-        val operationId = operationsManager.submit(operation)
-        _currentOperationId.value = operationId
+        val managed = operationsManager.submitManaged(operation)
+        _currentOperation.value = managed
 
-        // Observe operation state
-        operationsManager.operations
-            .map { ops -> ops.find { it.id == operationId } }
-            .filterNotNull()
-            .flatMapLatest { it.state }
+        // Observe operation state on the handle itself. Finding it in OperationsManager.operations
+        // instead would never resolve for a save that finished and was evicted before this collector
+        // first ran, leaving the save stuck in Saving and every later save rejected.
+        managed.state
+            // Completed is terminal, and every save starts its own collector, so without this a tab
+            // saving repeatedly keeps one collector per save alive and holds each finished
+            // operation's report for as long as the tab is open, out of reach of retention.
+            .transformWhile { state ->
+                emit(state)
+                state !is Operation.State.Completed
+            }
             .onEach { state ->
                 when (state) {
                     is SaveFilesOperation.State.Active -> {
@@ -438,7 +439,7 @@ class SaverWorkspace @AssistedInject constructor(
 
     fun resetSaveState() {
         _saveState.value = SaveState.Idle
-        _currentOperationId.value = null
+        _currentOperation.value = null
     }
 
     fun resolveConflict(operationId: Operation.Id, resolution: PathActionIssue.Resolution) {

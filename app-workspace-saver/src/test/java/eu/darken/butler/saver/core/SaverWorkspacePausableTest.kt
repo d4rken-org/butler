@@ -9,6 +9,7 @@ import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
+import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -17,6 +18,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import kotlin.time.Instant
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -48,8 +50,12 @@ class SaverWorkspacePausableTest {
             dispatcherProvider = TestDispatcherProvider(),
             contentUriHelper = mockk<ContentUriHelper> { every { extractInfo(any()) } returns sourceInfo },
             operationsManager = mockk<OperationsManager> {
-                coEvery { submit(any()) } returns eu.darken.butler.workspace.core.operations.Operation.Id()
-                every { operations } returns MutableStateFlow<List<ManagedOperation>>(emptyList())
+                coEvery { submitManaged(any()) } returns mockk<ManagedOperation> {
+                    every { id } returns Operation.Id()
+                    every { state } returns MutableStateFlow(
+                        Operation.State.Queued(startedAt = Instant.fromEpochSeconds(0))
+                    )
+                }
             },
             issueHandler = mockk<IssueHandler>(relaxed = true),
             saveFilesOperationFactory = mockk<SaveFilesOperation.Factory> {

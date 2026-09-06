@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
@@ -43,6 +44,15 @@ class ManagedOperation(
     val state: StateFlow<Operation.State> = _state
 
     val metadata: Operation.Metadata = operation.metadata
+
+    private val completionEmitted = AtomicBoolean(false)
+
+    /**
+     * Claims the right to emit this operation's completion snapshot, granting it to the first caller
+     * only. Kept here rather than in a manager-side id set so the claim is released with the
+     * operation it is about instead of outliving it for the process' lifetime.
+     */
+    fun claimCompletionEmission(): Boolean = completionEmitted.compareAndSet(false, true)
 
     val canCancel: Boolean
         get() = when (state.value) {
