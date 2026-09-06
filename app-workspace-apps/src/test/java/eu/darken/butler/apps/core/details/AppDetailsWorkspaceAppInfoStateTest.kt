@@ -4,12 +4,14 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
+import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.common.pkgs.features.Installed
+import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.user.UserHandle2
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.workspace.contracts.apps.AppDetailsArguments
@@ -22,6 +24,8 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -47,7 +51,14 @@ class AppDetailsWorkspaceAppInfoStateTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
 
     private val installId = InstallId(Pkg.Id(PKG), UserHandle2(0))
-    private val pkgData = MutableStateFlow(PkgRepo.PkgData())
+    // A shared flow with nothing emitted yet, because that is what PkgRepo.data is: a cache flow
+    // that stays silent until the package cache resolves. A StateFlow seeded with an empty PkgData
+    // would instead say "queried, found nothing", which is a different situation (Gone).
+    private val pkgData = MutableSharedFlow<PkgRepo.PkgData>(
+        replay = 1,
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
     private val workspaceRemote = mockk<WorkspaceRemote>(relaxed = true)
 
     private val installed: Installed = AppsMockDataProvider.createMockInstalled(packageName = PKG, label = "Butler")
@@ -66,8 +77,10 @@ class AppDetailsWorkspaceAppInfoStateTest {
         },
         gatewaySwitch = mockk { coEvery { existsStrict(any()) } returns Existence.PRESENT },
         pathPermissionCheck = mockk { every { monitor(any<APath<*>>()) } returns flowOf(PathRequirements()) },
-        rootManager = mockk(relaxed = true),
-        adbManager = mockk(relaxed = true),
+        // Real flows, not relaxed mocks: `state` combines both, and a relaxed flow never emits,
+        // so the combine would never produce a state to collect.
+        rootManager = mockk<RootManager> { every { useRoot } returns flowOf(false) },
+        adbManager = mockk<AdbManager> { every { useAdb } returns flowOf(false) },
         workspaceRemote = workspaceRemote,
     )
 
@@ -94,7 +107,7 @@ class AppDetailsWorkspaceAppInfoStateTest {
     @Test
     fun `a matching package is ready`() = runTest {
         val seen = statesOf(createWorkspace()) {
-            pkgData.value = PkgRepo.PkgData.from(listOf(installed))
+            pkgData.tryEmit(PkgRepo.PkgData.from(listOf(installed)))
         }
 
         seen.last().appState.shouldBeInstanceOf<AppInfoState.Ready>().info.packageName shouldBe PKG
@@ -103,7 +116,7 @@ class AppDetailsWorkspaceAppInfoStateTest {
     @Test
     fun `a package that is not there is gone`() = runTest {
         val seen = statesOf(createWorkspace()) {
-            pkgData.value = PkgRepo.PkgData.from(emptyList())
+            pkgData.tryEmit(PkgRepo.PkgData.from(emptyList()))
         }
 
         seen.last().appState shouldBe AppInfoState.Gone
@@ -113,7 +126,7 @@ class AppDetailsWorkspaceAppInfoStateTest {
     fun `a failing source is not a missing package`() = runTest {
         val boom = IOException("Package source unavailable")
         val seen = statesOf(createWorkspace()) {
-            pkgData.value = PkgRepo.PkgData(error = boom)
+            pkgData.tryEmit(PkgRepo.PkgData(error = boom))
         }
 
         seen.last().appState.shouldBeInstanceOf<AppInfoState.SourceError>().error shouldBe boom
@@ -123,9 +136,9 @@ class AppDetailsWorkspaceAppInfoStateTest {
     fun `the workspace closes once the package is gone`() = runTest {
         val workspace = createWorkspace()
 
-        pkgData.value = PkgRepo.PkgData.from(listOf(installed))
+        pkgData.tryEmit(PkgRepo.PkgData.from(listOf(installed)))
         advanceUntilIdle()
-        pkgData.value = PkgRepo.PkgData.from(emptyList())
+        pkgData.tryEmit(PkgRepo.PkgData.from(emptyList()))
         advanceUntilIdle()
 
         coVerify { workspaceRemote.execute(any<WorkspaceAction.Close>()) }
@@ -135,9 +148,9 @@ class AppDetailsWorkspaceAppInfoStateTest {
     fun `a source error does not close the workspace`() = runTest {
         val workspace = createWorkspace()
 
-        pkgData.value = PkgRepo.PkgData.from(listOf(installed))
+        pkgData.tryEmit(PkgRepo.PkgData.from(listOf(installed)))
         advanceUntilIdle()
-        pkgData.value = PkgRepo.PkgData(error = IOException("Package source unavailable"))
+        pkgData.tryEmit(PkgRepo.PkgData(error = IOException("Package source unavailable")))
         advanceUntilIdle()
 
         coVerify(exactly = 0) { workspaceRemote.execute(any<WorkspaceAction.Close>()) }
@@ -147,9 +160,9 @@ class AppDetailsWorkspaceAppInfoStateTest {
     @Test
     fun `a recovered source is ready again`() = runTest {
         val seen = statesOf(createWorkspace()) {
-            pkgData.value = PkgRepo.PkgData(error = IOException("Package source unavailable"))
+            pkgData.tryEmit(PkgRepo.PkgData(error = IOException("Package source unavailable")))
             advanceUntilIdle()
-            pkgData.value = PkgRepo.PkgData.from(listOf(installed))
+            pkgData.tryEmit(PkgRepo.PkgData.from(listOf(installed)))
         }
 
         seen.map { it.appState }.any { it is AppInfoState.SourceError } shouldBe true
