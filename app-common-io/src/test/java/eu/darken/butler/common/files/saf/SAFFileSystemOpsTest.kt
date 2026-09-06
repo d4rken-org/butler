@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.saf
 
 import android.content.ContentProviderClient
 import android.content.ContentResolver
+import android.content.Context
 import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
@@ -77,9 +78,6 @@ class SAFFileSystemOpsTest : BaseTest() {
             contentResolver = mockContentResolver,
             locationManager = mockLocationManager
         )
-
-        // Contract mutators are simulated against the opaque fixture; URI helpers keep real behavior
-        mockkStatic(DocumentsContract::class)
     }
 
     @After
@@ -271,6 +269,7 @@ class SAFFileSystemOpsTest : BaseTest() {
     private val opaqueDocs = mutableMapOf<String, OpaqueDoc>()
     private val opaqueChildren = mutableMapOf<String, MutableList<OpaqueDoc>>()
     private val opaqueListingExtras = mutableMapOf<String, Bundle>()
+    private val opaqueContext: Context = mockk(relaxed = true)
     private val queriedProjections = mutableListOf<List<String>>()
     private var onChildrenQuery: (() -> Unit)? = null
 
@@ -353,11 +352,21 @@ class SAFFileSystemOpsTest : BaseTest() {
         every { mockLocationManager.getDocFileFor(any()) } answers {
             val path = firstArg<SAFPath>()
             SAFDocFile(
-                mockk(relaxed = true),
+                opaqueContext,
                 mockContentResolver,
                 SAFDocFile.buildTreeUri(Uri.parse(OPAQUE_TREE), path.segments),
             )
         }
+    }
+
+    /**
+     * Simulates the contract mutators against the opaque fixture, for the tests that create or delete.
+     *
+     * Only those: while [DocumentsContract] is static-mocked, a call to it nested inside a `verify`
+     * block records a matcher instead of returning a URI, which silently truncates expected URIs.
+     */
+    private fun useContractMutators() {
+        mockkStatic(DocumentsContract::class)
 
         every { DocumentsContract.createDocument(any(), any(), any(), any()) } answers {
             val id = "created${opaqueDocs.size}"
@@ -390,22 +399,18 @@ class SAFFileSystemOpsTest : BaseTest() {
         useOpaqueProvider()
         addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "42", name = "a.txt")
         val child = opaqueRoot.child("a.txt")
+        val handleUri = opaqueDocUri("42")
+        val synthesizedUri = SAFDocFile.buildTreeUri(Uri.parse(OPAQUE_TREE), listOf("a.txt"))
+        val rootChildrenUri = opaqueChildrenUri(OPAQUE_ROOT_ID)
 
         fileSystemOps.listFiles(opaqueRoot) shouldBe listOf(child)
         // Extended lookups bypass the lookup cache, so this really re-resolves the document
         fileSystemOps.lookup(child, LookupOptions(fetchOwnership = true)).fileType shouldBe FileType.FILE
 
-        verify { mockContentResolver.query(opaqueDocUri("42"), any(), any(), any(), any()) }
-        verify(exactly = 0) {
-            mockContentResolver.query(
-                SAFDocFile.buildTreeUri(Uri.parse(OPAQUE_TREE), listOf("a.txt")),
-                any(), any(), any(), any(),
-            )
-        }
+        verify { mockContentResolver.query(handleUri, any(), any(), any(), any()) }
+        verify(exactly = 0) { mockContentResolver.query(synthesizedUri, any(), any(), any(), any()) }
         verify(exactly = 0) { mockLocationManager.getDocFileFor(child) }
-        verify(exactly = 1) {
-            mockContentResolver.query(opaqueChildrenUri(OPAQUE_ROOT_ID), any(), any(), any(), any())
-        }
+        verify(exactly = 1) { mockContentResolver.query(rootChildrenUri, any(), any(), any(), any()) }
     }
 
     @Test
@@ -413,13 +418,13 @@ class SAFFileSystemOpsTest : BaseTest() {
         useOpaqueProvider()
         addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "42", name = "a.txt")
         val child = opaqueRoot.child("a.txt")
+        val rootChildrenUri = opaqueChildrenUri(OPAQUE_ROOT_ID)
+        val handleUri = opaqueDocUri("42")
 
         fileSystemOps.exists(child) shouldBe true
 
-        verify(exactly = 1) {
-            mockContentResolver.query(opaqueChildrenUri(OPAQUE_ROOT_ID), any(), any(), any(), any())
-        }
-        verify { mockContentResolver.query(opaqueDocUri("42"), any(), any(), any(), any()) }
+        verify(exactly = 1) { mockContentResolver.query(rootChildrenUri, any(), any(), any(), any()) }
+        verify { mockContentResolver.query(handleUri, any(), any(), any(), any()) }
         verify { mockLocationManager.getDocFileFor(opaqueRoot) }
         verify(exactly = 0) { mockLocationManager.getDocFileFor(child) }
     }
@@ -429,14 +434,14 @@ class SAFFileSystemOpsTest : BaseTest() {
         useOpaqueProvider()
         registerOpaqueDir()
         val dir = opaqueRoot.child("dir")
+        val dirChildrenUri = opaqueChildrenUri("42")
+        val rootChildrenUri = opaqueChildrenUri(OPAQUE_ROOT_ID)
 
         fileSystemOps.exists(dir) shouldBe true
         fileSystemOps.lookup(dir.child("a.txt"), LookupOptions()).fileType shouldBe FileType.FILE
 
-        verify(exactly = 1) { mockContentResolver.query(opaqueChildrenUri("42"), any(), any(), any(), any()) }
-        verify(exactly = 1) {
-            mockContentResolver.query(opaqueChildrenUri(OPAQUE_ROOT_ID), any(), any(), any(), any())
-        }
+        verify(exactly = 1) { mockContentResolver.query(dirChildrenUri, any(), any(), any(), any()) }
+        verify(exactly = 1) { mockContentResolver.query(rootChildrenUri, any(), any(), any(), any()) }
     }
 
     @Test
@@ -461,6 +466,7 @@ class SAFFileSystemOpsTest : BaseTest() {
     @Test
     fun `duplicate display names are inconclusive, not absent`() = runTest {
         useOpaqueProvider()
+        useContractMutators()
         addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "42", name = "dup.txt")
         addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "43", name = "dup.txt")
         val dup = opaqueRoot.child("dup.txt")
@@ -479,18 +485,21 @@ class SAFFileSystemOpsTest : BaseTest() {
         addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "42", name = "dup.txt")
         addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "43", name = "dup.txt")
         val dup = opaqueRoot.child("dup.txt")
+        val firstCandidateUri = opaqueDocUri("42")
+        val secondCandidateUri = opaqueDocUri("43")
 
         fileSystemOps.listFiles(opaqueRoot) shouldBe listOf(dup, dup)
         shouldThrow<ReadException> { fileSystemOps.exists(dup) }
         shouldThrow<ReadException> { fileSystemOps.exists(dup) }
 
         // Neither of the two candidates may be picked as "the" document
-        verify(exactly = 0) { mockContentResolver.query(opaqueDocUri("42"), any(), any(), any(), any()) }
-        verify(exactly = 0) { mockContentResolver.query(opaqueDocUri("43"), any(), any(), any(), any()) }
+        verify(exactly = 0) { mockContentResolver.query(firstCandidateUri, any(), any(), any(), any()) }
+        verify(exactly = 0) { mockContentResolver.query(secondCandidateUri, any(), any(), any(), any()) }
     }
 
     private suspend fun assertPartialListingIsInconclusive(extras: Bundle) {
         useOpaqueProvider()
+        useContractMutators()
         addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "42", name = "a.txt")
         opaqueListingExtras[OPAQUE_ROOT_ID] = extras
         val later = opaqueRoot.child("later.txt")
@@ -553,38 +562,41 @@ class SAFFileSystemOpsTest : BaseTest() {
         useOpaqueProvider()
         val names = (0 until 1001).map { "child$it.txt" }
         names.forEachIndexed { index, name -> addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "d$index", name = name) }
+        // Counted at the fixture: matching 1000+ recorded calls with verify exhausts the heap
+        var listings = 0
+        onChildrenQuery = { listings++ }
 
         names.forEach { fileSystemOps.exists(opaqueRoot.child(it)) shouldBe true }
 
-        verify(exactly = 1) {
-            mockContentResolver.query(opaqueChildrenUri(OPAQUE_ROOT_ID), any(), any(), any(), any())
-        }
+        listings shouldBe 1
     }
 
     @Test
     fun `a changed directory is re-listed`() = runTest {
         useOpaqueProvider()
+        useContractMutators()
         addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "42", name = "a.txt")
         addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "43", name = "b.txt")
+        val rootChildrenUri = opaqueChildrenUri(OPAQUE_ROOT_ID)
 
         fileSystemOps.exists(opaqueRoot.child("a.txt")) shouldBe true
         fileSystemOps.delete(opaqueRoot.child("a.txt"), recursive = false) shouldBe true
         fileSystemOps.exists(opaqueRoot.child("b.txt")) shouldBe true
 
-        verify(exactly = 2) {
-            mockContentResolver.query(opaqueChildrenUri(OPAQUE_ROOT_ID), any(), any(), any(), any())
-        }
+        verify(exactly = 2) { mockContentResolver.query(rootChildrenUri, any(), any(), any(), any()) }
     }
 
     @Test
     fun `deleting a directory drops its stored listing`() = runTest {
         useOpaqueProvider()
+        useContractMutators()
         registerOpaqueDir()
         val dir = opaqueRoot.child("dir")
+        val dirChildrenUri = opaqueChildrenUri("42")
 
         fileSystemOps.listFiles(dir) shouldBe listOf(dir.child("a.txt"))
         fileSystemOps.exists(dir.child("a.txt")) shouldBe true
-        verify(exactly = 1) { mockContentResolver.query(opaqueChildrenUri("42"), any(), any(), any(), any()) }
+        verify(exactly = 1) { mockContentResolver.query(dirChildrenUri, any(), any(), any(), any()) }
 
         fileSystemOps.delete(dir, recursive = true) shouldBe true
         // Another app puts the tree back; the stored listing must not be what answers for it
@@ -592,7 +604,7 @@ class SAFFileSystemOpsTest : BaseTest() {
         fileSystemOps.exists(dir.child("a.txt")) shouldBe true
 
         // listFiles, the recursive delete walk, and the re-resolve after invalidation
-        verify(exactly = 3) { mockContentResolver.query(opaqueChildrenUri("42"), any(), any(), any(), any()) }
+        verify(exactly = 3) { mockContentResolver.query(dirChildrenUri, any(), any(), any(), any()) }
     }
 
     @Test
@@ -624,6 +636,7 @@ class SAFFileSystemOpsTest : BaseTest() {
     @Test
     fun `createFile on a foreign provider creates under the parent's real handle`() = runTest {
         useOpaqueProvider()
+        useContractMutators()
         addOpaqueChild(
             parentId = OPAQUE_ROOT_ID,
             id = "42",
@@ -631,10 +644,11 @@ class SAFFileSystemOpsTest : BaseTest() {
             mime = DocumentsContract.Document.MIME_TYPE_DIR,
         )
         val target = opaqueRoot.child("dir").child("new.txt")
+        val parentHandleUri = opaqueDocUri("42")
 
         fileSystemOps.createFile(target, createParents = false)
 
-        verify { DocumentsContract.createDocument(any(), opaqueDocUri("42"), any(), "new.txt") }
+        verify { DocumentsContract.createDocument(any(), parentHandleUri, any(), "new.txt") }
     }
 
     companion object {
