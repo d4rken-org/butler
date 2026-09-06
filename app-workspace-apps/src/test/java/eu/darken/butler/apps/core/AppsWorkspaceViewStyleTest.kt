@@ -37,6 +37,16 @@ class AppsWorkspaceViewStyleTest : BaseTest() {
 
     private val globalDefault = AppsViewStyle(density = AppsViewStyle.Density.COMPACT)
 
+    // value() is flow.first(), and a relaxed DataStoreValue hands out a flow that emits nothing,
+    // so every setting the resolution can fall back to needs a flow of its own.
+    private inline fun <reified T> settingsValue(value: T) = mockk<DataStoreValue<T>>().apply {
+        every { flow } returns flowOf(value)
+    }
+
+    private val filterConfigSetting = settingsValue(TagFilterConfig())
+    private val sortSettingsSetting = settingsValue(SortSettings())
+    private val viewStyleSetting = settingsValue(globalDefault)
+
     private fun createWorkspace(arguments: AppsArguments): AppsWorkspace {
         val engine = mockk<AppsEngine>(relaxed = true) {
             every { state } returns MutableStateFlow(AppsState())
@@ -46,10 +56,10 @@ class AppsWorkspaceViewStyleTest : BaseTest() {
             creationArguments = arguments,
             dispatcherProvider = TestDispatcherProvider(),
             appsEngineFactory = mockk<AppsEngine.Factory> { every { create(any(), any()) } returns engine },
-            appsSettings = mockk<AppsSettings>(relaxed = true).apply {
-                every { defaultViewStyle } returns mockk<DataStoreValue<AppsViewStyle>>().apply {
-                    every { flow } returns flowOf(globalDefault)
-                }
+            appsSettings = mockk<AppsSettings> {
+                every { defaultFilterConfig } returns filterConfigSetting
+                every { defaultSortSettings } returns sortSettingsSetting
+                every { defaultViewStyle } returns viewStyleSetting
             },
             tabViewStore = tabViewStore,
             appSizeCache = mockk(relaxed = true),
