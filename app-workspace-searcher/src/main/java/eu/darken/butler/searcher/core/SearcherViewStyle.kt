@@ -4,9 +4,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * [mode] keeps the wire key `type` a sealed hierarchy once wrote its discriminator under, so a
- * payload written by an older version still decodes: the mode survives, unknown keys are ignored
- * and [density] falls back to its default.
+ * [mode] is persisted under the wire key `type`, and stored payloads rely on that: renaming it
+ * silently resets every saved view style to the default.
  */
 @Serializable
 data class SearcherViewStyle(
