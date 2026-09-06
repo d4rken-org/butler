@@ -143,14 +143,15 @@ fun SelectableFileGrid(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Icon or checkbox in top-left
+                val checkboxSize = maxOf(density.gridIconSize, 20.dp)
                 Box(
-                    modifier = Modifier.size(density.gridIconSize)
+                    modifier = Modifier.size(if (isSelectionMode) checkboxSize else density.gridIconSize)
                 ) {
                     if (isSelectionMode) {
                         Checkbox(
                             checked = isSelected,
                             onCheckedChange = { onClick() },
-                            modifier = Modifier.size(density.gridIconSize)
+                            modifier = Modifier.size(checkboxSize)
                         )
                     } else {
                         // Use Material TwoTone icons like Explorer

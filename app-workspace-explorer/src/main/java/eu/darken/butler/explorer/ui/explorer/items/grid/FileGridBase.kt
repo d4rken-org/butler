@@ -130,11 +130,12 @@ internal fun FileGridBase(
                 // Icon or checkbox in top-left. Decorations only apply to the icon
                 // branch — selection swaps in a checkbox and intentionally hides them.
                 if (showSelection) {
-                    Box(modifier = Modifier.size(density.gridIconSize)) {
+                    val checkboxSize = maxOf(density.gridIconSize, 20.dp)
+                    Box(modifier = Modifier.size(checkboxSize)) {
                         Checkbox(
                             checked = isSelected,
                             onCheckedChange = { onToggleSelection() },
-                            modifier = Modifier.size(density.gridIconSize)
+                            modifier = Modifier.size(checkboxSize)
                         )
                     }
                 } else {
