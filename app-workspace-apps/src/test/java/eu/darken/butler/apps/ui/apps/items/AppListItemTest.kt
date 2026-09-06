@@ -11,6 +11,7 @@ import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
 import eu.darken.butler.common.formatFileSize
 import org.junit.Test
 import testhelpers.ComposeTest
@@ -30,6 +31,7 @@ class AppListItemTest : ComposeTest() {
                         label = "Chrome",
                         appSize = bytes,
                     ),
+                    density = AppsViewStyle.Density.COMFORTABLE,
                     isSelected = false,
                     onClick = {},
                     onLongClick = {},
@@ -51,6 +53,7 @@ class AppListItemTest : ComposeTest() {
                         label = "Chrome",
                         appSize = null,
                     ),
+                    density = AppsViewStyle.Density.COMFORTABLE,
                     isSelected = false,
                     onClick = {},
                     onLongClick = {},
@@ -70,6 +73,7 @@ class AppListItemTest : ComposeTest() {
             PreviewWrapper {
                 AppListItem(
                     item = AppsMockDataProvider.Presets.multiTagAppItem.copy(appSize = bytes),
+                    density = AppsViewStyle.Density.COMFORTABLE,
                     isSelected = false,
                     onClick = {},
                     onLongClick = {},

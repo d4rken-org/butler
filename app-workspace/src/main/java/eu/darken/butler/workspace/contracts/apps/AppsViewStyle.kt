@@ -5,37 +5,32 @@ import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * [mode] keeps the wire key `type` a sealed hierarchy once wrote its discriminator under, so a
+ * payload written by an older version still decodes: the mode survives, unknown keys are ignored
+ * and [density] falls back to its default.
+ */
 @Serializable
-sealed class AppsViewStyle : Parcelable {
+@Parcelize
+data class AppsViewStyle(
+    @SerialName("type") val mode: Mode = Mode.LIST,
+    @SerialName("density") val density: Density = Density.COMFORTABLE,
+) : Parcelable {
 
     @Serializable
-    @SerialName("list")
-    @Parcelize
-    data class List(
-        @SerialName("density") val density: Density = Density.COMFORTABLE,
-    ) : AppsViewStyle() {
-        @Serializable
-        enum class Density {
-            @SerialName("compact") COMPACT,
-            @SerialName("comfortable") COMFORTABLE,
-        }
+    enum class Mode {
+        @SerialName("list") LIST,
+        @SerialName("grid") GRID,
     }
 
     @Serializable
-    @SerialName("grid")
-    @Parcelize
-    data class Grid(
-        @SerialName("size") val size: GridSize = GridSize.MEDIUM,
-    ) : AppsViewStyle() {
-        @Serializable
-        enum class GridSize {
-            @SerialName("small") SMALL,
-            @SerialName("medium") MEDIUM,
-            @SerialName("large") LARGE,
-        }
+    enum class Density {
+        @SerialName("compact") COMPACT,
+        @SerialName("comfortable") COMFORTABLE,
+        @SerialName("detailed") DETAILED,
     }
 
     companion object {
-        fun default(): AppsViewStyle = List()
+        fun default(): AppsViewStyle = AppsViewStyle()
     }
 }

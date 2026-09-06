@@ -7,7 +7,9 @@ import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.workspace.contracts.apps.AppsArguments
+import eu.darken.butler.common.serialization.SerializationIOModule
 import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
+import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.contracts.apps.SortSettings
 import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 import eu.darken.butler.workspace.core.Workspace
@@ -46,6 +48,7 @@ class AppsWorkspacePausableTest : BaseTest() {
             dispatcherProvider = TestDispatcherProvider(),
             appsEngineFactory = mockk<AppsEngine.Factory> { every { create(any(), any()) } returns engine },
             appsSettings = mockk(relaxed = true),
+            tabViewStore = AppsTabViewStore(WorkspaceViewPrefs(), SerializationIOModule().json()),
             appSizeCache = mockk(relaxed = true),
             pkgOps = pkgOps,
             rootManager = mockk<RootManager> { every { useRoot } returns flowOf(false) },

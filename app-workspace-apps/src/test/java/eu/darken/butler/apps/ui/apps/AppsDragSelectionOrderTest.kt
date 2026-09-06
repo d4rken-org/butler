@@ -1,11 +1,14 @@
 package eu.darken.butler.apps.ui.apps
 
+import eu.darken.butler.apps.core.AppsTabViewStore
 import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
+import eu.darken.butler.common.serialization.SerializationIOModule
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every
@@ -133,6 +136,7 @@ class AppsDragSelectionOrderTest : BaseTest() {
             workspaceRemote = mockk<WorkspaceRemote>(relaxed = true),
             appsSettings = mockk(relaxed = true),
             appSizeCache = mockk(relaxed = true),
+            tabViewStore = AppsTabViewStore(WorkspaceViewPrefs(), SerializationIOModule().json()),
         )
     }
 }

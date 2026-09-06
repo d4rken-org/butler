@@ -64,19 +64,16 @@ sealed interface AppsActionBarItem : WorkspaceActionBarItem {
         override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
-    data class UpdateViewStyle(
-        val viewStyle: AppsViewStyle,
+    /** Opens the view options sheet, so the icon shows where the list is, not where a tap leads. */
+    data class ViewOptions(
+        val currentViewStyle: AppsViewStyle,
     ) : AppsActionBarItem {
         override val icon: ImageVector
-            get() = when (viewStyle) {
-                is AppsViewStyle.List -> Icons.AutoMirrored.TwoTone.ViewList
-                is AppsViewStyle.Grid -> Icons.TwoTone.GridView
+            get() = when (currentViewStyle.mode) {
+                AppsViewStyle.Mode.LIST -> Icons.AutoMirrored.TwoTone.ViewList
+                AppsViewStyle.Mode.GRID -> Icons.TwoTone.GridView
             }
-        override val label: CaString
-            get() = when (viewStyle) {
-                is AppsViewStyle.List -> R.string.apps_action_view_list.toCaString()
-                is AppsViewStyle.Grid -> R.string.apps_action_view_grid.toCaString()
-            }
+        override val label: CaString = R.string.apps_action_view.toCaString()
         override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 

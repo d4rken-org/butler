@@ -36,10 +36,12 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
 
 @Composable
 fun AppGridItem(
     item: AppItem,
+    density: AppsViewStyle.Density,
     isSelected: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
@@ -88,7 +90,7 @@ fun AppGridItem(
                     AsyncImage(
                         model = item.pkg,
                         contentDescription = null,
-                        modifier = Modifier.size(56.dp),
+                        modifier = Modifier.size(density.gridIconSize),
                         placeholder = fallbackPainter,
                         error = fallbackPainter,
                     )
@@ -96,14 +98,14 @@ fun AppGridItem(
                     Icon(
                         imageVector = Icons.TwoTone.Android,
                         contentDescription = null,
-                        modifier = Modifier.size(56.dp),
+                        modifier = Modifier.size(density.gridIconSize),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
 
             // Tag chips in top-right
-            if (item.tags.isNotEmpty()) {
+            if (item.tags.isNotEmpty() && density.showsSecondaryMetadata) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -138,7 +140,7 @@ fun AppGridItem(
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter),
             ) {
-                if (item.appSize != null) {
+                if (item.appSize != null && density.showsSecondaryMetadata) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -178,6 +180,16 @@ fun AppGridItem(
                             maxLines = 1,
                             overflow = TextOverflow.MiddleEllipsis,
                         )
+                        // Detailed adds the version, so no two steps render identically.
+                        if (density == AppsViewStyle.Density.DETAILED && !item.versionName.isNullOrBlank()) {
+                            Text(
+                                text = "v${item.versionName}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                 }
             }
@@ -191,6 +203,7 @@ fun AppGridItem(
 private fun AppGridItemPreview() {
     AppGridItem(
         item = AppsMockDataProvider.Presets.chromeItem,
+        density = AppsViewStyle.Density.COMFORTABLE,
         isSelected = false,
         onClick = {},
         onLongClick = {},
@@ -204,6 +217,7 @@ private fun AppGridItemPreview() {
 private fun AppGridItemSelectedPreview() {
     AppGridItem(
         item = AppsMockDataProvider.Presets.settingsItem,
+        density = AppsViewStyle.Density.COMFORTABLE,
         isSelected = true,
         onClick = {},
         onLongClick = {},
@@ -217,6 +231,7 @@ private fun AppGridItemSelectedPreview() {
 private fun AppGridItemDisabledPreview() {
     AppGridItem(
         item = AppsMockDataProvider.Presets.disabledAppItem,
+        density = AppsViewStyle.Density.COMFORTABLE,
         isSelected = false,
         onClick = {},
         onLongClick = {},
@@ -230,6 +245,7 @@ private fun AppGridItemDisabledPreview() {
 private fun AppGridItemWithTagsPreview() {
     AppGridItem(
         item = AppsMockDataProvider.Presets.multiTagAppItem,
+        density = AppsViewStyle.Density.COMFORTABLE,
         isSelected = false,
         onClick = {},
         onLongClick = {},
@@ -243,6 +259,7 @@ private fun AppGridItemWithTagsPreview() {
 private fun AppGridItemSplitApkPreview() {
     AppGridItem(
         item = AppsMockDataProvider.Presets.splitApkItem,
+        density = AppsViewStyle.Density.COMFORTABLE,
         isSelected = false,
         onClick = {},
         onLongClick = {},
@@ -257,6 +274,7 @@ private fun AppGridItemSplitApkPreview() {
 private fun AppGridItemSmallTileLongNamesPreview() {
     Box(modifier = Modifier.width(90.dp)) {
         AppGridItem(
+            density = AppsViewStyle.Density.COMFORTABLE,
             item = AppsMockDataProvider.createMockAppItem(
                 packageName = "com.superlongvendor.some.deeply.nested.application.identifier",
                 label = "Very Long Application Name",
@@ -276,6 +294,7 @@ private fun AppGridItemSmallTileLongNamesPreview() {
 private fun AppGridItemLargeTileLongNamesPreview() {
     Box(modifier = Modifier.width(160.dp)) {
         AppGridItem(
+            density = AppsViewStyle.Density.COMFORTABLE,
             item = AppsMockDataProvider.createMockAppItem(
                 packageName = "com.superlongvendor.some.deeply.nested.application.identifier",
                 label = "Very Long Application Name",
@@ -296,6 +315,7 @@ private fun AppGridItemLargeTileLongNamesPreview() {
 private fun AppGridItemWithoutSizePreview() {
     Box(modifier = Modifier.width(90.dp)) {
         AppGridItem(
+            density = AppsViewStyle.Density.COMFORTABLE,
             item = AppsMockDataProvider.createMockAppItem(
                 packageName = "com.example.unmeasured",
                 label = "Unmeasured App",
@@ -307,4 +327,32 @@ private fun AppGridItemWithoutSizePreview() {
             showSelection = false,
         )
     }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppGridItemCompactPreview() {
+    AppGridItem(
+        item = AppsMockDataProvider.Presets.multiTagAppItem,
+        density = AppsViewStyle.Density.COMPACT,
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppGridItemDetailedPreview() {
+    AppGridItem(
+        item = AppsMockDataProvider.Presets.multiTagAppItem,
+        density = AppsViewStyle.Density.DETAILED,
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
 }

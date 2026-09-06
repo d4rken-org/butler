@@ -56,6 +56,7 @@ class AppsWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     appsEngineFactory: AppsEngine.Factory,
     private val appsSettings: AppsSettings,
+    private val tabViewStore: AppsTabViewStore,
     private val appSizeCache: AppSizeCache,
     private val pkgOps: PkgOps,
     private val rootManager: RootManager,
@@ -73,7 +74,6 @@ class AppsWorkspace @AssistedInject constructor(
 
     private val appsEngine = appsEngineFactory.create(id, scope)
 
-    private val _viewStyle = MutableStateFlow<AppsViewStyle?>(null)
 
     override val type: Workspace.Type = Workspace.Type.APPS
 
@@ -191,13 +191,19 @@ class AppsWorkspace @AssistedInject constructor(
 
                 val filterConfig = args?.filterConfig ?: appsSettings.defaultFilterConfig.value()
                 val sortSettings = args?.sortSettings ?: appsSettings.defaultSortSettings.value()
-                val viewStyle = args?.viewStyle ?: appsSettings.defaultViewStyle.value()
+                // The tab's own slot wins: a resumed tab looks the way it was left, whatever the
+                // held arguments or the current global default say.
+                val viewStyle = tabViewStore.currentViewStyle(id)
+                    ?: args?.viewStyle
+                    ?: appsSettings.defaultViewStyle.value()
 
                 log(tag) { "Loaded settings: filterConfig=$filterConfig, sortSettings=$sortSettings, viewStyle=$viewStyle" }
 
                 appsEngine.updateFilterConfig(filterConfig)
                 appsEngine.updateSortSettings(sortSettings)
-                _viewStyle.value = viewStyle
+                // Materializes the style at tab creation, so a later change of the global default
+                // cannot retroactively restyle a tab the user already has open.
+                tabViewStore.ensureViewStyle(id, viewStyle)
 
                 // Transition to Ready state
                 _state.value = State.Ready(
@@ -218,7 +224,9 @@ class AppsWorkspace @AssistedInject constructor(
             appsEngine.state,
             rootManager.useRoot,
             adbManager.useAdb,
-            _viewStyle,
+            // Derived from the tab's slot rather than mirroring it, so a write another tab's sheet
+            // made to this tab's slot reaches this workspace.
+            tabViewStore.observeViewStyle(id),
         ) { engineState, hasRoot, hasAdb, viewStyle ->
             updateReady {
                 copy(
@@ -251,10 +259,6 @@ class AppsWorkspace @AssistedInject constructor(
 
     suspend fun updateSearchQuery(query: String) {
         appsEngine.updateSearchQuery(query)
-    }
-
-    fun updateViewStyle(style: AppsViewStyle) {
-        _viewStyle.value = style
     }
 
     suspend fun selectApp(installId: InstallId, selected: Boolean) {

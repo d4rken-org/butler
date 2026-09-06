@@ -26,6 +26,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.dragselect.gridDragSelect
 import eu.darken.butler.common.compose.dragselect.listDragSelect
+import eu.darken.butler.apps.ui.apps.items.gridMinSize
+import eu.darken.butler.apps.ui.apps.items.listGap
 import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
 import eu.darken.butler.workspace.ui.common.WorkspacePullToRefreshBox
@@ -74,8 +76,8 @@ internal fun AppsReadyContent(
         enabled = !state.isMultiSelectMode,
         topBarStackState = topBarStackState,
     ) {
-        when (state.viewStyle) {
-            is AppsViewStyle.List -> {
+        when (state.viewStyle.mode) {
+            AppsViewStyle.Mode.LIST -> {
                 LazyColumn(
                     state = listState,
                     modifier = Modifier
@@ -89,7 +91,7 @@ internal fun AppsReadyContent(
                             onSelectionChange = { onPageAction(AppsPageAction.Selection.SetSelection(it)) },
                         ),
                     contentPadding = listContentPadding,
-                    verticalArrangement = Arrangement.spacedBy(WorkspacePaddings.ListGapDense),
+                    verticalArrangement = Arrangement.spacedBy(state.viewStyle.density.listGap),
                 ) {
                     when {
                         state.isLoading && state.apps.isEmpty() -> {
@@ -111,6 +113,7 @@ internal fun AppsReadyContent(
                             ) { appItem ->
                                 AppListItem(
                                     item = appItem,
+                                    density = state.viewStyle.density,
                                     isSelected = appItem.pkg.installId in state.selectedAppIds,
                                     onClick = { onPageAction(AppsPageAction.Apps.Click(appItem)) },
                                     // The long press belongs to the drag selection, which owns the
@@ -125,13 +128,8 @@ internal fun AppsReadyContent(
                 }
             }
 
-            is AppsViewStyle.Grid -> {
-                val gridSize = state.viewStyle.size
-                val minSize = when (gridSize) {
-                    AppsViewStyle.Grid.GridSize.SMALL -> 90.dp
-                    AppsViewStyle.Grid.GridSize.MEDIUM -> 120.dp
-                    AppsViewStyle.Grid.GridSize.LARGE -> 160.dp
-                }
+            AppsViewStyle.Mode.GRID -> {
+                val minSize = state.viewStyle.density.gridMinSize
 
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = minSize),
@@ -171,6 +169,7 @@ internal fun AppsReadyContent(
                             ) { appItem ->
                                 AppGridItem(
                                     item = appItem,
+                                    density = state.viewStyle.density,
                                     isSelected = appItem.pkg.installId in state.selectedAppIds,
                                     onClick = { onPageAction(AppsPageAction.Apps.Click(appItem)) },
                                     // The long press belongs to the drag selection, which owns the
@@ -225,7 +224,7 @@ private fun AppsReadyContentGridPreview() {
                     AppsMockDataProvider.Presets.notesItem,
                     AppsMockDataProvider.Presets.disabledAppItem,
                 ),
-                viewStyle = AppsViewStyle.Grid(),
+                viewStyle = AppsViewStyle(mode = AppsViewStyle.Mode.GRID),
                 isLoading = false,
             ),
             listState = rememberLazyListState(),

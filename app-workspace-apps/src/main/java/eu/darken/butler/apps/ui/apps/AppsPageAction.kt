@@ -5,6 +5,7 @@ import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
 import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.workspace.contracts.apps.AppTag
+import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
 import eu.darken.butler.workspace.contracts.apps.SortSettings
 import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 
@@ -72,6 +73,17 @@ sealed interface AppsPageAction {
         data class ConfirmUninstall(val apps: List<AppItem>) : Dialog
         data class ConfirmClearData(val apps: List<AppItem>) : Dialog
         data object OpenSizeSetup : Dialog
+    }
+
+    /**
+     * View style actions, one per write scope of the view options sheet
+     */
+    sealed interface ViewStyle : AppsPageAction {
+        data class ApplyToTab(val style: AppsViewStyle) : ViewStyle
+
+        data class ApplyToAllTabs(val style: AppsViewStyle) : ViewStyle
+
+        data class SetAsDefault(val style: AppsViewStyle) : ViewStyle
     }
 
     /**

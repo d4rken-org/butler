@@ -18,6 +18,12 @@ sealed interface AppsDialogState {
         val availableTags: List<AppTag>,
     ) : AppsDialogState
 
+    /**
+     * Payload-free: the sheet renders from the page's live view style, so a control change is
+     * reflected by the controls themselves and not just by the list behind them.
+     */
+    data object ViewStyleOptions : AppsDialogState
+
     data class SortOptions(
         val currentSortSettings: SortSettings,
         val sizesAvailable: Boolean = true,

@@ -55,7 +55,7 @@ class AppsArgumentsSerializationTest : BaseTest() {
         val args = AppsArguments.Default(
             filterConfig = TagFilterConfig(),
             sortSettings = SortSettings(mode = SortSettings.Mode.SIZE, reversed = true),
-            viewStyle = AppsViewStyle.Grid(),
+            viewStyle = AppsViewStyle(mode = AppsViewStyle.Mode.GRID),
         )
         val serialized = json.encodeToJsonElement<AppsArguments>(args)
 
@@ -72,7 +72,7 @@ class AppsArgumentsSerializationTest : BaseTest() {
                 },
                 "viewStyle": {
                     "type": "grid",
-                    "size": "medium"
+                    "density": "comfortable"
                 }
             }
         """.toComparableJson()
@@ -111,7 +111,27 @@ class AppsArgumentsSerializationTest : BaseTest() {
 
         args shouldBe AppsArguments.Default(
             sortSettings = SortSettings(),
-            viewStyle = AppsViewStyle.List(),
+            viewStyle = AppsViewStyle(),
+        )
+    }
+
+    /** What a version that stored a sealed hierarchy wrote; a held tab must survive reading it. */
+    @Test
+    fun `deserialize Default with a legacy grid view style`() {
+        val jsonString = """
+            {
+                "type": "arguments",
+                "viewStyle": {
+                    "type": "grid",
+                    "size": "large"
+                }
+            }
+        """
+
+        val args = json.decodeFromString<AppsArguments>(jsonString)
+
+        args shouldBe AppsArguments.Default(
+            viewStyle = AppsViewStyle(mode = AppsViewStyle.Mode.GRID),
         )
     }
 
@@ -120,7 +140,10 @@ class AppsArgumentsSerializationTest : BaseTest() {
         val original = AppsArguments.Default(
             filterConfig = TagFilterConfig(includeTags = setOf(AppTag.UserApp)),
             sortSettings = SortSettings(mode = SortSettings.Mode.UPDATE_DATE),
-            viewStyle = AppsViewStyle.Grid(size = AppsViewStyle.Grid.GridSize.LARGE),
+            viewStyle = AppsViewStyle(
+                mode = AppsViewStyle.Mode.GRID,
+                density = AppsViewStyle.Density.DETAILED,
+            ),
         )
 
         val serialized = json.encodeToJsonElement<AppsArguments>(original)

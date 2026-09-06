@@ -11,6 +11,7 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.apps.core.AppSizeCache
+import eu.darken.butler.apps.core.AppsTabViewStore
 import eu.darken.butler.apps.core.AppsSettings
 import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.details.normalizedAppLabel
@@ -65,6 +66,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val appsSettings: AppsSettings,
     private val appSizeCache: AppSizeCache,
+    private val tabViewStore: AppsTabViewStore,
 ) : ViewModel4(dispatchers, logTag("Apps", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<AppsWorkspace?> =
@@ -266,11 +268,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             add(AppsActionBarItem.Refresh)
             add(AppsActionBarItem.Sort)
 
-            val toggledViewStyle = when (wsState.viewStyle) {
-                is AppsViewStyle.List -> AppsViewStyle.Grid()
-                is AppsViewStyle.Grid -> AppsViewStyle.List()
-            }
-            add(AppsActionBarItem.UpdateViewStyle(toggledViewStyle))
+            add(AppsActionBarItem.ViewOptions(wsState.viewStyle))
         }
     }
 
@@ -514,6 +512,19 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             is AppsPageAction.Dialog.ConfirmClearData -> performClearDataApps(action.apps)
             is AppsPageAction.Dialog.OpenSizeSetup -> onOpenSizePermissionSetup()
 
+            // View style, one branch per write scope of the view options sheet
+            is AppsPageAction.ViewStyle.ApplyToTab -> tabViewStore.setViewStyle(id, action.style)
+            is AppsPageAction.ViewStyle.ApplyToAllTabs -> launch {
+                workspaceRemote.state.first().infos
+                    .filter { it.type == Workspace.Type.APPS }
+                    .forEach { tabViewStore.setViewStyle(it.id, action.style) }
+            }
+            is AppsPageAction.ViewStyle.SetAsDefault -> launch {
+                // Only the setting: the tab already carries the style through the live path, and
+                // sequencing a slot write after the suspending persist could reapply a stale one.
+                appsSettings.defaultViewStyle.value(action.style)
+            }
+
             // Action bar clicks
             is AppsPageAction.ActionBarClick -> onActionBarClick(action.item)
         }
@@ -641,9 +652,8 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 )
             }
 
-            is AppsActionBarItem.UpdateViewStyle -> launch {
-                getWorkspace().updateViewStyle(action.viewStyle)
-                appsSettings.defaultViewStyle.value(action.viewStyle)
+            is AppsActionBarItem.ViewOptions -> {
+                dialogStateFlow.value = AppsDialogState.ViewStyleOptions
             }
         }
     }
