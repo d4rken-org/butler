@@ -169,14 +169,15 @@ sealed interface SearcherActionBarItem : WorkspaceActionBarItem {
             override val label = R.string.searcher_action_sort.toCaString()
         }
 
-        data class UpdateViewStyle(
-            val viewStyle: SearcherViewStyle,
+        /** Opens the view options sheet, so the icon shows where the results are, not where a tap leads. */
+        data class ViewOptions(
+            val currentViewStyle: SearcherViewStyle,
             override val isEnabled: Boolean = true,
             override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
         ) : Common {
-            override val icon = when (viewStyle) {
-                is SearcherViewStyle.Grid -> Icons.TwoTone.GridView
-                is SearcherViewStyle.List -> Icons.AutoMirrored.TwoTone.ViewList
+            override val icon = when (currentViewStyle.mode) {
+                SearcherViewStyle.Mode.GRID -> Icons.TwoTone.GridView
+                SearcherViewStyle.Mode.LIST -> Icons.AutoMirrored.TwoTone.ViewList
             }
             override val label = R.string.searcher_action_view.toCaString()
         }

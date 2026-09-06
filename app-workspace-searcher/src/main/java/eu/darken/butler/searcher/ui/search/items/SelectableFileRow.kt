@@ -32,16 +32,20 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.DateTimeStyle
+import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.util.getEllipsizedMatchLine
 
 @Composable
 fun SelectableFileRow(
     result: SearchItem,
+    density: SearcherViewStyle.Density,
     isSelected: Boolean,
     isSelectionMode: Boolean,
     onClick: () -> Unit,
@@ -77,7 +81,7 @@ fun SelectableFileRow(
         ) {
             // Leading content - either checkbox OR icon
             Box(
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(density.rowIconSize),
                 contentAlignment = Alignment.Center,
             ) {
                 if (isSelectionMode) {
@@ -89,7 +93,7 @@ fun SelectableFileRow(
                     TintedAsyncImage(
                         model = result.lookup,
                         contentDescription = result.fileType.name,
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(density.rowIconSize),
                     )
                 }
             }
@@ -112,10 +116,21 @@ fun SelectableFileRow(
                 // Line 2: Parent path (left) + size · date (right)
                 val isDirectory = result.fileType == FileType.DIRECTORY
                 val parentPath = result.lookup.parent?.userReadablePath?.asComposable()
-                val metaText = listOfNotNull(
-                    result.size?.takeIf { !isDirectory }?.let { formatFileSize(it) },
-                    result.modifiedAt?.let { formatRelativeTime(it) },
-                ).joinToString(" · ")
+                val metaText = if (density == SearcherViewStyle.Density.COMPACT) {
+                    // Compact keeps the second line to the parent path alone.
+                    ""
+                } else {
+                    listOfNotNull(
+                        result.size?.takeIf { !isDirectory }?.let { formatFileSize(it) },
+                        result.modifiedAt?.let {
+                            if (density == SearcherViewStyle.Density.DETAILED) {
+                                formatDateTime(it, DateTimeStyle.FULL)
+                            } else {
+                                formatRelativeTime(it)
+                            }
+                        },
+                    ).joinToString(" · ")
+                }
 
                 if (!parentPath.isNullOrEmpty() || metaText.isNotEmpty()) {
                     Row(
@@ -147,7 +162,9 @@ fun SelectableFileRow(
                 }
 
                 // Line 4: Match context (if available)
-                val matchDisplay = remember(result.matchContext) {
+                // The excerpt is cut here rather than by maxLines: text discarded up front cannot be
+                // recovered by letting the Text wrap.
+                val matchDisplay = remember(result.matchContext, density) {
                     result.matchContext?.let { context ->
                         if (context.lineNumber != null && context.matchedLine != null) {
                             val trimmedLine = context.matchedLine.trim()
@@ -161,7 +178,7 @@ fun SelectableFileRow(
                                     line = trimmedLine,
                                     startIndex = adjustedStartIndex,
                                     endIndex = adjustedEndIndex,
-                                    maxLength = 60,
+                                    maxLength = density.matchLineLength,
                                 )
                             } else {
                                 trimmedLine
@@ -180,7 +197,7 @@ fun SelectableFileRow(
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                        maxLines = 1,
+                        maxLines = density.matchLineMaxLines,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -207,6 +224,7 @@ private fun SelectableFileRowPreview() {
             // Normal mode
             SelectableFileRow(
                 result = searchResult,
+                density = SearcherViewStyle.Density.COMFORTABLE,
                 isSelected = false,
                 isSelectionMode = false,
                 onClick = {},
@@ -216,6 +234,7 @@ private fun SelectableFileRowPreview() {
             // Selection mode - unselected
             SelectableFileRow(
                 result = searchResult,
+                density = SearcherViewStyle.Density.COMFORTABLE,
                 isSelected = false,
                 isSelectionMode = true,
                 onClick = {},
@@ -225,6 +244,7 @@ private fun SelectableFileRowPreview() {
             // Selection mode - selected
             SelectableFileRow(
                 result = searchResult,
+                density = SearcherViewStyle.Density.COMFORTABLE,
                 isSelected = true,
                 isSelectionMode = true,
                 onClick = {},
@@ -270,6 +290,7 @@ private fun SelectableFileRowWithMatchPreview() {
             // Short match - no ellipsization needed
             SelectableFileRow(
                 result = searchResult,
+                density = SearcherViewStyle.Density.COMFORTABLE,
                 isSelected = false,
                 isSelectionMode = false,
                 onClick = {},
@@ -279,11 +300,45 @@ private fun SelectableFileRowWithMatchPreview() {
             // Long line with match in middle - shows ellipsization
             SelectableFileRow(
                 result = longLineResult,
+                density = SearcherViewStyle.Density.COMFORTABLE,
                 isSelected = false,
                 isSelectionMode = false,
                 onClick = {},
                 onLongPress = {},
             )
+        }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SelectableFileRowDensityPreview() {
+    val searchResult = SearcherMockDataProvider.createMockSearchResult(
+        name = "config.json",
+        sizeKB = 12,
+        hoursAgo = 3,
+        matchedQuery = "timeout",
+        matchContext = SearchItem.MatchContext(
+            lineNumber = 42,
+            matchedLine = "    const configuration = { baseUrl: 'https://example.com', apiEndpoint: '/api/v2/data', timeout: 30000 };",
+            startIndex = 88,
+            endIndex = 95,
+        ),
+    )
+
+    PreviewWrapper {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            SearcherViewStyle.Density.entries.forEach { density ->
+                SelectableFileRow(
+                    result = searchResult,
+                    density = density,
+                    isSelected = false,
+                    isSelectionMode = false,
+                    onClick = {},
+                    onLongPress = {},
+                )
+            }
         }
     }
 }

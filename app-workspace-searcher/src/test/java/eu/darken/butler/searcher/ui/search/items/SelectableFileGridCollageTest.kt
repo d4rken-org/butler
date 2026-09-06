@@ -12,6 +12,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import eu.darken.butler.workspace.ui.preview.TEST_TAG_FOLDER_PREVIEW_COLLAGE
@@ -38,6 +39,7 @@ class SelectableFileGridCollageTest : ComposeTest() {
                     Box(Modifier.size(200.dp)) {
                         SelectableFileGrid(
                             result = SearcherMockDataProvider.createMockDirectory(name = "Photos"),
+                            density = SearcherViewStyle.Density.COMFORTABLE,
                             isSelected = false,
                             isSelectionMode = false,
                             onClick = {},
@@ -58,6 +60,7 @@ class SelectableFileGridCollageTest : ComposeTest() {
                 ProvideFolderPreviews({ flowOf(emptyList()) }) {
                     SelectableFileGrid(
                         result = SearcherMockDataProvider.createMockDirectory(name = "Docs"),
+                        density = SearcherViewStyle.Density.COMFORTABLE,
                         isSelected = false,
                         isSelectionMode = false,
                         onClick = {},
@@ -78,6 +81,7 @@ class SelectableFileGridCollageTest : ComposeTest() {
                 ProvideFolderPreviews({ flowOf(listOf(mediaLookup("a.jpg"))) }) {
                     SelectableFileGrid(
                         result = SearcherMockDataProvider.createMockTextFile(name = "readme.txt"),
+                        density = SearcherViewStyle.Density.COMFORTABLE,
                         isSelected = false,
                         isSelectionMode = false,
                         onClick = {},
@@ -96,6 +100,7 @@ class SelectableFileGridCollageTest : ComposeTest() {
             PreviewWrapper {
                 SelectableFileGrid(
                     result = SearcherMockDataProvider.createMockDirectory(name = "Photos"),
+                    density = SearcherViewStyle.Density.COMFORTABLE,
                     isSelected = false,
                     isSelectionMode = false,
                     onClick = {},
@@ -118,6 +123,7 @@ class SelectableFileGridCollageTest : ComposeTest() {
                     Box(Modifier.size(200.dp)) {
                         SelectableFileGrid(
                             result = SearcherMockDataProvider.createMockDirectory(name = "Photos"),
+                            density = SearcherViewStyle.Density.COMFORTABLE,
                             isSelected = false,
                             isSelectionMode = false,
                             onClick = {},
@@ -144,6 +150,7 @@ class SelectableFileGridCollageTest : ComposeTest() {
                     val settled = remember { mutableStateOf(false) }
                     SelectableFileGrid(
                         result = SearcherMockDataProvider.createMockDirectory(name = "Photos"),
+                        density = SearcherViewStyle.Density.COMFORTABLE,
                         isSelected = false,
                         isSelectionMode = false,
                         onClick = {},
@@ -171,6 +178,7 @@ class SelectableFileGridCollageTest : ComposeTest() {
                     Box(Modifier.size(200.dp)) {
                         SelectableFileGrid(
                             result = SearcherMockDataProvider.createMockDirectory(name = "Photos"),
+                            density = SearcherViewStyle.Density.COMFORTABLE,
                             isSelected = false,
                             isSelectionMode = false,
                             onClick = {},

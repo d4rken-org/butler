@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.core
 
+import eu.darken.butler.common.serialization.SerializationCommonModule
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
@@ -12,10 +13,12 @@ class SearcherViewStyleTest : BaseTest() {
         encodeDefaults = true
     }
 
+    /** Legacy payloads carry keys this type no longer has, which only the app's own Json tolerates. */
+    private val productionJson = SerializationCommonModule().json()
+
     @Test
-    fun `serialize List with defaults`() {
-        val style = SearcherViewStyle.List()
-        val serialized = json.encodeToString<SearcherViewStyle>(style)
+    fun `serialize with defaults`() {
+        val serialized = json.encodeToString(SearcherViewStyle())
 
         serialized.toComparableJson() shouldBe """
             {
@@ -26,50 +29,23 @@ class SearcherViewStyleTest : BaseTest() {
     }
 
     @Test
-    fun `serialize List with custom values`() {
-        val style = SearcherViewStyle.List(
-            density = SearcherViewStyle.List.Density.COMPACT,
+    fun `serialize with custom values`() {
+        val style = SearcherViewStyle(
+            mode = SearcherViewStyle.Mode.GRID,
+            density = SearcherViewStyle.Density.COMPACT,
         )
-        val serialized = json.encodeToString<SearcherViewStyle>(style)
+        val serialized = json.encodeToString(style)
 
         serialized.toComparableJson() shouldBe """
             {
-                "type": "list",
+                "type": "grid",
                 "density": "compact"
             }
         """.toComparableJson()
     }
 
     @Test
-    fun `serialize Grid with defaults`() {
-        val style = SearcherViewStyle.Grid()
-        val serialized = json.encodeToString<SearcherViewStyle>(style)
-
-        serialized.toComparableJson() shouldBe """
-            {
-                "type": "grid",
-                "size": "medium"
-            }
-        """.toComparableJson()
-    }
-
-    @Test
-    fun `serialize Grid with custom values`() {
-        val style = SearcherViewStyle.Grid(
-            size = SearcherViewStyle.Grid.GridSize.LARGE,
-        )
-        val serialized = json.encodeToString<SearcherViewStyle>(style)
-
-        serialized.toComparableJson() shouldBe """
-            {
-                "type": "grid",
-                "size": "large"
-            }
-        """.toComparableJson()
-    }
-
-    @Test
-    fun `deserialize List from JSON`() {
+    fun `deserialize from JSON`() {
         val jsonString = """
             {
                 "type": "list",
@@ -77,124 +53,66 @@ class SearcherViewStyleTest : BaseTest() {
             }
         """
 
-        val style = json.decodeFromString<SearcherViewStyle>(jsonString)
-
-        style shouldBe SearcherViewStyle.List(
-            density = SearcherViewStyle.List.Density.DETAILED,
+        json.decodeFromString<SearcherViewStyle>(jsonString) shouldBe SearcherViewStyle(
+            mode = SearcherViewStyle.Mode.LIST,
+            density = SearcherViewStyle.Density.DETAILED,
         )
-    }
-
-    @Test
-    fun `deserialize Grid from JSON`() {
-        val jsonString = """
-            {
-                "type": "grid",
-                "size": "small"
-            }
-        """
-
-        val style = json.decodeFromString<SearcherViewStyle>(jsonString)
-
-        style shouldBe SearcherViewStyle.Grid(
-            size = SearcherViewStyle.Grid.GridSize.SMALL,
-        )
-    }
-
-    @Test
-    fun `roundtrip List serialization`() {
-        val original = SearcherViewStyle.List(
-            density = SearcherViewStyle.List.Density.COMPACT,
-        )
-
-        val serialized = json.encodeToString<SearcherViewStyle>(original)
-        val deserialized = json.decodeFromString<SearcherViewStyle>(serialized)
-
-        deserialized shouldBe original
-    }
-
-    @Test
-    fun `roundtrip Grid serialization`() {
-        val original = SearcherViewStyle.Grid(
-            size = SearcherViewStyle.Grid.GridSize.LARGE,
-        )
-
-        val serialized = json.encodeToString<SearcherViewStyle>(original)
-        val deserialized = json.decodeFromString<SearcherViewStyle>(serialized)
-
-        deserialized shouldBe original
     }
 
     @Test
     fun `deserialize with missing optional fields uses defaults`() {
-        val jsonString = """
-            {
-                "type": "list"
-            }
-        """
-
-        val style = json.decodeFromString<SearcherViewStyle>(jsonString)
-
-        style shouldBe SearcherViewStyle.List()
+        json.decodeFromString<SearcherViewStyle>("""{"type":"list"}""") shouldBe SearcherViewStyle()
+        json.decodeFromString<SearcherViewStyle>("{}") shouldBe SearcherViewStyle()
     }
 
+    /** A list user keeps both the mode and the density they had. */
     @Test
-    fun `deserialize List with partial fields`() {
-        val jsonString = """
+    fun `a legacy list payload keeps its mode and density`() {
+        val legacy = """
             {
                 "type": "list",
-                "density": "compact"
+                "density": "comfortable"
             }
         """
 
-        val style = json.decodeFromString<SearcherViewStyle>(jsonString)
-
-        style shouldBe SearcherViewStyle.List(
-            density = SearcherViewStyle.List.Density.COMPACT,
+        productionJson.decodeFromString<SearcherViewStyle>(legacy) shouldBe SearcherViewStyle(
+            mode = SearcherViewStyle.Mode.LIST,
+            density = SearcherViewStyle.Density.COMFORTABLE,
         )
     }
 
+    /** A grid user keeps the grid; the retired tile size has no density to map onto. */
     @Test
-    fun `deserialize Grid with partial fields`() {
-        val jsonString = """
+    fun `a legacy grid payload keeps grid and falls back to the default density`() {
+        val legacy = """
             {
                 "type": "grid",
-                "size": "large"
+                "size": "medium"
             }
         """
 
-        val style = json.decodeFromString<SearcherViewStyle>(jsonString)
-
-        style shouldBe SearcherViewStyle.Grid(
-            size = SearcherViewStyle.Grid.GridSize.LARGE,
+        productionJson.decodeFromString<SearcherViewStyle>(legacy) shouldBe SearcherViewStyle(
+            mode = SearcherViewStyle.Mode.GRID,
+            density = SearcherViewStyle.Density.COMFORTABLE,
         )
     }
 
     @Test
-    fun `all List Density values serialize correctly`() {
-        SearcherViewStyle.List.Density.values().forEach { density ->
-            val style = SearcherViewStyle.List(density = density)
-            val serialized = json.encodeToString<SearcherViewStyle>(style)
-            val deserialized = json.decodeFromString<SearcherViewStyle>(serialized)
+    fun `all modes and densities roundtrip correctly`() {
+        SearcherViewStyle.Mode.entries.forEach { mode ->
+            SearcherViewStyle.Density.entries.forEach { density ->
+                val original = SearcherViewStyle(mode = mode, density = density)
 
-            (deserialized as SearcherViewStyle.List).density shouldBe density
+                json.decodeFromString<SearcherViewStyle>(json.encodeToString(original)) shouldBe original
+            }
         }
     }
 
     @Test
-    fun `all Grid GridSize values serialize correctly`() {
-        SearcherViewStyle.Grid.GridSize.values().forEach { size ->
-            val style = SearcherViewStyle.Grid(size = size)
-            val serialized = json.encodeToString<SearcherViewStyle>(style)
-            val deserialized = json.decodeFromString<SearcherViewStyle>(serialized)
-
-            (deserialized as SearcherViewStyle.Grid).size shouldBe size
-        }
-    }
-
-    @Test
-    fun `default returns List style`() {
-        val style = SearcherViewStyle.default()
-
-        style shouldBe SearcherViewStyle.List()
+    fun `default is a comfortable list`() {
+        SearcherViewStyle.default() shouldBe SearcherViewStyle(
+            mode = SearcherViewStyle.Mode.LIST,
+            density = SearcherViewStyle.Density.COMFORTABLE,
+        )
     }
 }

@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearchTemplate
 import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.ui.search.dialogs.SearchSortOptionsResult
@@ -173,6 +174,17 @@ sealed interface SearcherPageAction {
          * Edit an existing filter condition (opens editor with current values)
          */
         data class EditCondition(val condition: FilterCondition) : Filter
+    }
+
+    /**
+     * View style actions, one per write scope of the view options sheet
+     */
+    sealed interface ViewStyle : SearcherPageAction {
+        data class ApplyToTab(val style: SearcherViewStyle) : ViewStyle
+
+        data class ApplyToAllTabs(val style: SearcherViewStyle) : ViewStyle
+
+        data class SetAsDefault(val style: SearcherViewStyle) : ViewStyle
     }
 
     /**

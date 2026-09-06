@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.searcher.R
+import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
@@ -22,6 +23,7 @@ import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 fun SearcherDialogHost(
     modifier: Modifier = Modifier,
     dialogState: SearcherDialogState,
+    viewStyle: SearcherViewStyle,
     trashEnabled: Boolean,
     onDismiss: () -> Unit,
     onDeleteConfirmed: (items: Set<APath<*>>, forcePermDelete: Boolean) -> Unit,
@@ -31,6 +33,9 @@ fun SearcherDialogHost(
     onSortOptionsConfirmed: (SearchSortOptionsResult) -> Unit = {},
     onClearHistoryConfirmed: () -> Unit = {},
     onConditionApply: (existing: FilterCondition?, new: FilterCondition) -> Unit = { _, _ -> },
+    onViewStyleApplyToTab: (SearcherViewStyle) -> Unit = {},
+    onViewStyleApplyToAllTabs: (SearcherViewStyle) -> Unit = {},
+    onViewStyleSetAsDefault: (SearcherViewStyle) -> Unit = {},
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -100,6 +105,7 @@ fun SearcherDialogHost(
         }
         // Non-destructive dialogs handled by pane-scoped bottom sheets below
         is SearcherDialogState.EditSortOptions,
+        is SearcherDialogState.EditViewStyle,
         is SearcherDialogState.EditSizeCondition,
         is SearcherDialogState.EditDateCondition,
         is SearcherDialogState.EditTypeCondition -> {
@@ -136,6 +142,17 @@ fun SearcherDialogHost(
         existingCondition = dateState?.existing,
         onDismiss = onDismiss,
         onApply = { onConditionApply(dateState?.existing, it) },
+        topInset = topInset,
+        bottomInset = bottomInset,
+    )
+
+    ViewStyleOptionsSheet(
+        visible = dialogState is SearcherDialogState.EditViewStyle,
+        currentViewStyle = viewStyle,
+        onApplyToTab = onViewStyleApplyToTab,
+        onApplyToAllTabs = onViewStyleApplyToAllTabs,
+        onSetAsDefault = onViewStyleSetAsDefault,
+        onDismiss = onDismiss,
         topInset = topInset,
         bottomInset = bottomInset,
     )

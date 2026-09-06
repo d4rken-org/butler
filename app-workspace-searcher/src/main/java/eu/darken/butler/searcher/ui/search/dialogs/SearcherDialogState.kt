@@ -19,6 +19,12 @@ sealed interface SearcherDialogState {
     data class EditSortOptions(val currentSortSettings: SearchSortSettings) : SearcherDialogState
 
     /**
+     * Payload-free: the sheet renders from the page's live view style, so a control change is
+     * reflected by the controls themselves and not just by the results behind them.
+     */
+    data object EditViewStyle : SearcherDialogState
+
+    /**
      * Edit size condition - null existing means adding new
      */
     data class EditSizeCondition(

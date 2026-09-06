@@ -190,6 +190,7 @@ fun SearcherWorkspaceOverlays(
         // Dialog host (handles all dialogs and bottom sheets)
         SearcherDialogHost(
             dialogState = currentState.dialogState,
+            viewStyle = currentState.viewStyle,
             trashEnabled = currentState.trashEnabled,
             onDismiss = { onPageAction(SearcherPageAction.Dialogs.Dismiss) },
             onDeleteConfirmed = { items, forcePermDelete ->
@@ -204,6 +205,9 @@ fun SearcherWorkspaceOverlays(
                 existing?.let { onPageAction(SearcherPageAction.Filter.RemoveCondition(it)) }
                 onPageAction(SearcherPageAction.Filter.AddCondition(new))
             },
+            onViewStyleApplyToTab = { onPageAction(SearcherPageAction.ViewStyle.ApplyToTab(it)) },
+            onViewStyleApplyToAllTabs = { onPageAction(SearcherPageAction.ViewStyle.ApplyToAllTabs(it)) },
+            onViewStyleSetAsDefault = { onPageAction(SearcherPageAction.ViewStyle.SetAsDefault(it)) },
             topInset = statusBarInset,
             bottomInset = navBarInset,
         )

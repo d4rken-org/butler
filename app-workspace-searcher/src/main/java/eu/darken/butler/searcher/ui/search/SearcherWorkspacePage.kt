@@ -56,6 +56,8 @@ import eu.darken.butler.searcher.ui.search.elements.SearcherTopBars
 import eu.darken.butler.searcher.ui.search.elements.TemplatesCard
 import eu.darken.butler.searcher.ui.search.elements.searchHistorySection
 import eu.darken.butler.searcher.ui.search.items.SelectableFileGrid
+import eu.darken.butler.searcher.ui.search.items.gridMinSize
+import eu.darken.butler.searcher.ui.search.items.listGap
 import eu.darken.butler.searcher.ui.search.items.SelectableFileRow
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.util.SearchListItem
@@ -308,8 +310,8 @@ fun SearcherWorkspacePage(
             }
 
             // Results mode - List or Grid based on viewStyle
-            else -> when (val style = currentState.viewStyle) {
-                is SearcherViewStyle.List -> {
+            else -> when (currentState.viewStyle.mode) {
+                SearcherViewStyle.Mode.LIST -> {
                     LazyColumn(
                         state = listState,
                         modifier = Modifier
@@ -332,13 +334,7 @@ fun SearcherWorkspacePage(
                                         key !in currentState.selectionState.selectedResultIds
                                 },
                             ),
-                        verticalArrangement = Arrangement.spacedBy(
-                            when (style.density) {
-                                SearcherViewStyle.List.Density.COMPACT -> 4.dp
-                                SearcherViewStyle.List.Density.COMFORTABLE -> 8.dp
-                                SearcherViewStyle.List.Density.DETAILED -> 12.dp
-                            }
-                        ),
+                        verticalArrangement = Arrangement.spacedBy(currentState.viewStyle.density.listGap),
                         contentPadding = contentPaddingValues
                     ) {
                         // Show setup card if needed
@@ -395,6 +391,7 @@ fun SearcherWorkspacePage(
                                         SelectableFileRow(
                                             modifier = dragSource?.modifier ?: Modifier,
                                             result = item.searchItem,
+                                            density = currentState.viewStyle.density,
                                             isSelected = currentState.selectionState.isSelected(item.searchItem),
                                             isSelectionMode = currentState.selectionState.isSelectionMode,
                                             onClick = {
@@ -452,12 +449,8 @@ fun SearcherWorkspacePage(
                     }
                 }
 
-                is SearcherViewStyle.Grid -> {
-                    val minSize = when (style.size) {
-                        SearcherViewStyle.Grid.GridSize.SMALL -> 90.dp
-                        SearcherViewStyle.Grid.GridSize.MEDIUM -> 120.dp
-                        SearcherViewStyle.Grid.GridSize.LARGE -> 160.dp
-                    }
+                SearcherViewStyle.Mode.GRID -> {
+                    val minSize = currentState.viewStyle.density.gridMinSize
 
                     val gridResultItems = remember(currentState.listItems) {
                         currentState.listItems.filterIsInstance<SearchListItem.Result>()
@@ -528,6 +521,7 @@ fun SearcherWorkspacePage(
                                 SelectableFileGrid(
                                     modifier = dragSource?.modifier ?: Modifier,
                                     result = item.searchItem,
+                                    density = currentState.viewStyle.density,
                                     isSelected = currentState.selectionState.isSelected(item.searchItem),
                                     isSelectionMode = currentState.selectionState.isSelectionMode,
                                     onClick = {

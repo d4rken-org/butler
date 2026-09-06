@@ -36,6 +36,7 @@ import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchSortSettings
 import eu.darken.butler.searcher.core.SearchTemplate
 import eu.darken.butler.searcher.core.SearcherSettings
+import eu.darken.butler.searcher.core.SearcherTabViewStore
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.history.SearchHistory
@@ -111,6 +112,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     private val searchHistory: SearchHistory,
     private val searcherSettings: SearcherSettings,
+    private val tabViewStore: SearcherTabViewStore,
     private val clipboardRepo: ClipboardRepo,
     private val workspaceRemote: WorkspaceRemote,
     private val workspaceProvider: WorkspaceProvider,
@@ -150,7 +152,17 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
     private val currentSortSettings = MutableStateFlow(searcherSettings.defaultSort.valueBlocking)
-    private val viewStyleFlow = MutableStateFlow(searcherSettings.defaultViewStyle.valueBlocking)
+    private val viewStyleSeed: SearcherViewStyle =
+        tabViewStore.currentViewStyle(id) ?: searcherSettings.defaultViewStyle.valueBlocking
+
+    /**
+     * Derived from the tab's slot rather than mirroring it, so a write another tab's sheet made to
+     * this tab's slot reaches this page. The seed keeps the first composed frame correct.
+     */
+    private val viewStyleFlow: StateFlow<SearcherViewStyle> = tabViewStore
+        .observeViewStyle(id)
+        .map { it ?: viewStyleSeed }
+        .stateIn(vmScope, SharingStarted.Eagerly, viewStyleSeed)
     private var lastAutoExecutedQuery: String? = null
     private var currentSearchId: String? = null
 
@@ -203,6 +215,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     init {
+        // Materializes the style at tab creation, so a later change of the global default cannot
+        // retroactively restyle a tab the user already has open.
+        tabViewStore.ensureViewStyle(id, viewStyleSeed)
+
         // Initialize UI state from workspace (source of truth, already has defaults applied)
         // Non-blocking reactive initialization - waits for workspace to be ready
         workspaceSearchState
@@ -457,11 +473,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         } else if (sortedResults.isNotEmpty()) {
             buildList {
                 add(SearcherActionBarItem.Common.Sort())
-                val toggledViewStyle = when (viewStyle) {
-                    is SearcherViewStyle.List -> SearcherViewStyle.Grid()
-                    is SearcherViewStyle.Grid -> SearcherViewStyle.List()
-                }
-                add(SearcherActionBarItem.Common.UpdateViewStyle(toggledViewStyle))
+                add(SearcherActionBarItem.Common.ViewOptions(viewStyle))
             }
         } else {
             emptyList()
@@ -921,11 +933,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     currentSortSettings = currentSortSettings.value
                 )
             }
-            is SearcherActionBarItem.Common.UpdateViewStyle -> {
-                viewStyleFlow.value = action.viewStyle
-                vmScope.launch {
-                    searcherSettings.defaultViewStyle.value(action.viewStyle)
-                }
+            is SearcherActionBarItem.Common.ViewOptions -> {
+                dialogStateFlow.value = SearcherDialogState.EditViewStyle
             }
             is SearcherActionBarItem.OpenInNewTabs -> {
                 vmScope.launch {
@@ -1373,6 +1382,20 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Templates.Apply -> applyTemplate(action.template)
 
             // Filter - Condition-based actions
+            is SearcherPageAction.ViewStyle.ApplyToTab -> {
+                // The live path: every control change in the view options sheet lands here.
+                tabViewStore.setViewStyle(id, action.style)
+            }
+            is SearcherPageAction.ViewStyle.ApplyToAllTabs -> vmScope.launch {
+                workspaceRemote.state.first().infos
+                    .filter { it.type == Workspace.Type.SEARCHER }
+                    .forEach { tabViewStore.setViewStyle(it.id, action.style) }
+            }
+            is SearcherPageAction.ViewStyle.SetAsDefault -> vmScope.launch {
+                // Only the setting: the tab already carries the style through the live path, and
+                // sequencing a slot write after the suspending persist could reapply a stale one.
+                searcherSettings.defaultViewStyle.value(action.style)
+            }
             is SearcherPageAction.Filter.OpenSizeConditionEditor -> {
                 dialogStateFlow.value = SearcherDialogState.EditSizeCondition(existing = null)
             }

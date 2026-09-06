@@ -9,6 +9,8 @@ import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchSortSettings
 import eu.darken.butler.searcher.core.SearcherSettings
+import eu.darken.butler.common.serialization.SerializationIOModule
+import eu.darken.butler.searcher.core.SearcherTabViewStore
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.history.SearchHistory
@@ -18,6 +20,7 @@ import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -102,6 +105,7 @@ class SearcherSelectionShareTest {
                 every { defaultViewStyle.flow } returns flowOf(SearcherViewStyle.default())
                 every { maxHistoryItems.flow } returns flowOf(50)
             },
+            tabViewStore = SearcherTabViewStore(WorkspaceViewPrefs(), SerializationIOModule().json()),
             clipboardRepo = mockk(relaxed = true),
             workspaceRemote = mockk<WorkspaceRemote>(relaxed = true).apply {
                 every { events } returns emptyFlow()

@@ -203,6 +203,17 @@
     <string name="searcher_sort_mode_path_label">Path</string>
     <string name="searcher_sort_descending_label">Descending order</string>
 
+    <!-- View options -->
+    <string name="searcher_view_mode_label">Layout</string>
+    <string name="searcher_view_mode_list_label">List</string>
+    <string name="searcher_view_mode_grid_label">Grid</string>
+    <string name="searcher_view_density_label">Density</string>
+    <string name="searcher_view_density_compact_label">Compact</string>
+    <string name="searcher_view_density_comfortable_label">Comfortable</string>
+    <string name="searcher_view_density_detailed_label">Detailed</string>
+    <string name="searcher_view_apply_all_tabs_action">Apply to all tabs</string>
+    <string name="searcher_view_set_default_action">Set as default</string>
+
     <!-- Permission setup -->
     <string name="searcher_setup_required_body">Additional setup is required to search some locations.</string>
 </resources>

@@ -1,25 +1,21 @@
 package eu.darken.butler.searcher.ui.search
 
-import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.flow.SingleEventFlow
-import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.common.serialization.SerializationIOModule
 import eu.darken.butler.searcher.core.SearchSortSettings
 import eu.darken.butler.searcher.core.SearcherSettings
-import eu.darken.butler.common.serialization.SerializationIOModule
 import eu.darken.butler.searcher.core.SearcherTabViewStore
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
-import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
-import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
-import eu.darken.butler.workspace.core.operations.AppInstallLauncher
-import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
+import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
+import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -41,34 +37,43 @@ import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 import testhelpers.error.recordingIncidentStore
 
-/** A package found by a search installs from the search, the same way it does in the Explorer. */
+/**
+ * The view options sheet has three write scopes and each one has to touch exactly its own storage:
+ * live changes belong to the tab, "apply to all tabs" to every Searcher tab's slot, and only
+ * "set as default" moves the setting a new tab starts from.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
-class SearcherInstallActionTest {
+class SearcherViewStyleScopesTest {
 
     private val workspaceId = Workspace.Id()
-    private val appInstallLauncher = mockk<AppInstallLauncher>(relaxed = true)
+    private val otherSearcherTab = Workspace.Id()
+    private val explorerTab = Workspace.Id()
 
-    private val apkPath = LocalPath.build("/storage/emulated/0/Download/app.apk")
-    private val apkResult: SearchItem = SearchItem.fromLookup(
-        lookup = LocalPathLookup(
-            lookedUp = apkPath,
-            fileType = FileType.FILE,
-            size = 1024L,
-            modifiedAt = null,
-        ),
-        matchedQuery = "app",
-    )
+    private val viewPrefs = WorkspaceViewPrefs()
+    private val tabViewStore = SearcherTabViewStore(viewPrefs, SerializationIOModule().json())
 
-    @Before
-    fun setup() {
-        Dispatchers.setMain(UnconfinedTestDispatcher())
+    private val globalStyle = MutableStateFlow(SearcherViewStyle.default())
+    private val styleStore = mockk<DataStoreValue<SearcherViewStyle>>().apply {
+        every { flow } returns globalStyle
+        coEvery { update(any()) } answers {
+            val old = globalStyle.value
+            val new = firstArg<(SearcherViewStyle) -> SearcherViewStyle?>().invoke(old) ?: old
+            globalStyle.value = new
+            DataStoreValue.Updated(old, new)
+        }
     }
 
+    @Before
+    fun setup() = Dispatchers.setMain(UnconfinedTestDispatcher())
+
     @After
-    fun teardown() {
-        Dispatchers.resetMain()
+    fun teardown() = Dispatchers.resetMain()
+
+    private fun tabInfo(id: Workspace.Id, type: Workspace.Type) = mockk<Workspace.Info>().apply {
+        every { this@apply.id } returns id
+        every { this@apply.type } returns type
     }
 
     private fun makeViewModel(): SearcherWorkspaceViewModel {
@@ -82,12 +87,21 @@ class SearcherInstallActionTest {
             searchHistory = mockk(relaxed = true),
             searcherSettings = mockk<SearcherSettings>(relaxed = true).apply {
                 every { defaultSort.flow } returns flowOf(SearchSortSettings())
-                every { defaultViewStyle.flow } returns flowOf(SearcherViewStyle.default())
+                every { defaultViewStyle } returns styleStore
             },
-            tabViewStore = SearcherTabViewStore(WorkspaceViewPrefs(), SerializationIOModule().json()),
+            tabViewStore = tabViewStore,
             clipboardRepo = mockk(relaxed = true),
             workspaceRemote = mockk<WorkspaceRemote>(relaxed = true).apply {
                 every { events } returns emptyFlow()
+                every { state } returns flowOf(
+                    WorkspaceRemote.State(
+                        listOf(
+                            tabInfo(workspaceId, Workspace.Type.SEARCHER),
+                            tabInfo(otherSearcherTab, Workspace.Type.SEARCHER),
+                            tabInfo(explorerTab, Workspace.Type.EXPLORER),
+                        )
+                    )
+                )
             },
             workspaceProvider = mockk<WorkspaceProvider>().apply {
                 every { retrieve(workspaceId) } returns MutableStateFlow(workspace)
@@ -97,7 +111,7 @@ class SearcherInstallActionTest {
             openWithIntentUseCase = mockk(relaxed = true),
             trashSettings = mockk(relaxed = true),
             folderPreviewResolver = mockk(relaxed = true),
-            appInstallLauncher = appInstallLauncher,
+            appInstallLauncher = mockk(relaxed = true),
             apiLevel = mockk(relaxed = true),
             errorIncidentStore = recordingIncidentStore(),
             itemSorterFactory = mockk {
@@ -116,18 +130,37 @@ class SearcherInstallActionTest {
     }
 
     @Test
-    fun `installing a result submits it as an install from this search`() = runTest2 {
+    fun `the live path writes the tab slot and leaves the default alone`() = runTest2 {
         val vm = makeViewModel()
+        val grid = SearcherViewStyle(mode = SearcherViewStyle.Mode.GRID)
 
-        vm.onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.Install(apkResult)))
+        vm.onPageAction(SearcherPageAction.ViewStyle.ApplyToTab(grid))
 
-        coVerify {
-            appInstallLauncher.launch(
-                path = apkPath,
-                origin = Operation.Metadata.Origin.Searcher(workspaceId),
-                collectorScope = any(),
-                onObbFailed = any(),
-            )
-        }
+        tabViewStore.currentViewStyle(workspaceId) shouldBe grid
+        globalStyle.value shouldBe SearcherViewStyle.default()
+        coVerify(exactly = 0) { styleStore.update(any()) }
+    }
+
+    @Test
+    fun `applying to all tabs writes every searcher tab's slot`() = runTest2 {
+        val vm = makeViewModel()
+        val detailed = SearcherViewStyle(density = SearcherViewStyle.Density.DETAILED)
+
+        vm.onPageAction(SearcherPageAction.ViewStyle.ApplyToAllTabs(detailed))
+
+        tabViewStore.currentViewStyle(workspaceId) shouldBe detailed
+        tabViewStore.currentViewStyle(otherSearcherTab) shouldBe detailed
+        tabViewStore.currentViewStyle(explorerTab) shouldBe null
+    }
+
+    @Test
+    fun `setting the default writes only the setting`() = runTest2 {
+        val vm = makeViewModel()
+        val grid = SearcherViewStyle(mode = SearcherViewStyle.Mode.GRID)
+
+        vm.onPageAction(SearcherPageAction.ViewStyle.SetAsDefault(grid))
+
+        globalStyle.value shouldBe grid
+        tabViewStore.currentViewStyle(workspaceId) shouldBe SearcherViewStyle.default()
     }
 }
