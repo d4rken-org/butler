@@ -6,6 +6,7 @@ import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.common.root.RootManager
+import eu.darken.butler.common.root.service.RootServiceClient
 import eu.darken.butler.common.user.UserHandle2
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -38,15 +39,20 @@ class PkgOpsErrorMessageTest : BaseTest() {
 
     private lateinit var rootManager: RootManager
     private lateinit var adbManager: AdbManager
+    private lateinit var rootServiceClient: RootServiceClient
     private lateinit var pkgOps: PkgOps
 
     @Before
     fun setup() {
         rootManager = mockk()
         adbManager = mockk()
+        // Held as its own reference: stubbing through `rootManager.serviceClient.get()` would make
+        // mockk re-stub the chain with a fresh strict child mock, which then fails on the first
+        // resource call the lease makes.
+        rootServiceClient = mockk(relaxed = true)
         every { rootManager.useRoot } returns flowOf(false)
         every { adbManager.useAdb } returns flowOf(false)
-        every { rootManager.serviceClient } returns mockk(relaxed = true)
+        every { rootManager.serviceClient } returns rootServiceClient
         every { adbManager.serviceClient } returns mockk(relaxed = true)
 
         pkgOps = PkgOps(
@@ -66,7 +72,7 @@ class PkgOpsErrorMessageTest : BaseTest() {
     /** Same simulation the gateway tests use: the client's resource lease is what fails. */
     private fun failElevatedAccessWith(message: String) {
         every { rootManager.useRoot } returns flowOf(true)
-        coEvery { rootManager.serviceClient.get() } throws IllegalStateException(message)
+        coEvery { rootServiceClient.get() } throws IllegalStateException(message)
     }
 
     @Test
