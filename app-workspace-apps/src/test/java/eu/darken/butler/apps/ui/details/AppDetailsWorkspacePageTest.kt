@@ -204,6 +204,7 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
             composeTestRule.waitForIdle()
 
             composeTestRule.onNodeWithText("Could not load app data").assertIsDisplayed()
+            composeTestRule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Retry"))
             composeTestRule.onNodeWithText("Retry").performClick()
         }
 
