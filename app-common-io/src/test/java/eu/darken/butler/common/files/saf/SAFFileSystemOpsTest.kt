@@ -264,7 +264,7 @@ class SAFFileSystemOpsTest : BaseTest() {
      * A document of a provider whose ids are opaque: "42" is not derivable from a display name, so
      * resolution that synthesizes an id from the tree id plus display names never finds it.
      */
-    private data class OpaqueDoc(val id: String, val name: String, val mime: String)
+    private data class OpaqueDoc(val id: String, val name: String?, val mime: String)
 
     private val opaqueDocs = mutableMapOf<String, OpaqueDoc>()
     private val opaqueChildren = mutableMapOf<String, MutableList<OpaqueDoc>>()
@@ -282,7 +282,7 @@ class SAFFileSystemOpsTest : BaseTest() {
     private fun opaqueChildrenUri(id: String): Uri =
         DocumentsContract.buildChildDocumentsUriUsingTree(opaqueRootDocUri, id)
 
-    private fun addOpaqueChild(parentId: String, id: String, name: String, mime: String = "text/plain") {
+    private fun addOpaqueChild(parentId: String, id: String, name: String?, mime: String = "text/plain") {
         val doc = OpaqueDoc(id = id, name = name, mime = mime)
         opaqueDocs[id] = doc
         opaqueChildren.getOrPut(parentId) { mutableListOf() }.add(doc)
@@ -381,6 +381,22 @@ class SAFFileSystemOpsTest : BaseTest() {
         every { DocumentsContract.deleteDocument(any(), any()) } answers {
             val id = DocumentsContract.getDocumentId(secondArg<Uri>())
             (opaqueDocs[id] != null).also { removeOpaqueDoc(id) }
+        }
+    }
+
+    /**
+     * Routes [SAFDocFile.existsStrict] at the same in-memory documents the resolver serves.
+     *
+     * Without it the relaxed resolver hands back a relaxed [ContentProviderClient] whose cursor
+     * reports no row, so every strict existence probe answers "gone".
+     */
+    private fun useStrictExistence() {
+        every { mockContentResolver.acquireUnstableContentProviderClient(any<Uri>()) } answers {
+            mockk<ContentProviderClient>(relaxed = true).also { client ->
+                every { client.query(any(), any(), any(), any(), any()) } answers {
+                    mockContentResolver.query(firstArg(), secondArg(), thirdArg(), arg(3), arg(4))
+                }
+            }
         }
     }
 
@@ -649,6 +665,66 @@ class SAFFileSystemOpsTest : BaseTest() {
         fileSystemOps.createFile(target, createParents = false)
 
         verify { DocumentsContract.createDocument(any(), parentHandleUri, any(), "new.txt") }
+    }
+
+    @Test
+    fun `a failed move leaves no handle behind in the parent's stored listing`() = runTest {
+        useOpaqueProvider()
+        useStrictExistence()
+        mockkStatic(DocumentsContract::class)
+        addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "42", name = "a.txt")
+        val source = opaqueRoot.child("a.txt")
+        val destination = opaqueRoot.child("b.txt")
+        every { DocumentsContract.renameDocument(any(), any(), any()) } throws RuntimeException("provider blew up")
+
+        // Populates the root listing, which is where the source's handle also lives
+        fileSystemOps.exists(source) shouldBe true
+
+        val failure = shouldThrow<WriteException> { fileSystemOps.move(source, destination) }
+        // Pins where the move died: anything earlier would mean the fixture, not the rename, refused
+        failure.cause?.message shouldBe "provider blew up"
+
+        // The failure may have had side effects, so the source must be genuinely uncached now
+        var listings = 0
+        onChildrenQuery = { listings++ }
+        fileSystemOps.exists(source) shouldBe true
+
+        listings shouldBe 1
+    }
+
+    @Test
+    fun `a name turning ambiguous drops the descendants resolved under it`() = runTest {
+        useOpaqueProvider()
+        useStrictExistence()
+        registerOpaqueDir()
+        val dir = opaqueRoot.child("dir")
+        val file = dir.child("a.txt")
+
+        fileSystemOps.existsStrict(file) shouldBe Existence.PRESENT
+
+        // A second document of the same name appears; the parent is re-listed
+        addOpaqueChild(
+            parentId = OPAQUE_ROOT_ID,
+            id = "44",
+            name = "dir",
+            mime = DocumentsContract.Document.MIME_TYPE_DIR,
+        )
+        fileSystemOps.listFiles(opaqueRoot) shouldBe listOf(dir, dir)
+
+        fileSystemOps.existsStrict(dir) shouldBe Existence.UNKNOWN
+        // The descendant was resolved through the now-ambiguous 'dir'; its handle cannot stand
+        fileSystemOps.existsStrict(file) shouldBe Existence.UNKNOWN
+    }
+
+    @Test
+    fun `a row without a display name cannot prove another name absent`() = runTest {
+        useOpaqueProvider()
+        addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "42", name = "a.txt")
+        // The provider left COLUMN_DISPLAY_NAME empty, so this document's name is unknown to us
+        addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "43", name = null)
+        val unindexable = opaqueRoot.child("secret.txt")
+
+        fileSystemOps.existsStrict(unindexable) shouldBe Existence.UNKNOWN
     }
 
     companion object {
