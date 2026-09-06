@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apps Workspace -->
+    <string name="apps_title">Apps</string>
+    <string name="apps_subtitle">Installierte Apps verwalten</string>
+
+    <!-- Filter Labels -->
+    <string name="apps_filter_app_type_label">App-Typ</string>
+    <string name="apps_filter_type_all">Alle</string>
+    <string name="apps_filter_type_user">Benutzer-Apps</string>
+    <string name="apps_filter_type_system">System-Apps</string>
+    <string name="apps_filter_status_label">Status</string>
+    <string name="apps_filter_status_all">Alle</string>
+    <string name="apps_filter_status_enabled">Aktiviert</string>
+    <string name="apps_filter_status_disabled">Deaktiviert</string>
+
+
+    <!-- Sort Options -->
+    <string name="apps_sort_mode_label">Sortieren nach</string>
+    <string name="apps_sort_mode_name_label">Name</string>
+    <string name="apps_sort_mode_size_label">Größe</string>
+    <string name="apps_sort_mode_install_date_label">Installationsdatum</string>
+    <string name="apps_sort_mode_update_date_label">Aktualisierungsdatum</string>
+    <string name="apps_sort_mode_package_name_label">Paketname</string>
+    <string name="apps_sort_descending_label">Absteigende Reihenfolge</string>
+    <string name="apps_sort_mode_size_slowdown_hint">Das Berechnen der App-Größen verlangsamt das Laden</string>
+
+    <!-- Actions -->
+    <string name="apps_action_launch">Starten</string>
+    <string name="apps_action_open_info">App-Info</string>
+    <string name="apps_action_disable">Deaktivieren</string>
+    <string name="apps_action_enable">Aktivieren</string>
+    <string name="apps_action_uninstall">Deinstallieren</string>
+    <string name="apps_action_clear_data">Daten löschen</string>
+    <string name="apps_action_export_apk">APK exportieren</string>
+    <string name="apps_action_browse_path">Pfad durchsuchen</string>
+    <string name="apps_action_share">Informationen teilen</string>
+    <string name="apps_action_refresh">Aktualisieren</string>
+    <string name="apps_action_sort">Sortieren</string>
+    <string name="apps_action_filter">Filtern</string>
+    <string name="apps_action_select_all">Alle auswählen</string>
+    <string name="apps_action_deselect_all">Auswahl aufheben</string>
+    <string name="apps_action_open_in_tab">In Tab öffnen</string>
+    <string name="apps_action_force_stop">Beenden erzwingen</string>
+    <string name="apps_action_view_grid">Rasteransicht</string>
+    <string name="apps_action_view_list">Listenansicht</string>
+
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">App starten</string>
+    <string name="apps_action_open_info_desc">Detaillierte Systeminformationen anzeigen</string>
+    <string name="apps_action_enable_desc">Diese App aktivieren</string>
+    <string name="apps_action_disable_desc">Diese App deaktivieren</string>
+    <string name="apps_action_uninstall_desc">Diese App entfernen</string>
+    <string name="apps_action_export_apk_desc">APK-Datei im Speicher speichern</string>
+    <string name="apps_action_share_desc">App-Details als Text teilen</string>
+    <string name="apps_action_force_stop_desc">App sofort beenden</string>
+    <string name="apps_action_clear_data_desc">Alle App-Daten und Einstellungen löschen</string>
+
+    <!-- App Info Labels -->
+    <string name="apps_package_name_label">Paket</string>
+    <string name="apps_version_label">Version</string>
+    <string name="apps_size_label">Größe</string>
+    <string name="apps_size_chip_desc">App-Größe: %1$s</string>
+    <string name="apps_size_permission_hint">Für App-Größen ist Nutzungsdatenzugriff erforderlich</string>
+    <string name="apps_size_permission_body">Android meldet die Größe von App, Daten und Cache nur an Apps mit der Berechtigung für den Nutzungsdatenzugriff. Erteile sie, um die Speicheraufteilung dieser App zu sehen.</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">Speicherorte</string>
+    <string name="apps_path_internal_data_label">Interne Daten</string>
+    <string name="apps_path_external_data_label">Externer Speicher</string>
+    <string name="apps_path_requires_root_label">Root-Zugriff erforderlich</string>
+    <string name="apps_path_requires_shizuku_label">Shizuku erforderlich</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Root-Zugriff oder Shizuku erforderlich</string>
+    <string name="apps_path_requires_access_label">Zusätzlicher Zugriff erforderlich</string>
+    <string name="apps_storage_breakdown_label">Speicheraufteilung</string>
+    <string name="apps_storage_app_label">App</string>
+
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">Übersicht</string>
+    <string name="appdetails_tab_packageinfo_label">Paketinformationen</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">Zurück zu Apps</string>
+    <string name="appdetails_close_action">Schließen</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_title">Paketinformationen</string>
+    <string name="appdetails_packageinfo_view_action">Paketdetails anzeigen</string>
+    <string name="appdetails_packageinfo_unavailable_msg">Die Paketdetails der App konnten nicht gelesen werden.</string>
+    <string name="appdetails_packageinfo_permissions_header">Berechtigungen (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">Signaturzertifikate</string>
+    <string name="appdetails_packageinfo_package_label">Paket</string>
+    <string name="appdetails_packageinfo_version_label">Version</string>
+    <string name="appdetails_packageinfo_min_sdk_label">Min. SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">Ziel-SDK</string>
+
+    <!-- Empty States -->
+    <string name="apps_empty_no_apps">Keine Apps gefunden</string>
+    <string name="apps_empty_no_apps_desc">Passe Deine Filter an</string>
+    <string name="apps_empty_loading">Apps werden geladen…</string>
+
+    <!-- Search -->
+    <string name="apps_search_hint">Apps durchsuchen</string>
+
+    <!-- Multi-select -->
+    <plurals name="apps_selected_count">
+        <item quantity="one">%d ausgewählt</item>
+        <item quantity="other">%d ausgewählt</item>
+    </plurals>
+
+    <!-- Info Bar -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="one">%d Benutzer-App</item>
+        <item quantity="other">%d Benutzer-Apps</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="one">%d System-App</item>
+        <item quantity="other">%d System-Apps</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="one">%d ausgewählt</item>
+        <item quantity="other">%d ausgewählt</item>
+    </plurals>
+
+    <!-- App Details Sections -->
+    <string name="apps_details_section_actions">Aktionen</string>
+    <string name="apps_details_section_overview">Übersicht</string>
+    <string name="apps_details_section_storage">Speicher</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">Weitere Optionen</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">Typ</string>
+    <string name="apps_type_system">System-App</string>
+    <string name="apps_type_user">Benutzer-App</string>
+    <string name="apps_status_label">Status</string>
+    <string name="apps_status_enabled">Aktiviert</string>
+    <string name="apps_status_disabled">Deaktiviert</string>
+    <string name="apps_installed_label">Installiert</string>
+    <string name="apps_updated_label">Zuletzt aktualisiert</string>
+    <string name="apps_target_sdk_label">Ziel-SDK</string>
+    <string name="apps_min_sdk_label">Mindest-SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">Installiert von</string>
+    <string name="apps_permissions_label">Berechtigungen</string>
+    <string name="apps_permissions_count">Berechtigungen: %1$d</string>
+    <string name="apps_data_size_label">Daten</string>
+    <string name="apps_cache_size_label">Cache</string>
+    <string name="apps_total_size_label">Gesamt</string>
+
+    <!-- App Tags -->
+    <string name="apps_tag_system_label">System</string>
+    <string name="apps_tag_disabled_label">Deaktiviert</string>
+    <string name="apps_tag_updated_label">Aktualisiert</string>
+    <string name="apps_tag_sideloaded_label">Manuell installiert</string>
+    <string name="apps_tag_split_label">Split-APK</string>
+    <string name="apps_tag_debug_label">Debug</string>
+    <string name="apps_tag_user_label">Benutzer %1$d</string>
+
+    <!-- Filter Tags (virtual tags for filtering) -->
+    <string name="apps_filter_tag_enabled_label">Aktiviert</string>
+    <string name="apps_filter_tag_user_app_label">Benutzer-App</string>
+    <string name="apps_filter_include_label">Muss übereinstimmen (alle ausgewählten)</string>
+    <string name="apps_filter_exclude_label">Darf nicht übereinstimmen</string>
+    <string name="apps_filter_add_action">Filter</string>
+    <string name="apps_filter_hint">Zum Einschließen tippen, zum Ausschließen erneut tippen, zum Entfernen noch einmal tippen</string>
+    <plurals name="apps_filter_count">
+        <item quantity="one">%d Filter</item>
+        <item quantity="other">%d Filter</item>
+    </plurals>
+
+    <!-- Components Section -->
+    <string name="apps_details_section_components">Komponenten</string>
+    <string name="apps_components_activities_label">Aktivitäten</string>
+    <string name="apps_components_services_label">Dienste</string>
+    <string name="apps_components_receivers_label">Broadcast-Empfänger</string>
+    <string name="apps_components_providers_label">Inhaltsanbieter</string>
+    <string name="apps_components_exported">Exportiert</string>
+    <string name="apps_components_disabled">Deaktiviert</string>
+    <string name="apps_components_empty">Keine Komponenten gefunden</string>
+    <string name="apps_components_no_matches">Keine Komponenten entsprechen „%1$s“</string>
+    <string name="apps_components_and_more">… und %d weitere</string>
+    <string name="apps_components_view_all_action">Alle Komponenten anzeigen</string>
+    <string name="apps_components_loading">Komponenten werden geladen…</string>
+    <string name="apps_components_error">Komponenten konnten nicht geladen werden</string>
+    <string name="apps_components_launch_failed">Aktivität konnte nicht gestartet werden</string>
+    <string name="apps_components_kind_activity">Aktivität</string>
+    <string name="apps_components_kind_service">Dienst</string>
+    <string name="apps_components_kind_receiver">Broadcast-Empfänger</string>
+    <string name="apps_components_kind_provider">Inhaltsanbieter</string>
+    <string name="apps_components_search_action">Komponenten durchsuchen</string>
+    <string name="apps_components_search_hint">Name oder Paket durchsuchen</string>
+    <string name="apps_components_state_label">Status</string>
+    <string name="apps_components_state_enabled">Aktiviert</string>
+    <string name="apps_components_state_disabled">Deaktiviert</string>
+    <string name="apps_components_field_type">Typ</string>
+    <string name="apps_components_field_package">Paket</string>
+    <string name="apps_components_field_permission">Berechtigung</string>
+    <string name="apps_components_field_write_permission">Schreibberechtigung</string>
+    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_process">Prozess</string>
+    <string name="apps_components_field_launch_mode">Startmodus</string>
+    <string name="apps_components_launch_action">Starten</string>
+    <string name="apps_components_copy_name_action">Komponentennamen kopieren</string>
+    <string name="apps_components_copy_package_action">Paketnamen kopieren</string>
+    <string name="apps_components_action_enable">Komponente aktivieren</string>
+    <string name="apps_components_action_disable">Komponente deaktivieren</string>
+    <string name="apps_components_action_requires_elevated">Root-Zugriff oder Shizuku erforderlich. Zum Einrichten tippen</string>
+    <string name="apps_components_confirm_enable_title">Komponenten aktivieren?</string>
+    <string name="apps_components_confirm_disable_title">Komponenten deaktivieren?</string>
+    <string name="apps_components_confirm_enable_message">Die folgenden Komponenten werden aktiviert:</string>
+    <string name="apps_components_confirm_disable_message">Die folgenden Komponenten werden deaktiviert. Dadurch funktioniert die App möglicherweise nicht mehr richtig.</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="one">%d Komponente ausgewählt</item>
+        <item quantity="other">%d Komponenten ausgewählt</item>
+    </plurals>
+
+    <!-- Generic navigation -->
+    <string name="appdetails_back_generic_action">Zurück</string>
+
+</resources>

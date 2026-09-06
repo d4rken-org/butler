@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">Verlauf</string>
+    <string name="history_workspace_subtitle">Letzte Dateivorgänge</string>
+    <string name="history_workspace_title_scoped">Verlauf: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">Verlauf: Fehlgeschlagen</string>
+    <string name="history_workspace_title_outcome_partial">Verlauf: Teilweise</string>
+    <string name="history_workspace_title_outcome_cancelled">Verlauf: Abgebrochen</string>
+    <string name="history_workspace_title_outcome_completed">Verlauf: Abgeschlossen</string>
+    <string name="history_workspace_title_kind_copy">Verlauf: Kopieren</string>
+    <string name="history_workspace_title_kind_move">Verlauf: Verschieben</string>
+    <string name="history_workspace_title_kind_delete">Verlauf: Löschen</string>
+    <string name="history_workspace_title_kind_create_file">Verlauf: Datei erstellen</string>
+    <string name="history_workspace_title_kind_create_folder">Verlauf: Ordner erstellen</string>
+    <string name="history_workspace_title_kind_save">Verlauf: Speichern</string>
+    <string name="history_workspace_title_kind_compress">Verlauf: Komprimieren</string>
+    <string name="history_workspace_title_kind_extract">Verlauf: Entpacken</string>
+    <string name="history_workspace_title_filtered">Verlauf (gefiltert)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">Verlauf: %1$d Pfad</item>
+        <item quantity="other">Verlauf: %1$d Pfade</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Alle</string>
+    <string name="history_filter_outcome_completed">Abgeschlossen</string>
+    <string name="history_filter_outcome_partial">Teilweise</string>
+    <string name="history_filter_outcome_failed">Fehlgeschlagen</string>
+    <string name="history_filter_outcome_cancelled">Abgebrochen</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Kopieren</string>
+    <string name="history_filter_kind_move">Verschieben</string>
+    <string name="history_filter_kind_delete">Löschen</string>
+    <string name="history_filter_kind_create_file">Datei erstellen</string>
+    <string name="history_filter_kind_create_folder">Ordner erstellen</string>
+    <string name="history_filter_kind_save">Speichern</string>
+    <string name="history_filter_kind_compress">Komprimieren</string>
+    <string name="history_filter_kind_extract">Entpacken</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Pfadbereich festlegen…</string>
+    <string name="history_path_scope_clear_action">Pfadbereich löschen</string>
+    <string name="history_path_scope_dialog_title">Nach Pfad filtern</string>
+    <string name="history_path_scope_dialog_description">Nur Vorgänge anzeigen, die diesen Pfad oder untergeordnete Pfade betreffen.</string>
+    <string name="history_path_scope_dialog_input_label">Pfad</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Ordner auswählen…</string>
+    <string name="history_path_scope_dialog_apply_action">Anwenden</string>
+    <string name="history_path_scope_dialog_cancel_action">Abbrechen</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Heute</string>
+    <string name="history_group_yesterday">Gestern</string>
+    <string name="history_group_this_week">Diese Woche</string>
+    <string name="history_group_this_month">Dieser Monat</string>
+    <string name="history_group_older">Älter</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Umbenannt</string>
+    <string name="history_entry_intent_paste_copy">Eingefügt</string>
+    <string name="history_entry_intent_paste_move">Eingefügt (verschoben)</string>
+    <string name="history_entry_intent_drop_copy">Abgelegt (kopiert)</string>
+    <string name="history_entry_intent_drop_move">Abgelegt (verschoben)</string>
+    <string name="history_entry_kind_copy">Kopiert</string>
+    <string name="history_entry_kind_move">Verschoben</string>
+    <string name="history_entry_kind_delete">Gelöscht</string>
+    <string name="history_entry_kind_create_file">Datei erstellt</string>
+    <string name="history_entry_kind_create_folder">Ordner erstellt</string>
+    <string name="history_entry_kind_save">Gespeichert</string>
+    <string name="history_entry_kind_compress">Komprimiert</string>
+    <string name="history_entry_kind_extract">Entpackt</string>
+    <string name="history_entry_kind_restore">Wiederhergestellt</string>
+    <string name="history_entry_kind_install">Installiert</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d Pfad</item>
+        <item quantity="other">%d Pfade</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">Die ersten %1$d von %2$d betroffenen Pfaden</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Gestartet</string>
+    <string name="history_detail_label_completed">Abgeschlossen</string>
+    <string name="history_detail_label_duration">Dauer</string>
+    <string name="history_detail_label_outcome">Ergebnis</string>
+    <string name="history_detail_label_origin">Ursprung</string>
+    <string name="history_detail_label_error">Fehler</string>
+    <string name="history_detail_label_paths">Betroffene Pfade</string>
+    <string name="history_detail_label_partial_errors">Fehler pro Element</string>
+    <string name="history_detail_copy_path_action">Pfad kopieren</string>
+    <string name="history_detail_paths_empty">Keine betroffenen Pfade erfasst.</string>
+    <string name="history_detail_label_attempted_paths">Zu bearbeitende Pfade</string>
+    <string name="history_detail_paths_truncated_callout">Die ersten %1$d von %2$d betroffenen Pfaden werden angezeigt.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Die ersten %1$d von %2$d zu bearbeitenden Pfaden werden angezeigt.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">%1$d Element ist bei diesem Vorgang fehlgeschlagen.</item>
+        <item quantity="other">%1$d Elemente sind bei diesem Vorgang fehlgeschlagen.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Explorer</string>
+    <string name="history_origin_searcher">Suche</string>
+    <string name="history_origin_saver">Speichern unter</string>
+    <string name="history_origin_developer">Entwicklerwerkzeuge</string>
+    <string name="history_origin_viewer">Betrachter</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Noch kein Verlauf</string>
+    <string name="history_empty_subtitle">Dateivorgänge erscheinen hier, während Du Butler verwendest.</string>
+    <string name="history_empty_filtered_title">Keine Treffer</string>
+    <string name="history_empty_filtered_subtitle">Keine Verlaufseinträge entsprechen dem aktuellen Filter.</string>
+    <string name="history_empty_filtered_reset_action">Filter zurücksetzen</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Filter zurücksetzen</string>
+    <string name="history_toolbar_reset_filter_content_description">Filter zurücksetzen</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">Die ersten %1$d von %2$d betroffenen Pfaden</string>
+    <string name="history_add_filter_action">Filter hinzufügen</string>
+    <string name="history_add_filter_sheet_title">Filter hinzufügen</string>
+    <string name="history_add_filter_section_outcome">Ergebnis</string>
+    <string name="history_add_filter_section_kind">Art</string>
+    <string name="history_add_filter_section_path_scope">Pfadbereich</string>
+    <string name="history_add_filter_add_path_action">Pfad hinzufügen…</string>
+    <string name="history_path_scope_remove_action">Entfernen</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d Eintrag</item>
+        <item quantity="other">%1$d Einträge</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%1$d von %2$d angezeigt</item>
+        <item quantity="other">%1$d von %2$d angezeigt</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">Verlauf</string>
+    <string name="history_settings_save_history_title">Verlauf speichern</string>
+    <string name="history_settings_save_history_subtitle">Abgeschlossene Dateivorgänge aufzeichnen.</string>
+    <string name="history_settings_max_history_label">Maximale Verlaufseinträge</string>
+    <string name="history_settings_max_history_subtitle">Ältere Einträge werden entfernt, sobald dieses Limit überschritten wird.</string>
+    <string name="history_settings_max_history_input_label">Maximale Einträge</string>
+    <string name="history_settings_clear_history_title">Verlauf löschen</string>
+    <string name="history_settings_clear_history_subtitle">Alle gespeicherten Einträge entfernen (%1$d).</string>
+    <string name="history_clear_dialog_title">Verlauf löschen?</string>
+    <string name="history_clear_dialog_message">Alle Einträge werden aus der Datenbank für den Vorgangsverlauf entfernt. Dies kann nicht rückgängig gemacht werden.</string>
+    <string name="history_clear_confirm_action">Löschen</string>
+    <string name="history_cleared_success">Verlauf gelöscht</string>
+    <string name="history_workspace_title_kind_restore">Verlauf: Wiederherstellen</string>
+    <string name="history_filter_kind_restore">Wiederherstellen</string>
+    <string name="history_workspace_title_kind_install">Verlauf: Installieren</string>
+    <string name="history_filter_kind_install">Installieren</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Alle auswählen</string>
+    <string name="history_action_deselect_all">Auswahl aufheben</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">%1$d Eintrag löschen</item>
+        <item quantity="other">%1$d Einträge löschen</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Nur die Verlaufsdaten werden entfernt. Die Dateien selbst bleiben unverändert.</string>
+    <string name="history_pro_dialog_message">Das Teilen und Löschen von Verlaufseinträgen gehört zum Upgrade. Das Löschen des gesamten Verlaufs bleibt in den Verlaufseinstellungen kostenlos.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Ergebnis</string>
+    <string name="history_share_label_kind">Art</string>
+    <string name="history_share_label_origin">Ursprung</string>
+    <string name="history_share_label_summary">Zusammenfassung</string>
+    <string name="history_share_label_completed">Abgeschlossen</string>
+    <string name="history_share_label_duration">Dauer</string>
+    <string name="history_share_label_error">Fehler</string>
+    <string name="history_share_label_failed_items">Fehlgeschlagene Elemente</string>
+    <string name="history_share_label_paths">Betroffene Pfade (%1$d)</string>
+    <string name="history_share_paths_more">… und %1$d weitere</string>
+    <string name="history_share_truncated">… und %1$d weitere Einträge wurden nicht aufgenommen</string>
+</resources>

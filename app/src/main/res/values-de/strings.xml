@@ -1,0 +1,504 @@
+<resources>
+    <string name="onboarding_welcome_title">Willkommen bei Butler</string>
+    <string name="onboarding_welcome_message">Tabs für Dateien.\nDurchsuchen, suchen und bearbeiten – alles gleichzeitig.</string>
+    <string name="onboarding_welcome_subtitle">Quelloffen. Werbefrei. Kein Tracking.\nDer Dateimanager, den Du verdienst.</string>
+    <string name="onboarding_welcome_action">Jetzt erkunden</string>
+    <string name="onboarding_beta_title">Gestalte die Zukunft</string>
+    <string name="onboarding_beta_message">Dies ist eine Beta- bzw. Testversion. Fahre mit Humor und einem guten Backup-Plan fort. Bitte melde alle Probleme, auf die Du stößt.</string>
+    <string name="onboarding_beta_action">Ich fürchte nichts</string>
+    <string name="onboarding_beta_feature_early_access_title">Frühzeitiger Zugriff</string>
+    <string name="onboarding_beta_feature_early_access_description">Probiere die neuesten Funktionen vor allen anderen aus.</string>
+    <string name="onboarding_beta_feature_influence_title">Direkter Einfluss</string>
+    <string name="onboarding_beta_feature_influence_description">Dein Feedback gestaltet die Entwicklung von Butler.</string>
+    <string name="onboarding_beta_feature_feedback_title">Von der Community geprägt</string>
+    <string name="onboarding_beta_feature_feedback_description">Werde Teil einer Community erfahrener Nutzer, die Butler verbessern.</string>
+    <string name="onboarding_privacy_title">Datenschutz &amp; Daten</string>
+    <string name="onboarding_privacy_message">Butler enthält keine Werbung und verkauft keine Nutzerdaten. Deine Privatsphäre ist mir wichtig.</string>
+    <string name="onboarding_privacy_read_action">Datenschutzerklärung lesen</string>
+    <string name="onboarding_privacy_action">Akzeptieren</string>
+    <string name="onboarding_skip_action">Überspringen</string>
+    <string name="onboarding_progress_step">%1$d von %2$d</string>
+
+    <string name="onboarding_workspaces_title">Mit Tabs arbeiten</string>
+    <string name="onboarding_workspaces_message">Öffne mehrere Tabs und wechsle zwischen ihnen, genau wie in Deinem Webbrowser.</string>
+    <string name="onboarding_workspaces_action">Weiter</string>
+    <string name="onboarding_workspaces_hint">Mehrere Tabs gleichzeitig geöffnet lassen.</string>
+    <string name="onboarding_workspaces_explorer_title">Explorer</string>
+    <string name="onboarding_workspaces_explorer_description">Dateien durchsuchen.</string>
+    <string name="onboarding_workspaces_searcher_title">Suche</string>
+    <string name="onboarding_workspaces_searcher_description">Dinge finden.</string>
+    <string name="onboarding_workspaces_editor_title">Editor</string>
+    <string name="onboarding_workspaces_editor_description">Dateien bearbeiten.</string>
+    <string name="onboarding_workspaces_templates_title">Vorlagen</string>
+    <string name="onboarding_workspaces_templates_description">Deine Einrichtung speichern.</string>
+    <string name="onboarding_workspaces_apps_description">Deine Apps verwalten.</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">Neuer Explorer</string>
+    <string name="shortcut_explorer_new_long">Neuen Explorer-Tab erstellen</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">Verknüpfungen</string>
+    <string name="shortcuts_settings_subtitle">Verknüpfungen im App-Launcher einrichten</string>
+    <string name="shortcuts_settings_enabled_title">Verknüpfungen aktivieren</string>
+    <string name="shortcuts_settings_enabled_subtitle">Häufig verwendete Elemente im App-Launcher anzeigen</string>
+    <string name="shortcuts_settings_auto_remember_title">Besuchte Pfade merken</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Häufig besuchte Pfade automatisch als Verknüpfungen hinzufügen</string>
+    <string name="shortcuts_settings_last_accessed_title">Zuletzt aufgerufen</string>
+    <string name="shortcuts_settings_max_count_title">Maximale Anzahl Verknüpfungen</string>
+    <string name="shortcuts_settings_max_count_subtitle">Derzeit werden %d Verknüpfungen angezeigt</string>
+    <string name="shortcuts_settings_min_access_title">Mindestanzahl der Zugriffe</string>
+    <string name="shortcuts_settings_min_access_subtitle">Vor dem Anzeigen sind %d Zugriffe erforderlich</string>
+    <string name="shortcuts_settings_current_title">Aktuelle Verknüpfungen</string>
+    <string name="shortcuts_settings_current_subtitle">%d Verknüpfungen erfasst</string>
+    <string name="shortcuts_settings_clear_title">Verknüpfungsverlauf leeren</string>
+    <string name="shortcuts_settings_clear_subtitle">Alle erfassten Verknüpfungen entfernen</string>
+    <string name="shortcuts_settings_clear_confirm_title">Verknüpfungsverlauf leeren?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Dadurch werden alle erfassten Verknüpfungen entfernt. Lesezeichen bleiben erhalten.</string>
+    <string name="shortcuts_settings_cleared_message">Verknüpfungsverlauf geleert</string>
+    <string name="shortcuts_settings_max_dialog_title">Maximale Anzahl Verknüpfungen</string>
+    <string name="shortcuts_settings_max_dialog_message">Anzahl der Verknüpfungen im App-Launcher (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Mindestanzahl der Zugriffe</string>
+    <string name="shortcuts_settings_min_dialog_message">Wie oft ein Pfad aufgerufen werden muss, bevor er als Verknüpfung erscheint (1–10)</string>
+
+    <string name="setup_usagestats_title">Nutzungsstatistiken</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Benachrichtigungszugriff</string>
+    <string name="setup_manage_storage_card_title">Externen Speicher verwalten</string>
+    <string name="setup_inventory_card_title">App-Inventar</string>
+
+    <string name="setup_title">Berechtigungen einrichten</string>
+    <string name="setup_settings_description">App-Berechtigungen und Funktionen einrichten.</string>
+    <string name="setup_help_description">Hilfe</string>
+
+    <string name="setup_root_description">Ermöglicht für die erweiterte Dateiverwaltung den Zugriff auf Systemdateien und geschützte Verzeichnisse. Schaltet das volle Potenzial von Butler frei, einschließlich Zugriff auf App-Daten und Systemänderungen. Das Gerät muss gerootet sein.</string>
+    <string name="setup_shizuku_description">Eine Alternative zu Root, die privilegierte Dateivorgänge über eine sichere API ermöglicht. Gewährt ohne klassischen Root-Zugriff Zugriff auf eingeschränkte Verzeichnisse. Die Shizuku-App muss installiert sein und ausgeführt werden.</string>
+    <string name="setup_notification_description">Zeigt Aktualisierungen zu Dateivorgängen, Hintergrundaufgaben und Übertragungsfortschritten. So erfährst Du, wenn Vorgänge abgeschlossen sind oder Fehler auftreten.</string>
+    <string name="setup_usagestats_description">Analysiert die Speichernutzung von Apps, um große Dateien zu finden und Speicherplatz effektiv zu verwalten. Alle Daten bleiben auf Deinem Gerät und werden niemals übertragen.</string>
+    <string name="setup_storage_description">Vollständiger Zugriff auf den gesamten Gerätespeicher für schnelle Dateivorgänge und Stapelverarbeitung. Ermöglicht eine umfassende Dateiverwaltung ohne wiederholte Berechtigungsabfragen.</string>
+    <string name="setup_inventory_description">Zeigt alle installierten Apps für Funktionen wie APK-Extraktion und Speicheranalyse. Unter Android 11 und neuer erforderlich, um die vollständige App-Liste anzuzeigen.</string>
+
+    <string name="setup_grant_access_label">Zugriff gewähren</string>
+    <string name="setup_access_granted_label">Zugriff gewährt</string>
+    <string name="setup_use_root_label">Root verwenden, falls verfügbar</string>
+    <string name="setup_use_shizuku_label">Shizuku verwenden, falls verfügbar</string>
+
+    <string name="setup_status_checking">Wird geprüft…</string>
+    <string name="setup_status_completed">Eingerichtet</string>
+    <string name="setup_status_required">Erforderlich</string>
+    <string name="setup_status_optional">Optional</string>
+    <string name="setup_status_connected">Verbunden</string>
+    <string name="setup_status_not_connected">Nicht verbunden</string>
+    <string name="setup_status_not_installed">Nicht installiert</string>
+    <string name="setup_status_connecting">Verbindung wird hergestellt…</string>
+    <string name="setup_status_connection_failed">Verbindung fehlgeschlagen</string>
+    <string name="setup_status_unavailable">Nicht verfügbar</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">Debug-Benachrichtigungen</string>
+    <string name="debug_log_consent_title">Debug-Protokoll</string>
+    <string name="debug_log_consent_explanation">Diese Funktion zeichnet alle Aktivitäten der App in einer teilbaren Datei auf. Die erzeugte Datei enthält vertrauliche Informationen (z. B. Dateinamen und installierte Apps). Teile sie nur mit vertrauenswürdigen Personen (z. B. einem Entwickler, der ein Problem untersucht).</string>
+    <string name="debug_log_recording_progress">Debug-Protokoll wird aufgezeichnet</string>
+    <string name="debug_log_record_action">Aufzeichnen</string>
+    <string name="debug_log_record_full_action">Debug-Protokoll aufzeichnen</string>
+    <string name="debug_log_stop_action">Aufzeichnung beenden</string>
+    <string name="debug_log_screen_title">Debug-Protokollaufzeichnung</string>
+    <string name="debug_log_screen_sensitive_information_message">Die erzeugte Datei enthält vertrauliche Informationen (z. B. Dateinamen und installierte Apps). Teile sie nur mit vertrauenswürdigen Personen.</string>
+    <string name="debug_log_screen_session_path_label">Pfad der Debug-Sitzung</string>
+    <string name="debug_log_screen_log_files_label">Protokolldateien</string>
+    <string name="debug_log_screen_log_files_ready">Protokolldateien bereit (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Verwerfen</string>
+    <string name="debug_log_file_label">Aufgezeichnete Protokolldatei</string>
+    <string name="debug_banner_label">AUFZ.</string>
+    <string name="debug_banner_label_expanded">Protokolldatei wird aufgezeichnet</string>
+    <string name="debug_banner_stop_action">Beenden</string>
+    <string name="debug_banner_view_action">Anzeigen</string>
+    <string name="debug_banner_explanation">App-Aktivitäten werden aufgezeichnet. Beende die Aufzeichnung, sobald Du fertig bist, und teile das Protokoll anschließend mit Deinem Fehlerbericht.</string>
+    <string name="debug_log_short_recording_title">Aufzeichnung ist sehr kurz</string>
+    <string name="debug_log_short_recording_message">Debug-Protokolle erfassen, was während der aktiven Aufzeichnung geschieht. Starte die Aufzeichnung, reproduziere das Problem und beende sie anschließend. Diese Aufzeichnung enthält möglicherweise keine hilfreichen Informationen.</string>
+    <string name="debug_log_short_recording_keep_action">Weiter aufzeichnen</string>
+
+    <string name="debug_logview_screen_title">Protokollbetrachter</string>
+    <string name="debug_logview_pause_action">Pausieren (Anzeige einfrieren)</string>
+    <string name="debug_logview_resume_action">Fortsetzen</string>
+    <string name="debug_logview_copy_action">Protokoll kopieren</string>
+    <string name="debug_logview_collapse_action">Einklappen</string>
+    <string name="debug_logview_close_action">Protokollbereich schließen</string>
+    <string name="debug_logview_resize_action">Größe ändern</string>
+    <string name="debug_logview_more_action">Weitere Optionen</string>
+    <string name="debug_logview_level_action">Protokollierungsstufe</string>
+    <string name="debug_logview_clear_action">Puffer leeren</string>
+    <string name="debug_logview_search_action">Suchen</string>
+    <string name="debug_logview_search_clear_action">Suche leeren</string>
+    <string name="debug_logview_search_close_action">Suche schließen</string>
+    <string name="debug_logview_search_prev_action">Vorheriger Treffer</string>
+    <string name="debug_logview_search_next_action">Nächster Treffer</string>
+    <string name="debug_logview_jump_to_bottom_action">Zum neuesten Eintrag springen</string>
+    <string name="debug_logview_paused_msg">Pausiert – Anzeige eingefroren</string>
+    <string name="debug_logview_paused_new_msg">Pausiert – seitdem %1$d neue Zeile(n)</string>
+    <string name="debug_logview_copied_msg">Protokoll in die Zwischenablage kopiert</string>
+    <string name="debug_logview_copied_truncated_msg">Letzte %1$d Zeilen in die Zwischenablage kopiert</string>
+    <string name="debug_logview_share_label">Protokoll teilen</string>
+
+    <string name="settings_label">Einstellungen</string>
+    <string name="settings_category_tools_label">Werkzeuge</string>
+    <string name="settings_category_other_label">Sonstiges</string>
+    <string name="settings_category_integration_label">Integration</string>
+    <string name="general_settings_label">Allgemein</string>
+    <string name="general_settings_desc">Allgemeine Anpassungen, die sich auf die gesamte App auswirken.</string>
+    <string name="settings_category_ui_label">Benutzeroberfläche</string>
+    <string name="ui_theme_mode_setting_label">Designmodus</string>
+    <string name="ui_theme_mode_setting_explanation">Der zum Gestalten der App verwendete Modus (z. B. Tag oder Nacht).</string>
+    <string name="ui_theme_style_setting_label">Designstil</string>
+    <string name="ui_theme_style_setting_explanation">Der zum Gestalten der App verwendete Farbstil.</string>
+    <string name="ui_theme_color_setting_label">Designfarbe</string>
+    <string name="ui_theme_color_setting_explanation">Die zum Gestalten der App verwendete Farbpalette.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Die Farben werden von Material You anhand Deines Hintergrundbilds bereitgestellt</string>
+    <string name="ui_theme_color_value_system">Systemfarben</string>
+    <string name="ui_language_override_label">App-Sprache</string>
+    <string name="ui_language_override_desc">Wähle für Butler unabhängig von der Standardsprache Deines Systems eine andere Sprache aus.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Displayaussparung vermeiden</string>
+    <string name="ui_display_cutout_avoid_setting_description">Hält die Benutzeroberfläche von der Kameraaussparung frei. Schalte dies aus, um mehr vom Bildschirm zu nutzen. Teile der Oberfläche können dann jedoch hinter der Aussparung liegen.</string>
+
+    <string name="previews_settings_title">Vorschauen</string>
+    <string name="previews_settings_subtitle">Zwischenspeicher für Bildvorschauen verwalten.</string>
+
+    <string name="tour_settings_reset_title">Einführungstouren zurücksetzen</string>
+    <string name="tour_settings_reset_subtitle">Einführungstouren erneut anzeigen, auch wenn Du sie übersprungen oder deaktiviert hast.</string>
+    <string name="tour_settings_reset_done">Einführungstouren wurden zurückgesetzt.</string>
+
+    <string name="storage_settings_title">Speicher</string>
+    <string name="storage_settings_subtitle">Zwischenspeicher, Speicher und Papierkorb von Butler verwalten.</string>
+    <string name="storage_category_previews_label">Vorschauen</string>
+    <string name="storage_previews_disk_cache_title">Datenträgercache</string>
+    <string name="storage_previews_memory_cache_title">Arbeitsspeichercache</string>
+    <string name="storage_previews_max_size_title">Maximale Cache-Größe</string>
+    <string name="storage_clear_disk_confirm_title">Datenträgercache leeren?</string>
+    <string name="storage_clear_disk_confirm_message">Dadurch werden alle zwischengespeicherten Vorschaubilder entfernt. Sie werden bei Bedarf neu erzeugt.</string>
+    <string name="storage_clear_memory_confirm_title">Arbeitsspeichercache leeren?</string>
+    <string name="storage_clear_memory_confirm_message">Dadurch werden zwischengespeicherte Vorschaubilder aus dem Arbeitsspeicher entfernt. Sie werden bei Bedarf neu erzeugt.</string>
+    <string name="storage_clear_all_confirm_title">Alle Caches leeren?</string>
+    <string name="storage_clear_all_confirm_message">Dadurch werden der Datenträger- und der Arbeitsspeichercache für Vorschaubilder geleert.</string>
+    <string name="storage_clear_all_previews_action">Alle Vorschaucaches leeren</string>
+    <string name="storage_clear_all_subtitle">Alle Vorschaucaches entfernen</string>
+    <string name="storage_cache_cleared_message">Cache geleert</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">Nach Updates suchen</string>
+    <string name="updater_check_enabled_setting_description">Butler erlauben, online nach einer neuen Version zu suchen.</string>
+    <string name="motd_check_enabled_setting_title">Nach Ankündigungen suchen</string>
+    <string name="motd_check_enabled_setting_description">Butler erlauben, wichtige Nachrichten des Entwicklers abzurufen.</string>
+    <string name="motd_card_header">Ankündigung</string>
+
+    <string name="confirm_exit_setting_title">Beenden bestätigen</string>
+    <string name="confirm_exit_setting_description">Beim Beenden der App einen Bestätigungsdialog anzeigen.</string>
+    <string name="confirm_exit_dialog_title">Butler beenden</string>
+    <string name="confirm_exit_dialog_message">Dadurch wird die App geschlossen und Du kehrst zum Startbildschirm zurück.</string>
+    <string name="confirm_exit_dialog_exit">Beenden</string>
+    <string name="confirm_exit_dialog_cancel">Abbrechen</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Nicht erneut fragen</string>
+
+    <string name="settings_support_category_help_label">Hilfe erhalten</string>
+    <string name="settings_support_label">Support</string>
+    <string name="settings_support_description">Dokumentation lesen, Probleme melden, mit anderen chatten oder Debug-Protokolle aufzeichnen.</string>
+    <string name="settings_support_wiki_label">Dokumentation</string>
+    <string name="settings_support_wiki_description">Erfahre, wie Du Butler effektiv verwendest.</string>
+    <string name="settings_support_issue_tracker_description">Eine öffentliche Problemverwaltung für Fehlerberichte und Funktionswünsche.</string>
+    <string name="settings_support_issue_tracker_label">Problemverwaltung</string>
+    <string name="settings_support_debuglog_label">Debug-Protokoll</string>
+    <string name="settings_support_debuglog_desc">Alle Aktivitäten der App in einer teilbaren Textdatei aufzeichnen.</string>
+    <string name="settings_support_debuglog_recording_desc">Debug-Informationen werden gerade aufgezeichnet. Tippe hier, um die Aufzeichnung zu beenden.</string>
+    <string name="settings_support_debuglog_path">Protokollpfad: %1$s</string>
+    <string name="settings_support_bugreports_label">Fehlerberichte</string>
+    <string name="settings_support_bugreports_desc">Absturzberichte anzeigen, Debug-Protokolle aufzeichnen und mit mir teilen.</string>
+    <string name="support_contact_report_type_crash">Absturzbericht</string>
+    <string name="support_contact_report_type_reported">Fehlerbericht</string>
+    <string name="support_contact_report_type_recording">Aufzeichnung</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Ein Ort zum Austauschen und Fragenstellen.</string>
+
+    <string name="settings_acknowledgements_label">Danksagungen</string>
+    <string name="settings_acknowledgements_description">Mitwirkende, Lizenzen und besonderer Dank.</string>
+    <string name="settings_acks_translation_header">Übersetzung</string>
+    <string name="settings_acks_translators_title">Übersetzer</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Butler übersetzen</string>
+    <string name="settings_acks_translate_desc">Hilf dabei, Butler in Deine Sprache zu übersetzen.</string>
+
+    <string name="settings_acks_thanks_header">Dank</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">Für die Unterstützung bei der Übersetzung von Open-Source-Projekten.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Danke für das App-Symbol, die Maskottchen-Entwürfe und die Animationen.</string>
+    <string name="settings_licenses_label">Lizenzen</string>
+
+    <!-- Workspace Status Card -->
+    <string name="workspace_status_tab_singular">Tab</string>
+    <string name="workspace_status_tab_plural">Tabs</string>
+    <string name="workspace_status_operation_singular">Vorgang</string>
+    <string name="workspace_status_operation_plural">Vorgänge</string>
+    <string name="workspace_status_attention_label">Achtung</string>
+    <string name="workspace_status_unsaved_label">Ungespeichert</string>
+    <string name="workspace_status_filter_tabs_desc">Alle Tabs anzeigen</string>
+    <string name="workspace_status_filter_operations_desc">Nach Tabs mit Vorgängen filtern</string>
+    <string name="workspace_status_filter_attention_desc">Nach Tabs filtern, die Aufmerksamkeit erfordern</string>
+    <string name="workspace_status_filter_paused_desc">Nach pausierten Tabs filtern</string>
+    <string name="workspace_status_filter_unsaved_desc">Nach Tabs mit ungespeicherten Änderungen filtern</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Die Programmiersprache Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Ein schneller Abhängigkeitsinjektor für Android und Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Java- und Kotlin-Code als Root ausführen! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Root-Kotlin-JVM-Code einfach mit Coroutinen ausführen. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">System-APIs über einen mit app_process gestarteten Java-Prozess direkt mit ADB- oder Root-Berechtigungen aus normalen Apps verwenden. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Lottie von Airbnb für Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Der Android-Roboter wurde aus von Google erstellten und freigegebenen Werken vervielfältigt oder verändert und wird gemäß den Bedingungen der Creative Commons Attribution License 3.0 verwendet.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Das moderne Android-Werkzeugpaket zum Erstellen nativer Benutzeroberflächen. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpack-Bibliotheken</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation und weitere AndroidX-Bibliotheken. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin-Erweiterungen</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Bibliotheken für Coroutinen und Serialisierung. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Eine auf Kotlin-Coroutinen basierende Bildladebibliothek. (APACHE 2.0)</string>
+    <string name="acknowledgement_smbj_title">SMBJ</string>
+    <string name="acknowledgement_smbj_subtitle">SMB2- und SMB3-Clientbibliothek für die Kommunikation mit Netzwerkfreigaben. (APACHE 2.0)</string>
+    <string name="acknowledgement_square_libraries_title">Square-Bibliotheken</string>
+    <string name="acknowledgement_square_libraries_subtitle">Die Netzwerkbibliotheken Retrofit, OkHttp und OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Hilfswerkzeuge für Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Drag-and-drop für LazyColumn in Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Bibliothek für semantische Versionierung in Kotlin. (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Diagramme und Graphen für Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Datenschutzerklärung</string>
+    <string name="settings_privacy_policy_desc">Verantwortungsvoller Umgang mit Daten.</string>
+
+
+    <string name="changelog_label">Änderungsprotokoll</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Butler-Upgrade-Status</string>
+    <string name="upgrade_status_free">Status: Kostenlos</string>
+    <string name="upgrade_status_pro">Status: Pro</string>
+    <string name="upgrade_status_foss">Status: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD-Karte</string>
+    <string name="storage_area_public_label">Öffentlicher Speicher</string>
+    <string name="storage_area_public_app_data_label">Öffentliche App-Daten</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">Tab-Verwaltung</string>
+    <string name="workspace_manager_empty_title">Keine Tabs</string>
+    <string name="workspace_manager_empty_subtitle">Erstelle Deinen ersten Tab, um loszulegen</string>
+
+    <!-- Workspace > Empty Content-->
+    <string name="workspace_empty_create_action">Tab erstellen</string>
+    <string name="workspace_empty_create_hint">Parallel arbeiten: Erstelle einen Tab und verwandle ihn in ein Werkzeug Deiner Wahl.</string>
+    <string name="workspace_empty_settings_action">Einstellungen öffnen</string>
+    <string name="workspace_empty_settings_hint">Passe Butler nach Deinen Wünschen an. Lege fest, wie sich die Werkzeuge verhalten.</string>
+    <string name="workspace_classic_empty_tabs_closed">Keine offenen Tabs. Bereit, wenn Du es bist.</string>
+    <string name="workspace_classic_empty_tip">Tipp: Tippe auf „Tab erstellen“ und wähle ein Werkzeug aus: Explorer, Suche, Editor und mehr.</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">Mit einem Tab beginnen</string>
+    <string name="tour_first_tab_body">Butler arbeitet wie ein Browser mit Tabs: Jeder Tab ist ein eigenes Werkzeug, etwa Explorer, Suche oder Editor. Erstelle Deinen ersten Tab.</string>
+    <string name="tour_manager_fab_title">Schnellzugriffe</string>
+    <string name="tour_manager_fab_body">Tippe hier, um schnell auf Deine meistgenutzten Werkzeuge zuzugreifen oder alle Tabs auf einmal zu schließen.</string>
+    <string name="tour_manager_reorder_title">Tabs neu anordnen</string>
+    <string name="tour_manager_reorder_body">Halte die Titelleiste eines Tabs gedrückt und ziehe ihn an die gewünschte Position. In dieser Reihenfolge erscheinen Deine Tabs auch überall sonst.</string>
+    <string name="tour_manager_select_title">Mit mehreren Tabs arbeiten</string>
+    <string name="tour_manager_select_body">Halte die Vorschau eines Tabs gedrückt, um Tabs auszuwählen. Tippe dann auf die übrigen Tabs, um alle gemeinsam zu schließen oder zu pausieren.</string>
+    <string name="tour_manager_new_tab_title">Neuen Tab beginnen</string>
+    <string name="tour_manager_new_tab_body">Tippe auf diese Karte, um ein beliebiges Werkzeug für einen neuen Tab auszuwählen.</string>
+
+    <string name="workspace_creating_placeholder">Tab wird erstellt…</string>
+    <string name="workspace_ondemand_swipe_title">Wischen, um neuen Tab zu erstellen</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">Bereich %1$d ist bereit für Inhalte</string>
+    <string name="workspace_adaptive_add_action">Tab hinzufügen</string>
+
+    <string name="workspace_badge_tip_title">Tipp: Anzeigen auf der Tab-Schaltfläche</string>
+    <string name="workspace_badge_open_workspaces">Anzahl geöffneter Tabs</string>
+    <string name="workspace_badge_active_operations">Aktive Vorgänge (Dateikopien, Suchen usw.)</string>
+    <string name="workspace_badge_attention_items">Elemente, die Aufmerksamkeit erfordern (fehlgeschlagene oder wartende Vorgänge, nicht erreichbare Dateien)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">Schließen</string>
+    <string name="workspace_manager_close_all_title">Alle Tabs schließen?</string>
+    <string name="workspace_manager_close_all_message">Dadurch werden alle offenen Tabs geschlossen (%1$d %2$s). Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="workspace_manager_close_all_message_singular">Tab</string>
+    <string name="workspace_manager_close_all_message_plural">Tabs</string>
+    <string name="workspace_manager_close_all_action">Alle schließen</string>
+    <string name="workspace_manager_selection_count">%1$d ausgewählt</string>
+    <string name="workspace_manager_selection_select_all">Alle auswählen</string>
+    <string name="workspace_manager_selection_pause_action">Ausgewählte pausieren</string>
+    <string name="workspace_manager_selection_close_action">Ausgewählte schließen</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Auswahlmodus verlassen</string>
+    <string name="workspace_manager_selection_clear_content_desc">Auswahl aufheben</string>
+    <string name="workspace_manager_select_all_tabs_desc">Alle Tabs auswählen</string>
+    <string name="workspace_manager_new_tab_card_title">Neuer Tab</string>
+    <string name="workspace_row_select_content_desc">Tab auswählen</string>
+    <string name="general_cancel_action">Abbrechen</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">Schnellzugriffe</string>
+    <string name="workspace_fab_close_shortcuts">Schnellzugriffe schließen</string>
+    <string name="workspace_fab_close_all">Alle Tabs schließen</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">Bereich %1$d zuweisen</string>
+    <string name="workspace_pane_close_action">Schließen</string>
+    <string name="workspace_pane_unassign_action">Aus Bereich entfernen</string>
+    <string name="workspace_dragging_description">Wird gezogen</string>
+    <string name="workspace_pane_current_description">In Bereich %1$d</string>
+    <string name="workspace_add_tab_description">Tab hinzufügen</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">Tab schließen</string>
+    <string name="workspace_row_more_options_content_desc">Weitere Optionen</string>
+    <string name="workspace_row_pause_action">Pausieren</string>
+    <string name="workspace_row_resume_action">Fortsetzen</string>
+    <string name="workspace_row_stacked_content_desc">Auf diesem Tab gestapelt</string>
+    <string name="workspace_row_unsaved_content_desc">Ungespeicherte Änderungen</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">Tab-Verhalten einrichten.</string>
+    <string name="explorer_settings_subtitle">Verhalten des Dateimanagers einrichten.</string>
+    <string name="searcher_settings_subtitle">Suchverhalten einrichten.</string>
+    <string name="editor_settings_subtitle">Verhalten des Texteditors einrichten.</string>
+    <string name="history_settings_subtitle">Aufbewahrung und Löschung des Vorgangsverlaufs.</string>
+    <string name="clipboard_settings_subtitle">Verhalten der Zwischenablage einrichten.</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">Speichern unter…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">In Butler öffnen</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">Text bearbeiten</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">Unbenannte Datei</string>
+    <string name="external_open_action_view">Anzeigen</string>
+    <string name="external_open_action_edit">Als Text bearbeiten</string>
+    <string name="external_open_action_show_in_explorer">Im Explorer anzeigen</string>
+    <string name="external_open_action_save">Speichern unter…</string>
+    <string name="external_open_failed_label">Datei konnte nicht geöffnet werden</string>
+    <string name="external_open_failed_description">Butler konnte „%1$s“ nicht öffnen.</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">Entwicklermodus aktivieren?</string>
+    <string name="settings_developer_mode_unlock_message">Dadurch werden erweiterte Diagnosewerkzeuge für Fehlersuche und Tests freigeschaltet.</string>
+    <string name="settings_developer_mode_unlock_action">Aktivieren</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">Noch %d Schritt bis zum Entwicklermodus</item>
+        <item quantity="other">Noch %d Schritte bis zum Entwicklermodus</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">Entwickler kontaktieren</string>
+    <string name="support_contact_description">Fülle ein Formular aus, um mir eine E-Mail zu senden.</string>
+    <string name="support_contact_no_email_app">Keine E-Mail-App gefunden</string>
+    <string name="support_contact_category_label">Kategorie</string>
+    <string name="support_contact_category_question">Frage</string>
+    <string name="support_contact_category_feature">Funktionswunsch</string>
+    <string name="support_contact_category_bug">Fehlerbericht</string>
+    <string name="support_contact_workspace_label">Betroffener Bereich</string>
+    <string name="support_contact_workspace_general">Allgemein</string>
+    <string name="support_contact_workspace_explorer">Explorer</string>
+    <string name="support_contact_workspace_searcher">Suche</string>
+    <string name="support_contact_workspace_editor">Editor</string>
+    <string name="support_contact_description_label">Beschreibung</string>
+    <string name="support_contact_description_question_hint">Beschreibe Deine Frage ausführlich. Bitte sei konkret (mindestens 20 Wörter).</string>
+    <string name="support_contact_description_feature_hint">Beschreibe die gewünschte Funktion. Bitte sei konkret (mindestens 20 Wörter).</string>
+    <string name="support_contact_description_bug_hint">Beschreibe, was passiert ist und wie sich das Problem reproduzieren lässt. Bitte sei konkret (mindestens 20 Wörter).</string>
+    <string name="support_contact_expected_label">Erwartetes Verhalten</string>
+    <string name="support_contact_expected_hint">Beschreibe, was Deiner Erwartung nach hätte passieren sollen (mindestens 10 Wörter).</string>
+    <string name="support_contact_word_count">Mindestens %1$d Wörter</string>
+    <string name="support_contact_debuglog_label">Debug-Protokoll</string>
+    <string name="support_contact_debuglog_empty">Keine Debug-Protokolle gefunden. Zeichne zuerst eines auf.</string>
+    <string name="support_contact_debuglog_picker_hint">Vorhandenes Debug-Protokoll anhängen oder ein neues aufzeichnen.</string>
+    <string name="support_contact_send_action">E-Mail-App öffnen</string>
+    <string name="support_contact_welcome">Ich lese jede Nachricht selbst und versuche, so gut wie möglich zu antworten. Da ich allein daran arbeite, kann es etwas dauern. Danke für Deine Geduld.</string>
+    <string name="support_contact_footer">Deine Nachricht wird per E-Mail gesendet. Geräte- und Einrichtungsinformationen werden automatisch angehängt. Du kannst der E-Mail Screenshots oder ein Video hinzufügen.\n\nEinige Teile der E-Mail sind auf Englisch, damit ich sie leicht verstehen kann.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">Debug-Protokollspeicher</string>
+    <string name="support_debuglog_storage_description">%1$d Protokollsitzungen, %2$s</string>
+    <string name="support_debuglog_storage_empty">Keine Debug-Protokolle gespeichert</string>
+    <string name="support_debuglog_delete_action">Alle Debug-Protokolle löschen</string>
+    <string name="support_debuglog_delete_description">Alle aufgezeichneten Debug-Protokolldateien entfernen</string>
+    <string name="support_debuglog_delete_confirm_title">Alle Debug-Protokolle löschen?</string>
+    <string name="support_debuglog_delete_confirm_message">Dadurch werden alle aufgezeichneten Debug-Protokollsitzungen dauerhaft gelöscht. Laufende Aufzeichnungen sind nicht betroffen.</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">Aufzeichnung beenden</string>
+    <string name="settings_support_debuglog_record_action">Debug-Protokoll aufzeichnen</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">Debug-Protokollsitzungen</string>
+    <string name="support_debuglog_sessions_desc">Aufgezeichnete Debug-Protokollsitzungen verwalten</string>
+    <string name="support_debuglog_sessions_empty">Keine Debug-Protokollsitzungen</string>
+    <string name="support_debuglog_session_recording">Aufzeichnung läuft…</string>
+    <string name="support_debuglog_session_compressing">Wird komprimiert…</string>
+    <string name="support_debuglog_session_failed_empty_log">Fehlgeschlagen: leeres Protokoll</string>
+    <string name="support_debuglog_session_failed_missing_log">Fehlgeschlagen: Protokoll fehlt</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Fehlgeschlagen: beschädigtes Archiv</string>
+    <string name="support_debuglog_session_failed_zip_failed">Fehlgeschlagen: Komprimierungsfehler</string>
+    <string name="support_debuglog_session_delete_title">Debug-Sitzung löschen?</string>
+    <string name="support_debuglog_session_delete_message">Dadurch wird diese Debug-Protokollsitzung dauerhaft gelöscht.</string>
+    <string name="support_debuglog_clear_action">Alle löschen</string>
+    <string name="support_debuglog_clear_confirm_message">Alle gespeicherten Debug-Protokollsitzungen löschen?</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butler-Debug-Protokoll – %1$s</string>
+    <string name="debug_log_screen_subtitle">Debug-Informationen für die Fehlersuche exportieren</string>
+    <string name="debug_log_screen_sensitive_information_title">Vertrauliche Informationen</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">Hast Du die Nachricht gesendet?</string>
+    <string name="support_contact_sent_message">Wenn die Nachricht gesendet wurde, wird das angehängte Debug-Protokoll gelöscht, um Speicherplatz freizugeben. Andernfalls kannst Du es behalten und es später erneut versuchen.</string>
+    <string name="support_contact_debuglog_zip_error">Debug-Protokollanhang konnte nicht vorbereitet werden</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">Fortschritt der Dateivorgänge</string>
+    <string name="ops_notification_channel_progress_desc">Laufender Fortschritt bei Kopier-, Verschiebe- und Löschvorgängen</string>
+    <string name="ops_notification_channel_attention_name">Warnungen zu Dateivorgängen</string>
+    <string name="ops_notification_channel_attention_desc">Vorgänge, die Deine Aufmerksamkeit erfordern oder fehlgeschlagen sind</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d Dateivorgang läuft</item>
+        <item quantity="other">%1$d Dateivorgänge laufen</item>
+    </plurals>
+    <string name="ops_notification_state_queued">In Warteschlange…</string>
+    <string name="ops_notification_state_attention_title">Aktion erforderlich</string>
+    <string name="ops_notification_state_attention_text">Ein Konflikt erfordert Deine Aufmerksamkeit. Tippe hier, um ihn zu lösen.</string>
+    <string name="ops_notification_result_failed_title">Vorgang fehlgeschlagen</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">Möchtest Du Butler bewerten? ❤️</string>
+    <string name="review_app_dismiss_action">Vielleicht später</string>
+    <string name="review_app_review_action">Bewerten</string>
+
+</resources>

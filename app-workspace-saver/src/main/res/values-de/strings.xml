@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Speichern unter</string>
+    <string name="saver_preview_label">Vorschau</string>
+    <string name="saver_loading">Wird geladen…</string>
+    <string name="saver_shared_from">Von %1$s geteilt</string>
+    <string name="saver_shared_generic">Mit Butler geteilt</string>
+    <string name="saver_destination_label">Ziel</string>
+    <string name="saver_select_destination_hint">Zielordner auswählen</string>
+    <string name="saver_filename_label">Dateiname</string>
+    <string name="saver_save_action">Speichern</string>
+    <string name="saver_saving_progress">Wird gespeichert…</string>
+    <string name="saver_success_message">Datei erfolgreich gespeichert</string>
+    <string name="saver_open_saved_action">Verzeichnis öffnen</string>
+    <string name="saver_retry_action">Erneut versuchen</string>
+    <string name="saver_save_again_action">An neuem Speicherort speichern</string>
+    <string name="saver_close_tab_action">Tab schließen</string>
+    <string name="saver_close_butler_action">Tab schließen und zurückkehren</string>
+    <string name="saver_done_action">Fertig</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Auf die Quelldatei kann nicht mehr zugegriffen werden. Bitte teile sie erneut.</item>
+        <item quantity="other">Auf %1$d Quelldateien kann nicht mehr zugegriffen werden. Bitte teile sie erneut.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Auf die Quelldatei kann nicht mehr zugegriffen werden</string>
+    <string name="saver_error_permission_denied">Zugriff verweigert</string>
+    <string name="saver_error_write_failed">Datei konnte nicht gespeichert werden</string>
+    <string name="saver_error_file_exists">Datei ist bereits vorhanden</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Dateien speichern</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">%1$d Datei wird in %2$s gespeichert</item>
+        <item quantity="other">%1$d Dateien werden in %2$s gespeichert</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">%1$d Datei speichern</item>
+        <item quantity="other">%1$d Dateien speichern</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d Datei gespeichert</item>
+        <item quantity="other">%1$d Dateien gespeichert</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d Datei konnte nicht gespeichert werden</item>
+        <item quantity="other">%1$d Dateien konnten nicht gespeichert werden</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d Datei übersprungen</item>
+        <item quantity="other">%1$d Dateien übersprungen</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d von %2$d Dateien gespeichert</string>
+</resources>

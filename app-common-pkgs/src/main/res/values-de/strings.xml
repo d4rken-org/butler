@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">Ungültiges App-Inventar</string>
+    <string name="pkgrepo_invalid_inventory_error_description">Das System hat Butler eine ungültige Liste installierter Apps bereitgestellt.</string>
+</resources>

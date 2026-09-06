@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Fehlerberichte</string>
+    <string name="bugreport_workspace_subtitle">Absturz- und Fehlerberichte</string>
+
+    <string name="bugreport_empty_title">Keine Berichte</string>
+    <string name="bugreport_empty_subtitle">Absturz- und Fehlerberichte erscheinen hier. Es wird nichts automatisch gesendet.</string>
+
+    <string name="bugreport_type_crash">Absturz</string>
+    <string name="bugreport_type_report">Bericht</string>
+    <string name="bugreport_type_recording">Aufzeichnung</string>
+
+    <string name="bugreport_record_action">Debug-Protokoll aufzeichnen</string>
+    <string name="bugreport_record_short_action">Aufzeichnen</string>
+    <string name="bugreport_stop_action">Aufzeichnung beenden</string>
+    <string name="bugreport_stop_short_action">Beenden</string>
+    <string name="bugreport_recording_ongoing_label">Aufzeichnung läuft…</string>
+
+    <string name="bugreport_recording_short_title">Aufzeichnung ist sehr kurz</string>
+    <string name="bugreport_recording_short_message">Diese Aufzeichnung ist nur wenige Sekunden lang und enthält möglicherweise keine hilfreichen Informationen. Trotzdem beenden?</string>
+    <string name="bugreport_recording_short_keep_action">Weiter aufzeichnen</string>
+
+    <string name="bugreport_rename_action">Umbenennen</string>
+    <string name="bugreport_rename_dialog_title">Bericht benennen</string>
+    <string name="bugreport_rename_name_label">Name</string>
+    <string name="bugreport_rename_name_hint">Wird in der Liste und im Namen der geteilten Datei angezeigt</string>
+
+    <string name="bugreport_share_action">Teilen</string>
+    <string name="bugreport_delete_action">Löschen</string>
+    <string name="bugreport_delete_all_action">Alle löschen</string>
+    <string name="bugreport_delete_all_confirm_title">Alle Debug-Protokolle löschen?</string>
+    <string name="bugreport_delete_all_confirm_message">Dadurch werden alle aufgezeichneten Debug-Protokollsitzungen dauerhaft gelöscht. Laufende Aufzeichnungen sind nicht betroffen.</string>
+    <string name="bugreport_delete_confirm_title">Diesen Bericht löschen?</string>
+    <string name="bugreport_delete_confirm_message">Dadurch werden dieser Bericht und sein Protokoll dauerhaft gelöscht.</string>
+    <string name="bugreport_cancel_action">Abbrechen</string>
+
+    <string name="bugreport_share_chooser_title">Fehlerbericht teilen</string>
+    <string name="bugreport_share_consent_title">Bericht teilen?</string>
+    <string name="bugreport_share_consent_message">Dieser Bericht enthält App-Protokolle, die Dateinamen, Pfade sowie App- und Geräteinformationen enthalten können. Teile ihn nur mit Personen, denen Du vertraust.</string>
+
+    <string name="bugreport_detail_back_action">Zurück</string>
+    <string name="bugreport_detail_section_error">Fehler</string>
+    <string name="bugreport_detail_section_log">Letztes Protokoll</string>
+    <string name="bugreport_detail_field_type">Typ</string>
+    <string name="bugreport_detail_field_time">Zeit</string>
+    <string name="bugreport_detail_field_app_version">App-Version</string>
+    <string name="bugreport_detail_field_device">Gerät</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">Fehlertyp</string>
+    <string name="bugreport_detail_field_thread">Thread</string>
+    <string name="bugreport_detail_log_truncated">letzte %1$d von %2$d Zeilen</string>
+    <string name="bugreport_detail_log_count">%1$d Zeilen</string>
+    <string name="bugreport_detail_log_empty">Kein Protokoll aufgezeichnet</string>
+    <string name="bugreport_detail_log_error">Protokoll konnte nicht geladen werden</string>
+</resources>
