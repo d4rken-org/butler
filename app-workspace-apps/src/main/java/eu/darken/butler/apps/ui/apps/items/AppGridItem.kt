@@ -267,7 +267,7 @@ private fun AppGridItemSplitApkPreview() {
     )
 }
 
-// Smallest real tile (GridSize.SMALL uses a 90dp minimum) with overlong label and package name.
+// Smallest real tile (the compact density uses a 90dp minimum) with overlong label and package name.
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
