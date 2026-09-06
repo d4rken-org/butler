@@ -455,9 +455,10 @@ class AppDetailsWorkspace @AssistedInject constructor(
 
     suspend fun uninstallApp(app: AppInfo): Boolean = trackPkgOp {
         log(tag) { "uninstallApp(${app.packageName})" }
-        pkgOps.uninstall(app.installId)
+        pkgOps.uninstall(app.installId).also { refreshAfterPkgOp() }
     }
 
+    // No refresh: a force-stop changes no package data, and every refresh re-gathers every source.
     suspend fun forceStopApp(app: AppInfo): Boolean = trackPkgOp {
         log(tag) { "forceStopApp(${app.packageName})" }
         pkgOps.forceStop(app.id)
@@ -465,12 +466,28 @@ class AppDetailsWorkspace @AssistedInject constructor(
 
     suspend fun clearDataApp(app: AppInfo): Boolean = trackPkgOp {
         log(tag) { "clearDataApp(${app.packageName})" }
-        pkgOps.clearData(app.installId)
+        pkgOps.clearData(app.installId).also { refreshAfterPkgOp() }
     }
 
     suspend fun setAppEnabled(app: AppInfo, enabled: Boolean) = trackPkgOp {
         log(tag) { "setAppEnabled(${app.packageName}, enabled=$enabled)" }
         pkgOps.changePackageState(app.id, enabled = enabled)
+        refreshAfterPkgOp()
+    }
+
+    /**
+     * Deliberately not in a `finally`: [PkgRepo.refresh] rethrows a source error, which would then
+     * replace the operation's own failure. A failure here is swallowed because the operation itself
+     * succeeded, and the source error still reaches the screen through [state].
+     */
+    private suspend fun refreshAfterPkgOp() {
+        try {
+            pkgRepo.refresh()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, WARN) { "Refresh after package operation failed: ${e.asLog()}" }
+        }
     }
 
     suspend fun setComponentsEnabled(entries: List<ComponentEntry>, enabled: Boolean) = trackPkgOp {
