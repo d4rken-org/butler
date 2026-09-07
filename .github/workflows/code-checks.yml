@@ -50,9 +50,9 @@ jobs:
       - name: Build modules
         run: ./gradlew ${{ matrix.module }}:assemble${{ matrix.flavor }}${{ matrix.variant }}
 
-      - name: Build SAF test provider
+      - name: Build and test SAF test provider
         if: matrix.flavor == 'Foss'
-        run: ./gradlew :saf-test-provider:assembleDebug
+        run: ./gradlew :saf-test-provider:assembleDebug :saf-test-provider:testDebugUnitTest
 
   test-modules:
     name: Unit tests
@@ -62,7 +62,7 @@ jobs:
         variant: [ Debug ]
         # These two flavors cover modules carrying the `version` dimension.
         # The unflavored SAF test fixture is excluded on purpose and covered by
-        # the explicit assemble step in build-modules instead.
+        # the explicit build and test step in build-modules instead.
         flavor: [ testFoss,testGplay ]
     runs-on: ubuntu-22.04
     steps:
