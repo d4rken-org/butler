@@ -18,7 +18,7 @@ adb install -r saf-test-provider/build/outputs/apk/debug/saf-test-provider-debug
 ```
 
 The second command runs host-side Robolectric tests, without a device or emulator.
-The APK uses application ID `eu.darken.butler.saftestprovider` and authority
+The APK uses application ID `eu.darken.butler.saftestprovider` and documents authority
 `eu.darken.butler.saftestprovider.documents`. Its provider is exported, grants URI
 permissions, and requires `android.permission.MANAGE_DOCUMENTS` for both reading
 and writing. The system picker can grant Butler access to a tree normally.
@@ -57,39 +57,44 @@ Do not carry dynamic document handles across resets or process restarts.
 
 ## Controls
 
-Use the shell UID (normal `adb shell`, without `su`). Custom `call()` methods accept
-only shell UID 2000 or the provider's own UID. Unknown methods retain superclass
-dispatch, including Android's standard document operations. Controls are
-idempotent: repeating them leaves the requested tree/listing state unchanged;
+Use the shell UID (normal `adb shell`, without `su`). The exported control provider
+at `eu.darken.butler.saftestprovider.controls` has no manifest permission requirement
+and accepts only shell UID 2000 or the app's own UID, checked with
+`Binder.getCallingUid()`. It clears the calling identity after that check, acquires
+the existing documents provider in the same process, and calls its control method
+directly. The calling identity is restored and the provider client is closed even
+when a control fails. The control authority supports only the methods below; other
+methods and CRUD operations are rejected. Controls are idempotent: repeating them
+leaves the requested tree/listing state unchanged;
 `reset` starts a new journal session each time. `stats` does not record itself.
 
 These are the direct `content call` commands for every method:
 
 ```sh
 # Restore seeds and clear the journal.
-adb shell content call --uri content://eu.darken.butler.saftestprovider.documents --method reset
+adb shell content call --uri content://eu.darken.butler.saftestprovider.controls --method reset
 
 # Return a partial loading listing, then publish its full contents.
-adb shell content call --uri content://eu.darken.butler.saftestprovider.documents --method setLoading --arg loading
-adb shell content call --uri content://eu.darken.butler.saftestprovider.documents --method completeLoading --arg loading
+adb shell content call --uri content://eu.darken.butler.saftestprovider.controls --method setLoading --arg loading
+adb shell content call --uri content://eu.darken.butler.saftestprovider.controls --method completeLoading --arg loading
 
 # Set and clear an error string. --extra strings below avoid shell quoting issues.
-adb shell content call --uri content://eu.darken.butler.saftestprovider.documents --method setError --arg errored/empty --extra message:s:Injected_empty_failure
-adb shell content call --uri content://eu.darken.butler.saftestprovider.documents --method setError --arg errored/partial --extra message:s:Injected_partial_failure
-adb shell content call --uri content://eu.darken.butler.saftestprovider.documents --method clearError --arg errored/empty
-adb shell content call --uri content://eu.darken.butler.saftestprovider.documents --method clearError --arg errored/partial
+adb shell content call --uri content://eu.darken.butler.saftestprovider.controls --method setError --arg errored/empty --extra message:s:Injected_empty_failure
+adb shell content call --uri content://eu.darken.butler.saftestprovider.controls --method setError --arg errored/partial --extra message:s:Injected_partial_failure
+adb shell content call --uri content://eu.darken.butler.saftestprovider.controls --method clearError --arg errored/empty
+adb shell content call --uri content://eu.darken.butler.saftestprovider.controls --method clearError --arg errored/partial
 
 # Turn the previously unique c directory below b into two c rows.
-adb shell content call --uri content://eu.darken.butler.saftestprovider.documents --method makeDuplicate --arg deep/a/b --extra name:s:c
+adb shell content call --uri content://eu.darken.butler.saftestprovider.controls --method makeDuplicate --arg deep/a/b --extra name:s:c
 
 # Without name, duplicate the first named child; repeat calls do not add a third.
-adb shell content call --uri content://eu.darken.butler.saftestprovider.documents --method makeDuplicate --arg plain
+adb shell content call --uri content://eu.darken.butler.saftestprovider.controls --method makeDuplicate --arg plain
 
 # Counters and the first journal page.
-adb shell content call --uri content://eu.darken.butler.saftestprovider.documents --method stats
+adb shell content call --uri content://eu.darken.butler.saftestprovider.controls --method stats
 
 # Subsequent page: replace 200 with the previous response's nextAfter value.
-adb shell content call --uri content://eu.darken.butler.saftestprovider.documents --method stats --extra after:l:200 --extra limit:i:200
+adb shell content call --uri content://eu.darken.butler.saftestprovider.controls --method stats --extra after:l:200 --extra limit:i:200
 ```
 
 The folder may alternatively be supplied as `--extra folder:s:loading` instead of
@@ -98,13 +103,24 @@ folder. `makeDuplicate` requires an existing named child, creates a fresh ID wit
 the same name and MIME type, and does nothing if that name already has at least
 two rows. A duplicate file has distinct contents; a duplicate directory is empty.
 
-The implemented control route is `ContentProvider.call`. The UID checks and
-superclass dispatch are covered by host tests. No device tests were run, so
-`adb shell content call` acquisition through `MANAGE_DOCUMENTS` has **not been
-verified on a device**. No Activity fallback was added without evidence of a
-permission block. A device-side permission denial would require verifying that
-route and adding the minimal shell-accessible control Activity described in the
-build spec; host tests do not establish device permission behavior.
+The content CLI cannot reach the documents provider. Device testing on an
+Android 16 emulator verified both failures, before `ContentProvider.call` runs:
+
+- Shell UID 2000 holds `ACCESS_CONTENT_PROVIDERS_EXTERNALLY`, but acquisition is
+  blocked by `MANAGE_DOCUMENTS`. `ContentProviderHelper.checkAssociationAndPermissionLocked`,
+  reached through `ActivityManagerService.getContentProviderExternal`, throws
+  `SecurityException`: "requires that you obtain access using ACTION_OPEN_DOCUMENT
+  or related APIs". The fixture's own UID check is never reached.
+- Running the content CLI through `run-as eu.darken.butler.saftestprovider` uses
+  the provider's own UID and passes the documents-provider permission check, but
+  `getContentProviderExternal()` throws `SecurityException`: "Permission Denial:
+  Do not have permission in call getContentProviderExternal()" and "requires
+  android.permission.ACCESS_CONTENT_PROVIDERS_EXTERNALLY".
+
+The existing `call()` methods remain available to in-process and instrumentation
+callers, with their UID checks and superclass dispatch intact, including Android's
+standard document operations. The control authority is covered by host-side tests;
+on-device verification of the new route remains a separate QA step.
 
 ## Journal and negative assertions
 

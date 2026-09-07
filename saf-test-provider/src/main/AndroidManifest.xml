@@ -5,6 +5,10 @@
         android:label="@string/saf_test_provider_name"
         android:supportsRtl="true">
         <provider
+            android:name=".TestControlsProvider"
+            android:authorities="eu.darken.butler.saftestprovider.controls"
+            android:exported="true" />
+        <provider
             android:name=".TestDocumentsProvider"
             android:authorities="eu.darken.butler.saftestprovider.documents"
             android:enabled="true"
