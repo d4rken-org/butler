@@ -12,20 +12,24 @@ import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspacePauseGate
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.core.defaultArguments
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewManager
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 import eu.darken.butler.workspace.ui.template.availableTemplates
 import eu.darken.butler.workspace.ui.template.toQuickCreateItem
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -50,8 +54,21 @@ class WorkspaceManagerViewModel @Inject constructor(
      */
     private val selectionFlow = MutableStateFlow<Set<Workspace.Id>?>(null)
 
+    /**
+     * The manager's own copy of a close refusal. While the overlay is up every pane is inactive, so
+     * the pane banner the refusal also files neither shows nor counts down until the manager closes.
+     */
+    private val closeNoticeFlow = MutableStateFlow<BannerState.CloseBlocked?>(null)
+
     private val quickCreateItems = workspaceTemplates.availableTemplates()
         .map { templates -> templates.filter { it.isQuickCreate }.map { it.toQuickCreateItem() } }
+
+    init {
+        workspaceRepo.events
+            .filterIsInstance<WorkspaceEvent.CloseRefused>()
+            .onEach { closeNoticeFlow.value = BannerState.CloseBlocked(it.busyWorkspaceIds.size) }
+            .launchInViewModel()
+    }
 
     val state = combine(
         workspaceRepo.state,
@@ -61,7 +78,8 @@ class WorkspaceManagerViewModel @Inject constructor(
         filterFlow,
         quickCreateItems,
         selectionFlow,
-    ) { repoState, showBadge, livePreview, pageManagerState, filter, quickCreate, selection ->
+        closeNoticeFlow,
+    ) { repoState, showBadge, livePreview, pageManagerState, filter, quickCreate, selection, closeNotice ->
         val stacks = WorkspaceStacks(repoState.infos)
         val focusedId = pageManagerState.focusedWorkspaceId
         val topChains = stacks.topChainByRoot(focusedId)
@@ -118,6 +136,7 @@ class WorkspaceManagerViewModel @Inject constructor(
                 // closed from elsewhere, so the mode is over. Left as an empty set the bar would sit
                 // at "0 selected" with no way back except Cancel.
                 ?.ifEmpty { null },
+            closeNotice = closeNotice,
         )
     }.asStateFlow()
 
@@ -279,6 +298,11 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspaceSettings.showTipBadgeExplanation.value(false)
     }
 
+    fun dismissCloseNotice() {
+        log(tag) { "dismissCloseNotice()" }
+        closeNoticeFlow.value = null
+    }
+
     fun closeAllWorkspaces() = launch {
         log(tag) { "closeAllWorkspaces()" }
         workspaceRepo.execute(WorkspaceAction.CloseAll)
@@ -417,6 +441,8 @@ class WorkspaceManagerViewModel @Inject constructor(
         val hasUnsavedChanges: Boolean = false,
         /** Null when selection mode is off. Pruned to tabs that are still open. */
         val selectedIds: Set<Workspace.Id>? = null,
+        /** A close refused while the manager was open, shown as a banner over the grid. */
+        val closeNotice: BannerState.CloseBlocked? = null,
     ) {
         val workspaceCount: Int = workspaces.size
 

@@ -334,7 +334,7 @@
         <item quantity="other">Opened %1$d tabs</item>
     </plurals>
     <plurals name="workspace_banner_close_blocked_busy">
-        <item quantity="one">Can\'t close: an operation is still running in this tab</item>
+        <item quantity="one">Can\'t close: an operation is still running in %1$d tab</item>
         <item quantity="other">Can\'t close: operations are still running in %1$d tabs</item>
     </plurals>
 

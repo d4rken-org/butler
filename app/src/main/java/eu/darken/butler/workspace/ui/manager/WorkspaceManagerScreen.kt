@@ -48,6 +48,8 @@ import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceCloseConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceRenameDialog
+import eu.darken.butler.workspace.ui.feedback.BannerState
+import eu.darken.butler.workspace.ui.feedback.WorkspaceBanner
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
@@ -62,6 +64,9 @@ fun WorkspaceManagerScreen(
     closeConfirmation: ManagerDialog.WorkspaceTargeted.CloseConfirmation? = null,
     onCloseConfirmationResolve: (Boolean) -> Unit = {},
     onCloseConfirmationGoTo: () -> Unit = {},
+    /** A close this overlay refused, or null. Every pane is inactive while it is up. */
+    closeNotice: BannerState.CloseBlocked? = null,
+    onDismissCloseNotice: () -> Unit = {},
     onCloseWorkspace: (Workspace.Id) -> Unit,
     onReorderWorkspaces: (List<Workspace.Id>) -> Unit,
     onSelectWorkspace: (Workspace.Id) -> Unit,
@@ -175,6 +180,16 @@ fun WorkspaceManagerScreen(
                 onClearSelection = onClearSelection,
                 onFilterClick = onFilterClick,
                 lazyGridState = lazyGridState,
+            )
+
+            // Over the grid, not in the bar stack below: the FAB and the selection bar live there.
+            WorkspaceBanner(
+                state = closeNotice,
+                onDismiss = onDismissCloseNotice,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = paddingValues.calculateTopPadding())
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
             )
 
             FloatingBarStack(
@@ -463,6 +478,43 @@ private fun WorkspaceManagerScreenCloseConfirmationPreview() {
             workspaceTitle = "notes.txt".toCaString(),
             hasUnsavedChanges = true,
         ),
+        onCloseWorkspace = {},
+        onReorderWorkspaces = {},
+        onSelectWorkspace = {},
+        onPauseWorkspace = {},
+        onResumeWorkspace = {},
+        onCreateWorkspace = {},
+        onQuickCreate = {},
+        onNavigateBack = {},
+        onDismissBadgeExplanation = {},
+        onCloseAllWorkspaces = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceManagerScreenCloseNoticePreview() {
+    val explorerId = Workspace.Id()
+    WorkspaceManagerScreen(
+        state = WorkspaceManagerViewModel.State(
+            workspaces = listOf(
+                WorkspaceManagerViewModel.WorkspaceItem(
+                    id = explorerId,
+                    topId = explorerId,
+                    type = Workspace.Type.EXPLORER,
+                    title = "/storage/emulated/0/Download".toCaString(),
+                    autoTitle = "/storage/emulated/0/Download".toCaString(),
+                    subtitle = null,
+                    isFocused = true,
+                    isVisibleInPane = true,
+                    paneNumber = 0,
+                    operationCount = 1,
+                ),
+            ),
+            operationsCount = 1,
+        ),
+        closeNotice = BannerState.CloseBlocked(busyCount = 1),
         onCloseWorkspace = {},
         onReorderWorkspaces = {},
         onSelectWorkspace = {},

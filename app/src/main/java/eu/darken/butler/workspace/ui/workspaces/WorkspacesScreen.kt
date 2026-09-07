@@ -533,6 +533,8 @@ fun WorkspacesScreenHost(
                             )
                         }
                     },
+                    closeNotice = currentManagerState.closeNotice,
+                    onDismissCloseNotice = managerVm::dismissCloseNotice,
                     onCloseWorkspace = managerVm::closeWorkspace,
                     onReorderWorkspaces = managerVm::reorderWorkspaces,
                     onSelectWorkspace = managerVm::selectWorkspace,

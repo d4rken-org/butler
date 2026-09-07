@@ -3,18 +3,21 @@ package eu.darken.butler.workspace.ui.manager
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspacePauseGate
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.feedback.BannerState
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -761,4 +764,29 @@ class WorkspaceManagerViewModelTest : BaseTest() {
 
         vm.currentState().isSelectionActive shouldBe false
     }
+
+    @Test
+    fun `a refused close raises a notice in the manager until dismissed`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val eventsFlow = MutableSharedFlow<WorkspaceEvent>()
+            every { workspaceRepo.events } returns eventsFlow
+            repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA)))
+            val vm = createViewModel()
+
+            vm.currentState().closeNotice shouldBe null
+
+            eventsFlow.emit(
+                WorkspaceEvent.CloseRefused(
+                    requestedId = null,
+                    hostId = null,
+                    busyWorkspaceIds = setOf(Workspace.Id()),
+                )
+            )
+
+            vm.currentState().closeNotice shouldBe BannerState.CloseBlocked(1)
+
+            vm.dismissCloseNotice()
+
+            vm.currentState().closeNotice shouldBe null
+        }
 }
