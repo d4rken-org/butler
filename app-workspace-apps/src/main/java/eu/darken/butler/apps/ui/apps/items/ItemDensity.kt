@@ -33,6 +33,17 @@ val AppsViewStyle.Density.rowVerticalPadding: Dp
         AppsViewStyle.Density.DETAILED -> 10.dp
     }
 
+/**
+ * Side of the app icon itself, inside [rowIconSize]'s container. App icons are drawn by their own
+ * app and vary wildly in shape and padding, so the container is what keeps a column of them level.
+ */
+val AppsViewStyle.Density.rowIconContentSize: Dp
+    get() = when (this) {
+        AppsViewStyle.Density.COMPACT -> 18.dp
+        AppsViewStyle.Density.COMFORTABLE -> 24.dp
+        AppsViewStyle.Density.DETAILED -> 36.dp
+    }
+
 /** Gap between the app icon and its text column, scaled with the icon it sits beside. */
 val AppsViewStyle.Density.rowIconGap: Dp
     get() = when (this) {

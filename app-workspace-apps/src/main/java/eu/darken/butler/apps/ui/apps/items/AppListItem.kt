@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Android
@@ -76,7 +77,17 @@ fun AppListItem(
         horizontalArrangement = Arrangement.spacedBy(density.rowIconGap),
     ) {
         Box(
-            modifier = Modifier.size(density.rowIconSize),
+            modifier = Modifier
+                .size(density.rowIconSize)
+                .then(
+                    if (showSelection) {
+                        Modifier
+                    } else {
+                        Modifier
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    },
+                ),
             contentAlignment = Alignment.Center
         ) {
             if (showSelection) {
@@ -90,7 +101,7 @@ fun AppListItem(
                     AsyncImage(
                         model = item.pkg,
                         contentDescription = null,
-                        modifier = Modifier.size(density.rowIconSize),
+                        modifier = Modifier.size(density.rowIconContentSize),
                         placeholder = fallbackPainter,
                         error = fallbackPainter,
                     )
@@ -98,7 +109,7 @@ fun AppListItem(
                     Icon(
                         imageVector = Icons.TwoTone.Android,
                         contentDescription = null,
-                        modifier = Modifier.size(density.rowIconSize),
+                        modifier = Modifier.size(density.rowIconContentSize),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -144,8 +155,25 @@ fun AppListItem(
                     }
                 }
             }
+            if (density == AppsViewStyle.Density.DETAILED) {
+                val installedAt = item.installedAt
+                val updatedAt = item.updatedAt
+                if (installedAt != null && updatedAt != null) {
+                    Text(
+                        text = stringResource(
+                            R.string.apps_view_detail_dates_label,
+                            formatDateTime(installedAt, DateTimeStyle.DATE_NUMERIC),
+                            formatDateTime(updatedAt, DateTimeStyle.DATE_NUMERIC),
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
             // Tags carry actionable state such as "Disabled", so compact keeps them and only
-            // drops the size chip.
+            // drops the size chip. Detailed adds a dates line above, which puts this row fourth.
             val showsSizeChip = item.appSize != null && density.showsSecondaryMetadata
             if (item.tags.isNotEmpty() || showsSizeChip) {
                 Row(
@@ -168,23 +196,6 @@ fun AppListItem(
                     if (showsSizeChip) {
                         AppSizeChip(bytes = item.appSize!!)
                     }
-                }
-            }
-            if (density == AppsViewStyle.Density.DETAILED) {
-                val installedAt = item.installedAt
-                val updatedAt = item.updatedAt
-                if (installedAt != null && updatedAt != null) {
-                    Text(
-                        text = stringResource(
-                            R.string.apps_view_detail_dates_label,
-                            formatDateTime(installedAt, DateTimeStyle.DATE_NUMERIC),
-                            formatDateTime(updatedAt, DateTimeStyle.DATE_NUMERIC),
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
                 }
             }
         }
