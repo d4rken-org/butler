@@ -14,12 +14,12 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.gridDateStyle
 import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
 import eu.darken.butler.explorer.ui.explorer.items.showsTileMetadata
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -62,7 +62,7 @@ internal fun SymlinkFileGrid(
         secondaryText = null, // Don't show target path in top corner to avoid overlap
         tertiaryText = item.lookup.modifiedAt
             ?.takeIf { density.showsTileMetadata }
-            ?.let { formatDateTime(it, DateTimeStyle.COMPACT) },
+            ?.let { formatDateTime(it, density.gridDateStyle) },
         backgroundColor = if (item.isBroken) {
             MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
         } else {

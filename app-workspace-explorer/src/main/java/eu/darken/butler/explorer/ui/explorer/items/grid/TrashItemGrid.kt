@@ -19,15 +19,16 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
-import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.formatSmartTime
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.gridDateStyle
 import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
 import eu.darken.butler.explorer.ui.explorer.items.showsTileMetadata
+import eu.darken.butler.explorer.ui.explorer.items.usesShortFileSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
@@ -62,10 +63,8 @@ fun TrashItemGrid(
             )
         },
         primaryText = item.displayName.get(context),
-        secondaryText = item.trashLookup?.size
-            ?.takeIf { density.showsTileMetadata }
-            ?.let { formatFileSize(it) },
-        tertiaryText = formatSmartTime(item.deletedAt, absoluteStyle = DateTimeStyle.COMPACT)
+        secondaryText = item.trashLookup?.size?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) },
+        tertiaryText = formatSmartTime(item.deletedAt, absoluteStyle = density.gridDateStyle)
             .takeIf { density.showsTileMetadata },
         previewContent = {
             TintedAsyncImage(

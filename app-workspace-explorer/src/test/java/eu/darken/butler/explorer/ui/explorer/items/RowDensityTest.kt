@@ -1,7 +1,10 @@
 package eu.darken.butler.explorer.ui.explorer.items
 
+import android.content.Context
 import androidx.compose.ui.test.hasText
+import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.ui.explorer.items.row.DirectoryRow
 import eu.darken.butler.explorer.ui.explorer.items.row.RegularFileRow
@@ -11,6 +14,8 @@ import org.junit.Test
 import testhelpers.ComposeTest
 
 class RowDensityTest : ComposeTest() {
+
+    private val context = ApplicationProvider.getApplicationContext<Context>()
 
     private val file = MockDataProvider.createMockRegularFile()
 
@@ -65,6 +70,34 @@ class RowDensityTest : ComposeTest() {
         fileRowAt(ExplorerViewStyle.Density.DETAILED)
 
         countMatching("Created") shouldBe 1
+    }
+
+    @Test
+    fun `a detailed row carries the modification date on its own line`() {
+        fileRowAt(ExplorerViewStyle.Density.DETAILED)
+
+        countMatching("Modified") shouldBe 1
+    }
+
+    @Test
+    fun `a comfortable row carries no labelled modification date`() {
+        fileRowAt(ExplorerViewStyle.Density.COMFORTABLE)
+
+        countMatching("Modified") shouldBe 0
+    }
+
+    @Test
+    fun `a compact row abbreviates the size`() {
+        fileRowAt(ExplorerViewStyle.Density.COMPACT)
+
+        countMatching(formatFileSize(context, file.lookup.size!!, shortFormat = true)) shouldBe 1
+    }
+
+    @Test
+    fun `a comfortable row spells the size out`() {
+        fileRowAt(ExplorerViewStyle.Density.COMFORTABLE)
+
+        countMatching(formatFileSize(context, file.lookup.size!!, shortFormat = false)) shouldBe 1
     }
 
     @Test

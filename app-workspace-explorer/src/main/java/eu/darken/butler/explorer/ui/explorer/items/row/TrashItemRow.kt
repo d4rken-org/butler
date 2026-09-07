@@ -24,6 +24,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
+import eu.darken.butler.explorer.ui.explorer.items.usesShortFileSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
@@ -67,7 +68,7 @@ fun TrashItemRow(
         primaryText = item.displayName.get(context),
         secondaryText = item.subtitle.get(context),
         tertiaryText = formatSmartTime(item.deletedAt, absoluteStyle = DateTimeStyle.FULL),
-        tertiaryEndText = item.trashLookup?.size?.let { formatFileSize(it) },
+        tertiaryEndText = item.trashLookup?.size?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) },
     )
 }
 

@@ -21,8 +21,10 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.rowDateStyle
+import eu.darken.butler.explorer.ui.explorer.items.showsDatesOnOwnLine
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.items.showsFileAttributes
+import eu.darken.butler.explorer.ui.explorer.items.usesShortFileSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
@@ -65,16 +67,21 @@ internal fun RegularFileRow(
         primaryText = primaryText,
         hasProblematicChars = hasProblematicChars,
         secondaryText = listOfNotNull(
-            item.lookup.size?.let { formatFileSize(it) } ?: "?",
+            item.lookup.size?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) } ?: "?",
             item.permissions?.toReadableString().takeIf { density.showsFileAttributes },
             item.ownership
                 ?.let { "${it.userName ?: it.userId} | ${it.groupName ?: it.groupId}" }
                 .takeIf { density.showsFileAttributes },
         ).joinToString(" • ").takeIf { it.isNotEmpty() },
-        secondaryEndText = item.lookup.modifiedAt?.let { formatDateTime(it, density.rowDateStyle) },
+        secondaryEndText = item.lookup.modifiedAt
+            ?.takeUnless { density.showsDatesOnOwnLine }
+            ?.let { formatDateTime(it, density.rowDateStyle) },
         tertiaryText = item.createdAt
-            ?.takeIf { density == ExplorerViewStyle.Density.DETAILED }
+            ?.takeIf { density.showsDatesOnOwnLine }
             ?.let { stringResource(R.string.explorer_view_detail_created_label, formatDateTime(it, DateTimeStyle.FULL)) },
+        tertiaryEndText = item.lookup.modifiedAt
+            ?.takeIf { density.showsDatesOnOwnLine }
+            ?.let { stringResource(R.string.explorer_view_detail_modified_label, formatDateTime(it, DateTimeStyle.FULL)) },
     )
 }
 

@@ -27,7 +27,7 @@ val ExplorerViewStyle.Density.rowBadgeSize: Dp
 
 val ExplorerViewStyle.Density.rowPadding: Dp
     get() = when (this) {
-        ExplorerViewStyle.Density.COMPACT -> 6.dp
+        ExplorerViewStyle.Density.COMPACT -> 2.dp
         ExplorerViewStyle.Density.COMFORTABLE -> 8.dp
         ExplorerViewStyle.Density.DETAILED -> 10.dp
     }
@@ -43,6 +43,16 @@ val ExplorerViewStyle.Density.listGap: Dp
 val ExplorerViewStyle.Density.showsFileAttributes: Boolean
     get() = this != ExplorerViewStyle.Density.COMPACT
 
+/**
+ * `1,23 MB` against `1,2 MB`: the short form loses a digit, which is the point at compact.
+ */
+val ExplorerViewStyle.Density.usesShortFileSize: Boolean
+    get() = this == ExplorerViewStyle.Density.COMPACT
+
+/** Compact and comfortable put the modification date on the second line; detailed moves it down. */
+val ExplorerViewStyle.Density.showsDatesOnOwnLine: Boolean
+    get() = this == ExplorerViewStyle.Density.DETAILED
+
 val ExplorerViewStyle.Density.rowDateStyle: DateTimeStyle
     get() = when (this) {
         ExplorerViewStyle.Density.COMPACT -> DateTimeStyle.COMPACT
@@ -57,7 +67,17 @@ val ExplorerViewStyle.Density.gridIconSize: Dp
         ExplorerViewStyle.Density.DETAILED -> 24.dp
     }
 
-/** A compact tile carries the name alone; the metadata overlays need room to read as text. */
+val ExplorerViewStyle.Density.gridDateStyle: DateTimeStyle
+    get() = when (this) {
+        ExplorerViewStyle.Density.COMPACT -> DateTimeStyle.COMPACT
+        ExplorerViewStyle.Density.COMFORTABLE -> DateTimeStyle.COMPACT
+        ExplorerViewStyle.Density.DETAILED -> DateTimeStyle.FULL
+    }
+
+/**
+ * Folder item counts, tile subtitles and timestamps. The file size is NOT covered: it is the one
+ * figure a compact tile still carries, in its short form.
+ */
 val ExplorerViewStyle.Density.showsTileMetadata: Boolean
     get() = this != ExplorerViewStyle.Density.COMPACT
 

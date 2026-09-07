@@ -16,6 +16,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
+import eu.darken.butler.explorer.ui.explorer.items.usesShortFileSize
 
 @Composable
 fun TrashNestedItemRow(
@@ -47,7 +48,7 @@ fun TrashNestedItemRow(
             )
         },
         primaryText = item.displayName.get(context),
-        secondaryText = item.lookup.size?.let { formatFileSize(it) },
+        secondaryText = item.lookup.size?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) },
         tertiaryText = null,
     )
 }
