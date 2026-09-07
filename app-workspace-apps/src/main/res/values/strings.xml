@@ -42,13 +42,12 @@
     <string name="apps_action_deselect_all">Deselect all</string>
     <string name="apps_action_open_in_tab">Open in tab</string>
     <string name="apps_action_force_stop">Force stop</string>
-    <string name="apps_action_view">View</string>
+    <string name="apps_action_view">Layout</string>
 
     <!-- View options -->
-    <string name="apps_view_mode_label">Layout</string>
+    <string name="apps_view_sheet_subtitle">How items are arranged and how much detail they show</string>
     <string name="apps_view_mode_list_label">List</string>
     <string name="apps_view_mode_grid_label">Grid</string>
-    <string name="apps_view_density_label">Density</string>
     <string name="apps_view_density_compact_label">Compact</string>
     <string name="apps_view_density_comfortable_label">Comfortable</string>
     <string name="apps_view_density_detailed_label">Detailed</string>

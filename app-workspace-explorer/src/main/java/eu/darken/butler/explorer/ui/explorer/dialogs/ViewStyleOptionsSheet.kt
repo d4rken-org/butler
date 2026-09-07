@@ -5,14 +5,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.ViewList
+import androidx.compose.material.icons.twotone.DensityLarge
+import androidx.compose.material.icons.twotone.DensityMedium
+import androidx.compose.material.icons.twotone.DensitySmall
+import androidx.compose.material.icons.twotone.GridView
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
@@ -23,6 +28,8 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.bottomsheet.ViewStyleOptionGroup
+import eu.darken.butler.workspace.ui.bottomsheet.ViewStyleOptionRow
 
 /**
  * Layout and density of the listing.
@@ -79,44 +86,33 @@ private fun ViewStyleOptionsContent(
             text = stringResource(R.string.explorer_action_view),
             style = MaterialTheme.typography.titleLarge,
         )
-
         Text(
-            text = stringResource(R.string.explorer_view_mode_label),
-            style = MaterialTheme.typography.titleSmall,
+            text = stringResource(R.string.explorer_view_sheet_subtitle),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            ExplorerViewStyle.Mode.entries.forEachIndexed { index, mode ->
-                SegmentedButton(
+        ViewStyleOptionGroup {
+            ExplorerViewStyle.Mode.entries.forEach { mode ->
+                ViewStyleOptionRow(
+                    icon = modeIcon(mode),
+                    label = stringResource(modeLabel(mode)),
                     selected = currentViewStyle.mode == mode,
                     onClick = { onApplyToTab(currentViewStyle.copy(mode = mode)) },
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = ExplorerViewStyle.Mode.entries.size,
-                    ),
-                ) {
-                    Text(stringResource(modeLabel(mode)))
-                }
+                )
             }
         }
 
-        Text(
-            text = stringResource(R.string.explorer_view_density_label),
-            style = MaterialTheme.typography.titleSmall,
-        )
+        HorizontalDivider()
 
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            ExplorerViewStyle.Density.entries.forEachIndexed { index, density ->
-                SegmentedButton(
+        ViewStyleOptionGroup {
+            ExplorerViewStyle.Density.entries.forEach { density ->
+                ViewStyleOptionRow(
+                    icon = densityIcon(density),
+                    label = stringResource(densityLabel(density)),
                     selected = currentViewStyle.density == density,
                     onClick = { onApplyToTab(currentViewStyle.copy(density = density)) },
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = ExplorerViewStyle.Density.entries.size,
-                    ),
-                ) {
-                    Text(stringResource(densityLabel(density)))
-                }
+                )
             }
         }
 
@@ -139,10 +135,22 @@ private fun modeLabel(mode: ExplorerViewStyle.Mode): Int = when (mode) {
     ExplorerViewStyle.Mode.GRID -> R.string.explorer_view_mode_grid_label
 }
 
+private fun modeIcon(mode: ExplorerViewStyle.Mode): ImageVector = when (mode) {
+    ExplorerViewStyle.Mode.LIST -> Icons.AutoMirrored.TwoTone.ViewList
+    ExplorerViewStyle.Mode.GRID -> Icons.TwoTone.GridView
+}
+
 private fun densityLabel(density: ExplorerViewStyle.Density): Int = when (density) {
     ExplorerViewStyle.Density.COMPACT -> R.string.explorer_view_density_compact_label
     ExplorerViewStyle.Density.COMFORTABLE -> R.string.explorer_view_density_comfortable_label
     ExplorerViewStyle.Density.DETAILED -> R.string.explorer_view_density_detailed_label
+}
+
+/** Tighter rows to looser ones, so the icons read as the same scale the labels describe. */
+private fun densityIcon(density: ExplorerViewStyle.Density): ImageVector = when (density) {
+    ExplorerViewStyle.Density.COMPACT -> Icons.TwoTone.DensitySmall
+    ExplorerViewStyle.Density.COMFORTABLE -> Icons.TwoTone.DensityMedium
+    ExplorerViewStyle.Density.DETAILED -> Icons.TwoTone.DensityLarge
 }
 
 @Preview2

@@ -5,14 +5,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.ViewList
+import androidx.compose.material.icons.twotone.DensityLarge
+import androidx.compose.material.icons.twotone.DensityMedium
+import androidx.compose.material.icons.twotone.DensitySmall
+import androidx.compose.material.icons.twotone.GridView
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
@@ -23,6 +28,8 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.bottomsheet.ViewStyleOptionGroup
+import eu.darken.butler.workspace.ui.bottomsheet.ViewStyleOptionRow
 
 /**
  * Layout and density of the results.
@@ -80,44 +87,33 @@ private fun ViewStyleOptionsContent(
             text = stringResource(R.string.searcher_action_view),
             style = MaterialTheme.typography.titleLarge,
         )
-
         Text(
-            text = stringResource(R.string.searcher_view_mode_label),
-            style = MaterialTheme.typography.titleSmall,
+            text = stringResource(R.string.searcher_view_sheet_subtitle),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            SearcherViewStyle.Mode.entries.forEachIndexed { index, mode ->
-                SegmentedButton(
+        ViewStyleOptionGroup {
+            SearcherViewStyle.Mode.entries.forEach { mode ->
+                ViewStyleOptionRow(
+                    icon = modeIcon(mode),
+                    label = stringResource(modeLabel(mode)),
                     selected = currentViewStyle.mode == mode,
                     onClick = { onApplyToTab(currentViewStyle.copy(mode = mode)) },
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = SearcherViewStyle.Mode.entries.size,
-                    ),
-                ) {
-                    Text(stringResource(modeLabel(mode)))
-                }
+                )
             }
         }
 
-        Text(
-            text = stringResource(R.string.searcher_view_density_label),
-            style = MaterialTheme.typography.titleSmall,
-        )
+        HorizontalDivider()
 
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            SearcherViewStyle.Density.entries.forEachIndexed { index, density ->
-                SegmentedButton(
+        ViewStyleOptionGroup {
+            SearcherViewStyle.Density.entries.forEach { density ->
+                ViewStyleOptionRow(
+                    icon = densityIcon(density),
+                    label = stringResource(densityLabel(density)),
                     selected = currentViewStyle.density == density,
                     onClick = { onApplyToTab(currentViewStyle.copy(density = density)) },
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = SearcherViewStyle.Density.entries.size,
-                    ),
-                ) {
-                    Text(stringResource(densityLabel(density)))
-                }
+                )
             }
         }
 
@@ -133,6 +129,18 @@ private fun ViewStyleOptionsContent(
             }
         }
     }
+}
+
+private fun modeIcon(mode: SearcherViewStyle.Mode): ImageVector = when (mode) {
+    SearcherViewStyle.Mode.LIST -> Icons.AutoMirrored.TwoTone.ViewList
+    SearcherViewStyle.Mode.GRID -> Icons.TwoTone.GridView
+}
+
+/** Tighter rows to looser ones, so the icons read as the same scale the labels describe. */
+private fun densityIcon(density: SearcherViewStyle.Density): ImageVector = when (density) {
+    SearcherViewStyle.Density.COMPACT -> Icons.TwoTone.DensitySmall
+    SearcherViewStyle.Density.COMFORTABLE -> Icons.TwoTone.DensityMedium
+    SearcherViewStyle.Density.DETAILED -> Icons.TwoTone.DensityLarge
 }
 
 private fun modeLabel(mode: SearcherViewStyle.Mode): Int = when (mode) {

@@ -76,7 +76,7 @@
     <string name="explorer_action_refresh">Refresh</string>
     <string name="explorer_action_sort">Sort</string>
     <string name="explorer_action_filter">Filter</string>
-    <string name="explorer_action_view">View</string>
+    <string name="explorer_action_view">Layout</string>
     <string name="explorer_action_create">Create</string>
     <string name="explorer_action_rename">Rename</string>
     <string name="explorer_action_copy">Copy</string>
@@ -368,16 +368,16 @@
     <string name="explorer_sort_tab_overrides_clear_action">Clear</string>
 
     <!-- View Options -->
-    <string name="explorer_view_mode_label">Layout</string>
+    <string name="explorer_view_sheet_subtitle">How items are arranged and how much detail they show</string>
     <string name="explorer_view_mode_list_label">List</string>
     <string name="explorer_view_mode_grid_label">Grid</string>
-    <string name="explorer_view_density_label">Density</string>
     <string name="explorer_view_density_compact_label">Compact</string>
     <string name="explorer_view_density_comfortable_label">Comfortable</string>
     <string name="explorer_view_density_detailed_label">Detailed</string>
     <string name="explorer_view_apply_all_tabs_action">Apply to all tabs</string>
     <string name="explorer_view_set_default_action">Set as default</string>
     <string name="explorer_view_detail_created_label">Created %1$s</string>
+    <string name="explorer_view_detail_modified_label">Modified %1$s</string>
 
     <!-- Folder Sort Rules -->
     <string name="explorer_settings_folder_sort_rules_title">Folder sort rules</string>

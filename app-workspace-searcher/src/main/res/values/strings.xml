@@ -192,7 +192,7 @@
     <string name="searcher_action_deselect_all">Deselect all</string>
     <string name="searcher_action_open_in_new_tabs">Open in new tabs</string>
     <string name="searcher_action_sort">Sort</string>
-    <string name="searcher_action_view">View</string>
+    <string name="searcher_action_view">Layout</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Sort by</string>
@@ -204,10 +204,9 @@
     <string name="searcher_sort_descending_label">Descending order</string>
 
     <!-- View options -->
-    <string name="searcher_view_mode_label">Layout</string>
+    <string name="searcher_view_sheet_subtitle">How items are arranged and how much detail they show</string>
     <string name="searcher_view_mode_list_label">List</string>
     <string name="searcher_view_mode_grid_label">Grid</string>
-    <string name="searcher_view_density_label">Density</string>
     <string name="searcher_view_density_compact_label">Compact</string>
     <string name="searcher_view_density_comfortable_label">Comfortable</string>
     <string name="searcher_view_density_detailed_label">Detailed</string>
