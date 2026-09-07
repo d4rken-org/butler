@@ -118,8 +118,10 @@ class SAFFileSystemOps @Inject constructor(
         val resolved: Map<SAFPath, SAFDocFile>,
         /** Child paths the listing carried more than once. */
         val duplicated: Set<SAFPath>,
-        /** The provider flagged the listing as still loading or errored. */
+        /** The listing cannot prove a name absent: still loading, errored, or carrying unnamed rows. */
         val partial: Boolean,
+        /** The provider's own message for a listing it could not load fully, or null. */
+        val error: String?,
         val cachedAt: Instant,
     )
 
@@ -252,8 +254,9 @@ class SAFFileSystemOps @Inject constructor(
             resolved = resolved,
             duplicated = duplicated,
             // A row we could not name is indexed under a URI-derived fallback, so this listing
-            // cannot prove any name absent.
-            partial = listing.partial || listing.entries.any { it.name == null },
+            // cannot prove any name absent. Same for one the provider could not load fully.
+            partial = listing.partial || listing.error != null || listing.entries.any { it.name == null },
+            error = listing.error,
             cachedAt = now,
         )
         childrenCache[parentPath] = cacheEntry
@@ -440,7 +443,15 @@ class SAFFileSystemOps @Inject constructor(
         val docFile = path.resolveDocFile()
         log(TAG, VERBOSE) { "listFiles($path) -> $docFile" }
 
-        cacheChildren(path, docFile, Clock.System.now()).first
+        val (childPaths, entry) = cacheChildren(path, docFile, Clock.System.now())
+
+        // A listing the provider could not load fully must not be handed over as if it were the
+        // directory's contents: an empty one would read to the caller as an empty directory.
+        // EXTRA_LOADING is deliberately not treated this way — it is a normal transient state on
+        // remote providers, and what has arrived so far is real.
+        entry.error?.let { throw ReadException("Provider could not list $path: $it", path) }
+
+        childPaths
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {

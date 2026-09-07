@@ -22,6 +22,7 @@ import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.saf.location.SAFLocationMatch
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
@@ -535,6 +536,34 @@ class SAFFileSystemOpsTest : BaseTest() {
     @Test
     fun `a listing the provider flagged as errored is inconclusive, not absent`() = runTest {
         assertPartialListingIsInconclusive(Bundle().apply { putString(DocumentsContract.EXTRA_ERROR, "boom") })
+    }
+
+    /**
+     * An errored listing must not reach the caller as the directory's contents. An empty one is
+     * otherwise indistinguishable from an empty directory, which is what the Explorer then shows.
+     */
+    @Test
+    fun `listFiles refuses a listing the provider could not load fully`() = runTest {
+        useOpaqueProvider()
+        addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "42", name = "a.txt")
+        opaqueListingExtras[OPAQUE_ROOT_ID] = Bundle().apply {
+            putString(DocumentsContract.EXTRA_ERROR, "provider is unhappy")
+        }
+
+        val failure = shouldThrow<ReadException> { fileSystemOps.listFiles(opaqueRoot) }
+        failure.cause!!.message!! shouldContain "provider is unhappy"
+    }
+
+    /** A still-loading listing is a normal transient state, so what has arrived is handed over. */
+    @Test
+    fun `listFiles returns what a still-loading listing carries`() = runTest {
+        useOpaqueProvider()
+        addOpaqueChild(parentId = OPAQUE_ROOT_ID, id = "42", name = "a.txt")
+        opaqueListingExtras[OPAQUE_ROOT_ID] = Bundle().apply {
+            putBoolean(DocumentsContract.EXTRA_LOADING, true)
+        }
+
+        fileSystemOps.listFiles(opaqueRoot) shouldBe listOf(opaqueRoot.child("a.txt"))
     }
 
     @Test

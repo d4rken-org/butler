@@ -177,7 +177,10 @@ data class SAFDocFile(
     /** [partial] = the provider flagged this listing as still loading or errored; entries may be missing. */
     data class ChildListing(
         val entries: List<ChildEntry>,
+        /** The provider flagged the listing as still loading; more entries are expected to arrive. */
         val partial: Boolean,
+        /** The provider's own message for a listing it could not load fully, or null. */
+        val error: String?,
     )
 
     fun getLookupData(): LookupData = resolver.query(
@@ -325,8 +328,8 @@ data class SAFDocFile(
             val extras = cursor.extras
             ChildListing(
                 entries = entries,
-                partial = extras.getBoolean(DocumentsContract.EXTRA_LOADING, false) ||
-                    extras.getString(DocumentsContract.EXTRA_ERROR) != null,
+                partial = extras.getBoolean(DocumentsContract.EXTRA_LOADING, false),
+                error = extras.getString(DocumentsContract.EXTRA_ERROR),
             )
         }
 

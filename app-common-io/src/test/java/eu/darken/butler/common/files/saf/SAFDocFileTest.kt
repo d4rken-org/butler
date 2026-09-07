@@ -145,7 +145,7 @@ class SAFDocFileTest : BaseTest() {
     }
 
     @Test
-    fun `listFilesWithLookupData reports a loading or errored cursor as partial`() {
+    fun `listFilesWithLookupData reports a loading cursor as partial`() {
         val row = arrayOf<Any?>("42", "text/plain", 0L, 0L, "a.txt")
 
         listChildren(childrenCursor(row)).partial shouldBe false
@@ -153,10 +153,29 @@ class SAFDocFileTest : BaseTest() {
         listChildren(
             childrenCursor(row).apply { extras = Bundle().apply { putBoolean(DocumentsContract.EXTRA_LOADING, true) } }
         ).partial shouldBe true
+    }
 
-        listChildren(
+    /**
+     * Kept apart from [partial]: a still-loading listing is a normal transient state whose entries
+     * are real, while an errored one is a listing the provider could not load fully. Only the second
+     * may not be handed to a caller as the directory's contents.
+     */
+    @Test
+    fun `listFilesWithLookupData carries the provider's error message separately from loading`() {
+        val row = arrayOf<Any?>("42", "text/plain", 0L, 0L, "a.txt")
+
+        listChildren(childrenCursor(row)).error shouldBe null
+
+        val loading = listChildren(
+            childrenCursor(row).apply { extras = Bundle().apply { putBoolean(DocumentsContract.EXTRA_LOADING, true) } }
+        )
+        loading.error shouldBe null
+
+        val errored = listChildren(
             childrenCursor(row).apply { extras = Bundle().apply { putString(DocumentsContract.EXTRA_ERROR, "boom") } }
-        ).partial shouldBe true
+        )
+        errored.error shouldBe "boom"
+        errored.partial shouldBe false
     }
 
     // Helper to create cursor with MIME type
