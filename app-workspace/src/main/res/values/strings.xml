@@ -91,6 +91,7 @@
     <string name="workspace_expand_less_action">Less</string>
 
     <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Tabs and workspaces</string>
     <string name="workspace_button_menu_new_workspace_format">New %1$s</string>
     <string name="workspace_button_menu_new_tab_action">New tab</string>
     <string name="workspace_button_menu_category_recent">Recently</string>

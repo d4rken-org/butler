@@ -32,6 +32,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -42,6 +45,7 @@ import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults.sizeCompact
@@ -82,15 +86,20 @@ fun WorkspaceButton(
                 .clip(RoundedCornerShape(8.dp))
                 .background(containerColor ?: MaterialTheme.colorScheme.tertiaryContainer)
                 .combinedClickable(
+                    role = Role.Button,
                     onClick = { expanded = true },
                     onLongClick = openManager
-                ),
+                )
+                // The mascot names the control rather than itself: this is the only route to tab
+                // creation, and its own description ("Butler mascot") says nothing about that.
+                .semantics(mergeDescendants = true) {},
             contentAlignment = Alignment.Center
         ) {
             val iconSize = minOf(maxWidth, maxHeight) * 0.8f
 
             ButlerMascot(
                 modifier = Modifier.size(iconSize),
+                contentDescription = stringResource(R.string.workspace_button_description),
                 variant = mascotVariant,
             )
         }

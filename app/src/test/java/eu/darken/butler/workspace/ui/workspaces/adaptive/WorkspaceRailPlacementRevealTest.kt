@@ -66,7 +66,6 @@ class WorkspaceRailPlacementRevealTest : ComposeTest() {
                             railPlacement = placement,
                         ),
                         onTabAction = {},
-                        onAddTab = {},
                         onPaneAssignment = { _, _ -> },
                         onPaneUnassign = {},
                     )

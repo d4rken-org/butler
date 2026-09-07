@@ -68,7 +68,6 @@ class WorkspaceRailReorderTest : ComposeTest() {
                             railPlacement = WorkspaceDesign.RailPlacement.BOTTOM,
                         ),
                         onTabAction = { actions += it },
-                        onAddTab = {},
                         onPaneAssignment = { _, _ -> },
                         onPaneUnassign = {},
                     )

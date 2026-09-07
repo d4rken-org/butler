@@ -373,7 +373,6 @@
     <string name="workspace_pane_unassign_action">Remove from pane</string>
     <string name="workspace_dragging_description">Dragging</string>
     <string name="workspace_pane_current_description">In pane %1$d</string>
-    <string name="workspace_add_tab_description">Add tab</string>
 
     <!-- Workspace Manager Row -->
     <string name="workspace_row_close_content_desc">Close tab</string>

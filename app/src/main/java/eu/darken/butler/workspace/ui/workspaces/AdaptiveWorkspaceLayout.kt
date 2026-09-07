@@ -84,7 +84,6 @@ fun AdaptiveWorkspaceLayout(
                 selected = visibleSelected,
                 focusedId = focusedId,
                 onTabAction = { workspaceActionHandler?.executeWorkspaceAction(it) },
-                onAddTab = { workspaceActionHandler?.createTemplatesWorkspace() },
                 onPaneAssignment = { workspaceId, paneIndex ->
                     // One pane has nothing to swap with, so the entry is selected into it the way
                     // the tab manager selects into a one-pane layout.

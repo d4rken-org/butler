@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +30,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.DragIndicator
 import androidx.compose.material.icons.twotone.Edit
@@ -44,7 +42,6 @@ import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -228,8 +225,6 @@ fun WorkspaceNavigationRail(
     focusedId: Workspace.Id?,
     design: WorkspaceDesign = WorkspaceDesign(),
     onTabAction: (WorkspaceAction) -> Unit,
-    /** The "+" was tapped. The rail does not decide what a new tab is. */
-    onAddTab: () -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     onPaneUnassign: (workspaceId: Workspace.Id) -> Unit,
     onRename: (Workspace.Id) -> Unit = {},
@@ -333,11 +328,6 @@ fun WorkspaceNavigationRail(
         }
     }
 
-    val sectionSpacer = when (placement) {
-        RailPlacement.START -> Modifier.height(RailSectionPadding)
-        RailPlacement.BOTTOM -> Modifier.width(RailSectionPadding)
-    }
-
     WorkspaceRailContainer(
         modifier = modifier,
         placement = placement,
@@ -373,23 +363,6 @@ fun WorkspaceNavigationRail(
                 content = railItems,
             )
         }
-
-        RailSectionDivider(placement = placement)
-
-        Spacer(modifier = sectionSpacer)
-
-        FloatingActionButton(
-            onClick = onAddTab,
-            modifier = Modifier.size(48.dp),
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-        ) {
-            Icon(
-                imageVector = Icons.TwoTone.Add,
-                contentDescription = stringResource(R.string.workspace_add_tab_description),
-            )
-        }
-
-        Spacer(modifier = sectionSpacer)
     }
 }
 
@@ -1015,7 +988,6 @@ private fun WorkspaceNavigationRailStates(placement: RailPlacement) {
             railPlacement = placement,
         ),
         onTabAction = {},
-        onAddTab = {},
         onPaneAssignment = { _, _ -> },
         onPaneUnassign = {},
         onPaneMenuToggle = {},
