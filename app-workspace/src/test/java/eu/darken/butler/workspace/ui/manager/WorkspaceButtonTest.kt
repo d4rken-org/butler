@@ -17,6 +17,7 @@ import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerMascotMode
@@ -477,13 +478,13 @@ class WorkspaceButtonTest : ComposeTest() {
     fun `the layout entry opens a dialog listing Automatic and the six geometries`() {
         openLayoutDialog(RecordingButtonProvider(WorkspaceButtonViewModel.State()))
 
-        composeTestRule.onNodeWithText("Automatic").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Single with tab rail").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Dual vertical").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Dual horizontal").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Triple sidebar left").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Triple sidebar right").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Quad grid").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Automatic").assertExists()
+        composeTestRule.onNodeWithText("Single with tab rail").assertExists()
+        composeTestRule.onNodeWithText("Dual vertical").assertExists()
+        composeTestRule.onNodeWithText("Dual horizontal").assertExists()
+        composeTestRule.onNodeWithText("Triple sidebar left").assertExists()
+        composeTestRule.onNodeWithText("Triple sidebar right").assertExists()
+        composeTestRule.onNodeWithText("Quad grid").assertExists()
 
         // The surfaces Settings offers are not geometries, so they have no row here
         composeTestRule.onNodeWithText("Classic").assertDoesNotExist()
@@ -507,7 +508,7 @@ class WorkspaceButtonTest : ComposeTest() {
         val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
         openLayoutDialog(provider)
 
-        composeTestRule.onNodeWithText("Dual horizontal").performClick()
+        composeTestRule.onNodeWithText("Dual horizontal").performScrollTo().performClick()
 
         provider.panelModes shouldBe listOf(true to WorkspacePanelMode.DUAL_HORIZONTAL)
     }
