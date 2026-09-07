@@ -119,6 +119,10 @@ fun AppGridItem(
                     .align(Alignment.TopCenter)
                     .padding(4.dp),
                 verticalAlignment = Alignment.Top,
+                // Leftover width belongs between the two slots, so the chips stay on the right
+                // edge whatever the leading slot measures. A weighted spacer would keep half of
+                // it for itself and leave the chips floating mid-row.
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 when {
                     showSelection -> Checkbox(
@@ -136,9 +140,9 @@ fun AppGridItem(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    else -> Unit
+                    // SpaceBetween needs two children to have anything to space apart.
+                    else -> Spacer(modifier = Modifier)
                 }
-                Spacer(modifier = Modifier.weight(1f))
                 AppTagRow(
                     tags = item.tags,
                     compact = true,

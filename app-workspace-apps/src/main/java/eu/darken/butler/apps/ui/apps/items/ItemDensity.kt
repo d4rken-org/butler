@@ -18,6 +18,29 @@ val AppsViewStyle.Density.gridIconSize: Dp
         AppsViewStyle.Density.DETAILED -> 64.dp
     }
 
+/** Horizontal inset of a row; matches the Explorer listing so the two read as the same list. */
+val AppsViewStyle.Density.rowPadding: Dp
+    get() = when (this) {
+        AppsViewStyle.Density.COMPACT -> 6.dp
+        AppsViewStyle.Density.COMFORTABLE -> 8.dp
+        AppsViewStyle.Density.DETAILED -> 10.dp
+    }
+
+val AppsViewStyle.Density.rowVerticalPadding: Dp
+    get() = when (this) {
+        AppsViewStyle.Density.COMPACT -> 2.dp
+        AppsViewStyle.Density.COMFORTABLE -> 8.dp
+        AppsViewStyle.Density.DETAILED -> 10.dp
+    }
+
+/** Gap between the app icon and its text column, scaled with the icon it sits beside. */
+val AppsViewStyle.Density.rowIconGap: Dp
+    get() = when (this) {
+        AppsViewStyle.Density.COMPACT -> 8.dp
+        AppsViewStyle.Density.COMFORTABLE -> 12.dp
+        AppsViewStyle.Density.DETAILED -> 16.dp
+    }
+
 val AppsViewStyle.Density.listGap: Dp
     get() = when (this) {
         AppsViewStyle.Density.COMPACT -> 2.dp
