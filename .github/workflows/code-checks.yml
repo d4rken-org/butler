@@ -50,14 +50,19 @@ jobs:
       - name: Build modules
         run: ./gradlew ${{ matrix.module }}:assemble${{ matrix.flavor }}${{ matrix.variant }}
 
+      - name: Build SAF test provider
+        if: matrix.flavor == 'Foss'
+        run: ./gradlew :saf-test-provider:assembleDebug
+
   test-modules:
     name: Unit tests
     strategy:
       fail-fast: false
       matrix:
         variant: [ Debug ]
-        # Every module carries the `version` dimension, so there is no flavor-free
-        # `testDebugUnitTest` task left to run; these two cover the whole tree.
+        # These two flavors cover modules carrying the `version` dimension.
+        # The unflavored SAF test fixture is excluded on purpose and covered by
+        # the explicit assemble step in build-modules instead.
         flavor: [ testFoss,testGplay ]
     runs-on: ubuntu-22.04
     steps:
