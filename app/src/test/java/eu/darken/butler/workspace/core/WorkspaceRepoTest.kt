@@ -15,6 +15,7 @@ import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -3996,6 +3997,50 @@ class WorkspaceRepoTest : BaseTest() {
             fake(childId).released shouldBe false
             coVerify(exactly = 0) { operationsManager.removeWorkspace(originalId) }
             events.closeRefusals().single().requestedId shouldBe originalId
+        }
+
+    @Test
+    fun `a batch refusal is announced after the batch completion`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val events = mutableListOf<WorkspaceEvent>()
+        repo.events.onEach { events += it }.launchIn(backgroundScope)
+        val originalId = repo.createTab(type = Workspace.Type.EXPLORER)
+        markOperationBlocked(originalId)
+        val request = WorkspaceAction.Create(
+            type = Workspace.Type.SEARCHER,
+            arguments = FakeArguments(Workspace.Type.SEARCHER),
+            replace = originalId,
+        )
+
+        repo.createBatch(request)
+
+        // Both events end up as a banner filed under a workspace id, and the later one wins
+        val refusalIndex = events.indexOfFirst { it is WorkspaceEvent.CloseRefused }
+        val completionIndex = events.indexOfFirst { it is WorkspaceEvent.BatchCreationCompleted }
+        completionIndex shouldBeGreaterThan -1
+        refusalIndex shouldBeGreaterThan completionIndex
+    }
+
+    @Test
+    fun `a batch refusal invoked from a stacked child is filed under that child`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val events = mutableListOf<WorkspaceEvent>()
+            repo.events.onEach { events += it }.launchIn(backgroundScope)
+            val tabId = repo.createTab(type = Workspace.Type.EXPLORER)
+            val childId = repo.createSubWorkspace(caller = tabId)
+            markOperationBlocked(tabId)
+            val request = WorkspaceAction.Create(
+                type = Workspace.Type.SEARCHER,
+                arguments = FakeArguments(Workspace.Type.SEARCHER),
+                replace = tabId,
+            )
+
+            repo.createBatchFrom(childId, request)
+
+            val refused = events.closeRefusals().single()
+            refused.hostId shouldBe childId
+            refused.requestedId shouldBe tabId
         }
 
     @Test

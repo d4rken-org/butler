@@ -1667,6 +1667,7 @@ class WorkspaceRepo @Inject constructor(
         sourceWorkspaceId: Workspace.Id?,
     ): WorkspaceAction.CreateBatch.Result.Success {
         val results = mutableMapOf<WorkspaceAction.Create, WorkspaceAction.CreateBatch.CreationResult>()
+        val refusals = mutableListOf<WorkspaceEvent.CloseRefused>()
 
         // Seed results with pre-resolved entries (instances that existed before this batch ran)
         preResolved.forEach { (req, existingId) ->
@@ -1693,12 +1694,10 @@ class WorkspaceRepo @Inject constructor(
                 val blockers = closeBlockedBy(listOf(replaceId))
                 if (blockers.isNotEmpty()) {
                     log(TAG, INFO) { "Batch replace of $replaceId refused, busy members: $blockers" }
-                    _events.emit(
-                        WorkspaceEvent.CloseRefused(
-                            requestedId = replaceId,
-                            hostId = anchorId ?: replaceId,
-                            busyWorkspaceIds = blockers,
-                        )
+                    refusals += WorkspaceEvent.CloseRefused(
+                        requestedId = replaceId,
+                        hostId = sourceWorkspaceId ?: replaceId,
+                        busyWorkspaceIds = blockers,
                     )
                     results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Failure(
                         IllegalStateException("Replacement refused: workspace $replaceId is busy")
@@ -1783,6 +1782,9 @@ class WorkspaceRepo @Inject constructor(
                 sourceWorkspaceId = sourceWorkspaceId,
             )
         )
+
+        // Emitted after the completion event so its banner is the one left standing
+        refusals.forEach { _events.emit(it) }
 
         return WorkspaceAction.CreateBatch.Result.Success(
             results = results,
