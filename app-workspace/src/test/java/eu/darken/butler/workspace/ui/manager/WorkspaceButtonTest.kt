@@ -8,6 +8,8 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithTag
@@ -425,14 +427,23 @@ class WorkspaceButtonTest : ComposeTest() {
      * The button is the only route to tab creation, so its accessible name has to say so. Left to
      * the mascot's own description it announces as "Butler mascot", which names the artwork rather
      * than the control.
+     *
+     * Matched by name AND click action together, so the two have to sit on one node of the merged
+     * tree - the tree an accessibility service traverses. Asserting them separately passes just as
+     * well when the name has drifted onto a child of the control, which announces differently.
      */
     @Test
     fun `the button announces itself as the tabs control`() {
         val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State(workspaceCount = 1))
         setContent(provider)
 
-        composeTestRule.onNodeWithTag(WorkspaceButtonDefaults.TEST_TAG)
+        composeTestRule.onNode(
+            hasContentDescription("Tabs and workspaces") and hasClickAction(),
+            useUnmergedTree = false,
+        )
+            .assertIsDisplayed()
             .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
-        composeTestRule.onNodeWithContentDescription("Tabs and workspaces").assertIsDisplayed()
+
+        composeTestRule.onNodeWithContentDescription("Butler mascot").assertDoesNotExist()
     }
 }
