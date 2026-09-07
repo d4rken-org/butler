@@ -86,17 +86,26 @@ private fun ViewStyleOptionsContent(
             .padding(top = 8.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            text = stringResource(R.string.explorer_action_view),
-            style = MaterialTheme.typography.titleLarge,
-        )
-        Text(
-            text = stringResource(R.string.explorer_view_sheet_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        // The subtitle describes the title, so it sits tight against it; the gap below is a
+        // group boundary and gets the wider one. A single arrangement spacing made all four
+        // gaps equal and left the subtitle floating between heading and controls.
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = stringResource(R.string.explorer_action_view),
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                text = stringResource(R.string.explorer_view_sheet_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+        ) {
             ExplorerViewStyle.Mode.entries.forEachIndexed { index, mode ->
                 SegmentedButton(
                     selected = currentViewStyle.mode == mode,
