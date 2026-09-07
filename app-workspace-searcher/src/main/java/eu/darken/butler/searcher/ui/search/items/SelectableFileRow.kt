@@ -140,9 +140,23 @@ fun SelectableFileRow(
                 }
             }
 
-            // Line 2: parent path, with the date beside it where there is no third line.
-            // Results of one search mostly share a prefix, so the tail is what tells them
-            // apart and the start is what gets cut.
+            // Line 2 at detailed density: size and date, on the line the path vacates.
+            if (density.showsMetadataOnOwnLine) {
+                val metaText = listOfNotNull(sizeText, dateText).joinToString(" · ")
+                if (metaText.isNotEmpty()) {
+                    Text(
+                        text = metaText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
+            // Parent path: beside the date at the tighter densities, on a line of its own at
+            // detailed. Results of one search mostly share a prefix, so the tail is what tells
+            // them apart and the start is what gets cut.
             val dateBesidePath = dateText?.takeIf { !density.showsMetadataOnOwnLine }
 
             if (!parentPath.isNullOrEmpty() || dateBesidePath != null) {
@@ -171,20 +185,6 @@ fun SelectableFileRow(
                             maxLines = 1,
                         )
                     }
-                }
-            }
-
-            // Line 3: size · date, once the path has the line above to itself
-            if (density.showsMetadataOnOwnLine) {
-                val metaText = listOfNotNull(sizeText, dateText).joinToString(" · ")
-                if (metaText.isNotEmpty()) {
-                    Text(
-                        text = metaText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
                 }
             }
 
