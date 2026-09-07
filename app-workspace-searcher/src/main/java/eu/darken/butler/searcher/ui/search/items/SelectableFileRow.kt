@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.ui.search.items
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,8 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -55,185 +57,176 @@ fun SelectableFileRow(
     val backgroundColor = if (isSelected) {
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
     } else {
-        MaterialTheme.colorScheme.surface
+        Color.Transparent
     }
 
-    Card(
+    Row(
         modifier = modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongPress,
-            ),
-        colors = CardDefaults.cardColors(
-            containerColor = backgroundColor,
-            // The selected container is an alpha tint that matches no color role, so the derived
-            // content color would fall back to LocalContentColor (black), not onSurface.
-            contentColor = MaterialTheme.colorScheme.onSurface,
-        ),
-        shape = RoundedCornerShape(8.dp),
+            )
+            .padding(horizontal = density.rowPadding, vertical = density.rowVerticalPadding),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = density.rowPadding),
-            verticalAlignment = Alignment.CenterVertically,
+        // Leading content - either checkbox OR icon
+        Box(
+            modifier = Modifier.size(density.rowIconSize),
+            contentAlignment = Alignment.Center,
         ) {
-            // Leading content - either checkbox OR icon
-            Box(
-                modifier = Modifier.size(density.rowIconSize),
-                contentAlignment = Alignment.Center,
+            if (isSelectionMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onClick() },
+                )
+            } else {
+                TintedAsyncImage(
+                    model = result.lookup,
+                    contentDescription = result.fileType.name,
+                    modifier = Modifier.size(density.rowIconSize),
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(density.rowIconGap))
+
+        // File info
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            val isDirectory = result.fileType == FileType.DIRECTORY
+            val parentPath = result.lookup.parent?.userReadablePath?.asComposable()
+            val sizeText = result.size
+                ?.takeIf { !isDirectory }
+                ?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) }
+            val dateText = result.modifiedAt
+                ?.takeIf { density != SearcherViewStyle.Density.COMPACT }
+                ?.let {
+                    if (density == SearcherViewStyle.Density.DETAILED) {
+                        formatDateTime(it, DateTimeStyle.FULL)
+                    } else {
+                        formatRelativeTime(it)
+                    }
+                }
+
+            // Line 1: file name, with the size beside it unless a third line carries both
+            // figures. The name is the short text on the row, so the size fits next to it
+            // without eating into the path below.
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (isSelectionMode) {
-                    Checkbox(
-                        checked = isSelected,
-                        onCheckedChange = { onClick() },
-                    )
-                } else {
-                    TintedAsyncImage(
-                        model = result.lookup,
-                        contentDescription = result.fileType.name,
-                        modifier = Modifier.size(density.rowIconSize),
+                Text(
+                    text = result.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+
+                if (sizeText != null && !density.showsMetadataOnOwnLine) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = sizeText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            // Line 2: parent path, with the date beside it where there is no third line.
+            // Results of one search mostly share a prefix, so the tail is what tells them
+            // apart and the start is what gets cut.
+            val dateBesidePath = dateText?.takeIf { !density.showsMetadataOnOwnLine }
 
-            // File info
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(1.dp),
-            ) {
-                val isDirectory = result.fileType == FileType.DIRECTORY
-                val parentPath = result.lookup.parent?.userReadablePath?.asComposable()
-                val sizeText = result.size
-                    ?.takeIf { !isDirectory }
-                    ?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) }
-                val dateText = result.modifiedAt
-                    ?.takeIf { density != SearcherViewStyle.Density.COMPACT }
-                    ?.let {
-                        if (density == SearcherViewStyle.Density.DETAILED) {
-                            formatDateTime(it, DateTimeStyle.FULL)
-                        } else {
-                            formatRelativeTime(it)
-                        }
-                    }
-
-                // Line 1: file name, with the size beside it unless a third line carries both
-                // figures. The name is the short text on the row, so the size fits next to it
-                // without eating into the path below.
+            if (!parentPath.isNullOrEmpty() || dateBesidePath != null) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = result.name,
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = parentPath ?: "",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 10.sp,
+                            fontFamily = FontFamily.Monospace,
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.StartEllipsis,
                         modifier = Modifier.weight(1f),
                     )
 
-                    if (sizeText != null && !density.showsMetadataOnOwnLine) {
+                    if (dateBesidePath != null) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = sizeText,
+                            text = dateBesidePath,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                         )
                     }
                 }
+            }
 
-                // Line 2: parent path, with the date beside it where there is no third line.
-                // Results of one search mostly share a prefix, so the tail is what tells them
-                // apart and the start is what gets cut.
-                val dateBesidePath = dateText?.takeIf { !density.showsMetadataOnOwnLine }
-
-                if (!parentPath.isNullOrEmpty() || dateBesidePath != null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = parentPath ?: "",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontSize = 10.sp,
-                                fontFamily = FontFamily.Monospace,
-                            ),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                            maxLines = 1,
-                            overflow = TextOverflow.StartEllipsis,
-                            modifier = Modifier.weight(1f),
-                        )
-
-                        if (dateBesidePath != null) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = dateBesidePath,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                }
-
-                // Line 3: size · date, once the path has the line above to itself
-                if (density.showsMetadataOnOwnLine) {
-                    val metaText = listOfNotNull(sizeText, dateText).joinToString(" · ")
-                    if (metaText.isNotEmpty()) {
-                        Text(
-                            text = metaText,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-
-                // Line 4: Match context (if available)
-                // The excerpt is cut here rather than by maxLines: text discarded up front cannot be
-                // recovered by letting the Text wrap.
-                val matchDisplay = remember(result.matchContext, density) {
-                    result.matchContext?.let { context ->
-                        if (context.lineNumber != null && context.matchedLine != null) {
-                            val trimmedLine = context.matchedLine.trim()
-                            // Adjust indices for trimmed whitespace
-                            val leadingWhitespace = context.matchedLine.length - context.matchedLine.trimStart().length
-                            val adjustedStartIndex = (context.startIndex ?: 0) - leadingWhitespace
-                            val adjustedEndIndex = (context.endIndex ?: 0) - leadingWhitespace
-
-                            val displayLine = if (adjustedStartIndex in 0..<adjustedEndIndex) {
-                                getEllipsizedMatchLine(
-                                    line = trimmedLine,
-                                    startIndex = adjustedStartIndex,
-                                    endIndex = adjustedEndIndex,
-                                    maxLength = density.matchLineLength,
-                                )
-                            } else {
-                                trimmedLine
-                            }
-                            context.lineNumber to displayLine
-                        } else null
-                    }
-                }
-
-                matchDisplay?.let { (lineNumber, displayLine) ->
+            // Line 3: size · date, once the path has the line above to itself
+            if (density.showsMetadataOnOwnLine) {
+                val metaText = listOfNotNull(sizeText, dateText).joinToString(" · ")
+                if (metaText.isNotEmpty()) {
                     Text(
-                        text = stringResource(
-                            R.string.searcher_match_line_label,
-                            lineNumber,
-                            displayLine,
-                        ),
+                        text = metaText,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                        maxLines = density.matchLineMaxLines,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
+            }
+
+            // Line 4: Match context (if available)
+            // The excerpt is cut here rather than by maxLines: text discarded up front cannot be
+            // recovered by letting the Text wrap.
+            val matchDisplay = remember(result.matchContext, density) {
+                result.matchContext?.let { context ->
+                    if (context.lineNumber != null && context.matchedLine != null) {
+                        val trimmedLine = context.matchedLine.trim()
+                        // Adjust indices for trimmed whitespace
+                        val leadingWhitespace = context.matchedLine.length - context.matchedLine.trimStart().length
+                        val adjustedStartIndex = (context.startIndex ?: 0) - leadingWhitespace
+                        val adjustedEndIndex = (context.endIndex ?: 0) - leadingWhitespace
+
+                        val displayLine = if (adjustedStartIndex in 0..<adjustedEndIndex) {
+                            getEllipsizedMatchLine(
+                                line = trimmedLine,
+                                startIndex = adjustedStartIndex,
+                                endIndex = adjustedEndIndex,
+                                maxLength = density.matchLineLength,
+                            )
+                        } else {
+                            trimmedLine
+                        }
+                        context.lineNumber to displayLine
+                    } else null
+                }
+            }
+
+            matchDisplay?.let { (lineNumber, displayLine) ->
+                Text(
+                    text = stringResource(
+                        R.string.searcher_match_line_label,
+                        lineNumber,
+                        displayLine,
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                    maxLines = density.matchLineMaxLines,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }

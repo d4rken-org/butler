@@ -7,8 +7,8 @@ import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
 val AppsViewStyle.Density.rowIconSize: Dp
     get() = when (this) {
         AppsViewStyle.Density.COMPACT -> 24.dp
-        AppsViewStyle.Density.COMFORTABLE -> 40.dp
-        AppsViewStyle.Density.DETAILED -> 56.dp
+        AppsViewStyle.Density.COMFORTABLE -> 32.dp
+        AppsViewStyle.Density.DETAILED -> 48.dp
     }
 
 val AppsViewStyle.Density.gridIconSize: Dp

@@ -40,6 +40,14 @@ val ExplorerViewStyle.Density.rowVerticalPadding: Dp
         ExplorerViewStyle.Density.DETAILED -> 10.dp
     }
 
+/** Gap between the leading icon and the text column, scaled with the icon it sits beside. */
+val ExplorerViewStyle.Density.rowIconGap: Dp
+    get() = when (this) {
+        ExplorerViewStyle.Density.COMPACT -> 8.dp
+        ExplorerViewStyle.Density.COMFORTABLE -> 12.dp
+        ExplorerViewStyle.Density.DETAILED -> 16.dp
+    }
+
 val ExplorerViewStyle.Density.listGap: Dp
     get() = when (this) {
         ExplorerViewStyle.Density.COMPACT -> 2.dp

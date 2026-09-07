@@ -7,15 +7,31 @@ import eu.darken.butler.searcher.core.SearcherViewStyle
 val SearcherViewStyle.Density.rowIconSize: Dp
     get() = when (this) {
         SearcherViewStyle.Density.COMPACT -> 24.dp
-        SearcherViewStyle.Density.COMFORTABLE -> 40.dp
+        SearcherViewStyle.Density.COMFORTABLE -> 32.dp
         SearcherViewStyle.Density.DETAILED -> 48.dp
     }
 
 val SearcherViewStyle.Density.rowPadding: Dp
     get() = when (this) {
+        SearcherViewStyle.Density.COMPACT -> 6.dp
+        SearcherViewStyle.Density.COMFORTABLE -> 8.dp
+        SearcherViewStyle.Density.DETAILED -> 10.dp
+    }
+
+/** Only the vertical inset tightens at compact; the horizontal one keeps rows aligned. */
+val SearcherViewStyle.Density.rowVerticalPadding: Dp
+    get() = when (this) {
         SearcherViewStyle.Density.COMPACT -> 2.dp
-        SearcherViewStyle.Density.COMFORTABLE -> 6.dp
-        SearcherViewStyle.Density.DETAILED -> 8.dp
+        SearcherViewStyle.Density.COMFORTABLE -> 8.dp
+        SearcherViewStyle.Density.DETAILED -> 10.dp
+    }
+
+/** Gap between the leading icon and the text column, scaled with the icon it sits beside. */
+val SearcherViewStyle.Density.rowIconGap: Dp
+    get() = when (this) {
+        SearcherViewStyle.Density.COMPACT -> 8.dp
+        SearcherViewStyle.Density.COMFORTABLE -> 12.dp
+        SearcherViewStyle.Density.DETAILED -> 16.dp
     }
 
 /**
@@ -48,9 +64,9 @@ val SearcherViewStyle.Density.matchLineMaxLines: Int
 
 val SearcherViewStyle.Density.listGap: Dp
     get() = when (this) {
-        SearcherViewStyle.Density.COMPACT -> 4.dp
-        SearcherViewStyle.Density.COMFORTABLE -> 8.dp
-        SearcherViewStyle.Density.DETAILED -> 12.dp
+        SearcherViewStyle.Density.COMPACT -> 2.dp
+        SearcherViewStyle.Density.COMFORTABLE -> 4.dp
+        SearcherViewStyle.Density.DETAILED -> 8.dp
     }
 
 /**

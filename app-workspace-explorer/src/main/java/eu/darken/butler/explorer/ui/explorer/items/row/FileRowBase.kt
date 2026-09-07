@@ -37,6 +37,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.ui.explorer.items.LeadingIconSlot
 import eu.darken.butler.explorer.ui.explorer.items.rowBadgeSize
+import eu.darken.butler.explorer.ui.explorer.items.rowIconGap
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.items.rowPadding
 import eu.darken.butler.explorer.ui.explorer.items.rowVerticalPadding
@@ -158,7 +159,7 @@ internal fun FileRowBase(
             }
         }
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(density.rowIconGap))
 
         // File information
         Column(
