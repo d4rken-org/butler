@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
@@ -108,11 +109,12 @@ internal fun ExplorerListContent(
                 }
             }
         } else {
-            items(
+            val itemKeys = state.items.uniqueItemKeys()
+            itemsIndexed(
                 items = state.items,
-                key = { it.id },
-                contentType = ExplorerItem::contentType,
-            ) { item ->
+                key = { index, _ -> itemKeys[index] },
+                contentType = { _, item -> item.contentType() },
+            ) { _, item ->
                 ExplorerItemRenderer(
                     item = item,
                     viewStyle = state.viewStyle,

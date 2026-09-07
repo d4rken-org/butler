@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
@@ -137,11 +138,12 @@ internal fun ExplorerGridContent(
                 }
             }
         } else {
-            items(
+            val itemKeys = state.items.uniqueItemKeys()
+            itemsIndexed(
                 items = state.items,
-                key = { it.id },
-                contentType = ExplorerItem::contentType,
-            ) { item ->
+                key = { index, _ -> itemKeys[index] },
+                contentType = { _, item -> item.contentType() },
+            ) { _, item ->
                 ExplorerItemRenderer(
                     item = item,
                     viewStyle = state.viewStyle,
