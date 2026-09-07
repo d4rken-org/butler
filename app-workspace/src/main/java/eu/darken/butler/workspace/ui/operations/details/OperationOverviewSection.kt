@@ -197,9 +197,9 @@ private fun OperationOverviewGrid(
     }
 }
 
-private fun previewReport(text: String) = object : Operation.Report {
+private fun previewReport(text: String) = object : Operation.Report.Paths {
     override val summary = text.toCaString()
-    override val affectedPaths = emptyList<Operation.Report.PathChange>()
+    override val affectedPaths = emptyList<Operation.Report.Paths.PathChange>()
     override val subjectPath = null
 }
 

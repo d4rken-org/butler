@@ -9,7 +9,7 @@ import kotlin.time.Instant
 
 abstract class DeveloperOperation : Operation {
 
-    interface Report : Operation.Report
+    interface Report : Operation.Report.Paths
 
     abstract override fun perform(operationContext: Operation.Context): Flow<State>
 

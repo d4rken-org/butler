@@ -72,8 +72,8 @@ class RestoreOperation @AssistedInject constructor(
                 restoredPaths.size,
             )
         }
-        override val affectedPaths: Collection<Operation.Report.PathChange> = restoredPaths.map {
-            Operation.Report.PathChange(path = it, change = Operation.Report.PathChange.Change.ADDED)
+        override val affectedPaths: Collection<Operation.Report.Paths.PathChange> = restoredPaths.map {
+            Operation.Report.Paths.PathChange(path = it, change = Operation.Report.Paths.PathChange.Change.ADDED)
         }
         override val partialErrorCount: Int = conflictCount + failedCount
     }

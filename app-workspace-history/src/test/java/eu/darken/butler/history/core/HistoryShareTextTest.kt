@@ -43,7 +43,7 @@ class HistoryShareTextTest : BaseTest() {
             HistoryEntry.PathChange(
                 path = "/storage/emulated/0/DCIM/photo.jpg",
                 previousPath = null,
-                change = Operation.Report.PathChange.Change.ADDED,
+                change = Operation.Report.Paths.PathChange.Change.ADDED,
             ),
         ),
     ) = HistoryEntry(
@@ -101,7 +101,7 @@ class HistoryShareTextTest : BaseTest() {
                         HistoryEntry.PathChange(
                             path = "/sdcard/new.txt",
                             previousPath = "/sdcard/old.txt",
-                            change = Operation.Report.PathChange.Change.MOVED,
+                            change = Operation.Report.Paths.PathChange.Change.MOVED,
                         ),
                     ),
                 )
@@ -122,7 +122,7 @@ class HistoryShareTextTest : BaseTest() {
                         HistoryEntry.PathChange(
                             path = "/sdcard/file_$it.bin",
                             previousPath = null,
-                            change = Operation.Report.PathChange.Change.REMOVED,
+                            change = Operation.Report.Paths.PathChange.Change.REMOVED,
                         )
                     },
                 )
@@ -194,7 +194,7 @@ class HistoryShareTextTest : BaseTest() {
                         HistoryEntry.PathChange(
                             path = "/sdcard/we`ird`.txt",
                             previousPath = null,
-                            change = Operation.Report.PathChange.Change.ADDED,
+                            change = Operation.Report.Paths.PathChange.Change.ADDED,
                         ),
                     ),
                 )
@@ -216,7 +216,7 @@ class HistoryShareTextTest : BaseTest() {
                     HistoryEntry.PathChange(
                         path = "/storage/emulated/0/DCIM/folder_$index/photo_$it.jpg",
                         previousPath = null,
-                        change = Operation.Report.PathChange.Change.ADDED,
+                        change = Operation.Report.Paths.PathChange.Change.ADDED,
                     )
                 },
             )
@@ -256,7 +256,7 @@ class HistoryShareTextTest : BaseTest() {
     private fun added(path: String) = HistoryEntry.PathChange(
         path = path,
         previousPath = null,
-        change = Operation.Report.PathChange.Change.ADDED,
+        change = Operation.Report.Paths.PathChange.Change.ADDED,
     )
 
     /**

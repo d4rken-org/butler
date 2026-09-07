@@ -371,9 +371,9 @@ object MockDataProvider {
             state = OperationDisplay.State.Completed(
                 summary = description.toCaString(),
                 completedAt = MockTimes.minutesAgo(minutesAgo),
-                report = object : Operation.Report {
+                report = object : Operation.Report.Paths {
                     override val summary = description.toCaString()
-                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    override val affectedPaths = emptyList<Operation.Report.Paths.PathChange>()
                     override val subjectPath = null
                 }
             ),

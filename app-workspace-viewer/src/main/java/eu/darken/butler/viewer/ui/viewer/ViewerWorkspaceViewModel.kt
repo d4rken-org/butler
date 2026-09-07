@@ -917,7 +917,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 }
                 // A delete the user resolved by skipping succeeds without removing anything, and
                 // the file is still there to look at.
-                if (completed.report?.affectedPaths.isNullOrEmpty()) {
+                if ((completed.report as? Operation.Report.Paths)?.affectedPaths.isNullOrEmpty()) {
                     log(tag, INFO) { "Delete removed nothing, leaving the viewer open" }
                     return@launch
                 }

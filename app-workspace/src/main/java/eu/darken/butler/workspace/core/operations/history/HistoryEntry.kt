@@ -40,7 +40,7 @@ data class HistoryEntry(
     data class PathChange(
         val path: String,
         val previousPath: String?,
-        val change: Operation.Report.PathChange.Change,
+        val change: Operation.Report.Paths.PathChange.Change,
     )
 
     companion object {

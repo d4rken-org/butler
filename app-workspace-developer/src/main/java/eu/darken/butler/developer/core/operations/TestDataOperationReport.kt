@@ -6,7 +6,7 @@ import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.developer.R
-import eu.darken.butler.workspace.core.operations.Operation.Report.PathChange
+import eu.darken.butler.workspace.core.operations.Operation.Report.Paths.PathChange
 
 data class TestDataOperationReport(
     override val affectedPaths: Collection<PathChange>,

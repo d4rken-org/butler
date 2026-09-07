@@ -475,9 +475,9 @@ private fun OperationEntryRowCompletedPreview() {
                 state = OperationDisplay.State.Completed(
                     summary = "Deleted 5 items".toCaString(),
                     completedAt = Clock.System.now() + 2.5.seconds,
-                    report = object : Operation.Report {
+                    report = object : Operation.Report.Paths {
                         override val summary = "Deleted 5 items".toCaString()
-                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                        override val affectedPaths = emptyList<Operation.Report.Paths.PathChange>()
                         override val subjectPath = null
                     }
                 ),
@@ -497,9 +497,9 @@ private fun OperationEntryRowCompletedPreview() {
                 state = OperationDisplay.State.Completed(
                     summary = "Deleted 5 items".toCaString(),
                     completedAt = Clock.System.now() + 2.5.seconds,
-                    report = object : Operation.Report {
+                    report = object : Operation.Report.Paths {
                         override val summary = "Deleted 5 items".toCaString()
-                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                        override val affectedPaths = emptyList<Operation.Report.Paths.PathChange>()
                         override val subjectPath = null
                     }
                 ),

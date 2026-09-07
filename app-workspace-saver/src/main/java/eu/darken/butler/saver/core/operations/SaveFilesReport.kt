@@ -11,7 +11,7 @@ import eu.darken.butler.workspace.core.operations.Operation
 data class SaveFilesReport(
     val results: List<FileResult>,
     override val performanceHistory: PerformanceHistory? = null,
-) : Operation.Report, Operation.HasPerformanceHistory {
+) : Operation.Report.Paths, Operation.HasPerformanceHistory {
 
     sealed class FileResult {
         abstract val filename: String
@@ -72,9 +72,9 @@ data class SaveFilesReport(
         }
     }
 
-    override val affectedPaths: Collection<Operation.Report.PathChange>
+    override val affectedPaths: Collection<Operation.Report.Paths.PathChange>
         get() = successes.map {
-            Operation.Report.PathChange(it.savedPath, Operation.Report.PathChange.Change.ADDED)
+            Operation.Report.Paths.PathChange(it.savedPath, Operation.Report.Paths.PathChange.Change.ADDED)
         }
 
     /**

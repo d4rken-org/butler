@@ -184,7 +184,7 @@ class OperationHistoryScopeQueryTest : BaseTest() {
                         affectedPaths = listOf(
                             changeOf(
                                 LocalPath.build("/sdcard/New/file.txt"),
-                                Operation.Report.PathChange.Change.ADDED,
+                                Operation.Report.Paths.PathChange.Change.ADDED,
                             ),
                         ),
                     ),
@@ -213,7 +213,7 @@ class OperationHistoryScopeQueryTest : BaseTest() {
                         affectedPaths = listOf(
                             changeOf(
                                 path = LocalPath.build("/sdcard/New/renamed.txt"),
-                                change = Operation.Report.PathChange.Change.MOVED,
+                                change = Operation.Report.Paths.PathChange.Change.MOVED,
                                 previousPath = LocalPath.build("/sdcard/Legacy/original.txt"),
                             ),
                         ),

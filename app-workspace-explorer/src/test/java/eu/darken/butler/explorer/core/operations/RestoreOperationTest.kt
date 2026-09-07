@@ -91,7 +91,7 @@ class RestoreOperationTest : BaseTest() {
         completed.error shouldBe null
         val report = completed.report.shouldBeInstanceOf<RestoreOperation.Report>()
         report.restoredPaths shouldBe setOf(restoredPath)
-        report.affectedPaths.single().change shouldBe Operation.Report.PathChange.Change.ADDED
+        report.affectedPaths.single().change shouldBe Operation.Report.Paths.PathChange.Change.ADDED
         events.single().shouldBeInstanceOf<FileSystemEvent.Added>().paths.single().lookedUp shouldBe restoredPath
     }
 

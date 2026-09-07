@@ -339,7 +339,7 @@ internal fun mockEntry(
             HistoryEntry.PathChange(
                 path = path,
                 previousPath = null,
-                change = Operation.Report.PathChange.Change.ADDED,
+                change = Operation.Report.Paths.PathChange.Change.ADDED,
             ),
         ),
     )

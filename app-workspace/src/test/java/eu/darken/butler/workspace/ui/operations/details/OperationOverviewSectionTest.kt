@@ -44,9 +44,9 @@ class OperationOverviewSectionTest : ComposeTest() {
         state = OperationDisplay.State.Completed(
             summary = "Moved 12 files".toCaString(),
             completedAt = Clock.System.now(),
-            report = object : Operation.Report {
+            report = object : Operation.Report.Paths {
                 override val summary = "Moved 12 files".toCaString()
-                override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                override val affectedPaths = emptyList<Operation.Report.Paths.PathChange>()
                 override val subjectPath = null
             },
         ),

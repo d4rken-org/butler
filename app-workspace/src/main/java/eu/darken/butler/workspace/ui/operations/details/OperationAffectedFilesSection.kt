@@ -22,7 +22,7 @@ import eu.darken.butler.workspace.core.operations.Operation
 
 @Composable
 internal fun OperationAffectedFilesSection(
-    affectedPaths: Collection<Operation.Report.PathChange>,
+    affectedPaths: Collection<Operation.Report.Paths.PathChange>,
 ) {
     val affectedPathList = remember(affectedPaths) { affectedPaths.toList() }
 
@@ -48,20 +48,20 @@ internal fun OperationAffectedFilesSection(
                 ) {
                     Text(
                         text = when (pathChange.change) {
-                            Operation.Report.PathChange.Change.ADDED -> "+"
-                            Operation.Report.PathChange.Change.REMOVED -> "\u2212"
-                            Operation.Report.PathChange.Change.MODIFIED -> "~"
-                            Operation.Report.PathChange.Change.TRASHED -> "\u267B"
-                            Operation.Report.PathChange.Change.MOVED -> "\u2192"
+                            Operation.Report.Paths.PathChange.Change.ADDED -> "+"
+                            Operation.Report.Paths.PathChange.Change.REMOVED -> "\u2212"
+                            Operation.Report.Paths.PathChange.Change.MODIFIED -> "~"
+                            Operation.Report.Paths.PathChange.Change.TRASHED -> "\u267B"
+                            Operation.Report.Paths.PathChange.Change.MOVED -> "\u2192"
                         },
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace,
                         color = when (pathChange.change) {
-                            Operation.Report.PathChange.Change.ADDED -> MaterialTheme.colorScheme.primary
-                            Operation.Report.PathChange.Change.REMOVED -> MaterialTheme.colorScheme.error
-                            Operation.Report.PathChange.Change.MODIFIED -> MaterialTheme.colorScheme.secondary
-                            Operation.Report.PathChange.Change.TRASHED -> MaterialTheme.colorScheme.tertiary
-                            Operation.Report.PathChange.Change.MOVED -> MaterialTheme.colorScheme.primary
+                            Operation.Report.Paths.PathChange.Change.ADDED -> MaterialTheme.colorScheme.primary
+                            Operation.Report.Paths.PathChange.Change.REMOVED -> MaterialTheme.colorScheme.error
+                            Operation.Report.Paths.PathChange.Change.MODIFIED -> MaterialTheme.colorScheme.secondary
+                            Operation.Report.Paths.PathChange.Change.TRASHED -> MaterialTheme.colorScheme.tertiary
+                            Operation.Report.Paths.PathChange.Change.MOVED -> MaterialTheme.colorScheme.primary
                         },
                         modifier = Modifier.width(16.dp)
                     )

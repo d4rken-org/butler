@@ -11,7 +11,7 @@ import kotlin.time.Instant
 
 abstract class ExplorerOperation : Operation {
 
-    interface Report : Operation.Report, Operation.HasPerformanceHistory {
+    interface Report : Operation.Report.Paths, Operation.HasPerformanceHistory {
         override val performanceHistory: PerformanceHistory? get() = null
     }
 

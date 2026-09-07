@@ -7,7 +7,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
-import eu.darken.butler.workspace.core.operations.Operation.Report.PathChange
+import eu.darken.butler.workspace.core.operations.Operation.Report.Paths.PathChange
 
 data class ExtractOperationReport(
     override val affectedPaths: Collection<PathChange>,

@@ -379,9 +379,9 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                 val pathEntities = storedPaths.mapIndexed { i, name ->
                     val fullPath = "${spec.pathRoot}/$name"
                     val change = when (spec.kind) {
-                        Operation.Metadata.Kind.DELETE -> Operation.Report.PathChange.Change.REMOVED
-                        Operation.Metadata.Kind.MOVE -> Operation.Report.PathChange.Change.MOVED
-                        else -> Operation.Report.PathChange.Change.ADDED
+                        Operation.Metadata.Kind.DELETE -> Operation.Report.Paths.PathChange.Change.REMOVED
+                        Operation.Metadata.Kind.MOVE -> Operation.Report.Paths.PathChange.Change.MOVED
+                        else -> Operation.Report.Paths.PathChange.Change.ADDED
                     }
                     OperationHistoryPathEntity(
                         operationHistoryId = rowId,

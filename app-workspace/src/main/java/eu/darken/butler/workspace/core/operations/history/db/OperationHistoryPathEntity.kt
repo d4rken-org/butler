@@ -27,7 +27,7 @@ data class OperationHistoryPathEntity(
     val path: String,
     /** For MOVED entries (rename source). Null for non-move changes or untracked. */
     val previousPath: String?,
-    /** [eu.darken.butler.workspace.core.operations.Operation.Report.PathChange.Change] name. */
+    /** [eu.darken.butler.workspace.core.operations.Operation.Report.Paths.PathChange.Change] name. */
     val change: String,
     val sortIndex: Int,
 )

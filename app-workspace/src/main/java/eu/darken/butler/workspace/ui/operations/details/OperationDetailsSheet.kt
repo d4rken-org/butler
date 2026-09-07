@@ -113,9 +113,9 @@ private fun OperationDetailsContent(
 
         // Affected Files Section (for completed operations with affected paths)
         val affectedPaths = when (operation.state) {
-            is OperationDisplay.State.Completed -> operation.state.report?.affectedPaths ?: emptyList()
-            is OperationDisplay.State.Failed -> operation.state.report?.affectedPaths ?: emptyList()
-            is OperationDisplay.State.Cancelled -> operation.state.report?.affectedPaths ?: emptyList()
+            is OperationDisplay.State.Completed -> operation.state.report.pathChanges()
+            is OperationDisplay.State.Failed -> operation.state.report.pathChanges()
+            is OperationDisplay.State.Cancelled -> operation.state.report.pathChanges()
             else -> emptyList()
         }
 
@@ -190,10 +190,14 @@ private fun OperationDetailsHeader(
 }
 
 
+/** Empty for a report shape that is not about paths, which this section has nothing to show for. */
+private fun Operation.Report?.pathChanges(): Collection<Operation.Report.Paths.PathChange> =
+    (this as? Operation.Report.Paths)?.affectedPaths ?: emptyList()
+
 // Helper functions
 private fun createMockReport(
-    affectedPaths: List<Operation.Report.PathChange> = emptyList()
-): Operation.Report = object : Operation.Report {
+    affectedPaths: List<Operation.Report.Paths.PathChange> = emptyList()
+): Operation.Report.Paths = object : Operation.Report.Paths {
     override val summary = "Completed successfully".toCaString()
     override val affectedPaths = affectedPaths
     override val subjectPath = null
@@ -285,31 +289,31 @@ private fun OperationDetailsSheetCompletedWithFilesPreview() {
                 completedAt = Clock.System.now(),
                 report = createMockReport(
                     affectedPaths = listOf(
-                        Operation.Report.PathChange(
+                        Operation.Report.Paths.PathChange(
                             path = LocalPath.build("/home", "user", "documents", "file1.txt"),
-                            change = Operation.Report.PathChange.Change.REMOVED
+                            change = Operation.Report.Paths.PathChange.Change.REMOVED
                         ),
-                        Operation.Report.PathChange(
+                        Operation.Report.Paths.PathChange(
                             path = LocalPath.build("/home", "user", "documents", "file2.pdf"),
-                            change = Operation.Report.PathChange.Change.REMOVED
+                            change = Operation.Report.Paths.PathChange.Change.REMOVED
                         ),
-                        Operation.Report.PathChange(
+                        Operation.Report.Paths.PathChange(
                             path = LocalPath.build("/home", "user", "downloads", "temp"),
-                            change = Operation.Report.PathChange.Change.REMOVED
+                            change = Operation.Report.Paths.PathChange.Change.REMOVED
                         ),
-                        Operation.Report.PathChange(
+                        Operation.Report.Paths.PathChange(
                             path = LocalPath.build("/home", "user", "backup", "copy1.txt"),
-                            change = Operation.Report.PathChange.Change.ADDED
+                            change = Operation.Report.Paths.PathChange.Change.ADDED
                         ),
-                        Operation.Report.PathChange(
+                        Operation.Report.Paths.PathChange(
                             path = LocalPath.build("/home", "user", "config.xml"),
-                            change = Operation.Report.PathChange.Change.MODIFIED
+                            change = Operation.Report.Paths.PathChange.Change.MODIFIED
                         ),
-                        Operation.Report.PathChange(
+                        Operation.Report.Paths.PathChange(
                             path = LocalPath.build("/home", "user", "old", "archive.zip"),
-                            change = Operation.Report.PathChange.Change.REMOVED
+                            change = Operation.Report.Paths.PathChange.Change.REMOVED
                         ),
-                        Operation.Report.PathChange(
+                        Operation.Report.Paths.PathChange(
                             path = LocalPath.build(
                                 "/storage",
                                 "emulated",
@@ -320,11 +324,11 @@ private fun OperationDetailsSheetCompletedWithFilesPreview() {
                                 "cache",
                                 "temp.log"
                             ),
-                            change = Operation.Report.PathChange.Change.REMOVED
+                            change = Operation.Report.Paths.PathChange.Change.REMOVED
                         ),
-                        Operation.Report.PathChange(
+                        Operation.Report.Paths.PathChange(
                             path = LocalPath.build("/sdcard", "Pictures", "Screenshots", "screenshot_1.png"),
-                            change = Operation.Report.PathChange.Change.REMOVED
+                            change = Operation.Report.Paths.PathChange.Change.REMOVED
                         ),
                     )
                 )

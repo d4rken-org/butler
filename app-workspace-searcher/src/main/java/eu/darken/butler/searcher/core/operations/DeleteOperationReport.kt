@@ -4,7 +4,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.workspace.core.operations.BaseDeleteOperationReport
-import eu.darken.butler.workspace.core.operations.Operation.Report.PathChange
+import eu.darken.butler.workspace.core.operations.Operation.Report.Paths.PathChange
 
 data class DeleteOperationReport(
     override val affectedPaths: Collection<PathChange>,

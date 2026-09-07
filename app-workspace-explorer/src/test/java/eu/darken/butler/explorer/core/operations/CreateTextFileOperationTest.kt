@@ -140,7 +140,7 @@ class CreateTextFileOperationTest : BaseTest() {
         // Reporting the requested path leaves the renamed file out of the listing until a refresh.
         completed.report.affectedPaths.single().let {
             it.path shouldBe renamedPath
-            it.change shouldBe Operation.Report.PathChange.Change.ADDED
+            it.change shouldBe Operation.Report.Paths.PathChange.Change.ADDED
         }
         completed.report.subjectPath shouldBe renamedPath
         events.single().shouldBeInstanceOf<FileSystemEvent.Added>().paths.single().lookedUp shouldBe renamedPath

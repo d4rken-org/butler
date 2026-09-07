@@ -47,7 +47,7 @@ class HistoryEntryRowLabelTest : ComposeTest() {
             HistoryEntry.PathChange(
                 path = it,
                 previousPath = null,
-                change = Operation.Report.PathChange.Change.ADDED,
+                change = Operation.Report.Paths.PathChange.Change.ADDED,
             )
         },
         primaryPath = primaryPath,

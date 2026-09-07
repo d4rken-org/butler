@@ -32,9 +32,9 @@ class OperationsDisplayStateTest : BaseTest() {
     )
 
     private val now = Clock.System.now()
-    private val dummyReport = object : Operation.Report {
+    private val dummyReport = object : Operation.Report.Paths {
         override val summary = "done".toCaString()
-        override val affectedPaths = emptyList<Operation.Report.PathChange>()
+        override val affectedPaths = emptyList<Operation.Report.Paths.PathChange>()
         override val subjectPath = null
     }
 

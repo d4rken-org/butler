@@ -30,11 +30,11 @@ import kotlin.time.Instant
  */
 
 internal class TestReport(
-    override val affectedPaths: Collection<Operation.Report.PathChange>,
+    override val affectedPaths: Collection<Operation.Report.Paths.PathChange>,
     override val subjectPath: APath<*>? = null,
     override val partialErrorCount: Int = 0,
     override val summary: CaString = "report".toCaString(),
-) : Operation.Report
+) : Operation.Report.Paths
 
 internal class TestCompletedState(
     override val report: Operation.Report?,
@@ -81,9 +81,9 @@ internal fun testSnapshot(
 
 internal fun changeOf(
     path: APath<*>,
-    change: Operation.Report.PathChange.Change,
+    change: Operation.Report.Paths.PathChange.Change,
     previousPath: APath<*>? = null,
-) = Operation.Report.PathChange(
+) = Operation.Report.Paths.PathChange(
     path = path,
     change = change,
     previousPath = previousPath,

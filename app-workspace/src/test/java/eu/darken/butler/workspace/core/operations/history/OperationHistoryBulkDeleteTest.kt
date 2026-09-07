@@ -97,7 +97,7 @@ class OperationHistoryBulkDeleteTest : BaseTest() {
                     operationHistoryId = id,
                     path = "/sdcard/$id.txt",
                     previousPath = null,
-                    change = Operation.Report.PathChange.Change.ADDED.name,
+                    change = Operation.Report.Paths.PathChange.Change.ADDED.name,
                     sortIndex = 0,
                 )
             )

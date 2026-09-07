@@ -126,9 +126,9 @@ private fun OperationActionIndicatorPreview() {
             state = OperationDisplay.State.Completed(
                 summary = "Done".toCaString(),
                 completedAt = Clock.System.now(),
-                report = object : Operation.Report {
+                report = object : Operation.Report.Paths {
                     override val summary = "Done".toCaString()
-                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    override val affectedPaths = emptyList<Operation.Report.Paths.PathChange>()
                     override val subjectPath = null
                 }
             ),
@@ -138,9 +138,9 @@ private fun OperationActionIndicatorPreview() {
             state = OperationDisplay.State.Failed(
                 summary = "Error".toCaString(),
                 completedAt = Clock.System.now(),
-                report = object : Operation.Report {
+                report = object : Operation.Report.Paths {
                     override val summary = "Error".toCaString()
-                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    override val affectedPaths = emptyList<Operation.Report.Paths.PathChange>()
                     override val subjectPath = null
                 }
             ),
@@ -149,9 +149,9 @@ private fun OperationActionIndicatorPreview() {
         OperationActionIndicator(
             state = OperationDisplay.State.Cancelled(
                 completedAt = Clock.System.now(),
-                report = object : Operation.Report {
+                report = object : Operation.Report.Paths {
                     override val summary = "Cancelled".toCaString()
-                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    override val affectedPaths = emptyList<Operation.Report.Paths.PathChange>()
                     override val subjectPath = null
                 }
             ),

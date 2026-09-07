@@ -267,7 +267,7 @@ private fun HistoryEntryRowPreview() {
                 HistoryEntry.PathChange(
                     path = "/storage/emulated/0/backup/photo1.jpg",
                     previousPath = null,
-                    change = Operation.Report.PathChange.Change.ADDED,
+                    change = Operation.Report.Paths.PathChange.Change.ADDED,
                 ),
             ),
         ),
@@ -303,7 +303,7 @@ private fun HistoryEntryRowFailedPreview() {
                 HistoryEntry.PathChange(
                     path = "/sdcard/protected/notes.txt",
                     previousPath = null,
-                    change = Operation.Report.PathChange.Change.REMOVED,
+                    change = Operation.Report.Paths.PathChange.Change.REMOVED,
                 ),
             ),
         ),
@@ -339,7 +339,7 @@ private fun HistoryEntryRowTruncatedPreview() {
                 HistoryEntry.PathChange(
                     path = "/sdcard/cache/file_$it.bin",
                     previousPath = null,
-                    change = Operation.Report.PathChange.Change.REMOVED,
+                    change = Operation.Report.Paths.PathChange.Change.REMOVED,
                 )
             },
         ),
@@ -406,7 +406,7 @@ private fun HistoryEntryRowSelectedPreview() {
                 HistoryEntry.PathChange(
                     path = "/storage/emulated/0/Documents/todo.txt",
                     previousPath = "/storage/emulated/0/Documents/notes.txt",
-                    change = Operation.Report.PathChange.Change.MOVED,
+                    change = Operation.Report.Paths.PathChange.Change.MOVED,
                 ),
             ),
         ),

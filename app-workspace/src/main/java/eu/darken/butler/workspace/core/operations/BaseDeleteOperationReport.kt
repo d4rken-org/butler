@@ -9,7 +9,7 @@ import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.workspace.R
-import eu.darken.butler.workspace.core.operations.Operation.Report.PathChange
+import eu.darken.butler.workspace.core.operations.Operation.Report.Paths.PathChange
 
 abstract class BaseDeleteOperationReport(
     override val affectedPaths: Collection<PathChange>,
@@ -21,7 +21,7 @@ abstract class BaseDeleteOperationReport(
     open val bytesFreed: Long,
     override val performanceHistory: PerformanceHistory?,
     override val subjectPath: APath<*>?,
-) : Operation.Report, Operation.HasPerformanceHistory {
+) : Operation.Report.Paths, Operation.HasPerformanceHistory {
 
     override val summary: CaString = caString {
         buildString {
