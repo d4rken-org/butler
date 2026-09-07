@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.dragselect
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.needsSignIn
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
+import eu.darken.butler.explorer.ui.explorer.elements.unambiguousItemIds
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 
 /**
@@ -12,13 +13,21 @@ import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
  * A picker also skips network locations that need a sign-in: the tap and long-press routes send them
  * to the sign-in form instead of selecting them, and a drag must not be the one way to get an
  * unbrowsable location into the result.
+ *
+ * Rows whose id repeats are skipped too. A provider may serve two documents under one display name,
+ * and every id-keyed route here - resolving a key back to an item, membership, the claim test -
+ * would have to pick one of them arbitrarily. A press on such a row falls through to the ordinary
+ * long-press instead of being claimed by a gesture that cannot address it.
  */
 fun explorerDragSelectKeys(state: ExplorerWorkspaceViewModel.State): List<String> {
     val selectable = state.selectionState.selectableItems
     val isPicking = state.pickerConfig != null
-    return state.items.orEmpty()
+    val items = state.items.orEmpty()
+    val unambiguous = items.unambiguousItemIds()
+    return items
         .filter { it in selectable && it !in state.disabledItems }
         .filterNot { isPicking && it.needsSignIn() }
+        .filter { it.id in unambiguous }
         .map { it.id }
 }
 
