@@ -31,6 +31,8 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.defaultArguments
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.ui.layout.icon
 import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
 
@@ -42,8 +44,10 @@ fun WorkspaceButtonMenu(
     state: WorkspaceButtonViewModel.State?,
     currentWorkspaceId: Workspace.Id? = null,
     provider: WorkspaceButtonProvider?,
+    layoutEntryMode: WorkspacePanelMode? = null,
     onCloseAllRequested: () -> Unit,
     onOpenManager: () -> Unit,
+    onLayoutRequested: () -> Unit = {},
 ) {
     DismissWhenPaneUnfocused(expanded = expanded, onDismiss = onDismissRequest)
     DropdownMenu(
@@ -110,6 +114,21 @@ fun WorkspaceButtonMenu(
                 )
             },
         )
+        if (layoutEntryMode != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.workspace_button_menu_layout_action)) },
+                onClick = {
+                    onDismissRequest()
+                    onLayoutRequested()
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = layoutEntryMode.icon(),
+                        contentDescription = null,
+                    )
+                },
+            )
+        }
         DropdownMenuItem(
             text = { Text(stringResource(R.string.workspace_button_menu_settings_action)) },
             onClick = {
@@ -254,5 +273,22 @@ private fun WorkspaceButtonMenuNoRecentsPreview() {
         provider = FakeWorkspaceButtonProvider(),
         onCloseAllRequested = {},
         onOpenManager = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceButtonMenuWithLayoutPreview() {
+    WorkspaceButtonMenu(
+        expanded = true,
+        onDismissRequest = {},
+        state = WorkspaceButtonViewModel.State(workspaceCount = 2),
+        currentWorkspaceId = Workspace.Id(),
+        provider = FakeWorkspaceButtonProvider(),
+        layoutEntryMode = WorkspacePanelMode.DUAL_VERTICAL,
+        onCloseAllRequested = {},
+        onOpenManager = {},
+        onLayoutRequested = {},
     )
 }

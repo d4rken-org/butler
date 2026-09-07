@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.manager
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.Nav
@@ -11,9 +12,11 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 import eu.darken.butler.workspace.core.createAndFocus
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
@@ -30,6 +33,7 @@ class WorkspaceButtonViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val workspacePageManager: WorkspacePageManager,
+    private val workspaceSettings: WorkspaceSettings,
     workspaceTemplates: Set<@JvmSuppressWildcards WorkspaceTemplate>,
     usageRepo: WorkspaceUsageRepo,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Button", "VM")), WorkspaceButtonProvider {
@@ -65,6 +69,8 @@ class WorkspaceButtonViewModel @Inject constructor(
             attentionCount = remoteState.attentionCount,
             hasUnsavedChanges = remoteState.infos.any { info -> info.hasUnsavedChanges },
             recentItems = recent,
+            portraitPanelMode = remoteState.portraitPanelMode,
+            landscapePanelMode = remoteState.landscapePanelMode,
             unitsByMember = remoteState.infos.associate { info ->
                 // Only resolvable units get unit semantics. A recovery unit is keyed on its first
                 // member in list order, which is not necessarily one the others hang off, so
@@ -113,6 +119,15 @@ class WorkspaceButtonViewModel @Inject constructor(
         }
     }
 
+    override fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode) = launch {
+        log(tag) { "setPanelMode(landscape=$landscape, $mode)" }
+        if (landscape) {
+            workspaceSettings.layoutModeLandscape.value(mode)
+        } else {
+            workspaceSettings.layoutModePortrait.value(mode)
+        }
+    }
+
     override fun navToWorkspaceManager() {
         log(tag) { "showWorkspaceManager()" }
         workspacePageManager.showManagerOverlay()
@@ -134,6 +149,8 @@ class WorkspaceButtonViewModel @Inject constructor(
         val attentionCount: Int = 0,
         val hasUnsavedChanges: Boolean = false,
         val recentItems: List<QuickCreateItem> = emptyList(),
+        val portraitPanelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,
+        val landscapePanelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,
         /**
          * The ownership unit each open workspace belongs to, keyed by member. The menu's close acts
          * on whole units: a tab and the overlays stacked on it are one thing to the user, so it has

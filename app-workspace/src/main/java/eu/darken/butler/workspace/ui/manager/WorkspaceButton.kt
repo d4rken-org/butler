@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.manager
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +32,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -48,6 +50,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults.sizeCompact
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults.sizeDefault
 
@@ -59,14 +62,19 @@ fun WorkspaceButton(
     containerColor: Color? = null,
     buttonSize: Dp = sizeDefault,
     currentWorkspaceId: Workspace.Id? = null,
+    showLayoutEntry: Boolean = false,
     mascotVariant: ButlerMascotMode = ButlerMascotMode.Animated.RandomCycling(),
 ) {
     val provider = LocalWorkspaceButtonProvider.current
     val revealOrigin = LocalWorkspaceRevealOrigin.current
     val state = provider?.state?.collectAsState(initial = null)?.value
 
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val currentPanelMode = if (isLandscape) state?.landscapePanelMode else state?.portraitPanelMode
+
     var expanded by remember { mutableStateOf(false) }
     var showCloseAllDialog by remember { mutableStateOf(false) }
+    var showLayoutDialog by remember { mutableStateOf(false) }
     // The button, not the surrounding box: the badges overflow that box, so its centre is offset
     // from the mascot the manager should appear to grow out of.
     var buttonBounds by remember { mutableStateOf(Rect.Zero) }
@@ -110,8 +118,10 @@ fun WorkspaceButton(
             state = state,
             currentWorkspaceId = currentWorkspaceId,
             provider = provider,
+            layoutEntryMode = if (showLayoutEntry) currentPanelMode ?: WorkspacePanelMode.AUTO else null,
             onCloseAllRequested = { showCloseAllDialog = true },
             onOpenManager = openManager,
+            onLayoutRequested = { showLayoutDialog = true },
         )
 
         // Close all confirmation dialog
@@ -123,6 +133,16 @@ fun WorkspaceButton(
             onConfirm = {
                 showCloseAllDialog = false
                 provider?.executeWorkspaceAction(WorkspaceAction.CloseAll)
+            }
+        )
+
+        WorkspaceLayoutDialog(
+            visible = showLayoutDialog,
+            currentMode = currentPanelMode ?: WorkspacePanelMode.AUTO,
+            onDismiss = { showLayoutDialog = false },
+            onSelect = { mode ->
+                showLayoutDialog = false
+                provider?.setPanelMode(isLandscape, mode)
             }
         )
 

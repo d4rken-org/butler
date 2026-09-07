@@ -8,6 +8,8 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -22,11 +24,13 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.defaultArguments
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Test
+import org.robolectric.annotation.Config
 import testhelpers.ComposeTest
 
 class WorkspaceButtonTest : ComposeTest() {
@@ -46,6 +50,7 @@ class WorkspaceButtonTest : ComposeTest() {
     ) : WorkspaceButtonProvider {
         val created = mutableListOf<QuickCreateItem>()
         val actions = mutableListOf<WorkspaceAction>()
+        val panelModes = mutableListOf<Pair<Boolean, WorkspacePanelMode>>()
         var templatesCreated = 0
         var managerNavigations = 0
         var settingsNavigations = 0
@@ -56,6 +61,9 @@ class WorkspaceButtonTest : ComposeTest() {
         override fun navToUpgradeButler() {}
         override fun createWorkspace(item: QuickCreateItem) { created += item }
         override fun createTemplatesWorkspace() { templatesCreated++ }
+        override fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode) {
+            panelModes += landscape to mode
+        }
     }
 
     private fun openMenu() =
@@ -235,6 +243,7 @@ class WorkspaceButtonTest : ComposeTest() {
     private fun setContent(
         provider: RecordingButtonProvider,
         currentWorkspaceId: Workspace.Id? = null,
+        showLayoutEntry: Boolean = false,
     ) {
         composeTestRule.setContent {
             PreviewWrapper {
@@ -242,6 +251,7 @@ class WorkspaceButtonTest : ComposeTest() {
                     WorkspaceButton(
                         mascotVariant = testMascotVariant,
                         currentWorkspaceId = currentWorkspaceId,
+                        showLayoutEntry = showLayoutEntry,
                     )
                 }
             }
@@ -445,5 +455,73 @@ class WorkspaceButtonTest : ComposeTest() {
             .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
 
         composeTestRule.onNodeWithContentDescription("Butler mascot").assertDoesNotExist()
+    }
+
+    private fun openLayoutDialog(provider: RecordingButtonProvider) {
+        setContent(provider, showLayoutEntry = true)
+        openMenu()
+        composeTestRule.onNodeWithText("Layout").performClick()
+    }
+
+    @Test
+    fun `the layout entry is absent unless the button sits in the rail`() {
+        val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
+        setContent(provider)
+
+        openMenu()
+
+        composeTestRule.onNodeWithText("Layout").assertDoesNotExist()
+    }
+
+    @Test
+    fun `the layout entry opens a dialog listing Automatic and the six geometries`() {
+        openLayoutDialog(RecordingButtonProvider(WorkspaceButtonViewModel.State()))
+
+        composeTestRule.onNodeWithText("Automatic").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Single with tab rail").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Dual vertical").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Dual horizontal").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Triple sidebar left").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Triple sidebar right").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Quad grid").assertIsDisplayed()
+
+        // The surfaces Settings offers are not geometries, so they have no row here
+        composeTestRule.onNodeWithText("Classic").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Adaptive").assertDoesNotExist()
+    }
+
+    @Test
+    fun `picking a geometry writes the portrait setting in portrait`() {
+        val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
+        openLayoutDialog(provider)
+
+        composeTestRule.onNodeWithText("Dual horizontal").performClick()
+
+        provider.panelModes shouldBe listOf(false to WorkspacePanelMode.DUAL_HORIZONTAL)
+        composeTestRule.onNodeWithText("Dual horizontal").assertDoesNotExist()
+    }
+
+    @Test
+    @Config(qualifiers = "land")
+    fun `picking a geometry writes the landscape setting in landscape`() {
+        val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
+        openLayoutDialog(provider)
+
+        composeTestRule.onNodeWithText("Dual horizontal").performClick()
+
+        provider.panelModes shouldBe listOf(true to WorkspacePanelMode.DUAL_HORIZONTAL)
+    }
+
+    /** The selectable row merges its descendants, so the label resolves to the row itself. */
+    @Test
+    fun `the stored geometry is marked`() {
+        openLayoutDialog(
+            RecordingButtonProvider(
+                WorkspaceButtonViewModel.State(portraitPanelMode = WorkspacePanelMode.DUAL_VERTICAL)
+            )
+        )
+
+        composeTestRule.onNodeWithText("Dual vertical").assertIsSelected()
+        composeTestRule.onNodeWithText("Automatic").assertIsNotSelected()
     }
 }

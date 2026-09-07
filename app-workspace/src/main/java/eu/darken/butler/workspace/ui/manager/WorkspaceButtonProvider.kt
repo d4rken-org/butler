@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.manager
 
 import androidx.compose.runtime.staticCompositionLocalOf
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
 import kotlinx.coroutines.flow.Flow
 
@@ -12,6 +13,9 @@ interface WorkspaceButtonProvider : WorkspaceActionHandler {
 
     /** Opens the Templates picker as a new workspace and switches to it. */
     fun createTemplatesWorkspace()
+
+    /** Persists [mode] as the layout for the given orientation; a fake or absent provider no-ops. */
+    fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode)
 }
 
 val LocalWorkspaceButtonProvider = staticCompositionLocalOf<WorkspaceButtonProvider?> { null }

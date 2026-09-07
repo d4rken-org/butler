@@ -5,11 +5,14 @@ import androidx.compose.material.icons.twotone.Add
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.defaultArguments
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
@@ -66,10 +69,12 @@ class WorkspaceButtonViewModelTest : BaseTest() {
         templates: Set<WorkspaceTemplate> = emptySet(),
         ranked: Flow<List<Workspace.Type>> = flowOf(emptyList()),
         dispatcher: CoroutineDispatcher? = null,
+        workspaceSettings: WorkspaceSettings = mockk(relaxed = true),
     ) = WorkspaceButtonViewModel(
         dispatchers = TestDispatcherProvider(dispatcher),
         workspaceRemote = workspaceRemote,
         workspacePageManager = pageManager,
+        workspaceSettings = workspaceSettings,
         workspaceTemplates = templates,
         usageRepo = mockk<WorkspaceUsageRepo>().apply {
             every { rankedTypes } returns ranked
@@ -304,5 +309,64 @@ class WorkspaceButtonViewModelTest : BaseTest() {
         ranked.emit(listOf(Workspace.Type.EXPLORER))
 
         states.filterNotNull().last().recentItems.map { it.type } shouldBe listOf(Workspace.Type.EXPLORER)
+    }
+
+    private class PanelModeSettings {
+        val portrait = mockk<DataStoreValue<WorkspacePanelMode>>(relaxed = true)
+        val landscape = mockk<DataStoreValue<WorkspacePanelMode>>(relaxed = true)
+        val settings = mockk<WorkspaceSettings>(relaxed = true).apply {
+            every { layoutModePortrait } returns portrait
+            every { layoutModeLandscape } returns landscape
+        }
+    }
+
+    @Test
+    fun `setPanelMode writes only the portrait preference in portrait`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val settings = PanelModeSettings()
+            val vm = createVM(
+                dispatcher = UnconfinedTestDispatcher(testScheduler),
+                workspaceSettings = settings.settings,
+            )
+
+            vm.setPanelMode(landscape = false, mode = WorkspacePanelMode.DUAL_VERTICAL)
+
+            val fn = slot<(WorkspacePanelMode) -> WorkspacePanelMode?>()
+            coVerify { settings.portrait.update(capture(fn)) }
+            fn.captured(WorkspacePanelMode.AUTO) shouldBe WorkspacePanelMode.DUAL_VERTICAL
+            coVerify(exactly = 0) { settings.landscape.update(any()) }
+        }
+
+    @Test
+    fun `setPanelMode writes only the landscape preference in landscape`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val settings = PanelModeSettings()
+            val vm = createVM(
+                dispatcher = UnconfinedTestDispatcher(testScheduler),
+                workspaceSettings = settings.settings,
+            )
+
+            vm.setPanelMode(landscape = true, mode = WorkspacePanelMode.DUAL_VERTICAL)
+
+            val fn = slot<(WorkspacePanelMode) -> WorkspacePanelMode?>()
+            coVerify { settings.landscape.update(capture(fn)) }
+            fn.captured(WorkspacePanelMode.AUTO) shouldBe WorkspacePanelMode.DUAL_VERTICAL
+            coVerify(exactly = 0) { settings.portrait.update(any()) }
+        }
+
+    @Test
+    fun `state carries both stored panel modes`() = runTest(UnconfinedTestDispatcher()) {
+        every { workspaceRemote.state } returns flowOf(
+            WorkspaceRemote.State(
+                portraitPanelMode = WorkspacePanelMode.DUAL_VERTICAL,
+                landscapePanelMode = WorkspacePanelMode.QUAD_GRID,
+            )
+        )
+        val states = mutableListOf<WorkspaceButtonViewModel.State?>()
+        createVM().state.onEach { states += it }.launchIn(backgroundScope)
+
+        val state = states.filterNotNull().last()
+        state.portraitPanelMode shouldBe WorkspacePanelMode.DUAL_VERTICAL
+        state.landscapePanelMode shouldBe WorkspacePanelMode.QUAD_GRID
     }
 }

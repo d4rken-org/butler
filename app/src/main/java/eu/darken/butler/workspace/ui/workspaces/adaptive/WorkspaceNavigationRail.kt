@@ -341,6 +341,7 @@ fun WorkspaceNavigationRail(
                 RailPlacement.BOTTOM -> Modifier.padding(horizontal = RailSectionPadding)
             }.guidedTourTarget(WorkspaceTourTargets.BUTLER_BUTTON),
             currentWorkspaceId = focusedId,
+            showLayoutEntry = true,
         )
 
         RailSectionDivider(placement = placement)
