@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -42,6 +43,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.common.CutoutMode
+import eu.darken.butler.workspace.ui.common.WorkspaceToolbarDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -108,7 +110,9 @@ fun AppDetailsToolbarCard(
     )
 
     CutoutCard(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .requiredHeightIn(min = WorkspaceToolbarDefaults.animatedMinHeight(isCollapsed)),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
@@ -116,7 +120,7 @@ fun AppDetailsToolbarCard(
         // overlays get it too - the tab underneath stays swipeable and the manager renders the
         // overlay as the face of its owning tab's card, so the switcher is neither unreachable nor
         // meaningless there.
-        cutoutContent = if (design.isSingle) {
+        cutoutContent = if (!design.hasNavigationRail) {
             {
                 WorkspaceButton(
                     buttonSize = if (isCollapsed) WorkspaceButtonDefaults.sizeCompact else WorkspaceButtonDefaults.sizeDefault,

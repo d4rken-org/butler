@@ -344,7 +344,12 @@ class AppsWorkspace @AssistedInject constructor(
                 }
             }
             if (failures.isNotEmpty()) {
-                throw PkgOpsException("Failed to uninstall ${failures.size}/${apps.size} apps", failures.first().second)
+                // The first failure's text is appended because only the top-level message is
+                // rendered - a bare summary would not say why anything failed.
+                throw PkgOpsException(
+                    "Failed to uninstall ${failures.size}/${apps.size} apps: ${failures.first().second.message}",
+                    failures.first().second,
+                )
             }
         } finally {
             appsEngine.refresh()
@@ -365,7 +370,10 @@ class AppsWorkspace @AssistedInject constructor(
                 }
             }
             if (failures.isNotEmpty()) {
-                throw PkgOpsException("Failed to clear data for ${failures.size}/${apps.size} apps", failures.first().second)
+                throw PkgOpsException(
+                    "Failed to clear data for ${failures.size}/${apps.size} apps: ${failures.first().second.message}",
+                    failures.first().second,
+                )
             }
         } finally {
             appSizeCache.invalidate(apps.map { it.pkg.installId })

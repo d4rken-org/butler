@@ -81,7 +81,7 @@ class IssueHandler @Inject constructor(
             deferred.complete(resolution)
             true
         } else {
-            log(WARN) { "Attempted to resolve non-existent issue for operation: $id" }
+            log(TAG, WARN) { "Attempted to resolve non-existent issue for operation: $id" }
             false
         }
     }

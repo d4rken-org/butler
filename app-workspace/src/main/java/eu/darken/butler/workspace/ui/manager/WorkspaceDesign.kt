@@ -4,10 +4,19 @@ data class WorkspaceDesign(
     val layout: Layout = Layout.SINGLE,
     val paneEdges: PaneEdges = PaneEdges.All,
     val railPlacement: RailPlacement = RailPlacement.START,
+    /**
+     * Whether the window composes the navigation rail. Always true for multi-pane layouts, a single
+     * pane opts into it via the single-with-rail panel mode. Chrome a page supplies only when there
+     * is no rail gates on this, never on the layout.
+     */
+    val hasNavigationRail: Boolean = layout != Layout.SINGLE,
 ) {
 
-    val isSingle: Boolean
-        get() = layout == Layout.SINGLE
+    init {
+        require(hasNavigationRail || layout == Layout.SINGLE) {
+            "Multi-pane layouts always compose the navigation rail: $layout"
+        }
+    }
 
     val maxPanes = when (layout) {
         Layout.SINGLE -> 1
@@ -131,7 +140,7 @@ data class WorkspaceDesign(
 
     /**
      * Which window edge the navigation rail occupies. A property of the window rather than of the
-     * layout: a single-pane window carries one too, even though it composes no rail.
+     * layout: a single-pane window carries one too, even when it composes no rail.
      */
     enum class RailPlacement {
         START,

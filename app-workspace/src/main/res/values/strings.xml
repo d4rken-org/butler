@@ -91,6 +91,7 @@
     <string name="workspace_expand_less_action">Less</string>
 
     <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Tabs and workspaces</string>
     <string name="workspace_button_menu_new_workspace_format">New %1$s</string>
     <string name="workspace_button_menu_new_tab_action">New tab</string>
     <string name="workspace_button_menu_category_recent">Recently</string>
@@ -352,6 +353,8 @@
     <string name="workspace_settings_layout_mode_auto_desc">Automatically adapt layout based on screen size.</string>
     <string name="workspace_settings_layout_mode_single">Single</string>
     <string name="workspace_settings_layout_mode_single_desc">One tab pane takes the full screen.</string>
+    <string name="workspace_settings_layout_mode_single_rail">Single with tab rail</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">One tab pane plus the tab rail of the multi-pane layouts. Switch tabs from the rail instead of by swiping; the rail takes a strip of the screen.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Dual vertical</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Two panes side-by-side (left/right).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Dual horizontal</string>

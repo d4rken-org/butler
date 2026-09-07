@@ -4,22 +4,34 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.text.input.TextFieldValue
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.ui.common.WorkspaceToolbarDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import io.kotest.matchers.shouldBe
 import org.junit.Test
+import org.robolectric.annotation.GraphicsMode
 import testhelpers.ComposeTest
 
+// Real font metrics: the default graphics mode measures every line of text at 36dp (see
+// ComposeTest), which is taller than the height floor the collapsed case is about.
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class AppDetailsToolbarCardTest : ComposeTest() {
 
     // Every case renders multi-pane on purpose: that is the branch without a workspace button, and
     // the switcher's animated mascot never idles under Robolectric.
     private val multiPane = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL)
+
+    private val cardTag = "card"
 
     @Test
     fun `toolbar shows app name but not package name`() {
@@ -144,6 +156,29 @@ class AppDetailsToolbarCardTest : ComposeTest() {
         composeTestRule.onNodeWithText("Search name or package").assertIsDisplayed()
         composeTestRule.onNodeWithText("Chrome").assertDoesNotExist()
         composeTestRule.onNodeWithContentDescription("Close").assertIsDisplayed()
+    }
+
+    @Test
+    fun `the collapsed toolbar is as tall as the other workspaces' toolbars`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                // The overview: without the back and search controls nothing inside the card
+                // reaches the floor on its own, so the height comes from the floor.
+                AppDetailsToolbarCard(
+                    modifier = Modifier.testTag(cardTag),
+                    app = AppsMockDataProvider.Presets.chrome,
+                    design = multiPane,
+                    collapsedFraction = 1f,
+                    onBackClick = null,
+                    searchActive = false,
+                    onSearchToggle = null,
+                )
+            }
+        }
+
+        val card = composeTestRule.onNodeWithTag(cardTag).getUnclippedBoundsInRoot()
+
+        (card.bottom - card.top) shouldBe WorkspaceToolbarDefaults.MinHeightCollapsed
     }
 
     @Test

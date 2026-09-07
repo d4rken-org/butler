@@ -204,7 +204,7 @@ fun SearcherWorkspacePage(
 
     // Dragging results to another pane needs a second pane to drop them on. The payload comes from
     // the state this composition already holds, so a drag can't lose items to an in-flight update.
-    val dragsToOtherPanes = !design.isSingle
+    val dragsToOtherPanes = design.maxPanes > 1
 
     // Handle back button for selection mode - clear selection first
     WorkspaceBackHandler(enabled = currentState.selectionState.isSelectionMode) {

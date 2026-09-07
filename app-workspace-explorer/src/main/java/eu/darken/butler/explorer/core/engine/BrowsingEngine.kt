@@ -552,7 +552,8 @@ class BrowsingEngine @AssistedInject constructor(
  * [previous] are the same variant in practice - a mismatch just skips the carry-over.
  */
 internal fun ExplorerLocation.retainContentFrom(previous: ExplorerLocation): ExplorerLocation {
-    if (!isLoading || previous.items == null || hasOwnListing) return this
+    if (!isLoading || previous.items == null) return this
+    if (hasOwnListing) return retainExtendedDataFrom(previous)
     return when (this) {
         is ExplorerLocation.Home -> (previous as? ExplorerLocation.Home)
             ?.let { copy(items = it.items, info = it.info) }
@@ -591,6 +592,21 @@ internal fun ExplorerLocation.withoutProgress(): ExplorerLocation = when (this) 
  */
 private val ExplorerLocation.hasOwnListing: Boolean
     get() = items?.none { it is ExplorerItem.Peek } == true
+
+/**
+ * A reload's first listing carries only the basic lookups; child counts, ownership and permissions
+ * arrive with the extended pass. A row whose lookup did not change keeps its previous row until
+ * then, so a refresh does not blank those fields for the length of the extended pass.
+ */
+private fun ExplorerLocation.retainExtendedDataFrom(previous: ExplorerLocation): ExplorerLocation {
+    if (this !is ExplorerLocation.Directory || previous !is ExplorerLocation.Directory) return this
+    val previousLookups = previous.items.orEmpty().filterIsInstance<ExplorerItem.Lookup>().associateBy { it.id }
+    val retained = items.orEmpty().map { item ->
+        if (item !is ExplorerItem.Lookup) return@map item
+        previousLookups[item.id]?.takeIf { it.lookup == item.lookup } ?: item
+    }
+    return copy(items = retained)
+}
 
 /**
  * Recomputes the directory file/folder counts from the given items so the stat-bar stays in sync

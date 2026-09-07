@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import kotlin.time.Instant
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -34,8 +35,12 @@ import testhelpers.coroutine.TestDispatcherProvider
 class SaverWorkspaceSaveIdempotencyTest {
 
     private val operationsManager = mockk<OperationsManager> {
-        coEvery { submit(any()) } returns Operation.Id()
-        every { operations } returns MutableStateFlow<List<ManagedOperation>>(emptyList())
+        coEvery { submitManaged(any()) } returns mockk<ManagedOperation> {
+            every { id } returns Operation.Id()
+            every { state } returns MutableStateFlow(
+                Operation.State.Queued(startedAt = Instant.fromEpochSeconds(0))
+            )
+        }
     }
 
     private fun makeWorkspace(): SaverWorkspace {
@@ -79,7 +84,7 @@ class SaverWorkspaceSaveIdempotencyTest {
         first.join()
         second.join()
 
-        coVerify(exactly = 1) { operationsManager.submit(any()) }
+        coVerify(exactly = 1) { operationsManager.submitManaged(any()) }
     }
 
     @Test
@@ -90,6 +95,6 @@ class SaverWorkspaceSaveIdempotencyTest {
         // The first save left state in Saving (no operation completion emitted), so this is dropped.
         workspace.save()
 
-        coVerify(exactly = 1) { operationsManager.submit(any()) }
+        coVerify(exactly = 1) { operationsManager.submitManaged(any()) }
     }
 }

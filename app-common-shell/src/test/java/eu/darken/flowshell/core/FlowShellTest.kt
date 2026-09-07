@@ -2,6 +2,7 @@ package eu.darken.flowshell.core
 
 
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.flowshell.core.process.FlowProcess
 import io.kotest.assertions.throwables.shouldThrow
@@ -156,13 +157,13 @@ class FlowShellTest : BaseTest() {
             session.output.takeWhile { it != "done" }.collect { line ->
                 outputData.append(line)
             }
-            log { "Job1 finished" }
+            log(TAG) { "Job1 finished" }
         }
         val job2 = launch(Dispatchers.IO) {
             session.error.takeWhile { it != "done" }.collect { line ->
                 errorData.append(line)
             }
-            log { "Job2 finished" }
+            log(TAG) { "Job2 finished" }
         }
 
         listOf(job1, job2).joinAll()
@@ -251,3 +252,5 @@ class FlowShellTest : BaseTest() {
         }
     }
 }
+
+private val TAG = logTag("Test", "FlowShellTest")

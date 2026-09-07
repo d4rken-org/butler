@@ -46,6 +46,15 @@
     - Per-database `*SchemaIdentityTest` pins the `identityHash` of every exported version, so a version bump also means adding the new version's hash to the test's expected map.
     - A hash MISMATCH on an already-exported version is fixed by a version bump plus a migration, never by updating the expected hash — the sole exception is a version that has genuinely never shipped. A missing or malformed schema asset is a broken asset, not a schema change.
 
+## R8 obfuscation
+
+- The gplay flavor is obfuscated, foss is not: `-dontobfuscate` lives in `app/proguard-foss.pro`, wired through the foss flavor's `proguardFiles()` in `app/build.gradle.kts`. Everything under `app/proguard/*.pro` applies to both flavors, so a flavor-specific rule must not go there.
+- Never add a `SourceFile` keep or `-renamesourcefileattribute` rule. R8's default writes `r8-map-id-<pg_map_id>` into the SourceFile attribute, and `ErrorReportPayload.extractMapId` lifts that id out of every error report; a keep rule replaces it and nulls out `mapId`.
+- Pinning names: `@Keep` on our own classes resolved by name, module `consumer-rules.pro` for generated code that cannot carry an annotation (AIDL `Stub`/`Proxy`), `-keep,allowshrinking,allowoptimization class * extends X` for hierarchies whose names are displayed (see `app-common/consumer-rules.pro`; `-keepnames` would also pin optimization). `-keepclassmembers` keeps members but does NOT pin the class name.
+- Never derive a log tag or a persisted identifier from a `::class` name — it becomes a single letter after renaming. The receiver-form `log { }` overload was removed for exactly that reason; use `log(TAG, …)` with a `logTag(…)` constant.
+- After touching any rule file, run `./gradlew :app:assembleGplayRelease :app:assembleFossRelease :app:bundleGplayRelease` and then `tools/check-obfuscation.sh`.
+- The mapping for a Play release ships inside the AAB and is downloadable from the Play Console's App bundle explorer.
+
 ## Logging
 
 Butler uses a custom logging system (`Logging.kt`) for comprehensive debugging and monitoring.

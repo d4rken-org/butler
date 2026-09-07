@@ -2,6 +2,7 @@ package eu.darken.flowshell.core.process
 
 
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.flowshell.core.FlowShellDebug
 import io.kotest.assertions.throwables.shouldThrow
@@ -70,9 +71,9 @@ class FlowProcessTest : BaseTest() {
             launch = { gatedProcess() },
             kill = {
                 killedWhileAlive = it.isAlive
-                log { "Killing process" }
+                log(TAG) { "Killing process" }
                 it.destroyForcibly()
-                log { "Process killed" }
+                log(TAG) { "Process killed" }
             }
         )
 
@@ -80,7 +81,7 @@ class FlowProcessTest : BaseTest() {
         val collector = launch(Dispatchers.IO) {
             flow.session.collect {
                 sessionRef.complete(it)
-                log { "Waiting for exit code" }
+                log(TAG) { "Waiting for exit code" }
                 it.waitFor() shouldBe FlowProcess.ExitCode.OK
             }
         }
@@ -124,7 +125,7 @@ class FlowProcessTest : BaseTest() {
         writer.write("exit\n")
         writer.flush()
 
-        log { "Waiting for exit code" }
+        log(TAG) { "Waiting for exit code" }
         session!!.waitFor() shouldBe FlowProcess.ExitCode.OK
     }
 
@@ -166,18 +167,18 @@ class FlowProcessTest : BaseTest() {
 
         val flow = FlowProcess(
             launch = {
-                log { "Launching process" }
-                gatedProcess().also { log { "Process launched" } }
+                log(TAG) { "Launching process" }
+                gatedProcess().also { log(TAG) { "Process launched" } }
             },
             kill = {
-                log { "Killing process" }
+                log(TAG) { "Killing process" }
                 killedWhileAlive = it.isAlive
                 it.destroyForcibly()
-                log { "Process killed" }
+                log(TAG) { "Process killed" }
             }
         )
 
-        log { "Waiting for exit code" }
+        log(TAG) { "Waiting for exit code" }
         // The process never exits on its own, so an exit code here can only come from the kill
         // that the closing scope triggers
         flow.session.first().exitCode.filterNotNull().first() shouldBe FlowProcess.ExitCode(137)
@@ -188,22 +189,22 @@ class FlowProcessTest : BaseTest() {
     @Test fun `exception on close`() = runTest {
         val flow = FlowProcess(
             launch = {
-                log { "Launching process" }
+                log(TAG) { "Launching process" }
                 ProcessBuilder("sleep", "1").start().also {
-                    log { "Process launched" }
+                    log(TAG) { "Process launched" }
                 }
             },
             kill = {
-                log { "Killing process" }
+                log(TAG) { "Killing process" }
                 throw IOException("test")
             }
         )
 
-        log { "Waiting for throw" }
+        log(TAG) { "Waiting for throw" }
         shouldThrow<IOException> {
             flow.session.first()
         }
-        log { "We threw :)" }
+        log(TAG) { "We threw :)" }
     }
 
     @Test fun `exception on open`() = runTest {
@@ -213,7 +214,7 @@ class FlowProcessTest : BaseTest() {
             },
         )
 
-        log { "Waiting for throw" }
+        log(TAG) { "Waiting for throw" }
         shouldThrow<IOException> {
             flow.session.first()
         }
@@ -229,13 +230,13 @@ class FlowProcessTest : BaseTest() {
             },
         )
 
-        log { "Waiting for exit code (launch #1)" }
+        log(TAG) { "Waiting for exit code (launch #1)" }
         flow.session.collect {
             it.waitFor() shouldBe FlowProcess.ExitCode.OK
         }
         startCount shouldBe 1
 
-        log { "Waiting for exit code (launch #2)" }
+        log(TAG) { "Waiting for exit code (launch #2)" }
         flow.session.collect {
             it.waitFor() shouldBe FlowProcess.ExitCode.OK
         }
@@ -253,11 +254,11 @@ class FlowProcessTest : BaseTest() {
         )
 
         // Immediately ends the scope after the emission
-        log { "Starting and killing (launch #1)" }
+        log(TAG) { "Starting and killing (launch #1)" }
         flow.session.first().exitCode.first() shouldNotBe FlowProcess.ExitCode.OK
         startCount shouldBe 1
 
-        log { "Waiting for exit code (launch #2)" }
+        log(TAG) { "Waiting for exit code (launch #2)" }
         flow.session.collect {
             it.waitFor() shouldBe FlowProcess.ExitCode.OK
         }
@@ -311,3 +312,5 @@ class FlowProcessTest : BaseTest() {
         killed shouldBe true
     }
 }
+
+private val TAG = logTag("Test", "FlowProcessTest")

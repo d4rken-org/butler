@@ -189,7 +189,7 @@ fun DeveloperWorkspacePage(
                 .fillMaxWidth()
                 .padding(top = statusBarInset + 12.dp, bottom = 12.dp)
                 .padding(horizontal = 16.dp),
-            cutoutContent = if (design.isSingle) {
+            cutoutContent = if (!design.hasNavigationRail) {
                 {
                     WorkspaceButton(
                         buttonSize = WorkspaceButtonDefaults.sizeCompact,

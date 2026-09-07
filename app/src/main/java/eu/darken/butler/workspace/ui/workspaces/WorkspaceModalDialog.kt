@@ -177,7 +177,7 @@ fun WorkspaceModalContent(
                     // The state placeholders offer a tab-manager button on single-pane layouts, which
                     // is meaningless inside a modal window: it would open the manager behind the
                     // dialog. Suppressed by taking the provider away instead of by faking
-                    // design.isSingle, which would perturb layout and insets.
+                    // design.hasNavigationRail, which would perturb layout and insets.
                     CompositionLocalProvider(LocalWorkspaceButtonProvider provides null) {
                         WorkspaceMapper(
                             info = workspace.asPaneInfo(),

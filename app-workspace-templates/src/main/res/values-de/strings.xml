@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Neu</string>
+    <string name="workspace_templates_choose_title">Neuer Tab</string>
+    <string name="workspace_templates_choose_subtitle">Wähle einen Tab-Typ aus. Wie kann ich helfen?</string>
+    <string name="workspace_templates_name_tab_action">Diesen Tab benennen</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Werkzeug auswählen</string>
+    <string name="tour_templates_picker_body">Das ist die Tab-Auswahl. Wähle aus, wofür dieser Tab dienen soll. Deine Auswahl macht aus diesem Tab das entsprechende Werkzeug.</string>
+    <string name="tour_templates_butler_button_title">Hier sind Deine Tabs</string>
+    <string name="tour_templates_butler_button_body">Tippe auf die Butler-Schaltfläche, um das Tab-Menü zu öffnen: Erstelle einen neuen Tab, schließe den aktuellen oder öffne die vollständige Tab-Verwaltung. Halte die Schaltfläche gedrückt, um direkt zur Tab-Verwaltung zu springen.</string>
+</resources>

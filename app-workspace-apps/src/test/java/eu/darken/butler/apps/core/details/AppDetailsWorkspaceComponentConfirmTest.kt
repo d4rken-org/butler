@@ -61,7 +61,7 @@ class AppDetailsWorkspaceComponentConfirmTest : BaseTest() {
         workspace = mockk<AppDetailsWorkspace>(relaxed = true).apply {
             every { state } returns flowOf(
                 AppDetailsWorkspace.State(
-                    app = appInfo,
+                    appState = AppInfoState.Ready(appInfo),
                     selectedTab = DetailTab.COMPONENTS,
                     componentToggleState = ComponentToggleState.AVAILABLE,
                 )

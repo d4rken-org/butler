@@ -215,6 +215,15 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
         prepareJob.cancel()
     }
 
+    /** The single-with-rail layout renders through the adaptive route, which tags its own panes. */
+    @Test
+    fun `the create-tab anchor exists in the single-with-rail layout`() {
+        val harness = setScreen(state(panelMode = WorkspacePanelMode.SINGLE_RAIL))
+
+        harness.tourAccess.started shouldBe listOf(FirstTabTour.id)
+        harness.registry.has(FirstTabTour.CREATE_TAB_TARGET) shouldBe true
+    }
+
     @Test
     fun `the create-tab anchor survives a single to dual layout change`() {
         // A layout-specific target id would strand a running tour on rotation or a panel-mode

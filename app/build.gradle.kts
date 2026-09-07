@@ -61,6 +61,7 @@ android {
                 includeInApk = false
                 includeInBundle = false
             }
+            proguardFiles("proguard-foss.pro")
         }
         create("gplay") {
             dimension = "version"

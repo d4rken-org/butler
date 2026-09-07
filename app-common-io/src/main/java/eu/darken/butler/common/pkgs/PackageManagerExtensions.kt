@@ -10,6 +10,7 @@ import android.os.RemoteException
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.user.UserHandle2
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -74,7 +75,7 @@ fun PackageManager.getInstalledPackagesAsUser(
             .call(this, flags.toInt(), userHandle.handleId) as List<PackageInfo>
     }
 } catch (e: Exception) {
-    log(ERROR) { e.asLog() }
+    log(TAG, ERROR) { e.asLog() }
     throw e
 }
 
@@ -91,7 +92,7 @@ fun PackageManager.toggleSelfComponent(
     component: ComponentName,
     enabled: Boolean,
 ) {
-    log { "toggleSelfComponent($component,$enabled)" }
+    log(TAG) { "toggleSelfComponent($component,$enabled)" }
     setComponentEnabledSetting(
         component,
         when {
@@ -101,3 +102,5 @@ fun PackageManager.toggleSelfComponent(
         DONT_KILL_APP
     )
 }
+
+private val TAG = logTag("PackageManager", "Extensions")

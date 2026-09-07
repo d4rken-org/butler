@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
+import eu.darken.butler.apps.core.details.AppInfoState
 import eu.darken.butler.apps.core.details.components.ComponentEnabledState
 import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.apps.core.details.components.ComponentKind
@@ -61,7 +62,7 @@ class AppDetailsComponentsModalityTest : ComposeTest() {
                         AppDetailsWorkspacePage(
                             design = WorkspaceDesign(),
                             state = AppDetailsWorkspace.State(
-                                app = AppsMockDataProvider.Presets.chrome,
+                                appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
                                 selectedTab = DetailTab.COMPONENTS,
                                 // Stacked on its caller, as App Details is on a phone. Also keeps
                                 // the workspace button out, whose mascot never idles here.

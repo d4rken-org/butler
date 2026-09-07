@@ -173,15 +173,17 @@ class PkgOpsHost @Inject constructor(
 
     override fun uninstallPackage(packageName: String, handleId: Int): Boolean = try {
         log(TAG, VERBOSE) { "uninstallPackage($packageName, $handleId)..." }
+        val cmd = "pm uninstall --user $handleId $packageName"
         val result = runBlocking {
             sharedShell.useRes {
-                FlowCmd("pm uninstall --user $handleId $packageName").execute(it)
+                FlowCmd(cmd).execute(it)
             }
         }
         if (result.exitCode != FlowProcess.ExitCode.OK) {
             log(TAG, WARN) { "uninstallPackage($packageName, $handleId) failed: output=${result.output}, errors=${result.errors}" }
+            throw IllegalStateException(shellFailure(cmd, result))
         }
-        result.exitCode == FlowProcess.ExitCode.OK
+        true
     } catch (e: Exception) {
         log(TAG, ERROR) { "uninstallPackage($packageName, $handleId) failed: ${e.asLog()}" }
         throw e.wrapToPropagate()
@@ -189,19 +191,26 @@ class PkgOpsHost @Inject constructor(
 
     override fun clearData(packageName: String, handleId: Int): Boolean = try {
         log(TAG, VERBOSE) { "clearData($packageName, $handleId)..." }
+        val cmd = "pm clear --user $handleId $packageName"
         val result = runBlocking {
             sharedShell.useRes {
-                FlowCmd("pm clear --user $handleId $packageName").execute(it)
+                FlowCmd(cmd).execute(it)
             }
         }
         if (result.exitCode != FlowProcess.ExitCode.OK) {
             log(TAG, WARN) { "clearData($packageName, $handleId) failed: output=${result.output}, errors=${result.errors}" }
+            throw IllegalStateException(shellFailure(cmd, result))
         }
-        result.exitCode == FlowProcess.ExitCode.OK
+        true
     } catch (e: Exception) {
         log(TAG, ERROR) { "clearData($packageName, $handleId) failed: ${e.asLog()}" }
         throw e.wrapToPropagate()
     }
+
+    // `pm` reports why it refused on stdout/stderr, not through the exit code, so the text has to
+    // travel with the exception - it is what the user gets to see.
+    private fun shellFailure(cmd: String, result: FlowCmd.Result): String =
+        "`$cmd` failed (exitCode=${result.exitCode}): output=${result.output}, errors=${result.errors}"
 
     companion object {
         val TAG = logTag("Pkg", "Ops", "Service", "Host", Bugs.processTag)

@@ -156,6 +156,7 @@ class WorkspaceButtonViewModelTest : BaseTest() {
         val created = action.captured as WorkspaceAction.Create
         created.type shouldBe Workspace.Type.TEMPLATES
         created.sourceWorkspaceId shouldBe focused
+        created.allowLimitRecovery shouldBe true
         coVerify { workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(newId, focused)) }
     }
 

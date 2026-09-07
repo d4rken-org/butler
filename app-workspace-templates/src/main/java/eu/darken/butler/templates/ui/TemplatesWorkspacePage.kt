@@ -169,18 +169,18 @@ fun TemplatesWorkspacePage(
             horizontalAlignment = Alignment.Start,
             contentPadding = PaddingValues(
                 top = statusBarInset + 16.dp,
-                // The floating settings card only exists in single-pane; without it we just
-                // reserve the nav bar inset instead of the (stale) measured card height.
-                bottom = if (design.isSingle) settingsCardHeight + 16.dp else navBarInset + 16.dp,
+                // The floating settings card only exists without the navigation rail; without it
+                // we just reserve the nav bar inset instead of the (stale) measured card height.
+                bottom = if (!design.hasNavigationRail) settingsCardHeight + 16.dp else navBarInset + 16.dp,
             ),
         ) {
             item {
                 Column(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)) {
                     Row(
-                        // The floating Butler button overlays this row's trailing edge in
-                        // single-pane; without the reserve, a long custom title pushes the pencil
-                        // underneath it.
-                        modifier = Modifier.padding(end = if (design.isSingle) 40.dp else 0.dp),
+                        // The floating Butler button overlays this row's trailing edge when no
+                        // rail is composed; without the reserve, a long custom title pushes the
+                        // pencil underneath it.
+                        modifier = Modifier.padding(end = if (!design.hasNavigationRail) 40.dp else 0.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
@@ -235,9 +235,8 @@ fun TemplatesWorkspacePage(
         }
 
         // Floating settings card with gradient fades.
-        // Single-pane only: every multi-pane layout renders the navigation rail, which
-        // already exposes a Butler/settings button, so this card would be redundant there.
-        if (design.isSingle) {
+        // Only without the navigation rail, which already exposes a Butler/settings button.
+        if (!design.hasNavigationRail) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -309,7 +308,7 @@ fun TemplatesWorkspacePage(
             }
         }
 
-        if (design.isSingle) {
+        if (!design.hasNavigationRail) {
             WorkspaceButton(
                 modifier = Modifier
                     .align(Alignment.TopEnd)

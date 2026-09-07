@@ -31,7 +31,7 @@ internal fun SinglePaneLayout(
     val ws1 = selected[0]
     WorkspacePaneWrapper(
         modifier = Modifier.fillMaxSize(),
-        isFocused = focusedTabId == ws1,
+        isFocused = focusedTabId == ws1?.id,
         showFocusBorder = false, // Single pane doesn't need focus border
         onFocus = { ws1?.let { onTabFocus(it.id) } },
         paneNumber = if (showPaneNumbers) 1 else null,

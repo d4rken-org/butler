@@ -9,6 +9,7 @@ import eu.darken.butler.common.pkgs.features.Installed
 import eu.darken.butler.common.pkgs.features.InstallerInfo
 import eu.darken.butler.common.pkgs.isEnabled
 import eu.darken.butler.common.pkgs.isSystemApp
+import eu.darken.butler.common.pkgs.isUninstalled
 import kotlin.time.Instant
 
 data class AppInfo(
@@ -50,6 +51,10 @@ data class AppInfo(
 
     val isSystemApp: Boolean
         get() = install.isSystemApp
+
+    /** Uninstalled for this user while its files stay on the device, e.g. a system app. */
+    val isUninstalled: Boolean
+        get() = install.isUninstalled
 
     val targetSdk: Int?
         get() = install.applicationInfo?.targetSdkVersion

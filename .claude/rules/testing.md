@@ -27,7 +27,9 @@ Compose UI tests run on Robolectric for fast local execution without an emulator
 
 - No native bitmap (`ImageBitmap()` causes NullPointerException)
 - No drawing (`captureToImage()` deadlocks)
-- Text measurement is inaccurate (fixed height, 1px width per char)
+- Text measurement is inaccurate (line height does not follow the text style, 1px width per char).
+  Annotate the class with `@GraphicsMode(GraphicsMode.Mode.NATIVE)` when an assertion needs real
+  font metrics.
 
 **Use for:** Testing component behavior, clicks, callbacks, content display
 **Not for:** Visual appearance, screenshot comparison, layout pixel precision

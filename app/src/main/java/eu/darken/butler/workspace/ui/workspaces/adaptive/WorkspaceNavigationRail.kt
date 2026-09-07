@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +30,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.DragIndicator
 import androidx.compose.material.icons.twotone.Edit
@@ -40,10 +38,10 @@ import androidx.compose.material.icons.twotone.Looks4
 import androidx.compose.material.icons.twotone.LooksOne
 import androidx.compose.material.icons.twotone.LooksTwo
 import androidx.compose.material.icons.twotone.RemoveCircleOutline
+import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -330,18 +328,13 @@ fun WorkspaceNavigationRail(
         }
     }
 
-    val sectionSpacer = when (placement) {
-        RailPlacement.START -> Modifier.height(RailSectionPadding)
-        RailPlacement.BOTTOM -> Modifier.width(RailSectionPadding)
-    }
-
     WorkspaceRailContainer(
         modifier = modifier,
         placement = placement,
         onRailThicknessChanged = onRailThicknessChanged,
     ) { listModifier ->
-        // Unconditional: the rail exists once per screen, and only in multi-pane - where the
-        // Templates page renders no Butler button of its own.
+        // Unconditional: the rail exists once per screen and is that screen's Butler button;
+        // pages composed beside it supply none of their own.
         WorkspaceButton(
             modifier = when (placement) {
                 RailPlacement.START -> Modifier.padding(vertical = RailSectionPadding)
@@ -370,27 +363,6 @@ fun WorkspaceNavigationRail(
                 content = railItems,
             )
         }
-
-        RailSectionDivider(placement = placement)
-
-        Spacer(modifier = sectionSpacer)
-
-        FloatingActionButton(
-            onClick = {
-                onTabAction(
-                    WorkspaceAction.Create()
-                )
-            },
-            modifier = Modifier.size(48.dp),
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-        ) {
-            Icon(
-                imageVector = Icons.TwoTone.Add,
-                contentDescription = stringResource(R.string.workspace_add_tab_description),
-            )
-        }
-
-        Spacer(modifier = sectionSpacer)
     }
 }
 
@@ -623,7 +595,7 @@ internal fun WorkspaceRailItem(
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
-                    overflow = TextOverflow.MiddleEllipsis,
+                    overflow = TextOverflow.StartEllipsis,
                 )
             }
         }
@@ -834,7 +806,8 @@ private fun DraggableWorkspaceRailItem(
  *
  * [currentPaneIndex] is what decides whether the entry can be detached, so it has to come from the
  * assignments the layout renders - an entry parked on a pane this layout does not have shows no pane
- * number either, and offering to remove it from one would name a pane the user cannot see.
+ * number either, and offering to remove it from one would name a pane the user cannot see. At one
+ * pane detaching is never offered, since it would leave the only pane empty.
  */
 @Composable
 internal fun WorkspaceRailItemMenu(
@@ -855,13 +828,22 @@ internal fun WorkspaceRailItemMenu(
     ) {
         repeat(maxPanes) { paneIndex ->
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_pane_assign_action, paneIndex + 1)) },
+                text = {
+                    Text(
+                        if (maxPanes == 1) {
+                            stringResource(R.string.workspace_pane_show_action)
+                        } else {
+                            stringResource(R.string.workspace_pane_assign_action, paneIndex + 1)
+                        },
+                    )
+                },
                 leadingIcon = {
                     Icon(
-                        imageVector = when (paneIndex) {
-                            0 -> Icons.TwoTone.LooksOne
-                            1 -> Icons.TwoTone.LooksTwo
-                            2 -> Icons.TwoTone.Looks3
+                        imageVector = when {
+                            maxPanes == 1 -> Icons.TwoTone.Visibility
+                            paneIndex == 0 -> Icons.TwoTone.LooksOne
+                            paneIndex == 1 -> Icons.TwoTone.LooksTwo
+                            paneIndex == 2 -> Icons.TwoTone.Looks3
                             else -> Icons.TwoTone.Looks4
                         },
                         contentDescription = null,
@@ -873,7 +855,7 @@ internal fun WorkspaceRailItemMenu(
                 },
             )
         }
-        if (currentPaneIndex != null) {
+        if (currentPaneIndex != null && maxPanes > 1) {
             DropdownMenuItem(
                 modifier = Modifier.testTag(WorkspaceNavigationRailDefaults.UNASSIGN_TEST_TAG),
                 text = { Text(stringResource(R.string.workspace_pane_unassign_action)) },

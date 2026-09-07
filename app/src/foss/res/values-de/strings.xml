@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Erfordert Butler FOSS</string>
+
+    <string name="upgrade_prompt_title">Upgrade für Butler</string>
+    <string name="upgrade_prompt_body">Schalte zusätzliche Funktionen frei und unterstütze die weitere Entwicklung!</string>
+    <string name="upgrade_prompt_upgrade_action">Upgrade</string>
+
+    <string name="upgrade_screen_title">Upgrade für Butler</string>
+    <string name="upgrade_screen_preamble">Butler enthält keine Werbung und verkauft keine Nutzerdaten. Die weitere Entwicklung ist nur durch Dich möglich.</string>
+    <string name="upgrade_screen_how_title">So kannst Du helfen</string>
+    <string name="upgrade_screen_how_body">Unterstütze die Entwicklung als Förderer! Tippe auf die Schaltfläche unten, um alle zusätzlichen Funktionen zu aktivieren und mein GitHub-Sponsors-Profil zu öffnen.</string>
+
+    <string name="upgrade_screen_sponsor_action">Entwicklung unterstützen</string>
+    <string name="upgrade_screen_sponsor_action_hint">Die Alternative sind Werbung, Analysen und Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Danke für Deine Unterstützung der Open-Source-Entwicklung ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Schon zurück? Deine Unterstützung hält Butler am Leben. Nimm Dir bitte einen Moment Zeit für die Sponsorenseite.</string>
+
+    <string name="upgrade_screen_status_free_title">Du nutzt die kostenlose Version</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS ist vollständig quelloffen. Unterstütze die Entwicklung, um die zusätzlichen Funktionen freizuschalten.</string>
+    <string name="upgrade_screen_status_free_action">Upgrade-Optionen ansehen</string>
+    <string name="upgrade_screen_status_upgraded_title">Du unterstützt Butler</string>
+    <string name="upgrade_screen_status_upgraded_body">Danke für Deine Unterstützung der Open-Source-Entwicklung ❤️ Alle zusätzlichen Funktionen sind freigeschaltet.</string>
+    <string name="upgrade_screen_supporter_since">Unterstützt seit %s</string>
+    <string name="upgrade_screen_recurring_title">Dauerhaft unterstützen</string>
+    <string name="upgrade_screen_recurring_body">Butler wird in meiner Freizeit entwickelt. Eine regelmäßige Spende hilft dabei, das Projekt am Leben zu halten.</string>
+    <string name="upgrade_screen_recurring_action">Regelmäßig unterstützen</string>
+
+    <string name="upgrade_benefits_title">Vorteile des Upgrades</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Unbegrenzte Tabs und Vorgänge\n• Design und Bedienung anpassen\n• Zusätzliche Optionen und Funktionen für jedes Werkzeug\n• Frühzeitiger Zugriff auf neue Funktionen\n• Ein motivierter Entwickler 🧙\nund mehr…</string>
+</resources>

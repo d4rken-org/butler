@@ -15,6 +15,9 @@ interface WorkspaceRemote {
      */
     suspend fun emitEvent(event: WorkspaceEvent)
 
+    /** The current infos, read from the repository itself rather than from a possibly stale [state] snapshot. */
+    suspend fun peekInfos(): List<Workspace.Info>
+
     data class State(
         val infos: List<Workspace.Info> = emptyList(),
         val portraitPanelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,

@@ -448,7 +448,7 @@ class WorkspaceRepo @Inject constructor(
      *
      * [lock] is NOT reentrant, so this must not be called from a path that already holds it.
      */
-    suspend fun peekInfos(): List<Workspace.Info> = lock.withLock {
+    override suspend fun peekInfos(): List<Workspace.Info> = lock.withLock {
         val titles = _customTitles.value
         _workspaces.value.map { it.info.value.withCustomTitle(titles) }
     }

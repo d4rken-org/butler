@@ -24,15 +24,15 @@ class WorkspaceRailItemMenuTest : ComposeTest() {
 
     private val calls = mutableListOf<String>()
 
-    private fun renderMenu(currentPaneIndex: Int?) {
+    private fun renderMenu(currentPaneIndex: Int?, maxPanes: Int = 2) {
         composeTestRule.setContent {
             PreviewWrapper {
                 WorkspaceRailItemMenu(
                     expanded = true,
-                    maxPanes = 2,
+                    maxPanes = maxPanes,
                     currentPaneIndex = currentPaneIndex,
                     onDismiss = { calls.add("dismiss") },
-                    onAssign = { calls.add("assign") },
+                    onAssign = { calls.add("assign:$it") },
                     onUnassign = { calls.add("unassign") },
                     onRename = { calls.add("rename") },
                     onClose = { calls.add("close") },
@@ -47,6 +47,8 @@ class WorkspaceRailItemMenuTest : ComposeTest() {
     )
 
     private val closeLabel get() = context.getString(R.string.workspace_pane_close_action)
+
+    private val showLabel get() = context.getString(R.string.workspace_pane_show_action)
 
     @Test
     fun `an entry in a pane can be removed from it`() {
@@ -87,6 +89,32 @@ class WorkspaceRailItemMenuTest : ComposeTest() {
         composeTestRule.onNodeWithText(assignLabel(1)).assertExists()
         composeTestRule.onNodeWithText(assignLabel(2)).assertExists()
         composeTestRule.onNodeWithText(closeLabel).assertExists()
+    }
+
+    /** One pane names no pane number, so the entry that puts a tab in it just says what it does. */
+    @Test
+    fun `at one pane the assign entry reads Show`() {
+        renderMenu(currentPaneIndex = 0, maxPanes = 1)
+
+        composeTestRule.onNodeWithText(showLabel).assertExists()
+        composeTestRule.onNodeWithText(assignLabel(1)).assertDoesNotExist()
+    }
+
+    /** Detaching the sole pane's occupant would leave the layout with nothing to render. */
+    @Test
+    fun `at one pane an entry cannot be removed from its pane`() {
+        renderMenu(currentPaneIndex = 0, maxPanes = 1)
+
+        composeTestRule.onNodeWithTag(UNASSIGN_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun `Show dismisses the menu then assigns the pane`() {
+        renderMenu(currentPaneIndex = null, maxPanes = 1)
+
+        composeTestRule.onNodeWithText(showLabel).performClick()
+
+        calls shouldBe listOf("dismiss", "assign:0")
     }
 
     companion object {

@@ -11,6 +11,9 @@ enum class WorkspacePanelMode {
     @SerialName("SINGLE")
     SINGLE,
 
+    @SerialName("SINGLE_RAIL")
+    SINGLE_RAIL,
+
     @SerialName("DUAL_VERTICAL")
     DUAL_VERTICAL,
 

@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Zwischenablage</string>
+    <string name="clipboard_clear_all">Alles leeren</string>
+    <string name="clipboard_paste">Einfügen</string>
+    <string name="clipboard_open_in_explorer">Im Explorer öffnen</string>
+    <string name="clipboard_copy">Kopieren</string>
+    <string name="clipboard_cut">Ausschneiden</string>
+    <string name="clipboard_origin">Ursprung: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">%d Element kopieren</item>
+        <item quantity="other">%d Elemente kopieren</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d Element aus %s</item>
+        <item quantity="other">%d Elemente aus %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">%d Element ausschneiden</item>
+        <item quantity="other">%d Elemente ausschneiden</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d Element aus %s</item>
+        <item quantity="other">%d Elemente aus %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d Speicherort</item>
+        <item quantity="other">%d Speicherorte</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d Element aus %2$s</item>
+        <item quantity="other">%1$d Elemente aus %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d Element aus %2$s</item>
+        <item quantity="other">%1$d Elemente aus %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Textausschnitt</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d Zeichen</item>
+        <item quantity="other">%1$d Zeichen</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Als Datei einfügen</string>
+    <string name="clipboard_text_info_characters">Zeichen</string>
+    <string name="clipboard_text_info_lines">Zeilen</string>
+    <string name="clipboard_text_info_content">Inhalt</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Übersicht</string>
+    <string name="clipboard_info_operation">Vorgang</string>
+    <string name="clipboard_info_items">Elemente</string>
+    <string name="clipboard_info_source">Quelle</string>
+    <string name="clipboard_info_sources">Quellen</string>
+    <string name="clipboard_info_workspace">Arbeitsbereich</string>
+    <string name="clipboard_info_workspace_closed">Geschlossen</string>
+    <string name="clipboard_info_time">Zeitpunkt</string>
+    <string name="clipboard_info_items_with_count">Elemente (%1$d)</string>
+    <string name="clipboard_info_actions">Aktionen</string>
+    <string name="clipboard_info_go_to_source">Zur Quelle wechseln</string>
+    <string name="clipboard_info_go_to_first_source">Zur ersten Quelle wechseln</string>
+    <string name="clipboard_info_remove">Aus Zwischenablage entfernen</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Zwischenablage</string>
+    <string name="clipboard_settings_remove_on_paste_title">Beim Einfügen entfernen</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Kopierte Elemente nach dem Einfügen aus der Zwischenablage entfernen</string>
+    <string name="clipboard_settings_max_items_title">Maximale Anzahl an Elementen</string>
+    <string name="clipboard_settings_max_items_desc">Maximale Anzahl an Elementen in der Zwischenablage</string>
+
+    <string name="workspace_explorer_label">Explorer</string>
+    <string name="workspace_searcher_label">Suche</string>
+    <string name="workspace_editor_label">Editor</string>
+    <string name="workspace_templates_label">Vorlagen</string>
+    <string name="workspace_apps_label">Apps</string>
+    <string name="workspace_appdetails_label">App-Details</string>
+    <string name="workspace_saver_label">Speichern unter</string>
+    <string name="workspace_developer_label">Entwicklerwerkzeuge</string>
+    <string name="workspace_history_label">Verlauf</string>
+    <string name="workspace_bugreport_label">Fehlerberichte</string>
+    <string name="workspace_viewer_label">Betrachter</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Fotos</string>
+    <string name="workspace_searcher_target_videos">Videos</string>
+    <string name="workspace_searcher_target_music">Musik</string>
+    <string name="workspace_searcher_target_downloads">Downloads</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Mehr</string>
+    <string name="workspace_expand_less_action">Weniger</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_menu_new_workspace_format">Neu: %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Neuer Tab</string>
+    <string name="workspace_button_menu_category_recent">Zuletzt</string>
+    <string name="workspace_button_menu_category_other">Weitere</string>
+    <string name="workspace_button_menu_category_current_tab">Dieser Tab</string>
+    <string name="workspace_button_menu_manager_action">Tab-Verwaltung</string>
+    <string name="workspace_button_menu_close_current_action">Aktuellen Tab schließen</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Aktuellen Tab schließen (%d Arbeitsbereich)</item>
+        <item quantity="other">Aktuellen Tab schließen (%d Arbeitsbereiche)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Einstellungen</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Alle Tabs schließen?</string>
+    <string name="workspace_manager_close_all_message">Dadurch werden alle offenen Tabs geschlossen (%1$d %2$s). Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="workspace_manager_close_all_message_singular">Tab</string>
+    <string name="workspace_manager_close_all_message_plural">Tabs</string>
+    <string name="workspace_manager_close_all_action">Alle schließen</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Einige Tabs enthalten ungespeicherte Änderungen, die dabei verloren gehen.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Alle verwerfen</string>
+    <string name="workspace_manager_close_selected_title">Ausgewählte Tabs schließen?</string>
+    <string name="workspace_manager_close_selected_message">Dadurch werden die ausgewählten Tabs geschlossen (%1$d %2$s). Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="workspace_manager_close_selected_action">Ausgewählte schließen</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Einige ausgewählte Tabs enthalten ungespeicherte Änderungen, die dabei verloren gehen.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Ausgewählte verwerfen</string>
+    <string name="workspace_manager_pause_partial_title">Tabs pausieren?</string>
+    <string name="workspace_manager_pause_partial_message">%1$d von %2$d ausgewählten Tabs können pausiert werden. Die übrigen werden verwendet, enthalten ungespeicherte Änderungen oder sind gerade geöffnet.</string>
+    <string name="workspace_manager_pause_partial_action">%1$d pausieren</string>
+    <string name="workspace_fab_close_all">Alle Tabs schließen</string>
+    <string name="general_cancel_action">Abbrechen</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Vorgänge</string>
+    <string name="operations_clear_completed">Abgeschlossene entfernen</string>
+    <string name="operations_state_queued">In Warteschlange</string>
+    <string name="operations_state_running">Wird ausgeführt</string>
+    <string name="operations_state_waiting">Wartet auf Eingabe</string>
+    <string name="operations_state_successful">Erfolgreich</string>
+    <string name="operations_state_failed">Fehlgeschlagen</string>
+    <string name="operations_state_cancelled">Abgebrochen</string>
+    <string name="operations_cancel_operation">Vorgang abbrechen</string>
+    <string name="operations_cancel_dialog_title">Vorgang abbrechen?</string>
+    <string name="operations_cancel_dialog_message">Möchtest Du diesen Vorgang wirklich abbrechen?</string>
+    <string name="operations_cancel_dialog_warning">Beim Abbrechen können Dateien in einem inkonsistenten Zustand zurückbleiben.</string>
+    <string name="operations_details_started_at">Gestartet</string>
+    <string name="operations_details_completed_at">Abgeschlossen</string>
+    <string name="operations_details_duration">Dauer</string>
+    <string name="operations_details_duration_not_started">Nicht gestartet</string>
+    <string name="operations_details_progress">Fortschritt</string>
+    <string name="operations_details_error">Fehlerdetails</string>
+    <string name="operations_details_actions">Aktionen</string>
+    <string name="operations_details_overview">Übersicht</string>
+    <string name="operations_details_handle_issue">Problem bearbeiten</string>
+    <string name="operations_details_show_in_history_action">Im Verlauf anzeigen</string>
+    <string name="operations_details_status">Status</string>
+    <string name="operations_details_result">Ergebnis</string>
+    <string name="operations_details_destination_folder">Zielordner</string>
+    <string name="operations_details_destination_path">Zielpfad</string>
+    <string name="operations_details_affected_paths_with_count">Betroffene Pfade (%d)</string>
+    <string name="operations_details_section_expand">%1$s ausklappen</string>
+    <string name="operations_details_section_collapse">%1$s einklappen</string>
+    <string name="workspace_operations_performance_graph_label">Leistungsdiagramm</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Element löschen?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">%1$d Element löschen?</item>
+        <item quantity="other">%1$d Elemente löschen?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Dieses Element wird endgültig gelöscht:</string>
+    <string name="workspace_dialog_delete_message_multiple">Diese Elemente werden endgültig gelöscht:</string>
+    <string name="workspace_dialog_delete_more_items">… weitere Elemente: %1$d</string>
+    <string name="workspace_dialog_delete_warning">Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="workspace_dialog_delete_permanently_action">Endgültig löschen</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Stattdessen endgültig löschen</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Einige Elemente können nicht in den Papierkorb verschoben werden und werden gesondert behandelt.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">In den Papierkorb verschieben?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">%1$d Element in den Papierkorb verschieben?</item>
+        <item quantity="other">%1$d Elemente in den Papierkorb verschieben?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Dieses Element wird in den Papierkorb verschoben:</string>
+    <string name="workspace_dialog_trash_message_multiple">Diese Elemente werden in den Papierkorb verschoben:</string>
+    <string name="workspace_dialog_trash_hint">Danach im Papierkorb zu finden</string>
+    <string name="workspace_dialog_move_to_trash_action">Verschieben</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d ausgewählt</item>
+        <item quantity="other">%d ausgewählt</item>
+    </plurals>
+    <string name="workspace_action_more">Weitere Aktionen</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Löschvorgang</string>
+    <string name="workspace_operation_delete_description_single">\"%1$s\" aus \"%2$s\" löschen.</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">%1$d Element aus \"%2$s\" löschen.</item>
+        <item quantity="other">%1$d Elemente aus \"%2$s\" löschen.</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">App-Installation</string>
+    <string name="workspace_operation_install_description">\"%1$s\" installieren.</string>
+    <string name="workspace_operation_install_progress_inspecting">Paket wird gelesen…</string>
+    <string name="workspace_operation_install_progress_extracting">Wird entpackt…</string>
+    <string name="workspace_operation_install_progress_writing">Dateien werden an das Installationsprogramm übergeben…</string>
+    <string name="workspace_operation_install_progress_committing">Installation wird abgeschlossen…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Erweiterungsdateien werden abgelegt…</string>
+    <string name="workspace_operation_install_summary_success">%1$s wurde installiert.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s wurde installiert, aber die Erweiterungsdateien konnten nicht abgelegt werden.</string>
+    <string name="workspace_install_unknown_sources_required">Butler benötigt die Berechtigung zum Installieren von Apps. Erteile sie in den gerade geöffneten Einstellungen und versuche es dann erneut.</string>
+    <string name="workspace_install_obb_failed">Die App wurde installiert, aber die Erweiterungsdateien konnten nicht abgelegt werden: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d Datei gelöscht.</item>
+        <item quantity="other">%1$d Dateien gelöscht.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d Verzeichnis gelöscht.</item>
+        <item quantity="other">%1$d Verzeichnisse gelöscht.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d Element übersprungen.</item>
+        <item quantity="other">%1$d Elemente übersprungen.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s freigegeben.</item>
+        <item quantity="other">%1$s freigegeben.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Wird in den Papierkorb verschoben…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d Datei in den Papierkorb verschoben.</item>
+        <item quantity="other">%1$d Dateien in den Papierkorb verschoben.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d Verzeichnis in den Papierkorb verschoben.</item>
+        <item quantity="other">%1$d Verzeichnisse in den Papierkorb verschoben.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s freigegeben.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s freigegeben.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s verbleibend.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Informationen</string>
+    <string name="workspace_file_info_name_label">Name</string>
+    <string name="workspace_file_info_path_label">Pfad</string>
+    <string name="workspace_file_info_type_label">Typ</string>
+    <string name="workspace_file_info_type_file">Datei</string>
+    <string name="workspace_file_info_type_directory">Verzeichnis</string>
+    <string name="workspace_file_info_type_symlink">Symbolische Verknüpfung</string>
+    <string name="workspace_file_info_type_unknown">Unbekannt</string>
+    <string name="workspace_file_info_size_label">Größe</string>
+    <string name="workspace_file_info_modified_label">Geändert</string>
+    <string name="workspace_file_info_created_label">Erstellt</string>
+    <string name="workspace_file_info_permissions_label">Berechtigungen</string>
+    <string name="workspace_file_info_owner_label">Eigentümer</string>
+    <string name="workspace_file_info_child_count_label">Elemente</string>
+    <string name="workspace_file_info_symlink_target_label">Ziel</string>
+    <string name="workspace_file_info_unknown">Unbekannt</string>
+    <string name="workspace_file_info_copy_action">In Zwischenablage kopieren</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Ausgewählt</string>
+    <string name="workspace_file_info_files_label">Dateien</string>
+    <string name="workspace_file_info_directories_label">Verzeichnisse</string>
+    <string name="workspace_file_info_total_size_label">Gesamtgröße</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Dieser Vorgang wurde noch nicht gestartet.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Leistungsdaten werden gesammelt…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Für diesen Vorgang liegen nicht genügend Leistungsdaten für ein Diagramm vor.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Für diesen Vorgang sind keine Leistungsdaten verfügbar.</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">Elemente/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Technische Details anzeigen</string>
+    <string name="workspace_error_hide_details_action">Technische Details ausblenden</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Tab wird initialisiert</string>
+    <string name="workspace_error_subtitle">Ein unerwarteter Fehler ist aufgetreten</string>
+    <string name="workspace_close_tab_action">Tab schließen</string>
+    <string name="workspace_paused_body">Dieser Tab ist pausiert, um Arbeitsspeicher und Akku zu sparen. Setze ihn fort, um weiterzumachen.</string>
+    <string name="workspace_paused_error_body">Dieser Tab konnte nicht fortgesetzt werden.</string>
+    <string name="workspace_paused_resume_action">Fortsetzen</string>
+    <string name="workspace_paused_label">Pausiert</string>
+    <string name="workspace_paused_content_label">Tab-Inhalt</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Vorhandene Datei</string>
+    <string name="workspace_issue_collision_existing_folder_label">Vorhandener Ordner</string>
+    <string name="workspace_issue_collision_new_file">Neue Datei</string>
+    <string name="workspace_issue_collision_new_folder">Neuer Ordner</string>
+    <string name="workspace_issue_collision_overwrite">Ersetzen</string>
+    <string name="workspace_issue_collision_merge">Zusammenführen</string>
+    <string name="workspace_issue_common_source_file">Quelldatei</string>
+    <string name="workspace_issue_common_destination_file">Ziel</string>
+    <string name="workspace_issue_common_skip">Überspringen</string>
+    <string name="workspace_issue_common_rename">Umbenennen</string>
+    <string name="workspace_issue_common_rename_new">Quelle umbenennen</string>
+    <string name="workspace_issue_common_rename_existing">Ziel umbenennen</string>
+    <string name="workspace_issue_common_cancel">Abbrechen</string>
+    <string name="workspace_issue_common_delete_permanently">Endgültig löschen</string>
+    <string name="workspace_issue_archive_password_label">Passwort</string>
+    <string name="workspace_issue_archive_password_unlock">Entsperren</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Fehlgeschlagene Elemente</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… weitere Elemente: %1$d</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Betroffene Elemente</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… weitere Elemente: %1$d</string>
+    <string name="workspace_issue_apply_all">Auf alle verbleibenden Probleme anwenden</string>
+    <string name="workspace_issue_rename_new_name">Neuer Name</string>
+    <string name="workspace_issue_rename_dialog_title_new">Neue Datei umbenennen</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Vorhandene Datei umbenennen</string>
+    <string name="workspace_issue_type_folder">Ordner</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Mehrere Tabs öffnen?</string>
+    <string name="workspace_open_tabs_confirmation_message">Dadurch werden %1$d Tabs geöffnet.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Öffnen mit</string>
+    <string name="workspace_open_with_no_app_label">Keine andere App gefunden</string>
+    <string name="workspace_open_with_no_app_description">Keine andere installierte App kann %1$s öffnen.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">%1$d Tab geöffnet</item>
+        <item quantity="other">%1$d Tabs geöffnet</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">Tabs</string>
+    <string name="workspace_settings_navigation">Navigation</string>
+    <string name="workspace_settings_swipe_gestures_title">Wischgesten</string>
+    <string name="workspace_settings_swipe_gestures_desc">Wische nach links oder rechts, um zwischen Tabs zu wechseln.</string>
+    <string name="workspace_settings_ondemand_creation_title">Tabs automatisch erstellen</string>
+    <string name="workspace_settings_ondemand_creation_desc">Automatisch einen neuen Tab erstellen, wenn Du über den letzten Tab hinauswischst.</string>
+    <string name="workspace_settings_live_preview_title">Live-Vorschau</string>
+    <string name="workspace_settings_live_preview_desc">Live-Inhalte der Tabs in der Tab-Verwaltung anzeigen.</string>
+    <string name="workspace_settings_other">Sonstiges</string>
+    <string name="workspace_settings_layout_title">Anordnung</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Anordnung im Hochformat</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Wähle die Tab-Anordnung im Hochformat.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Anordnung im Querformat</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Wähle die Tab-Anordnung im Querformat.</string>
+    <string name="workspace_settings_layout_mode_auto">Automatisch</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Anordnung automatisch an die Bildschirmgröße anpassen.</string>
+    <string name="workspace_settings_layout_mode_single">Ein Bereich</string>
+    <string name="workspace_settings_layout_mode_single_desc">Ein Tab-Bereich füllt den gesamten Bildschirm.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Zwei nebeneinander</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Zwei Bereiche nebeneinander (links/rechts).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Zwei übereinander</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Zwei Bereiche übereinander (oben/unten).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Drei Bereiche, links groß</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Ein großer Bereich links, zwei kleinere Bereiche übereinander rechts.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Drei Bereiche, rechts groß</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Zwei kleinere Bereiche übereinander links, ein großer Bereich rechts.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Vier im Raster</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Vier Bereiche in einem 2×2-Raster.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Zum Fokussieren klicken</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Der erste Klick auf einen nicht fokussierten Bereich fokussiert ihn nur. Nicht fokussierte Bereiche reagieren auch nicht auf den Mauszeiger. Deaktiviere diese Option, um direkt mit ihnen zu interagieren.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Sitzung</string>
+    <string name="workspace_settings_session_restore_title">Tabs beim Start wiederherstellen</string>
+    <string name="workspace_settings_session_restore_desc">Zuvor geöffnete Tabs beim Start der App automatisch wiederherstellen.</string>
+    <string name="workspace_settings_autopause_title">Inaktive Tabs pausieren</string>
+    <string name="workspace_settings_autopause_desc">Tabs, die Du eine Weile nicht angesehen hast, werden pausiert, um Arbeitsspeicher und Akku zu sparen. Beim Öffnen wird der jeweilige Tab fortgesetzt.</string>
+    <string name="workspace_settings_autopause_delay_title">Pausieren nach</string>
+    <string name="workspace_settings_autopause_delay_desc">Wie lange ein Tab nicht sichtbar sein darf, bevor er pausiert wird.</string>
+    <string name="workspace_settings_undoclose_title">Schließen von Tabs rückgängig machen</string>
+    <string name="workspace_settings_undoclose_desc">Nach dem Schließen eines Tabs kannst Du ihn einige Sekunden lang wiederherstellen.</string>
+    <string name="workspace_settings_session_data_title">Sitzungsdaten</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d Tab • %2$s</item>
+        <item quantity="other">%1$d Tabs • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">\"%1$s\" geschlossen</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Sitzung konnte nicht wiederhergestellt werden</string>
+    <string name="workspace_session_restoration_error_description">Deine vorherige Tab-Sitzung konnte nicht wiederhergestellt werden. Möglicherweise liegt das an einem Fehler, der in einem zukünftigen Update behoben wird.\n\nDu kannst die gespeicherte Sitzung löschen, um Butler weiter zu verwenden, oder auf ein Update warten.</string>
+    <string name="workspace_session_restoration_error_clear_action">Sitzung löschen</string>
+    <string name="workspace_session_restoration_error_report_action">Problem melden</string>
+    <string name="workspace_session_restoration_error_confirm_title">Sitzung löschen?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Dadurch wird Deine gespeicherte Tab-Sitzung endgültig gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Tab umbenennen</string>
+    <string name="workspace_rename_name_label">Eigener Name</string>
+    <string name="workspace_rename_name_hint">Leer lassen, um den automatischen Namen zu verwenden</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Tab-Limit erreicht</string>
+    <string name="workspace_limit_reached_message">In der kostenlosen Version kannst Du bis zu %1$d Tabs gleichzeitig öffnen. Mit Butler Pro sind unbegrenzt viele Tabs möglich!</string>
+    <string name="workspace_limit_pick_tabs_message">Deine kostenlose Version erlaubt %1$d offene Tabs. Wähle die Tabs aus, die Du nicht mehr brauchst, und schließe sie, um Platz zu schaffen.</string>
+    <string name="workspace_limit_no_slot_hint">Durch das Schließen von Tabs wird gerade kein Platz frei.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">%d Tab schließen</item>
+        <item quantity="other">%d Tabs schließen</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Wähle mindestens %d Tab zum Schließen aus.</item>
+        <item quantity="other">Wähle mindestens %d Tabs zum Schließen aus.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">%1$s geöffnet</string>
+    <string name="workspace_limit_blocker_unsaved">Ungespeicherte Änderungen</string>
+    <string name="workspace_limit_blocker_busy">Gerade beschäftigt</string>
+    <string name="workspace_limit_blocker_attention">Wartet auf Dich</string>
+    <string name="workspace_limit_blocker_loading">Wird noch geladen</string>
+    <string name="workspace_limit_blocker_awaiting_result">Schließe zuerst die offene Auswahl ab</string>
+    <string name="workspace_limit_blocker_unavailable">Kann gerade nicht geschlossen werden</string>
+    <string name="workspace_limit_stacked_content_desc">Beim Schließen dieses Tabs werden auch die darauf gestapelten Inhalte geschlossen</string>
+    <string name="workspace_limit_pro_description">Öffne so viele Tabs, wie Du möchtest.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d Element</item>
+        <item quantity="other">%1$d Elemente</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Wiederherstellung aus dem Papierkorb</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">%d Element aus dem Papierkorb wiederherstellen.</item>
+        <item quantity="other">%d Elemente aus dem Papierkorb wiederherstellen.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d Element wiederhergestellt</item>
+        <item quantity="other">%d Elemente wiederhergestellt</item>
+    </plurals>
+</resources>

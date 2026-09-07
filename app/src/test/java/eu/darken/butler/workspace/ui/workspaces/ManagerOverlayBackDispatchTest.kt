@@ -111,6 +111,7 @@ class ManagerOverlayBackDispatchTest : ComposeTest() {
                             workspaces = state.tabWorkspaces,
                             selected = mapOf(0 to tabInfo.asPaneInfo()),
                             focusedId = tabId,
+                            focusedRootId = tabId,
                             dividerPositions = DividerPositions(),
                             onDividerPositionsChange = {},
                             showPaneNumbers = false,

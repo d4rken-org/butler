@@ -202,6 +202,7 @@ internal fun ScreenshotPaneFrame(
             workspaces = workspaces,
             selected = selected,
             focusedId = panes.firstOrNull()?.id,
+            focusedRootId = panes.firstOrNull()?.id,
             dividerPositions = dividerPositions,
             onDividerPositionsChange = {},
             showPaneNumbers = false,

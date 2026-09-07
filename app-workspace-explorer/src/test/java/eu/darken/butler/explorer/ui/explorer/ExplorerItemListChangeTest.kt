@@ -3,6 +3,10 @@ package eu.darken.butler.explorer.ui.explorer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Lan
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -46,17 +50,50 @@ class ExplorerItemListChangeTest : BaseTest() {
         )
     }
 
+    /** Real lookups, not the preview mocks: those are anonymous objects and never equal each other. */
+    private fun file(name: String, modifiedAt: Instant? = null) = ExplorerItem.RegularFile(
+        lookup = LocalPathLookup(
+            lookedUp = LocalPath.build("/home/user/$name"),
+            fileType = FileType.FILE,
+            size = 4_096L,
+            modifiedAt = modifiedAt,
+        ),
+        mimeType = MimeInfo("text/plain"),
+    )
+
+    private fun directory(name: String, childCount: Int? = null) = ExplorerItem.RegularDirectory(
+        lookup = LocalPathLookup(
+            lookedUp = LocalPath.build("/home/user/$name"),
+            fileType = FileType.DIRECTORY,
+            size = 0L,
+            modifiedAt = null,
+        ),
+        childCount = childCount,
+    )
+
     @Test
-    fun `a re-listing that produced the same lookups again is dropped`() {
-        val old = listOf(MockDataProvider.createMockRegularFile("readme.txt"))
-        val new = listOf(
-            MockDataProvider.createMockRegularFile(
-                name = "readme.txt",
-                modifiedAt = Instant.parse("2024-01-01T00:00:00Z"),
-            ),
-        )
+    fun `an identical re-listing is dropped`() {
+        val old = listOf(file("readme.txt"))
+        val new = listOf(file("readme.txt"))
 
         old.hasSameItemsAs(new) shouldBe true
+    }
+
+    @Test
+    fun `a re-listing with changed lookup data gets through`() {
+        val old = listOf(file("readme.txt"))
+        val new = listOf(file("readme.txt", modifiedAt = Instant.parse("2024-01-01T00:00:00Z")))
+
+        old.hasSameItemsAs(new) shouldBe false
+    }
+
+    /** The extended pass republishes the same ids with the child count filled in. */
+    @Test
+    fun `a directory whose child count arrived gets through`() {
+        val old = listOf(directory("Documents"))
+        val new = listOf(directory("Documents", childCount = 5))
+
+        old.hasSameItemsAs(new) shouldBe false
     }
 
     @Test
@@ -83,7 +120,7 @@ class ExplorerItemListChangeTest : BaseTest() {
         old.hasSameItemsAs(new) shouldBe false
     }
 
-    /** Storage rows take the full-equality branch, not the id-and-type one that would match here. */
+    /** Same id and type, so only field equality can see the new name. */
     @Test
     fun `a renamed SAF location gets through`() {
         val old = listOf(MockDataProvider.createMockStorageSAF(name = "SD Card", id = "saf-sdcard"))

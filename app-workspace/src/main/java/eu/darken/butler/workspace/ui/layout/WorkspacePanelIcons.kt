@@ -30,6 +30,30 @@ object WorkspacePanelIcons {
             }
         }.build()
 
+    val SingleRail: ImageVector
+        get() = ImageVector.Builder(
+            name = "LayoutSingleRail",
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f
+        ).apply {
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(4f, 4f)
+                lineTo(20f, 4f)
+                lineTo(20f, 15f)
+                lineTo(4f, 15f)
+                close()
+            }
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(4f, 17f)
+                lineTo(20f, 17f)
+                lineTo(20f, 20f)
+                lineTo(4f, 20f)
+                close()
+            }
+        }.build()
+
     val DualVertical: ImageVector
         get() = ImageVector.Builder(
             name = "LayoutDualVertical",

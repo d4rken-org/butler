@@ -14,6 +14,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldNotBe
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonPrimitive
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -47,6 +49,7 @@ class WorkspacePageManagerTest : BaseTest() {
         workspaceRemote = mockk {
             every { state } returns stateFlow
             every { events } returns eventsFlow
+            coEvery { peekInfos() } answers { stateFlow.value.infos }
         }
 
         testScope = TestScope(UnconfinedTestDispatcher())
@@ -1359,6 +1362,186 @@ class WorkspacePageManagerTest : BaseTest() {
         after.visiblePaneAssignments.values shouldContain stranded
         // The unrelated hidden arrangement is retained for when the layout grows back.
         after.selectedWorkspaces[3] shouldBe otherHidden
+    }
+
+    /**
+     * A layout shrink keeps the assignments so growing back restores them, which can leave the
+     * focused tab parked on an index no pane draws - open, but invisible.
+     */
+    @Test
+    fun `shrinking to one pane moves a focused retained tab into the empty pane`() = runTest {
+        val retained = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(infos = listOf(createWorkspaceInfo(id = retained)))
+        pageManager.setPaneCount(2)
+        pageManager.applyRestoredUIState(retained, mapOf(1 to retained))
+
+        pageManager.setPaneCount(1)
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe mapOf(0 to retained)
+        after.focusedWorkspaceId shouldBe retained
+    }
+
+    /** A session saved in a wider layout can park the focused tab on an index the current layout does not draw. */
+    @Test
+    fun `restoring a focused tab on an unrendered index moves it into the empty pane`() = runTest {
+        val tab = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(infos = listOf(createWorkspaceInfo(id = tab)))
+        pageManager.setPaneCount(1)
+
+        pageManager.applyRestoredUIState(tab, mapOf(1 to tab))
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe mapOf(0 to tab)
+        after.focusedWorkspaceId shouldBe tab
+    }
+
+    /** The repository holds a restored tab before its state flow has published it. */
+    @Test
+    fun `restoring a focused tab the state flow has not published yet still places it`() = runTest {
+        val tab = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(infos = emptyList())
+        pageManager.setPaneCount(1)
+        coEvery { workspaceRemote.peekInfos() } returns listOf(createWorkspaceInfo(id = tab))
+
+        pageManager.applyRestoredUIState(tab, mapOf(1 to tab))
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe mapOf(0 to tab)
+        after.focusedWorkspaceId shouldBe tab
+    }
+
+    /** A tab closed while the session was still restoring must not stall the restore. */
+    @Test
+    fun `restoring a focused tab that was closed meanwhile does not wait for it`() = runTest {
+        val tab = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(infos = emptyList())
+        pageManager.setPaneCount(1)
+
+        withTimeout(1_000) { pageManager.applyRestoredUIState(tab, mapOf(1 to tab)) }
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe mapOf(1 to tab)
+        after.focusedWorkspaceId shouldBe tab
+    }
+
+    /** Restore can land before the screen reports its pane count; the report, not the restore, places focus. */
+    @Test
+    fun `a restore before the pane count is reported keeps a two-pane arrangement`() = runTest {
+        val paneOne = Workspace.Id()
+        val paneTwo = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(createWorkspaceInfo(id = paneOne), createWorkspaceInfo(id = paneTwo)),
+        )
+
+        pageManager.applyRestoredUIState(paneTwo, mapOf(0 to paneOne, 1 to paneTwo))
+        pageManager.setPaneCount(2)
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe mapOf(0 to paneOne, 1 to paneTwo)
+        after.focusedWorkspaceId shouldBe paneTwo
+    }
+
+    @Test
+    fun `a restore before the pane count is reported is placed when a one-pane layout reports`() = runTest {
+        val tab = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(infos = listOf(createWorkspaceInfo(id = tab)))
+
+        pageManager.applyRestoredUIState(tab, mapOf(1 to tab))
+        pageManager.setPaneCount(1)
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe mapOf(0 to tab)
+        after.focusedWorkspaceId shouldBe tab
+    }
+
+    /** A repeat report of the same layout changes nothing; a tab the user detached stays detached. */
+    @Test
+    fun `a repeated pane count report leaves detached panes empty`() = runTest {
+        val first = Workspace.Id()
+        val second = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(createWorkspaceInfo(id = first), createWorkspaceInfo(id = second)),
+        )
+        pageManager.setPaneCount(2)
+        pageManager.applyRestoredUIState(first, mapOf(0 to first, 1 to second))
+        pageManager.unassignWorkspace(second)
+        pageManager.unassignWorkspace(first)
+
+        pageManager.setPaneCount(2)
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe emptyMap()
+        after.focusedWorkspaceId shouldBe first
+    }
+
+    /** One pane shows exactly one tab, so the focused tab takes it; the occupant keeps a place for the next grow. */
+    @Test
+    fun `shrinking to one pane brings the focused tab into the pane and parks the occupant`() = runTest {
+        val paneOne = Workspace.Id()
+        val paneTwo = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(createWorkspaceInfo(id = paneOne), createWorkspaceInfo(id = paneTwo)),
+        )
+        pageManager.setPaneCount(2)
+        pageManager.applyRestoredUIState(paneTwo, mapOf(0 to paneOne, 1 to paneTwo))
+
+        pageManager.setPaneCount(1)
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe mapOf(0 to paneTwo, 1 to paneOne)
+        after.focusedWorkspaceId shouldBe paneTwo
+    }
+
+    /** Closing the occupant of the only pane must not leave that pane empty while a tab is left. */
+    @Test
+    fun `closing the only pane's occupant brings a retained tab into the pane`() = runTest {
+        val visible = Workspace.Id()
+        val retained = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(createWorkspaceInfo(id = visible), createWorkspaceInfo(id = retained)),
+        )
+        pageManager.setPaneCount(1)
+        pageManager.applyRestoredUIState(visible, mapOf(0 to visible, 1 to retained))
+
+        eventsFlow.emit(WorkspaceEvent.Closed(workspaceId = visible, callerWorkspaceId = null))
+        testScope.testScheduler.advanceUntilIdle()
+
+        val after = pageManager.state.value
+        after.selectedWorkspaces shouldBe mapOf(0 to retained)
+        after.focusedWorkspaceId shouldBe retained
+    }
+
+    /** A focus that belongs to no tab has no pane to be placed in; the UI's fallback owns it. */
+    @Test
+    fun `a dangling focus is left alone by the shrink`() = runTest {
+        val visibleTab = Workspace.Id()
+        val orphan = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = visibleTab),
+                createWorkspaceInfo(id = orphan, callerWorkspaceId = Workspace.Id()),
+            )
+        )
+        pageManager.setPaneCount(2)
+        pageManager.handleWorkspaceSelection(visibleTab)
+        pageManager.handleWorkspaceSelection(orphan)
+        val before = pageManager.state.value.selectedWorkspaces.toMap()
+
+        pageManager.setPaneCount(1)
+
+        pageManager.state.value.selectedWorkspaces shouldBe before
+        pageManager.state.value.focusedWorkspaceId shouldBe orphan
     }
 
     /** A workspace already in a rendered pane is only focused - no reshuffling. */

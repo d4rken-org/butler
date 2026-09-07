@@ -13,6 +13,7 @@ import androidx.annotation.ColorRes
 import androidx.annotation.PluralsRes
 import androidx.core.content.ContextCompat
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import okio.Source
 import okio.source
 import kotlin.math.max
@@ -74,8 +75,10 @@ fun Context.getSpanCount(widthDp: Int = 390): Int {
     val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
     val count = (screenWidthDp / widthDp + 0.5).toInt()
     return max(count, 1).also {
-        log { "getSpanCount($screenWidthDp/$widthDp)=$it" }
+        log(TAG) { "getSpanCount($screenWidthDp/$widthDp)=$it" }
     }
 }
 
 fun Context.getPackageInfo(): PackageInfo = packageManager.getPackageInfo(packageName, 0)
+
+private val TAG = logTag("Context", "Extensions")

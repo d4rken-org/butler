@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.extensions
 
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
@@ -57,7 +58,7 @@ suspend fun <T : APath<T>> T.requireNotExists(gateway: APathGateway<T, out APath
 suspend fun <T : APath<T>> T.createFileIfNecessary(gateway: APathGateway<T, out APathLookup<T>>): T {
     if (exists(gateway)) {
         if (gateway.lookup(this, LookupOptions()).fileType == FileType.FILE) {
-            log(VERBOSE) { "File already exists, not creating: $this" }
+            log(TAG, VERBOSE) { "File already exists, not creating: $this" }
             return this
         } else {
             throw IOException("Exists, but is not a file: $this")
@@ -69,14 +70,14 @@ suspend fun <T : APath<T>> T.createFileIfNecessary(gateway: APathGateway<T, out 
 
 suspend fun <T : APath<T>> T.createFile(gateway: APathGateway<T, out APathLookup<T>>): T {
     gateway.createFile(this)
-    log(VERBOSE) { "File created: $this" }
+    log(TAG, VERBOSE) { "File created: $this" }
     return this
 }
 
 suspend fun <T : APath<T>> T.createDirIfNecessary(gateway: APathGateway<T, out APathLookup<T>>): T {
     if (exists(gateway)) {
         if (gateway.lookup(this, LookupOptions()).isDirectory) {
-            log(VERBOSE) { "Directory already exists, not creating: $this" }
+            log(TAG, VERBOSE) { "Directory already exists, not creating: $this" }
             return this
         } else {
             throw IOException("Exists, but is not a directory: $this")
@@ -84,7 +85,7 @@ suspend fun <T : APath<T>> T.createDirIfNecessary(gateway: APathGateway<T, out A
     }
 
     gateway.createDir(this)
-    log(VERBOSE) { "Directory created: $this" }
+    log(TAG, VERBOSE) { "Directory created: $this" }
     return this
 }
 
@@ -158,7 +159,7 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> P.copy(
     options = options,
     onIssue = onIssue
 ).onCompletion {
-    log(VERBOSE) { "P.copy(destination=$destination, options=$options, onIssue=$onIssue): Copied $this" }
+    log(TAG, VERBOSE) { "P.copy(destination=$destination, options=$options, onIssue=$onIssue): Copied $this" }
 }
 
 suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.copy(
@@ -172,7 +173,7 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.copy(
     options = options,
     onIssue = onIssue
 ).onCompletion {
-    log(VERBOSE) { "Set<P>.copy(destination=$destination, options=$options, onIssue=onIssue): Copied $this" }
+    log(TAG, VERBOSE) { "Set<P>.copy(destination=$destination, options=$options, onIssue=onIssue): Copied $this" }
 }
 
 suspend fun <P : APath<P>, PL : APathLookup<P>> P.move(
@@ -187,7 +188,7 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> P.move(
         options = options,
         onIssue = onIssue
     ).onCompletion {
-        log(VERBOSE) { "T.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }
+        log(TAG, VERBOSE) { "T.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }
     }
 
 suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.move(
@@ -201,7 +202,7 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.move(
     options = options,
     onIssue = onIssue
 ).onCompletion {
-    log(VERBOSE) { "Set<T>.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }
+    log(TAG, VERBOSE) { "Set<T>.move(destination=$destination, options=$options, onIssue=$onIssue): Moved $this" }
 }
 
 
@@ -217,7 +218,7 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.delete(
     targets = this,
     options = options
 ).onCompletion {
-    log(VERBOSE) { "Set<APath>.delete(options=$options): Deleted $this" }
+    log(TAG, VERBOSE) { "Set<APath>.delete(options=$options): Deleted $this" }
 }
 
 suspend fun <P : APath<P>, PL : APathLookup<P>> P.create(
@@ -229,5 +230,7 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> P.create(
     type = type,
     options = options
 ).onCompletion {
-    log(VERBOSE) { "P.create(type=$type, options=$options): Created $this" }
+    log(TAG, VERBOSE) { "P.create(type=$type, options=$options): Created $this" }
 }
+
+private val TAG = logTag("Gateway", "APath", "Extensions")

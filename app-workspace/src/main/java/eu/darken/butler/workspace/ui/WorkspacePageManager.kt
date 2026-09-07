@@ -73,6 +73,7 @@ class WorkspacePageManager @Inject constructor(
 
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()
+    private var paneCountReported = false
 
     private val _selectionEvents = MutableSharedFlow<Workspace.Id>()
     val selectionEvents = _selectionEvents.asSharedFlow()
@@ -369,10 +370,23 @@ class WorkspacePageManager @Inject constructor(
 
     suspend fun setPaneCount(count: Int) {
         log(TAG) { "Setting pane count to $count" }
+        val firstReport = !paneCountReported
+        paneCountReported = true
 
         val oldPaneCount = _state.getAndUpdate { it.copy(currentPaneCount = count) }.currentPaneCount
-        if (count <= oldPaneCount) return
+        // A repeat report of the same layout changes nothing, and a tab the user detached stays
+        // detached; only the first report and real count changes place the focused tab.
+        if (count == oldPaneCount && !firstReport) return
+        if (count > oldPaneCount) autoFillGrownPanes(count, oldPaneCount)
 
+        // The first report and every count change make the layout's pane set authoritative: this is
+        // where a focused tab left on an unrendered index, by a shrink or by a restore that landed
+        // before the first report, gets placed.
+        val infos = workspaceRemote.peekInfos()
+        _state.update { it.withFocusRendered(infos) }
+    }
+
+    private suspend fun autoFillGrownPanes(count: Int, oldPaneCount: Int) {
         log(TAG) { "Pane count increased from $oldPaneCount to $count, checking for empty panes to fill" }
 
         // Only pay for the workspace list when a pane might need filling - growing back into
@@ -510,6 +524,48 @@ class WorkspacePageManager @Inject constructor(
         }
     }
 
+    /**
+     * A focused tab parked on an index the layout does not render is open but invisible.
+     * This moves it into an empty rendered pane; with one pane it swaps it in; otherwise focus moves
+     * to a rendered occupant.
+     */
+    private fun State.withFocusRendered(infos: List<Workspace.Info>): State {
+        val focused = focusedWorkspaceId ?: return this
+        // A dangling or cyclic child belongs to no tab, so there is nothing to place - the UI falls
+        // back on its own.
+        val focusedRoot = WorkspaceStacks(infos).rootOf(focused)?.id ?: return this
+
+        val renderedSlots = 0 until currentPaneCount
+        if (selectedWorkspaces.any { (index, id) -> index in renderedSlots && id == focusedRoot }) return this
+
+        val emptyRenderedSlot = renderedSlots.firstOrNull { !selectedWorkspaces.containsKey(it) }
+        return if (emptyRenderedSlot != null) {
+            log(TAG) { "withFocusRendered: moving $focusedRoot into rendered pane $emptyRenderedSlot" }
+            copy(
+                selectedWorkspaces = selectedWorkspaces.filterValues { it != focusedRoot } +
+                    (emptyRenderedSlot to focusedRoot),
+            )
+        } else {
+            if (currentPaneCount == 1) {
+                // One pane shows exactly one tab, so the focused tab takes it and the occupant moves to
+                // the index the focused tab held, keeping the arrangement for the next grow.
+                val occupant = selectedWorkspaces.getValue(0)
+                val focusedIndex = selectedWorkspaces.entries.firstOrNull { it.value == focusedRoot }?.key
+                log(TAG) { "withFocusRendered: swapping $focusedRoot into the single pane, parking $occupant at $focusedIndex" }
+                return copy(
+                    selectedWorkspaces = selectedWorkspaces.filterValues { it != focusedRoot && it != occupant } +
+                        (0 to focusedRoot) +
+                        listOfNotNull(focusedIndex?.let { it to occupant }),
+                )
+            }
+            // Same rule as unassignWorkspace: the lowest rendered pane, never a retained index.
+            val newFocus = selectedWorkspaces.filterKeys { it in renderedSlots }.minByOrNull { it.key }?.value
+                ?: return this
+            log(TAG) { "withFocusRendered: $focusedRoot has no rendered pane, focusing $newFocus instead" }
+            copy(focusedWorkspaceId = newFocus)
+        }
+    }
+
     fun setSelectedWorkspaces(selections: Map<Int, Workspace.Id>) {
         _state.update { currentState ->
             // Auto-focus first selected if current focus not in selection
@@ -563,11 +619,14 @@ class WorkspacePageManager @Inject constructor(
      * Atomically sets both focus and selections during session restoration.
      * Unlike calling setFocusedWorkspace() + setSelectedWorkspaces() separately,
      * this avoids the auto-focus side effect in setSelectedWorkspaces().
+     * A focused tab restored onto an index the current layout does not render is placed like after a shrink.
      */
-    fun applyRestoredUIState(
+    suspend fun applyRestoredUIState(
         focusedId: Workspace.Id?,
         selectedWorkspaces: Map<Int, Workspace.Id>,
     ) {
+        val infos = workspaceRemote.peekInfos()
+
         _state.update { currentState ->
             val updatedAccessTimes = if (focusedId != null) {
                 currentState.workspaceAccessTimes + (focusedId to Clock.System.now())
@@ -578,7 +637,10 @@ class WorkspacePageManager @Inject constructor(
                 focusedWorkspaceId = focusedId,
                 selectedWorkspaces = selectedWorkspaces,
                 workspaceAccessTimes = updatedAccessTimes,
-            )
+            ).let {
+                // A restore that lands before the layout has reported its pane count is placed by that report instead.
+                if (paneCountReported) it.withFocusRendered(infos) else it
+            }
         }
     }
 
@@ -790,19 +852,14 @@ class WorkspacePageManager @Inject constructor(
 
             val newFocus = if (needsRefocus) nextWorkspace?.id else state.focusedWorkspaceId
 
-            // Ensure we have a selection if we have a focus
-            val finalSelections = if (newFocus != null && newSelections.isEmpty()) {
-                mapOf(0 to newFocus)
-            } else {
-                newSelections
-            }
+            log(TAG) { "handleWorkspaceClosed.update: newFocus=$newFocus, newSelections=$newSelections" }
 
-            log(TAG) { "handleWorkspaceClosed.update: newFocus=$newFocus, finalSelections=$finalSelections" }
-
+            // The close can leave a rendered pane empty while the focused tab sits on a retained
+            // index, so the focus is placed into a pane the layout actually draws.
             state.copy(
-                selectedWorkspaces = finalSelections,
+                selectedWorkspaces = newSelections,
                 focusedWorkspaceId = newFocus,
-            )
+            ).withFocusRendered(repoSnapshot.infos)
         }
     }
 

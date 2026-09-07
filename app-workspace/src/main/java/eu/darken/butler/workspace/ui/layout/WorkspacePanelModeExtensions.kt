@@ -12,6 +12,7 @@ fun WorkspacePanelMode.label(): String {
     return when (this) {
         WorkspacePanelMode.AUTO -> stringResource(R.string.workspace_settings_layout_mode_auto)
         WorkspacePanelMode.SINGLE -> stringResource(R.string.workspace_settings_layout_mode_single)
+        WorkspacePanelMode.SINGLE_RAIL -> stringResource(R.string.workspace_settings_layout_mode_single_rail)
         WorkspacePanelMode.DUAL_VERTICAL -> stringResource(R.string.workspace_settings_layout_mode_dual_vertical)
         WorkspacePanelMode.DUAL_HORIZONTAL -> stringResource(R.string.workspace_settings_layout_mode_dual_horizontal)
         WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> stringResource(R.string.workspace_settings_layout_mode_triple_sidebar_left)
@@ -25,6 +26,7 @@ fun WorkspacePanelMode.description(): String {
     return when (this) {
         WorkspacePanelMode.AUTO -> stringResource(R.string.workspace_settings_layout_mode_auto_desc)
         WorkspacePanelMode.SINGLE -> stringResource(R.string.workspace_settings_layout_mode_single_desc)
+        WorkspacePanelMode.SINGLE_RAIL -> stringResource(R.string.workspace_settings_layout_mode_single_rail_desc)
         WorkspacePanelMode.DUAL_VERTICAL -> stringResource(R.string.workspace_settings_layout_mode_dual_vertical_desc)
         WorkspacePanelMode.DUAL_HORIZONTAL -> stringResource(R.string.workspace_settings_layout_mode_dual_horizontal_desc)
         WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> stringResource(R.string.workspace_settings_layout_mode_triple_sidebar_left_desc)
@@ -36,6 +38,7 @@ fun WorkspacePanelMode.description(): String {
 fun WorkspacePanelMode.icon(): ImageVector = when (this) {
     WorkspacePanelMode.AUTO -> WorkspacePanelIcons.Auto
     WorkspacePanelMode.SINGLE -> WorkspacePanelIcons.Single
+    WorkspacePanelMode.SINGLE_RAIL -> WorkspacePanelIcons.SingleRail
     WorkspacePanelMode.DUAL_VERTICAL -> WorkspacePanelIcons.DualVertical
     WorkspacePanelMode.DUAL_HORIZONTAL -> WorkspacePanelIcons.DualHorizontal
     WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> WorkspacePanelIcons.TripleSidebarLeft

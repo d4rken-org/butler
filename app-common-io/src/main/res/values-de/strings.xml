@@ -1,0 +1,89 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Elemente werden gelöscht</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Elemente werden kopiert</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Elemente werden verschoben</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Scan läuft…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">Datei bereits vorhanden</string>
+    <string name="path_action_folder_exists_title">Ordner bereits vorhanden</string>
+    <string name="path_action_file_exists_description">Eine Datei namens \"%1$s\" ist unter \"%2$s\" bereits vorhanden.</string>
+    <string name="path_action_folder_exists_description">Ein Ordner namens \"%1$s\" ist unter \"%2$s\" bereits vorhanden.</string>
+
+    <string name="path_action_not_found_title">Datei nicht mehr vorhanden</string>
+    <string name="path_action_not_found_description">\"%1$s\" wurde gelöscht, umbenannt oder verschoben.</string>
+
+    <string name="path_action_permission_denied_title">Zugriff verweigert</string>
+    <string name="path_action_permission_denied_description">Auf \"%1$s\" unter \"%2$s\" kann wegen fehlender Berechtigungen nicht zugegriffen werden.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Auf \"%1$s\" unter \"%2$s\" kann nicht zugegriffen werden. Es ist keine Methode verfügbar, um diesen Vorgang auszuführen.</string>
+    <string name="path_action_permission_denied_readonly_description">Auf \"%1$s\" unter \"%2$s\" kann nicht zugegriffen werden. Das Dateisystem ist schreibgeschützt.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Auf \"%1$s\" unter \"%2$s\" kann nicht zugegriffen werden. Das System hat den Vorgang verweigert.</string>
+
+    <string name="path_action_insufficient_space_title">Nicht genügend Speicherplatz</string>
+    <string name="path_action_insufficient_space_description">Es ist nicht genügend Speicherplatz verfügbar, um \"%1$s\" aus \"%2$s\" zu kopieren.</string>
+
+    <string name="path_action_unknown_error_title">Vorgang fehlgeschlagen</string>
+
+    <string name="path_action_trash_size_limit_title">Elemente zu groß für den Papierkorb</string>
+    <string name="path_action_trash_size_limit_description">Die Gesamtgröße (%2$s) überschreitet die Größenbegrenzung des Papierkorbs (%3$s). Betroffene Elemente: %1$d.</string>
+
+    <string name="path_action_trash_move_failed_title">Verschieben in den Papierkorb fehlgeschlagen</string>
+    <string name="path_action_trash_move_failed_description">Nicht in den Papierkorb verschobene Elemente: %1$d.</string>
+
+    <string name="path_action_trash_not_supported_title">Papierkorb nicht unterstützt</string>
+    <string name="path_action_trash_not_supported_description">Der verwendete Speicher unterstützt den Papierkorb nicht. Betroffene Elemente: %1$d.</string>
+
+    <string name="path_action_archive_password_title">Passwort erforderlich</string>
+    <string name="path_action_archive_password_description">\"%1$s\" ist verschlüsselt. Gib das Passwort ein, um den Inhalt zu lesen.</string>
+    <string name="path_action_archive_password_wrong_description">Das Passwort für \"%1$s\" war falsch. Versuche es erneut.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Server nicht erreichbar</string>
+    <string name="smb_error_unreachable_description">Butler konnte \"%1$s\" nicht erreichen. Prüfe, ob sich Dein Gerät im selben Netzwerk befindet und der Server eingeschaltet ist.</string>
+    <string name="smb_error_auth_title">Anmeldung fehlgeschlagen</string>
+    <string name="smb_error_auth_description">\"%1$s\" hat den Benutzernamen oder das Passwort abgelehnt.</string>
+    <string name="smb_error_share_access_denied_title">Kein Zugriff auf diese Freigabe</string>
+    <string name="smb_error_share_access_denied_description">Dieses Konto darf \"%1$s\" auf \"%2$s\" nicht verwenden. Prüfe die Freigabeberechtigungen auf dem Server.</string>
+    <string name="smb_error_share_not_found_title">Freigabe nicht gefunden</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" ist auf \"%2$s\" nicht vorhanden.</string>
+    <string name="smb_error_dialect_title">Server zu alt</string>
+    <string name="smb_error_dialect_description">\"%1$s\" bietet nur SMB1 an, das unsicher ist und nicht unterstützt wird. Aktiviere SMB2 oder höher auf dem Server.</string>
+    <string name="smb_error_credential_unavailable_title">Anmeldung erforderlich</string>
+    <string name="smb_error_credential_unavailable_description">Das gespeicherte Passwort für diesen Netzwerkspeicher kann nicht mehr gelesen werden. Gib es erneut ein, um die Verbindung wiederherzustellen.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Geschütztes App-Bundle</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" ist verschlüsselt und kann nur von der App installiert werden, die es erstellt hat.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">APK-Set-Format nicht unterstützt</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" ist ein bundletool-APK-Set. Butler kann nicht ermitteln, welche Variante für dieses Gerät geeignet ist.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Keine App zum Installieren</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" enthält keine installierbare APK.</string>
+
+    <string name="app_install_error_session_title">Installation fehlgeschlagen</string>
+    <string name="app_install_error_session_description">Das System hat die Installation abgelehnt: %1$s</string>
+
+    <string name="app_install_error_busy_title">Eine andere Installation läuft bereits</string>
+    <string name="app_install_error_busy_description">\"%1$s\" wird noch installiert. Bestätige diese Installation oder brich sie ab, bevor Du eine weitere startest.</string>
+
+    <string name="app_install_error_no_elevation_title">Keine erweiterten Zugriffsrechte</string>
+    <string name="app_install_error_no_elevation_description">Root- oder ADB-Zugriff ist derzeit nicht verfügbar.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Bestätigung erforderlich</string>
+    <string name="app_install_confirm_pending_description">Android benötigt Deine Bestätigung, um die Installation von \"%1$s\" abzuschließen.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android benötigt Deine Bestätigung, um diese Installation abzuschließen.</string>
+    <string name="app_install_confirm_pending_action">Installation bestätigen</string>
+    <string name="app_install_confirm_pending_reason">Das Installationsprogramm wartet auf Deine Bestätigung</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Dateivorgang unterbrochen</string>
+    <string name="service_connection_lost_error_message">Der Dienst für Dateivorgänge wurde unerwartet beendet. Versuche es bitte erneut.</string>
+</resources>

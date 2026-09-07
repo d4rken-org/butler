@@ -15,6 +15,7 @@ import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPosition
 import eu.darken.butler.workspace.ui.scroll.WorkspaceScrollPositions
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -56,6 +57,7 @@ class WorkspaceUndoPlacementTest : BaseTest() {
         workspaceRemote = mockk {
             every { state } returns stateFlow
             every { events } returns eventsFlow
+            coEvery { peekInfos() } answers { stateFlow.value.infos }
         }
         testScope = TestScope(UnconfinedTestDispatcher())
         stash = ClosedWorkspaceStash(testScope)

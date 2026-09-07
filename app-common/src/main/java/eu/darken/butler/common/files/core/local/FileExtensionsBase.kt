@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.core.local
 import android.system.Os
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -10,7 +11,7 @@ import java.io.IOException
 fun File.tryMkDirs(): File {
     if (exists()) {
         if (isDirectory) {
-            log(VERBOSE) { "Directory already exists, not creating: $this" }
+            log(TAG, VERBOSE) { "Directory already exists, not creating: $this" }
             return this
         } else {
             throw IllegalStateException("Directory exists, but is not a directory: $this")
@@ -18,7 +19,7 @@ fun File.tryMkDirs(): File {
     }
 
     if (mkdirs()) {
-        log(VERBOSE) { "Directory created: $this" }
+        log(TAG, VERBOSE) { "Directory created: $this" }
         return this
     } else {
         throw IllegalStateException("Couldn't create Directory: $this")
@@ -28,7 +29,7 @@ fun File.tryMkDirs(): File {
 fun File.tryMkFile(): File {
     if (exists()) {
         if (isFile) {
-            log(VERBOSE) { "File already exists, not creating: $this" }
+            log(TAG, VERBOSE) { "File already exists, not creating: $this" }
             return this
         } else {
             throw IllegalStateException("Path exists but is not a file: $this")
@@ -38,7 +39,7 @@ fun File.tryMkFile(): File {
     if (parentFile?.exists() == false) parentFile?.tryMkDirs()
 
     if (createNewFile()) {
-        log(VERBOSE) { "File created: $this" }
+        log(TAG, VERBOSE) { "File created: $this" }
         return this
     } else {
         throw IllegalStateException("Couldn't create file: $this")
@@ -51,9 +52,9 @@ fun File.deleteAll() {
         listFiles()?.forEach { it.deleteAll() }
     }
     if (delete()) {
-        log(VERBOSE) { "File.release(): Deleted $this" }
+        log(TAG, VERBOSE) { "File.release(): Deleted $this" }
     } else if (!exists()) {
-        log(WARN) { "File.release(): File didn't exist: $this" }
+        log(TAG, WARN) { "File.release(): File didn't exist: $this" }
     } else {
         throw FileNotFoundException("Failed to delete file: $this")
     }
@@ -98,3 +99,5 @@ val File.parentsInclusive: Sequence<File>
     get() = sequenceOf(this) + parents
 
 fun String.fixSlashes(): String = replace("/", File.separator)
+
+private val TAG = logTag("File", "Extensions")

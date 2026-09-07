@@ -128,13 +128,14 @@ class TemplatesWorkspacePageTest : ComposeTest() {
         navigated shouldBe true
     }
 
-    // The card visibility gate is `design.isSingle`; assert it holds for every layout so the
-    // representative compose check above transitively covers all non-single layouts.
+    // The card visibility gate is `!design.hasNavigationRail`, which `WorkspaceDesignTest` covers
+    // per design; asserted here for the one single-pane layout that composes a rail anyway.
     @Test
-    fun `only the single layout counts as single-pane`() {
-        WorkspaceDesign.Layout.entries.forEach { layout ->
-            WorkspaceDesign(layout = layout).isSingle shouldBe (layout == WorkspaceDesign.Layout.SINGLE)
-        }
+    fun `a single pane with the rail hides the settings card`() {
+        setPage(WorkspaceDesign(layout = WorkspaceDesign.Layout.SINGLE, hasNavigationRail = true))
+        composeTestRule
+            .onNodeWithTag(TemplatesWorkspacePageDefaults.SETTINGS_CARD_TEST_TAG)
+            .assertDoesNotExist()
     }
 
     @Test

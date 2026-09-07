@@ -4,6 +4,7 @@ import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -181,7 +182,7 @@ class SharedResourceTest : BaseTest() {
             srParent.addChild(srChild1)
             srChild1.isClosed shouldBe false
 
-            log { "Closing srParent" }
+            log(TAG) { "Closing srParent" }
             srParent.close()
             srChild1.isClosed shouldBe true
         }
@@ -200,7 +201,7 @@ class SharedResourceTest : BaseTest() {
 
             srParent.addChild(srChild2)
             srChild2.isClosed shouldBe false
-            log { "Closing srParent" }
+            log(TAG) { "Closing srParent" }
             srParent.close()
             srChild1.isClosed shouldBe true
             srChild2.isClosed shouldBe true
@@ -296,7 +297,7 @@ class SharedResourceTest : BaseTest() {
                 }
             }
         }
-        log { "Waiting for jobs to join" }
+        log(TAG) { "Waiting for jobs to join" }
         jobs.joinAll()
     }
 
@@ -474,7 +475,7 @@ class SharedResourceTest : BaseTest() {
                 try {
                     sr.get().close()
                 } catch (e: Exception) {
-                    log { "Thrown ${e.asLog()}" }
+                    log(TAG) { "Thrown ${e.asLog()}" }
                     (e is CancellationException) shouldBe true
                 }
             }.also { jobs.add(it) }
@@ -1311,3 +1312,5 @@ class SharedResourceTest : BaseTest() {
             }
         }
 }
+
+private val TAG = logTag("Test", "SharedResourceTest")

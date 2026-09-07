@@ -113,4 +113,21 @@ class WorkspaceDesignTest : BaseTest() {
             edges(top = true, bottom = false, start = false, end = false)
         design.withoutEdges(start = true).layout shouldBe Layout.QUAD_GRID
     }
+
+    @Test
+    fun `the rail follows the layout unless a single pane opts in`() {
+        Layout.entries.forEach { layout ->
+            withClue(layout) {
+                WorkspaceDesign(layout = layout).hasNavigationRail shouldBe (layout != Layout.SINGLE)
+            }
+        }
+        WorkspaceDesign(layout = Layout.SINGLE, hasNavigationRail = true).hasNavigationRail shouldBe true
+    }
+
+    @Test
+    fun `a multi-pane layout cannot drop the rail`() {
+        shouldThrow<IllegalArgumentException> {
+            WorkspaceDesign(layout = Layout.DUAL_VERTICAL, hasNavigationRail = false)
+        }
+    }
 }

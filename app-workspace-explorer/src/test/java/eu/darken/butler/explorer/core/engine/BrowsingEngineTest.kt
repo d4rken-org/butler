@@ -185,11 +185,35 @@ class BrowsingEngineTest : BaseTest() {
         }
 
         @Test
-        fun `a reload publishes its own listing as soon as it has one`() {
+        fun `a reload replaces rows its listing no longer contains`() {
             val previous = loaded(entry("a"), entry("b"))
             val reloaded = loading(listOf(entry("c")))
 
             reloaded.retainContentFrom(previous) shouldBe reloaded
+        }
+
+        @Test
+        fun `a reload keeps the extended data of rows whose lookup did not change`() {
+            val previous = loaded(entry("a").copy(childCount = 3), entry("b").copy(childCount = 0))
+            val reloaded = loading(listOf(entry("a"), entry("b")))
+
+            reloaded.retainContentFrom(previous).items shouldBe previous.items
+        }
+
+        @Test
+        fun `a reload replaces a row whose lookup changed`() {
+            val previous = loaded(entry("a").copy(childCount = 3))
+            val changed = entry("a").copy(
+                lookup = LocalPathLookup(
+                    lookedUp = path.child("a"),
+                    fileType = FileType.DIRECTORY,
+                    size = 42L,
+                    modifiedAt = null,
+                ),
+            )
+            val reloaded = loading(listOf(changed))
+
+            reloaded.retainContentFrom(previous).items shouldBe listOf(changed)
         }
 
         @Test

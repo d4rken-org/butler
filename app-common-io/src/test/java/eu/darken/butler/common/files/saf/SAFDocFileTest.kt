@@ -8,8 +8,10 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
+import android.os.Bundle
 import android.os.RemoteException
 import android.provider.DocumentsContract
+import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -20,6 +22,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import java.io.IOException
+import kotlin.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
@@ -97,6 +100,64 @@ class SAFDocFileTest : BaseTest() {
 //            fileUri
 //        ).toString() shouldBe "SAFDocFile(uri=$fileUri)"
 //    }
+
+    // ============ CHILD LISTING ============
+
+    private val listedUri: Uri get() = Uri.parse("content://auth.ority/tree/7/document/7")
+
+    private val listedChildrenUri: Uri
+        get() = DocumentsContract.buildChildDocumentsUriUsingTree(listedUri, DocumentsContract.getDocumentId(listedUri))
+
+    private fun childrenCursor(vararg rows: Array<Any?>): MatrixCursor = MatrixCursor(
+        arrayOf(
+            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
+            DocumentsContract.Document.COLUMN_SIZE,
+            DocumentsContract.Document.COLUMN_LAST_MODIFIED,
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+        )
+    ).apply { rows.forEach { addRow(it) } }
+
+    private fun listChildren(cursor: Cursor): SAFDocFile.ChildListing {
+        every { contentResolver.query(listedChildrenUri, any(), any(), any(), any()) } returns cursor
+        return SAFDocFile(context, contentResolver, listedUri).listFilesWithLookupData()
+    }
+
+    @Test
+    fun `listFilesWithLookupData returns the display name column`() {
+        val listing = listChildren(
+            childrenCursor(
+                arrayOf<Any?>("42", "text/plain", 12L, 34L, "a.txt"),
+                arrayOf<Any?>("43", DocumentsContract.Document.MIME_TYPE_DIR, 0L, 0L, null),
+            )
+        )
+
+        listing.entries[0].name shouldBe "a.txt"
+        listing.entries[0].lookupData shouldBe SAFDocFile.LookupData(
+            fileType = FileType.FILE,
+            size = 12L,
+            lastModified = Instant.fromEpochMilliseconds(34L),
+        )
+        listing.entries[0].docFile.uri shouldBe DocumentsContract.buildDocumentUriUsingTree(listedUri, "42")
+
+        listing.entries[1].name shouldBe null
+        listing.entries[1].lookupData.fileType shouldBe FileType.DIRECTORY
+    }
+
+    @Test
+    fun `listFilesWithLookupData reports a loading or errored cursor as partial`() {
+        val row = arrayOf<Any?>("42", "text/plain", 0L, 0L, "a.txt")
+
+        listChildren(childrenCursor(row)).partial shouldBe false
+
+        listChildren(
+            childrenCursor(row).apply { extras = Bundle().apply { putBoolean(DocumentsContract.EXTRA_LOADING, true) } }
+        ).partial shouldBe true
+
+        listChildren(
+            childrenCursor(row).apply { extras = Bundle().apply { putString(DocumentsContract.EXTRA_ERROR, "boom") } }
+        ).partial shouldBe true
+    }
 
     // Helper to create cursor with MIME type
     private fun createMimeCursor(mimeType: String?): Cursor {

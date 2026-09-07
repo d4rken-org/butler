@@ -87,7 +87,7 @@ class MainViewModel @Inject constructor(
             avoidDisplayCutout = avoidDisplayCutout,
         )
     }
-        .onEach { log(VERBOSE) { "New state: $it" } }
+        .onEach { log(tag, VERBOSE) { "New state: $it" } }
         .asStateFlow()
 
     fun checkUpgrades() = launch {

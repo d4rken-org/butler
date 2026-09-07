@@ -8,6 +8,7 @@ import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import javax.inject.Inject
 
 @Reusable
@@ -28,14 +29,16 @@ class WebpageTool @Inject constructor(
                 context.startActivity(intent)
                 true
             } catch (e: ActivityNotFoundException) {
-                log(ERROR) { "Failed to launch. No compatible activity!" }
+                log(TAG, ERROR) { "Failed to launch. No compatible activity!" }
                 false
             } catch (e: SecurityException) {
                 // Permission Denial: starting Intent { act=android.intent.action.VIEW dat=https://github.com/...
                 // flg=0x10000000 cmp=com.mxtech.videoplayer.pro/com.mxtech.videoplayer.ActivityWebBrowser }
-                log(ERROR) { "Failed to launch activity due to $e" }
+                log(TAG, ERROR) { "Failed to launch activity due to $e" }
                 false
             }
         }
     }
 }
+
+private val TAG = logTag("WebpageTool")

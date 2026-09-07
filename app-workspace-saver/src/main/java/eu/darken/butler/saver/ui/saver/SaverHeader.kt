@@ -80,7 +80,7 @@ internal fun SaverHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             // Single-pane only: the navigation rail already carries one on every other layout.
-            if (design.isSingle) {
+            if (!design.hasNavigationRail) {
                 WorkspaceButton(currentWorkspaceId = workspaceId)
             }
         }

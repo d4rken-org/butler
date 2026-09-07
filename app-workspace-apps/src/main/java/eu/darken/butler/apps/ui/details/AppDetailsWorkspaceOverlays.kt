@@ -10,6 +10,7 @@ import eu.darken.butler.apps.core.details.components.ComponentEnabledState
 import eu.darken.butler.apps.core.details.components.ComponentEntry
 import eu.darken.butler.apps.core.details.components.ComponentKind
 import eu.darken.butler.apps.core.details.components.ComponentToggleState
+import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.apps.ui.details.components.ComponentDetailsSheet
 import eu.darken.butler.apps.ui.details.components.ComponentsConfirmDialog
 import eu.darken.butler.apps.ui.details.components.ComponentsConfirmRequest
@@ -45,12 +46,15 @@ fun AppDetailsWorkspaceOverlaysHost(
         selectedSource = vm.selectedComponent,
         toggleStateSource = vm.componentToggleState,
         confirmSource = vm.componentConfirm,
+        appConfirmSource = vm.appConfirm,
         onDismiss = vm::onComponentSheetDismissed,
         onLaunch = { vm.onLaunchComponent(packageName = it.packageName, className = it.className) },
         onSetEnabled = { entry, enabled -> vm.onSetComponentEnabled(entry, enabled) },
         onSetupRequested = vm::openElevatedAccessSetup,
         onConfirm = vm::onComponentConfirm,
         onConfirmDismiss = vm::onComponentConfirmDismiss,
+        onAppConfirm = vm::onAppConfirm,
+        onAppConfirmDismiss = vm::onAppConfirmDismiss,
     )
 
     // Last on purpose: layers stack in composition order, so an error raised while one of this
@@ -64,12 +68,15 @@ fun AppDetailsWorkspaceOverlays(
     selectedSource: Flow<ComponentEntry?>,
     toggleStateSource: Flow<ComponentToggleState> = flowOf(ComponentToggleState.UNSUPPORTED),
     confirmSource: Flow<ComponentsConfirmRequest?> = flowOf(null),
+    appConfirmSource: Flow<AppDetailsConfirmRequest?> = flowOf(null),
     onDismiss: () -> Unit = {},
     onLaunch: (ComponentEntry) -> Unit = {},
     onSetEnabled: (ComponentEntry, Boolean) -> Unit = { _, _ -> },
     onSetupRequested: () -> Unit = {},
     onConfirm: (ComponentsConfirmRequest) -> Unit = {},
     onConfirmDismiss: () -> Unit = {},
+    onAppConfirm: (AppDetailsConfirmRequest) -> Unit = {},
+    onAppConfirmDismiss: () -> Unit = {},
 ) {
     // The real sources are eagerly shared StateFlows, so a remount reads the current values with no
     // null first frame — which would briefly unmount the sheet's layer.
@@ -82,6 +89,9 @@ fun AppDetailsWorkspaceOverlays(
     )
     val confirmRequest by confirmSource.collectAsState(
         initial = (confirmSource as? StateFlow<ComponentsConfirmRequest?>)?.value
+    )
+    val appConfirmRequest by appConfirmSource.collectAsState(
+        initial = (appConfirmSource as? StateFlow<AppDetailsConfirmRequest?>)?.value
     )
 
     val paneInsets = design.paneInsets()
@@ -107,6 +117,14 @@ fun AppDetailsWorkspaceOverlays(
             request = request,
             onConfirm = { onConfirm(request) },
             onDismiss = onConfirmDismiss,
+        )
+    }
+
+    appConfirmRequest?.let { request ->
+        AppDetailsConfirmDialog(
+            request = request,
+            onConfirm = { onAppConfirm(request) },
+            onDismiss = onAppConfirmDismiss,
         )
     }
 }
@@ -153,6 +171,18 @@ private fun AppDetailsWorkspaceOverlaysProviderPreview() {
 @Composable
 private fun AppDetailsWorkspaceOverlaysNoSelectionPreview() {
     AppDetailsWorkspaceOverlays(selectedSource = flowOf(null))
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppDetailsWorkspaceOverlaysAppConfirmPreview() {
+    AppDetailsWorkspaceOverlays(
+        selectedSource = flowOf(null),
+        appConfirmSource = flowOf(
+            AppDetailsConfirmRequest.ClearData(AppsMockDataProvider.Presets.chrome)
+        ),
+    )
 }
 
 @Preview2

@@ -5,6 +5,7 @@ import android.os.RemoteException
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.errors.ServiceConnectionLostException
 import okio.Sink
 import okio.sink
@@ -19,19 +20,19 @@ internal fun OutputStream.toRemoteOutputStream(): RemoteOutputStream.Stub = obje
     override fun write(b: Int) = try {
         this@toRemoteOutputStream.write(b)
     } catch (e: IOException) {
-        log(ERROR) { "write() failed: ${e.asLog()}" }
+        log(TAG, ERROR) { "write() failed: ${e.asLog()}" }
     }
 
     override fun writeBuffer(b: ByteArray, off: Int, len: Int) = try {
         this@toRemoteOutputStream.write(b, off, len)
     } catch (e: IOException) {
-        log(ERROR) { "writeBuffer() failed: ${e.asLog()}" }
+        log(TAG, ERROR) { "writeBuffer() failed: ${e.asLog()}" }
     }
 
     override fun flush() = try {
         this@toRemoteOutputStream.flush()
     } catch (e: IOException) {
-        log(ERROR) { "flush() failed: ${e.asLog()}" }
+        log(TAG, ERROR) { "flush() failed: ${e.asLog()}" }
     }
 
     override fun close() = try {
@@ -75,3 +76,5 @@ internal fun RemoteOutputStream.outputStream(): OutputStream = object : OutputSt
 }
 
 fun RemoteOutputStream.sink(): Sink = outputStream().sink()
+
+private val TAG = logTag("IPC", "RemoteOutputStream")

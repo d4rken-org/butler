@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Entwicklerwerkzeuge</string>
+    <string name="developer_title">Entwicklerwerkzeuge</string>
+    <string name="developer_subtitle">Entwicklungswerkzeuge</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">System</string>
+    <string name="developer_tab_options">Optionen</string>
+    <string name="developer_tab_workspaces">Arbeitsbereiche</string>
+    <string name="developer_tab_logs">Protokolle</string>
+    <string name="developer_tab_testdata">Testdaten</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Debug-Optionen</string>
+    <string name="developer_options_debug_mode">Debug-Modus</string>
+    <string name="developer_options_debug_mode_desc">Ausführliche Protokollierung aktivieren</string>
+    <string name="developer_options_trace_mode">Trace-Modus</string>
+    <string name="developer_options_trace_mode_desc">Protokollierung auf Trace-Ebene aktivieren</string>
+    <string name="developer_options_floating_log">Schwebender Protokollbereich</string>
+    <string name="developer_options_floating_log_desc">Verschiebbare Protokolleinblendung auf allen Bildschirmen anzeigen</string>
+    <string name="developer_options_services_header">Diensttests</string>
+    <string name="developer_options_root_test_action">Root testen</string>
+    <string name="developer_options_root_installed_label">Installiert</string>
+    <string name="developer_options_root_available_label">Verfügbar</string>
+    <string name="developer_options_root_base_check_label">Basisprüfung</string>
+    <string name="developer_options_shizuku_test_action">Shizuku testen</string>
+    <string name="developer_options_shizuku_installed_label">Installiert</string>
+    <string name="developer_options_shizuku_granted_label">Berechtigung</string>
+    <string name="developer_options_shizuku_compatible_label">Kompatibel</string>
+    <string name="developer_options_shizuku_service_label">Dienst</string>
+    <string name="developer_options_test_running">Test läuft…</string>
+    <string name="developer_options_result_yes">Ja</string>
+    <string name="developer_options_result_no">Nein</string>
+    <string name="developer_options_result_unknown">Unbekannt</string>
+    <string name="developer_options_visibility_header">Sichtbarkeit</string>
+    <string name="developer_options_hide_mode">Entwicklermodus ausblenden</string>
+    <string name="developer_options_hide_mode_desc">Zum erneuten Aktivieren in den Einstellungen siebenmal auf die Version tippen.</string>
+    <string name="developer_options_hide_action">Ausblenden</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Gerät</string>
+    <string name="developer_system_device_model">Modell</string>
+    <string name="developer_system_device_manufacturer">Hersteller</string>
+    <string name="developer_system_device_api">API-Level</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">Version</string>
+    <string name="developer_system_build_code">Versionscode</string>
+    <string name="developer_system_build_flavor">Variante</string>
+    <string name="developer_system_build_type">Build-Typ</string>
+    <string name="developer_system_build_git">Git-SHA</string>
+    <string name="developer_system_memory_header">Arbeitsspeicher</string>
+    <string name="developer_system_memory_available">Verfügbar</string>
+    <string name="developer_system_memory_total">Gesamt</string>
+    <string name="developer_system_storage_header">Speicher</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d Arbeitsbereiche</string>
+    <string name="developer_workspaces_empty">Keine Arbeitsbereiche</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Leeren</string>
+    <string name="developer_logs_pause">Pausieren</string>
+    <string name="developer_logs_resume">Fortsetzen</string>
+    <string name="developer_logs_empty">Keine Protokolle</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Zielpfade</string>
+    <string name="developer_testdata_no_paths">Keine Zielpfade ausgewählt. Füge Pfade hinzu, um Testdaten zu erzeugen.</string>
+    <string name="developer_testdata_add_path_action">Pfad hinzufügen</string>
+    <string name="developer_testdata_options_header">Erzeugungsoptionen</string>
+    <string name="developer_testdata_large_files">Große Dateien</string>
+    <string name="developer_testdata_large_files_desc">1 MB, 10 MB, 100 MB, 1 GB, 2 GB, 4 GB, 8 GB</string>
+    <string name="developer_testdata_nested_structure">Verschachtelte Struktur</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 Ordner, ~1100 Dateien</string>
+    <string name="developer_testdata_text_files">Textdateien für den Editor</string>
+    <string name="developer_testdata_text_files_desc">10 KB, 100 KB, 1 MB, 10 MB, 100 MB</string>
+    <string name="developer_testdata_generate_action">Erzeugen</string>
+    <string name="developer_testdata_generating">Wird erzeugt…</string>
+    <string name="developer_testdata_history_header">Beispieleinträge im Verlauf</string>
+    <string name="developer_testdata_history_desc">Fügt etwa 25 erfundene Vorgangseinträge aus dem Zeitraum von heute bis vor 30 Tagen mit verschiedenen Arten, Ergebnissen, Ursprüngen und Pfaden hinzu. Die Einträge werden direkt in die Verlaufsdatenbank eingefügt. Erneutes Tippen ist sicher.</string>
+    <string name="developer_testdata_history_generate_action">Beispielverlauf erzeugen</string>
+    <string name="developer_testdata_progress">%1$s von %2$s</string>
+    <string name="developer_testdata_complete">Testdaten wurden erzeugt unter:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Große Dateien erzeugen</string>
+    <string name="developer_operation_large_files_desc">Testdateien werden in %1$s erstellt</string>
+    <string name="developer_operation_large_files_creating">%1$s wird erstellt</string>
+
+    <string name="developer_operation_nested_title">Verschachtelte Struktur erzeugen</string>
+    <string name="developer_operation_nested_desc">Ordnerhierarchie wird in %1$s erstellt</string>
+    <string name="developer_operation_nested_starting">Verschachtelte Struktur wird gestartet…</string>
+    <string name="developer_operation_nested_creating">%1$s wird erstellt</string>
+    <string name="developer_operation_nested_files_created">%1$d Dateien erstellt</string>
+
+    <string name="developer_operation_text_files_title">Textdateien erzeugen</string>
+    <string name="developer_operation_text_files_desc">Textdateien werden in %1$s erstellt</string>
+    <string name="developer_operation_text_files_creating">%1$s wird erstellt</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d Datei erstellt</item>
+        <item quantity="other">%d Dateien erstellt</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d Verzeichnis</item>
+        <item quantity="other">%d Verzeichnisse</item>
+    </plurals>
+</resources>

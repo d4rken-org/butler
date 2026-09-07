@@ -180,7 +180,7 @@ fun WorkspacePausedContent(
             }
         }
 
-        if (design.isSingle && LocalWorkspaceButtonProvider.current != null) {
+        if (!design.hasNavigationRail && LocalWorkspaceButtonProvider.current != null) {
             WorkspaceButton(
                 modifier = Modifier
                     .align(Alignment.TopEnd)

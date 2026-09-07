@@ -45,6 +45,8 @@ fun AdaptiveWorkspaceLayout(
     /** Only the assignments this layout renders. Anything showing a pane number reads this. */
     visibleSelected: Map<Int, WorkspacePaneInfo> = selected,
     focusedId: Workspace.Id?,
+    /** The tab owning [focusedId], null when focus resolves to no tab. */
+    focusedRootId: Workspace.Id?,
     dividerPositions: DividerPositions,
     onDividerPositionsChange: (DividerPositions) -> Unit,
     showPaneNumbers: Boolean,
@@ -83,6 +85,14 @@ fun AdaptiveWorkspaceLayout(
                 focusedId = focusedId,
                 onTabAction = { workspaceActionHandler?.executeWorkspaceAction(it) },
                 onPaneAssignment = { workspaceId, paneIndex ->
+                    // One pane has nothing to swap with, so the entry is selected into it the way
+                    // the tab manager selects into a one-pane layout.
+                    if (design.maxPanes == 1) {
+                        onScreenAction(WorkspaceScreenAction.Select(workspaceId))
+                        onPaneMenuToggle(false)
+                        return@WorkspaceNavigationRail
+                    }
+
                     // Create new selection with the workspace at the specified pane index
                     val currentSelection = selected.toMutableMap()
 
@@ -142,6 +152,7 @@ fun AdaptiveWorkspaceLayout(
                     railThickness = railThickness,
                     selected = selected,
                     focusedId = focusedId,
+                    focusedRootId = focusedRootId,
                     dividerPositions = dividerPositions,
                     onDividerPositionsChange = onDividerPositionsChange,
                     showPaneNumbers = showPaneNumbers,
@@ -171,6 +182,7 @@ fun AdaptiveWorkspaceLayout(
                     railThickness = railThickness,
                     selected = selected,
                     focusedId = focusedId,
+                    focusedRootId = focusedRootId,
                     dividerPositions = dividerPositions,
                     onDividerPositionsChange = onDividerPositionsChange,
                     showPaneNumbers = showPaneNumbers,
@@ -205,6 +217,8 @@ private fun PaneArea(
     railThickness: Dp,
     selected: Map<Int, WorkspacePaneInfo>,
     focusedId: Workspace.Id?,
+    /** The tab owning [focusedId], null when focus resolves to no tab. */
+    focusedRootId: Workspace.Id?,
     dividerPositions: DividerPositions,
     onDividerPositionsChange: (DividerPositions) -> Unit,
     showPaneNumbers: Boolean,
@@ -260,6 +274,12 @@ private fun PaneArea(
                         val focusSuppressed = isOverlayVisible || fullScreenModalVisible
                         val paneIsFocused = !focusSuppressed &&
                             (focusedId == info.id || chain.any { it.id == focusedId })
+                        // Widened for presses only, as the classic pager does for its resting page:
+                        // with a single pane nobody else can hold focus, so while focus resolves to
+                        // no tab the pane must not consume the first press to request one. Back
+                        // below stays tied to focus actually held.
+                        val paneAcceptsPresses = paneIsFocused ||
+                            (design.maxPanes == 1 && !focusSuppressed && focusedRootId == null)
                         // Deepest layer is the active one; global focus can sit on a covered
                         // ancestor (launchPicker never moves it).
                         val activeId = (chain.lastOrNull()?.id ?: info.id).takeIf { paneIsFocused }
@@ -270,7 +290,8 @@ private fun PaneArea(
                             // Any occupant counts as focusing the pane, and every layer requests
                             // focus for the tab: a Focus() for a modal is silently dropped,
                             // which would leave another pane active.
-                            paneFocused = paneIsFocused,
+                            paneFocused = paneAcceptsPresses,
+                            backActive = paneIsFocused,
                             clickToFocus = clickToFocus,
                             onRequestPaneFocus = {
                                 onScreenAction(WorkspaceScreenAction.Focus(info.id))
