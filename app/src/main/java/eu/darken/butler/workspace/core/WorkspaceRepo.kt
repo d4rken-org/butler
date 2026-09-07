@@ -1687,6 +1687,26 @@ class WorkspaceRepo @Inject constructor(
                 return@forEach
             }
 
+            // A replace tears the old instance down, so it is a close in everything but name.
+            val replaceId = createRequest.replace
+            if (replaceId != null) {
+                val blockers = closeBlockedBy(listOf(replaceId))
+                if (blockers.isNotEmpty()) {
+                    log(TAG, INFO) { "Batch replace of $replaceId refused, busy members: $blockers" }
+                    _events.emit(
+                        WorkspaceEvent.CloseRefused(
+                            requestedId = replaceId,
+                            hostId = anchorId ?: replaceId,
+                            busyWorkspaceIds = blockers,
+                        )
+                    )
+                    results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Failure(
+                        IllegalStateException("Replacement refused: workspace $replaceId is busy")
+                    )
+                    return@forEach
+                }
+            }
+
             try {
                 log(TAG) { "Creating workspace: ${createRequest.type}" }
                 val replacedAnchor = createRequest.replace != null && createRequest.replace == anchorId

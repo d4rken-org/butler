@@ -3949,6 +3949,56 @@ class WorkspaceRepoTest : BaseTest() {
     }
 
     @Test
+    fun `a batch replace is refused while the replaced tab is busy`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val events = mutableListOf<WorkspaceEvent>()
+        repo.events.onEach { events += it }.launchIn(backgroundScope)
+        val originalId = repo.createTab(type = Workspace.Type.EXPLORER)
+        markOperationBlocked(originalId)
+        val request = WorkspaceAction.Create(
+            type = Workspace.Type.SEARCHER,
+            arguments = FakeArguments(Workspace.Type.SEARCHER),
+            replace = originalId,
+        )
+
+        val result = repo.createBatch(request)
+
+        result.results.getValue(request)
+            .shouldBeInstanceOf<WorkspaceAction.CreateBatch.CreationResult.Failure>()
+        repo.workspaceIds() shouldBe listOf(originalId)
+        repo.infoFor(originalId).type shouldBe Workspace.Type.EXPLORER
+        fake(originalId).released shouldBe false
+        coVerify(exactly = 0) { operationsManager.removeWorkspace(originalId) }
+        events.closeRefusals().single().requestedId shouldBe originalId
+    }
+
+    @Test
+    fun `a batch replace is refused while a child of the replaced tab is busy`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val events = mutableListOf<WorkspaceEvent>()
+            repo.events.onEach { events += it }.launchIn(backgroundScope)
+            val originalId = repo.createTab(type = Workspace.Type.EXPLORER)
+            val childId = repo.createSubWorkspace(caller = originalId)
+            markOperationBlocked(childId)
+            val request = WorkspaceAction.Create(
+                type = Workspace.Type.SEARCHER,
+                arguments = FakeArguments(Workspace.Type.SEARCHER),
+                replace = originalId,
+            )
+
+            val result = repo.createBatch(request)
+
+            result.results.getValue(request)
+                .shouldBeInstanceOf<WorkspaceAction.CreateBatch.CreationResult.Failure>()
+            repo.workspaceIds() shouldBe listOf(originalId, childId)
+            fake(originalId).released shouldBe false
+            fake(childId).released shouldBe false
+            coVerify(exactly = 0) { operationsManager.removeWorkspace(originalId) }
+            events.closeRefusals().single().requestedId shouldBe originalId
+        }
+
+    @Test
     fun `tab-limit recovery treats a manager-known blocker as busy with zero counters`() =
         runTest(UnconfinedTestDispatcher()) {
             val repo = createRepo(isPro = false)
