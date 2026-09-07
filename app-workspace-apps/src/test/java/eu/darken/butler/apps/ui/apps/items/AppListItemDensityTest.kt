@@ -45,6 +45,20 @@ class AppListItemDensityTest : ComposeTest() {
     }
 
     @Test
+    fun `a compact row drops the package name`() {
+        rowAt(AppsViewStyle.Density.COMPACT)
+
+        composeTestRule.onNodeWithText(item.packageName).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a comfortable row keeps the package name`() {
+        rowAt(AppsViewStyle.Density.COMFORTABLE)
+
+        composeTestRule.onNodeWithText(item.packageName).assertIsDisplayed()
+    }
+
+    @Test
     fun `a compact row drops the size chip`() {
         rowAt(AppsViewStyle.Density.COMPACT)
 

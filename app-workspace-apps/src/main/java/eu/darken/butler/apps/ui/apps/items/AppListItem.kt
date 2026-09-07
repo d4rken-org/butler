@@ -114,27 +114,31 @@ fun AppListItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = item.packageName,
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.MiddleEllipsis,
-                )
-                if (!item.versionName.isNullOrBlank() && density.showsSecondaryMetadata) {
-                    Spacer(modifier = Modifier.width(8.dp))
+            // Compact is two lines: the label and the tag row. The package name goes with the
+            // version rather than leaving a half-empty line behind.
+            if (density.showsSecondaryMetadata) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Text(
-                        text = "v${item.versionName}",
-                        modifier = Modifier.widthIn(max = 120.dp),
+                        text = item.packageName,
+                        modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.MiddleEllipsis,
                     )
+                    if (!item.versionName.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "v${item.versionName}",
+                            modifier = Modifier.widthIn(max = 120.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
             // Tags carry actionable state such as "Disabled", so compact keeps them and only

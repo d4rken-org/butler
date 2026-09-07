@@ -104,8 +104,9 @@ fun AppGridItem(
                 }
             }
 
-            // Tag chips in top-right
-            if (item.tags.isNotEmpty() && density.showsSecondaryMetadata) {
+            // Tag chips in top-right. Tags carry actionable state such as "Disabled", so unlike
+            // the package name and the size they survive every density.
+            if (item.tags.isNotEmpty()) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -118,7 +119,8 @@ fun AppGridItem(
                 }
             }
 
-            // Checkbox in top-left when in selection mode
+            // Checkbox in top-left when in selection mode; otherwise detailed puts the version
+            // there, where it does not push the label overlay to a third line.
             if (showSelection) {
                 Box(
                     modifier = Modifier
@@ -131,6 +133,17 @@ fun AppGridItem(
                         modifier = Modifier.size(24.dp),
                     )
                 }
+            } else if (density == AppsViewStyle.Density.DETAILED && !item.versionName.isNullOrBlank()) {
+                Text(
+                    text = "v${item.versionName}",
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
 
             // Size chip floats above the label scrim; stacking them keeps it clear of the
@@ -173,21 +186,13 @@ fun AppGridItem(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        Text(
-                            text = item.packageName,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
-                            maxLines = 1,
-                            overflow = TextOverflow.MiddleEllipsis,
-                        )
-                        // Detailed adds the version, so no two steps render identically.
-                        if (density == AppsViewStyle.Density.DETAILED && !item.versionName.isNullOrBlank()) {
+                        if (density.showsSecondaryMetadata) {
                             Text(
-                                text = "v${item.versionName}",
+                                text = item.packageName,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                                overflow = TextOverflow.MiddleEllipsis,
                             )
                         }
                     }

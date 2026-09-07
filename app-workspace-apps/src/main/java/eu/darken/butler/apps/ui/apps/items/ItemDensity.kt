@@ -37,7 +37,7 @@ val AppsViewStyle.Density.gridMinSize: Dp
     }
 
 /**
- * The version string and the size chip.
+ * The package name, the version string and the size chip.
  *
  * Tags are NOT covered by this: they carry actionable state such as "Disabled", so they stay at
  * every density.
