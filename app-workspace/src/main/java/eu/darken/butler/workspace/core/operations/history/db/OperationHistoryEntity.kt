@@ -20,7 +20,7 @@ data class OperationHistoryEntity(
     val kind: String,
     /** Operation.Metadata.Intent name, null when no intent override */
     val intent: String?,
-    /** Origin discriminator: EXPLORER | SEARCHER | SAVER | DEVELOPER */
+    /** Origin discriminator: EXPLORER | SEARCHER | SAVER | DEVELOPER | VIEWER | APPS */
     val originType: String,
     /** Workspace ID at submit time. Forensic — workspace may no longer exist. */
     val originWorkspaceId: String,

@@ -44,6 +44,7 @@ internal val HistoryEntry.OriginType.labelRes: Int
         HistoryEntry.OriginType.SAVER -> R.string.history_origin_saver
         HistoryEntry.OriginType.DEVELOPER -> R.string.history_origin_developer
         HistoryEntry.OriginType.VIEWER -> R.string.history_origin_viewer
+        HistoryEntry.OriginType.APPS -> R.string.history_origin_apps
     }
 
 /** Past tense, unlike [labelRes]: the row headline reads as what happened, not as a filter value. */

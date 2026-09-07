@@ -89,6 +89,7 @@ class OperationHistoryRepo @Inject constructor(
             is Operation.Metadata.Origin.Saver -> HistoryEntry.OriginType.SAVER
             is Operation.Metadata.Origin.Developer -> HistoryEntry.OriginType.DEVELOPER
             is Operation.Metadata.Origin.Viewer -> HistoryEntry.OriginType.VIEWER
+            is Operation.Metadata.Origin.Apps -> HistoryEntry.OriginType.APPS
         }
 
         val reportedChanges = collectReportedChanges(state)

@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
@@ -191,6 +192,25 @@ class OperationHistoryPersistTest : BaseTest() {
         // An install writes no file of its own, so the container is all there is to name the row by.
         stored.paths.shouldBeEmpty()
         stored.entry.primaryPath shouldBe container.path
+    }
+
+    @Test
+    fun `an Apps origin is stored as APPS`() = runTest {
+        val workspaceId = Workspace.Id()
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(
+                    operationKind = Operation.Metadata.Kind.INSTALL,
+                    plan = planOver(source),
+                    operationOrigin = Operation.Metadata.Origin.Apps(workspaceId),
+                ),
+                state = TestCompletedState(report = null),
+            )
+        )
+
+        val stored = database.operationHistoryDao().getById(id)!!
+        stored.entry.originType shouldBe HistoryEntry.OriginType.APPS.name
+        stored.entry.originWorkspaceId shouldBe workspaceId.longTag
     }
 
     @Test

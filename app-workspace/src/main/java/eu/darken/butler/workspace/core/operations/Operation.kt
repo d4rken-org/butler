@@ -99,6 +99,7 @@ interface Operation {
             data class Saver(override val workspaceId: Workspace.Id) : Origin
             data class Developer(override val workspaceId: Workspace.Id) : Origin
             data class Viewer(override val workspaceId: Workspace.Id) : Origin
+            data class Apps(override val workspaceId: Workspace.Id) : Origin
         }
     }
 

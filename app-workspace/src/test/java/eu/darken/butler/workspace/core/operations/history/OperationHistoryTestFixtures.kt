@@ -48,8 +48,9 @@ internal fun testMetadata(
     operationKind: Operation.Metadata.Kind,
     plan: OperationPathPlan? = null,
     operationIntent: Operation.Metadata.Intent? = null,
+    operationOrigin: Operation.Metadata.Origin = Operation.Metadata.Origin.Explorer(Workspace.Id()),
 ): Operation.Metadata = mockk<Operation.Metadata>().apply {
-    every { origin } returns Operation.Metadata.Origin.Explorer(Workspace.Id())
+    every { origin } returns operationOrigin
     every { icon } returns mockk()
     every { title } returns "title".toCaString()
     every { description } returns "description".toCaString()
