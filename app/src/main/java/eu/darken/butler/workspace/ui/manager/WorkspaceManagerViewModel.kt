@@ -26,6 +26,7 @@ import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 import eu.darken.butler.workspace.ui.template.availableTemplates
 import eu.darken.butler.workspace.ui.template.toQuickCreateItem
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -57,6 +58,7 @@ class WorkspaceManagerViewModel @Inject constructor(
     /**
      * The manager's own copy of a close refusal. While the overlay is up every pane is inactive, so
      * the pane banner the refusal also files neither shows nor counts down until the manager closes.
+     * A refusal is only kept while the manager is showing and is dropped again when it closes.
      */
     private val closeNoticeFlow = MutableStateFlow<BannerState.CloseBlocked?>(null)
 
@@ -66,7 +68,17 @@ class WorkspaceManagerViewModel @Inject constructor(
     init {
         workspaceRepo.events
             .filterIsInstance<WorkspaceEvent.CloseRefused>()
-            .onEach { closeNoticeFlow.value = BannerState.CloseBlocked(it.busyWorkspaceIds.size) }
+            .onEach {
+                if (workspacePageManager.state.value.isManagerOverlayVisible) {
+                    closeNoticeFlow.value = BannerState.CloseBlocked(it.busyWorkspaceIds.size)
+                }
+            }
+            .launchInViewModel()
+
+        workspacePageManager.state
+            .map { it.isManagerOverlayVisible }
+            .distinctUntilChanged()
+            .onEach { visible -> if (!visible) closeNoticeFlow.value = null }
             .launchInViewModel()
     }
 

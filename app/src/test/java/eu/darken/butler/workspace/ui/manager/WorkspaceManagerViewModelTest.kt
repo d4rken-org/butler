@@ -771,6 +771,7 @@ class WorkspaceManagerViewModelTest : BaseTest() {
             val eventsFlow = MutableSharedFlow<WorkspaceEvent>()
             every { workspaceRepo.events } returns eventsFlow
             repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA)))
+            pageState.value = WorkspacePageManager.State(isManagerOverlayVisible = true)
             val vm = createViewModel()
 
             vm.currentState().closeNotice shouldBe null
@@ -789,4 +790,47 @@ class WorkspaceManagerViewModelTest : BaseTest() {
 
             vm.currentState().closeNotice shouldBe null
         }
+
+    @Test
+    fun `a refusal while the manager is closed leaves no notice`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val eventsFlow = MutableSharedFlow<WorkspaceEvent>()
+            every { workspaceRepo.events } returns eventsFlow
+            repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA)))
+            pageState.value = WorkspacePageManager.State(isManagerOverlayVisible = false)
+            val vm = createViewModel()
+
+            eventsFlow.emit(
+                WorkspaceEvent.CloseRefused(
+                    requestedId = null,
+                    hostId = null,
+                    busyWorkspaceIds = setOf(Workspace.Id()),
+                )
+            )
+
+            vm.currentState().closeNotice shouldBe null
+        }
+
+    @Test
+    fun `closing the manager clears its notice`() = runTest(UnconfinedTestDispatcher()) {
+        val eventsFlow = MutableSharedFlow<WorkspaceEvent>()
+        every { workspaceRepo.events } returns eventsFlow
+        repoState.value = WorkspaceRemote.State(infos = listOf(readyInfo(idA)))
+        pageState.value = WorkspacePageManager.State(isManagerOverlayVisible = true)
+        val vm = createViewModel()
+
+        eventsFlow.emit(
+            WorkspaceEvent.CloseRefused(
+                requestedId = null,
+                hostId = null,
+                busyWorkspaceIds = setOf(Workspace.Id()),
+            )
+        )
+
+        vm.currentState().closeNotice shouldBe BannerState.CloseBlocked(1)
+
+        pageState.value = WorkspacePageManager.State(isManagerOverlayVisible = false)
+
+        vm.currentState().closeNotice shouldBe null
+    }
 }
