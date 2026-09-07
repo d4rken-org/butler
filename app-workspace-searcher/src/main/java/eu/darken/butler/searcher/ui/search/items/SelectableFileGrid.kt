@@ -81,8 +81,10 @@ fun SelectableFileGrid(
     val parentPath = parentCaString?.asComposable()
 
     val context = LocalContext.current
-    val sizeText = remember(result.size, context) {
-        result.size?.let { formatFileSize(context = context, bytes = it) }
+    val sizeText = remember(result.size, context, density) {
+        result.size?.let {
+            formatFileSize(context = context, bytes = it, shortFormat = density.usesShortFileSize)
+        }
     }
 
     val shape = RoundedCornerShape(4.dp)
@@ -174,8 +176,8 @@ fun SelectableFileGrid(
 
                 Spacer(modifier = Modifier.width(4.dp))
 
-                // File size in top-right
-                sizeText?.takeIf { density.showsTileMetadata }?.let { size ->
+                // File size in top-right; the one figure a compact tile still carries
+                sizeText?.let { size ->
                     Text(
                         text = size,
                         style = MaterialTheme.typography.labelSmall,

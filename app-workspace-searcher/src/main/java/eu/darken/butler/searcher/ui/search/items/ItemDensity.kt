@@ -11,6 +11,26 @@ val SearcherViewStyle.Density.rowIconSize: Dp
         SearcherViewStyle.Density.DETAILED -> 48.dp
     }
 
+val SearcherViewStyle.Density.rowPadding: Dp
+    get() = when (this) {
+        SearcherViewStyle.Density.COMPACT -> 2.dp
+        SearcherViewStyle.Density.COMFORTABLE -> 6.dp
+        SearcherViewStyle.Density.DETAILED -> 8.dp
+    }
+
+/**
+ * `1,23 MB` against `1,2 MB`: the short form loses a digit, which is the point at compact.
+ */
+val SearcherViewStyle.Density.usesShortFileSize: Boolean
+    get() = this == SearcherViewStyle.Density.COMPACT
+
+/**
+ * Detailed gives the parent path the whole second line and moves size and date to a third, so a
+ * deep path stops competing with them for width.
+ */
+val SearcherViewStyle.Density.showsMetadataOnOwnLine: Boolean
+    get() = this == SearcherViewStyle.Density.DETAILED
+
 /** Length the match excerpt is cut to before it is rendered. */
 val SearcherViewStyle.Density.matchLineLength: Int
     get() = when (this) {

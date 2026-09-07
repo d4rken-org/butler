@@ -12,7 +12,10 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.width
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
@@ -23,9 +26,12 @@ import testhelpers.ComposeTest
 
 class RowDensityTest : ComposeTest() {
 
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+
+    /** A size whose short and long forms differ: "1.3 MB" against "1.26 MB". */
     private val result = SearcherMockDataProvider.createMockSearchResult(
         name = "config.json",
-        sizeKB = 12,
+        sizeKB = 1234,
         hoursAgo = 3,
         matchedQuery = "timeout",
         matchContext = SearchItem.MatchContext(
@@ -64,18 +70,36 @@ class RowDensityTest : ComposeTest() {
         countMatching("timeout") shouldBe 1
     }
 
+    private val shortSize get() = formatFileSize(context, result.size!!, shortFormat = true)
+    private val longSize get() = formatFileSize(context, result.size!!, shortFormat = false)
+
     @Test
-    fun `a compact row drops the size`() {
+    fun `a compact row keeps the size in its short form`() {
         rowAt(SearcherViewStyle.Density.COMPACT)
 
-        countMatching("12") shouldBe 0
+        countMatching(shortSize) shouldBe 1
     }
 
     @Test
-    fun `a comfortable row keeps the size`() {
+    fun `a comfortable row spells the size out`() {
         rowAt(SearcherViewStyle.Density.COMFORTABLE)
 
-        countMatching("12") shouldBe 1
+        countMatching(longSize) shouldBe 1
+    }
+
+    /** The date is what compact drops from the second line, not the size. */
+    @Test
+    fun `a compact row drops the date`() {
+        rowAt(SearcherViewStyle.Density.COMPACT)
+
+        countMatching(" \u00b7 ") shouldBe 0
+    }
+
+    @Test
+    fun `a detailed row keeps the size once the metadata moves to its own line`() {
+        rowAt(SearcherViewStyle.Density.DETAILED)
+
+        countMatching(longSize) shouldBe 1
     }
 
     private fun tileIconWidth(density: SearcherViewStyle.Density) = composeTestRule

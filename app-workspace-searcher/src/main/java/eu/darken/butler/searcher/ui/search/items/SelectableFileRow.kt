@@ -76,7 +76,7 @@ fun SelectableFileRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp),
+                .padding(horizontal = 16.dp, vertical = density.rowPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Leading content - either checkbox OR icon
@@ -113,26 +113,24 @@ fun SelectableFileRow(
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                // Line 2: Parent path (left) + size · date (right)
+                // Line 2: Parent path, with size · date beside it unless the density splits them off
                 val isDirectory = result.fileType == FileType.DIRECTORY
                 val parentPath = result.lookup.parent?.userReadablePath?.asComposable()
-                val metaText = if (density == SearcherViewStyle.Density.COMPACT) {
-                    // Compact keeps the second line to the parent path alone.
-                    ""
-                } else {
-                    listOfNotNull(
-                        result.size?.takeIf { !isDirectory }?.let { formatFileSize(it) },
-                        result.modifiedAt?.let {
-                            if (density == SearcherViewStyle.Density.DETAILED) {
-                                formatDateTime(it, DateTimeStyle.FULL)
-                            } else {
-                                formatRelativeTime(it)
-                            }
-                        },
-                    ).joinToString(" · ")
-                }
+                val metaText = listOfNotNull(
+                    result.size
+                        ?.takeIf { !isDirectory }
+                        ?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) },
+                    result.modifiedAt?.takeIf { density != SearcherViewStyle.Density.COMPACT }?.let {
+                        if (density == SearcherViewStyle.Density.DETAILED) {
+                            formatDateTime(it, DateTimeStyle.FULL)
+                        } else {
+                            formatRelativeTime(it)
+                        }
+                    },
+                ).joinToString(" · ")
+                val metaBesidePath = metaText.takeIf { !density.showsMetadataOnOwnLine }.orEmpty()
 
-                if (!parentPath.isNullOrEmpty() || metaText.isNotEmpty()) {
+                if (!parentPath.isNullOrEmpty() || metaBesidePath.isNotEmpty()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -149,16 +147,27 @@ fun SelectableFileRow(
                             modifier = Modifier.weight(1f),
                         )
 
-                        if (metaText.isNotEmpty()) {
+                        if (metaBesidePath.isNotEmpty()) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = metaText,
+                                text = metaBesidePath,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                             )
                         }
                     }
+                }
+
+                // Line 3: size · date, once the path has the line above to itself
+                if (density.showsMetadataOnOwnLine && metaText.isNotEmpty()) {
+                    Text(
+                        text = metaText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
 
                 // Line 4: Match context (if available)
