@@ -51,7 +51,6 @@
     <string name="apps_view_density_compact_label">Compact</string>
     <string name="apps_view_density_comfortable_label">Comfortable</string>
     <string name="apps_view_density_detailed_label">Detailed</string>
-    <string name="apps_view_apply_all_tabs_action">Apply to all tabs</string>
     <string name="apps_view_set_default_action">Set as default</string>
     <string name="apps_view_detail_dates_label">Installed %1$s · Updated %2$s</string>
 

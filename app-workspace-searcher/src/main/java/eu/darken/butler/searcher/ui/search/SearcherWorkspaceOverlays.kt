@@ -206,7 +206,6 @@ fun SearcherWorkspaceOverlays(
                 onPageAction(SearcherPageAction.Filter.AddCondition(new))
             },
             onViewStyleApplyToTab = { onPageAction(SearcherPageAction.ViewStyle.ApplyToTab(it)) },
-            onViewStyleApplyToAllTabs = { onPageAction(SearcherPageAction.ViewStyle.ApplyToAllTabs(it)) },
             onViewStyleSetAsDefault = { onPageAction(SearcherPageAction.ViewStyle.SetAsDefault(it)) },
             topInset = statusBarInset,
             bottomInset = navBarInset,

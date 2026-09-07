@@ -18,7 +18,6 @@ import eu.darken.butler.explorer.core.sorting.rules.FolderSortRulesRepo
 import eu.darken.butler.explorer.core.sorting.rules.SortRuleLayer
 import eu.darken.butler.explorer.core.sorting.rules.sortPathKey
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -104,13 +103,11 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
         rules: FolderSortRulesRepo = mockRules(),
         location: Flow<ExplorerLocation?> = flowOf(null),
         tabId: Workspace.Id = workspaceId,
-        openTabs: List<Workspace.Info> = emptyList(),
     ) = ExplorerViewSettingsController(
         explorerSettings = settings,
         folderSortRules = rules,
         tabSortStore = tabSortStore,
         tabViewStore = tabViewStore,
-        workspaceRemote = mockRemote(openTabs),
         json = json,
         workspaceId = tabId,
         currentLocation = location,
@@ -119,16 +116,6 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
     ).also { controller ->
         backgroundScope.launch { controller.resolvedSort.collect { } }
     }
-
-    private fun mockRemote(infos: List<Workspace.Info>): WorkspaceRemote = mockk<WorkspaceRemote>().apply {
-        every { state } returns flowOf(WorkspaceRemote.State(infos))
-    }
-
-    private fun tabInfo(id: Workspace.Id, type: Workspace.Type = Workspace.Type.EXPLORER) =
-        mockk<Workspace.Info>().apply {
-            every { this@apply.id } returns id
-            every { this@apply.type } returns type
-        }
 
     private fun directory(path: LocalPath) = mockk<ExplorerLocation.Directory>().apply {
         every { this@apply.path } returns path
@@ -235,27 +222,6 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
         tabViewStore.currentViewStyle(workspaceId) shouldBe grid
         globalStyle.value shouldBe initialStyle
         coVerify(exactly = 0) { styleStore.update(any()) }
-    }
-
-    @Test
-    fun `applying to all tabs writes every explorer tab's slot`() = runTest {
-        val otherTab = Workspace.Id()
-        val searcherTab = Workspace.Id()
-        val controller = controller(
-            openTabs = listOf(
-                tabInfo(workspaceId),
-                tabInfo(otherTab),
-                tabInfo(searcherTab, Workspace.Type.SEARCHER),
-            ),
-        )
-        val detailed = ExplorerViewStyle(density = ExplorerViewStyle.Density.DETAILED)
-
-        controller.applyToAllTabs(detailed)
-        runCurrent()
-
-        tabViewStore.currentViewStyle(workspaceId) shouldBe detailed
-        tabViewStore.currentViewStyle(otherTab) shouldBe detailed
-        tabViewStore.currentViewStyle(searcherTab) shouldBe null
     }
 
     /** A tab whose page is composed has to see a write another pane made to its slot. */

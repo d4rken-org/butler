@@ -374,7 +374,6 @@
     <string name="explorer_view_density_compact_label">Compact</string>
     <string name="explorer_view_density_comfortable_label">Comfortable</string>
     <string name="explorer_view_density_detailed_label">Detailed</string>
-    <string name="explorer_view_apply_all_tabs_action">Apply to all tabs</string>
     <string name="explorer_view_set_default_action">Set as default</string>
     <string name="explorer_view_detail_created_label">Created %1$s</string>
     <string name="explorer_view_detail_modified_label">Modified %1$s</string>

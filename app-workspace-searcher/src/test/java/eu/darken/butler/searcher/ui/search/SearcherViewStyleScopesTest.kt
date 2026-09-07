@@ -142,18 +142,6 @@ class SearcherViewStyleScopesTest {
     }
 
     @Test
-    fun `applying to all tabs writes every searcher tab's slot`() = runTest2 {
-        val vm = makeViewModel()
-        val detailed = SearcherViewStyle(density = SearcherViewStyle.Density.DETAILED)
-
-        vm.onPageAction(SearcherPageAction.ViewStyle.ApplyToAllTabs(detailed))
-
-        tabViewStore.currentViewStyle(workspaceId) shouldBe detailed
-        tabViewStore.currentViewStyle(otherSearcherTab) shouldBe detailed
-        tabViewStore.currentViewStyle(explorerTab) shouldBe null
-    }
-
-    @Test
     fun `setting the default writes only the setting`() = runTest2 {
         val vm = makeViewModel()
         val grid = SearcherViewStyle(mode = SearcherViewStyle.Mode.GRID)

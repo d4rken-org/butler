@@ -90,18 +90,6 @@ class AppsViewStyleScopesTest : BaseTest() {
     }
 
     @Test
-    fun `applying to all tabs writes every apps tab's slot`() = runTest {
-        val vm = createVM()
-        val detailed = AppsViewStyle(density = AppsViewStyle.Density.DETAILED)
-
-        vm.onPageAction(AppsPageAction.ViewStyle.ApplyToAllTabs(detailed))
-
-        tabViewStore.currentViewStyle(id) shouldBe detailed
-        tabViewStore.currentViewStyle(otherAppsTab) shouldBe detailed
-        tabViewStore.currentViewStyle(explorerTab) shouldBe null
-    }
-
-    @Test
     fun `setting the default writes only the setting`() = runTest {
         val vm = createVM()
         val grid = AppsViewStyle(mode = AppsViewStyle.Mode.GRID)

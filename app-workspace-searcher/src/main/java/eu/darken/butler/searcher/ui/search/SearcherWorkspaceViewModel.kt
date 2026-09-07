@@ -1386,11 +1386,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 // The live path: every control change in the view options sheet lands here.
                 tabViewStore.setViewStyle(id, action.style)
             }
-            is SearcherPageAction.ViewStyle.ApplyToAllTabs -> vmScope.launch {
-                workspaceRemote.state.first().infos
-                    .filter { it.type == Workspace.Type.SEARCHER }
-                    .forEach { tabViewStore.setViewStyle(it.id, action.style) }
-            }
             is SearcherPageAction.ViewStyle.SetAsDefault -> vmScope.launch {
                 // Only the setting: the tab already carries the style through the live path, and
                 // sequencing a slot write after the suspending persist could reapply a stale one.

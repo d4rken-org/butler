@@ -182,7 +182,6 @@ sealed interface SearcherPageAction {
     sealed interface ViewStyle : SearcherPageAction {
         data class ApplyToTab(val style: SearcherViewStyle) : ViewStyle
 
-        data class ApplyToAllTabs(val style: SearcherViewStyle) : ViewStyle
 
         data class SetAsDefault(val style: SearcherViewStyle) : ViewStyle
     }

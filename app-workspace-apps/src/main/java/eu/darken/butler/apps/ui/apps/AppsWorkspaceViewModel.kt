@@ -514,11 +514,6 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
             // View style, one branch per write scope of the view options sheet
             is AppsPageAction.ViewStyle.ApplyToTab -> tabViewStore.setViewStyle(id, action.style)
-            is AppsPageAction.ViewStyle.ApplyToAllTabs -> launch {
-                workspaceRemote.state.first().infos
-                    .filter { it.type == Workspace.Type.APPS }
-                    .forEach { tabViewStore.setViewStyle(it.id, action.style) }
-            }
             is AppsPageAction.ViewStyle.SetAsDefault -> launch {
                 // Only the setting: the tab already carries the style through the live path, and
                 // sequencing a slot write after the suspending persist could reapply a stale one.

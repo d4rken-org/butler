@@ -24,7 +24,6 @@ import eu.darken.butler.explorer.core.sorting.rules.TabSortOverrides
 import eu.darken.butler.explorer.core.sorting.rules.sortAncestorKeys
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.WorkspaceRemote
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,7 +48,6 @@ class ExplorerViewSettingsController(
     private val folderSortRules: FolderSortRulesRepo,
     private val tabSortStore: ExplorerTabSortStore,
     private val tabViewStore: ExplorerTabViewStore,
-    private val workspaceRemote: WorkspaceRemote,
     private val json: Json,
     private val workspaceId: Workspace.Id,
     currentLocation: Flow<ExplorerLocation?>,
@@ -166,14 +164,6 @@ class ExplorerViewSettingsController(
     /** The live path: every control change in the view options sheet lands here. */
     fun applyToTab(style: ExplorerViewStyle) {
         tabViewStore.setViewStyle(workspaceId, style)
-    }
-
-    fun applyToAllTabs(style: ExplorerViewStyle) {
-        doLaunch {
-            workspaceRemote.state.first().infos
-                .filter { it.type == Workspace.Type.EXPLORER }
-                .forEach { tabViewStore.setViewStyle(it.id, style) }
-        }
     }
 
     /**

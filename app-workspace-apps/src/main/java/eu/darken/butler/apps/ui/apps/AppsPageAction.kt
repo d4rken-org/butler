@@ -81,7 +81,6 @@ sealed interface AppsPageAction {
     sealed interface ViewStyle : AppsPageAction {
         data class ApplyToTab(val style: AppsViewStyle) : ViewStyle
 
-        data class ApplyToAllTabs(val style: AppsViewStyle) : ViewStyle
 
         data class SetAsDefault(val style: AppsViewStyle) : ViewStyle
     }

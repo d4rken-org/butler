@@ -339,7 +339,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         folderSortRules = folderSortRules,
         tabSortStore = tabSortStore,
         tabViewStore = tabViewStore,
-        workspaceRemote = workspaceRemote,
         json = json,
         workspaceId = id,
         currentLocation = workspaceReadyState.map { it?.currentLocation },
@@ -1825,11 +1824,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun onViewStyleApplyToTab(style: ExplorerViewStyle) {
         log(tag) { "onViewStyleApplyToTab($style)" }
         viewSettings.applyToTab(style)
-    }
-
-    fun onViewStyleApplyToAllTabs(style: ExplorerViewStyle) {
-        log(tag) { "onViewStyleApplyToAllTabs($style)" }
-        viewSettings.applyToAllTabs(style)
     }
 
     fun onViewStyleSetAsDefault(style: ExplorerViewStyle) {

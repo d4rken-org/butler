@@ -5,17 +5,24 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.ViewList
+import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.DensityLarge
 import androidx.compose.material.icons.twotone.DensityMedium
 import androidx.compose.material.icons.twotone.DensitySmall
 import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -35,15 +42,14 @@ import eu.darken.butler.workspace.ui.bottomsheet.ViewStyleOptionRow
  * Layout and density of the listing.
  *
  * Stateless on purpose: every control renders from [currentViewStyle] and emits a full style built
- * from it, so a change made elsewhere - "apply to all tabs" from another pane - moves these controls
- * too, and no tap can send a value the sheet has been holding since it opened.
+ * from it, so the controls follow the tab's live value and no tap can send back a value the sheet
+ * has been holding since it opened.
  */
 @Composable
 fun ViewStyleOptionsSheet(
     modifier: Modifier = Modifier,
     currentViewStyle: ExplorerViewStyle,
     onApplyToTab: (ExplorerViewStyle) -> Unit,
-    onApplyToAllTabs: (ExplorerViewStyle) -> Unit,
     onSetAsDefault: (ExplorerViewStyle) -> Unit,
     onDismiss: () -> Unit,
     topInset: Dp = 0.dp,
@@ -61,8 +67,8 @@ fun ViewStyleOptionsSheet(
         ViewStyleOptionsContent(
             currentViewStyle = currentViewStyle,
             onApplyToTab = onApplyToTab,
-            onApplyToAllTabs = onApplyToAllTabs,
             onSetAsDefault = onSetAsDefault,
+            onDismiss = onDismiss,
         )
     }
 }
@@ -72,8 +78,8 @@ private fun ViewStyleOptionsContent(
     modifier: Modifier = Modifier,
     currentViewStyle: ExplorerViewStyle,
     onApplyToTab: (ExplorerViewStyle) -> Unit,
-    onApplyToAllTabs: (ExplorerViewStyle) -> Unit,
     onSetAsDefault: (ExplorerViewStyle) -> Unit,
+    onDismiss: () -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -92,14 +98,22 @@ private fun ViewStyleOptionsContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        ViewStyleOptionGroup {
-            ExplorerViewStyle.Mode.entries.forEach { mode ->
-                ViewStyleOptionRow(
-                    icon = modeIcon(mode),
-                    label = stringResource(modeLabel(mode)),
-                    selected = currentViewStyle.mode == mode,
+        // Two options fit side by side; the three densities below do not, once each carries an
+        // icon, a word like "Comfortable" and a checkmark.
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            ExplorerViewStyle.Mode.entries.forEachIndexed { index, mode ->
+                val selected = currentViewStyle.mode == mode
+                SegmentedButton(
+                    selected = selected,
                     onClick = { onApplyToTab(currentViewStyle.copy(mode = mode)) },
-                )
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = ExplorerViewStyle.Mode.entries.size,
+                    ),
+                    icon = { SegmentedButtonIcon(modeIcon(mode)) },
+                ) {
+                    SegmentedButtonLabel(label = stringResource(modeLabel(mode)), selected = selected)
+                }
             }
         }
 
@@ -120,12 +134,41 @@ private fun ViewStyleOptionsContent(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
         ) {
-            TextButton(onClick = { onApplyToAllTabs(currentViewStyle) }) {
-                Text(stringResource(R.string.explorer_view_apply_all_tabs_action))
-            }
-            TextButton(onClick = { onSetAsDefault(currentViewStyle) }) {
+            TextButton(
+                onClick = {
+                    onSetAsDefault(currentViewStyle)
+                    onDismiss()
+                },
+            ) {
                 Text(stringResource(R.string.explorer_view_set_default_action))
             }
+        }
+    }
+}
+
+/** Replaces the segmented button's default leading checkmark, which moves behind the label. */
+@Composable
+private fun SegmentedButtonIcon(icon: ImageVector) {
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        modifier = Modifier.size(SegmentedButtonDefaults.IconSize),
+    )
+}
+
+@Composable
+private fun SegmentedButtonLabel(label: String, selected: Boolean) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(label)
+        if (selected) {
+            Icon(
+                imageVector = Icons.TwoTone.Check,
+                contentDescription = null,
+                modifier = Modifier.size(SegmentedButtonDefaults.IconSize),
+            )
         }
     }
 }
@@ -161,8 +204,8 @@ private fun ViewStyleOptionsSheetListPreview() {
         ViewStyleOptionsContent(
             currentViewStyle = ExplorerViewStyle(),
             onApplyToTab = {},
-            onApplyToAllTabs = {},
             onSetAsDefault = {},
+            onDismiss = {},
         )
     }
 }
@@ -178,8 +221,8 @@ private fun ViewStyleOptionsSheetGridDetailedPreview() {
                 density = ExplorerViewStyle.Density.DETAILED,
             ),
             onApplyToTab = {},
-            onApplyToAllTabs = {},
             onSetAsDefault = {},
+            onDismiss = {},
         )
     }
 }

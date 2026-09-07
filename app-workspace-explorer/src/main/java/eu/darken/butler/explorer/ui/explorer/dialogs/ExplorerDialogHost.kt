@@ -90,7 +90,6 @@ fun ExplorerDialogHost(
             ViewStyleOptionsSheet(
                 currentViewStyle = viewStyle,
                 onApplyToTab = { style -> vm?.onViewStyleApplyToTab(style) },
-                onApplyToAllTabs = { style -> vm?.onViewStyleApplyToAllTabs(style) },
                 onSetAsDefault = { style -> vm?.onViewStyleSetAsDefault(style) },
                 onDismiss = { vm?.dismissDialog() },
                 topInset = topInset,

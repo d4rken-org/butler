@@ -72,7 +72,6 @@ fun AppsWorkspaceOverlays(
         onFilterApply = { onPageAction(AppsPageAction.Dialog.ApplyFilter(it)) },
         onSortApply = { onPageAction(AppsPageAction.Dialog.ApplySort(it)) },
         onViewStyleApplyToTab = { onPageAction(AppsPageAction.ViewStyle.ApplyToTab(it)) },
-        onViewStyleApplyToAllTabs = { onPageAction(AppsPageAction.ViewStyle.ApplyToAllTabs(it)) },
         onViewStyleSetAsDefault = { onPageAction(AppsPageAction.ViewStyle.SetAsDefault(it)) },
         onConfirmEnable = { onPageAction(AppsPageAction.Dialog.ConfirmEnable(it)) },
         onConfirmDisable = { onPageAction(AppsPageAction.Dialog.ConfirmDisable(it)) },
