@@ -8,6 +8,9 @@ enum class WorkspacePanelMode {
     @SerialName("AUTO")
     AUTO,
 
+    @SerialName("ADAPTIVE")
+    ADAPTIVE,
+
     @SerialName("SINGLE")
     SINGLE,
 

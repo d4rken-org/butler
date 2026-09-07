@@ -350,8 +350,6 @@
     <string name="workspace_settings_layout_mode_landscape_desc">Wähle die Tab-Anordnung im Querformat.</string>
     <string name="workspace_settings_layout_mode_auto">Automatisch</string>
     <string name="workspace_settings_layout_mode_auto_desc">Anordnung automatisch an die Bildschirmgröße anpassen.</string>
-    <string name="workspace_settings_layout_mode_single">Ein Bereich</string>
-    <string name="workspace_settings_layout_mode_single_desc">Ein Tab-Bereich füllt den gesamten Bildschirm.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Zwei nebeneinander</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Zwei Bereiche nebeneinander (links/rechts).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Zwei übereinander</string>

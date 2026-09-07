@@ -349,10 +349,13 @@
     <string name="workspace_settings_layout_mode_portrait_desc">Choose tab layout in portrait orientation.</string>
     <string name="workspace_settings_layout_mode_landscape_title">Landscape layout mode</string>
     <string name="workspace_settings_layout_mode_landscape_desc">Choose tab layout in landscape orientation.</string>
-    <string name="workspace_settings_layout_mode_auto">Auto</string>
-    <string name="workspace_settings_layout_mode_auto_desc">Automatically adapt layout based on screen size.</string>
-    <string name="workspace_settings_layout_mode_single">Single</string>
-    <string name="workspace_settings_layout_mode_single_desc">One tab pane takes the full screen.</string>
+    <string name="workspace_settings_layout_mode_auto">Automatic</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Classic on small screens, tab rail with panes on large ones.</string>
+    <string name="workspace_settings_layout_mode_classic">Classic</string>
+    <string name="workspace_settings_layout_mode_classic_desc">One pane at a time, without the tab rail.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Adaptive</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Tab rail plus as many panes as the screen fits. Pin a layout from the Butler menu in the rail.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptive (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Single with tab rail</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">One tab pane plus the tab rail of the multi-pane layouts. Switch tabs from the rail instead of by swiping; the rail takes a strip of the screen.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Dual vertical</string>

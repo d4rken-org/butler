@@ -11,7 +11,8 @@ import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 fun WorkspacePanelMode.label(): String {
     return when (this) {
         WorkspacePanelMode.AUTO -> stringResource(R.string.workspace_settings_layout_mode_auto)
-        WorkspacePanelMode.SINGLE -> stringResource(R.string.workspace_settings_layout_mode_single)
+        WorkspacePanelMode.ADAPTIVE -> stringResource(R.string.workspace_settings_layout_mode_adaptive)
+        WorkspacePanelMode.SINGLE -> stringResource(R.string.workspace_settings_layout_mode_classic)
         WorkspacePanelMode.SINGLE_RAIL -> stringResource(R.string.workspace_settings_layout_mode_single_rail)
         WorkspacePanelMode.DUAL_VERTICAL -> stringResource(R.string.workspace_settings_layout_mode_dual_vertical)
         WorkspacePanelMode.DUAL_HORIZONTAL -> stringResource(R.string.workspace_settings_layout_mode_dual_horizontal)
@@ -25,7 +26,8 @@ fun WorkspacePanelMode.label(): String {
 fun WorkspacePanelMode.description(): String {
     return when (this) {
         WorkspacePanelMode.AUTO -> stringResource(R.string.workspace_settings_layout_mode_auto_desc)
-        WorkspacePanelMode.SINGLE -> stringResource(R.string.workspace_settings_layout_mode_single_desc)
+        WorkspacePanelMode.ADAPTIVE -> stringResource(R.string.workspace_settings_layout_mode_adaptive_desc)
+        WorkspacePanelMode.SINGLE -> stringResource(R.string.workspace_settings_layout_mode_classic_desc)
         WorkspacePanelMode.SINGLE_RAIL -> stringResource(R.string.workspace_settings_layout_mode_single_rail_desc)
         WorkspacePanelMode.DUAL_VERTICAL -> stringResource(R.string.workspace_settings_layout_mode_dual_vertical_desc)
         WorkspacePanelMode.DUAL_HORIZONTAL -> stringResource(R.string.workspace_settings_layout_mode_dual_horizontal_desc)
@@ -37,6 +39,7 @@ fun WorkspacePanelMode.description(): String {
 
 fun WorkspacePanelMode.icon(): ImageVector = when (this) {
     WorkspacePanelMode.AUTO -> WorkspacePanelIcons.Auto
+    WorkspacePanelMode.ADAPTIVE -> WorkspacePanelIcons.Adaptive
     WorkspacePanelMode.SINGLE -> WorkspacePanelIcons.Single
     WorkspacePanelMode.SINGLE_RAIL -> WorkspacePanelIcons.SingleRail
     WorkspacePanelMode.DUAL_VERTICAL -> WorkspacePanelIcons.DualVertical
