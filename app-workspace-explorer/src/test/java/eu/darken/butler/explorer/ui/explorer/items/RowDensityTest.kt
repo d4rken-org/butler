@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.items
 
 import android.content.Context
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -43,6 +44,12 @@ class RowDensityTest : ComposeTest() {
         .fetchSemanticsNodes()
         .size
 
+    /** The date fields are labelled by their icon, so the label is a content description. */
+    private fun countLabelled(label: String) = composeTestRule
+        .onAllNodes(hasContentDescription(label), useUnmergedTree = true)
+        .fetchSemanticsNodes()
+        .size
+
     @Test
     fun `a compact row drops permissions and ownership`() {
         fileRowAt(ExplorerViewStyle.Density.COMPACT)
@@ -52,8 +59,16 @@ class RowDensityTest : ComposeTest() {
     }
 
     @Test
-    fun `a comfortable row keeps permissions and ownership`() {
+    fun `a comfortable row also drops permissions and ownership`() {
         fileRowAt(ExplorerViewStyle.Density.COMFORTABLE)
+
+        countMatching(file.permissions!!.toReadableString()) shouldBe 0
+        countMatching("aUser") shouldBe 0
+    }
+
+    @Test
+    fun `a detailed row keeps permissions and ownership`() {
+        fileRowAt(ExplorerViewStyle.Density.DETAILED)
 
         countMatching(file.permissions!!.toReadableString()) shouldBe 1
         countMatching("aUser") shouldBe 1
@@ -63,28 +78,28 @@ class RowDensityTest : ComposeTest() {
     fun `a comfortable row carries no creation date`() {
         fileRowAt(ExplorerViewStyle.Density.COMFORTABLE)
 
-        countMatching("Created") shouldBe 0
+        countLabelled("Created") shouldBe 0
     }
 
     @Test
     fun `a detailed row carries the creation date`() {
         fileRowAt(ExplorerViewStyle.Density.DETAILED)
 
-        countMatching("Created") shouldBe 1
+        countLabelled("Created") shouldBe 1
     }
 
     @Test
     fun `a detailed row carries the modification date on its own line`() {
         fileRowAt(ExplorerViewStyle.Density.DETAILED)
 
-        countMatching("Modified") shouldBe 1
+        countLabelled("Modified") shouldBe 1
     }
 
     @Test
     fun `a comfortable row carries no labelled modification date`() {
         fileRowAt(ExplorerViewStyle.Density.COMFORTABLE)
 
-        countMatching("Modified") shouldBe 0
+        countLabelled("Modified") shouldBe 0
     }
 
     private val shortSize get() = formatFileSize(context, file.lookup.size!!, shortFormat = true)
@@ -125,6 +140,6 @@ class RowDensityTest : ComposeTest() {
             }
         }
 
-        countMatching("Created") shouldBe 0
+        countLabelled("Created") shouldBe 0
     }
 }

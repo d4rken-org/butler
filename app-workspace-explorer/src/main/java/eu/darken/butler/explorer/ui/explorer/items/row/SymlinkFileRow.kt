@@ -11,6 +11,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.automirrored.twotone.NoteAdd
+import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
@@ -77,10 +79,26 @@ internal fun SymlinkFileRow(
             ?.let { formatDateTime(it, density.rowDateStyle) },
         tertiaryText = item.createdAt
             ?.takeIf { density.showsDatesOnOwnLine }
-            ?.let { stringResource(R.string.explorer_view_detail_created_label, formatDateTime(it, DateTimeStyle.FULL)) },
+            ?.let { formatDateTime(it, DateTimeStyle.FULL) },
+        tertiaryIcon = item.createdAt
+            ?.takeIf { density.showsDatesOnOwnLine }
+            ?.let {
+                RowMetaIcon(
+                    icon = Icons.AutoMirrored.TwoTone.NoteAdd,
+                    contentDescription = stringResource(R.string.explorer_view_detail_created_label),
+                )
+            },
         tertiaryEndText = item.lookup.modifiedAt
             ?.takeIf { density.showsDatesOnOwnLine }
-            ?.let { stringResource(R.string.explorer_view_detail_modified_label, formatDateTime(it, DateTimeStyle.FULL)) },
+            ?.let { formatDateTime(it, DateTimeStyle.FULL) },
+        tertiaryEndIcon = item.lookup.modifiedAt
+            ?.takeIf { density.showsDatesOnOwnLine }
+            ?.let {
+                RowMetaIcon(
+                    icon = Icons.TwoTone.DriveFileRenameOutline,
+                    contentDescription = stringResource(R.string.explorer_view_detail_modified_label),
+                )
+            },
     )
 }
 

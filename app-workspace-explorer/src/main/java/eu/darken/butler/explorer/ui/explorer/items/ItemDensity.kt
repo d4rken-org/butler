@@ -55,9 +55,9 @@ val ExplorerViewStyle.Density.listGap: Dp
         ExplorerViewStyle.Density.DETAILED -> 8.dp
     }
 
-/** Permissions and ownership; compact keeps the secondary line to size or item count alone. */
+/** Permissions and ownership; only detailed spends the width on them. */
 val ExplorerViewStyle.Density.showsFileAttributes: Boolean
-    get() = this != ExplorerViewStyle.Density.COMPACT
+    get() = this == ExplorerViewStyle.Density.DETAILED
 
 /**
  * `1,23 MB` against `1,2 MB`: the short form loses a digit, which is the point at compact.
