@@ -35,13 +35,19 @@ class OperationsManagerTest : BaseTest() {
     private fun create() = OperationsManager(TestDispatcherProvider())
 
     /** Emits nothing until told to, so an operation stays unfinished for as long as a test needs. */
-    private class FakeOperation(workspaceId: Workspace.Id) : Operation {
+    private class FakeOperation(
+        workspaceId: Workspace.Id,
+        cancellable: Boolean = true,
+        policy: Operation.Metadata.ClosePolicy = Operation.Metadata.ClosePolicy.CANCEL_WITH_ORIGIN,
+    ) : Operation {
         // replay = 1: the collector subscribes when the manager starts the operation, a test finishes
         // it afterwards, and nothing should hinge on which of the two the dispatcher runs first.
         private val states = MutableSharedFlow<Operation.State>(replay = 1)
 
         override val metadata: Operation.Metadata = mockk<Operation.Metadata>().apply {
             every { origin } returns Operation.Metadata.Origin.Explorer(workspaceId)
+            every { isCancellable } returns cancellable
+            every { closePolicy } returns policy
         }
 
         override fun perform(operationContext: Operation.Context): Flow<Operation.State> = states
@@ -158,6 +164,63 @@ class OperationsManagerTest : BaseTest() {
         seen.single().state.error.shouldBeInstanceOf<CancellationException>()
         // The synthesis took the operation's one claim, which is what suppresses the real Completed
         // if it still reaches an observer that has not finished cancelling yet.
+        managed.claimCompletionEmission() shouldBe false
+    }
+
+    @Test
+    fun `a non-cancellable operation ignores a cancel request`() = runTest {
+        val manager = create()
+        val operation = FakeOperation(workspaceId, cancellable = false)
+
+        val managed = manager.submitManaged(operation)
+        manager.cancel(managed.id)
+        runCurrent()
+
+        managed.isUnfinished shouldBe true
+        managed.canCancel shouldBe false
+    }
+
+    @Test
+    fun `closeBlockers names the workspace of an unfinished REQUIRE_ORIGIN operation`() = runTest {
+        val manager = create()
+        val operation = FakeOperation(workspaceId, policy = Operation.Metadata.ClosePolicy.REQUIRE_ORIGIN)
+        manager.submitManaged(operation)
+        runCurrent()
+
+        manager.closeBlockers(listOf(workspaceId)) shouldBe setOf(workspaceId)
+        // An unrelated workspace is never named, even while the blocker is live
+        manager.closeBlockers(listOf(Workspace.Id())).shouldBeEmpty()
+
+        operation.finish(epoch)
+        runCurrent()
+
+        manager.closeBlockers(listOf(workspaceId)).shouldBeEmpty()
+    }
+
+    @Test
+    fun `closeBlockers ignores an operation that closes with its origin`() = runTest {
+        val manager = create()
+        manager.submitManaged(FakeOperation(workspaceId))
+        runCurrent()
+
+        manager.closeBlockers(listOf(workspaceId)).shouldBeEmpty()
+    }
+
+    @Test
+    fun `a workspace removal still cancels a REQUIRE_ORIGIN operation`() = runTest {
+        val manager = create()
+        val seen = recordCompletions(manager)
+        val managed = manager.submitManaged(
+            FakeOperation(workspaceId, policy = Operation.Metadata.ClosePolicy.REQUIRE_ORIGIN)
+        )
+
+        // The policy is enforced by whoever asks closeBlockers first; arriving here means the
+        // submit-vs-close race happened, and then the operation goes down like any other.
+        manager.removeWorkspace(workspaceId)
+        runCurrent()
+
+        seen.single().state.error.shouldBeInstanceOf<CancellationException>()
+        manager.operations.first().map { it.id }.shouldBeEmpty()
         managed.claimCompletionEmission() shouldBe false
     }
 

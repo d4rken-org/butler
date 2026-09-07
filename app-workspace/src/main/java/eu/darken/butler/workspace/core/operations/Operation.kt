@@ -59,6 +59,34 @@ interface Operation {
          */
         val pathPlan: OperationPathPlan? get() = null
 
+        /**
+         * Whether the USER may ask for this operation to stop: the operations bar/sheet cancel
+         * button, the notification's Cancel action, and [OperationsManager.cancel] itself.
+         * False for work that cannot be interrupted once dispatched, e.g. a blocking IPC call whose
+         * peer keeps going regardless.
+         *
+         * Independent of [closePolicy]: this is about the user asking, that one is about the owner
+         * workspace going away.
+         */
+        val isCancellable: Boolean get() = true
+
+        val closePolicy: ClosePolicy get() = ClosePolicy.CANCEL_WITH_ORIGIN
+
+        /** What closing the origin workspace does to an unfinished operation. */
+        enum class ClosePolicy {
+            /** Closing the origin workspace cancels the operation and drops its receipt. */
+            CANCEL_WITH_ORIGIN,
+
+            /**
+             * The origin workspace - and any tab whose close would take it down - cannot be closed
+             * while the operation is unfinished: the close is refused and the user is told.
+             *
+             * Never detaches. An operation always keeps the workspace that can show its progress and
+             * answer its [State.Waiting] state.
+             */
+            REQUIRE_ORIGIN,
+        }
+
         enum class Kind { COPY, MOVE, DELETE, RESTORE, CREATE_FOLDER, CREATE_FILE, SAVE, COMPRESS, EXTRACT, INSTALL }
 
         enum class Intent { RENAME, PASTE_COPY, PASTE_MOVE, DROP_COPY, DROP_MOVE }

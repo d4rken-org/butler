@@ -55,12 +55,15 @@ class ManagedOperation(
     fun claimCompletionEmission(): Boolean = completionEmitted.compareAndSet(false, true)
 
     val canCancel: Boolean
-        get() = when (state.value) {
+        get() = metadata.isCancellable && when (state.value) {
             is Operation.State.Queued -> true  // Can cancel before it starts
             is Operation.State.Active -> scope.coroutineContext[Job]?.isActive == true  // Can cancel if running
             is Operation.State.Waiting -> scope.coroutineContext[Job]?.isActive == true  // Can cancel if waiting
             else -> false  // Cannot cancel completed/failed/cancelled
         }
+
+    /** Queued and Waiting count as unfinished: only a terminal state does not. */
+    val isUnfinished: Boolean get() = state.value !is Operation.State.Completed
 
     val canPause: Boolean get() = false
 

@@ -129,9 +129,39 @@ class OperationsManager @Inject constructor(
         val operation = _operations.value.find { it.id == id }
         if (operation == null) log(TAG, WARN) { "cancel(): Operation not found $id" }
         else log(TAG, VERBOSE) { "cancel(): Cancelling $operation" }
+        // The notification's Cancel action routes here, and a stale notification outlives the UI
+        // gate that hid the button, so the refusal has to live at the entry point too.
+        if (operation != null && !operation.metadata.isCancellable) {
+            log(TAG, WARN) { "cancel(): $id is not user-cancellable, ignoring" }
+            return@withLock
+        }
         // Don't synthesize here — observer stays alive and will emit the real Completed
         // when ManagedOperation.onCompletion fires after scope cancellation.
         operation?.cancel()
+    }
+
+    /**
+     * The subset of [workspaceIds] that currently hosts at least one unfinished operation with
+     * [Operation.Metadata.ClosePolicy.REQUIRE_ORIGIN], i.e. the ones whose teardown a caller must
+     * refuse instead of performing.
+     *
+     * Non-suspending on purpose: [eu.darken.butler.workspace.core.WorkspaceRepo] asks this while
+     * holding its own lock, before it releases anything.
+     *
+     * Answers about the instant it is called. An operation submitted after the answer and before the
+     * teardown is cancelled by [removeWorkspace] like any other - that submit-vs-close race predates
+     * this and is not closed by it.
+     */
+    fun closeBlockers(workspaceIds: Collection<Workspace.Id>): Set<Workspace.Id> {
+        if (workspaceIds.isEmpty()) return emptySet()
+        val wanted = workspaceIds.toSet()
+        return _operations.value
+            .filter { op ->
+                op.metadata.closePolicy == Operation.Metadata.ClosePolicy.REQUIRE_ORIGIN &&
+                    op.metadata.origin.workspaceId in wanted &&
+                    op.isUnfinished
+            }
+            .mapTo(mutableSetOf()) { it.metadata.origin.workspaceId }
     }
 
     suspend fun remove(id: Operation.Id) = mutex.withLock {
@@ -158,6 +188,13 @@ class OperationsManager @Inject constructor(
         completed.forEach { stateObservers.remove(it.id)?.cancel() }
     }
 
+    /**
+     * Cancels and drops everything that named [id] as its origin.
+     *
+     * Only reached for workspaces [closeBlockers] did not name, so a
+     * [Operation.Metadata.ClosePolicy.REQUIRE_ORIGIN] operation that still arrives here - submitted
+     * inside the race that method documents - is cancelled like any other.
+     */
     suspend fun removeWorkspace(id: Workspace.Id) {
         // Build snapshots inside the lock (state-snapshot consistency), emit OUTSIDE (avoid blocking
         // ops-manager mutations on SharedFlow backpressure).
