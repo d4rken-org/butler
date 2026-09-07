@@ -105,32 +105,53 @@ fun SelectableFileRow(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
-                // Line 1: File name
-                Text(
-                    text = result.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                // Line 2: Parent path, with size · date beside it unless the density splits them off
                 val isDirectory = result.fileType == FileType.DIRECTORY
                 val parentPath = result.lookup.parent?.userReadablePath?.asComposable()
-                val metaText = listOfNotNull(
-                    result.size
-                        ?.takeIf { !isDirectory }
-                        ?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) },
-                    result.modifiedAt?.takeIf { density != SearcherViewStyle.Density.COMPACT }?.let {
+                val sizeText = result.size
+                    ?.takeIf { !isDirectory }
+                    ?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) }
+                val dateText = result.modifiedAt
+                    ?.takeIf { density != SearcherViewStyle.Density.COMPACT }
+                    ?.let {
                         if (density == SearcherViewStyle.Density.DETAILED) {
                             formatDateTime(it, DateTimeStyle.FULL)
                         } else {
                             formatRelativeTime(it)
                         }
-                    },
-                ).joinToString(" · ")
-                val metaBesidePath = metaText.takeIf { !density.showsMetadataOnOwnLine }.orEmpty()
+                    }
 
-                if (!parentPath.isNullOrEmpty() || metaBesidePath.isNotEmpty()) {
+                // Line 1: file name, with the size beside it unless a third line carries both
+                // figures. The name is the short text on the row, so the size fits next to it
+                // without eating into the path below.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = result.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+
+                    if (sizeText != null && !density.showsMetadataOnOwnLine) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = sizeText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                    }
+                }
+
+                // Line 2: parent path, with the date beside it where there is no third line.
+                // Results of one search mostly share a prefix, so the tail is what tells them
+                // apart and the start is what gets cut.
+                val dateBesidePath = dateText?.takeIf { !density.showsMetadataOnOwnLine }
+
+                if (!parentPath.isNullOrEmpty() || dateBesidePath != null) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -143,14 +164,14 @@ fun SelectableFileRow(
                             ),
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             maxLines = 1,
-                            overflow = TextOverflow.MiddleEllipsis,
+                            overflow = TextOverflow.StartEllipsis,
                             modifier = Modifier.weight(1f),
                         )
 
-                        if (metaBesidePath.isNotEmpty()) {
+                        if (dateBesidePath != null) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = metaBesidePath,
+                                text = dateBesidePath,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
@@ -160,14 +181,17 @@ fun SelectableFileRow(
                 }
 
                 // Line 3: size · date, once the path has the line above to itself
-                if (density.showsMetadataOnOwnLine && metaText.isNotEmpty()) {
-                    Text(
-                        text = metaText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                if (density.showsMetadataOnOwnLine) {
+                    val metaText = listOfNotNull(sizeText, dateText).joinToString(" · ")
+                    if (metaText.isNotEmpty()) {
+                        Text(
+                            text = metaText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
 
                 // Line 4: Match context (if available)
