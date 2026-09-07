@@ -39,6 +39,7 @@ import eu.darken.butler.explorer.ui.explorer.items.LeadingIconSlot
 import eu.darken.butler.explorer.ui.explorer.items.rowBadgeSize
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.items.rowPadding
+import eu.darken.butler.explorer.ui.explorer.items.rowVerticalPadding
 
 private fun String.withProblematicCharsUnderlined(color: Color): AnnotatedString {
     if (this.trim { it.isProblematicInvisible() } == this) return AnnotatedString(this)
@@ -131,7 +132,7 @@ internal fun FileRowBase(
                     )
                 } else Modifier
             )
-            .padding(density.rowPadding),
+            .padding(horizontal = density.rowPadding, vertical = density.rowVerticalPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Leading content area - shows either checkbox or decorated icon. Decorations
@@ -219,6 +220,9 @@ internal fun FileRowBase(
                         }
                         Text(
                             text = tertiaryEndText,
+                            // Weighted so two timestamps share the line instead of the end one
+                            // taking its full width and leaving "Created" without a date.
+                            modifier = Modifier.weight(1f, fill = false),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             maxLines = 1,

@@ -21,6 +21,7 @@ import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.junit.Test
 import testhelpers.ComposeTest
 
@@ -72,6 +73,12 @@ class RowDensityTest : ComposeTest() {
 
     private val shortSize get() = formatFileSize(context, result.size!!, shortFormat = true)
     private val longSize get() = formatFileSize(context, result.size!!, shortFormat = false)
+
+    /** Guards the two size tests below: a fixture whose forms collide would make them vacuous. */
+    @Test
+    fun `the fixture size renders differently in each form`() {
+        shortSize shouldNotBe longSize
+    }
 
     @Test
     fun `a compact row keeps the size in its short form`() {

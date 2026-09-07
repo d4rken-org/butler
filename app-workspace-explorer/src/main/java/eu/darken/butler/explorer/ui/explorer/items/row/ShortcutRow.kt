@@ -35,6 +35,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.rowBadgeSize
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.items.rowPadding
+import eu.darken.butler.explorer.ui.explorer.items.rowVerticalPadding
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
@@ -53,7 +54,7 @@ fun ShortcutRow(
             .alpha(if (isEnabled) 1f else 0.38f)
             .clip(RoundedCornerShape(8.dp))
             .then(if (isEnabled) Modifier.clickable { onClick() } else Modifier)
-            .padding(horizontal = density.rowPadding + 4.dp, vertical = density.rowPadding),
+            .padding(horizontal = density.rowPadding + 4.dp, vertical = density.rowVerticalPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {

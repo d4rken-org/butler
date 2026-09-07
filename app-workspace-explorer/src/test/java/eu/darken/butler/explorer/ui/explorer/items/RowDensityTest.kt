@@ -10,6 +10,7 @@ import eu.darken.butler.explorer.ui.explorer.items.row.DirectoryRow
 import eu.darken.butler.explorer.ui.explorer.items.row.RegularFileRow
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.junit.Test
 import testhelpers.ComposeTest
 
@@ -86,18 +87,27 @@ class RowDensityTest : ComposeTest() {
         countMatching("Modified") shouldBe 0
     }
 
+    private val shortSize get() = formatFileSize(context, file.lookup.size!!, shortFormat = true)
+    private val longSize get() = formatFileSize(context, file.lookup.size!!, shortFormat = false)
+
+    /** Guards the two size tests below: a fixture whose forms collide would make them vacuous. */
+    @Test
+    fun `the fixture size renders differently in each form`() {
+        shortSize shouldNotBe longSize
+    }
+
     @Test
     fun `a compact row abbreviates the size`() {
         fileRowAt(ExplorerViewStyle.Density.COMPACT)
 
-        countMatching(formatFileSize(context, file.lookup.size!!, shortFormat = true)) shouldBe 1
+        countMatching(shortSize) shouldBe 1
     }
 
     @Test
     fun `a comfortable row spells the size out`() {
         fileRowAt(ExplorerViewStyle.Density.COMFORTABLE)
 
-        countMatching(formatFileSize(context, file.lookup.size!!, shortFormat = false)) shouldBe 1
+        countMatching(longSize) shouldBe 1
     }
 
     @Test

@@ -27,6 +27,14 @@ val ExplorerViewStyle.Density.rowBadgeSize: Dp
 
 val ExplorerViewStyle.Density.rowPadding: Dp
     get() = when (this) {
+        ExplorerViewStyle.Density.COMPACT -> 6.dp
+        ExplorerViewStyle.Density.COMFORTABLE -> 8.dp
+        ExplorerViewStyle.Density.DETAILED -> 10.dp
+    }
+
+/** Only the vertical inset tightens at compact; the horizontal one keeps rows aligned. */
+val ExplorerViewStyle.Density.rowVerticalPadding: Dp
+    get() = when (this) {
         ExplorerViewStyle.Density.COMPACT -> 2.dp
         ExplorerViewStyle.Density.COMFORTABLE -> 8.dp
         ExplorerViewStyle.Density.DETAILED -> 10.dp
