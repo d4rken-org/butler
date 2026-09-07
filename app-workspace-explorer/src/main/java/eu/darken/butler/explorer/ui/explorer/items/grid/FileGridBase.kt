@@ -37,7 +37,6 @@ import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.ui.explorer.items.LeadingIconSlot
 import eu.darken.butler.explorer.ui.explorer.items.gridBadgeSize
 import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
-import eu.darken.butler.explorer.ui.explorer.items.gridPrimaryMaxLines
 
 @Composable
 internal fun FileGridBase(
@@ -180,8 +179,10 @@ internal fun FileGridBase(
                         text = primaryText,
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onScrim,
-                        maxLines = density.gridPrimaryMaxLines,
-                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        // Middle, not end: a tile is narrow and the extension is what a name
+                        // cut at the end loses first.
+                        overflow = TextOverflow.MiddleEllipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
 

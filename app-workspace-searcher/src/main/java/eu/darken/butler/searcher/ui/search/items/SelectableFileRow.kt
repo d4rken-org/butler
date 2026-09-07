@@ -12,7 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +46,31 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.util.getEllipsizedMatchLine
+
+/**
+ * A modification timestamp, named by the same glyph the Explorer listing uses for the field.
+ * The label lives in the content description, because the row has no width to spend on the word.
+ */
+@Composable
+private fun ModifiedDate(text: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Icon(
+            imageVector = Icons.TwoTone.DriveFileRenameOutline,
+            contentDescription = stringResource(R.string.searcher_view_detail_modified_label),
+            modifier = Modifier.size(14.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
+    }
+}
 
 @Composable
 fun SelectableFileRow(
@@ -141,16 +169,20 @@ fun SelectableFileRow(
             }
 
             // Line 2 at detailed density: size and date, on the line the path vacates.
-            if (density.showsMetadataOnOwnLine) {
-                val metaText = listOfNotNull(sizeText, dateText).joinToString(" · ")
-                if (metaText.isNotEmpty()) {
-                    Text(
-                        text = metaText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+            if (density.showsMetadataOnOwnLine && (sizeText != null || dateText != null)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (sizeText != null) {
+                        Text(
+                            text = sizeText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                    }
+                    if (dateText != null) ModifiedDate(text = dateText)
                 }
             }
 
@@ -178,12 +210,7 @@ fun SelectableFileRow(
 
                     if (dateBesidePath != null) {
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = dateBesidePath,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                        )
+                        ModifiedDate(text = dateBesidePath)
                     }
                 }
             }

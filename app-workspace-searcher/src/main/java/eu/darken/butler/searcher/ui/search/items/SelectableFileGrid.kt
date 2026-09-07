@@ -206,8 +206,10 @@ fun SelectableFileGrid(
                         text = result.name,
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onScrim,
-                        maxLines = density.gridPrimaryMaxLines,
-                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        // Middle, not end: a tile is narrow and the extension is what a name
+                        // cut at the end loses first.
+                        overflow = TextOverflow.MiddleEllipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
 

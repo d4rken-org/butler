@@ -104,12 +104,6 @@ val ExplorerViewStyle.Density.gridBadgeSize: Dp
         ExplorerViewStyle.Density.DETAILED -> 12.dp
     }
 
-val ExplorerViewStyle.Density.gridPrimaryMaxLines: Int
-    get() = when (this) {
-        ExplorerViewStyle.Density.COMPACT -> 1
-        ExplorerViewStyle.Density.COMFORTABLE -> 1
-        ExplorerViewStyle.Density.DETAILED -> 2
-    }
 
 /**
  * Tile width threshold. `GridCells.Adaptive` only sets a column count, so two steps can land on the

@@ -11,11 +11,17 @@ val AppsViewStyle.Density.rowIconSize: Dp
         AppsViewStyle.Density.DETAILED -> 48.dp
     }
 
-val AppsViewStyle.Density.gridIconSize: Dp
+/**
+ * Share of the tile area left over by the label overlay that the app icon fills.
+ *
+ * A fraction rather than a size: `GridCells.Adaptive` sizes tiles from the pane width, so a fixed
+ * icon leaves a tile at one pane width looking mostly empty and crowds it at another.
+ */
+val AppsViewStyle.Density.gridIconFraction: Float
     get() = when (this) {
-        AppsViewStyle.Density.COMPACT -> 40.dp
-        AppsViewStyle.Density.COMFORTABLE -> 56.dp
-        AppsViewStyle.Density.DETAILED -> 64.dp
+        AppsViewStyle.Density.COMPACT -> 0.9f
+        AppsViewStyle.Density.COMFORTABLE -> 0.9f
+        AppsViewStyle.Density.DETAILED -> 0.85f
     }
 
 /** Horizontal inset of a row; matches the Explorer listing so the two read as the same list. */

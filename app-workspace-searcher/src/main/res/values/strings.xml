@@ -210,6 +210,7 @@
     <string name="searcher_view_density_compact_label">Compact</string>
     <string name="searcher_view_density_comfortable_label">Comfortable</string>
     <string name="searcher_view_density_detailed_label">Detailed</string>
+    <string name="searcher_view_detail_modified_label">Modified</string>
     <string name="searcher_view_set_default_action">Set as default</string>
 
     <!-- Permission setup -->

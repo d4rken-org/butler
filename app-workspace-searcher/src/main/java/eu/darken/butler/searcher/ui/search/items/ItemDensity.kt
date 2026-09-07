@@ -91,9 +91,3 @@ val SearcherViewStyle.Density.gridIconSize: Dp
 val SearcherViewStyle.Density.showsTileMetadata: Boolean
     get() = this != SearcherViewStyle.Density.COMPACT
 
-val SearcherViewStyle.Density.gridPrimaryMaxLines: Int
-    get() = when (this) {
-        SearcherViewStyle.Density.COMPACT -> 1
-        SearcherViewStyle.Density.COMFORTABLE -> 1
-        SearcherViewStyle.Density.DETAILED -> 2
-    }

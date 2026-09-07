@@ -81,6 +81,7 @@ class AppsWorkspaceUninstalledGateTest : BaseTest() {
             workspaceRemote = mockk<WorkspaceRemote>(relaxed = true),
             appsSettings = mockk(relaxed = true),
             appSizeCache = mockk(relaxed = true),
+            tabViewStore = mockk(relaxed = true),
         ).also { vm = it }
     }
 

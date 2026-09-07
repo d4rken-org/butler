@@ -81,29 +81,91 @@ fun AppGridItem(
                     onLongClick = onLongClick,
                 ),
         ) {
-            // App icon centered
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (item.icon != null) {
-                    val fallbackPainter = rememberAppIconFallbackPainter()
-                    AsyncImage(
-                        model = item.pkg,
-                        contentDescription = null,
-                        modifier = Modifier.size(density.gridIconSize),
-                        placeholder = fallbackPainter,
-                        error = fallbackPainter,
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.TwoTone.Android,
-                        contentDescription = null,
-                        modifier = Modifier.size(density.gridIconSize),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+            // The icon takes whatever the label overlay leaves rather than being centred in the
+            // whole tile, where a larger icon would end up behind the overlay. The size chip
+            // stacks above the scrim, which keeps it clear without hardcoding the overlay's
+            // (dynamic, two-line) height.
+            Column(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(6.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (item.icon != null) {
+                        val fallbackPainter = rememberAppIconFallbackPainter()
+                        AsyncImage(
+                            model = item.pkg,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(density.gridIconFraction),
+                            placeholder = fallbackPainter,
+                            error = fallbackPainter,
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.TwoTone.Android,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(density.gridIconFraction),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                if (item.appSize != null && density.showsSecondaryMetadata) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        AppSizeChip(
+                            bytes = item.appSize,
+                            compact = true,
+                        )
+                    }
+                }
+
+                // App name at the bottom
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
+                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(1.dp),
+                    ) {
+                        Text(
+                            text = item.label.get(context),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onScrim,
+                            maxLines = 1,
+                            overflow = TextOverflow.MiddleEllipsis,
+                        )
+                        if (density.showsSecondaryMetadata) {
+                            Text(
+                                text = item.packageName,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
+                                maxLines = 1,
+                                overflow = TextOverflow.MiddleEllipsis,
+                            )
+                        }
+                        // The checkbox has the corner while selecting, so the version falls back
+                        // to the label overlay rather than disappearing.
+                        if (showSelection && showsVersionInCorner) {
+                            Text(
+                                text = "v${item.versionName}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
                 }
             }
 
@@ -147,70 +209,6 @@ fun AppGridItem(
                     tags = item.tags,
                     compact = true,
                 )
-            }
-
-            // Size chip floats above the label scrim; stacking them keeps it clear of the
-            // overlay without hardcoding the overlay's (dynamic, two-line) height.
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter),
-            ) {
-                if (item.appSize != null && density.showsSecondaryMetadata) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(4.dp),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        AppSizeChip(
-                            bytes = item.appSize,
-                            compact = true,
-                        )
-                    }
-                }
-
-                // App name at the bottom
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                        .padding(horizontal = 6.dp, vertical = 4.dp),
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.spacedBy(1.dp),
-                    ) {
-                        Text(
-                            text = item.label.get(context),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onScrim,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        if (density.showsSecondaryMetadata) {
-                            Text(
-                                text = item.packageName,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
-                                maxLines = 1,
-                                overflow = TextOverflow.MiddleEllipsis,
-                            )
-                        }
-                        // The checkbox has the corner while selecting, so the version falls back
-                        // to the label overlay rather than disappearing.
-                        if (showSelection && showsVersionInCorner) {
-                            Text(
-                                text = "v${item.versionName}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                }
             }
         }
     }
