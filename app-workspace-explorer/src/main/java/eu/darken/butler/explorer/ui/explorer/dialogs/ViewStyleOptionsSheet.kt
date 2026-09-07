@@ -8,12 +8,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.ViewList
-import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.DensityLarge
 import androidx.compose.material.icons.twotone.DensityMedium
 import androidx.compose.material.icons.twotone.DensitySmall
 import androidx.compose.material.icons.twotone.GridView
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -26,6 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -35,8 +35,6 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
-import eu.darken.butler.workspace.ui.bottomsheet.ViewStyleOptionGroup
-import eu.darken.butler.workspace.ui.bottomsheet.ViewStyleOptionRow
 
 /**
  * Layout and density of the listing.
@@ -98,35 +96,38 @@ private fun ViewStyleOptionsContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        // Two options fit side by side; the three densities below do not, once each carries an
-        // icon, a word like "Comfortable" and a checkmark.
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
             ExplorerViewStyle.Mode.entries.forEachIndexed { index, mode ->
-                val selected = currentViewStyle.mode == mode
                 SegmentedButton(
-                    selected = selected,
+                    selected = currentViewStyle.mode == mode,
                     onClick = { onApplyToTab(currentViewStyle.copy(mode = mode)) },
                     shape = SegmentedButtonDefaults.itemShape(
                         index = index,
                         count = ExplorerViewStyle.Mode.entries.size,
                     ),
-                    icon = { SegmentedButtonIcon(modeIcon(mode)) },
+                    icon = {},
                 ) {
-                    SegmentedButtonLabel(label = stringResource(modeLabel(mode)), selected = selected)
+                    StackedSegmentLabel(icon = modeIcon(mode), label = stringResource(modeLabel(mode)))
                 }
             }
         }
 
-        HorizontalDivider()
-
-        ViewStyleOptionGroup {
-            ExplorerViewStyle.Density.entries.forEach { density ->
-                ViewStyleOptionRow(
-                    icon = densityIcon(density),
-                    label = stringResource(densityLabel(density)),
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            ExplorerViewStyle.Density.entries.forEachIndexed { index, density ->
+                SegmentedButton(
                     selected = currentViewStyle.density == density,
                     onClick = { onApplyToTab(currentViewStyle.copy(density = density)) },
-                )
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = ExplorerViewStyle.Density.entries.size,
+                    ),
+                    icon = {},
+                ) {
+                    StackedSegmentLabel(
+                        icon = densityIcon(density),
+                        label = stringResource(densityLabel(density)),
+                    )
+                }
             }
         }
 
@@ -146,30 +147,31 @@ private fun ViewStyleOptionsContent(
     }
 }
 
-/** Replaces the segmented button's default leading checkmark, which moves behind the label. */
+/**
+ * Icon over label, so three segments fit a phone's width.
+ *
+ * The segmented button's own leading checkmark is switched off (`icon = {}`): the selected
+ * container colour already says which one is picked, and the checkmark's slide-in animation
+ * reflows the label every time the choice changes.
+ */
 @Composable
-private fun SegmentedButtonIcon(icon: ImageVector) {
-    Icon(
-        imageVector = icon,
-        contentDescription = null,
-        modifier = Modifier.size(SegmentedButtonDefaults.IconSize),
-    )
-}
-
-@Composable
-private fun SegmentedButtonLabel(label: String, selected: Boolean) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+private fun StackedSegmentLabel(icon: ImageVector, label: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        Text(label)
-        if (selected) {
-            Icon(
-                imageVector = Icons.TwoTone.Check,
-                contentDescription = null,
-                modifier = Modifier.size(SegmentedButtonDefaults.IconSize),
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(SegmentedButtonDefaults.IconSize),
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
