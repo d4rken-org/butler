@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.apps.R
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
@@ -51,6 +52,46 @@ class AppGridItemTest : ComposeTest() {
                     isSelected = false,
                     onClick = {},
                     onLongClick = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("v120.0.6099").assertIsDisplayed()
+    }
+
+    @Test
+    fun `a compact tile drops the package name but keeps its tags`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                AppGridItem(
+                    item = AppsMockDataProvider.Presets.disabledAppItem,
+                    density = AppsViewStyle.Density.COMPACT,
+                    isSelected = false,
+                    onClick = {},
+                    onLongClick = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("Spotify").assertIsDisplayed()
+        composeTestRule.onNodeWithText("com.spotify.music").assertDoesNotExist()
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.apps_tag_disabled_label))
+            .assertIsDisplayed()
+    }
+
+    /** The checkbox takes the corner the version otherwise occupies, so it must land elsewhere. */
+    @Test
+    fun `a detailed tile keeps the version while selecting`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                AppGridItem(
+                    item = versionedItem,
+                    density = AppsViewStyle.Density.DETAILED,
+                    isSelected = true,
+                    onClick = {},
+                    onLongClick = {},
+                    showSelection = true,
                 )
             }
         }

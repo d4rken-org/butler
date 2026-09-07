@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -50,6 +51,8 @@ fun AppGridItem(
 ) {
     val context = LocalContext.current
     val shape = RoundedCornerShape(8.dp)
+    val showsVersionInCorner =
+        density == AppsViewStyle.Density.DETAILED && !item.versionName.isNullOrBlank()
 
     Card(
         modifier = modifier
@@ -104,45 +107,41 @@ fun AppGridItem(
                 }
             }
 
-            // Tag chips in top-right. Tags carry actionable state such as "Disabled", so unlike
-            // the package name and the size they survive every density.
-            if (item.tags.isNotEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(4.dp),
-                ) {
-                    AppTagRow(
-                        tags = item.tags,
-                        compact = true,
-                    )
-                }
-            }
-
-            // Checkbox in top-left when in selection mode; otherwise detailed puts the version
-            // there, where it does not push the label overlay to a third line.
-            if (showSelection) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(4.dp),
-                ) {
-                    Checkbox(
+            // Top row: the selection checkbox or, at detailed density, the version on the left;
+            // tag chips on the right. One row rather than two corner-aligned boxes, so a long
+            // version ellipsizes against the chips instead of running underneath them.
+            //
+            // Tags carry actionable state such as "Disabled", so unlike the package name and the
+            // size they survive every density.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .padding(4.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                when {
+                    showSelection -> Checkbox(
                         checked = isSelected,
                         onCheckedChange = null,
                         modifier = Modifier.size(24.dp),
                     )
+                    showsVersionInCorner -> Text(
+                        text = "v${item.versionName}",
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .padding(horizontal = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    else -> Unit
                 }
-            } else if (density == AppsViewStyle.Density.DETAILED && !item.versionName.isNullOrBlank()) {
-                Text(
-                    text = "v${item.versionName}",
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(horizontal = 6.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                Spacer(modifier = Modifier.weight(1f))
+                AppTagRow(
+                    tags = item.tags,
+                    compact = true,
                 )
             }
 
@@ -193,6 +192,17 @@ fun AppGridItem(
                                 color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
                                 maxLines = 1,
                                 overflow = TextOverflow.MiddleEllipsis,
+                            )
+                        }
+                        // The checkbox has the corner while selecting, so the version falls back
+                        // to the label overlay rather than disappearing.
+                        if (showSelection && showsVersionInCorner) {
+                            Text(
+                                text = "v${item.versionName}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
                     }
