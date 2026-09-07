@@ -282,6 +282,20 @@ class WorkspacesViewModel @Inject constructor(
                             }
                         }
                     }
+                    is WorkspaceEvent.CloseRefused -> {
+                        log(tag, INFO) { "CloseRefused: $event" }
+
+                        // The host is where the request came from, which for a close invoked in a
+                        // stacked child is that child - the parent's banner would be behind it.
+                        val targetWorkspaceId = event.hostId
+                            ?: workspacePageManager.state.value.focusedWorkspaceId
+
+                        if (targetWorkspaceId != null) {
+                            _bannerStates.update { states ->
+                                states + (targetWorkspaceId to BannerState.CloseBlocked(event.busyWorkspaceIds.size))
+                            }
+                        }
+                    }
                     else -> {} // Ignore other events
                 }
             }
@@ -453,6 +467,9 @@ class WorkspacesViewModel @Inject constructor(
                     is WorkspaceAction.Create.Result.LimitReached -> {
                         log(tag, WARN) { "On-demand workspace creation blocked - limit reached" }
                     }
+                    is WorkspaceAction.Create.Result.Refused -> {
+                        log(tag, WARN) { "On-demand workspace creation refused - the replaced tab is busy" }
+                    }
                 }
             }
             is WorkspaceScreenAction.CreateForPane -> {
@@ -472,6 +489,9 @@ class WorkspacesViewModel @Inject constructor(
                     }
                     is WorkspaceAction.Create.Result.LimitReached -> {
                         log(tag, WARN) { "Workspace creation blocked - limit reached" }
+                    }
+                    is WorkspaceAction.Create.Result.Refused -> {
+                        log(tag, WARN) { "Workspace creation refused - the replaced tab is busy" }
                     }
                 }
             }
@@ -534,6 +554,9 @@ class WorkspacesViewModel @Inject constructor(
                     }
                     is WorkspaceAction.Create.Result.LimitReached -> {
                         log(tag, WARN) { "Workspace creation blocked - limit reached" }
+                    }
+                    is WorkspaceAction.Create.Result.Refused -> {
+                        log(tag, WARN) { "Workspace creation refused - the replaced tab is busy" }
                     }
                 }
             }

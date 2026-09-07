@@ -17,6 +17,7 @@ import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.session.WorkspaceSessionStorage
 import eu.darken.butler.workspace.core.session.WorkspaceSessionStorage.Companion.DEFAULT_SESSION_ID
 import eu.darken.butler.workspace.core.session.db.WorkspaceInstanceEntity
@@ -769,7 +770,10 @@ class WorkspaceSessionManagerTest : BaseTest() {
                 appScope = restoreScope,
                 factoryMap = factoryMap,
                 workspaceSettings = workspaceSettings,
-                operationsManager = mockk(relaxed = true),
+                // A relaxed answer for a Set return type is not guaranteed to be empty
+                operationsManager = mockk<OperationsManager>(relaxed = true).apply {
+                    every { closeBlockers(any()) } returns emptySet()
+                },
                 upgradeRepo = upgradeRepo,
                 usageRepo = mockk(relaxed = true),
                 closedStash = closedStash,

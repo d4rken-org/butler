@@ -181,7 +181,11 @@ class WorkspaceRepoTest : BaseTest() {
             FakeArguments(Workspace.Type.EXPLORER)
     }
 
-    private val operationsManager: OperationsManager = mockk(relaxed = true)
+    // A relaxed answer for a Set return type is not guaranteed to be empty, and the repo reads
+    // this on every close, pause and limit admission.
+    private val operationsManager: OperationsManager = mockk<OperationsManager>(relaxed = true).apply {
+        every { closeBlockers(any()) } returns emptySet()
+    }
 
     private val usageRepo: WorkspaceUsageRepo = mockk(relaxed = true)
 
@@ -212,6 +216,7 @@ class WorkspaceRepoTest : BaseTest() {
         val workspaceSettings = mockk<WorkspaceSettings>(relaxed = true).apply {
             every { layoutModePortrait.flow } returns flowOf(WorkspacePanelMode.AUTO)
             every { layoutModeLandscape.flow } returns flowOf(WorkspacePanelMode.AUTO)
+            every { undoCloseEnabled.flow } returns flowOf(true)
         }
         return WorkspaceRepo(
             appScope = backgroundScope,
@@ -3763,4 +3768,214 @@ class WorkspaceRepoTest : BaseTest() {
 
         coVerify(exactly = 1) { usageRepo.track(Workspace.Type.SEARCHER, any()) }
     }
+
+    // ─── REQUIRE_ORIGIN close refusal ─────────────────────────────────────────────
+
+    /**
+     * Mirrors [OperationsManager.closeBlockers]: the intersection of what is asked about with what
+     * is busy, so a query about an unrelated workspace is answered honestly.
+     */
+    private fun markOperationBlocked(vararg ids: Workspace.Id) {
+        val busy = ids.toSet()
+        every { operationsManager.closeBlockers(any()) } answers {
+            firstArg<Collection<Workspace.Id>>().toSet() intersect busy
+        }
+    }
+
+    private fun List<WorkspaceEvent>.closeRefusals(): List<WorkspaceEvent.CloseRefused> =
+        filterIsInstance<WorkspaceEvent.CloseRefused>()
+
+    @Test
+    fun `a close is refused while a member runs a REQUIRE_ORIGIN operation`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val events = mutableListOf<WorkspaceEvent>()
+            repo.events.onEach { events += it }.launchIn(backgroundScope)
+            val tabId = repo.createTab()
+            val childId = repo.createReadyChild(caller = tabId)
+            markOperationBlocked(childId)
+
+            repo.execute(WorkspaceAction.Close(tabId))
+
+            repo.workspaceIds() shouldBe listOf(tabId, childId)
+            fake(tabId).released shouldBe false
+            fake(childId).released shouldBe false
+            coVerify(exactly = 0) { operationsManager.removeWorkspace(any()) }
+            val refused = events.closeRefusals().single()
+            refused.requestedId shouldBe tabId
+            refused.busyWorkspaceIds shouldBe setOf(childId)
+        }
+
+    @Test
+    fun `a close invoked from a stacked child files the refusal under that child`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val events = mutableListOf<WorkspaceEvent>()
+            repo.events.onEach { events += it }.launchIn(backgroundScope)
+            val tabId = repo.createTab()
+            val childId = repo.createReadyChild(caller = tabId)
+            markOperationBlocked(tabId)
+
+            repo.execute(WorkspaceAction.Close(tabId, sourceWorkspaceId = childId))
+
+            // The child covers its parent with an opaque layer, so a notice filed under the parent
+            // would never be seen
+            events.closeRefusals().single().hostId shouldBe childId
+        }
+
+    @Test
+    fun `a confirmed close re-checks the blocker before closing`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val events = mutableListOf<WorkspaceEvent>()
+            repo.events.onEach { events += it }.launchIn(backgroundScope)
+            val tabId = repo.createTab()
+            markDirty(tabId)
+
+            repo.execute(WorkspaceAction.Close(tabId))
+            val confirmation = repo.pendingConfirmations.first().values.single {
+                it.data is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation
+            }
+            // Arrives while the user is looking at the dialog
+            markOperationBlocked(tabId)
+            repo.resolveConfirmation(confirmation.id, confirmed = true)
+
+            repo.workspaceIds() shouldBe listOf(tabId)
+            fake(tabId).released shouldBe false
+            events.closeRefusals().single().requestedId shouldBe tabId
+        }
+
+    @Test
+    fun `an undoable close re-checks the blocker after capture`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val events = mutableListOf<WorkspaceEvent>()
+            repo.events.onEach { events += it }.launchIn(backgroundScope)
+            val tabId = repo.createReadyTab()
+            // Phase 1 sees nothing; the operation is submitted while createArguments suspends
+            fake(tabId).whileCapturingArguments = { markOperationBlocked(tabId) }
+
+            repo.execute(WorkspaceAction.Close(tabId, undoable = true))
+
+            repo.workspaceIds() shouldBe listOf(tabId)
+            fake(tabId).released shouldBe false
+            closedStash.peekEntry() shouldBe null
+            closedStash.closeTokenFor(tabId) shouldBe null
+            events.closeRefusals().single().requestedId shouldBe tabId
+        }
+
+    @Test
+    fun `an undoable close whose capture failed still re-checks the blocker`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val events = mutableListOf<WorkspaceEvent>()
+            repo.events.onEach { events += it }.launchIn(backgroundScope)
+            val tabId = repo.createReadyTab()
+            // A failed capture degrades to a PLAIN close, which never revalidates - the refusal has
+            // to sit ahead of that branch or this tab goes down
+            fake(tabId).whileCapturingArguments = { markOperationBlocked(tabId) }
+            fake(tabId).argumentsError = IllegalStateException("Cannot serialize state")
+
+            repo.execute(WorkspaceAction.Close(tabId, undoable = true))
+
+            repo.workspaceIds() shouldBe listOf(tabId)
+            fake(tabId).released shouldBe false
+            closedStash.peekEntry() shouldBe null
+            events.closeRefusals().single().requestedId shouldBe tabId
+        }
+
+    @Test
+    fun `Close All is refused atomically while any tab is busy`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val events = mutableListOf<WorkspaceEvent>()
+        repo.events.onEach { events += it }.launchIn(backgroundScope)
+        val first = repo.createTab()
+        val busy = repo.createTab()
+        val last = repo.createTab()
+        markOperationBlocked(busy)
+
+        repo.execute(WorkspaceAction.CloseAll)
+
+        repo.workspaceIds() shouldBe listOf(first, busy, last)
+        createdWorkspaces.count { it.released } shouldBe 0
+        val refused = events.closeRefusals().single()
+        refused.requestedId shouldBe null
+        refused.hostId shouldBe null
+        refused.busyWorkspaceIds shouldBe setOf(busy)
+    }
+
+    @Test
+    fun `Close Selected skips an owner whose child is busy and closes the rest`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val events = mutableListOf<WorkspaceEvent>()
+            repo.events.onEach { events += it }.launchIn(backgroundScope)
+            val ownerA = repo.createTab()
+            val childB = repo.createReadyChild(caller = ownerA)
+            val unrelatedC = repo.createTab()
+            markOperationBlocked(childB)
+
+            val result = repo.execute(WorkspaceAction.CloseSelected(setOf(ownerA, unrelatedC)))
+
+            result shouldBe WorkspaceAction.CloseSelected.Result(closed = 1)
+            repo.workspaceIds() shouldBe listOf(ownerA, childB)
+            fake(ownerA).released shouldBe false
+            fake(childB).released shouldBe false
+            fake(unrelatedC).released shouldBe true
+            events.closeRefusals().single().busyWorkspaceIds shouldBe setOf(childB)
+        }
+
+    @Test
+    fun `a replace is refused while the replaced tab is busy`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val events = mutableListOf<WorkspaceEvent>()
+        repo.events.onEach { events += it }.launchIn(backgroundScope)
+        val originalId = repo.createTab(type = Workspace.Type.EXPLORER)
+        markOperationBlocked(originalId)
+
+        val result = repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.SEARCHER,
+                arguments = FakeArguments(Workspace.Type.SEARCHER),
+                replace = originalId,
+            )
+        )
+
+        result shouldBe WorkspaceAction.Create.Result.Refused
+        repo.workspaceIds() shouldBe listOf(originalId)
+        repo.infoFor(originalId).type shouldBe Workspace.Type.EXPLORER
+        fake(originalId).released shouldBe false
+        events.closeRefusals().single().requestedId shouldBe originalId
+    }
+
+    @Test
+    fun `tab-limit recovery treats a manager-known blocker as busy with zero counters`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val ids = repo.fillWithReadyTabs()
+            markOperationBlocked(ids[0])
+
+            repo.createRecoverable()
+
+            // The projected counters say idle; only the manager knows about the operation
+            repo.infoFor(ids[0]).operationCount shouldBe 0
+            repo.blockerFor(ids[0]) shouldBe WorkspaceLimitCandidate.Blocker.BUSY
+            repo.closableIds() shouldBe ids.drop(1)
+        }
+
+    @Test
+    fun `pause is refused for a manager-known blocker with zero counters`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createReadyTab()
+            repo.infoFor(id).operationCount shouldBe 0
+            markOperationBlocked(id)
+
+            val result = repo.pause(id)
+
+            result.shouldBeInstanceOf<WorkspaceAction.Pause.Result.Refused>()
+            result.reason shouldBe WorkspaceAction.Pause.Reason.BUSY
+            fake(id).released shouldBe false
+            repo.infoFor(id).isPaused shouldBe false
+        }
 }

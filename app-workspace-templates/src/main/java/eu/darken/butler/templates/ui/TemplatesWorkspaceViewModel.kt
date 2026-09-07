@@ -94,6 +94,9 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
             is WorkspaceAction.Create.Result.LimitReached -> {
                 log(tag, WARN) { "Workspace creation blocked - limit reached" }
             }
+            is WorkspaceAction.Create.Result.Refused -> {
+                log(tag, WARN) { "Workspace creation refused - the replaced tab is busy" }
+            }
         }
     }
 

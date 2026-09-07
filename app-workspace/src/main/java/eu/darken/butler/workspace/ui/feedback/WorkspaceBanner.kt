@@ -75,11 +75,19 @@ fun WorkspaceBanner(
                     )
 
                     Text(
-                        text = pluralStringResource(
-                            R.plurals.workspace_banner_opened_tabs,
-                            bannerState.successCount,
-                            bannerState.successCount
-                        ),
+                        text = when (bannerState) {
+                            is BannerState.CloseBlocked -> pluralStringResource(
+                                R.plurals.workspace_banner_close_blocked_busy,
+                                bannerState.busyCount,
+                                bannerState.busyCount
+                            )
+
+                            else -> pluralStringResource(
+                                R.plurals.workspace_banner_opened_tabs,
+                                bannerState.successCount,
+                                bannerState.successCount
+                            )
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = bannerState.contentColor,
                         modifier = Modifier.weight(1f)
@@ -118,6 +126,16 @@ private fun WorkspaceBannerSuccessPreview() {
 private fun WorkspaceBannerPartialPreview() {
     WorkspaceBanner(
         state = BannerState.Partial(success = 3, failed = 1, skipped = 2),
+        onDismiss = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceBannerCloseBlockedPreview() {
+    WorkspaceBanner(
+        state = BannerState.CloseBlocked(busyCount = 2),
         onDismiss = {}
     )
 }

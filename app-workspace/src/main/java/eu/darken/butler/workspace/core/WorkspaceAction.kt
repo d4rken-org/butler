@@ -66,6 +66,14 @@ sealed interface WorkspaceAction {
              * the existing tab instead of creating a duplicate.
              */
             data class AlreadyOpen(val existingId: Workspace.Id) : Result
+
+            /**
+             * The [Create.replace] target runs an operation that must keep its workspace
+             * ([eu.darken.butler.workspace.core.operations.Operation.Metadata.ClosePolicy.REQUIRE_ORIGIN]),
+             * so nothing was created and the old tab is untouched. A [WorkspaceEvent.CloseRefused]
+             * carries the notice, callers need no dialog of their own.
+             */
+            data object Refused : Result
         }
     }
 

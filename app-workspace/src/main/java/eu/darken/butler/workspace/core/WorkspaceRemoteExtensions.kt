@@ -142,6 +142,9 @@ suspend fun WorkspaceRemote.createAndFocus(
         }
 
         WorkspaceAction.Create.Result.LimitReached -> Unit
+
+        // The refusal notice travels as a CloseRefused event; focusing nothing is the whole handling.
+        WorkspaceAction.Create.Result.Refused -> Unit
     }
 
     return result

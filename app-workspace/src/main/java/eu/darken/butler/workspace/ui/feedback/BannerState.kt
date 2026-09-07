@@ -34,6 +34,13 @@ sealed interface BannerState {
         val failed: Int,
         val skipped: Int,
     ) : BannerState
+
+    /**
+     * A close was refused because operations that must keep their workspace are still running.
+     *
+     * @param busyCount Number of workspaces holding such an operation
+     */
+    data class CloseBlocked(val busyCount: Int) : BannerState
 }
 
 /**
@@ -43,6 +50,7 @@ val BannerState.successCount: Int
     get() = when (this) {
         is BannerState.Success -> count
         is BannerState.Partial -> success
+        is BannerState.CloseBlocked -> 0
     }
 
 /**
@@ -52,6 +60,7 @@ val BannerState.icon: ImageVector
     get() = when (this) {
         is BannerState.Success -> Icons.TwoTone.CheckCircle
         is BannerState.Partial -> Icons.TwoTone.Warning
+        is BannerState.CloseBlocked -> Icons.TwoTone.Warning
     }
 
 /**
@@ -61,6 +70,7 @@ val BannerState.containerColor: Color
     @Composable get() = when (this) {
         is BannerState.Success -> MaterialTheme.colorScheme.primaryContainer
         is BannerState.Partial -> MaterialTheme.colorScheme.tertiaryContainer
+        is BannerState.CloseBlocked -> MaterialTheme.colorScheme.errorContainer
     }
 
 /**
@@ -70,4 +80,5 @@ val BannerState.contentColor: Color
     @Composable get() = when (this) {
         is BannerState.Success -> MaterialTheme.colorScheme.onPrimaryContainer
         is BannerState.Partial -> MaterialTheme.colorScheme.onTertiaryContainer
+        is BannerState.CloseBlocked -> MaterialTheme.colorScheme.onErrorContainer
     }

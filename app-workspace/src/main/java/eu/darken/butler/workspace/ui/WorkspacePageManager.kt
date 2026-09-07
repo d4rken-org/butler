@@ -130,6 +130,11 @@ class WorkspacePageManager @Inject constructor(
                         // Handled by WorkspacesViewModel for banner feedback
                     }
 
+                    is WorkspaceEvent.CloseRefused -> {
+                        // Nothing was closed, so there is no placement to update; the notice is
+                        // handled by WorkspacesViewModel
+                    }
+
                     is WorkspaceEvent.SelectionRequested -> {
                         log(TAG) { "Selection requested for workspace: ${event.workspaceId}" }
                         handleWorkspaceSelection(event.workspaceId, event.sourceWorkspaceId)

@@ -56,6 +56,24 @@ sealed interface WorkspaceEvent {
     data object AllClosed : WorkspaceEvent
 
     /**
+     * A close was refused because a workspace in its subtree runs an operation with
+     * [eu.darken.butler.workspace.core.operations.Operation.Metadata.ClosePolicy.REQUIRE_ORIGIN].
+     * Nothing was released.
+     *
+     * @param requestedId the close target; null for Close All and Close Selected, which name no
+     * single tab.
+     * @param hostId the workspace the request was invoked from, i.e. where feedback is actually
+     * visible: a stacked child covers its parent with an opaque layer, so a notice filed under the
+     * parent would be hidden behind it. Null when the request came from global chrome.
+     * @param busyWorkspaceIds the members that hold the operations, not the roots that were refused.
+     */
+    data class CloseRefused(
+        val requestedId: Workspace.Id?,
+        val hostId: Workspace.Id?,
+        val busyWorkspaceIds: Set<Workspace.Id>,
+    ) : WorkspaceEvent
+
+    /**
      * Emitted when batch workspace creation completes.
      * Used to trigger feedback banner targeted to the workspace that initiated the request.
      *

@@ -144,7 +144,10 @@ class WorkspaceUndoCloseTest : BaseTest() {
         scope = TestScope(UnconfinedTestDispatcher())
         stash = ClosedWorkspaceStash(scope)
         scrollPositions = WorkspaceScrollPositions()
-        operationsManager = mockk(relaxed = true)
+        // A relaxed answer for a Set return type is not guaranteed to be empty
+        operationsManager = mockk<OperationsManager>(relaxed = true).apply {
+            every { closeBlockers(any()) } returns emptySet()
+        }
 
         val upgradeInfo = mockk<UpgradeRepo.Info>().apply {
             every { isPro } returns false

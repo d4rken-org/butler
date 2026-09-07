@@ -4,6 +4,7 @@ import android.os.Parcel
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
@@ -160,7 +161,10 @@ class WorkspaceAutoPauseManagerTest : BaseTest() {
             appScope = scope,
             factoryMap = Workspace.Type.entries.associateWith { FakeFactory() },
             workspaceSettings = workspaceSettings,
-            operationsManager = mockk(relaxed = true),
+            // A relaxed answer for a Set return type is not guaranteed to be empty
+            operationsManager = mockk<OperationsManager>(relaxed = true).apply {
+                every { closeBlockers(any()) } returns emptySet()
+            },
             upgradeRepo = upgradeRepo,
             usageRepo = mockk(relaxed = true),
             closedStash = closedStash,

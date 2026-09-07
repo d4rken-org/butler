@@ -576,6 +576,25 @@ class WorkspaceRepo @Inject constructor(
                     return@withLock WorkspaceAction.Create.Result.LimitReached
                 }
 
+                // A replace tears the old instance down, so it is a close in everything but name.
+                // Checked here rather than in commitWorkspace, which runs after the replacement is
+                // already built and would have to unwind it.
+                val replaceId = action.replace
+                if (replaceId != null) {
+                    val blockers = closeBlockedBy(listOf(replaceId))
+                    if (blockers.isNotEmpty()) {
+                        log(TAG, INFO) { "Replace of $replaceId refused, busy members: $blockers" }
+                        _events.emit(
+                            WorkspaceEvent.CloseRefused(
+                                requestedId = replaceId,
+                                hostId = action.sourceWorkspaceId ?: replaceId,
+                                busyWorkspaceIds = blockers,
+                            )
+                        )
+                        return@withLock WorkspaceAction.Create.Result.Refused
+                    }
+                }
+
                 val newId = create(
                     type = action.type,
                     arguments = action.arguments,
@@ -783,10 +802,18 @@ class WorkspaceRepo @Inject constructor(
             }
             is WorkspaceAction.CloseSelected -> {
                 log(TAG, INFO) { "Closing ${action.ownerIds.size} selected workspace(s)" }
+                // Decided per root, before the first release: a busy member is usually a stacked
+                // child, so what has to be skipped is the owner it hangs under, not the member id.
+                val busyMembers = closeBlockedBy(action.ownerIds)
+                val refused = blockedRoots(action.ownerIds)
                 // executeClose is the post-confirmation path, so an unsaved member goes down with
                 // the rest instead of parking another dialog the caller already asked about.
                 var closed = 0
                 action.ownerIds.forEach { id ->
+                    if (id in refused) {
+                        log(TAG, INFO) { "Selected workspace $id is busy, skipping it" }
+                        return@forEach
+                    }
                     if (_workspaces.value.none { it.id == id }) {
                         log(TAG) { "Selected workspace $id already gone, skipping" }
                         return@forEach
@@ -794,11 +821,34 @@ class WorkspaceRepo @Inject constructor(
                     executeClose(id)
                     closed++
                 }
+                if (refused.isNotEmpty()) {
+                    _events.emit(
+                        WorkspaceEvent.CloseRefused(
+                            requestedId = null,
+                            hostId = null,
+                            busyWorkspaceIds = busyMembers,
+                        )
+                    )
+                }
                 WorkspaceAction.CloseSelected.Result(closed)
             }
 
             WorkspaceAction.CloseAll -> {
                 log(TAG, INFO) { "Closing all workspaces" }
+                // All or nothing: a partial Close All that leaves one tab behind is harder to make
+                // sense of than a refusal that names the tab standing in the way.
+                val busyMembers = closeBlockedBy(_workspaces.value.map { it.id })
+                if (busyMembers.isNotEmpty()) {
+                    log(TAG, INFO) { "Close all refused, busy members: $busyMembers" }
+                    _events.emit(
+                        WorkspaceEvent.CloseRefused(
+                            requestedId = null,
+                            hostId = null,
+                            busyWorkspaceIds = busyMembers,
+                        )
+                    )
+                    return@withLock WorkspaceAction.CloseAll.Result
+                }
                 _workspaces.value.forEach {
                     it.release()
                     operationsManager.removeWorkspace(it.id)
@@ -1045,6 +1095,10 @@ class WorkspaceRepo @Inject constructor(
             // on that path, so the claim is never cleared - the pause waits instead.
             contentClaims.values.any { it == workspace.id } -> WorkspaceAction.Pause.Reason.CLAIM_HELD
             info.operationCount > 0 || info.attentionCount > 0 -> WorkspaceAction.Pause.Reason.BUSY
+            // Pausing releases the instance, and with it the operation's progress surface and the
+            // resolver for its Waiting state. Asked of the manager because the counter above is
+            // projected asynchronously and can still read zero.
+            closeBlockedBy(listOf(workspace.id)).isNotEmpty() -> WorkspaceAction.Pause.Reason.BUSY
             info.hasUnsavedChanges -> WorkspaceAction.Pause.Reason.UNSAVED_CHANGES
             !info.isPausable -> WorkspaceAction.Pause.Reason.NOT_PAUSABLE
             info.lifecycleState !is Workspace.LifecycleState.Ready -> WorkspaceAction.Pause.Reason.NOT_READY
@@ -1286,6 +1340,9 @@ class WorkspaceRepo @Inject constructor(
         if (info.hasUnsavedChanges) return WorkspaceLimitCandidate.Blocker.UNSAVED_CHANGES
         if (info.attentionCount > 0) return WorkspaceLimitCandidate.Blocker.NEEDS_ATTENTION
         if (info.operationCount > 0) return WorkspaceLimitCandidate.Blocker.BUSY
+        // The counters above are projected by the workspace asynchronously, so an operation the
+        // manager already holds can coexist with operationCount == 0. Asked directly for that reason.
+        if (closeBlockedBy(listOf(info.id)).isNotEmpty()) return WorkspaceLimitCandidate.Blocker.BUSY
         // Zero counters while setup is still running says nothing about what would be lost
         if (info.lifecycleState is Workspace.LifecycleState.Initializing) {
             return WorkspaceLimitCandidate.Blocker.LOADING
@@ -1729,6 +1786,30 @@ class WorkspaceRepo @Inject constructor(
     }
 
     /**
+     * The members inside the closing subtrees of [rootIds] that run an operation whose close policy
+     * is REQUIRE_ORIGIN - i.e. the ones a close must refuse rather than take down. Empty means the
+     * close may proceed.
+     *
+     * Must be called while holding [lock] and before any `release()`: teardown is what this exists
+     * to prevent, so an answer obtained afterwards is worthless.
+     */
+    private fun closeBlockedBy(rootIds: Collection<Workspace.Id>): Set<Workspace.Id> =
+        operationsManager.closeBlockers(rootIds.flatMap { closingSubtreeOf(it) }.map { it.id })
+
+    /**
+     * The subset of [rootIds] whose own closing subtree holds one of [closeBlockedBy]'s members.
+     *
+     * Multi-root call sites decide per root with this. A busy member is usually a stacked child, so
+     * its id is not a root id, and comparing the two sets directly would close a root whose child
+     * must stay.
+     */
+    private fun blockedRoots(rootIds: Collection<Workspace.Id>): Set<Workspace.Id> {
+        val blocked = closeBlockedBy(rootIds)
+        if (blocked.isEmpty()) return emptySet()
+        return rootIds.filterTo(mutableSetOf()) { root -> closingSubtreeOf(root).any { it.id in blocked } }
+    }
+
+    /**
      * [closingSubtreeOf] as bare ids, always including [workspaceId] itself even when nothing holds
      * it. Two closes overlap exactly when either one's id set contains the other's target, which is
      * what tells a confirmation that a second one would decide the same workspaces over again.
@@ -1788,6 +1869,14 @@ class WorkspaceRepo @Inject constructor(
         val plan = lock.withLock {
             log(TAG, INFO) { "Closing workspace with id ${action.id}" }
 
+            // Before anything is parked, stashed or released: a refused close changes nothing.
+            val blockers = closeBlockedBy(listOf(action.id))
+            if (blockers.isNotEmpty()) {
+                log(TAG, INFO) { "Close of ${action.id} refused, busy members: $blockers" }
+                _events.emit(closeRefusalFor(action, blockers))
+                return WorkspaceAction.Close.Result
+            }
+
             // Closing a tab takes its whole modal stack down with it, so the guard has to
             // cover everything executeClose would destroy, not just the id the close names: a
             // clean tab can own a dirty child (a Saver still holding shared content), and that
@@ -1832,6 +1921,16 @@ class WorkspaceRepo @Inject constructor(
 
             // Phase 3
             lock.withLock {
+                // Ahead of the verdict, because the PLAIN branch never calls revalidateUndoCapture:
+                // an operation submitted while the capture suspended must not be taken down by a
+                // close that started out clean, whether or not that capture succeeded.
+                val blockers = closeBlockedBy(listOf(action.id))
+                if (blockers.isNotEmpty()) {
+                    log(TAG, INFO) { "Close of ${action.id} refused after capture, busy members: $blockers" }
+                    closedStash.abortClose(plan.closeToken)
+                    _events.emit(closeRefusalFor(action, blockers))
+                    return@withLock
+                }
                 val verdict = if (captured == null) CloseVerdict.PLAIN else revalidateUndoCapture(plan, captured)
                 when (verdict) {
                     CloseVerdict.UNDOABLE -> {
@@ -1858,6 +1957,19 @@ class WorkspaceRepo @Inject constructor(
 
         return WorkspaceAction.Close.Result
     }
+
+    /**
+     * The refusal notice for a close of a single tab. Anchored on the workspace the close was
+     * invoked from, the same overlay the close confirmation uses.
+     */
+    private fun closeRefusalFor(
+        action: WorkspaceAction.Close,
+        blockers: Set<Workspace.Id>,
+    ) = WorkspaceEvent.CloseRefused(
+        requestedId = action.id,
+        hostId = action.sourceWorkspaceId ?: action.id,
+        busyWorkspaceIds = blockers,
+    )
 
     /**
      * Installs the close confirmation for [action] WITHOUT acquiring [lock] - the caller already
@@ -1914,7 +2026,15 @@ class WorkspaceRepo @Inject constructor(
         log(TAG, INFO) { "Requesting confirmation to close workspace: ${action.id}, naming ${workspaceInfo.displayTitle}" }
 
         pendingActions[confirmationId] = {
-            executeClose(action.id)
+            // Re-asked here rather than only at parking time: this runs under a later acquisition of
+            // [lock], long after the user was asked, and an operation can have arrived meanwhile.
+            val blockers = closeBlockedBy(listOf(action.id))
+            if (blockers.isNotEmpty()) {
+                log(TAG, INFO) { "Confirmed close of ${action.id} refused, busy members: $blockers" }
+                _events.emit(closeRefusalFor(action, blockers))
+            } else {
+                executeClose(action.id)
+            }
             null
         }
 
