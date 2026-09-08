@@ -188,6 +188,7 @@ fun OperationPerformanceGraph(
                     // Use content to fit all data without specifying exact range
                     initialZoom = remember { Zoom.Content },
                 ),
+                animationSpec = null,  // Updates outpace the tween, it would never finish
             )
 
             // Recent average byte speed label (top-left, matches left Y-axis)
