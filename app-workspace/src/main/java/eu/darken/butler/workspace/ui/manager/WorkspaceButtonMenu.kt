@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.manager
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
@@ -31,6 +32,9 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.defaultArguments
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.ui.layout.icon
+import eu.darken.butler.workspace.ui.layout.label
 import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
 
@@ -42,8 +46,11 @@ fun WorkspaceButtonMenu(
     state: WorkspaceButtonViewModel.State?,
     currentWorkspaceId: Workspace.Id? = null,
     provider: WorkspaceButtonProvider?,
+    layoutEntryMode: WorkspacePanelMode? = null,
+    isLandscape: Boolean = false,
     onCloseAllRequested: () -> Unit,
     onOpenManager: () -> Unit,
+    onLayoutRequested: () -> Unit = {},
 ) {
     DismissWhenPaneUnfocused(expanded = expanded, onDismiss = onDismissRequest)
     DropdownMenu(
@@ -110,6 +117,26 @@ fun WorkspaceButtonMenu(
                 )
             },
         )
+        if (layoutEntryMode != null) {
+            DropdownMenuItem(
+                text = {
+                    MenuItemText(
+                        title = stringResource(R.string.workspace_button_menu_layout_action),
+                        subtitle = layoutEntryMode.label(),
+                    )
+                },
+                onClick = {
+                    onDismissRequest()
+                    onLayoutRequested()
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = layoutEntryMode.icon(landscape = isLandscape),
+                        contentDescription = null,
+                    )
+                },
+            )
+        }
         DropdownMenuItem(
             text = { Text(stringResource(R.string.workspace_button_menu_settings_action)) },
             onClick = {
@@ -185,6 +212,22 @@ fun MenuCategoryHeader(
     )
 }
 
+@Composable
+private fun MenuItemText(
+    modifier: Modifier = Modifier,
+    title: String,
+    subtitle: String,
+) {
+    Column(modifier = modifier) {
+        Text(text = title)
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
@@ -254,5 +297,22 @@ private fun WorkspaceButtonMenuNoRecentsPreview() {
         provider = FakeWorkspaceButtonProvider(),
         onCloseAllRequested = {},
         onOpenManager = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceButtonMenuWithLayoutPreview() {
+    WorkspaceButtonMenu(
+        expanded = true,
+        onDismissRequest = {},
+        state = WorkspaceButtonViewModel.State(workspaceCount = 2),
+        currentWorkspaceId = Workspace.Id(),
+        provider = FakeWorkspaceButtonProvider(),
+        layoutEntryMode = WorkspacePanelMode.DUAL_VERTICAL,
+        onCloseAllRequested = {},
+        onOpenManager = {},
+        onLayoutRequested = {},
     )
 }

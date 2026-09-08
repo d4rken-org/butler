@@ -122,6 +122,11 @@ sealed interface ExplorerCommand {
         val destinationDir: APath<*>,
     ) : ExplorerCommand
 
+    /** Walks [directory] once and computes the recursive size of every folder below it. */
+    data class CalculateSizes(
+        val directory: APath<*>,
+    ) : ExplorerCommand
+
     data class Restore(
         val rootItemIds: Set<Uuid> = emptySet(),
         val nestedItems: List<NestedTarget> = emptyList(),

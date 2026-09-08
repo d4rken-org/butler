@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -107,6 +108,12 @@ class DirectoryActionProvider @Inject constructor(
             )
 
             actions.add(ExplorerActionBarItem.Common.Refresh())
+
+            // Recursive sizes come from a gateway walk of a real directory tree; archive and SAF
+            // listings are not walked for this.
+            if (directory != null && directory.path is LocalPath && !isEmpty) {
+                actions.add(ExplorerActionBarItem.Directory.CalculateSizes())
+            }
 
             if (directory != null) {
                 val isFavorite = favoritesRepo.isFavorite(directory.path)

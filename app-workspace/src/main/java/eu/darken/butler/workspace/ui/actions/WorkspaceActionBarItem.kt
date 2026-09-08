@@ -12,6 +12,9 @@ interface WorkspaceActionBarItem {
     val isVisible: Boolean get() = true
     val isEnabled: Boolean get() = true
     val isDestructive: Boolean get() = false
+
+    /** Draws the icon in the accent colour, for an action whose result is currently in effect. */
+    val isAccented: Boolean get() = false
     val group: Group get() = Group.PRIMARY
     val badge: Boolean get() = false
 

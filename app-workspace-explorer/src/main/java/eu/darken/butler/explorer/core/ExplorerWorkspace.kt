@@ -21,7 +21,11 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.sizes.DirectorySizeStore
+import eu.darken.butler.explorer.core.sizes.withDirectorySizes
+import eu.darken.butler.workspace.core.filesystem.FileSystemEvent
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
+import eu.darken.butler.explorer.core.operations.CalculateSizesOperation
 import eu.darken.butler.explorer.core.operations.CompressOperation
 import eu.darken.butler.explorer.core.operations.CopyOperation
 import eu.darken.butler.explorer.core.operations.CreateOperation
@@ -92,6 +96,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val extractOperationFactory: ExtractOperation.Factory,
     private val downloadLocalCopyOperationFactory: DownloadLocalCopyOperation.Factory,
     private val restoreOperationFactory: RestoreOperation.Factory,
+    private val calculateSizesOperationFactory: CalculateSizesOperation.Factory,
     private val explorerSettings: ExplorerSettings,
     private val errorIncidentStore: ErrorIncidentStore,
 ) : Workspace<ExplorerArguments>, Workspace.FileListingSource {
@@ -168,6 +173,9 @@ class ExplorerWorkspace @AssistedInject constructor(
     }
 
     private val browsingEngine = browsingEngineFactory.create(id, scope)
+
+    /** The folder sizes this tab has calculated; read by the page and dropped with the tab. */
+    val directorySizes = DirectorySizeStore()
 
     // Picker configuration if this is a picker workspace
     val pickerConfig: PickerConfig? = (creationArguments as? ExplorerArguments.Picker)?.let {
@@ -322,7 +330,11 @@ class ExplorerWorkspace @AssistedInject constructor(
     }
 
     init {
-        browsingEngine.location
+        // Sizes are attached to the published location, so listing, selection, item info and drag
+        // all see the same instances, and a dropped scan removes them on the next emission.
+        combine(browsingEngine.location, directorySizes.snapshot) { engineState, sizes ->
+            engineState.copy(location = engineState.location?.withDirectorySizes(sizes))
+        }
             .onEach { engineState ->
                 // A cancelled load is not offered for sharing (the aborted dialog answers it), so
                 // freezing one would only spool a log trail and push a real incident out of the store.
@@ -380,7 +392,11 @@ class ExplorerWorkspace @AssistedInject constructor(
 
         // Forward filesystem hints to browsing engine
         fileSystemHinter.events
-            .onEach { event -> browsingEngine.hint(event) }
+            .onEach { event ->
+                browsingEngine.hint(event)
+                // Any change under (or above) a scanned folder makes its totals wrong.
+                directorySizes.invalidate(event.affectedPaths)
+            }
             .launchIn(scope)
 
         // Load initial location
@@ -621,6 +637,31 @@ class ExplorerWorkspace @AssistedInject constructor(
             workspaceId = id,
             command = command,
         )
+        is ExplorerCommand.CalculateSizes -> calculateSizesOperationFactory.create(
+            workspaceId = id,
+            command = command,
+            store = directorySizes,
+        )
+    }
+
+    /**
+     * Starts a size calculation for [directory], unless one is already running for it. The
+     * reservation is taken before the launch, so a second tap in the submit-to-perform window is
+     * rejected too.
+     */
+    fun calculateSizes(directory: APath<*>) {
+        if (!directorySizes.markRunning(directory)) {
+            log(tag) { "calculateSizes(): already running for $directory" }
+            return
+        }
+        log(tag, INFO) { "calculateSizes($directory)" }
+        scope.launch {
+            try {
+                execute(ExplorerCommand.CalculateSizes(directory))
+            } finally {
+                directorySizes.markFinished(directory)
+            }
+        }
     }
 
     fun resolveConflict(operationId: Operation.Id, resolution: PathActionIssue.Resolution) {
@@ -663,6 +704,13 @@ class ExplorerWorkspace @AssistedInject constructor(
         fun factory(factory: Factory): WorkspaceFactory<*> = factory
     }
 }
+
+private val FileSystemEvent.affectedPaths: List<APath<*>>
+    get() = when (this) {
+        is FileSystemEvent.Added -> paths.map { it.lookedUp }
+        is FileSystemEvent.Removed -> paths.map { it.lookedUp }
+        is FileSystemEvent.Modified -> paths.map { it.lookedUp }
+    }
 
 /** The listing the page's ViewModel computed, tagged with the location it was computed for. */
 internal data class FileListingPublication(

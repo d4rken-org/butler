@@ -145,6 +145,26 @@ class WorkspaceActionBarTest : ComposeTest() {
     }
 
     @Test
+    fun `the width budget matches what the bar actually lays out`() {
+        // Five 48dp slots plus the 48dp overflow button and 8dp of Row padding need 296dp;
+        // a sixth slot would need 344dp, so 320dp must show exactly five
+        val actions = (1..8).map { SampleAction(Icons.TwoTone.Star, "Action $it") }
+        setBar(actions, width = 320)
+
+        val visible = actions.count {
+            composeTestRule.onAllNodesWithContentDescription(it.name).fetchSemanticsNodes().isNotEmpty()
+        }
+        visible shouldBe 5
+
+        composeTestRule.onNodeWithContentDescription(overflowLabel).performClick()
+        composeTestRule.waitForIdle()
+
+        actions.drop(5).forEach {
+            composeTestRule.onNodeWithText(it.name).assertIsDisplayed()
+        }
+    }
+
+    @Test
     fun `forced and naturally overflowing actions each appear exactly once`() {
         val actions = listOf(
             share,

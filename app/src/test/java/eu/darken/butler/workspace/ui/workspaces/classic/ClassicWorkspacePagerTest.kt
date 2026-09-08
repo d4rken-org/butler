@@ -27,6 +27,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
 import eu.darken.butler.workspace.ui.LocalWorkspacePagerVisibility
@@ -136,6 +137,7 @@ class ClassicWorkspacePagerTest : ComposeTest() {
         override fun navToUpgradeButler() = Unit
         override fun createWorkspace(item: QuickCreateItem) = Unit
         override fun createTemplatesWorkspace() = Unit
+        override fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode) = Unit
     }
 
     @Composable

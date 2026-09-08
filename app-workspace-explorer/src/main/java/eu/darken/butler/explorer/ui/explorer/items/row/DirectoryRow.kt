@@ -15,12 +15,15 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
+import eu.darken.butler.explorer.ui.explorer.items.SizeProportionBar
+import eu.darken.butler.explorer.ui.explorer.items.directorySizeLabel
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.isProblematicInvisible
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.sizes.DirectorySize
 import eu.darken.butler.explorer.ui.explorer.items.rowDateStyle
 import eu.darken.butler.explorer.ui.explorer.items.showsDatesOnOwnLine
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
@@ -40,6 +43,7 @@ internal fun DirectoryRow(
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
+    sizeFraction: Float? = null,
 ) {
     val primaryText = item.displayName.get(LocalContext.current)
     val hasProblematicChars = primaryText.trim { it.isProblematicInvisible() } != primaryText
@@ -67,6 +71,7 @@ internal fun DirectoryRow(
         primaryText = primaryText,
         hasProblematicChars = hasProblematicChars,
         secondaryText = listOfNotNull(
+            item.computedSize?.let { directorySizeLabel(it) },
             when (val count = item.childCount) {
                 0 -> stringResource(R.string.explorer_file_empty)
                 null -> null
@@ -100,6 +105,14 @@ internal fun DirectoryRow(
                     contentDescription = stringResource(R.string.explorer_view_detail_modified_label),
                 )
             },
+        bottomContent = sizeFraction?.let { fraction ->
+            {
+                SizeProportionBar(
+                    fraction = fraction,
+                    isComplete = item.computedSize?.isComplete != false,
+                )
+            }
+        },
     )
 }
 
@@ -184,6 +197,44 @@ private fun DirectoryRowWhitespaceSelectedPreview() {
         onToggleSelection = {},
         onClick = {},
         showSelection = true
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun DirectoryRowSizedPreview() {
+    DirectoryRow(
+        item = MockDataProvider.createMockDirectory(
+            name = "Pictures",
+            childCount = 128,
+            computedSize = DirectorySize(bytes = MockDataProvider.MockSizes.gb(2), isComplete = true),
+        ),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false,
+        sizeFraction = 0.6f,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun DirectoryRowPartialSizePreview() {
+    DirectoryRow(
+        item = MockDataProvider.createMockDirectory(
+            name = "Android",
+            childCount = 4,
+            computedSize = DirectorySize(bytes = MockDataProvider.MockSizes.mb(512), isComplete = false),
+        ),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false,
+        sizeFraction = 0.3f,
     )
 }
 

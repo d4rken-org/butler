@@ -28,6 +28,7 @@ fun LookupItemRow(
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
+    sizeFraction: Float? = null,
 ) {
     when (item) {
         is ExplorerItem.RegularDirectory -> DirectoryRow(
@@ -41,6 +42,7 @@ fun LookupItemRow(
             isEnabled = isEnabled,
             isHighlighted = isHighlighted,
             decorations = decorations,
+            sizeFraction = sizeFraction,
             modifier = modifier,
         )
 

@@ -302,6 +302,7 @@ fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
 
     val effectivePaneLayout = when (effectivePanelMode) {
         WorkspacePanelMode.AUTO -> windowSizeInfo.recommendedLayout
+        WorkspacePanelMode.ADAPTIVE -> windowSizeInfo.recommendedLayout
         WorkspacePanelMode.SINGLE -> WorkspaceDesign.Layout.SINGLE
         WorkspacePanelMode.SINGLE_RAIL -> WorkspaceDesign.Layout.SINGLE
         WorkspacePanelMode.DUAL_VERTICAL -> WorkspaceDesign.Layout.DUAL_VERTICAL
@@ -319,7 +320,8 @@ fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
             WorkspaceDesign.RailPlacement.BOTTOM
         },
         hasNavigationRail = effectivePaneLayout != WorkspaceDesign.Layout.SINGLE ||
-            effectivePanelMode == WorkspacePanelMode.SINGLE_RAIL,
+            effectivePanelMode == WorkspacePanelMode.SINGLE_RAIL ||
+            effectivePanelMode == WorkspacePanelMode.ADAPTIVE,
     )
 }
 

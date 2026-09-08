@@ -43,6 +43,13 @@
     <string name="explorer_file_broken_link_label">Broken link</string>
     <string name="explorer_file_items_count">%1$d items</string>
     <string name="explorer_file_empty">Empty</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · partial</string>
+    <string name="explorer_sizes_estimate_description">Estimated from Android storage totals. For unreadable files, occupied storage is used as an estimate of file size. Hidden files managed by Android may also be included. Other unreadable locations remain unknown.</string>
+    <string name="explorer_sizes_estimate_coverage">Android/data could not be estimated because other parts of storage could not be fully measured.</string>
+    <string name="explorer_sizes_estimate_unavailable">Android storage statistics were unavailable. Measured sizes are still shown.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Android storage totals did not agree with the scan. Measured sizes are still shown.</string>
 
     <!-- Picker Mode -->
     <string name="explorer_picker_select_directory_title">Select folder</string>
@@ -74,6 +81,7 @@
 
     <!-- Explorer Actions -->
     <string name="explorer_action_refresh">Refresh</string>
+    <string name="explorer_action_calculate_sizes">Calculate sizes</string>
     <string name="explorer_action_sort">Sort</string>
     <string name="explorer_action_filter">Filter</string>
     <string name="explorer_action_view">Layout</string>
@@ -367,6 +375,15 @@
     <string name="explorer_sort_tab_overrides_default_notice">This tab uses its own default sort order</string>
     <string name="explorer_sort_tab_overrides_clear_action">Clear</string>
 
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Folder sizes</string>
+    <string name="explorer_sizes_sheet_label_calculated">Calculated</string>
+    <string name="explorer_sizes_sheet_label_folders">Folders</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Unreadable locations</string>
+    <string name="explorer_sizes_sheet_problems_more">%1$d more not listed</string>
+    <string name="explorer_sizes_sheet_recalculate">Recalculate</string>
+    <string name="explorer_sizes_sheet_discard">Discard sizes</string>
+
     <!-- View Options -->
     <string name="explorer_view_sheet_subtitle">How items are arranged and how much detail they show</string>
     <string name="explorer_view_mode_list_label">List</string>
@@ -556,6 +573,18 @@
     <string name="explorer_operation_create_description_file">Create file \"%1$s\" at \"%2$s\"</string>
     <string name="explorer_operation_create_text_file_title">Text file creation</string>
     <string name="explorer_operation_create_text_file_description">Create \"%1$s\" from text snippet</string>
+    <string name="explorer_operation_calculate_sizes_title">Size calculation</string>
+    <string name="explorer_operation_calculate_sizes_description">Calculate folder sizes in \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$d item scanned</item>
+        <item quantity="other">%1$d items scanned</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Calculated the sizes of %1$d folders.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">Calculated the sizes of %1$d folders, %2$d location could not be read.</item>
+        <item quantity="other">Calculated the sizes of %1$d folders, %2$d locations could not be read.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Folder sizes for \"%1$s\" were discarded because it changed during the calculation.</string>
 
     <!-- Navigation Error Messages -->
     <string name="explorer_navigation_error_title">Navigation failed</string>

@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.sizes.DirectorySize
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
@@ -184,6 +185,8 @@ sealed interface ExplorerItem {
         override val childCount: Int? = null,
         override val metadata: FileMetadata? = null,
         override val canWrite: Boolean? = null,
+        /** The recursive size a "Calculate sizes" run produced for this folder, if any. */
+        val computedSize: DirectorySize? = null,
     ) : Directory {
         override fun withExtendedData(
             ownership: Ownership?,

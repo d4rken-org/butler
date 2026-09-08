@@ -321,6 +321,53 @@ class RoutedLocalWalkerTest : BaseTest() {
     }
 
     @Test
+    fun `visible boundary without a route is reported once and not listed again`() = runTest {
+        val start = p("/sdcard/Android")
+        val boundary = p("/sdcard/Android/data")
+
+        val directOps = mockOps()
+        coEvery { directOps.lookup(start, any()) } returns dir("/sdcard/Android")
+        coEvery { directOps.lookupFiles(start, any()) } returns listOf(
+            dir("/sdcard/Android/data"),
+            dir("/sdcard/Android/media"),
+        )
+        coEvery { directOps.lookupFiles(p("/sdcard/Android/media"), any()) } returns emptyList()
+        // Only reached if the boundary is descended into after its route already failed
+        coEvery { directOps.lookupFiles(boundary, any()) } throws ReadException(path = boundary)
+
+        val policy = mockk<LocalPathRoutingPolicy> {
+            coEvery { classify(any(), any(), any()) } answers {
+                if (firstArg<LocalPath>().isDescendantOfOrSelf(boundary)) {
+                    RouteDecision.Denied
+                } else {
+                    RouteDecision.Allowed(AccessMode.DIRECT)
+                }
+            }
+            every { knownRouteBoundariesUnder(any()) } returns setOf(boundary)
+        }
+        val factory = factoryOf(AccessMode.DIRECT to ModeSession(AccessMode.DIRECT, directOps, null, null))
+        val errors = mutableListOf<Pair<LocalPathLookup, Exception>>()
+
+        val emitted = walker(
+            start = start,
+            policy = policy,
+            factory = factory,
+            onError = { lookup, e ->
+                errors += lookup to e
+                true
+            },
+        ).toList().map { it.lookedUp.path }
+
+        // The boundary is a visible child, so the listing still contains it
+        emitted shouldContainExactlyInAnyOrder listOf(
+            "/sdcard/Android/data",
+            "/sdcard/Android/media",
+        )
+        errors.map { it.first.lookedUp.path } shouldContainExactly listOf(boundary.path)
+        coVerify(exactly = 0) { directOps.lookupFiles(boundary, any()) }
+    }
+
+    @Test
     fun `followed symlink directory is listed through the target route`() = runTest {
         val start = p("/sdcard/dir")
         val link = p("/sdcard/dir/link")

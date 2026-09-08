@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material.icons.twotone.DataUsage
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -125,6 +126,21 @@ private fun OperationDetailsContent(
             )
         }
 
+        // Problems Section (for finished operations that could not process everything)
+        val report = when (operation.state) {
+            is OperationDisplay.State.Completed -> operation.state.report
+            is OperationDisplay.State.Failed -> operation.state.report
+            is OperationDisplay.State.Cancelled -> operation.state.report
+            else -> null
+        }
+
+        if (report != null && report.problems.isNotEmpty()) {
+            OperationProblemsSection(
+                problems = report.problems,
+                totalCount = maxOf(report.partialErrorCount, report.problems.size),
+            )
+        }
+
         // Actions Section - only show if there are available actions
         val hasActions = onShowInHistory != null || when (operation.state) {
             is OperationDisplay.State.Running -> onCancel != null
@@ -196,11 +212,15 @@ private fun Operation.Report?.pathChanges(): Collection<Operation.Report.Paths.P
 
 // Helper functions
 private fun createMockReport(
-    affectedPaths: List<Operation.Report.Paths.PathChange> = emptyList()
+    affectedPaths: List<Operation.Report.Paths.PathChange> = emptyList(),
+    problems: List<Operation.Report.Problem> = emptyList(),
+    partialErrorCount: Int = problems.size,
 ): Operation.Report.Paths = object : Operation.Report.Paths {
     override val summary = "Completed successfully".toCaString()
     override val affectedPaths = affectedPaths
     override val subjectPath = null
+    override val problems = problems
+    override val partialErrorCount = partialErrorCount
 }
 
 @Preview2
@@ -338,5 +358,41 @@ private fun OperationDetailsSheetCompletedWithFilesPreview() {
         ),
         onDismiss = {},
         onShowInHistory = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationDetailsSheetCompletedWithProblemsPreview() {
+    OperationDetailsSheet(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Size calculation".toCaString(),
+            description = "Calculate folder sizes in \"Download\".".toCaString(),
+            icon = Icons.TwoTone.DataUsage,
+            state = OperationDisplay.State.Completed(
+                summary = "Calculated the sizes of 128 folders, 3 locations could not be read.".toCaString(),
+                completedAt = Clock.System.now(),
+                report = createMockReport(
+                    problems = listOf(
+                        Operation.Report.Problem(
+                            path = LocalPath.build("/storage", "emulated", "0", "Android", "data", "com.example.app"),
+                            message = "Permission denied",
+                        ),
+                        Operation.Report.Problem(
+                            path = LocalPath.build("/storage", "emulated", "0", "Download", "broken.link"),
+                            message = "No such file or directory",
+                        ),
+                        Operation.Report.Problem(
+                            path = LocalPath.build("/storage", "emulated", "0", "Movies", "clip.mkv"),
+                            message = null,
+                        ),
+                    ),
+                ),
+            ),
+            startedAt = Clock.System.now() - 2.minutes,
+        ),
+        onDismiss = {},
     )
 }

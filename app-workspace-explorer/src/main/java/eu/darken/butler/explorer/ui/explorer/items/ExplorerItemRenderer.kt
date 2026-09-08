@@ -101,6 +101,12 @@ fun ExplorerItemRenderer(
     }
 }
 
+/** How large this folder is next to the largest one on screen, or null while nothing is scaled. */
+private fun ExplorerItem.Lookup.sizeFractionOf(largest: Long?): Float? {
+    if (largest == null || this !is ExplorerItem.RegularDirectory) return null
+    return computedSize?.bytes?.let { it.toFloat() / largest }
+}
+
 /** Folders take drops; a read-only one or archive content has nothing to offer a drop. */
 private fun ExplorerItem.dropDestination(): APath<*>? = when {
     this !is ExplorerItem.Directory -> null
@@ -127,6 +133,7 @@ private fun ItemContent(
         is ExplorerItem.Lookup -> {
             val isHighlighted = item.id in state.highlightedItemIds
             val decorations = decorationsFor(item, state)
+            val sizeFraction = item.sizeFractionOf(state.largestDirectorySize)
             when (viewStyle.mode) {
                 ExplorerViewStyle.Mode.LIST -> LookupItemRow(
                     item = item,
@@ -139,6 +146,7 @@ private fun ItemContent(
                     isEnabled = isEnabled,
                     isHighlighted = isHighlighted,
                     decorations = decorations,
+                    sizeFraction = sizeFraction,
                 )
                 ExplorerViewStyle.Mode.GRID -> LookupItemGrid(
                     item = item,
@@ -152,6 +160,7 @@ private fun ItemContent(
                     isHighlighted = isHighlighted,
                     decorations = decorations,
                     previewsSettled = previewsSettled,
+                    sizeFraction = sizeFraction,
                 )
             }
         }

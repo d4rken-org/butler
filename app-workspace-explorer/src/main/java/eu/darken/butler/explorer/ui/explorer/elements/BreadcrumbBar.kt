@@ -20,6 +20,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Bookmark
+import androidx.compose.material.icons.twotone.BookmarkBorder
 import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.FolderZip
@@ -66,6 +68,7 @@ import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.ui.pagerFriendlyHorizontalScroll
 import eu.darken.butler.explorer.R
@@ -90,6 +93,8 @@ fun BreadcrumbBar(
     onCommitEditedPath: ((APath<*>, String) -> Unit)? = null,
     onSetAsHome: ((ExplorerNavigation.Target) -> Unit)? = null,
     onCopyPath: ((String) -> Unit)? = null,
+    onToggleFavorite: ((APath<*>) -> Unit)? = null,
+    favoritePaths: List<APath<*>> = emptyList(),
     safLocationManager: SAFLocationManager? = null,
     showBackground: Boolean = true,
     cutoutWidth: Dp = 0.dp,
@@ -249,6 +254,8 @@ fun BreadcrumbBar(
                     }
                 },
                 onCopyPath = onCopyPath,
+                onToggleFavorite = onToggleFavorite,
+                favoritePaths = favoritePaths,
             )
         }
     }
@@ -520,6 +527,8 @@ private fun BreadcrumbDisplayRow(
     onChipClick: (Int, ExplorerBreadcrumb) -> Unit,
     onSetAsHome: ((Int, ExplorerNavigation.Target) -> Unit)?,
     onCopyPath: ((String) -> Unit)?,
+    onToggleFavorite: ((APath<*>) -> Unit)?,
+    favoritePaths: List<APath<*>>,
 ) {
     Row(
         modifier = modifier
@@ -532,6 +541,7 @@ private fun BreadcrumbDisplayRow(
         breadcrumbs.forEachIndexed { index, breadcrumb ->
             val isLast = index == breadcrumbs.lastIndex
             val isDirectory = breadcrumb.target is ExplorerNavigation.Target.Directory
+            val crumbPath = (breadcrumb.target as? ExplorerNavigation.Target.Directory)?.path
             val supportsContextMenu = when (breadcrumb.target) {
                 is ExplorerNavigation.Target.Home,
                 is ExplorerNavigation.Target.Device,
@@ -566,6 +576,13 @@ private fun BreadcrumbDisplayRow(
                             onCopyPath(breadcrumb.target.path.path)
                         }
                     } else null,
+                    onToggleFavorite = if (crumbPath != null && onToggleFavorite != null) {
+                        {
+                            onShowContextMenu(null)
+                            onToggleFavorite(crumbPath)
+                        }
+                    } else null,
+                    isFavorite = crumbPath != null && favoritePaths.any { it.matches(crumbPath) },
                 )
 
                 if (!isLast) {
@@ -596,6 +613,8 @@ private fun BreadcrumbChip(
     onDismissContextMenu: () -> Unit,
     onSetAsHome: (() -> Unit)?,
     onCopyPath: (() -> Unit)?,
+    onToggleFavorite: (() -> Unit)?,
+    isFavorite: Boolean,
 ) {
     val context = LocalContext.current
     Box(
@@ -653,6 +672,8 @@ private fun BreadcrumbChip(
                 onDismiss = onDismissContextMenu,
                 onSetAsHome = onSetAsHome,
                 onCopyPath = onCopyPath,
+                onToggleFavorite = onToggleFavorite,
+                isFavorite = isFavorite,
             )
         }
     }
@@ -673,6 +694,8 @@ private fun BreadcrumbChipPreview() {
             onDismissContextMenu = {},
             onSetAsHome = null,
             onCopyPath = null,
+            onToggleFavorite = null,
+            isFavorite = false,
         )
         BreadcrumbChip(
             breadcrumb = MockDataProvider.createHomeBreadcrumb(),
@@ -684,6 +707,8 @@ private fun BreadcrumbChipPreview() {
             onDismissContextMenu = {},
             onSetAsHome = null,
             onCopyPath = null,
+            onToggleFavorite = null,
+            isFavorite = false,
         )
     }
 }
@@ -697,6 +722,8 @@ private fun BreadcrumbContextMenu(
     onDismiss: () -> Unit,
     onSetAsHome: (() -> Unit)?,
     onCopyPath: (() -> Unit)?,
+    onToggleFavorite: (() -> Unit)?,
+    isFavorite: Boolean,
 ) {
     DismissWhenPaneUnfocused(expanded = true, onDismiss = onDismiss)
     DropdownMenu(
@@ -724,6 +751,26 @@ private fun BreadcrumbContextMenu(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.TwoTone.ContentCopy,
+                        contentDescription = null,
+                    )
+                },
+            )
+        }
+        // Offered on every Directory crumb, so an ancestor can be favorited without navigating to it
+        if (onToggleFavorite != null) {
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        stringResource(
+                            if (isFavorite) R.string.explorer_action_remove_from_favorites
+                            else R.string.explorer_action_add_to_favorites
+                        )
+                    )
+                },
+                onClick = onToggleFavorite,
+                leadingIcon = {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.TwoTone.Bookmark else Icons.TwoTone.BookmarkBorder,
                         contentDescription = null,
                     )
                 },

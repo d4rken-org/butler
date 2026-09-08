@@ -150,6 +150,9 @@ class LocalFileSystemOps @Inject constructor(
         }
 
         var modifiedAt: Instant? = null
+        val allocatedSize = if (options.fetchAllocatedSize) {
+            fstat?.st_blocks?.takeIf { it >= 0 && it <= Long.MAX_VALUE / 512 }?.times(512)
+        } else null
         if (options.fetchModifiedAt) {
             try {
                 modifiedAt = Instant.fromEpochMilliseconds(path.file.lastModified())
@@ -196,6 +199,7 @@ class LocalFileSystemOps @Inject constructor(
         }
 
         LocalPathLookup(
+            allocatedSize = allocatedSize,
             lookedUp = path,
             fileType = fileType,
             size = size,

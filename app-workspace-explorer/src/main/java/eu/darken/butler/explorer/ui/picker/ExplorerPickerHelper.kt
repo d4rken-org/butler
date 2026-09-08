@@ -207,6 +207,7 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.Common.Filter,
             is ExplorerActionBarItem.Common.ViewOptions,
             is ExplorerActionBarItem.Directory.Create,
+            is ExplorerActionBarItem.Directory.CalculateSizes,
             is ExplorerActionBarItem.Directory.DeselectAll -> true
 
             // Handing a file to another workspace, also rendered by the file options sheet

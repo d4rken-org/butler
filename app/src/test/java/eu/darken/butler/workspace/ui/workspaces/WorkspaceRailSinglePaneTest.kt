@@ -165,6 +165,26 @@ class WorkspaceRailSinglePaneTest : ComposeTest() {
             .assertDoesNotExist()
     }
 
+    @Test
+    @Config(qualifiers = "w360dp-h640dp-port")
+    fun `adaptive composes the rail on a compact window`() {
+        setScreen(mode = WorkspacePanelMode.ADAPTIVE)
+
+        composeTestRule.onNodeWithTag(WorkspaceNavigationRailDefaults.SURFACE_TEST_TAG)
+            .assertExists()
+
+        assertTheSolePaneHasHeight()
+    }
+
+    @Test
+    @Config(qualifiers = "w360dp-h640dp-port")
+    fun `automatic still composes no rail on a compact window`() {
+        setScreen(mode = WorkspacePanelMode.AUTO)
+
+        composeTestRule.onNodeWithTag(WorkspaceNavigationRailDefaults.SURFACE_TEST_TAG)
+            .assertDoesNotExist()
+    }
+
     /**
      * With one pane there is nothing to swap the entry against, so the menu's single assign item
      * selects the tab into the pane instead of rearranging assignments around it.

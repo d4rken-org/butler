@@ -88,11 +88,11 @@ fun <T : WorkspaceActionBarItem> WorkspaceActionBar(
         val forcedActions = visibleActions.filter { it.forceOverflow }
         val budgetedActions = visibleActions.filter { !it.forceOverflow }
 
-        // Calculate space budget:
-        // - Horizontal padding: 16dp (8dp * 2)
-        // - Each action button: 48dp
-        // - Overflow button (if needed): 48dp
-        val horizontalPadding = 16.dp
+        // Calculate space budget. Must match what the Row below actually spends:
+        // - Horizontal padding: 8dp (4dp * 2)
+        // - Each action slot: 48dp, matching the hit region Compose gives its 40dp circle
+        // - Overflow button (if needed): 48dp, the Material IconButton default
+        val horizontalPadding = 8.dp
         val actionButtonWidth = 48.dp
         val overflowButtonWidth = 48.dp
 
@@ -183,6 +183,7 @@ fun <T : WorkspaceActionBarItem> WorkspaceActionBar(
                                         tint = when {
                                             !action.isEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                                             action.isDestructive -> MaterialTheme.colorScheme.error
+                                            action.isAccented -> MaterialTheme.colorScheme.primary
                                             else -> LocalContentColor.current
                                         },
                                     )
@@ -259,6 +260,7 @@ fun <T : WorkspaceActionBarItem> WorkspaceActionBar(
                                             contentDescription = null,
                                             tint = when {
                                                 action.isDestructive -> MaterialTheme.colorScheme.error
+                                                action.isAccented -> MaterialTheme.colorScheme.primary
                                                 else -> LocalContentColor.current
                                             }
                                         )

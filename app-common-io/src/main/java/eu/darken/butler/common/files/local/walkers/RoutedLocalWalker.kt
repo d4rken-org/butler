@@ -106,6 +106,9 @@ class RoutedLocalWalker(
         // Boundary roots already scheduled, so each is walked exactly once.
         private val scheduledBoundaries = HashSet<String>()
 
+        // Visible boundaries whose route failed: already reported, so their listing is skipped.
+        private val failedBoundaries = HashSet<String>()
+
         // Boundary children of the current directory that need their own route instead of
         // inheriting (both hidden/spliced and visible-but-unreadable-through-parent ones).
         private val pendingBoundaryRoutes = HashMap<String, Route>()
@@ -126,6 +129,7 @@ class RoutedLocalWalker(
         override suspend fun list(dir: LocalPathLookup): WalkerStrategy.Listing {
             val dirPath = dir.lookedUp
             val route = contexts.remove(dirPath.path) ?: router.routeFor(dirPath, AccessIntent.Read)
+            if (failedBoundaries.remove(dirPath.path)) return WalkerStrategy.Listing.Children(emptyList())
             currentRoute = route
             pendingBoundaryRoutes.clear()
 
@@ -170,6 +174,7 @@ class RoutedLocalWalker(
                     // failed subtree instead of silently omitting it, then keep walking the rest.
                     log(tag, WARN) { "Cannot enter boundary $boundary: $e" }
                     if (!onError(LocalPathLookup.unknown(boundary, e.message), e)) throw e
+                    if (visibleChild) failedBoundaries.add(boundary.path)
                 }
             }
             return WalkerStrategy.Listing.Children(spliced)

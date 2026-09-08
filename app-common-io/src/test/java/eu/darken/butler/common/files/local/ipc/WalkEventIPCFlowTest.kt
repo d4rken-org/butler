@@ -35,6 +35,7 @@ class WalkEventIPCFlowTest : BaseTest() {
         fileType = FileType.FILE,
         size = 0L,
         modifiedAt = null,
+        allocatedSize = 4096L,
     )
 
     @Test

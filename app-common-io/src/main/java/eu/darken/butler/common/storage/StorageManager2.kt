@@ -12,6 +12,7 @@ import eu.darken.butler.common.hasApiLevel
 import java.io.File
 import java.lang.reflect.Method
 import javax.inject.Inject
+import kotlin.uuid.toKotlinUuid
 
 @Reusable
 class StorageManager2 @Inject constructor(@ApplicationContext context: Context) {
@@ -43,6 +44,8 @@ class StorageManager2 @Inject constructor(@ApplicationContext context: Context) 
         }
         return volume
     }
+
+    fun getUuidForPath(file: File) = storageManager.getUuidForPath(file).toKotlinUuid()
 
     companion object {
         val TAG: String = logTag("Storage", "Manager2")

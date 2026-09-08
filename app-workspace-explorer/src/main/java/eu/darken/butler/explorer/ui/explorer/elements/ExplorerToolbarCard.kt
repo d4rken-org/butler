@@ -72,6 +72,8 @@ fun ExplorerToolbarCard(
     onCommitEditedPath: ((APath<*>, String) -> Unit)? = null,
     onSetAsHome: ((ExplorerNavigation.Target) -> Unit)? = null,
     onCopyPath: ((String) -> Unit)? = null,
+    onToggleFavorite: ((APath<*>) -> Unit)? = null,
+    favoritePaths: List<APath<*>> = emptyList(),
     safLocationManager: SAFLocationManager? = null,
     // Picker mode parameters (all null/default for normal mode)
     pickerSelection: PickerConfig.Selection? = null,
@@ -130,6 +132,8 @@ fun ExplorerToolbarCard(
                 onCommitEditedPath = onCommitEditedPath,
                 onSetAsHome = onSetAsHome,
                 onCopyPath = onCopyPath,
+                onToggleFavorite = onToggleFavorite,
+                favoritePaths = favoritePaths,
                 safLocationManager = safLocationManager,
             )
         }
@@ -146,6 +150,8 @@ private fun NormalToolbarContent(
     onCommitEditedPath: ((APath<*>, String) -> Unit)?,
     onSetAsHome: ((ExplorerNavigation.Target) -> Unit)?,
     onCopyPath: ((String) -> Unit)?,
+    onToggleFavorite: ((APath<*>) -> Unit)?,
+    favoritePaths: List<APath<*>>,
     safLocationManager: SAFLocationManager?,
 ) {
     if (isCollapsed) {
@@ -188,6 +194,8 @@ private fun NormalToolbarContent(
             onCommitEditedPath = onCommitEditedPath,
             onSetAsHome = onSetAsHome,
             onCopyPath = onCopyPath,
+            onToggleFavorite = onToggleFavorite,
+            favoritePaths = favoritePaths,
             safLocationManager = safLocationManager,
             showBackground = false,
             cutoutWidth = cutoutWidth,

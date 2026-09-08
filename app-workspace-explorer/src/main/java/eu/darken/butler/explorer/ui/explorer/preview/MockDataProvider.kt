@@ -40,6 +40,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
+import eu.darken.butler.explorer.core.sizes.DirectorySize
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
@@ -95,10 +96,15 @@ object MockDataProvider {
         }
     }
 
-    fun createMockDirectory(name: String = "Documents", childCount: Int? = 5): ExplorerItem.RegularDirectory {
+    fun createMockDirectory(
+        name: String = "Documents",
+        childCount: Int? = 5,
+        computedSize: DirectorySize? = null,
+    ): ExplorerItem.RegularDirectory {
         return ExplorerItem.RegularDirectory(
             lookup = createMockLookup(name, "/home/user/$name", 0L, FileType.DIRECTORY),
-            childCount = childCount
+            childCount = childCount,
+            computedSize = computedSize,
         )
     }
 

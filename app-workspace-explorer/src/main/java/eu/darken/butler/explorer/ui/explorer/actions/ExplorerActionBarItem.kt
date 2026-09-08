@@ -7,6 +7,7 @@ import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Compress
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
+import androidx.compose.material.icons.twotone.DataUsage
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.Deselect
@@ -46,12 +47,14 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
 
     // Common actions shared across contexts
     sealed interface Common : ExplorerActionBarItem {
+        /** Menu-only: the pull gesture is the everyday route, this is the accessible one. */
         data class Refresh(
             override val isEnabled: Boolean = true,
             override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
         ) : Common {
             override val icon = Icons.TwoTone.Refresh
             override val label = R.string.explorer_action_refresh.toCaString()
+            override val forceOverflow = true
         }
 
         data class Sort(
@@ -184,6 +187,16 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
             override val label = R.string.explorer_action_extract.toCaString()
         }
 
+        data class CalculateSizes(
+            override val isEnabled: Boolean = true,
+            /** Accented while this folder has sizes, where tapping opens them instead of recalculating. */
+            override val isAccented: Boolean = false,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
+        ) : Directory {
+            override val icon = Icons.TwoTone.DataUsage
+            override val label = R.string.explorer_action_calculate_sizes.toCaString()
+        }
+
         object SelectAll : Directory {
             override val icon = Icons.TwoTone.SelectAll
             override val label = R.string.explorer_action_select_all.toCaString()
@@ -203,7 +216,7 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
         }
 
         /**
-         * Action-bar toggle for the currently-viewed folder, shown when no selection is active.
+         * Menu-only entry for the currently-viewed folder, shown when no selection is active.
          * `isFavorite` is for icon/label display only — execution must be atomic via repo.toggle().
          */
         data class ToggleFavoriteCurrent(
@@ -212,6 +225,7 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
             override val isEnabled: Boolean = true,
             override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Directory {
+            override val forceOverflow = true
             override val icon = if (isFavorite) Icons.TwoTone.Bookmark else Icons.TwoTone.BookmarkBorder
             override val label = (
                 if (isFavorite) R.string.explorer_action_remove_from_favorites

@@ -25,6 +25,8 @@ data class LocalPathLookup(
     override val ownership: Ownership? = null,
     override val permissions: Permissions? = null,
     @Contextual override val createdAt: Instant? = null,
+    /** Allocated blocks in bytes, when requested and available; independent of file length. */
+    val allocatedSize: Long? = null,
 ) : APathLookup<LocalPath>, Parcelable {
     companion object {
         fun unknown(path: LocalPath, error: String? = null): LocalPathLookup = LocalPathLookup(

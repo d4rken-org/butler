@@ -71,6 +71,7 @@ import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
 import eu.darken.butler.explorer.core.favorites.applyFavoritePriority
 import eu.darken.butler.explorer.core.ArchiveCompressionDefaults
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
+import eu.darken.butler.explorer.core.sizes.DirectorySizeStore
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.core.sorting.rules.ExplorerTabSortStore
 import eu.darken.butler.explorer.core.sorting.rules.FolderSortRulesRepo
@@ -152,6 +153,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import eu.darken.butler.workspace.R as WorkspaceR
 
@@ -332,6 +334,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         it as? ExplorerWorkspace.State.Ready
     }
 
+    private val directorySizes: Flow<DirectorySizeStore.Snapshot?> = workspaceSource.flatMapLatest { ws ->
+        ws?.directorySizes?.snapshot ?: flowOf(null)
+    }
+
     // Declared here rather than beside the other controllers: it consumes workspaceReadyState, so a
     // property reference from above would read an uninitialized field.
     private val viewSettings = ExplorerViewSettingsController(
@@ -438,6 +444,19 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             .onEach { focus.clear() }
             .launchInViewModel()
 
+        // A calculation is only worth anything once the listing ranks by it, so a finished scan
+        // flips the tab to size sort - once per root, because the user is free to sort differently
+        // afterwards. What the folder sorted by before is kept with the scan and put back when the
+        // sizes are discarded.
+        workspaceSource
+            .flatMapLatest { ws -> ws?.directorySizes?.snapshot?.map { ws to it } ?: emptyFlow() }
+            .onEach { (ws, sizes) ->
+                sizes.scans.values
+                    .filter { it.root.path !in sizes.sortSwitches }
+                    .forEach { scan -> switchToSizeSort(ws, scan.root) }
+            }
+            .launchInViewModel()
+
         // A "tap to resolve" conflict notification routes here (see the controller).
         conflicts.focusRequestHandler.launchInViewModel()
 
@@ -531,6 +550,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
          * then never be seen as true and the refresh would produce no visible feedback at all.
          */
         val refreshId: Int = 0,
+        /** When the sizes covering this folder were calculated, null while it has none. */
+        val directorySizesScannedAt: Instant? = null,
+        val isCalculatingSizes: Boolean = false,
+        /** What the proportion bars are scaled against: the largest size in the displayed listing. */
+        val largestDirectorySize: Long? = null,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -641,7 +665,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     focus.focusedIndex,
                     favoritesRepo.favorites,
                     favoritesController.feedback,
-                ) { wsStateInner, items, selectionState, viewStyle, dialogState, resolvedSort, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback ->
+                    directorySizes,
+                ) { wsStateInner, items, selectionState, viewStyle, dialogState, resolvedSort, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes ->
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
                     // flatMapLatest does not clear this combine's last sort value: until the new
@@ -655,6 +680,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         selectedItems = selectionState.selectedItems,
                         saveAsFilename = saveAsFilename,
                     )
+
+                    val directoryPath = (wsStateInner.currentLocation as? ExplorerLocation.Directory)?.path
+                    val sizesScannedAt = directoryPath?.let { sizes?.scanFor(it)?.scannedAt }
+                    val isCalculatingSizes = directoryPath?.let { sizes?.isRunning(it) } == true
 
                     val rawActions = wsStateInner.currentLocation?.let {
                         actionProvider.getActions(
@@ -680,6 +709,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                                 is ExplorerActionBarItem.Common.Sort -> action.copy(
                                     isEnabled = action.isEnabled && matchedSort != null,
                                     badge = matchedSort?.resolution?.winnerKey != null,
+                                )
+                                is ExplorerActionBarItem.Directory.CalculateSizes -> action.copy(
+                                    isEnabled = !isCalculatingSizes,
+                                    isAccented = sizesScannedAt != null,
                                 )
                                 else -> action
                             }
@@ -724,6 +757,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                             && wsStateInner.currentLocation is ExplorerLocation.Home
                             && favorites.isNotEmpty(),
                         favoriteFeedback = favoriteFeedback,
+                        directorySizesScannedAt = sizesScannedAt,
+                        isCalculatingSizes = isCalculatingSizes,
+                        largestDirectorySize = items
+                            ?.asSequence()
+                            ?.filterIsInstance<ExplorerItem.RegularDirectory>()
+                            ?.mapNotNull { it.computedSize?.bytes }
+                            ?.maxOrNull()
+                            ?.takeIf { it > 0 },
                     )
                 }
             }
@@ -800,6 +841,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onFavoriteFeedbackAction() = favoritesController.onFeedbackAction()
 
+    /** Breadcrumb-menu favorite toggle. Reaches any ancestor crumb, not just the listed folder. */
+    fun toggleFavorite(path: APath<*>) = favoritesController.toggleCurrent(path)
+
     fun clearSelection() = selection.clear()
 
     fun selectAll() = selection.selectAll()
@@ -860,6 +904,53 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     items = pathsToDelete,
                     initialPermanentDelete = true,
                 )
+            )
+        }
+    }
+
+    fun onRecalculateSizes() = launch {
+        log(tag) { "onRecalculateSizes()" }
+        dialogs.dismiss()
+        val directory = getState().currentLocation as? ExplorerLocation.Directory ?: return@launch
+        getWorkspace().calculateSizes(directory.path)
+    }
+
+    /**
+     * Throws the sizes away and puts the folder's previous sort back.
+     *
+     * The scan that covers this folder may be rooted at an ancestor - that root is what carries the
+     * sizes and the remembered sort, so it is what is discarded here.
+     */
+    fun onDiscardSizes() = launch {
+        log(tag) { "onDiscardSizes()" }
+        dialogs.dismiss()
+        val directory = getState().currentLocation as? ExplorerLocation.Directory ?: return@launch
+        val workspace = getWorkspace()
+        val scanRoot = workspace.directorySizes.snapshot.value.scanFor(directory.path)?.root ?: return@launch
+        val restore = workspace.directorySizes.discard(scanRoot) ?: return@launch
+
+        val key = scanRoot.sortPathKey()
+        val previousRule = restore.previousRule
+        tabSortStore.update(id) {
+            it.copy(
+                rules = if (previousRule == null) it.rules - key else it.rules + (key to previousRule),
+            )
+        }
+    }
+
+    private fun switchToSizeSort(workspace: ExplorerWorkspace, root: APath<*>) {
+        val key = root.sortPathKey()
+        workspace.directorySizes.recordSortSwitch(root, viewSettings.tabOverrides.value.rules[key])
+        log(tag) { "switchToSizeSort(): ${root.path}" }
+        tabSortStore.update(id) {
+            it.copy(
+                rules = it.rules + (
+                    key to TabSortRule(
+                        settings = SortSettings(mode = SortSettings.Mode.SIZE, reversed = true),
+                        subtree = true,
+                        path = json.encodeToString(PolymorphicSerializer(APath::class), root),
+                    )
+                    ),
             )
         }
     }
@@ -1065,6 +1156,26 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     return@launch
                 }
                 navigation.refresh()
+            }
+            is ExplorerActionBarItem.Directory.CalculateSizes -> {
+                val directory = stateSnap.currentLocation as? ExplorerLocation.Directory ?: return@launch
+                val workspace = getWorkspace()
+                val scan = workspace.directorySizes.snapshot.value.scanFor(directory.path)
+                if (scan != null) {
+                    dialogs.show(
+                        ExplorerDialogState.CalculatedSizes(
+                            root = scan.root,
+                            scannedAt = scan.scannedAt,
+                            directoryCount = scan.sizes.size,
+                            errorCount = scan.errorCount,
+                            problems = scan.problems,
+                            estimate = scan.estimate,
+                            estimateFailure = scan.estimateFailure,
+                        )
+                    )
+                } else {
+                    workspace.calculateSizes(directory.path)
+                }
             }
             is ExplorerActionBarItem.Common.AddToFavorites -> {
                 favoritesController.addAll(action.items)

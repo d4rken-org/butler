@@ -150,6 +150,18 @@ interface Operation {
          */
         val partialErrorCount: Int get() = 0
 
+        /**
+         * Sub-items that did not complete, listed for the details sheet. A report that caps the
+         * list still counts every one of them in [partialErrorCount], which may therefore exceed
+         * `problems.size`.
+         */
+        val problems: Collection<Problem> get() = emptyList()
+
+        data class Problem(
+            val path: APath<*>,
+            val message: String?,
+        )
+
         /** The shape of a report about paths: what changed on disk, and what it was about. */
         interface Paths : Report {
             val affectedPaths: Collection<PathChange>

@@ -1,8 +1,8 @@
 package eu.darken.butler.workspace.ui.operations.bar
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -38,13 +40,13 @@ fun OperationsBarHeader(
     onClearCompleted: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(
+    Row(
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.secondaryContainer)
             .padding(horizontal = 12.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Title on the left
         Text(
             text = if (operationCount > 1) {
                 stringResource(R.string.operations_header_title) + " ($operationCount)"
@@ -53,14 +55,15 @@ fun OperationsBarHeader(
             },
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.align(Alignment.CenterStart),
+            modifier = Modifier.weight(1.5f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
 
-        // Expand/Collapse button (centered)
         TextButton(
             onClick = onExpandClick,
             modifier = Modifier
-                .align(Alignment.Center)
+                .weight(1.25f)
                 .height(24.dp),
             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
         ) {
@@ -83,15 +86,16 @@ fun OperationsBarHeader(
                 },
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
 
-        // Clear completed button on the right (when multiple completed operations)
         if (completedCount > 0) {
             TextButton(
                 onClick = onClearCompleted,
                 modifier = Modifier
-                    .align(Alignment.CenterEnd)
+                    .weight(2f)
                     .height(24.dp),
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
             ) {
@@ -106,8 +110,12 @@ fun OperationsBarHeader(
                     text = stringResource(R.string.operations_clear_completed),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
+        } else {
+            Spacer(modifier = Modifier.weight(2f))
         }
     }
 }
@@ -118,8 +126,8 @@ fun OperationsBarHeader(
 private fun OperationsBarHeaderPreview() {
     OperationsBarHeader(
         operationCount = 3,
-        completedCount = 1,
-        runningCount = 2,
+        completedCount = 0,
+        runningCount = 3,
         isExpanded = false,
         onExpandClick = {},
         onClearCompleted = {},
@@ -127,13 +135,16 @@ private fun OperationsBarHeaderPreview() {
 }
 
 @Preview2
+@Preview(name = "German narrow", locale = "de", widthDp = 240)
+@Preview(name = "German phone", locale = "de", widthDp = 328)
+@Preview(name = "English phone", locale = "en", widthDp = 328)
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationsBarHeaderExpandedPreview() {
     OperationsBarHeader(
-        operationCount = 3,
+        operationCount = 12,
         completedCount = 1,
-        runningCount = 2,
+        runningCount = 11,
         isExpanded = true,
         onExpandClick = {},
         onClearCompleted = {},

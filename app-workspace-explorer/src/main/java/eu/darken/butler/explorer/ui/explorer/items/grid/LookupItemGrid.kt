@@ -31,6 +31,7 @@ fun LookupItemGrid(
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
     previewsSettled: State<Boolean> = PREVIEWS_ALWAYS_SETTLED,
+    sizeFraction: Float? = null,
 ) {
     when (item) {
         is ExplorerItem.RegularDirectory -> DirectoryGrid(
@@ -46,6 +47,7 @@ fun LookupItemGrid(
             isHighlighted = isHighlighted,
             decorations = decorations,
             previewsSettled = previewsSettled,
+            sizeFraction = sizeFraction,
         )
 
         is ExplorerItem.SymbolicLink -> SymlinkFileGrid(

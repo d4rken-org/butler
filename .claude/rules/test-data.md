@@ -37,7 +37,7 @@ re-running one overwrites only its own files.
 | Option | Folder | Actual result |
 |--------|--------|---------------|
 | Large files | `aButlerLargeFiles/` | 7 sparse files, `file_1MB.bin` to `file_8GB.bin`, 15.1 GiB of reported size in 64 KB of actual blocks |
-| Nested structure | `aButlerNestedData/` | 1092 folders, 6 levels deep, 3 folders per level; 1092 text files (1 KB to 50 KB each), ~41 MB |
+| Nested structure | `aButlerNestedData/` | 1092 folders, 6 levels deep, 3 folders per level; 1092 text files (1 KB to 50 KB each), ~29 MB |
 | Text files for Editor | `aButlerTextFiles/` | `text_10KB.txt` to `text_100MB.txt`, numbered lorem lines, ~117 MB |
 
 The `.bin` files are sparse: each reports its full nominal size but occupies almost no blocks, so

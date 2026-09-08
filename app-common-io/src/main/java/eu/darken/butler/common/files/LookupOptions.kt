@@ -19,6 +19,7 @@ data class LookupOptions(
     val fetchOwnership: Boolean = false,
     val fetchPermissions: Boolean = false,
     val fetchCreatedAt: Boolean = false,
+    val fetchAllocatedSize: Boolean = false,
 ) : Parcelable {
     companion object {
         val BASE = LookupOptions(

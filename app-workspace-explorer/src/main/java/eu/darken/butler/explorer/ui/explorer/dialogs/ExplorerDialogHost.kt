@@ -97,6 +97,17 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.CalculatedSizes -> {
+            CalculatedSizesSheet(
+                state = dialogState,
+                onRecalculate = { vm?.onRecalculateSizes() },
+                onDiscard = { vm?.onDiscardSizes() },
+                onDismiss = { vm?.dismissDialog() },
+                topInset = topInset,
+                bottomInset = bottomInset,
+            )
+        }
+
         is ExplorerDialogState.FilterOptions -> {
             FilterOptionsDialog(
                 includePattern = dialogState.includePattern,
