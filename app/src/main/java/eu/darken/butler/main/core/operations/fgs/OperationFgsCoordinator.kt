@@ -173,8 +173,17 @@ class OperationFgsCoordinator @Inject constructor(
         for (op in ongoing) {
             seen += op.id
             val slot = slots.getOrPut(op.id) { OpSlot(nextId(), nextId()) }
-            when (op.state.value) {
-                is Operation.State.Waiting -> {
+            when {
+                // A cancel requested from Waiting must not keep the attention notification: its
+                // title, reason and conflict-resolution intent all describe a wait that is over.
+                op.cancelRequested.value -> {
+                    notificationManager.notify(
+                        slot.progressId,
+                        notifications.buildProgress(slot.progressId, op, op.state.value),
+                    )
+                    notificationManager.cancel(slot.attentionId)
+                }
+                op.state.value is Operation.State.Waiting -> {
                     notificationManager.notify(slot.attentionId, notifications.buildAttention(slot.attentionId, op))
                     notificationManager.cancel(slot.progressId)
                 }

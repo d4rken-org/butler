@@ -4,6 +4,7 @@ import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
@@ -74,10 +75,19 @@ class OperationFgsCoordinatorTest : BaseTest() {
         state: Operation.State,
         id: Operation.Id = Operation.Id(),
         cancellable: Boolean = true,
+        cancelRequestedFlow: MutableStateFlow<Boolean> = MutableStateFlow(false),
     ): ManagedOperation = mockk {
         every { this@mockk.id } returns id
         every { this@mockk.state } returns MutableStateFlow(state)
+        every { cancelRequested } returns cancelRequestedFlow
         every { canCancel } returns cancellable
+    }
+
+    private fun waitingState() = object : Operation.State.Waiting {
+        override val startedAt = t0
+        override val waitingSince = t0
+        override val reason = "conflict".toCaString()
+        override val issue: Issue = mockk(relaxed = true)
     }
 
     private fun completedState(error: Throwable? = null) = object : Operation.State.Completed {
@@ -221,5 +231,30 @@ class OperationFgsCoordinatorTest : BaseTest() {
         testScope.advanceUntilIdle()
 
         verify { notificationManager.cancel(id) }
+    }
+
+    /**
+     * The attention notification's title, reason and content intent all describe a wait the user
+     * has just called off, so it must give way to the progress notification.
+     */
+    @Test
+    fun `cancelling a waiting operation replaces its attention notification with progress`() {
+        val attentionId = slot<Int>()
+        every { notifications.buildAttention(capture(attentionId), any()) } returns mockk(relaxed = true)
+
+        startCoordinator()
+        coordinator.onAppBackgrounded()
+        testScope.advanceUntilIdle()
+
+        val cancelRequested = MutableStateFlow(false)
+        opsFlow.value = listOf(managedOp(waitingState(), cancelRequestedFlow = cancelRequested))
+        testScope.advanceUntilIdle()
+        val postedAttentionId = attentionId.captured
+
+        cancelRequested.value = true
+        testScope.advanceUntilIdle()
+
+        verify { notifications.buildProgress(any(), any(), any()) }
+        verify { notificationManager.cancel(postedAttentionId) }
     }
 }

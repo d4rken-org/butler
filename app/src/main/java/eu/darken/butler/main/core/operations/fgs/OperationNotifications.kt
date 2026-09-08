@@ -84,8 +84,12 @@ class OperationNotifications @Inject constructor(
             .setOnlyAlertOnce(true)
             .setContentIntent(focusWorkspaceIntent(notificationId, operation))
 
-        when (state) {
-            is Operation.State.Active -> {
+        when {
+            operation.cancelRequested.value -> {
+                builder.setContentText(context.getString(R.string.ops_notification_state_cancelling))
+                builder.setProgress(0, 0, true)
+            }
+            state is Operation.State.Active -> {
                 // The title is per-kind ("Copy operation"), so with several operations running
                 // it cannot tell them apart. The metadata description names what is being moved
                 // and where, which is what makes a row identifiable, and what makes its Cancel

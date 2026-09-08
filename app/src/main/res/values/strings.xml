@@ -492,6 +492,7 @@
         <item quantity="other">%1$d file operations running</item>
     </plurals>
     <string name="ops_notification_state_queued">Queued…</string>
+    <string name="ops_notification_state_cancelling">Canceling…</string>
     <string name="ops_notification_state_attention_title">Action required</string>
     <string name="ops_notification_state_attention_text">A conflict needs your attention — tap to resolve</string>
     <string name="ops_notification_result_failed_title">Operation failed</string>
