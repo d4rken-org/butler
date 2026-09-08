@@ -119,6 +119,7 @@ fun WorkspaceButton(
             currentWorkspaceId = currentWorkspaceId,
             provider = provider,
             layoutEntryMode = if (showLayoutEntry) currentPanelMode ?: WorkspacePanelMode.AUTO else null,
+            isLandscape = isLandscape,
             onCloseAllRequested = { showCloseAllDialog = true },
             onOpenManager = openManager,
             onLayoutRequested = { showLayoutDialog = true },
@@ -139,6 +140,7 @@ fun WorkspaceButton(
         WorkspaceLayoutDialog(
             visible = showLayoutDialog,
             currentMode = currentPanelMode ?: WorkspacePanelMode.AUTO,
+            isLandscape = isLandscape,
             onDismiss = { showLayoutDialog = false },
             onSelect = { mode ->
                 showLayoutDialog = false

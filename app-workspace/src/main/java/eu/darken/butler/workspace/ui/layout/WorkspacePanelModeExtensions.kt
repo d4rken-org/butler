@@ -37,11 +37,12 @@ fun WorkspacePanelMode.description(): String {
     }
 }
 
-fun WorkspacePanelMode.icon(): ImageVector = when (this) {
+/** [landscape] picks the rail edge for the single-with-rail icon: bottom in portrait, start in landscape. */
+fun WorkspacePanelMode.icon(landscape: Boolean = false): ImageVector = when (this) {
     WorkspacePanelMode.AUTO -> WorkspacePanelIcons.Auto
     WorkspacePanelMode.ADAPTIVE -> WorkspacePanelIcons.Adaptive
     WorkspacePanelMode.SINGLE -> WorkspacePanelIcons.Single
-    WorkspacePanelMode.SINGLE_RAIL -> WorkspacePanelIcons.SingleRail
+    WorkspacePanelMode.SINGLE_RAIL -> if (landscape) WorkspacePanelIcons.SingleRailStart else WorkspacePanelIcons.SingleRail
     WorkspacePanelMode.DUAL_VERTICAL -> WorkspacePanelIcons.DualVertical
     WorkspacePanelMode.DUAL_HORIZONTAL -> WorkspacePanelIcons.DualHorizontal
     WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> WorkspacePanelIcons.TripleSidebarLeft

@@ -46,4 +46,13 @@ class WorkspaceLayoutSurfaceTest : BaseTest() {
         encoded shouldBe "\"ADAPTIVE\""
         Json.decodeFromString(WorkspacePanelMode.serializer(), encoded) shouldBe WorkspacePanelMode.ADAPTIVE
     }
+
+    /** The icon getters build a fresh instance per call, so compare by name. */
+    @Test
+    fun `the rail icon follows the orientation`() {
+        WorkspacePanelMode.SINGLE_RAIL.icon(landscape = false).name shouldBe "LayoutSingleRail"
+        WorkspacePanelMode.SINGLE_RAIL.icon(landscape = true).name shouldBe "LayoutSingleRailStart"
+        WorkspacePanelMode.DUAL_VERTICAL.icon(landscape = true).name shouldBe
+            WorkspacePanelMode.DUAL_VERTICAL.icon().name
+    }
 }

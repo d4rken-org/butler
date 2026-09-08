@@ -20,6 +20,7 @@ fun WorkspaceLayoutDialog(
     modifier: Modifier = Modifier,
     visible: Boolean,
     currentMode: WorkspacePanelMode,
+    isLandscape: Boolean = false,
     onDismiss: () -> Unit,
     onSelect: (WorkspacePanelMode) -> Unit,
 ) {
@@ -29,7 +30,7 @@ fun WorkspaceLayoutDialog(
         title = stringResource(R.string.workspace_settings_layout_title),
         options = (listOf(WorkspacePanelMode.AUTO) + ADAPTIVE_GEOMETRIES).map { mode ->
             LayoutPickerOption(
-                icon = mode.icon(),
+                icon = mode.icon(landscape = isLandscape),
                 label = mode.label(),
                 description = mode.description(),
                 selected = mode == currentMode,

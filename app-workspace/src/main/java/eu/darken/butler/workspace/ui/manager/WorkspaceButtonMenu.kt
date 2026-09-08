@@ -45,6 +45,7 @@ fun WorkspaceButtonMenu(
     currentWorkspaceId: Workspace.Id? = null,
     provider: WorkspaceButtonProvider?,
     layoutEntryMode: WorkspacePanelMode? = null,
+    isLandscape: Boolean = false,
     onCloseAllRequested: () -> Unit,
     onOpenManager: () -> Unit,
     onLayoutRequested: () -> Unit = {},
@@ -123,7 +124,7 @@ fun WorkspaceButtonMenu(
                 },
                 leadingIcon = {
                     Icon(
-                        imageVector = layoutEntryMode.icon(),
+                        imageVector = layoutEntryMode.icon(landscape = isLandscape),
                         contentDescription = null,
                     )
                 },
