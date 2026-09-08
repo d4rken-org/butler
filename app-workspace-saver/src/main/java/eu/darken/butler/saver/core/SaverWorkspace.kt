@@ -124,7 +124,7 @@ class SaverWorkspace @AssistedInject constructor(
             if (managedOp == null) {
                 flowOf(null)
             } else {
-                managedOp.state.map { managedOp }
+                combine(managedOp.state, managedOp.cancelRequested) { _, _ -> managedOp }
             }
         }
 

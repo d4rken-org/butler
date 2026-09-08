@@ -406,6 +406,8 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         conflictUiStateFlow.update { it.copy(visible = false) }
     }
 
+    fun cancelOperation(operationId: Operation.Id) = chrome.cancelOperation(operationId)
+
     fun shareError(operationId: Operation.Id) = chrome.shareOperationError(operationId)
 
     fun showOperationInHistory(operationId: Operation.Id) = chrome.showOperationInHistory(operationId)

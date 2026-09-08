@@ -169,7 +169,10 @@ internal fun SaverWorkspacePage(
             dialogState = operationDialogState,
             operations = listOfNotNull(state.operationDisplay),
             onDismissDialog = { operationDialogState = OperationDialogState.None },
-            onCancelOperation = { operationDialogState = OperationDialogState.None },
+            onCancelOperation = { operationId ->
+                vm?.cancelOperation(operationId)
+                operationDialogState = OperationDialogState.None
+            },
             onShareError = { vm?.shareError(it) },
             onHandleIssue = { operationId ->
                 vm?.showConflictSheet(operationId)
