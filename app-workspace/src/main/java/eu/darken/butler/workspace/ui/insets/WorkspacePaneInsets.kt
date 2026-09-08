@@ -1,14 +1,23 @@
 package eu.darken.butler.workspace.ui.insets
 
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.findRootCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
@@ -25,6 +34,7 @@ import eu.darken.butler.workspace.ui.floatingbar.PersistBarCollapse
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
+import kotlin.math.roundToInt
 
 /**
  * Unmasked system bar insets of the window, in physical (left/right) orientation.
@@ -72,6 +82,13 @@ fun PaneEdges.includesSystemBarInset(position: BarPosition): Boolean = when (pos
     BarPosition.TOP -> touchesTop
     BarPosition.BOTTOM -> touchesBottom
 }
+
+/**
+ * Distance from a node's bottom edge to the bottom of the window, which is how much of the soft
+ * keyboard's inset never reaches that node.
+ */
+internal fun paneBottomGapPx(rootHeightPx: Int, nodeBottomInRootPx: Float): Int =
+    (rootHeightPx - nodeBottomInRootPx).roundToInt().coerceAtLeast(0)
 
 /**
  * The window's system bar insets, unmasked.
@@ -147,6 +164,38 @@ fun Modifier.paneHorizontalInsetPadding(edges: PaneEdges): Modifier {
         horizontalWindowInsets(insets, density)
     }
     return windowInsetsPadding(horizontalInsets)
+}
+
+/**
+ * Reserves the part of the soft keyboard that actually overlaps this node, unioned with
+ * [extraBottom] so chrome the caller already reserves is never stacked on top of the keyboard.
+ *
+ * [androidx.compose.foundation.layout.imePadding] would reserve the window's whole keyboard inset,
+ * which is wrong for any node that has window left below it - another pane, the bottom navigation
+ * rail, or both.
+ */
+@Composable
+fun Modifier.paneImePadding(extraBottom: Dp = 0.dp): Modifier {
+    val density = LocalDensity.current
+    // Measured, not derived from the pane edge model: a pane can clear the bottom window edge and
+    // still sit within keyboard reach, e.g. the lower pane of a dual-horizontal split.
+    var gapPx by remember { mutableIntStateOf(0) }
+    val imeInsets = WindowInsets.ime
+    val extraBottomPx = with(density) { extraBottom.roundToPx() }
+    val insets = remember(imeInsets, gapPx, extraBottomPx) {
+        imeInsets
+            .exclude(WindowInsets(bottom = gapPx))
+            .union(WindowInsets(bottom = extraBottomPx))
+    }
+    return this
+        // Before the padding, so what the padding does cannot move the node it measures.
+        .onGloballyPositioned { coords ->
+            gapPx = paneBottomGapPx(
+                rootHeightPx = coords.findRootCoordinates().size.height,
+                nodeBottomInRootPx = coords.positionInRoot().y + coords.size.height,
+            )
+        }
+        .windowInsetsPadding(insets)
 }
 
 private fun horizontalWindowInsets(insets: WorkspacePaneInsets, density: Density): WindowInsets = with(density) {
