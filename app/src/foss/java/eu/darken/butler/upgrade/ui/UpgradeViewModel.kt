@@ -95,16 +95,26 @@ class UpgradeViewModel @AssistedInject constructor(
     // The pitch sponsor action: arms the 5s "visited the sponsor page" honor check.
     fun openSponsor() {
         log(tag) { "openSponsor()" }
-        // Single-flight: a second tap while a launch is still awaiting its return would restamp
-        // the timer and reset the window the return check evaluates.
-        if (hasPendingSponsorLaunch()) {
-            log(tag) { "A sponsor launch is already awaiting its return" }
-            return
+        // Single-flight, but bounded. A tap can only arrive while this screen holds focus, and a
+        // launch that reaches a browser takes focus away within milliseconds — so the only interval
+        // that needs guarding is the handoff right after startActivity, where a second tap of the same
+        // gesture would restamp the timer the return check evaluates. A tap that lands later, with the
+        // marker still present, means nothing ever took the foreground and no return check ever ran;
+        // blocking on that marker is what kills the button for the life of the ViewModel.
+        val pressedAt = savedStateHandle.get<Long>(KEY_SPONSOR_PRESSED_AT)
+        if (pressedAt != null) {
+            val age = SystemClock.elapsedRealtime() - pressedAt
+            if (age in 0 until SPONSOR_SINGLE_FLIGHT_MS) {
+                log(tag) { "A sponsor launch is already awaiting its return" }
+                return
+            }
+            log(tag, WARN) { "Sponsor launch armed ${age}ms ago was never resolved; relaunching" }
         }
         // Only arm the heuristic if the page actually opened; otherwise an unrelated later
         // background/foreground round-trip would grant supporter status with no page ever shown.
         if (!upgradeRepo.openGithubSponsorsPage()) {
-            log(tag) { "Sponsor page didn't open; not arming the unlock heuristic" }
+            log(tag, WARN) { "Sponsor page didn't open; not arming the unlock heuristic" }
+            snackbarEvent.tryEmit(R.string.upgrade_screen_sponsor_open_failed)
             return
         }
         savedStateHandle[KEY_SPONSOR_PRESSED_AT] = SystemClock.elapsedRealtime()
@@ -181,5 +191,8 @@ class UpgradeViewModel @AssistedInject constructor(
         private const val KEY_SPONSOR_PRESSED_AT = "sponsor_pressed_at"
         private const val KEY_SHOW_OPTIONS = "show_upgrade_options"
         private const val SPONSOR_DELAY_MS = 5_000L
+        // Covers the focus handoff right after startActivity, nothing longer: a wider window would
+        // swallow a genuine retry tap after e.g. an app chooser was dismissed.
+        private const val SPONSOR_SINGLE_FLIGHT_MS = 1_000L
     }
 }
