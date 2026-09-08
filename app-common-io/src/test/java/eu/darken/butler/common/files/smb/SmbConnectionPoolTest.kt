@@ -1,10 +1,5 @@
 package eu.darken.butler.common.files.smb
 
-import com.hierynomus.smbj.SMBClient
-import com.hierynomus.smbj.connection.Connection
-import com.hierynomus.smbj.session.Session
-import com.hierynomus.smbj.share.DiskShare
-import com.hierynomus.protocol.transport.TransportException
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.extensions.Segments
 import eu.darken.butler.common.files.smb.credentials.SmbCredential
@@ -18,6 +13,9 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import eu.darken.smb.SmbConnector
+import eu.darken.smb.SmbShare
+import eu.darken.smb.SmbException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -92,33 +90,19 @@ class SmbConnectionPoolTest : BaseTest() {
             throw UnsupportedOperationException()
     }
 
-    /** Hands out a fresh mock stack per connect so sessions can be told apart. */
     private class FakeClientFactory : SmbClientFactory {
-        val shares = mutableListOf<DiskShare>()
-        val clients = mutableListOf<SMBClient>()
-
-        /** Index-aligned with [shares], so a test can kill one share without killing its connection. */
+        val shares = mutableListOf<SmbShare>()
+        val clients = mutableListOf<SmbConnector>()
         val shareConnected = mutableListOf<Boolean>()
-
-        /** Index-aligned with [shares], runs inside that share's close so a test can stall a teardown. */
         val closeHooks = mutableListOf<(() -> Unit)?>()
 
-        override fun create(config: com.hierynomus.smbj.SmbConfig): SMBClient {
+        override fun create(): SmbConnector {
             val index = shares.size
-            val share = mockk<DiskShare>(relaxed = true) {
-                every { isConnected } answers { shareConnected[index] }
-                every { close() } answers { closeHooks[index]?.invoke() }
+            val share = mockk<SmbShare>(relaxed = true) {
+                every { connected } answers { shareConnected[index] }
+                every { disconnect() } answers { closeHooks[index]?.invoke() }
             }
-            val session = mockk<Session>(relaxed = true) {
-                every { connectShare(any()) } returns share
-            }
-            val connection = mockk<Connection>(relaxed = true) {
-                every { authenticate(any()) } returns session
-                every { isConnected } returns true
-            }
-            val client = mockk<SMBClient>(relaxed = true) {
-                every { connect(any<String>(), any<Int>()) } returns connection
-            }
+            val client = SmbConnector { _, _ -> share }
             shares.add(share)
             shareConnected.add(true)
             closeHooks.add(null)
@@ -146,7 +130,6 @@ class SmbConnectionPoolTest : BaseTest() {
             locationManager = locationManager,
             credentialStore = credentialStore,
             clientFactory = factory,
-            dialectProbe = SmbDialectProbe(factory),
         )
     }
 
@@ -181,8 +164,8 @@ class SmbConnectionPoolTest : BaseTest() {
 
         pool.evict(locationA.id)
 
-        verify { factory.shares[0].close() }
-        verify(exactly = 0) { factory.shares[1].close() }
+        verify { factory.shares[0].disconnect() }
+        verify(exactly = 0) { factory.shares[1].disconnect() }
     }
 
     @Test
@@ -193,7 +176,7 @@ class SmbConnectionPoolTest : BaseTest() {
 
         pool.use(SmbPath.root(locationA.id), retryOnTransportLoss = true) {
             attempts++
-            if (attempts == 1) throw TransportException("connection died")
+            if (attempts == 1) throw SmbException(SmbException.Kind.TRANSPORT)
         }
 
         attempts shouldBe 2
@@ -206,10 +189,10 @@ class SmbConnectionPoolTest : BaseTest() {
         val pool = pool(factory)
         var attempts = 0
 
-        shouldThrow<TransportException> {
+        shouldThrow<SmbException> {
             pool.use(SmbPath.root(locationA.id), retryOnTransportLoss = false) {
                 attempts++
-                throw TransportException("connection died")
+                throw SmbException(SmbException.Kind.TRANSPORT)
             }
         }
 
@@ -227,7 +210,7 @@ class SmbConnectionPoolTest : BaseTest() {
 
         // A leaked lease would keep the generation alive past the eviction
         pool.evict(locationA.id)
-        verify { factory.shares[0].close() }
+        verify { factory.shares[0].disconnect() }
     }
 
     @Test
@@ -237,10 +220,10 @@ class SmbConnectionPoolTest : BaseTest() {
         val lease = pool.acquire(locationA.id)
 
         pool.evict(locationA.id)
-        verify(exactly = 0) { factory.shares[0].close() }
+        verify(exactly = 0) { factory.shares[0].disconnect() }
 
         lease.close()
-        verify { factory.shares[0].close() }
+        verify { factory.shares[0].disconnect() }
     }
 
     @Test
@@ -253,10 +236,10 @@ class SmbConnectionPoolTest : BaseTest() {
         first.close()
         first.close()
         pool.evict(locationA.id)
-        verify(exactly = 0) { factory.shares[0].close() }
+        verify(exactly = 0) { factory.shares[0].disconnect() }
 
         second.close()
-        verify { factory.shares[0].close() }
+        verify { factory.shares[0].disconnect() }
     }
 
     @Test
@@ -268,8 +251,8 @@ class SmbConnectionPoolTest : BaseTest() {
 
         pool.trimIdle(FAR_FUTURE)
 
-        verify { factory.shares[0].close() }
-        verify(exactly = 0) { factory.shares[1].close() }
+        verify { factory.shares[0].disconnect() }
+        verify(exactly = 0) { factory.shares[1].disconnect() }
         leased.close()
     }
 
@@ -298,16 +281,11 @@ class SmbConnectionPoolTest : BaseTest() {
             }.await()
             sweep.await()
 
-            verify(exactly = 0) { lease.share.close() }
+            verify(exactly = 0) { lease.share.disconnect() }
             lease.close()
         }
     }
 
-    /**
-     * A dead transport closes every share first and only reports itself disconnected tens of seconds
-     * later, so a cached generation can hold a share smbj already closed while its connection still
-     * claims to be connected.
-     */
     @Test
     fun `a share that was closed under us is never handed out`() = runTest {
         val factory = FakeClientFactory()
@@ -320,7 +298,7 @@ class SmbConnectionPoolTest : BaseTest() {
         val second = pool.acquire(locationA.id)
 
         second.share shouldNotBe first.share
-        second.share.isConnected shouldBe true
+        second.share.connected shouldBe true
         factory.clients.size shouldBe 2
         second.close()
     }
@@ -334,8 +312,8 @@ class SmbConnectionPoolTest : BaseTest() {
 
         pool.close()
 
-        verify { factory.shares[0].close() }
-        verify { factory.shares[1].close() }
+        verify { factory.shares[0].disconnect() }
+        verify { factory.shares[1].disconnect() }
     }
 
     @Test
@@ -363,9 +341,9 @@ class SmbConnectionPoolTest : BaseTest() {
         afterEdit.location.host shouldBe "other.local"
         factory.clients.size shouldBe 2
         // The old session is only closed once the operation still using it is done
-        verify(exactly = 0) { factory.shares[0].close() }
+        verify(exactly = 0) { factory.shares[0].disconnect() }
         inFlight.close()
-        verify { factory.shares[0].close() }
+        verify { factory.shares[0].disconnect() }
 
         afterEdit.close()
     }
@@ -397,7 +375,6 @@ class SmbConnectionPoolTest : BaseTest() {
             locationManager = locations,
             credentialStore = credentialStore,
             clientFactory = factory,
-            dialectProbe = SmbDialectProbe(factory),
         )
 
         val beforeEdit = async { pool.acquire(passwordLocation.id) }

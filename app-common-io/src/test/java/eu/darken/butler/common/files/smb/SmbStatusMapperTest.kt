@@ -1,10 +1,5 @@
 package eu.darken.butler.common.files.smb
 
-import com.hierynomus.mserref.NtStatus
-import com.hierynomus.mssmb.SMB1NotSupportedException
-import com.hierynomus.mssmb2.SMB2MessageCommandCode
-import com.hierynomus.mssmb2.SMBApiException
-import com.hierynomus.protocol.transport.TransportException
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
@@ -12,6 +7,8 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import eu.darken.smb.SmbException
+import eu.darken.smb.SmbException.Kind
 import kotlinx.coroutines.CancellationException
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
@@ -22,12 +19,7 @@ class SmbStatusMapperTest : BaseTest() {
 
     private val path = LocalPath.build("/tmp/whatever")
 
-    private fun apiError(status: NtStatus) = SMBApiException(
-        status.value,
-        SMB2MessageCommandCode.SMB2_CREATE,
-        "test",
-        null,
-    )
+    private fun apiError(kind: Kind) = SmbException(kind)
 
     // region connect
 
@@ -45,27 +37,27 @@ class SmbStatusMapperTest : BaseTest() {
 
     @Test
     fun `a logon failure is an auth failure`() {
-        SmbStatusMapper.mapConnect(apiError(NtStatus.STATUS_LOGON_FAILURE), "nas.local", "media")
+        SmbStatusMapper.mapConnect(apiError(Kind.AUTHENTICATION), "nas.local", "media")
             .shouldBeInstanceOf<SmbAuthException>()
     }
 
     @Test
     fun `access denied while connecting is an auth failure`() {
-        SmbStatusMapper.mapConnect(apiError(NtStatus.STATUS_ACCESS_DENIED), "nas.local", "media")
+        SmbStatusMapper.mapConnect(apiError(Kind.ACCESS_DENIED), "nas.local", "media")
             .shouldBeInstanceOf<SmbAuthException>()
     }
 
     @Test
     fun `access denied while authenticating is an auth failure`() {
-        SmbStatusMapper.mapAuthenticate(apiError(NtStatus.STATUS_ACCESS_DENIED), "nas.local")
+        SmbStatusMapper.mapAuthenticate(apiError(Kind.ACCESS_DENIED), "nas.local")
             .shouldBeInstanceOf<SmbAuthException>()
-        SmbStatusMapper.mapAuthenticate(apiError(NtStatus.STATUS_LOGON_FAILURE), "nas.local")
+        SmbStatusMapper.mapAuthenticate(apiError(Kind.AUTHENTICATION), "nas.local")
             .shouldBeInstanceOf<SmbAuthException>()
     }
 
     @Test
     fun `access denied while opening the share is not a sign-in failure`() {
-        val mapped = SmbStatusMapper.mapConnectShare(apiError(NtStatus.STATUS_ACCESS_DENIED), "nas.local", "media")
+        val mapped = SmbStatusMapper.mapConnectShare(apiError(Kind.ACCESS_DENIED), "nas.local", "media")
 
         mapped.shouldBeInstanceOf<SmbShareAccessDeniedException>().share shouldBe "media"
         mapped.isSmbSignInFailure() shouldBe false
@@ -73,7 +65,7 @@ class SmbStatusMapperTest : BaseTest() {
 
     @Test
     fun `a phase mapper leaves everything else to the generic mapping`() {
-        val badName = apiError(NtStatus.STATUS_BAD_NETWORK_NAME)
+        val badName = apiError(Kind.SHARE_MISSING)
         SmbStatusMapper.mapAuthenticate(badName, "nas.local") shouldBe badName
         SmbStatusMapper.mapConnectShare(badName, "nas.local", "media") shouldBe badName
     }
@@ -87,13 +79,13 @@ class SmbStatusMapperTest : BaseTest() {
 
     @Test
     fun `a bad network name is a missing share`() {
-        val mapped = SmbStatusMapper.mapConnect(apiError(NtStatus.STATUS_BAD_NETWORK_NAME), "nas.local", "media")
+        val mapped = SmbStatusMapper.mapConnect(apiError(Kind.SHARE_MISSING), "nas.local", "media")
         mapped.shouldBeInstanceOf<SmbShareNotFoundException>().share shouldBe "media"
     }
 
     @Test
     fun `an SMB1-only server is reported as such`() {
-        SmbStatusMapper.mapConnect(SMB1NotSupportedException(), "nas.local", "media")
+        SmbStatusMapper.mapConnect(SmbException(Kind.UNSUPPORTED_DIALECT), "nas.local", "media")
             .shouldBeInstanceOf<SmbDialectNotSupportedException>()
     }
 
@@ -117,16 +109,16 @@ class SmbStatusMapperTest : BaseTest() {
 
     @Test
     fun `missing statuses are recognised`() {
-        SmbStatusMapper.isMissing(apiError(NtStatus.STATUS_OBJECT_NAME_NOT_FOUND)) shouldBe true
-        SmbStatusMapper.isMissing(apiError(NtStatus.STATUS_OBJECT_PATH_NOT_FOUND)) shouldBe true
-        SmbStatusMapper.isMissing(apiError(NtStatus.STATUS_NO_SUCH_FILE)) shouldBe true
-        SmbStatusMapper.isMissing(apiError(NtStatus.STATUS_ACCESS_DENIED)) shouldBe false
+        SmbStatusMapper.isMissing(apiError(Kind.MISSING)) shouldBe true
+        SmbStatusMapper.isMissing(apiError(Kind.MISSING)) shouldBe true
+        SmbStatusMapper.isMissing(apiError(Kind.MISSING)) shouldBe true
+        SmbStatusMapper.isMissing(apiError(Kind.ACCESS_DENIED)) shouldBe false
     }
 
     @Test
     fun `a missing path becomes a read failure`() {
         SmbStatusMapper.mapOperation(
-            apiError(NtStatus.STATUS_OBJECT_NAME_NOT_FOUND),
+            apiError(Kind.MISSING),
             path,
             "lookup",
             write = false,
@@ -136,7 +128,7 @@ class SmbStatusMapperTest : BaseTest() {
     @Test
     fun `a name collision becomes PathAlreadyExists`() {
         SmbStatusMapper.mapOperation(
-            apiError(NtStatus.STATUS_OBJECT_NAME_COLLISION),
+            apiError(Kind.ALREADY_EXISTS),
             path,
             "createFile",
             write = true,
@@ -146,7 +138,7 @@ class SmbStatusMapperTest : BaseTest() {
     @Test
     fun `access denied becomes a permission denial`() {
         val mapped = SmbStatusMapper.mapOperation(
-            apiError(NtStatus.STATUS_ACCESS_DENIED),
+            apiError(Kind.ACCESS_DENIED),
             path,
             "delete",
             write = true,
@@ -158,7 +150,7 @@ class SmbStatusMapperTest : BaseTest() {
     @Test
     fun `a non-empty directory becomes a write failure`() {
         SmbStatusMapper.mapOperation(
-            apiError(NtStatus.STATUS_DIRECTORY_NOT_EMPTY),
+            apiError(Kind.DIRECTORY_NOT_EMPTY),
             path,
             "delete",
             write = true,
@@ -168,7 +160,7 @@ class SmbStatusMapperTest : BaseTest() {
     @Test
     fun `a full disk becomes a write failure`() {
         SmbStatusMapper.mapOperation(
-            apiError(NtStatus.STATUS_DISK_FULL),
+            apiError(Kind.DISK_FULL),
             path,
             "write",
             write = true,
@@ -178,7 +170,7 @@ class SmbStatusMapperTest : BaseTest() {
     @Test
     fun `not a directory becomes a read failure`() {
         SmbStatusMapper.mapOperation(
-            apiError(NtStatus.STATUS_NOT_A_DIRECTORY),
+            apiError(Kind.NOT_DIRECTORY),
             path,
             "listFiles",
             write = false,
@@ -187,9 +179,9 @@ class SmbStatusMapperTest : BaseTest() {
 
     @Test
     fun `a sharing violation follows the operation direction`() {
-        SmbStatusMapper.mapOperation(apiError(NtStatus.STATUS_SHARING_VIOLATION), path, "write", write = true)
+        SmbStatusMapper.mapOperation(apiError(Kind.SHARING_VIOLATION), path, "write", write = true)
             .shouldBeInstanceOf<WriteException>()
-        SmbStatusMapper.mapOperation(apiError(NtStatus.STATUS_SHARING_VIOLATION), path, "read", write = false)
+        SmbStatusMapper.mapOperation(apiError(Kind.SHARING_VIOLATION), path, "read", write = false)
             .shouldBeInstanceOf<ReadException>()
     }
 
@@ -197,8 +189,8 @@ class SmbStatusMapperTest : BaseTest() {
 
     @Test
     fun `transport loss is recognised, an NT status failure alone is not`() {
-        SmbStatusMapper.isTransportLost(TransportException("gone")) shouldBe true
-        SmbStatusMapper.isTransportLost(apiError(NtStatus.STATUS_CONNECTION_RESET)) shouldBe true
-        SmbStatusMapper.isTransportLost(apiError(NtStatus.STATUS_ACCESS_DENIED)) shouldBe false
+        SmbStatusMapper.isTransportLost(SmbException(Kind.TRANSPORT)) shouldBe true
+        SmbStatusMapper.isTransportLost(apiError(Kind.TRANSPORT)) shouldBe true
+        SmbStatusMapper.isTransportLost(apiError(Kind.ACCESS_DENIED)) shouldBe false
     }
 }

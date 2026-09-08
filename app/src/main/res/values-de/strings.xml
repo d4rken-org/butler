@@ -276,8 +276,8 @@
     <string name="acknowledgement_kotlin_extensions_subtitle">Bibliotheken für Coroutinen und Serialisierung. (APACHE 2.0)</string>
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Eine auf Kotlin-Coroutinen basierende Bildladebibliothek. (APACHE 2.0)</string>
-    <string name="acknowledgement_smbj_title">SMBJ</string>
-    <string name="acknowledgement_smbj_subtitle">SMB2- und SMB3-Clientbibliothek für die Kommunikation mit Netzwerkfreigaben. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Kryptografische Funktionen für SMB-Authentifizierung, Signierung und Verschlüsselung. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Square-Bibliotheken</string>
     <string name="acknowledgement_square_libraries_subtitle">Die Netzwerkbibliotheken Retrofit, OkHttp und OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>
