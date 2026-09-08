@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -165,31 +166,34 @@ fun OperationPerformanceGraph(
                 null
             }
 
-            CartesianChartHost(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(backgroundColor),
-                chart = rememberCartesianChart(
-                    // Layer order matches the series order in the transaction above
-                    *listOfNotNull(bytesLayer, itemsLayer).toTypedArray(),
-                    startAxis = startAxis,
-                    endAxis = endAxis,
-                    bottomAxis = HorizontalAxis.rememberBottom(
-                        label = null,  // Hide X-axis labels like Windows Explorer
-                        guideline = null,  // Hide grid lines
-                        tick = null,  // Hide tick marks
+            // Keyed like the producer above so a mode flip pairs a fresh host with the fresh producer
+            key(byteSpeeds != null) {
+                CartesianChartHost(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(backgroundColor),
+                    chart = rememberCartesianChart(
+                        // Layer order matches the series order in the transaction above
+                        *listOfNotNull(bytesLayer, itemsLayer).toTypedArray(),
+                        startAxis = startAxis,
+                        endAxis = endAxis,
+                        bottomAxis = HorizontalAxis.rememberBottom(
+                            label = null,  // Hide X-axis labels like Windows Explorer
+                            guideline = null,  // Hide grid lines
+                            tick = null,  // Hide tick marks
+                        ),
                     ),
-                ),
-                modelProducer = modelProducer,
-                zoomState = rememberVicoZoomState(
-                    zoomEnabled = false,
-                    // Use content to fit all data without specifying exact range
-                    initialZoom = remember { Zoom.Content },
-                ),
-                animationSpec = null,  // Updates outpace the tween, it would never finish
-            )
+                    modelProducer = modelProducer,
+                    zoomState = rememberVicoZoomState(
+                        zoomEnabled = false,
+                        // Use content to fit all data without specifying exact range
+                        initialZoom = remember { Zoom.Content },
+                    ),
+                    animationSpec = null,  // Updates outpace the tween, it would never finish
+                )
+            }
 
             // Recent average byte speed label (top-left, matches left Y-axis)
             if (byteSpeeds != null) {
