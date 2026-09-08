@@ -87,6 +87,9 @@ class OperationNotifications @Inject constructor(
         when {
             operation.cancelRequested.value -> {
                 builder.setContentText(context.getString(R.string.ops_notification_state_cancelling))
+                builder.setStyle(
+                    NotificationCompat.BigTextStyle().bigText(operation.metadata.description.get(context)),
+                )
                 builder.setProgress(0, 0, true)
             }
             state is Operation.State.Active -> {
