@@ -475,6 +475,21 @@ class WorkspaceButtonTest : ComposeTest() {
     }
 
     @Test
+    fun `the layout entry shows the stored mode as its subtitle`() {
+        setContent(
+            RecordingButtonProvider(
+                WorkspaceButtonViewModel.State(portraitPanelMode = WorkspacePanelMode.DUAL_HORIZONTAL)
+            ),
+            showLayoutEntry = true,
+        )
+
+        openMenu()
+
+        composeTestRule.onNodeWithText("Layout").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Dual horizontal").assertIsDisplayed()
+    }
+
+    @Test
     @Config(qualifiers = "w1200dp-h900dp")
     fun `the layout entry opens a dialog listing Automatic and the six geometries`() {
         openLayoutDialog(RecordingButtonProvider(WorkspaceButtonViewModel.State()))

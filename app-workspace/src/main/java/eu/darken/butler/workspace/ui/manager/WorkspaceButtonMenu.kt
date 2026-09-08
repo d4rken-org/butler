@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.manager
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
@@ -33,6 +34,7 @@ import eu.darken.butler.workspace.core.defaultArguments
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.layout.icon
+import eu.darken.butler.workspace.ui.layout.label
 import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
 
@@ -117,7 +119,12 @@ fun WorkspaceButtonMenu(
         )
         if (layoutEntryMode != null) {
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.workspace_button_menu_layout_action)) },
+                text = {
+                    MenuItemText(
+                        title = stringResource(R.string.workspace_button_menu_layout_action),
+                        subtitle = layoutEntryMode.label(),
+                    )
+                },
                 onClick = {
                     onDismissRequest()
                     onLayoutRequested()
@@ -203,6 +210,22 @@ fun MenuCategoryHeader(
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.primary,
     )
+}
+
+@Composable
+private fun MenuItemText(
+    modifier: Modifier = Modifier,
+    title: String,
+    subtitle: String,
+) {
+    Column(modifier = modifier) {
+        Text(text = title)
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }
 
 @Preview2
