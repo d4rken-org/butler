@@ -51,6 +51,11 @@ internal fun operationStateVisuals(state: OperationDisplay.State): OperationStat
         contentDescription = stringResource(R.string.operations_state_waiting),
         tint = MaterialTheme.colorScheme.tertiary,
     )
+    is OperationDisplay.State.Cancelling -> OperationStateVisuals(
+        imageVector = Icons.TwoTone.Cancel,
+        contentDescription = stringResource(R.string.operations_state_cancelling),
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
     is OperationDisplay.State.Completed -> OperationStateVisuals(
         imageVector = Icons.TwoTone.CheckCircle,
         contentDescription = stringResource(R.string.operations_state_successful),
@@ -121,6 +126,10 @@ private fun OperationActionIndicatorPreview() {
             state = OperationDisplay.State.Running(),
             modifier = Modifier.size(24.dp),
             onAction = {} // Shows cancel button
+        )
+        OperationActionIndicator(
+            state = OperationDisplay.State.Cancelling,
+            modifier = Modifier.size(24.dp)
         )
         OperationActionIndicator(
             state = OperationDisplay.State.Completed(

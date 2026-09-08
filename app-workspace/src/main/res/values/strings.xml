@@ -134,6 +134,7 @@
     <string name="operations_state_successful">Successful</string>
     <string name="operations_state_failed">Failed</string>
     <string name="operations_state_cancelled">Canceled</string>
+    <string name="operations_state_cancelling">Canceling…</string>
     <string name="operations_cancel_operation">Cancel operation</string>
     <string name="operations_cancel_dialog_title">Cancel operation?</string>
     <string name="operations_cancel_dialog_message">Are you sure you want to cancel this operation?</string>

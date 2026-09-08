@@ -57,6 +57,7 @@ fun OperationEntryRow(
         is OperationDisplay.State.Completed,
         is OperationDisplay.State.Failed,
         is OperationDisplay.State.Cancelled,
+        is OperationDisplay.State.Cancelling,
         is OperationDisplay.State.Waiting -> true
         else -> false
     }
@@ -115,6 +116,7 @@ fun OperationEntryRow(
                             )
                             is OperationDisplay.State.Running -> Icons.TwoTone.Info to MaterialTheme.colorScheme.onSecondaryContainer
                             is OperationDisplay.State.Waiting -> Icons.TwoTone.Handyman to MaterialTheme.colorScheme.tertiary
+                            is OperationDisplay.State.Cancelling -> Icons.TwoTone.Cancel to MaterialTheme.colorScheme.onSurfaceVariant
                             else -> Icons.TwoTone.Info to MaterialTheme.colorScheme.onSecondaryContainer
                         }
 
@@ -131,6 +133,7 @@ fun OperationEntryRow(
                             is OperationDisplay.State.Completed -> operation.state.summary.asComposable()
                             is OperationDisplay.State.Failed -> operation.state.summary.asComposable()
                             is OperationDisplay.State.Waiting -> operation.state.reason.asComposable()
+                            is OperationDisplay.State.Cancelling -> stringResource(R.string.operations_state_cancelling)
                             else -> operation.description.asComposable()
                         }
 
@@ -244,7 +247,9 @@ fun OperationEntryRow(
                             }
                         }
                     }
-                    is OperationDisplay.State.Waiting -> {
+                    // Work is still happening, it just has no measurable progress any more.
+                    is OperationDisplay.State.Waiting,
+                    is OperationDisplay.State.Cancelling -> {
                         // Indeterminate progress bar for waiting operations
                         Spacer(modifier = Modifier.height(2.dp))
 
@@ -298,6 +303,7 @@ fun OperationEntryRow(
                         is OperationDisplay.State.Running -> operation.state.primaryProgress.secondary.asComposable()
                         is OperationDisplay.State.Completed -> operation.state.summary.asComposable()
                         is OperationDisplay.State.Waiting -> operation.state.reason.asComposable()
+                        is OperationDisplay.State.Cancelling -> stringResource(R.string.operations_state_cancelling)
                         else -> operation.description.asComposable()
                     }
                     Text(
@@ -312,6 +318,11 @@ fun OperationEntryRow(
                 // Progress bar for running operations
                 val progressData = (operation.state as? OperationDisplay.State.Running)?.primaryProgress
 
+                if (operation.state is OperationDisplay.State.Cancelling) {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
 
                 progressData?.let { progressData ->
                     when (val count = progressData.count) {
@@ -602,4 +613,39 @@ private fun OperationEntryRowWaitingPreview() {
         onActionClick = {},
         isBarExpanded = false,
     )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationEntryRowCancellingPreview() {
+    Column {
+        OperationEntryRow(
+            operation = OperationDisplay(
+                id = Operation.Id(),
+                title = "Copy operation".toCaString(),
+                description = "Copying to backup folder".toCaString(),
+                icon = Icons.TwoTone.Delete,
+                state = OperationDisplay.State.Cancelling,
+                startedAt = Clock.System.now(),
+            ),
+            onRowClick = {},
+            onActionClick = {},
+            isBarExpanded = true,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OperationEntryRow(
+            operation = OperationDisplay(
+                id = Operation.Id(),
+                title = "Copy operation".toCaString(),
+                description = "Copying to backup folder".toCaString(),
+                icon = Icons.TwoTone.Delete,
+                state = OperationDisplay.State.Cancelling,
+                startedAt = Clock.System.now(),
+            ),
+            onRowClick = {},
+            onActionClick = {},
+            isBarExpanded = false,
+        )
+    }
 }

@@ -32,6 +32,9 @@ data class OperationDisplay(
         ) : State
 
         data class Waiting(val reason: CaString) : State
+
+        /** Cancel was requested, the work is still unwinding. */
+        data object Cancelling : State
         data class Completed(
             val summary: CaString,
             val completedAt: Instant,
@@ -63,20 +66,10 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
         canCancel = canCancel,
         pathPlan = metadata.pathPlan,
         kind = metadata.kind,
-        state = when (state) {
-            is Operation.State.Queued -> OperationDisplay.State.Queued
-            is Operation.State.Active -> {
-                // Extract performanceHistory from primaryProgress.extra where it's stored
-                val performanceHistory = (state as? Operation.HasPerformanceHistory)?.performanceHistory
-                OperationDisplay.State.Running(
-                    primaryProgress = state.primaryProgress,
-                    secondaryProgress = state.secondaryProgress,
-                    canPause = canPause,
-                    performanceHistory = performanceHistory,
-                )
-            }
-            is Operation.State.Waiting -> OperationDisplay.State.Waiting(reason = state.reason)
-            is Operation.State.Completed -> {
+        // A terminal state is checked before the cancel request so an operation that has finished
+        // unwinding can never be described as still cancelling.
+        state = when {
+            state is Operation.State.Completed -> {
                 val errorValue = state.error
                 // Extract performanceHistory from report if available
                 val performanceHistory = (state as? Operation.HasPerformanceHistory)?.performanceHistory
@@ -106,6 +99,19 @@ fun ManagedOperation.toDisplayModel(): OperationDisplay {
                     }
                 }
             }
+            cancelRequested.value -> OperationDisplay.State.Cancelling
+            state is Operation.State.Queued -> OperationDisplay.State.Queued
+            state is Operation.State.Active -> {
+                // Extract performanceHistory from primaryProgress.extra where it's stored
+                val performanceHistory = (state as? Operation.HasPerformanceHistory)?.performanceHistory
+                OperationDisplay.State.Running(
+                    primaryProgress = state.primaryProgress,
+                    secondaryProgress = state.secondaryProgress,
+                    canPause = canPause,
+                    performanceHistory = performanceHistory,
+                )
+            }
+            state is Operation.State.Waiting -> OperationDisplay.State.Waiting(reason = state.reason)
             else -> throw IllegalStateException("Unknown state: $state")
         },
     )

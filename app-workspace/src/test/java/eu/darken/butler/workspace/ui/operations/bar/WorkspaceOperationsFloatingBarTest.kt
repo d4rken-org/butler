@@ -250,6 +250,39 @@ class WorkspaceOperationsFloatingBarTest : ComposeTest() {
         emitted shouldBe listOf(OperationsBarAction.ClearCompleted)
     }
 
+    /** Pressing cancel a second time does nothing, so the affordance must not stay offered. */
+    @Test
+    fun `a cancelling operation offers no cancel action`() {
+        setBar {
+            listOf(operation(FIRST_TITLE, OperationDisplay.State.Cancelling))
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription(context.getString(WorkspaceR.string.operations_cancel_operation))
+            .assertDoesNotExist()
+    }
+
+    /**
+     * The collapsed bar picks its rows independently of the sort order, so a second running
+     * operation must not push the row the user just cancelled out of view.
+     */
+    @Test
+    fun `a collapsed bar keeps a cancelling operation beside a running one`() {
+        setBar(initialExpanded = false) {
+            listOf(
+                operation(FIRST_TITLE, OperationDisplay.State.Cancelling, startedAt = defaultStartedAt),
+                operation(SECOND_TITLE, running(SECOND_TITLE), startedAt = defaultStartedAt + 1.minutes),
+            )
+        }
+
+        composeTestRule.onNodeWithText(FIRST_TITLE).assertIsDisplayed()
+        composeTestRule.onNodeWithText(SECOND_TITLE).assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(context.getString(WorkspaceR.string.operations_state_cancelling))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("$FIRST_TITLE details").assertDoesNotExist()
+    }
+
     companion object {
         private const val KEY = "operations"
         private const val FIRST_TITLE = "Copying files"

@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.operations
 
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import io.kotest.matchers.nulls.shouldBeNull
@@ -24,10 +25,11 @@ class OperationDisplayTest : BaseTest() {
         override val error = failure
     }
 
-    private fun managedOp(opState: Operation.State): ManagedOperation {
+    private fun managedOp(opState: Operation.State, cancelRequested: Boolean = false): ManagedOperation {
         val op = mockk<ManagedOperation>()
         every { op.id } returns Operation.Id()
         every { op.state } returns MutableStateFlow(opState)
+        every { op.cancelRequested } returns MutableStateFlow(cancelRequested)
         every { op.canCancel } returns false
         every { op.metadata } returns mockk {
             every { icon } returns mockk()
@@ -61,5 +63,28 @@ class OperationDisplayTest : BaseTest() {
         val display = managedOp(completed(IOException("No space left"))).toDisplayModel()
 
         display.state.shouldBeInstanceOf<OperationDisplay.State.Failed>()
+    }
+
+    @Test
+    fun `a run whose cancel is still unwinding is cancelling`() {
+        val active = object : Operation.State.Active {
+            override val startedAt = Clock.System.now()
+            override val primaryProgress = Progress.Data()
+            override val secondaryProgress: Progress.Data? = null
+        }
+
+        val display = managedOp(active, cancelRequested = true).toDisplayModel()
+
+        display.state.shouldBeInstanceOf<OperationDisplay.State.Cancelling>()
+    }
+
+    @Test
+    fun `a run that finished unwinding is cancelled, not cancelling`() {
+        val display = managedOp(
+            completed(CancellationException("The user cancelled the copy")),
+            cancelRequested = true,
+        ).toDisplayModel()
+
+        display.state.shouldBeInstanceOf<OperationDisplay.State.Cancelled>()
     }
 }

@@ -50,10 +50,14 @@ class WorkspacePageChromeTest : BaseTest() {
         override val issue = issue
     }
 
-    private fun managedOp(stateFlow: MutableStateFlow<Operation.State>): ManagedOperation {
+    private fun managedOp(
+        stateFlow: MutableStateFlow<Operation.State>,
+        cancelRequestedFlow: MutableStateFlow<Boolean> = MutableStateFlow(false),
+    ): ManagedOperation {
         val op = mockk<ManagedOperation>()
         every { op.id } returns Operation.Id()
         every { op.state } returns stateFlow
+        every { op.cancelRequested } returns cancelRequestedFlow
         every { op.canCancel } returns true
         every { op.metadata } returns mockk {
             every { origin } returns Operation.Metadata.Origin.Explorer(workspaceId)
@@ -286,6 +290,31 @@ class WorkspacePageChromeTest : BaseTest() {
         runCurrent()
 
         emissions.last().operations.single().state.shouldBeInstanceOf<OperationDisplay.State.Waiting>()
+        collector.cancel()
+    }
+
+    @Test
+    fun `operations re-emits when only the cancel request changes`() = runTest {
+        val stateFlow = MutableStateFlow<Operation.State>(
+            Operation.State.Queued(startedAt = Clock.System.now()),
+        )
+        val cancelRequestedFlow = MutableStateFlow(false)
+        val operationsManager = mockk<OperationsManager>().apply {
+            every { operations } returns MutableStateFlow(listOf(managedOp(stateFlow, cancelRequestedFlow)))
+            every { completedOperations } returns MutableSharedFlow()
+        }
+        val chrome = backgroundScope.chrome(operationsManager)
+
+        val emissions = mutableListOf<OperationsDisplayState>()
+        val collector = chrome.operations.onEach { emissions.add(it) }.launchIn(backgroundScope)
+        runCurrent()
+
+        emissions.last().operations.single().state shouldBe OperationDisplay.State.Queued
+
+        cancelRequestedFlow.value = true
+        runCurrent()
+
+        emissions.last().operations.single().state shouldBe OperationDisplay.State.Cancelling
         collector.cancel()
     }
 

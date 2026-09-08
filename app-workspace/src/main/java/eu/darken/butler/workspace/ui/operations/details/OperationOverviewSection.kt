@@ -117,6 +117,7 @@ private fun OperationOverviewGrid(
             is OperationDisplay.State.Queued -> stringResource(R.string.operations_state_queued)
             is OperationDisplay.State.Running -> stringResource(R.string.operations_state_running)
             is OperationDisplay.State.Waiting -> stringResource(R.string.operations_state_waiting)
+            is OperationDisplay.State.Cancelling -> stringResource(R.string.operations_state_cancelling)
             is OperationDisplay.State.Completed -> stringResource(R.string.operations_state_successful)
             is OperationDisplay.State.Failed -> stringResource(R.string.operations_state_failed)
             is OperationDisplay.State.Cancelled -> stringResource(R.string.operations_state_cancelled)
@@ -137,6 +138,7 @@ private fun OperationOverviewGrid(
         durationValue = when (operation.state) {
             is OperationDisplay.State.Queued -> stringResource(R.string.operations_details_duration_not_started)
             is OperationDisplay.State.Running,
+            is OperationDisplay.State.Cancelling,
             is OperationDisplay.State.Waiting -> formatDuration(Clock.System.now() - operation.startedAt)
             is OperationDisplay.State.Completed -> formatDuration(operation.state.completedAt - operation.startedAt)
             is OperationDisplay.State.Failed -> formatDuration(operation.state.completedAt - operation.startedAt)

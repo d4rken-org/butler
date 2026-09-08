@@ -40,6 +40,7 @@ fun FloatingBarScope.WorkspaceOperationsFloatingBar(
         when (op.state) {
             is OperationDisplay.State.Queued,
             is OperationDisplay.State.Running,
+            is OperationDisplay.State.Cancelling,
             is OperationDisplay.State.Waiting -> true
 
             is OperationDisplay.State.Completed,

@@ -21,11 +21,12 @@ internal val operationDisplayComparator: Comparator<OperationDisplay> =
     compareBy<OperationDisplay> { op ->
         when (op.state) {
             is OperationDisplay.State.Running -> 0
-            is OperationDisplay.State.Waiting -> 1
-            is OperationDisplay.State.Queued -> 2
-            is OperationDisplay.State.Failed -> 3
-            is OperationDisplay.State.Cancelled -> 4
-            is OperationDisplay.State.Completed -> 5
+            is OperationDisplay.State.Cancelling -> 1
+            is OperationDisplay.State.Waiting -> 2
+            is OperationDisplay.State.Queued -> 3
+            is OperationDisplay.State.Failed -> 4
+            is OperationDisplay.State.Cancelled -> 5
+            is OperationDisplay.State.Completed -> 6
         }
     }.thenByDescending { it.startedAt }
 

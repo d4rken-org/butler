@@ -141,15 +141,18 @@ fun OperationsBar(
                     !isExpanded -> {
                         // When collapsed, prioritize operations needing attention
                         val waitingOps = operations.filter { it.state is OperationDisplay.State.Waiting }
-                        val runningOps = operations.filter { it.state is OperationDisplay.State.Running }
+                        val ongoingOps = operations.filter {
+                            it.state is OperationDisplay.State.Running || it.state is OperationDisplay.State.Cancelling
+                        }
                         when {
                             // Priority 1: Waiting operations (require user input, blocking)
                             waitingOps.isNotEmpty() -> {
                                 if (waitingOps.size > 1) waitingOps.reversed() else waitingOps
                             }
-                            // Priority 2: Running operations
-                            runningOps.isNotEmpty() -> {
-                                if (runningOps.size > 1) runningOps.reversed() else runningOps
+                            // Priority 2: Ongoing operations, cancelling included: the row the user
+                            // just cancelled must not vanish while the work unwinds.
+                            ongoingOps.isNotEmpty() -> {
+                                if (ongoingOps.size > 1) ongoingOps.reversed() else ongoingOps
                             }
                             // Fallback: Most recently started operation
                             else -> {
