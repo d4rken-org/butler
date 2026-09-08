@@ -245,18 +245,25 @@ constructor(
                 var position = if (append) file.size() else 0L
                 val stream =
                     object : OutputStream() {
+                        private var needsFlush = true
+
                         override fun write(value: Int) = write(byteArrayOf(value.toByte()), 0, 1)
 
                         override fun write(bytes: ByteArray, offset: Int, length: Int) {
                             try {
                                 file.write(position, bytes, offset, length)
                                 position += length
+                                if (length > 0) needsFlush = true
                             } catch (error: Exception) {
                                 throw SmbStatusMapper.mapOperation(error, path, "write", true)
                             }
                         }
 
-                        override fun flush() = file.flush()
+                        override fun flush() {
+                            if (!needsFlush) return
+                            file.flush()
+                            needsFlush = false
+                        }
 
                         override fun close() {
                             try {
@@ -266,7 +273,7 @@ constructor(
                             }
                         }
                     }
-                java.io.BufferedOutputStream(stream, 256 * 1024)
+                java.io.BufferedOutputStream(stream, 1024 * 1024)
             } catch (error: Throwable) {
                 runCatching { file.close() }
                     .exceptionOrNull()

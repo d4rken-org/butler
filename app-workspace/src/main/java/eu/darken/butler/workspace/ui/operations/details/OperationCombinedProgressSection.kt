@@ -1,11 +1,13 @@
 package eu.darken.butler.workspace.ui.operations.details
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -16,8 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.R
@@ -68,11 +74,14 @@ private fun OperationProgressDisplay(
                 // Header with title and percentage
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
+                        modifier = Modifier.weight(1f),
                         text = progressData.primary.asComposable(),
+                        maxLines = 1,
+                        overflow = TextOverflow.MiddleEllipsis,
                         style = if (isPrimary) {
                             MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
                         } else {
@@ -86,6 +95,8 @@ private fun OperationProgressDisplay(
                     )
                     Text(
                         text = count.displayValue.asComposable(),
+                        maxLines = 1,
+                        softWrap = false,
                         style = if (isPrimary) {
                             MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                         } else {
@@ -191,6 +202,28 @@ private fun OperationProgressDisplay(
                     overflow = TextOverflow.MiddleEllipsis,
                 )
             }
+        }
+    }
+}
+
+@Preview2
+@Preview(name = "Large font", fontScale = 1.5f)
+@Composable
+private fun OperationCombinedProgressSectionLongFilenamePreview() {
+    PreviewWrapper {
+        Box(modifier = Modifier.width(320.dp)) {
+            OperationCombinedProgressSection(
+                primaryProgress = Progress.Data(
+                    primary = "Copying items".toCaString(),
+                    secondary = "6.5 MB/s · 14 seconds remaining.".toCaString(),
+                    count = Progress.Count.Counter(4, 5),
+                ),
+                secondaryProgress = Progress.Data(
+                    primary = "termux-app_v0.118.3+github-debug_universal.apk".toCaString(),
+                    secondary = "7.1 MB/s · 13 seconds remaining.".toCaString(),
+                    count = Progress.Count.Size(25_000_000, 118_000_000),
+                ),
+            )
         }
     }
 }
