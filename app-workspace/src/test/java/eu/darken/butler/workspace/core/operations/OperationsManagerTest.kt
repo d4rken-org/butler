@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -235,4 +236,50 @@ class OperationsManagerTest : BaseTest() {
         managed.claimCompletionEmission() shouldBe true
         managed.claimCompletionEmission() shouldBe false
     }
+
+    @Test
+    fun `a cancel is announced before the operation has finished unwinding`() = runTest {
+        val manager = create()
+        val managed = manager.submitManaged(FakeOperation(workspaceId))
+        runCurrent()
+
+        managed.cancelRequested.value shouldBe false
+
+        managed.cancel()
+
+        managed.cancelRequested.value shouldBe true
+    }
+
+    @Test
+    fun `an operation cancelled while queued can no longer be cancelled`() = runTest {
+        // Deliberately never started: a started operation reaches Completed through the flow's own
+        // onCompletion, which makes canCancel false regardless of the cancel request.
+        val managed = ManagedOperation(
+            id = Operation.Id(),
+            operation = FakeOperation(workspaceId),
+            parentScope = backgroundScope,
+        )
+        managed.state.value.shouldBeInstanceOf<Operation.State.Queued>()
+        managed.canCancel shouldBe true
+
+        managed.cancel()
+
+        managed.canCancel shouldBe false
+    }
+
+    @Test
+    fun `an operation cancelled before its collector runs still reaches a terminal state`() =
+        runTest {
+            // Standard, not unconfined: an unconfined dispatcher runs the collector eagerly and the
+            // flow's own onCompletion would publish the terminal state instead.
+            val manager = OperationsManager(TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
+            val managed = manager.submitManaged(FakeOperation(workspaceId))
+
+            manager.cancel(managed.id)
+            runCurrent()
+
+            val state = managed.state.value.shouldBeInstanceOf<Operation.State.Completed>()
+            state.error.shouldBeInstanceOf<CancellationException>()
+            manager.stateObservers.keys.shouldBeEmpty()
+        }
 }

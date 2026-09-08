@@ -43,6 +43,13 @@ class ManagedOperation(
     )
     val state: StateFlow<Operation.State> = _state
 
+    /**
+     * Set by [cancel] and never by [Operation.perform], so no state the operation emits can flip it
+     * back and make a cancelled operation read as running again.
+     */
+    private val _cancelRequested = MutableStateFlow(false)
+    val cancelRequested: StateFlow<Boolean> = _cancelRequested
+
     val metadata: Operation.Metadata = operation.metadata
 
     private val completionEmitted = AtomicBoolean(false)
@@ -55,7 +62,7 @@ class ManagedOperation(
     fun claimCompletionEmission(): Boolean = completionEmitted.compareAndSet(false, true)
 
     val canCancel: Boolean
-        get() = metadata.isCancellable && when (state.value) {
+        get() = metadata.isCancellable && !_cancelRequested.value && when (state.value) {
             is Operation.State.Queued -> true  // Can cancel before it starts
             is Operation.State.Active -> scope.coroutineContext[Job]?.isActive == true  // Can cancel if running
             is Operation.State.Waiting -> scope.coroutineContext[Job]?.isActive == true  // Can cancel if waiting
@@ -124,11 +131,26 @@ class ManagedOperation(
         // Fires exactly once when the job terminates for any reason — normal completion, error, or
         // cancellation, INCLUDING cancellation before perform() ever dispatched — and only after the
         // flow's own finalizers have run, so it never wipes state mid-operation.
-        job.invokeOnCompletion { runCatching { operation.onDiscarded() } }
+        job.invokeOnCompletion { cause ->
+            // A cancellation that lands before the collector body runs leaves the flow's own
+            // onCompletion unreachable, so nothing would ever publish a terminal state.
+            if (cause is CancellationException && _state.value !is Operation.State.Completed) {
+                log(tag, INFO) { "Operation $id was cancelled before it started collecting" }
+                _state.value = object : Operation.State.Completed {
+                    override val startedAt: Instant = startTime
+                    override val completedAt: Instant = Clock.System.now()
+                    override val summary: CaString = R.string.general_result_user_cancel_msg.toCaString()
+                    override val report: Operation.Report? = null
+                    override val error: Throwable = cause
+                }
+            }
+            runCatching { operation.onDiscarded() }
+        }
     }
 
     fun cancel() {
         log(tag) { "cancel()" }
+        _cancelRequested.value = true
         scope.cancel()
     }
 }

@@ -21,7 +21,9 @@ fun Flow<List<ManagedOperation>>.withStateUpdates(): Flow<List<ManagedOperation>
     flatMapLatest { operations ->
         when {
             operations.isEmpty() -> flowOf(operations)
-            else -> kotlinCombine(operations.map { it.state }) { _ -> operations }
+            else -> kotlinCombine(
+                operations.flatMap { listOf<Flow<Any>>(it.state, it.cancelRequested) }
+            ) { _ -> operations }
         }
     }
 
