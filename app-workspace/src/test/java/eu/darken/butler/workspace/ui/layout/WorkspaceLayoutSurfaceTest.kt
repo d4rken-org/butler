@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.layout
 
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
@@ -45,6 +46,44 @@ class WorkspaceLayoutSurfaceTest : BaseTest() {
         val encoded = Json.encodeToString(WorkspacePanelMode.serializer(), WorkspacePanelMode.ADAPTIVE)
         encoded shouldBe "\"ADAPTIVE\""
         Json.decodeFromString(WorkspacePanelMode.serializer(), encoded) shouldBe WorkspacePanelMode.ADAPTIVE
+    }
+
+    @Test
+    fun `a small window offers only the single rail geometry`() {
+        offeredGeometries(360.dp, 780.dp, WorkspacePanelMode.AUTO) shouldBe listOf(WorkspacePanelMode.SINGLE_RAIL)
+    }
+
+    @Test
+    fun `a phone offers the dual that splits its long side`() {
+        offeredGeometries(915.dp, 412.dp, WorkspacePanelMode.AUTO) shouldBe listOf(
+            WorkspacePanelMode.SINGLE_RAIL,
+            WorkspacePanelMode.DUAL_VERTICAL,
+        )
+        offeredGeometries(412.dp, 915.dp, WorkspacePanelMode.AUTO) shouldBe listOf(
+            WorkspacePanelMode.SINGLE_RAIL,
+            WorkspacePanelMode.DUAL_HORIZONTAL,
+        )
+    }
+
+    @Test
+    fun `a tablet offers both duals and the triples`() {
+        offeredGeometries(1280.dp, 800.dp, WorkspacePanelMode.AUTO) shouldBe listOf(
+            WorkspacePanelMode.SINGLE_RAIL,
+            WorkspacePanelMode.DUAL_VERTICAL,
+            WorkspacePanelMode.DUAL_HORIZONTAL,
+            WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT,
+            WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT,
+        )
+        offeredGeometries(1200.dp, 900.dp, WorkspacePanelMode.AUTO) shouldBe ADAPTIVE_GEOMETRIES
+    }
+
+    @Test
+    fun `the stored geometry is always offered`() {
+        offeredGeometries(412.dp, 915.dp, WorkspacePanelMode.QUAD_GRID) shouldBe listOf(
+            WorkspacePanelMode.SINGLE_RAIL,
+            WorkspacePanelMode.DUAL_HORIZONTAL,
+            WorkspacePanelMode.QUAD_GRID,
+        )
     }
 
     /** The icon getters build a fresh instance per call, so compare by name. */

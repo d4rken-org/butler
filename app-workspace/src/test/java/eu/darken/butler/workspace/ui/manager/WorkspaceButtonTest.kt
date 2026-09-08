@@ -475,6 +475,7 @@ class WorkspaceButtonTest : ComposeTest() {
     }
 
     @Test
+    @Config(qualifiers = "w1200dp-h900dp")
     fun `the layout entry opens a dialog listing Automatic and the six geometries`() {
         openLayoutDialog(RecordingButtonProvider(WorkspaceButtonViewModel.State()))
 
@@ -492,6 +493,7 @@ class WorkspaceButtonTest : ComposeTest() {
     }
 
     @Test
+    @Config(qualifiers = "w412dp-h915dp-port")
     fun `picking a geometry writes the portrait setting in portrait`() {
         val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
         openLayoutDialog(provider)
@@ -503,14 +505,14 @@ class WorkspaceButtonTest : ComposeTest() {
     }
 
     @Test
-    @Config(qualifiers = "land")
+    @Config(qualifiers = "w915dp-h412dp-land")
     fun `picking a geometry writes the landscape setting in landscape`() {
         val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
         openLayoutDialog(provider)
 
-        composeTestRule.onNodeWithText("Dual horizontal").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("Dual vertical").performScrollTo().performClick()
 
-        provider.panelModes shouldBe listOf(true to WorkspacePanelMode.DUAL_HORIZONTAL)
+        provider.panelModes shouldBe listOf(true to WorkspacePanelMode.DUAL_VERTICAL)
     }
 
     /** The selectable row merges its descendants, so the label resolves to the row itself. */
@@ -524,5 +526,32 @@ class WorkspaceButtonTest : ComposeTest() {
 
         composeTestRule.onNodeWithText("Dual vertical").assertIsSelected()
         composeTestRule.onNodeWithText("Automatic").assertIsNotSelected()
+    }
+
+    @Test
+    @Config(qualifiers = "w412dp-h915dp-port")
+    fun `a phone in portrait is offered only the geometries it fits`() {
+        openLayoutDialog(RecordingButtonProvider(WorkspaceButtonViewModel.State()))
+
+        composeTestRule.onNodeWithText("Automatic").assertExists()
+        composeTestRule.onNodeWithText("Single with tab rail").assertExists()
+        composeTestRule.onNodeWithText("Dual horizontal").assertExists()
+
+        composeTestRule.onNodeWithText("Dual vertical").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Triple sidebar left").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Triple sidebar right").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Quad grid").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a stored geometry outside the window budget is still listed and marked`() {
+        openLayoutDialog(
+            RecordingButtonProvider(
+                WorkspaceButtonViewModel.State(portraitPanelMode = WorkspacePanelMode.QUAD_GRID)
+            )
+        )
+
+        composeTestRule.onNodeWithText("Quad grid").assertIsSelected()
+        composeTestRule.onNodeWithText("Triple sidebar left").assertDoesNotExist()
     }
 }

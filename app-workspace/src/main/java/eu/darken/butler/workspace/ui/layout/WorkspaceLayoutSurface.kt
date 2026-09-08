@@ -3,6 +3,8 @@ package eu.darken.butler.workspace.ui.layout
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 
@@ -57,6 +59,32 @@ val ADAPTIVE_GEOMETRIES: List<WorkspacePanelMode> = listOf(
 )
 
 val WorkspacePanelMode.isPinnedGeometry: Boolean get() = this in ADAPTIVE_GEOMETRIES
+
+/**
+ * The geometries a window can host, from its long and short side so that rotating never changes
+ * the set; only which dual splits the long side depends on orientation. The stored geometry is
+ * always listed so the marked row stays visible after a window shrinks.
+ */
+fun offeredGeometries(width: Dp, height: Dp, stored: WorkspacePanelMode): List<WorkspacePanelMode> {
+    val long = maxOf(width, height)
+    val short = minOf(width, height)
+    val budget: List<WorkspacePanelMode> = when {
+        long < 840.dp -> listOf(WorkspacePanelMode.SINGLE_RAIL)
+        short < 480.dp -> listOf(
+            WorkspacePanelMode.SINGLE_RAIL,
+            if (width > height) WorkspacePanelMode.DUAL_VERTICAL else WorkspacePanelMode.DUAL_HORIZONTAL,
+        )
+        short < 840.dp -> listOf(
+            WorkspacePanelMode.SINGLE_RAIL,
+            WorkspacePanelMode.DUAL_VERTICAL,
+            WorkspacePanelMode.DUAL_HORIZONTAL,
+            WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT,
+            WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT,
+        )
+        else -> ADAPTIVE_GEOMETRIES
+    }
+    return ADAPTIVE_GEOMETRIES.filter { it in budget || it == stored }
+}
 
 /** The Settings item's value: the surface, with the pinned geometry named where there is one. */
 @Composable

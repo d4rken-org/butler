@@ -20,6 +20,7 @@ fun WorkspaceLayoutDialog(
     modifier: Modifier = Modifier,
     visible: Boolean,
     currentMode: WorkspacePanelMode,
+    geometries: List<WorkspacePanelMode>,
     isLandscape: Boolean = false,
     onDismiss: () -> Unit,
     onSelect: (WorkspacePanelMode) -> Unit,
@@ -28,7 +29,7 @@ fun WorkspaceLayoutDialog(
     LayoutPickerDialog(
         modifier = modifier,
         title = stringResource(R.string.workspace_settings_layout_title),
-        options = (listOf(WorkspacePanelMode.AUTO) + ADAPTIVE_GEOMETRIES).map { mode ->
+        options = (listOf(WorkspacePanelMode.AUTO) + geometries).map { mode ->
             LayoutPickerOption(
                 icon = mode.icon(landscape = isLandscape),
                 label = mode.label(),
@@ -48,6 +49,7 @@ private fun WorkspaceLayoutDialogPreview() {
     WorkspaceLayoutDialog(
         visible = true,
         currentMode = WorkspacePanelMode.DUAL_HORIZONTAL,
+        geometries = ADAPTIVE_GEOMETRIES,
         onDismiss = {},
         onSelect = {},
     )

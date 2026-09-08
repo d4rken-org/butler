@@ -51,6 +51,7 @@ import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.ui.layout.offeredGeometries
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults.sizeCompact
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults.sizeDefault
 
@@ -71,6 +72,7 @@ fun WorkspaceButton(
 
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val currentPanelMode = if (isLandscape) state?.landscapePanelMode else state?.portraitPanelMode
+    val windowSizeInfo = rememberWindowSizeInfo()
 
     var expanded by remember { mutableStateOf(false) }
     var showCloseAllDialog by remember { mutableStateOf(false) }
@@ -140,6 +142,11 @@ fun WorkspaceButton(
         WorkspaceLayoutDialog(
             visible = showLayoutDialog,
             currentMode = currentPanelMode ?: WorkspacePanelMode.AUTO,
+            geometries = offeredGeometries(
+                width = windowSizeInfo.widthDp,
+                height = windowSizeInfo.heightDp,
+                stored = currentPanelMode ?: WorkspacePanelMode.AUTO,
+            ),
             isLandscape = isLandscape,
             onDismiss = { showLayoutDialog = false },
             onSelect = { mode ->
