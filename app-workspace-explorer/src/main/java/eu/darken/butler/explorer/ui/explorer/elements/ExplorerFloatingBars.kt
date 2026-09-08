@@ -71,6 +71,8 @@ internal fun FloatingBarScope.ExplorerTopBars(
             onCommitEditedPath = { current, edited -> vm?.navigateToEditedPath(current, edited) },
             onSetAsHome = { target -> vm?.setAsDefaultStartLocation(target) },
             onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
+            onToggleFavorite = { path -> vm?.toggleFavorite(path) },
+            favoritePaths = state.favoritePaths,
             safLocationManager = vm?.safLocationManager,
             pickerSelection = state.pickerConfig?.selection,
             selectionCount = state.selectionState.selectedItems.size,

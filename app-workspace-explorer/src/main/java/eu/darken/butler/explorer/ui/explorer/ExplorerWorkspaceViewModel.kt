@@ -800,6 +800,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onFavoriteFeedbackAction() = favoritesController.onFeedbackAction()
 
+    /** Breadcrumb-menu favorite toggle. Reaches any ancestor crumb, not just the listed folder. */
+    fun toggleFavorite(path: APath<*>) = favoritesController.toggleCurrent(path)
+
     fun clearSelection() = selection.clear()
 
     fun selectAll() = selection.selectAll()

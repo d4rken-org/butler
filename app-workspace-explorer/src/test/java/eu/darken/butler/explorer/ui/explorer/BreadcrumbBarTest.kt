@@ -296,6 +296,101 @@ class BreadcrumbBarTest : ComposeTest() {
     }
 
     @Test
+    fun `long press on directory breadcrumb offers favoriting, labelled by current state`() {
+        var toggled: APath<*>? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                BreadcrumbBar(
+                    breadcrumbs = listOf(
+                        homeBreadcrumb,
+                        directoryBreadcrumb("storage", "/storage"),
+                    ),
+                    onBreadcrumbClick = {},
+                    onToggleFavorite = { toggled = it },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("storage").performTouchInput { longClick() }
+        composeTestRule.onNodeWithText("Add to favorites").performClick()
+
+        toggled?.path shouldBe "/storage"
+        composeTestRule.onNodeWithText("Add to favorites").assertDoesNotExist()
+    }
+
+    @Test
+    fun `an already-favorited crumb offers removal instead`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                BreadcrumbBar(
+                    breadcrumbs = listOf(
+                        homeBreadcrumb,
+                        directoryBreadcrumb("storage", "/storage"),
+                    ),
+                    onBreadcrumbClick = {},
+                    onToggleFavorite = {},
+                    favoritePaths = listOf(LocalPath.build("/storage")),
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("storage").performTouchInput { longClick() }
+
+        composeTestRule.onNodeWithText("Remove from favorites").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Add to favorites").assertDoesNotExist()
+    }
+
+    @Test
+    fun `an ancestor crumb can be favorited without navigating to it`() {
+        var toggled: APath<*>? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                BreadcrumbBar(
+                    breadcrumbs = listOf(
+                        homeBreadcrumb,
+                        directoryBreadcrumb("storage", "/storage"),
+                        directoryBreadcrumb("Documents", "/storage/Documents"),
+                    ),
+                    onBreadcrumbClick = {},
+                    onToggleFavorite = { toggled = it },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("storage").performTouchInput { longClick() }
+        composeTestRule.onNodeWithText("Add to favorites").performClick()
+
+        toggled?.path shouldBe "/storage"
+    }
+
+    @Test
+    fun `a non-directory crumb opens its menu but offers no favoriting`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                BreadcrumbBar(
+                    breadcrumbs = listOf(
+                        homeBreadcrumb,
+                        directoryBreadcrumb("storage", "/storage"),
+                    ),
+                    onBreadcrumbClick = {},
+                    // Provided so the menu demonstrably opens - otherwise an absent favorite entry
+                    // would also be satisfied by no menu at all
+                    onSetAsHome = {},
+                    onToggleFavorite = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("Home").performTouchInput { longClick() }
+
+        composeTestRule.onNodeWithText("Set as home").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Add to favorites").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Remove from favorites").assertDoesNotExist()
+    }
+
+    @Test
     fun `set as home from context menu fires callback and closes menu`() {
         var homeTarget: ExplorerNavigation.Target? = null
 
