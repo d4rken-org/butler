@@ -8,8 +8,10 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.workspace.ui.modal.PaneLayer
@@ -50,6 +52,54 @@ class RenameDialogTest : ComposeTest() {
             result?.newName shouldBe "renamed.txt"
             result?.item shouldBe item
         }
+    }
+
+    @Test
+    fun `confirms a new name from the keyboard action`() {
+        var result: RenameResult? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                    RenameDialog(
+                        item = item,
+                        currentName = "file.txt",
+                        onDismiss = {},
+                        onConfirm = { result = it },
+                    )
+                }
+            }
+        }
+
+        composeTestRule.onNode(hasSetTextAction()).performTextReplacement("renamed.txt")
+        composeTestRule.onNode(hasSetTextAction()).performImeAction()
+
+        composeTestRule.runOnIdle {
+            result?.newName shouldBe "renamed.txt"
+            result?.item shouldBe item
+        }
+    }
+
+    @Test
+    fun `the keyboard action does nothing while the name is unchanged`() {
+        var result: RenameResult? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
+                    RenameDialog(
+                        item = item,
+                        currentName = "file.txt",
+                        onDismiss = {},
+                        onConfirm = { result = it },
+                    )
+                }
+            }
+        }
+
+        composeTestRule.onNode(hasSetTextAction()).performImeAction()
+
+        composeTestRule.runOnIdle { result shouldBe null }
     }
 
     @Test

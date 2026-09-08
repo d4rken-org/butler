@@ -1,5 +1,7 @@
 package eu.darken.butler.workspace.ui.issues
 
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -13,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -35,6 +38,10 @@ fun PathIssueRenameDialog(
     val validation = remember(newName) { onValidate(newName) }
     val isError = validation is FilenameValidator.ValidationResult.Invalid
     val trimmedName = remember(newName) { newName.trim() }
+    val canConfirm = trimmedName.isNotBlank() && trimmedName != currentName && !isError
+    val handleConfirm = {
+        if (canConfirm) onConfirm(trimmedName)
+    }
 
     val focusRequester = remember { FocusRequester() }
 
@@ -63,16 +70,14 @@ fun PathIssueRenameDialog(
                         Text(stringResource(eu.darken.butler.common.R.string.general_filename_validation_error, chars))
                     }
                 } else null,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { handleConfirm() }),
             )
         },
         confirmButton = {
             TextButton(
-                onClick = {
-                    if (trimmedName.isNotBlank() && !isError) {
-                        onConfirm(trimmedName)
-                    }
-                },
-                enabled = trimmedName.isNotBlank() && trimmedName != currentName && !isError,
+                onClick = handleConfirm,
+                enabled = canConfirm,
             ) {
                 Text(stringResource(eu.darken.butler.common.R.string.general_rename_action))
             }

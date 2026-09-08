@@ -2,6 +2,8 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -17,6 +19,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -63,6 +66,11 @@ fun RenameDialog(
 
     val validation = remember(textFieldValue.text) { onValidate(textFieldValue.text) }
     val isError = validation is FilenameValidator.ValidationResult.Invalid
+    val trimmedName = remember(textFieldValue.text) { textFieldValue.text.trim() }
+    val canConfirm = trimmedName.isNotBlank() && trimmedName != currentName && !isError
+    val handleConfirm = {
+        if (canConfirm) onConfirm(RenameResult(item, trimmedName))
+    }
 
     // Only pull focus (and with it the keyboard) while this dialog is the layer the user is
     // actually talking to — otherwise it steals input from whatever is on top of it.
@@ -99,20 +107,15 @@ fun RenameDialog(
                             Text(stringResource(CommonR.string.general_filename_validation_error, chars))
                         }
                     } else null,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { handleConfirm() }),
                 )
             }
         },
         confirmButton = {
             TextButton(
-                onClick = {
-                    val newName = textFieldValue.text.trim()
-                    if (newName.isNotBlank() && newName != currentName && !isError) {
-                        onConfirm(RenameResult(item, newName))
-                    }
-                },
-                enabled = textFieldValue.text.trim().isNotBlank() &&
-                    textFieldValue.text.trim() != currentName &&
-                    !isError
+                onClick = handleConfirm,
+                enabled = canConfirm
             ) {
                 Text(stringResource(CommonR.string.general_rename_action))
             }
