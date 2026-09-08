@@ -4,11 +4,13 @@ import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.localized
 import eu.darken.butler.common.files.smb.SmbConnectionTester
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialUnavailableException
 import eu.darken.butler.common.files.smb.SmbLocationInput
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
@@ -18,7 +20,9 @@ import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
+import eu.darken.butler.explorer.ui.explorer.dialogs.RevealedPassword
 import eu.darken.butler.explorer.ui.explorer.dialogs.SmbLocationFormInput
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlin.uuid.Uuid
 
@@ -58,6 +62,28 @@ class ExplorerSmbLocationController(
             return@doLaunch
         }
         dialogs.show(ExplorerDialogState.SmbLocationForm(existing = location))
+    }
+
+    suspend fun revealPassword(form: ExplorerDialogState.SmbLocationForm): RevealedPassword? {
+        log(tag) { "revealPassword(${form.existing?.id})" }
+        if (dialogs.current() !== form) return null
+        val location = form.existing ?: return null
+        if (location.authType != SmbLocation.AuthType.PASSWORD) return null
+        return try {
+            val credential = credentialStore.resolve(location)
+            try {
+                RevealedPassword(String(credential.password))
+            } finally {
+                credential.wipe()
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            val priority = if (e is SmbCredentialUnavailableException) WARN else ERROR
+            log(tag, priority) { "revealPassword(): Stored credential unusable: ${e.asLog()}" }
+            dialogs.showIfCurrent(form, form.copy(error = e.localizedDescription()))
+            null
+        }
     }
 
     fun showRemoveConfirmation(items: List<ExplorerItem.Storage.Network>) {

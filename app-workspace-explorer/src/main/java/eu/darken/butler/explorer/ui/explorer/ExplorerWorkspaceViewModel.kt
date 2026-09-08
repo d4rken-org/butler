@@ -1658,6 +1658,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onSmbLocationFormSubmit(input: SmbLocationFormInput) = smbLocations.onFormSubmit(input)
 
+    suspend fun onRevealSmbFormPassword(form: ExplorerDialogState.SmbLocationForm): RevealedPassword? =
+        withContext(dispatchers.IO) {
+            smbLocations.revealPassword(form)
+        }
+
     /**
      * Puts the stored password of an open network info sheet on screen.
      *

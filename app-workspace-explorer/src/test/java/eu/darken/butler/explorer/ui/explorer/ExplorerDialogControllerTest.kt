@@ -45,6 +45,44 @@ class ExplorerDialogControllerTest : BaseTest() {
     }
 
     @Test
+    fun `an async replacement updates the exact open dialog`() {
+        val controller = controller()
+        val form = ExplorerDialogState.SmbLocationForm()
+        controller.show(form)
+        val replacement = form.copy(isTesting = true)
+
+        controller.showIfCurrent(form, replacement)
+
+        controller.current() shouldBe replacement
+    }
+
+    @Test
+    fun `an async replacement cannot reopen a dismissed dialog`() {
+        val controller = controller()
+        val form = ExplorerDialogState.SmbLocationForm()
+        controller.show(form)
+        controller.dismiss()
+
+        controller.showIfCurrent(form, form.copy(isTesting = true))
+
+        controller.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `an async replacement cannot update an equal but reopened dialog`() {
+        val controller = controller()
+        val form = ExplorerDialogState.SmbLocationForm()
+        controller.show(form)
+        controller.dismiss()
+        val reopened = form.copy()
+        controller.show(reopened)
+
+        controller.showIfCurrent(form, form.copy(isTesting = true))
+
+        (controller.current() === reopened) shouldBe true
+    }
+
+    @Test
     fun `rename event shows dialog and clears selection`() {
         var selectionCleared = false
         val controller = controller(clearSelection = { selectionCleared = true })

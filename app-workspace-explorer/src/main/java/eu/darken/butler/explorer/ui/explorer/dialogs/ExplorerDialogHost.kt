@@ -60,6 +60,7 @@ fun ExplorerDialogHost(
                 state = dialogState,
                 onDismiss = { vm?.dismissDialog() },
                 onSubmit = { input -> vm?.onSmbLocationFormSubmit(input) },
+                onRevealPassword = { vm?.onRevealSmbFormPassword(dialogState) },
                 topInset = topInset,
                 bottomInset = bottomInset,
             )

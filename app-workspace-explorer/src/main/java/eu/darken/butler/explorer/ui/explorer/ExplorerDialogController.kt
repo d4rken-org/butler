@@ -30,6 +30,11 @@ class ExplorerDialogController(
         dialogStateFlow.value = dialog
     }
 
+    /** Updates only this exact dialog instance, including when an async result arrives after reopening. */
+    fun showIfCurrent(expected: ExplorerDialogState, replacement: ExplorerDialogState) {
+        dialogStateFlow.update { current -> if (current === expected) replacement else current }
+    }
+
     fun dismiss() {
         dialogStateFlow.value = ExplorerDialogState.None
     }

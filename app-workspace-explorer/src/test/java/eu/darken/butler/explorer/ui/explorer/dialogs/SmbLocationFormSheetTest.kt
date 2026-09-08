@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -15,6 +16,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CompletableDeferred
 import org.junit.Test
 import org.robolectric.annotation.Config
 import testhelpers.ComposeTest
@@ -40,7 +42,10 @@ class SmbLocationFormSheetTest : ComposeTest() {
         updatedAt = Instant.fromEpochMilliseconds(0),
     )
 
-    private fun setSheetContent(state: ExplorerDialogState.SmbLocationForm) {
+    private fun setSheetContent(
+        state: ExplorerDialogState.SmbLocationForm,
+        onRevealPassword: suspend () -> RevealedPassword? = { null },
+    ) {
         composeTestRule.setContent {
             PreviewWrapper {
                 PaneLayerHost(modifier = Modifier.fillMaxSize(), paneFocused = true) {
@@ -48,6 +53,7 @@ class SmbLocationFormSheetTest : ComposeTest() {
                         state = state,
                         onDismiss = {},
                         onSubmit = { submitted = it },
+                        onRevealPassword = onRevealPassword,
                     )
                 }
             }
@@ -135,6 +141,7 @@ class SmbLocationFormSheetTest : ComposeTest() {
 
         composeTestRule.onNodeWithText("Connecting…").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsNotEnabled()
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().assertIsNotEnabled()
     }
 
     @Test
@@ -151,6 +158,127 @@ class SmbLocationFormSheetTest : ComposeTest() {
         submitted!!.password shouldBe "hunter2"
         submitted!!.rememberCredential shouldBe true
     }
+
+    @Test
+    fun `show password reveals the saved password without replacing it on save`() {
+        var reveals = 0
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored)) {
+            reveals++
+            RevealedPassword("saved-password")
+        }
+        reveals shouldBe 0
+
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("saved-password").assertIsDisplayed()
+        reveals shouldBe 1
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().performClick()
+        submitted!!.password shouldBe ""
+
+        composeTestRule.onNodeWithContentDescription("Hide password").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("saved-password").assertDoesNotExist()
+    }
+
+    @Test
+    fun `editing the revealed password submits its replacement`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored)) {
+            RevealedPassword("saved-password")
+        }
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("saved-password").performTextReplacement("replacement")
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().performClick()
+
+        submitted!!.password shouldBe "replacement"
+    }
+
+    @Test
+    fun `show password reveals newly typed text without reading the vault`() {
+        var reveals = 0
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored)) {
+            reveals++
+            RevealedPassword("saved-password")
+        }
+        composeTestRule.onNodeWithText("Password").performScrollTo().performTextInput("new-password")
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().performClick()
+
+        composeTestRule.onNodeWithText("new-password").assertIsDisplayed()
+        reveals shouldBe 0
+    }
+
+    @Test
+    fun `a delayed reveal does not overwrite a password typed while loading`() {
+        val pending = CompletableDeferred<RevealedPassword?>()
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored)) { pending.await() }
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("Password").performScrollTo().performTextInput("replacement")
+        composeTestRule.runOnIdle { pending.complete(RevealedPassword("saved-password")) }
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().performClick()
+
+        composeTestRule.onNodeWithText("replacement").assertIsDisplayed()
+        composeTestRule.onNodeWithText("saved-password").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a failed reveal leaves the controls usable and the password hidden`() {
+        val pending = CompletableDeferred<RevealedPassword?>()
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored)) { pending.await() }
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().performClick()
+        composeTestRule.onNodeWithContentDescription("Show password").assertIsNotEnabled()
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsNotEnabled()
+
+        composeTestRule.runOnIdle { pending.complete(null) }
+
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().assertIsEnabled()
+        composeTestRule.onNodeWithContentDescription("Hide password").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsEnabled()
+    }
+
+    @Test
+    fun `changing the account drops the revealed password until explicitly revealed again`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored)) {
+            RevealedPassword("saved-password")
+        }
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("saved-password").assertIsDisplayed()
+
+        composeTestRule.onNodeWithText("darken").performScrollTo().performTextReplacement("someone-else")
+        composeTestRule.onNodeWithText("saved-password").assertDoesNotExist()
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().assertIsEnabled()
+        composeTestRule.onNodeWithText("someone-else").performScrollTo().performTextReplacement("darken")
+        composeTestRule.onNodeWithText("saved-password").assertDoesNotExist()
+
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("saved-password").assertIsDisplayed()
+    }
+
+    @Test
+    fun `switching to guest while loading discards the pending reveal`() {
+        val pending = CompletableDeferred<RevealedPassword?>()
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored)) { pending.await() }
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("Guest").performScrollTo().performClick()
+        composeTestRule.runOnIdle { pending.complete(RevealedPassword("saved-password")) }
+        composeTestRule.onNodeWithText("Username and password").performScrollTo().performClick()
+
+        composeTestRule.onNodeWithText("saved-password").assertDoesNotExist()
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().assertIsEnabled()
+    }
+
+    @Test
+    fun `clearing a replacement lets show password reveal the saved credential again`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored)) {
+            RevealedPassword("saved-password")
+        }
+        composeTestRule.onNodeWithText("Password").performScrollTo().performTextInput("replacement")
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("replacement").performTextReplacement("")
+
+        composeTestRule.onNodeWithContentDescription("Show password").performScrollTo().performClick()
+
+        composeTestRule.onNodeWithText("saved-password").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().performClick()
+        submitted!!.password shouldBe ""
+    }
+
 }
 
 private fun androidx.compose.ui.test.junit4.ComposeContentTestRule.onAllNodesWithTextCount(text: String): Int =

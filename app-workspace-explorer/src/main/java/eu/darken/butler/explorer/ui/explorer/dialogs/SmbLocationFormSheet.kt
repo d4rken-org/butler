@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +44,7 @@ import eu.darken.butler.common.files.smb.SmbLocationInput
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import kotlinx.coroutines.launch
 import eu.darken.butler.common.R as CommonR
 
 /** Raw field contents, validated by [SmbLocationInput] before anything is stored. */
@@ -64,6 +66,7 @@ fun SmbLocationFormSheet(
     state: ExplorerDialogState.SmbLocationForm,
     onDismiss: () -> Unit,
     onSubmit: (SmbLocationFormInput) -> Unit,
+    onRevealPassword: suspend () -> RevealedPassword? = { null },
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -79,7 +82,9 @@ fun SmbLocationFormSheet(
     var username by remember { mutableStateOf(existing?.username.orEmpty()) }
     var domain by remember { mutableStateOf(existing?.domain.orEmpty()) }
     var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+    var passwordEdited by remember { mutableStateOf(false) }
+    var isRevealing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     var rememberCredential by remember { mutableStateOf(existing?.rememberCredential ?: true) }
 
     val usesPassword = authType == SmbLocation.AuthType.PASSWORD
@@ -89,7 +94,11 @@ fun SmbLocationFormSheet(
         username == existing.username.orEmpty() &&
         SmbLocationInput.normalizeDomain(domain) == SmbLocationInput.normalizeDomain(existing.domain) &&
         rememberCredential == existing.rememberCredential
-    val canSubmit = !state.isTesting &&
+    var passwordVisible by remember(usesPassword, keepsStoredCredential) { mutableStateOf(false) }
+    var revealedPassword by remember(usesPassword, keepsStoredCredential) {
+        mutableStateOf<RevealedPassword?>(null)
+    }
+    val canSubmit = !state.isTesting && !isRevealing &&
         host.isNotBlank() &&
         share.isNotBlank() &&
         (!usesPassword || password.isNotEmpty() || keepsStoredCredential)
@@ -191,8 +200,15 @@ fun SmbLocationFormSheet(
                 )
 
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = if (passwordVisible && !passwordEdited && keepsStoredCredential) {
+                        revealedPassword?.value ?: password
+                    } else password,
+                    onValueChange = {
+                        password = it
+                        passwordEdited = it.isNotEmpty()
+                        if (it.isEmpty()) passwordVisible = false
+                        revealedPassword = null
+                    },
                     label = { Text(stringResource(R.string.explorer_network_form_password_label)) },
                     supportingText = if (existing != null) {
                         { Text(stringResource(R.string.explorer_network_form_password_kept_hint)) }
@@ -205,14 +221,42 @@ fun SmbLocationFormSheet(
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        IconButton(
+                            enabled = !isRevealing && !state.isTesting,
+                            onClick = {
+                                if (passwordVisible) {
+                                    passwordVisible = false
+                                    revealedPassword = null
+                                } else if (!passwordEdited && keepsStoredCredential &&
+                                    existing.authType == SmbLocation.AuthType.PASSWORD
+                                ) {
+                                    isRevealing = true
+                                    scope.launch {
+                                        try {
+                                            val revealed = onRevealPassword()
+                                            if (!passwordEdited) {
+                                                revealedPassword = revealed
+                                                passwordVisible = revealed != null
+                                            }
+                                        } finally {
+                                            isRevealing = false
+                                        }
+                                    }
+                                } else {
+                                    passwordVisible = true
+                                }
+                            },
+                        ) {
                             Icon(
                                 imageVector = if (passwordVisible) {
                                     Icons.TwoTone.VisibilityOff
                                 } else {
                                     Icons.TwoTone.Visibility
                                 },
-                                contentDescription = null,
+                                contentDescription = stringResource(
+                                    if (passwordVisible) R.string.explorer_info_network_password_hide_action
+                                    else R.string.explorer_info_network_password_show_action
+                                ),
                             )
                         }
                     },
@@ -315,6 +359,7 @@ private fun SmbLocationFormSheetEditPreview() {
         state = ExplorerDialogState.SmbLocationForm(existing = previewLocation()),
         onDismiss = {},
         onSubmit = {},
+        onRevealPassword = { RevealedPassword("hunter2") },
     )
 }
 
