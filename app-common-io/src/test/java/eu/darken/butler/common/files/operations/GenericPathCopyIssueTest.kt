@@ -1,21 +1,30 @@
 package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
+import eu.darken.butler.common.files.local.routing.AccessIntent
+import eu.darken.butler.common.files.local.routing.AccessMode
+import eu.darken.butler.common.files.local.routing.IntentAwareFileSystemOps
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.progress.Progress
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import testhelpers.TestClock
 import testhelpers.firstPath
 import testhelpers.shouldBePaths
 import testhelpers.shouldContainPath
@@ -658,5 +667,278 @@ class GenericPathCopyIssueTest : BaseTest() {
         mockOps.getFileContent("/dest/parent/child.txt") shouldBe "content".toByteArray()
         result.copied.size shouldBe 2 // parent + child.txt
         result.skipped.size shouldBe 0
+    }
+
+    // ============ PROGRESS ACCOUNTING ============
+
+    /** Every progress throttle window has elapsed, so each report site actually emits. */
+    private fun tickingClock() = TestClock(autoAdvance = 1.seconds)
+
+    private fun List<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>.counters() =
+        mapNotNull { it.primaryProgress.count as? Progress.Count.Counter }
+
+    @Test
+    fun `a skipped scan error accounts the directory it already counted`() = runTest {
+        // Given - a directory whose listing fails, plus a sibling file that copies normally
+        mockOps.addMockDir("/source/parent")
+        mockOps.addMockFile("/source/parent/child.txt", "content".toByteArray())
+        mockOps.addMockFile("/source/after.txt", "after".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        mockOps.setFailListFiles(1, { SecurityException("Permission denied") })
+
+        val states = mutableListOf<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+
+        setOf(LocalPath.build("/source/parent"), LocalPath.build("/source/after.txt")).copyGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            progressClock = tickingClock(),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).onEach { if (it is CopyAction.State.Active) states.add(it) }.last()
+
+        // Then - the skipped directory counts towards the items it was already counted in
+        val counter = states.counters().last()
+        counter.max shouldBe 2L
+        counter.current shouldBe 2L
+    }
+
+    @Test
+    fun `a retried scan does not count its directory twice`() = runTest {
+        // Given - a directory whose first listing fails and is retried
+        mockOps.addMockDir("/source/parent")
+        mockOps.addMockFile("/source/parent/child.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+
+        mockOps.setFailListFiles(1, { SecurityException("Permission denied") })
+
+        var retryInvoked = false
+        val states = mutableListOf<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+
+        setOf(LocalPath.build("/source/parent")).copyGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            progressClock = tickingClock(),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.UnknownError -> {
+                        retryInvoked = true
+                        PathActionIssue.UnknownError.Resolution.Retry
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).onEach { if (it is CopyAction.State.Active) states.add(it) }.last()
+
+        // Then - the directory and its child, not the directory twice
+        retryInvoked shouldBe true
+        states.counters().maxOf { it.max } shouldBe 2L
+    }
+
+    @Test
+    fun `a retried transfer counts the file's bytes once`() = runTest {
+        // Given - a file whose first attempt dies after part of it was written
+        val content = ByteArray(300_000) { (it % 251).toByte() }
+        mockOps.addMockFile("/source/file.bin", content)
+        mockOps.addMockDir("/dest")
+
+        mockOps.setFailWriteAfter(count = 1, afterBytes = 100_000L)
+
+        val states = mutableListOf<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+
+        setOf(LocalPath.build("/source/file.bin")).copyGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            progressClock = tickingClock(),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Retry
+                    // The failed attempt left a partial file behind
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).onEach { if (it is CopyAction.State.Active) states.add(it) }.last()
+
+        // Then - the abandoned attempt's bytes are not counted a second time
+        mockOps.getFileContent("/dest/file.bin") shouldBe content
+        states.last().copiedBytes shouldBe content.size.toLong()
+    }
+
+    @Test
+    fun `a skip-heavy run reports progress as it goes`() = runTest {
+        // Given - the destination folder already exists and is merged, and every source file
+        // already exists inside it
+        mockOps.addMockDir("/source/folder")
+        mockOps.addMockDir("/dest")
+        mockOps.addMockDir("/dest/folder")
+        (1..12).forEach { i ->
+            val content = ByteArray(i * 10_000) { 'a'.code.toByte() }
+            mockOps.addMockFile("/source/folder/file$i.txt", content)
+            mockOps.addMockFile("/dest/folder/file$i.txt", "old".toByteArray())
+        }
+
+        val states = mutableListOf<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+
+        setOf(LocalPath.build("/source/folder")).copyGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            progressClock = tickingClock(),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        if (issue.destination.fileType == FileType.DIRECTORY) {
+                            PathActionIssue.PathAlreadyExists.Resolution.Merge()
+                        } else {
+                            PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
+                        }
+                    }
+
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).onEach { if (it is CopyAction.State.Active) states.add(it) }.last()
+
+        // Then - the accounted work climbs across the run instead of jumping at the end
+        val history = states.mapNotNull { it.primaryProgress.extra as? PerformanceHistory }.last()
+        history.samples.map { it.totalBytesAccounted }.distinct().size shouldBeGreaterThan 5
+        history.samples.all { it.totalBytesProcessed == 0L } shouldBe true
+    }
+
+    @Test
+    fun `a source skipped before it was counted does not overshoot the item total`() = runTest {
+        // Given - a directory whose only child cannot be planned for writing at the destination
+        val ops = PlanAwareMockOps()
+        ops.addMockDir("/source/parent")
+        ops.addMockFile("/source/parent/blocked.txt", "content".toByteArray())
+        ops.addMockDir("/dest")
+        ops.failPlanning("/dest/parent/blocked.txt") { SecurityException("Permission denied") }
+
+        val states = mutableListOf<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+
+        setOf(LocalPath.build("/source/parent")).copyGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = ops,
+            destOps = ops,
+            strategy = strategy,
+            progressClock = tickingClock(),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).onEach { if (it is CopyAction.State.Active) states.add(it) }.last()
+
+        // Then - no report claims more items done than the scan ever counted
+        states.counters()
+            .filter { it.current > it.max }
+            .map { "${it.current}/${it.max}" } shouldBe emptyList<String>()
+    }
+
+    @Test
+    fun `the last item resolved through a conflict prompt is reported as done`() = runTest {
+        // Given - a folder whose last-processed file already exists at the destination.
+        // Children are queued in reverse, so the child added first is the last work item processed.
+        mockOps.addMockDir("/source/folder")
+        mockOps.addMockFile("/source/folder/conflicting.txt", "new".toByteArray())
+        mockOps.addMockFile("/source/folder/plain.txt", "plain".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockDir("/dest/folder")
+        mockOps.addMockFile("/dest/folder/conflicting.txt", "old".toByteArray())
+
+        val states = mutableListOf<CopyAction.State.Active<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>()
+        val prompted = mutableListOf<String>()
+
+        setOf(LocalPath.build("/source/folder")).copyGeneric(
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            progressClock = tickingClock(),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        prompted.add(issue.destination.lookedUp.path)
+                        if (issue.destination.fileType == FileType.DIRECTORY) {
+                            PathActionIssue.PathAlreadyExists.Resolution.Merge()
+                        } else {
+                            // Without applyToAll this runs the prompt path, not the apply-to-all shortcut
+                            PathActionIssue.PathAlreadyExists.Resolution.Skip()
+                        }
+                    }
+
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).onEach { if (it is CopyAction.State.Active) states.add(it) }.last()
+
+        // The prompt only fires from the conflict-resolution work item, so this pins the path taken
+        prompted shouldBe listOf("/dest/folder", "/dest/folder/conflicting.txt")
+
+        // Then - the last reported counter has every item accounted for
+        val counter = states.counters().last()
+        counter.current shouldBe counter.max
+    }
+
+    /**
+     * [MockFileSystemOps] plus the intent-aware hooks the scan reaches for. `ensurePlanned` is a
+     * no-op on plain ops, so an access-planning failure has no other way in.
+     */
+    private class PlanAwareMockOps : MockFileSystemOps<LocalPath, LocalPathLookup>(
+        { path, type, size, modifiedAt, permissions, ownership, createdAt ->
+            LocalPathLookup(
+                lookedUp = path,
+                fileType = type,
+                size = size,
+                modifiedAt = modifiedAt ?: kotlin.time.Instant.fromEpochMilliseconds(0),
+                target = null,
+                ownership = ownership,
+                permissions = permissions,
+                createdAt = createdAt,
+            )
+        },
+    ), IntentAwareFileSystemOps<LocalPath, LocalPathLookup> {
+
+        private val planFailures = mutableMapOf<String, () -> Exception>()
+
+        fun failPlanning(path: String, exceptionFactory: () -> Exception) {
+            planFailures[path] = exceptionFactory
+        }
+
+        override suspend fun lookup(path: LocalPath, intent: AccessIntent, options: LookupOptions): LocalPathLookup =
+            lookup(path, options)
+
+        override suspend fun lookupFiles(
+            path: LocalPath,
+            intent: AccessIntent,
+            options: LookupOptions,
+        ): List<LocalPathLookup> = lookupFiles(path, options)
+
+        override suspend fun ensurePlanned(path: LocalPath, intent: AccessIntent) {
+            planFailures[path.path]?.let { throw it() }
+        }
+
+        override suspend fun modeOf(path: LocalPath, intent: AccessIntent): AccessMode = AccessMode.DIRECT
+
+        override fun proactiveChildren(parent: LocalPath): Set<LocalPath> = emptySet()
+
+        override suspend fun installLogicalAlias(alias: LocalPath, resolved: LocalPath, intent: AccessIntent) = Unit
+
+        override fun unknownLookup(path: LocalPath, error: Exception): LocalPathLookup? = null
     }
 }

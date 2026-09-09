@@ -157,19 +157,20 @@ class TransferErrorHandler {
                         onRetry()
                     } else {
                         onSkip(sourceLookup)
-                        progressTracker.completeItem()
+                        progressTracker.skipItem(sourceLookup.size ?: 0L)
                     }
                 }
                 else -> {
                     onSkip(sourceLookup)
-                    progressTracker.completeItem()
+                    progressTracker.skipItem(sourceLookup.size ?: 0L)
                 }
             }
             return
         }
 
         // Fast path: Check "apply to all" flags
-        if (checkApplyToAllErrorFlags(error, sourceLookup, issueResolver, onSkip, progressTracker::completeItem, tag)) {
+        val onComplete = { progressTracker.skipItem(sourceLookup.size ?: 0L) }
+        if (checkApplyToAllErrorFlags(error, sourceLookup, issueResolver, onSkip, onComplete, tag)) {
             return
         }
 
@@ -210,7 +211,7 @@ class TransferErrorHandler {
             is PathActionIssue.UnknownError.Resolution.Skip -> {
                 log(tag, INFO) { "User chose to skip: ${sourceLookup.lookedUp}" }
                 onSkip(sourceLookup)
-                progressTracker.completeItem()
+                progressTracker.skipItem(sourceLookup.size ?: 0L)
             }
 
             is PathActionIssue.UnknownError.Resolution.Retry -> {
@@ -220,7 +221,7 @@ class TransferErrorHandler {
                 } else {
                     log(tag, WARN) { "Retry requested but not supported, skipping: ${sourceLookup.lookedUp}" }
                     onSkip(sourceLookup)
-                    progressTracker.completeItem()
+                    progressTracker.skipItem(sourceLookup.size ?: 0L)
                 }
             }
 

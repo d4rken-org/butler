@@ -101,6 +101,11 @@ internal class GenericPathCopy<
     private val skipped = linkedSetOf<SPL>()
     private var totalBytesTransferred = 0L
 
+    // Last values an Active state actually carried, so the terminal report can skip a no-op emission
+    private var lastEmittedItems = -1
+    private var lastEmittedProcessed = -1L
+    private var lastEmittedAccounted = -1L
+
     // Shared components
     private val progressTracker = PathOperationProgressTracker(clock = progressClock)
     private val issueResolver = PathOperationIssueResolver(onIssue)
@@ -127,6 +132,8 @@ internal class GenericPathCopy<
     // Scan tracking
     private var scanItemsRemaining = 0
     private val completedScans = mutableSetOf<SP>()
+    // A source only ever contributes to the totals once, however often a failed scan is retried
+    private val registeredScans = mutableSetOf<SP>()
     // Track followed symlink aliases so recursive scans can detect alias cycles.
     private val resolvedSymlinkAliases = mutableMapOf<String, String>()
 
@@ -219,6 +226,7 @@ internal class GenericPathCopy<
         }
 
         // Process work queue
+        var lastProcessed: Pair<SPL, DP>? = null
         while (workQueue.isNotEmpty() && currentCoroutineContext().isActive) {
             when (val item = workQueue.removeFirst()) {
                 is WorkItem.ScanSource<*> -> {
@@ -235,28 +243,43 @@ internal class GenericPathCopy<
 
                 is WorkItem.CopyFile<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    processCopyFile(item as WorkItem.CopyFile<SP, SPL, DP>) { send(it) }
+                    val copyItem = item as WorkItem.CopyFile<SP, SPL, DP>
+                    processCopyFile(copyItem) { send(it) }
+                    lastProcessed = copyItem.sourceLookup to copyItem.destination
                 }
 
                 is WorkItem.CreateDirectory<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    processCreateDirectory(item as WorkItem.CreateDirectory<SP, SPL, DP>)
+                    val dirItem = item as WorkItem.CreateDirectory<SP, SPL, DP>
+                    processCreateDirectory(dirItem) { send(it) }
+                    lastProcessed = dirItem.sourceLookup to dirItem.destination
                 }
 
                 is WorkItem.BatchCopySubtree<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    processBatchCopySubtree(item as WorkItem.BatchCopySubtree<SP, SPL, DP>) { send(it) }
+                    val batchItem = item as WorkItem.BatchCopySubtree<SP, SPL, DP>
+                    processBatchCopySubtree(batchItem) { send(it) }
+                    lastProcessed = batchItem.sourceLookup to batchItem.destination
                 }
 
                 is WorkItem.ResolveConflict<*, *, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    processResolveConflict(item as WorkItem.ResolveConflict<SP, SPL, DP, DPL>)
+                    val conflictItem = item as WorkItem.ResolveConflict<SP, SPL, DP, DPL>
+                    processResolveConflict(conflictItem) { send(it) }
+                    lastProcessed = conflictItem.sourceLookup to conflictItem.destination
                 }
             }
         }
 
         // Record final 100% sample before completing
         progressTracker.shouldReportProgress(force = true)
+        // Completed carries no progress data, so counters that advanced past the last emission
+        // (e.g. a trailing burst of skips inside the throttle window) need one last Active state
+        val finalSnapshot = progressTracker.createSnapshot()
+        val advanced = finalSnapshot.itemsProcessed != lastEmittedItems ||
+            finalSnapshot.processedBytes != lastEmittedProcessed ||
+            finalSnapshot.accountedBytes != lastEmittedAccounted
+        if (advanced) lastProcessed?.let { (lookup, dest) -> reportProgress(lookup, dest) { send(it) } }
 
         // For same-type operations (SP=DP), copied is Set<Pair<SP, DP>> which equals Set<Pair<SP, SP>>
         // For cross-type, this won't compile - cross-type operations should use their own result type
@@ -319,8 +342,10 @@ internal class GenericPathCopy<
         when (effectiveLookup.fileType) {
             FileType.FILE, FileType.SYMBOLIC_LINK -> {
                 // SYMBOLIC_LINK only when followSymlinks=false (otherwise resolved above)
-                progressTracker.totalItems++
-                progressTracker.totalBytes += effectiveLookup.size ?: 0L
+                if (registeredScans.add(item.source)) {
+                    progressTracker.totalItems++
+                    progressTracker.totalBytes += effectiveLookup.size ?: 0L
+                }
                 workQueue.addLast(WorkItem.CopyFile(effectiveLookup, destPath, item.topLevelSource))
 
                 // Report scan progress with throttling
@@ -333,8 +358,10 @@ internal class GenericPathCopy<
             }
 
             FileType.DIRECTORY -> {
-                progressTracker.totalItems++
-                progressTracker.totalBytes += effectiveLookup.size ?: 0L
+                if (registeredScans.add(item.source)) {
+                    progressTracker.totalItems++
+                    progressTracker.totalBytes += effectiveLookup.size ?: 0L
+                }
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
@@ -449,7 +476,8 @@ internal class GenericPathCopy<
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping file - parent directory was skipped" }
             skipped.add(item.sourceLookup)
-            progressTracker.completeItem()
+            progressTracker.skipItem(item.sourceLookup.size ?: 0L)
+            reportItemProgress(item.sourceLookup, item.destination, emit)
             return
         }
 
@@ -491,7 +519,7 @@ internal class GenericPathCopy<
 
                 is TransferStrategy.TransferResult.Skipped -> {
                     skipped.add(item.sourceLookup)
-                    progressTracker.completeItem()
+                    progressTracker.skipItem(item.sourceLookup.size ?: 0L)
                 }
             }
 
@@ -503,19 +531,25 @@ internal class GenericPathCopy<
             log(TAG, VERBOSE) { "File collision detected: $adjustedDest" }
             val destLookup = destOps.lookup(adjustedDest, LookupOptions.BASE)
             handleFileConflict(item, adjustedDest, destLookup)
+            reportItemProgress(item.sourceLookup, adjustedDest, emit)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             handleCopyError(e, item)
+            reportItemProgress(item.sourceLookup, adjustedDest, emit)
         }
     }
 
-    private suspend fun processCreateDirectory(item: WorkItem.CreateDirectory<SP, SPL, DP>) {
+    private suspend fun processCreateDirectory(
+        item: WorkItem.CreateDirectory<SP, SPL, DP>,
+        emit: suspend (CopyAction.State<SP, SPL, DP, DPL>) -> Unit
+    ) {
         // Skip if parent directory was skipped
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping directory - parent directory was skipped" }
             skipped.add(item.sourceLookup)
-            progressTracker.completeItem()
+            progressTracker.skipItem(item.sourceLookup.size ?: 0L)
+            reportItemProgress(item.sourceLookup, item.destination, emit)
             return
         }
 
@@ -528,6 +562,7 @@ internal class GenericPathCopy<
         if (destLookup.fileType != FileType.UNKNOWN) {
             log(TAG, VERBOSE) { "Directory collision detected: $adjustedDest" }
             handleDirectoryConflict(item, adjustedDest, destLookup)
+            reportItemProgress(item.sourceLookup, adjustedDest, emit)
             return
         }
 
@@ -548,18 +583,21 @@ internal class GenericPathCopy<
                         ?: destOps.lookup(result.destination, LookupOptions.BASE)
                     copied.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
-                    progressTracker.completeItem()
+                    progressTracker.skipItem(item.sourceLookup.size ?: 0L)
                 }
 
                 is TransferStrategy.TransferResult.Skipped -> {
                     skipped.add(item.sourceLookup)
-                    progressTracker.completeItem()
+                    progressTracker.skipItem(item.sourceLookup.size ?: 0L)
                 }
             }
+
+            reportItemProgress(item.sourceLookup, adjustedDest, emit)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             handleDirectoryError(e, item)
+            reportItemProgress(item.sourceLookup, adjustedDest, emit)
         }
     }
 
@@ -570,7 +608,8 @@ internal class GenericPathCopy<
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping batch subtree - parent directory was skipped" }
             skipped.add(item.sourceLookup)
-            progressTracker.completeItem()
+            progressTracker.skipItem(item.sourceLookup.size ?: 0L)
+            reportItemProgress(item.sourceLookup, item.destination, emit)
             return
         }
 
@@ -583,6 +622,7 @@ internal class GenericPathCopy<
             return
         }
 
+        var forwardedBatchProgress = false
         try {
             ensureBatchDestinationParent(destinationRoot)
             ensureBatchDestinationAbsent(destinationRoot)
@@ -593,7 +633,11 @@ internal class GenericPathCopy<
                 onIssue = onIssue,
             ).collect { state ->
                 when (state) {
-                    is CopyAction.State.Active -> emitBatchProgress(state, emit)
+                    is CopyAction.State.Active -> {
+                        emitBatchProgress(state, emit)
+                        forwardedBatchProgress = true
+                    }
+
                     is CopyAction.State.Completed -> {
                         @Suppress("UNCHECKED_CAST")
                         copied.addAll(state.copied as Set<Pair<SPL, APathLookup<DP>>>)
@@ -602,7 +646,17 @@ internal class GenericPathCopy<
                         totalBytesTransferred += state.copiedBytes
                         try {
                             normalizeOwnershipIfNeeded(item.ownershipFixup, destinationRoot, item.sourceRoute)
-                            progressTracker.completeItem()
+                            // Only the subtree root is in totalBytes, its children were never scanned
+                            progressTracker.skipItem(item.sourceLookup.size ?: 0L)
+                            // The forwarded batch state is the newest progress the UI has, and it carries the
+                            // nested operation's history. Adopt the tracker's counters as emitted so the
+                            // terminal state check doesn't overwrite it with our own coarser progress.
+                            if (forwardedBatchProgress) {
+                                val snapshot = progressTracker.createSnapshot()
+                                lastEmittedItems = snapshot.itemsProcessed
+                                lastEmittedProcessed = snapshot.processedBytes
+                                lastEmittedAccounted = snapshot.accountedBytes
+                            }
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: OwnershipNormalizationException) {
@@ -732,7 +786,10 @@ internal class GenericPathCopy<
         )
     }
 
-    private suspend fun processResolveConflict(item: WorkItem.ResolveConflict<SP, SPL, DP, DPL>) {
+    private suspend fun processResolveConflict(
+        item: WorkItem.ResolveConflict<SP, SPL, DP, DPL>,
+        emit: suspend (CopyAction.State<SP, SPL, DP, DPL>) -> Unit
+    ) {
         val canMerge = item.originalItem is WorkItem.CreateDirectory<*, *, *> &&
             item.destLookup.fileType == FileType.DIRECTORY
 
@@ -785,6 +842,8 @@ internal class GenericPathCopy<
             },
             onRenameDestination = { workQueue.addFirst(item.originalItem) }
         )
+
+        reportItemProgress(item.sourceLookup, item.destination, emit)
     }
 
     private fun calculateDestinationPath(source: SP, topLevelSource: SP): DP {
@@ -820,6 +879,7 @@ internal class GenericPathCopy<
             onSkip = {
                 skipped.add(it)
                 skippedSourceDirs.add(it.lookedUp)
+                if (originalItem.source in registeredScans) progressTracker.skipItem(it.size ?: 0L)
             },
             onRetry = { workQueue.addFirst(originalItem) },
             onIssue = onIssue,
@@ -835,7 +895,10 @@ internal class GenericPathCopy<
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = { skipped.add(it) },
-            onRetry = { workQueue.addFirst(originalItem) },
+            onRetry = {
+                progressTracker.restartFile()
+                workQueue.addFirst(originalItem)
+            },
             canRetry = true,
             onIssue = onIssue,
             tag = TAG
@@ -924,12 +987,26 @@ internal class GenericPathCopy<
         )
     }
 
+    /**
+     * Throttled progress report for a completion that moved no bytes.
+     */
+    private suspend fun reportItemProgress(
+        lookup: SPL,
+        destination: DP,
+        emit: suspend (CopyAction.State<SP, SPL, DP, DPL>) -> Unit
+    ) {
+        if (progressTracker.shouldReportProgress()) reportProgress(lookup, destination, emit)
+    }
+
     private suspend fun reportProgress(
         lookup: SPL,
         destLookup: DP,
         emit: suspend (CopyAction.State<SP, SPL, DP, DPL>) -> Unit
     ) {
         val snapshot = progressTracker.createSnapshot()
+        lastEmittedItems = snapshot.itemsProcessed
+        lastEmittedProcessed = snapshot.processedBytes
+        lastEmittedAccounted = snapshot.accountedBytes
 
         @Suppress("UNCHECKED_CAST")
         emit(

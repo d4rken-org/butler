@@ -88,6 +88,11 @@ internal class GenericPathMove<
     private val skipped = linkedSetOf<SPL>()
     private var totalBytesTransferred = 0L
 
+    // Last values an Active state actually carried, so the terminal report can skip a no-op emission
+    private var lastEmittedItems = -1
+    private var lastEmittedProcessed = -1L
+    private var lastEmittedAccounted = -1L
+
     // Shared components
     private val progressTracker = PathOperationProgressTracker(clock = progressClock)
     private val issueResolver = PathOperationIssueResolver(onIssue)
@@ -116,6 +121,8 @@ internal class GenericPathMove<
     // Scan tracking
     private var scanItemsRemaining = 0
     private val completedScans = mutableSetOf<SP>()
+    // A source only ever contributes to the totals once, however often a failed scan is retried
+    private val registeredScans = mutableSetOf<SP>()
 
     // Destination state
     private var destinationExistedAsDirectory = false
@@ -256,6 +263,7 @@ internal class GenericPathMove<
         }
 
         // Process work queue
+        var lastProcessed: Pair<SPL, DP>? = null
         while (workQueue.isNotEmpty() && currentCoroutineContext().isActive) {
             when (val item = workQueue.removeFirst()) {
                 is WorkItem.ScanSource<*> -> {
@@ -272,22 +280,30 @@ internal class GenericPathMove<
 
                 is WorkItem.MoveFile<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    processMoveFile(item as WorkItem.MoveFile<SP, SPL, DP>) { send(it) }
+                    val moveItem = item as WorkItem.MoveFile<SP, SPL, DP>
+                    processMoveFile(moveItem) { send(it) }
+                    lastProcessed = moveItem.sourceLookup to moveItem.destination
                 }
 
                 is WorkItem.CreateDirectory<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    processCreateDirectory(item as WorkItem.CreateDirectory<SP, SPL, DP>)
+                    val dirItem = item as WorkItem.CreateDirectory<SP, SPL, DP>
+                    processCreateDirectory(dirItem) { send(it) }
+                    lastProcessed = dirItem.sourceLookup to dirItem.destination
                 }
 
                 is WorkItem.BatchMoveSubtree<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    processBatchMoveSubtree(item as WorkItem.BatchMoveSubtree<SP, SPL, DP>) { send(it) }
+                    val batchItem = item as WorkItem.BatchMoveSubtree<SP, SPL, DP>
+                    processBatchMoveSubtree(batchItem) { send(it) }
+                    lastProcessed = batchItem.sourceLookup to batchItem.destination
                 }
 
                 is WorkItem.ResolveConflict<*, *, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    processResolveConflict(item as WorkItem.ResolveConflict<SP, SPL, DP, DPL>)
+                    val conflictItem = item as WorkItem.ResolveConflict<SP, SPL, DP, DPL>
+                    processResolveConflict(conflictItem) { send(it) }
+                    lastProcessed = conflictItem.sourceLookup to conflictItem.destination
                 }
             }
         }
@@ -297,6 +313,13 @@ internal class GenericPathMove<
 
         // Record final 100% sample before completing
         progressTracker.shouldReportProgress(force = true)
+        // Completed carries no progress data, so counters that advanced past the last emission
+        // (e.g. a trailing burst of skips inside the throttle window) need one last Active state
+        val finalSnapshot = progressTracker.createSnapshot()
+        val advanced = finalSnapshot.itemsProcessed != lastEmittedItems ||
+            finalSnapshot.processedBytes != lastEmittedProcessed ||
+            finalSnapshot.accountedBytes != lastEmittedAccounted
+        if (advanced) lastProcessed?.let { (lookup, dest) -> reportProgress(lookup, dest) { send(it) } }
 
         send(
             MoveAction.State.Completed(
@@ -345,8 +368,10 @@ internal class GenericPathMove<
 
         when (lookup.fileType) {
             FileType.FILE, FileType.SYMBOLIC_LINK -> {
-                progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size ?: 0L
+                if (registeredScans.add(item.source)) {
+                    progressTracker.totalItems++
+                    progressTracker.totalBytes += lookup.size ?: 0L
+                }
                 workQueue.addLast(WorkItem.MoveFile(lookup, destPath, item.topLevelSource))
 
                 // Report scan progress with throttling
@@ -359,8 +384,10 @@ internal class GenericPathMove<
             }
 
             FileType.DIRECTORY -> {
-                progressTracker.totalItems++
-                progressTracker.totalBytes += lookup.size ?: 0L
+                if (registeredScans.add(item.source)) {
+                    progressTracker.totalItems++
+                    progressTracker.totalBytes += lookup.size ?: 0L
+                }
 
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
@@ -405,7 +432,7 @@ internal class GenericPathMove<
                                 is AtomicMoveResult.Success -> {
                                     // Atomic move succeeded - moved in one operation
                                     moved.add(lookup to atomicMoveResult.destLookup)
-                                    progressTracker.completeItem()
+                                    progressTracker.skipItem(lookup.size ?: 0L)
 
                                     // Report progress
                                     if (progressTracker.shouldReportProgress()) {
@@ -512,7 +539,8 @@ internal class GenericPathMove<
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping file - parent directory was skipped" }
             skipped.add(item.sourceLookup)
-            progressTracker.completeItem()
+            progressTracker.skipItem(item.sourceLookup.size ?: 0L)
+            reportItemProgress(item.sourceLookup, item.destination, emit)
             return
         }
 
@@ -524,6 +552,7 @@ internal class GenericPathMove<
         val destLookup = destOps.lookup(adjustedDest, LookupOptions.BASE.copy(fallbackToUnknown = true))
         if (destLookup.fileType != FileType.UNKNOWN) {
             handleFileConflict(item, adjustedDest, destLookup)
+            reportItemProgress(item.sourceLookup, adjustedDest, emit)
             return
         }
 
@@ -561,7 +590,7 @@ internal class GenericPathMove<
 
                 is TransferStrategy.TransferResult.Skipped -> {
                     skipped.add(item.sourceLookup)
-                    progressTracker.completeItem()
+                    progressTracker.skipItem(item.sourceLookup.size ?: 0L)
                 }
             }
 
@@ -573,15 +602,20 @@ internal class GenericPathMove<
             throw e
         } catch (e: Exception) {
             handleMoveError(e, item)
+            reportItemProgress(item.sourceLookup, adjustedDest, emit)
         }
     }
 
-    private suspend fun processCreateDirectory(item: WorkItem.CreateDirectory<SP, SPL, DP>) {
+    private suspend fun processCreateDirectory(
+        item: WorkItem.CreateDirectory<SP, SPL, DP>,
+        emit: suspend (MoveAction.State<SP, SPL, DP, DPL>) -> Unit
+    ) {
         if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
             log(TAG, VERBOSE) { "Skipping directory - parent was skipped" }
             skipped.add(item.sourceLookup)
             skippedSourceDirs.add(item.sourceLookup.lookedUp)
-            progressTracker.completeItem()
+            progressTracker.skipItem(item.sourceLookup.size ?: 0L)
+            reportItemProgress(item.sourceLookup, item.destination, emit)
             return
         }
 
@@ -593,6 +627,7 @@ internal class GenericPathMove<
         val destLookup = destOps.lookup(adjustedDest, LookupOptions.BASE.copy(fallbackToUnknown = true))
         if (destLookup.fileType != FileType.UNKNOWN) {
             handleDirectoryConflict(item, adjustedDest, destLookup)
+            reportItemProgress(item.sourceLookup, adjustedDest, emit)
             return
         }
 
@@ -613,18 +648,21 @@ internal class GenericPathMove<
                         ?: destOps.lookup(result.destination, LookupOptions.BASE)
                     moved.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
-                    progressTracker.completeItem()
+                    progressTracker.skipItem(item.sourceLookup.size ?: 0L)
                 }
 
                 is TransferStrategy.TransferResult.Skipped -> {
                     skipped.add(item.sourceLookup)
-                    progressTracker.completeItem()
+                    progressTracker.skipItem(item.sourceLookup.size ?: 0L)
                 }
             }
+
+            reportItemProgress(item.sourceLookup, adjustedDest, emit)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             handleDirectoryError(e, item)
+            reportItemProgress(item.sourceLookup, adjustedDest, emit)
         }
     }
 
@@ -636,7 +674,8 @@ internal class GenericPathMove<
             log(TAG, VERBOSE) { "Skipping batch subtree - parent was skipped" }
             skipped.add(item.sourceLookup)
             skippedSourceDirs.add(item.sourceLookup.lookedUp)
-            progressTracker.completeItem()
+            progressTracker.skipItem(item.sourceLookup.size ?: 0L)
+            reportItemProgress(item.sourceLookup, item.destination, emit)
             return
         }
 
@@ -649,6 +688,7 @@ internal class GenericPathMove<
             return
         }
 
+        var forwardedBatchProgress = false
         try {
             ensureBatchDestinationParent(destinationRoot)
             ensureBatchDestinationAbsent(destinationRoot)
@@ -659,7 +699,11 @@ internal class GenericPathMove<
                 onIssue = onIssue,
             ).collect { state ->
                 when (state) {
-                    is MoveAction.State.Active -> emitBatchProgress(state, emit)
+                    is MoveAction.State.Active -> {
+                        emitBatchProgress(state, emit)
+                        forwardedBatchProgress = true
+                    }
+
                     is MoveAction.State.Completed -> {
                         @Suppress("UNCHECKED_CAST")
                         moved.addAll(state.movedFiles as Set<Pair<SPL, APathLookup<DP>>>)
@@ -668,7 +712,17 @@ internal class GenericPathMove<
                         totalBytesTransferred += state.bytesMoved
                         try {
                             normalizeOwnershipIfNeeded(item.ownershipFixup, destinationRoot, item.sourceRoute)
-                            progressTracker.completeItem()
+                            // Only the subtree root is in totalBytes, its children were never scanned
+                            progressTracker.skipItem(item.sourceLookup.size ?: 0L)
+                            // The forwarded batch state is the newest progress the UI has, and it carries the
+                            // nested operation's history. Adopt the tracker's counters as emitted so the
+                            // terminal state check doesn't overwrite it with our own coarser progress.
+                            if (forwardedBatchProgress) {
+                                val snapshot = progressTracker.createSnapshot()
+                                lastEmittedItems = snapshot.itemsProcessed
+                                lastEmittedProcessed = snapshot.processedBytes
+                                lastEmittedAccounted = snapshot.accountedBytes
+                            }
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: OwnershipNormalizationException) {
@@ -840,7 +894,10 @@ internal class GenericPathMove<
         )
     }
 
-    private suspend fun processResolveConflict(item: WorkItem.ResolveConflict<SP, SPL, DP, DPL>) {
+    private suspend fun processResolveConflict(
+        item: WorkItem.ResolveConflict<SP, SPL, DP, DPL>,
+        emit: suspend (MoveAction.State<SP, SPL, DP, DPL>) -> Unit
+    ) {
         val canMerge = item.originalItem is WorkItem.CreateDirectory<*, *, *> &&
             item.destLookup.fileType == FileType.DIRECTORY
 
@@ -887,6 +944,8 @@ internal class GenericPathMove<
             },
             onRenameDestination = { workQueue.addFirst(item.originalItem) }
         )
+
+        reportItemProgress(item.sourceLookup, item.destination, emit)
     }
 
     private fun calculateDestinationPath(source: SP, topLevelSource: SP): DP {
@@ -922,6 +981,7 @@ internal class GenericPathMove<
             onSkip = {
                 skipped.add(it)
                 skippedSourceDirs.add(it.lookedUp)
+                if (originalItem.source in registeredScans) progressTracker.skipItem(it.size ?: 0L)
             },
             onRetry = { workQueue.addFirst(originalItem) },
             onIssue = onIssue,
@@ -937,7 +997,10 @@ internal class GenericPathMove<
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = { skipped.add(it) },
-            onRetry = { workQueue.addFirst(originalItem) },
+            onRetry = {
+                progressTracker.restartFile()
+                workQueue.addFirst(originalItem)
+            },
             canRetry = true,
             onIssue = onIssue,
             tag = TAG
@@ -1041,12 +1104,26 @@ internal class GenericPathMove<
         )
     }
 
+    /**
+     * Throttled progress report for a completion that moved no bytes.
+     */
+    private suspend fun reportItemProgress(
+        lookup: SPL,
+        destination: DP,
+        emit: suspend (MoveAction.State<SP, SPL, DP, DPL>) -> Unit
+    ) {
+        if (progressTracker.shouldReportProgress()) reportProgress(lookup, destination, emit)
+    }
+
     private suspend fun reportProgress(
         lookup: SPL,
         destination: DP,
         emit: suspend (MoveAction.State<SP, SPL, DP, DPL>) -> Unit
     ) {
         val snapshot = progressTracker.createSnapshot()
+        lastEmittedItems = snapshot.itemsProcessed
+        lastEmittedProcessed = snapshot.processedBytes
+        lastEmittedAccounted = snapshot.accountedBytes
 
         emit(
             MoveAction.State.Active(

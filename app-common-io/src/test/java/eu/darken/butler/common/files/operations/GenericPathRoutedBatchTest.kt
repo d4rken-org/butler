@@ -3,6 +3,10 @@ package eu.darken.butler.common.files.operations
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
+import eu.darken.butler.common.files.local.operations.core.PerformanceSample
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
@@ -37,6 +41,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -370,6 +375,68 @@ class GenericPathRoutedBatchTest : BaseTest() {
         }
     }
 
+    @Test
+    fun `batch subtree as final work item keeps its detailed history in the last emitted state`() = runTest {
+        val source = p("/src")
+        val destination = p("/dst")
+        val destinationRoot = p("/dst/src")
+        val sourceLookup = lookup(source, FileType.DIRECTORY)
+        val destinationLookup = lookup(destinationRoot, FileType.DIRECTORY)
+        val batchSamples = 12
+        val batch = HistoryEmittingBatchOps(sourceLookup, destinationLookup, batchSamples)
+
+        val rootOps = mockk<FileSystemOps<LocalPath, LocalPathLookup>>(relaxed = true) {
+            coEvery { lookup(source, any<LookupOptions>()) } returns sourceLookup
+        }
+        val directOps = mockk<FileSystemOps<LocalPath, LocalPathLookup>>(relaxed = true) {
+            coEvery { lookup(destination, any<LookupOptions>()) } returns lookup(destination, FileType.DIRECTORY)
+            coEvery { lookup(destinationRoot, any<LookupOptions>()) } returns LocalPathLookup.unknown(destinationRoot)
+            coEvery { createDir(destination, createParents = true) } returns Unit
+        }
+        val caps = CapabilitySnapshot.fixed(hasRoot = true, hasAdb = false)
+        val policy = mockk<LocalPathRoutingPolicy> {
+            coEvery { classify(source, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
+            coEvery { classify(destination, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(destinationRoot, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            every { proactiveChildren(any()) } returns emptySet()
+            coEvery { batchEligibility(any()) } returns BatchEligibility.Eligible(
+                mode = AccessMode.ROOT,
+                destinationModeOverride = null,
+                ownershipFixup = OwnershipFixup.None,
+            )
+        }
+        val factory = mockk<ModeSessionFactory> {
+            coEvery { open(AccessMode.ROOT) } returns ModeSession(AccessMode.ROOT, rootOps, batch, null)
+            coEvery { open(AccessMode.DIRECT) } returns ModeSession(AccessMode.DIRECT, directOps, null, null)
+        }
+        val registry = ModeSessionRegistry(factory)
+        val router = StaticLocalRouteRouter(policy, caps, registry)
+        val sourceOps = RoutedLocalFileSystemOps(router, AccessIntent.Read)
+        val destOps = RoutedLocalFileSystemOps(router, AccessIntent.Write)
+
+        try {
+            val states = setOf(source).copyGeneric(
+                destination = destination,
+                sourceOps = sourceOps,
+                destOps = destOps,
+                strategy = GenericCrossTypeCopyStrategy(),
+                onIssue = { PathActionIssue.UnknownError.Resolution.Skip() }
+            ).toList()
+
+            val actives = states.filterIsInstance<CopyAction.State.Active<*, *, *, *>>()
+
+            // Sanity: the nested batch really did emit a plottable history
+            actives.mapNotNull { it.primaryProgress.extra as? PerformanceHistory }
+                .maxOf { it.samples.size } shouldBe batchSamples
+
+            // The state the UI keeps as "last progress" must still carry that history
+            val lastHistory = actives.last().primaryProgress.extra as? PerformanceHistory
+            (lastHistory?.samples?.size ?: 0) shouldBe batchSamples
+        } finally {
+            registry.close()
+        }
+    }
+
     private fun p(path: String): LocalPath = LocalPath.build(path)
 
     private fun lookup(path: LocalPath, fileType: FileType): LocalPathLookup = LocalPathLookup(
@@ -452,6 +519,76 @@ class GenericPathRoutedBatchTest : BaseTest() {
             copyCalls++
             return flow { throw IOException("simulated batch failure") }
         }
+
+        override suspend fun moveSubtreeExact(
+            sourceRoot: LocalPath,
+            destinationRoot: LocalPath,
+            options: MoveAction.Options,
+            onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
+        ): Flow<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = emptyFlow()
+
+        override suspend fun deleteSubtree(
+            root: LocalPath,
+            options: DeleteAction.Options<LocalPath>,
+        ): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> = emptyFlow()
+    }
+
+    /**
+     * Mimics a nested batch backend that reports its own detailed progress: each Active state
+     * carries a PerformanceHistory one sample longer than the previous one.
+     */
+    private class HistoryEmittingBatchOps(
+        private val sourceLookup: LocalPathLookup,
+        private val destinationLookup: LocalPathLookup,
+        private val sampleCount: Int,
+    ) : ClientBatchOps {
+
+        override suspend fun copySubtreeExact(
+            sourceRoot: LocalPath,
+            destinationRoot: LocalPath,
+            options: CopyAction.Options,
+            onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
+        ): Flow<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = flow {
+            (1..sampleCount).forEach { step ->
+                emit(
+                    CopyAction.State.Active(
+                        currentSource = sourceLookup,
+                        currentDestination = destinationLookup.lookedUp,
+                        primaryProgress = Progress.Data(
+                            primary = "batch".toCaString(),
+                            secondary = "batch".toCaString(),
+                            count = Progress.Count.Counter(step, sampleCount),
+                            extra = history(step),
+                        ),
+                        copiedBytes = step.toLong(),
+                        totalBytes = sampleCount.toLong(),
+                    )
+                )
+            }
+            emit(
+                CopyAction.State.Completed(
+                    copied = setOf(sourceLookup to destinationLookup),
+                    skipped = emptySet(),
+                    copiedBytes = sampleCount.toLong(),
+                )
+            )
+        }
+
+        private fun history(samples: Int) = PerformanceHistory(
+            samples = (1..samples).map { index ->
+                PerformanceSample(
+                    timestamp = Instant.fromEpochMilliseconds(index.toLong()),
+                    bytesPerSecond = 1L,
+                    itemsPerSecond = 1f,
+                    totalBytesProcessed = index.toLong(),
+                    totalItemsProcessed = index,
+                    totalBytesAccounted = index.toLong(),
+                )
+            },
+            startTime = Instant.fromEpochMilliseconds(0),
+            totalBytes = sampleCount.toLong(),
+            totalItems = sampleCount,
+        )
 
         override suspend fun moveSubtreeExact(
             sourceRoot: LocalPath,

@@ -25,12 +25,14 @@ class PerformanceGraphDataTest : BaseTest() {
         itemsPerSecond: Float = 0f,
         totalBytesProcessed: Long = 0L,
         totalItemsProcessed: Int = 0,
+        totalBytesAccounted: Long = totalBytesProcessed,
     ) = PerformanceSample(
         timestamp = startTime + (index * 100).milliseconds,
         bytesPerSecond = bytesPerSecond,
         itemsPerSecond = itemsPerSecond,
         totalBytesProcessed = totalBytesProcessed,
         totalItemsProcessed = totalItemsProcessed,
+        totalBytesAccounted = totalBytesAccounted,
     )
 
     private fun history(
@@ -264,6 +266,114 @@ class PerformanceGraphDataTest : BaseTest() {
 
         data.progress shouldBe data.progress.distinct()
         data.progress.zipWithNext().forEach { (previous, next) -> (next > previous) shouldBe true }
+    }
+
+    @Test
+    fun `a directory completing before any bytes move keeps the plot at the left edge`() {
+        // An 8 item folder copy: the destination directory is created first, then the files stream
+        val directorySize = 4_096L
+        val history = history(
+            samples = (0 until 20).map { i ->
+                val transferred = (i + 1) * 5_000_000L
+                sample(
+                    index = i,
+                    bytesPerSecond = 5_000_000L,
+                    itemsPerSecond = 0.3f,
+                    totalBytesProcessed = transferred,
+                    totalItemsProcessed = 1 + i / 3,
+                    totalBytesAccounted = transferred + directorySize,
+                )
+            },
+            totalBytes = 1_000_000_000L,
+            totalItems = 8,
+        )
+
+        val data = PerformanceGraphData.from(history).shouldNotBeNull()
+
+        // 5 MB of 1 GB, not the 12.5% one of eight items would claim
+        data.progress.first() shouldBe 0.5f
+        data.progress.max() shouldBe 10f
+    }
+
+    @Test
+    fun `early transfer positions survive the progress filter`() {
+        val history = history(
+            samples = (0 until 20).map { i ->
+                val transferred = (i + 1) * 5_000_000L
+                sample(
+                    index = i,
+                    bytesPerSecond = 5_000_000L,
+                    itemsPerSecond = 0f,
+                    totalBytesProcessed = transferred,
+                    totalItemsProcessed = 1,  // Still inside the first file
+                    totalBytesAccounted = transferred + 4_096L,
+                )
+            },
+            totalBytes = 1_000_000_000L,
+            totalItems = 8,
+        )
+
+        val data = PerformanceGraphData.from(history).shouldNotBeNull()
+
+        data.progress shouldBe (1..20).map { it * 0.5f }
+    }
+
+    @Test
+    fun `progress reaches 100 percent when the final item completes below the byte total`() {
+        val history = history(
+            samples = (0 until 20).map { i ->
+                sample(
+                    index = i,
+                    bytesPerSecond = 25_000_000L,
+                    itemsPerSecond = 0.5f,
+                    // Half the announced bytes never move, the rest of the items were skipped
+                    totalBytesProcessed = (i + 1) * 25_000_000L,
+                    totalItemsProcessed = if (i == 19) 10 else i / 2,
+                )
+            },
+            totalBytes = 1_000_000_000L,
+            totalItems = 10,
+        )
+
+        val data = PerformanceGraphData.from(history).shouldNotBeNull()
+
+        data.progress.last() shouldBe 100f
+    }
+
+    @Test
+    fun `an operation whose accounted bytes never move plots against items`() {
+        val history = history(
+            samples = (0 until 20).map { i ->
+                sample(index = i, itemsPerSecond = 5f, totalItemsProcessed = i + 1)
+            },
+            totalBytes = 1_000_000_000L,  // Announced up front, then nothing is accounted against it
+            totalItems = 20,
+        )
+
+        val data = PerformanceGraphData.from(history).shouldNotBeNull()
+
+        data.progress shouldBe (1..20).map { it * 5f }
+    }
+
+    @Test
+    fun `a stray byte does not collapse an item graph`() {
+        val history = history(
+            samples = (0 until 11).map { i ->
+                sample(
+                    index = i,
+                    itemsPerSecond = 5f,
+                    // The last sample accounts a byte count that still rounds to 0%
+                    totalBytesProcessed = if (i == 10) 1_000L else 0L,
+                    totalItemsProcessed = i + 1,
+                )
+            },
+            totalBytes = 1_000_000_000L,
+            totalItems = 20,
+        )
+
+        val data = PerformanceGraphData.from(history).shouldNotBeNull()
+
+        data.progress shouldBe (1..11).map { it * 5f }
     }
 
     // ============ FILTERING ============

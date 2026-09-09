@@ -146,6 +146,9 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     private var failCreateFileException: (() -> Exception)? = null
     private var failListFilesCount = 0
     private var failListFilesException: (() -> Exception)? = null
+    private var failWriteCount = 0
+    private var failWriteAfterBytes = 0L
+    private var failWriteException: (() -> Exception)? = null
 
     suspend fun lookup(path: P) = lookup(path, LookupOptions.BASE)
 
@@ -389,7 +392,35 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
             ByteArray(0)
         }
 
+        val failAfterBytes = if (failWriteCount > 0) {
+            failWriteCount--
+            failWriteAfterBytes
+        } else {
+            null
+        }
+
         return object : ByteArrayOutputStream() {
+
+            private var written = 0L
+
+            override fun write(b: Int) {
+                failIfPastLimit(1L)
+                super.write(b)
+            }
+
+            override fun write(b: ByteArray, off: Int, len: Int) {
+                failIfPastLimit(len.toLong())
+                super.write(b, off, len)
+            }
+
+            private fun failIfPastLimit(incoming: Long) {
+                val limit = failAfterBytes ?: return
+                written += incoming
+                if (written > limit) {
+                    throw failWriteException?.invoke() ?: java.io.IOException("Injected failure")
+                }
+            }
+
             override fun close() {
                 super.close()
                 val newContent = if (append) {
@@ -688,6 +719,20 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     /**
      * Configure listFiles to fail the next N times with specified exception.
      */
+    /**
+     * Fails the next [count] output streams once more than [afterBytes] have been written to them,
+     * leaving a partially transferred destination behind.
+     */
+    fun setFailWriteAfter(
+        count: Int,
+        afterBytes: Long,
+        exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") },
+    ) {
+        failWriteCount = count
+        failWriteAfterBytes = afterBytes
+        failWriteException = exceptionFactory
+    }
+
     fun setFailListFiles(count: Int, exceptionFactory: () -> Exception = { SecurityException("Permission denied") }) {
         failListFilesCount = count
         failListFilesException = exceptionFactory
@@ -709,6 +754,9 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         failCreateFileException = null
         failListFilesCount = 0
         failListFilesException = null
+        failWriteCount = 0
+        failWriteAfterBytes = 0L
+        failWriteException = null
     }
 
     /**

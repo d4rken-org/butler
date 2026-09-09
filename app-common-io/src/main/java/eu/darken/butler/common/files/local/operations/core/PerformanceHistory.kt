@@ -11,6 +11,10 @@ import kotlin.time.Instant
 
 /**
  * Single performance sample captured at a point in time.
+ *
+ * [totalBytesProcessed] is bytes actually moved, [totalBytesAccounted] is work accounted for: those
+ * bytes plus the size of every item that completed without moving one (a created directory, a
+ * skipped file). The graph plots the latter, throughput is measured from the former.
  */
 @Serializable
 data class PerformanceSample(
@@ -20,6 +24,7 @@ data class PerformanceSample(
     val itemsPerSecond: Float,
     val totalBytesProcessed: Long,
     val totalItemsProcessed: Int,
+    val totalBytesAccounted: Long = totalBytesProcessed,
 )
 
 /**
@@ -148,7 +153,7 @@ data class PerformanceHistory(
             val percentage = if (useItems) {
                 (sample.totalItemsProcessed.toDouble() / totalItems) * 100.0
             } else {
-                (sample.totalBytesProcessed.toDouble() / totalBytes) * 100.0
+                (sample.totalBytesAccounted.toDouble() / totalBytes) * 100.0
             }
             // Clamp percentage to [0.0, 100.0] and ensure bucket index is [0, NUM_BUCKETS - 1]
             val clampedPercentage = percentage.coerceIn(0.0, 100.0)

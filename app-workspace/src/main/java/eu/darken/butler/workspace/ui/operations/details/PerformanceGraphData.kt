@@ -2,7 +2,6 @@ package eu.darken.butler.workspace.ui.operations.details
 
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.files.local.operations.core.PerformanceSample
-import kotlin.math.max
 import kotlin.math.round
 
 enum class ByteSpeedUnit(val divisor: Double) {
@@ -40,11 +39,16 @@ data class PerformanceGraphData(
             // Without either total there is no x domain, every percentage would divide by zero
             if (history.totalBytes == 0L && history.totalItems == 0) return null
 
+            // Plotting against accounted bytes needs a domain that actually moves, otherwise the
+            // whole run collapses onto one x and nothing is plottable
+            val useByteAxis = history.totalBytes > 0L &&
+                history.samples.map { history.byteProgressOf(it) }.distinct().size >= 2
+
             val samples = mutableListOf<PerformanceSample>()
             val progress = mutableListOf<Float>()
 
             history.samples.forEach { sample ->
-                val x = history.progressOf(sample)
+                val x = history.progressOf(sample, useByteAxis)
                 if (progress.isEmpty() || x - progress.last() >= PROGRESS_STEP) {
                     samples.add(sample)
                     progress.add(x)
@@ -54,7 +58,7 @@ data class PerformanceGraphData(
             // The final state matters even when it didn't advance enough to pass the filter
             val finalSample = history.samples.last()
             if (samples.last() !== finalSample) {
-                val finalX = history.progressOf(finalSample)
+                val finalX = history.progressOf(finalSample, useByteAxis)
                 when {
                     finalX == progress.last() -> {
                         samples[samples.lastIndex] = finalSample
@@ -100,25 +104,35 @@ data class PerformanceGraphData(
         }
 
         /**
+         * Share of the accounted work a sample carries, rounded to 0.5 steps.
+         *
+         * This is the axis candidate before the terminal clause in [progressOf], so it says whether
+         * accounted bytes move at all.
+         */
+        private fun PerformanceHistory.byteProgressOf(sample: PerformanceSample): Float =
+            roundToStep((sample.totalBytesAccounted.toFloat() / totalBytes.toFloat()) * 100f)
+
+        /**
          * Completion percentage of a sample, rounded to 0.5 steps.
          *
-         * Bytes and items are unified via max() so that operations where one metric stalls, e.g. a
-         * copy that skips items, still reach 100%.
+         * On the byte axis a sample that has processed every item is pinned to 100%, so rounding
+         * shortfalls and items that finish without accounting their full size still terminate.
          */
-        private fun PerformanceHistory.progressOf(sample: PerformanceSample): Float {
-            val bytesPercentage = if (totalBytes > 0L) {
-                (sample.totalBytesProcessed.toFloat() / totalBytes.toFloat()) * 100f
-            } else {
-                0f
+        private fun PerformanceHistory.progressOf(sample: PerformanceSample, useByteAxis: Boolean): Float {
+            val raw = when {
+                !useByteAxis -> if (totalItems > 0) {
+                    (sample.totalItemsProcessed.toFloat() / totalItems.toFloat()) * 100f
+                } else {
+                    0f
+                }
+
+                totalItems > 0 && sample.totalItemsProcessed >= totalItems -> 100f
+                else -> (sample.totalBytesAccounted.toFloat() / totalBytes.toFloat()) * 100f
             }
-            val itemsPercentage = if (totalItems > 0) {
-                (sample.totalItemsProcessed.toFloat() / totalItems.toFloat()) * 100f
-            } else {
-                0f
-            }
-            val raw = max(bytesPercentage.coerceIn(0f, 100f), itemsPercentage.coerceIn(0f, 100f))
-            return round(raw * 2) / 2f
+            return roundToStep(raw)
         }
+
+        private fun roundToStep(percentage: Float): Float = round(percentage.coerceIn(0f, 100f) * 2) / 2f
 
         private fun unitFor(maxBytesPerSecond: Long): ByteSpeedUnit = when {
             maxBytesPerSecond < 1_000L -> ByteSpeedUnit.B_S

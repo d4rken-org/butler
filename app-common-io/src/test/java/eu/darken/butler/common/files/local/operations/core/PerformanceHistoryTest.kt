@@ -907,6 +907,40 @@ class PerformanceHistoryTest : BaseTest() {
     }
 
     @Test
+    fun `bucketing follows accounted bytes rather than transferred bytes`() {
+        val startTime = Instant.fromEpochMilliseconds(1000)
+        var history = PerformanceHistory()
+        val totalBytes = 1_500_000_000L
+
+        // Nothing is ever transferred, every item completes by being created or skipped
+        repeat(1500) { i ->
+            history = history.addSample(
+                PerformanceSample(
+                    timestamp = startTime + (i * 10).milliseconds,
+                    bytesPerSecond = 0L,
+                    itemsPerSecond = 10f,
+                    totalBytesProcessed = 0L,
+                    totalItemsProcessed = i + 1,
+                    totalBytesAccounted = (i + 1) * (totalBytes / 1500),
+                ),
+                totalBytes = totalBytes,
+                totalItems = 0  // Items = 0, so use bytes
+            )
+        }
+
+        val buckets = history.samples.groupBy { sample ->
+            val percentage = (sample.totalBytesAccounted.toDouble() / totalBytes) * 100.0
+            (percentage / 5.0).toInt().coerceIn(0, 19)
+        }
+
+        buckets.keys.size shouldBe 20
+        buckets.keys.min() shouldBe 0
+        buckets.keys.max() shouldBe 19
+        // Bucketing on transferred bytes would have crammed all of these into bucket 0
+        history.samples.all { it.totalBytesProcessed == 0L } shouldBe true
+    }
+
+    @Test
     fun `item-based operation uses items for percentage`() {
         val startTime = Instant.fromEpochMilliseconds(1000)
         var history = PerformanceHistory()

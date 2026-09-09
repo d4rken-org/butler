@@ -103,7 +103,7 @@ class TransferConflictResolver<
         if (issueResolver.skipAllPathExists) {
             log(tag, INFO) { "Skipping (apply-to-all): $destination" }
             onSkip(sourceLookup)
-            progressTracker.completeItem()
+            progressTracker.skipItem(sourceLookup.size ?: 0L)
             return ApplyToAllResult.Resolved
         }
 
@@ -121,6 +121,7 @@ class TransferConflictResolver<
         if (onMerge != null && destLookup.fileType == FileType.DIRECTORY && issueResolver.mergeAllPathExists) {
             log(tag, INFO) { "Merging directory (apply-to-all): $destination" }
             onMerge()
+            progressTracker.skipItem(sourceLookup.size ?: 0L)
             return ApplyToAllResult.Resolved
         }
 
@@ -229,6 +230,7 @@ class TransferConflictResolver<
         if (destLookup.fileType == FileType.DIRECTORY && onIssue == null) {
             log(tag, VERBOSE) { "Directory already exists, auto-merging: $destination" }
             onMerge()
+            progressTracker.skipItem(sourceLookup.size ?: 0L)
             return
         }
 
@@ -280,7 +282,7 @@ class TransferConflictResolver<
             is PathActionIssue.PathAlreadyExists.Resolution.Skip -> {
                 val isDirectory = canMerge // canMerge is true only for directory conflicts
                 onSkip(sourceLookup, isDirectory)
-                progressTracker.completeItem()
+                progressTracker.skipItem(sourceLookup.size ?: 0L)
             }
 
             is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
@@ -291,7 +293,7 @@ class TransferConflictResolver<
 
             is PathActionIssue.PathAlreadyExists.Resolution.Merge -> {
                 onMerge()
-                progressTracker.completeItem()
+                progressTracker.skipItem(sourceLookup.size ?: 0L)
             }
 
             is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {

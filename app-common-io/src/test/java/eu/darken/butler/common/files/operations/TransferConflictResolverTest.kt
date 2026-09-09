@@ -69,6 +69,79 @@ class TransferConflictResolverTest : BaseTest() {
         onRenameDestination = onRenameDestination,
     )
 
+    private fun trackingResolver(
+        tracker: PathOperationProgressTracker,
+        issueResolver: PathOperationIssueResolver,
+    ) = TransferConflictResolver<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>(
+        destOps = destOps,
+        issueResolver = issueResolver,
+        progressTracker = tracker,
+        tag = "test",
+    )
+
+    @Test
+    fun `merge-all directory conflict advances progress exactly once`() = runTest2 {
+        val tracker = PathOperationProgressTracker()
+        tracker.totalItems = 2
+        val issueResolver = PathOperationIssueResolver(
+            onIssue = { PathActionIssue.PathAlreadyExists.Resolution.Merge(applyToAll = true) },
+        )
+        val conflictResolver = trackingResolver(tracker, issueResolver)
+        val sourceLookup = lookupOf(sourcePath, isDir = true)
+        val destLookup = lookupOf(destination, isDir = true)
+
+        // The first conflict goes through the user and arms merge-all
+        conflictResolver.processResolveConflict(
+            sourceLookup = sourceLookup,
+            destination = destination,
+            destLookup = destLookup,
+            canMerge = true,
+            onSkip = { _, _ -> },
+            onOverwrite = {},
+            onMerge = {},
+            onRenameSource = {},
+            onRenameDestination = {},
+        )
+
+        tracker.itemsProcessed shouldBe 1
+
+        // The second is resolved by the flag alone, without reaching the user
+        conflictResolver.handleDirectoryConflict(
+            sourceLookup = sourceLookup,
+            destination = destination,
+            destLookup = destLookup,
+            onSkip = { _, _ -> },
+            onRename = {},
+            onMerge = {},
+            onOverwrite = {},
+            onResolveConflict = { throw AssertionError("merge-all should have resolved this") },
+            onIssue = issueResolver.onIssue,
+        )
+
+        tracker.itemsProcessed shouldBe 2
+    }
+
+    @Test
+    fun `auto-merged directory conflict advances progress`() = runTest2 {
+        val tracker = PathOperationProgressTracker()
+        tracker.totalItems = 1
+        val conflictResolver = trackingResolver(tracker, PathOperationIssueResolver(onIssue = null))
+
+        conflictResolver.handleDirectoryConflict(
+            sourceLookup = lookupOf(sourcePath, isDir = true),
+            destination = destination,
+            destLookup = lookupOf(destination, isDir = true),
+            onSkip = { _, _ -> },
+            onRename = {},
+            onMerge = {},
+            onOverwrite = {},
+            onResolveConflict = { throw AssertionError("auto-merge should have resolved this") },
+            onIssue = null,
+        )
+
+        tracker.itemsProcessed shouldBe 1
+    }
+
     @Test
     fun `overwrite with successful delete continues`() = runTest2 {
         val (conflictResolver, _) = resolver(PathActionIssue.PathAlreadyExists.Resolution.Overwrite())

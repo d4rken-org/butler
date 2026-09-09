@@ -26,7 +26,16 @@ class PathOperationProgressTracker(
     var totalItems = 0
     var itemsProcessed = 0
     var totalBytes = 0L
+
+    /** Bytes actually moved. */
     var processedBytes = 0L
+
+    /**
+     * Work accounted for: [processedBytes] plus the size of every item that completed without
+     * moving a byte. The performance graph plots this, throughput is measured from [processedBytes].
+     */
+    var accountedBytes = 0L
+        private set
 
     // Current file progress
     var currentFileSize = 0L
@@ -45,6 +54,7 @@ class PathOperationProgressTracker(
 
     private var lastSampleTime: Instant? = null
     private var lastSampleBytes = 0L
+    private var lastSampleAccounted = 0L
     private var lastSampleItems = 0
 
     /**
@@ -66,6 +76,7 @@ class PathOperationProgressTracker(
     fun updateFileProgress(bytes: Long) {
         currentFileBytes += bytes
         processedBytes += bytes
+        accountedBytes += bytes
     }
 
     /**
@@ -76,6 +87,7 @@ class PathOperationProgressTracker(
         val remaining = currentFileSize - currentFileBytes
         if (remaining > 0) {
             processedBytes += remaining
+            accountedBytes += remaining
         }
 
         currentFileSize = 0L
@@ -98,6 +110,35 @@ class PathOperationProgressTracker(
     fun completeItem(bytes: Long) {
         itemsProcessed++
         processedBytes += bytes
+        accountedBytes += bytes
+    }
+
+    /**
+     * Marks an item complete that transferred no bytes: a created directory, a skipped file, a
+     * subtree renamed in one call. Its size counts as work accounted for so the performance graph's
+     * x advances with it, but not as bytes moved.
+     */
+    fun skipItem(size: Long) {
+        val remaining = size - currentFileBytes
+        if (remaining > 0) accountedBytes += remaining
+        currentFileSize = 0L
+        currentFileBytes = 0L
+        currentFileStartTime = null
+        itemsProcessed++
+    }
+
+    /** A retried transfer restarts at byte zero; drop the abandoned attempt's bytes. */
+    fun restartFile() {
+        processedBytes -= currentFileBytes
+        accountedBytes -= currentFileBytes
+        currentFileBytes = 0L
+        // The abandoned attempt is not progress: rebase the sample marks so the next sample
+        // measures the retry alone rather than a negative delta.
+        lastSampleBytes = processedBytes
+        lastSampleAccounted = accountedBytes
+        lastSampleItems = itemsProcessed
+        lastSampleTime = clock.now()
+        currentFileStartTime = clock.now()
     }
 
     /**
@@ -109,6 +150,7 @@ class PathOperationProgressTracker(
         itemsProcessed = 0
         totalBytes = 0L
         processedBytes = 0L
+        accountedBytes = 0L
         currentFileSize = 0L
         currentFileBytes = 0L
         currentFileStartTime = null
@@ -116,6 +158,7 @@ class PathOperationProgressTracker(
         performanceHistory = PerformanceHistory()
         lastSampleTime = null
         lastSampleBytes = 0L
+        lastSampleAccounted = 0L
         lastSampleItems = 0
     }
 
@@ -158,14 +201,16 @@ class PathOperationProgressTracker(
     private fun recordPerformanceSample(now: Instant) {
         val lastTime = lastSampleTime
         val lastBytes = lastSampleBytes
+        val lastAccounted = lastSampleAccounted
         val lastItems = lastSampleItems
 
         // Calculate deltas
         val bytesDelta = processedBytes - lastBytes
+        val accountedDelta = accountedBytes - lastAccounted
         val itemsDelta = itemsProcessed - lastItems
 
         // Only skip if no progress has been made
-        if (bytesDelta == 0L && itemsDelta == 0) {
+        if (bytesDelta == 0L && accountedDelta == 0L && itemsDelta == 0) {
             lastSampleTime = now
             return
         }
@@ -224,6 +269,7 @@ class PathOperationProgressTracker(
             itemsPerSecond = itemsPerSecond,
             totalBytesProcessed = processedBytes,
             totalItemsProcessed = itemsProcessed,
+            totalBytesAccounted = accountedBytes,
         )
 
         performanceHistory = performanceHistory.addSample(
@@ -234,6 +280,7 @@ class PathOperationProgressTracker(
 
         lastSampleTime = now
         lastSampleBytes = processedBytes
+        lastSampleAccounted = accountedBytes
         lastSampleItems = itemsProcessed
     }
 
@@ -246,6 +293,7 @@ class PathOperationProgressTracker(
             itemsProcessed = itemsProcessed,
             totalBytes = totalBytes,
             processedBytes = processedBytes,
+            accountedBytes = accountedBytes,
             currentFileSize = currentFileSize,
             currentFileBytes = currentFileBytes,
             currentFileStartTime = currentFileStartTime
@@ -260,6 +308,7 @@ class PathOperationProgressTracker(
         val itemsProcessed: Int,
         val totalBytes: Long,
         val processedBytes: Long,
+        val accountedBytes: Long,
         val currentFileSize: Long,
         val currentFileBytes: Long,
         val currentFileStartTime: Instant?

@@ -303,6 +303,151 @@ class PathOperationProgressTrackerTest : BaseTest() {
     }
 
     @Test
+    fun `skipItem credits accounted bytes but not processed bytes`() {
+        val tracker = PathOperationProgressTracker()
+        tracker.totalItems = 2
+        tracker.totalBytes = 1000L
+
+        tracker.skipItem(size = 400L)
+
+        tracker.itemsProcessed shouldBe 1
+        tracker.processedBytes shouldBe 0L
+        tracker.accountedBytes shouldBe 400L
+    }
+
+    @Test
+    fun `skipItem after a partial transfer credits only the remainder`() {
+        val tracker = PathOperationProgressTracker()
+        tracker.totalBytes = 1000L
+
+        tracker.startFile(size = 500L)
+        tracker.updateFileProgress(bytes = 200L)
+        tracker.skipItem(size = 500L)
+
+        tracker.processedBytes shouldBe 200L
+        tracker.accountedBytes shouldBe 500L
+    }
+
+    @Test
+    fun `skipItem clears the per-file state so the next file reports its own size`() {
+        val tracker = PathOperationProgressTracker()
+        tracker.totalBytes = 11_000_000L
+
+        tracker.startFile(size = 10_000_000L)
+        tracker.skipItem(size = 10_000_000L)
+
+        tracker.currentFileSize shouldBe 0L
+
+        tracker.startFile(size = 1_000_000L)
+        tracker.updateFileProgress(bytes = 1_000_000L)
+        tracker.completeFile()
+
+        tracker.processedBytes shouldBe 1_000_000L
+    }
+
+    @Test
+    fun `restartFile drops the abandoned attempt's bytes from both counters`() {
+        val tracker = PathOperationProgressTracker()
+        tracker.totalBytes = 1000L
+
+        tracker.startFile(size = 500L)
+        tracker.updateFileProgress(bytes = 300L)
+        tracker.restartFile()
+
+        tracker.processedBytes shouldBe 0L
+        tracker.accountedBytes shouldBe 0L
+        tracker.currentFileBytes shouldBe 0L
+        // The size survives, the re-queued item must not start a new file
+        tracker.currentFileSize shouldBe 500L
+
+        tracker.updateFileProgress(bytes = 500L)
+        tracker.completeFile()
+
+        tracker.processedBytes shouldBe 500L
+    }
+
+    @Test
+    fun `a sample records when only accounted bytes advanced`() {
+        val tracker = PathOperationProgressTracker()
+        tracker.totalItems = 2
+        tracker.totalBytes = 1000L
+
+        tracker.startFile(size = 400L)
+        tracker.updateFileProgress(bytes = 400L)
+        tracker.completeFile()
+        tracker.completeItem()
+        tracker.shouldReportProgress(force = true)
+
+        // A directory is created: no bytes move, but its size is work accounted for
+        tracker.skipItem(size = 600L)
+        tracker.shouldReportProgress(force = true)
+
+        val sample = tracker.performanceHistory.samples.last()
+        sample.totalBytesProcessed shouldBe 400L
+        sample.totalBytesAccounted shouldBe 1000L
+    }
+
+    @Test
+    fun `a restarted transfer never samples a negative speed`() {
+        val clock = TestClock()
+        val tracker = PathOperationProgressTracker(clock = clock)
+        tracker.totalItems = 1
+        tracker.totalBytes = 300_000L
+
+        // A first attempt gets part of the way and is sampled
+        tracker.startFile(size = 300_000L)
+        tracker.updateFileProgress(bytes = 200_000L)
+        clock += 1.seconds
+        tracker.shouldReportProgress(force = true)
+
+        // The attempt is abandoned, the transfer restarts at byte zero
+        tracker.restartFile()
+        clock += 1.seconds
+        tracker.updateFileProgress(bytes = 50_000L)
+        tracker.shouldReportProgress(force = true)
+
+        // Then - throughput is never reported as flowing backwards
+        tracker.performanceHistory.samples
+            .map { it.bytesPerSecond }
+            .filter { it < 0L } shouldBe emptyList<Long>()
+    }
+
+    @Test
+    fun `a restart does not inflate the item rate with the items before it`() {
+        val clock = TestClock()
+        val tracker = PathOperationProgressTracker(progressReportInterval = 10.seconds, clock = clock)
+        tracker.totalItems = 5
+        tracker.totalBytes = 5000L
+
+        // A first item completes and is sampled, so the sample marks sit at one item
+        tracker.startFile(size = 1000L)
+        tracker.updateFileProgress(bytes = 1000L)
+        tracker.completeFile()
+        tracker.completeItem()
+        tracker.shouldReportProgress(force = true)
+
+        // Three more items complete inside the throttle window, so none of them is sampled
+        repeat(3) {
+            clock += 1.seconds
+            tracker.skipItem(size = 1000L)
+            tracker.shouldReportProgress() shouldBe false
+        }
+        tracker.itemsProcessed shouldBe 4
+
+        // A transfer is abandoned and restarts, which rebases the sample marks
+        tracker.startFile(size = 1000L)
+        tracker.updateFileProgress(bytes = 400L)
+        tracker.restartFile()
+
+        // 10ms later the retry reports, with no item having completed since the restart
+        clock += 10.milliseconds
+        tracker.shouldReportProgress(force = true)
+
+        // Then - the item rate measures the restart window, not the items completed before it
+        tracker.performanceHistory.samples.last().itemsPerSecond shouldBe 0f
+    }
+
+    @Test
     fun `multiple files tracked correctly`() {
         val tracker = PathOperationProgressTracker()
         tracker.totalItems = 3
