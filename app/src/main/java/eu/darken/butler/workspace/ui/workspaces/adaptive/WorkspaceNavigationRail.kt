@@ -175,13 +175,22 @@ private val RailItemNotchedShape = CutoutTopRightCornerShape(
 private val RailNotchGlyphPadding = PaddingValues(top = 2.dp, end = 2.dp)
 
 /**
- * The operation marker, in the top corner opposite the notch. 8dp is what the entry's tightest
- * state leaves: a START entry is 64dp wide, and a notched icon's box starts 10.5dp from the leading
- * edge, so the marker ends 1.5dp clear of it. Every other state - unnotched, or the 80dp-wide
- * entries of the bottom placement - leaves more.
+ * The operation marker, in the top corner opposite the notch, in two sizes because the space it has
+ * differs by that much. The notched state is the tight one: a START entry is 64dp wide and a notched
+ * icon's box starts 10.5dp from the leading edge, so 8dp tucked into the corner is what fits, ending
+ * 1.5dp clear of the icon. Every other state has the icon centred at full size with the entry's
+ * whole width around it - 64dp in START, 80dp in BOTTOM - and takes the larger marker, which is what
+ * makes it read as an indicator rather than a speck.
+ *
+ * The stroke follows the size: 1dp is a hairline once the circle is 12dp across.
  */
-private val RailOperationsMarkerSize = 8.dp
-private val RailOperationsMarkerPadding = PaddingValues(top = 2.dp, start = 1.dp)
+private val RailOperationsMarkerSize = 12.dp
+private val RailOperationsMarkerPadding = PaddingValues(top = 4.dp, start = 4.dp)
+private val RailOperationsMarkerStroke = 1.5.dp
+
+private val RailOperationsMarkerNotchedSize = 8.dp
+private val RailOperationsMarkerNotchedPadding = PaddingValues(top = 2.dp, start = 1.dp)
+private val RailOperationsMarkerNotchedStroke = 1.dp
 
 /**
  * What the reveal effect restarts on: which workspace is focused and where the entries sit.
@@ -648,13 +657,14 @@ internal fun WorkspaceRailItem(
             )
         }
 
-        // Opposite the notch, in the strip the shifted icon leaves free: a notched icon is 20dp
-        // centred and moved aside by RailIconNotchShift, so it starts 10.5dp in - which is what
-        // fixes the marker's size. RTL mirrors the notch, so marker and glyph swap sides together.
+        // Sized by the state it is drawn in, not by the worst one: only a notched entry puts the
+        // type icon in the marker's way, and it does so on the same condition that opens the notch.
+        // RTL mirrors the notch, so marker and glyph swap sides together.
+        val isNotched = glyphPaneIndex != null
         val marker = Modifier
             .align(Alignment.TopStart)
-            .padding(RailOperationsMarkerPadding)
-            .size(RailOperationsMarkerSize)
+            .padding(if (isNotched) RailOperationsMarkerNotchedPadding else RailOperationsMarkerPadding)
+            .size(if (isNotched) RailOperationsMarkerNotchedSize else RailOperationsMarkerSize)
         // Both markers are announced through the card's own description above, and an indeterminate
         // indicator would otherwise publish progress semantics of its own. The tag goes outside the
         // clear, which resets everything applied inside it.
@@ -663,7 +673,7 @@ internal fun WorkspaceRailItem(
                 modifier = marker
                     .testTag(WorkspaceNavigationRailDefaults.OPS_RUNNING_TEST_TAG)
                     .clearAndSetSemantics {},
-                strokeWidth = 1.dp,
+                strokeWidth = if (isNotched) RailOperationsMarkerNotchedStroke else RailOperationsMarkerStroke,
                 color = MaterialTheme.colorScheme.primary,
             )
             operationCount > 0 -> Icon(

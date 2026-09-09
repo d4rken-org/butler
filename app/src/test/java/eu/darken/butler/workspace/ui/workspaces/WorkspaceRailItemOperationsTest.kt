@@ -149,6 +149,26 @@ class WorkspaceRailItemOperationsTest : ComposeTest() {
     }
 
     /**
+     * Without a notch nothing shifts towards the marker, so it takes its larger size - and still has
+     * to sit inside the entry and clear of the type icon, which is centred at its full 24dp.
+     */
+    @Test
+    fun `the marker stays inside an unnotched entry and clear of the type icon`() {
+        renderItem(operationCount = 1, activeCount = 1, paneIndex = null)
+
+        val entry = composeTestRule.onNodeWithTag(ITEM_TAG).getUnclippedBoundsInRoot()
+        val marker = composeTestRule.onNodeWithTag(RUNNING_TAG, useUnmergedTree = true).getUnclippedBoundsInRoot()
+
+        (marker.left >= entry.left) shouldBe true
+        (marker.right <= entry.right) shouldBe true
+        (marker.top >= entry.top) shouldBe true
+        (marker.bottom <= entry.bottom) shouldBe true
+
+        val iconLeft = entry.left + ((entry.right - entry.left) - ICON_SIZE) / 2
+        (marker.right <= iconLeft) shouldBe true
+    }
+
+    /**
      * An indeterminate indicator publishes progress semantics of its own, and the marker is a
      * sibling of the clickable card rather than a child of it - so without clearing them the entry
      * would announce twice.
@@ -191,5 +211,8 @@ class WorkspaceRailItemOperationsTest : ComposeTest() {
 
         private val RAIL_THICKNESS = 80.dp
         private val RAIL_ITEM_INSET = 8.dp
+
+        /** The type icon's size while no notch shrinks it. */
+        private val ICON_SIZE = 24.dp
     }
 }
