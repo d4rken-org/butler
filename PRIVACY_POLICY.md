@@ -77,7 +77,7 @@ MOTDs. A GitHub account is not required.
 The MOTD check is optional and can be disabled during onboarding or in the settings.
 
 GitHubs privacy policy can be found here:
-https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
+[GitHub privacy statement](https://docs.github.com/site-policy/privacy-policies/github-privacy-statement)
 
 ## Update check
 
@@ -88,7 +88,7 @@ Butler sends HTTP requests to GitHub`s servers to retrieve the [latest release](
 The update check is optional and can be disabled during onboarding or in the settings.
 
 GitHubs privacy policy can be found here:
-https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
+[GitHub privacy statement](https://docs.github.com/site-policy/privacy-policies/github-privacy-statement)
 
 ## Debug log
 
