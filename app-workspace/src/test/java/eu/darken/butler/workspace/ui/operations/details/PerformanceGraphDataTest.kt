@@ -3,13 +3,13 @@ package eu.darken.butler.workspace.ui.operations.details
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.files.local.operations.core.PerformanceSample
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.floats.plusOrMinus
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 /**
@@ -17,54 +17,219 @@ import kotlin.time.Instant
  */
 class PerformanceGraphDataTest : BaseTest() {
 
-    private val startTime = Instant.fromEpochMilliseconds(1000)
+    private val startTime = Instant.fromEpochMilliseconds(1_000_000)
 
     private fun sample(
-        index: Int,
+        atMillis: Long,
         bytesPerSecond: Long = 0L,
         itemsPerSecond: Float = 0f,
         totalBytesProcessed: Long = 0L,
         totalItemsProcessed: Int = 0,
-        totalBytesAccounted: Long = totalBytesProcessed,
     ) = PerformanceSample(
-        timestamp = startTime + (index * 100).milliseconds,
+        timestamp = startTime + atMillis.milliseconds,
         bytesPerSecond = bytesPerSecond,
         itemsPerSecond = itemsPerSecond,
         totalBytesProcessed = totalBytesProcessed,
         totalItemsProcessed = totalItemsProcessed,
-        totalBytesAccounted = totalBytesAccounted,
     )
 
-    private fun history(
-        samples: List<PerformanceSample>,
-        totalBytes: Long = 0L,
-        totalItems: Int = 0,
-    ) = PerformanceHistory(
+    private fun history(samples: List<PerformanceSample>) = PerformanceHistory(
         samples = samples,
         startTime = startTime,
-        totalBytes = totalBytes,
-        totalItems = totalItems,
     )
+
+    /** [count] samples one second apart, the cadence at which every sample gets its own x. */
+    private fun secondly(
+        count: Int,
+        bytesPerSecond: (Int) -> Long = { 0L },
+        itemsPerSecond: (Int) -> Float = { 1f },
+    ) = (0 until count).map { i ->
+        sample(
+            atMillis = i * 1000L,
+            bytesPerSecond = bytesPerSecond(i),
+            itemsPerSecond = itemsPerSecond(i),
+            totalBytesProcessed = i * 1_000_000L,
+            totalItemsProcessed = i,
+        )
+    }
+
+    private fun overviewOf(samples: List<PerformanceSample>) = PerformanceGraphData.from(
+        history = history(samples),
+        scope = PerformanceGraphScope.OVERVIEW,
+        now = samples.last().timestamp,
+    )
+
+    private fun liveOf(samples: List<PerformanceSample>, nowMillis: Long) = PerformanceGraphData.from(
+        history = history(samples),
+        scope = PerformanceGraphScope.LIVE,
+        now = startTime + nowMillis.milliseconds,
+    )
+
+    // ============ TIME AXIS ============
+
+    @Test
+    fun `x values snap to the half second grid under sampling jitter`() {
+        // The tracker reports every 250ms give or take a few, nothing may land between the steps
+        val samples = (0 until 20).map { i ->
+            val jitter = if (i % 2 == 0) 0L else 249L
+            sample(atMillis = (i / 2) * 500L + jitter, itemsPerSecond = 5f, totalItemsProcessed = i)
+        }
+
+        val data = overviewOf(samples).shouldNotBeNull()
+
+        data.elapsedSeconds shouldBe (0 until 10).map { it * 0.5f }
+    }
+
+    @Test
+    fun `a sample stamped before the start clamps to zero`() {
+        val samples = listOf(sample(atMillis = -500L, itemsPerSecond = 1f)) + secondly(count = 15)
+
+        val data = overviewOf(samples).shouldNotBeNull()
+
+        data.elapsedSeconds.first() shouldBe 0f
+    }
+
+    @Test
+    fun `a wall clock rollback keeps every earlier point`() {
+        val before = secondly(count = 15)
+        // The clock jumps twelve seconds back, later samples carry timestamps already plotted
+        val after = before + listOf(
+            sample(atMillis = 2_000L, itemsPerSecond = 1f),
+            sample(atMillis = 2_500L, itemsPerSecond = 1f),
+            sample(atMillis = 3_000L, itemsPerSecond = 1f),
+        )
+
+        val plain = overviewOf(before).shouldNotBeNull()
+        val rolledBack = overviewOf(after).shouldNotBeNull()
+
+        rolledBack.elapsedSeconds shouldBe plain.elapsedSeconds
+        rolledBack.elapsedSeconds.zipWithNext().forEach { (previous, next) -> (next > previous) shouldBe true }
+    }
+
+    @Test
+    fun `the plotted prefix is stable as samples arrive`() {
+        val samples = secondly(count = 15, itemsPerSecond = { (it + 1).toFloat() })
+
+        val early = overviewOf(samples.take(12)).shouldNotBeNull()
+        val later = overviewOf(samples).shouldNotBeNull()
+
+        later.elapsedSeconds.take(12) shouldBe early.elapsedSeconds
+        later.itemSpeeds.take(12) shouldBe early.itemSpeeds
+    }
+
+    @Test
+    fun `a final sample sharing the last step replaces it`() {
+        // 100ms apart, so ten samples collapse onto three plot steps
+        val samples = (0 until 10).map { i ->
+            sample(atMillis = i * 100L, itemsPerSecond = (i + 1) * 10f, totalItemsProcessed = i)
+        }
+
+        val data = overviewOf(samples).shouldNotBeNull()
+
+        data.elapsedSeconds shouldBe listOf(0f, 0.5f, 1f)
+        // The final sample took the place of the one that shared its step: (10 + 20 + … + 100) / 10
+        data.itemSpeeds.last() shouldBe (55f plusOrMinus 0.001f)
+    }
+
+    // ============ SMOOTHING ============
+
+    @Test
+    fun `smoothing averages over the preceding two seconds`() {
+        val samples = secondly(count = 15, itemsPerSecond = { (it + 1).toFloat() })
+
+        val data = overviewOf(samples).shouldNotBeNull()
+
+        data.itemSpeeds shouldHaveSize 15
+        // A one second cadence puts two samples in the window, the first point only knows itself
+        data.itemSpeeds[0] shouldBe (1f plusOrMinus 0.001f)
+        data.itemSpeeds[3] shouldBe (3.5f plusOrMinus 0.001f)
+        data.itemSpeeds.last() shouldBe (14.5f plusOrMinus 0.001f)
+        data.maxItemSpeed shouldBe 14.5
+    }
+
+    @Test
+    fun `two samples sharing a timestamp cannot change the earlier one`() {
+        val samples = secondly(count = 15, itemsPerSecond = { 10f })
+        val withDuplicate = samples.take(6) +
+            sample(atMillis = 5_000L, itemsPerSecond = 1_000f) +
+            samples.drop(6)
+
+        val plain = overviewOf(samples).shouldNotBeNull()
+        val duplicated = overviewOf(withDuplicate).shouldNotBeNull()
+
+        duplicated.elapsedSeconds shouldBe plain.elapsedSeconds
+        duplicated.itemSpeeds.take(6) shouldBe plain.itemSpeeds.take(6)
+    }
+
+    // ============ LIVE WINDOW ============
+
+    @Test
+    fun `a live window under two minutes starts at zero and reports its elapsed time`() {
+        val data = liveOf(secondly(count = 20), nowMillis = 30_000L).shouldNotBeNull()
+
+        data.xStart shouldBe 0f
+        data.xEnd shouldBe 30f
+        data.windowSpanSeconds shouldBe 30
+        data.elapsedSeconds shouldHaveSize 20
+    }
+
+    @Test
+    fun `a live window past two minutes slides and keeps one point before it`() {
+        val data = liveOf(secondly(count = 201), nowMillis = 200_000L).shouldNotBeNull()
+
+        data.xStart shouldBe 80f
+        data.xEnd shouldBe 200f
+        data.windowSpanSeconds shouldBe 120
+        // The point before the window keeps the line entering from the left edge
+        data.elapsedSeconds.first() shouldBe 79f
+        data.elapsedSeconds.last() shouldBe 200f
+    }
+
+    @Test
+    fun `a stall longer than the window still plots and still tracks now`() {
+        val data = liveOf(secondly(count = 20), nowMillis = 400_000L).shouldNotBeNull()
+
+        // Every sample is older than the window, dropping them would blank the graph mid stall
+        data.elapsedSeconds shouldBe listOf(18f, 19f)
+        data.xEnd shouldBe 400f
+        data.windowSpanSeconds shouldBe 120
+    }
+
+    @Test
+    fun `a stall still plots when the last two samples share a plot step`() {
+        // The final pair is 250ms apart, so both snap onto the same 9.5s step
+        val samples = secondly(count = 9) + listOf(
+            sample(atMillis = 9_300L, itemsPerSecond = 1f, totalItemsProcessed = 9),
+            sample(atMillis = 9_550L, itemsPerSecond = 1f, totalItemsProcessed = 10),
+        )
+
+        liveOf(samples, nowMillis = 200_000L).shouldNotBeNull()
+    }
+
+    @Test
+    fun `an overview spans the whole transfer without a window span`() {
+        val data = overviewOf(secondly(count = 20)).shouldNotBeNull()
+
+        data.xStart shouldBe 0f
+        data.xEnd shouldBe 19f
+        data.windowSpanSeconds shouldBe null
+    }
+
+    @Test
+    fun `the range never ends before the newest sample`() {
+        // A clock that lags behind the samples must not crop the newest point away
+        val data = liveOf(secondly(count = 20), nowMillis = 0L).shouldNotBeNull()
+
+        data.xEnd shouldBe 19f
+    }
 
     // ============ BYTE UNIT SELECTION ============
 
     @Test
     fun `slow transfer is scaled into kilobytes per second`() {
-        val history = history(
-            samples = (0 until 20).map { i ->
-                sample(
-                    index = i,
-                    bytesPerSecond = 500_000L,
-                    itemsPerSecond = 4f,
-                    totalBytesProcessed = i * 500_000L,
-                    totalItemsProcessed = i,
-                )
-            },
-            totalBytes = 10_000_000L,
-            totalItems = 20,
-        )
+        val samples = secondly(count = 20, bytesPerSecond = { 500_000L }, itemsPerSecond = { 4f })
 
-        val data = PerformanceGraphData.from(history).shouldNotBeNull()
+        val data = overviewOf(samples).shouldNotBeNull()
 
         data.byteUnit shouldBe ByteSpeedUnit.KB_S
         data.byteSpeeds.shouldNotBeNull().forEach { it shouldBe 500f }
@@ -74,19 +239,8 @@ class PerformanceGraphDataTest : BaseTest() {
     @Test
     fun `byte unit is selected from the fastest sample`() {
         fun unitFor(bytesPerSecond: Long): ByteSpeedUnit? {
-            val history = history(
-                samples = (0 until 20).map { i ->
-                    sample(
-                        index = i,
-                        bytesPerSecond = bytesPerSecond,
-                        itemsPerSecond = 1f,
-                        totalBytesProcessed = i * 10L,
-                        totalItemsProcessed = i,
-                    )
-                },
-                totalItems = 20,
-            )
-            return PerformanceGraphData.from(history).shouldNotBeNull().byteUnit
+            val samples = secondly(count = 20, bytesPerSecond = { bytesPerSecond })
+            return overviewOf(samples).shouldNotBeNull().byteUnit
         }
 
         unitFor(999L) shouldBe ByteSpeedUnit.B_S
@@ -98,362 +252,102 @@ class PerformanceGraphDataTest : BaseTest() {
     }
 
     @Test
-    fun `bytes moved without a measured speed still get a byte series`() {
-        val history = history(
-            samples = (0 until 20).map { i ->
-                sample(
-                    index = i,
-                    bytesPerSecond = 0L,
-                    itemsPerSecond = 2f,
-                    totalBytesProcessed = i * 100_000L,
-                    totalItemsProcessed = i,
-                )
-            },
-            totalBytes = 2_000_000L,
-            totalItems = 20,
+    fun `the byte unit follows the plotted window`() {
+        // A fast burst up front, then a long slow tail
+        fun burstThenTail(count: Int) = secondly(
+            count = count,
+            bytesPerSecond = { if (it < 20) 2_000_000_000L else 5_000_000L },
         )
 
-        val data = PerformanceGraphData.from(history).shouldNotBeNull()
+        val early = liveOf(burstThenTail(30), nowMillis = 29_000L).shouldNotBeNull()
+        val late = liveOf(burstThenTail(220), nowMillis = 219_000L).shouldNotBeNull()
+
+        early.byteUnit shouldBe ByteSpeedUnit.GB_S
+        // The burst scrolled out of the window, so the axis relabels
+        late.byteUnit shouldBe ByteSpeedUnit.MB_S
+    }
+
+    @Test
+    fun `bytes moved without a measured speed still get a byte series`() {
+        val samples = secondly(count = 20, itemsPerSecond = { 2f })
+
+        val data = overviewOf(samples).shouldNotBeNull()
 
         data.byteUnit shouldBe ByteSpeedUnit.B_S
         data.byteSpeeds.shouldNotBeNull().forEach { it shouldBe 0f }
         data.maxByteSpeed shouldBe 0.0
     }
 
-    // ============ SERIES PRESENCE ============
-
     @Test
-    fun `item only operation has no byte series`() {
-        val history = history(
-            samples = (0 until 20).map { i ->
-                sample(index = i, itemsPerSecond = 5f, totalItemsProcessed = i)
-            },
-            totalItems = 20,
-        )
+    fun `an item only operation has no byte series`() {
+        val samples = (0 until 20).map { i ->
+            sample(atMillis = i * 1000L, itemsPerSecond = 5f, totalItemsProcessed = i)
+        }
 
-        val data = PerformanceGraphData.from(history).shouldNotBeNull()
+        val data = overviewOf(samples).shouldNotBeNull()
 
         data.byteSpeeds shouldBe null
         data.byteUnit shouldBe null
         data.maxByteSpeed shouldBe 0.0
-        data.progress shouldBe (0 until 20).map { it * 5f }
     }
 
     @Test
-    fun `unknown size transfer keeps its byte series and plots against items`() {
-        val history = history(
-            samples = (0 until 20).map { i ->
-                sample(
-                    index = i,
-                    bytesPerSecond = 4_000_000L,
-                    itemsPerSecond = 2f,
-                    totalBytesProcessed = i * 4_000_000L,
-                    totalItemsProcessed = i,
-                )
-            },
-            totalBytes = 0L,  // Size unknown up front, e.g. a stream copy
-            totalItems = 20,
-        )
+    fun `a byteless window keeps the byte series of the full history`() {
+        // Byte data anywhere in the history keeps both axes, a window without it must not flip modes
+        val samples = (0 until 220).map { i ->
+            sample(
+                atMillis = i * 1000L,
+                bytesPerSecond = if (i < 20) 1_000_000L else 0L,
+                itemsPerSecond = 5f,
+                totalItemsProcessed = i,
+            )
+        }
 
-        val data = PerformanceGraphData.from(history).shouldNotBeNull()
+        val data = liveOf(samples, nowMillis = 219_000L).shouldNotBeNull()
 
-        data.byteUnit shouldBe ByteSpeedUnit.MB_S
-        data.byteSpeeds.shouldNotBeNull() shouldHaveSize 20
-        data.progress shouldBe (0 until 20).map { it * 5f }
+        data.byteSpeeds.shouldNotBeNull().forEach { it shouldBe 0f }
     }
 
     // ============ NO GRAPH ============
 
     @Test
-    fun `history without totals has no x domain`() {
-        val history = history(
-            samples = (0 until 20).map { i ->
-                sample(index = i, bytesPerSecond = 1_000_000L, itemsPerSecond = 5f)
-            },
-        )
-
-        PerformanceGraphData.from(history) shouldBe null
-    }
-
-    @Test
-    fun `flat progress is not plottable`() {
-        val history = history(
-            samples = (0 until 20).map { i ->
-                sample(index = i, itemsPerSecond = 5f, totalItemsProcessed = 0)
-            },
-            totalItems = 100,
-        )
-
-        PerformanceGraphData.from(history) shouldBe null
-    }
-
-    @Test
     fun `too few samples produce no data`() {
-        val history = history(
-            samples = (0 until 9).map { i ->
-                sample(index = i, itemsPerSecond = 5f, totalItemsProcessed = i)
-            },
-            totalItems = 9,
-        )
+        val samples = secondly(count = 9)
 
-        PerformanceGraphData.from(history) shouldBe null
-    }
-
-    // ============ X DOMAIN ============
-
-    @Test
-    fun `skipped items still let progress reach 100 percent`() {
-        val history = history(
-            samples = (0 until 20).map { i ->
-                sample(
-                    index = i,
-                    bytesPerSecond = 1_000L,
-                    itemsPerSecond = 2f,
-                    // Bytes stall at 10%: the remaining items were skipped
-                    totalBytesProcessed = minOf(i, 2) * 50_000L,
-                    totalItemsProcessed = i + 1,
-                )
-            },
-            totalBytes = 1_000_000L,
-            totalItems = 20,
-        )
-
-        val data = PerformanceGraphData.from(history).shouldNotBeNull()
-
-        data.progress.last() shouldBe 100f
+        PerformanceGraphData.from(history(samples), PerformanceGraphScope.OVERVIEW, startTime) shouldBe null
     }
 
     @Test
-    fun `progress beyond the total is clamped to 100 percent`() {
-        val history = history(
-            samples = (0 until 20).map { i ->
-                sample(
-                    index = i,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 2f,
-                    // The last few samples report more than the total
-                    totalBytesProcessed = (i + 1) * 100_000L,
-                    totalItemsProcessed = i,
-                )
-            },
-            totalBytes = 1_000_000L,
-            totalItems = 20,
-        )
-
-        val data = PerformanceGraphData.from(history).shouldNotBeNull()
-
-        data.progress.max() shouldBe 100f
-        data.progress.last() shouldBe 100f
-    }
-
-    @Test
-    fun `single large file still advances along the byte axis`() {
-        val history = history(
-            samples = (0 until 20).map { i ->
-                sample(
-                    index = i,
-                    bytesPerSecond = 50_000_000L,
-                    itemsPerSecond = 0.05f,
-                    totalBytesProcessed = i * 50_000_000L,
-                    totalItemsProcessed = 0,  // The single file is only counted once it is done
-                )
-            },
-            totalBytes = 1_000_000_000L,
-            totalItems = 1,
-        )
-
-        val data = PerformanceGraphData.from(history).shouldNotBeNull()
-
-        data.progress shouldBe data.progress.distinct()
-        data.progress.zipWithNext().forEach { (previous, next) -> (next > previous) shouldBe true }
-    }
-
-    @Test
-    fun `a directory completing before any bytes move keeps the plot at the left edge`() {
-        // An 8 item folder copy: the destination directory is created first, then the files stream
-        val directorySize = 4_096L
-        val history = history(
-            samples = (0 until 20).map { i ->
-                val transferred = (i + 1) * 5_000_000L
-                sample(
-                    index = i,
-                    bytesPerSecond = 5_000_000L,
-                    itemsPerSecond = 0.3f,
-                    totalBytesProcessed = transferred,
-                    totalItemsProcessed = 1 + i / 3,
-                    totalBytesAccounted = transferred + directorySize,
-                )
-            },
-            totalBytes = 1_000_000_000L,
-            totalItems = 8,
-        )
-
-        val data = PerformanceGraphData.from(history).shouldNotBeNull()
-
-        // 5 MB of 1 GB, not the 12.5% one of eight items would claim
-        data.progress.first() shouldBe 0.5f
-        data.progress.max() shouldBe 10f
-    }
-
-    @Test
-    fun `early transfer positions survive the progress filter`() {
-        val history = history(
-            samples = (0 until 20).map { i ->
-                val transferred = (i + 1) * 5_000_000L
-                sample(
-                    index = i,
-                    bytesPerSecond = 5_000_000L,
-                    itemsPerSecond = 0f,
-                    totalBytesProcessed = transferred,
-                    totalItemsProcessed = 1,  // Still inside the first file
-                    totalBytesAccounted = transferred + 4_096L,
-                )
-            },
-            totalBytes = 1_000_000_000L,
-            totalItems = 8,
-        )
-
-        val data = PerformanceGraphData.from(history).shouldNotBeNull()
-
-        data.progress shouldBe (1..20).map { it * 0.5f }
-    }
-
-    @Test
-    fun `progress reaches 100 percent when the final item completes below the byte total`() {
-        val history = history(
-            samples = (0 until 20).map { i ->
-                sample(
-                    index = i,
-                    bytesPerSecond = 25_000_000L,
-                    itemsPerSecond = 0.5f,
-                    // Half the announced bytes never move, the rest of the items were skipped
-                    totalBytesProcessed = (i + 1) * 25_000_000L,
-                    totalItemsProcessed = if (i == 19) 10 else i / 2,
-                )
-            },
-            totalBytes = 1_000_000_000L,
-            totalItems = 10,
-        )
-
-        val data = PerformanceGraphData.from(history).shouldNotBeNull()
-
-        data.progress.last() shouldBe 100f
-    }
-
-    @Test
-    fun `an operation whose accounted bytes never move plots against items`() {
-        val history = history(
-            samples = (0 until 20).map { i ->
-                sample(index = i, itemsPerSecond = 5f, totalItemsProcessed = i + 1)
-            },
-            totalBytes = 1_000_000_000L,  // Announced up front, then nothing is accounted against it
-            totalItems = 20,
-        )
-
-        val data = PerformanceGraphData.from(history).shouldNotBeNull()
-
-        data.progress shouldBe (1..20).map { it * 5f }
-    }
-
-    @Test
-    fun `a stray byte does not collapse an item graph`() {
-        val history = history(
-            samples = (0 until 11).map { i ->
-                sample(
-                    index = i,
-                    itemsPerSecond = 5f,
-                    // The last sample accounts a byte count that still rounds to 0%
-                    totalBytesProcessed = if (i == 10) 1_000L else 0L,
-                    totalItemsProcessed = i + 1,
-                )
-            },
-            totalBytes = 1_000_000_000L,
-            totalItems = 20,
-        )
-
-        val data = PerformanceGraphData.from(history).shouldNotBeNull()
-
-        data.progress shouldBe (1..11).map { it * 5f }
-    }
-
-    // ============ FILTERING ============
-
-    @Test
-    fun `samples are kept once progress advanced half a percent`() {
-        // 1 of 1000 items per sample, so most samples round onto the same 0.5% step
-        val samples = (0 until 10).map { i ->
-            sample(index = i, itemsPerSecond = (i + 1) * 10f, totalItemsProcessed = i + 1)
-        }
-        val data = PerformanceGraphData.from(history(samples, totalItems = 1000)).shouldNotBeNull()
-
-        data.progress shouldBe listOf(0f, 0.5f, 1f)
-        // The final sample replaced the entry that shared its 1.0% step: (10 + 30 + 100) / 3
-        data.itemSpeeds.last() shouldBe (46.667f plusOrMinus 0.01f)
-    }
-
-    @Test
-    fun `a final sample below earlier progress truncates back to it`() {
-        val samples = (0 until 10).map { i ->
-            sample(index = i, itemsPerSecond = 5f, totalItemsProcessed = i + 1)
-        } + sample(index = 10, itemsPerSecond = 5f, totalItemsProcessed = 4)  // Progress reported lower
-
-        val data = PerformanceGraphData.from(history(samples, totalItems = 10)).shouldNotBeNull()
-
-        data.progress shouldBe listOf(10f, 20f, 30f, 40f)
-        data.progress shouldBe data.progress.distinct()
-    }
-
-    @Test
-    fun `a final sample above the last kept step is appended`() {
-        // 1 of 1000 items per sample, so most samples round onto the same 0.5% step
-        val samples = (0 until 11).map { i ->
-            sample(index = i, itemsPerSecond = 5f, totalItemsProcessed = i + 1)
-        } + sample(index = 11, itemsPerSecond = 5f, totalItemsProcessed = 100)  // A batch of items landed at once
-
-        val data = PerformanceGraphData.from(history(samples, totalItems = 1000)).shouldNotBeNull()
-
-        data.progress shouldBe listOf(0f, 0.5f, 1f, 10f)
-        data.progress shouldBe data.progress.distinct()
-        data.progress.zipWithNext().forEach { (previous, next) -> (next > previous) shouldBe true }
-    }
-
-    // ============ SMOOTHING ============
-
-    @Test
-    fun `smoothing only averages over preceding samples`() {
-        val samples = (0 until 15).map { i ->
-            sample(index = i, itemsPerSecond = (i + 1).toFloat(), totalItemsProcessed = i + 1)
+    fun `an operation that never advanced is still plottable against time`() {
+        val samples = (0 until 20).map { i ->
+            sample(atMillis = i * 1000L, itemsPerSecond = 5f, totalItemsProcessed = 0)
         }
 
-        val data = PerformanceGraphData.from(history(samples, totalItems = 15)).shouldNotBeNull()
+        val data = overviewOf(samples).shouldNotBeNull()
 
-        data.itemSpeeds shouldHaveSize 15
-        // Partial window at the start: (1 + 2 + 3 + 4) / 4
-        data.itemSpeeds[3] shouldBe (2.5f plusOrMinus 0.001f)
-        // Full trailing window of 10: (4 + 5 + … + 13) / 10
-        data.itemSpeeds[12] shouldBe (8.5f plusOrMinus 0.001f)
-        // The last point knows nothing beyond itself: (6 + 7 + … + 15) / 10
-        data.itemSpeeds.last() shouldBe (10.5f plusOrMinus 0.001f)
-        data.maxItemSpeed shouldBe (10.5 plusOrMinus 0.001)
+        data.elapsedSeconds shouldBe (0 until 20).map { it.toFloat() }
+    }
+
+    @Test
+    fun `samples recorded within one plot step are not plottable`() {
+        val samples = (0 until 20).map { i ->
+            sample(atMillis = i.toLong(), itemsPerSecond = 5f, totalItemsProcessed = i)
+        }
+
+        overviewOf(samples) shouldBe null
     }
 
     // ============ RECENT SPEEDS ============
 
     @Test
     fun `recent speeds average the raw samples`() {
-        val samples = (0 until 20).map { i ->
-            sample(
-                index = i,
-                bytesPerSecond = (i + 1) * 1_000_000L,
-                itemsPerSecond = (i + 1).toFloat(),
-                totalBytesProcessed = i * 1_000_000L,
-                totalItemsProcessed = i,
-            )
-        }
+        val samples = secondly(
+            count = 20,
+            bytesPerSecond = { (it + 1) * 1_000_000L },
+            itemsPerSecond = { (it + 1).toFloat() },
+        )
 
-        val data = PerformanceGraphData
-            .from(history(samples, totalBytes = 20_000_000L, totalItems = 20))
-            .shouldNotBeNull()
+        val data = overviewOf(samples).shouldNotBeNull()
 
         // (1 + 2 + … + 20) / 20 = 10.5
         data.recentBytesPerSecond shouldBe 10_500_000L
@@ -462,19 +356,13 @@ class PerformanceGraphDataTest : BaseTest() {
 
     @Test
     fun `recent speeds only cover the last 30 samples`() {
-        val samples = (0 until 40).map { i ->
-            sample(
-                index = i,
-                bytesPerSecond = if (i < 10) 500_000_000L else 1_000_000L,
-                itemsPerSecond = if (i < 10) 100f else 2f,
-                totalBytesProcessed = i * 1_000_000L,
-                totalItemsProcessed = i,
-            )
-        }
+        val samples = secondly(
+            count = 40,
+            bytesPerSecond = { if (it < 10) 500_000_000L else 1_000_000L },
+            itemsPerSecond = { if (it < 10) 100f else 2f },
+        )
 
-        val data = PerformanceGraphData
-            .from(history(samples, totalBytes = 40_000_000L, totalItems = 40))
-            .shouldNotBeNull()
+        val data = overviewOf(samples).shouldNotBeNull()
 
         data.recentBytesPerSecond shouldBe 1_000_000L
         data.recentItemsPerSecond shouldBe (2f plusOrMinus 0.001f)
@@ -482,15 +370,57 @@ class PerformanceGraphDataTest : BaseTest() {
 
     @Test
     fun `recent speeds ignore the filtering and smoothing of the series`() {
-        // 1 of 1000 items per sample, so most samples round onto the same 0.5% step
+        // 100ms apart, so ten samples collapse onto three plot steps
         val samples = (0 until 10).map { i ->
-            sample(index = i, itemsPerSecond = (i + 1) * 10f, totalItemsProcessed = i + 1)
+            sample(atMillis = i * 100L, itemsPerSecond = (i + 1) * 10f, totalItemsProcessed = i)
         }
 
-        val data = PerformanceGraphData.from(history(samples, totalItems = 1000)).shouldNotBeNull()
+        val data = overviewOf(samples).shouldNotBeNull()
 
         data.itemSpeeds shouldHaveSize 3
         // (10 + 20 + … + 100) / 10, over every sample rather than the three plotted points
         data.recentItemsPerSecond shouldBe (55f plusOrMinus 0.001f)
+    }
+
+    // ============ CROPPING ============
+
+    @Test
+    fun `the live window crops the samples that scrolled out`() {
+        val samples = secondly(count = 201)
+
+        val cropped = liveOf(samples, nowMillis = 200_000L).shouldNotBeNull()
+        val full = overviewOf(samples).shouldNotBeNull()
+
+        cropped.elapsedSeconds shouldHaveSize 122
+        full.elapsedSeconds shouldHaveSize 201
+        cropped.elapsedSeconds shouldBe full.elapsedSeconds.takeLast(122)
+    }
+
+    @Test
+    fun `a window shorter than the samples still smooths from before its edge`() {
+        val samples = secondly(count = 201, itemsPerSecond = { (it + 1).toFloat() })
+
+        val cropped = liveOf(samples, nowMillis = 200_000L).shouldNotBeNull()
+        val full = overviewOf(samples).shouldNotBeNull()
+
+        // Smoothing runs over the raw history, so a cropped point keeps the value it always had
+        cropped.itemSpeeds shouldBe full.itemSpeeds.takeLast(122)
+    }
+
+    @Test
+    fun `the smoothing window is measured in time, not in samples`() {
+        val dense = (0 until 20).map { i ->
+            sample(atMillis = i * 500L, itemsPerSecond = if (i == 0) 100f else 0f)
+        }
+
+        val data = PerformanceGraphData.from(
+            history = history(dense),
+            scope = PerformanceGraphScope.OVERVIEW,
+            now = startTime + 10.seconds,
+        ).shouldNotBeNull()
+
+        // Four samples still hold the 100/s spike, the fifth is a full two seconds past it
+        data.itemSpeeds[3] shouldBe (25f plusOrMinus 0.001f)
+        data.itemSpeeds[4] shouldBe (0f plusOrMinus 0.001f)
     }
 }

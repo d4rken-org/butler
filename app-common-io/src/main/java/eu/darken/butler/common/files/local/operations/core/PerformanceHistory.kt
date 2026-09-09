@@ -7,6 +7,7 @@ import eu.darken.butler.common.serialization.InstantSerializer
 import kotlinx.serialization.Serializable
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 /**
@@ -28,16 +29,16 @@ data class PerformanceSample(
 )
 
 /**
- * Historical performance data with adaptive sampling for memory efficiency.
+ * Historical performance data with time-based retention for memory efficiency.
  *
  * Sampling Strategy:
- * - Hard cap: 1000 samples. Exceeding it triggers a compaction.
- * - Compaction target: 800 samples, so the next compaction is ~200 adds away instead of every add.
- * - Percentage-based bucketing: Divides 0-100% progress into 5% buckets (20 total)
- * - Compaction keeps 800/20 = 40 samples per bucket, endpoint-inclusive so first and last survive
- * - Supports both byte-based (copy/move) and item-based (delete) operations
- * - Uses totalBytes for percentage if available, otherwise uses totalItems
- * - Ensures graph coverage across full 0-100% even with rapid sampling (many small files)
+ * - Hard cap: [MAX_SAMPLES] samples. Exceeding it triggers a compaction.
+ * - The last [RECENT_WINDOW] is kept verbatim, so the live graph has every sample it plots.
+ * - A forced-sampling burst inside that window is thinned to [RECENT_TARGET], leaving the newest
+ *   [PROTECTED_TAIL] samples untouched for [getRecentBytesPerSecond] and [getRecentItemsPerSecond].
+ * - Everything older is spread over [OVERVIEW_BUCKETS] equal-duration buckets, each thinned to
+ *   [SAMPLES_PER_OVERVIEW_BUCKET] evenly spaced samples, endpoint-inclusive so bucket ends survive.
+ * - Worst case retained is 741 samples, well under [COMPACT_TARGET], so compaction stays amortized.
  */
 @Serializable
 data class PerformanceHistory(
@@ -59,7 +60,7 @@ data class PerformanceHistory(
         get() = samples.size >= 10
 
     /**
-     * Add a new sample with adaptive downsampling for old data.
+     * Add a new sample, compacting older data once the cap is crossed.
      */
     fun addSample(sample: PerformanceSample, totalBytes: Long = 0L, totalItems: Int = 0): PerformanceHistory {
         log(
@@ -67,7 +68,7 @@ data class PerformanceHistory(
             DEBUG
         ) { "Adding sample. Current: ${samples.size} → New: ${samples.size + 1}, Speed: ${sample.bytesPerSecond / 1_000_000f} MB/s" }
 
-        // The totals this add carries can grow during scanning, bucketing has to use the new ones
+        // The totals this add carries can grow during scanning
         val nextTotalBytes = maxOf(this.totalBytes, totalBytes)
         val nextTotalItems = maxOf(this.totalItems, totalItems)
 
@@ -75,9 +76,8 @@ data class PerformanceHistory(
             if (allSamples.size <= MAX_SAMPLES) {
                 allSamples
             } else {
-                // Apply adaptive sampling: keep recent, downsample old
-                log(TAG, DEBUG) { "Applying adaptive sampling" }
-                adaptiveSample(allSamples, nextTotalBytes, nextTotalItems)
+                log(TAG, DEBUG) { "Compacting samples" }
+                compact(allSamples)
             }
         }
 
@@ -132,50 +132,66 @@ data class PerformanceHistory(
             samples.last().timestamp - startTime
         }
 
-    private fun adaptiveSample(
-        allSamples: List<PerformanceSample>,
-        totalBytes: Long,
-        totalItems: Int,
-    ): List<PerformanceSample> {
-        // Determine which metric to use for percentage calculation
-        val useItems = totalBytes == 0L && totalItems > 0
+    /**
+     * Keep the last [RECENT_WINDOW] verbatim and thin everything older into an overview.
+     */
+    private fun compact(allSamples: List<PerformanceSample>): List<PerformanceSample> {
+        // Recording order, not timestamps: the origin of the operation and the samples the progress
+        // bar's speed and ETA read are defined by when they arrived, whatever the clock did to them
+        // Matching on [startTime] relies on the sort below being stable: after a backwards clock jump
+        // another sample can share the origin's timestamp, and only stability keeps the origin first
+        val origin = allSamples.firstOrNull { it.timestamp == startTime } ?: allSamples.first()
+        val protectedTail = allSamples.takeLast(PROTECTED_TAIL)
 
-        if (totalBytes == 0L && totalItems == 0) {
-            // Can't determine percentage without either metric, fallback to keeping last N
-            return allSamples.takeLast(COMPACT_TARGET).sortedBy { it.timestamp }
+        // A clock that jumped backwards leaves the newest timestamp somewhere in the middle, and
+        // every bound below reads an end of the list
+        val ordered = allSamples.sortedBy { it.timestamp }
+        val cutoff = ordered.last().timestamp - RECENT_WINDOW
+        val compactable = ordered - protectedTail.toSet()
+        val older = compactable.filter { it.timestamp < cutoff }
+        val recent = compactable.filter { it.timestamp >= cutoff }
+
+        // Only forced sampling can outpace the report interval enough to reach this
+        val recentBudget = RECENT_TARGET - PROTECTED_TAIL
+        val thinnedRecent = if (recent.size > recentBudget) {
+            evenlySpaced(recent, recentBudget)
+        } else {
+            recent
         }
 
-        // Percentage-based downsampling: ensure samples distributed across 0-100% range
-        val bucketSize = 100.0 / NUM_BUCKETS
-        val samplesPerBucket = (COMPACT_TARGET / NUM_BUCKETS).coerceAtLeast(1)
-
-        val buckets = allSamples.groupBy { sample ->
-            val percentage = if (useItems) {
-                (sample.totalItemsProcessed.toDouble() / totalItems) * 100.0
-            } else {
-                (sample.totalBytesAccounted.toDouble() / totalBytes) * 100.0
-            }
-            // Clamp percentage to [0.0, 100.0] and ensure bucket index is [0, NUM_BUCKETS - 1]
-            val clampedPercentage = percentage.coerceIn(0.0, 100.0)
-            minOf(NUM_BUCKETS - 1, (clampedPercentage / bucketSize).toInt())
-        }
-
-        // Downsample each bucket, endpoint-inclusive so both ends of a bucket survive
-        val downsampledSamples = buckets.flatMap { (_, samplesInBucket) ->
-            when {
-                samplesInBucket.size <= samplesPerBucket -> samplesInBucket
-                samplesPerBucket == 1 -> listOf(samplesInBucket.last())
-                else -> {
-                    val lastIndex = samplesInBucket.size - 1
-                    (0 until samplesPerBucket)
-                        .map { i -> ((i.toDouble() * lastIndex) / (samplesPerBucket - 1)).roundToInt() }
-                        .distinct()
-                        .map { samplesInBucket[it] }
+        val overview = if (older.isEmpty()) {
+            emptyList()
+        } else {
+            val bucketStart = older.first().timestamp
+            val span = older.last().timestamp - bucketStart
+            older
+                .groupBy { sample ->
+                    if (span == Duration.ZERO) {
+                        0
+                    } else {
+                        val position = (sample.timestamp - bucketStart) / span
+                        (position * OVERVIEW_BUCKETS).toInt().coerceIn(0, OVERVIEW_BUCKETS - 1)
+                    }
                 }
-            }
-        }.sortedBy { it.timestamp }  // Maintain chronological order
+                .flatMap { (_, samplesInBucket) -> evenlySpaced(samplesInBucket, SAMPLES_PER_OVERVIEW_BUCKET) }
+        }
 
-        return downsampledSamples
+        return (listOf(origin) + overview + thinnedRecent + protectedTail).distinct().sortedBy { it.timestamp }
+    }
+
+    /**
+     * Thin [source] to [target] entries, endpoint-inclusive so both ends survive.
+     */
+    private fun evenlySpaced(source: List<PerformanceSample>, target: Int): List<PerformanceSample> = when {
+        source.size <= target -> source
+        target <= 1 -> listOf(source.last())
+        else -> {
+            val lastIndex = source.size - 1
+            (0 until target)
+                .map { i -> ((i.toDouble() * lastIndex) / (target - 1)).roundToInt() }
+                .distinct()
+                .map { source[it] }
+        }
     }
 
     override fun toString(): String {
@@ -183,9 +199,20 @@ data class PerformanceHistory(
     }
 
     companion object {
-        private const val MAX_SAMPLES = 1000
-        private const val COMPACT_TARGET = 800
-        private const val NUM_BUCKETS = 20
+        internal const val MAX_SAMPLES = 1000
+        internal const val COMPACT_TARGET = 800
+
+        /** How much of the tail the live graph plots, and therefore may not be thinned. */
+        internal val RECENT_WINDOW = 120.seconds
+        internal const val RECENT_TARGET = 500
+
+        /**
+         * Twice the default window of [getRecentBytesPerSecond] and [getRecentItemsPerSecond], whose
+         * results reach the user as the progress bar's speed and ETA.
+         */
+        internal const val PROTECTED_TAIL = 60
+        internal const val OVERVIEW_BUCKETS = 60
+        internal const val SAMPLES_PER_OVERVIEW_BUCKET = 4
         private val TAG = logTag("PerformanceHistory")
     }
 }

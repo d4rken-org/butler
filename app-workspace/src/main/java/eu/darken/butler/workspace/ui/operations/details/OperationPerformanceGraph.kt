@@ -36,6 +36,7 @@ import com.patrykandpatrick.vico.core.cartesian.Zoom
 import com.patrykandpatrick.vico.core.cartesian.axis.Axis
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
@@ -55,8 +56,30 @@ import eu.darken.butler.common.formatItemSpeed
 import eu.darken.butler.workspace.R
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 private val TAG = logTag("PerformanceGraph")
+
+/** Bounds how many labels the bottom axis enumerates on a multi-minute range. */
+private const val MAX_AXIS_STEPS = 200
+
+/**
+ * The window bounds travel with the data: a transaction whose series are unchanged is dropped by the
+ * model producer, and only a transaction that reaches it recomputes the chart's ranges.
+ */
+internal val X_START = ExtraStore.Key<Float>()
+internal val X_END = ExtraStore.Key<Float>()
+
+internal suspend fun CartesianChartModelProducer.plotGraphData(graphData: PerformanceGraphData) {
+    runTransaction {
+        if (graphData.byteSpeeds != null) lineSeries { series(x = graphData.elapsedSeconds, y = graphData.byteSpeeds) }
+        lineSeries { series(x = graphData.elapsedSeconds, y = graphData.itemSpeeds) }
+        extras {
+            it[X_START] = graphData.xStart
+            it[X_END] = graphData.xEnd
+        }
+    }
+}
 
 
 @Composable
@@ -71,11 +94,8 @@ fun OperationPerformanceGraph(
     val modelProducer = remember(byteSpeeds != null) { CartesianChartModelProducer() }
 
     LaunchedEffect(graphData) {
-        log(TAG, DEBUG) { "Plotting ${graphData.progress.size} points" }
-        modelProducer.runTransaction {
-            if (byteSpeeds != null) lineSeries { series(x = graphData.progress, y = byteSpeeds) }
-            lineSeries { series(x = graphData.progress, y = graphData.itemSpeeds) }
-        }
+        log(TAG, DEBUG) { "Plotting ${graphData.elapsedSeconds.size} points" }
+        modelProducer.plotGraphData(graphData)
     }
 
     Column(
@@ -166,6 +186,12 @@ fun OperationPerformanceGraph(
                 null
             }
 
+            // Vico's default step is the greatest common divisor of the x deltas, which throws on
+            // time values, and the bottom axis enumerates its labels even without drawing them
+            val getXStep = remember(graphData.xStart, graphData.xEnd) {
+                xStepProvider((graphData.xEnd - graphData.xStart) / MAX_AXIS_STEPS)
+            }
+
             // Keyed like the producer above so a mode flip pairs a fresh host with the fresh producer
             key(byteSpeeds != null) {
                 CartesianChartHost(
@@ -184,6 +210,7 @@ fun OperationPerformanceGraph(
                             guideline = null,  // Hide grid lines
                             tick = null,  // Hide tick marks
                         ),
+                        getXStep = getXStep,
                     ),
                     modelProducer = modelProducer,
                     zoomState = rememberVicoZoomState(
@@ -214,8 +241,30 @@ fun OperationPerformanceGraph(
                     .align(Alignment.TopEnd)
                     .offset(x = (-48).dp, y = 16.dp),
             )
+
+            // How much time the plot covers, bottom-start so it clears both speed readouts
+            graphData.windowSpanSeconds?.let { span ->
+                SpeedChip(
+                    text = windowSpanLabel(span),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .offset(x = 48.dp, y = (-8).dp),
+                )
+            }
         }
     }
+}
+
+/** The window grows for its first two minutes, so the span is shown rather than a fixed label. */
+@Composable
+private fun windowSpanLabel(spanSeconds: Int): String = when {
+    spanSeconds >= 60 && spanSeconds % 60 == 0 -> stringResource(
+        R.string.workspace_operation_performance_window_minutes,
+        spanSeconds / 60,
+    )
+
+    else -> stringResource(R.string.workspace_operation_performance_window_seconds, spanSeconds)
 }
 
 @Composable
@@ -247,14 +296,22 @@ private val ByteSpeedUnit.labelRes: Int
 
 private fun axisMax(maxValue: Double): Double = if (maxValue == 0.0) 1.0 else maxValue * 1.20
 
-private fun speedRangeProvider(rangeMaxY: Double) = object : CartesianLayerRangeProvider {
+internal fun speedRangeProvider(rangeMaxY: Double) = object : CartesianLayerRangeProvider {
     override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double = 0.0
 
     override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double = rangeMaxY
 
-    override fun getMinX(minX: Double, maxX: Double, extraStore: ExtraStore): Double = 0.0
+    override fun getMinX(minX: Double, maxX: Double, extraStore: ExtraStore): Double =
+        extraStore[X_START].toDouble()
 
-    override fun getMaxX(minX: Double, maxX: Double, extraStore: ExtraStore): Double = 100.0
+    override fun getMaxX(minX: Double, maxX: Double, extraStore: ExtraStore): Double =
+        extraStore[X_END].toDouble()
+}
+
+/** The range is the bound, not the model width, so an early frame with few points is bounded too. */
+private fun xStepProvider(stepSeconds: Float): (CartesianChartModel) -> Double {
+    val step = stepSeconds.toDouble().coerceAtLeast(PerformanceGraphData.PLOT_STEP_SECONDS.toDouble())
+    return { step }
 }
 
 /** Slow axes need decimals, fast ones would only repeat the same rounded label. */
@@ -269,14 +326,12 @@ private fun speedValueFormatter(maxY: Double) = CartesianValueFormatter { _, val
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun OperationPerformanceGraphHalfDataPreview() {
-    // 50% completion with varying speeds (many small files scenario)
+private fun OperationPerformanceGraphShortOverviewPreview() {
+    // A 12 second transfer of many small files, seen after it completed
     val graphData = remember {
         val baseTime = kotlin.time.Clock.System.now()
-        val totalBytes = 1_000_000_000L
 
         val samples = (0..50).map { i ->
-            val progress = i / 100f
             val speed = (150_000_000 + (kotlin.math.sin(i * 0.3) * 100_000_000)).toLong()
             // Items/s varies independently - simulates many small files
             val items = (15.0 + (kotlin.math.sin(i * 0.5) * 10.0)).coerceAtLeast(5.0).toFloat()
@@ -284,18 +339,13 @@ private fun OperationPerformanceGraphHalfDataPreview() {
                 timestamp = baseTime + (i * 250).milliseconds,
                 bytesPerSecond = speed.coerceAtLeast(50_000_000),
                 itemsPerSecond = items,
-                totalBytesProcessed = (totalBytes * progress).toLong(),
-                totalItemsProcessed = (progress * 1000).toInt(),
+                totalBytesProcessed = i * 40_000_000L,
+                totalItemsProcessed = i * 10,
             )
         }
 
-        val history = PerformanceHistory(
-            samples = samples,
-            startTime = baseTime,
-            totalBytes = totalBytes,
-            totalItems = 1000,
-        )
-        PerformanceGraphData.from(history)
+        val history = PerformanceHistory(samples = samples, startTime = baseTime)
+        PerformanceGraphData.from(history, PerformanceGraphScope.OVERVIEW, samples.last().timestamp)
     } ?: return
     OperationPerformanceGraph(graphData = graphData)
 }
@@ -303,14 +353,12 @@ private fun OperationPerformanceGraphHalfDataPreview() {
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun OperationPerformanceGraphFullDataPreview() {
-    // 100% completion with varying speeds (mixed file sizes scenario)
+private fun OperationPerformanceGraphOverviewPreview() {
+    // A completed transfer of mixed file sizes over 25 seconds
     val graphData = remember {
         val baseTime = kotlin.time.Clock.System.now()
-        val totalBytes = 1_000_000_000L
 
         val samples = (0..100).map { i ->
-            val progress = i / 100f
             val speed = (200_000_000 + (kotlin.math.sin(i * 0.2) * 150_000_000)).toLong()
             // Items/s shows different pattern - starts high (small files), drops (large files), rises again
             val items = when {
@@ -322,18 +370,13 @@ private fun OperationPerformanceGraphFullDataPreview() {
                 timestamp = baseTime + (i * 250).milliseconds,
                 bytesPerSecond = speed.coerceAtLeast(50_000_000),
                 itemsPerSecond = items,
-                totalBytesProcessed = (totalBytes * progress).toLong(),
-                totalItemsProcessed = (progress * 1000).toInt(),
+                totalBytesProcessed = i * 50_000_000L,
+                totalItemsProcessed = i * 10,
             )
         }
 
-        val history = PerformanceHistory(
-            samples = samples,
-            startTime = baseTime,
-            totalBytes = totalBytes,
-            totalItems = 1000,
-        )
-        PerformanceGraphData.from(history)
+        val history = PerformanceHistory(samples = samples, startTime = baseTime)
+        PerformanceGraphData.from(history, PerformanceGraphScope.OVERVIEW, samples.last().timestamp)
     } ?: return
     OperationPerformanceGraph(graphData = graphData)
 }
@@ -345,7 +388,6 @@ private fun OperationPerformanceGraphItemsOnlyPreview() {
     // Deleting 500 empty files: no bytes anywhere, only the items axis has data
     val graphData = remember {
         val baseTime = kotlin.time.Clock.System.now()
-        val totalItems = 500
 
         val samples = (0..100).map { i ->
             val items = (40.0 + (kotlin.math.sin(i * 0.35) * 15.0)).coerceAtLeast(10.0).toFloat()
@@ -354,16 +396,12 @@ private fun OperationPerformanceGraphItemsOnlyPreview() {
                 bytesPerSecond = 0L,
                 itemsPerSecond = items,
                 totalBytesProcessed = 0L,
-                totalItemsProcessed = (totalItems * (i / 100f)).toInt(),
+                totalItemsProcessed = i * 5,
             )
         }
 
-        val history = PerformanceHistory(
-            samples = samples,
-            startTime = baseTime,
-            totalItems = totalItems,
-        )
-        PerformanceGraphData.from(history)
+        val history = PerformanceHistory(samples = samples, startTime = baseTime)
+        PerformanceGraphData.from(history, PerformanceGraphScope.OVERVIEW, samples.last().timestamp)
     } ?: return
     OperationPerformanceGraph(graphData = graphData)
 }
@@ -375,27 +413,95 @@ private fun OperationPerformanceGraphSingleFilePreview() {
     // A single large file: the item count never moves, item speed stays below 1/s
     val graphData = remember {
         val baseTime = kotlin.time.Clock.System.now()
-        val totalBytes = 4_000_000_000L
 
         val samples = (0..100).map { i ->
-            val progress = i / 100f
             val speed = (80_000_000 + (kotlin.math.sin(i * 0.25) * 20_000_000)).toLong()
             PerformanceSample(
                 timestamp = baseTime + (i * 500).milliseconds,
                 bytesPerSecond = speed,
                 itemsPerSecond = 0.02f,
-                totalBytesProcessed = (totalBytes * progress).toLong(),
+                totalBytesProcessed = i * 40_000_000L,
                 totalItemsProcessed = 0,
             )
         }
 
-        val history = PerformanceHistory(
-            samples = samples,
-            startTime = baseTime,
-            totalBytes = totalBytes,
-            totalItems = 1,
-        )
-        PerformanceGraphData.from(history)
+        val history = PerformanceHistory(samples = samples, startTime = baseTime)
+        PerformanceGraphData.from(history, PerformanceGraphScope.OVERVIEW, samples.last().timestamp)
+    } ?: return
+    OperationPerformanceGraph(graphData = graphData)
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationPerformanceGraphGrowingWindowPreview() {
+    // 15 seconds in, the window is still growing so the curve fills the width without sliding
+    val graphData = remember {
+        val baseTime = kotlin.time.Clock.System.now()
+
+        val samples = (0..60).map { i ->
+            val speed = (120_000_000 + (kotlin.math.sin(i * 0.4) * 60_000_000)).toLong()
+            PerformanceSample(
+                timestamp = baseTime + (i * 250).milliseconds,
+                bytesPerSecond = speed,
+                itemsPerSecond = (6.0 + (kotlin.math.sin(i * 0.6) * 3.0)).toFloat(),
+                totalBytesProcessed = i * 30_000_000L,
+                totalItemsProcessed = i * 2,
+            )
+        }
+
+        val history = PerformanceHistory(samples = samples, startTime = baseTime)
+        PerformanceGraphData.from(history, PerformanceGraphScope.LIVE, baseTime + 15.seconds)
+    } ?: return
+    OperationPerformanceGraph(graphData = graphData)
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationPerformanceGraphSlidingWindowPreview() {
+    // Five minutes in, the window holds the last two minutes and the early samples are cropped away
+    val graphData = remember {
+        val baseTime = kotlin.time.Clock.System.now()
+
+        val samples = (0..600).map { i ->
+            val speed = (90_000_000 + (kotlin.math.sin(i * 0.05) * 70_000_000)).toLong()
+            PerformanceSample(
+                timestamp = baseTime + (i * 500).milliseconds,
+                bytesPerSecond = speed,
+                itemsPerSecond = (4.0 + (kotlin.math.sin(i * 0.08) * 2.0)).toFloat(),
+                totalBytesProcessed = i * 45_000_000L,
+                totalItemsProcessed = i * 2,
+            )
+        }
+
+        val history = PerformanceHistory(samples = samples, startTime = baseTime)
+        PerformanceGraphData.from(history, PerformanceGraphScope.LIVE, baseTime + 300.seconds)
+    } ?: return
+    OperationPerformanceGraph(graphData = graphData)
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationPerformanceGraphStalledWindowPreview() {
+    // A blocked transfer: the right edge keeps advancing while the line stops at its last sample
+    val graphData = remember {
+        val baseTime = kotlin.time.Clock.System.now()
+
+        val samples = (0..80).map { i ->
+            val speed = (60_000_000 - (i * 500_000L)).coerceAtLeast(1_000_000L)
+            PerformanceSample(
+                timestamp = baseTime + (i * 250).milliseconds,
+                bytesPerSecond = speed,
+                itemsPerSecond = 1.5f,
+                totalBytesProcessed = i * 15_000_000L,
+                totalItemsProcessed = i,
+            )
+        }
+
+        val history = PerformanceHistory(samples = samples, startTime = baseTime)
+        PerformanceGraphData.from(history, PerformanceGraphScope.LIVE, baseTime + 90.seconds)
     } ?: return
     OperationPerformanceGraph(graphData = graphData)
 }

@@ -19,12 +19,17 @@ import eu.darken.butler.common.files.local.operations.core.PerformanceSample
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.junit.Test
 import testhelpers.ComposeTest
 import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 class OperationPerformanceGraphSectionTest : ComposeTest() {
@@ -42,6 +47,11 @@ class OperationPerformanceGraphSectionTest : ComposeTest() {
     private val notAvailableText = context.getString(R.string.workspace_operation_performance_unavailable_not_available)
 
     private val startTime = Instant.fromEpochMilliseconds(1000)
+
+    /** These histories sit at the Unix epoch, a real clock would put them decades in the past. */
+    private class TestClock(var instant: Instant) : Clock {
+        override fun now(): Instant = instant
+    }
 
     private fun history(
         sampleCount: Int = 20,
@@ -66,7 +76,7 @@ class OperationPerformanceGraphSectionTest : ComposeTest() {
 
     private fun operation(state: OperationDisplay.State) = OperationDisplay(
         id = Operation.Id(),
-        startedAt = Clock.System.now(),
+        startedAt = startTime,
         icon = Icons.TwoTone.ContentCopy,
         title = "Copying files".toCaString(),
         description = "3 of 10".toCaString(),
@@ -94,11 +104,12 @@ class OperationPerformanceGraphSectionTest : ComposeTest() {
 
     private fun cancelled() = OperationDisplay.State.Cancelled(completedAt = startTime, report = null)
 
-    private fun setSection(state: OperationDisplay.State) {
+    private fun setSection(state: OperationDisplay.State, clock: Clock = TestClock(startTime + 30.seconds)) {
         composeTestRule.setContent {
             PreviewWrapper {
                 OperationPerformanceGraphSection(
                     operation = operation(state),
+                    clock = clock,
                     graphContent = { Text(text = "graph", modifier = Modifier.testTag(graphTag)) },
                 )
             }
@@ -130,9 +141,10 @@ class OperationPerformanceGraphSectionTest : ComposeTest() {
 
     @Test
     fun `real graph renders for a byte and item history`() {
+        val clock = TestClock(startTime + 30.seconds)
         composeTestRule.setContent {
             PreviewWrapper {
-                OperationPerformanceGraphSection(operation = operation(running(history())))
+                OperationPerformanceGraphSection(operation = operation(running(history())), clock = clock)
             }
         }
 
@@ -220,11 +232,14 @@ class OperationPerformanceGraphSectionTest : ComposeTest() {
     }
 
     @Test
-    fun `a running operation stuck on one progress step is still collecting`() {
+    fun `a running operation whose progress is stuck is still plotted`() {
         setSection(running(history(totalItems = 0, advancing = false)))
 
         composeTestRule.onNodeWithContentDescription(expandLabel).performClick()
-        composeTestRule.onNodeWithText(collectingText).assertIsDisplayed()
+
+        // Time keeps moving even when progress doesn't, so a stuck operation shows a flat line
+        composeTestRule.onNodeWithTag(graphTag).assertIsDisplayed()
+        composeTestRule.onNodeWithText(collectingText).assertDoesNotExist()
     }
 
     @Test
@@ -236,11 +251,13 @@ class OperationPerformanceGraphSectionTest : ComposeTest() {
     }
 
     @Test
-    fun `a completed operation without totals has insufficient data`() {
+    fun `a completed operation without totals is still plotted`() {
         setSection(completed(history(totalBytes = 0L, totalItems = 0)))
 
         composeTestRule.onNodeWithContentDescription(expandLabel).performClick()
-        composeTestRule.onNodeWithText(insufficientText).assertIsDisplayed()
+
+        composeTestRule.onNodeWithTag(graphTag).assertIsDisplayed()
+        composeTestRule.onNodeWithText(insufficientText).assertDoesNotExist()
     }
 
     @Test
@@ -281,5 +298,70 @@ class OperationPerformanceGraphSectionTest : ComposeTest() {
 
         composeTestRule.onNodeWithContentDescription(expandLabel).performClick()
         composeTestRule.onNodeWithText(notAvailableText).assertIsDisplayed()
+    }
+
+    // ============ SCOPE SELECTION ============
+
+    private fun captureGraphData(
+        state: OperationDisplay.State,
+        clock: Clock,
+        captured: (PerformanceGraphData) -> Unit,
+    ) {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                OperationPerformanceGraphSection(
+                    operation = operation(state),
+                    clock = clock,
+                    graphContent = {
+                        captured(it)
+                        Text(text = "graph", modifier = Modifier.testTag(graphTag))
+                    },
+                )
+            }
+        }
+        composeTestRule.onNodeWithContentDescription(expandLabel).performClick()
+        // The expanded body composes a frame after the click, wait for it or nothing was captured
+        composeTestRule.onNodeWithTag(graphTag).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a running operation is plotted against its live window`() {
+        var data: PerformanceGraphData? = null
+        captureGraphData(running(history()), TestClock(startTime + 30.seconds)) { data = it }
+
+        val plotted = data.shouldNotBeNull()
+        plotted.windowSpanSeconds shouldNotBe null
+        plotted.xEnd shouldBe 30f
+    }
+
+    @Test
+    fun `a completed operation is plotted as an overview`() {
+        var data: PerformanceGraphData? = null
+        // A clock an hour ahead: a completed operation is a fixed span and must ignore it
+        captureGraphData(completed(history()), TestClock(startTime + 1.hours)) { data = it }
+
+        val plotted = data.shouldNotBeNull()
+        plotted.windowSpanSeconds shouldBe null
+        plotted.xStart shouldBe 0f
+        plotted.xEnd shouldBe 5f
+    }
+
+    @Test
+    fun `the live window advances while the operation runs`() {
+        val clock = TestClock(startTime + 30.seconds)
+        var data: PerformanceGraphData? = null
+        captureGraphData(running(history()), clock) { data = it }
+
+        data.shouldNotBeNull().xEnd shouldBe 30f
+
+        clock.instant = startTime + 40.seconds
+        composeTestRule.mainClock.autoAdvance = false
+        composeTestRule.mainClock.advanceTimeBy(600)
+        composeTestRule.mainClock.autoAdvance = true
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(graphTag).assertIsDisplayed()
+
+        // No sample arrived, only the ticker moved the right edge
+        data.shouldNotBeNull().xEnd shouldBe 40f
     }
 }

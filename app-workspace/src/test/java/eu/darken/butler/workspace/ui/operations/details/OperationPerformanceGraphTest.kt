@@ -12,11 +12,12 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.files.local.operations.core.PerformanceSample
 import eu.darken.butler.common.formatByteSpeed
+import eu.darken.butler.workspace.R
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 class OperationPerformanceGraphTest : ComposeTest() {
@@ -32,7 +33,7 @@ class OperationPerformanceGraphTest : ComposeTest() {
     private fun history(withBytes: Boolean) = PerformanceHistory(
         samples = (0 until 20).map { i ->
             PerformanceSample(
-                timestamp = startTime + 250.milliseconds * i,
+                timestamp = startTime + 1.seconds * i,
                 bytesPerSecond = if (withBytes) bytesPerSecond else 0L,
                 itemsPerSecond = 5f,
                 totalBytesProcessed = if (withBytes) i * bytesPerSecond else 0L,
@@ -40,11 +41,10 @@ class OperationPerformanceGraphTest : ComposeTest() {
             )
         },
         startTime = startTime,
-        totalBytes = if (withBytes) 1_000_000_000L else 0L,
-        totalItems = 20,
     )
 
-    private fun graphData(withBytes: Boolean) = PerformanceGraphData.from(history(withBytes))!!
+    private fun graphData(withBytes: Boolean, scope: PerformanceGraphScope = PerformanceGraphScope.OVERVIEW) =
+        PerformanceGraphData.from(history(withBytes), scope, startTime + 30.seconds)!!
 
     @Test
     fun `byte data appearing mid operation keeps the graph composed`() {
@@ -71,5 +71,35 @@ class OperationPerformanceGraphTest : ComposeTest() {
 
         composeTestRule.onNodeWithTag(graphTag).assertIsDisplayed()
         composeTestRule.onNodeWithText(formatByteSpeed(context, bytesPerSecond)).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a live window is labelled with the span it covers`() {
+        val live = graphData(withBytes = true, scope = PerformanceGraphScope.LIVE)
+        live.windowSpanSeconds shouldBe 30
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                OperationPerformanceGraph(modifier = Modifier.testTag(graphTag), graphData = live)
+            }
+        }
+
+        val label = context.getString(R.string.workspace_operation_performance_window_seconds, 30)
+        composeTestRule.onNodeWithText(label).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a completed overview carries no window label`() {
+        val overview = graphData(withBytes = true)
+        overview.windowSpanSeconds shouldBe null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                OperationPerformanceGraph(modifier = Modifier.testTag(graphTag), graphData = overview)
+            }
+        }
+
+        val label = context.getString(R.string.workspace_operation_performance_window_seconds, 30)
+        composeTestRule.onNodeWithText(label).assertDoesNotExist()
     }
 }

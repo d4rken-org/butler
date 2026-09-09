@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.doubles.shouldBeGreaterThan
 import io.kotest.matchers.doubles.shouldBeLessThan
 import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.ints.shouldBeLessThan
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeLessThan
@@ -11,22 +12,44 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 /**
- * Tests for PerformanceHistory - performance tracking with adaptive sampling.
+ * Tests for PerformanceHistory - performance tracking with time-based retention.
  *
  * Critical tests verify:
- * - Sample distribution across 0-100% range after downsampling
- * - Early samples (0-5%) are retained
- * - Late samples (95-100%) are retained
+ * - Samples inside the recent window survive compaction verbatim
+ * - Older samples are thinned evenly and stay chronological
+ * - The first and the last sample are always retained
  * - Total samples never exceed MAX_SAMPLES (1000)
- * - Percentage > 100% is handled correctly
- * - Chronological ordering is maintained
  */
 class PerformanceHistoryTest : BaseTest() {
+
+    /** The most a compaction can leave behind: a full recent tail plus a full overview. */
+    private val retentionBound = PerformanceHistory.RECENT_TARGET +
+        PerformanceHistory.OVERVIEW_BUCKETS * PerformanceHistory.SAMPLES_PER_OVERVIEW_BUCKET + 1
+
+    private fun samples(
+        count: Int,
+        spacing: Duration,
+        startTime: Instant = Instant.fromEpochMilliseconds(1000),
+    ) = (0 until count).map { i ->
+        PerformanceSample(
+            timestamp = startTime + spacing * i,
+            bytesPerSecond = (i + 1) * 1_000_000L,
+            itemsPerSecond = (i + 1).toFloat(),
+            totalBytesProcessed = (i + 1) * 1_000L,
+            totalItemsProcessed = i + 1,
+        )
+    }
+
+    private fun historyOf(samples: List<PerformanceSample>, totalBytes: Long = 0L, totalItems: Int = 0) =
+        samples.fold(PerformanceHistory()) { history, sample ->
+            history.addSample(sample, totalBytes = totalBytes, totalItems = totalItems)
+        }
 
     // ============ BASIC FUNCTIONALITY ============
 
@@ -421,7 +444,7 @@ class PerformanceHistoryTest : BaseTest() {
         recentSpeed shouldBe overallSpeed
     }
 
-    // ============ NO DOWNSAMPLING (UNDER LIMIT) ============
+    // ============ NO COMPACTION (UNDER LIMIT) ============
 
     @Test
     fun `500 samples do not trigger downsampling`() {
@@ -495,7 +518,7 @@ class PerformanceHistoryTest : BaseTest() {
         }
     }
 
-    // ============ CRITICAL DOWNSAMPLING TESTS ============
+    // ============ CRITICAL COMPACTION TESTS ============
 
     @Test
     fun `1500 samples trigger downsampling to under 1000`() {
@@ -522,173 +545,69 @@ class PerformanceHistoryTest : BaseTest() {
     }
 
     @Test
-    fun `distribution across 0-100 percent is maintained after downsampling`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalBytes = 1_500_000_000L
+    fun `samples inside the recent window survive compaction verbatim`() {
+        val added = samples(count = 1001, spacing = 250.milliseconds)
+        val history = historyOf(added, totalBytes = 1_001_000L, totalItems = 1001)
 
-        // Create 1500 samples evenly distributed from 0% to 100%
-        repeat(1500) { i ->
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = (i + 1) * (totalBytes / 1500),
-                    totalItemsProcessed = i + 1
-                ),
-                totalBytes = totalBytes,
-                totalItems = 1500
-            )
-        }
+        val cutoff = added.last().timestamp - PerformanceHistory.RECENT_WINDOW
+        val expected = added.filter { it.timestamp >= cutoff }
 
-        // Verify we have samples in each 5% bucket (20 buckets total)
-        val buckets = history.samples.groupBy { sample ->
-            val percentage = (sample.totalBytesProcessed.toDouble() / totalBytes) * 100.0
-            (percentage / 5.0).toInt().coerceIn(0, 19)
-        }
-
-        // All 20 buckets should have at least one sample
-        buckets.keys.size shouldBe 20
-        buckets.keys.min() shouldBe 0
-        buckets.keys.max() shouldBe 19
+        expected shouldHaveSize 481
+        history.samples.filter { it.timestamp >= cutoff } shouldBe expected
+        history.samples shouldHaveSize 721
     }
 
     @Test
-    fun `early samples (0-5 percent) are retained after downsampling`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalBytes = 2_000_000_000L
+    fun `the first sample survives repeated compactions`() {
+        val added = samples(count = 5000, spacing = 250.milliseconds)
+        val history = historyOf(added, totalBytes = 5_000_000L, totalItems = 5000)
 
-        // Create 2000 samples
-        repeat(2000) { i ->
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = (i + 1) * (totalBytes / 2000),
-                    totalItemsProcessed = i + 1
-                ),
-                totalBytes = totalBytes,
-                totalItems = 2000
-            )
-        }
-
-        // Find samples in 0-5% range
-        val earlySamples = history.samples.filter { sample ->
-            val percentage = (sample.totalBytesProcessed.toDouble() / totalBytes) * 100.0
-            percentage < 5.0
-        }
-
-        earlySamples.size shouldBeGreaterThan 0
-        println("Early samples (0-5%): ${earlySamples.size}")
+        history.samples.first() shouldBe added.first()
+        history.samples.size shouldBeLessThanOrEqual PerformanceHistory.MAX_SAMPLES
     }
 
     @Test
-    fun `late samples (95-100 percent) are retained after downsampling`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalBytes = 2_000_000_000L
+    fun `the newest samples survive compaction untouched`() {
+        val added = samples(count = 2000, spacing = 250.milliseconds)
+        val history = historyOf(added, totalBytes = 2_000_000L, totalItems = 2000)
 
-        // Create 2000 samples
-        repeat(2000) { i ->
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = (i + 1) * (totalBytes / 2000),
-                    totalItemsProcessed = i + 1
-                ),
-                totalBytes = totalBytes,
-                totalItems = 2000
-            )
-        }
-
-        // Find samples in 95-100% range
-        val lateSamples = history.samples.filter { sample ->
-            val percentage = (sample.totalBytesProcessed.toDouble() / totalBytes) * 100.0
-            percentage >= 95.0
-        }
-
-        lateSamples.size shouldBeGreaterThan 0
-        println("Late samples (95-100%): ${lateSamples.size}")
+        history.samples.takeLast(100) shouldBe added.takeLast(100)
     }
 
     @Test
-    fun `mid-range samples (40-60 percent) are retained after downsampling`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalBytes = 2_000_000_000L
+    fun `older samples are thinned but stay chronological`() {
+        val added = samples(count = 1001, spacing = 250.milliseconds)
+        val history = historyOf(added, totalBytes = 1_001_000L, totalItems = 1001)
 
-        // Create 2000 samples
-        repeat(2000) { i ->
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = (i + 1) * (totalBytes / 2000),
-                    totalItemsProcessed = i + 1
-                ),
-                totalBytes = totalBytes,
-                totalItems = 2000
-            )
+        val cutoff = added.last().timestamp - PerformanceHistory.RECENT_WINDOW
+        val older = history.samples.filter { it.timestamp < cutoff }
+
+        older shouldHaveSize 240
+        older.size shouldBeLessThan added.count { it.timestamp < cutoff }
+        older.first() shouldBe added.first()
+        history.samples.zipWithNext().forEach { (prev, next) ->
+            (prev.timestamp < next.timestamp) shouldBe true
         }
-
-        // Find samples in 40-60% range
-        val midSamples = history.samples.filter { sample ->
-            val percentage = (sample.totalBytesProcessed.toDouble() / totalBytes) * 100.0
-            percentage in 40.0..60.0
-        }
-
-        midSamples.size shouldBeGreaterThan 0
-        println("Mid samples (40-60%): ${midSamples.size}")
     }
 
     @Test
-    fun `percentage over 100 is clamped correctly`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalBytes = 1_000_000L
+    fun `older samples are evenly spaced within their bucket`() {
+        val added = samples(count = 1001, spacing = 250.milliseconds)
+        val history = historyOf(added, totalBytes = 1_001_000L, totalItems = 1001)
 
-        // Add 1100 samples, with the last 100 exceeding totalBytes (simulating measurement errors)
-        repeat(1100) { i ->
-            val bytesProcessed = if (i < 1000) {
-                (i + 1) * (totalBytes / 1000)
-            } else {
-                // Exceed totalBytes - these should be clamped to 100%
-                totalBytes + ((i - 1000 + 1) * 10_000L)
-            }
+        val cutoff = added.last().timestamp - PerformanceHistory.RECENT_WINDOW
+        val older = history.samples.filter { it.timestamp < cutoff }
+        val span = older.last().timestamp - older.first().timestamp
 
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = bytesProcessed,
-                    totalItemsProcessed = i + 1
-                ),
-                totalBytes = totalBytes,
-                totalItems = 1100
-            )
+        val buckets = older.groupBy { sample ->
+            val position = (sample.timestamp - older.first().timestamp) / span
+            (position * PerformanceHistory.OVERVIEW_BUCKETS)
+                .toInt()
+                .coerceAtMost(PerformanceHistory.OVERVIEW_BUCKETS - 1)
         }
 
-        // Should not crash and should stay under limit
-        history.samples.size shouldBeLessThanOrEqual 1000
-
-        // Verify all samples with >100% are in the last bucket
-        val samplesOver100 = history.samples.filter { sample ->
-            sample.totalBytesProcessed > totalBytes
-        }
-        println("Samples over 100%: ${samplesOver100.size}")
-
-        // All should be treated as 100% (bucket 19)
-        samplesOver100.forEach { sample ->
-            val percentage = (sample.totalBytesProcessed.toDouble() / totalBytes) * 100.0
-            percentage shouldBeGreaterThan 100.0  // Raw percentage exceeds 100
-        }
+        buckets.keys shouldHaveSize PerformanceHistory.OVERVIEW_BUCKETS
+        buckets.values.forEach { it shouldHaveSize PerformanceHistory.SAMPLES_PER_OVERVIEW_BUCKET }
     }
 
     @Test
@@ -746,278 +665,94 @@ class PerformanceHistoryTest : BaseTest() {
     }
 
     @Test
-    fun `even bucket distribution - no bucket dominates`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalBytes = 2_000_000_000L
-
-        fun addSample(i: Int) {
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = (i + 1) * (totalBytes / 2000),
-                    totalItemsProcessed = i + 1
-                ),
-                totalBytes = totalBytes,
-                totalItems = 2000
-            )
+    fun `every sampling cadence compacts inside the retention bound`() {
+        // One add past the cap, so each case is measured right after a compaction
+        val sizes = listOf(10.milliseconds, 250.milliseconds, 1.seconds).map { spacing ->
+            historyOf(samples(count = 1001, spacing = spacing)).samples.size
         }
 
-        // The bound only holds right after a compaction, mid-amortization there are up to ~200
-        // uncompacted trailing samples that all land in the same bucket
-        repeat(1001) { addSample(it) }
-
-        val buckets = history.samples.groupBy { sample ->
-            val percentage = (sample.totalBytesProcessed.toDouble() / totalBytes) * 100.0
-            (percentage / 5.0).toInt().coerceIn(0, 19)
-        }
-
-        val avgSamplesPerBucket = history.samples.size.toDouble() / 20
-
-        buckets.values.forEach { samplesInBucket ->
-            samplesInBucket.size shouldBeLessThanOrEqual (avgSamplesPerBucket * 2).toInt()
-        }
-
-        println("Bucket distribution: ${buckets.mapValues { it.value.size }}")
-
-        // The cap still holds while amortizing towards the next compaction
-        (1001 until 2000).forEach { addSample(it) }
-        history.samples.size shouldBeLessThanOrEqual 1000
+        // A fast cadence fits entirely inside the recent window, a slow one spills into the overview
+        sizes shouldBe listOf(500, 721, 361)
+        sizes.forEach { it shouldBeLessThanOrEqual retentionBound }
     }
 
     @Test
-    fun `compaction is amortized - one compaction lands on the target`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalBytes = 1_001_000_000L
+    fun `compaction is amortized - one compaction leaves room to grow`() {
+        val history = historyOf(samples(count = 1001, spacing = 10.milliseconds))
 
-        repeat(1001) { i ->
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = (i + 1) * (totalBytes / 1001),
-                    totalItemsProcessed = i + 1
-                ),
-                totalBytes = totalBytes,
-                totalItems = 1001
-            )
-        }
-
-        history.samples shouldHaveSize 800
+        history.samples shouldHaveSize 500
+        history.samples.size shouldBeLessThanOrEqual PerformanceHistory.COMPACT_TARGET
     }
 
     @Test
     fun `final sample survives compaction`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalBytes = 1_001_000_000L
-        lateinit var lastSample: PerformanceSample
+        val added = samples(count = 1001, spacing = 10.milliseconds)
+        val history = historyOf(added, totalBytes = 1_001_000L, totalItems = 1001)
 
-        // Even distribution puts 50+ samples into every bucket, so every bucket gets downsampled
-        repeat(1001) { i ->
-            lastSample = PerformanceSample(
-                timestamp = startTime + (i * 10).milliseconds,
-                bytesPerSecond = 1_000_000L,
-                itemsPerSecond = 10f,
-                totalBytesProcessed = (i + 1) * (totalBytes / 1001),
-                totalItemsProcessed = i + 1
-            )
-            history = history.addSample(lastSample, totalBytes = totalBytes, totalItems = 1001)
-        }
-
-        history.samples.last() shouldBe lastSample
+        history.samples.last() shouldBe added.last()
     }
 
     @Test
-    fun `totals jumping on the cap-crossing add drive bucket assignment`() {
+    fun `compaction ignores the totals an add carries`() {
+        val added = samples(count = 1001, spacing = 10.milliseconds)
+        var history = PerformanceHistory()
+
+        // The totals only become known while the operation runs, retention must not depend on them
+        added.dropLast(1).forEach { history = history.addSample(it, totalBytes = 0L, totalItems = 1000) }
+        history = history.addSample(added.last(), totalBytes = 0L, totalItems = 10_000)
+
+        history.totalItems shouldBe 10_000
+        history.samples shouldHaveSize 500
+        history.samples.first() shouldBe added.first()
+        history.samples.last() shouldBe added.last()
+    }
+
+    // ============ RETENTION IS INDEPENDENT OF THE TOTALS ============
+
+    @Test
+    fun `a history with neither total compacts identically to one with totals`() {
+        val added = samples(count = 1200, spacing = 10.milliseconds)
+
+        val byteBased = historyOf(added, totalBytes = 1_200_000L, totalItems = 0)
+        val itemBased = historyOf(added, totalBytes = 0L, totalItems = 1200)
+        val mixed = historyOf(added, totalBytes = 1_200_000L, totalItems = 1200)
+        val neither = historyOf(added, totalBytes = 0L, totalItems = 0)
+
+        // 1001 adds compact to 500, the remaining 199 adds accumulate on top
+        byteBased.samples shouldHaveSize 699
+        itemBased.samples shouldBe byteBased.samples
+        mixed.samples shouldBe byteBased.samples
+        neither.samples shouldBe byteBased.samples
+    }
+
+    @Test
+    fun `samples that never transferred a byte are retained like any other`() {
         val startTime = Instant.fromEpochMilliseconds(1000)
         var history = PerformanceHistory()
 
-        // 1000 samples that look complete under the old total of 1000 items
-        repeat(1000) { i ->
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 0L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = 0L,
-                    totalItemsProcessed = i + 1
-                ),
-                totalBytes = 0L,
-                totalItems = 1000
-            )
-        }
-
-        // The add that crosses the cap discovers 9000 more items
-        history = history.addSample(
+        // Nothing is ever transferred, every item completes by being created or skipped
+        val added = (0 until 1001).map { i ->
             PerformanceSample(
-                timestamp = startTime + 10_010.milliseconds,
+                timestamp = startTime + (i * 10).milliseconds,
                 bytesPerSecond = 0L,
                 itemsPerSecond = 10f,
                 totalBytesProcessed = 0L,
-                totalItemsProcessed = 1001
-            ),
-            totalBytes = 0L,
-            totalItems = 10_000
-        )
-
-        history.totalItems shouldBe 10_000
-
-        // Under the new denominator everything sits below 11%, so only the first three buckets
-        // are populated: 40 + 40 + 2. Stale totals would have spread them over all 20 buckets.
-        history.samples shouldHaveSize 82
-
-        history.samples.forEach { sample ->
-            val percentage = (sample.totalItemsProcessed.toDouble() / history.totalItems) * 100.0
-            (percentage / 5.0).toInt() shouldBeLessThanOrEqual 2
-        }
-
-        history.samples.first().totalItemsProcessed shouldBe 1
-        history.samples.last().totalItemsProcessed shouldBe 1001
-    }
-
-    // ============ BYTE-BASED VS ITEM-BASED OPERATIONS ============
-
-    @Test
-    fun `byte-based operation uses bytes for percentage`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalBytes = 1_000_000L
-
-        repeat(1200) { i ->
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = (i + 1) * (totalBytes / 1200),
-                    totalItemsProcessed = i + 1
-                ),
-                totalBytes = totalBytes,
-                totalItems = 0  // Items = 0, so use bytes
+                totalItemsProcessed = i + 1,
+                totalBytesAccounted = (i + 1) * 1_000L,
             )
         }
+        added.forEach { history = history.addSample(it, totalBytes = 1_001_000L, totalItems = 0) }
 
-        history.samples.size shouldBeLessThanOrEqual 1000
-        history.samples.size shouldBeGreaterThan 0
-    }
-
-    @Test
-    fun `bucketing follows accounted bytes rather than transferred bytes`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalBytes = 1_500_000_000L
-
-        // Nothing is ever transferred, every item completes by being created or skipped
-        repeat(1500) { i ->
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 0L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = 0L,
-                    totalItemsProcessed = i + 1,
-                    totalBytesAccounted = (i + 1) * (totalBytes / 1500),
-                ),
-                totalBytes = totalBytes,
-                totalItems = 0  // Items = 0, so use bytes
-            )
-        }
-
-        val buckets = history.samples.groupBy { sample ->
-            val percentage = (sample.totalBytesAccounted.toDouble() / totalBytes) * 100.0
-            (percentage / 5.0).toInt().coerceIn(0, 19)
-        }
-
-        buckets.keys.size shouldBe 20
-        buckets.keys.min() shouldBe 0
-        buckets.keys.max() shouldBe 19
-        // Bucketing on transferred bytes would have crammed all of these into bucket 0
+        history.samples shouldHaveSize 500
+        history.samples.takeLast(60) shouldBe added.takeLast(60)
         history.samples.all { it.totalBytesProcessed == 0L } shouldBe true
     }
 
     @Test
-    fun `item-based operation uses items for percentage`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalItems = 1200
-
-        repeat(1200) { i ->
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 0L,  // No bytes
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = 0L,
-                    totalItemsProcessed = i + 1
-                ),
-                totalBytes = 0L,  // Bytes = 0, so use items
-                totalItems = totalItems
-            )
-        }
-
-        history.samples.size shouldBeLessThanOrEqual 1000
-        history.samples.size shouldBeGreaterThan 0
-    }
-
-    @Test
-    fun `mixed operation prefers bytes when both available`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalBytes = 1_000_000L
-        val totalItems = 100
-
-        repeat(1200) { i ->
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = (i + 1) * (totalBytes / 1200),
-                    totalItemsProcessed = (i + 1) * (totalItems / 1200)
-                ),
-                totalBytes = totalBytes,
-                totalItems = totalItems
-            )
-        }
-
-        history.samples.size shouldBeLessThanOrEqual 1000
-        history.samples.size shouldBeGreaterThan 0
-    }
-
-    @Test
-    fun `fallback when neither bytes nor items available`() {
+    fun `compaction sorts samples recorded out of order`() {
         val startTime = Instant.fromEpochMilliseconds(1000)
         var history = PerformanceHistory()
 
-        repeat(1200) { i ->
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = 0L,
-                    totalItemsProcessed = 0
-                ),
-                totalBytes = 0L,  // No total to calculate percentage
-                totalItems = 0
-            )
-        }
-
-        // Should fallback to takeLast(800): add 1001 compacts, the remaining 199 adds accumulate
-        history.samples.size shouldBe 999
-    }
-
-    @Test
-    fun `fallback compaction keeps chronological order`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-
-        // Stop at the first compaction, later adds would append past the sorted block again
         repeat(1001) { i ->
             // Every tenth sample is recorded out of insertion order
             val offsetMs = if (i % 10 == 0) (i * 10) - 25 else i * 10
@@ -1029,15 +764,103 @@ class PerformanceHistoryTest : BaseTest() {
                     totalBytesProcessed = 0L,
                     totalItemsProcessed = 0
                 ),
-                totalBytes = 0L,  // No total to calculate percentage
+                totalBytes = 0L,
                 totalItems = 0
             )
         }
 
-        history.samples shouldHaveSize 800
+        history.samples shouldHaveSize 500
         history.samples.zipWithNext().forEach { (prev, next) ->
             (prev.timestamp <= next.timestamp) shouldBe true
         }
+    }
+
+    @Test
+    fun `a backwards clock jump still compacts within the cap`() {
+        val base = Instant.fromEpochMilliseconds(1000)
+        // The clock rewinds a minute right after the first sample, then runs forward again
+        val stamps = listOf(base) +
+            (0 until 500).map { i -> base - 60.seconds + (i * 120).milliseconds } +
+            (0 until 500).map { i -> base + 1500.milliseconds + (i * 250).milliseconds }
+        val added = stamps.mapIndexed { i, timestamp ->
+            PerformanceSample(
+                timestamp = timestamp,
+                bytesPerSecond = (i + 1) * 1_000_000L,
+                itemsPerSecond = (i + 1).toFloat(),
+                totalBytesProcessed = (i + 1) * 1_000L,
+                totalItemsProcessed = i + 1,
+            )
+        }
+
+        val history = historyOf(added)
+
+        history.samples.size shouldBeLessThanOrEqual PerformanceHistory.MAX_SAMPLES
+    }
+
+    @Test
+    fun `the first recorded sample survives a backwards clock jump`() {
+        val base = Instant.fromEpochMilliseconds(1_000_000)
+        // The clock rewinds a minute right after the first sample, then a forced burst runs forward
+        val stamps = listOf(base) + (0 until 1000).map { i -> base - 60.seconds + (i * 120).milliseconds }
+        val added = stamps.mapIndexed { i, timestamp ->
+            PerformanceSample(
+                timestamp = timestamp,
+                bytesPerSecond = (i + 1) * 1_000_000L,
+                itemsPerSecond = (i + 1).toFloat(),
+                totalBytesProcessed = (i + 1) * 1_000L,
+                totalItemsProcessed = i + 1,
+            )
+        }
+
+        val history = historyOf(added)
+
+        // The operation's origin point, wherever the clock put its timestamp
+        val origin = added.first()
+        history.samples.firstOrNull { it.bytesPerSecond == origin.bytesPerSecond } shouldBe origin
+    }
+
+    @Test
+    fun `the first recorded sample survives a second compaction after a backwards clock jump`() {
+        val base = Instant.fromEpochMilliseconds(1_000_000)
+        // Same rewind, but the burst runs long enough to compact twice
+        val stamps = listOf(base) + (0 until 1500).map { i -> base - 60.seconds + (i * 120).milliseconds }
+        val added = stamps.mapIndexed { i, timestamp ->
+            PerformanceSample(
+                timestamp = timestamp,
+                bytesPerSecond = (i + 1) * 1_000_000L,
+                itemsPerSecond = (i + 1).toFloat(),
+                totalBytesProcessed = (i + 1) * 1_000L,
+                totalItemsProcessed = i + 1,
+            )
+        }
+
+        val history = historyOf(added)
+
+        // The operation's origin point, wherever the clock put its timestamp
+        val origin = added.first()
+        history.samples.firstOrNull { it.bytesPerSecond == origin.bytesPerSecond } shouldBe origin
+    }
+
+    @Test
+    fun `a forced sampling burst keeps its newest sample after a backwards clock jump`() {
+        val base = Instant.fromEpochMilliseconds(1_000_000)
+        // The clock rewinds during the burst, so the newest sample no longer has the newest timestamp
+        val stamps = (0 until 1000).map { i -> base + (i * 100).milliseconds } + (base + 60_050.milliseconds)
+        val added = stamps.mapIndexed { i, timestamp ->
+            PerformanceSample(
+                timestamp = timestamp,
+                bytesPerSecond = (i + 1) * 1_000_000L,
+                itemsPerSecond = (i + 1).toFloat(),
+                totalBytesProcessed = (i + 1) * 1_000L,
+                totalItemsProcessed = i + 1,
+            )
+        }
+
+        val history = historyOf(added)
+
+        // Whatever the clock did, this is what the progress bar's speed and ETA just measured
+        val newest = added.last()
+        history.samples.firstOrNull { it.bytesPerSecond == newest.bytesPerSecond } shouldBe newest
     }
 
     // ============ EDGE CASES ============
@@ -1263,31 +1086,23 @@ class PerformanceHistoryTest : BaseTest() {
     }
 
     @Test
-    fun `percentage calculation uses latest totals not first totals`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
+    fun `a growing span coarsens the overview rather than dropping the tail`() {
+        val shortRun = historyOf(samples(count = 2000, spacing = 250.milliseconds))
+        val longRun = historyOf(samples(count = 5000, spacing = 250.milliseconds))
 
-        // Simulate discovering files during scanning
-        // First sample: Only 1000 files discovered, processed 500
-        history = history.addSample(
-            PerformanceSample(startTime, 1_000_000L, 10f, 500_000L, 500),
-            totalBytes = 1_000_000L,
-            totalItems = 1000
-        )
+        fun tailAndOverview(history: PerformanceHistory): Pair<Int, Int> {
+            val cutoff = history.samples.last().timestamp - PerformanceHistory.RECENT_WINDOW
+            return history.samples.count { it.timestamp >= cutoff } to
+                history.samples.count { it.timestamp < cutoff }
+        }
 
-        // This looks like 50% complete (500/1000)
+        val (shortTail, shortOverview) = tailAndOverview(shortRun)
+        val (longTail, longOverview) = tailAndOverview(longRun)
 
-        // Second sample: Now 9000 files total discovered, still only processed 500
-        history = history.addSample(
-            PerformanceSample(startTime + 100.milliseconds, 1_000_000L, 10f, 500_000L, 500),
-            totalBytes = 9_000_000L,
-            totalItems = 9000
-        )
-
-        // Now it's only ~5.5% complete (500/9000), not 50%!
-        history.totalItems shouldBe 9000
-        val percentage = (500.0 / history.totalItems) * 100.0
-        percentage shouldBeLessThan 10.0  // Should be much less than 50%
+        // The recent window holds the same samples either way, only the overview thins out
+        shortTail shouldBe 481
+        longTail shouldBe 481
+        longOverview shouldBeLessThan shortOverview
     }
 
     @Test
@@ -1356,33 +1171,28 @@ class PerformanceHistoryTest : BaseTest() {
     }
 
     @Test
-    fun `downsampling uses latest totals for bucketing`() {
+    fun `growing totals do not change what compaction retains`() {
         val startTime = Instant.fromEpochMilliseconds(1000)
         var history = PerformanceHistory()
 
-        // Add 1500 samples with increasing totals (simulates long scanning phase)
-        repeat(1500) { i ->
-            // Totals grow linearly as scanning progresses
-            val currentTotal = 1000 + (i * 5)  // Starts at 1000, ends at 8500
-            val processed = i + 1
-
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 10).milliseconds,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = processed * 1000L,
-                    totalItemsProcessed = processed
-                ),
-                totalBytes = currentTotal * 1000L,
-                totalItems = currentTotal
+        val added = (0 until 1500).map { i ->
+            PerformanceSample(
+                timestamp = startTime + (i * 10).milliseconds,
+                bytesPerSecond = 1_000_000L,
+                itemsPerSecond = 10f,
+                totalBytesProcessed = (i + 1) * 1000L,
+                totalItemsProcessed = i + 1
             )
         }
+        // Totals grow linearly as scanning progresses
+        added.forEachIndexed { i, sample ->
+            val currentTotal = 1000 + (i * 5)
+            history = history.addSample(sample, totalBytes = currentTotal * 1000L, totalItems = currentTotal)
+        }
 
-        // Should downsample to ≤ 1000
-        history.samples.size shouldBeLessThanOrEqual 1000
+        history.samples.size shouldBeLessThanOrEqual PerformanceHistory.MAX_SAMPLES
+        history.samples shouldBe historyOf(added).samples
 
-        // Verify it used the FINAL total (8500) not the first total (1000) for bucketing
         history.totalItems shouldBe 8495  // Last total: 1000 + (1499 * 5)
         history.totalBytes shouldBe 8_495_000L
     }
@@ -1409,49 +1219,17 @@ class PerformanceHistoryTest : BaseTest() {
     }
 
     @Test
-    fun `last bucket (95-100 percent) is populated when operation completes`() {
-        val startTime = Instant.fromEpochMilliseconds(1000)
-        var history = PerformanceHistory()
-        val totalBytes = 1_000_000L
+    fun `a forced sampling burst keeps its newest samples untouched`() {
+        val added = samples(count = 1001, spacing = 1.milliseconds)
+        val uncompacted = PerformanceHistory(samples = added, startTime = added.first().timestamp)
+        val history = historyOf(added, totalBytes = 1_001_000L, totalItems = 1001)
 
-        // Add samples up to 95%
-        repeat(95) { i ->
-            history = history.addSample(
-                PerformanceSample(
-                    timestamp = startTime + (i * 100).milliseconds,
-                    bytesPerSecond = 1_000_000L,
-                    itemsPerSecond = 10f,
-                    totalBytesProcessed = ((i + 1) * 10_000L),
-                    totalItemsProcessed = i + 1
-                ),
-                totalBytes = totalBytes,
-                totalItems = 100
-            )
-        }
+        history.samples shouldHaveSize PerformanceHistory.RECENT_TARGET
+        history.samples.takeLast(PerformanceHistory.PROTECTED_TAIL) shouldBe
+            added.takeLast(PerformanceHistory.PROTECTED_TAIL)
 
-        // Add final 100% sample
-        history = history.addSample(
-            PerformanceSample(
-                timestamp = startTime + 100.seconds,
-                bytesPerSecond = 1_000_000L,
-                itemsPerSecond = 10f,
-                totalBytesProcessed = totalBytes,
-                totalItemsProcessed = 100
-            ),
-            totalBytes = totalBytes,
-            totalItems = 100
-        )
-
-        // Find samples in 95-100% range (bucket 19)
-        val finalBucketSamples = history.samples.filter { sample ->
-            val percentage = (sample.totalBytesProcessed.toDouble() / totalBytes) * 100.0
-            percentage >= 95.0
-        }
-
-        finalBucketSamples.size shouldBeGreaterThan 0
-
-        // Verify 100% sample exists
-        val completeSample = history.samples.last()
-        completeSample.totalBytesProcessed shouldBe totalBytes
+        // The progress bar's speed and ETA read these, thinning under them would change a shown number
+        history.getRecentBytesPerSecond() shouldBe uncompacted.getRecentBytesPerSecond()
+        history.getRecentItemsPerSecond() shouldBe uncompacted.getRecentItemsPerSecond()
     }
 }

@@ -11,6 +11,8 @@ import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,12 +30,15 @@ import eu.darken.butler.common.files.local.operations.core.PerformanceSample
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import kotlinx.coroutines.delay
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 
 @Composable
 internal fun OperationPerformanceGraphSection(
     operation: OperationDisplay,
+    clock: Clock = Clock.System,
     graphContent: @Composable (PerformanceGraphData) -> Unit = { OperationPerformanceGraph(graphData = it) },
 ) {
     OperationSection(
@@ -42,13 +47,37 @@ internal fun OperationPerformanceGraphSection(
     ) {
         // Inside the section: building the series walks the whole history, and a collapsed section
         // never composes this lambda.
-        val graphState = remember(operation.state) { performanceGraphStateOf(operation) }
+        val state = operation.state
+        val initialNow = when (state) {
+            is OperationDisplay.State.Running -> clock.now()
+            // A finished operation covers a fixed span, a clock would only make it unpredictable
+            else -> state.performanceHistoryOrNull?.samples?.lastOrNull()?.timestamp ?: clock.now()
+        }
+        // A stalled operation reports no samples at all, so the live window has to advance on its own
+        val now by produceState(initialNow, state, clock) {
+            if (state !is OperationDisplay.State.Running) return@produceState
+            while (true) {
+                delay(TICK_INTERVAL)
+                value = clock.now()
+            }
+        }
+        val graphState = remember(state, now) { performanceGraphStateOf(operation, now) }
         when (graphState) {
             is PerformanceGraphState.Plottable -> ProGate { graphContent(graphState.data) }
             is PerformanceGraphState.Unavailable -> PerformanceGraphUnavailableInfo(reason = graphState.reason)
         }
     }
 }
+
+private val TICK_INTERVAL = 500.milliseconds
+
+/** The history a state carries, if its kind carries one at all. */
+private val OperationDisplay.State.performanceHistoryOrNull: PerformanceHistory?
+    get() = when (this) {
+        is OperationDisplay.State.Running -> performanceHistory
+        is OperationDisplay.State.Completed -> performanceHistory
+        else -> null
+    }
 
 internal sealed interface PerformanceGraphState {
     data class Plottable(val data: PerformanceGraphData) : PerformanceGraphState
@@ -66,17 +95,18 @@ internal enum class PerformanceGraphUnavailability {
  * Whether [operation] has something to plot, and if not, which explanation fits its state.
  *
  * A running operation is always [PerformanceGraphUnavailability.COLLECTING], whatever kept the
- * series empty: no history yet, too few samples, or progress that hasn't moved. All three can still
- * turn into a graph while it runs.
+ * series empty: no history yet, or too few samples. Both can still turn into a graph while it runs.
  */
-internal fun performanceGraphStateOf(operation: OperationDisplay): PerformanceGraphState {
-    val history = when (val state = operation.state) {
-        is OperationDisplay.State.Running -> state.performanceHistory
-        is OperationDisplay.State.Completed -> state.performanceHistory
-        else -> null
+internal fun performanceGraphStateOf(operation: OperationDisplay, now: Instant): PerformanceGraphState {
+    val history = operation.state.performanceHistoryOrNull
+
+    // A running operation follows its recent window, a finished one is shown in full
+    val scope = when (operation.state) {
+        is OperationDisplay.State.Running -> PerformanceGraphScope.LIVE
+        else -> PerformanceGraphScope.OVERVIEW
     }
 
-    val data = history?.let { PerformanceGraphData.from(it) }
+    val data = history?.let { PerformanceGraphData.from(it, scope, now) }
     if (data != null) return PerformanceGraphState.Plottable(data)
 
     val reason = when (operation.state) {
