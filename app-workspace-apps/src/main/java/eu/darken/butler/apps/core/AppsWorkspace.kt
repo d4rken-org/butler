@@ -36,9 +36,9 @@ import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
+import eu.darken.butler.workspace.core.operations.toOperationCounts
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.stateInWorkspace
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -153,31 +153,17 @@ class AppsWorkspace @AssistedInject constructor(
      */
     private data class OwnOps(
         val unfinished: Int,
+        val active: Int,
         val attention: Int,
     )
 
     private val ownOps: StateFlow<OwnOps> = operationsManager.operationsForWorkspace(id)
         .withOnlyStateChanges()
         .map { operations ->
-            var unfinished = 0
-            var attention = 0
-            operations.forEach { operation ->
-                when (val opState = operation.state.value) {
-                    is Operation.State.Queued, is Operation.State.Active -> unfinished++
-
-                    is Operation.State.Waiting -> {
-                        unfinished++
-                        attention++
-                    }
-
-                    is Operation.State.Completed -> {
-                        if (opState.error != null && opState.error !is CancellationException) attention++
-                    }
-                }
-            }
-            OwnOps(unfinished = unfinished, attention = attention)
+            val counts = operations.toOperationCounts()
+            OwnOps(unfinished = counts.unfinished, active = counts.active, attention = counts.attention)
         }
-        .stateIn(scope, SharingStarted.Eagerly, OwnOps(0, 0))
+        .stateIn(scope, SharingStarted.Eagerly, OwnOps(0, 0, 0))
 
     /**
      * No single-flight barrier: a batch is one operation, and the action bar is driven by the
@@ -213,6 +199,7 @@ class AppsWorkspace @AssistedInject constructor(
                 is State.Ready -> Workspace.LifecycleState.Ready
             },
             operationCount = ownOps.unfinished,
+            activeCount = ownOps.active,
             attentionCount = ownOps.attention,
             isPausable = ownOps.unfinished == 0,
             callerWorkspaceId = null,

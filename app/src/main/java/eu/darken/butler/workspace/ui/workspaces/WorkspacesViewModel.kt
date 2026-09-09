@@ -794,6 +794,24 @@ class WorkspacesViewModel @Inject constructor(
             get() = renderedStacks.paneLocal.mapValues { (_, chain) -> chain.modals }
 
         /**
+         * Operation counts per tab, aggregated over the tab's whole ownership unit - the same walk
+         * the manager's cards use, so a modal's running save marks the tab it is stacked on.
+         *
+         * Keyed by tab id, and only tabs: a stacked child is counted into its owner's entry rather
+         * than getting one of its own, because the rail lists no entry for it.
+         */
+        val unitOps: Map<Workspace.Id, UnitOps> by lazy {
+            val stacks = WorkspaceStacks(state.infos)
+            tabWorkspaces.associate { tab ->
+                val members = stacks.unitOf(tab.id) ?: listOf(tab)
+                tab.id to UnitOps(
+                    operations = members.sumOf { it.operationCount },
+                    active = members.sumOf { it.activeCount },
+                )
+            }
+        }
+
+        /**
          * The tab that owns [focused], i.e. the pager page / pane the user is working in. Null when
          * nothing is focused or the focused id's caller chain is dangling or cyclic.
          *
@@ -803,4 +821,10 @@ class WorkspacesViewModel @Inject constructor(
         val focusedRootId: Workspace.Id?
             get() = focusedWorkspace?.let { WorkspaceStacks(state.infos).rootOf(it)?.id }
     }
+
+    /** What one tab's ownership unit is working on, as the rail marks it. */
+    data class UnitOps(
+        val operations: Int = 0,
+        val active: Int = 0,
+    )
 }

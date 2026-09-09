@@ -788,4 +788,49 @@ class WorkspacesViewModelStateTest : BaseTest() {
     }
 
     // endregion
+
+    // region unitOps
+
+    /**
+     * The rail lists tabs, not stacked children, so work a modal is doing has to be reported on the
+     * tab it is stacked on - otherwise a saving overlay leaves its tab looking idle.
+     */
+    @Test
+    fun `unitOps - a stacked child's work counts towards its tab`() {
+        val tab = Workspace.Id()
+        val modal = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(
+                createWorkspaceInfo(id = tab),
+                paneLocalModal(id = modal, caller = tab).copy(operationCount = 2, activeCount = 1),
+            ),
+        )
+
+        state.unitOps.keys shouldContainExactly listOf(tab)
+        state.unitOps.getValue(tab).operations shouldBe 2
+        state.unitOps.getValue(tab).active shouldBe 1
+    }
+
+    @Test
+    fun `unitOps - a tab without children reports its own counts`() {
+        val tab = Workspace.Id()
+
+        val state = createState(
+            infos = listOf(createWorkspaceInfo(id = tab).copy(operationCount = 3, activeCount = 2)),
+        )
+
+        state.unitOps.getValue(tab).operations shouldBe 3
+        state.unitOps.getValue(tab).active shouldBe 2
+    }
+
+    @Test
+    fun `unitOps - an idle tab reports nothing`() {
+        val tab = Workspace.Id()
+
+        createState(infos = listOf(createWorkspaceInfo(id = tab))).unitOps.getValue(tab) shouldBe
+            WorkspacesViewModel.UnitOps()
+    }
+
+    // endregion
 }

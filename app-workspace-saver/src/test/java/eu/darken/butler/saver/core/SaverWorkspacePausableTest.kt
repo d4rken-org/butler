@@ -50,6 +50,7 @@ class SaverWorkspacePausableTest {
             dispatcherProvider = TestDispatcherProvider(),
             contentUriHelper = mockk<ContentUriHelper> { every { extractInfo(any()) } returns sourceInfo },
             operationsManager = mockk<OperationsManager> {
+                every { operations } returns MutableStateFlow(emptyList<ManagedOperation>())
                 coEvery { submitManaged(any()) } returns mockk<ManagedOperation> {
                     every { id } returns Operation.Id()
                     every { state } returns MutableStateFlow(

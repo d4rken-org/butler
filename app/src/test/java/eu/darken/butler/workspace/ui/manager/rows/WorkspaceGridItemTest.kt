@@ -7,6 +7,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -52,6 +53,8 @@ class WorkspaceGridItemTest : ComposeTest() {
         isRecovery: Boolean = false,
         stackDepth: Int = 0,
         hasUnsavedChanges: Boolean = false,
+        operationCount: Int = 0,
+        activeCount: Int = 0,
     ): WorkspaceManagerViewModel.WorkspaceItem {
         val id = Workspace.Id()
         return WorkspaceManagerViewModel.WorkspaceItem(
@@ -67,7 +70,23 @@ class WorkspaceGridItemTest : ComposeTest() {
             canPause = canPause,
             stackDepth = stackDepth,
             hasUnsavedChanges = hasUnsavedChanges,
+            operationCount = operationCount,
+            activeCount = activeCount,
         )
+    }
+
+    private fun renderCard(workspace: WorkspaceManagerViewModel.WorkspaceItem) {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceGridItem(
+                    reorderableScope = noopReorderableScope,
+                    workspace = workspace,
+                    onClose = {},
+                    onSelect = {},
+                    livePreview = false,
+                )
+            }
+        }
     }
 
     @Test
@@ -107,6 +126,61 @@ class WorkspaceGridItemTest : ComposeTest() {
 
         composeTestRule
             .onAllNodesWithTag(TEST_TAG_WORKSPACE_CARD_UNSAVED, useUnmergedTree = true)
+            .assertCountEquals(0)
+    }
+
+    @Test
+    fun `a tab with work running shows the spinner and not the pending glyph`() {
+        renderCard(item(operationCount = 2, activeCount = 1))
+
+        composeTestRule
+            .onAllNodesWithTag(TEST_TAG_WORKSPACE_CARD_OPS_RUNNING, useUnmergedTree = true)
+            .assertCountEquals(1)
+        composeTestRule
+            .onAllNodesWithTag(TEST_TAG_WORKSPACE_CARD_OPS_PENDING, useUnmergedTree = true)
+            .assertCountEquals(0)
+        composeTestRule.onNodeWithContentDescription("Working").assertExists()
+    }
+
+    /** Queued work and work waiting on an answer share the glyph: neither is running. */
+    @Test
+    fun `a tab whose work has not started shows the pending glyph`() {
+        renderCard(item(operationCount = 1))
+
+        composeTestRule
+            .onAllNodesWithTag(TEST_TAG_WORKSPACE_CARD_OPS_PENDING, useUnmergedTree = true)
+            .assertCountEquals(1)
+        composeTestRule
+            .onAllNodesWithTag(TEST_TAG_WORKSPACE_CARD_OPS_RUNNING, useUnmergedTree = true)
+            .assertCountEquals(0)
+        composeTestRule.onNodeWithContentDescription("Work pending").assertExists()
+    }
+
+    @Test
+    fun `an idle tab carries no operation marker`() {
+        renderCard(item())
+
+        composeTestRule
+            .onAllNodesWithTag(TEST_TAG_WORKSPACE_CARD_OPS_RUNNING, useUnmergedTree = true)
+            .assertCountEquals(0)
+        composeTestRule
+            .onAllNodesWithTag(TEST_TAG_WORKSPACE_CARD_OPS_PENDING, useUnmergedTree = true)
+            .assertCountEquals(0)
+    }
+
+    /**
+     * An indeterminate indicator publishes progress semantics of its own, which TalkBack would read
+     * as a node beside the card rather than as part of it.
+     */
+    @Test
+    fun `the spinner exposes no progress node`() {
+        renderCard(item(operationCount = 1, activeCount = 1))
+
+        composeTestRule
+            .onAllNodes(
+                SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo),
+                useUnmergedTree = true,
+            )
             .assertCountEquals(0)
     }
 

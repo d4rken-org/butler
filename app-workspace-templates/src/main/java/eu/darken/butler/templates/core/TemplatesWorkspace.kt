@@ -20,11 +20,10 @@ import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
-import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
+import eu.darken.butler.workspace.core.operations.toOperationCounts
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -80,30 +79,13 @@ class TemplatesWorkspace @AssistedInject constructor(
         // Track operation counts for this workspace
         operationsManager.operationsForWorkspace(id).withOnlyStateChanges()
             .onEach { operations ->
-                var operationCount = 0
-                var attentionCount = 0
-
-                operations.forEach { operation ->
-                    when (val state = operation.state.value) {
-                        is Operation.State.Queued -> operationCount++
-                        is Operation.State.Active -> operationCount++
-                        is Operation.State.Waiting -> {
-                            operationCount++
-                            attentionCount++
-                        }
-                        is Operation.State.Completed -> {
-                            if (state.error != null && state.error !is CancellationException) {
-                                attentionCount++
-                            }
-                        }
-                    }
-                }
-
+                val counts = operations.toOperationCounts()
                 info.value = info.value.copy(
-                    operationCount = operationCount,
-                    attentionCount = attentionCount
+                    operationCount = counts.unfinished,
+                    activeCount = counts.active,
+                    attentionCount = counts.attention,
                 )
-                log(tag, VERBOSE) { "Updated operation counts: active=$operationCount, attention=$attentionCount" }
+                log(tag, VERBOSE) { "Updated operation counts: $counts" }
             }
             .launchIn(scope)
     }

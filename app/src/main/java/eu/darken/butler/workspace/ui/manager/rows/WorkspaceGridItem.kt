@@ -19,7 +19,9 @@ import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.PlayCircle
 import androidx.compose.material.icons.twotone.RadioButtonUnchecked
+import androidx.compose.material.icons.twotone.Sync
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -43,6 +45,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.stringResource
@@ -67,6 +70,8 @@ import eu.darken.butler.workspace.R as WorkspaceR
 
 const val TEST_TAG_WORKSPACE_CARD_HEADER = "workspace_card_header"
 const val TEST_TAG_WORKSPACE_CARD_UNSAVED = "workspace_card_unsaved"
+const val TEST_TAG_WORKSPACE_CARD_OPS_RUNNING = "workspace_card_ops_running"
+const val TEST_TAG_WORKSPACE_CARD_OPS_PENDING = "workspace_card_ops_pending"
 
 @Composable
 fun WorkspaceGridItem(
@@ -202,6 +207,37 @@ fun WorkspaceGridItem(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+
+                    // Primary, never error red: that colour belongs to the attention facet, the
+                    // only one that describes a fault. Waiting work raises attentionCount too, so
+                    // the pending glyph plus that glow is what a blocked operation looks like.
+                    when {
+                        workspace.activeCount > 0 -> {
+                            val runningDescription = stringResource(
+                                R.string.workspace_row_operations_running_content_desc
+                            )
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .testTag(TEST_TAG_WORKSPACE_CARD_OPS_RUNNING)
+                                    // An indeterminate indicator publishes progress semantics of
+                                    // its own, which would make the card announce twice.
+                                    .clearAndSetSemantics { contentDescription = runningDescription },
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                        workspace.operationCount > 0 -> Icon(
+                            modifier = Modifier
+                                .size(14.dp)
+                                .testTag(TEST_TAG_WORKSPACE_CARD_OPS_PENDING),
+                            imageVector = Icons.TwoTone.Sync,
+                            contentDescription = stringResource(
+                                R.string.workspace_row_operations_pending_content_desc
+                            ),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
 
                     // Deliberately not the error-red attention glow: an edit that has not been
                     // saved yet is a normal working state, not a fault.
@@ -523,6 +559,53 @@ private fun WorkspaceGridItemSearcherPreview() {
         onSelect = {},
         isDragging = false,
     )
+}
+
+/** The two operation states: work running, and work that has not begun or is waiting on an answer. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemOperationsPreview() {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        val runningId = Workspace.Id()
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = runningId,
+                topId = runningId,
+                type = Workspace.Type.EXPLORER,
+                title = "/storage/emulated/0/Download".toCaString(),
+                autoTitle = "/storage/emulated/0/Download".toCaString(),
+                subtitle = null,
+                operationCount = 2,
+                activeCount = 1,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+
+        val pendingId = Workspace.Id()
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = pendingId,
+                topId = pendingId,
+                type = Workspace.Type.EXPLORER,
+                title = "/storage/emulated/0/DCIM".toCaString(),
+                autoTitle = "/storage/emulated/0/DCIM".toCaString(),
+                subtitle = null,
+                operationCount = 1,
+                attentionCount = 1,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
+    }
 }
 
 @Preview2

@@ -11,36 +11,40 @@ import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
-import kotlin.time.Instant
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import testhelpers.coroutine.TestDispatcherProvider
+import kotlin.time.Instant
 
 /**
- * A rapid double-tap on Save must not submit two operations. [SaverWorkspace.save] check-and-sets
- * its initial state under a lock and no-ops when a save is already in progress.
+ * A Saver tab reports a save as running work from the operation's own state, not from [SaveState]:
+ * a save stopped on a conflict prompt stays [SaveState.Saving] while nothing is being written, and
+ * that is precisely what the running marker has to leave out.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
-class SaverWorkspaceSaveIdempotencyTest {
+class SaverWorkspaceActiveCountTest {
 
-    private val operationsManager = mockk<OperationsManager> {
-        every { operations } returns MutableStateFlow(emptyList<ManagedOperation>())
-        coEvery { submitManaged(any()) } returns mockk<ManagedOperation> {
-            every { id } returns Operation.Id()
-            every { state } returns MutableStateFlow(
-                Operation.State.Queued(startedAt = Instant.fromEpochSeconds(0))
-            )
+    private val workspaceId = Workspace.Id()
+
+    private val operationState = MutableStateFlow<Operation.State>(
+        Operation.State.Queued(startedAt = Instant.fromEpochSeconds(0))
+    )
+
+    private val managed = mockk<ManagedOperation>().apply {
+        every { id } returns Operation.Id()
+        every { state } returns operationState
+        every { metadata } returns mockk {
+            every { origin } returns Operation.Metadata.Origin.Saver(workspaceId)
         }
     }
 
@@ -52,18 +56,18 @@ class SaverWorkspaceSaveIdempotencyTest {
             mimeType = "application/vnd.android.package-archive",
             isAccessible = true,
         )
-        val contentUriHelper = mockk<ContentUriHelper> {
-            every { extractInfo(any()) } returns sourceInfo
-        }
         return SaverWorkspace(
-            id = Workspace.Id(),
+            id = workspaceId,
             arguments = SaverArguments.Default(
                 sourceUris = listOf("content://provider/app.apk"),
                 destinationPath = LocalPath.build("/save"),
             ),
             dispatcherProvider = TestDispatcherProvider(),
-            contentUriHelper = contentUriHelper,
-            operationsManager = operationsManager,
+            contentUriHelper = mockk<ContentUriHelper> { every { extractInfo(any()) } returns sourceInfo },
+            operationsManager = mockk<OperationsManager> {
+                every { operations } returns MutableStateFlow(listOf(managed))
+                coEvery { submitManaged(any()) } returns managed
+            },
             issueHandler = mockk<IssueHandler>(relaxed = true),
             saveFilesOperationFactory = mockk<SaveFilesOperation.Factory> {
                 every { create(any(), any()) } returns mockk<SaveFilesOperation>(relaxed = true)
@@ -75,27 +79,35 @@ class SaverWorkspaceSaveIdempotencyTest {
     }
 
     @Test
-    fun `two concurrent saves submit only one operation`() = runTest {
+    fun `a save that has not started yet is not running`() = runTest {
         val workspace = makeWorkspace()
 
-        // Model a double-tap: both coroutines race into save(). The mutex-guarded check-and-set must
-        // let exactly one win; the other sees the non-Idle state at its suspension point and drops.
-        val first = launch { workspace.save() }
-        val second = launch { workspace.save() }
-        first.join()
-        second.join()
+        workspace.save()
 
-        coVerify(exactly = 1) { operationsManager.submitManaged(any()) }
+        workspace.info.value.operationCount shouldBe 1
+        workspace.info.value.activeCount shouldBe 0
     }
 
     @Test
-    fun `a save is rejected while one is already in progress`() = runTest {
+    fun `a save that is writing is running`() = runTest {
         val workspace = makeWorkspace()
 
         workspace.save()
-        // The first save left state in Saving (no operation completion emitted), so this is dropped.
-        workspace.save()
+        operationState.value = mockk<Operation.State.Active>()
 
-        coVerify(exactly = 1) { operationsManager.submitManaged(any()) }
+        workspace.info.value.operationCount shouldBe 1
+        workspace.info.value.activeCount shouldBe 1
+    }
+
+    @Test
+    fun `a save waiting on a conflict prompt is not running`() = runTest {
+        val workspace = makeWorkspace()
+
+        workspace.save()
+        operationState.value = mockk<Operation.State.Active>()
+        operationState.value = mockk<Operation.State.Waiting>()
+
+        workspace.info.value.operationCount shouldBe 1
+        workspace.info.value.activeCount shouldBe 0
     }
 }

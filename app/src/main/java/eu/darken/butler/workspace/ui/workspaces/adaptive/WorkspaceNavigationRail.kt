@@ -38,7 +38,9 @@ import androidx.compose.material.icons.twotone.Looks4
 import androidx.compose.material.icons.twotone.LooksOne
 import androidx.compose.material.icons.twotone.LooksTwo
 import androidx.compose.material.icons.twotone.RemoveCircleOutline
+import androidx.compose.material.icons.twotone.Sync
 import androidx.compose.material.icons.twotone.Visibility
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -68,6 +70,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
@@ -94,6 +97,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.RailPlacement
 import eu.darken.butler.workspace.ui.manager.paneCells
 import eu.darken.butler.workspace.ui.tour.WorkspaceTourTargets
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
+import eu.darken.butler.workspace.ui.workspaces.WorkspacesViewModel
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -116,6 +120,10 @@ object WorkspaceNavigationRailDefaults {
     const val ITEM_TEST_TAG = "workspace.rail.item"
 
     const val UNASSIGN_TEST_TAG = "workspace.rail.unassign"
+
+    /** The entry's operation markers, both outside the card so they can sit in its top corner. */
+    const val OPS_RUNNING_TEST_TAG = "workspace.rail.item.ops.running"
+    const val OPS_PENDING_TEST_TAG = "workspace.rail.item.ops.pending"
 }
 
 private val RailSectionPadding = 8.dp
@@ -165,6 +173,15 @@ private val RailItemNotchedShape = CutoutTopRightCornerShape(
 
 /** Centres the 19x19dp glyph inside the 23x23dp notch. */
 private val RailNotchGlyphPadding = PaddingValues(top = 2.dp, end = 2.dp)
+
+/**
+ * The operation marker, in the top corner opposite the notch. 8dp is what the entry's tightest
+ * state leaves: a START entry is 64dp wide, and a notched icon's box starts 10.5dp from the leading
+ * edge, so the marker ends 1.5dp clear of it. Every other state - unnotched, or the 80dp-wide
+ * entries of the bottom placement - leaves more.
+ */
+private val RailOperationsMarkerSize = 8.dp
+private val RailOperationsMarkerPadding = PaddingValues(top = 2.dp, start = 1.dp)
 
 /**
  * What the reveal effect restarts on: which workspace is focused and where the entries sit.
@@ -221,6 +238,8 @@ internal fun railCloseHost(
 fun WorkspaceNavigationRail(
     modifier: Modifier = Modifier,
     workspaces: List<Workspace.Info>,
+    /** Per-tab operation counts, aggregated over each tab's ownership unit. */
+    unitOps: Map<Workspace.Id, WorkspacesViewModel.UnitOps> = emptyMap(),
     selected: Map<Int, WorkspacePaneInfo>,
     focusedId: Workspace.Id?,
     design: WorkspaceDesign = WorkspaceDesign(),
@@ -296,9 +315,12 @@ fun WorkspaceNavigationRail(
                 key = ws.id
             ) { isDraggingItem ->
                 val paneIndex = selected.entries.find { it.value.id == ws.id }?.key
+                val ops = unitOps[ws.id]
                 DraggableWorkspaceRailItem(
                     workspace = ws,
                     isFocused = focusedId == ws.id,
+                    operationCount = ops?.operations ?: 0,
+                    activeCount = ops?.active ?: 0,
                     currentPaneIndex = paneIndex,
                     closeHostId = railCloseHost(
                         closingPaneIndex = paneIndex,
@@ -483,6 +505,10 @@ internal fun WorkspaceRailItem(
     workspace: Workspace.Info,
     paneIndex: Int?,
     isFocused: Boolean,
+    /** Unfinished operations across this tab's ownership unit, not just the workspace itself. */
+    operationCount: Int = 0,
+    /** How many of [operationCount] are running rather than queued or waiting on an answer. */
+    activeCount: Int = 0,
     layout: WorkspaceDesign.Layout = WorkspaceDesign.Layout.SINGLE,
     placement: RailPlacement = RailPlacement.START,
     isDraggingItem: Boolean = false,
@@ -529,6 +555,17 @@ internal fun WorkspaceRailItem(
     val paneDescription = glyphPaneIndex
         ?.let { stringResource(R.string.workspace_pane_current_description, it + 1) }
 
+    // The markers sit outside the card, so what they mean has to be said by the card: it is the
+    // node TalkBack reads, and a description of their own would split the entry into two nodes.
+    val operationsDescription = when {
+        activeCount > 0 -> stringResource(R.string.workspace_row_operations_running_content_desc)
+        operationCount > 0 -> stringResource(R.string.workspace_row_operations_pending_content_desc)
+        else -> null
+    }
+    val entryDescription = listOfNotNull(paneDescription, operationsDescription)
+        .takeIf { it.isNotEmpty() }
+        ?.joinToString(", ")
+
     Box(
         modifier = modifier
             .then(
@@ -554,7 +591,7 @@ internal fun WorkspaceRailItem(
                 .semantics {
                     selected = isAssigned
                     role = Role.Tab
-                    paneDescription?.let { contentDescription = it }
+                    entryDescription?.let { contentDescription = it }
                 },
             shape = if (glyphPaneIndex != null) RailItemNotchedShape else RailItemShape,
             color = containerColor,
@@ -608,6 +645,34 @@ internal fun WorkspaceRailItem(
                     .padding(RailNotchGlyphPadding),
                 layout = layout,
                 paneIndex = index,
+            )
+        }
+
+        // Opposite the notch, in the strip the shifted icon leaves free: a notched icon is 20dp
+        // centred and moved aside by RailIconNotchShift, so it starts 10.5dp in - which is what
+        // fixes the marker's size. RTL mirrors the notch, so marker and glyph swap sides together.
+        val marker = Modifier
+            .align(Alignment.TopStart)
+            .padding(RailOperationsMarkerPadding)
+            .size(RailOperationsMarkerSize)
+        // Both markers are announced through the card's own description above, and an indeterminate
+        // indicator would otherwise publish progress semantics of its own. The tag goes outside the
+        // clear, which resets everything applied inside it.
+        when {
+            activeCount > 0 -> CircularProgressIndicator(
+                modifier = marker
+                    .testTag(WorkspaceNavigationRailDefaults.OPS_RUNNING_TEST_TAG)
+                    .clearAndSetSemantics {},
+                strokeWidth = 1.dp,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            operationCount > 0 -> Icon(
+                modifier = marker
+                    .testTag(WorkspaceNavigationRailDefaults.OPS_PENDING_TEST_TAG)
+                    .clearAndSetSemantics {},
+                imageVector = Icons.TwoTone.Sync,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
     }
@@ -728,12 +793,42 @@ private fun WorkspaceRailItemStateEntries(
         isDraggingItem = true,
         onClick = {},
     )
+    // Running work, in the state where the marker has the least room: a notch open opposite it.
+    WorkspaceRailItem(
+        workspace = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "Copying".toCaString(),
+        ),
+        paneIndex = 1,
+        isFocused = false,
+        operationCount = 2,
+        activeCount = 1,
+        layout = layout,
+        placement = placement,
+        onClick = {},
+    )
+    WorkspaceRailItem(
+        workspace = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "Queued".toCaString(),
+        ),
+        paneIndex = null,
+        isFocused = false,
+        operationCount = 1,
+        layout = layout,
+        placement = placement,
+        onClick = {},
+    )
 }
 
 @Composable
 private fun DraggableWorkspaceRailItem(
     workspace: Workspace.Info,
     isFocused: Boolean,
+    operationCount: Int,
+    activeCount: Int,
     currentPaneIndex: Int?,
     /** The pane that hosts this entry's close confirmation; null hosts it in the closing tab's own. */
     closeHostId: Workspace.Id? = null,
@@ -761,6 +856,8 @@ private fun DraggableWorkspaceRailItem(
             workspace = workspace,
             paneIndex = currentPaneIndex,
             isFocused = isFocused,
+            operationCount = operationCount,
+            activeCount = activeCount,
             layout = design.layout,
             placement = placement,
             isDraggingItem = isDraggingItem,

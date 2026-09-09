@@ -50,6 +50,7 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.awaitCompletion
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
+import eu.darken.butler.workspace.core.operations.toOperationCounts
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.stateInWorkspace
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
@@ -227,14 +228,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         _state,
         operationsManager.operationsForWorkspace(id).withOnlyStateChanges()
     ) { state, operations ->
-        val states = operations.map { it.id to it.state.value }
-        val activeOperations: Int = states.count { it.second !is Operation.State.Completed }
-        val attentionCount: Int = states.count {
-            val value = it.second
-            if (value is Operation.State.Waiting) return@count true
-            if (value is Operation.State.Completed && value.error != null && value.error !is CancellationException) return@count true
-            return@count false
-        }
+        val counts = operations.toOperationCounts()
         val readyState = state as? State.Ready
         // The seed stands in only until the tab knows where it is. Once it does, the target
         // describes itself completely: falling back per field would let a location that has no
@@ -251,8 +245,9 @@ class ExplorerWorkspace @AssistedInject constructor(
                 is State.Error -> Workspace.LifecycleState.Error(state.error)
                 is State.Ready -> Workspace.LifecycleState.Ready
             },
-            operationCount = activeOperations,
-            attentionCount = attentionCount,
+            operationCount = counts.unfinished,
+            activeCount = counts.active,
+            attentionCount = counts.attention,
             callerWorkspaceId = pickerConfig?.callerWorkspaceId,
             modalPresentation = (creationArguments as? Workspace.ArgumentsWithCaller)?.modalPresentation
                 ?: Workspace.ModalPresentationMode.PANE_LOCAL,

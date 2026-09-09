@@ -47,6 +47,7 @@ internal class PausedWorkspace(
             ).copy(
             lifecycleState = Workspace.LifecycleState.Paused(),
             operationCount = 0,
+            activeCount = 0,
             attentionCount = 0,
             hasUnsavedChanges = false,
             isPausable = true,

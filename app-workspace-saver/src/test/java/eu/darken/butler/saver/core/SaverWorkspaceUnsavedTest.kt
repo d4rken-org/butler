@@ -62,6 +62,7 @@ class SaverWorkspaceUnsavedTest {
             dispatcherProvider = TestDispatcherProvider(),
             contentUriHelper = mockk<ContentUriHelper> { every { extractInfo(any()) } returns sourceInfo },
             operationsManager = mockk<OperationsManager> {
+                every { operations } returns MutableStateFlow(emptyList<ManagedOperation>())
                 coEvery { submitManaged(any()) } returns managed
             },
             issueHandler = mockk<IssueHandler>(relaxed = true),

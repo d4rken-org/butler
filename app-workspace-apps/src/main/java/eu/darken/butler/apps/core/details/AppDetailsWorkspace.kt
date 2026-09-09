@@ -53,6 +53,7 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.current
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
+import eu.darken.butler.workspace.core.operations.toOperationCounts
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.stateInWorkspace
 import kotlinx.coroutines.CancellationException
@@ -319,6 +320,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
      */
     private data class OwnOps(
         val unfinished: Int,
+        val active: Int,
         /** Component toggles excluded: they never block an app-wide action, or each other. */
         val unfinishedAppWide: Int,
         val attention: Int,
@@ -327,31 +329,21 @@ class AppDetailsWorkspace @AssistedInject constructor(
     private val ownOps: StateFlow<OwnOps> = operationsManager.operationsForWorkspace(id)
         .withOnlyStateChanges()
         .map { operations ->
-            var unfinished = 0
-            var unfinishedAppWide = 0
-            var attention = 0
-            operations.forEach { operation ->
-                val isAppWide = operation.metadata.kind != Operation.Metadata.Kind.COMPONENTS
-                when (val opState = operation.state.value) {
-                    is Operation.State.Queued, is Operation.State.Active -> {
-                        unfinished++
-                        if (isAppWide) unfinishedAppWide++
-                    }
-
-                    is Operation.State.Waiting -> {
-                        unfinished++
-                        if (isAppWide) unfinishedAppWide++
-                        attention++
-                    }
-
-                    is Operation.State.Completed -> {
-                        if (opState.error != null && opState.error !is CancellationException) attention++
-                    }
-                }
+            val counts = operations.toOperationCounts()
+            // Its own pass: the app-wide scope is this workspace's, not something the shared
+            // derivation knows about.
+            val unfinishedAppWide = operations.count { operation ->
+                operation.metadata.kind != Operation.Metadata.Kind.COMPONENTS &&
+                    operation.state.value !is Operation.State.Completed
             }
-            OwnOps(unfinished = unfinished, unfinishedAppWide = unfinishedAppWide, attention = attention)
+            OwnOps(
+                unfinished = counts.unfinished,
+                active = counts.active,
+                unfinishedAppWide = unfinishedAppWide,
+                attention = counts.attention,
+            )
         }
-        .stateIn(scope, SharingStarted.Eagerly, OwnOps(0, 0, 0))
+        .stateIn(scope, SharingStarted.Eagerly, OwnOps(0, 0, 0, 0))
 
     /**
      * Rejects a second app-wide package action while one is running. The rows going disabled is
@@ -472,6 +464,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
             subtitle = label?.let { args.packageName.toCaString() },
             lifecycleState = Workspace.LifecycleState.Ready,
             operationCount = ownOps.unfinished,
+            activeCount = ownOps.active,
             attentionCount = ownOps.attention,
             isPausable = ownOps.unfinished == 0,
             callerWorkspaceId = args.callerWorkspaceId,

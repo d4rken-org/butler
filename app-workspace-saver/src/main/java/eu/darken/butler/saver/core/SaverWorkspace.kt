@@ -35,6 +35,9 @@ import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.operations.operationsForWorkspace
+import eu.darken.butler.workspace.core.operations.toOperationCounts
+import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.stateInWorkspace
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -170,7 +173,12 @@ class SaverWorkspace @AssistedInject constructor(
         _filename,
         _saveState,
         _destination,
-    ) { sourceInfos, filename, saveState, destination ->
+        // The save operation's own state, not [SaveState]: a save that hit a conflict prompt stays
+        // SaveState.Saving while the operation waits on the user, and that is not running work.
+        operationsManager.operationsForWorkspace(id)
+            .withOnlyStateChanges()
+            .map { it.toOperationCounts().active },
+    ) { sourceInfos, filename, saveState, destination, activeCount ->
         val operationCount = when (saveState) {
             is SaveState.Saving -> 1
             else -> 0
@@ -196,6 +204,10 @@ class SaverWorkspace @AssistedInject constructor(
             },
             lifecycleState = Workspace.LifecycleState.Ready,
             operationCount = operationCount,
+            // The two counters come from different inputs of this combine, so an emission triggered
+            // by one carries the other's cached value - without the clamp a finished save can still
+            // publish activeCount=1 against operationCount=0, which the markers draw as running work
+            activeCount = activeCount.coerceAtMost(operationCount),
             attentionCount = attentionCount,
             // The shared content only exists inside this tab until it is written somewhere: until
             // then, closing the tab discards what the user handed to Butler. Same reasoning as

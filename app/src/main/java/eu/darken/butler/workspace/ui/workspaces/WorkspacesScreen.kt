@@ -154,6 +154,7 @@ fun WorkspaceScreen(
             AdaptiveWorkspaceLayout(
                 design = design,
                 workspaces = state.tabWorkspaces,
+                unitOps = state.unitOps,
                 selected = state.selected,
                 visibleSelected = state.visibleSelected,
                 focusedId = state.focused,

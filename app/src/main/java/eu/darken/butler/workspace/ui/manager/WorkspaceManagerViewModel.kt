@@ -119,6 +119,7 @@ class WorkspaceManagerViewModel @Inject constructor(
                 isVisibleInPane = visibleAssignments.values.contains(owner.id),
                 paneNumber = visibleAssignments.entries.find { it.value == owner.id }?.key,
                 operationCount = members.sumOf { it.operationCount },
+                activeCount = members.sumOf { it.activeCount },
                 attentionCount = members.sumOf { it.attentionCount },
                 hasUnsavedChanges = members.any { it.hasUnsavedChanges },
                 isSubWorkspace = owner.isSubWorkspace,
@@ -509,6 +510,8 @@ class WorkspaceManagerViewModel @Inject constructor(
         val isVisibleInPane: Boolean = false,
         val paneNumber: Int? = null,
         val operationCount: Int = 0,
+        /** The part of [operationCount] that is running rather than queued or waiting. */
+        val activeCount: Int = 0,
         val attentionCount: Int = 0,
         /**
          * True when any member of the unit holds unsaved in-memory changes. Deliberately separate

@@ -282,6 +282,15 @@ interface Workspace<ArgT : Workspace.Arguments> {
          */
         val lifecycleState: LifecycleState = LifecycleState.Initializing,
         val operationCount: Int = 0,
+        /**
+         * How much of [operationCount] is genuinely in progress right now: operations in
+         * [eu.darken.butler.workspace.core.operations.Operation.State.Active], plus the two things a
+         * workspace does that are not managed operations - a running search, a Saver mid-save.
+         *
+         * Excludes queued work, which has not begun, and work waiting on a user answer, which is
+         * suspended indefinitely. Always `<= operationCount`.
+         */
+        val activeCount: Int = 0,
         val attentionCount: Int = 0,
         /**
          * True when this workspace holds unsaved in-memory changes that would be lost on close.

@@ -40,6 +40,8 @@ import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
 fun AdaptiveWorkspaceLayout(
     design: WorkspaceDesign,
     workspaces: List<Workspace.Info>,
+    /** Per-tab operation counts, aggregated over each tab's ownership unit. */
+    unitOps: Map<Workspace.Id, WorkspacesViewModel.UnitOps> = emptyMap(),
     /** Every assignment, incl. panes this layout does not render. Drives assignment, not display. */
     selected: Map<Int, WorkspacePaneInfo>,
     /** Only the assignments this layout renders. Anything showing a pane number reads this. */
@@ -80,6 +82,7 @@ fun AdaptiveWorkspaceLayout(
             WorkspaceNavigationRail(
                 design = design,
                 workspaces = workspaces,
+                unitOps = unitOps,
                 // Badges say which pane a tab occupies, so they follow the panes this layout has.
                 selected = visibleSelected,
                 focusedId = focusedId,

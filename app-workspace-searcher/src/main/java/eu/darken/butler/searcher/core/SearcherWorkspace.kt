@@ -43,6 +43,7 @@ import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
+import eu.darken.butler.workspace.core.operations.toOperationCounts
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -416,37 +417,26 @@ class SearcherWorkspace @AssistedInject constructor(
             .onEach { publishIdentity(it) }
             .launchIn(scope)
 
-        // Track operation counts for this workspace
-        operationsManager.operationsForWorkspace(id).withOnlyStateChanges()
-            .onEach { operations ->
-                var operationCount = 0
-                var attentionCount = 0
-
-                operations.forEach { operation ->
-                    when (val state = operation.state.value) {
-                        is Operation.State.Queued -> operationCount++
-                        is Operation.State.Active -> operationCount++
-                        is Operation.State.Waiting -> {
-                            operationCount++
-                            attentionCount++
-                        }
-                        is Operation.State.Completed -> {
-                            if (state.error != null && state.error !is CancellationException) {
-                                attentionCount++
-                            }
-                        }
-                    }
-                }
-
+        // Track operation counts for this workspace. A running search is a term here rather than a
+        // writer of its own: a second collector's copy() would race this one on the same fields.
+        kotlinCombine(
+            operationsManager.operationsForWorkspace(id).withOnlyStateChanges(),
+            _searchState
+                .map { it.searchStatus == State.SearchStatus.SEARCHING }
+                .distinctUntilChanged(),
+        ) { operations, isSearching -> operations.toOperationCounts() to isSearching }
+            .onEach { (counts, isSearching) ->
+                val searchCount = if (isSearching) 1 else 0
                 // update(), not value =: the pausability and subtitle collectors write the same
                 // flow concurrently, and a copy() off a stale snapshot would revert their field.
                 info.update {
                     it.copy(
-                        operationCount = operationCount,
-                        attentionCount = attentionCount,
+                        operationCount = counts.unfinished + searchCount,
+                        activeCount = counts.active + searchCount,
+                        attentionCount = counts.attention,
                     )
                 }
-                log(tag, VERBOSE) { "Updated operation counts: active=$operationCount, attention=$attentionCount" }
+                log(tag, VERBOSE) { "Updated operation counts: $counts, searching=$isSearching" }
             }
             .launchIn(scope)
 
