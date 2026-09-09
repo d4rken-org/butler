@@ -136,8 +136,11 @@ private fun OperationProgressDisplay(
 
                 // Secondary text
                 if (progressData.secondary != CaString.EMPTY) {
+                    // Speed/ETA text changes length constantly, a two line floor keeps the sheet
+                    // from shifting on every progress update.
                     Text(
                         text = progressData.secondary.asComposable(),
+                        minLines = 2,
                         style = if (isPrimary) {
                             MaterialTheme.typography.bodyMedium
                         } else {
@@ -202,6 +205,27 @@ private fun OperationProgressDisplay(
                     overflow = TextOverflow.MiddleEllipsis,
                 )
             }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun OperationCombinedProgressSectionShortMetricsPreview() {
+    PreviewWrapper {
+        Box(modifier = Modifier.width(320.dp)) {
+            OperationCombinedProgressSection(
+                primaryProgress = Progress.Data(
+                    primary = "Copying items".toCaString(),
+                    secondary = "6.5 MB/s".toCaString(),
+                    count = Progress.Count.Counter(4, 5),
+                ),
+                secondaryProgress = Progress.Data(
+                    primary = "report.pdf".toCaString(),
+                    secondary = "7.1 MB/s".toCaString(),
+                    count = Progress.Count.Size(25_000_000, 118_000_000),
+                ),
+            )
         }
     }
 }
