@@ -10,6 +10,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Rule
 import org.junit.Test
@@ -79,6 +80,38 @@ class FossUpgradeScreenHostTest : BaseTest() {
 
         composeRule.waitUntil { persisted == 1 }
         vm.hasPendingSponsorLaunch() shouldBe false
+    }
+
+    @Test
+    fun `a pause without a stop leaves the sponsor button working`() {
+        // The reported journey: a dialog-themed activity (a system permission prompt) in the same
+        // task pauses the screen without stopping it, so the tracker never arms and no return check
+        // ever runs. The marker stays behind and must not brick the button.
+        val repo = mockRepo()
+        val vm = buildVm(repo)
+
+        composeRule.setContent {
+            PreviewWrapper {
+                UpgradeScreenHost(manage = false, vm = vm)
+            }
+        }
+        composeRule.waitForIdle()
+
+        vm.openSponsor()
+        // Advanced before the transition: a return check, had one run, would have taken the persist
+        // branch rather than the too-fast one, so persisted == 0 below can only mean nothing ran.
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(6))
+
+        // STARTED, not CREATED: going down only this far emits ON_PAUSE without an ON_STOP.
+        composeRule.activityRule.scenario.moveToState(Lifecycle.State.STARTED)
+        composeRule.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        composeRule.waitForIdle()
+
+        vm.hasPendingSponsorLaunch() shouldBe true
+        persisted shouldBe 0
+
+        vm.openSponsor()
+        verify(exactly = 2) { repo.openGithubSponsorsPage() }
     }
 
     @Test

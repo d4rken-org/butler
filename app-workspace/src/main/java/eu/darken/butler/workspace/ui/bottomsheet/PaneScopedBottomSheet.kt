@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -68,6 +67,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.insets.LocalPaneEdges
 import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
+import eu.darken.butler.workspace.ui.insets.paneImePadding
 import eu.darken.butler.workspace.ui.modal.PaneLayer
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.modal.requestPaneFocusOnPress
@@ -334,8 +334,15 @@ private fun SheetCard(
     ) {
         Column(
             modifier = Modifier
-                .then(if (includeImePadding) Modifier.imePadding() else Modifier)
-                .padding(bottom = bottomInset),
+                .then(
+                    // The keyboard's inset already spans the region [bottomInset] covers, so the
+                    // two are unioned instead of stacked.
+                    if (includeImePadding) {
+                        Modifier.paneImePadding(extraBottom = bottomInset)
+                    } else {
+                        Modifier.padding(bottom = bottomInset)
+                    },
+                ),
         ) {
             // Outside the scrolling region below, so it stays put and stays grabbable
             dragHandle?.let {

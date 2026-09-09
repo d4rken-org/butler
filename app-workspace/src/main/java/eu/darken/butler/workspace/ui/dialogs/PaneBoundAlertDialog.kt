@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +43,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.ui.dialogs.ButlerAlertDialogContent
 import eu.darken.butler.workspace.ui.insets.LocalPaneEdges
 import eu.darken.butler.workspace.ui.insets.paneHorizontalInsetPadding
+import eu.darken.butler.workspace.ui.insets.paneImePadding
 import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import eu.darken.butler.workspace.ui.modal.PaneLayer
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
@@ -163,7 +163,7 @@ fun PaneBoundAlertDialog(
             modifier = Modifier
                 .fillMaxSize()
                 .paneHorizontalInsetPadding(LocalPaneEdges.current)
-                .then(if (includeImePadding) Modifier.imePadding() else Modifier)
+                .then(if (includeImePadding) Modifier.paneImePadding() else Modifier)
                 .padding(24.dp),
             contentAlignment = Alignment.Center,
         ) {

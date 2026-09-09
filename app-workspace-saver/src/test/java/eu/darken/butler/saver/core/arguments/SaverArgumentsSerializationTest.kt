@@ -39,6 +39,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
                     "type": "LOCAL",
                     "file": "/sdcard/Download"
                 },
+                "sourceNames": [],
                 "reportSavedPaths": false
             }
         """.toComparableJson()
@@ -56,9 +57,33 @@ class SaverArgumentsSerializationTest : BaseTest() {
             {
                 "type": "default",
                 "sourceUris": ["content://provider/file"],
+                "sourceNames": [],
                 "reportSavedPaths": false
             }
         """.toComparableJson()
+    }
+
+    @Test
+    fun `serialize Default with source names`() {
+        val args = SaverArguments.Default(
+            sourceUris = listOf("file:///data/app/a/base.apk", "file:///data/app/b/base.apk"),
+            sourceNames = listOf("A_com.a_1.apk", "B_com.b_2.apk"),
+        )
+        val serialized = json.encodeToJsonElement<SaverArguments>(args)
+
+        serialized.toString().toComparableJson() shouldBe """
+            {
+                "type": "default",
+                "sourceUris": [
+                    "file:///data/app/a/base.apk",
+                    "file:///data/app/b/base.apk"
+                ],
+                "sourceNames": ["A_com.a_1.apk", "B_com.b_2.apk"],
+                "reportSavedPaths": false
+            }
+        """.toComparableJson()
+
+        json.decodeFromString<SaverArguments>(serialized.toString()) shouldBe args
     }
 
     @Test
@@ -150,6 +175,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
             {
                 "type": "default",
                 "sourceUris": ["content://provider/file"],
+                "sourceNames": [],
                 "reportSavedPaths": false
             }
         """.toComparableJson()

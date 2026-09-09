@@ -15,6 +15,7 @@
     <string name="upgrade_screen_sponsor_action_hint">The alternative are ads, analytics and Google Play 🙁.</string>
     <string name="upgrade_screen_thanks_toast">Thank you for supporting open-source development ❤️</string>
     <string name="upgrade_screen_sponsor_too_fast">Back already? Your support keeps Butler alive — please take a moment to check out the sponsors page.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Couldn\'t open the sponsors page. Try opening it in a browser instead.</string>
 
     <string name="upgrade_screen_status_free_title">You\'re on the free version</string>
     <string name="upgrade_screen_status_free_body">Butler FOSS is fully open source. Unlock the extra features by supporting development.</string>

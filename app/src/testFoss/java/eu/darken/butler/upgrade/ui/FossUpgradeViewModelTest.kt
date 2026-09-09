@@ -230,6 +230,133 @@ class FossUpgradeViewModelTest : BaseTest() {
     }
 
     @Test
+    fun `an unresolved sponsor launch no longer blocks the button`() = runTest2(context = testDispatcher) {
+        // A pause without a stop (a system dialog over the screen) leaves the marker armed with no
+        // return check ever running. Nothing else clears it, so an unbounded guard would make every
+        // later tap a silent no-op for the life of the ViewModel.
+        val repo = mockRepo()
+        val handle = SavedStateHandle()
+        val vm = buildVm(repo = repo, handle = handle, manage = false)
+
+        vm.openSponsor()
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(6))
+        val relaunchedAt = SystemClock.elapsedRealtime()
+        vm.openSponsor()
+        advanceUntilIdle()
+
+        verify(exactly = 2) { repo.openGithubSponsorsPage() }
+        // Mirrors the ViewModel's private KEY_SPONSOR_PRESSED_AT: the relaunch restamps, so the honor
+        // delay is measured from the visit the user is actually on.
+        handle.get<Long>("sponsor_pressed_at") shouldBe relaunchedAt
+    }
+
+    @Test
+    fun `relaunching an unresolved sponsor launch does not grant the upgrade`() = runTest2(context = testDispatcher) {
+        // A relaunch is not a return: only checkSponsorReturn evaluates a visit, so reopening the page
+        // must not hand out supporter status or any feedback of its own.
+        val repo = mockRepo()
+        val vm = buildVm(repo = repo, manage = false)
+
+        val nudges = mutableListOf<Int>()
+        val thanks = mutableListOf<Int>()
+        val snackbarCollector = launch(start = CoroutineStart.UNDISPATCHED) {
+            vm.snackbarEvent.collect { nudges.add(it) }
+        }
+        val toastCollector = launch(start = CoroutineStart.UNDISPATCHED) { vm.toastEvent.collect { thanks.add(it) } }
+
+        vm.openSponsor()
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(6))
+        vm.openSponsor()
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { repo.persistUpgrade() }
+        nudges.shouldBeEmpty()
+        thanks.shouldBeEmpty()
+
+        snackbarCollector.cancel()
+        toastCollector.cancel()
+    }
+
+    @Test
+    fun `a failed relaunch keeps the pending sponsor launch`() = runTest2(context = testDispatcher) {
+        // The marker is never removed on its own, only overwritten by a successful launch: a marker
+        // restored by a failed unlock write is by construction older than the window, and dropping it
+        // here would destroy a qualified visit whenever the relaunch then fails too.
+        val repo = mockRepo()
+        val handle = SavedStateHandle()
+        val vm = buildVm(repo = repo, handle = handle, manage = false)
+
+        vm.openSponsor()
+        val armedAt = handle.get<Long>("sponsor_pressed_at")
+        advanceUntilIdle()
+
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(6))
+        every { repo.openGithubSponsorsPage() } returns false
+        vm.openSponsor()
+        advanceUntilIdle()
+
+        vm.hasPendingSponsorLaunch() shouldBe true
+        handle.get<Long>("sponsor_pressed_at") shouldBe armedAt
+    }
+
+    @Test
+    fun `a sponsor launch stamped in the future does not block the button`() = runTest2(context = testDispatcher) {
+        // A stamp the clock has not reached yet (a clock source that moved backwards) is not a launch
+        // in flight. Treating a negative age as one would reinstate the permanent latch the bounded
+        // guard exists to remove.
+        val repo = mockRepo()
+        val handle = SavedStateHandle(mapOf("sponsor_pressed_at" to SystemClock.elapsedRealtime() + 60_000L))
+        val vm = buildVm(repo = repo, handle = handle, manage = false)
+
+        val pressedAt = SystemClock.elapsedRealtime()
+        vm.openSponsor()
+        advanceUntilIdle()
+
+        verify(exactly = 1) { repo.openGithubSponsorsPage() }
+        handle.get<Long>("sponsor_pressed_at") shouldBe pressedAt
+    }
+
+    @Test
+    fun `the single-flight window ends exactly at its boundary`() = runTest2(context = testDispatcher) {
+        // The window covers the focus handoff right after startActivity and nothing longer — a tap
+        // that lands after it is a user retrying a launch that never took the foreground.
+        val blockedRepo = mockRepo()
+        val blockedVm = buildVm(repo = blockedRepo, manage = false)
+
+        blockedVm.openSponsor()
+        ShadowSystemClock.advanceBy(Duration.ofMillis(999))
+        blockedVm.openSponsor()
+        advanceUntilIdle()
+
+        verify(exactly = 1) { blockedRepo.openGithubSponsorsPage() }
+
+        val relaunchRepo = mockRepo()
+        val relaunchVm = buildVm(repo = relaunchRepo, manage = false)
+
+        relaunchVm.openSponsor()
+        ShadowSystemClock.advanceBy(Duration.ofMillis(1000))
+        relaunchVm.openSponsor()
+        advanceUntilIdle()
+
+        verify(exactly = 2) { relaunchRepo.openGithubSponsorsPage() }
+    }
+
+    @Test
+    fun `a sponsor page that never opened tells the user`() = runTest2(context = testDispatcher) {
+        // The launch boolean carries no cause, so a silent return leaves a button that is
+        // indistinguishable from a dead one.
+        val repo = mockRepo()
+        every { repo.openGithubSponsorsPage() } returns false
+        val vm = buildVm(repo = repo, manage = false)
+
+        val nudge = async { vm.snackbarEvent.first() }
+        vm.openSponsor()
+        advanceUntilIdle()
+
+        nudge.await() shouldBe R.string.upgrade_screen_sponsor_open_failed
+    }
+
+    @Test
     fun `a sponsor page that never opened arms nothing and a later retry still works`() = runTest2(
         context = testDispatcher,
     ) {

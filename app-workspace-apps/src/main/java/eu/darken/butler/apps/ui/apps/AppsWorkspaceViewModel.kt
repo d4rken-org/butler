@@ -14,6 +14,7 @@ import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.apps.core.AppsTabViewStore
 import eu.darken.butler.apps.core.AppsSettings
 import eu.darken.butler.apps.core.AppsWorkspace
+import eu.darken.butler.apps.core.apkExportFileName
 import eu.darken.butler.apps.core.details.normalizedAppLabel
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.standardTags
@@ -641,14 +642,24 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
             is AppsActionBarItem.ExportApk -> launch {
                 log(tag) { "Export APK action for ${action.apps.size} apps" }
-                val apkUris = action.apps.mapNotNull { app ->
-                    (app.pkg as? SourceAvailable)?.sourceDir?.path?.let { "file://$it" }
+                // Paired in one pass: an app without a source drops out here, and building the two
+                // lists separately would misalign every name behind it.
+                val exports = action.apps.mapNotNull { app ->
+                    val uri = (app.pkg as? SourceAvailable)?.sourceDir?.path?.let { "file://$it" }
+                        ?: return@mapNotNull null
+                    uri to apkExportFileName(
+                        label = app.label.get(context),
+                        packageName = app.packageName,
+                        versionName = app.versionName,
+                        versionCode = app.versionCode,
+                    )
                 }
-                if (apkUris.isNotEmpty()) {
+                if (exports.isNotEmpty()) {
                     workspaceRemote.createAndFocus(
                         type = Workspace.Type.SAVER,
                         arguments = SaverArguments.Default(
-                            sourceUris = apkUris,
+                            sourceUris = exports.map { it.first },
+                            sourceNames = exports.map { it.second },
                             callerPackage = null,
                             callerWorkspaceId = id,
                         ),

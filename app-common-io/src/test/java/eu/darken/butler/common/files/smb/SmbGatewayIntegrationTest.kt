@@ -43,9 +43,8 @@ import kotlin.uuid.Uuid
 /**
  * Drives the real gateway against a real Samba server.
  *
- * Skipped wherever Docker is not available (most developer machines and every CI job that does not
- * opt in), so it never turns into a flaky gate: the value is in being runnable on demand, the unit
- * tests carry the everyday coverage.
+ * Skipped locally when Docker is unavailable. The dedicated SMB CI job requires Docker and
+ * rejects skipped integration results.
  */
 class SmbGatewayIntegrationTest : BaseTest() {
 
@@ -158,13 +157,12 @@ class SmbGatewayIntegrationTest : BaseTest() {
         if (authType == SmbLocation.AuthType.PASSWORD) {
             credentialStore.store(locationId, 1, USERNAME, null, PASSWORD.toCharArray(), remember = false)
         }
-        val clientFactory = SmbClientFactory { com.hierynomus.smbj.SMBClient(it) }
+        val clientFactory = SmbClientFactory { eu.darken.smb.KotlinSmbClient() }
         val pool = SmbConnectionPool(
             appScope = TestScope(),
             locationManager = FakeLocationManager(location),
             credentialStore = credentialStore,
             clientFactory = clientFactory,
-            dialectProbe = SmbDialectProbe(clientFactory),
         )
         return Rig(SmbFileSystemOps(pool, TestDispatcherProvider()), pool, credentialStore, location)
     }
@@ -364,7 +362,7 @@ class SmbGatewayIntegrationTest : BaseTest() {
 
         /** dperson/samba builds its own smb.conf from these flags, a copied file would be ignored. */
         private fun sambaContainer(protocol: String): GenericContainer<*> =
-            GenericContainer("dperson/samba:latest")
+            GenericContainer("dperson/samba@sha256:66088b78a19810dd1457a8f39340e95e663c728083efa5fe7dc0d40b2478e869")
                 .withExposedPorts(SMB_PORT)
                 .withCommand(
                     "-u", "$USERNAME;$PASSWORD",

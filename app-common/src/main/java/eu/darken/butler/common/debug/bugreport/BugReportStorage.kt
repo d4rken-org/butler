@@ -1,9 +1,9 @@
 package eu.darken.butler.common.debug.bugreport
 
 import android.content.Context
+import eu.darken.butler.common.files.sanitizeForFileName
 import java.io.File
 import java.nio.file.Files
-import java.text.Normalizer
 
 /**
  * Shared on-disk layout for the unified bug-report store, used by both [BugReportRepo] (crashes +
@@ -62,7 +62,10 @@ object BugReportStorage {
      * keeps it unique and lets [isShareZipFor] find it again.
      */
     fun shareZipName(id: String, label: String?): String {
-        val sanitized = label?.takeUnless { it.isBlank() }?.let { sanitizeForFileName(it) }?.takeIf { it.isNotEmpty() }
+        val sanitized = label
+            ?.takeUnless { it.isBlank() }
+            ?.let { sanitizeForFileName(it, MAX_ZIP_LABEL_LENGTH) }
+            ?.takeIf { it.isNotEmpty() }
         return if (sanitized == null) "$id.zip" else "${sanitized}_$id.zip"
     }
 
@@ -75,24 +78,6 @@ object BugReportStorage {
         val name = fileName.removeSuffix(TMP_SUFFIX)
         return name == "$id.zip" || name.endsWith("_$id.zip")
     }
-
-    /**
-     * Unicode letters and digits are kept — an ASCII-only filter would sanitize `厨房` to nothing and
-     * `Küche` to `K_che`, which is exactly the recognizability the label exists for. Only what a file
-     * system reads as structure is replaced.
-     */
-    private fun sanitizeForFileName(label: String): String = Normalizer
-        .normalize(label, Normalizer.Form.NFC)
-        .map { if (it in RESERVED_NAME_CHARS || it.isISOControl()) '_' else it }
-        .joinToString("")
-        .replace(UNDERSCORE_RUN, "_")
-        // A leading dot would make the zip a hidden file.
-        .trimStart('.')
-        .trim('_')
-        .takeCodePoints(MAX_ZIP_LABEL_LENGTH)
-
-    private val RESERVED_NAME_CHARS = setOf('/', '\\', ':', '*', '?', '"', '<', '>', '|')
-    private val UNDERSCORE_RUN = Regex("_+")
 
     /** The label is a hint in a file listing, not the whole name — the id still has to fit next to it. */
     private const val MAX_ZIP_LABEL_LENGTH = 48

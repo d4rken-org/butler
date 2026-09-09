@@ -60,10 +60,11 @@ dependencies {
     addSerialization()
     addIO()
     addArchive()
-    addNetworkFs()
+    implementation(project(":lib-smb"))
     addRoomDb()
     addWorkerManager()
 
     addTesting()
+    testImplementation(libs.testcontainers)
     testImplementation(project(":app-common-test"))
 }

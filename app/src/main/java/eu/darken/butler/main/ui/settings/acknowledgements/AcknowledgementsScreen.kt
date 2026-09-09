@@ -230,9 +230,9 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
-                    title = stringResource(R.string.acknowledgement_smbj_title),
-                    subtitle = stringResource(R.string.acknowledgement_smbj_subtitle),
-                    onClick = { onOpenUrl("https://github.com/hierynomus/smbj") }
+                    title = stringResource(R.string.acknowledgement_bouncycastle_title),
+                    subtitle = stringResource(R.string.acknowledgement_bouncycastle_subtitle),
+                    onClick = { onOpenUrl("https://www.bouncycastle.org/about/license/") }
                 )
                 SettingsDivider()
             }

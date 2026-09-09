@@ -244,13 +244,17 @@ class SaverWorkspace @AssistedInject constructor(
 
         // Extract source info for all URIs on initialization
         scope.launch {
-            val infos = sourceUris.mapNotNull { uri ->
-                try {
+            // Indexed, not filtered-then-zipped: a source whose extraction fails is dropped here,
+            // and pairing names afterwards would shift every later one onto the wrong URI.
+            val infos = sourceUris.mapIndexedNotNull { index, uri ->
+                val info = try {
                     contentUriHelper.extractInfo(uri)
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to extract source info for $uri: ${e.asLog()}" }
-                    null
+                    return@mapIndexedNotNull null
                 }
+                val suppliedName = creationArguments.sourceNames.getOrNull(index)?.takeIf { it.isNotBlank() }
+                if (suppliedName != null) info.copy(displayName = suppliedName) else info
             }
             _sourceInfos.value = infos
             log(tag) { "Extracted info for ${infos.size}/${sourceUris.size} sources" }
@@ -307,6 +311,7 @@ class SaverWorkspace @AssistedInject constructor(
 
     override suspend fun createArguments(): SaverArguments = SaverArguments.Default(
         sourceUris = creationArguments.sourceUris,
+        sourceNames = creationArguments.sourceNames,
         callerPackage = creationArguments.callerPackage,
         destinationPath = _destination.value,
         callerWorkspaceId = creationArguments.callerWorkspaceId,

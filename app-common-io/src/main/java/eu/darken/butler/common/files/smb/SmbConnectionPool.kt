@@ -1,11 +1,5 @@
 package eu.darken.butler.common.files.smb
 
-import com.hierynomus.smbj.SMBClient
-import com.hierynomus.smbj.SmbConfig
-import com.hierynomus.smbj.auth.AuthenticationContext
-import com.hierynomus.smbj.connection.Connection
-import com.hierynomus.smbj.session.Session
-import com.hierynomus.smbj.share.DiskShare
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
@@ -17,6 +11,9 @@ import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.smb.SmbShare
+import eu.darken.smb.SmbCredentials
+import eu.darken.smb.SmbEndpoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -36,9 +33,8 @@ import kotlin.uuid.Uuid
  * Keeps one SMB session per (location, credential generation) alive across operations.
  *
  * Every operation and every stream or file handle handed out holds a lease on the generation it
- * came from. A generation whose transport died is evicted immediately, but its session is only
- * closed once the last lease is returned, so an in-flight read never has its share pulled out from
- * under it.
+ * came from. Retiring a generation waits for its last lease before disconnecting it. An already
+ * disconnected share is replaced on acquisition; active leases then observe its transport failure.
  */
 @Singleton
 class SmbConnectionPool @Inject constructor(
@@ -46,13 +42,12 @@ class SmbConnectionPool @Inject constructor(
     private val locationManager: SmbLocationManager,
     private val credentialStore: SmbCredentialStore,
     private val clientFactory: SmbClientFactory,
-    private val dialectProbe: SmbDialectProbe,
 ) {
 
     /** A live share plus the lease keeping it alive. Closing it twice is a no-op. */
     class Lease(
         val location: SmbLocation,
-        val share: DiskShare,
+        val share: SmbShare,
         private val onRelease: () -> Unit,
     ) : AutoCloseable {
         private var released = false
@@ -70,10 +65,7 @@ class SmbConnectionPool @Inject constructor(
     private class Generation(
         val key: Key,
         val location: SmbLocation,
-        val client: SMBClient,
-        val connection: Connection,
-        val session: Session,
-        val share: DiskShare,
+        val share: SmbShare,
     ) {
         var leases: Int = 0
         var stale: Boolean = false
@@ -134,11 +126,8 @@ class SmbConnectionPool @Inject constructor(
         repeat(CONNECT_ATTEMPTS) {
             var displaced: Generation? = null
             val reused = lock.withLock {
-                // The share has to be checked too: smbj closes every share before the transport
-                // reports itself gone, so a connection that still says "connected" can already be
-                // handing out a closed share.
                 val cached = generations[key]?.takeIf {
-                    !it.stale && it.connection.isConnected && it.share.isConnected
+                    !it.stale && it.share.connected
                 }
                 when {
                     cached == null -> null
@@ -152,8 +141,6 @@ class SmbConnectionPool @Inject constructor(
                     else -> cached.takeIf { lease(it) }
                 }
             }
-            // Closing a dead session sits in the socket timeout, doing that under the pool-wide lock
-            // would stall every other location too.
             displaced?.let { markStale(it) }
 
             val generation = reused ?: connect(location, key)
@@ -191,69 +178,46 @@ class SmbConnectionPool @Inject constructor(
             SmbLocation.AuthType.PASSWORD -> credentialStore.resolve(location)
         }
 
-        // The context keeps its own copy of the password, so ours can go immediately.
-        var authContext: AuthenticationContext? = try {
-            when (credential) {
-                null -> AuthenticationContext.guest()
-                else -> AuthenticationContext(credential.username, credential.password, credential.domain)
+        val fresh = try {
+            val credentials = when (credential) {
+                null -> SmbCredentials.Guest
+                else -> SmbCredentials.Password(credential.username, credential.password, credential.domain.orEmpty())
             }
+            val share = clientFactory.create().connect(SmbEndpoint(location.host, location.share, location.port), credentials)
+            Generation(key, location, share)
+        } catch (error: Exception) {
+            throw SmbStatusMapper.mapConnect(error, endpoint, location.share)
         } finally {
             credential?.wipe()
-        }
-
-        val client = clientFactory.create(CONFIG)
-        val fresh = try {
-            val connection = client.connect(location.host, location.port)
-            // Which phase failed decides what "access denied" means, see SmbStatusMapper
-            val session = try {
-                connection.authenticate(authContext!!)
-            } catch (e: Exception) {
-                throw SmbStatusMapper.mapAuthenticate(e, endpoint)
-            }
-            val share = try {
-                session.connectShare(location.share) as? DiskShare
-                    ?: throw SmbShareNotFoundException(endpoint, location.share)
-            } catch (e: Exception) {
-                throw SmbStatusMapper.mapConnectShare(e, endpoint, location.share)
-            }
-            Generation(key, location, client, connection, session, share)
-        } catch (e: Exception) {
-            runCatching { client.close() }
-            throw mapConnectFailure(e, location, endpoint)
-        } finally {
-            // Nothing past the session setup needs the password, don't hold it any longer. Dropping
-            // the reference is not enough, the live session keeps the context: zero the copy smbj
-            // made. Safe because a lost connection is replaced by a fresh resolve+connect, this
-            // session never re-authenticates. A guest context has no password to begin with.
-            if (credential != null) authContext?.password?.fill(' ')
-            authContext = null
         }
 
         log(TAG, INFO) { "Connected to $endpoint (credential generation ${key.credentialVersion})" }
 
         var redundant: Generation? = null
         var displaced: Generation? = null
-        val leased = lock.withLock {
-            // The endpoint check matters as much as in acquire(): a caller that connected to the old
-            // endpoint may publish while an edited location is already being connected to.
-            val existing = generations[key]?.takeIf {
-                !it.stale &&
-                    it.connection.isConnected &&
-                    it.share.isConnected &&
-                    it.location.hasSameEndpoint(location)
+        val leased = try {
+            lock.withLock {
+                // The endpoint check matters as much as in acquire(): a caller that connected to the old
+                // endpoint may publish while an edited location is already being connected to.
+                val existing = generations[key]?.takeIf {
+                    !it.stale &&
+                        it.share.connected &&
+                        it.location.hasSameEndpoint(location)
+                }
+                if (existing != null) {
+                    // Raced another caller onto the same endpoint, keep theirs
+                    redundant = fresh
+                    existing.takeIf { lease(it) }
+                } else {
+                    displaced = generations.remove(key)
+                    generations[key] = fresh
+                    fresh.takeIf { lease(it) }
+                }
             }
-            if (existing != null) {
-                // Raced another caller onto the same endpoint, keep theirs
-                redundant = fresh
-                existing.takeIf { lease(it) }
-            } else {
-                displaced = generations.remove(key)
-                generations[key] = fresh
-                fresh.takeIf { lease(it) }
-            }
+        } catch (error: Throwable) {
+            closeQuietly(fresh)
+            throw error
         }
-        // Same reason as in acquire(): a session whose server stopped answering takes the full socket
-        // timeout to close, so it is disposed of with the lock already released.
         redundant?.let { closeQuietly(it) }
         displaced?.let { markStale(it) }
         return leased
@@ -265,17 +229,6 @@ class SmbConnectionPool @Inject constructor(
         share == other.share &&
         basePath == other.basePath &&
         domain == other.domain
-
-    /**
-     * An SMB1-only server hangs up on our negotiate, which is indistinguishable from an unreachable
-     * host until it is asked with multi-protocol negotiation.
-     */
-    private fun mapConnectFailure(error: Throwable, location: SmbLocation, endpoint: String): Throwable {
-        val mapped = SmbStatusMapper.mapConnect(error, endpoint, location.share)
-        if (mapped !is SmbUnreachableException || !dialectProbe.isWorthProbing(error)) return mapped
-        if (!dialectProbe.isSmb1Only(location.host, location.port)) return mapped
-        return SmbDialectNotSupportedException(endpoint, error)
-    }
 
     /** Drops every generation of a location, e.g. after its credential changed. */
     suspend fun evict(locationId: Uuid) {
@@ -330,10 +283,7 @@ class SmbConnectionPool @Inject constructor(
 
     private fun closeQuietly(generation: Generation) {
         log(TAG, VERBOSE) { "Closing session for ${generation.location.endpointLabel}" }
-        runCatching { generation.share.close() }
-        runCatching { generation.session.close() }
-        runCatching { generation.connection.close() }
-        runCatching { generation.client.close() }
+        runCatching { generation.share.disconnect() }
     }
 
     companion object {
@@ -343,11 +293,5 @@ class SmbConnectionPool @Inject constructor(
         private val IDLE_CHECK_INTERVAL = 30.seconds
         private const val CONNECT_ATTEMPTS = 3
 
-        internal val CONFIG: SmbConfig = SmbConfig.builder()
-            .withSocketFactory(SmbSocketFactory())
-            .withSoTimeout(SmbSocketFactory.SOCKET_TIMEOUT_MS)
-            .withTimeout(SmbSocketFactory.SOCKET_TIMEOUT_MS.toLong(), java.util.concurrent.TimeUnit.MILLISECONDS)
-            .withDfsEnabled(false)
-            .build()
     }
 }

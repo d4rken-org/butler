@@ -24,6 +24,13 @@ sealed interface SaverArguments : Workspace.Arguments {
     data class Default(
         /** Source content URIs as strings (Uri.toString() for serialization) */
         val sourceUris: List<String>,
+        /**
+         * Display and target names for [sourceUris], index-aligned. Empty (or a short list) leaves a
+         * source to the name the Saver derives from its URI, which is what the ACTION_SEND entry
+         * point wants; the APK exports fill it because their `file://` sources are all called
+         * `base.apk`.
+         */
+        val sourceNames: List<String> = emptyList(),
         /** Package name of the app that shared the files */
         val callerPackage: Pkg.Id? = null,
         /** Selected destination path, null if not yet selected */

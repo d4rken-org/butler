@@ -78,6 +78,21 @@ class PaneInsetsResolverTest : BaseTest() {
     }
 
     @Test
+    fun `a node flush with the window bottom has no keyboard gap`() {
+        paneBottomGapPx(rootHeightPx = 2400, nodeBottomInRootPx = 2400f) shouldBe 0
+    }
+
+    @Test
+    fun `a node above the window bottom gaps by that distance`() {
+        paneBottomGapPx(rootHeightPx = 2400, nodeBottomInRootPx = 2200f) shouldBe 200
+    }
+
+    @Test
+    fun `a node overhanging the window bottom is floored at zero`() {
+        paneBottomGapPx(rootHeightPx = 2400, nodeBottomInRootPx = 2600f) shouldBe 0
+    }
+
+    @Test
     fun `floating bar stacks follow the matching vertical edge`() {
         val topOnly = PaneEdges(touchesTop = true, touchesBottom = false, touchesStart = true, touchesEnd = true)
 

@@ -20,7 +20,6 @@ object SmbLocationInput {
     /** Characters an SMB server rejects in a new file or folder name. */
     val RESTRICTED_NAME_CHARS = setOf('\\', '/', ':', '*', '?', '"', '<', '>', '|', '\u0000')
 
-    private val STRUCTURAL_SEGMENT_CHARS = setOf('\\', '/', '\u0000')
 
     private val HOST_CHARS = Regex("^[A-Za-z0-9._-]+$")
 
@@ -174,7 +173,7 @@ object SmbLocationInput {
     fun pathSegmentIssue(segment: String): NameIssue? = when {
         segment.isBlank() -> NameIssue.BLANK
         segment == "." || segment == ".." -> NameIssue.TRAVERSAL
-        segment.any { it in STRUCTURAL_SEGMENT_CHARS } -> NameIssue.BLANK
+        !eu.darken.smb.SmbPath.isValidSegment(segment) -> NameIssue.BLANK
         else -> null
     }
 

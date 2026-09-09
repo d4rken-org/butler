@@ -176,6 +176,91 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  smb-integration:
+    name: SMB integration (Docker)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
+        with:
+          persist-credentials: false
+      - name: Setup project and build environment
+        uses: ./.github/actions/common-setup
+
+      - name: Verify Docker is available
+        run: docker info
+
+      # Testcontainers boots the digest-pinned Samba images with isolated ports and shares.
+      - name: Run SMBJ and Kotlin contracts with coverage
+        run: ./gradlew :lib-smb:koverXmlReport :lib-smb:koverHtmlReport
+
+      - name: Exercise the app gateway against Samba
+        run: ./gradlew :app-common-io:testFossDebugUnitTest --tests '*SmbGatewayIntegrationTest' --rerun --no-build-cache
+
+      - name: Require executed integration suites and summarize coverage
+        run: |
+          python3 <<'PY'
+          import os
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          suites = {
+              "Wire unit tests": Path("lib-smb/build/test-results/test/TEST-eu.darken.smb.WireTest.xml"),
+              "Crypto unit tests": Path("lib-smb/build/test-results/test/TEST-eu.darken.smb.CryptoTest.xml"),
+              "NTLM unit tests": Path("lib-smb/build/test-results/test/TEST-eu.darken.smb.NtlmTest.xml"),
+              "Cancellation unit tests": Path("lib-smb/build/test-results/test/TEST-eu.darken.smb.CancellationTest.xml"),
+              "SMBJ wire reference": Path("lib-smb/build/test-results/test/TEST-eu.darken.smb.SmbjWireContractTest.xml"),
+              "SMBJ reference": Path("lib-smb/build/test-results/contractTest/TEST-eu.darken.smb.SmbjContractTest.xml"),
+              "Kotlin implementation": Path("lib-smb/build/test-results/contractTest/TEST-eu.darken.smb.KotlinSmbContractTest.xml"),
+              "Security and transport": Path("lib-smb/build/test-results/contractTest/TEST-eu.darken.smb.ProtocolSecurityTest.xml"),
+              "App gateway": Path("app-common-io/build/test-results/testFossDebugUnitTest/TEST-eu.darken.butler.common.files.smb.SmbGatewayIntegrationTest.xml"),
+          }
+          summary = ["## SMB Docker integration", "", "| Suite | Passed |", "| --- | ---: |"]
+          for label, path in suites.items():
+              result = ET.parse(path).getroot()
+              count = int(result.attrib["tests"])
+              if count == 0 or any(int(result.attrib[key]) for key in ("failures", "errors", "skipped")):
+                  raise SystemExit(f"{label} did not run successfully without skips: {result.attrib}")
+              summary.append(f"| {label} | {count} |")
+
+          report = ET.parse("lib-smb/build/reports/kover/report.xml").getroot()
+          classes = {item.attrib["name"]: item for item in report.findall(".//class")}
+          for name in ("Connection", "NativeShare", "Ntlm"):
+              item = classes[f"eu/darken/smb/protocol/{name}"]
+              lines = item.find("counter[@type='LINE']")
+              if lines is None or int(lines.attrib["covered"]) == 0:
+                  raise SystemExit(f"Missing protocol coverage for {name}")
+          counters = {counter.attrib["type"]: counter for counter in report.findall("counter")}
+          summary += ["", "Coverage of lib-smb production code from unit and Docker tests:"]
+          for kind in ("LINE", "BRANCH"):
+              counter = counters[kind]
+              covered = int(counter.attrib["covered"])
+              total = covered + int(counter.attrib["missed"])
+              if total == 0:
+                  raise SystemExit(f"Missing {kind} coverage")
+              summary.append(f"- {kind.title()}: {covered}/{total} ({covered / total:.1%})")
+          summary += ["", "Samba interoperability; no Android UI, Windows, or macOS coverage."]
+          text = "\n".join(summary) + "\n"
+          print(text)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as output:
+              output.write(text)
+          PY
+
+      - name: Upload SMB test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        with:
+          name: smb-integration-reports
+          path: |
+            lib-smb/build/test-results/**/*.xml
+            lib-smb/build/reports/tests/**
+            lib-smb/build/reports/kover/**
+            app-common-io/build/test-results/testFossDebugUnitTest/**/*.xml
+            app-common-io/build/reports/tests/testFossDebugUnitTest/**
+          if-no-files-found: error
+          retention-days: 14
+
   check-release-tooling:
     name: Release tooling
     runs-on: ubuntu-22.04
