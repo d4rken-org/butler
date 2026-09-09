@@ -16,6 +16,7 @@ import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.icons.Snowflake
 import eu.darken.butler.common.compose.icons.SnowflakeOff
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -125,7 +126,7 @@ class PackageActionOperation @AssistedInject constructor(
                 val label = caString {
                     "${command.target.label.get(it)} · ${entry.className.substringAfterLast('.')}"
                 }
-                send(activeState(startedAt, label, index, command.entries.size))
+                send(activeState(startedAt, label, command.target.installId.pkgId.name, index, command.entries.size))
                 outcomes += runTarget(label, command.target.installId.pkgId.name) {
                     pkgOps.changeComponentState(
                         entry.packageName.toPkgId(),
@@ -136,7 +137,7 @@ class PackageActionOperation @AssistedInject constructor(
             }
 
             else -> command.targets.forEachIndexed { index, target ->
-                send(activeState(startedAt, target.label, index, command.targets.size))
+                send(activeState(startedAt, target.label, target.installId.pkgId.name, index, command.targets.size))
                 outcomes += when (command) {
                     is PackageCommand.Enable -> runTarget(target.label, target.installId.pkgId.name) {
                         pkgOps.changePackageState(target.installId.pkgId, enabled = true)
@@ -159,7 +160,7 @@ class PackageActionOperation @AssistedInject constructor(
                         viaSystemDialog = command.viaSystemDialog,
                         onWaiting = { issue -> send(WaitingState(startedAt = startedAt, issue = issue)) },
                         onResumed = {
-                            send(activeState(startedAt, target.label, index, command.targets.size))
+                            send(activeState(startedAt, target.label, target.installId.pkgId.name, index, command.targets.size))
                         },
                     )
 
@@ -200,10 +201,19 @@ class PackageActionOperation @AssistedInject constructor(
         )
     }
 
-    private fun activeState(startedAt: Instant, label: CaString, index: Int, total: Int) = ActiveState(
+    private fun activeState(
+        startedAt: Instant,
+        label: CaString,
+        pkgName: String,
+        index: Int,
+        total: Int,
+    ) = ActiveState(
         startedAt = startedAt,
         primaryProgress = Progress.Data(
             primary = label,
+            // A package with no resolvable app label falls back to its own id, which would then
+            // fill both progress lines with the same text.
+            secondary = caString { if (label.get(it) == pkgName) "" else pkgName },
             count = Progress.Count.Counter(index, total),
         ),
     )

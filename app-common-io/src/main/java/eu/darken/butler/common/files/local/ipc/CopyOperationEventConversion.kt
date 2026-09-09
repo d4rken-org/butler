@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.local.ipc
 
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.CopyAction
@@ -89,6 +90,7 @@ fun CopyOperationEvent.toCopyActionState(): CopyAction.State<LocalPath, LocalPat
                 ),
                 secondaryProgress = Progress.Data(
                     primary = currentSource.lookedUp.name.toCaString(),
+                    secondary = CaString.EMPTY,
                     count = Progress.Count.Size(
                         current = currentFileBytes,
                         max = currentFileSize,

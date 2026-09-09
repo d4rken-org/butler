@@ -132,6 +132,7 @@ class DownloadLocalCopyOperation @AssistedInject constructor(
                             stateActive = stateActive.copy(
                                 primaryProgress = Progress.Data(
                                     primary = command.source.userReadableName,
+                                    secondary = command.destinationDir.userReadablePath,
                                     count = sourceSize
                                         ?.let { Progress.Count.Size(current = count, max = it) }
                                         ?: Progress.Count.Indeterminate(),

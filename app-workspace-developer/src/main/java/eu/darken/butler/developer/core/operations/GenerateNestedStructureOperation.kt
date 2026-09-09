@@ -92,10 +92,12 @@ class GenerateNestedStructureOperation @AssistedInject constructor(
                             startedAt = operationContext.startedAt,
                             primaryProgress = Progress.Data(
                                 primary = R.string.developer_operation_nested_creating.toCaString(subDir.name),
+                                secondary = targetDir.userReadablePath,
                                 count = Progress.Count.Counter(dirsCreated.toLong(), totalDirs.toLong()),
                             ),
                             secondaryProgress = Progress.Data(
                                 primary = R.string.developer_operation_nested_files_created.toCaString(filesCreated),
+                                secondary = CaString.EMPTY,
                                 count = Progress.Count.Percent(dirsCreated.toLong(), totalDirs.toLong()),
                             ),
                         )
@@ -110,6 +112,7 @@ class GenerateNestedStructureOperation @AssistedInject constructor(
                     startedAt = operationContext.startedAt,
                     primaryProgress = Progress.Data(
                         primary = R.string.developer_operation_nested_starting.toCaString(),
+                        secondary = targetDir.userReadablePath,
                         count = Progress.Count.Counter(0, totalDirs.toLong()),
                     ),
                 )

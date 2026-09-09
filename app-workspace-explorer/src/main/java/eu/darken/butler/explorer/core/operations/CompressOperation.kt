@@ -159,6 +159,7 @@ class CompressOperation @AssistedInject constructor(
                 stateActive = stateActive.copy(
                     primaryProgress = Progress.Data(
                         primary = entry.name.toCaString(),
+                        secondary = outputPath.userReadablePath,
                         count = Progress.Count.Counter(current = processed.toLong(), max = fileCount.toLong()),
                     ),
                 )

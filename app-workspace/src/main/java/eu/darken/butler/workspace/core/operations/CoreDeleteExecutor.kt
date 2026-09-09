@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.core.operations
 
 import android.text.format.Formatter
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.datastore.value
@@ -410,6 +411,7 @@ class CoreDeleteExecutor @Inject constructor(
         // Build secondary progress showing current file
         val secondaryProgress = Progress.Data(
             primary = trashState.currentItem.lookedUp.name.toCaString(),
+            secondary = CaString.EMPTY,
             count = if (trashState.totalBytesEstimate > 0) {
                 Progress.Count.Size(
                     current = trashState.bytesMovedSoFar,

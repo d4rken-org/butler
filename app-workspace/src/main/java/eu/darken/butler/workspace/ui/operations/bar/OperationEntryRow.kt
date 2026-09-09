@@ -102,7 +102,15 @@ fun OperationEntryRow(
                 }
 
                 // Row 2: Icon + secondary text (result icon for finished ops, info icon for running ops)
-                if (showSecondaryText) {
+                val secondaryText = when (operation.state) {
+                    is OperationDisplay.State.Running -> operation.state.primaryProgress.secondary.asComposable()
+                    is OperationDisplay.State.Completed -> operation.state.summary.asComposable()
+                    is OperationDisplay.State.Failed -> operation.state.summary.asComposable()
+                    is OperationDisplay.State.Waiting -> operation.state.reason.asComposable()
+                    is OperationDisplay.State.Cancelling -> stringResource(R.string.operations_state_cancelling)
+                    else -> operation.description.asComposable()
+                }
+                if (showSecondaryText && secondaryText.isNotEmpty()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -127,15 +135,6 @@ fun OperationEntryRow(
                             tint = rowTint,
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-
-                        val secondaryText = when (operation.state) {
-                            is OperationDisplay.State.Running -> operation.state.primaryProgress.secondary.asComposable()
-                            is OperationDisplay.State.Completed -> operation.state.summary.asComposable()
-                            is OperationDisplay.State.Failed -> operation.state.summary.asComposable()
-                            is OperationDisplay.State.Waiting -> operation.state.reason.asComposable()
-                            is OperationDisplay.State.Cancelling -> stringResource(R.string.operations_state_cancelling)
-                            else -> operation.description.asComposable()
-                        }
 
                         Text(
                             text = secondaryText,
@@ -298,14 +297,14 @@ fun OperationEntryRow(
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                if (showSecondaryText) {
-                    val secondaryText = when (operation.state) {
-                        is OperationDisplay.State.Running -> operation.state.primaryProgress.secondary.asComposable()
-                        is OperationDisplay.State.Completed -> operation.state.summary.asComposable()
-                        is OperationDisplay.State.Waiting -> operation.state.reason.asComposable()
-                        is OperationDisplay.State.Cancelling -> stringResource(R.string.operations_state_cancelling)
-                        else -> operation.description.asComposable()
-                    }
+                val secondaryText = when (operation.state) {
+                    is OperationDisplay.State.Running -> operation.state.primaryProgress.secondary.asComposable()
+                    is OperationDisplay.State.Completed -> operation.state.summary.asComposable()
+                    is OperationDisplay.State.Waiting -> operation.state.reason.asComposable()
+                    is OperationDisplay.State.Cancelling -> stringResource(R.string.operations_state_cancelling)
+                    else -> operation.description.asComposable()
+                }
+                if (showSecondaryText && secondaryText.isNotEmpty()) {
                     Text(
                         text = secondaryText,
                         style = MaterialTheme.typography.bodySmall,

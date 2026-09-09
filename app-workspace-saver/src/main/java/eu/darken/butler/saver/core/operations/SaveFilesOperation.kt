@@ -434,24 +434,22 @@ class SaveFilesOperation @AssistedInject constructor(
 
         val primaryProgress = Progress.Data(
             primary = caString { "${snapshot.itemsProcessed + 1} / ${snapshot.totalItems}" },
+            secondary = metrics.overall ?: CaString.EMPTY,
             count = Progress.Count.Counter(
                 current = snapshot.itemsProcessed + 1,
                 max = snapshot.totalItems,
             ),
             extra = perfHistory,
-        ).let { progress ->
-            metrics.overall?.let { progress.copy(secondary = it) } ?: progress
-        }
+        )
 
         val secondaryProgress = Progress.Data(
             primary = currentSource.filename.toCaString(),
+            secondary = metrics.currentFile ?: CaString.EMPTY,
             count = Progress.Count.Size(
                 current = snapshot.currentFileBytes,
                 max = snapshot.currentFileSize,
             ),
-        ).let { progress ->
-            metrics.currentFile?.let { progress.copy(secondary = it) } ?: progress
-        }
+        )
 
         return State.Active(
             startedAt = operationContext.startedAt,

@@ -3,6 +3,7 @@ package eu.darken.butler.editor.core.engine
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -208,6 +209,7 @@ class DocumentBuffer @AssistedInject constructor(
                     onProgress?.invoke(
                         Progress.Data(
                             primary = R.string.editor_progress_opening.toCaString(),
+                            secondary = CaString.EMPTY,
                             count = Progress.Count.Size(bytesIndexed, logicalSize),
                         ),
                     )

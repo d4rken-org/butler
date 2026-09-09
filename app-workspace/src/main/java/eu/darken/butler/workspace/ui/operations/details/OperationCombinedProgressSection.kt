@@ -20,7 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -135,11 +134,12 @@ private fun OperationProgressDisplay(
                 )
 
                 // Secondary text
-                if (progressData.secondary != CaString.EMPTY) {
+                val secondaryText = progressData.secondary.asComposable()
+                if (secondaryText.isNotEmpty()) {
                     // Speed/ETA text changes length constantly, a two line floor keeps the sheet
                     // from shifting on every progress update.
                     Text(
-                        text = progressData.secondary.asComposable(),
+                        text = secondaryText,
                         minLines = 2,
                         style = if (isPrimary) {
                             MaterialTheme.typography.bodyMedium

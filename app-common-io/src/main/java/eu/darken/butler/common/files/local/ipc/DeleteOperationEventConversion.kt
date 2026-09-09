@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.local.ipc
 
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.DeleteAction
@@ -84,6 +85,7 @@ fun DeleteOperationEvent.toDeleteActionState(): DeleteAction.State<LocalPath, Lo
                 ),
                 secondaryProgress = Progress.Data(
                     primary = currentPath.lookedUp.name.toCaString(),
+                    secondary = CaString.EMPTY,
                     count = Progress.Count.Size(
                         current = currentSize,
                         max = totalSize,

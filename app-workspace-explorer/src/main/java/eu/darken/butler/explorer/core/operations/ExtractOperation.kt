@@ -149,6 +149,7 @@ class ExtractOperation @AssistedInject constructor(
                 stateActive = stateActive.copy(
                     primaryProgress = Progress.Data(
                         primary = outcome.destPath.userReadableName,
+                        secondary = command.archive.userReadablePath,
                         count = Progress.Count.Size(current = processedBytes, max = totalBytes),
                     ),
                 )
@@ -251,6 +252,7 @@ class ExtractOperation @AssistedInject constructor(
                     stateActive.copy(
                         primaryProgress = Progress.Data(
                             primary = (currentEntry ?: command.archive.name).toCaString(),
+                            secondary = command.archive.userReadablePath,
                             count = total
                                 ?.let { Progress.Count.Size(current = read, max = it) }
                                 ?: Progress.Count.Indeterminate(),

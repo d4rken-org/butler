@@ -1024,6 +1024,7 @@ internal class GenericPathCopy<
                 ),
                 secondaryProgress = eu.darken.butler.common.progress.Progress.Data(
                     primary = lookup.lookedUp.name.toCaString(),
+                    secondary = eu.darken.butler.common.ca.CaString.EMPTY,
                     count = eu.darken.butler.common.progress.Progress.Count.Size(
                         current = snapshot.currentFileBytes,
                         max = snapshot.currentFileSize

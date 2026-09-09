@@ -79,10 +79,12 @@ class GenerateLargeFilesOperation @AssistedInject constructor(
                         startedAt = operationContext.startedAt,
                         primaryProgress = Progress.Data(
                             primary = R.string.developer_operation_large_files_creating.toCaString(fileName),
+                            secondary = targetDir.userReadablePath,
                             count = Progress.Count.Counter(index.toLong(), sizes.size.toLong()),
                         ),
                         secondaryProgress = Progress.Data(
                             primary = fileName.toCaString(),
+                            secondary = CaString.EMPTY,
                             count = Progress.Count.Size(bytesWritten, totalBytes),
                         ),
                     )
