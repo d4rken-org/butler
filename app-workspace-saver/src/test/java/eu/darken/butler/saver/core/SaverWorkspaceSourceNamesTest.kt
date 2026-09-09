@@ -37,6 +37,7 @@ class SaverWorkspaceSourceNamesTest {
     private val commandSlot = slot<SaveFilesOperation.Command>()
 
     private val operationsManager = mockk<OperationsManager> {
+        every { operations } returns MutableStateFlow(emptyList<ManagedOperation>())
         coEvery { submitManaged(any()) } returns mockk<ManagedOperation> {
             every { id } returns Operation.Id()
             every { state } returns MutableStateFlow(
