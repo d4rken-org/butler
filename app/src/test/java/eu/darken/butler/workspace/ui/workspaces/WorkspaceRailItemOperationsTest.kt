@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -26,6 +28,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRailDefaults
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceRailItem
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
@@ -82,6 +85,38 @@ class WorkspaceRailItemOperationsTest : ComposeTest() {
                 }
             }
         }
+    }
+
+    /**
+     * The same entry, but with the pane assignment in a state the test can change - the notch and
+     * everything keyed on it only animate when the value flips while the entry stays composed.
+     */
+    private fun renderReassignableItem(paneIndex: Int?): MutableState<Int?> {
+        val state = mutableStateOf(paneIndex)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Column(
+                    modifier = Modifier
+                        .width(RAIL_THICKNESS)
+                        .padding(horizontal = RAIL_ITEM_INSET),
+                ) {
+                    WorkspaceRailItem(
+                        workspace = Workspace.Info(
+                            id = Workspace.Id(),
+                            type = Workspace.Type.EXPLORER,
+                            title = "Explorer".toCaString(),
+                        ),
+                        paneIndex = state.value,
+                        isFocused = false,
+                        operationCount = 1,
+                        activeCount = 1,
+                        layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
+                        onClick = {},
+                    )
+                }
+            }
+        }
+        return state
     }
 
     private fun descriptionOf(interaction: SemanticsNodeInteraction) = interaction
@@ -164,8 +199,33 @@ class WorkspaceRailItemOperationsTest : ComposeTest() {
         (marker.top >= entry.top) shouldBe true
         (marker.bottom <= entry.bottom) shouldBe true
 
-        val iconLeft = entry.left + ((entry.right - entry.left) - ICON_SIZE) / 2
-        (marker.right <= iconLeft) shouldBe true
+        val icon = composeTestRule.onNodeWithTag(ICON_TAG, useUnmergedTree = true).getUnclippedBoundsInRoot()
+        (marker.right <= icon.left) shouldBe true
+    }
+
+    /**
+     * Losing a pane animates the type icon back out to its centred full size, so the marker has to
+     * travel with it: sized for the unnotched entry the instant the assignment drops, it would grow
+     * into the space the icon has not vacated yet and overlap it for the length of the transition.
+     */
+    @Test
+    fun `the marker stays clear of the type icon while the notch closes`() {
+        composeTestRule.mainClock.autoAdvance = false
+        val paneIndex = renderReassignableItem(paneIndex = 1)
+        composeTestRule.mainClock.advanceTimeBy(2_000)
+
+        paneIndex.value = null
+
+        repeat(FRAMES) {
+            composeTestRule.mainClock.advanceTimeByFrame()
+
+            val marker = composeTestRule.onNodeWithTag(RUNNING_TAG, useUnmergedTree = true).getUnclippedBoundsInRoot()
+            val icon = composeTestRule.onNodeWithTag(ICON_TAG, useUnmergedTree = true).getUnclippedBoundsInRoot()
+
+            withClue("frame $it: marker ${marker.left}..${marker.right}, icon ${icon.left}..${icon.right}") {
+                (marker.right <= icon.left) shouldBe true
+            }
+        }
     }
 
     /**
@@ -209,10 +269,12 @@ class WorkspaceRailItemOperationsTest : ComposeTest() {
         private const val RUNNING_TAG = WorkspaceNavigationRailDefaults.OPS_RUNNING_TEST_TAG
         private const val PENDING_TAG = WorkspaceNavigationRailDefaults.OPS_PENDING_TEST_TAG
 
+        private const val ICON_TAG = WorkspaceNavigationRailDefaults.TYPE_ICON_TEST_TAG
+
         private val RAIL_THICKNESS = 80.dp
         private val RAIL_ITEM_INSET = 8.dp
 
-        /** The type icon's size while no notch shrinks it. */
-        private val ICON_SIZE = 24.dp
+        /** Enough frames at 60fps to cover the notch animation from start to rest. */
+        private const val FRAMES = 60
     }
 }

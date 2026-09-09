@@ -121,6 +121,12 @@ object WorkspaceNavigationRailDefaults {
 
     const val UNASSIGN_TEST_TAG = "workspace.rail.unassign"
 
+    /**
+     * The entry's type icon, which carries no content description of its own - a tag is not an
+     * accessibility property, so tagging it does not add a node for TalkBack to read.
+     */
+    const val TYPE_ICON_TEST_TAG = "workspace.rail.item.icon"
+
     /** The entry's operation markers, both outside the card so they can sit in its top corner. */
     const val OPS_RUNNING_TEST_TAG = "workspace.rail.item.ops.running"
     const val OPS_PENDING_TEST_TAG = "workspace.rail.item.ops.pending"
@@ -185,11 +191,13 @@ private val RailNotchGlyphPadding = PaddingValues(top = 2.dp, end = 2.dp)
  * The stroke follows the size: 1dp is a hairline once the circle is 12dp across.
  */
 private val RailOperationsMarkerSize = 12.dp
-private val RailOperationsMarkerPadding = PaddingValues(top = 4.dp, start = 4.dp)
+private val RailOperationsMarkerPaddingTop = 4.dp
+private val RailOperationsMarkerPaddingStart = 4.dp
 private val RailOperationsMarkerStroke = 1.5.dp
 
 private val RailOperationsMarkerNotchedSize = 8.dp
-private val RailOperationsMarkerNotchedPadding = PaddingValues(top = 2.dp, start = 1.dp)
+private val RailOperationsMarkerNotchedPaddingTop = 2.dp
+private val RailOperationsMarkerNotchedPaddingStart = 1.dp
 private val RailOperationsMarkerNotchedStroke = 1.dp
 
 /**
@@ -627,7 +635,9 @@ internal fun WorkspaceRailItem(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        modifier = Modifier.size(iconSize),
+                        modifier = Modifier
+                            .size(iconSize)
+                            .testTag(WorkspaceNavigationRailDefaults.TYPE_ICON_TEST_TAG),
                         imageVector = if (isDraggingItem) Icons.TwoTone.DragIndicator else workspace.type.icon,
                         contentDescription = if (isDraggingItem) {
                             stringResource(R.string.workspace_dragging_description)
@@ -660,11 +670,29 @@ internal fun WorkspaceRailItem(
         // Sized by the state it is drawn in, not by the worst one: only a notched entry puts the
         // type icon in the marker's way, and it does so on the same condition that opens the notch.
         // RTL mirrors the notch, so marker and glyph swap sides together.
+        //
+        // Animated on the same condition and the same curve as the icon above, so the two always
+        // move together: a marker that took its unnotched geometry the moment the assignment
+        // dropped would reach 16dp while the icon was still leaving 10.5dp, and the two would
+        // overlap for the length of the transition. Interpolating both keeps the clearance between
+        // the settled 4dp and the settled 1.5dp at every frame.
         val isNotched = glyphPaneIndex != null
+        val markerSize by animateDpAsState(
+            targetValue = if (isNotched) RailOperationsMarkerNotchedSize else RailOperationsMarkerSize,
+        )
+        val markerPaddingStart by animateDpAsState(
+            targetValue = if (isNotched) RailOperationsMarkerNotchedPaddingStart else RailOperationsMarkerPaddingStart,
+        )
+        val markerPaddingTop by animateDpAsState(
+            targetValue = if (isNotched) RailOperationsMarkerNotchedPaddingTop else RailOperationsMarkerPaddingTop,
+        )
+        val markerStroke by animateDpAsState(
+            targetValue = if (isNotched) RailOperationsMarkerNotchedStroke else RailOperationsMarkerStroke,
+        )
         val marker = Modifier
             .align(Alignment.TopStart)
-            .padding(if (isNotched) RailOperationsMarkerNotchedPadding else RailOperationsMarkerPadding)
-            .size(if (isNotched) RailOperationsMarkerNotchedSize else RailOperationsMarkerSize)
+            .padding(start = markerPaddingStart, top = markerPaddingTop)
+            .size(markerSize)
         // Both markers are announced through the card's own description above, and an indeterminate
         // indicator would otherwise publish progress semantics of its own. The tag goes outside the
         // clear, which resets everything applied inside it.
@@ -673,7 +701,7 @@ internal fun WorkspaceRailItem(
                 modifier = marker
                     .testTag(WorkspaceNavigationRailDefaults.OPS_RUNNING_TEST_TAG)
                     .clearAndSetSemantics {},
-                strokeWidth = if (isNotched) RailOperationsMarkerNotchedStroke else RailOperationsMarkerStroke,
+                strokeWidth = markerStroke,
                 color = MaterialTheme.colorScheme.primary,
             )
             operationCount > 0 -> Icon(
