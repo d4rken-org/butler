@@ -54,7 +54,7 @@ jobs:
 
       - name: Build and test SAF test provider
         if: matrix.flavor == 'Foss'
-        run: ./gradlew :saf-test-provider:assembleDebug :saf-test-provider:testDebugUnitTest
+        run: ./gradlew :saf-test-provider:assembleDebug :saf-test-provider:testDebugUnitTest --rerun --no-build-cache
 
       - name: Save Robolectric SDK jars
         if: ${{ !cancelled() }}
@@ -82,7 +82,7 @@ jobs:
           robolectric-cache-scope: modules
 
       - name: Test modules
-        run: ./gradlew ${{ matrix.flavor }}${{ matrix.variant }}UnitTest
+        run: ./gradlew ${{ matrix.flavor }}${{ matrix.variant }}UnitTest --rerun --no-build-cache
 
       - name: Save Robolectric SDK jars
         if: ${{ !cancelled() }}
