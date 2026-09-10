@@ -1,0 +1,40 @@
+name: 'Save Robolectric SDK jars'
+description: >
+  Saves Robolectric's downloaded Android SDK jars when, and only when, the job added one the
+  restored cache entry lacked. Pairs with common-setup's robolectric-cache-scope input; run
+  it after the step that executes Robolectric tests.
+runs:
+  using: "composite"
+  steps:
+    - name: Inspect Robolectric jars
+      id: inventory
+      shell: bash
+      run: |
+        if [ -z "${ROBOLECTRIC_CACHE_PREFIX:-}" ]; then
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        dir="$HOME/.m2/repository/org/robolectric"
+        echo "Robolectric jars present after tests:"
+        if [ -d "$dir" ]; then
+          (cd "$dir" && find . -name '*.jar' | sort | sed 's/^/  /')
+          fingerprint=$(cd "$dir" && find . -name '*.jar' | sort | sha256sum | cut -d' ' -f1)
+        else
+          echo "  (none)"
+          fingerprint=empty
+        fi
+        if [ "$fingerprint" = "${ROBOLECTRIC_INVENTORY_BEFORE:-}" ]; then
+          echo "Unchanged since restore; not saving."
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "New jars downloaded; saving a fuller cache entry."
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "key=${ROBOLECTRIC_CACHE_PREFIX}${fingerprint}-$(cat /proc/sys/kernel/random/uuid)" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Save Robolectric Android SDK jars
+      if: steps.inventory.outputs.changed == 'true'
+      uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 #v5.0.3
+      with:
+        path: ~/.m2/repository/org/robolectric
+        key: ${{ steps.inventory.outputs.key }}

@@ -1,5 +1,14 @@
 name: 'Common project setup'
 description: 'Setup the base project'
+inputs:
+  robolectric-cache-scope:
+    description: >
+      Cache scope for Robolectric's Android SDK jars. Jobs that run Robolectric tests pass a
+      name and must invoke ./.github/actions/robolectric-cache-save after their test step;
+      an empty value skips the cache entirely. Scopes needing different SDK levels get
+      different names so one does not restore the other's set.
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -39,3 +48,40 @@ runs:
         key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle*', 'gradle/libs.versions.toml', '**/gradle-wrapper.properties', 'buildSrc/**/*.kt') }}
         restore-keys: |
           ${{ runner.os }}-gradle-caches-
+
+    - name: Resolve Robolectric cache key
+      if: inputs.robolectric-cache-scope != ''
+      id: robolectric-key
+      shell: bash
+      run: |
+        version=$(sed -n 's/^robolectric[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' gradle/libs.versions.toml | head -n1)
+        if [ -z "$version" ]; then
+          echo "::error::Could not read the robolectric version from gradle/libs.versions.toml"
+          exit 1
+        fi
+        prefix="${RUNNER_OS}-robolectric-sdks-${{ inputs.robolectric-cache-scope }}-${version}-"
+        echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
+        echo "ROBOLECTRIC_CACHE_PREFIX=$prefix" >> "$GITHUB_ENV"
+
+    - name: Restore Robolectric Android SDK jars
+      if: inputs.robolectric-cache-scope != ''
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 #v5.0.3
+      with:
+        path: ~/.m2/repository/org/robolectric
+        key: ${{ steps.robolectric-key.outputs.prefix }}
+        restore-keys: ${{ steps.robolectric-key.outputs.prefix }}
+
+    - name: Record restored Robolectric jars
+      if: inputs.robolectric-cache-scope != ''
+      shell: bash
+      run: |
+        dir="$HOME/.m2/repository/org/robolectric"
+        echo "Robolectric jars present after restore:"
+        if [ -d "$dir" ]; then
+          (cd "$dir" && find . -name '*.jar' | sort | sed 's/^/  /')
+          fingerprint=$(cd "$dir" && find . -name '*.jar' | sort | sha256sum | cut -d' ' -f1)
+        else
+          echo "  (none)"
+          fingerprint=empty
+        fi
+        echo "ROBOLECTRIC_INVENTORY_BEFORE=$fingerprint" >> "$GITHUB_ENV"

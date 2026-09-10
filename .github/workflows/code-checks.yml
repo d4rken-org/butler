@@ -46,6 +46,8 @@ jobs:
           persist-credentials: false
       - name: Setup project and build environment
         uses: ./.github/actions/common-setup
+        with:
+          robolectric-cache-scope: ${{ matrix.flavor == 'Foss' && 'saf-test-provider' || '' }}
 
       - name: Build modules
         run: ./gradlew ${{ matrix.module }}:assemble${{ matrix.flavor }}${{ matrix.variant }}
@@ -53,6 +55,10 @@ jobs:
       - name: Build and test SAF test provider
         if: matrix.flavor == 'Foss'
         run: ./gradlew :saf-test-provider:assembleDebug :saf-test-provider:testDebugUnitTest
+
+      - name: Save Robolectric SDK jars
+        if: ${{ !cancelled() }}
+        uses: ./.github/actions/robolectric-cache-save
 
   test-modules:
     name: Unit tests
@@ -72,9 +78,15 @@ jobs:
           persist-credentials: false
       - name: Setup project and build environment
         uses: ./.github/actions/common-setup
+        with:
+          robolectric-cache-scope: modules
 
       - name: Test modules
         run: ./gradlew ${{ matrix.flavor }}${{ matrix.variant }}UnitTest
+
+      - name: Save Robolectric SDK jars
+        if: ${{ !cancelled() }}
+        uses: ./.github/actions/robolectric-cache-save
 
       - name: Verify Room schemas are committed
         run: |
