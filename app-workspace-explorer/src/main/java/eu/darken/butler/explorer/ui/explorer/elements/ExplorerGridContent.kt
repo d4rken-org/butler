@@ -124,7 +124,10 @@ internal fun ExplorerGridContent(
                 ) {
                     when {
                         state.isFilteredEmpty -> EmptyFilteredState(
+                            recovery = state.emptyRecovery,
                             onResetFilters = { vm?.resetFilters() },
+                            onShowHidden = { vm?.onShowHiddenItems() },
+                            onShowAll = { vm?.onShowAllItems() },
                         )
 
                         state.currentLocation is ExplorerLocation.Network -> EmptyNetworkState(

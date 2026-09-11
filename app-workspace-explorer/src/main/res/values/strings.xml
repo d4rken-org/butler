@@ -336,6 +336,15 @@
     <string name="explorer_empty_folder_label">Empty folder</string>
     <string name="explorer_empty_filtered_title">No matching items</string>
     <string name="explorer_empty_filtered_caption">Try adjusting your filters</string>
+    <string name="explorer_empty_hidden_title">Only hidden items here</string>
+    <string name="explorer_empty_hidden_caption">This tab hides items whose name starts with a dot</string>
+    <string name="explorer_empty_show_hidden_action">Show hidden items</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Nothing left to show</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Hidden items and your filters each exclude part of this folder</string>
+    <string name="explorer_empty_clear_filters_action">Clear filters</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Hidden items and filters exclude everything here</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Showing hidden items and clearing this tab\'s filters brings them back</string>
+    <string name="explorer_empty_show_all_action">Show all items</string>
     <string name="explorer_path_not_found_title">This folder is gone</string>
     <string name="explorer_path_not_found_caption">It was deleted, renamed or moved somewhere else.</string>
     <string name="explorer_path_not_found_back_action">Go back</string>

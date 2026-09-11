@@ -40,13 +40,25 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.ui.explorer.EmptyRecovery
 import kotlinx.coroutines.delay
 
+/**
+ * Shown when filtering emptied a listing that has content.
+ *
+ * [recovery] decides what is offered, because it is classified from what each control would
+ * actually bring back. A null verdict - the listing is still being typed - gets no button rather
+ * than a guess that may turn out to change nothing.
+ */
 @Composable
 fun EmptyFilteredState(
     modifier: Modifier = Modifier,
+    recovery: EmptyRecovery?,
     onResetFilters: () -> Unit,
+    onShowHidden: () -> Unit,
+    onShowAll: () -> Unit,
     initiallyVisible: Boolean = false,
 ) {
     var visible by remember { mutableStateOf(initiallyVisible) }
@@ -111,7 +123,7 @@ fun EmptyFilteredState(
                 }
 
                 Text(
-                    text = stringResource(R.string.explorer_empty_filtered_title),
+                    text = stringResource(titleFor(recovery)),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
@@ -119,22 +131,66 @@ fun EmptyFilteredState(
                 )
 
                 Text(
-                    text = stringResource(R.string.explorer_empty_filtered_caption),
+                    text = stringResource(captionFor(recovery)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 4.dp)
                 )
 
-                FilledTonalButton(
-                    onClick = onResetFilters,
-                    modifier = Modifier.padding(top = 16.dp),
-                ) {
-                    Text(text = stringResource(eu.darken.butler.common.R.string.general_reset_action))
+                when (recovery) {
+                    EmptyRecovery.SHOW_HIDDEN -> RecoveryButton(
+                        label = R.string.explorer_empty_show_hidden_action,
+                        onClick = onShowHidden,
+                    )
+                    EmptyRecovery.RESET_FILTERS -> RecoveryButton(
+                        label = CommonR.string.general_reset_action,
+                        onClick = onResetFilters,
+                    )
+                    // Named rather than "Reset": with two buttons, neither can rely on the caption
+                    EmptyRecovery.EITHER -> {
+                        RecoveryButton(
+                            label = R.string.explorer_empty_show_hidden_action,
+                            onClick = onShowHidden,
+                        )
+                        RecoveryButton(
+                            label = R.string.explorer_empty_clear_filters_action,
+                            onClick = onResetFilters,
+                        )
+                    }
+                    EmptyRecovery.SHOW_ALL -> RecoveryButton(
+                        label = R.string.explorer_empty_show_all_action,
+                        onClick = onShowAll,
+                    )
+                    null -> Unit
                 }
             }
         }
     }
+}
+
+@Composable
+private fun RecoveryButton(label: Int, onClick: () -> Unit) {
+    FilledTonalButton(
+        onClick = onClick,
+        modifier = Modifier.padding(top = 16.dp),
+    ) {
+        Text(text = stringResource(label))
+    }
+}
+
+private fun titleFor(recovery: EmptyRecovery?): Int = when (recovery) {
+    EmptyRecovery.SHOW_HIDDEN -> R.string.explorer_empty_hidden_title
+    EmptyRecovery.EITHER -> R.string.explorer_empty_hidden_or_filtered_title
+    EmptyRecovery.SHOW_ALL -> R.string.explorer_empty_hidden_and_filtered_title
+    EmptyRecovery.RESET_FILTERS, null -> R.string.explorer_empty_filtered_title
+}
+
+private fun captionFor(recovery: EmptyRecovery?): Int = when (recovery) {
+    EmptyRecovery.SHOW_HIDDEN -> R.string.explorer_empty_hidden_caption
+    EmptyRecovery.EITHER -> R.string.explorer_empty_hidden_or_filtered_caption
+    EmptyRecovery.SHOW_ALL -> R.string.explorer_empty_hidden_and_filtered_caption
+    EmptyRecovery.RESET_FILTERS, null -> R.string.explorer_empty_filtered_caption
 }
 
 @Preview2
@@ -142,7 +198,62 @@ fun EmptyFilteredState(
 @Composable
 private fun EmptyFilteredStatePreview() {
     EmptyFilteredState(
+        recovery = EmptyRecovery.RESET_FILTERS,
         onResetFilters = {},
+        onShowHidden = {},
+        onShowAll = {},
+        initiallyVisible = true,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun EmptyFilteredStateShowHiddenPreview() {
+    EmptyFilteredState(
+        recovery = EmptyRecovery.SHOW_HIDDEN,
+        onResetFilters = {},
+        onShowHidden = {},
+        onShowAll = {},
+        initiallyVisible = true,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun EmptyFilteredStateEitherPreview() {
+    EmptyFilteredState(
+        recovery = EmptyRecovery.EITHER,
+        onResetFilters = {},
+        onShowHidden = {},
+        onShowAll = {},
+        initiallyVisible = true,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun EmptyFilteredStateShowAllPreview() {
+    EmptyFilteredState(
+        recovery = EmptyRecovery.SHOW_ALL,
+        onResetFilters = {},
+        onShowHidden = {},
+        onShowAll = {},
+        initiallyVisible = true,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun EmptyFilteredStateUnclassifiedPreview() {
+    EmptyFilteredState(
+        recovery = null,
+        onResetFilters = {},
+        onShowHidden = {},
+        onShowAll = {},
         initiallyVisible = true,
     )
 }
