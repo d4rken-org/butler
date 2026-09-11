@@ -1210,6 +1210,15 @@ object MockDataProvider {
         items = location.items,
         availableActions = actions,
         selectionState = selectionState,
+        // Derived from the listing, the way the pipeline derives them for a real tab, so the info
+        // bar of a preview or a store screenshot carries the same chips a user sees.
+        visibleFileCount = location.items?.count { it is ExplorerItem.File } ?: 0,
+        visibleDirectoryCount = location.items?.count { it is ExplorerItem.Directory } ?: 0,
+        visibleTotalSize = location.items
+            ?.filterIsInstance<ExplorerItem.File>()
+            ?.sumOf { it.lookup.size ?: 0L }
+            ?.takeIf { it > 0 },
+        locationIsEmpty = location.items?.isEmpty() == true,
     )
 
     fun createEmptyState(
