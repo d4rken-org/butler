@@ -87,6 +87,11 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
             every { flow } returns flowOf(value)
         }
 
+    private fun typeSetting(value: Workspace.Type): DataStoreValue<Workspace.Type> =
+        mockk<DataStoreValue<Workspace.Type>>(relaxed = true).apply {
+            every { flow } returns flowOf(value)
+        }
+
     private fun workspaceInfo(
         id: Workspace.Id,
         caller: Workspace.Id? = null,
@@ -140,6 +145,7 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
             every { swipeGesturesEnabled } returns boolSetting(true)
             every { onDemandWorkspaceCreation } returns boolSetting(true)
             every { paneClickToFocus } returns boolSetting(true)
+            every { defaultNewTabType } returns typeSetting(Workspace.Type.TEMPLATES)
         }
         val pageManager = mockk<WorkspacePageManager>(relaxed = true).apply {
             every { state } returns MutableStateFlow(
