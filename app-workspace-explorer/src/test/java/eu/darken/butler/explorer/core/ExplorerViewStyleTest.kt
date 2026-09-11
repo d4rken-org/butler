@@ -23,7 +23,8 @@ class ExplorerViewStyleTest : BaseTest() {
         serialized.toComparableJson() shouldBe """
             {
                 "type": "list",
-                "density": "comfortable"
+                "density": "comfortable",
+                "showhidden": true
             }
         """.toComparableJson()
     }
@@ -33,13 +34,15 @@ class ExplorerViewStyleTest : BaseTest() {
         val style = ExplorerViewStyle(
             mode = ExplorerViewStyle.Mode.GRID,
             density = ExplorerViewStyle.Density.DETAILED,
+            showHidden = false,
         )
         val serialized = json.encodeToString(style)
 
         serialized.toComparableJson() shouldBe """
             {
                 "type": "grid",
-                "density": "detailed"
+                "density": "detailed",
+                "showhidden": false
             }
         """.toComparableJson()
     }
@@ -49,13 +52,15 @@ class ExplorerViewStyleTest : BaseTest() {
         val jsonString = """
             {
                 "type": "grid",
-                "density": "compact"
+                "density": "compact",
+                "showhidden": false
             }
         """
 
         json.decodeFromString<ExplorerViewStyle>(jsonString) shouldBe ExplorerViewStyle(
             mode = ExplorerViewStyle.Mode.GRID,
             density = ExplorerViewStyle.Density.COMPACT,
+            showHidden = false,
         )
     }
 
@@ -63,6 +68,19 @@ class ExplorerViewStyleTest : BaseTest() {
     fun `deserialize with missing optional fields uses defaults`() {
         json.decodeFromString<ExplorerViewStyle>("""{"type":"list"}""") shouldBe ExplorerViewStyle()
         json.decodeFromString<ExplorerViewStyle>("{}") shouldBe ExplorerViewStyle()
+    }
+
+    /** Nobody has ever chosen to hide anything, so a payload from before the switch shows everything. */
+    @Test
+    fun `a payload without the hidden-files key shows hidden files`() {
+        val stored = """
+            {
+                "type": "grid",
+                "density": "compact"
+            }
+        """
+
+        productionJson.decodeFromString<ExplorerViewStyle>(stored).showHidden shouldBe true
     }
 
     /** A list user keeps both the mode and the density they had. */
@@ -101,9 +119,11 @@ class ExplorerViewStyleTest : BaseTest() {
     fun `all modes and densities roundtrip correctly`() {
         ExplorerViewStyle.Mode.entries.forEach { mode ->
             ExplorerViewStyle.Density.entries.forEach { density ->
-                val original = ExplorerViewStyle(mode = mode, density = density)
+                listOf(true, false).forEach { showHidden ->
+                    val original = ExplorerViewStyle(mode = mode, density = density, showHidden = showHidden)
 
-                json.decodeFromString<ExplorerViewStyle>(json.encodeToString(original)) shouldBe original
+                    json.decodeFromString<ExplorerViewStyle>(json.encodeToString(original)) shouldBe original
+                }
             }
         }
     }
@@ -113,6 +133,7 @@ class ExplorerViewStyleTest : BaseTest() {
         ExplorerViewStyle.default() shouldBe ExplorerViewStyle(
             mode = ExplorerViewStyle.Mode.LIST,
             density = ExplorerViewStyle.Density.COMFORTABLE,
+            showHidden = true,
         )
     }
 }
