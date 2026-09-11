@@ -1,6 +1,8 @@
 package eu.darken.butler.workspace.ui.template
 
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.label
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -32,3 +34,11 @@ fun List<WorkspaceTemplate>.newTabCandidates(): List<WorkspaceTemplate> = filter
 /** The template a new tab opens as, or null to let the user pick via the templates workspace. */
 fun List<WorkspaceTemplate>.newTabTemplate(stored: Workspace.Type): WorkspaceTemplate? =
     if (stored == Workspace.Type.TEMPLATES) null else newTabCandidates().firstOrNull { it.type == stored }
+
+/**
+ * The name the new tab picker offered for a type, so every "new tab type" surface repeats the
+ * wording the user chose from. Types without a template (TEMPLATES itself, singletons) keep the
+ * generic workspace label.
+ */
+fun List<WorkspaceTemplate>.newTabTypeName(stored: Workspace.Type): CaString =
+    newTabTemplate(stored)?.title ?: stored.label

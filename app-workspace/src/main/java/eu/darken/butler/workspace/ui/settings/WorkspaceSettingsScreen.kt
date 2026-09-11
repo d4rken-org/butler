@@ -48,7 +48,6 @@ import androidx.compose.runtime.collectAsState
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
-import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.layout.LayoutPickerDialog
 import eu.darken.butler.workspace.ui.layout.LayoutPickerOption
@@ -59,6 +58,8 @@ import eu.darken.butler.workspace.ui.layout.label
 import eu.darken.butler.workspace.ui.layout.surface
 import eu.darken.butler.workspace.ui.layout.surfaceValueLabel
 import eu.darken.butler.workspace.ui.layout.toPanelMode
+import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
+import eu.darken.butler.workspace.ui.template.newTabTypeName
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import kotlin.time.Duration
 import eu.darken.butler.common.R as CommonR
@@ -136,7 +137,7 @@ fun WorkspaceSettingsScreen(
                     icon = Icons.TwoTone.AddCircle,
                     title = stringResource(R.string.workspace_settings_newtab_type_title),
                     subtitle = stringResource(R.string.workspace_settings_newtab_type_desc),
-                    value = state.defaultNewTabType.newTabTypeValueLabel(),
+                    value = state.defaultNewTabType.newTabTypeValueLabel(state.newTabCandidates),
                     onClick = { showNewTabTypeDialog = true },
                 )
             }
@@ -339,9 +340,9 @@ fun WorkspaceSettingsScreen(
 }
 
 @Composable
-private fun Workspace.Type.newTabTypeValueLabel(): String = when (this) {
+private fun Workspace.Type.newTabTypeValueLabel(candidates: List<WorkspaceTemplate>): String = when (this) {
     Workspace.Type.TEMPLATES -> stringResource(R.string.workspace_settings_newtab_type_ask)
-    else -> label.get(LocalContext.current)
+    else -> candidates.newTabTypeName(this).get(LocalContext.current)
 }
 
 /** "2 hours", "45 minutes", "1 hour 30 minutes" - hours are dropped when zero, and vice versa. */

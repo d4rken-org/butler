@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -43,7 +44,7 @@ import eu.darken.butler.workspace.core.label
 internal fun CreatingWorkspacePlaceholder(
     modifier: Modifier = Modifier,
     isCreating: Boolean = false,
-    newTabType: Workspace.Type = Workspace.Type.TEMPLATES,
+    newTabTypeName: CaString = Workspace.Type.TEMPLATES.label,
     onClick: () -> Unit = {},
 ) {
     Column(
@@ -109,7 +110,7 @@ internal fun CreatingWorkspacePlaceholder(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = newTabType.label.get(LocalContext.current),
+                                text = newTabTypeName.get(LocalContext.current),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             )
@@ -132,19 +133,19 @@ internal fun CreatingWorkspacePlaceholder(
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun CreatingWorkspacePlaceholderPreviewReady() {
-    CreatingWorkspacePlaceholder(isCreating = false, newTabType = Workspace.Type.TEMPLATES)
+    CreatingWorkspacePlaceholder(isCreating = false, newTabTypeName = Workspace.Type.TEMPLATES.label)
 }
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun CreatingWorkspacePlaceholderPreviewReadyExplorer() {
-    CreatingWorkspacePlaceholder(isCreating = false, newTabType = Workspace.Type.EXPLORER)
+    CreatingWorkspacePlaceholder(isCreating = false, newTabTypeName = Workspace.Type.EXPLORER.label)
 }
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun CreatingWorkspacePlaceholderPreviewCreating() {
-    CreatingWorkspacePlaceholder(isCreating = true, newTabType = Workspace.Type.TEMPLATES)
+    CreatingWorkspacePlaceholder(isCreating = true, newTabTypeName = Workspace.Type.TEMPLATES.label)
 }

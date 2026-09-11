@@ -282,7 +282,7 @@ internal fun ClassicWorkspaceContainer(
                         // index while the list changes under the finger.
                         modifier = Modifier.suppressPressesUnless { restState.isRestingOn(page) },
                         isCreating = isPlaceholderPage && creationController.isCreating,
-                        newTabType = state.newTabType,
+                        newTabTypeName = state.newTabTypeName,
                         onClick = { creationController.onPlaceholderClick() },
                     )
                 } else {

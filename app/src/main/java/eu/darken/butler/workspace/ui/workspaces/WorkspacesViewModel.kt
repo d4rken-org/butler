@@ -29,16 +29,19 @@ import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.contracts.bugreport.BugReportArguments
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.PendingWorkspaceConfirmation
 import eu.darken.butler.workspace.core.RenderedWorkspaceStacks
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.WorkspaceStackChain
 import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 import eu.darken.butler.workspace.ui.template.availableTemplates
 import eu.darken.butler.workspace.ui.template.newTabTemplate
+import eu.darken.butler.workspace.ui.template.newTabTypeName
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -408,9 +411,10 @@ class WorkspacesViewModel @Inject constructor(
             motd = motd,
             currentPaneCount = uiState.currentPaneCount,
             isRestoring = restorationState == WorkspaceSessionManager.State.Restoring,
-            // Display only, resolved by the helper the create path uses, so the placeholder card
-            // cannot name a type the swipe would not actually open.
-            newTabType = templates.newTabTemplate(defaultNewTabType)?.type ?: Workspace.Type.TEMPLATES,
+            // Display only, resolved by the helper the create path and the settings picker use, so
+            // the placeholder card cannot name a type the swipe would not actually open, and names
+            // it the way the picker offered it.
+            newTabTypeName = templates.newTabTypeName(defaultNewTabType),
         )
 
         // Asking for a favor is the lowest-priority surface there is: anything that asks the user
@@ -745,7 +749,7 @@ class WorkspacesViewModel @Inject constructor(
         val currentPaneCount: Int = 1,
         val isRestoring: Boolean = false,
         val showReviewCard: Boolean = false,
-        val newTabType: Workspace.Type = Workspace.Type.TEMPLATES,
+        val newTabTypeName: CaString = Workspace.Type.TEMPLATES.label,
     ) {
         val portraitPanelMode: WorkspacePanelMode
             get() = state.portraitPanelMode
