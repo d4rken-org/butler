@@ -24,6 +24,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.layout.RailButtonPlacement
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
@@ -82,13 +83,8 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
         Dispatchers.resetMain()
     }
 
-    private fun boolSetting(value: Boolean): DataStoreValue<Boolean> =
-        mockk<DataStoreValue<Boolean>>(relaxed = true).apply {
-            every { flow } returns flowOf(value)
-        }
-
-    private fun typeSetting(value: Workspace.Type): DataStoreValue<Workspace.Type> =
-        mockk<DataStoreValue<Workspace.Type>>(relaxed = true).apply {
+    private fun <T> setting(value: T): DataStoreValue<T> =
+        mockk<DataStoreValue<T>>(relaxed = true).apply {
             every { flow } returns flowOf(value)
         }
 
@@ -142,10 +138,11 @@ class WorkspacesViewModelReviewCardTest : BaseTest() {
             every { pendingConfirmations } returns flowOf(confirmations)
         }
         val workspaceSettings = mockk<WorkspaceSettings>(relaxed = true).apply {
-            every { swipeGesturesEnabled } returns boolSetting(true)
-            every { onDemandWorkspaceCreation } returns boolSetting(true)
-            every { paneClickToFocus } returns boolSetting(true)
-            every { defaultNewTabType } returns typeSetting(Workspace.Type.TEMPLATES)
+            every { swipeGesturesEnabled } returns setting(true)
+            every { onDemandWorkspaceCreation } returns setting(true)
+            every { paneClickToFocus } returns setting(true)
+            every { defaultNewTabType } returns setting(Workspace.Type.TEMPLATES)
+            every { railButtonPlacement } returns setting(RailButtonPlacement.LEADING)
         }
         val pageManager = mockk<WorkspacePageManager>(relaxed = true).apply {
             every { state } returns MutableStateFlow(

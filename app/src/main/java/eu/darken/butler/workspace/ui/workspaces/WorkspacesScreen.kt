@@ -320,6 +320,7 @@ fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
         } else {
             WorkspaceDesign.RailPlacement.BOTTOM
         },
+        railButtonPlacement = state.railButtonPlacement,
         hasNavigationRail = effectivePaneLayout != WorkspaceDesign.Layout.SINGLE ||
             effectivePanelMode == WorkspacePanelMode.SINGLE_RAIL ||
             effectivePanelMode == WorkspacePanelMode.ADAPTIVE,
