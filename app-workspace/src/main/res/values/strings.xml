@@ -391,7 +391,7 @@
     <string name="workspace_settings_pane_click_to_focus_desc">The first click on an unfocused pane only focuses it, and unfocused panes don\'t react to a mouse pointer. Turn off to interact with them directly.</string>
 
     <string name="workspace_settings_rail_button_trailing_title">Butler button at the end of the tab rail</string>
-    <string name="workspace_settings_rail_button_trailing_desc">Move the Butler button from the start of the tab rail to its end, within reach of your thumb. Only applies while a tab rail is shown, the classic layout keeps the button in the toolbar.</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Move the Butler button from the start of the tab rail to its end, within reach of your thumb. Only applies while a tab rail is shown. The classic layout keeps the button in the toolbar.</string>
 
     <!-- Session -->
     <string name="workspace_settings_session_title">Session</string>
