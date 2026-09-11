@@ -1,9 +1,12 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.serialization.SerializationIOModule
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.ExplorerTabViewStore
@@ -13,6 +16,7 @@ import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.core.sorting.rules.ExplorerTabSortStore
 import eu.darken.butler.explorer.core.sorting.rules.FolderSortRulesRepo
 import eu.darken.butler.explorer.core.sorting.rules.SortRuleLayer
@@ -38,6 +42,8 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.mockDataStoreValue
 import java.io.File
+import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 class ExplorerViewSettingsControllerTest : BaseTest() {
 
@@ -136,7 +142,136 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
         return ExplorerItem.RegularDirectory(lookup = lookup)
     }
 
-    private fun names(items: List<ExplorerItem>) = items.map { (it as ExplorerItem.Path).path.name }
+    private fun trashRootItem(name: String): ExplorerItem.Trash.Root {
+        val lookup = LocalPathLookup(
+            lookedUp = LocalPath.build(File("/tmp/filter-test", name)),
+            fileType = FileType.FILE,
+            size = 16L,
+            modifiedAt = null,
+        )
+        return ExplorerItem.Trash.Root(
+            itemId = Uuid.random(),
+            deletedAt = Instant.fromEpochMilliseconds(0),
+            originalLookup = lookup,
+            trashLookup = lookup,
+        )
+    }
+
+    private fun trashNestedItem(name: String): ExplorerItem.Trash.Nested {
+        val lookup = LocalPathLookup(
+            lookedUp = LocalPath.build(File("/tmp/filter-test", name)),
+            fileType = FileType.FILE,
+            size = 16L,
+            modifiedAt = null,
+        )
+        return ExplorerItem.Trash.Nested(
+            inner = ExplorerItem.RegularFile(lookup = lookup, mimeType = MimeInfo("text/plain")),
+            parentRef = TrashItemReference(
+                itemId = Uuid.random(),
+                displayName = "deleted".toCaString(),
+                originalPath = LocalPath.build("/tmp/filter-test"),
+                trashPath = LocalPath.build("/tmp/trash"),
+                deletedAt = Instant.fromEpochMilliseconds(0),
+            ),
+            relativePath = name,
+        )
+    }
+
+    private fun names(items: List<ExplorerItem>) = items.map {
+        when (it) {
+            is ExplorerItem.Path -> it.path.name
+            is ExplorerItem.Trash.Root -> it.originalLookup.name
+            is ExplorerItem.Trash.Nested -> it.lookup.name
+            else -> error("Unexpected item: $it")
+        }
+    }
+
+    @Test
+    fun `hiding drops dot-prefixed files and folders`() = runTest {
+        val controller = controller()
+        val items = listOf(fileItem(".env"), fileItem("notes.txt"), directoryItem(".git"), directoryItem("docs"))
+
+        val result = controller.applyFilters(
+            items = items,
+            filterState = FilterState(),
+            useRegexPatterns = false,
+            showHidden = false,
+        )
+
+        names(result) shouldContainExactly listOf("notes.txt", "docs")
+    }
+
+    @Test
+    fun `showing hidden entries keeps dot-prefixed files and folders`() = runTest {
+        val controller = controller()
+        val items = listOf(fileItem(".env"), fileItem("notes.txt"), directoryItem(".git"), directoryItem("docs"))
+
+        val result = controller.applyFilters(
+            items = items,
+            filterState = FilterState(),
+            useRegexPatterns = false,
+            showHidden = true,
+        )
+
+        names(result) shouldContainExactly listOf(".env", "notes.txt", ".git", "docs")
+    }
+
+    /** An entry hiding removes is an entry that cannot be restored, so the dot rule stops here. */
+    @Test
+    fun `hiding never drops trashed entries`() = runTest {
+        val controller = controller()
+        val items = listOf(trashRootItem(".env"), trashNestedItem(".git"), trashRootItem("notes.txt"))
+
+        val result = controller.applyFilters(
+            items = items,
+            filterState = FilterState(),
+            useRegexPatterns = false,
+            showHidden = false,
+        )
+
+        names(result) shouldContainExactly listOf(".env", ".git", "notes.txt")
+    }
+
+    @Test
+    fun `hiding and an exclude pattern both apply`() = runTest {
+        val controller = controller()
+        val items = listOf(fileItem(".env"), fileItem("notes.txt"), fileItem("secret.txt"))
+
+        val result = controller.applyFilters(
+            items = items,
+            filterState = FilterState(excludePattern = "secret"),
+            useRegexPatterns = false,
+            showHidden = false,
+        )
+
+        names(result) shouldContainExactly listOf("notes.txt")
+    }
+
+    @Test
+    fun `showsAnythingWhen reports what a combination would leave on screen`() = runTest {
+        val controller = controller()
+        val items = listOf(fileItem(".env"), fileItem("notes.txt"))
+
+        controller.showsAnythingWhen(items, FilterState(), false, showHidden = false) shouldBe true
+        controller.showsAnythingWhen(items, FilterState(excludePattern = "notes"), false, showHidden = false) shouldBe false
+        controller.showsAnythingWhen(items, FilterState(excludePattern = "notes"), false, showHidden = true) shouldBe true
+    }
+
+    /** The chip counts what the folder holds, not what revealing would add on top of the filters. */
+    @Test
+    fun `the hidden count ignores the active filters`() = runTest {
+        val controller = controller()
+        val items = listOf(fileItem(".env"), directoryItem(".git"), fileItem("notes.txt"))
+
+        controller.countHiddenEntries(items) shouldBe 2
+    }
+
+    @Test
+    fun `the hidden count ignores trashed entries`() = runTest {
+        val controller = controller()
+
+        controller.countHiddenEntries(listOf(trashRootItem(".env"), trashNestedItem(".git"))) shouldBe 0
+    }
 
     @Test
     fun `include pattern keeps only matching names`() = runTest {
@@ -148,6 +283,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             items = items,
             filterState = FilterState(includePattern = ".TXT"),
             useRegexPatterns = false,
+            showHidden = true,
         )
 
         names(result) shouldContainExactly listOf("notes.txt", "todo.txt")
@@ -162,6 +298,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             items = items,
             filterState = FilterState(includePattern = ".txt", excludePattern = "secret"),
             useRegexPatterns = false,
+            showHidden = true,
         )
 
         names(result) shouldContainExactly listOf("notes.txt")
@@ -176,6 +313,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             items = items,
             filterState = FilterState(fileTypeFilter = FileTypeFilter.FILES_ONLY),
             useRegexPatterns = false,
+            showHidden = true,
         )
 
         names(result) shouldContainExactly listOf("a.txt")
@@ -190,6 +328,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             items = items,
             filterState = FilterState(fileTypeFilter = FileTypeFilter.FOLDERS_ONLY),
             useRegexPatterns = false,
+            showHidden = true,
         )
 
         names(result) shouldContainExactly listOf("folder")
@@ -204,6 +343,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             items = items,
             filterState = FilterState(includePattern = "img_\\d+\\.png"),
             useRegexPatterns = true,
+            showHidden = true,
         )
 
         names(result) shouldContainExactly listOf("img_001.png")

@@ -531,6 +531,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val highlightedItemIds: Set<String> = emptySet(),
         val focusedItemIndex: Int? = null,
         val unfilteredItemCount: Int = 0,
+        /** Files and folders in the listing as displayed; the loader's own counts ignore filtering. */
+        val visibleFileCount: Int = 0,
+        val visibleDirectoryCount: Int = 0,
+        val visibleTotalSize: Long? = null,
+        /** Dot-prefixed entries this tab is hiding here, zero while it shows them. */
+        val hiddenCount: Int = 0,
+        /** The folder itself has nothing in it, as opposed to nothing surviving the filtering. */
+        val locationIsEmpty: Boolean = false,
+        /** What recovers a listing filtering emptied; null while nothing does or it is not settled. */
+        val emptyRecovery: EmptyRecovery? = null,
         val favorites: List<FavoriteItem> = emptyList(),
         val favoritePaths: List<APath<*>> = emptyList(),
         val showHomeFavoritesSection: Boolean = false,
@@ -574,10 +584,23 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    /** A processed listing together with the location it was computed for. */
-    private data class ProcessedListing(
+    /**
+     * A processed listing together with the location it was computed for, and everything the chrome
+     * says about it.
+     *
+     * The numbers travel with the rows they describe rather than being derived further downstream:
+     * a combine of their own would pair one folder's rows with the previous folder's counts while a
+     * navigation or a hidden-files toggle works its way through the pipeline.
+     */
+    internal data class ProcessedListing(
         val locationId: String,
         val items: List<ExplorerItem>,
+        val visibleFileCount: Int,
+        val visibleDirectoryCount: Int,
+        val visibleTotalSize: Long?,
+        val hiddenCount: Int,
+        val locationIsEmpty: Boolean,
+        val emptyRecovery: EmptyRecovery?,
     )
 
     // Sorted/filtered items, shared to prevent duplicate processing
@@ -591,18 +614,30 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         favoritesRepo.favoritePaths,
         workspaceReadyState.map { it?.currentLocation }.distinctUntilChanged { a, b -> a?.locationId == b?.locationId },
         pickerConfigFlow,
-    ) { items, resolvedSort, filterState, useRegexPatterns, favoritePaths, location, pickerConfig ->
+        // Only the hidden-files flag, not the whole style: mode and density are presentation-only,
+        // and re-running filtering, sorting and favorite ordering for them would be wasted work on a
+        // folder with thousands of entries.
+        viewSettings.viewStyle.map { it.showHidden }.distinctUntilChanged(),
+    ) { items, resolvedSort, filterState, useRegexPatterns, favoritePaths, location, pickerConfig, showHidden ->
         // flatMapLatest does not clear this combine's last sort value, so items are only paired with
         // a resolution that was computed for the location they came from - otherwise the next
         // folder's listing would briefly render under the previous folder's sort.
         if (resolvedSort == null || location == null || resolvedSort.locationKey != location.locationId) {
             return@combineMany null
         }
-        items
-            ?.let { viewSettings.applyFilters(it, filterState, useRegexPatterns) }
-            ?.let { itemSorter.sortItems(it, resolvedSort.resolution.settings) }
-            ?.let { applyFavoritePriority(it, location, pickerConfig, favoritePaths) }
-            ?.let { ProcessedListing(locationId = location.locationId, items = it) }
+        items?.let { rawItems ->
+            val processed = viewSettings.applyFilters(rawItems, filterState, useRegexPatterns, showHidden)
+                .let { itemSorter.sortItems(it, resolvedSort.resolution.settings) }
+                .let { applyFavoritePriority(it, location, pickerConfig, favoritePaths) }
+            viewSettings.processListing(
+                locationId = location.locationId,
+                rawItems = rawItems,
+                items = processed,
+                filterState = filterState,
+                useRegexPatterns = useRegexPatterns,
+                showHidden = showHidden,
+            )
+        }
     }.shareIn(vmScope, SharingStarted.Lazily, replay = 1)
 
     private val processedItemsFlow: Flow<List<ExplorerItem>?> = processedListingFlow.map { it?.items }
@@ -649,7 +684,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
                 is ExplorerWorkspace.State.Ready -> combineMany(
                     flowOf(wsState),
-                    processedItemsFlow,
+                    processedListingFlow,
                     derivedSelectionStateFlow,
                     viewSettings.viewStyle,
                     dialogs.state,
@@ -666,7 +701,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     favoritesRepo.favorites,
                     favoritesController.feedback,
                     directorySizes,
-                ) { wsStateInner, items, selectionState, viewStyle, dialogState, resolvedSort, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes ->
+                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes ->
+                    val items = listing?.items
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
                     // flatMapLatest does not clear this combine's last sort value: until the new
@@ -724,6 +760,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         breadcrumbs = wsStateInner.currentBreadcrumbs ?: emptyList(),
                         items = items,
                         unfilteredItemCount = wsStateInner.currentLocation?.items?.size ?: 0,
+                        visibleFileCount = listing?.visibleFileCount ?: 0,
+                        visibleDirectoryCount = listing?.visibleDirectoryCount ?: 0,
+                        visibleTotalSize = listing?.visibleTotalSize,
+                        hiddenCount = listing?.hiddenCount ?: 0,
+                        locationIsEmpty = listing?.locationIsEmpty == true,
+                        emptyRecovery = listing?.emptyRecovery,
                         error = wsStateInner.error,
                         isRefreshing = wsStateInner.isRefreshing,
                         refreshId = wsStateInner.refreshId,
@@ -1952,6 +1994,22 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         viewSettings.resetFilters()
     }
 
+    fun onShowHiddenItems() = launch {
+        log(tag) { "onShowHiddenItems()" }
+        viewSettings.applyToTab(viewSettings.viewStyle.value.copy(showHidden = true))
+    }
+
+    fun onShowAllItems() = launch {
+        log(tag) { "onShowAllItems()" }
+        viewSettings.applyToTab(viewSettings.viewStyle.value.copy(showHidden = true))
+        viewSettings.resetFilters()
+    }
+
+    fun showViewOptions() = launch {
+        log(tag) { "showViewOptions()" }
+        dialogs.show(ExplorerDialogState.EditViewStyle)
+    }
+
     fun pasteClipboard(clip: ClipboardClip) = launch {
         log(tag) { "pasteClipboard($clip)" }
         dismissDialog()
@@ -2398,6 +2456,73 @@ internal fun ExplorerDialogState.withLiveNetworkItem(items: List<ExplorerItem>?)
         ?.filterIsInstance<ExplorerItem.Storage.Network>()
         ?.firstOrNull { it.location.id == context.locationId }
     return ItemInfo(context.copy(item = item))
+}
+
+/**
+ * Everything the chrome says about a listing, derived from the same raw items and settings that
+ * produced [items], so a toggle or a navigation can never pair rows with foreign numbers.
+ *
+ * Top-level for the same reason as [hasSameItemsAs]: unit-testable without VM scaffolding.
+ */
+internal fun ExplorerViewSettingsController.processListing(
+    locationId: String,
+    rawItems: List<ExplorerItem>,
+    items: List<ExplorerItem>,
+    filterState: FilterState,
+    useRegexPatterns: Boolean,
+    showHidden: Boolean,
+): ExplorerWorkspaceViewModel.ProcessedListing {
+    val visibleSize = items.sumOf { item ->
+        when {
+            item is ExplorerItem.File -> item.lookup.size ?: 0L
+            item is ExplorerItem.Trash.Nested && item.isFile -> item.lookup.size ?: 0L
+            else -> 0L
+        }
+    }
+    return ExplorerWorkspaceViewModel.ProcessedListing(
+        locationId = locationId,
+        items = items,
+        visibleFileCount = items.count { it is ExplorerItem.File || (it is ExplorerItem.Trash.Nested && it.isFile) },
+        visibleDirectoryCount = items.count {
+            it is ExplorerItem.Directory || (it is ExplorerItem.Trash.Nested && it.isDirectory)
+        },
+        // Null rather than zero, the same way the loader reports a folder that totals nothing.
+        visibleTotalSize = visibleSize.takeIf { it > 0 },
+        // Zero while the tab shows hidden entries, or the chip would offer a sheet whose switch is
+        // already on.
+        hiddenCount = if (showHidden) 0 else countHiddenEntries(rawItems),
+        locationIsEmpty = rawItems.isEmpty(),
+        emptyRecovery = emptyRecoveryFor(rawItems, items, filterState, useRegexPatterns, showHidden),
+    )
+}
+
+/**
+ * Classified by what each combination actually yields, so the empty state never offers a control
+ * that changes nothing on screen. Null means there is nothing to offer: the listing has rows, or
+ * the folder is genuinely empty, or the verdict would still be a guess.
+ *
+ * A [ExplorerItem.Peek] entry is neither a file nor a directory, so both file-type filter branches
+ * pass it through. Until the classifier has typed them all, revealing can look like it recovers
+ * rows that vanish again a moment later.
+ */
+private fun ExplorerViewSettingsController.emptyRecoveryFor(
+    rawItems: List<ExplorerItem>,
+    items: List<ExplorerItem>,
+    filterState: FilterState,
+    useRegexPatterns: Boolean,
+    showHidden: Boolean,
+): EmptyRecovery? {
+    if (items.isNotEmpty() || rawItems.isEmpty()) return null
+    if (rawItems.any { it is ExplorerItem.Peek }) return null
+
+    val revealing = !showHidden && showsAnythingWhen(rawItems, filterState, useRegexPatterns, showHidden = true)
+    val clearing = showsAnythingWhen(rawItems, FilterState(), useRegexPatterns, showHidden)
+    return when {
+        revealing && clearing -> EmptyRecovery.EITHER
+        revealing -> EmptyRecovery.SHOW_HIDDEN
+        clearing -> EmptyRecovery.RESET_FILTERS
+        else -> EmptyRecovery.SHOW_ALL
+    }
 }
 
 /**

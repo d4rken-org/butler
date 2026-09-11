@@ -190,14 +190,40 @@ class ExplorerViewSettingsController(
         items: List<ExplorerItem>,
         filterState: FilterState,
         useRegexPatterns: Boolean,
-    ): List<ExplorerItem> {
+        showHidden: Boolean,
+    ): List<ExplorerItem> = items.filter(itemFilter(filterState, useRegexPatterns, showHidden))
+
+    /** Whether a combination of filters and [showHidden] would leave anything on screen. */
+    fun showsAnythingWhen(
+        items: List<ExplorerItem>,
+        filterState: FilterState,
+        useRegexPatterns: Boolean,
+        showHidden: Boolean,
+    ): Boolean = items.any(itemFilter(filterState, useRegexPatterns, showHidden))
+
+    /**
+     * Dot-prefixed entries in the unfiltered listing, directories included.
+     *
+     * An inventory fact about the folder, not a promise that revealing them adds exactly this many
+     * rows: the name and type filters still apply to whatever is revealed.
+     */
+    fun countHiddenEntries(items: List<ExplorerItem>): Int = items.count { it.isHiddenEntry }
+
+    private fun itemFilter(
+        filterState: FilterState,
+        useRegexPatterns: Boolean,
+        showHidden: Boolean,
+    ): (ExplorerItem) -> Boolean {
         // Compiled once per pass rather than per item; a pattern that does not compile matches nothing
         val hasExclude = filterState.excludePattern.isNotBlank()
         val excludeRegex = if (hasExclude) PatternMatcher.compile(filterState.excludePattern, useRegexPatterns) else null
         val hasInclude = filterState.includePattern.isNotBlank()
         val includeRegex = if (hasInclude) PatternMatcher.compile(filterState.includePattern, useRegexPatterns) else null
 
-        return items.filter { item ->
+        return filter@{ item ->
+            // Before the pattern and type checks, so an entry both of them would drop is dropped once.
+            if (!showHidden && item.isHiddenEntry) return@filter false
+
             val itemName = when (item) {
                 is ExplorerItem.Path -> item.path.name
                 is ExplorerItem.Trash.Root -> item.originalLookup.name
@@ -233,6 +259,13 @@ class ExplorerViewSettingsController(
             true
         }
     }
+
+    /**
+     * A dot-prefixed name on a path entry. Trashed entries are deliberately not covered: restoring
+     * acts on what the listing offers, so an entry the dot rule removes could not be restored.
+     */
+    private val ExplorerItem.isHiddenEntry: Boolean
+        get() = this is ExplorerItem.Path && path.name.startsWith(".")
 
     companion object {
         private val TAG = logTag("Explorer", "ViewSettings")
