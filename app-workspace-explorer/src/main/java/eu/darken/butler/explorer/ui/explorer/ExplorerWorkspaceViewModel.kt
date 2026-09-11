@@ -2472,7 +2472,7 @@ internal fun ExplorerViewSettingsController.processListing(
     useRegexPatterns: Boolean,
     showHidden: Boolean,
 ): ExplorerWorkspaceViewModel.ProcessedListing {
-    val visibleSize = items.sumOf { item ->
+    val visibleSize: Long = items.sumOf { item ->
         when {
             item is ExplorerItem.File -> item.lookup.size ?: 0L
             item is ExplorerItem.Trash.Nested && item.isFile -> item.lookup.size ?: 0L
