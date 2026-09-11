@@ -43,6 +43,7 @@ class WorkspaceSettingsLayoutTest : ComposeTest() {
                     onNavigateUp = {},
                     onToggleSwipeGestures = {},
                     onToggleOnDemandWorkspaceCreation = {},
+                    onSetDefaultNewTabType = {},
                     onToggleLivePreview = {},
                     onSetLayoutModePortrait = { portraitModes += it },
                     onSetLayoutModeLandscape = {},

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.twotone.AddCircle
 import androidx.compose.material.icons.twotone.AdsClick
 import androidx.compose.material.icons.twotone.AutoAwesome
 import androidx.compose.material.icons.twotone.PauseCircle
@@ -28,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -44,6 +46,9 @@ import eu.darken.butler.common.settings.SettingsSwitchItem
 import eu.darken.butler.common.ui.MinutesDurationInputDialog
 import androidx.compose.runtime.collectAsState
 import eu.darken.butler.workspace.R
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.core.label
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.layout.LayoutPickerDialog
 import eu.darken.butler.workspace.ui.layout.LayoutPickerOption
@@ -64,6 +69,7 @@ fun WorkspaceSettingsScreen(
     onNavigateUp: () -> Unit,
     onToggleSwipeGestures: () -> Unit,
     onToggleOnDemandWorkspaceCreation: () -> Unit,
+    onSetDefaultNewTabType: (Workspace.Type) -> Unit,
     onToggleLivePreview: () -> Unit,
     onSetLayoutModePortrait: (WorkspacePanelMode) -> Unit,
     onSetLayoutModeLandscape: (WorkspacePanelMode) -> Unit,
@@ -73,6 +79,7 @@ fun WorkspaceSettingsScreen(
     onSetAutoPauseIdleTimeout: (Duration) -> Unit,
     onToggleUndoClose: () -> Unit,
 ) {
+    var showNewTabTypeDialog by remember { mutableStateOf(false) }
     var showPortraitDialog by remember { mutableStateOf(false) }
     var showLandscapeDialog by remember { mutableStateOf(false) }
     var showAutoPauseTimeoutDialog by remember { mutableStateOf(false) }
@@ -121,6 +128,16 @@ fun WorkspaceSettingsScreen(
                     checked = state.onDemandWorkspaceCreation,
                     onCheckedChange = { onToggleOnDemandWorkspaceCreation() },
                     enabled = state.swipeGesturesEnabled,
+                )
+            }
+
+            item {
+                SettingsPreferenceItem(
+                    icon = Icons.TwoTone.AddCircle,
+                    title = stringResource(R.string.workspace_settings_newtab_type_title),
+                    subtitle = stringResource(R.string.workspace_settings_newtab_type_desc),
+                    value = state.defaultNewTabType.newTabTypeValueLabel(),
+                    onClick = { showNewTabTypeDialog = true },
                 )
             }
 
@@ -236,6 +253,37 @@ fun WorkspaceSettingsScreen(
         }
     }
 
+    if (showNewTabTypeDialog) {
+        val context = LocalContext.current
+        LayoutPickerDialog(
+            title = stringResource(R.string.workspace_settings_newtab_type_title),
+            options = listOf(
+                LayoutPickerOption(
+                    icon = Workspace.Type.TEMPLATES.icon,
+                    label = stringResource(R.string.workspace_settings_newtab_type_ask),
+                    description = stringResource(R.string.workspace_settings_newtab_type_ask_desc),
+                    selected = state.defaultNewTabType == Workspace.Type.TEMPLATES,
+                    onSelect = {
+                        onSetDefaultNewTabType(Workspace.Type.TEMPLATES)
+                        showNewTabTypeDialog = false
+                    },
+                ),
+            ) + state.newTabCandidates.map { template ->
+                LayoutPickerOption(
+                    icon = template.icon,
+                    label = template.title.get(context),
+                    description = template.subtitle.get(context),
+                    selected = state.defaultNewTabType == template.type,
+                    onSelect = {
+                        onSetDefaultNewTabType(template.type)
+                        showNewTabTypeDialog = false
+                    },
+                )
+            },
+            onDismiss = { showNewTabTypeDialog = false },
+        )
+    }
+
     if (showPortraitDialog) {
         LayoutPickerDialog(
             title = stringResource(R.string.workspace_settings_layout_mode_portrait_title),
@@ -290,6 +338,12 @@ fun WorkspaceSettingsScreen(
     }
 }
 
+@Composable
+private fun Workspace.Type.newTabTypeValueLabel(): String = when (this) {
+    Workspace.Type.TEMPLATES -> stringResource(R.string.workspace_settings_newtab_type_ask)
+    else -> label.get(LocalContext.current)
+}
+
 /** "2 hours", "45 minutes", "1 hour 30 minutes" - hours are dropped when zero, and vice versa. */
 @Composable
 private fun Duration.formatCoarse(): String {
@@ -312,6 +366,7 @@ private fun WorkspaceSettingsScreenPreview() {
         state = WorkspaceSettingsViewModel.State(
             swipeGesturesEnabled = true,
             onDemandWorkspaceCreation = true,
+            defaultNewTabType = Workspace.Type.TEMPLATES,
             livePreview = true,
             layoutModePortrait = WorkspacePanelMode.AUTO,
             layoutModeLandscape = WorkspacePanelMode.AUTO,
@@ -324,6 +379,7 @@ private fun WorkspaceSettingsScreenPreview() {
         onNavigateUp = {},
         onToggleSwipeGestures = {},
         onToggleOnDemandWorkspaceCreation = {},
+        onSetDefaultNewTabType = {},
         onToggleLivePreview = {},
         onSetLayoutModePortrait = {},
         onSetLayoutModeLandscape = {},
@@ -343,6 +399,7 @@ private fun WorkspaceSettingsScreenPinnedLayoutPreview() {
         state = WorkspaceSettingsViewModel.State(
             swipeGesturesEnabled = true,
             onDemandWorkspaceCreation = true,
+            defaultNewTabType = Workspace.Type.TEMPLATES,
             livePreview = true,
             layoutModePortrait = WorkspacePanelMode.DUAL_VERTICAL,
             layoutModeLandscape = WorkspacePanelMode.ADAPTIVE,
@@ -355,6 +412,40 @@ private fun WorkspaceSettingsScreenPinnedLayoutPreview() {
         onNavigateUp = {},
         onToggleSwipeGestures = {},
         onToggleOnDemandWorkspaceCreation = {},
+        onSetDefaultNewTabType = {},
+        onToggleLivePreview = {},
+        onSetLayoutModePortrait = {},
+        onSetLayoutModeLandscape = {},
+        onTogglePaneClickToFocus = {},
+        onToggleSessionRestore = {},
+        onToggleAutoPause = {},
+        onSetAutoPauseIdleTimeout = {},
+        onToggleUndoClose = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceSettingsScreenNewTabTypePreview() {
+    WorkspaceSettingsScreen(
+        state = WorkspaceSettingsViewModel.State(
+            swipeGesturesEnabled = true,
+            onDemandWorkspaceCreation = true,
+            defaultNewTabType = Workspace.Type.EXPLORER,
+            livePreview = true,
+            layoutModePortrait = WorkspacePanelMode.AUTO,
+            layoutModeLandscape = WorkspacePanelMode.AUTO,
+            paneClickToFocus = true,
+            sessionRestoreEnabled = true,
+            undoCloseEnabled = true,
+            sessionWorkspaceCount = 3,
+            sessionDatabaseSizeBytes = 131072,
+        ),
+        onNavigateUp = {},
+        onToggleSwipeGestures = {},
+        onToggleOnDemandWorkspaceCreation = {},
+        onSetDefaultNewTabType = {},
         onToggleLivePreview = {},
         onSetLayoutModePortrait = {},
         onSetLayoutModeLandscape = {},
@@ -379,6 +470,7 @@ fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()
             onNavigateUp = { vm.navUp() },
             onToggleSwipeGestures = { vm.toggleSwipeGestures() },
             onToggleOnDemandWorkspaceCreation = { vm.toggleOnDemandWorkspaceCreation() },
+            onSetDefaultNewTabType = { type -> vm.setDefaultNewTabType(type) },
             onToggleLivePreview = { vm.toggleLivePreview() },
             onSetLayoutModePortrait = { mode -> vm.setLayoutModePortrait(mode) },
             onSetLayoutModeLandscape = { mode -> vm.setLayoutModeLandscape(mode) },

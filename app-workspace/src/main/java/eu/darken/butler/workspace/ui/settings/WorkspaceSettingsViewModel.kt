@@ -6,9 +6,14 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.session.WorkspaceSessionStorage
+import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
+import eu.darken.butler.workspace.ui.template.availableTemplates
+import eu.darken.butler.workspace.ui.template.newTabCandidates
+import eu.darken.butler.workspace.ui.template.newTabTemplate
 import javax.inject.Inject
 import kotlin.time.Duration
 
@@ -17,11 +22,14 @@ class WorkspaceSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     private val workspaceSettings: WorkspaceSettings,
     private val sessionStorage: eu.darken.butler.workspace.core.session.WorkspaceSessionStorage,
+    workspaceTemplates: Set<@JvmSuppressWildcards WorkspaceTemplate>,
 ) : ViewModel4(dispatcherProvider, logTag("Workspace", "Settings", "Screen", "VM")) {
 
     val state = combine(
         workspaceSettings.swipeGesturesEnabled.flow,
         workspaceSettings.onDemandWorkspaceCreation.flow,
+        workspaceSettings.defaultNewTabType.flow,
+        workspaceTemplates.availableTemplates(),
         workspaceSettings.livePreview.flow,
         workspaceSettings.layoutModePortrait.flow,
         workspaceSettings.layoutModeLandscape.flow,
@@ -32,10 +40,14 @@ class WorkspaceSettingsViewModel @Inject constructor(
         workspaceSettings.undoCloseEnabled.flow,
         sessionStorage.getWorkspaceCount(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
         sessionStorage.getDatabaseSizeBytes(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
-    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview, layoutModePortrait, layoutModeLandscape, paneClickToFocus, sessionRestoreEnabled, autoPauseEnabled, autoPauseIdleTimeout, undoCloseEnabled, sessionWorkspaceCount, sessionDatabaseSizeBytes ->
+    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, defaultNewTabType, templates, livePreview, layoutModePortrait, layoutModeLandscape, paneClickToFocus, sessionRestoreEnabled, autoPauseEnabled, autoPauseIdleTimeout, undoCloseEnabled, sessionWorkspaceCount, sessionDatabaseSizeBytes ->
         State(
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = onDemandWorkspaceCreation,
+            // The effective type, so the row never names one the gesture would not honour. The
+            // stored value stays untouched, a type that becomes available again is restored.
+            defaultNewTabType = templates.newTabTemplate(defaultNewTabType)?.type ?: Workspace.Type.TEMPLATES,
+            newTabCandidates = templates.newTabCandidates(),
             livePreview = livePreview,
             layoutModePortrait = layoutModePortrait,
             layoutModeLandscape = layoutModeLandscape,
@@ -57,6 +69,10 @@ class WorkspaceSettingsViewModel @Inject constructor(
     fun toggleOnDemandWorkspaceCreation() = launch {
         val current = workspaceSettings.onDemandWorkspaceCreation.value()
         workspaceSettings.onDemandWorkspaceCreation.value(!current)
+    }
+
+    fun setDefaultNewTabType(type: Workspace.Type) = launch {
+        workspaceSettings.defaultNewTabType.value(type)
     }
 
     fun toggleLivePreview() = launch {
@@ -102,6 +118,8 @@ class WorkspaceSettingsViewModel @Inject constructor(
     data class State(
         val swipeGesturesEnabled: Boolean,
         val onDemandWorkspaceCreation: Boolean,
+        val defaultNewTabType: Workspace.Type = Workspace.Type.TEMPLATES,
+        val newTabCandidates: List<WorkspaceTemplate> = emptyList(),
         val livePreview: Boolean,
         val layoutModePortrait: WorkspacePanelMode,
         val layoutModeLandscape: WorkspacePanelMode,

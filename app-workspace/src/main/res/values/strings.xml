@@ -355,6 +355,10 @@
     <string name="workspace_settings_swipe_gestures_desc">Swipe left or right to switch between tabs.</string>
     <string name="workspace_settings_ondemand_creation_title">Auto-create tabs</string>
     <string name="workspace_settings_ondemand_creation_desc">Automatically create new tab when swiping past the last tab.</string>
+    <string name="workspace_settings_newtab_type_title">New tab type</string>
+    <string name="workspace_settings_newtab_type_desc">Workspace opened when swiping past the last tab, adding a tab to an empty pane, or creating the first tab.</string>
+    <string name="workspace_settings_newtab_type_ask">Ask every time</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Show the tab type picker for each new tab.</string>
     <string name="workspace_settings_live_preview_title">Live previews</string>
     <string name="workspace_settings_live_preview_desc">Show live tab content in tab manager.</string>
     <string name="workspace_settings_other">Other</string>
