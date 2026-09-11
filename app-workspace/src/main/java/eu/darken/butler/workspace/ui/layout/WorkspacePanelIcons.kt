@@ -83,6 +83,134 @@ object WorkspacePanelIcons {
             }
         }.build()
 
+    val RailButtonBottomLeading: ImageVector
+        get() = ImageVector.Builder(
+            name = "RailButtonBottomLeading",
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f,
+            autoMirror = true
+        ).apply {
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(4f, 4f)
+                lineTo(20f, 4f)
+                lineTo(20f, 15f)
+                lineTo(4f, 15f)
+                close()
+            }
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(4f, 17f)
+                lineTo(7f, 17f)
+                lineTo(7f, 20f)
+                lineTo(4f, 20f)
+                close()
+            }
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(9f, 17f)
+                lineTo(20f, 17f)
+                lineTo(20f, 20f)
+                lineTo(9f, 20f)
+                close()
+            }
+        }.build()
+
+    val RailButtonBottomTrailing: ImageVector
+        get() = ImageVector.Builder(
+            name = "RailButtonBottomTrailing",
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f,
+            autoMirror = true
+        ).apply {
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(4f, 4f)
+                lineTo(20f, 4f)
+                lineTo(20f, 15f)
+                lineTo(4f, 15f)
+                close()
+            }
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(4f, 17f)
+                lineTo(15f, 17f)
+                lineTo(15f, 20f)
+                lineTo(4f, 20f)
+                close()
+            }
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(17f, 17f)
+                lineTo(20f, 17f)
+                lineTo(20f, 20f)
+                lineTo(17f, 20f)
+                close()
+            }
+        }.build()
+
+    val RailButtonSideLeading: ImageVector
+        get() = ImageVector.Builder(
+            name = "RailButtonSideLeading",
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f,
+            autoMirror = true
+        ).apply {
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(9f, 4f)
+                lineTo(20f, 4f)
+                lineTo(20f, 20f)
+                lineTo(9f, 20f)
+                close()
+            }
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(4f, 4f)
+                lineTo(7f, 4f)
+                lineTo(7f, 7f)
+                lineTo(4f, 7f)
+                close()
+            }
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(4f, 9f)
+                lineTo(7f, 9f)
+                lineTo(7f, 20f)
+                lineTo(4f, 20f)
+                close()
+            }
+        }.build()
+
+    val RailButtonSideTrailing: ImageVector
+        get() = ImageVector.Builder(
+            name = "RailButtonSideTrailing",
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f,
+            autoMirror = true
+        ).apply {
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(9f, 4f)
+                lineTo(20f, 4f)
+                lineTo(20f, 20f)
+                lineTo(9f, 20f)
+                close()
+            }
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(4f, 4f)
+                lineTo(7f, 4f)
+                lineTo(7f, 15f)
+                lineTo(4f, 15f)
+                close()
+            }
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(4f, 17f)
+                lineTo(7f, 17f)
+                lineTo(7f, 20f)
+                lineTo(4f, 20f)
+                close()
+            }
+        }.build()
+
     val DualVertical: ImageVector
         get() = ImageVector.Builder(
             name = "LayoutDualVertical",

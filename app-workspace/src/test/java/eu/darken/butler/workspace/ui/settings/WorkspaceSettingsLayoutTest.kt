@@ -4,14 +4,11 @@ import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertAny
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsOff
-import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
-import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isSelectable
-import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
@@ -34,7 +31,7 @@ import testhelpers.ComposeTest
 class WorkspaceSettingsLayoutTest : ComposeTest() {
 
     private val portraitModes = mutableListOf<WorkspacePanelMode>()
-    private var railButtonToggles = 0
+    private val railButtonPlacements = mutableListOf<RailButtonPlacement>()
 
     private fun setScreen(
         portraitMode: WorkspacePanelMode,
@@ -61,7 +58,7 @@ class WorkspaceSettingsLayoutTest : ComposeTest() {
                     onSetLayoutModePortrait = { portraitModes += it },
                     onSetLayoutModeLandscape = {},
                     onTogglePaneClickToFocus = {},
-                    onToggleRailButtonPlacement = { railButtonToggles++ },
+                    onSetRailButtonPlacement = { railButtonPlacements += it },
                     onToggleSessionRestore = {},
                     onToggleAutoPause = {},
                     onSetAutoPauseIdleTimeout = {},
@@ -127,35 +124,29 @@ class WorkspaceSettingsLayoutTest : ComposeTest() {
     }
 
     @Test
-    fun `the rail button switch follows the stored placement`() {
+    fun `the rail button row names the stored placement`() {
         setScreen(WorkspacePanelMode.AUTO, RailButtonPlacement.TRAILING)
 
-        railButtonSwitch().assertIsOn()
+        railButtonRow().assertTextContains("End")
     }
 
     @Test
-    fun `toggling the rail button switch reports the change`() {
-        setScreen(WorkspacePanelMode.AUTO)
+    fun `picking a rail button placement reports it`() {
+        setScreen(WorkspacePanelMode.AUTO, RailButtonPlacement.TRAILING)
 
-        railButtonSwitch().assertIsOff()
-        railButtonSwitch().performClick()
+        railButtonRow().performClick()
+        composeTestRule.onNode(isSelectable() and hasText("Start")).performClick()
 
-        railButtonToggles shouldBe 1
+        railButtonPlacements shouldBe listOf(RailButtonPlacement.LEADING)
     }
 
-    /**
-     * The row sits below the fold of the settings list, so it is scrolled to before it is read.
-     *
-     * The switch is its own merge boundary, so the title lives on the merged row root and the
-     * ToggleableState only on the switch below it. Several rows on this screen are switches, so
-     * the switch is identified through its row rather than by [isToggleable] alone.
-     */
-    private fun railButtonSwitch(): SemanticsNodeInteraction {
+    /** The row sits below the fold of the settings list, so it is scrolled to before it is read. */
+    private fun railButtonRow(): SemanticsNodeInteraction {
         composeTestRule.onNode(hasScrollAction()).performScrollToNode(hasText(RAIL_BUTTON_TITLE))
-        return composeTestRule.onNode(isToggleable() and hasAnyAncestor(hasText(RAIL_BUTTON_TITLE)))
+        return composeTestRule.onNodeWithText(RAIL_BUTTON_TITLE)
     }
 
     companion object {
-        private const val RAIL_BUTTON_TITLE = "Butler button at the end of the tab rail"
+        private const val RAIL_BUTTON_TITLE = "Butler button"
     }
 }

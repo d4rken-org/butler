@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.settings
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -77,7 +79,7 @@ fun WorkspaceSettingsScreen(
     onSetLayoutModePortrait: (WorkspacePanelMode) -> Unit,
     onSetLayoutModeLandscape: (WorkspacePanelMode) -> Unit,
     onTogglePaneClickToFocus: () -> Unit,
-    onToggleRailButtonPlacement: () -> Unit,
+    onSetRailButtonPlacement: (RailButtonPlacement) -> Unit,
     onToggleSessionRestore: () -> Unit,
     onToggleAutoPause: () -> Unit,
     onSetAutoPauseIdleTimeout: (Duration) -> Unit,
@@ -86,7 +88,9 @@ fun WorkspaceSettingsScreen(
     var showNewTabTypeDialog by remember { mutableStateOf(false) }
     var showPortraitDialog by remember { mutableStateOf(false) }
     var showLandscapeDialog by remember { mutableStateOf(false) }
+    var showRailButtonDialog by remember { mutableStateOf(false) }
     var showAutoPauseTimeoutDialog by remember { mutableStateOf(false) }
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     Scaffold(
         topBar = {
             TopAppBar(
@@ -180,12 +184,12 @@ fun WorkspaceSettingsScreen(
             }
 
             item {
-                SettingsSwitchItem(
+                SettingsPreferenceItem(
                     icon = Icons.AutoMirrored.TwoTone.AlignHorizontalRight,
-                    title = stringResource(R.string.workspace_settings_rail_button_trailing_title),
-                    subtitle = stringResource(R.string.workspace_settings_rail_button_trailing_desc),
-                    checked = state.railButtonPlacement == RailButtonPlacement.TRAILING,
-                    onCheckedChange = { onToggleRailButtonPlacement() },
+                    title = stringResource(R.string.workspace_settings_rail_button_title),
+                    subtitle = stringResource(R.string.workspace_settings_rail_button_desc),
+                    value = state.railButtonPlacement.label(),
+                    onClick = { showRailButtonDialog = true },
                 )
             }
 
@@ -336,6 +340,25 @@ fun WorkspaceSettingsScreen(
         )
     }
 
+    if (showRailButtonDialog) {
+        LayoutPickerDialog(
+            title = stringResource(R.string.workspace_settings_rail_button_title),
+            options = RailButtonPlacement.entries.map { placement ->
+                LayoutPickerOption(
+                    icon = placement.icon(landscape = isLandscape),
+                    label = placement.label(),
+                    description = placement.description(),
+                    selected = state.railButtonPlacement == placement,
+                    onSelect = {
+                        onSetRailButtonPlacement(placement)
+                        showRailButtonDialog = false
+                    },
+                )
+            },
+            onDismiss = { showRailButtonDialog = false },
+        )
+    }
+
     if (showAutoPauseTimeoutDialog) {
         MinutesDurationInputDialog(
             title = stringResource(R.string.workspace_settings_autopause_delay_title),
@@ -398,7 +421,7 @@ private fun WorkspaceSettingsScreenPreview() {
         onSetLayoutModePortrait = {},
         onSetLayoutModeLandscape = {},
         onTogglePaneClickToFocus = {},
-        onToggleRailButtonPlacement = {},
+        onSetRailButtonPlacement = {},
         onToggleSessionRestore = {},
         onToggleAutoPause = {},
         onSetAutoPauseIdleTimeout = {},
@@ -465,7 +488,7 @@ private fun WorkspaceSettingsScreenNewTabTypePreview() {
         onSetLayoutModePortrait = {},
         onSetLayoutModeLandscape = {},
         onTogglePaneClickToFocus = {},
-        onToggleRailButtonPlacement = {},
+        onSetRailButtonPlacement = {},
         onToggleSessionRestore = {},
         onToggleAutoPause = {},
         onSetAutoPauseIdleTimeout = {},
@@ -491,7 +514,7 @@ fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()
             onSetLayoutModePortrait = { mode -> vm.setLayoutModePortrait(mode) },
             onSetLayoutModeLandscape = { mode -> vm.setLayoutModeLandscape(mode) },
             onTogglePaneClickToFocus = { vm.togglePaneClickToFocus() },
-            onToggleRailButtonPlacement = { vm.toggleRailButtonPlacement() },
+            onSetRailButtonPlacement = { placement -> vm.setRailButtonPlacement(placement) },
             onToggleSessionRestore = { vm.toggleSessionRestore() },
             onToggleAutoPause = { vm.toggleAutoPause() },
             onSetAutoPauseIdleTimeout = { timeout -> vm.setAutoPauseIdleTimeout(timeout) },
