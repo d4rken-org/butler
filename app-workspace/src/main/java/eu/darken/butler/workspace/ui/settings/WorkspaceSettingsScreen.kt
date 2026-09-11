@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.twotone.AlignHorizontalRight
 import androidx.compose.material.icons.twotone.AddCircle
 import androidx.compose.material.icons.twotone.AdsClick
 import androidx.compose.material.icons.twotone.AutoAwesome
@@ -48,6 +49,7 @@ import androidx.compose.runtime.collectAsState
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.core.layout.RailButtonPlacement
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.layout.LayoutPickerDialog
 import eu.darken.butler.workspace.ui.layout.LayoutPickerOption
@@ -75,6 +77,7 @@ fun WorkspaceSettingsScreen(
     onSetLayoutModePortrait: (WorkspacePanelMode) -> Unit,
     onSetLayoutModeLandscape: (WorkspacePanelMode) -> Unit,
     onTogglePaneClickToFocus: () -> Unit,
+    onToggleRailButtonPlacement: () -> Unit,
     onToggleSessionRestore: () -> Unit,
     onToggleAutoPause: () -> Unit,
     onSetAutoPauseIdleTimeout: (Duration) -> Unit,
@@ -173,6 +176,16 @@ fun WorkspaceSettingsScreen(
                     subtitle = stringResource(R.string.workspace_settings_pane_click_to_focus_desc),
                     checked = state.paneClickToFocus,
                     onCheckedChange = { onTogglePaneClickToFocus() },
+                )
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.AutoMirrored.TwoTone.AlignHorizontalRight,
+                    title = stringResource(R.string.workspace_settings_rail_button_trailing_title),
+                    subtitle = stringResource(R.string.workspace_settings_rail_button_trailing_desc),
+                    checked = state.railButtonPlacement == RailButtonPlacement.TRAILING,
+                    onCheckedChange = { onToggleRailButtonPlacement() },
                 )
             }
 
@@ -385,6 +398,7 @@ private fun WorkspaceSettingsScreenPreview() {
         onSetLayoutModePortrait = {},
         onSetLayoutModeLandscape = {},
         onTogglePaneClickToFocus = {},
+        onToggleRailButtonPlacement = {},
         onToggleSessionRestore = {},
         onToggleAutoPause = {},
         onSetAutoPauseIdleTimeout = {},
@@ -451,6 +465,7 @@ private fun WorkspaceSettingsScreenNewTabTypePreview() {
         onSetLayoutModePortrait = {},
         onSetLayoutModeLandscape = {},
         onTogglePaneClickToFocus = {},
+        onToggleRailButtonPlacement = {},
         onToggleSessionRestore = {},
         onToggleAutoPause = {},
         onSetAutoPauseIdleTimeout = {},
@@ -476,6 +491,7 @@ fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()
             onSetLayoutModePortrait = { mode -> vm.setLayoutModePortrait(mode) },
             onSetLayoutModeLandscape = { mode -> vm.setLayoutModeLandscape(mode) },
             onTogglePaneClickToFocus = { vm.togglePaneClickToFocus() },
+            onToggleRailButtonPlacement = { vm.toggleRailButtonPlacement() },
             onToggleSessionRestore = { vm.toggleSessionRestore() },
             onToggleAutoPause = { vm.toggleAutoPause() },
             onSetAutoPauseIdleTimeout = { timeout -> vm.setAutoPauseIdleTimeout(timeout) },

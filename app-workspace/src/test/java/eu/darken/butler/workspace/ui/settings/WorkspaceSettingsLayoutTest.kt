@@ -1,14 +1,22 @@
 package eu.darken.butler.workspace.ui.settings
 
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertAny
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isSelectable
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.core.layout.RailButtonPlacement
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import io.kotest.matchers.shouldBe
 import org.junit.Test
@@ -26,8 +34,12 @@ import testhelpers.ComposeTest
 class WorkspaceSettingsLayoutTest : ComposeTest() {
 
     private val portraitModes = mutableListOf<WorkspacePanelMode>()
+    private var railButtonToggles = 0
 
-    private fun setScreen(portraitMode: WorkspacePanelMode) {
+    private fun setScreen(
+        portraitMode: WorkspacePanelMode,
+        railButtonPlacement: RailButtonPlacement = RailButtonPlacement.LEADING,
+    ) {
         composeTestRule.setContent {
             PreviewWrapper {
                 WorkspaceSettingsScreen(
@@ -38,6 +50,7 @@ class WorkspaceSettingsLayoutTest : ComposeTest() {
                         layoutModePortrait = portraitMode,
                         layoutModeLandscape = WorkspacePanelMode.SINGLE,
                         paneClickToFocus = true,
+                        railButtonPlacement = railButtonPlacement,
                         sessionRestoreEnabled = true,
                     ),
                     onNavigateUp = {},
@@ -48,6 +61,7 @@ class WorkspaceSettingsLayoutTest : ComposeTest() {
                     onSetLayoutModePortrait = { portraitModes += it },
                     onSetLayoutModeLandscape = {},
                     onTogglePaneClickToFocus = {},
+                    onToggleRailButtonPlacement = { railButtonToggles++ },
                     onToggleSessionRestore = {},
                     onToggleAutoPause = {},
                     onSetAutoPauseIdleTimeout = {},
@@ -110,5 +124,38 @@ class WorkspaceSettingsLayoutTest : ComposeTest() {
         setScreen(WorkspacePanelMode.SINGLE_RAIL)
 
         composeTestRule.onNodeWithText("Adaptive (Single with tab rail)").assertIsDisplayed()
+    }
+
+    @Test
+    fun `the rail button switch follows the stored placement`() {
+        setScreen(WorkspacePanelMode.AUTO, RailButtonPlacement.TRAILING)
+
+        railButtonSwitch().assertIsOn()
+    }
+
+    @Test
+    fun `toggling the rail button switch reports the change`() {
+        setScreen(WorkspacePanelMode.AUTO)
+
+        railButtonSwitch().assertIsOff()
+        railButtonSwitch().performClick()
+
+        railButtonToggles shouldBe 1
+    }
+
+    /**
+     * The row sits below the fold of the settings list, so it is scrolled to before it is read.
+     *
+     * The switch is its own merge boundary, so the title lives on the merged row root and the
+     * ToggleableState only on the switch below it. Several rows on this screen are switches, so
+     * the switch is identified through its row rather than by [isToggleable] alone.
+     */
+    private fun railButtonSwitch(): SemanticsNodeInteraction {
+        composeTestRule.onNode(hasScrollAction()).performScrollToNode(hasText(RAIL_BUTTON_TITLE))
+        return composeTestRule.onNode(isToggleable() and hasAnyAncestor(hasText(RAIL_BUTTON_TITLE)))
+    }
+
+    companion object {
+        private const val RAIL_BUTTON_TITLE = "Butler button at the end of the tab rail"
     }
 }

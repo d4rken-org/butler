@@ -8,6 +8,7 @@ import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.layout.RailButtonPlacement
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.session.WorkspaceSessionStorage
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
@@ -34,13 +35,14 @@ class WorkspaceSettingsViewModel @Inject constructor(
         workspaceSettings.layoutModePortrait.flow,
         workspaceSettings.layoutModeLandscape.flow,
         workspaceSettings.paneClickToFocus.flow,
+        workspaceSettings.railButtonPlacement.flow,
         workspaceSettings.sessionRestoreEnabled.flow,
         workspaceSettings.autoPauseEnabled.flow,
         workspaceSettings.autoPauseIdleTimeout.flow,
         workspaceSettings.undoCloseEnabled.flow,
         sessionStorage.getWorkspaceCount(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
         sessionStorage.getDatabaseSizeBytes(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
-    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, defaultNewTabType, templates, livePreview, layoutModePortrait, layoutModeLandscape, paneClickToFocus, sessionRestoreEnabled, autoPauseEnabled, autoPauseIdleTimeout, undoCloseEnabled, sessionWorkspaceCount, sessionDatabaseSizeBytes ->
+    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, defaultNewTabType, templates, livePreview, layoutModePortrait, layoutModeLandscape, paneClickToFocus, railButtonPlacement, sessionRestoreEnabled, autoPauseEnabled, autoPauseIdleTimeout, undoCloseEnabled, sessionWorkspaceCount, sessionDatabaseSizeBytes ->
         State(
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = onDemandWorkspaceCreation,
@@ -52,6 +54,7 @@ class WorkspaceSettingsViewModel @Inject constructor(
             layoutModePortrait = layoutModePortrait,
             layoutModeLandscape = layoutModeLandscape,
             paneClickToFocus = paneClickToFocus,
+            railButtonPlacement = railButtonPlacement,
             sessionRestoreEnabled = sessionRestoreEnabled,
             autoPauseEnabled = autoPauseEnabled,
             autoPauseIdleTimeout = WorkspaceSettings.clampIdleTimeout(autoPauseIdleTimeout),
@@ -93,6 +96,16 @@ class WorkspaceSettingsViewModel @Inject constructor(
         workspaceSettings.paneClickToFocus.value(!current)
     }
 
+    fun toggleRailButtonPlacement() = launch {
+        val current = workspaceSettings.railButtonPlacement.value()
+        workspaceSettings.railButtonPlacement.value(
+            when (current) {
+                RailButtonPlacement.LEADING -> RailButtonPlacement.TRAILING
+                RailButtonPlacement.TRAILING -> RailButtonPlacement.LEADING
+            },
+        )
+    }
+
     fun toggleSessionRestore() = launch {
         val current = workspaceSettings.sessionRestoreEnabled.value()
         workspaceSettings.sessionRestoreEnabled.value(!current)
@@ -124,6 +137,7 @@ class WorkspaceSettingsViewModel @Inject constructor(
         val layoutModePortrait: WorkspacePanelMode,
         val layoutModeLandscape: WorkspacePanelMode,
         val paneClickToFocus: Boolean,
+        val railButtonPlacement: RailButtonPlacement = RailButtonPlacement.LEADING,
         val sessionRestoreEnabled: Boolean,
         val autoPauseEnabled: Boolean = true,
         val autoPauseIdleTimeout: Duration = WorkspaceSettings.AUTO_PAUSE_IDLE_TIMEOUT_DEFAULT,
