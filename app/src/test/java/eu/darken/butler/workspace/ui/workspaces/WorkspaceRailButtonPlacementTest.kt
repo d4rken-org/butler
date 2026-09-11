@@ -88,6 +88,9 @@ class WorkspaceRailButtonPlacementTest : ComposeTest() {
             workspaces = emptyList(),
         )
 
+        withClue("The button should follow the tab list") {
+            (button().left >= list().right) shouldBe true
+        }
         assertAtEdge(content().right - button().right)
     }
 
