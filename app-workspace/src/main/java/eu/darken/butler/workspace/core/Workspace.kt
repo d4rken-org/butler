@@ -8,6 +8,8 @@ import eu.darken.butler.common.parcel.UuidParceler
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.TypeParceler
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 
 interface Workspace<ArgT : Workspace.Arguments> {
@@ -48,6 +50,7 @@ interface Workspace<ArgT : Workspace.Arguments> {
 
     }
 
+    @Serializable
     enum class Type(
         val isSingleton: Boolean = false,
         /**
@@ -57,19 +60,39 @@ interface Workspace<ArgT : Workspace.Arguments> {
          */
         val isQuotaExempt: Boolean = false,
     ) {
+        @SerialName("TEMPLATES")
         TEMPLATES,
+
+        @SerialName("EXPLORER")
         EXPLORER,
+
+        @SerialName("SEARCHER")
         SEARCHER,
+
+        @SerialName("EDITOR")
         EDITOR,
+
+        @SerialName("APPS")
         APPS,
+
+        @SerialName("APP_DETAILS")
         APP_DETAILS,
+
+        @SerialName("SAVER")
         SAVER,
+
+        @SerialName("DEVELOPER")
         DEVELOPER(isSingleton = true, isQuotaExempt = true),
+
+        @SerialName("HISTORY")
         HISTORY,
+
+        @SerialName("BUG_REPORT")
         BUG_REPORT(isSingleton = true, isQuotaExempt = true),
 
         // Appended last on purpose: the ordinal is part of no persisted format, but keeping the
         // existing order stable avoids churn in anything that reads entries positionally.
+        @SerialName("VIEWER")
         VIEWER,
         ;
     }

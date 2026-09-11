@@ -357,6 +357,7 @@ internal fun ClassicWorkspaceContainer(
                     .paneHorizontalInsetPadding(design.paneEdges)
                     .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Vertical)),
                 isUpgraded = state.isUpgraded,
+                onCreate = { onWorkspaceScreenAction(WorkspaceScreenAction.CreateOnDemand) },
                 isTourTarget = isFirstTabTourTarget,
                 tourRequester = firstTabTourRequester,
             )

@@ -144,6 +144,7 @@ class WorkspacesViewModelDialogTest : BaseTest() {
             reviewTool = reviewTool,
             guidedTourController = guidedTourController,
             closedStash = ClosedWorkspaceStash(backgroundScope),
+            workspaceTemplates = emptySet(),
             pageHosts = emptyMap(),
             scrollPositions = mockk<WorkspaceScrollPositions>(relaxed = true),
             barCollapseStates = mockk<WorkspaceBarCollapseStates>(relaxed = true),

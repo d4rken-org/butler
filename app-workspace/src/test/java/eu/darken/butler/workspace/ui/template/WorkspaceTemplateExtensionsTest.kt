@@ -93,6 +93,57 @@ class WorkspaceTemplateExtensionsTest : BaseTest() {
     }
 
     @Test
+    fun `new tab resolves the stored type to its template`() = runTest {
+        val templates = listOf(
+            FakeTemplate(Workspace.Type.EXPLORER, sortOrder = 10),
+            FakeTemplate(Workspace.Type.SEARCHER, sortOrder = 20),
+        )
+
+        val available = templates.availableTemplates().first()
+
+        available.newTabTemplate(Workspace.Type.EXPLORER)?.type shouldBe Workspace.Type.EXPLORER
+        available.newTabTemplate(Workspace.Type.SEARCHER)?.type shouldBe Workspace.Type.SEARCHER
+    }
+
+    @Test
+    fun `new tab falls back to the picker without a resolvable template`() = runTest {
+        val templates = listOf(FakeTemplate(Workspace.Type.EXPLORER, sortOrder = 10))
+
+        val available = templates.availableTemplates().first()
+
+        available.newTabTemplate(Workspace.Type.TEMPLATES) shouldBe null
+        available.newTabTemplate(Workspace.Type.EDITOR) shouldBe null
+        emptyList<WorkspaceTemplate>().newTabTemplate(Workspace.Type.EXPLORER) shouldBe null
+    }
+
+    @Test
+    fun `new tab never resolves to a singleton type`() = runTest {
+        val templates = listOf(
+            FakeTemplate(Workspace.Type.EXPLORER, sortOrder = 10),
+            FakeTemplate(Workspace.Type.DEVELOPER, sortOrder = 100),
+        )
+
+        templates.availableTemplates().first().newTabTemplate(Workspace.Type.DEVELOPER) shouldBe null
+    }
+
+    @Test
+    fun `new tab candidates drop singletons and keep the remaining order`() = runTest {
+        val templates = listOf(
+            FakeTemplate(Workspace.Type.EXPLORER, sortOrder = 10),
+            FakeTemplate(Workspace.Type.DEVELOPER, sortOrder = 20),
+            FakeTemplate(Workspace.Type.SEARCHER, sortOrder = 30),
+            FakeTemplate(Workspace.Type.BUG_REPORT, sortOrder = 40),
+            FakeTemplate(Workspace.Type.HISTORY, sortOrder = 50),
+        )
+
+        templates.availableTemplates().first().newTabCandidates().map { it.type } shouldContainExactly listOf(
+            Workspace.Type.EXPLORER,
+            Workspace.Type.SEARCHER,
+            Workspace.Type.HISTORY,
+        )
+    }
+
+    @Test
     fun `quick create selection respects flag order and template arguments`() = runTest {
         val templates = listOf(
             FakeTemplate(Workspace.Type.HISTORY, sortOrder = 50, isQuickCreate = false),

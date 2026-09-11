@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.compose.tour.GuidedTourController
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.bugreport.BugReportRepo
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -35,6 +36,9 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceStackChain
 import eu.darken.butler.workspace.core.WorkspaceStacks
 import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
+import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
+import eu.darken.butler.workspace.ui.template.availableTemplates
+import eu.darken.butler.workspace.ui.template.newTabTemplate
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -73,7 +77,7 @@ class WorkspacesViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
     upgradeRepo: UpgradeRepo,
     private val workspaceRepo: WorkspaceRepo,
-    workspaceSettings: WorkspaceSettings,
+    private val workspaceSettings: WorkspaceSettings,
     private val savedStateHandle: SavedStateHandle,
     val workspacePageManager: WorkspacePageManager,
     private val sessionManager: WorkspaceSessionManager,
@@ -87,6 +91,7 @@ class WorkspacesViewModel @Inject constructor(
     private val reviewTool: ReviewTool,
     private val guidedTourController: GuidedTourController,
     private val closedStash: ClosedWorkspaceStash,
+    private val workspaceTemplates: Set<@JvmSuppressWildcards WorkspaceTemplate>,
     val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
     val scrollPositions: WorkspaceScrollPositions,
     val barCollapseStates: WorkspaceBarCollapseStates,
@@ -418,6 +423,16 @@ class WorkspacesViewModel @Inject constructor(
         base.copy(showReviewCard = review.shouldAskForReview && isQuiet)
     }.asStateFlow()
 
+    /**
+     * What a new tab opens as: the type the user picked, or the templates picker when they did not
+     * pick one, or picked one that is currently unavailable.
+     */
+    private suspend fun newTabCreateRequest(): WorkspaceAction.Create {
+        val stored = workspaceSettings.defaultNewTabType.value()
+        val template = workspaceTemplates.availableTemplates().first().newTabTemplate(stored)
+        return template?.let { WorkspaceAction.Create(it.type, it.arguments) } ?: WorkspaceAction.Create()
+    }
+
     fun executeScreenAction(action: WorkspaceScreenAction) = launch {
         log(tag) { "executeScreenAction($action)" }
 
@@ -455,7 +470,7 @@ class WorkspacesViewModel @Inject constructor(
             }
             is WorkspaceScreenAction.CreateOnDemand -> {
                 log(tag) { "Creating workspace on-demand" }
-                when (val result = workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.TEMPLATES))) {
+                when (val result = workspaceRepo.execute(newTabCreateRequest())) {
                     is WorkspaceAction.Create.Result.Success -> {
                         log(tag) { "On-demand workspace created: ${result.newId}, focusing it" }
                         workspacePageManager.setLayout(mapOf(0 to result.newId), focusedId = result.newId)
@@ -474,7 +489,7 @@ class WorkspacesViewModel @Inject constructor(
             }
             is WorkspaceScreenAction.CreateForPane -> {
                 log(tag) { "Creating workspace for pane ${action.paneIndex}" }
-                when (val result = workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.TEMPLATES))) {
+                when (val result = workspaceRepo.execute(newTabCreateRequest())) {
                     is WorkspaceAction.Create.Result.Success -> {
                         log(tag) { "Workspace created: ${result.newId}, assigning to pane ${action.paneIndex}" }
                         val selections = workspacePageManager.state.value.selectedWorkspaces +

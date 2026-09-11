@@ -36,6 +36,13 @@ class WorkspaceSettings @Inject constructor(
 
     val onDemandWorkspaceCreation = dataStore.createValue("workspace.swipe.ondemand.enabled", true)
 
+    val defaultNewTabType = dataStore.createValue(
+        "workspace.newtab.type.default",
+        Workspace.Type.TEMPLATES,
+        json,
+        onErrorFallbackToDefault = true,
+    )
+
     val livePreview = dataStore.createValue("workspace.preview.live.enabled", true)
 
     val layoutModePortrait = dataStore.createValue("workspace.layout.mode.portrait", WorkspacePanelMode.AUTO, json)
@@ -61,6 +68,7 @@ class WorkspaceSettings @Inject constructor(
         showTipBadgeExplanation,
         swipeGesturesEnabled,
         onDemandWorkspaceCreation,
+        defaultNewTabType,
         livePreview,
         layoutModePortrait,
         layoutModeLandscape,

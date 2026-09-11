@@ -39,7 +39,6 @@ import eu.darken.butler.common.compose.ButlerTip
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.tour.guidedTourTarget
-import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
 import kotlin.time.Duration.Companion.seconds
@@ -48,6 +47,7 @@ import kotlin.time.Duration.Companion.seconds
 internal fun EmptyClassicWorkspaceContent(
     modifier: Modifier = Modifier,
     isUpgraded: Boolean,
+    onCreate: () -> Unit,
     isTourTarget: Boolean = false,
     /** Lets the tour scroll the create card into the viewport before its step is published. */
     tourRequester: BringIntoViewRequester? = null,
@@ -105,7 +105,7 @@ internal fun EmptyClassicWorkspaceContent(
 
                 // Create workspace card (primary action)
                 Card(
-                    onClick = { workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Create()) },
+                    onClick = onCreate,
                     modifier = Modifier
                         .fillMaxWidth()
                         .then(
@@ -218,6 +218,7 @@ internal fun EmptyClassicWorkspaceContent(
 private fun EmptyWorkspaceContentPreview() {
     EmptyClassicWorkspaceContent(
         isUpgraded = false,
+        onCreate = {},
     )
 }
 
@@ -227,5 +228,6 @@ private fun EmptyWorkspaceContentPreview() {
 private fun EmptyWorkspaceContentUpgradedPreview() {
     EmptyClassicWorkspaceContent(
         isUpgraded = true,
+        onCreate = {},
     )
 }
