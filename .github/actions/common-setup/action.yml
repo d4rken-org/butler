@@ -53,13 +53,15 @@ runs:
       if: inputs.robolectric-cache-scope != ''
       id: robolectric-key
       shell: bash
+      env:
+        ROBOLECTRIC_CACHE_SCOPE: ${{ inputs.robolectric-cache-scope }}
       run: |
         version=$(sed -n 's/^robolectric[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' gradle/libs.versions.toml | head -n1)
         if [ -z "$version" ]; then
           echo "::error::Could not read the robolectric version from gradle/libs.versions.toml"
           exit 1
         fi
-        prefix="${RUNNER_OS}-robolectric-sdks-${{ inputs.robolectric-cache-scope }}-${version}-"
+        prefix="${RUNNER_OS}-robolectric-sdks-${ROBOLECTRIC_CACHE_SCOPE}-${version}-"
         echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
         echo "ROBOLECTRIC_CACHE_PREFIX=$prefix" >> "$GITHUB_ENV"
 
