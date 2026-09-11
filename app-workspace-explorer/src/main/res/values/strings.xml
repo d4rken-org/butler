@@ -234,6 +234,10 @@
         <item quantity="one">%d location</item>
         <item quantity="other">%d locations</item>
     </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d hidden</item>
+        <item quantity="other">%d hidden</item>
+    </plurals>
     <string name="explorer_infobar_storage_free">%1$s free</string>
     <string name="explorer_infobar_loading">Loading…</string>
 

@@ -13,6 +13,7 @@ import androidx.compose.material.icons.twotone.Lan
 import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.Scale
 import androidx.compose.material.icons.twotone.Storage
+import androidx.compose.material.icons.twotone.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -37,8 +38,23 @@ fun ExplorerInfoBar(
     modifier: Modifier = Modifier,
     info: ExplorerLocation.LocationInfo?,
     isLoading: Boolean = false,
+    /**
+     * The listing is not final yet, so nothing derived from it may be shown. Separate from
+     * [isLoading], which goes false as soon as the first peek rows arrive, and from [progress],
+     * which the page masks behind a delay to keep short loads from flashing.
+     */
+    isListingPending: Boolean = false,
     progress: Progress.Data? = null,
     onCancel: () -> Unit = {},
+    /** Files, folders and total size of the listing as displayed, i.e. after filtering and hiding. */
+    visibleFileCount: Int = 0,
+    visibleDirectoryCount: Int = 0,
+    visibleTotalSize: Long? = null,
+    /** Dot-prefixed entries being hidden here, zero while they are shown. */
+    hiddenCount: Int = 0,
+    /** The folder itself has nothing in it, as opposed to nothing surviving the filtering. */
+    locationIsEmpty: Boolean = false,
+    onShowViewOptions: () -> Unit = {},
     selectedCount: Int = 0,
     selectedSize: Long? = null,
     onClearSelection: () -> Unit = {},
@@ -87,29 +103,44 @@ fun ExplorerInfoBar(
             when (info) {
                 is ExplorerLocation.Directory.Info -> {
                     if (selectedCount == 0) {
-                        if (info.directoryCount != null && info.directoryCount > 0) {
+                        if (visibleDirectoryCount > 0) {
                             InfoChip(
                                 icon = Icons.TwoTone.Folder,
                                 label = pluralStringResource(
                                     CommonR.plurals.common_folders_count,
-                                    info.directoryCount,
-                                    info.directoryCount
+                                    visibleDirectoryCount,
+                                    visibleDirectoryCount
                                 ),
                                 onClick = selectFolders,
                             )
                         }
-                        if (info.fileCount != null && info.fileCount > 0) {
+                        if (visibleFileCount > 0) {
                             InfoChip(
                                 icon = Icons.TwoTone.Description,
                                 label = pluralStringResource(
                                     CommonR.plurals.common_files_count,
-                                    info.fileCount,
-                                    info.fileCount
+                                    visibleFileCount,
+                                    visibleFileCount
                                 ),
                                 onClick = selectFiles,
                             )
                         }
-                        if (info.directoryCount == 0 && info.fileCount == 0) {
+                        if (hiddenCount > 0 && !isListingPending) {
+                            // Opens the sheet the switch lives in rather than toggling: the count is
+                            // the reason to go there, not a control of its own.
+                            InfoChip(
+                                icon = Icons.TwoTone.VisibilityOff,
+                                label = pluralStringResource(
+                                    R.plurals.explorer_infobar_hidden_count,
+                                    hiddenCount,
+                                    hiddenCount
+                                ),
+                                onClick = onShowViewOptions,
+                            )
+                        }
+                        // Reads the unfiltered listing, so it only shows for a folder that is
+                        // actually empty rather than for one the filtering emptied.
+                        if (locationIsEmpty) {
                             InfoChip(
                                 icon = Icons.TwoTone.Folder,
                                 label = stringResource(R.string.explorer_empty_folder_label),
@@ -163,24 +194,24 @@ fun ExplorerInfoBar(
 
                 is ExplorerLocation.Trash.Nested.Info -> {
                     if (selectedCount == 0) {
-                        if (info.directoryCount != null && info.directoryCount > 0) {
+                        if (visibleDirectoryCount > 0) {
                             InfoChip(
                                 icon = Icons.TwoTone.Folder,
                                 label = pluralStringResource(
                                     CommonR.plurals.common_folders_count,
-                                    info.directoryCount,
-                                    info.directoryCount
+                                    visibleDirectoryCount,
+                                    visibleDirectoryCount
                                 ),
                                 onClick = selectFolders,
                             )
                         }
-                        if (info.fileCount != null && info.fileCount > 0) {
+                        if (visibleFileCount > 0) {
                             InfoChip(
                                 icon = Icons.TwoTone.Description,
                                 label = pluralStringResource(
                                     CommonR.plurals.common_files_count,
-                                    info.fileCount,
-                                    info.fileCount
+                                    visibleFileCount,
+                                    visibleFileCount
                                 ),
                                 onClick = selectFiles,
                             )
@@ -217,10 +248,10 @@ fun ExplorerInfoBar(
                 is ExplorerLocation.Directory.Info -> {
                     Spacer(modifier = Modifier.weight(1f))
 
-                    if (info.totalSize != null && selectedCount == 0) {
+                    if (visibleTotalSize != null && selectedCount == 0) {
                         InfoChip(
                             icon = Icons.TwoTone.Scale,
-                            label = formatFileSize(info.totalSize),
+                            label = formatFileSize(visibleTotalSize),
                             onClick = selectAll,
                         )
                     }
@@ -291,10 +322,10 @@ fun ExplorerInfoBar(
                 is ExplorerLocation.Trash.Nested.Info -> {
                     if (selectedCount > 0) return@WorkspaceInfoBar
                     Spacer(modifier = Modifier.weight(1f))
-                    if (info.totalSize != null && info.totalSize > 0) {
+                    if (visibleTotalSize != null) {
                         InfoChip(
                             icon = Icons.TwoTone.Scale,
-                            label = formatFileSize(info.totalSize),
+                            label = formatFileSize(visibleTotalSize),
                             onClick = selectAll,
                         )
                     }
@@ -314,6 +345,22 @@ fun ExplorerInfoBar(
 private fun ExplorerInfoBarDirectoryPreview() {
     ExplorerInfoBar(
         info = MockDataProvider.createMockDirectoryInfo(fileCount = 42, directoryCount = 7),
+        visibleFileCount = 42,
+        visibleDirectoryCount = 7,
+        visibleTotalSize = MockDataProvider.MockSizes.mb(250),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerInfoBarWithHiddenItemsPreview() {
+    ExplorerInfoBar(
+        info = MockDataProvider.createMockDirectoryInfo(fileCount = 42, directoryCount = 7),
+        visibleFileCount = 39,
+        visibleDirectoryCount = 6,
+        visibleTotalSize = MockDataProvider.MockSizes.mb(220),
+        hiddenCount = 4,
     )
 }
 
@@ -323,6 +370,9 @@ private fun ExplorerInfoBarDirectoryPreview() {
 private fun ExplorerInfoBarWithSelectionPreview() {
     ExplorerInfoBar(
         info = MockDataProvider.createMockDirectoryInfo(fileCount = 42, directoryCount = 7),
+        visibleFileCount = 42,
+        visibleDirectoryCount = 7,
+        visibleTotalSize = MockDataProvider.MockSizes.mb(250),
         selectedCount = 3,
         selectedSize = MockDataProvider.MockSizes.mb(128),
     )
@@ -332,7 +382,10 @@ private fun ExplorerInfoBarWithSelectionPreview() {
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ExplorerInfoBarEmptyFolderPreview() {
-    ExplorerInfoBar(info = MockDataProvider.createMockEmptyDirectoryInfo())
+    ExplorerInfoBar(
+        info = MockDataProvider.createMockEmptyDirectoryInfo(),
+        locationIsEmpty = true,
+    )
 }
 
 @Preview2

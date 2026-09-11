@@ -48,6 +48,10 @@ internal fun FloatingBarScope.ExplorerTopBars(
 ) {
     val isLoadingItems = state.items == null && state.error == null
 
+    // Numbers derived from the listing wait for the listing to settle: `isLoadingItems` goes false as
+    // soon as the first peek rows arrive, and `showProgress` is masked behind a delay.
+    val isListingPending = isLoadingItems || state.progress != null
+
     // Determine if info bar should be visible
     val showInfoBar = state.info != null ||
         state.selectionState.selectedItems.isNotEmpty() ||
@@ -95,8 +99,15 @@ internal fun FloatingBarScope.ExplorerTopBars(
         ExplorerInfoBar(
             info = state.info,
             isLoading = isLoadingItems,
+            isListingPending = isListingPending,
             progress = if (showProgress) state.progress else null,
             onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
+            visibleFileCount = state.visibleFileCount,
+            visibleDirectoryCount = state.visibleDirectoryCount,
+            visibleTotalSize = state.visibleTotalSize,
+            hiddenCount = state.hiddenCount,
+            locationIsEmpty = state.locationIsEmpty,
+            onShowViewOptions = { vm?.showViewOptions() },
             selectedCount = state.selectionState.selectedItems.size,
             selectedSize = state.selectionState.selectedSize,
             onClearSelection = { vm?.clearSelection() },
