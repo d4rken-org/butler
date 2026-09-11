@@ -43,7 +43,7 @@ import kotlin.time.Instant
 typealias FolderPreviewObserver = (APath<*>) -> Flow<List<APathLookup<*>>>
 
 /**
- * Resolves which media children represent a directory as a grid tile collage.
+ * Resolves which children represent a directory as a grid tile collage.
  *
  * Resolution runs in the collector's scope (scrolling a tile away cancels its lookup), on the IO
  * dispatcher, and is bounded by [semaphore] so scroll thrash can't fan out unbounded listings
@@ -200,13 +200,22 @@ class FolderPreviewResolver @Inject constructor(
                         // The preview fetcher renders exactly-0-byte files as generic icons;
                         // unknown (null) sizes may still decode, so only exclude confirmed-empty.
                         .filter { it.size != 0L }
-                        .filter { MimeInfo.fromFileName(it.name).let { mime -> mime.isImage || mime.isVideo } }
+                        .map { it to MimeInfo.fromFileName(it.name) }
+                        .filter { (_, mime) ->
+                            mime.isImage || mime.isVideo || mime.isPdf || mime.isText || mime.isApk
+                        }
                         .sortedWith(
-                            compareByDescending<APathLookup<*>> { it.modifiedAt ?: Instant.DISTANT_PAST }
-                                .thenBy { it.name }
+                            compareByDescending<Pair<APathLookup<*>, MimeInfo>> {
+                                it.first.modifiedAt ?: Instant.DISTANT_PAST
+                            }.thenBy { it.first.name }
                         )
-                        .take(MAX_PREVIEW_CHILDREN)
                         .toList()
+                        // Documents only fill what media leaves empty, so a picture folder's
+                        // collage doesn't change because a text file was touched more recently.
+                        .partition { (_, mime) -> mime.isImage || mime.isVideo }
+                        .let { (media, documents) -> media + documents }
+                        .take(MAX_PREVIEW_CHILDREN)
+                        .map { it.first }
                 }
             }
         } catch (e: CancellationException) {

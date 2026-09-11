@@ -154,6 +154,67 @@ class FolderPreviewResolverTest : BaseTest() {
     }
 
     @Test
+    fun `document children fill the slots media leaves empty`() = runTest {
+        val gateway = mockk<GatewaySwitch>()
+        coEvery { gateway.lookupFiles(dir, any()) } returns listOf(
+            fileLookup("pic1.jpg", mtime = 500L),
+            fileLookup("pic2.png", mtime = 400L),
+            fileLookup("doc.pdf", mtime = 900L),
+            fileLookup("notes.txt", mtime = 800L),
+            fileLookup("app.apk", mtime = 700L),
+        )
+        val resolver = create(backgroundScope, gatewaySwitch = gateway)
+
+        val children = resolver.observe(dir).first()
+
+        children.map { it.name } shouldBe listOf("pic1.jpg", "pic2.png", "doc.pdf", "notes.txt")
+    }
+
+    @Test
+    fun `media children outrank newer documents`() = runTest {
+        val gateway = mockk<GatewaySwitch>()
+        coEvery { gateway.lookupFiles(dir, any()) } returns listOf(
+            fileLookup("a.jpg", mtime = 100L),
+            fileLookup("b.png", mtime = 200L),
+            fileLookup("c.mp4", mtime = 300L),
+            fileLookup("d.webp", mtime = 400L),
+            fileLookup("fresh.pdf", mtime = 999L),
+        )
+        val resolver = create(backgroundScope, gatewaySwitch = gateway)
+
+        val children = resolver.observe(dir).first()
+
+        children.map { it.name } shouldBe listOf("d.webp", "c.mp4", "b.png", "a.jpg")
+    }
+
+    @Test
+    fun `non-previewable children are still excluded`() = runTest {
+        val gateway = mockk<GatewaySwitch>()
+        coEvery { gateway.lookupFiles(dir, any()) } returns listOf(
+            fileLookup("report.docx", mtime = 900L),
+            fileLookup("backup.zip", mtime = 800L),
+            fileLookup("song.mp3", mtime = 700L),
+        )
+        val resolver = create(backgroundScope, gatewaySwitch = gateway)
+
+        resolver.observe(dir).first() shouldBe emptyList()
+    }
+
+    @Test
+    fun `confirmed-empty documents are excluded`() = runTest {
+        val gateway = mockk<GatewaySwitch>()
+        coEvery { gateway.lookupFiles(dir, any()) } returns listOf(
+            fileLookup("empty.txt", mtime = 900L, size = 0L),
+            fileLookup("pic.jpg", mtime = 100L),
+        )
+        val resolver = create(backgroundScope, gatewaySwitch = gateway)
+
+        val children = resolver.observe(dir).first()
+
+        children.map { it.name } shouldBe listOf("pic.jpg")
+    }
+
+    @Test
     fun `null mtimes sort last with name tiebreak`() = runTest {
         val gateway = mockk<GatewaySwitch>()
         coEvery { gateway.lookupFiles(dir, any()) } returns listOf(
