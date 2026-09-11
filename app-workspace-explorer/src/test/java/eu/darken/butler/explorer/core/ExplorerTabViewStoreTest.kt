@@ -53,7 +53,7 @@ class ExplorerTabViewStoreTest : BaseTest() {
     )
 
     private val goldenStylePayload = """
-        {"type":"grid","density":"detailed"}
+        {"type":"grid","density":"detailed","showhidden":true}
     """.trimIndent()
 
     private val goldenStyle = ExplorerViewStyle(
