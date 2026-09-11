@@ -10,6 +10,7 @@ import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.DebugSettings
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.workspace.core.layout.RailButtonPlacement
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -51,6 +52,12 @@ class WorkspaceSettings @Inject constructor(
 
     val paneClickToFocus = dataStore.createValue("workspace.pane.clicktofocus.enabled", true)
 
+    val railButtonPlacement = dataStore.createValue(
+        "workspace.rail.button.placement",
+        RailButtonPlacement.LEADING,
+        json,
+    )
+
     val sessionRestoreEnabled = dataStore.createValue("workspace.session.restore.enabled", true)
 
     val autoPauseEnabled = dataStore.createValue("workspace.session.autopause.enabled", true)
@@ -73,6 +80,7 @@ class WorkspaceSettings @Inject constructor(
         layoutModePortrait,
         layoutModeLandscape,
         paneClickToFocus,
+        railButtonPlacement,
         sessionRestoreEnabled,
         autoPauseEnabled,
         autoPauseIdleTimeout,

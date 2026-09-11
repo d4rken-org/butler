@@ -18,6 +18,7 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.WorkspaceStacks
+import eu.darken.butler.workspace.core.layout.RailButtonPlacement
 import eu.darken.butler.workspace.core.undo.ClosedWorkspaceStash
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.WorkspaceVisibilityTracker
@@ -80,8 +81,8 @@ class WorkspacesViewModelDialogTest : BaseTest() {
         Dispatchers.resetMain()
     }
 
-    private fun boolSetting(value: Boolean): DataStoreValue<Boolean> =
-        mockk<DataStoreValue<Boolean>>(relaxed = true).apply {
+    private fun <T> setting(value: T): DataStoreValue<T> =
+        mockk<DataStoreValue<T>>(relaxed = true).apply {
             every { flow } returns flowOf(value)
         }
 
@@ -99,9 +100,10 @@ class WorkspacesViewModelDialogTest : BaseTest() {
         every { workspaceRepo.peekStacks() } answers { WorkspaceStacks(infos) }
 
         val workspaceSettings = mockk<WorkspaceSettings>(relaxed = true).apply {
-            every { swipeGesturesEnabled } returns boolSetting(true)
-            every { onDemandWorkspaceCreation } returns boolSetting(true)
-            every { paneClickToFocus } returns boolSetting(true)
+            every { swipeGesturesEnabled } returns setting(true)
+            every { onDemandWorkspaceCreation } returns setting(true)
+            every { paneClickToFocus } returns setting(true)
+            every { railButtonPlacement } returns setting(RailButtonPlacement.LEADING)
         }
         every { pageManager.state } returns pageManagerState
         val sessionManager = mockk<WorkspaceSessionManager>(relaxed = true).apply {

@@ -1,9 +1,13 @@
 package eu.darken.butler.workspace.ui.manager
 
+import eu.darken.butler.workspace.core.layout.RailButtonPlacement
+
 data class WorkspaceDesign(
     val layout: Layout = Layout.SINGLE,
     val paneEdges: PaneEdges = PaneEdges.All,
     val railPlacement: RailPlacement = RailPlacement.START,
+    /** Which end of the rail's main axis the Butler button sits at. */
+    val railButtonPlacement: RailButtonPlacement = RailButtonPlacement.LEADING,
     /**
      * Whether the window composes the navigation rail. Always true for multi-pane layouts, a single
      * pane opts into it via the single-with-rail panel mode. Chrome a page supplies only when there

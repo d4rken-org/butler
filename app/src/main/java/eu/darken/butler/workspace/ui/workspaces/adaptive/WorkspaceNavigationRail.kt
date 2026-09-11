@@ -89,6 +89,7 @@ import eu.darken.butler.common.compose.tour.guidedTourTarget
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.core.layout.RailButtonPlacement
 import eu.darken.butler.workspace.ui.common.CutoutTopRightCornerShape
 import eu.darken.butler.workspace.ui.manager.PaneLayoutGlyph
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
@@ -374,34 +375,55 @@ fun WorkspaceNavigationRail(
     ) { listModifier ->
         // Unconditional: the rail exists once per screen and is that screen's Butler button;
         // pages composed beside it supply none of their own.
-        WorkspaceButton(
-            modifier = when (placement) {
-                RailPlacement.START -> Modifier.padding(vertical = RailSectionPadding)
-                RailPlacement.BOTTOM -> Modifier.padding(horizontal = RailSectionPadding)
-            }.guidedTourTarget(WorkspaceTourTargets.BUTLER_BUTTON),
-            currentWorkspaceId = focusedId,
-            showLayoutEntry = true,
-        )
-
-        RailSectionDivider(placement = placement)
-
-        when (placement) {
-            RailPlacement.START -> LazyColumn(
-                modifier = listModifier
-                    .padding(vertical = RailSectionPadding)
-                    .testTag(WorkspaceNavigationRailDefaults.LIST_TEST_TAG),
-                state = lazyListState,
-                verticalArrangement = Arrangement.spacedBy(RailItemSpacing),
-                content = railItems,
+        val butler: @Composable () -> Unit = {
+            WorkspaceButton(
+                modifier = when (placement) {
+                    RailPlacement.START -> Modifier.padding(vertical = RailSectionPadding)
+                    RailPlacement.BOTTOM -> Modifier.padding(horizontal = RailSectionPadding)
+                }.guidedTourTarget(WorkspaceTourTargets.BUTLER_BUTTON),
+                currentWorkspaceId = focusedId,
+                showLayoutEntry = true,
             )
-            RailPlacement.BOTTOM -> LazyRow(
-                modifier = listModifier
-                    .padding(horizontal = RailSectionPadding)
-                    .testTag(WorkspaceNavigationRailDefaults.LIST_TEST_TAG),
-                state = lazyListState,
-                horizontalArrangement = Arrangement.spacedBy(RailItemSpacing),
-                content = railItems,
-            )
+        }
+
+        val divider: @Composable () -> Unit = {
+            RailSectionDivider(placement = placement)
+        }
+
+        // The only weighted child, so it takes the leftover space either way and pushes the button
+        // against whichever end of the rail it is not emitted from.
+        val list: @Composable () -> Unit = {
+            when (placement) {
+                RailPlacement.START -> LazyColumn(
+                    modifier = listModifier
+                        .padding(vertical = RailSectionPadding)
+                        .testTag(WorkspaceNavigationRailDefaults.LIST_TEST_TAG),
+                    state = lazyListState,
+                    verticalArrangement = Arrangement.spacedBy(RailItemSpacing),
+                    content = railItems,
+                )
+                RailPlacement.BOTTOM -> LazyRow(
+                    modifier = listModifier
+                        .padding(horizontal = RailSectionPadding)
+                        .testTag(WorkspaceNavigationRailDefaults.LIST_TEST_TAG),
+                    state = lazyListState,
+                    horizontalArrangement = Arrangement.spacedBy(RailItemSpacing),
+                    content = railItems,
+                )
+            }
+        }
+
+        when (design.railButtonPlacement) {
+            RailButtonPlacement.LEADING -> {
+                butler()
+                divider()
+                list()
+            }
+            RailButtonPlacement.TRAILING -> {
+                list()
+                divider()
+                butler()
+            }
         }
     }
 }
@@ -1094,8 +1116,20 @@ private fun WorkspaceNavigationRailPreview() = WorkspaceNavigationRailStates(Rai
 @Composable
 private fun WorkspaceNavigationRailBottomPreview() = WorkspaceNavigationRailStates(RailPlacement.BOTTOM)
 
+/** The one-handed position: the button in the corner the thumb reaches. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun WorkspaceNavigationRailStates(placement: RailPlacement) {
+private fun WorkspaceNavigationRailBottomTrailingPreview() = WorkspaceNavigationRailStates(
+    placement = RailPlacement.BOTTOM,
+    buttonPlacement = RailButtonPlacement.TRAILING,
+)
+
+@Composable
+private fun WorkspaceNavigationRailStates(
+    placement: RailPlacement,
+    buttonPlacement: RailButtonPlacement = RailButtonPlacement.LEADING,
+) {
     val tabs = listOf(
         Workspace.Info(
             id = Workspace.Id(),
@@ -1122,6 +1156,7 @@ private fun WorkspaceNavigationRailStates(placement: RailPlacement) {
         design = WorkspaceDesign(
             layout = WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT,
             railPlacement = placement,
+            railButtonPlacement = buttonPlacement,
         ),
         onTabAction = {},
         onPaneAssignment = { _, _ -> },
