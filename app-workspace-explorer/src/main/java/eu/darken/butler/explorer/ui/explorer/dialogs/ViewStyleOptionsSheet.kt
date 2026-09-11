@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -142,6 +143,21 @@ private fun ViewStyleOptionsContent(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.explorer_view_show_hidden_label),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            Switch(
+                checked = currentViewStyle.showHidden,
+                onCheckedChange = { onApplyToTab(currentViewStyle.copy(showHidden = it)) },
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
         ) {
             TextButton(
@@ -231,6 +247,20 @@ private fun ViewStyleOptionsSheetGridDetailedPreview() {
                 mode = ExplorerViewStyle.Mode.GRID,
                 density = ExplorerViewStyle.Density.DETAILED,
             ),
+            onApplyToTab = {},
+            onSetAsDefault = {},
+            onDismiss = {},
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewStyleOptionsSheetHiddenFilesOffPreview() {
+    PreviewWrapper {
+        ViewStyleOptionsContent(
+            currentViewStyle = ExplorerViewStyle(showHidden = false),
             onApplyToTab = {},
             onSetAsDefault = {},
             onDismiss = {},
