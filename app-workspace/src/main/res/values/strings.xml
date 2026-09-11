@@ -393,9 +393,9 @@
     <string name="workspace_settings_rail_button_title">Butler button</string>
     <string name="workspace_settings_rail_button_desc">Choose where the Butler button sits on the tab rail.</string>
     <string name="workspace_settings_rail_button_leading">Start</string>
-    <string name="workspace_settings_rail_button_leading_desc">Left of the tabs in portrait, above them in landscape.</string>
+    <string name="workspace_settings_rail_button_leading_desc">Before the tabs in portrait, above them in landscape.</string>
     <string name="workspace_settings_rail_button_trailing">End</string>
-    <string name="workspace_settings_rail_button_trailing_desc">Right of the tabs in portrait, below them in landscape. Within thumb reach for one-handed use.</string>
+    <string name="workspace_settings_rail_button_trailing_desc">After the tabs in portrait, below them in landscape. Within thumb reach for one-handed use.</string>
 
     <!-- Session -->
     <string name="workspace_settings_session_title">Session</string>
