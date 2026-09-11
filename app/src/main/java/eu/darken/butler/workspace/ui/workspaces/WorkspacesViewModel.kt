@@ -393,7 +393,9 @@ class WorkspacesViewModel @Inject constructor(
         _managerDialogs,
         reviewState,
         guidedTourController.session,
-    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, paneClickToFocus, uiState, motd, restorationState, dialogs, review, tourSession ->
+        workspaceSettings.defaultNewTabType.flow,
+        workspaceTemplates.availableTemplates(),
+    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, paneClickToFocus, uiState, motd, restorationState, dialogs, review, tourSession, defaultNewTabType, templates ->
         val base = State(
             state = repoState,
             focusedWorkspace = uiState.focusedWorkspaceId,
@@ -406,6 +408,9 @@ class WorkspacesViewModel @Inject constructor(
             motd = motd,
             currentPaneCount = uiState.currentPaneCount,
             isRestoring = restorationState == WorkspaceSessionManager.State.Restoring,
+            // Display only, resolved by the helper the create path uses, so the placeholder card
+            // cannot name a type the swipe would not actually open.
+            newTabType = templates.newTabTemplate(defaultNewTabType)?.type ?: Workspace.Type.TEMPLATES,
         )
 
         // Asking for a favor is the lowest-priority surface there is: anything that asks the user
@@ -740,6 +745,7 @@ class WorkspacesViewModel @Inject constructor(
         val currentPaneCount: Int = 1,
         val isRestoring: Boolean = false,
         val showReviewCard: Boolean = false,
+        val newTabType: Workspace.Type = Workspace.Type.TEMPLATES,
     ) {
         val portraitPanelMode: WorkspacePanelMode
             get() = state.portraitPanelMode
