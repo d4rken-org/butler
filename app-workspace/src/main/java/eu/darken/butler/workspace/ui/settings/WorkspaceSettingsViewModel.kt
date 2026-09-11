@@ -96,14 +96,8 @@ class WorkspaceSettingsViewModel @Inject constructor(
         workspaceSettings.paneClickToFocus.value(!current)
     }
 
-    fun toggleRailButtonPlacement() = launch {
-        val current = workspaceSettings.railButtonPlacement.value()
-        workspaceSettings.railButtonPlacement.value(
-            when (current) {
-                RailButtonPlacement.LEADING -> RailButtonPlacement.TRAILING
-                RailButtonPlacement.TRAILING -> RailButtonPlacement.LEADING
-            },
-        )
+    fun setRailButtonPlacement(placement: RailButtonPlacement) = launch {
+        workspaceSettings.railButtonPlacement.value(placement)
     }
 
     fun toggleSessionRestore() = launch {
