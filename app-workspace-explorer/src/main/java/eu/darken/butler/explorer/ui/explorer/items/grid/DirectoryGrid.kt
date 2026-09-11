@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.items.grid
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Folder
@@ -10,13 +11,16 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.compose.TintedAsyncImage
+import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.ui.explorer.items.SizeProportionBar
@@ -30,7 +34,11 @@ import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
 import eu.darken.butler.explorer.ui.explorer.items.showsTileMetadata
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.preview.FolderPreviewCollage
+import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import eu.darken.butler.workspace.ui.preview.rememberFolderPreviewChildren
+import kotlinx.coroutines.flow.flowOf
+
+internal const val TEST_TAG_EXPLORER_GRID_THUMBNAIL = "explorer.grid.thumbnail"
 
 /** Default for previews/tests: previews are always considered "settled" (loaded immediately). */
 internal val PREVIEWS_ALWAYS_SETTLED: State<Boolean> = mutableStateOf(true)
@@ -71,7 +79,8 @@ internal fun DirectoryGrid(
         decorations = decorations,
         previewContent = {
             DirectoryPreviewBackground(
-                dir = item.lookup.lookedUp,
+                modifier = Modifier.fillMaxSize(),
+                lookup = item.lookup,
                 previewsSettled = previewsSettled,
             )
         },
@@ -102,7 +111,8 @@ internal fun DirectoryGrid(
 }
 
 /**
- * Folder tile background: a collage of the folder's newest media, or nothing.
+ * Folder tile background: a collage of the folder's newest previewable children, or the folder
+ * glyph.
  *
  * The scroll-driven [previewsSettled] read is isolated here so scroll start/stop recomposes only
  * this child, never the surrounding tile chrome or file tiles.
@@ -110,12 +120,19 @@ internal fun DirectoryGrid(
 @Composable
 private fun DirectoryPreviewBackground(
     modifier: Modifier = Modifier,
-    dir: APath<*>,
+    lookup: APathLookup<*>,
     previewsSettled: State<Boolean>,
 ) {
-    val children = rememberFolderPreviewChildren(dir, loadingEnabled = previewsSettled.value)
+    val children = rememberFolderPreviewChildren(lookup.lookedUp, loadingEnabled = previewsSettled.value)
     if (children.isNotEmpty()) {
         FolderPreviewCollage(modifier = modifier, children = children)
+    } else {
+        TintedAsyncImage(
+            model = lookup,
+            contentDescription = null,
+            modifier = modifier.testTag(TEST_TAG_EXPLORER_GRID_THUMBNAIL),
+            contentScale = ContentScale.Crop,
+        )
     }
 }
 
@@ -226,4 +243,31 @@ private fun DirectoryGridHighlightedPreview() {
         showSelection = false,
         isHighlighted = true,
     )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun DirectoryGridCollagePreview() {
+    ProvideFolderPreviews(
+        {
+            flowOf(
+                listOf(
+                    MockDataProvider.createMockImageFile("sunset.jpg"),
+                    MockDataProvider.createMockImageFile("beach.png"),
+                    MockDataProvider.createMockVideoFile("clip.mp4"),
+                    MockDataProvider.createMockPdfFile("manual.pdf"),
+                ),
+            )
+        },
+    ) {
+        DirectoryGrid(
+            item = MockDataProvider.createMockDirectory("Pictures", 42),
+            density = ExplorerViewStyle.Density.COMFORTABLE,
+            isSelected = false,
+            onToggleSelection = {},
+            onClick = {},
+            showSelection = false,
+        )
+    }
 }

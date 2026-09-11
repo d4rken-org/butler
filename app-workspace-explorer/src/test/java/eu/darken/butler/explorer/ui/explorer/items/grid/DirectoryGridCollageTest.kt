@@ -6,6 +6,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertHeightIsEqualTo
+import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -56,6 +58,33 @@ class DirectoryGridCollageTest : ComposeTest() {
         }
 
         composeTestRule.onNodeWithTag(TEST_TAG_FOLDER_PREVIEW_COLLAGE, useUnmergedTree = true).assertExists()
+    }
+
+    @Test
+    fun `directory without previewable children renders the folder fallback`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ProvideFolderPreviews({ flowOf(emptyList()) }) {
+                    Box(Modifier.size(200.dp)) {
+                        LookupItemGrid(
+                            item = MockDataProvider.createMockDirectory(name = "Docs"),
+                            density = ExplorerViewStyle.Density.COMFORTABLE,
+                            isSelected = false,
+                            onToggleSelection = {},
+                            onClick = {},
+                            showSelection = false,
+                        )
+                    }
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TEST_TAG_FOLDER_PREVIEW_COLLAGE, useUnmergedTree = true).assertDoesNotExist()
+        // The fallback has to cover the tile; at its intrinsic size it would sit under the top bar.
+        composeTestRule.onNodeWithTag(TEST_TAG_EXPLORER_GRID_THUMBNAIL, useUnmergedTree = true)
+            .assertExists()
+            .assertWidthIsEqualTo(200.dp)
+            .assertHeightIsEqualTo(200.dp)
     }
 
     @Test
