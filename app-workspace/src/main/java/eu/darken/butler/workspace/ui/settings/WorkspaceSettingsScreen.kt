@@ -455,6 +455,7 @@ private fun WorkspaceSettingsScreenPinnedLayoutPreview() {
         onSetLayoutModePortrait = {},
         onSetLayoutModeLandscape = {},
         onTogglePaneClickToFocus = {},
+        onSetRailButtonPlacement = {},
         onToggleSessionRestore = {},
         onToggleAutoPause = {},
         onSetAutoPauseIdleTimeout = {},
