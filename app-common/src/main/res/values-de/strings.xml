@@ -209,10 +209,10 @@
     <string name="general_error_cant_access_msg">Zugriff auf %s nicht möglich.</string>
     <string name="general_error_archive_not_seekable_msg">%s lässt sich nicht direkt durchsuchen: Der verwendete Speicher unterstützt nur sequenzielles Lesen, dieses Archivformat erfordert jedoch wahlfreien Zugriff.</string>
     <string name="general_error_root_unavailable">Root-Zugriff ist nicht verfügbar.</string>
-    <string name="general_error_elevated_access_required">Dieser Vorgang erfordert erweiterte Zugriffsrechte. Konfiguriere Root oder Shizuku in der Einrichtung.</string>
+    <string name="general_error_elevated_access_required">Dieser Vorgang erfordert erweiterte Zugriffsrechte. Konfiguriere Root-Zugriff oder ADB-Zugriff in der Einrichtung.</string>
     <string name="general_error_no_compatible_app_found_msg">Keine passende App für diese Anfrage gefunden.</string>
     <string name="general_error_ipc_deadobject_title">Verbindung zum Dienst verloren</string>
-    <string name="general_error_ipc_deadobject_description">Die Verbindung zu einem wichtigen Dienst (z. B. Magisk, Shizuku oder einem anderen Systemdienst) wurde unerwartet getrennt. Starte Dein Gerät bitte neu. Falls das Problem weiterhin auftritt, suche nach Updates oder melde Dich bei mir, damit ich es beheben kann.</string>
+    <string name="general_error_ipc_deadobject_description">Die Verbindung zu einem wichtigen Dienst (z. B. Magisk oder einem anderen Systemdienst) wurde unerwartet getrennt. Starte Dein Gerät bitte neu. Falls das Problem weiterhin auftritt, suche nach Updates oder melde Dich bei mir, damit ich es beheben kann.</string>
 
     <string name="ui_theme_mode_dark_label">Dunkel</string>
     <string name="ui_theme_mode_light_label">Hell</string>
@@ -227,7 +227,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">Nutzungsstatistiken</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB-Zugriff</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Benachrichtigungszugriff</string>
     <string name="setup_manage_storage_card_title">Externen Speicher verwalten</string>
@@ -287,6 +287,6 @@
     <string name="common_tip_multiple_panes">Nutze mehrere Bereiche, um Dateien nebeneinander zu vergleichen.</string>
     <string name="common_tip_different_folders">Öffne in jedem Bereich einen anderen Ordner, um Dateien einfach zu verwalten.</string>
     <string name="common_tip_switch_layouts">Wechsle die Anordnung der Bereiche in den Tab-Einstellungen.</string>
-    <string name="common_tip_elevated_access">Aktiviere Root oder Shizuku in der Einrichtung für erweiterte Dateivorgänge.</string>
+    <string name="common_tip_elevated_access">Aktiviere Root-Zugriff oder ADB-Zugriff in der Einrichtung für erweiterte Dateivorgänge.</string>
     <string name="common_tip_breadcrumb_home">Halte einen Abschnitt der Pfadleiste im Explorer gedrückt, um ihn als Dein Startverzeichnis festzulegen.</string>
 </resources>

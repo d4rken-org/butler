@@ -46,7 +46,7 @@ work = "2.11.2"
 billing = "8.3.0"
 play-review = "2.0.2"
 vico = "2.2.0"
-shizuku = "13.1.5"
+porter = "0.1.0"
 semver = "3.0.0"
 reorderable = "3.1.0"
 # Testing (versions used by buildSrc addTesting())
@@ -170,8 +170,7 @@ billing-ktx = { module = "com.android.billingclient:billing-ktx", version.ref = 
 play-review-core = { module = "com.google.android.play:review", version.ref = "play-review" }
 play-review-ktx = { module = "com.google.android.play:review-ktx", version.ref = "play-review" }
 vico-compose-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "vico" }
-shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "shizuku" }
-shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "shizuku" }
+porter-client = { module = "com.github.d4rken-org.porter-api:client", version.ref = "porter" }
 semver = { module = "io.github.z4kn4fein:semver", version.ref = "semver" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 screenshot-validation-api = { module = "com.android.tools.screenshot:screenshot-validation-api", version.ref = "screenshot" }

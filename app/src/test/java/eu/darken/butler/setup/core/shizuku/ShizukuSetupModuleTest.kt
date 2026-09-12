@@ -1,11 +1,16 @@
 package eu.darken.butler.setup.core.shizuku
 
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import eu.darken.butler.common.adb.AdbSettings
+import eu.darken.butler.common.adb.shizuku.AdbBackend
 import eu.darken.butler.common.adb.shizuku.ShizukuBaseServiceBinder
 import eu.darken.butler.common.adb.shizuku.ShizukuManager
 import eu.darken.butler.common.adb.shizuku.ShizukuServiceState
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.DataStoreValue
+import eu.darken.butler.common.pkgs.getLaunchIntent
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.root.RootManager
 import io.kotest.matchers.ints.shouldBeGreaterThan
@@ -14,6 +19,10 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,11 +39,11 @@ import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.flow.awaitSharingStopped
 import testhelpers.flow.test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class ShizukuSetupModuleTest : BaseTest() {
 
+    private val context: Context = mockk(relaxed = true)
+    private val packageManager: PackageManager = mockk(relaxed = true)
     private val adbSettings: AdbSettings = mockk()
     private val shizukuManager: ShizukuManager = mockk()
     private val rootManager: RootManager = mockk()
@@ -50,13 +59,18 @@ class ShizukuSetupModuleTest : BaseTest() {
         useShizukuFlow = MutableStateFlow(true)
         scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 
+        every { context.packageManager } returns packageManager
         every { adbSettings.useShizuku } returns useShizukuValue
         every { useShizukuValue.flow } returns useShizukuFlow
 
-        every { shizukuManager.shizukuPkgId } returns "moe.shizuku.privileged.api".toPkgId()
+        coEvery { shizukuManager.referenceManagerId() } returns "eu.darken.porter".toPkgId()
         every { shizukuManager.shizukuBinder } returns flowOf(null)
         every { shizukuManager.permissionGrantEvents } returns emptyFlow()
         coEvery { shizukuManager.getManagerId() } returns "moe.shizuku.privileged.api".toPkgId()
+        coEvery { shizukuManager.installedManagerIds() } returns emptySet()
+        coEvery { shizukuManager.activeManagerIds() } returns emptySet()
+        coEvery { shizukuManager.inactiveFamilyManagerId() } returns null
+        coEvery { shizukuManager.activeBackend() } returns AdbBackend.SHIZUKU
         coEvery { shizukuManager.isCompatible() } returns true
         coEvery { shizukuManager.isGranted() } returns true
         coEvery { shizukuManager.getServiceState() } coAnswers { probeCount++; ShizukuServiceState.Available }
@@ -71,7 +85,7 @@ class ShizukuSetupModuleTest : BaseTest() {
 
     private fun module(
         dispatchers: DispatcherProvider = TestDispatcherProvider(),
-    ) = ShizukuSetupModule(scope, dispatchers, adbSettings, shizukuManager, rootManager)
+    ) = ShizukuSetupModule(context, scope, dispatchers, adbSettings, shizukuManager, rootManager)
 
     @Test fun `first subscription emits Loading then Result`() {
         val mod = module()
@@ -156,6 +170,84 @@ class ShizukuSetupModuleTest : BaseTest() {
         runBlocking { collector.cancelAndJoin() }
     }
 
+    @Test fun `a manager for the other backend is reported as needing a restart`() {
+        // The active backend is latched per process, so its manager being absent while another one is
+        // installed is a state the user cannot leave from inside the app.
+        coEvery { shizukuManager.getManagerId() } returns null
+        coEvery { shizukuManager.inactiveFamilyManagerId() } returns PORTER
+
+        val mod = module()
+        val collector = mod.state.test(tag = "other", scope = scope)
+        collector.await { values, _ -> values.any { it is ShizukuSetupModule.Result } }
+
+        val result = collector.latestValues.last().shouldBeInstanceOf<ShizukuSetupModule.Result>()
+        result.isInstalled shouldBe false
+        result.otherManagerInstalled shouldBe true
+        result.restartRequiredFor shouldBe PORTER
+
+        runBlocking { collector.cancelAndJoin() }
+    }
+
+    /**
+     * The permission owner can be a manager with no launcher activity (Shizuku+'s Compat Hub owns the
+     * stock permission), so the open target has to be a sibling that can actually be started.
+     */
+    @Test fun `a launchable manager of the same family is preferred as the open target`() {
+        coEvery { shizukuManager.getManagerId() } returns COMPAT_HUB
+        coEvery { shizukuManager.activeManagerIds() } returns setOf(COMPAT_HUB, SHIZUKU_PLUS)
+        mockkStatic("eu.darken.butler.common.pkgs.PkgExtensionsKt")
+        every { COMPAT_HUB.getLaunchIntent(any()) } returns null
+        every { SHIZUKU_PLUS.getLaunchIntent(any()) } returns Intent()
+
+        val mod = module()
+        val collector = mod.state.test(tag = "openable", scope = scope)
+        collector.await { values, _ -> values.any { it is ShizukuSetupModule.Result } }
+
+        val result = collector.latestValues.last().shouldBeInstanceOf<ShizukuSetupModule.Result>()
+        result.isInstalled shouldBe true
+        result.pkg shouldBe SHIZUKU_PLUS
+
+        unmockkStatic("eu.darken.butler.common.pkgs.PkgExtensionsKt")
+        runBlocking { collector.cancelAndJoin() }
+    }
+
+    /**
+     * The label lookup runs outside the availability probe's handler, so an exception there would kill
+     * the sharing coroutine and strand every later subscriber on the state it died in.
+     */
+    @Test fun `a failing label lookup does not kill the state flow`() {
+        every { packageManager.getPackageInfo(any<String>(), any<Int>()) } throws RuntimeException("binder died")
+
+        val mod = module()
+        val collector = mod.state.test(tag = "label", scope = scope)
+        collector.await { values, _ -> values.any { it is ShizukuSetupModule.Result } }
+
+        val result = collector.latestValues.last().shouldBeInstanceOf<ShizukuSetupModule.Result>()
+        result.isInstalled shouldBe true
+        result.managerLabel shouldBe null
+
+        // Still live: a dead sharing coroutine would never serve another value.
+        runBlocking { mod.refresh() }
+        collector.await { values, _ -> values.count { it is ShizukuSetupModule.Result } > 1 }
+
+        runBlocking { collector.cancelAndJoin() }
+    }
+
+    @Test fun `no manager at all is not reported as needing a restart`() {
+        coEvery { shizukuManager.getManagerId() } returns null
+        coEvery { shizukuManager.inactiveFamilyManagerId() } returns null
+
+        val mod = module()
+        val collector = mod.state.test(tag = "none", scope = scope)
+        collector.await { values, _ -> values.any { it is ShizukuSetupModule.Result } }
+
+        val result = collector.latestValues.last().shouldBeInstanceOf<ShizukuSetupModule.Result>()
+        result.isInstalled shouldBe false
+        result.otherManagerInstalled shouldBe false
+
+        runBlocking { collector.cancelAndJoin() }
+    }
+
     @Test fun `a wedged pingBinder does not stall the state flow`() {
         // pingBinder() is a synchronous PING_TRANSACTION; a Shizuku server that is alive but not
         // servicing requests never answers it. Unbounded, that stalls the state combine and the setup
@@ -183,8 +275,10 @@ class ShizukuSetupModuleTest : BaseTest() {
             runBlocking { pingEntered.await() }
             val before = collector.latestValues.count { it is ShizukuSetupModule.Result }
 
-            val result = collector.await(timeout = 10_000) { values, _ ->
-                values.count { it is ShizukuSetupModule.Result } > before
+            // The emission itself has to be the Result: a snapshot-only condition can go true while
+            // await is inspecting the replayed Loading, and then hands that Loading back.
+            val result = collector.await(timeout = 10_000) { values, emission ->
+                emission is ShizukuSetupModule.Result && values.count { it is ShizukuSetupModule.Result } > before
             }
 
             result.shouldBeInstanceOf<ShizukuSetupModule.Result>().basicService shouldBe false
@@ -193,5 +287,11 @@ class ShizukuSetupModuleTest : BaseTest() {
         } finally {
             wedge.countDown()
         }
+    }
+
+    companion object {
+        private val PORTER = "eu.darken.porter".toPkgId()
+        private val COMPAT_HUB = "moe.shizuku.privileged.api".toPkgId()
+        private val SHIZUKU_PLUS = "af.shizuku.plus".toPkgId()
     }
 }

@@ -1,14 +1,21 @@
 package eu.darken.butler.setup.core
 
+import android.content.Context
 import android.content.Intent
+import androidx.core.net.toUri
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.pkgs.Pkg
+import eu.darken.butler.common.pkgs.getLaunchIntent
+import eu.darken.butler.common.pkgs.getSettingsIntent
 import eu.darken.butler.setup.core.inventory.InventorySetupModule
 import eu.darken.butler.setup.core.notification.NotificationSetupModule
 import eu.darken.butler.setup.core.root.RootSetupModule
+import eu.darken.butler.setup.core.shizuku.AdbManagerInstallGuide
 import eu.darken.butler.setup.core.shizuku.ShizukuSetupModule
 import eu.darken.butler.setup.core.storage.StorageSetupModule
 import eu.darken.butler.setup.core.usagestats.UsageStatsSetupModule
@@ -30,7 +37,9 @@ import kotlin.time.Instant
 
 @Singleton
 class SetupManager @Inject constructor(
+    @ApplicationContext private val context: Context,
     @AppScope private val appScope: CoroutineScope,
+    private val adbManagerInstallGuide: AdbManagerInstallGuide,
     setupModules: Set<@JvmSuppressWildcards SetupModule>,
 ) {
     private val modulesByType: Map<SetupModule.Type, SetupModule> = setupModules.associateBy { it.type }
@@ -134,6 +143,16 @@ class SetupManager @Inject constructor(
                 shizukuModule?.toggleUseShizuku(action.useShizuku)
                     ?: log(TAG, WARN) { "Module for $type is not a ShizukuSetupModule" }
             }
+            is SetupAction.OpenAdbManager -> {
+                // Not every manager exports a launcher entry; its app info page is still somewhere
+                // the user can act.
+                val intent = action.pkgId.getLaunchIntent(context) ?: action.pkgId.getSettingsIntent(context)
+                return PermissionResult(intent = intent)
+            }
+            SetupAction.InstallAdbManager -> {
+                val intent = Intent(Intent.ACTION_VIEW, adbManagerInstallGuide.url.toUri())
+                return PermissionResult(intent = intent)
+            }
         }
         return null
     }
@@ -151,6 +170,8 @@ sealed interface SetupAction {
     data object RequestPermission : SetupAction
     data class ToggleRoot(val useRoot: Boolean?) : SetupAction
     data class ToggleShizuku(val useShizuku: Boolean?) : SetupAction
+    data class OpenAdbManager(val pkgId: Pkg.Id) : SetupAction
+    data object InstallAdbManager : SetupAction
 }
 
 data class PermissionResult(

@@ -62,7 +62,7 @@
     <string name="shortcuts_settings_min_dialog_message">How many times a path must be accessed before appearing as a shortcut (1–10)</string>
 
     <string name="setup_usagestats_title">Usage stats</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB access</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Notification access</string>
     <string name="setup_manage_storage_card_title">Manage external storage</string>
@@ -73,7 +73,7 @@
     <string name="setup_help_description">Help</string>
 
     <string name="setup_root_description">Enables access to system files and protected directories for advanced file management. Unlocks Butler\'s full potential including app data access and system modifications. Device must be rooted.</string>
-    <string name="setup_shizuku_description">Alternative to root that provides privileged file operations through a secure API. Allows access to restricted directories without traditional root. Requires Shizuku app to be installed and running.</string>
+    <string name="setup_shizuku_description">Alternative to root that provides privileged file operations through a secure API. Allows access to restricted directories without traditional root. Requires Porter or Shizuku to be installed and running.</string>
     <string name="setup_notification_description">Shows updates for file operations, background tasks, and transfer progress. Keeps you informed when operations complete or errors occur.</string>
     <string name="setup_usagestats_description">Analyzes app storage usage to identify large files and help manage space effectively. All data stays on your device and is never transmitted.</string>
     <string name="setup_storage_description">Full access to all device storage for fast file operations and batch processing. Enables comprehensive file management without repeated permission prompts.</string>
@@ -82,7 +82,7 @@
     <string name="setup_grant_access_label">Grant access</string>
     <string name="setup_access_granted_label">Access granted</string>
     <string name="setup_use_root_label">Use root if available</string>
-    <string name="setup_use_shizuku_label">Use Shizuku if available</string>
+    <string name="setup_use_shizuku_label">Use ADB access if available</string>
 
     <string name="setup_status_checking">Checking…</string>
     <string name="setup_status_completed">Configured</string>
@@ -94,6 +94,11 @@
     <string name="setup_status_connecting">Connecting…</string>
     <string name="setup_status_connection_failed">Connection failed</string>
     <string name="setup_status_unavailable">Unavailable</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_restart_required">%1$s is installed, but Butler has to be fully closed and reopened before it can use it.</string>
+    <string name="setup_adb_status_connected_via">Connected via %1$s</string>
+    <string name="setup_adb_open_manager_action">Open %1$s</string>
+    <string name="setup_adb_install_manager_action">Install %1$s</string>
 
     <!-- Debug Log -->
     <string name="debug_notification_channel_label">Debug notifications</string>
@@ -260,6 +265,8 @@
     <string name="acknowledgement_librootjava_subtitle">Run Java (and Kotlin) code as root! (APACHE 2.0)</string>
     <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
     <string name="acknowledgement_librootkotlinx_subtitle">Run rooted Kotlin JVM code made easy with coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Gives Android apps ADB access through the Shizuku APIs, with optional root support. (APACHE 2.0)</string>
     <string name="acknowledgement_shizuku_title">Shizuku</string>
     <string name="acknowledgement_shizuku_subtitle">Using system APIs directly with adb/root privileges from normal apps through a Java process started with app_process. (APACHE 2.0)</string>
     <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>

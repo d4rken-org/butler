@@ -13,6 +13,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.setupCommonEventHandlers
+import eu.darken.porter.client.PorterClient
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
@@ -34,11 +35,17 @@ class ShizukuWrapper @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
 ) {
 
+    // Same reason as the seams below: PorterClient reads the package manager and latches its answer
+    // in a static, neither of which a JVM unit test can set up. Overridden in tests, never in
+    // production.
+    internal var activeBackendAction: () -> PorterClient.Backend = { PorterClient.getActiveBackend(context) }
+
     /**
-     * Packages that declare a Shizuku manager permission, in [MANAGER_PERMISSIONS] order.
+     * Every installed manager, across both the Porter and the Shizuku permission family, in
+     * [MANAGER_PERMISSIONS] order.
      *
-     * Detects Shizuku via its permissions instead of a fixed package name. The permission names are
-     * shared across Shizuku forks, so this keeps working when a fork hides its package from
+     * Detects a manager via its permissions instead of a fixed package name. The permission names
+     * are shared across Shizuku forks, so this keeps working when a fork hides its package from
      * enumeration ("Hide Shizuku from other apps") or ships under a different package name.
      * Permissions live in a global namespace, so the lookup isn't subject to the package-visibility
      * filtering that hides the app itself. Every name is tried because Shizuku+'s Plus flavor
@@ -48,8 +55,37 @@ class ShizukuWrapper @Inject constructor(
         MANAGER_PERMISSIONS.mapNotNull { resolvePermissionOwner(it) }.distinct()
     }
 
-    /** The manager package to treat as *the* Shizuku app, see [getManagerPackages]. */
-    suspend fun getManagerPackage(): String? = getManagerPackages().firstOrNull()
+    /**
+     * The backend the client SDK picked for this process.
+     *
+     * Latched by the SDK on first use, so it cannot change while the app runs. AUTO is never handed
+     * out (the SDK always resolves it to a concrete backend first) and is mapped defensively.
+     */
+    suspend fun activeBackend(): AdbBackend = withContext(dispatcherProvider.IO) {
+        when (activeBackendAction()) {
+            PorterClient.Backend.PORTER -> AdbBackend.PORTER
+            PorterClient.Backend.SHIZUKU, PorterClient.Backend.AUTO -> AdbBackend.SHIZUKU
+        }.also { log(TAG) { "activeBackend()=$it" } }
+    }
+
+    /**
+     * Every installed manager belonging to the backend we actually connect through.
+     *
+     * Deliberately without a cross-backend fallback: naming the other family's manager would claim
+     * a connection this process cannot make.
+     */
+    suspend fun getActiveManagerPackages(): List<String> {
+        val permissions = when (activeBackend()) {
+            AdbBackend.PORTER -> PORTER_PERMISSIONS
+            AdbBackend.SHIZUKU -> SHIZUKU_PERMISSIONS
+        }
+        return withContext(dispatcherProvider.IO) {
+            permissions.mapNotNull { resolvePermissionOwner(it) }.distinct()
+        }
+    }
+
+    /** The manager package to treat as *the* ADB manager app, see [getActiveManagerPackages]. */
+    suspend fun getManagerPackage(): String? = getActiveManagerPackages().firstOrNull()
 
     private fun resolvePermissionOwner(permission: String): String? = try {
         context.packageManager
@@ -198,8 +234,15 @@ class ShizukuWrapper @Inject constructor(
 
         private const val SHIZUKU_PLUS_PERMISSION = "af.shizuku.plus.permission.API_V23"
 
+        // Kept apart from the Shizuku family on purpose: the Porter manager removes the stock Shizuku
+        // permission rather than declaring it, so a Shizuku-family lookup can never resolve to it,
+        // and the active-backend lookup must not mix the two.
+        private val PORTER_PERMISSIONS = listOf(PorterClient.PERMISSION)
+
         // Prefer the stock permission owner when both permissions are declared.
-        private val MANAGER_PERMISSIONS = listOf(ShizukuProvider.PERMISSION, SHIZUKU_PLUS_PERMISSION)
+        private val SHIZUKU_PERMISSIONS = listOf(ShizukuProvider.PERMISSION, SHIZUKU_PLUS_PERMISSION)
+
+        private val MANAGER_PERMISSIONS = PORTER_PERMISSIONS + SHIZUKU_PERMISSIONS
 
         /**
          * Combined budget for the two binder round-trips behind [isGranted].

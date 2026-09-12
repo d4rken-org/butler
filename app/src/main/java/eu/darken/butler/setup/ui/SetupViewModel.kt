@@ -113,6 +113,10 @@ class SetupViewModel @AssistedInject constructor(
         }
     }
 
+    fun onPermissionIntentFailed(error: Throwable) {
+        errorEvents.tryEmit(error)
+    }
+
     fun openHelp(type: SetupModule.Type) = launch {
         log(tag) { "openHelp(type=$type)" }
         val helpUrl = getHelpUrl(type)

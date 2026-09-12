@@ -1,11 +1,14 @@
 package eu.darken.butler.setup.core.shizuku
 
+import android.content.Context
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import eu.darken.butler.common.adb.AdbSettings
+import eu.darken.butler.common.adb.shizuku.AdbBackend
 import eu.darken.butler.common.adb.shizuku.ShizukuBaseServiceBinder
 import eu.darken.butler.common.adb.shizuku.ShizukuManager
 import eu.darken.butler.common.adb.shizuku.ShizukuServiceState
@@ -14,13 +17,17 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.coroutine.runDetachedWithTimeout
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.pkgs.Pkg
+import eu.darken.butler.common.pkgs.getLabel2
+import eu.darken.butler.common.pkgs.getLaunchIntent
 import eu.darken.butler.common.rngString
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.setup.core.SetupModule
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -35,6 +42,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,6 +51,7 @@ import kotlin.time.Instant
 
 @Singleton
 class ShizukuSetupModule @Inject constructor(
+    @ApplicationContext private val context: Context,
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     private val adbSettings: AdbSettings,
@@ -94,10 +103,28 @@ class ShizukuSetupModule @Inject constructor(
         rootManager.useRoot,
     ) { _, useShizuku, useRoot ->
         val managerId = shizukuManager.getManagerId()
+        // The open action launches this package. The detected manager can be Shizuku+'s Compat Hub,
+        // which owns the stock permission but has no launcher activity, so prefer the first manager
+        // of the same family that can actually be opened. Stays inside the active backend: opening
+        // the other family's manager cannot affect the link we are waiting on.
+        val openable = managerId?.let {
+            withContext(dispatcherProvider.IO) {
+                shizukuManager.activeManagerIds().firstOrNull { pkg -> pkg.getLaunchIntent(context) != null }
+            }
+        }
+        val restartRequiredFor = when (managerId) {
+            null -> shizukuManager.inactiveFamilyManagerId()
+            else -> null
+        }
+        val pkg = openable ?: managerId ?: shizukuManager.referenceManagerId()
         val baseState = Result(
-            pkg = managerId ?: shizukuManager.shizukuPkgId,
+            pkg = pkg,
             useShizuku = useShizuku,
             isInstalled = managerId != null,
+            managerLabel = if (managerId != null) labelOf(pkg) else null,
+            backend = shizukuManager.activeBackend(),
+            restartRequiredFor = restartRequiredFor,
+            restartRequiredLabel = labelOf(restartRequiredFor),
             isCompatible = shizukuManager.isCompatible(),
             alsoHasRoot = useRoot,
         )
@@ -132,6 +159,22 @@ class ShizukuSetupModule @Inject constructor(
         }
         .onEach { log(TAG) { "New Shizuku setup state: $it" } }
         .replayingShare(appScope)
+
+    // Runs outside the probe's catch below, so it must not throw: getPackageInfo2 only converts
+    // NameNotFoundException, and anything else (a PackageManager binder death, a vendor
+    // SecurityException) would kill the sharing coroutine and take every later subscriber with it.
+    private suspend fun labelOf(pkgId: Pkg.Id?): String? = pkgId?.let {
+        withContext(dispatcherProvider.IO) {
+            try {
+                context.packageManager.getLabel2(it)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(TAG, WARN) { "labelOf($it) failed: ${e.asLog()}" }
+                null
+            }
+        }
+    }
 
     override suspend fun refresh() {
         log(TAG) { "refresh()" }
@@ -184,6 +227,18 @@ class ShizukuSetupModule @Inject constructor(
         val useShizuku: Boolean?,
         val isCompatible: Boolean = false,
         override val isInstalled: Boolean = false,
+        /** Display name of [pkg], null while no manager is installed. */
+        val managerLabel: String? = null,
+        val backend: AdbBackend = AdbBackend.SHIZUKU,
+        /**
+         * An installed manager of the OTHER family, unreachable until the app is fully restarted.
+         *
+         * The backend is resolved once per process, so this state only clears on a restart: nothing
+         * the user does inside the app can make it go away. Null in every other case.
+         */
+        val restartRequiredFor: Pkg.Id? = null,
+        /** What [restartRequiredFor] calls itself; callers fall back to [backend]'s other label. */
+        val restartRequiredLabel: String? = null,
         val basicService: Boolean = false,
         val serviceState: ShizukuServiceState = ShizukuServiceState.NotChecked,
         val alsoHasRoot: Boolean = false,
@@ -191,6 +246,9 @@ class ShizukuSetupModule @Inject constructor(
 
         val ourService: Boolean
             get() = serviceState is ShizukuServiceState.Available
+
+        val otherManagerInstalled: Boolean
+            get() = restartRequiredFor != null
 
         override val type: SetupModule.Type = SetupModule.Type.SHIZUKU
 

@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">Root access required to browse this location. Enable root access in Butler app settings.</string>
-    <string name="provider_documents_error_requires_adb">ADB/Shizuku access required to browse this location. Enable Shizuku in Butler app settings.</string>
+    <string name="provider_documents_error_requires_adb">ADB access required to browse this location. Enable it in Butler\'s setup.</string>
     <string name="provider_documents_error_requires_storage">Storage permission required to browse this location. Grant storage permission in Butler app settings.</string>
     <string name="provider_documents_error_requires_permissions">Additional permissions required to browse this location. Check Butler app settings.</string>
     <string name="provider_documents_error_generic">Unable to access this location. Check Butler app for access options.</string>
