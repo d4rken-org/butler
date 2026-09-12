@@ -35,7 +35,6 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.pkgs.container.toStub
-import eu.darken.butler.common.pkgs.getLabel2
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.setup.core.SetupAction
 import eu.darken.butler.setup.core.SetupItem
@@ -58,7 +57,7 @@ fun RootShizukuActions(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val managerLabel = rememberManagerLabel(shizukuState)
+        val managerLabel = shizukuState?.managerName
 
         // Connection status for Root/Shizuku
         val connectionStatus = when (item.type) {
@@ -186,21 +185,12 @@ fun RootShizukuActions(
 /**
  * Display name of the manager backing [state], null while none is installed.
  *
- * The module resolves this already; the lookup here only covers a Result built without one behind
- * it (previews, tests). Guarded because it runs on the UI thread and PackageManager can fail with
- * more than the missing-package case that [getLabel2] already absorbs.
+ * Resolution belongs to the module, which does it off the UI thread and absorbs a failing lookup.
+ * All that is left here is the backend's product name for when it came back with nothing: a package
+ * id is not a name to show anybody.
  */
-@Composable
-private fun rememberManagerLabel(state: ShizukuSetupModule.Result?): String? {
-    val context = LocalContext.current
-    val installed = state?.takeIf { it.isInstalled }
-    val pkg = installed?.pkg
-    val needsLookup = installed != null && installed.managerLabel == null
-    val resolved = remember(pkg, needsLookup) {
-        if (needsLookup) runCatching { context.packageManager.getLabel2(pkg!!) }.getOrNull() else null
-    }
-    return installed?.managerLabel ?: resolved ?: pkg?.name
-}
+private val ShizukuSetupModule.Result.managerName: String?
+    get() = takeIf { it.isInstalled }?.let { it.managerLabel ?: it.backend.label }
 
 @Composable
 private fun AdbManagerAction(
@@ -223,11 +213,11 @@ private fun AdbManagerAction(
                 modifier = Modifier.size(ButtonDefaults.IconSize),
             )
             Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
-            Text(text = stringResource(R.string.setup_adb_open_manager_action, label ?: state.pkg.name))
+            Text(text = stringResource(R.string.setup_adb_open_manager_action, label ?: state.backend.label))
         }
     } else {
         val guide = rememberAdbManagerInstallGuide()
-        val label = guide?.let { stringResource(it.labelRes) } ?: state.pkg.name
+        val label = guide?.let { stringResource(it.labelRes) } ?: state.backend.label
 
         OutlinedButton(
             modifier = modifier,

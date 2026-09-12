@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.R
+import eu.darken.butler.common.adb.shizuku.AdbBackend
 import eu.darken.butler.common.adb.shizuku.ShizukuServiceState
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.pkgs.toPkgId
@@ -117,6 +118,19 @@ class ShizukuSetupCardActionTest : ComposeTest() {
             .assertIsDisplayed()
         composeTestRule
             .onAllNodesWithText(context.getString(R.string.setup_status_connected))
+            .assertCountEquals(0)
+    }
+
+    /** A package id is not a name: an unreadable label falls back to the backend's product name. */
+    @Test
+    fun `an unreadable label falls back to the backend name, never the package id`() {
+        render(pkg = DEFAULT_MANAGER_PKG, isInstalled = true)
+
+        composeTestRule
+            .onNode(hasClickAction() and hasText(AdbBackend.SHIZUKU.label, substring = true))
+            .assertIsDisplayed()
+        composeTestRule
+            .onAllNodes(hasText(DEFAULT_MANAGER_PKG, substring = true))
             .assertCountEquals(0)
     }
 
