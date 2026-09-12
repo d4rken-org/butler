@@ -34,7 +34,7 @@ import eu.darken.butler.common.adb.shizuku.ShizukuServiceState
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.pkgs.getIcon2
+import eu.darken.butler.common.pkgs.container.toStub
 import eu.darken.butler.common.pkgs.getLabel2
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.setup.core.SetupAction
@@ -209,18 +209,16 @@ private fun AdbManagerAction(
     label: String?,
     onExecuteAction: (SetupAction) -> Unit,
 ) {
-    val context = LocalContext.current
-
     if (state.isInstalled) {
         OutlinedButton(
             modifier = modifier,
             onClick = { onExecuteAction(SetupAction.OpenAdbManager(state.pkg)) },
         ) {
             AsyncImage(
-                // Same guard as the label: a failed icon load is missing artwork, not a dead card.
-                model = remember(state.pkg) {
-                    runCatching { context.packageManager.getIcon2(state.pkg) }.getOrNull()
-                },
+                // Through Coil rather than a PackageManager call in composition: AppIconFetcher does
+                // the lookup off the UI thread behind the IPC funnel and substitutes a default icon
+                // when there is nothing to load.
+                model = remember(state.pkg) { state.pkg.toStub() },
                 contentDescription = null,
                 modifier = Modifier.size(ButtonDefaults.IconSize),
             )
