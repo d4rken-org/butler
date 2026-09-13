@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer
 
 import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -97,7 +98,8 @@ class ExplorerFavoritesController(
             is ExplorerFavoritesRepo.ToggleResult.Removed -> publish { id ->
                 FavoriteFeedback.Removed(
                     id = id,
-                    displayName = result.entry.path.userReadableName,
+                    // The name the row showed, so the bar confirms the same thing the user saw.
+                    displayName = result.entry.entry.label?.toCaString() ?: result.entry.path.userReadableName,
                     removed = listOf(result.entry),
                 )
             }
@@ -170,7 +172,9 @@ class ExplorerFavoritesController(
         publish { id ->
             FavoriteFeedback.Removed(
                 id = id,
-                displayName = displayName ?: removed.first().path.userReadableName,
+                displayName = displayName
+                    ?: removed.first().entry.label?.toCaString()
+                    ?: removed.first().path.userReadableName,
                 removed = removed,
             )
         }

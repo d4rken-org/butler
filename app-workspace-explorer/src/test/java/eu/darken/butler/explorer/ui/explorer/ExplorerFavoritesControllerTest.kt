@@ -72,6 +72,34 @@ class ExplorerFavoritesControllerTest : BaseTest() {
     }
 
     @Test
+    fun `removal feedback names a favorite by its label`() = runTest {
+        val repo = mockRepo()
+        coEvery { repo.removeAllForUndo(any()) } answers {
+            firstArg<List<APath<*>>>().map {
+                ExplorerFavoritesRepo.RemovedFavorite(FavoriteEntry(it, label = "My Tunes"), 0)
+            }
+        }
+        val controller = controller(repo = repo)
+
+        controller.removeAll(listOf(path("Music")))
+        runCurrent()
+
+        controller.feedback.value.shouldBeInstanceOf<FavoriteFeedback.Removed>()
+            .displayName.get(mockk()) shouldBe "My Tunes"
+    }
+
+    @Test
+    fun `removal feedback falls back to the folder name without a label`() = runTest {
+        val controller = controller()
+
+        controller.removeAll(listOf(path("Music")))
+        runCurrent()
+
+        controller.feedback.value.shouldBeInstanceOf<FavoriteFeedback.Removed>()
+            .displayName.get(mockk()) shouldBe "Music"
+    }
+
+    @Test
     fun `removeAll is ignored in picker mode`() = runTest {
         val controller = controller(isPickerActive = { true })
 
