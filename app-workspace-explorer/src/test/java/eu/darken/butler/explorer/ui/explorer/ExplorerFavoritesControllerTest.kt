@@ -42,13 +42,13 @@ class ExplorerFavoritesControllerTest : BaseTest() {
         coEvery { addAllAt(any()) } just Runs
     }
 
-    private val renameRequests = mutableListOf<Pair<APath<*>, String?>>()
+    private val renameRequests = mutableListOf<APath<*>>()
 
     private fun CoroutineScope.controller(
         repo: ExplorerFavoritesRepo = mockRepo(),
         isPickerActive: () -> Boolean = { false },
         revealFavorite: suspend (APath<*>) -> Unit = {},
-        showRenameDialog: (APath<*>, String?) -> Unit = { path, label -> renameRequests.add(path to label) },
+        showRenameDialog: (APath<*>) -> Unit = { path -> renameRequests.add(path) },
     ) = ExplorerFavoritesController(
         favoritesRepo = repo,
         scope = this,
@@ -304,7 +304,7 @@ class ExplorerFavoritesControllerTest : BaseTest() {
         controller.onFeedbackRename()
         runCurrent()
 
-        renameRequests.map { it.first.path } shouldContainExactly listOf(path("a").path)
+        renameRequests.map { it.path } shouldContainExactly listOf(path("a").path)
         controller.feedback.value shouldBe null
 
         // The cancelled timer must not fire a second dialog or clobber later feedback.

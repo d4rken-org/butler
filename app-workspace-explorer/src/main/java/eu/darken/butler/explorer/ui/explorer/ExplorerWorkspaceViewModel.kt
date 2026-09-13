@@ -217,7 +217,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         doLaunch = doLaunch,
         isPickerActive = { cachedPickerConfig != null },
         revealFavorite = { path -> navigation.revealFavorite(path) },
-        showRenameDialog = { path, label -> dialogs.show(FavoriteRename(path, label)) },
+        showRenameDialog = { path -> showFavoriteRenameDialog(path) },
         tag = tag,
     )
     private val favoritesSelection = ExplorerFavoritesSelectionController(
@@ -911,6 +911,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onFavoriteFeedbackRename() = favoritesController.onFeedbackRename()
 
+    /** Open the rename dialog pre-filled with the favorite's current label. */
+    private fun showFavoriteRenameDialog(path: APath<*>) {
+        val currentLabel = favoritesRepo.entries.value
+            .firstOrNull { it.path.matches(path) }
+            ?.label
+        dialogs.show(FavoriteRename(path, currentLabel))
+    }
+
     /** Confirmation of the favorite rename dialog; the path comes from the dialog that is showing. */
     fun onFavoriteRename(label: String?) = launch {
         val dialogState = dialogs.current() as? FavoriteRename ?: return@launch
@@ -1270,10 +1278,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 clearSelections()
             }
             is ExplorerActionBarItem.Common.RenameFavorite -> {
-                val currentLabel = favoritesRepo.entries.value
-                    .firstOrNull { it.path.matches(action.path) }
-                    ?.label
-                dialogs.show(FavoriteRename(action.path, currentLabel))
+                showFavoriteRenameDialog(action.path)
             }
             is ExplorerActionBarItem.Directory.ToggleFavoriteCurrent -> {
                 favoritesController.toggleCurrent(action.path)

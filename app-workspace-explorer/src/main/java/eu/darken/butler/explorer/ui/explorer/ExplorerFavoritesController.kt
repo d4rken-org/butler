@@ -33,7 +33,7 @@ class ExplorerFavoritesController(
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
     private val isPickerActive: () -> Boolean,
     private val revealFavorite: suspend (APath<*>) -> Unit,
-    private val showRenameDialog: (APath<*>, String?) -> Unit,
+    private val showRenameDialog: (APath<*>) -> Unit,
     private val tag: String,
 ) {
 
@@ -143,8 +143,7 @@ class ExplorerFavoritesController(
         log(tag) { "onFeedbackRename(): ${path.path}" }
         cancelTimeout(onlyFor = current.id)
         clearIfCurrent(current.id)
-        // A favorite that was just added cannot carry a label yet.
-        showRenameDialog(path, null)
+        showRenameDialog(path)
     }
 
     /**
