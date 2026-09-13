@@ -26,7 +26,7 @@
     <string name="upgrade_screen_restore_multiaccount_hint">Mehrere Konten können Google Play verwirren. Melde Dich von anderen Konten ab oder installiere die App über die Google-Play-Website. Dadurch wird sie einem bestimmten Konto zugeordnet.</string>
     <string name="upgrade_screen_restore_success_message">Dein Kauf wurde wiederhergestellt ❤️</string>
     <string name="upgrade_screen_restore_status_title">Status stimmt nicht?</string>
-    <string name="upgrade_screen_restore_status_body">Wenn Du Pro bereits gekauft hast, es aber nicht angezeigt wird, stelle Deinen Kauf wieder her.</string>
+    <string name="upgrade_screen_restore_status_body">Prüfe Deinen Kauf erneut bei Google Play. Das kann nach einem Gerätewechsel helfen oder wenn Du das Google-Konto gewechselt hast.</string>
 
     <string name="upgrade_screen_offers_or">oder</string>
 

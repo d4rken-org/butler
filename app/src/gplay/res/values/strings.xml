@@ -26,7 +26,7 @@
     <string name="upgrade_screen_restore_multiaccount_hint">Multiple accounts can confuse Google Play. Log out of other accounts or install through the Google Play website, which forces associations with a specific account.</string>
     <string name="upgrade_screen_restore_success_message">Your purchase was restored ❤️</string>
     <string name="upgrade_screen_restore_status_title">Status looks wrong?</string>
-    <string name="upgrade_screen_restore_status_body">If you already bought Pro but it isn\'t showing, restore your purchase.</string>
+    <string name="upgrade_screen_restore_status_body">Re-check your purchase with Google Play. This can help after a device change or if you switched Google accounts.</string>
 
     <string name="upgrade_screen_offers_or">or</string>
 
