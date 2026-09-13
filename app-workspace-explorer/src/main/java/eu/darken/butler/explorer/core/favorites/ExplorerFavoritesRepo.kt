@@ -170,7 +170,7 @@ class ExplorerFavoritesRepo @Inject constructor(
             }
         }
         if (matched) {
-            log(TAG, INFO) { "Label of ${path.name} is now ${cleaned != null}." }
+            log(TAG, INFO) { "Favorite ${path.name} ${if (cleaned != null) "named" else "unnamed"}." }
         } else {
             log(TAG, WARN) { "setLabel: ${path.name} is not a favorite." }
         }
