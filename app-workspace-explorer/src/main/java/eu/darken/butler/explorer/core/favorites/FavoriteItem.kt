@@ -1,5 +1,7 @@
 package eu.darken.butler.explorer.core.favorites
 
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 
@@ -12,11 +14,21 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
  * inline as a regular item with a bookmark badge, sorted to the top of its
  * parent's list. Keeping `FavoriteItem` outside the `ExplorerItem` hierarchy
  * means sort/filter/picker/selection logic never needs a special case for it.
+ *
+ * @param label the name the user gave this favorite; the folder on disk is not renamed by it.
  */
 data class FavoriteItem(
     val path: APath<*>,
     val state: State,
+    val label: String? = null,
 ) {
+    /** Custom label if the user set one, else the resolved name, else the raw path name. */
+    fun displayName(): CaString = when {
+        label != null -> label.toCaString()
+        state is State.Available -> state.item.displayName
+        else -> path.userReadableName
+    }
+
     val isAvailable: Boolean get() = state is State.Available
     val isResolving: Boolean get() = state is State.Resolving
     val isUnavailable: Boolean get() = state is State.Unavailable

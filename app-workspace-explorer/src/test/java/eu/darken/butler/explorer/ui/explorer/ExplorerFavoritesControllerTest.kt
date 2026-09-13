@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.explorer
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
+import eu.darken.butler.explorer.core.favorites.FavoriteEntry
 import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
 import io.kotest.matchers.collections.shouldContainExactly
@@ -38,7 +39,7 @@ class ExplorerFavoritesControllerTest : BaseTest() {
         coEvery { removeAllForUndo(any()) } answers {
             val paths = firstArg<List<APath<*>>>()
             removedIndex
-                ?.let { idx -> paths.map { ExplorerFavoritesRepo.RemovedFavorite(it, idx) } }
+                ?.let { idx -> paths.map { ExplorerFavoritesRepo.RemovedFavorite(FavoriteEntry(it), idx) } }
                 ?: emptyList()
         }
         coEvery { addAll(any()) } answers { firstArg() }
@@ -253,7 +254,7 @@ class ExplorerFavoritesControllerTest : BaseTest() {
             .paths.single().path shouldBe target.path
 
         coEvery { repo.toggle(target) } returns ExplorerFavoritesRepo.ToggleResult.Removed(
-            ExplorerFavoritesRepo.RemovedFavorite(target, 3)
+            ExplorerFavoritesRepo.RemovedFavorite(FavoriteEntry(target), 3)
         )
         controller.toggleCurrent(target)
         runCurrent()

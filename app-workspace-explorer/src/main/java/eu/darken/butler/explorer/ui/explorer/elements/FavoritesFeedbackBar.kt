@@ -27,6 +27,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
+import eu.darken.butler.explorer.core.favorites.FavoriteEntry
 import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
 import eu.darken.butler.common.R as CommonR
 
@@ -157,7 +158,7 @@ private fun FavoritesFeedbackBarRemovedPreview() {
                 displayName = "Pictures".toCaString(),
                 removed = listOf(
                     ExplorerFavoritesRepo.RemovedFavorite(
-                        path = LocalPath.build("/storage/emulated/0/Download/Pictures"),
+                        entry = FavoriteEntry(LocalPath.build("/storage/emulated/0/Download/Pictures")),
                         originalIndex = 0,
                     ),
                 ),

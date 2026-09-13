@@ -1,8 +1,11 @@
 package eu.darken.butler.explorer.core.favorites
 
 import android.content.Context
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
@@ -11,6 +14,7 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.serialization.SerializationCommonModule
 import eu.darken.butler.common.serialization.SerializationIOModule
 import eu.darken.butler.explorer.core.ExplorerSettings
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -43,20 +47,26 @@ class ExplorerFavoritesRepoTest : BaseTest() {
         override val Unconfined = Dispatchers.Unconfined
     }
 
+    /**
+     * One instance per test: Robolectric provides a fresh sandbox files dir, so the standard
+     * settings_explorer file is empty at start, and a second instance would open a second
+     * DataStore on the same file.
+     */
+    private fun freshSettings() = ExplorerSettings(context, json)
+
     private fun freshRepo(
         scope: CoroutineScope,
         gatewaySwitch: GatewaySwitch = mockk(relaxed = true),
-    ): ExplorerFavoritesRepo {
-        // Each test gets a unique settings instance so DataStore files don't collide.
-        // Robolectric provides a fresh sandbox files dir per test, so the standard
-        // settings_explorer file is empty at start.
-        val settings = ExplorerSettings(context, json)
-        return ExplorerFavoritesRepo(
-            appScope = scope,
-            dispatcherProvider = dispatcherProvider,
-            settings = settings,
-            gatewaySwitch = gatewaySwitch,
-        )
+        settings: ExplorerSettings = freshSettings(),
+    ): ExplorerFavoritesRepo = ExplorerFavoritesRepo(
+        appScope = scope,
+        dispatcherProvider = dispatcherProvider,
+        settings = settings,
+        gatewaySwitch = gatewaySwitch,
+    )
+
+    private suspend fun ExplorerSettings.writeRawEntries(raw: String) {
+        dataStore.edit { prefs -> prefs[stringPreferencesKey("explorer.favorites.entries")] = raw }
     }
 
     @Test
@@ -194,7 +204,7 @@ class ExplorerFavoritesRepoTest : BaseTest() {
         repo.addAll(listOf(other, path))
 
         repo.toggle(path) shouldBe ExplorerFavoritesRepo.ToggleResult.Removed(
-            ExplorerFavoritesRepo.RemovedFavorite(path, 1)
+            ExplorerFavoritesRepo.RemovedFavorite(FavoriteEntry(path), 1)
         )
         repo.favoritePaths.first { it.size == 1 }
         repo.isFavorite(path) shouldBe false
@@ -214,8 +224,8 @@ class ExplorerFavoritesRepoTest : BaseTest() {
         val removed = repo.removeAllForUndo(listOf(b, d, LocalPath.build("/p/missing")))
 
         removed shouldContainExactly listOf(
-            ExplorerFavoritesRepo.RemovedFavorite(b, 1),
-            ExplorerFavoritesRepo.RemovedFavorite(d, 3),
+            ExplorerFavoritesRepo.RemovedFavorite(FavoriteEntry(b), 1),
+            ExplorerFavoritesRepo.RemovedFavorite(FavoriteEntry(d), 3),
         )
         repo.favoritePaths.first { it.size == 2 } shouldContainExactly listOf(a, c)
     }
@@ -261,8 +271,8 @@ class ExplorerFavoritesRepoTest : BaseTest() {
 
         repo.addAllAt(
             listOf(
-                ExplorerFavoritesRepo.RemovedFavorite(a, 0),
-                ExplorerFavoritesRepo.RemovedFavorite(LocalPath.build("/p/c"), 99),
+                ExplorerFavoritesRepo.RemovedFavorite(FavoriteEntry(a), 0),
+                ExplorerFavoritesRepo.RemovedFavorite(FavoriteEntry(LocalPath.build("/p/c")), 99),
             )
         )
 
@@ -281,7 +291,7 @@ class ExplorerFavoritesRepoTest : BaseTest() {
         repo.addAll(listOf(a, b, c))
 
         val removed = repo.removeForUndo(b)
-        removed shouldBe ExplorerFavoritesRepo.RemovedFavorite(b, 1)
+        removed shouldBe ExplorerFavoritesRepo.RemovedFavorite(FavoriteEntry(b), 1)
         repo.favoritePaths.first { it.size == 2 } shouldContainExactly listOf(a, c)
     }
 
@@ -368,6 +378,196 @@ class ExplorerFavoritesRepoTest : BaseTest() {
         val resolved = repo.favorites.first { items -> items.any { it.isUnavailable } }
         resolved shouldHaveSize 1
         resolved.first().isUnavailable shouldBe true
+    }
+
+    @Test
+    fun `legacy paths are shown as unlabeled favorites while no entries are stored`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val settings = freshSettings()
+        val a = LocalPath.build("/p/a")
+        val b = LocalPath.build("/p/b")
+        settings.favoritePaths.value(listOf(a, b))
+
+        val repo = freshRepo(scope, settings = settings)
+
+        repo.entries.first { it.size == 2 } shouldContainExactly listOf(FavoriteEntry(a), FavoriteEntry(b))
+        repo.favoritePaths.first { it.size == 2 } shouldContainExactly listOf(a, b)
+    }
+
+    @Test
+    fun `the first mutation persists the legacy list alongside the new entry`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val settings = freshSettings()
+        val a = LocalPath.build("/p/a")
+        val b = LocalPath.build("/p/b")
+        settings.favoritePaths.value(listOf(a, b))
+
+        val repo = freshRepo(scope, settings = settings)
+        repo.entries.first { it.size == 2 }
+
+        val c = LocalPath.build("/p/c")
+        repo.add(c)
+
+        settings.favoriteEntries.value()!! shouldContainExactly listOf(
+            FavoriteEntry(a),
+            FavoriteEntry(b),
+            FavoriteEntry(c),
+        )
+    }
+
+    /** The hot cache starts empty, so a mutation that beats it must not read the list from it. */
+    @Test
+    fun `a mutation before the cache has emitted still keeps every legacy favorite`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val settings = freshSettings()
+        val a = LocalPath.build("/p/a")
+        val b = LocalPath.build("/p/b")
+        settings.favoritePaths.value(listOf(a, b))
+
+        val repo = freshRepo(scope, settings = settings)
+        // No wait for the cache: add() is the very first thing this repo does.
+        repo.add(LocalPath.build("/p/c"))
+
+        settings.favoriteEntries.value()!!.map { it.path } shouldContainExactly listOf(
+            a,
+            b,
+            LocalPath.build("/p/c"),
+        )
+    }
+
+    @Test
+    fun `a stored empty list wins over the legacy paths`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val settings = freshSettings()
+        settings.favoritePaths.value(listOf(LocalPath.build("/p/a")))
+        settings.favoriteEntries.value(emptyList())
+
+        val repo = freshRepo(scope, settings = settings)
+        repo.entries.first().shouldBeEmpty()
+
+        // A deliberate clear stays cleared: the next mutation must not fold the legacy list back in.
+        val c = LocalPath.build("/p/c")
+        repo.add(c)
+
+        settings.favoriteEntries.value()!! shouldContainExactly listOf(FavoriteEntry(c))
+    }
+
+    @Test
+    fun `malformed entry storage starts empty instead of resurrecting the legacy paths`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val settings = freshSettings()
+        settings.favoritePaths.value(listOf(LocalPath.build("/p/a")))
+        settings.writeRawEntries("{not json")
+
+        val repo = freshRepo(scope, settings = settings)
+        repo.entries.first().shouldBeEmpty()
+
+        val c = LocalPath.build("/p/c")
+        repo.add(c)
+
+        settings.favoriteEntries.value()!! shouldContainExactly listOf(FavoriteEntry(c))
+    }
+
+    @Test
+    fun `an unknown path type in entry storage starts empty`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val settings = freshSettings()
+        settings.favoritePaths.value(listOf(LocalPath.build("/p/a")))
+        settings.writeRawEntries("""[{"path":{"type":"NOPE","path":"/p/x"}}]""")
+
+        val repo = freshRepo(scope, settings = settings)
+        repo.entries.first().shouldBeEmpty()
+
+        val c = LocalPath.build("/p/c")
+        repo.add(c)
+
+        settings.favoriteEntries.value()!! shouldContainExactly listOf(FavoriteEntry(c))
+    }
+
+    @Test
+    fun `setLabel - round-trips the label for the matching entry only`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val repo = freshRepo(scope)
+
+        val a = LocalPath.build("/p/a")
+        val b = LocalPath.build("/p/b")
+        repo.addAll(listOf(a, b))
+
+        repo.setLabel(a, "Camera roll")
+
+        repo.entries.first { it.any { entry -> entry.label != null } } shouldContainExactly listOf(
+            FavoriteEntry(a, "Camera roll"),
+            FavoriteEntry(b),
+        )
+    }
+
+    @Test
+    fun `setLabel - a blank label clears the entry back to the folder name`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val repo = freshRepo(scope)
+
+        val a = LocalPath.build("/p/a")
+        repo.add(a)
+        repo.setLabel(a, "Camera roll")
+        repo.entries.first { it.singleOrNull()?.label != null }
+
+        repo.setLabel(a, "   ")
+
+        repo.entries.first { it.singleOrNull()?.label == null } shouldContainExactly listOf(FavoriteEntry(a))
+    }
+
+    @Test
+    fun `setLabel - an unfavorited path is a no-op, never an insert`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val repo = freshRepo(scope)
+
+        val a = LocalPath.build("/p/a")
+        repo.add(a)
+        repo.entries.first { it.isNotEmpty() }
+
+        repo.setLabel(LocalPath.build("/p/missing"), "Nope")
+
+        repo.entries.first() shouldContainExactly listOf(FavoriteEntry(a))
+    }
+
+    @Test
+    fun `removeAllForUndo + addAllAt - restores the label along with the position`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val repo = freshRepo(scope)
+
+        val a = LocalPath.build("/p/a")
+        val b = LocalPath.build("/p/b")
+        val c = LocalPath.build("/p/c")
+        repo.addAll(listOf(a, b, c))
+        repo.setLabel(b, "Middle one")
+
+        val removed = repo.removeAllForUndo(listOf(b))
+        removed.single().entry shouldBe FavoriteEntry(b, "Middle one")
+
+        repo.addAllAt(removed)
+
+        repo.entries.first { it.size == 3 } shouldContainExactly listOf(
+            FavoriteEntry(a),
+            FavoriteEntry(b, "Middle one"),
+            FavoriteEntry(c),
+        )
+    }
+
+    @Test
+    fun `favoritePaths stays in step with the entries`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val repo = freshRepo(scope)
+
+        val a = LocalPath.build("/p/a")
+        val b = LocalPath.build("/p/b")
+        repo.addAll(listOf(a, b))
+        repo.setLabel(a, "Labeled")
+        repo.entries.first { it.size == 2 }
+
+        repo.favoritePaths.first { it.size == 2 } shouldContainExactly listOf(a, b)
+
+        repo.remove(a)
+        repo.favoritePaths.first { it.size == 1 } shouldContainExactly listOf(b)
     }
 
     @Test

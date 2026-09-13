@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.core.favorites
 
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
@@ -25,15 +26,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Holds the user-curated list of favorite paths and resolves them against the gateway.
+ * Holds the user-curated list of favorites and resolves them against the gateway.
  *
- * - The raw path list is persisted via [ExplorerSettings.favoritePaths].
+ * - Entries are persisted via [ExplorerSettings.favoriteEntries], each carrying the path and the
+ *   optional name the user gave it. A list stored before labels existed still lives in
+ *   [ExplorerSettings.favoritePaths] and is coalesced in until the first mutation rewrites it.
  * - [favorites] exposes the same list resolved into [FavoriteItem]s with
  *   `Resolving` / `Available` / `Unavailable` state.
  * - [favoritePaths] is the hot in-memory cache used by [isFavorite] for synchronous
@@ -52,8 +56,17 @@ class ExplorerFavoritesRepo @Inject constructor(
 
     private val classifier = FileTypeClassifier()
 
-    /** Hot in-memory cache of raw favorite paths. Backs synchronous [isFavorite]. */
-    val favoritePaths: StateFlow<List<APath<*>>> = settings.favoritePaths.flow
+    /** Hot in-memory cache of the stored entries, with the pre-label list as the fallback. */
+    val entries: StateFlow<List<FavoriteEntry>> = combine(
+        settings.favoriteEntries.flow,
+        settings.favoritePaths.flow,
+    ) { entries, legacyPaths ->
+        entries ?: legacyPaths.map { FavoriteEntry(it) }
+    }.stateIn(appScope, SharingStarted.Eagerly, emptyList())
+
+    /** Backs synchronous [isFavorite]. */
+    val favoritePaths: StateFlow<List<APath<*>>> = entries
+        .map { list -> list.map { it.path } }
         .stateIn(appScope, SharingStarted.Eagerly, emptyList())
 
     private val refreshTrigger = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
@@ -61,18 +74,18 @@ class ExplorerFavoritesRepo @Inject constructor(
     /**
      * Resolved view of the favorites list. Emits placeholder [FavoriteItem.State.Resolving]
      * entries first, then the fully resolved list. Stale resolutions are cancelled when
-     * paths change or [refresh] is called.
+     * entries change or [refresh] is called.
      */
     val favorites: StateFlow<List<FavoriteItem>> = combine(
-        favoritePaths,
+        entries,
         refreshTrigger,
-    ) { paths, _ -> paths }
-        .flatMapLatest { paths ->
+    ) { current, _ -> current }
+        .flatMapLatest { current ->
             flow {
-                emit(paths.map { FavoriteItem(it, FavoriteItem.State.Resolving) })
+                emit(current.map { FavoriteItem(it.path, FavoriteItem.State.Resolving, it.label) })
                 val resolved = supervisorScope {
-                    paths.map { path ->
-                        async(dispatcherProvider.IO) { resolveOne(path) }
+                    current.map { entry ->
+                        async(dispatcherProvider.IO) { resolveOne(entry) }
                     }.awaitAll()
                 }
                 emit(resolved)
@@ -80,17 +93,34 @@ class ExplorerFavoritesRepo @Inject constructor(
         }
         .stateIn(appScope, SharingStarted.WhileSubscribed(5_000L), emptyList())
 
-    private suspend fun resolveOne(path: APath<*>): FavoriteItem = try {
-        val lookup = gatewaySwitch.lookup(path, LookupOptions.BASE)
+    private suspend fun resolveOne(entry: FavoriteEntry): FavoriteItem = try {
+        val lookup = gatewaySwitch.lookup(entry.path, LookupOptions.BASE)
         val classified = classifier.classify(lookup)
-        FavoriteItem(path, FavoriteItem.State.Available(classified))
+        FavoriteItem(entry.path, FavoriteItem.State.Available(classified), entry.label)
     } catch (e: CancellationException) {
         // Re-throw cancellation so flatMapLatest's stale-resolve cancellation works correctly.
         throw e
     } catch (e: ReadException) {
         // Use path.name (not path.path) to avoid leaking sensitive folder names in logs.
-        log(TAG, WARN) { "Favorite path unavailable: ${path.name} - ${e.asLog()}" }
-        FavoriteItem(path, FavoriteItem.State.Unavailable(e))
+        log(TAG, WARN) { "Favorite path unavailable: ${entry.path.name} - ${e.asLog()}" }
+        FavoriteItem(entry.path, FavoriteItem.State.Unavailable(e), entry.label)
+    }
+
+    /**
+     * Single write path for the entry list.
+     *
+     * The DataStore update transform only sees its own key, so the pre-label list is
+     * necessarily read before the transaction. That is safe because nothing writes
+     * `explorer.favorites.paths` any more — it is read-only from here on. Reading it straight
+     * from settings rather than from the [favoritePaths] cache is mandatory: that cache starts
+     * empty and is itself derived from the entries, so a first mutation before it has emitted
+     * would persist only the new entry and drop every pre-upgrade favorite for good.
+     */
+    private suspend fun mutate(transform: (List<FavoriteEntry>) -> List<FavoriteEntry>) {
+        val legacyPaths = settings.favoritePaths.value()
+        settings.favoriteEntries.update { current ->
+            transform(current ?: legacyPaths.map { FavoriteEntry(it) })
+        }
     }
 
     fun isFavorite(path: APath<*>): Boolean = favoritePaths.value.any { it.matches(path) }
@@ -100,14 +130,14 @@ class ExplorerFavoritesRepo @Inject constructor(
     /** @return the paths that were actually added; entries already favorited are skipped. */
     suspend fun addAll(paths: List<APath<*>>): List<APath<*>> {
         var added = emptyList<APath<*>>()
-        settings.favoritePaths.update { current ->
+        mutate { current ->
             // Dedupe against existing storage AND against earlier entries in this batch.
             val deduped = paths.fold(emptyList<APath<*>>()) { acc, incoming ->
-                if (current.any { it.matches(incoming) } || acc.any { it.matches(incoming) }) acc
+                if (current.any { it.path.matches(incoming) } || acc.any { it.matches(incoming) }) acc
                 else acc + incoming
             }
             added = deduped
-            current + deduped
+            current + deduped.map { FavoriteEntry(it) }
         }
         log(TAG, INFO) { "Added ${added.size} favorite(s)." }
         return added
@@ -116,10 +146,34 @@ class ExplorerFavoritesRepo @Inject constructor(
     suspend fun remove(path: APath<*>) = removeAll(listOf(path))
 
     suspend fun removeAll(paths: List<APath<*>>) {
-        settings.favoritePaths.update { current ->
-            current.filterNot { existing -> paths.any { it.matches(existing) } }
+        mutate { current ->
+            current.filterNot { existing -> paths.any { it.matches(existing.path) } }
         }
         log(TAG, INFO) { "Removed up to ${paths.size} favorite(s)." }
+    }
+
+    /**
+     * Give a favorite its own display name. A blank [label] clears it back to the folder's name,
+     * a path that is not favorited is a no-op — this never inserts.
+     */
+    suspend fun setLabel(path: APath<*>, label: String?) {
+        val cleaned = label?.trim()?.takeIf { it.isNotEmpty() }
+        var matched = false
+        mutate { current ->
+            val idx = current.indexOfFirst { it.path.matches(path) }
+            // Assigned on every invocation, see removeAllForUndo.
+            matched = idx >= 0
+            if (idx < 0) {
+                current
+            } else {
+                current.toMutableList().apply { this[idx] = this[idx].copy(label = cleaned) }
+            }
+        }
+        if (matched) {
+            log(TAG, INFO) { "Label of ${path.name} is now ${cleaned != null}." }
+        } else {
+            log(TAG, WARN) { "setLabel: ${path.name} is not a favorite." }
+        }
     }
 
     suspend fun removeForUndo(path: APath<*>): RemovedFavorite? = removeAllForUndo(listOf(path)).firstOrNull()
@@ -133,10 +187,10 @@ class ExplorerFavoritesRepo @Inject constructor(
      */
     suspend fun removeAllForUndo(paths: List<APath<*>>): List<RemovedFavorite> {
         var removed = emptyList<RemovedFavorite>()
-        settings.favoritePaths.update { current ->
+        mutate { current ->
             val hits = current
                 .mapIndexedNotNull { idx, existing ->
-                    if (paths.any { it.matches(existing) }) RemovedFavorite(existing, idx) else null
+                    if (paths.any { it.matches(existing.path) }) RemovedFavorite(existing, idx) else null
                 }
             // Assigned on every invocation: the transform may run more than once, and only the
             // committed run's captures may survive as the undo payload.
@@ -153,7 +207,7 @@ class ExplorerFavoritesRepo @Inject constructor(
         return removed
     }
 
-    suspend fun addAt(path: APath<*>, index: Int) = addAllAt(listOf(RemovedFavorite(path, index)))
+    suspend fun addAt(path: APath<*>, index: Int) = addAllAt(listOf(RemovedFavorite(FavoriteEntry(path), index)))
 
     /**
      * Re-insert [entries] at their captured positions. Used by undo to restore
@@ -163,11 +217,11 @@ class ExplorerFavoritesRepo @Inject constructor(
      */
     suspend fun addAllAt(entries: List<RemovedFavorite>) {
         if (entries.isEmpty()) return
-        settings.favoritePaths.update { current ->
+        mutate { current ->
             val restored = current.toMutableList()
             entries.sortedBy { it.originalIndex }.forEach { entry ->
-                if (restored.none { it.matches(entry.path) }) {
-                    restored.add(entry.originalIndex.coerceIn(0, restored.size), entry.path)
+                if (restored.none { it.path.matches(entry.path) }) {
+                    restored.add(entry.originalIndex.coerceIn(0, restored.size), entry.entry)
                 }
             }
             restored
@@ -182,20 +236,20 @@ class ExplorerFavoritesRepo @Inject constructor(
      */
     suspend fun toggle(path: APath<*>): ToggleResult {
         var result: ToggleResult = ToggleResult.Added(path)
-        settings.favoritePaths.update { current ->
-            val idx = current.indexOfFirst { it.matches(path) }
+        mutate { current ->
+            val idx = current.indexOfFirst { it.path.matches(path) }
             if (idx >= 0) {
                 result = ToggleResult.Removed(RemovedFavorite(current[idx], idx))
                 current.toMutableList().apply { removeAt(idx) }
             } else {
                 result = ToggleResult.Added(path)
-                current + path
+                current + FavoriteEntry(path)
             }
         }
         return result
     }
 
-    /** Re-runs the resolver pass for the existing path list. */
+    /** Re-runs the resolver pass for the existing entries. */
     suspend fun refresh() {
         log(TAG) { "refresh()" }
         refreshTrigger.emit(Unit)
@@ -208,9 +262,11 @@ class ExplorerFavoritesRepo @Inject constructor(
 
     /**
      * Capture of a favorite that was removed via [removeAllForUndo], suitable for restoring
-     * via [addAllAt] at the original position.
+     * via [addAllAt] at the original position — label included, so undo puts back what was there.
      */
-    data class RemovedFavorite(val path: APath<*>, val originalIndex: Int)
+    data class RemovedFavorite(val entry: FavoriteEntry, val originalIndex: Int) {
+        val path: APath<*> get() = entry.path
+    }
 
     companion object {
         private val TAG = logTag("Explorer", "FavoritesRepo")
