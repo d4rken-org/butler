@@ -52,6 +52,7 @@ import eu.darken.butler.common.compose.ButlerAppTitle
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.ButlerTip
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -232,6 +233,7 @@ fun TemplatesWorkspacePage(
                     },
                 )
             }
+            item { ButlerTip() }
         }
 
         // Floating settings card with gradient fades.
