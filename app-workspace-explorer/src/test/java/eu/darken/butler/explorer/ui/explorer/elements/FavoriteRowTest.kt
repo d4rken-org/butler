@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.elements
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performSemanticsAction
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -73,6 +74,22 @@ class FavoriteRowTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         composeTestRule.runOnIdle { taps.clicks shouldBe 0 }
+    }
+
+    @Test
+    fun `a selected favorite reports its selection state`() {
+        setRow(isSelectionMode = true)
+
+        val node = composeTestRule.onNodeWithTag(ROW_TAG).fetchSemanticsNode()
+        node.config[SemanticsProperties.Selected] shouldBe true
+    }
+
+    @Test
+    fun `an unselected favorite reports its selection state`() {
+        setRow(isSelectionMode = false)
+
+        val node = composeTestRule.onNodeWithTag(ROW_TAG).fetchSemanticsNode()
+        node.config[SemanticsProperties.Selected] shouldBe false
     }
 
     companion object {

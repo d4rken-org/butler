@@ -36,6 +36,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -191,6 +193,7 @@ fun FavoriteRow(
     // Always the real path: with a custom name as the title it is the only thing that tells two
     // favorites apart, so neither resolving nor unavailable may take its place.
     val subtitle = favorite.path.userReadablePath.get(context)
+    val selectActionLabel = stringResource(R.string.explorer_favorites_select_action)
 
     // Same reveal tint the file rows use, see FileRowBase.
     val highlightColor by animateColorAsState(
@@ -220,8 +223,11 @@ fun FavoriteRow(
                 // favorite whose lookup never completes must still be selectable, and with that
                 // removable. Only navigation waits for a resolved item.
                 onClick = { if (isSelectionMode || !isResolving) onClick() },
+                onClickLabel = if (isSelectionMode) selectActionLabel else null,
                 onLongClick = onLongClick,
+                onLongClickLabel = selectActionLabel,
             )
+            .semantics { selected = isSelected }
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
