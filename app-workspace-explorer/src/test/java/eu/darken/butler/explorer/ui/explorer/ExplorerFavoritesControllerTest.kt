@@ -5,7 +5,6 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.core.favorites.FavoriteEntry
 import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
-import eu.darken.butler.explorer.core.favorites.FavoriteItem
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -31,11 +30,6 @@ import kotlin.time.Duration.Companion.seconds
 class ExplorerFavoritesControllerTest : BaseTest() {
 
     private fun path(name: String) = LocalPath.build(File("/tmp/fav-test", name))
-
-    private fun favorite(name: String) = FavoriteItem(
-        path = path(name),
-        state = FavoriteItem.State.Resolving,
-    )
 
     private fun mockRepo(removedIndex: Int? = 2): ExplorerFavoritesRepo = mockk<ExplorerFavoritesRepo>().apply {
         coEvery { removeAllForUndo(any()) } answers {
@@ -66,10 +60,10 @@ class ExplorerFavoritesControllerTest : BaseTest() {
     )
 
     @Test
-    fun `removeFromHome queues an undo prompt with the original index`() = runTest {
+    fun `removeAll queues an undo prompt with the original index`() = runTest {
         val controller = controller()
 
-        controller.removeFromHome(favorite("docs"))
+        controller.removeAll(listOf(path("docs")))
         runCurrent()
 
         val removed = controller.feedback.value.shouldBeInstanceOf<FavoriteFeedback.Removed>()
@@ -78,10 +72,10 @@ class ExplorerFavoritesControllerTest : BaseTest() {
     }
 
     @Test
-    fun `removeFromHome is ignored in picker mode`() = runTest {
+    fun `removeAll is ignored in picker mode`() = runTest {
         val controller = controller(isPickerActive = { true })
 
-        controller.removeFromHome(favorite("docs"))
+        controller.removeAll(listOf(path("docs")))
         runCurrent()
 
         controller.feedback.value shouldBe null
@@ -91,7 +85,7 @@ class ExplorerFavoritesControllerTest : BaseTest() {
     fun `feedback expires after the timeout`() = runTest {
         val controller = controller()
 
-        controller.removeFromHome(favorite("docs"))
+        controller.removeAll(listOf(path("docs")))
         runCurrent()
         controller.feedback.value shouldNotBe null
 
@@ -105,13 +99,13 @@ class ExplorerFavoritesControllerTest : BaseTest() {
     fun `newer feedback supersedes the pending one and survives the stale timer`() = runTest {
         val controller = controller()
 
-        controller.removeFromHome(favorite("first"))
+        controller.removeAll(listOf(path("first")))
         runCurrent()
         val first = controller.feedback.value!!
 
         // Stagger the second removal so the two timer windows don't coincide.
         advanceTimeBy(2.seconds)
-        controller.removeFromHome(favorite("second"))
+        controller.removeAll(listOf(path("second")))
         runCurrent()
         val second = controller.feedback.value!!
         second.id shouldNotBe first.id
@@ -135,7 +129,7 @@ class ExplorerFavoritesControllerTest : BaseTest() {
         val repo = mockRepo(removedIndex = 7)
         val controller = controller(repo = repo)
 
-        controller.removeFromHome(favorite("docs"))
+        controller.removeAll(listOf(path("docs")))
         runCurrent()
 
         controller.onFeedbackAction()
@@ -158,7 +152,7 @@ class ExplorerFavoritesControllerTest : BaseTest() {
         coEvery { repo.addAllAt(any()) } coAnswers { restoreGate.await() }
         val controller = controller(repo = repo)
 
-        controller.removeFromHome(favorite("old"))
+        controller.removeAll(listOf(path("old")))
         runCurrent()
         // Undo starts but hangs inside the storage write.
         controller.onFeedbackAction()
@@ -183,12 +177,12 @@ class ExplorerFavoritesControllerTest : BaseTest() {
     fun `removal of an untracked path clears any stale feedback`() = runTest {
         val trackedRepo = mockRepo(removedIndex = 1)
         val controller = controller(repo = trackedRepo)
-        controller.removeFromHome(favorite("tracked"))
+        controller.removeAll(listOf(path("tracked")))
         runCurrent()
         controller.feedback.value shouldNotBe null
 
         coEvery { trackedRepo.removeAllForUndo(any()) } returns emptyList()
-        controller.removeFromHome(favorite("untracked"))
+        controller.removeAll(listOf(path("untracked")))
         runCurrent()
 
         controller.feedback.value shouldBe null
@@ -199,7 +193,7 @@ class ExplorerFavoritesControllerTest : BaseTest() {
         val repo = mockRepo()
         val controller = controller(repo = repo)
 
-        controller.removeFromHome(favorite("docs"))
+        controller.removeAll(listOf(path("docs")))
         runCurrent()
         controller.feedback.value shouldNotBe null
 
@@ -295,7 +289,7 @@ class ExplorerFavoritesControllerTest : BaseTest() {
     fun `renaming is not offered for removal feedback`() = runTest {
         val controller = controller()
 
-        controller.removeFromHome(favorite("docs"))
+        controller.removeAll(listOf(path("docs")))
         runCurrent()
 
         controller.onFeedbackRename()

@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.ui.explorer.util
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.explorer.core.ExplorerViewStyle
@@ -18,10 +19,10 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
  * - Paste (Ctrl+V): Paste from clipboard
  * - SelectAll (Ctrl+A): Select all items
  * - New (Ctrl+N): Create new file/directory
- * - Delete (Delete): Delete selected/focused items (to trash if enabled)
+ * - Delete (Delete): Delete selected/focused items (to trash if enabled), or remove selected favorites
  * - Shift+Delete: Permanently delete selected/focused items (bypass trash)
  * - Escape: Clear focus and selection
- * - F2: Rename focused/selected item
+ * - F2: Rename focused/selected item, or name a single selected favorite
  * - Enter: Open/navigate to focused/selected item
  * - Backspace: Go to parent directory
  * - Arrow Up/Down: Navigate focus (list view)
@@ -33,6 +34,7 @@ fun Modifier.explorerKeyboardShortcuts(
     availableActions: List<ExplorerActionBarItem>,
     clipboardEntries: List<ClipboardClip>,
     selectedItems: Set<ExplorerItem>,
+    favoriteSelection: Set<APath<*>>,
     focusedItem: ExplorerItem?,
     viewStyle: ExplorerViewStyle,
     gridColumns: Int,
@@ -91,7 +93,12 @@ fun Modifier.explorerKeyboardShortcuts(
             val deleteAction = availableActions
                 .filterIsInstance<ExplorerActionBarItem.Directory.Delete>()
                 .firstOrNull()
+            val removeFavorites = availableActions
+                .filterIsInstance<ExplorerActionBarItem.Common.RemoveFromFavorites>()
+                .firstOrNull()
             when {
+                // A favorite selection is a bookmark selection: Delete un-favorites, it deletes nothing
+                favoriteSelection.isNotEmpty() && removeFavorites != null -> onExecuteAction(removeFavorites)
                 // If Delete action is available (selection mode), use it
                 deleteAction != null && deleteAction.isEnabled -> onExecuteAction(deleteAction)
                 // If there's a focused item, delete it directly
@@ -113,14 +120,19 @@ fun Modifier.explorerKeyboardShortcuts(
         on(KeyboardShortcut.Escape) {
             when {
                 focusedItem != null -> onClearFocus()
-                selectedItems.isNotEmpty() -> onClearSelection()
+                selectedItems.isNotEmpty() || favoriteSelection.isNotEmpty() -> onClearSelection()
             }
         }
         on(KeyboardShortcut.F2) {
             val renameAction = availableActions
                 .filterIsInstance<ExplorerActionBarItem.Directory.Rename>()
                 .firstOrNull()
+            val renameFavorite = availableActions
+                .filterIsInstance<ExplorerActionBarItem.Common.RenameFavorite>()
+                .firstOrNull()
             when {
+                // One name per favorite, so this needs exactly one of them selected
+                favoriteSelection.size == 1 && renameFavorite != null -> onExecuteAction(renameFavorite)
                 // If Rename action is available (selection mode), use it
                 renameAction != null && renameAction.isEnabled -> onExecuteAction(renameAction)
                 // If there's a focused item, rename it directly

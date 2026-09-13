@@ -588,7 +588,6 @@
     <string name="explorer_action_remove_from_favorites">Aus Favoriten entfernen</string>
     <string name="explorer_favorites_unavailable_subtitle">Nicht zugänglich</string>
     <string name="explorer_favorites_unavailable_toast">Favorit ist nicht zugänglich</string>
-    <string name="explorer_favorites_remove_action">Aus Favoriten entfernen</string>
     <string name="explorer_favorites_added_message">%1$s zu Favoriten hinzugefügt</string>
     <plurals name="explorer_favorites_added_multiple_message">
         <item quantity="one">%1$d Element zu Favoriten hinzugefügt</item>

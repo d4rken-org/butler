@@ -644,7 +644,6 @@
     <string name="explorer_action_remove_from_favorites">Remove from favorites</string>
     <string name="explorer_favorites_unavailable_subtitle">Not accessible</string>
     <string name="explorer_favorites_unavailable_toast">Favorite is not accessible</string>
-    <string name="explorer_favorites_remove_action">Remove from favorites</string>
     <string name="explorer_favorites_added_message">Added %1$s to favorites</string>
     <plurals name="explorer_favorites_added_multiple_message">
         <item quantity="one">Added %1$d item to favorites</item>

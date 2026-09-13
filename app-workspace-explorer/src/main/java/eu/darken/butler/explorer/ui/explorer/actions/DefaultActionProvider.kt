@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
@@ -18,6 +19,7 @@ class DefaultActionProvider @Inject constructor(
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
         trashEnabled: Boolean,
+        favoriteSelection: Set<APath<*>>,
     ): List<ExplorerActionBarItem> {
         val provider = when (location) {
             is ExplorerLocation.Home -> homeProvider
@@ -27,6 +29,6 @@ class DefaultActionProvider @Inject constructor(
             is ExplorerLocation.Trash -> trashActionProvider
         }
 
-        return provider.getActions(location, selectionState, viewStyle, trashEnabled)
+        return provider.getActions(location, selectionState, viewStyle, trashEnabled, favoriteSelection)
     }
 }

@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.archive.ArchiveFormat
@@ -20,6 +21,7 @@ class DirectoryActionProvider @Inject constructor(
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
         trashEnabled: Boolean,
+        favoriteSelection: Set<APath<*>>,
     ): List<ExplorerActionBarItem> {
         val actions = mutableListOf<ExplorerActionBarItem>()
 

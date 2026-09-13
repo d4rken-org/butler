@@ -173,8 +173,9 @@ internal fun ExplorerGridContent(
             favoritesSection(
                 favorites = state.favorites,
                 highlightedItemIds = state.highlightedItemIds,
+                selectedPaths = state.favoriteSelection,
                 onClick = { vm?.onFavoriteClick(it) },
-                onRemove = { vm?.onFavoriteRemove(it) },
+                onLongClick = { vm?.onFavoriteLongClick(it) },
             )
         }
     }

@@ -220,6 +220,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         showRenameDialog = { path, label -> dialogs.show(FavoriteRename(path, label)) },
         tag = tag,
     )
+    private val favoritesSelection = ExplorerFavoritesSelectionController(
+        favoritePaths = favoritesRepo.favoritePaths,
+        scope = vmScope,
+        tag = tag,
+    )
     private val conflicts = ExplorerOperationConflictController(
         workspaceId = id,
         pendingConflicts = chrome.pendingConflicts,
@@ -373,6 +378,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 // non-picker mode within the 5s window would resurface a stale bar.
                 if (config != null) {
                     favoritesController.clearFeedback()
+                    favoritesSelection.clear()
                 }
             }
             .launchInViewModel()
@@ -431,9 +437,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         // Clear highlights when navigating to a different location
         workspaceReadyState
-            .map { it?.currentLocation?.locationId }
-            .distinctUntilChanged()
-            .onEach { navigation.clearHighlights(it) }
+            .map { it?.currentLocation }
+            .distinctUntilChanged { old, new -> old?.locationId == new?.locationId }
+            .onEach { location ->
+                navigation.clearHighlights(location?.locationId)
+                // The favorites section only exists on Home, so its selection leaves with it.
+                if (location !is ExplorerLocation.Home) favoritesSelection.clear()
+            }
             .launchInViewModel()
 
         // Favorite-path changes can reorder the directory listing (favorited dirs move
@@ -544,6 +554,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val emptyRecovery: EmptyRecovery? = null,
         val favorites: List<FavoriteItem> = emptyList(),
         val favoritePaths: List<APath<*>> = emptyList(),
+        /** Favorites selected in the Home section; never populated together with [selectionState]. */
+        val favoriteSelection: Set<APath<*>> = emptySet(),
         val showHomeFavoritesSection: Boolean = false,
         val favoriteFeedback: FavoriteFeedback? = null,
         /**
@@ -569,6 +581,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
+
+        val isFavoriteSelectionMode: Boolean get() = favoriteSelection.isNotEmpty()
 
         val isFilteredEmpty: Boolean
             get() = items?.isEmpty() == true && unfilteredItemCount > 0
@@ -702,7 +716,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     favoritesRepo.favorites,
                     favoritesController.feedback,
                     directorySizes,
-                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes ->
+                    favoritesSelection.selection,
+                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection ->
                     val items = listing?.items
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
@@ -728,6 +743,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                             selectionState = selectionState,
                             viewStyle = viewStyle,
                             trashEnabled = recycleBinEnabled,
+                            favoriteSelection = favoriteSelection,
                         )
                     } ?: emptyList()
 
@@ -796,6 +812,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         },
                         favorites = favorites,
                         favoritePaths = favoritesRepo.favoritePaths.value,
+                        favoriteSelection = favoriteSelection,
                         showHomeFavoritesSection = pickerConfig == null
                             && wsStateInner.currentLocation is ExplorerLocation.Home
                             && favorites.isNotEmpty(),
@@ -869,6 +886,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onFavoriteClick(fav: FavoriteItem) {
         log(tag) { "onFavoriteClick($fav)" }
+        // While favorites are being selected, a tap keeps selecting instead of navigating away.
+        if (favoritesSelection.selection.value.isNotEmpty()) {
+            favoritesSelection.toggle(fav.path)
+            return
+        }
         when (val s = fav.state) {
             is FavoriteItem.State.Resolving -> {
                 // Lookup not yet completed; ignore the tap until resolution finishes.
@@ -880,7 +902,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun onFavoriteRemove(fav: FavoriteItem) = favoritesController.removeFromHome(fav)
+    fun onFavoriteLongClick(fav: FavoriteItem) {
+        log(tag) { "onFavoriteLongClick($fav)" }
+        favoritesSelection.toggle(fav.path)
+    }
 
     fun onFavoriteFeedbackAction() = favoritesController.onFeedbackAction()
 
@@ -898,6 +923,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun toggleFavorite(path: APath<*>) = favoritesController.toggleCurrent(path)
 
     fun clearSelection() = selection.clear()
+
+    /** Both selection models at once, for back, Escape and the info bar's clear button. */
+    fun clearSelections() {
+        selection.clear()
+        favoritesSelection.clear()
+    }
 
     fun selectAll() = selection.selectAll()
 
@@ -1236,7 +1267,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerActionBarItem.Common.RemoveFromFavorites -> {
                 favoritesController.removeAll(action.items)
-                clearSelection()
+                clearSelections()
+            }
+            is ExplorerActionBarItem.Common.RenameFavorite -> {
+                val currentLabel = favoritesRepo.entries.value
+                    .firstOrNull { it.path.matches(action.path) }
+                    ?.label
+                dialogs.show(FavoriteRename(action.path, currentLabel))
             }
             is ExplorerActionBarItem.Directory.ToggleFavoriteCurrent -> {
                 favoritesController.toggleCurrent(action.path)

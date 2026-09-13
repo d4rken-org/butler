@@ -3,7 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.elements
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,12 +17,11 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.Bookmark
-import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.FolderOff
 import androidx.compose.material3.Icon
@@ -60,8 +59,9 @@ import eu.darken.butler.workspace.ui.dnd.dropZone
 fun LazyListScope.favoritesSection(
     favorites: List<FavoriteItem>,
     highlightedItemIds: Set<String>,
+    selectedPaths: Set<APath<*>>,
     onClick: (FavoriteItem) -> Unit,
-    onRemove: (FavoriteItem) -> Unit,
+    onLongClick: (FavoriteItem) -> Unit,
 ) {
     if (favorites.isEmpty()) return
 
@@ -71,8 +71,10 @@ fun LazyListScope.favoritesSection(
         FavoriteRow(
             favorite = favorite,
             isHighlighted = favorite.path.toPathItemId() in highlightedItemIds,
+            isSelected = selectedPaths.any { it.matches(favorite.path) },
+            isSelectionMode = selectedPaths.isNotEmpty(),
             onClick = { onClick(favorite) },
-            onRemove = { onRemove(favorite) },
+            onLongClick = { onLongClick(favorite) },
         )
     }
 }
@@ -81,8 +83,9 @@ fun LazyListScope.favoritesSection(
 fun LazyGridScope.favoritesSection(
     favorites: List<FavoriteItem>,
     highlightedItemIds: Set<String>,
+    selectedPaths: Set<APath<*>>,
     onClick: (FavoriteItem) -> Unit,
-    onRemove: (FavoriteItem) -> Unit,
+    onLongClick: (FavoriteItem) -> Unit,
 ) {
     if (favorites.isEmpty()) return
 
@@ -103,8 +106,10 @@ fun LazyGridScope.favoritesSection(
         FavoriteRow(
             favorite = favorite,
             isHighlighted = favorite.path.toPathItemId() in highlightedItemIds,
+            isSelected = selectedPaths.any { it.matches(favorite.path) },
+            isSelectionMode = selectedPaths.isNotEmpty(),
             onClick = { onClick(favorite) },
-            onRemove = { onRemove(favorite) },
+            onLongClick = { onLongClick(favorite) },
         )
     }
 }
@@ -164,13 +169,19 @@ private fun FavoritesSectionHeader(
 private fun favoriteKey(favorite: FavoriteItem): String =
     "favorite:${favorite.path::class.simpleName}:${favorite.path.path}"
 
+/**
+ * @param isSelectionMode while favorites are being selected a tap selects instead of navigating,
+ *        which is what keeps a favorite that never resolves reachable.
+ */
 @Composable
 fun FavoriteRow(
     modifier: Modifier = Modifier,
     favorite: FavoriteItem,
     isHighlighted: Boolean = false,
+    isSelected: Boolean = false,
+    isSelectionMode: Boolean = false,
     onClick: () -> Unit,
-    onRemove: () -> Unit,
+    onLongClick: () -> Unit,
 ) {
     val context = LocalContext.current
     val isResolving = favorite.state is FavoriteItem.State.Resolving
@@ -180,8 +191,6 @@ fun FavoriteRow(
     // Always the real path: with a custom name as the title it is the only thing that tells two
     // favorites apart, so neither resolving nor unavailable may take its place.
     val subtitle = favorite.path.userReadablePath.get(context)
-
-    val removeLabel = stringResource(R.string.explorer_favorites_remove_action)
 
     // Same reveal tint the file rows use, see FileRowBase.
     val highlightColor by animateColorAsState(
@@ -194,28 +203,40 @@ fun FavoriteRow(
         label = "highlightColor",
     )
 
+    // Selection takes precedence over the reveal tint, as in FileRowBase.
+    val backgroundColor = when {
+        isSelected -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+        else -> highlightColor
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .dropZone(key = favoriteKey(favorite), destination = favorite.dropDestination())
             .clip(RoundedCornerShape(8.dp))
-            .background(highlightColor, RoundedCornerShape(8.dp))
-            .clickable(enabled = !isResolving) { onClick() }
+            .background(backgroundColor, RoundedCornerShape(8.dp))
+            .combinedClickable(
+                // Long-press and selection-mode taps stay live whatever the resolve state: a
+                // favorite whose lookup never completes must still be selectable, and with that
+                // removable. Only navigation waits for a resolved item.
+                onClick = { if (isSelectionMode || !isResolving) onClick() },
+                onLongClick = onLongClick,
+            )
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         // Leading icon — mirrors ShortcutRow exactly: 40dp box, 20dp icon, primaryContainer.
         // Unavailable uses surfaceVariant to signal "inaccessible" without dimming the row.
-        val iconBackground = if (isUnavailable) {
-            MaterialTheme.colorScheme.surfaceVariant
-        } else {
-            MaterialTheme.colorScheme.primaryContainer
+        val iconBackground = when {
+            isSelected -> MaterialTheme.colorScheme.secondaryContainer
+            isUnavailable -> MaterialTheme.colorScheme.surfaceVariant
+            else -> MaterialTheme.colorScheme.primaryContainer
         }
-        val iconTint = if (isUnavailable) {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        } else {
-            MaterialTheme.colorScheme.onPrimaryContainer
+        val iconTint = when {
+            isSelected -> MaterialTheme.colorScheme.onSecondaryContainer
+            isUnavailable -> MaterialTheme.colorScheme.onSurfaceVariant
+            else -> MaterialTheme.colorScheme.onPrimaryContainer
         }
         Box(
             modifier = Modifier
@@ -225,7 +246,7 @@ fun FavoriteRow(
             contentAlignment = Alignment.Center,
         ) {
             Icon(
-                imageVector = pickIcon(favorite),
+                imageVector = if (isSelected) Icons.TwoTone.Check else pickIcon(favorite),
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
                 tint = iconTint,
@@ -259,24 +280,6 @@ fun FavoriteRow(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-        }
-
-        // Remove button — 40dp clickable area, 18dp icon. Always shown so a stuck-resolving
-        // favorite can still be dismissed. Avoids IconButton's 48dp interactive minimum
-        // which previously inflated the row past ShortcutRow's height.
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .clickable(onClickLabel = removeLabel) { onRemove() },
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.TwoTone.Close,
-                contentDescription = removeLabel,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(18.dp),
-            )
         }
     }
 }
@@ -314,7 +317,7 @@ private fun FavoriteRowAvailableDirectoryPreview() {
             ),
         ),
         onClick = {},
-        onRemove = {},
+        onLongClick = {},
     )
 }
 
@@ -328,7 +331,7 @@ private fun FavoriteRowResolvingPreview() {
             state = FavoriteItem.State.Resolving,
         ),
         onClick = {},
-        onRemove = {},
+        onLongClick = {},
     )
 }
 
@@ -342,7 +345,32 @@ private fun FavoriteRowUnavailablePreview() {
             state = FavoriteItem.State.Unavailable(IllegalStateException("not found")),
         ),
         onClick = {},
-        onRemove = {},
+        onLongClick = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FavoriteRowSelectedPreview() {
+    FavoriteRow(
+        favorite = FavoriteItem(
+            path = LocalPath.build("/storage/emulated/0/Download"),
+            state = FavoriteItem.State.Available(
+                ExplorerItem.RegularDirectory(
+                    lookup = LocalPathLookup(
+                        lookedUp = LocalPath.build("/storage/emulated/0/Download"),
+                        fileType = FileType.DIRECTORY,
+                        size = null,
+                        modifiedAt = null,
+                    ),
+                ),
+            ),
+        ),
+        isSelected = true,
+        isSelectionMode = true,
+        onClick = {},
+        onLongClick = {},
     )
 }
 
@@ -366,7 +394,7 @@ private fun FavoriteRowLabeledPreview() {
             label = "Camera roll",
         ),
         onClick = {},
-        onRemove = {},
+        onLongClick = {},
     )
 }
 
@@ -381,7 +409,7 @@ private fun FavoriteRowLabeledResolvingPreview() {
             label = "Camera roll",
         ),
         onClick = {},
-        onRemove = {},
+        onLongClick = {},
     )
 }
 
@@ -396,7 +424,7 @@ private fun FavoriteRowLabeledUnavailablePreview() {
             label = "Camera roll",
         ),
         onClick = {},
-        onRemove = {},
+        onLongClick = {},
     )
 }
 
@@ -420,8 +448,9 @@ private fun FavoritesSectionSharedLabelPreview() {
                 ),
             ),
             highlightedItemIds = emptySet(),
+            selectedPaths = emptySet(),
             onClick = {},
-            onRemove = {},
+            onLongClick = {},
         )
     }
 }
@@ -456,8 +485,9 @@ private fun FavoritesSectionMixedPreview() {
                 ),
             ),
             highlightedItemIds = setOf(LocalPath.build("/storage/emulated/0/Download").toPathItemId()),
+            selectedPaths = emptySet(),
             onClick = {},
-            onRemove = {},
+            onLongClick = {},
         )
     }
 }

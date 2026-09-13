@@ -7,7 +7,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
-import eu.darken.butler.explorer.core.favorites.FavoriteItem
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -42,17 +41,6 @@ class ExplorerFavoritesController(
     private var timeoutJob: Job? = null
     private var timeoutFeedbackId: Long? = null
     private val feedbackIdGen = AtomicLong(0L)
-
-    /** Remove a favorite via the Home X button, queueing an undo prompt for [FEEDBACK_TIMEOUT]. */
-    fun removeFromHome(fav: FavoriteItem) = doLaunch {
-        log(tag) { "removeFromHome($fav)" }
-        if (suppressedByPicker("removeFromHome")) return@doLaunch
-        val displayName = when (val s = fav.state) {
-            is FavoriteItem.State.Available -> s.item.displayName
-            else -> fav.path.userReadableName
-        }
-        removeAndPublish(listOf(fav.path), displayName)
-    }
 
     /** Add [paths] to the favorites, confirming what actually landed in storage. */
     fun addAll(paths: List<APath<*>>) = doLaunch {

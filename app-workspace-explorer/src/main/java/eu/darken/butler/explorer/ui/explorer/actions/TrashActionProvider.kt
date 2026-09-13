@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Restore
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -23,6 +24,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
         trashEnabled: Boolean,
+        favoriteSelection: Set<APath<*>>,
     ): List<ExplorerActionBarItem> = when (location) {
         is ExplorerLocation.Trash.Root -> getRootActions(location, selectionState, viewStyle)
         is ExplorerLocation.Trash.Nested -> getNestedActions(location, selectionState, viewStyle)

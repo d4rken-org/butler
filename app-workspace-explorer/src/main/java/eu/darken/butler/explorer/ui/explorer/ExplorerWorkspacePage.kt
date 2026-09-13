@@ -168,10 +168,10 @@ fun ExplorerWorkspacePage(
         hasPickerConfig = state.pickerConfig != null,
         useBackButtonForNavigation = state.useBackButtonForNavigation,
         canGoBack = state.canGoBack,
-        isSelectionMode = state.selectionState.isSelectionMode,
+        isSelectionMode = state.selectionState.isSelectionMode || state.isFavoriteSelectionMode,
         onGoBack = { vm?.goBack() },
         onCancelPicker = { vm?.cancelPicker() },
-        onClearSelection = { vm?.clearSelection() },
+        onClearSelection = { vm?.clearSelections() },
     )
 
     // The payload is built from the state this composition already holds, so a drag can't lose
@@ -193,6 +193,7 @@ fun ExplorerWorkspacePage(
                 availableActions = state.availableActions,
                 clipboardEntries = clipboardState.entries,
                 selectedItems = state.selectionState.selectedItems,
+                favoriteSelection = state.favoriteSelection,
                 focusedItem = focusedItem,
                 viewStyle = state.viewStyle,
                 gridColumns = gridColumns,
@@ -201,7 +202,7 @@ fun ExplorerWorkspacePage(
                 onExecuteAction = { vm?.executeAction(it) },
                 onPaste = { vm?.pasteClipboard(it) },
                 onSelectAll = { vm?.selectAll() },
-                onClearSelection = { vm?.clearSelection() },
+                onClearSelection = { vm?.clearSelections() },
                 onClearFocus = { vm?.clearFocus() },
                 onNavigateToItem = { vm?.navigate(it) },
                 onGoBack = { vm?.goBack() },

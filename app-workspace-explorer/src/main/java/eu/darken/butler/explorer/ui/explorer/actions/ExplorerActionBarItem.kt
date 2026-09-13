@@ -121,6 +121,16 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
             override val icon = Icons.TwoTone.BookmarkBorder
             override val label = R.string.explorer_action_remove_from_favorites.toCaString()
         }
+
+        /** Names the favorite entry for [path]; the folder on disk is not renamed. */
+        data class RenameFavorite(
+            val path: APath<*>,
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
+        ) : Common {
+            override val icon = Icons.TwoTone.DriveFileRenameOutline
+            override val label = eu.darken.butler.common.R.string.general_rename_action.toCaString()
+        }
     }
 
     // Directory-specific actions

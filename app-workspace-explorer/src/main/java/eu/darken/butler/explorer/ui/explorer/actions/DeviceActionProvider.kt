@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -16,6 +17,7 @@ class DeviceActionProvider @Inject constructor(
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
         trashEnabled: Boolean,
+        favoriteSelection: Set<APath<*>>,
     ): List<ExplorerActionBarItem> {
         val actions = mutableListOf<ExplorerActionBarItem>()
 

@@ -55,6 +55,7 @@ internal fun FloatingBarScope.ExplorerTopBars(
     // Determine if info bar should be visible
     val showInfoBar = state.info != null ||
         state.selectionState.selectedItems.isNotEmpty() ||
+        state.isFavoriteSelectionMode ||
         isLoadingItems ||
         showProgress
 
@@ -108,9 +109,10 @@ internal fun FloatingBarScope.ExplorerTopBars(
             hiddenCount = state.hiddenCount,
             locationIsEmpty = state.locationIsEmpty,
             onShowViewOptions = { vm?.showViewOptions() },
-            selectedCount = state.selectionState.selectedItems.size,
+            selectedCount = state.selectionState.selectedItems.size + state.favoriteSelection.size,
+            // Favorites have no size of their own, so a favorite selection contributes none.
             selectedSize = state.selectionState.selectedSize,
-            onClearSelection = { vm?.clearSelection() },
+            onClearSelection = { vm?.clearSelections() },
             onSelectFolders = { vm?.selectAllFolders() },
             onSelectFiles = { vm?.selectAllFiles() },
             onSelectAll = { vm?.selectAll() },
@@ -192,7 +194,9 @@ internal fun FloatingBarScope.ExplorerBottomBars(
         visible = hasActions,
         scrollBehavior = BarScrollBehavior.HideOnScroll,
         animation = BarAnimation.Slide(),
-        revealOn = state.selectionState.selectedItems,
+        // Scrolling down to the favorites section collapses this bar, so a favorite selection has
+        // to bring it back the same way an item selection does.
+        revealOn = state.selectionState.selectedItems to state.favoriteSelection,
     ) {
         WorkspaceActionBar(
             actions = state.availableActions,

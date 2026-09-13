@@ -250,6 +250,7 @@ class ExplorerPickerHelper @Inject constructor() {
             // Favorites are not relevant inside a picker workspace.
             is ExplorerActionBarItem.Common.AddToFavorites,
             is ExplorerActionBarItem.Common.RemoveFromFavorites,
+            is ExplorerActionBarItem.Common.RenameFavorite,
             is ExplorerActionBarItem.Directory.ToggleFavoriteCurrent -> false
         }
     }
