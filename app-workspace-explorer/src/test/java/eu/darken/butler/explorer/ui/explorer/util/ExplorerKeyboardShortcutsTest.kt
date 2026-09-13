@@ -40,6 +40,7 @@ class ExplorerKeyboardShortcutsTest : ComposeTest() {
     private class Recorded {
         val executed = mutableListOf<ExplorerActionBarItem>()
         var selectionsCleared = 0
+        var focusesCleared = 0
         var permanentDeletes = 0
     }
 
@@ -47,6 +48,7 @@ class ExplorerKeyboardShortcutsTest : ComposeTest() {
         availableActions: List<ExplorerActionBarItem>,
         selectedItems: Set<ExplorerItem> = emptySet(),
         favoriteSelection: Set<APath<*>> = emptySet(),
+        focusedItem: ExplorerItem? = null,
     ): Recorded {
         val recorded = Recorded()
         composeTestRule.setContent {
@@ -59,7 +61,7 @@ class ExplorerKeyboardShortcutsTest : ComposeTest() {
                             clipboardEntries = emptyList(),
                             selectedItems = selectedItems,
                             favoriteSelection = favoriteSelection,
-                            focusedItem = null,
+                            focusedItem = focusedItem,
                             viewStyle = ExplorerViewStyle(),
                             gridColumns = 3,
                             trashEnabled = false,
@@ -67,7 +69,7 @@ class ExplorerKeyboardShortcutsTest : ComposeTest() {
                             onPaste = {},
                             onSelectAll = {},
                             onClearSelection = { recorded.selectionsCleared++ },
-                            onClearFocus = {},
+                            onClearFocus = { recorded.focusesCleared++ },
                             onNavigateToItem = {},
                             onGoBack = {},
                             onMoveFocusUp = {},
@@ -108,6 +110,23 @@ class ExplorerKeyboardShortcutsTest : ComposeTest() {
         press(NativeKeyEvent.KEYCODE_ESCAPE)
 
         composeTestRule.runOnIdle { recorded.selectionsCleared shouldBe 1 }
+    }
+
+    /** Focusing a shortcut with the arrow keys does not end a favorite selection, so both can be live. */
+    @Test
+    fun `escape clears a favorite selection while an item holds focus`() {
+        val recorded = setShortcuts(
+            favoriteActions,
+            favoriteSelection = setOf(favorite),
+            focusedItem = item,
+        )
+
+        press(NativeKeyEvent.KEYCODE_ESCAPE)
+
+        composeTestRule.runOnIdle {
+            recorded.selectionsCleared shouldBe 1
+            recorded.focusesCleared shouldBe 1
+        }
     }
 
     @Test

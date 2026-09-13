@@ -119,8 +119,14 @@ fun Modifier.explorerKeyboardShortcuts(
         }
         on(KeyboardShortcut.Escape) {
             when {
+                // A favorite selection and a focused item can coexist, and Escape has to end the
+                // selection — so this clears both instead of eating the press on the focus alone.
+                favoriteSelection.isNotEmpty() -> {
+                    onClearSelection()
+                    onClearFocus()
+                }
                 focusedItem != null -> onClearFocus()
-                selectedItems.isNotEmpty() || favoriteSelection.isNotEmpty() -> onClearSelection()
+                selectedItems.isNotEmpty() -> onClearSelection()
             }
         }
         on(KeyboardShortcut.F2) {
