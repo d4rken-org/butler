@@ -182,6 +182,7 @@ internal fun FloatingBarScope.ExplorerBottomBars(
             FavoritesFeedbackBar(
                 feedback = feedback,
                 onAction = { vm?.onFavoriteFeedbackAction() },
+                onRename = { vm?.onFavoriteFeedbackRename() },
             )
         }
     }

@@ -6,7 +6,9 @@ import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.core.favorites.FavoriteEntry
 import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -46,16 +48,20 @@ class ExplorerFavoritesControllerTest : BaseTest() {
         coEvery { addAllAt(any()) } just Runs
     }
 
+    private val renameRequests = mutableListOf<Pair<APath<*>, String?>>()
+
     private fun CoroutineScope.controller(
         repo: ExplorerFavoritesRepo = mockRepo(),
         isPickerActive: () -> Boolean = { false },
         revealFavorite: suspend (APath<*>) -> Unit = {},
+        showRenameDialog: (APath<*>, String?) -> Unit = { path, label -> renameRequests.add(path to label) },
     ) = ExplorerFavoritesController(
         favoritesRepo = repo,
         scope = this,
         doLaunch = { block -> launch { block() } },
         isPickerActive = isPickerActive,
         revealFavorite = revealFavorite,
+        showRenameDialog = showRenameDialog,
         tag = "test",
     )
 
@@ -264,6 +270,39 @@ class ExplorerFavoritesControllerTest : BaseTest() {
         controller.onFeedbackAction()
         runCurrent()
         coVerify { repo.addAllAt(match { it.single().originalIndex == 3 }) }
+    }
+
+    @Test
+    fun `renaming an added favorite ends the bar's window and opens the dialog once`() = runTest {
+        val controller = controller()
+
+        controller.addAll(listOf(path("a")))
+        runCurrent()
+
+        controller.onFeedbackRename()
+        runCurrent()
+
+        renameRequests.map { it.first.path } shouldContainExactly listOf(path("a").path)
+        controller.feedback.value shouldBe null
+
+        // The cancelled timer must not fire a second dialog or clobber later feedback.
+        advanceTimeBy(ExplorerFavoritesController.FEEDBACK_TIMEOUT)
+        runCurrent()
+        renameRequests shouldHaveSize 1
+    }
+
+    @Test
+    fun `renaming is not offered for removal feedback`() = runTest {
+        val controller = controller()
+
+        controller.removeFromHome(favorite("docs"))
+        runCurrent()
+
+        controller.onFeedbackRename()
+        runCurrent()
+
+        renameRequests.shouldBeEmpty()
+        controller.feedback.value.shouldBeInstanceOf<FavoriteFeedback.Removed>()
     }
 
     @Test

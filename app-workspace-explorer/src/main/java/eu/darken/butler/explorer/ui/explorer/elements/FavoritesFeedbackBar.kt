@@ -33,16 +33,19 @@ import eu.darken.butler.common.R as CommonR
 
 /**
  * Snackbar-style bar that confirms a favorite mutation and offers the matching follow-up:
- * undo for removals, "show me" for additions. Lives as a [FloatingBar] in the bottom stack,
- * between the clipboard bar and the action bar — Butler has no
+ * undo for removals, "show me" plus naming for a single addition. Lives as a [FloatingBar] in the
+ * bottom stack, between the clipboard bar and the action bar — Butler has no
  * [androidx.compose.material3.SnackbarHost] infrastructure, so we follow the existing
  * [ClipboardBar]/[OperationsBar] chrome convention.
+ *
+ * @param onRename offered only for a single addition; a batch has no one favorite to name.
  */
 @Composable
 fun FavoritesFeedbackBar(
     modifier: Modifier = Modifier,
     feedback: FavoriteFeedback,
     onAction: () -> Unit,
+    onRename: () -> Unit,
 ) {
     val context = LocalContext.current
     val message = when (feedback) {
@@ -102,6 +105,14 @@ fun FavoritesFeedbackBar(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            if (feedback is FavoriteFeedback.Added && feedback.count == 1) {
+                TextButton(onClick = onRename) {
+                    Text(
+                        text = stringResource(CommonR.string.general_rename_action),
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                }
+            }
             TextButton(onClick = onAction) {
                 Text(
                     text = actionLabel,
@@ -124,6 +135,7 @@ private fun FavoritesFeedbackBarAddedPreview() {
                 paths = listOf(LocalPath.build("/storage/emulated/0/Download/Pictures")),
             ),
             onAction = {},
+            onRename = {},
         )
     }
 }
@@ -143,6 +155,7 @@ private fun FavoritesFeedbackBarAddedMultiplePreview() {
                 ),
             ),
             onAction = {},
+            onRename = {},
         )
     }
 }
@@ -164,6 +177,7 @@ private fun FavoritesFeedbackBarRemovedPreview() {
                 ),
             ),
             onAction = {},
+            onRename = {},
         )
     }
 }

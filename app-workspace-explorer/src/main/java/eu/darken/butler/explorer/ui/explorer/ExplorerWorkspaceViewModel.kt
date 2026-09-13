@@ -217,6 +217,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         doLaunch = doLaunch,
         isPickerActive = { cachedPickerConfig != null },
         revealFavorite = { path -> navigation.revealFavorite(path) },
+        showRenameDialog = { path, label -> dialogs.show(FavoriteRename(path, label)) },
         tag = tag,
     )
     private val conflicts = ExplorerOperationConflictController(
@@ -882,6 +883,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun onFavoriteRemove(fav: FavoriteItem) = favoritesController.removeFromHome(fav)
 
     fun onFavoriteFeedbackAction() = favoritesController.onFeedbackAction()
+
+    fun onFavoriteFeedbackRename() = favoritesController.onFeedbackRename()
 
     /** Confirmation of the favorite rename dialog; the path comes from the dialog that is showing. */
     fun onFavoriteRename(label: String?) = launch {

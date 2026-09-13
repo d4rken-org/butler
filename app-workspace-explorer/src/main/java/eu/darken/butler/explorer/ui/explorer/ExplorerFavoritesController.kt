@@ -33,6 +33,7 @@ class ExplorerFavoritesController(
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
     private val isPickerActive: () -> Boolean,
     private val revealFavorite: suspend (APath<*>) -> Unit,
+    private val showRenameDialog: (APath<*>, String?) -> Unit,
     private val tag: String,
 ) {
 
@@ -140,6 +141,20 @@ class ExplorerFavoritesController(
                 revealFavorite(current.paths.first())
             }
         }
+    }
+
+    /**
+     * Name the favorite the current bar confirms. Ends the bar's window like any other action on
+     * it, so the dialog isn't left behind a bar that expires under it.
+     */
+    fun onFeedbackRename() = doLaunch {
+        val current = feedbackFlow.value as? FavoriteFeedback.Added ?: return@doLaunch
+        val path = current.paths.first()
+        log(tag) { "onFeedbackRename(): ${path.path}" }
+        cancelTimeout(onlyFor = current.id)
+        clearIfCurrent(current.id)
+        // A favorite that was just added cannot carry a label yet.
+        showRenameDialog(path, null)
     }
 
     /**
