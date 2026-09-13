@@ -655,6 +655,9 @@
         <item quantity="one">Removed %1$d item from favorites</item>
         <item quantity="other">Removed %1$d items from favorites</item>
     </plurals>
+    <string name="explorer_favorites_rename_title">Rename favorite</string>
+    <string name="explorer_favorites_rename_hint">Favorite name</string>
+    <string name="explorer_favorites_rename_description">Only the entry in your favorites is renamed, the folder itself keeps its name.</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">This tab overrides the sort order in %1$d folder</item>
         <item quantity="other">This tab overrides the sort order in %1$d folders</item>

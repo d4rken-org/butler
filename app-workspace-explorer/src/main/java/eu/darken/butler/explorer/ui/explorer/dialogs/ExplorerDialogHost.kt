@@ -76,6 +76,15 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.FavoriteRename -> {
+            FavoriteRenameDialog(
+                path = dialogState.path,
+                currentLabel = dialogState.currentLabel,
+                onDismiss = { vm?.dismissDialog() },
+                onConfirm = { label -> vm?.onFavoriteRename(label) },
+            )
+        }
+
         is ExplorerDialogState.EditSortOptions -> {
             SortOptionsSheet(
                 state = dialogState,

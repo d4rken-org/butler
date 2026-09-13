@@ -84,6 +84,13 @@ class ExplorerFavoritesController(
         removeAndPublish(paths, displayName = null)
     }
 
+    /** Give a favorite its own display name; a blank [label] restores the folder's own name. */
+    fun setLabel(path: APath<*>, label: String?) = doLaunch {
+        log(tag) { "setLabel(${path.path}, label=${label != null})" }
+        if (suppressedByPicker("setLabel")) return@doLaunch
+        favoritesRepo.setLabel(path, label)
+    }
+
     /** Toggle the currently-viewed folder's favorite state, confirming the resulting direction. */
     fun toggleCurrent(path: APath<*>) = doLaunch {
         log(tag) { "toggleCurrent(${path.path})" }

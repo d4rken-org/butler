@@ -176,15 +176,10 @@ fun FavoriteRow(
     val isResolving = favorite.state is FavoriteItem.State.Resolving
     val isUnavailable = favorite.state is FavoriteItem.State.Unavailable
 
-    val displayName = when (val s = favorite.state) {
-        is FavoriteItem.State.Available -> s.item.displayName.get(context)
-        else -> favorite.path.userReadableName.get(context)
-    }
-    val subtitle = when {
-        isUnavailable -> stringResource(R.string.explorer_favorites_unavailable_subtitle)
-        isResolving -> ""
-        else -> favorite.path.userReadablePath.get(context)
-    }
+    val displayName = favorite.displayName().get(context)
+    // Always the real path: with a custom name as the title it is the only thing that tells two
+    // favorites apart, so neither resolving nor unavailable may take its place.
+    val subtitle = favorite.path.userReadablePath.get(context)
 
     val removeLabel = stringResource(R.string.explorer_favorites_remove_action)
 
@@ -248,11 +243,18 @@ fun FavoriteRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (subtitle.isNotEmpty()) {
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (isUnavailable) {
                 Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = stringResource(R.string.explorer_favorites_unavailable_subtitle),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -342,6 +344,86 @@ private fun FavoriteRowUnavailablePreview() {
         onClick = {},
         onRemove = {},
     )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FavoriteRowLabeledPreview() {
+    FavoriteRow(
+        favorite = FavoriteItem(
+            path = LocalPath.build("/storage/emulated/0/DCIM/Camera"),
+            state = FavoriteItem.State.Available(
+                ExplorerItem.RegularDirectory(
+                    lookup = LocalPathLookup(
+                        lookedUp = LocalPath.build("/storage/emulated/0/DCIM/Camera"),
+                        fileType = FileType.DIRECTORY,
+                        size = null,
+                        modifiedAt = null,
+                    ),
+                ),
+            ),
+            label = "Camera roll",
+        ),
+        onClick = {},
+        onRemove = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FavoriteRowLabeledResolvingPreview() {
+    FavoriteRow(
+        favorite = FavoriteItem(
+            path = LocalPath.build("/storage/emulated/0/DCIM"),
+            state = FavoriteItem.State.Resolving,
+            label = "Camera roll",
+        ),
+        onClick = {},
+        onRemove = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FavoriteRowLabeledUnavailablePreview() {
+    FavoriteRow(
+        favorite = FavoriteItem(
+            path = LocalPath.build("/storage/emulated/0/RemovedFolder"),
+            state = FavoriteItem.State.Unavailable(IllegalStateException("not found")),
+            label = "Camera roll",
+        ),
+        onClick = {},
+        onRemove = {},
+    )
+}
+
+/** Two favorites under one name: only the path subtitle tells them apart. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FavoritesSectionSharedLabelPreview() {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        favoritesSection(
+            favorites = listOf(
+                FavoriteItem(
+                    path = LocalPath.build("/storage/emulated/0/DCIM/Camera"),
+                    state = FavoriteItem.State.Resolving,
+                    label = "Photos",
+                ),
+                FavoriteItem(
+                    path = LocalPath.build("/storage/1A2B-3C4D/DCIM/Camera"),
+                    state = FavoriteItem.State.Resolving,
+                    label = "Photos",
+                ),
+            ),
+            highlightedItemIds = emptySet(),
+            onClick = {},
+            onRemove = {},
+        )
+    }
 }
 
 @Preview2

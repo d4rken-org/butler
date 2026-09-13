@@ -883,6 +883,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onFavoriteFeedbackAction() = favoritesController.onFeedbackAction()
 
+    /** Confirmation of the favorite rename dialog; the path comes from the dialog that is showing. */
+    fun onFavoriteRename(label: String?) = launch {
+        val dialogState = dialogs.current() as? FavoriteRename ?: return@launch
+        log(tag) { "onFavoriteRename(label=${label != null})" }
+        dialogs.dismiss()
+        favoritesController.setLabel(dialogState.path, label)
+    }
+
     /** Breadcrumb-menu favorite toggle. Reaches any ancestor crumb, not just the listed folder. */
     fun toggleFavorite(path: APath<*>) = favoritesController.toggleCurrent(path)
 

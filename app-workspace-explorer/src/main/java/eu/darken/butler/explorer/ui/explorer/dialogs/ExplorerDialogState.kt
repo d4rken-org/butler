@@ -46,6 +46,12 @@ sealed interface ExplorerDialogState {
 
     data class Rename(val item: APath<*>) : ExplorerDialogState
 
+    /** Names the favorite entry for [path]; the folder itself is not renamed. */
+    data class FavoriteRename(
+        val path: APath<*>,
+        val currentLabel: String?,
+    ) : ExplorerDialogState
+
     /**
      * [hasTabDefault] is kept apart from [tabRuleCount]: a tab that only carries a default has zero
      * overridden folders but is still overridden, and must still offer to clear that.
