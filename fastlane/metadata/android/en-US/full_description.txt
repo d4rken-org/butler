@@ -2,20 +2,26 @@ Butler is a file manager for Android built around tabs. Browse, search, view and
 
 It's the file explorer for Android I always wanted, so I built it. Fast, private, open source.
 
-Butler works on internal storage, SD cards and USB OTG drives. And every file type, not just the media your gallery shows you.
+Butler works on internal storage, SD cards, USB OTG drives and network shares. And every file type, not just the media your gallery shows you.
 
 <b>Tabs and workspaces</b>
 - Browse files in tabs and run any of Butler's tools in parallel.
 - Organize tabs with the workspace manager and reuse tab setups with workspace templates.
-- Multi-pane layouts on phones and tablets.
+- Multi-pane layouts on phones and tablets, with drag and drop between panes.
 - Pin favorites and add extra storage locations.
 
 <b>File operations</b>
 - Copy, move, rename and delete, with transfer speeds and performance graphs while operations run.
 - Trash bin support, so deletions stay reversible.
-- Create ZIP archives and unzip them, including encrypted ones.
+- Open archives like folders: ZIP, TAR and APK bundles browse in place, without unpacking them first.
+- Create ZIP archives and extract them, including encrypted ones.
 - Operations keep running when you leave the app, with progress and a cancel button in the notification.
 - An operation history showing what ran, what succeeded and what failed.
+
+<b>Network shares</b>
+- Connect to Windows shares and NAS folders over SMB and browse them like any other storage.
+- Copy and move files between your device and the server, in both directions.
+- Sign in as a guest or with a username and password, stored encrypted on your device only.
 
 <b>Search and text</b>
 - Search by file name and within file contents, with regular expression (regex) support.
@@ -24,6 +30,7 @@ Butler works on internal storage, SD cards and USB OTG drives. And every file ty
 <b>Viewing files</b>
 - View images and page through PDFs without leaving Butler.
 - File details down to size, dimensions, permissions and owner.
+- Calculate folder sizes on demand to see what is actually filling your storage.
 - Anything Butler doesn't display itself is handed to the app that can.
 
 <b>Apps and APKs</b>
