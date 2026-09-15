@@ -50,6 +50,7 @@ class GeneralSettingsScreenGateTest : ComposeTest() {
                     onThemeModeSelected = {},
                     onThemeStyleSelected = {},
                     onThemeColorSelected = {},
+                    onSuitColorSelected = {},
                     onUpgradeButler = { upgrades++ },
                     onUpdateCheckEnabledChange = {},
                     onMotdEnabledChange = {},
@@ -101,19 +102,19 @@ class GeneralSettingsScreenGateTest : ComposeTest() {
     }
 
     @Test
-    fun `free users get a badge on all three theme rows`() {
+    fun `free users get a badge on all four appearance rows`() {
         setScreen(isUpgraded = false)
 
-        composeTestRule.onAllNodesWithText(badgeLabel).assertCountEquals(3)
+        composeTestRule.onAllNodesWithText(badgeLabel).assertCountEquals(4)
         composeTestRule.onNodeWithText(colorTitle).assertIsEnabled()
     }
 
     @Test
-    fun `material you takes the color row out of the gate`() {
+    fun `material you takes the theme color row out of the gate`() {
         setScreen(isUpgraded = false, style = ThemeStyle.MATERIAL_YOU)
 
-        // Mode and style only - upgrading would not unlock a row the theme style owns.
-        composeTestRule.onAllNodesWithText(badgeLabel).assertCountEquals(2)
+        // Suit, mode and style only - upgrading would not unlock a row the theme style owns.
+        composeTestRule.onAllNodesWithText(badgeLabel).assertCountEquals(3)
         composeTestRule.onNodeWithText(colorTitle).assertIsNotEnabled()
     }
 

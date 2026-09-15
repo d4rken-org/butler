@@ -1,11 +1,17 @@
 package eu.darken.butler.main.ui.settings.general
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.twotone.Checkroom
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Fullscreen
 import androidx.compose.material.icons.twotone.Image
@@ -17,6 +23,7 @@ import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.material.icons.twotone.Update
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -29,18 +36,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.mascotDefaultSuitColor
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.EnumSelectorDialog
+import eu.darken.butler.common.settings.MascotSuitColorDialog
 import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
@@ -52,6 +67,7 @@ import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeStyle
 import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @Composable
 fun GeneralSettingsScreen(
@@ -61,6 +77,7 @@ fun GeneralSettingsScreen(
     onThemeModeSelected: (ThemeMode) -> Unit,
     onThemeStyleSelected: (ThemeStyle) -> Unit,
     onThemeColorSelected: (ThemeColor) -> Unit,
+    onSuitColorSelected: (Int?) -> Unit,
     onUpgradeButler: () -> Unit,
     onUpdateCheckEnabledChange: (Boolean) -> Unit,
     onMotdEnabledChange: (Boolean) -> Unit,
@@ -77,6 +94,7 @@ fun GeneralSettingsScreen(
     var showThemeModeDialog by remember { mutableStateOf(false) }
     var showThemeStyleDialog by remember { mutableStateOf(false) }
     var showThemeColorDialog by remember { mutableStateOf(false) }
+    var showSuitColorDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -110,6 +128,45 @@ fun GeneralSettingsScreen(
         ) {
             item {
                 SettingsCategoryHeader(text = stringResource(R.string.settings_category_ui_label))
+            }
+
+            item {
+                // SettingsBaseItem takes the gate as a flag, so the routing SettingsPreferenceItem
+                // does for its rows has to be repeated here: badge and tap have to agree.
+                val upgradeAction = onUpgradeButler.takeUnless { state.isUpgraded }
+                val suitColor = state.themeState.suitColor
+                    ?.let { Color(it or 0xFF000000.toInt()) }
+                    ?: mascotDefaultSuitColor()
+                val suitHex = "#%06X".format(Locale.ROOT, suitColor.toArgb() and 0xFFFFFF)
+
+                SettingsBaseItem(
+                    icon = Icons.TwoTone.Checkroom,
+                    title = stringResource(R.string.ui_mascot_suit_setting_label),
+                    subtitle = stringResource(R.string.ui_mascot_suit_setting_explanation),
+                    onClick = upgradeAction ?: { showSuitColorDialog = true },
+                    requiresUpgrade = upgradeAction != null,
+                    trailingContent = {
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 16.dp)
+                                .size(24.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(suitColor)
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                    shape = RoundedCornerShape(6.dp),
+                                )
+                                .semantics {
+                                    contentDescription = context.getString(
+                                        eu.darken.butler.common.R.string.ui_mascot_suit_value_description,
+                                        suitHex,
+                                    )
+                                },
+                        )
+                    },
+                )
+                SettingsDivider()
             }
 
             item {
@@ -316,6 +373,17 @@ fun GeneralSettingsScreen(
             onDismiss = { showThemeColorDialog = false }
         )
     }
+
+    if (showSuitColorDialog) {
+        MascotSuitColorDialog(
+            suitColor = state.themeState.suitColor,
+            onColorSelected = { color ->
+                onSuitColorSelected(color)
+                showSuitColorDialog = false
+            },
+            onDismiss = { showSuitColorDialog = false },
+        )
+    }
 }
 
 @Preview2
@@ -329,6 +397,7 @@ private fun GeneralSettingsScreenPreview() {
         onThemeModeSelected = {},
         onThemeStyleSelected = {},
         onThemeColorSelected = {},
+        onSuitColorSelected = {},
         onUpdateCheckEnabledChange = {},
         onMotdEnabledChange = {},
         onConfirmExitEnabledChange = {},
@@ -352,6 +421,7 @@ private fun GeneralSettingsScreenUpgradedPreview() {
         onThemeModeSelected = {},
         onThemeStyleSelected = {},
         onThemeColorSelected = {},
+        onSuitColorSelected = {},
         onUpdateCheckEnabledChange = {},
         onMotdEnabledChange = {},
         onConfirmExitEnabledChange = {},
@@ -379,6 +449,7 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             onThemeModeSelected = { vm.updateThemeMode(it) },
             onThemeStyleSelected = { vm.updateThemeStyle(it) },
             onThemeColorSelected = { vm.updateThemeColor(it) },
+            onSuitColorSelected = { vm.onSuitColorSelected(it) },
             onUpdateCheckEnabledChange = { vm.updateUpdateCheckEnabled(it) },
             onMotdEnabledChange = { vm.updateMotdEnabled(it) },
             onConfirmExitEnabledChange = { vm.updateConfirmExitEnabled(it) },

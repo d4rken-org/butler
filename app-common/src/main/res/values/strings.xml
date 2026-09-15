@@ -225,6 +225,13 @@
     <string name="ui_theme_color_blue_label">Blue &amp; Orange</string>
     <string name="ui_theme_color_amoled_label">AMOLED</string>
 
+    <string name="ui_mascot_suit_dialog_title">Butler\'s suit</string>
+    <string name="ui_mascot_suit_default_action">Default</string>
+    <string name="ui_mascot_suit_hue_label">Hue</string>
+    <string name="ui_mascot_suit_saturation_label">Saturation</string>
+    <string name="ui_mascot_suit_brightness_label">Brightness</string>
+    <string name="ui_mascot_suit_value_description">Suit color %s</string>
+
     <!-- Setup module types -->
     <string name="setup_usagestats_title">Usage stats</string>
     <string name="setup_shizuku_card_title">Shizuku</string>
