@@ -559,9 +559,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android beschränkt den Zugriff auf diesen Ordner. Verwende die Ordnerauswahl, um Zugriff zu gewähren.</string>
-    <string name="explorer_permission_multiple_options_description">Du kannst mit der Android-Ordnerauswahl Zugriff gewähren oder Root/Shizuku einrichten, um schneller auf alle geschützten Ordner zuzugreifen.</string>
-    <string name="explorer_permission_setup_both_description">Dieser Ordner erfordert erweiterten Zugriff. Installiere und konfiguriere entweder Root oder Shizuku in der Einrichtung.</string>
-    <string name="explorer_permission_setup_shizuku_description">Dieser Ordner erfordert erweiterten Zugriff über Shizuku. Installiere den Shizuku Manager und konfiguriere ihn in der Einrichtung.</string>
+    <string name="explorer_permission_multiple_options_description">Du kannst mit der Android-Ordnerauswahl Zugriff gewähren oder Root-Zugriff bzw. ADB-Zugriff einrichten, um schneller auf alle geschützten Ordner zuzugreifen.</string>
+    <string name="explorer_permission_setup_both_description">Dieser Ordner erfordert erweiterten Zugriff. Richte Root-Zugriff oder ADB-Zugriff in der Einrichtung ein.</string>
+    <string name="explorer_permission_setup_shizuku_description">Dieser Ordner erfordert erweiterten Zugriff über ADB. Konfiguriere ADB-Zugriff in der Einrichtung.</string>
     <string name="explorer_permission_setup_root_description">Dieser Ordner erfordert Root-Zugriff. Konfiguriere Root in der Einrichtung, wenn Dein Gerät gerootet ist.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -569,7 +569,7 @@
     <string name="explorer_permission_option_picker_action">SAF-Auswahl öffnen</string>
 
     <string name="explorer_permission_option_setup_title">Vollzugriff</string>
-    <string name="explorer_permission_option_setup_description">Root oder Shizuku für schnelleren Zugriff auf alle geschützten Ordner konfigurieren.</string>
+    <string name="explorer_permission_option_setup_description">Root-Zugriff oder ADB-Zugriff für schnelleren Zugriff auf alle geschützten Ordner konfigurieren.</string>
     <string name="explorer_permission_option_setup_action">Konfigurieren</string>
 
     <!-- Permission Request Card - Storage Access Option -->

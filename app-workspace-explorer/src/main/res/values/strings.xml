@@ -615,9 +615,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android restricts access to this folder. Use the folder picker to grant access.</string>
-    <string name="explorer_permission_multiple_options_description">You can grant access using Android\'s folder picker or set up Root/Shizuku for faster access to all restricted folders.</string>
-    <string name="explorer_permission_setup_both_description">This folder requires elevated access. Install and configure either Root or Shizuku in setup.</string>
-    <string name="explorer_permission_setup_shizuku_description">This folder requires elevated access via Shizuku. Install Shizuku Manager and configure in setup.</string>
+    <string name="explorer_permission_multiple_options_description">You can grant access using Android\'s folder picker or set up root or ADB access for faster access to all restricted folders.</string>
+    <string name="explorer_permission_setup_both_description">This folder requires elevated access. Set up root or ADB access in setup.</string>
+    <string name="explorer_permission_setup_shizuku_description">This folder requires elevated access via ADB. Configure ADB access in setup.</string>
     <string name="explorer_permission_setup_root_description">This folder requires Root access. Configure Root in setup if your device is rooted.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -625,7 +625,7 @@
     <string name="explorer_permission_option_picker_action">Open SAF picker</string>
 
     <string name="explorer_permission_option_setup_title">Full access</string>
-    <string name="explorer_permission_option_setup_description">Configure Root or Shizuku for faster access to all restricted folders.</string>
+    <string name="explorer_permission_option_setup_description">Configure root or ADB access for faster access to all restricted folders.</string>
     <string name="explorer_permission_option_setup_action">Configure</string>
 
     <!-- Permission Request Card - Storage Access Option -->

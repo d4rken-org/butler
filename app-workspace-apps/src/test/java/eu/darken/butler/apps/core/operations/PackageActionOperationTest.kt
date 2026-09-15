@@ -155,7 +155,7 @@ class PackageActionOperationTest : BaseTest() {
     fun `a system uninstall refused for another user is a failed target`() = runTest2 {
         coEvery {
             systemUninstaller.uninstall(any(), any(), any())
-        } throws SystemUninstallException("Removing this app for another user needs root or Shizuku")
+        } throws SystemUninstallException("Removing this app for another user needs root or ADB access")
 
         val completed = run(
             PackageCommand.Uninstall(listOf(target("a")), viaSystemDialog = true)

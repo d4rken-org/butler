@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.content.pm.PermissionInfo
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.porter.client.PorterClient
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -30,6 +31,7 @@ class ShizukuWrapperTest {
 
     private val stockPermission = "moe.shizuku.manager.permission.API_V23"
     private val plusPermission = "af.shizuku.plus.permission.API_V23"
+    private val porterPermission = "eu.darken.porter.permission.API_V23"
 
     private val dispatcherProvider = object : DispatcherProvider {
         override val IO: CoroutineDispatcher = Dispatchers.Unconfined
@@ -38,9 +40,10 @@ class ShizukuWrapperTest {
     private fun wrapper(
         appScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.Unconfined),
         dispatchers: DispatcherProvider = dispatcherProvider,
+        backend: PorterClient.Backend = PorterClient.Backend.SHIZUKU,
     ): ShizukuWrapper {
         every { context.packageManager } returns packageManager
-        return ShizukuWrapper(context, appScope, dispatchers)
+        return ShizukuWrapper(context, appScope, dispatchers).apply { activeBackendAction = { backend } }
     }
 
     // mockk gives us a real (Objenesis-instantiated) PermissionInfo whose inherited public
@@ -103,6 +106,7 @@ class ShizukuWrapperTest {
 
     @Test
     fun `prefers the stock permission owner when both are defined`() = runTest {
+        undefinePermission(porterPermission)
         definePermission(stockPermission, "moe.shizuku.privileged.api")
         definePermission(plusPermission, "af.shizuku.plus.api")
         val wrapper = wrapper()
@@ -113,6 +117,7 @@ class ShizukuWrapperTest {
 
     @Test
     fun `collapses one app defining both permissions to a single entry`() = runTest {
+        undefinePermission(porterPermission)
         definePermission(stockPermission, "moe.shizuku.privileged.api")
         definePermission(plusPermission, "moe.shizuku.privileged.api")
 
@@ -121,6 +126,7 @@ class ShizukuWrapperTest {
 
     @Test
     fun `getManagerPackages is empty when no permission is defined`() = runTest {
+        undefinePermission(porterPermission)
         undefinePermission(stockPermission)
         undefinePermission(plusPermission)
         val wrapper = wrapper()
@@ -135,6 +141,46 @@ class ShizukuWrapperTest {
         definePermission(plusPermission, "af.shizuku.plus.api")
 
         wrapper().getManagerPackage() shouldBe "af.shizuku.plus.api"
+    }
+
+    @Test
+    fun `the active Porter backend resolves Porter's manager even with Shizuku installed`() = runTest {
+        definePermission(porterPermission, "eu.darken.porter")
+        definePermission(stockPermission, "moe.shizuku.privileged.api")
+        definePermission(plusPermission, "af.shizuku.plus.api")
+
+        wrapper(backend = PorterClient.Backend.PORTER).getManagerPackage() shouldBe "eu.darken.porter"
+    }
+
+    @Test
+    fun `the active Shizuku backend resolves Shizuku's manager even with Porter installed`() = runTest {
+        definePermission(porterPermission, "eu.darken.porter")
+        definePermission(stockPermission, "moe.shizuku.privileged.api")
+
+        wrapper(backend = PorterClient.Backend.SHIZUKU).getManagerPackage() shouldBe "moe.shizuku.privileged.api"
+    }
+
+    @Test
+    fun `an absent manager for the active backend does not fall back to the other one`() = runTest {
+        undefinePermission(porterPermission)
+        definePermission(stockPermission, "moe.shizuku.privileged.api")
+        definePermission(plusPermission, "af.shizuku.plus.api")
+
+        // Naming Shizuku here would claim a connection this process cannot make.
+        wrapper(backend = PorterClient.Backend.PORTER).getManagerPackage() shouldBe null
+    }
+
+    @Test
+    fun `getManagerPackages spans both permission families`() = runTest {
+        definePermission(porterPermission, "eu.darken.porter")
+        definePermission(stockPermission, "moe.shizuku.privileged.api")
+        definePermission(plusPermission, "af.shizuku.plus.api")
+
+        wrapper().getManagerPackages() shouldBe listOf(
+            "eu.darken.porter",
+            "moe.shizuku.privileged.api",
+            "af.shizuku.plus.api",
+        )
     }
 
     @Test

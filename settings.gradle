@@ -16,6 +16,10 @@ dependencyResolutionManagement {
         maven {
             url = uri("https://androidx.dev/snapshots/builds/13610170/artifacts/repository")
         }
+        maven {
+            url = uri("https://jitpack.io")
+            content { includeGroup("com.github.d4rken-org.porter-api") }
+        }
     }
 }
 

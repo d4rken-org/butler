@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">Zum Durchsuchen dieses Speicherorts ist Root-Zugriff erforderlich. Aktiviere ihn in den Butler-Einstellungen.</string>
-    <string name="provider_documents_error_requires_adb">Zum Durchsuchen dieses Speicherorts ist ADB-/Shizuku-Zugriff erforderlich. Aktiviere Shizuku in den Butler-Einstellungen.</string>
+    <string name="provider_documents_error_requires_adb">Zum Durchsuchen dieses Speicherorts ist ADB-Zugriff erforderlich. Aktiviere ihn in der Butler-Einrichtung.</string>
     <string name="provider_documents_error_requires_storage">Zum Durchsuchen dieses Speicherorts ist eine Speicherberechtigung erforderlich. Gewähre sie in den Butler-Einstellungen.</string>
     <string name="provider_documents_error_requires_permissions">Zum Durchsuchen dieses Speicherorts sind zusätzliche Berechtigungen erforderlich. Prüfe die Butler-Einstellungen.</string>
     <string name="provider_documents_error_generic">Auf diesen Speicherort kann nicht zugegriffen werden. Prüfe die Zugriffsmöglichkeiten in Butler.</string>

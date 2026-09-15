@@ -62,7 +62,7 @@
     <string name="shortcuts_settings_min_dialog_message">Wie oft ein Pfad aufgerufen werden muss, bevor er als Verknüpfung erscheint (1–10)</string>
 
     <string name="setup_usagestats_title">Nutzungsstatistiken</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB-Zugriff</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Benachrichtigungszugriff</string>
     <string name="setup_manage_storage_card_title">Externen Speicher verwalten</string>
@@ -73,7 +73,7 @@
     <string name="setup_help_description">Hilfe</string>
 
     <string name="setup_root_description">Ermöglicht für die erweiterte Dateiverwaltung den Zugriff auf Systemdateien und geschützte Verzeichnisse. Schaltet das volle Potenzial von Butler frei, einschließlich Zugriff auf App-Daten und Systemänderungen. Das Gerät muss gerootet sein.</string>
-    <string name="setup_shizuku_description">Eine Alternative zu Root, die privilegierte Dateivorgänge über eine sichere API ermöglicht. Gewährt ohne klassischen Root-Zugriff Zugriff auf eingeschränkte Verzeichnisse. Die Shizuku-App muss installiert sein und ausgeführt werden.</string>
+    <string name="setup_shizuku_description">Eine Alternative zu Root, die privilegierte Dateivorgänge über eine sichere API ermöglicht. Gewährt ohne klassischen Root-Zugriff Zugriff auf eingeschränkte Verzeichnisse. Porter oder Shizuku muss installiert sein und ausgeführt werden.</string>
     <string name="setup_notification_description">Zeigt Aktualisierungen zu Dateivorgängen, Hintergrundaufgaben und Übertragungsfortschritten. So erfährst Du, wenn Vorgänge abgeschlossen sind oder Fehler auftreten.</string>
     <string name="setup_usagestats_description">Analysiert die Speichernutzung von Apps, um große Dateien zu finden und Speicherplatz effektiv zu verwalten. Alle Daten bleiben auf Deinem Gerät und werden niemals übertragen.</string>
     <string name="setup_storage_description">Vollständiger Zugriff auf den gesamten Gerätespeicher für schnelle Dateivorgänge und Stapelverarbeitung. Ermöglicht eine umfassende Dateiverwaltung ohne wiederholte Berechtigungsabfragen.</string>
@@ -82,7 +82,7 @@
     <string name="setup_grant_access_label">Zugriff gewähren</string>
     <string name="setup_access_granted_label">Zugriff gewährt</string>
     <string name="setup_use_root_label">Root verwenden, falls verfügbar</string>
-    <string name="setup_use_shizuku_label">Shizuku verwenden, falls verfügbar</string>
+    <string name="setup_use_shizuku_label">ADB-Zugriff verwenden, falls verfügbar</string>
 
     <string name="setup_status_checking">Wird geprüft…</string>
     <string name="setup_status_completed">Eingerichtet</string>
@@ -94,6 +94,11 @@
     <string name="setup_status_connecting">Verbindung wird hergestellt…</string>
     <string name="setup_status_connection_failed">Verbindung fehlgeschlagen</string>
     <string name="setup_status_unavailable">Nicht verfügbar</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_restart_required">%1$s ist installiert, aber Butler muss erst vollständig geschlossen und neu geöffnet werden.</string>
+    <string name="setup_adb_status_connected_via">Verbunden über %1$s</string>
+    <string name="setup_adb_open_manager_action">%1$s öffnen</string>
+    <string name="setup_adb_install_manager_action">%1$s installieren</string>
 
     <!-- Debug Log -->
     <string name="debug_notification_channel_label">Debug-Benachrichtigungen</string>
@@ -260,6 +265,8 @@
     <string name="acknowledgement_librootjava_subtitle">Java- und Kotlin-Code als Root ausführen! (APACHE 2.0)</string>
     <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
     <string name="acknowledgement_librootkotlinx_subtitle">Root-Kotlin-JVM-Code einfach mit Coroutinen ausführen. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Gibt Android-Apps über die Shizuku-APIs ADB-Zugriff, mit optionaler Root-Unterstützung. (APACHE 2.0)</string>
     <string name="acknowledgement_shizuku_title">Shizuku</string>
     <string name="acknowledgement_shizuku_subtitle">System-APIs über einen mit app_process gestarteten Java-Prozess direkt mit ADB- oder Root-Berechtigungen aus normalen Apps verwenden. (APACHE 2.0)</string>
     <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
