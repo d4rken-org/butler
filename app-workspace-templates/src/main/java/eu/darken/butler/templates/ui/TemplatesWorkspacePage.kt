@@ -114,9 +114,14 @@ fun TemplatesWorkspacePageHost(
     // focused, and the tour must not start behind it.
     val layerActive = LocalLayerActive.current
     val hasTemplates = state?.templates?.isNotEmpty() == true
+    // The session is part of the keys because the latch is only set by a successful start: a start
+    // that loses the controller mutex to another tour would otherwise leave this effect with nothing
+    // left to re-run it, and the picker never gets its tour at all.
+    val activeTourSession by tourController.session.collectAsState()
     var tourStartAttempted by remember { mutableStateOf(false) }
-    LaunchedEffect(layerActive, hasTemplates) {
+    LaunchedEffect(layerActive, hasTemplates, activeTourSession == null) {
         if (!layerActive || !hasTemplates || tourStartAttempted) return@LaunchedEffect
+        if (activeTourSession != null) return@LaunchedEffect
         tourStartAttempted = tourController.tryStart(tourDefinition)
     }
 
