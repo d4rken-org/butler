@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import okio.IOException
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicInteger
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -497,7 +498,7 @@ class SharedResourceTest : BaseTest() {
         // This test specifically asserts non-trace behavior
         Bugs.isTrace = false
 
-        val captured = mutableListOf<String>()
+        val captured = CopyOnWriteArrayList<String>()
         val capture = object : Logging.Logger {
             override fun log(
                 priority: Logging.Priority,
