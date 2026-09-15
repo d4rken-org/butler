@@ -17,12 +17,14 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.tour.guidedTourTarget
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.ResizingDivider
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspacePaneWrapper
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
+import eu.darken.butler.workspace.ui.workspaces.tour.WorkspacePanesTour
 
 @Composable
 internal fun DualVerticalLayout(
@@ -59,7 +61,9 @@ internal fun DualVerticalLayout(
         }
 
         ResizingDivider(
-            modifier = Modifier.fillMaxHeight(),
+            modifier = Modifier
+                .fillMaxHeight()
+                .guidedTourTarget(WorkspacePanesTour.PANE_DIVIDER_TARGET),
             isVertical = true,
             position = dividerPositions.dualVertical,
             containerSize = containerSize,
