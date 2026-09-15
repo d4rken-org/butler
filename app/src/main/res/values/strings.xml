@@ -332,6 +332,18 @@
     <string name="tour_manager_select_body">Press and hold a tab\'s preview to start picking tabs. Then tap the rest and close or pause them all in one go.</string>
     <string name="tour_manager_new_tab_title">Start a new tab</string>
     <string name="tour_manager_new_tab_body">Tap this card to pick any tool for a new tab.</string>
+    <string name="tour_swipe_switch_title">Swipe between tabs</string>
+    <string name="tour_swipe_switch_body">Swipe left or right anywhere on the page to move between your open tabs.</string>
+    <string name="tour_swipe_create_title">Swipe to start a tab</string>
+    <string name="tour_swipe_create_body">Swipe past your last tab and Butler offers you a fresh one.</string>
+    <string name="tour_swipe_panes_title">More than one tab at a time</string>
+    <string name="tour_swipe_panes_body">On a bigger screen, or in landscape, Butler shows several tabs side by side. The layout settings under Tabs decide when that happens.</string>
+    <string name="tour_panes_rail_title">All your tabs</string>
+    <string name="tour_panes_rail_body">Every open tab sits here. Tap one and pick the pane it should go to. Press and hold a tab, then drag it, to change their order.</string>
+    <string name="tour_panes_divider_title">Resize the panes</string>
+    <string name="tour_panes_divider_body">Drag this divider to give one pane more room.</string>
+    <string name="tour_panes_layout_title">Change the arrangement</string>
+    <string name="tour_panes_layout_body">Tap the Butler button and pick Layout to rearrange the panes. The Tabs settings pin a layout per orientation.</string>
 
     <string name="workspace_creating_placeholder">Creating tab…</string>
     <string name="workspace_ondemand_swipe_title">Swipe to create new tab</string>
