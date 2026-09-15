@@ -209,6 +209,19 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
         return harness
     }
 
+    /**
+     * Runs the recomposition and effects a mid-test state change triggers.
+     *
+     * The clock is parked (see [setScreen]), where `waitForIdle` publishes a write but never moves
+     * the recomposer: without a frame the screen keeps composing the old state and the effects keyed
+     * on it never restart. The trailing wait drains what those restarted effects dispatch.
+     */
+    private fun applyAndRecompose() {
+        composeTestRule.waitForIdle()
+        composeTestRule.mainClock.advanceTimeByFrame()
+        composeTestRule.waitForIdle()
+    }
+
     @Test
     fun `a settled tab-less screen starts the tour and tags the create card`() {
         val harness = setScreen(state())
@@ -430,7 +443,7 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
                 swipeGesturesEnabled = true,
             )
         }
-        composeTestRule.waitForIdle()
+        applyAndRecompose()
 
         harness.tourAccess.skipForNowCalls shouldBe 1
     }
@@ -443,7 +456,7 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
         composeTestRule.runOnIdle {
             harness.state.value = state(infos = listOf(tabInfo), panelMode = WorkspacePanelMode.SINGLE)
         }
-        composeTestRule.waitForIdle()
+        applyAndRecompose()
 
         harness.tourAccess.skipForNowCalls shouldBe 1
     }
@@ -457,7 +470,7 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
         harness.tourAccess.started shouldBe emptyList()
 
         composeTestRule.runOnIdle { harness.tourAccess.releaseSession() }
-        composeTestRule.waitForIdle()
+        applyAndRecompose()
 
         harness.tourAccess.started shouldBe listOf(WorkspaceSwipeTour.id)
     }
