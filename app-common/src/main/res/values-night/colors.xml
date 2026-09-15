@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- A silver outfit keeps the silhouette visible on dark surfaces and colored containers. -->
-    <color name="mascot_suit">#aeb8b2</color>
-    <color name="mascot_trousers">#929e97</color>
-    <color name="mascot_lapel_shadow">#808c85</color>
-    <color name="mascot_lapel_edge_left">#c5cec8</color>
-    <color name="mascot_lapel_edge_right">#dce3de</color>
-    <color name="mascot_cuffs">#edf1ee</color>
+    <!-- A midnight navy outfit, with the lapel edges and cuffs carrying the silhouette. -->
+    <color name="mascot_suit">#3d4a63</color>
+    <color name="mascot_trousers">#34415a</color>
+    <color name="mascot_lapel_shadow">#5a657e</color>
+    <color name="mascot_lapel_edge_left">#747e96</color>
+    <color name="mascot_lapel_edge_right">#858fa6</color>
+    <color name="mascot_cuffs">#bec6da</color>
 </resources>

@@ -88,6 +88,11 @@ constructor(
         generalSettings.themeColor.value(color)
     }
 
+    fun onSuitColorSelected(color: Int?) = launch {
+        log(tag) { "onSuitColorSelected($color)" }
+        generalSettings.mascotSuitColor.value(color)
+    }
+
     fun updateUpdateCheckEnabled(enabled: Boolean) = launch {
         log(tag) { "updateUpdateCheckEnabled($enabled)" }
         generalSettings.isUpdateCheckEnabled.value(enabled)

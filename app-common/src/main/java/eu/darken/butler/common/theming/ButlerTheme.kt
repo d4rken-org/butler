@@ -7,12 +7,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
+import eu.darken.butler.common.compose.LocalMascotSuitColor
 import eu.darken.butler.common.compose.SampleContent
 import eu.darken.butler.common.hasApiLevel
 
@@ -50,7 +53,11 @@ fun ButlerTheme(state: ThemeState = ThemeState(), content: @Composable () -> Uni
         }
     }
 
-    MaterialTheme(colorScheme = colors, content = content, typography = ButlerTypography)
+    CompositionLocalProvider(
+        LocalMascotSuitColor provides state.suitColor?.let { Color(it or 0xFF000000.toInt()) },
+    ) {
+        MaterialTheme(colorScheme = colors, content = content, typography = ButlerTypography)
+    }
 }
 
 @Preview(showBackground = true, name = "AMOLED Light")

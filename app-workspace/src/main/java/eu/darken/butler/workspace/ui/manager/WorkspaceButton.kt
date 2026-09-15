@@ -94,7 +94,7 @@ fun WorkspaceButton(
                 .testTag(WorkspaceButtonDefaults.TEST_TAG)
                 .onGloballyPositioned { buttonBounds = it.boundsInRoot() }
                 .clip(RoundedCornerShape(8.dp))
-                .background(containerColor ?: MaterialTheme.colorScheme.tertiaryContainer)
+                .background(containerColor ?: MaterialTheme.colorScheme.surfaceContainerHigh)
                 .combinedClickable(
                     role = Role.Button,
                     onClick = { expanded = true },

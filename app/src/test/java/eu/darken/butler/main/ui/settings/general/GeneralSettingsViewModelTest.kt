@@ -38,6 +38,9 @@ class GeneralSettingsViewModelTest : BaseTest() {
     private lateinit var motdEnabled: MutableStateFlow<Boolean>
     private lateinit var documentsProviderEnabled: MutableStateFlow<Boolean>
 
+    private lateinit var suitColor: MutableStateFlow<Int?>
+
+    private lateinit var suitColorValue: DataStoreValue<Int?>
     private lateinit var updateCheckValue: DataStoreValue<Boolean>
     private lateinit var confirmExitValue: DataStoreValue<Boolean>
     private lateinit var displayCutoutValue: DataStoreValue<Boolean>
@@ -62,7 +65,12 @@ class GeneralSettingsViewModelTest : BaseTest() {
         displayCutoutAvoided = MutableStateFlow(true)
         motdEnabled = MutableStateFlow(true)
         documentsProviderEnabled = MutableStateFlow(true)
+        suitColor = MutableStateFlow(null)
 
+        suitColorValue = mockk {
+            every { flow } returns suitColor
+            coEvery { update(any()) } returns DataStoreValue.Updated(old = null, new = null)
+        }
         updateCheckValue = booleanValue(updateCheckEnabled)
         confirmExitValue = booleanValue(confirmExitEnabled)
         displayCutoutValue = booleanValue(displayCutoutAvoided)
@@ -73,6 +81,7 @@ class GeneralSettingsViewModelTest : BaseTest() {
             every { themeMode } returns mockk { every { flow } returns MutableStateFlow(ThemeMode.SYSTEM) }
             every { themeStyle } returns mockk { every { flow } returns MutableStateFlow(ThemeStyle.DEFAULT) }
             every { themeColor } returns mockk { every { flow } returns MutableStateFlow(ThemeColor.GREEN) }
+            every { mascotSuitColor } returns suitColorValue
             every { isUpdateCheckEnabled } returns updateCheckValue
             every { isConfirmExitEnabled } returns confirmExitValue
             every { isDisplayCutoutAvoided } returns displayCutoutValue

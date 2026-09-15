@@ -148,6 +148,8 @@
     <string name="general_settings_label">General</string>
     <string name="general_settings_desc">General tweaks that affect the whole app.</string>
     <string name="settings_category_ui_label">User interface</string>
+    <string name="ui_mascot_suit_setting_label">Butler\'s suit</string>
+    <string name="ui_mascot_suit_setting_explanation">The color Butler\'s outfit is tailored from.</string>
     <string name="ui_theme_mode_setting_label">Theme mode</string>
     <string name="ui_theme_mode_setting_explanation">The mode used when theming the app (e.g. night or day).</string>
     <string name="ui_theme_style_setting_label">Theme style</string>

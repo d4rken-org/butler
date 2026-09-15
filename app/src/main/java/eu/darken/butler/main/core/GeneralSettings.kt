@@ -57,6 +57,14 @@ class GeneralSettings @Inject constructor(
         onErrorFallbackToDefault = BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.RELEASE,
     )
 
+    /** An RGB suit color for the mascot. Null keeps the per-theme default. */
+    val mascotSuitColor = dataStore.createValue<Int?>(
+        key = "core.ui.mascot.suit",
+        defaultValue = null,
+        json = json,
+        onErrorFallbackToDefault = BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.RELEASE,
+    )
+
     val isOnboardingCompleted = dataStore.createValue("core.onboarding.completed", false)
 
     val isUpdateCheckEnabled = dataStore.createValue("updater.check.enabled", updateChecker.isEnabledByDefault())
@@ -70,6 +78,7 @@ class GeneralSettings @Inject constructor(
         themeMode,
         themeStyle,
         themeColor,
+        mascotSuitColor,
         motdSettings.isMotdEnabled,
         isUpdateCheckEnabled,
         isConfirmExitEnabled,
@@ -82,9 +91,19 @@ class GeneralSettings @Inject constructor(
 }
 
 val GeneralSettings.themeState: Flow<ThemeState>
-    get() = combine(themeMode.flow, themeStyle.flow, themeColor.flow) { mode, style, color ->
-        ThemeState(mode, style, color)
+    get() = combine(
+        themeMode.flow,
+        themeStyle.flow,
+        themeColor.flow,
+        mascotSuitColor.flow,
+    ) { mode, style, color, suitColor ->
+        ThemeState(mode, style, color, suitColor)
     }
 
 val GeneralSettings.themeStateBlocking: ThemeState
-    get() = ThemeState(themeMode.valueBlocking, themeStyle.valueBlocking, themeColor.valueBlocking)
+    get() = ThemeState(
+        themeMode.valueBlocking,
+        themeStyle.valueBlocking,
+        themeColor.valueBlocking,
+        mascotSuitColor.valueBlocking,
+    )

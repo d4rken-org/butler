@@ -58,6 +58,9 @@ class TextPreviewGeneratorTest : BaseTest() {
             every { themeColor } returns mockk {
                 every { flow } returns flowOf(ThemeColor.GREEN)
             }
+            every { mascotSuitColor } returns mockk {
+                every { flow } returns flowOf<Int?>(null)
+            }
         }
 
         textPreviewGenerator = TextPreviewGenerator(context, gatewaySwitch, generalSettings)

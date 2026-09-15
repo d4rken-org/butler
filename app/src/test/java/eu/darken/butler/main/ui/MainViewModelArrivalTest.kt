@@ -65,6 +65,7 @@ class MainViewModelArrivalTest : BaseTest() {
             every { themeMode } returns dataStoreValue(MutableStateFlow(ThemeMode.SYSTEM))
             every { themeStyle } returns dataStoreValue(MutableStateFlow(ThemeStyle.DEFAULT))
             every { themeColor } returns dataStoreValue(MutableStateFlow(ThemeColor.GREEN))
+            every { mascotSuitColor } returns mockk { every { flow } returns MutableStateFlow<Int?>(null) }
         }
         every { contentUriHelper.extractInfo(uri) } returns ContentUriHelper.SourceInfo(
             uri = uri,

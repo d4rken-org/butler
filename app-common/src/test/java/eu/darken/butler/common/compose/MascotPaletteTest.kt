@@ -142,9 +142,9 @@ class MascotPaletteTest : BaseTest() {
     fun `forNight repaints the suit and leaves the ink alone`() {
         val counted = colorCounts(MascotPalette.forNight(rawJson(R.raw.mascot_lottie_wink)))
 
-        counted[0xaeb8b2] shouldBe 4  // jacket, arms and hat
+        counted[0x3d4a63] shouldBe 4  // jacket, arms and hat
         counted[0x262626] shouldBe null
-        counted[0xc5cec8] shouldBe 1  // lapel edge, left
+        counted[0x747e96] shouldBe 1  // lapel edge, left
         counted[0x212121] shouldBe 2  // moustache and tie stay dark
         counted[0x48ff80] shouldBe 1  // head
     }
@@ -185,7 +185,7 @@ class MascotPaletteTest : BaseTest() {
     }
 
     @Test
-    fun `the outfit lightens at night and the rest holds`() {
+    fun `the outfit turns navy at night and the rest holds`() {
         val day = paletteColors()
         RuntimeEnvironment.setQualifiers("+night")
         val night = paletteColors()

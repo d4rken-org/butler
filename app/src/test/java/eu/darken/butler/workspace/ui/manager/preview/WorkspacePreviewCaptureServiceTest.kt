@@ -43,6 +43,7 @@ class WorkspacePreviewCaptureServiceTest : BaseTest() {
         every { themeMode } returns mockk { every { flow } returns flowOf(ThemeMode.SYSTEM) }
         every { themeStyle } returns mockk { every { flow } returns flowOf(ThemeStyle.DEFAULT) }
         every { themeColor } returns mockk { every { flow } returns flowOf(ThemeColor.GREEN) }
+        every { mascotSuitColor } returns mockk { every { flow } returns flowOf<Int?>(null) }
     }
     private val pauseGate = WorkspacePauseGate()
 

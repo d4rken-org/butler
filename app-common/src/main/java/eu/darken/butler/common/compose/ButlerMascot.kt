@@ -11,15 +11,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.VectorPath
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.preferredFrameRate
@@ -51,6 +57,16 @@ import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+
+/**
+ * A suit color the user picked, which overrides the per-theme default in both modes. Provided by
+ * `ButlerTheme`; null means the mascot wears whatever the current theme dresses him in.
+ */
+val LocalMascotSuitColor: ProvidableCompositionLocal<Color?> = staticCompositionLocalOf { null }
+
+private const val ALPHA_OPAQUE = 0xFF000000.toInt()
+
+private fun Color.rgb(): Int = toArgb() and 0xFFFFFF
 
 private fun resolveHat(hat: ButlerMascotMode.Hat): Int? {
     return when (hat) {
@@ -101,16 +117,25 @@ private suspend fun loadComposition(
     context: Context,
     @androidx.annotation.RawRes resId: Int,
     night: Boolean = false,
+    suit: Color? = null,
 ): LottieComposition? = withContext(Dispatchers.Default) {
-    if (!night) return@withContext LottieCompositionFactory.fromRawResSync(context, resId).value
+    if (!night && suit == null) return@withContext LottieCompositionFactory.fromRawResSync(context, resId).value
 
     // Recoloring costs a read plus a pass over ~30KB of json, so ask the cache before paying it.
-    val cacheKey = "${context.resources.getResourceEntryName(resId)}_night"
+    val name = context.resources.getResourceEntryName(resId)
+    val cacheKey = when (suit) {
+        null -> "${name}_night"
+        else -> "${name}_${if (night) "night" else "day"}_${"%06x".format(suit.rgb())}"
+    }
     val cached = LottieCompositionCache.getInstance().get(cacheKey)
     if (cached != null) return@withContext cached
 
+    val outfit = when (suit) {
+        null -> MascotPalette.NIGHT
+        else -> MascotPalette.ramp(suit.rgb(), night)
+    }
     val json = context.resources.openRawResource(resId).bufferedReader().use { it.readText() }
-    LottieCompositionFactory.fromJsonStringSync(MascotPalette.forNight(json), cacheKey).value
+    LottieCompositionFactory.fromJsonStringSync(MascotPalette.recolor(json, outfit), cacheKey).value
 }
 
 /**
@@ -120,13 +145,18 @@ private suspend fun loadComposition(
 @Composable
 private fun isNight(): Boolean = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
+/** What the mascot wears while nobody picked a suit color, for the theme he is standing in. */
+@Composable
+fun mascotDefaultSuitColor(): Color = Color(MascotPalette.suitColor(isNight()) or ALPHA_OPAQUE)
+
 /** Butler's own clips, repainted for the dark theme. SD Maid's cameo is not his palette. */
 @Composable
 private fun rememberButlerComposition(@androidx.annotation.RawRes resId: Int): LottieComposition? {
     val context = LocalContext.current
     val night = isNight()
-    return produceState<LottieComposition?>(null, resId, night) {
-        value = loadComposition(context, resId, night)
+    val suit = LocalMascotSuitColor.current
+    return produceState<LottieComposition?>(null, resId, night, suit) {
+        value = loadComposition(context, resId, night, suit)
     }.value
 }
 
@@ -136,12 +166,15 @@ private fun rememberButlerComposition(@androidx.annotation.RawRes resId: Int): L
  * on plain ComponentActivity, so nothing creates the AppCompat delegate that would apply it - which
  * would leave a user on "dark theme, light system" with the day palette on a dark ground. Handing
  * the parser resources configured from [isNight] instead settles it the same way the clips do.
+ *
+ * A picked suit color repaints the resolved fills itself, on whichever baseline they arrive in.
  */
 @Composable
 private fun mascotVector(@DrawableRes resId: Int): ImageVector {
     val context = LocalContext.current
     val night = isNight()
-    val resources = remember(context, night) {
+    val suit = LocalMascotSuitColor.current
+    val resources = remember(context, night, suit) {
         val config = Configuration(context.resources.configuration).apply {
             uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or when {
                 night -> Configuration.UI_MODE_NIGHT_YES
@@ -150,7 +183,52 @@ private fun mascotVector(@DrawableRes resId: Int): ImageVector {
         }
         context.createConfigurationContext(config).resources
     }
-    return remember(resources, resId) { ImageVector.vectorResource(context.theme, resources, resId) }
+    return remember(resources, resId, suit) {
+        val vector = ImageVector.vectorResource(context.theme, resources, resId)
+        when (suit) {
+            null -> vector
+            else -> vector.repainted(MascotPalette.ramp(suit.rgb(), night))
+        }
+    }
+}
+
+/** Rebuilds the vector with the outfit fills swapped, carrying every other path property over. */
+internal fun ImageVector.repainted(outfit: Map<Int, Int>): ImageVector {
+    val palette = MascotPalette.rampForEitherBaseline(outfit)
+    val builder = ImageVector.Builder(
+        name = this.name,
+        defaultWidth = this.defaultWidth,
+        defaultHeight = this.defaultHeight,
+        viewportWidth = this.viewportWidth,
+        viewportHeight = this.viewportHeight,
+        tintColor = this.tintColor,
+        tintBlendMode = this.tintBlendMode,
+        autoMirror = this.autoMirror,
+    )
+    root.forEach { node ->
+        // The mascot drawables are flat, so no group transform has to survive the rebuild
+        val path = node as? VectorPath ?: error("$name carries a group, which is not repainted")
+        val repainted = (path.fill as? SolidColor)
+            ?.let { palette[it.value.rgb()] }
+            ?.let { SolidColor(Color(it or ALPHA_OPAQUE)) }
+        builder.addPath(
+            pathData = path.pathData,
+            pathFillType = path.pathFillType,
+            name = path.name,
+            fill = repainted ?: path.fill,
+            fillAlpha = path.fillAlpha,
+            stroke = path.stroke,
+            strokeAlpha = path.strokeAlpha,
+            strokeLineWidth = path.strokeLineWidth,
+            strokeLineCap = path.strokeLineCap,
+            strokeLineJoin = path.strokeLineJoin,
+            strokeLineMiter = path.strokeLineMiter,
+            trimPathStart = path.trimPathStart,
+            trimPathEnd = path.trimPathEnd,
+            trimPathOffset = path.trimPathOffset,
+        )
+    }
+    return builder.build()
 }
 
 @Composable
@@ -205,7 +283,8 @@ fun ButlerMascot(
             when (variant) {
                 is Animated.RandomCycling -> {
                     val context = LocalContext.current
-                    val night = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+                    val night = isNight()
+                    val suit = LocalMascotSuitColor.current
 
                     // Butler's clips are pure vector, but SD Maid's is built from raster layers and
                     // loadComposition() drops those - she renders as a lone coffee cup. Composing her
@@ -221,7 +300,7 @@ fun ButlerMascot(
                         }
                     }
 
-                    LaunchedEffect(variant, userActivity, night) {
+                    LaunchedEffect(variant, userActivity, night, suit) {
                         val isUserActive = userActivity.isActive(MASCOT_IDLE_AFTER)
                         while (currentCoroutineContext().isActive) {
                             // A Lottie frame invalidates the whole Compose view, so an unattended
@@ -246,7 +325,7 @@ fun ButlerMascot(
                             if (!animated) {
                                 // Load on demand, one at a time - parsing all upfront saturates the CPU during startup
                                 for (resId in randomCyclingSequences.random()) {
-                                    val composition = loadComposition(context, resId, night) ?: continue
+                                    val composition = loadComposition(context, resId, night, suit) ?: continue
                                     animated = true
                                     animatable.animate(
                                         composition = composition,
