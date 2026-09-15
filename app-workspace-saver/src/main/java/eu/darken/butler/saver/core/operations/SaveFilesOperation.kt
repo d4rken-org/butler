@@ -25,6 +25,8 @@ import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.operations.StagedReplace
 import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.common.progress.Progress
@@ -188,47 +190,70 @@ class SaveFilesOperation @AssistedInject constructor(
                 )
 
             var targetPath = targetDirectory.child(source.filename)
+            var replacesExisting = false
 
             // Check for conflicts
             if (gatewaySwitch.exists(targetPath)) {
-                val resolvedPath = handleConflict(
-                    source = source,
-                    targetPath = targetPath,
-                    targetDirectory = targetDirectory,
-                    issueResolver = issueResolver,
-                )
-                if (resolvedPath == null) {
-                    inputStream.close()
-                    return SaveFilesReport.FileResult.Skipped(
-                        filename = source.filename,
-                        reason = SaveFilesReport.FileResult.Skipped.SkipReason.CONFLICT,
+                when (
+                    val outcome = handleConflict(
+                        source = source,
+                        targetPath = targetPath,
+                        targetDirectory = targetDirectory,
+                        issueResolver = issueResolver,
                     )
+                ) {
+                    is ConflictOutcome.Skip -> {
+                        inputStream.close()
+                        return SaveFilesReport.FileResult.Skipped(
+                            filename = source.filename,
+                            reason = SaveFilesReport.FileResult.Skipped.SkipReason.CONFLICT,
+                        )
+                    }
+
+                    is ConflictOutcome.Write -> {
+                        targetPath = outcome.target
+                        replacesExisting = outcome.replacesExisting
+                    }
                 }
-                targetPath = resolvedPath
             }
 
-            // Create file and write with progress tracking
-            gatewaySwitch.createFile(targetPath, createParents = false)
+            // A replacement is written to a staging sibling and swapped in afterwards, so a failure
+            // mid-write leaves the user with the old file instead of a truncated new one
+            val writePath = if (replacesExisting) {
+                StagedReplace.stagingPathFor(targetPath, gatewaySwitch)
+            } else {
+                targetPath
+            }
 
             var bytesWritten = 0L
             val buffer = ByteArray(BUFFER_SIZE)
 
-            gatewaySwitch.openOutputStream(targetPath, append = false).use { outputStream ->
-                inputStream.use { input ->
-                    var bytesRead: Int
-                    while (input.read(buffer).also { bytesRead = it } != -1) {
-                        outputStream.write(buffer, 0, bytesRead)
-                        bytesWritten += bytesRead
+            try {
+                // Create file and write with progress tracking
+                gatewaySwitch.createFile(writePath, createParents = false)
 
-                        progressTracker.updateFileProgress(bytesRead.toLong())
+                gatewaySwitch.openOutputStream(writePath, append = false).use { outputStream ->
+                    inputStream.use { input ->
+                        var bytesRead: Int
+                        while (input.read(buffer).also { bytesRead = it } != -1) {
+                            outputStream.write(buffer, 0, bytesRead)
+                            bytesWritten += bytesRead
 
-                        if (progressTracker.shouldReportProgress()) {
-                            emitState(buildActiveState(operationContext, source, progressTracker))
+                            progressTracker.updateFileProgress(bytesRead.toLong())
+
+                            if (progressTracker.shouldReportProgress()) {
+                                emitState(buildActiveState(operationContext, source, progressTracker))
+                            }
                         }
+                        outputStream.flush()
                     }
-                    outputStream.flush()
                 }
+            } catch (e: Throwable) {
+                if (replacesExisting) StagedReplace.discard(writePath, gatewaySwitch)
+                throw e
             }
+
+            if (replacesExisting) StagedReplace.commit(writePath, targetPath, gatewaySwitch)
 
             SaveFilesReport.FileResult.Success(
                 filename = source.filename,
@@ -242,27 +267,38 @@ class SaveFilesOperation @AssistedInject constructor(
         }
     }
 
+    /** What to do with a source file whose target already exists. */
+    private sealed interface ConflictOutcome {
+        data object Skip : ConflictOutcome
+
+        /**
+         * @param target Where to write
+         * @param replacesExisting Whether content at [target] has to be replaced
+         */
+        data class Write(val target: APath<*>, val replacesExisting: Boolean) : ConflictOutcome
+    }
+
     private suspend fun handleConflict(
         source: Command.SourceFile,
         targetPath: APath<*>,
         targetDirectory: APath<*>,
         issueResolver: PathOperationIssueResolver,
-    ): APath<*>? {
+    ): ConflictOutcome {
         // Check "apply to all" flags first
         when {
             issueResolver.skipAllPathExists -> {
                 log(tag, INFO) { "Skipping conflict (apply-to-all): ${source.filename}" }
-                return null
+                return ConflictOutcome.Skip
             }
             issueResolver.overwriteAllPathExists -> {
                 log(tag, INFO) { "Overwriting (apply-to-all): ${source.filename}" }
-                deleteForOverwrite(targetPath)
-                return targetPath
+                val existingType = gatewaySwitch.lookup(targetPath, LookupOptions.BASE).fileType
+                return overwriteOutcome(targetPath, existingType)
             }
             issueResolver.renameSourceAllPathExists -> {
                 val uniqueName = generateUniqueName(targetDirectory, source.filename)
                 log(tag, INFO) { "Auto-renaming (apply-to-all): ${source.filename} -> $uniqueName" }
-                return targetDirectory.child(uniqueName)
+                return ConflictOutcome.Write(targetDirectory.child(uniqueName), replacesExisting = false)
             }
         }
 
@@ -284,18 +320,17 @@ class SaveFilesOperation @AssistedInject constructor(
         return when (val resolution = issueResolver.resolveIssue(issue)) {
             is PathActionIssue.PathAlreadyExists.Resolution.Skip -> {
                 log(tag, INFO) { "User chose to skip: ${source.filename}" }
-                null
+                ConflictOutcome.Skip
             }
 
             is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
                 log(tag, INFO) { "User chose to overwrite: ${source.filename}" }
-                deleteForOverwrite(targetPath)
-                targetPath
+                overwriteOutcome(targetPath, destLookup.fileType)
             }
 
             is PathActionIssue.PathAlreadyExists.Resolution.RenameSource -> {
                 log(tag, INFO) { "User chose to rename: ${source.filename} -> ${resolution.newName}" }
-                targetDirectory.child(resolution.newName)
+                ConflictOutcome.Write(targetDirectory.child(resolution.newName), replacesExisting = false)
             }
 
             is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
@@ -305,17 +340,24 @@ class SaveFilesOperation @AssistedInject constructor(
                     // Writing to targetPath without a successful rename would collide with the existing file
                     throw WriteException("Could not rename existing file to ${resolution.newName}", targetPath)
                 }
-                targetPath
+                ConflictOutcome.Write(targetPath, replacesExisting = false)
             }
 
-            else -> targetPath
+            else -> ConflictOutcome.Write(targetPath, replacesExisting = false)
         }
     }
 
-    private suspend fun deleteForOverwrite(targetPath: APath<*>) {
-        if (!gatewaySwitch.delete(targetPath, recursive = false)) {
-            throw WriteException("Could not delete existing file for overwrite", targetPath)
+    /**
+     * A file cannot be staged over a directory: the swap-in renames the directory aside and then
+     * cannot remove a non-empty one, leaving the user's folder behind a dot-name while the save
+     * reports success. A directory is refused here rather than by a delete that is allowed to
+     * succeed - `DocumentsContract.deleteDocument` takes a whole subtree with it.
+     */
+    private suspend fun overwriteOutcome(targetPath: APath<*>, existingType: FileType): ConflictOutcome {
+        if (existingType == FileType.DIRECTORY) {
+            throw WriteException("Cannot overwrite the folder ${targetPath.name} with a file", targetPath)
         }
+        return ConflictOutcome.Write(targetPath, replacesExisting = true)
     }
 
     private suspend fun handleError(

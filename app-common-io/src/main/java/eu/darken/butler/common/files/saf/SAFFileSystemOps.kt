@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.saf
 import android.content.ContentResolver
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
+import android.webkit.MimeTypeMap
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -11,6 +12,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.PathNotFoundException
@@ -37,6 +39,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import java.util.Locale
 
 /**
  * FileSystemOps implementation for SAFPath using Android Storage Access Framework.
@@ -595,6 +598,26 @@ class SAFFileSystemOps @Inject constructor(
     }
 
     /**
+     * The MIME type a new document is created with: other apps read it back as the document's type,
+     * so a generic binary would mistype every file we create.
+     *
+     * Only a type that round-trips through [MimeTypeMap] is used. AOSP's FileSystemProvider appends
+     * the MIME's canonical extension when the requested one doesn't map to it, so a name like
+     * `settings.ini` typed `text/plain` would land as `settings.ini.txt`.
+     */
+    private fun creationMimeType(path: SAFPath): String {
+        val extension = path.name.substringAfterLast('.', "")
+        val derived = MimeInfo.fromFileName(path.name).rawType
+        val map = MimeTypeMap.getSingleton()
+        // The lookup is case insensitive, the provider's comparison is not: it holds the name's raw
+        // extension against the MIME's canonical one, so photo.JPG typed image/jpeg lands as
+        // photo.JPG.jpg.
+        val roundTrips = map.getMimeTypeFromExtension(extension.lowercase(Locale.ROOT)) == derived ||
+            map.getExtensionFromMimeType(derived) == extension
+        return if (roundTrips) derived else "application/octet-stream"
+    }
+
+    /**
      * Verify this (created/moved) document landed under [expectedName]; providers may munge names
      * (sanitize characters, auto-suffix collisions). Attempts one corrective rename.
      *
@@ -742,7 +765,7 @@ class SAFFileSystemOps @Inject constructor(
             val docFile = path.resolveDocFileOrNull()
             if (docFile != null && docFile.existsStrict()) throw PathAlreadyExistsException(path = path)
 
-            val created = createDocumentFile("application/octet-stream", path)
+            val created = createDocumentFile(creationMimeType(path), path)
             cacheCreated(path, created)
             invalidateParentLookup(path)
 
@@ -780,7 +803,7 @@ class SAFFileSystemOps @Inject constructor(
         // Match Local's create-on-write semantics (StandardOpenOption.CREATE, both modes).
         // The parent must already exist — createDocumentFile enforces that.
         val created = existing == null
-        val docFile = existing ?: createDocumentFile("application/octet-stream", path).also {
+        val docFile = existing ?: createDocumentFile(creationMimeType(path), path).also {
             cacheCreated(path, it)
             invalidateParentLookup(path)
         }

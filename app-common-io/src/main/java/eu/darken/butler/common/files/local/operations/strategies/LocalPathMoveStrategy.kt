@@ -12,6 +12,7 @@ import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.operations.DecomposedMove
 import eu.darken.butler.common.files.operations.TransferStrategy
 import okio.buffer
 import okio.sink
@@ -71,7 +72,21 @@ class LocalPathMoveStrategy(
             }
 
             is MoveOutcome.NotSupported ->
-                log(TAG, DEBUG) { "Atomic move not supported (${outcome.reason}), falling back to copy+delete" }
+                log(TAG, DEBUG) { "Atomic move not supported (${outcome.reason}), trying a decomposed move" }
+        }
+
+        // A refusal can be about the combination of a new folder AND a new name, not about renaming
+        if (DecomposedMove.attempt(sourceLookup.lookedUp, destination, sourceOps)) {
+            log(TAG, DEBUG) { "Decomposed move succeeded: ${sourceLookup.lookedUp} -> $destination" }
+
+            onProgress(sourceLookup.size ?: 0L)
+
+            return TransferStrategy.TransferResult.Success(
+                source = sourceLookup.lookedUp,
+                destination = destination,
+                bytesTransferred = sourceLookup.size ?: 0L,
+                destinationLookup = destOps.lookup(destination, LookupOptions.BASE)
+            )
         }
 
         // Atomic move not supported - use copy+delete fallback

@@ -44,7 +44,7 @@ import eu.darken.butler.common.files.metadata.FileType
  *     destLookup = existingFileLookup,
  *     onSkip = { skipped.add(it) },
  *     onRename = { newDest -> workQueue.addFirst(createRenamedItem(newDest)) },
- *     onOverwrite = { destOps.delete(destPath); workQueue.addFirst(originalItem) },
+ *     onOverwrite = { workQueue.addFirst(originalItem.copy(stagedOverwrite = true)) },
  *     onResolveConflict = { ... }
  * )
  * ```
@@ -84,6 +84,8 @@ class TransferConflictResolver<
      * @param sourceLookup Source lookup
      * @param destination Destination path
      * @param destLookup Destination lookup (for checking type)
+     * @param stagedByCaller Whether the caller replaces the destination via a staging file, which
+     *                       means the existing destination must survive until that transfer is done
      * @param onSkip Called when skip-all is active
      * @param onRename Called when rename-all is active (receives new destination)
      * @param onMerge Called when merge-all is active (directories only, null for files)
@@ -94,6 +96,7 @@ class TransferConflictResolver<
         sourceLookup: SPL,
         destination: DP,
         destLookup: DPL,
+        stagedByCaller: Boolean,
         onSkip: (SPL) -> Unit,
         onRename: (DP) -> Unit,
         onMerge: (() -> Unit)? = null,
@@ -129,7 +132,7 @@ class TransferConflictResolver<
         if (issueResolver.overwriteAllPathExists) {
             val recursive = destLookup.fileType == FileType.DIRECTORY
             log(tag, INFO) { "Overwriting (apply-to-all): $destination" }
-            deleteForOverwrite(destination, recursive)
+            if (!stagedByCaller) deleteForOverwrite(destination, recursive)
             onOverwrite(recursive)
             return ApplyToAllResult.Resolved
         }
@@ -166,6 +169,8 @@ class TransferConflictResolver<
             sourceLookup = sourceLookup,
             destination = destination,
             destLookup = destLookup,
+            // A file transfer stages its replacement; replacing a directory with a file does not
+            stagedByCaller = destLookup.fileType != FileType.DIRECTORY,
             onSkip = onSkip,
             onRename = onRename,
             onMerge = null, // Files don't support merge
@@ -218,6 +223,7 @@ class TransferConflictResolver<
             sourceLookup = sourceLookup,
             destination = destination,
             destLookup = destLookup,
+            stagedByCaller = false, // Directory creation has nothing to stage
             onSkip = { lookup -> onSkip(lookup, true) }, // Mark as skipped directory
             onRename = onRename,
             onMerge = if (destLookup.fileType == FileType.DIRECTORY) onMerge else null,
@@ -248,6 +254,8 @@ class TransferConflictResolver<
      * @param destination Destination path
      * @param destLookup Existing destination lookup
      * @param canMerge Whether merge is an option (true for directory-to-directory)
+     * @param stagedByCaller Whether the caller replaces the destination via a staging file, which
+     *                       means the existing destination must survive until that transfer is done
      * @param onSkip Callback when user chooses to skip (receives source path and whether to mark as skipped dir)
      * @param onOverwrite Callback when user chooses to overwrite (receives whether recursive delete needed)
      * @param onMerge Callback when user chooses to merge
@@ -259,6 +267,7 @@ class TransferConflictResolver<
         destination: DP,
         destLookup: DPL,
         canMerge: Boolean,
+        stagedByCaller: Boolean,
         onSkip: (SPL, markAsSkippedDir: Boolean) -> Unit,
         onOverwrite: (recursive: Boolean) -> Unit,
         onMerge: () -> Unit,
@@ -287,7 +296,7 @@ class TransferConflictResolver<
 
             is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
                 val recursive = destLookup.fileType == FileType.DIRECTORY
-                deleteForOverwrite(destination, recursive)
+                if (!stagedByCaller) deleteForOverwrite(destination, recursive)
                 onOverwrite(recursive)
             }
 

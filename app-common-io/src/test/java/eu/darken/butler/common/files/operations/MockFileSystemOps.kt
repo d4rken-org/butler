@@ -122,6 +122,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     val deleteCalls = mutableListOf<String>()
     val createDirCalls = mutableListOf<String>()
     val createFileCalls = mutableListOf<String>()
+    val openInputStreamCalls = mutableListOf<String>()
+    val openOutputStreamCalls = mutableListOf<String>()
 
     /**
      * Answers for [existsStrict], per path and as a fallback. Deliberately not derived from the
@@ -140,6 +142,7 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     private var failOpenOutputStreamException: (() -> Exception)? = null
     private var failDeleteCount = 0
     private var failDeleteException: (() -> Exception)? = null
+    private val failDeleteAtPaths = mutableMapOf<String, () -> Exception>()
     private var failCreateDirCount = 0
     private var failCreateDirException: (() -> Exception)? = null
     private var failCreateFileCount = 0
@@ -149,11 +152,17 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     private var failWriteCount = 0
     private var failWriteAfterBytes = 0L
     private var failWriteException: (() -> Exception)? = null
+    private var failLookupWhen: ((String) -> Exception?)? = null
+    private val failWriteAtPaths = mutableMapOf<String, Pair<Long, () -> Exception>>()
+    private var moveNotSupportedWhen: ((String, String) -> String?)? = null
+    private var moveFailAfterMutationWhen: ((String, String) -> Exception?)? = null
+    private var moveFailBeforeMutationWhen: ((String, String) -> Exception?)? = null
 
     suspend fun lookup(path: P) = lookup(path, LookupOptions.BASE)
 
     override suspend fun lookup(path: P, options: LookupOptions): PL {
         lookupCalls.add(path.path)
+        failLookupWhen?.invoke(path.path)?.let { throw it }
 
         val mockFile = files[path.path]
 
@@ -225,6 +234,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
 
     override suspend fun delete(path: P, recursive: Boolean): Boolean {
         deleteCalls.add(path.path)
+
+        failDeleteAtPaths[path.path]?.let { throw it() }
 
         // Check for injected failure
         if (failDeleteCount > 0) {
@@ -349,6 +360,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     }
 
     override suspend fun openInputStream(path: P): InputStream {
+        openInputStreamCalls.add(path.path)
+
         // Check for injected failure
         if (failOpenInputStreamCount > 0) {
             failOpenInputStreamCount--
@@ -366,6 +379,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     }
 
     override suspend fun openOutputStream(path: P, append: Boolean): OutputStream {
+        openOutputStreamCalls.add(path.path)
+
         // Check for injected failure
         if (failOpenOutputStreamCount > 0) {
             failOpenOutputStreamCount--
@@ -392,11 +407,19 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
             ByteArray(0)
         }
 
-        val failAfterBytes = if (failWriteCount > 0) {
+        val pathWriteFailure = failWriteAtPaths[path.path]
+        val failAfterBytes: Long?
+        val failWith: (() -> Exception)?
+        if (pathWriteFailure != null) {
+            failAfterBytes = pathWriteFailure.first
+            failWith = pathWriteFailure.second
+        } else if (failWriteCount > 0) {
             failWriteCount--
-            failWriteAfterBytes
+            failAfterBytes = failWriteAfterBytes
+            failWith = failWriteException
         } else {
-            null
+            failAfterBytes = null
+            failWith = null
         }
 
         return object : ByteArrayOutputStream() {
@@ -417,7 +440,7 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
                 val limit = failAfterBytes ?: return
                 written += incoming
                 if (written > limit) {
-                    throw failWriteException?.invoke() ?: java.io.IOException("Injected failure")
+                    throw failWith?.invoke() ?: java.io.IOException("Injected failure")
                 }
             }
 
@@ -494,6 +517,12 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     }
 
     override suspend fun move(source: P, destination: P): MoveOutcome {
+        moveNotSupportedWhen?.invoke(source.path, destination.path)?.let {
+            return MoveOutcome.NotSupported(it)
+        }
+
+        moveFailBeforeMutationWhen?.invoke(source.path, destination.path)?.let { throw it }
+
         // Contract: missing source is an error, not a "not supported" fallback signal
         val mockFile = files[source.path]
             ?: throw ReadException("Source does not exist", source)
@@ -527,6 +556,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
                 destParent.children.add(destination.name)
             }
         }
+
+        moveFailAfterMutationWhen?.invoke(source.path, destination.path)?.let { throw it }
 
         return MoveOutcome.Moved
     }
@@ -657,6 +688,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         deleteCalls.clear()
         createDirCalls.clear()
         createFileCalls.clear()
+        openInputStreamCalls.clear()
+        openOutputStreamCalls.clear()
         clearFailureInjection()
     }
 
@@ -688,6 +721,19 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     fun setFailDelete(count: Int, exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }) {
         failDeleteCount = count
         failDeleteException = exceptionFactory
+    }
+
+    /**
+     * Configure delete to fail for exactly [path], however often it is called.
+     *
+     * Count-based injection cannot address the destination delete of a staged replacement: a move
+     * strategy deletes the source first, which would consume the counter.
+     */
+    fun setFailDeleteAt(
+        path: String,
+        exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") },
+    ) {
+        failDeleteAtPaths[path] = exceptionFactory
     }
 
     /**
@@ -733,6 +779,69 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         failWriteException = exceptionFactory
     }
 
+    /**
+     * Fails [lookup] for every path [predicate] accepts. Staging paths carry a random token, so a
+     * test addresses them by shape (".part.") rather than by an exact name.
+     */
+    fun setFailLookupWhen(
+        exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") },
+        predicate: (path: String) -> Boolean,
+    ) {
+        failLookupWhen = { path -> if (predicate(path)) exceptionFactory() else null }
+    }
+
+    /**
+     * Fails the output stream for exactly [path] once more than [afterBytes] have been written,
+     * however often that path is opened.
+     *
+     * Count-based injection cannot address the swap-in of a staged replacement: the transfer into
+     * the staging file opens an output stream first and would consume the counter.
+     */
+    fun setFailWriteAt(
+        path: String,
+        afterBytes: Long,
+        exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") },
+    ) {
+        failWriteAtPaths[path] = afterBytes to exceptionFactory
+    }
+
+    /**
+     * Makes [move] report [MoveOutcome.NotSupported] without mutating anything, for every
+     * source/destination pair [predicate] accepts - a provider without rename support.
+     */
+    fun setMoveNotSupported(
+        reason: String = "Injected: rename unsupported",
+        predicate: (source: String, destination: String) -> Boolean,
+    ) {
+        moveNotSupportedWhen = { source, destination -> if (predicate(source, destination)) reason else null }
+    }
+
+    /**
+     * Makes [move] carry the rename out and only THEN throw, for every source/destination pair
+     * [predicate] accepts - SAF renames the document first and verifies the resulting name after.
+     */
+    fun setMoveFailAfterMutation(
+        exceptionFactory: () -> Exception = { java.io.IOException("Injected: threw after renaming") },
+        predicate: (source: String, destination: String) -> Boolean,
+    ) {
+        moveFailAfterMutationWhen = { source, destination ->
+            if (predicate(source, destination)) exceptionFactory() else null
+        }
+    }
+
+    /**
+     * Makes [move] throw without mutating anything, for every source/destination pair [predicate]
+     * accepts - a gateway that refuses the call outright (permission, gone source, transport loss).
+     */
+    fun setMoveFailBeforeMutation(
+        exceptionFactory: () -> Exception = { java.io.IOException("Injected: threw before renaming") },
+        predicate: (source: String, destination: String) -> Boolean,
+    ) {
+        moveFailBeforeMutationWhen = { source, destination ->
+            if (predicate(source, destination)) exceptionFactory() else null
+        }
+    }
+
     fun setFailListFiles(count: Int, exceptionFactory: () -> Exception = { SecurityException("Permission denied") }) {
         failListFilesCount = count
         failListFilesException = exceptionFactory
@@ -748,6 +857,7 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         failOpenOutputStreamException = null
         failDeleteCount = 0
         failDeleteException = null
+        failDeleteAtPaths.clear()
         failCreateDirCount = 0
         failCreateDirException = null
         failCreateFileCount = 0
@@ -757,6 +867,11 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         failWriteCount = 0
         failWriteAfterBytes = 0L
         failWriteException = null
+        failLookupWhen = null
+        failWriteAtPaths.clear()
+        moveNotSupportedWhen = null
+        moveFailAfterMutationWhen = null
+        moveFailBeforeMutationWhen = null
     }
 
     /**

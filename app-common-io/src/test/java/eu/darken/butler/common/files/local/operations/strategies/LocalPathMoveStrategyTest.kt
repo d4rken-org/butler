@@ -10,6 +10,8 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.operations.MockFileSystemOps
 import eu.darken.butler.common.files.operations.TransferStrategy
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.withClue
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
@@ -191,6 +193,41 @@ class LocalPathMoveStrategyTest : BaseTest() {
         spyOps.hasFile("/dest/file.txt") shouldBe true
         spyOps.getFileContent("/dest/file.txt") shouldBe content
         spyOps.hasFile("/source/file.txt") shouldBe false
+    }
+
+    @Test
+    fun `F9 - a move changing both folder and name is renamed, not streamed`() = runTest {
+        // Given - a gateway that refuses a move changing BOTH the parent and the basename, the way
+        // SAFFileSystemOps.moveInternal does ("SAF cannot atomically reparent and rename")
+        val content = "Hello World".toByteArray()
+        mockOps.addMockDir("/vol/a")
+        mockOps.addMockDir("/vol/b")
+        mockOps.addMockFile("/vol/a/file.txt", content)
+        mockOps.setMoveNotSupported("Injected: cannot reparent and rename in one call") { source, destination ->
+            source.substringBeforeLast('/') != destination.substringBeforeLast('/') &&
+                source.substringAfterLast('/') != destination.substringAfterLast('/')
+        }
+
+        val sourcePath = LocalPath.build("/vol/a/file.txt")
+        val destPath = LocalPath.build("/vol/b/renamed.txt")
+
+        // When - an ordinary move, no conflict at the destination
+        val result = strategy.transferFile(
+            sourceLookup = mockOps.lookup(sourcePath),
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            options = TransferStrategy.Options(),
+            onProgress = {},
+        )
+
+        // Then - the file arrives and the move stays a rename instead of copying bytes
+        result.shouldBeInstanceOf<TransferStrategy.TransferResult.Success<*, *>>()
+        mockOps.getFileContent("/vol/b/renamed.txt") shouldBe content
+        mockOps.hasFile("/vol/a/file.txt") shouldBe false
+        withClue("the source was read back, so this move streamed instead of renaming") {
+            mockOps.openInputStreamCalls shouldNotContain "/vol/a/file.txt"
+        }
     }
 
     @Test

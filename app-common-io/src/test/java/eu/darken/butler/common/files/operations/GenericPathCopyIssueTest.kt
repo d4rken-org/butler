@@ -12,6 +12,8 @@ import eu.darken.butler.common.files.local.routing.IntentAwareFileSystemOps
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.progress.Progress
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -214,6 +216,143 @@ class GenericPathCopyIssueTest : BaseTest() {
 
         result.copied.size shouldBe 1
         result.copied.firstPath() shouldBe (LocalPath.build("/source/file.txt") to LocalPath.build("/dest/file.txt"))
+    }
+
+    @Test
+    fun `overwrite that fails mid-transfer keeps the original destination file`() = runTest {
+        // Given - a conflicting destination and a transfer that dies after the first bytes
+        mockOps.addMockFile("/source/file.txt", "new content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+        mockOps.setFailWriteAfter(count = 1, afterBytes = 2L)
+
+        val sourcePath = LocalPath.build("/source/file.txt")
+        val destPath = LocalPath.build("/dest")
+
+        // When - the user authorizes the overwrite, then skips the failure
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - the original survives untouched and the partial transfer left nothing behind
+        mockOps.getFileContent("/dest/file.txt") shouldBe "old content".toByteArray()
+        mockOps.files.keys.filter { it.startsWith("/dest/") } shouldContainExactly listOf("/dest/file.txt")
+
+        result.copied.shouldBeEmpty()
+        result.skipped.size shouldBe 1
+    }
+
+    @Test
+    fun `overwrite reports the final path and leaves no staging file behind`() = runTest {
+        // Given - source file and conflicting destination
+        mockOps.addMockFile("/source/file.txt", "new content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/file.txt")
+        val destPath = LocalPath.build("/dest")
+
+        // When
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - the new content sits at the requested path, nothing else was created
+        mockOps.getFileContent("/dest/file.txt") shouldBe "new content".toByteArray()
+        mockOps.files.keys.filter { it.startsWith("/dest/") } shouldContainExactly listOf("/dest/file.txt")
+
+        result.copied.firstPath() shouldBe (sourcePath to LocalPath.build("/dest/file.txt"))
+    }
+
+    @Test
+    fun `overwrite-all replaces an existing file without leaving a staging file behind`() = runTest {
+        // Given - two conflicting destinations, resolved by a single apply-to-all answer
+        mockOps.addMockFile("/source/folder/one.txt", "new one".toByteArray())
+        mockOps.addMockFile("/source/folder/two.txt", "new two".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockDir("/dest/folder")
+        mockOps.addMockFile("/dest/folder/one.txt", "old one".toByteArray())
+        mockOps.addMockFile("/dest/folder/two.txt", "old two".toByteArray())
+
+        val sourcePath = LocalPath.build("/source/folder")
+        val destPath = LocalPath.build("/dest")
+
+        // When
+        setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists ->
+                        PathActionIssue.PathAlreadyExists.Resolution.Overwrite(applyToAll = true)
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then
+        mockOps.getFileContent("/dest/folder/one.txt") shouldBe "new one".toByteArray()
+        mockOps.getFileContent("/dest/folder/two.txt") shouldBe "new two".toByteArray()
+        mockOps.files.keys.filter { it.startsWith("/dest/folder/") }
+            .sorted() shouldContainExactly listOf("/dest/folder/one.txt", "/dest/folder/two.txt")
+    }
+
+    @Test
+    fun `copy directory over existing FILE with interactive overwrite replaces the file`() = runTest {
+        // A directory replacing a file is not a staged transfer, so the file still has to be deleted
+        // before the directory is created - otherwise the conflict is re-raised forever
+        mockOps.addMockDir("/source/item")
+        mockOps.addMockFile("/source/item/content.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/item", "file content".toByteArray())  // FILE, not directory
+
+        val sourcePath = LocalPath.build("/source/item")
+        val destPath = LocalPath.build("/dest")
+
+        var conflicts = 0
+
+        val result = setOf(sourcePath).copyGeneric(
+            destination = destPath,
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> {
+                        conflicts++
+                        if (conflicts > 2) throw AssertionError("Conflict re-raised $conflicts times")
+                        PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        mockOps.getFileType("/dest/item") shouldBe FileType.DIRECTORY
+        mockOps.getFileContent("/dest/item/content.txt") shouldBe "content".toByteArray()
+        conflicts shouldBe 1
+        result.copied.size shouldBe 2 // directory + file
     }
 
     @Test

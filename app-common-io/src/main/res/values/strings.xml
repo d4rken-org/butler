@@ -31,6 +31,16 @@
 
     <string name="path_action_unknown_error_title">Operation failed</string>
 
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">Replacement unfinished</string>
+    <string name="path_action_data_kept_new_data_description">Butler could not finish writing \"%1$s\". Your new data is kept in the same folder as \"%2$s\". Rename it to recover it, or delete it to discard it.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler could not finish writing \"%1$s\", the previous file is unchanged. Your new data is kept in the same folder as \"%2$s\". Rename it to recover it, or delete it to discard it.</string>
+    <string name="path_action_data_kept_both_description">Butler could not finish writing \"%1$s\". Nothing was lost: the previous file is kept in the same folder as \"%2$s\" and your new data as \"%3$s\". Rename the one you want to keep.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler could not finish writing \"%1$s\" and could not check whether \"%2$s\" is still there. An incomplete copy may be kept in the same folder as \"%3$s\". Compare both before deleting either.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler could not finish moving \"%1$s\" and cannot tell whether it left its folder. Your data is either kept in that folder as \"%2$s\", or already at \"%3$s\". Check both before deleting either.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler could not finish writing \"%1$s\" and cannot tell where your file ended up. It is one of three files in that folder: \"%1$s\" itself, \"%2$s\" or \"%3$s\". Check all three before deleting any of them.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler could not finish writing \"%1$s\" and cannot tell where your file ended up. It is one of two files in that folder: \"%1$s\" itself or \"%2$s\". Check both before deleting either.</string>
+
     <string name="path_action_trash_size_limit_title">Items too large for Trash</string>
     <string name="path_action_trash_size_limit_description">%1$d items totaling %2$s exceed the trash size limit (%3$s).</string>
 

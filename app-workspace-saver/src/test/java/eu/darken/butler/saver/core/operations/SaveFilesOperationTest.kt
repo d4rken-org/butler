@@ -17,16 +17,20 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldNotBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.OutputStream
 import kotlinx.coroutines.flow.toList
 import org.junit.Before
 import org.junit.Test
@@ -53,6 +57,18 @@ class SaveFilesOperationTest : BaseTest() {
     private var conflictResolution: PathActionIssue.Resolution =
         PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
 
+    /**
+     * What the target directory holds. A staged replacement draws a name that must not exist yet and
+     * deletes/renames it afterwards, so existence has to follow the writes instead of being fixed.
+     */
+    private val present = mutableSetOf(targetPath.path)
+
+    private fun isStagingOf(path: APath<*>, filename: String) =
+        path.name.startsWith(".") && path.name.endsWith(".part.$filename")
+
+    private fun isBackupOf(path: APath<*>, filename: String) =
+        path.name.startsWith(".") && path.name.endsWith(".backup.$filename")
+
     private fun lookupOf(path: LocalPath) = LocalPathLookup(
         lookedUp = path,
         fileType = FileType.FILE,
@@ -64,16 +80,28 @@ class SaveFilesOperationTest : BaseTest() {
     fun setup() {
         every { resolver.openInputStream(any()) } returns ByteArrayInputStream("data".toByteArray())
 
-        coEvery { gatewaySwitch.exists(any()) } returns false
-        coEvery { gatewaySwitch.exists(targetPath) } returns true
+        present.clear()
+        present += targetPath.path
+
+        coEvery { gatewaySwitch.exists(any()) } answers { firstArg<APath<*>>().path in present }
         coEvery { gatewaySwitch.lookup(any(), any<LookupOptions>()) } answers {
             @Suppress("UNCHECKED_CAST")
             lookupOf(firstArg<LocalPath>()) as APathLookup<APath<*>>
         }
-        coEvery { gatewaySwitch.createFile(any(), any()) } returns Unit
+        coEvery { gatewaySwitch.createFile(any(), any()) } answers {
+            present += firstArg<APath<*>>().path
+            Unit
+        }
         coEvery { gatewaySwitch.openOutputStream(any(), any()) } returns ByteArrayOutputStream()
-        coEvery { gatewaySwitch.delete(any<APath<*>>(), any<Boolean>()) } returns true
-        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } returns MoveOutcome.Moved
+        coEvery { gatewaySwitch.delete(any<APath<*>>(), any<Boolean>()) } answers {
+            present -= firstArg<APath<*>>().path
+            true
+        }
+        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } answers {
+            present -= firstArg<APath<*>>().path
+            present += secondArg<APath<*>>().path
+            MoveOutcome.Moved
+        }
 
         coEvery { issueHandler.handleIssue(any(), any()) } answers {
             val issue = secondArg<PathActionIssue>()
@@ -108,24 +136,102 @@ class SaveFilesOperationTest : BaseTest() {
     }
 
     @Test
-    fun `overwrite with successful delete writes the file`() = runTest2 {
+    fun `overwrite writes a staging file and swaps it in`() = runTest2 {
         val report = performToReport()
 
-        report.results.single().shouldBeInstanceOf<SaveFilesReport.FileResult.Success>()
-        coVerify { gatewaySwitch.delete(targetPath, false) }
-        coVerify { gatewaySwitch.createFile(targetPath, false) }
+        val success = report.results.single().shouldBeInstanceOf<SaveFilesReport.FileResult.Success>()
+        success.savedPath shouldBe targetPath
+        coVerify { gatewaySwitch.createFile(match<APath<*>> { isStagingOf(it, "file.txt") }, false) }
+        coVerify { gatewaySwitch.move(targetPath, match<APath<*>> { isBackupOf(it, "file.txt") }) }
+        coVerify { gatewaySwitch.delete(match<APath<*>> { isBackupOf(it, "file.txt") }, false) }
+        coVerify { gatewaySwitch.move(match<APath<*>> { isStagingOf(it, "file.txt") }, targetPath) }
+        coVerify(exactly = 0) { gatewaySwitch.openOutputStream(targetPath, any()) }
     }
 
     @Test
-    fun `overwrite with failed delete does not write and surfaces the error`() = runTest2 {
+    fun `overwrite with failed delete keeps the existing file and surfaces the error`() = runTest2 {
         coEvery { gatewaySwitch.delete(targetPath, any()) } returns false
+        coEvery {
+            gatewaySwitch.move(targetPath, match<APath<*>> { isBackupOf(it, "file.txt") })
+        } returns MoveOutcome.NotSupported("test: rename aside unsupported")
 
         val report = performToReport()
 
         report.results.single().shouldBeInstanceOf<SaveFilesReport.FileResult.Skipped>()
         capturedIssues.filterIsInstance<PathActionIssue.InsufficientPermission>()
             .single().exception.shouldBeInstanceOf<WriteException>()
-        coVerify(exactly = 0) { gatewaySwitch.createFile(any(), any()) }
+        // The existing file was never written to, and the staged data was not thrown away with the
+        // failed swap-in
+        coVerify(exactly = 0) { gatewaySwitch.openOutputStream(targetPath, any()) }
+        coVerify(exactly = 0) { gatewaySwitch.move(match<APath<*>> { isStagingOf(it, "file.txt") }, targetPath) }
+        coVerify(exactly = 0) { gatewaySwitch.delete(match<APath<*>> { isStagingOf(it, "file.txt") }, any()) }
+    }
+
+    @Test
+    fun `overwrite whose write fails mid-stream leaves the existing file untouched`() = runTest2 {
+        coEvery { gatewaySwitch.openOutputStream(any(), any()) } returns object : OutputStream() {
+            override fun write(b: Int) = throw IOException("No space left on device")
+            override fun write(b: ByteArray, off: Int, len: Int) = throw IOException("No space left on device")
+        }
+
+        val report = performToReport()
+
+        report.results.single().shouldBeInstanceOf<SaveFilesReport.FileResult.Skipped>()
+        // The target was neither deleted nor written to, and the half-written staging file is gone
+        coVerify(exactly = 0) { gatewaySwitch.delete(targetPath, any()) }
+        coVerify(exactly = 0) { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) }
+        coVerify { gatewaySwitch.delete(match<APath<*>> { isStagingOf(it, "file.txt") }, false) }
+        present shouldBe setOf(targetPath.path)
+    }
+
+    @Test
+    fun `F7 - overwriting a non-empty directory must not report success`() = runTest2 {
+        // Given - the conflicting target is a DIRECTORY that still has children, so the non-recursive
+        // delete the overwrite falls back to cannot remove it
+        coEvery { gatewaySwitch.lookup(targetPath, any<LookupOptions>()) } answers {
+            @Suppress("UNCHECKED_CAST")
+            LocalPathLookup(
+                lookedUp = targetPath,
+                fileType = FileType.DIRECTORY,
+                size = null,
+                modifiedAt = null,
+            ) as APathLookup<APath<*>>
+        }
+        coEvery { gatewaySwitch.delete(targetPath, false) } throws IOException("Directory not empty")
+
+        val report = performToReport()
+
+        withClue("a non-empty directory must not be replaced silently: $present") {
+            report.results.single().shouldNotBeInstanceOf<SaveFilesReport.FileResult.Success>()
+        }
+    }
+
+    @Test
+    fun `F14 - overwriting a directory the gateway deletes wholesale must not report success`() = runTest2 {
+        // Given - the conflicting target is a non-empty DIRECTORY, and the gateway's non-recursive
+        // delete behaves the way SAFFileSystemOps.delete does: DocumentsContract.deleteDocument is
+        // handed the tree and the provider takes the children with it, reporting success.
+        val child = targetPath.child("keepme.txt")
+        present += child.path
+        coEvery { gatewaySwitch.lookup(targetPath, any<LookupOptions>()) } answers {
+            @Suppress("UNCHECKED_CAST")
+            LocalPathLookup(
+                lookedUp = targetPath,
+                fileType = FileType.DIRECTORY,
+                size = null,
+                modifiedAt = null,
+            ) as APathLookup<APath<*>>
+        }
+        coEvery { gatewaySwitch.delete(targetPath, false) } answers {
+            present.removeAll { it == targetPath.path || it.startsWith(targetPath.path + "/") }
+            true
+        }
+
+        val report = performToReport()
+
+        withClue("a non-empty directory must not be replaced silently: $present") {
+            report.results.single().shouldNotBeInstanceOf<SaveFilesReport.FileResult.Success>()
+        }
     }
 
     @Test
@@ -137,6 +243,8 @@ class SaveFilesOperationTest : BaseTest() {
         val success = report.results.single().shouldBeInstanceOf<SaveFilesReport.FileResult.Success>()
         success.savedPath shouldBe targetPath
         coVerify { gatewaySwitch.move(targetPath, targetDirectory.child("file (1).txt")) }
+        // The renamed-away target leaves the path free, so there is nothing to stage
+        coVerify { gatewaySwitch.createFile(targetPath, false) }
     }
 
     @Test

@@ -5,6 +5,7 @@ import android.content.ContentResolver
 import android.database.MatrixCursor
 import android.net.Uri
 import android.provider.DocumentsContract
+import android.webkit.MimeTypeMap
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import eu.darken.butler.common.files.LookupOptions
@@ -12,6 +13,7 @@ import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
+import eu.darken.butler.common.files.operations.StagedReplace
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -34,6 +36,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.EmptyApp
@@ -173,6 +176,13 @@ class SAFFileSystemOpsWriteTest : BaseTest() {
             docs.remove(secondArg<Uri>().toString()) != null
         }
 
+        Shadows.shadowOf(MimeTypeMap.getSingleton()).apply {
+            // The shadow knows no extension on its own, and the platform map is what decides whether
+            // a derived MIME type is safe to pass to the provider
+            addExtensionMimeTypeMapping("jpg", "image/jpeg")
+            addExtensionMimeTypeMapping("txt", "text/plain")
+        }
+
         ops = SAFFileSystemOps(
             contentResolver = resolver,
             locationManager = locationManager,
@@ -249,6 +259,70 @@ class SAFFileSystemOpsWriteTest : BaseTest() {
 
         // exists() must resolve through the cached returned URI, not re-predict and miss
         ops.exists(target) shouldBe true
+    }
+
+    // ============ document MIME type ============
+
+    @Test
+    fun `createFile types the document from the file extension`() = runTest {
+        ops.createFile(path("photo.jpg"))
+
+        verify(exactly = 1) { DocumentsContract.createDocument(any(), any(), "image/jpeg", "photo.jpg") }
+    }
+
+    @Test
+    fun `createFile falls back to a generic type for an unknown extension`() = runTest {
+        ops.createFile(path("blob.unknownext"))
+
+        verify(exactly = 1) {
+            DocumentsContract.createDocument(any(), any(), "application/octet-stream", "blob.unknownext")
+        }
+    }
+
+    @Test
+    fun `createFile keeps a generic type when the extension does not round-trip`() = runTest {
+        // text/plain's canonical extension is txt, so providers that append it would turn
+        // settings.ini into settings.ini.txt
+        ops.createFile(path("settings.ini"))
+
+        verify(exactly = 1) {
+            DocumentsContract.createDocument(any(), any(), "application/octet-stream", "settings.ini")
+        }
+    }
+
+    @Test
+    fun `F10 - an upper-case extension must be judged by its raw spelling`() = runTest {
+        // image/jpeg still maps back to "jpg", but "jpg" no longer maps forward to image/jpeg, so
+        // only the REVERSE clause of the round-trip guard can still accept the derived type
+        Shadows.shadowOf(MimeTypeMap.getSingleton()).addExtensionMimeTypeMapping("jpg", "image/pjpeg")
+
+        ops.createFile(path("photo.JPG"))
+
+        // The provider compares the name's raw extension ("JPG") with image/jpeg's canonical one
+        // ("jpg"), does not match it, and appends ".jpg" - so image/jpeg is not safe to request here
+        verify(exactly = 1) {
+            DocumentsContract.createDocument(any(), any(), "application/octet-stream", "photo.JPG")
+        }
+    }
+
+    @Test
+    fun `openOutputStream types a created document from the file extension`() = runTest {
+        ops.openOutputStream(path("photo.jpg"), append = false).shouldNotBeNull()
+
+        verify(exactly = 1) { DocumentsContract.createDocument(any(), any(), "image/jpeg", "photo.jpg") }
+    }
+
+    @Test
+    fun `a staged replacement ends up typed by the destination extension`() = runTest {
+        val destination = path("photo.jpg")
+        registerDoc(destination, mime = "image/jpeg")
+
+        val staging = StagedReplace.stagingPathFor(destination, ops)
+        ops.createFile(staging)
+        StagedReplace.commit(staging, destination, ops)
+
+        docs.values.single { it.name == "photo.jpg" }.mime shouldBe "image/jpeg"
+        docs.values.none { it.name.contains(".part.") } shouldBe true
     }
 
     // ============ move ============
