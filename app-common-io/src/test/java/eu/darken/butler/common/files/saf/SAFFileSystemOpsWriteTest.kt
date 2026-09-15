@@ -2,8 +2,12 @@ package eu.darken.butler.common.files.saf
 
 import android.content.ContentProviderClient
 import android.content.ContentResolver
+import android.content.res.AssetFileDescriptor
 import android.database.MatrixCursor
 import android.net.Uri
+import android.os.CancellationSignal
+import android.os.OperationCanceledException
+import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import android.webkit.MimeTypeMap
 import androidx.test.core.app.ApplicationProvider
@@ -25,16 +29,28 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import io.mockk.verify
-import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileDescriptor
+import java.io.IOException
+import java.io.InputStream
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
@@ -56,9 +72,13 @@ class SAFFileSystemOpsWriteTest : BaseTest() {
 
     private data class Doc(val name: String, val mime: String)
 
+    @get:Rule
+    val tempFolder = TemporaryFolder()
+
     private lateinit var resolver: ContentResolver
     private lateinit var locationManager: SAFLocationManager
     private lateinit var ops: SAFFileSystemOps
+    private lateinit var backingFile: File
 
     private val treeUri = "content://com.android.externalstorage.documents/tree/primary%3A"
     private val docs = mutableMapOf<String, Doc>()
@@ -73,6 +93,16 @@ class SAFFileSystemOpsWriteTest : BaseTest() {
             SAFDocFile.buildTreeUri(Uri.parse(treeUri), path.segments),
         ).uri
 
+    /**
+     * Providers hand out descriptors, not streams, so the simulation has to back them with a real
+     * file for createInputStream()/createOutputStream() to carry bytes.
+     */
+    private fun afd(file: File = backingFile) = AssetFileDescriptor(
+        ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_WRITE),
+        0,
+        AssetFileDescriptor.UNKNOWN_LENGTH,
+    )
+
     private fun registerDoc(path: SAFPath, mime: String = "application/octet-stream") {
         docs[predictedUri(path).toString()] = Doc(name = path.segments.lastOrNull() ?: "primary:", mime = mime)
     }
@@ -81,6 +111,7 @@ class SAFFileSystemOpsWriteTest : BaseTest() {
     fun setup() {
         docs.clear()
         poisonedUris.clear()
+        backingFile = tempFolder.newFile("backing.bin")
         resolver = mockk(relaxed = true)
         locationManager = mockk()
 
@@ -116,8 +147,8 @@ class SAFFileSystemOpsWriteTest : BaseTest() {
                 }
             }
         }
-        every { resolver.openOutputStream(any(), any()) } answers {
-            if (docs.containsKey(firstArg<Uri>().toString())) ByteArrayOutputStream() else null
+        every { resolver.openAssetFileDescriptor(any(), any(), any()) } answers {
+            if (docs.containsKey(firstArg<Uri>().toString())) afd() else null
         }
 
         // existsStrict() addresses the provider through a client so it can tell "nobody answered"
@@ -219,7 +250,7 @@ class SAFFileSystemOpsWriteTest : BaseTest() {
         ops.openOutputStream(target, append = true).shouldNotBeNull()
 
         verify(exactly = 1) { DocumentsContract.createDocument(any(), any(), any(), "append.txt") }
-        verify { resolver.openOutputStream(any(), "wa") }
+        verify { resolver.openAssetFileDescriptor(any(), "wa", any()) }
     }
 
     @Test
@@ -644,5 +675,210 @@ class SAFFileSystemOpsWriteTest : BaseTest() {
         // document that is provably gone would still succeed.
         docs.containsKey(predictedUri(firstChild).toString()) shouldBe false
         shouldThrow<Exception> { ops.lookup(firstChild, LookupOptions.BASE) }
+    }
+
+    // ============ cancellable opens ============
+
+    @Test
+    fun `a freshly created document is reopened after the queryable wait`() = runTest {
+        val target = path("slow.txt")
+        var attempts = 0
+        every { resolver.openAssetFileDescriptor(any(), any(), any()) } answers {
+            attempts++
+            if (attempts == 1) throw IOException("not queryable yet") else afd()
+        }
+
+        ops.openOutputStream(target, append = false).shouldNotBeNull()
+
+        attempts shouldBe 2
+    }
+
+    // Robolectric's shadow resolver doesn't route CancellationSignal to providers, so the open is
+    // stubbed directly in the tests below: it blocks like a provider materializing a cloud document
+    // until OUR signal is cancelled, then aborts the way the platform does.
+
+    @Test
+    fun `cancelling a blocked read open fails as a cancellation, not a read error`() {
+        val target = path("blocked-read.bin")
+        registerDoc(target)
+        val openStarted = CountDownLatch(1)
+        val signalCancelled = CountDownLatch(1)
+        every { resolver.openAssetFileDescriptor(any(), "r", any()) } answers {
+            val signal = arg<CancellationSignal?>(2)
+            // setOnCancelListener fires immediately if the signal was already cancelled, so the
+            // notification cannot be missed
+            signal?.setOnCancelListener { signalCancelled.countDown() }
+            openStarted.countDown()
+            // Watchdog only: an unwired signal fails the join timeout below instead of hanging
+            signalCancelled.await(30, TimeUnit.SECONDS)
+            signal?.throwIfCanceled()
+            afd()
+        }
+
+        runBlocking {
+            var failure: Throwable? = null
+            val job = launch(Dispatchers.IO) {
+                try {
+                    ops.openInputStream(target)
+                } catch (e: Throwable) {
+                    failure = e
+                }
+            }
+            openStarted.await(30, TimeUnit.SECONDS) shouldBe true
+            job.cancel()
+            signalCancelled.await(30, TimeUnit.SECONDS) shouldBe true
+            withTimeout(30_000) { job.join() }
+
+            failure.shouldBeInstanceOf<CancellationException>()
+        }
+    }
+
+    @Test
+    fun `cancelling a blocked write open fails as a cancellation, not a write error`() {
+        val target = path("blocked-write.bin")
+        registerDoc(target)
+        val openStarted = CountDownLatch(1)
+        val signalCancelled = CountDownLatch(1)
+        every { resolver.openAssetFileDescriptor(any(), "w", any()) } answers {
+            val signal = arg<CancellationSignal?>(2)
+            signal?.setOnCancelListener { signalCancelled.countDown() }
+            openStarted.countDown()
+            signalCancelled.await(30, TimeUnit.SECONDS)
+            signal?.throwIfCanceled()
+            afd()
+        }
+
+        runBlocking {
+            var failure: Throwable? = null
+            val job = launch(Dispatchers.IO) {
+                try {
+                    ops.openOutputStream(target, append = false)
+                } catch (e: Throwable) {
+                    failure = e
+                }
+            }
+            openStarted.await(30, TimeUnit.SECONDS) shouldBe true
+            job.cancel()
+            signalCancelled.await(30, TimeUnit.SECONDS) shouldBe true
+            withTimeout(30_000) { job.join() }
+
+            failure.shouldBeInstanceOf<CancellationException>()
+        }
+    }
+
+    @Test
+    fun `a descriptor the provider hands over after cancellation is closed, not handed out`() {
+        val target = path("late.bin")
+        registerDoc(target)
+        val openStarted = CountDownLatch(1)
+        val signalCancelled = CountDownLatch(1)
+        lateinit var descriptor: FileDescriptor
+        every { resolver.openAssetFileDescriptor(any(), "r", any()) } answers {
+            val signal = arg<CancellationSignal?>(2)
+            signal?.setOnCancelListener { signalCancelled.countDown() }
+            openStarted.countDown()
+            signalCancelled.await(30, TimeUnit.SECONDS)
+            // A provider that ignores the signal and completes the open anyway
+            afd().also { descriptor = it.fileDescriptor }
+        }
+
+        runBlocking {
+            var opened: InputStream? = null
+            val job = launch(Dispatchers.IO) {
+                try {
+                    opened = ops.openInputStream(target)
+                } catch (e: Throwable) {
+                    // The cancellation is the expected outcome, the descriptor is what's asserted
+                }
+            }
+            openStarted.await(30, TimeUnit.SECONDS) shouldBe true
+            job.cancel()
+            signalCancelled.await(30, TimeUnit.SECONDS) shouldBe true
+            withTimeout(30_000) { job.join() }
+
+            opened shouldBe null
+            descriptor.valid() shouldBe false
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    @Test
+    fun `cancellation reaches an open blocked on a single-threaded dispatcher`() {
+        val target = path("single-thread.bin")
+        registerDoc(target)
+        val openStarted = CountDownLatch(1)
+        val signalCancelled = CountDownLatch(1)
+        every { resolver.openAssetFileDescriptor(any(), "r", any()) } answers {
+            val signal = arg<CancellationSignal?>(2)
+            signal?.setOnCancelListener { signalCancelled.countDown() }
+            openStarted.countDown()
+            signalCancelled.await(30, TimeUnit.SECONDS)
+            signal?.throwIfCanceled()
+            afd()
+        }
+
+        newSingleThreadContext("saf-open").use { dispatcher ->
+            runBlocking {
+                var failure: Throwable? = null
+                // The single thread is occupied by the blocked open, so anything that has to be
+                // resumed on this dispatcher to trip the signal would deadlock
+                val job = launch(dispatcher) {
+                    try {
+                        ops.openInputStream(target)
+                    } catch (e: Throwable) {
+                        failure = e
+                    }
+                }
+                openStarted.await(30, TimeUnit.SECONDS) shouldBe true
+                job.cancel()
+                signalCancelled.await(30, TimeUnit.SECONDS) shouldBe true
+                withTimeout(30_000) { job.join() }
+
+                failure.shouldBeInstanceOf<CancellationException>()
+            }
+        }
+    }
+
+    @Test
+    fun `a provider aborting an open on its own is a read error, not a cancellation`() = runTest {
+        val target = path("provider-abort-read.bin")
+        registerDoc(target)
+        // Nothing of ours is cancelled: the provider gave up on the open by itself, which is a
+        // failure to report, not a cancellation to pass through.
+        every { resolver.openAssetFileDescriptor(any(), "r", any()) } throws
+            OperationCanceledException("provider gave up")
+
+        shouldThrow<ReadException> { ops.openInputStream(target) }
+    }
+
+    @Test
+    fun `a provider aborting an open on its own is a write error, not a cancellation`() = runTest {
+        val target = path("provider-abort-write.bin")
+        registerDoc(target)
+        every { resolver.openAssetFileDescriptor(any(), "w", any()) } throws
+            OperationCanceledException("provider gave up")
+
+        shouldThrow<WriteException> { ops.openOutputStream(target, append = false) }
+    }
+
+    @Test
+    fun `the read stream carries the descriptor's bytes`() = runTest {
+        val target = path("payload-in.bin")
+        registerDoc(target)
+        backingFile.writeBytes("descriptor payload".toByteArray())
+
+        val read = ops.openInputStream(target).use { it.readBytes() }
+
+        read.decodeToString() shouldBe "descriptor payload"
+    }
+
+    @Test
+    fun `the write stream reaches the descriptor`() = runTest {
+        val target = path("payload-out.bin")
+        registerDoc(target)
+
+        ops.openOutputStream(target, append = false).use { it.write("written through".toByteArray()) }
+
+        backingFile.readBytes().decodeToString() shouldBe "written through"
     }
 }

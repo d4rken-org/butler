@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.saf
 
 import android.content.ContentResolver
+import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import android.webkit.MimeTypeMap
@@ -28,13 +29,16 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.suspendCancellableCoroutine
 import okio.FileHandle
+import java.io.Closeable
 import java.io.FilterOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resumeWithException
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -781,14 +785,33 @@ class SAFFileSystemOps @Inject constructor(
         }
     }
 
+    private suspend fun <T : Closeable> openCancellable(open: (CancellationSignal) -> T?): T? =
+        suspendCancellableCoroutine { cont ->
+            val signal = CancellationSignal()
+            // invokeOnCancellation is invoked synchronously, so tripping the signal needs no dispatcher slot.
+            cont.invokeOnCancellation { signal.cancel() }
+            val opened = try {
+                open(signal)
+            } catch (e: Throwable) {
+                cont.resumeWithException(e)
+                return@suspendCancellableCoroutine
+            }
+            // A provider can ignore the signal and finish the open anyway. Resuming a cancelled
+            // continuation drops the value, so closing it has to be the resume's own business.
+            cont.resume(opened) { _, value, _ -> value?.let { runCatching { it.close() } } }
+        }
+
     override suspend fun openInputStream(path: SAFPath): InputStream = try {
         val docFile = path.resolveDocFile()
         log(TAG, VERBOSE) { "openInputStream(): $path -> $docFile" }
 
         // Note: We don't pre-check readable here - let ContentResolver validate permissions.
         // DocumentsProvider operates in a different permission context than direct file access.
-        contentResolver.openInputStream(docFile.uri)
-            ?: throw IOException("Couldn't open input stream for $path")
+        openCancellable { signal ->
+            contentResolver.openAssetFileDescriptor(docFile.uri, "r", signal)?.let { afd ->
+                runCatching { afd.createInputStream() }.getOrElse { afd.close(); throw it }
+            }
+        } ?: throw IOException("Couldn't open input stream for $path")
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
@@ -814,14 +837,20 @@ class SAFFileSystemOps @Inject constructor(
 
         val mode = if (append) "wa" else "w"
         val rawStream = try {
-            contentResolver.openOutputStream(docFile.uri, mode)
-                ?: throw IOException("Couldn't open output stream for $path")
+            openCancellable { signal ->
+                contentResolver.openAssetFileDescriptor(docFile.uri, mode, signal)?.let { afd ->
+                    runCatching { afd.createOutputStream() }.getOrElse { afd.close(); throw it }
+                }
+            } ?: throw IOException("Couldn't open output stream for $path")
         } catch (e: IOException) {
             if (!created) throw e
             // Freshly created documents may not be openable immediately on slow providers
             waitUntilQueryable(path)
-            contentResolver.openOutputStream(docFile.uri, mode)
-                ?: throw IOException("Couldn't open output stream for $path")
+            openCancellable { signal ->
+                contentResolver.openAssetFileDescriptor(docFile.uri, mode, signal)?.let { afd ->
+                    runCatching { afd.createOutputStream() }.getOrElse { afd.close(); throw it }
+                }
+            } ?: throw IOException("Couldn't open output stream for $path")
         }
 
         // A concurrent lookup during the write may cache partial size/mtime; drop it once the
