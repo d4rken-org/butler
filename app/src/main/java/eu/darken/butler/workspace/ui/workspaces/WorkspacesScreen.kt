@@ -80,6 +80,8 @@ import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRailDefaults
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
+import eu.darken.butler.workspace.ui.workspaces.tour.WorkspacePanesTour
+import eu.darken.butler.workspace.ui.workspaces.tour.WorkspaceSwipeTour
 import kotlin.uuid.Uuid
 
 @Composable
@@ -146,6 +148,66 @@ fun WorkspaceScreen(
         // tryStart is atomic: `attempted` is only set when the start actually took, so a transient
         // block (another tour active) cannot permanently suppress this one.
         tourStartAttempted = tourController.tryStart(firstTabTourDefinition)
+    }
+
+    // A full-screen modal and a global blocking dialog are platform windows of their own, drawn
+    // above the tour host, while the anchors underneath stay registered - so a registered anchor is
+    // no proof the user can see it, and a tour started then plays behind the dialog.
+    val tourSurfaceQuiet = !state.isRestoring &&
+        !isOverlayVisible &&
+        state.fullScreenModalWorkspace == null &&
+        managerDialogs.none { it.isBlocking && it is ManagerDialog.Global }
+
+    // Swiping only exists in the classic pager, which is what !hasNavigationRail selects: a
+    // SINGLE_RAIL / ADAPTIVE panel mode has one pane but composes the adaptive layout, where there
+    // is nothing to swipe. Two tabs is the minimum that makes "swipe between tabs" true.
+    // The two eligibility values are mutually exclusive by construction: WorkspaceDesign's init
+    // require ties hasNavigationRail to a non-SINGLE layout, and maxPanes > 1 implies non-SINGLE.
+    val swipeTourEligible = tourSurfaceQuiet &&
+        !design.hasNavigationRail &&
+        state.swipeGesturesEnabled &&
+        state.tabWorkspaces.size >= 2
+
+    // maxPanes, not hasNavigationRail: SINGLE_RAIL composes a rail over one pane, where the divider
+    // step has no target. At least one tab, or the rail list has no anchor at all - an empty lazy
+    // list measures zero on its cross axis, which guidedTourTarget drops rather than registers -
+    // and the first step would grace-skip.
+    val panesTourEligible = tourSurfaceQuiet &&
+        design.maxPanes > 1 &&
+        state.tabWorkspaces.isNotEmpty()
+
+    val swipeTourDefinition = remember(state.onDemandWorkspaceCreation) {
+        WorkspaceSwipeTour.definition(includeOnDemandStep = state.onDemandWorkspaceCreation)
+    }
+    val panesTourDefinition = remember { WorkspacePanesTour.definition() }
+
+    // Both tours become eligible at a moment another tour plausibly holds the session - the picker's
+    // own tour fires on the tab the user just created - and tryStart refuses while one is live. The
+    // session is observed so the effect re-runs once it clears.
+    val activeTourSession by tourController.session.collectAsState()
+    var swipeTourStartAttempted by remember { mutableStateOf(false) }
+    LaunchedEffect(swipeTourEligible, activeTourSession == null, swipeTourDefinition) {
+        if (!swipeTourEligible || swipeTourStartAttempted) return@LaunchedEffect
+        if (activeTourSession != null) return@LaunchedEffect
+        swipeTourStartAttempted = tourController.tryStart(swipeTourDefinition)
+    }
+    var panesTourStartAttempted by remember { mutableStateOf(false) }
+    LaunchedEffect(panesTourEligible, activeTourSession == null, panesTourDefinition) {
+        if (!panesTourEligible || panesTourStartAttempted) return@LaunchedEffect
+        if (activeTourSession != null) return@LaunchedEffect
+        panesTourStartAttempted = tourController.tryStart(panesTourDefinition)
+    }
+
+    // A rotation or a panel-mode change mid-tour leaves the copy describing a surface that is no
+    // longer there, and neither tour ends on its own: the swipe tour's steps are centerless, which
+    // never grace-skips, and the panes tour's Butler-button anchor survives into the classic layout,
+    // where that button's menu has no Layout row. skipForNow rather than dismissForever - the skip
+    // is in-memory, so the tour returns after an app restart instead of being burned for a rotation.
+    LaunchedEffect(activeTourSession?.definition?.id, design.hasNavigationRail) {
+        val live = activeTourSession?.definition?.id ?: return@LaunchedEffect
+        val stale = (live == WorkspaceSwipeTour.id && design.hasNavigationRail) ||
+            (live == WorkspacePanesTour.id && !design.hasNavigationRail)
+        if (stale) tourController.skipForNow()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
