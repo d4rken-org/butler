@@ -462,6 +462,21 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
     }
 
     @Test
+    fun `a panes tour session ends when a rail layout drops to one pane`() {
+        // SINGLE_RAIL keeps the rail, so hasNavigationRail alone cannot see this change: the layout
+        // went from two panes to one, and the divider the tour points at is gone.
+        val harness = setScreen(panesState())
+        harness.tourAccess.started shouldBe listOf(WorkspacePanesTour.id)
+
+        composeTestRule.runOnIdle {
+            harness.state.value = state(infos = listOf(tabInfo), panelMode = WorkspacePanelMode.SINGLE_RAIL)
+        }
+        applyAndRecompose()
+
+        harness.tourAccess.skipForNowCalls shouldBe 1
+    }
+
+    @Test
     fun `a start that lost the controller to another tour fires once that session ends`() {
         val tourAccess = RecordingTourAccess(refuseWhileSessionLive = true)
         tourAccess.holdSession(otherTourDefinition)
