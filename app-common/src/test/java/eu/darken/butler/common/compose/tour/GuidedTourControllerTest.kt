@@ -369,6 +369,23 @@ class GuidedTourControllerTest : BaseTest() {
     }
 
     @Test
+    fun `a tour cut short after its first step comes back on the next app start`() = runTest {
+        // What a screen ending a session does - a layout change that leaves the tour's copy
+        // describing a surface the user is no longer on. One step was seen, the rest were not.
+        val ctrl = controller()
+        ctrl.start(basicDefinition)
+        ctrl.markStepRendered(basicDefinition.id, "a")
+        ctrl.complete()
+
+        prefsFlow.value.completed shouldBe emptySet()
+        prefsFlow.value.dismissed shouldBe emptySet()
+        // Suppressed for this process, not burned: a fresh controller over the same settings is the
+        // app after a restart.
+        ctrl.shouldStart(basicDefinition) shouldBe false
+        controller().shouldStart(basicDefinition) shouldBe true
+    }
+
+    @Test
     fun `a repeated render of the same step does not stand in for the missing ones`() = runTest {
         val ctrl = controller()
         ctrl.start(basicDefinition)
