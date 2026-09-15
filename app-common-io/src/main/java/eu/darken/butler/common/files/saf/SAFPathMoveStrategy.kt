@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.operations.DecomposedMove
 import eu.darken.butler.common.files.operations.TransferStrategy
 import kotlinx.coroutines.CancellationException
 
@@ -15,10 +16,12 @@ import kotlinx.coroutines.CancellationException
  * ## Implementation Strategy
  *
  * 1. Try an atomic file move (same-parent rename via renameDocument, or reparent via moveDocument)
- * 2. On [MoveOutcome.NotSupported] (provably nothing mutated), fall back to copy+delete:
+ * 2. On [MoveOutcome.NotSupported] (provably nothing mutated), a move that changes both folder and
+ *    basename is retried as a rename plus a reparent via [DecomposedMove]
+ * 3. Otherwise fall back to copy+delete:
  *    - Copy file using SAFPathCopyStrategy
  *    - Delete source file after successful copy
- * 3. Exceptions from move() may have side effects; the fallback only runs if the source
+ * 4. Exceptions from move() may have side effects; the fallback only runs if the source
  *    still verifiably exists.
  *
  * Atomic **directory** moves are owned by GenericPathMove (tryAtomicMove), not this strategy —
@@ -46,6 +49,7 @@ class SAFPathMoveStrategy : TransferStrategy<
         log(TAG, DEBUG) { "Moving SAF file: ${sourceLookup.lookedUp} -> $destination" }
 
         // Try atomic move first (most efficient)
+        var refusedWithoutMutation = false
         try {
             when (val outcome = sourceOps.move(sourceLookup.lookedUp, destination)) {
                 is MoveOutcome.Moved -> {
@@ -60,8 +64,10 @@ class SAFPathMoveStrategy : TransferStrategy<
                     )
                 }
 
-                is MoveOutcome.NotSupported ->
-                    log(TAG, DEBUG) { "Atomic move not supported (${outcome.reason}), falling back to copy+delete" }
+                is MoveOutcome.NotSupported -> {
+                    log(TAG, DEBUG) { "Atomic move not supported (${outcome.reason}), trying a decomposed move" }
+                    refusedWithoutMutation = true
+                }
             }
         } catch (e: CancellationException) {
             throw e
@@ -76,6 +82,20 @@ class SAFPathMoveStrategy : TransferStrategy<
             }
             if (!sourceIntact) throw e
             log(TAG, DEBUG) { "Atomic move failed with source intact, falling back to copy+delete: ${e.message}" }
+        }
+
+        // A refusal can be about the combination of a new folder AND a new name, not about renaming.
+        // Only a NotSupported return proves nothing was mutated, so a throw never gets here.
+        if (refusedWithoutMutation && DecomposedMove.attempt(sourceLookup.lookedUp, destination, sourceOps)) {
+            log(TAG, DEBUG) { "Decomposed move succeeded: ${sourceLookup.lookedUp} -> $destination" }
+
+            onProgress(sourceLookup.size ?: 0L)
+
+            return TransferStrategy.TransferResult.Success(
+                source = sourceLookup.lookedUp,
+                destination = destination,
+                bytesTransferred = sourceLookup.size ?: 0L
+            )
         }
 
         // Atomic move failed - use copy+delete fallback

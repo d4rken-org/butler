@@ -1,11 +1,17 @@
 package eu.darken.butler.common.files.operations
 
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.local.operations.strategies.LocalPathMoveStrategy
 import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.withClue
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldNotBeEmpty
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -60,6 +66,20 @@ class GenericPathMoveIssueTest : BaseTest() {
     @AfterEach
     fun cleanup() {
         mockOps.clear()
+    }
+
+    /**
+     * Every message in the exception chain a failed item was surfaced with. TransferErrorHandler
+     * re-wraps the operation's exception in a fresh WriteException, so the text the operation chose
+     * is a cause, not the top-level message.
+     */
+    private fun PathActionIssue.errorChain(): List<String> {
+        val root: Throwable? = when (this) {
+            is PathActionIssue.UnknownError -> exception
+            is PathActionIssue.InsufficientPermission -> exception
+            else -> null
+        }
+        return generateSequence(root) { it.cause }.mapNotNull { it.message }.toList()
     }
 
     // ============ CONFLICT RESOLUTION - APPLY TO ALL ============
@@ -142,6 +162,434 @@ class GenericPathMoveIssueTest : BaseTest() {
         // Source files deleted
         mockOps.hasFile("/source/file1.txt") shouldBe false
         mockOps.hasFile("/source/file2.txt") shouldBe false
+    }
+
+    @Test
+    fun `staged move keeps the data when the replacement cannot be committed`() = runTest {
+        // Given - a conflicting destination that cannot be deleted when the swap-in is due
+        mockOps.addMockFile("/source/file.txt", "new content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+        mockOps.setMoveNotSupported { _, destination -> destination.contains(".backup.") }
+        mockOps.setFailDeleteAt("/dest/file.txt")
+
+        // When
+        val result = setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - the transfer already deleted the source, so the staging file is the only copy of
+        // the data and must not have been cleaned up with the failed swap-in
+        mockOps.hasFile("/source/file.txt") shouldBe false
+        val leftovers = mockOps.files.keys.filter { it.startsWith("/dest/") && it != "/dest/file.txt" }
+        leftovers.size shouldBe 1
+        mockOps.getFileContent(leftovers.single()) shouldBe "new content".toByteArray()
+
+        // And the destination still holds what it held before
+        mockOps.getFileContent("/dest/file.txt") shouldBe "old content".toByteArray()
+        result.movedFiles.shouldBeEmpty()
+        result.skippedFiles.size shouldBe 1
+    }
+
+    @Test
+    fun `staged move that fails mid-transfer keeps both the source and the destination`() = runTest {
+        // Given - a conflicting destination and a transfer that dies after the first bytes
+        mockOps.addMockFile("/source/file.txt", "new content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+        mockOps.setFailWriteAfter(count = 1, afterBytes = 2L)
+        // The staging file may only be discarded while the source is known to be there, and the
+        // mock deliberately does not infer that from its in-memory files
+        mockOps.existsStrictAnswers["/source/file.txt"] = Existence.PRESENT
+
+        // When
+        val result = setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - nothing was destroyed and the partial transfer left nothing behind
+        mockOps.getFileContent("/source/file.txt") shouldBe "new content".toByteArray()
+        mockOps.getFileContent("/dest/file.txt") shouldBe "old content".toByteArray()
+        mockOps.files.keys.filter { it.startsWith("/dest/") } shouldBe listOf("/dest/file.txt")
+
+        result.movedFiles.shouldBeEmpty()
+        result.skippedFiles.size shouldBe 1
+    }
+
+    @Test
+    fun `staged move keeps the data when the transfer fails after the source is gone`() = runTest {
+        // Given - a conflicting destination and a same-type strategy that renames the source into
+        // the staging file and only afterwards looks the staging file up. The lookup fails, so the
+        // transfer reports a failure at a point where the source no longer exists.
+        val newContent = "new content".toByteArray()
+        mockOps.addMockFile("/source/file.txt", newContent)
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+        mockOps.setFailLookupWhen { it.contains(".part.") }
+
+        // When
+        setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = LocalPathMoveStrategy(mockOps),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - the rename already removed the source, so the only copy of the data is the staging
+        // file and it must not have been discarded with the failed transfer
+        val survivors = mockOps.files.keys.filter {
+            mockOps.getFileContent(it)?.contentEquals(newContent) == true
+        }
+        withClue("the moved data must still exist somewhere, state:\n${mockOps.dump()}") {
+            survivors.shouldNotBeEmpty()
+        }
+    }
+
+    @Test
+    fun `staged move retry does not re-transfer from a source the transfer already deleted`() = runTest {
+        // Given - a conflicting destination that cannot be deleted when the swap-in is due, so the
+        // commit fails after the transfer has already deleted the source
+        mockOps.addMockFile("/source/file.txt", "new content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+        mockOps.setMoveNotSupported { _, destination -> destination.contains(".backup.") }
+        mockOps.setFailDeleteAt("/dest/file.txt")
+        // What a real gateway reports here: the transfer deleted the source. The mock deliberately
+        // does not infer existence from its in-memory files.
+        mockOps.existsStrictAnswers["/source/file.txt"] = Existence.ABSENT
+
+        val errors = mutableListOf<PathActionIssue>()
+
+        // When - the user answers the failed swap-in with Retry
+        setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    is PathActionIssue.UnknownError -> {
+                        errors.add(issue)
+                        if (errors.size == 1) {
+                            PathActionIssue.UnknownError.Resolution.Retry
+                        } else {
+                            PathActionIssue.UnknownError.Resolution.Skip()
+                        }
+                    }
+                    is PathActionIssue.InsufficientPermission -> {
+                        errors.add(issue)
+                        PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    }
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - retrying the swap-in must not run a second transfer from the deleted source, so
+        // the failed commit stays the only error the user is asked about
+        val seen = errors.map { issue ->
+            val exception = when (issue) {
+                is PathActionIssue.UnknownError -> issue.exception
+                is PathActionIssue.InsufficientPermission -> issue.exception
+                else -> null
+            }
+            "${issue::class.simpleName}: ${exception?.message} <- ${exception?.cause}"
+        }
+        withClue("only the failed swap-in may surface, got: $seen\nstate:\n${mockOps.dump()}") {
+            errors.size shouldBe 1
+        }
+
+        // And the staged data is still the only copy of the content
+        mockOps.hasFile("/source/file.txt") shouldBe false
+        val leftovers = mockOps.files.keys.filter { it.startsWith("/dest/") && it != "/dest/file.txt" }
+        withClue("staged data must survive, state:\n${mockOps.dump()}") { leftovers.size shouldBe 1 }
+        mockOps.getFileContent(leftovers.single()) shouldBe "new content".toByteArray()
+    }
+
+    @Test
+    fun `staged move keeps the original when the swap-in falls back to a failing stream copy`() = runTest {
+        // Given - a conflicting destination, a provider that cannot rename the staging file into
+        // place, and an output stream for the destination that dies mid-copy
+        val oldContent = "old content".toByteArray()
+        mockOps.addMockFile("/source/file.txt", "new content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", oldContent)
+        mockOps.setMoveNotSupported { source, _ -> source.contains(".part.") }
+        mockOps.setFailWriteAt("/dest/file.txt", afterBytes = 3L)
+
+        // When
+        setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - the fallback failed, so the destination has to hold what it held before, not a
+        // partial and not a backup the user has to find under a hidden name
+        withClue("the original destination content must survive a failed fallback, state:\n${mockOps.dump()}") {
+            mockOps.getFileContent("/dest/file.txt") shouldBe oldContent
+        }
+        withClue("the original must be back at its own name, state:\n${mockOps.dump()}") {
+            mockOps.files.keys.filter { it.contains(".backup.") }.shouldBeEmpty()
+        }
+    }
+
+    @Test
+    fun `F4 - a swap-in that throws after renaming must not destroy the replacement`() = runTest {
+        // Given - an overwrite whose swap-in physically renames the staging file into place and only
+        // THEN throws, the way SAF's post-rename name verification does
+        val newContent = "new content".toByteArray()
+        mockOps.addMockFile("/source/file.txt", newContent)
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+        mockOps.setMoveFailAfterMutation { source, destination ->
+            source.contains(".part.") && destination == "/dest/file.txt"
+        }
+
+        val issues = mutableListOf<PathActionIssue>()
+
+        // When
+        setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - the transfer deleted the source and the rename DID happen, so the replacement is the
+        // only copy of the data and the rollback must not delete it
+        val survivors = mockOps.files.keys.filter {
+            mockOps.getFileContent(it)?.contentEquals(newContent) == true
+        }
+        val reported = issues.flatMap { it.errorChain() }
+        withClue("the moved data must still exist somewhere, reported: $reported\nstate:\n${mockOps.dump()}") {
+            survivors.shouldNotBeEmpty()
+        }
+    }
+
+    @Test
+    fun `F5 - staged data kept after the source is gone must end up at the destination`() = runTest {
+        // Given - the same shape as "keeps the data when the transfer fails after the source is gone":
+        // a same-type strategy renames the source into the staging file and only afterwards looks the
+        // staging file up, and that lookup fails
+        val newContent = "new content".toByteArray()
+        mockOps.addMockFile("/source/file.txt", newContent)
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+        mockOps.setFailLookupWhen { it.contains(".part.") }
+        // What a real gateway reports: the rename into the staging file already took the source, and
+        // the staging file it produced is there. The staging name is drawn at random, so the staging
+        // answer has to be the default one.
+        mockOps.defaultExistsStrict = Existence.PRESENT
+        mockOps.existsStrictAnswers["/source/file.txt"] = Existence.ABSENT
+
+        val issues = mutableListOf<PathActionIssue>()
+
+        // When
+        setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = LocalPathMoveStrategy(mockOps),
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - the staging file is the only copy of the data, so keeping it is not enough: it has
+        // to be swapped in, or the user is left with the old content and a hidden file
+        val reported = issues.flatMap { it.errorChain() }
+        withClue("staged data must not be stranded behind a hidden name, reported: $reported\nstate:\n${mockOps.dump()}") {
+            mockOps.getFileContent("/dest/file.txt") shouldBe newContent
+        }
+    }
+
+    @Test
+    fun `F8 - a truncated staging file must not be reported as kept data`() = runTest {
+        // Given - a conflicting destination, a transfer that dies after the first bytes, and a source
+        // probe that cannot answer (what a dropped SMB connection reports). The source is intact.
+        mockOps.addMockFile("/source/file.txt", "new content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+        mockOps.setFailWriteAfter(count = 1, afterBytes = 2L)
+        mockOps.existsStrictAnswers["/source/file.txt"] = Existence.UNKNOWN
+
+        val issues = mutableListOf<PathActionIssue>()
+
+        // When
+        setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = strategy,
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - what is kept is a partial, and the whole file is still at the source, so the message
+        // must not tell the user their data was kept
+        val reported = issues.flatMap { it.errorChain() }
+        withClue("the staging file is truncated and the source is intact, chain: $reported\nstate:\n${mockOps.dump()}") {
+            reported.filter { it.contains("data kept") }.shouldBeEmpty()
+        }
+    }
+
+    @Test
+    fun `F9 - a staged overwrite between directories must not stream the file`() = runTest {
+        // Given - a gateway that refuses a move changing BOTH the parent and the basename, the way
+        // SAFFileSystemOps.moveInternal does ("SAF cannot atomically reparent and rename")
+        mockOps.addMockFile("/source/file.txt", "new content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+        mockOps.setMoveNotSupported("Injected: cannot reparent and rename in one call") { source, destination ->
+            source.substringBeforeLast('/') != destination.substringBeforeLast('/') &&
+                source.substringAfterLast('/') != destination.substringAfterLast('/')
+        }
+        // The staging name is freshly drawn, so the fallback's occupancy probe answers ABSENT
+        mockOps.defaultExistsStrict = Existence.ABSENT
+
+        // When
+        val result = setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = LocalPathMoveStrategy(mockOps),
+            onIssue = { issue ->
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - the overwrite lands, and a same-volume move stays a rename instead of copying bytes
+        result.movedFiles.size shouldBe 1
+        mockOps.getFileContent("/dest/file.txt") shouldBe "new content".toByteArray()
+        withClue(
+            "the source was read back, so this overwrite streamed instead of renaming:\n" +
+                "reads=${mockOps.openInputStreamCalls} writes=${mockOps.openOutputStreamCalls}"
+        ) {
+            mockOps.openInputStreamCalls shouldNotContain "/source/file.txt"
+        }
+    }
+
+    @Test
+    fun `F13 - a decomposed move whose reparent fails must not clear the destination`() = runTest {
+        // Given - the F9 shape: a gateway that refuses a move changing BOTH parent and basename, so
+        // the staged overwrite goes through DecomposedMove. Its FIRST step renames the source in
+        // place to the staging basename, and the reparent into the destination folder then throws
+        // outright, so nothing has ever been written to the destination side.
+        val newContent = "new content".toByteArray()
+        mockOps.addMockFile("/source/file.txt", newContent)
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+        mockOps.setMoveNotSupported("Injected: cannot reparent and rename in one call") { source, destination ->
+            source.substringBeforeLast('/') != destination.substringBeforeLast('/') &&
+                source.substringAfterLast('/') != destination.substringAfterLast('/')
+        }
+        mockOps.setMoveFailBeforeMutation({ java.io.IOException("Injected: reparent refused") }) { source, dest ->
+            source.startsWith("/source/.") && source.contains(".part.") && dest.startsWith("/dest/")
+        }
+        // What a real gateway reports once the rename step took the source name
+        mockOps.existsStrictAnswers["/source/file.txt"] = Existence.ABSENT
+
+        val issues = mutableListOf<PathActionIssue>()
+
+        // When
+        setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = false),
+            destination = LocalPath.build("/dest"),
+            sourceOps = mockOps,
+            destOps = mockOps,
+            strategy = LocalPathMoveStrategy(mockOps),
+            onIssue = { issue ->
+                issues.add(issue)
+                when (issue) {
+                    is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                    is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+                    is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+                    else -> throw AssertionError("Unexpected issue: $issue")
+                }
+            }
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - an absent source name does not mean the staging file holds the data here: nothing
+        // was ever written to the destination side, so the user's file must still be at /dest.
+        val reported = issues.flatMap { it.errorChain() }
+        withClue("the failed overwrite cleared the destination, reported: $reported\nstate:\n${mockOps.dump()}") {
+            mockOps.getFileContent("/dest/file.txt") shouldBe "old content".toByteArray()
+        }
     }
 
     @Test

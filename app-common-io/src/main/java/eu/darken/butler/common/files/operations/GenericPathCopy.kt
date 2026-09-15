@@ -164,11 +164,14 @@ internal class GenericPathCopy<
          * @param sourceLookup Source file metadata
          * @param destination Destination path
          * @param topLevelSource Top-level source (for error reporting)
+         * @param stagedOverwrite Overwrite authorized for an existing destination: transfer into a
+         *                        staging sibling and swap it in, never delete before the transfer
          */
         data class CopyFile<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>>(
             val sourceLookup: SPL,
             val destination: DP,
             val topLevelSource: SP,
+            val stagedOverwrite: Boolean = false,
         ) : WorkItem()
 
         /**
@@ -491,10 +494,16 @@ internal class GenericPathCopy<
             progressTracker.startFile(item.sourceLookup.size ?: 0L)
         }
 
+        var staging: DP? = null
+        // Once the strategy reported success the staging file can hold the only copy of the data, so
+        // it has to survive a failing commit instead of being discarded with it.
+        var transferred = false
         try {
+            staging = if (item.stagedOverwrite) StagedReplace.stagingPathFor(adjustedDest, destOps) else null
+
             val result = strategy.transferFile(
                 sourceLookup = item.sourceLookup,
-                destination = adjustedDest,
+                destination = staging ?: adjustedDest,
                 sourceOps = sourceOps,
                 destOps = destOps,
                 options = options,
@@ -508,9 +517,14 @@ internal class GenericPathCopy<
 
             when (result) {
                 is TransferStrategy.TransferResult.Success -> {
-                    // Use destinationLookup from result if available, otherwise lookup
-                    val destLookup = result.destinationLookup
-                        ?: destOps.lookup(result.destination, LookupOptions.BASE)
+                    transferred = true
+                    val destLookup = if (staging != null) {
+                        StagedReplace.commit(staging, adjustedDest, destOps)
+                        destOps.lookup(adjustedDest, LookupOptions.BASE)
+                    } else {
+                        // Use destinationLookup from result if available, otherwise lookup
+                        result.destinationLookup ?: destOps.lookup(result.destination, LookupOptions.BASE)
+                    }
                     copied.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeFile()
@@ -518,6 +532,7 @@ internal class GenericPathCopy<
                 }
 
                 is TransferStrategy.TransferResult.Skipped -> {
+                    staging?.let { StagedReplace.discard(it, destOps) }
                     skipped.add(item.sourceLookup)
                     progressTracker.skipItem(item.sourceLookup.size ?: 0L)
                 }
@@ -533,8 +548,10 @@ internal class GenericPathCopy<
             handleFileConflict(item, adjustedDest, destLookup)
             reportItemProgress(item.sourceLookup, adjustedDest, emit)
         } catch (e: CancellationException) {
+            if (!transferred) staging?.let { StagedReplace.discard(it, destOps) }
             throw e
         } catch (e: Exception) {
+            if (!transferred) staging?.let { StagedReplace.discard(it, destOps) }
             handleCopyError(e, item)
             reportItemProgress(item.sourceLookup, adjustedDest, emit)
         }
@@ -727,7 +744,7 @@ internal class GenericPathCopy<
                 )
                 workQueue.addFirst(renamedItem)
             },
-            onOverwrite = { workQueue.addFirst(item) },
+            onOverwrite = { workQueue.addFirst(item.copy(stagedOverwrite = true)) },
             onResolveConflict = {
                 workQueue.addFirst(
                     WorkItem.ResolveConflict(
@@ -798,12 +815,22 @@ internal class GenericPathCopy<
             destination = item.destination,
             destLookup = item.destLookup,
             canMerge = canMerge,
+            stagedByCaller = item.originalItem is WorkItem.CopyFile<*, *, *> &&
+                item.destLookup.fileType != FileType.DIRECTORY,
             onSkip = { sourceLookup, markAsSkippedDir ->
                 skipped.add(sourceLookup)
                 if (markAsSkippedDir) skippedSourceDirs.add(sourceLookup.lookedUp)
             },
             onOverwrite = { recursive ->
-                workQueue.addFirst(item.originalItem)
+                when (val originalItem = item.originalItem) {
+                    is WorkItem.CopyFile<*, *, *> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val copyItem = originalItem as WorkItem.CopyFile<SP, SPL, DP>
+                        workQueue.addFirst(copyItem.copy(stagedOverwrite = true))
+                    }
+
+                    else -> workQueue.addFirst(originalItem)
+                }
             },
             onMerge = {
                 copied.add(item.sourceLookup to item.destLookup)

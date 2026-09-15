@@ -6,12 +6,15 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.DataKeptException
 import eu.darken.butler.common.files.errors.UnknownFileTypeException
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.routing.AccessIntent
 import eu.darken.butler.common.files.local.routing.BatchEligibility
 import eu.darken.butler.common.files.local.routing.BatchEligibilityRequest
@@ -29,10 +32,12 @@ import eu.darken.butler.common.files.local.operations.core.PathOperationProgress
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import eu.darken.butler.common.files.MoveOutcome
 import kotlin.time.Clock
 
@@ -127,6 +132,10 @@ internal class GenericPathMove<
     // Destination state
     private var destinationExistedAsDirectory = false
 
+    // Staging files a failed attempt kept per source, because it could not rule out that they hold
+    // the only copy of the data
+    private val retainedStaging = mutableMapOf<SP, MutableList<DP>>()
+
     // Work queue for processing operations
     private var workQueue = ArrayDeque<WorkItem>()
 
@@ -151,11 +160,14 @@ internal class GenericPathMove<
          * @param sourceLookup Source file metadata
          * @param destination Destination path
          * @param topLevelSource Top-level source (for error reporting)
+         * @param stagedOverwrite Overwrite authorized for an existing destination: transfer into a
+         *                        staging sibling and swap it in, never delete before the transfer
          */
         data class MoveFile<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>>(
             val sourceLookup: SPL,
             val destination: DP,
             val topLevelSource: SP,
+            val stagedOverwrite: Boolean = false,
         ) : WorkItem()
 
         /**
@@ -548,12 +560,14 @@ internal class GenericPathMove<
 
         log(TAG, VERBOSE) { "Moving file: ${item.sourceLookup.lookedUp} -> $adjustedDest" }
 
-        // Check for conflicts
-        val destLookup = destOps.lookup(adjustedDest, LookupOptions.BASE.copy(fallbackToUnknown = true))
-        if (destLookup.fileType != FileType.UNKNOWN) {
-            handleFileConflict(item, adjustedDest, destLookup)
-            reportItemProgress(item.sourceLookup, adjustedDest, emit)
-            return
+        // Check for conflicts - a staged overwrite is the answer to one, not a fresh one
+        if (!item.stagedOverwrite) {
+            val destLookup = destOps.lookup(adjustedDest, LookupOptions.BASE.copy(fallbackToUnknown = true))
+            if (destLookup.fileType != FileType.UNKNOWN) {
+                handleFileConflict(item, adjustedDest, destLookup)
+                reportItemProgress(item.sourceLookup, adjustedDest, emit)
+                return
+            }
         }
 
         // Move file (strategy handles whether it's atomic or copy+delete)
@@ -562,10 +576,16 @@ internal class GenericPathMove<
             progressTracker.startFile(item.sourceLookup.size ?: 0L)
         }
 
+        var staging: DP? = null
+        // The strategy deletes the source as part of a successful transfer, so from that point the
+        // staging file can hold the only copy of the data and must survive a failing commit.
+        var transferred = false
         try {
+            staging = if (item.stagedOverwrite) StagedReplace.stagingPathFor(adjustedDest, destOps) else null
+
             val result = strategy.transferFile(
                 sourceLookup = item.sourceLookup,
-                destination = adjustedDest,
+                destination = staging ?: adjustedDest,
                 sourceOps = sourceOps,
                 destOps = destOps,
                 options = options,
@@ -579,16 +599,23 @@ internal class GenericPathMove<
 
             when (result) {
                 is TransferStrategy.TransferResult.Success -> {
-                    // Use destinationLookup from result if available, otherwise lookup
-                    val destLookup = result.destinationLookup
-                        ?: destOps.lookup(result.destination, LookupOptions.BASE)
+                    transferred = true
+                    val destLookup = if (staging != null) {
+                        StagedReplace.commit(staging, adjustedDest, destOps)
+                        destOps.lookup(adjustedDest, LookupOptions.BASE)
+                    } else {
+                        // Use destinationLookup from result if available, otherwise lookup
+                        result.destinationLookup ?: destOps.lookup(result.destination, LookupOptions.BASE)
+                    }
                     moved.add(item.sourceLookup to destLookup)
                     totalBytesTransferred += result.bytesTransferred
                     progressTracker.completeFile()
                     progressTracker.completeItem()
+                    discardRetainedStaging(item.sourceLookup.lookedUp)
                 }
 
                 is TransferStrategy.TransferResult.Skipped -> {
+                    staging?.let { StagedReplace.discard(it, destOps) }
                     skipped.add(item.sourceLookup)
                     progressTracker.skipItem(item.sourceLookup.size ?: 0L)
                 }
@@ -599,12 +626,130 @@ internal class GenericPathMove<
                 reportProgress(item.sourceLookup, adjustedDest, emit)
             }
         } catch (e: CancellationException) {
+            val stagingPath = staging
+            if (stagingPath != null && !transferred) {
+                when (probeSourceExistence(item)) {
+                    Existence.PRESENT -> StagedReplace.discard(stagingPath, destOps)
+                    // An absent source does not imply a written staging file, so it has to answer
+                    // for itself before the destination is cleared for it.
+                    Existence.ABSENT -> if (probeStagingExistence(stagingPath) == Existence.PRESENT) {
+                        commitOrphanedStaging(stagingPath, adjustedDest)
+                    }
+                    // Neither a deleted nor an unreachable source is ruled out, so the staging file
+                    // stays: it can be the only copy of the data.
+                    Existence.UNKNOWN -> Unit
+                }
+            }
             throw e
         } catch (e: Exception) {
-            handleMoveError(e, item)
+            val sourceExistence = probeSourceExistence(item)
+            var error: Exception = e
+            val stagingPath = staging
+            if (stagingPath != null && !transferred) {
+                when (sourceExistence) {
+                    // Every move strategy removes the source only once the staging copy is complete
+                    // (a rename is atomic, copy+delete deletes after success), so a provably absent
+                    // source plus a staging file that is provably there means the staging file holds
+                    // all of the data. Leaving it behind the hidden name would hand the user the old
+                    // content plus an invisible file. Without that second answer nothing on the
+                    // destination side is touched and the original exception is what surfaces - it
+                    // is the only one that knows where the data went.
+                    Existence.ABSENT -> if (probeStagingExistence(stagingPath) == Existence.PRESENT) {
+                        error = try {
+                            StagedReplace.commit(stagingPath, adjustedDest, destOps)
+                            WriteException(
+                                "Could not move to $adjustedDest, the data was recovered from ${stagingPath.name}",
+                                adjustedDest,
+                                e,
+                            )
+                        } catch (commitError: Exception) {
+                            retainStaging(item.sourceLookup.lookedUp, stagingPath)
+                            DataKeptException(
+                                "Could not move to ${adjustedDest.name}, data kept as ${stagingPath.name}",
+                                adjustedDest,
+                                DataKeptException.Recovery.NewData(stagingPath.name),
+                                commitError,
+                            )
+                        }
+                    }
+
+                    // An unanswerable probe means the source may well be intact, which makes the
+                    // staging file a truncated partial rather than kept data.
+                    Existence.UNKNOWN -> {
+                        retainStaging(item.sourceLookup.lookedUp, stagingPath)
+                        error = DataKeptException(
+                            "Could not move to ${adjustedDest.name}, could not check whether " +
+                                "${item.sourceLookup.lookedUp.name} is still there, " +
+                                "an incomplete copy may remain as ${stagingPath.name}",
+                            adjustedDest,
+                            DataKeptException.Recovery.MaybePartial(
+                                source = item.sourceLookup.lookedUp.name,
+                                partial = stagingPath.name,
+                            ),
+                            e,
+                        )
+                    }
+
+                    Existence.PRESENT -> StagedReplace.discard(stagingPath, destOps)
+                }
+            }
+            handleMoveError(error, item, canRetry = sourceExistence != Existence.ABSENT)
             reportItemProgress(item.sourceLookup, adjustedDest, emit)
         }
     }
+
+    /**
+     * Swap [staging] in for [destination] on a failure path, where it is the only copy of the data
+     * left. A failure here keeps the file: the paths it holds are named by [StagedReplace.commit].
+     */
+    private suspend fun commitOrphanedStaging(staging: DP, destination: DP) {
+        try {
+            StagedReplace.commit(staging, destination, destOps)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Could not swap $staging in for $destination: $e" }
+        }
+    }
+
+    private fun retainStaging(source: SP, staging: DP) {
+        retainedStaging.getOrPut(source) { mutableListOf() }.add(staging)
+    }
+
+    /**
+     * A later attempt that succeeded transferred from the source, so the source was there and the
+     * staging files an earlier attempt could not account for are not the last copy of anything.
+     */
+    private suspend fun discardRetainedStaging(source: SP) {
+        val retained = retainedStaging.remove(source) ?: return
+        retained.forEach { StagedReplace.discard(it, destOps) }
+    }
+
+    /**
+     * Discarding a staging file needs [Existence.PRESENT]: a move strategy deletes the source as
+     * part of its transfer, and neither [Existence.ABSENT], [Existence.UNKNOWN] nor a failing probe
+     * rules out that it already did. Offering a retry only needs a non-[Existence.ABSENT] answer, a
+     * retry that fails again loses nothing. A failing probe answers [Existence.UNKNOWN], the same as
+     * a gateway that cannot tell.
+     */
+    private suspend fun probeSourceExistence(item: WorkItem.MoveFile<SP, SPL, DP>): Existence =
+        withContext(NonCancellable) {
+            runCatching {
+                sourceOps.existsStrict(item.sourceLookup.lookedUp)
+            }.getOrDefault(Existence.UNKNOWN)
+        }
+
+    /**
+     * Swapping a staging file in needs [Existence.PRESENT]: a gone source name does not imply that
+     * anything was written, because a two-step move renames the source to the staging basename in
+     * its own folder before the destination side is touched at all. Committing a staging file that
+     * is not there renames the user's existing destination aside and only then finds out. A failing
+     * probe answers [Existence.UNKNOWN], the same as a gateway that cannot tell.
+     */
+    private suspend fun probeStagingExistence(staging: DP): Existence =
+        withContext(NonCancellable) {
+            runCatching { destOps.existsStrict(staging) }.getOrDefault(Existence.UNKNOWN)
+        }
 
     private suspend fun processCreateDirectory(
         item: WorkItem.CreateDirectory<SP, SPL, DP>,
@@ -841,7 +986,7 @@ internal class GenericPathMove<
                 )
                 workQueue.addFirst(renamedItem)
             },
-            onOverwrite = { workQueue.addFirst(item) },
+            onOverwrite = { workQueue.addFirst(item.copy(stagedOverwrite = true)) },
             onResolveConflict = {
                 workQueue.addFirst(
                     WorkItem.ResolveConflict(
@@ -906,11 +1051,23 @@ internal class GenericPathMove<
             destination = item.destination,
             destLookup = item.destLookup,
             canMerge = canMerge,
+            stagedByCaller = item.originalItem is WorkItem.MoveFile<*, *, *> &&
+                item.destLookup.fileType != FileType.DIRECTORY,
             onSkip = { sourceLookup, markAsSkippedDir ->
                 skipped.add(sourceLookup)
                 if (markAsSkippedDir) skippedSourceDirs.add(sourceLookup.lookedUp)
             },
-            onOverwrite = { recursive -> workQueue.addFirst(item.originalItem) },
+            onOverwrite = { recursive ->
+                when (val originalItem = item.originalItem) {
+                    is WorkItem.MoveFile<*, *, *> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val moveItem = originalItem as WorkItem.MoveFile<SP, SPL, DP>
+                        workQueue.addFirst(moveItem.copy(stagedOverwrite = true))
+                    }
+
+                    else -> workQueue.addFirst(originalItem)
+                }
+            },
             onMerge = { moved.add(item.sourceLookup to item.destLookup) },
             onRenameSource = { renamedDest ->
                 when (val originalItem = item.originalItem) {
@@ -989,7 +1146,15 @@ internal class GenericPathMove<
         )
     }
 
-    private suspend fun handleMoveError(error: Exception, originalItem: WorkItem.MoveFile<SP, SPL, DP>) {
+    /**
+     * @param canRetry false once the source is provably gone: a retry transfers from the source
+     * again, and a move deletes it as part of a successful transfer.
+     */
+    private suspend fun handleMoveError(
+        error: Exception,
+        originalItem: WorkItem.MoveFile<SP, SPL, DP>,
+        canRetry: Boolean,
+    ) {
         errorHandler.handleError(
             error = error,
             sourceLookup = originalItem.sourceLookup,
@@ -997,11 +1162,15 @@ internal class GenericPathMove<
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = { skipped.add(it) },
-            onRetry = {
-                progressTracker.restartFile()
-                workQueue.addFirst(originalItem)
+            onRetry = if (canRetry) {
+                {
+                    progressTracker.restartFile()
+                    workQueue.addFirst(originalItem)
+                }
+            } else {
+                null
             },
-            canRetry = true,
+            canRetry = canRetry,
             onIssue = onIssue,
             tag = TAG
         )
