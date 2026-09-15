@@ -203,10 +203,13 @@ fun WorkspaceScreen(
     // never grace-skips, and the panes tour's Butler-button anchor survives into the classic layout,
     // where that button's menu has no Layout row. skipForNow rather than dismissForever - the skip
     // is in-memory, so the tour returns after an app restart instead of being burned for a rotation.
-    LaunchedEffect(activeTourSession?.definition?.id, design.hasNavigationRail) {
+    // Each branch mirrors its own start gate: the swipe tour needs the classic pager, which is what
+    // !hasNavigationRail selects, while the panes tour needs two panes - a rail stays composed over
+    // one pane, so pane count is the only thing that sees an ADAPTIVE window being narrowed.
+    LaunchedEffect(activeTourSession?.definition?.id, design.hasNavigationRail, design.maxPanes) {
         val live = activeTourSession?.definition?.id ?: return@LaunchedEffect
         val stale = (live == WorkspaceSwipeTour.id && design.hasNavigationRail) ||
-            (live == WorkspacePanesTour.id && !design.hasNavigationRail)
+            (live == WorkspacePanesTour.id && design.maxPanes <= 1)
         if (stale) tourController.skipForNow()
     }
 
