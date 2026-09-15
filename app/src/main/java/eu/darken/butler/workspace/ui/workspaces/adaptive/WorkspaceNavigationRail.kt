@@ -100,6 +100,7 @@ import eu.darken.butler.workspace.ui.tour.WorkspaceTourTargets
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import eu.darken.butler.workspace.ui.workspaces.WorkspacesViewModel
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
+import eu.darken.butler.workspace.ui.workspaces.tour.WorkspacePanesTour
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -393,9 +394,10 @@ fun WorkspaceNavigationRail(
         // The only weighted child, so it takes the leftover space either way and pushes the button
         // against whichever end of the rail it is not emitted from.
         val list: @Composable () -> Unit = {
+            val tourListModifier = listModifier.guidedTourTarget(WorkspacePanesTour.RAIL_LIST_TARGET)
             when (placement) {
                 RailPlacement.START -> LazyColumn(
-                    modifier = listModifier
+                    modifier = tourListModifier
                         .padding(vertical = RailSectionPadding)
                         .testTag(WorkspaceNavigationRailDefaults.LIST_TEST_TAG),
                     state = lazyListState,
@@ -403,7 +405,7 @@ fun WorkspaceNavigationRail(
                     content = railItems,
                 )
                 RailPlacement.BOTTOM -> LazyRow(
-                    modifier = listModifier
+                    modifier = tourListModifier
                         .padding(horizontal = RailSectionPadding)
                         .testTag(WorkspaceNavigationRailDefaults.LIST_TEST_TAG),
                     state = lazyListState,
