@@ -61,6 +61,8 @@ dependencies {
     addCoil()
     addLottie()
     addRoomDb()
+
+    implementation(libs.material.kolor)
 }
 
 // Kover's verify rules can't filter per-rule (only the report can), so to gate ONLY the

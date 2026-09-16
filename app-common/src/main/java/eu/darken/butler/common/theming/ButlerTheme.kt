@@ -48,8 +48,7 @@ fun ButlerTheme(state: ThemeState = ThemeState(), content: @Composable () -> Uni
         when {
             dynamicColors && darkTheme -> dynamicDarkColorScheme(context)
             dynamicColors && !darkTheme -> dynamicLightColorScheme(context)
-            darkTheme -> ThemeColorProvider.getDarkColorScheme(state.color, state.style)
-            else -> ThemeColorProvider.getLightColorScheme(state.color, state.style)
+            else -> ThemeColorProvider.getColorScheme(state.themeSeed, state.style, darkTheme)
         }
     }
 
