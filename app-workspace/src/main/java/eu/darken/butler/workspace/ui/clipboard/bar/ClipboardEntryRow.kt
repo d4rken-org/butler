@@ -52,6 +52,7 @@ fun ClipboardEntryRow(
     onEntryClick: () -> Unit,
     modifier: Modifier = Modifier,
     showOrigin: Boolean = false,
+    canPaste: Boolean = true,
 ) {
     val (pasteIcon, pasteLabel) = when {
         workspaceType == Workspace.Type.SEARCHER -> Icons.TwoTone.FolderOpen to R.string.clipboard_open_in_explorer
@@ -204,15 +205,17 @@ fun ClipboardEntryRow(
                     }
                 }
 
-                IconButton(
-                    onClick = onPasteClick
-                ) {
-                    Icon(
-                        imageVector = pasteIcon,
-                        contentDescription = stringResource(pasteLabel),
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                    )
+                if (canPaste) {
+                    IconButton(
+                        onClick = onPasteClick
+                    ) {
+                        Icon(
+                            imageVector = pasteIcon,
+                            contentDescription = stringResource(pasteLabel),
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        )
+                    }
                 }
             }
 
@@ -338,15 +341,17 @@ fun ClipboardEntryRow(
                     }
                 }
 
-                IconButton(
-                    onClick = onPasteClick
-                ) {
-                    Icon(
-                        imageVector = pasteIcon,
-                        contentDescription = stringResource(pasteLabel),
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                    )
+                if (canPaste) {
+                    IconButton(
+                        onClick = onPasteClick
+                    ) {
+                        Icon(
+                            imageVector = pasteIcon,
+                            contentDescription = stringResource(pasteLabel),
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        )
+                    }
                 }
             }
         }

@@ -190,6 +190,38 @@ class WorkspaceClipboardFloatingBarTest : ComposeTest() {
         composeTestRule.onNodeWithContentDescription(pasteLabel).assertDoesNotExist()
     }
 
+    /**
+     * A location that cannot accept a paste must not offer one. The bar itself stays: the clip is
+     * still there to inspect or dismiss, only the action that would no-op is gone.
+     */
+    @Test
+    fun `a location that cannot paste offers no paste action`() {
+        val clip = clip(FIRST_PATH)
+        var canPaste by mutableStateOf(true)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                FloatingBarStack(position = BarPosition.BOTTOM) {
+                    WorkspaceClipboardFloatingBar(
+                        key = KEY,
+                        workspaceType = Workspace.Type.EXPLORER,
+                        clipboardEntries = listOf(clip),
+                        canPaste = canPaste,
+                        onAction = {},
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithContentDescription(pasteLabel).assertIsDisplayed()
+
+        canPaste = false
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText(FIRST_PATH).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(pasteLabel).assertDoesNotExist()
+    }
+
     companion object {
         private const val KEY = "clipboard"
         private const val FIRST_PATH = "/storage/emulated/0/Documents/report.pdf"

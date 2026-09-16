@@ -10,7 +10,9 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
 import eu.darken.butler.explorer.ui.explorer.ExplorerBarKeys
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
@@ -164,6 +166,8 @@ internal fun FloatingBarScope.ExplorerBottomBars(
         workspaceType = Workspace.Type.EXPLORER,
         clipboardEntries = clipboardState.entries,
         initialExpanded = initialClipboardExpanded,
+        // Mirrors what pasteClipboard() itself refuses, so the bar never offers a paste that no-ops.
+        canPaste = state.currentLocation.let { it is ExplorerLocation.Directory && it.path !is ArchivePath },
         onAction = { action ->
             when (action) {
                 is ClipboardBarAction.Paste -> vm?.pasteClipboard(action.clip)
