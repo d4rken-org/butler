@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -63,6 +64,9 @@ fun ClipboardEntryRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            // Collapsed, the paste button's touch target is what gives the row its height; without it
+            // the lower text line sits on the card edge.
+            .defaultMinSize(minHeight = 48.dp)
             .background(MaterialTheme.colorScheme.tertiaryContainer)
             .clickable { onEntryClick() }
             .padding(vertical = if (showOrigin) 8.dp else 0.dp)

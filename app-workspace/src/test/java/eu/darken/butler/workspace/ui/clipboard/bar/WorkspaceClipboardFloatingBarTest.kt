@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatRelativeTime
@@ -27,6 +28,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 import testhelpers.ComposeTest
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -274,6 +276,47 @@ class WorkspaceClipboardFloatingBarTest : ComposeTest() {
         assertTimestampInset(timestamp, "canPaste=false")
     }
 
+    /**
+     * The paste button's 48dp touch target is also what gives the collapsed row its height, so a
+     * location that cannot paste must not leave the bar shorter than one that can.
+     *
+     * Native graphics mode: Robolectric's synthetic text measurement gives every line 36dp, so the
+     * two stacked labels would clear the threshold on their own whatever the row does.
+     */
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Test
+    fun `the collapsed row keeps its height with or without a paste action`() {
+        val clip = clip(FIRST_PATH)
+        var canPaste by mutableStateOf(true)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                FloatingBarStack(position = BarPosition.BOTTOM) {
+                    WorkspaceClipboardFloatingBar(
+                        key = KEY,
+                        workspaceType = Workspace.Type.EXPLORER,
+                        clipboardEntries = listOf(clip),
+                        canPaste = canPaste,
+                        onAction = {},
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        val withPaste = composeTestRule.onNodeWithText(FIRST_PATH).getUnclippedBoundsInRoot().height
+        withClue("canPaste=true: the row measures $withPaste") {
+            withPaste shouldBeGreaterThanOrEqualTo MIN_COLLAPSED_ROW_HEIGHT
+        }
+
+        canPaste = false
+        composeTestRule.waitForIdle()
+
+        val withoutPaste = composeTestRule.onNodeWithText(FIRST_PATH).getUnclippedBoundsInRoot().height
+        withClue("canPaste=false: the row measures $withoutPaste, against $withPaste with the button") {
+            withoutPaste shouldBeGreaterThanOrEqualTo MIN_COLLAPSED_ROW_HEIGHT
+        }
+    }
+
     companion object {
         private const val KEY = "clipboard"
         private const val FIRST_PATH = "/storage/emulated/0/Documents/report.pdf"
@@ -281,5 +324,8 @@ class WorkspaceClipboardFloatingBarTest : ComposeTest() {
 
         /** Under the row's 16dp start inset, so a few dp of design drift does not fail the test. */
         private val MIN_TIMESTAMP_INSET = 12.dp
+
+        /** Under the 48dp touch target the paste button contributes, with room for type drift. */
+        private val MIN_COLLAPSED_ROW_HEIGHT = 44.dp
     }
 }
