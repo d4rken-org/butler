@@ -16,6 +16,7 @@ import eu.darken.butler.main.ui.settings.previews
 import eu.darken.butler.main.ui.settings.shortcuts
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemePalette
 import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.common.ui.ViewModel4
@@ -86,6 +87,12 @@ constructor(
     fun updateThemeColor(color: ThemeColor) = launch {
         log(tag) { "updateThemeColor($color)" }
         generalSettings.themeColor.value(color)
+    }
+
+    fun updateThemeCustom(seed: Int?, palette: ThemePalette) = launch {
+        log(tag) { "updateThemeCustom($seed, $palette)" }
+        generalSettings.themeCustomSeed.value(seed)
+        generalSettings.themeCustomPalette.value(palette)
     }
 
     fun onSuitColorSelected(color: Int?) = launch {

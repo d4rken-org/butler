@@ -54,6 +54,7 @@ import eu.darken.butler.common.compose.mascotDefaultSuitColor
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.navigation.NavigationEventHandler
+import eu.darken.butler.common.settings.CustomThemeDialog
 import eu.darken.butler.common.settings.EnumSelectorDialog
 import eu.darken.butler.common.settings.MascotSuitColorDialog
 import eu.darken.butler.common.settings.SettingsBaseItem
@@ -64,6 +65,7 @@ import eu.darken.butler.common.settings.SettingsSwitchItem
 import eu.darken.butler.common.settings.ThemeColorSelectorDialog
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemePalette
 import eu.darken.butler.common.theming.ThemeStyle
 import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
@@ -77,6 +79,7 @@ fun GeneralSettingsScreen(
     onThemeModeSelected: (ThemeMode) -> Unit,
     onThemeStyleSelected: (ThemeStyle) -> Unit,
     onThemeColorSelected: (ThemeColor) -> Unit,
+    onThemeCustomSelected: (Int?, ThemePalette) -> Unit,
     onSuitColorSelected: (Int?) -> Unit,
     onUpgradeButler: () -> Unit,
     onUpdateCheckEnabledChange: (Boolean) -> Unit,
@@ -94,6 +97,7 @@ fun GeneralSettingsScreen(
     var showThemeModeDialog by remember { mutableStateOf(false) }
     var showThemeStyleDialog by remember { mutableStateOf(false) }
     var showThemeColorDialog by remember { mutableStateOf(false) }
+    var showCustomThemeDialog by remember { mutableStateOf(false) }
     var showSuitColorDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -366,11 +370,27 @@ fun GeneralSettingsScreen(
         ThemeColorSelectorDialog(
             title = stringResource(R.string.ui_theme_color_setting_label),
             selectedOption = state.themeState.color,
+            customSeed = state.themeState.customThemeSeed,
             onOptionSelected = { color ->
                 onThemeColorSelected(color)
                 showThemeColorDialog = false
+                if (color == ThemeColor.CUSTOM) {
+                    showCustomThemeDialog = true
+                }
             },
             onDismiss = { showThemeColorDialog = false }
+        )
+    }
+
+    if (showCustomThemeDialog) {
+        CustomThemeDialog(
+            seed = state.themeState.customSeed,
+            palette = state.themeState.customPalette,
+            onConfirm = { seed, palette ->
+                onThemeCustomSelected(seed, palette)
+                showCustomThemeDialog = false
+            },
+            onDismiss = { showCustomThemeDialog = false },
         )
     }
 
@@ -397,6 +417,7 @@ private fun GeneralSettingsScreenPreview() {
         onThemeModeSelected = {},
         onThemeStyleSelected = {},
         onThemeColorSelected = {},
+        onThemeCustomSelected = { _, _ -> },
         onSuitColorSelected = {},
         onUpdateCheckEnabledChange = {},
         onMotdEnabledChange = {},
@@ -421,6 +442,7 @@ private fun GeneralSettingsScreenUpgradedPreview() {
         onThemeModeSelected = {},
         onThemeStyleSelected = {},
         onThemeColorSelected = {},
+        onThemeCustomSelected = { _, _ -> },
         onSuitColorSelected = {},
         onUpdateCheckEnabledChange = {},
         onMotdEnabledChange = {},
@@ -449,6 +471,7 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             onThemeModeSelected = { vm.updateThemeMode(it) },
             onThemeStyleSelected = { vm.updateThemeStyle(it) },
             onThemeColorSelected = { vm.updateThemeColor(it) },
+            onThemeCustomSelected = { seed, palette -> vm.updateThemeCustom(seed, palette) },
             onSuitColorSelected = { vm.onSuitColorSelected(it) },
             onUpdateCheckEnabledChange = { vm.updateUpdateCheckEnabled(it) },
             onMotdEnabledChange = { vm.updateMotdEnabled(it) },
