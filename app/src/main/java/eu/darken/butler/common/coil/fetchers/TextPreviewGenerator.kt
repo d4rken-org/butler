@@ -23,9 +23,9 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.preview.PreviewBudget
-import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeColorProvider
 import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.themeState
@@ -58,11 +58,11 @@ class TextPreviewGenerator @Inject constructor(
                 ThemeMode.LIGHT -> false
             }
 
-            val colorScheme = if (isDark) {
-                ThemeColorProvider.getDarkColorScheme(themeState.color, themeState.style)
-            } else {
-                ThemeColorProvider.getLightColorScheme(themeState.color, themeState.style)
-            }
+            val colorScheme = ThemeColorProvider.getColorScheme(
+                seed = themeState.themeSeed,
+                style = themeState.style,
+                dark = isDark,
+            )
 
             colorScheme.background.toArgb() to colorScheme.onBackground.toArgb()
         }
@@ -70,9 +70,10 @@ class TextPreviewGenerator @Inject constructor(
             scope = CoroutineScope(Dispatchers.Default),
             started = SharingStarted.Eagerly,
             initialValue = run {
-                val colorScheme = ThemeColorProvider.getDarkColorScheme(
-                    ThemeColor.GREEN,
-                    ThemeStyle.DEFAULT
+                val colorScheme = ThemeColorProvider.getColorScheme(
+                    seed = ThemeState().themeSeed,
+                    style = ThemeStyle.DEFAULT,
+                    dark = true,
                 )
                 colorScheme.background.toArgb() to colorScheme.onBackground.toArgb()
             }

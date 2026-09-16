@@ -29,7 +29,7 @@ class PathPreviewKeyer @Inject constructor(
 
         // Include path, theme, request size, plus file size + mtime so a replaced file at the same
         // path invalidates its cached (generated) preview.
-        // Format: "path-preview-<path-hash>-<mode>-<style>-<color>-<w>x<h>-<bytes>-<mtimeMs>"
+        // Format: "path-preview-<path-hash>-<mode>-<style>-<color>-<seed>-<w>x<h>-<bytes>-<mtimeMs>"
         return buildString {
             append("path-preview-")
             append(data.path.hashCode())
@@ -39,6 +39,9 @@ class PathPreviewKeyer @Inject constructor(
             append(themeState.style.name.lowercase())
             append("-")
             append(themeState.color.name.lowercase())
+            append("-")
+            // The color name alone collapses every custom seed and palette onto one key.
+            append(themeState.themeSeed.hashCode())
             append("-")
             append(sizeWidth)
             append("x")
