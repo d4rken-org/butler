@@ -386,6 +386,7 @@ fun GeneralSettingsScreen(
         CustomThemeDialog(
             seed = state.themeState.customSeed,
             palette = state.themeState.customPalette,
+            style = state.themeState.style,
             onConfirm = { seed, palette ->
                 onThemeCustomSelected(seed, palette)
                 showCustomThemeDialog = false
