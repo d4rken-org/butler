@@ -47,6 +47,7 @@ import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.rememberIsPro
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -65,6 +66,7 @@ fun WorkspaceButton(
     currentWorkspaceId: Workspace.Id? = null,
     showLayoutEntry: Boolean = false,
     mascotVariant: ButlerMascotMode = ButlerMascotMode.Animated.RandomCycling(),
+    isPro: Boolean = rememberIsPro(),
 ) {
     val provider = LocalWorkspaceButtonProvider.current
     val revealOrigin = LocalWorkspaceRevealOrigin.current
@@ -148,11 +150,17 @@ fun WorkspaceButton(
                 stored = currentPanelMode ?: WorkspacePanelMode.AUTO,
             ),
             isLandscape = isLandscape,
+            isPro = isPro,
+            recommendedPaneCount = windowSizeInfo.recommendedPaneCount,
             onDismiss = { showLayoutDialog = false },
             onSelect = { mode ->
                 showLayoutDialog = false
-                provider?.setPanelMode(isLandscape, mode)
-            }
+                provider?.setPanelMode(isLandscape, mode, windowSizeInfo.recommendedPaneCount)
+            },
+            onUpgrade = {
+                showLayoutDialog = false
+                provider?.navToUpgradeButler()
+            },
         )
 
         // Badge showing workspace count (top-left)

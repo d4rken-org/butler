@@ -16,5 +16,5 @@ class FakeWorkspaceButtonProvider(
     override fun navToUpgradeButler() {}
     override fun createWorkspace(item: QuickCreateItem) {}
     override fun createTemplatesWorkspace() {}
-    override fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode) {}
+    override fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode, recommendedPaneCount: Int) {}
 }

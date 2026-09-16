@@ -2,9 +2,11 @@ package eu.darken.butler.workspace.ui.layout
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
@@ -20,13 +22,16 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.settings.UpgradeBadge
 
+/** [requiresUpgrade] badges the row; a gated row stays listed, its [onSelect] routes to the offer. */
 data class LayoutPickerOption(
     val icon: ImageVector,
     val label: String,
     val description: String,
     val selected: Boolean,
     val onSelect: () -> Unit,
+    val requiresUpgrade: Boolean = false,
 )
 
 @Composable
@@ -64,10 +69,16 @@ fun LayoutPickerDialog(
                             modifier = Modifier.size(32.dp),
                         )
                         Column(modifier = Modifier.padding(start = 16.dp)) {
-                            Text(
-                                text = option.label,
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = option.label,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                                if (option.requiresUpgrade) {
+                                    Spacer(Modifier.width(6.dp))
+                                    UpgradeBadge()
+                                }
+                            }
                             Text(
                                 text = option.description,
                                 style = MaterialTheme.typography.bodySmall,
@@ -109,6 +120,14 @@ private fun LayoutPickerDialogPreview() {
                 description = "Tab rail plus as many panes as the screen fits.",
                 selected = false,
                 onSelect = {},
+            ),
+            LayoutPickerOption(
+                icon = WorkspacePanelIcons.QuadGrid,
+                label = "Quad grid",
+                description = "Four panes in a 2x2 grid.",
+                selected = false,
+                onSelect = {},
+                requiresUpgrade = true,
             ),
         ),
         onDismiss = {},

@@ -14,8 +14,13 @@ interface WorkspaceButtonProvider : WorkspaceActionHandler {
     /** Opens the Templates picker as a new workspace and switches to it. */
     fun createTemplatesWorkspace()
 
-    /** Persists [mode] as the layout for the given orientation; a fake or absent provider no-ops. */
-    fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode)
+    /**
+     * Persists [mode] as the layout for the given orientation; a fake or absent provider no-ops.
+     *
+     * @param recommendedPaneCount what the requesting window is recommended, so the entitlement
+     * check can be repeated here: a geometry above it is Pro-only.
+     */
+    fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode, recommendedPaneCount: Int)
 }
 
 val LocalWorkspaceButtonProvider = staticCompositionLocalOf<WorkspaceButtonProvider?> { null }
