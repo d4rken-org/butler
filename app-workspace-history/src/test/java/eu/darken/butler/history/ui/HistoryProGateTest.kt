@@ -42,8 +42,9 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 /**
- * Sharing and deleting history entries are Pro features. The gate suspends, so it also has to cope
- * with the selection or the detail sheet moving on while it is in flight.
+ * Exporting a selection of history entries is a Pro feature. The gate suspends, so it also has to
+ * cope with the selection moving on while it is in flight. Deleting entries and sharing a single
+ * one from the detail sheet are free: a free user can already erase the whole history from Settings.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -151,31 +152,50 @@ class HistoryProGateTest : BaseTest() {
     }
 
     @Test
-    fun `a free user gets the upgrade prompt instead of the delete confirmation`() {
+    fun `a free user reaches the delete confirmation`() {
         val vm = createVM(FakeUpgradeRepo(pro = false))
         vm.setSelection(setOf(entry.id))
 
         vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry)))
 
-        vm.overlayState.value.proPromptOpen shouldBe true
+        vm.overlayState.value.proPromptOpen shouldBe false
+        vm.overlayState.value.deleteConfirmEntries shouldBe listOf(entry)
+    }
+
+    /**
+     * Nothing suspends before the confirmation is raised, so an unsettled entitlement - the state a
+     * paying user sits in while billing connects - cannot park the delete either.
+     */
+    @Test
+    fun `the delete confirmation is raised while the entitlement is still unsettled`() {
+        val vm = createVM(FakeUpgradeRepo(pro = false, settled = false))
+        vm.setSelection(setOf(entry.id))
+
+        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry)))
+
+        vm.overlayState.value.deleteConfirmEntries shouldBe listOf(entry)
+    }
+
+    @Test
+    fun `a delete for entries that are no longer all selected is dropped`() {
+        val vm = createVM(FakeUpgradeRepo(pro = false))
+        vm.setSelection(setOf(entry.id))
+
+        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry, entry2)))
+
         vm.overlayState.value.deleteConfirmEntries shouldBe emptyList()
     }
 
     @Test
-    fun `the sheet's share is gated before the attempted paths are queried`() {
+    fun `a free user shares from the detail sheet`() {
         coEvery { historyRepo.getAttemptedPaths(entry.id) } returns attempted
         val vm = createVM(FakeUpgradeRepo(pro = false))
 
-        // Opening the sheet issues the one query this scenario expects; a gate placed after the
-        // query would add a second one.
         vm.showEntryDetails(entry)
-        coVerify(exactly = 1) { historyRepo.getAttemptedPaths(entry.id) }
-
         vm.shareEntry(entry)
 
-        vm.overlayState.value.proPromptOpen shouldBe true
-        coVerify(exactly = 1) { historyRepo.getAttemptedPaths(entry.id) }
-        startedChooser() shouldBe null
+        vm.overlayState.value.proPromptOpen shouldBe false
+        startedChooser()!!.action shouldBe Intent.ACTION_CHOOSER
     }
 
     @Test
@@ -190,33 +210,10 @@ class HistoryProGateTest : BaseTest() {
     }
 
     @Test
-    fun `a pro user reaches the delete confirmation`() {
-        val vm = createVM(FakeUpgradeRepo(pro = true))
-        vm.setSelection(setOf(entry.id))
-
-        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry)))
-
-        vm.overlayState.value.proPromptOpen shouldBe false
-        vm.overlayState.value.deleteConfirmEntries shouldBe listOf(entry)
-    }
-
-    @Test
-    fun `a pro user shares from the detail sheet`() {
-        coEvery { historyRepo.getAttemptedPaths(entry.id) } returns attempted
-        val vm = createVM(FakeUpgradeRepo(pro = true))
-
-        vm.showEntryDetails(entry)
-        vm.shareEntry(entry)
-
-        vm.overlayState.value.proPromptOpen shouldBe false
-        startedChooser()!!.action shouldBe Intent.ACTION_CHOOSER
-    }
-
-    @Test
     fun `dismissing the prompt closes it`() {
         val vm = createVM(FakeUpgradeRepo(pro = false))
         vm.setSelection(setOf(entry.id))
-        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry)))
+        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry)))
         vm.overlayState.value.proPromptOpen shouldBe true
 
         vm.dismissProPrompt()
@@ -228,7 +225,7 @@ class HistoryProGateTest : BaseTest() {
     fun `upgrading from the prompt closes it and navigates to the upgrade screen`() {
         val vm = createVM(FakeUpgradeRepo(pro = false))
         vm.setSelection(setOf(entry.id))
-        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry)))
+        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry)))
 
         vm.onProPromptUpgrade()
 
@@ -253,28 +250,10 @@ class HistoryProGateTest : BaseTest() {
         val vm = createVM(FakeUpgradeRepo(pro = false, error = IllegalStateException("billing is down")))
         vm.setSelection(setOf(entry.id))
 
-        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry)))
+        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry)))
 
         vm.overlayState.value.proPromptOpen shouldBe true
-        vm.overlayState.value.deleteConfirmEntries shouldBe emptyList()
-    }
-
-    @Test
-    fun `a selection cleared while the delete gate waits drops the delete`() = runTest {
-        val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
-        val vm = createVM(upgradeRepo, TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
-        vm.setSelection(setOf(entry.id))
-
-        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry)))
-        // Billing has not settled, so the gate is parked while the action bar stays live.
-        runCurrent()
-
-        vm.clearSelection()
-        upgradeRepo.settle(pro = true)
-        advanceUntilIdle()
-
-        vm.overlayState.value.deleteConfirmEntries shouldBe emptyList()
-        vm.overlayState.value.proPromptOpen shouldBe false
+        startedChooser() shouldBe null
     }
 
     @Test
@@ -311,56 +290,6 @@ class HistoryProGateTest : BaseTest() {
         startedChooser() shouldBe null
     }
 
-    @Test
-    fun `deselecting one of two entries while the delete gate waits drops the delete`() = runTest {
-        val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
-        val vm = createVM(upgradeRepo, TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
-        vm.setSelection(setOf(entry.id, entry2.id))
-
-        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry, entry2)))
-        runCurrent()
-
-        vm.toggleSelection(entry2.id)
-        upgradeRepo.settle(pro = true)
-        advanceUntilIdle()
-
-        vm.overlayState.value.deleteConfirmEntries shouldBe emptyList()
-    }
-
-    @Test
-    fun `a share tapped before the delete coroutine is scheduled is dropped`() = runTest {
-        val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
-        val vm = createVM(upgradeRepo, TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
-        vm.setSelection(setOf(entry.id))
-
-        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry)))
-        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry)))
-
-        upgradeRepo.settle(pro = true)
-        advanceUntilIdle()
-
-        vm.overlayState.value.deleteConfirmEntries shouldBe listOf(entry)
-        startedChooser() shouldBe null
-    }
-
-    @Test
-    fun `a sheet dismissed while the share gate waits raises no prompt`() = runTest {
-        coEvery { historyRepo.getAttemptedPaths(entry.id) } returns attempted
-        val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
-        val vm = createVM(upgradeRepo, TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
-
-        vm.showEntryDetails(entry)
-        vm.shareEntry(entry)
-        runCurrent()
-
-        vm.showEntryDetails(null)
-        upgradeRepo.settle(pro = false)
-        advanceUntilIdle()
-
-        vm.overlayState.value.proPromptOpen shouldBe false
-        startedChooser() shouldBe null
-    }
-
     /**
      * The gate parks with only [entry] captured; adding [entry2] to the selection while it waits
      * means the user is now looking at two selected rows, so the captured single-entry action is
@@ -381,21 +310,5 @@ class HistoryProGateTest : BaseTest() {
         advanceUntilIdle()
 
         startedChooser() shouldBe null
-    }
-
-    @Test
-    fun `an entry added to the selection while the delete gate waits drops the delete`() = runTest {
-        val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
-        val vm = createVM(upgradeRepo, TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
-        vm.setSelection(setOf(entry.id))
-
-        vm.onActionClick(HistoryActionBarItem.Delete(listOf(entry)))
-        runCurrent()
-
-        vm.toggleSelection(entry2.id)
-        upgradeRepo.settle(pro = true)
-        advanceUntilIdle()
-
-        vm.overlayState.value.deleteConfirmEntries shouldBe emptyList()
     }
 }
