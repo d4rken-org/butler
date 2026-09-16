@@ -58,6 +58,7 @@ import java.util.Locale
 fun CustomThemeDialog(
     seed: Int?,
     palette: ThemePalette,
+    style: ThemeStyle,
     onConfirm: (Int?, ThemePalette) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -70,6 +71,7 @@ fun CustomThemeDialog(
         onPickedChange = { picked = it },
         palette = pickedPalette,
         onPaletteChange = { pickedPalette = it },
+        style = style,
         onConfirm = { onConfirm(picked.toRgb(), pickedPalette) },
         onDefault = { onConfirm(null, ThemePalette.TONAL_SPOT) },
         onDismiss = onDismiss,
@@ -82,6 +84,7 @@ private fun CustomThemeDialogContent(
     onPickedChange: (Hsv) -> Unit,
     palette: ThemePalette,
     onPaletteChange: (ThemePalette) -> Unit,
+    style: ThemeStyle,
     onConfirm: () -> Unit,
     onDefault: () -> Unit,
     onDismiss: () -> Unit,
@@ -91,10 +94,10 @@ private fun CustomThemeDialogContent(
     val hex = "#%06X".format(Locale.ROOT, seedColor.toArgb() and 0xFFFFFF)
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
-    val preview = remember(seedColor, palette, isDark) {
+    val preview = remember(seedColor, palette, style, isDark) {
         ThemeColorProvider.getColorScheme(
             seed = ThemeSeed(seedColor, palette),
-            style = ThemeStyle.DEFAULT,
+            style = style,
             dark = isDark,
         )
     }
@@ -229,6 +232,7 @@ private fun CustomThemeDialogPreview() {
     CustomThemeDialog(
         seed = null,
         palette = ThemePalette.TONAL_SPOT,
+        style = ThemeStyle.DEFAULT,
         onConfirm = { _, _ -> },
         onDismiss = {},
     )
@@ -241,6 +245,7 @@ private fun CustomThemeDialogMonochromePreview() {
     CustomThemeDialog(
         seed = 0x1565C0,
         palette = ThemePalette.MONOCHROME,
+        style = ThemeStyle.HIGH_CONTRAST,
         onConfirm = { _, _ -> },
         onDismiss = {},
     )
@@ -253,6 +258,7 @@ private fun CustomThemeDialogVibrantPreview() {
     CustomThemeDialog(
         seed = 0x8C1C13,
         palette = ThemePalette.VIBRANT,
+        style = ThemeStyle.DEFAULT,
         onConfirm = { _, _ -> },
         onDismiss = {},
     )

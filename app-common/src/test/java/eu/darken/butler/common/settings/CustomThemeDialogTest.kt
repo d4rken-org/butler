@@ -14,6 +14,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemePalette
 import eu.darken.butler.common.theming.ThemeState
+import eu.darken.butler.common.theming.ThemeStyle
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import org.robolectric.annotation.Config
@@ -47,6 +48,7 @@ class CustomThemeDialogTest : ComposeTest() {
                 CustomThemeDialog(
                     seed = seed,
                     palette = palette,
+                    style = ThemeStyle.DEFAULT,
                     onConfirm = { pickedSeed, pickedPalette ->
                         emittedSeed = pickedSeed
                         emittedPalette = pickedPalette
