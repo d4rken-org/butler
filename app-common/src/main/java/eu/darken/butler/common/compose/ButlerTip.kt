@@ -28,16 +28,22 @@ import eu.darken.butler.common.debug.logging.logTag
 
 private val TAG = logTag("ButlerTip")
 
-@Composable
-fun ButlerTip(
-    modifier: Modifier = Modifier,
-    tips: List<Int> = listOf(
+object ButlerTipDefaults {
+
+    /** Screens that show a screen-specific tip append it to this, so a new general tip reaches them too. */
+    val tips: List<Int> = listOf(
         R.string.common_tip_multiple_panes,
         R.string.common_tip_different_folders,
         R.string.common_tip_switch_layouts,
         R.string.common_tip_elevated_access,
         R.string.common_tip_breadcrumb_home,
-    ),
+    )
+}
+
+@Composable
+fun ButlerTip(
+    modifier: Modifier = Modifier,
+    tips: List<Int> = ButlerTipDefaults.tips,
 ) {
     // Previews and screenshot renders must be reproducible, a random tip is not. Saveable because a
     // LazyColumn re-runs a plain remember when it reactivates an item from the reuse pool.
