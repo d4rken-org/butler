@@ -137,7 +137,7 @@ class ClassicWorkspacePagerTest : ComposeTest() {
         override fun navToUpgradeButler() = Unit
         override fun createWorkspace(item: QuickCreateItem) = Unit
         override fun createTemplatesWorkspace() = Unit
-        override fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode) = Unit
+        override fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode, recommendedPaneCount: Int) = Unit
     }
 
     @Composable

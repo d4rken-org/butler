@@ -6,6 +6,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.datastore.DataStoreValue
+import eu.darken.butler.common.navigation.DestinationUpgrade
+import eu.darken.butler.common.navigation.NavEvent
+import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
@@ -38,6 +41,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
+import kotlin.time.Instant
 
 class WorkspaceButtonViewModelTest : BaseTest() {
 
@@ -65,16 +69,31 @@ class WorkspaceButtonViewModelTest : BaseTest() {
         override val arguments: Workspace.Arguments = type.defaultArguments!!
     }
 
+    private class FakeInfo(
+        override val isPro: Boolean,
+        override val isSettled: Boolean,
+    ) : UpgradeRepo.Info {
+        override val type = UpgradeRepo.Type.FOSS
+        override val upgradedAt: Instant? = null
+        override val error: Throwable? = null
+    }
+
+    private fun upgradeRepo(pro: Boolean, settled: Boolean = true) = mockk<UpgradeRepo>().apply {
+        every { upgradeInfo } returns MutableStateFlow(FakeInfo(pro, settled))
+    }
+
     private fun createVM(
         templates: Set<WorkspaceTemplate> = emptySet(),
         ranked: Flow<List<Workspace.Type>> = flowOf(emptyList()),
         dispatcher: CoroutineDispatcher? = null,
         workspaceSettings: WorkspaceSettings = mockk(relaxed = true),
+        upgradeRepo: UpgradeRepo = upgradeRepo(pro = true),
     ) = WorkspaceButtonViewModel(
         dispatchers = TestDispatcherProvider(dispatcher),
         workspaceRemote = workspaceRemote,
         workspacePageManager = pageManager,
         workspaceSettings = workspaceSettings,
+        upgradeRepo = upgradeRepo,
         workspaceTemplates = templates,
         usageRepo = mockk<WorkspaceUsageRepo>().apply {
             every { rankedTypes } returns ranked
@@ -329,7 +348,7 @@ class WorkspaceButtonViewModelTest : BaseTest() {
                 workspaceSettings = settings.settings,
             )
 
-            vm.setPanelMode(landscape = false, mode = WorkspacePanelMode.DUAL_VERTICAL)
+            vm.setPanelMode(landscape = false, mode = WorkspacePanelMode.DUAL_VERTICAL, recommendedPaneCount = 2)
 
             val fn = slot<(WorkspacePanelMode) -> WorkspacePanelMode?>()
             coVerify { settings.portrait.update(capture(fn)) }
@@ -346,12 +365,64 @@ class WorkspaceButtonViewModelTest : BaseTest() {
                 workspaceSettings = settings.settings,
             )
 
-            vm.setPanelMode(landscape = true, mode = WorkspacePanelMode.DUAL_VERTICAL)
+            vm.setPanelMode(landscape = true, mode = WorkspacePanelMode.DUAL_VERTICAL, recommendedPaneCount = 2)
 
             val fn = slot<(WorkspacePanelMode) -> WorkspacePanelMode?>()
             coVerify { settings.landscape.update(capture(fn)) }
             fn.captured(WorkspacePanelMode.AUTO) shouldBe WorkspacePanelMode.DUAL_VERTICAL
             coVerify(exactly = 0) { settings.portrait.update(any()) }
+        }
+
+    @Test
+    fun `setPanelMode routes a free user to the upgrade instead of pinning extra panes`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val settings = PanelModeSettings()
+            val vm = createVM(
+                dispatcher = UnconfinedTestDispatcher(testScheduler),
+                workspaceSettings = settings.settings,
+                upgradeRepo = upgradeRepo(pro = false),
+            )
+            val events = mutableListOf<NavEvent>()
+            vm.navEvents.onEach { events += it }.launchIn(backgroundScope)
+
+            vm.setPanelMode(landscape = false, mode = WorkspacePanelMode.DUAL_VERTICAL, recommendedPaneCount = 1)
+
+            coVerify(exactly = 0) { settings.portrait.update(any()) }
+            events shouldBe listOf(NavEvent.GoTo(DestinationUpgrade))
+        }
+
+    @Test
+    fun `setPanelMode lets a free user pin what the window is recommended`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val settings = PanelModeSettings()
+            val vm = createVM(
+                dispatcher = UnconfinedTestDispatcher(testScheduler),
+                workspaceSettings = settings.settings,
+                upgradeRepo = upgradeRepo(pro = false),
+            )
+
+            vm.setPanelMode(landscape = false, mode = WorkspacePanelMode.SINGLE_RAIL, recommendedPaneCount = 1)
+
+            coVerify { settings.portrait.update(any()) }
+        }
+
+    /**
+     * A layout is presentation, not an entitlement boundary: an unsettled state is what a paying
+     * user sits in while billing connects, and collapsing their panes there would be the worse bug.
+     */
+    @Test
+    fun `setPanelMode persists a gated geometry while the entitlement is unsettled`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val settings = PanelModeSettings()
+            val vm = createVM(
+                dispatcher = UnconfinedTestDispatcher(testScheduler),
+                workspaceSettings = settings.settings,
+                upgradeRepo = upgradeRepo(pro = false, settled = false),
+            )
+
+            vm.setPanelMode(landscape = false, mode = WorkspacePanelMode.QUAD_GRID, recommendedPaneCount = 1)
+
+            coVerify { settings.portrait.update(any()) }
         }
 
     @Test

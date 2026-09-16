@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.manager
 
+import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.runtime.CompositionLocalProvider
@@ -19,6 +20,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
+import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -52,6 +55,7 @@ class WorkspaceButtonTest : ComposeTest() {
         val created = mutableListOf<QuickCreateItem>()
         val actions = mutableListOf<WorkspaceAction>()
         val panelModes = mutableListOf<Pair<Boolean, WorkspacePanelMode>>()
+        var upgradeNavigations = 0
         var templatesCreated = 0
         var managerNavigations = 0
         var settingsNavigations = 0
@@ -59,10 +63,10 @@ class WorkspaceButtonTest : ComposeTest() {
         override fun executeWorkspaceAction(action: WorkspaceAction) { actions += action }
         override fun navToWorkspaceManager() { managerNavigations++ }
         override fun navToSettings() { settingsNavigations++ }
-        override fun navToUpgradeButler() {}
+        override fun navToUpgradeButler() { upgradeNavigations++ }
         override fun createWorkspace(item: QuickCreateItem) { created += item }
         override fun createTemplatesWorkspace() { templatesCreated++ }
-        override fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode) {
+        override fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode, recommendedPaneCount: Int) {
             panelModes += landscape to mode
         }
     }
@@ -245,6 +249,7 @@ class WorkspaceButtonTest : ComposeTest() {
         provider: RecordingButtonProvider,
         currentWorkspaceId: Workspace.Id? = null,
         showLayoutEntry: Boolean = false,
+        isPro: Boolean = true,
     ) {
         composeTestRule.setContent {
             PreviewWrapper {
@@ -253,6 +258,7 @@ class WorkspaceButtonTest : ComposeTest() {
                         mascotVariant = testMascotVariant,
                         currentWorkspaceId = currentWorkspaceId,
                         showLayoutEntry = showLayoutEntry,
+                        isPro = isPro,
                     )
                 }
             }
@@ -458,8 +464,8 @@ class WorkspaceButtonTest : ComposeTest() {
         composeTestRule.onNodeWithContentDescription("Butler mascot").assertDoesNotExist()
     }
 
-    private fun openLayoutDialog(provider: RecordingButtonProvider) {
-        setContent(provider, showLayoutEntry = true)
+    private fun openLayoutDialog(provider: RecordingButtonProvider, isPro: Boolean = true) {
+        setContent(provider, showLayoutEntry = true, isPro = isPro)
         openMenu()
         composeTestRule.onNodeWithText("Layout").performClick()
     }
@@ -568,5 +574,55 @@ class WorkspaceButtonTest : ComposeTest() {
 
         composeTestRule.onNodeWithText("Quad grid").assertIsSelected()
         composeTestRule.onNodeWithText("Triple sidebar left").assertDoesNotExist()
+    }
+
+    /**
+     * This window is recommended one pane, so the dual split it fits is above the free tier while
+     * the single-pane rail is not. Both rows stay listed: the picker is where the offer is made.
+     */
+    @Test
+    @Config(qualifiers = "w412dp-h915dp-port")
+    fun `a free user sees the badge on a geometry above the recommendation`() {
+        val badgeLabel = ApplicationProvider.getApplicationContext<Context>()
+            .getString(CommonR.string.app_name_upgrade_postfix)
+        openLayoutDialog(RecordingButtonProvider(WorkspaceButtonViewModel.State()), isPro = false)
+
+        composeTestRule.onNodeWithText("Dual horizontal").assertExists()
+        composeTestRule.onNodeWithText(badgeLabel).assertIsDisplayed()
+    }
+
+    @Test
+    @Config(qualifiers = "w412dp-h915dp-port")
+    fun `a free user picking a gated geometry is routed to the upgrade instead`() {
+        val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
+        openLayoutDialog(provider, isPro = false)
+
+        composeTestRule.onNodeWithText("Dual horizontal").performClick()
+
+        provider.panelModes shouldBe emptyList()
+        provider.upgradeNavigations shouldBe 1
+    }
+
+    @Test
+    @Config(qualifiers = "w412dp-h915dp-port")
+    fun `a free user picking a geometry within the recommendation still persists it`() {
+        val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
+        openLayoutDialog(provider, isPro = false)
+
+        composeTestRule.onNodeWithText("Single with tab rail").performClick()
+
+        provider.panelModes shouldBe listOf(false to WorkspacePanelMode.SINGLE_RAIL)
+        provider.upgradeNavigations shouldBe 0
+    }
+
+    @Test
+    @Config(qualifiers = "w412dp-h915dp-port")
+    fun `a pro user gets no badge on the same geometry`() {
+        val badgeLabel = ApplicationProvider.getApplicationContext<Context>()
+            .getString(CommonR.string.app_name_upgrade_postfix)
+        openLayoutDialog(RecordingButtonProvider(WorkspaceButtonViewModel.State()), isPro = true)
+
+        composeTestRule.onNodeWithText("Dual horizontal").assertExists()
+        composeTestRule.onNodeWithText(badgeLabel).assertDoesNotExist()
     }
 }

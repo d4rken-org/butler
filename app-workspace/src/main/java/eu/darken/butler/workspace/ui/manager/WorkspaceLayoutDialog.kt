@@ -14,7 +14,12 @@ import eu.darken.butler.workspace.ui.layout.LayoutPickerOption
 import eu.darken.butler.workspace.ui.layout.description
 import eu.darken.butler.workspace.ui.layout.icon
 import eu.darken.butler.workspace.ui.layout.label
+import eu.darken.butler.workspace.ui.layout.requiresPro
 
+/**
+ * @param recommendedPaneCount what the window is recommended; geometries above it are Pro. Gated
+ * rows stay listed - that is where the offer is - and select [onUpgrade] instead of [onSelect].
+ */
 @Composable
 fun WorkspaceLayoutDialog(
     modifier: Modifier = Modifier,
@@ -22,20 +27,25 @@ fun WorkspaceLayoutDialog(
     currentMode: WorkspacePanelMode,
     geometries: List<WorkspacePanelMode>,
     isLandscape: Boolean = false,
+    isPro: Boolean = true,
+    recommendedPaneCount: Int = 1,
     onDismiss: () -> Unit,
     onSelect: (WorkspacePanelMode) -> Unit,
+    onUpgrade: () -> Unit = {},
 ) {
     if (!visible) return
     LayoutPickerDialog(
         modifier = modifier,
         title = stringResource(R.string.workspace_settings_layout_title),
         options = (listOf(WorkspacePanelMode.AUTO) + geometries).map { mode ->
+            val gated = !isPro && mode.requiresPro(recommendedPaneCount)
             LayoutPickerOption(
                 icon = mode.icon(landscape = isLandscape),
                 label = mode.label(),
                 description = mode.description(),
                 selected = mode == currentMode,
-                onSelect = { onSelect(mode) },
+                onSelect = { if (gated) onUpgrade() else onSelect(mode) },
+                requiresUpgrade = gated,
             )
         },
         onDismiss = onDismiss,
@@ -52,5 +62,21 @@ private fun WorkspaceLayoutDialogPreview() {
         geometries = ADAPTIVE_GEOMETRIES,
         onDismiss = {},
         onSelect = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceLayoutDialogGatedPreview() {
+    WorkspaceLayoutDialog(
+        visible = true,
+        currentMode = WorkspacePanelMode.SINGLE_RAIL,
+        geometries = ADAPTIVE_GEOMETRIES,
+        isPro = false,
+        recommendedPaneCount = 1,
+        onDismiss = {},
+        onSelect = {},
+        onUpgrade = {},
     )
 }

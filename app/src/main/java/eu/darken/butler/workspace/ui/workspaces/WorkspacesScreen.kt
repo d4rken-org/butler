@@ -36,6 +36,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.rememberIsPro
 import eu.darken.butler.common.compose.systemBarsWithOptionalCutout
 import eu.darken.butler.common.compose.tour.LocalGuidedTourController
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -74,6 +75,8 @@ import eu.darken.butler.workspace.ui.floatingbar.FloatingBarScope
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.layout.isPinnedGeometry
+import eu.darken.butler.workspace.ui.layout.requiresPro
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
@@ -288,9 +291,14 @@ fun WorkspaceScreen(
  * The placement follows the window, not the layout: a portrait window that ends up single-pane
  * without the rail also says BOTTOM. Everything reading it therefore gates on the rail being visible
  * rather than on the placement alone.
+ *
+ * @param isPro override for previews and tests; by default this reads the app's upgrade state.
  */
 @Composable
-fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
+fun rememberWorkspaceDesign(
+    state: WorkspacesViewModel.State,
+    isPro: Boolean = rememberIsPro(),
+): WorkspaceDesign {
     val windowSizeInfo = rememberWindowSizeInfo()
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -301,7 +309,7 @@ fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
         state.portraitPanelMode
     }
 
-    val effectivePaneLayout = when (effectivePanelMode) {
+    val storedLayout = when (effectivePanelMode) {
         WorkspacePanelMode.AUTO -> windowSizeInfo.recommendedLayout
         WorkspacePanelMode.ADAPTIVE -> windowSizeInfo.recommendedLayout
         WorkspacePanelMode.SINGLE -> WorkspaceDesign.Layout.SINGLE
@@ -313,6 +321,15 @@ fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
         WorkspacePanelMode.QUAD_GRID -> WorkspaceDesign.Layout.QUAD_GRID
     }
 
+    // A pinned geometry above what this window is recommended is Pro; without it the window falls
+    // back to that recommendation. The stored preference is never rewritten, so the pinned layout
+    // comes back with the entitlement.
+    val effectivePaneLayout = when {
+        !isPro && effectivePanelMode.requiresPro(windowSizeInfo.recommendedPaneCount) ->
+            windowSizeInfo.recommendedLayout
+        else -> storedLayout
+    }
+
     return WorkspaceDesign(
         layout = effectivePaneLayout,
         railPlacement = if (isLandscape) {
@@ -321,8 +338,11 @@ fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
             WorkspaceDesign.RailPlacement.BOTTOM
         },
         railButtonPlacement = state.railButtonPlacement,
+        // Read off the stored mode rather than the resolved layout: a downgraded pinned geometry
+        // still composes the rail, and the rail's Butler button is the only route to the Layout
+        // dialog - the one place the gated rows and their offer are visible.
         hasNavigationRail = effectivePaneLayout != WorkspaceDesign.Layout.SINGLE ||
-            effectivePanelMode == WorkspacePanelMode.SINGLE_RAIL ||
+            effectivePanelMode.isPinnedGeometry ||
             effectivePanelMode == WorkspacePanelMode.ADAPTIVE,
     )
 }
