@@ -69,7 +69,7 @@
     <string name="clipboard_settings_max_items_desc">Maximum number of items in clipboard</string>
 
     <string name="workspace_explorer_label">Explorer</string>
-    <string name="workspace_searcher_label">Searcher</string>
+    <string name="workspace_searcher_label">Search</string>
     <string name="workspace_editor_label">Editor</string>
     <string name="workspace_templates_label">Templates</string>
     <string name="workspace_apps_label">Apps</string>

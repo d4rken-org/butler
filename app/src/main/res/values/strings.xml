@@ -25,7 +25,7 @@
     <string name="onboarding_workspaces_hint">Keep multiple tabs open simultaneously.</string>
     <string name="onboarding_workspaces_explorer_title">Explorer</string>
     <string name="onboarding_workspaces_explorer_description">Browse your files.</string>
-    <string name="onboarding_workspaces_searcher_title">Searcher</string>
+    <string name="onboarding_workspaces_searcher_title">Search</string>
     <string name="onboarding_workspaces_searcher_description">Find stuff.</string>
     <string name="onboarding_workspaces_editor_title">Editor</string>
     <string name="onboarding_workspaces_editor_description">Edit files.</string>
@@ -319,11 +319,11 @@
     <string name="workspace_empty_settings_action">Open settings</string>
     <string name="workspace_empty_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
     <string name="workspace_classic_empty_tabs_closed">No open tabs. Ready when you are.</string>
-    <string name="workspace_classic_empty_tip">Tip: Tap “Create tab” and pick a tool — Explorer, Searcher, Editor, and more.</string>
+    <string name="workspace_classic_empty_tip">Tip: Tap “Create tab” and pick a tool — Explorer, Search, Editor, and more.</string>
 
     <!-- Workspace > Guided tour -->
     <string name="tour_first_tab_title">Start with a tab</string>
-    <string name="tour_first_tab_body">Butler works in tabs, like a browser: each one is a tool of its own — Explorer, Searcher, Editor, and more. Create your first tab.</string>
+    <string name="tour_first_tab_body">Butler works in tabs, like a browser: each one is a tool of its own — Explorer, Search, Editor, and more. Create your first tab.</string>
     <string name="tour_manager_fab_title">Quick shortcuts</string>
     <string name="tour_manager_fab_body">Tap this for shortcuts to the tools you use most, and to close every tab at once.</string>
     <string name="tour_manager_reorder_title">Reorder your tabs</string>
@@ -444,7 +444,7 @@
     <string name="support_contact_workspace_label">Related area</string>
     <string name="support_contact_workspace_general">General</string>
     <string name="support_contact_workspace_explorer">Explorer</string>
-    <string name="support_contact_workspace_searcher">Searcher</string>
+    <string name="support_contact_workspace_searcher">Search</string>
     <string name="support_contact_workspace_editor">Editor</string>
     <string name="support_contact_description_label">Description</string>
     <string name="support_contact_description_question_hint">Describe your question in detail. Please be specific (minimum 20 words).</string>
