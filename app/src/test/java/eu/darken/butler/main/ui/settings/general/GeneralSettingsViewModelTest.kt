@@ -5,6 +5,7 @@ import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.locale.LocaleManager
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemePalette
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.motd.MotdSettings
@@ -41,6 +42,8 @@ class GeneralSettingsViewModelTest : BaseTest() {
     private lateinit var suitColor: MutableStateFlow<Int?>
 
     private lateinit var suitColorValue: DataStoreValue<Int?>
+    private lateinit var customSeedValue: DataStoreValue<Int?>
+    private lateinit var customPaletteValue: DataStoreValue<ThemePalette>
     private lateinit var updateCheckValue: DataStoreValue<Boolean>
     private lateinit var confirmExitValue: DataStoreValue<Boolean>
     private lateinit var displayCutoutValue: DataStoreValue<Boolean>
@@ -71,6 +74,17 @@ class GeneralSettingsViewModelTest : BaseTest() {
             every { flow } returns suitColor
             coEvery { update(any()) } returns DataStoreValue.Updated(old = null, new = null)
         }
+        customSeedValue = mockk {
+            every { flow } returns MutableStateFlow<Int?>(null)
+            coEvery { update(any()) } returns DataStoreValue.Updated(old = null, new = null)
+        }
+        customPaletteValue = mockk {
+            every { flow } returns MutableStateFlow(ThemePalette.TONAL_SPOT)
+            coEvery { update(any()) } returns DataStoreValue.Updated(
+                old = ThemePalette.TONAL_SPOT,
+                new = ThemePalette.TONAL_SPOT,
+            )
+        }
         updateCheckValue = booleanValue(updateCheckEnabled)
         confirmExitValue = booleanValue(confirmExitEnabled)
         displayCutoutValue = booleanValue(displayCutoutAvoided)
@@ -82,6 +96,8 @@ class GeneralSettingsViewModelTest : BaseTest() {
             every { themeStyle } returns mockk { every { flow } returns MutableStateFlow(ThemeStyle.DEFAULT) }
             every { themeColor } returns mockk { every { flow } returns MutableStateFlow(ThemeColor.GREEN) }
             every { mascotSuitColor } returns suitColorValue
+            every { themeCustomSeed } returns customSeedValue
+            every { themeCustomPalette } returns customPaletteValue
             every { isUpdateCheckEnabled } returns updateCheckValue
             every { isConfirmExitEnabled } returns confirmExitValue
             every { isDisplayCutoutAvoided } returns displayCutoutValue
@@ -125,6 +141,21 @@ class GeneralSettingsViewModelTest : BaseTest() {
     }
 
     @Test
+    fun `updateThemeCustom writes the seed and the palette`() = runTest {
+        createViewModel().updateThemeCustom(0x1565C0, ThemePalette.MONOCHROME)
+
+        val seed = slot<(Int?) -> Int?>()
+        coVerify { customSeedValue.update(capture(seed)) }
+        seed.captured(null) shouldBe 0x1565C0
+
+        val palette = slot<(ThemePalette) -> ThemePalette?>()
+        coVerify { customPaletteValue.update(capture(palette)) }
+        palette.captured(ThemePalette.TONAL_SPOT) shouldBe ThemePalette.MONOCHROME
+
+        coVerify(exactly = 0) { suitColorValue.update(any()) }
+    }
+
+    @Test
     fun `updateAvoidDisplayCutout writes only the cutout preference`() = runTest {
         createViewModel().updateAvoidDisplayCutout(false)
 
@@ -136,5 +167,7 @@ class GeneralSettingsViewModelTest : BaseTest() {
         coVerify(exactly = 0) { updateCheckValue.update(any()) }
         coVerify(exactly = 0) { motdValue.update(any()) }
         coVerify(exactly = 0) { documentsProviderValue.update(any()) }
+        coVerify(exactly = 0) { customSeedValue.update(any()) }
+        coVerify(exactly = 0) { customPaletteValue.update(any()) }
     }
 }

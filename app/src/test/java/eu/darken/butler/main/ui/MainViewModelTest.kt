@@ -4,6 +4,7 @@ import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.storage.DocumentUriResolver
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemePalette
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.upgrade.UpgradeRepo
@@ -48,6 +49,8 @@ class MainViewModelTest : BaseTest() {
             every { themeStyle } returns dataStoreValue(MutableStateFlow(ThemeStyle.DEFAULT))
             every { themeColor } returns dataStoreValue(MutableStateFlow(ThemeColor.GREEN))
             every { mascotSuitColor } returns mockk { every { flow } returns MutableStateFlow<Int?>(null) }
+            every { themeCustomSeed } returns mockk { every { flow } returns MutableStateFlow<Int?>(null) }
+            every { themeCustomPalette } returns dataStoreValue(MutableStateFlow(ThemePalette.TONAL_SPOT))
         }
     }
 

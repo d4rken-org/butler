@@ -2,6 +2,7 @@ package eu.darken.butler.common.theming
 
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import io.kotest.matchers.shouldBe
@@ -56,16 +57,25 @@ class ButlerRootSurfaceTest : ComposeTest() {
         }
     }
 
+    /**
+     * The scheme is spelled out rather than taken from a theme: the subject is which role
+     * [ButlerRootSurface] picks, so the two roles have to be forced apart by the test itself.
+     */
     @Test
     fun `onBackground wins over onSurface where the two schemes diverge`() {
         composeTestRule.setContent {
-            ColorProbe(
-                ThemeState(
-                    mode = ThemeMode.DARK,
-                    style = ThemeStyle.HIGH_CONTRAST,
-                    color = ThemeColor.AMOLED,
+            MaterialTheme(
+                colorScheme = darkColorScheme(
+                    onBackground = Color(0xFFE2E2E9),
+                    onSurface = Color.White,
                 ),
-            )
+            ) {
+                ButlerRootSurface {
+                    contentColor = LocalContentColor.current
+                    onBackground = MaterialTheme.colorScheme.onBackground
+                    onSurface = MaterialTheme.colorScheme.onSurface
+                }
+            }
         }
 
         composeTestRule.runOnIdle {

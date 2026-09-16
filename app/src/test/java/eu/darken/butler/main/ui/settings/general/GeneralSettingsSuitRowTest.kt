@@ -15,6 +15,7 @@ import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.locale.LocaleManager
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemePalette
 import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.main.core.GeneralSettings
@@ -75,6 +76,7 @@ class GeneralSettingsSuitRowTest : ComposeTest() {
                     onThemeModeSelected = {},
                     onThemeStyleSelected = {},
                     onThemeColorSelected = {},
+                    onThemeCustomSelected = { _, _ -> },
                     onSuitColorSelected = onSuitColorSelected,
                     onUpgradeButler = { upgrades++ },
                     onUpdateCheckEnabledChange = {},
@@ -165,6 +167,8 @@ class GeneralSettingsSuitRowTest : ComposeTest() {
             every { themeStyle } returns mockk { every { flow } returns MutableStateFlow(ThemeStyle.DEFAULT) }
             every { themeColor } returns mockk { every { flow } returns MutableStateFlow(ThemeColor.GREEN) }
             every { mascotSuitColor } returns suitColorValue
+            every { themeCustomSeed } returns mockk { every { flow } returns MutableStateFlow<Int?>(null) }
+            every { themeCustomPalette } returns mockk { every { flow } returns MutableStateFlow(ThemePalette.TONAL_SPOT) }
             every { isUpdateCheckEnabled } returns mockk { every { flow } returns MutableStateFlow(true) }
             every { isConfirmExitEnabled } returns mockk { every { flow } returns MutableStateFlow(true) }
             every { isDisplayCutoutAvoided } returns mockk { every { flow } returns MutableStateFlow(true) }
