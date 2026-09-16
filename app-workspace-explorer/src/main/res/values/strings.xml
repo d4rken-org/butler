@@ -169,6 +169,8 @@
     <string name="explorer_breadcrumb_copy_path_confirmation">Path copied to clipboard</string>
     <string name="explorer_navigation_device">Device</string>
     <string name="explorer_navigation_network">Network</string>
+    <string name="explorer_navigation_recent">Recent</string>
+    <string name="explorer_navigation_recent_desc">Files that recently appeared on this device</string>
     <string name="explorer_navigation_trash">Trash</string>
     <string name="explorer_navigation_trash_desc">Recover deleted files</string>
     <string name="explorer_navigation_trash_nested_desc">Inside trashed folder</string>
@@ -224,6 +226,7 @@
 
     <string name="explorer_loader_progress_home_loading">Loading home</string>
     <string name="explorer_loader_progress_trash_loading">Loading trash…</string>
+    <string name="explorer_loader_progress_recent_loading">Loading recent files…</string>
 
     <!-- InfoBar -->
     <plurals name="explorer_infobar_shortcuts_count">
@@ -328,6 +331,14 @@
     <string name="explorer_location_name_label">Location name</string>
     <string name="explorer_location_name_hint">Leave empty to use default name</string>
     <string name="explorer_location_rename_action">Rename location</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Added in the last day</item>
+        <item quantity="other">Added in the last %d days</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Nothing new here</string>
+    <string name="explorer_recent_empty_message">Files that appear on this device show up here</string>
 
     <!-- Empty States -->
     <string name="explorer_empty_folder_title">This folder is empty</string>
@@ -466,6 +477,8 @@
     <string name="explorer_file_action_properties_subtitle">View detailed file information</string>
     <string name="explorer_file_action_extract">Extract</string>
     <string name="explorer_file_action_extract_subtitle">Extract archive contents to a folder</string>
+    <string name="explorer_file_action_show_in_folder">Show in folder</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Open the folder this file is in</string>
 
     <!-- Operations -->
     <plurals name="explorer_operation_report_files_created">

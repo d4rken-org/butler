@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.smb.SmbEndpointState
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
+import kotlin.time.Instant
 
 class BrowsingEngineTest : BaseTest() {
 
@@ -293,6 +295,7 @@ class BrowsingEngineTest : BaseTest() {
                 deviceLocationLoaderFactory = mockk(relaxed = true),
                 networkLocationLoaderFactory = mockk(relaxed = true),
                 trashLocationLoaderFactory = mockk(relaxed = true),
+                recentLocationLoaderFactory = mockk(relaxed = true),
                 directoryLoaderFactory = mockk {
                     every { create(any()) } returns directoryLoader
                 },
@@ -918,6 +921,7 @@ class BrowsingEngineTest : BaseTest() {
                     every { create(any()) } returns networkLoader
                 },
                 trashLocationLoaderFactory = mockk(relaxed = true),
+                recentLocationLoaderFactory = mockk(relaxed = true),
                 directoryLoaderFactory = mockk {
                     every { create(any()) } returns directoryLoader
                 },
@@ -1029,6 +1033,172 @@ class BrowsingEngineTest : BaseTest() {
 
                 engine.location.value.location?.items shouldBe listOf(reachable)
                 engine.release()
+            }
+    }
+
+    /**
+     * Recent lists files from all over storage, so a file operation's outcome has to reach it too:
+     * a deleted row must leave, while a new one has no index time to place it by and waits for a
+     * reload.
+     */
+    @Nested
+    inner class RecentHintTests {
+
+        private val recentTarget = ExplorerNavigation.Target.Recent
+
+        private val runs = ArrayDeque<Flow<ExplorerLocation>>()
+
+        private fun newRun() = MutableSharedFlow<ExplorerLocation>(extraBufferCapacity = 8)
+            .also { runs.addLast(it) }
+
+        private suspend fun MutableSharedFlow<ExplorerLocation>.publish(location: ExplorerLocation) {
+            subscriptionCount.first { it > 0 }
+            emit(location)
+        }
+
+        private fun recentFile(name: String, size: Long) = ExplorerItem.RegularFile(
+            lookup = LocalPathLookup(
+                lookedUp = path.child(name),
+                fileType = FileType.FILE,
+                size = size,
+                modifiedAt = null,
+            ),
+            mimeType = MimeInfo("text/plain"),
+        )
+
+        private fun recentListing(vararg files: ExplorerItem.RegularFile) = ExplorerLocation.Recent(
+            items = files.toList(),
+            indexedAt = files.associate { it.id to Instant.fromEpochSeconds(1_700_000_000L) },
+            info = ExplorerLocation.Recent.Info(
+                fileCount = files.size,
+                totalSize = files.sumOf { it.lookup.size ?: 0L },
+                windowDays = 30,
+            ),
+            progress = null,
+        )
+
+        private fun CoroutineScope.newEngine(dispatcher: CoroutineDispatcher): BrowsingEngine {
+            val recentLoader = mockk<RecentLocationLoader>().apply {
+                every { loadRecent() } answers { runs.removeFirst() }
+            }
+            return BrowsingEngine(
+                workspaceId = Workspace.Id(),
+                workspaceScope = this,
+                dispatcherProvider = TestDispatcherProvider(dispatcher),
+                homeLocationLoaderFactory = mockk(relaxed = true),
+                deviceLocationLoaderFactory = mockk(relaxed = true),
+                networkLocationLoaderFactory = mockk(relaxed = true),
+                trashLocationLoaderFactory = mockk(relaxed = true),
+                recentLocationLoaderFactory = mockk {
+                    every { create(any()) } returns recentLoader
+                },
+                directoryLoaderFactory = mockk(relaxed = true),
+                breadcrumbGenerator = mockk(relaxed = true),
+            )
+        }
+
+        @Test
+        fun `a deleted file leaves the listing, the index times and the counts`() =
+            runTest(UnconfinedTestDispatcher()) {
+                val dispatcher = UnconfinedTestDispatcher(testScheduler)
+                val initial = newRun()
+                val engine = backgroundScope.newEngine(dispatcher)
+                val kept = recentFile("kept.txt", 100L)
+                val removed = recentFile("removed.txt", 200L)
+
+                engine.setTarget(recentTarget)
+                initial.publish(recentListing(kept, removed))
+                advanceUntilIdle()
+
+                engine.hint(
+                    FileSystemEvent.Removed(
+                        operationId = Operation.Id(),
+                        paths = setOf(removed.lookup),
+                    )
+                )
+                advanceUntilIdle()
+
+                val recent = engine.location.value.location as ExplorerLocation.Recent
+                recent.items shouldBe listOf(kept)
+                recent.indexedAt.keys shouldBe setOf(kept.id)
+                recent.info shouldBe ExplorerLocation.Recent.Info(
+                    fileCount = 1,
+                    totalSize = 100L,
+                    windowDays = 30,
+                )
+            }
+
+        @Test
+        fun `deleting a folder also drops the rows of the files inside it`() =
+            runTest(UnconfinedTestDispatcher()) {
+                val dispatcher = UnconfinedTestDispatcher(testScheduler)
+                val initial = newRun()
+                val engine = backgroundScope.newEngine(dispatcher)
+                val kept = recentFile("kept.txt", 100L)
+                val folder = path.child("doomed")
+                val inside = ExplorerItem.RegularFile(
+                    lookup = LocalPathLookup(
+                        lookedUp = folder.child("inside.txt"),
+                        fileType = FileType.FILE,
+                        size = 200L,
+                        modifiedAt = null,
+                    ),
+                    mimeType = MimeInfo("text/plain"),
+                )
+
+                engine.setTarget(recentTarget)
+                initial.publish(recentListing(kept, inside))
+                advanceUntilIdle()
+
+                // A folder delete reports the folder the user selected, never an enumeration of
+                // what lived under it.
+                engine.hint(
+                    FileSystemEvent.Removed(
+                        operationId = Operation.Id(),
+                        paths = setOf(
+                            LocalPathLookup(
+                                lookedUp = folder,
+                                fileType = FileType.DIRECTORY,
+                                size = null,
+                                modifiedAt = null,
+                            ),
+                        ),
+                    )
+                )
+                advanceUntilIdle()
+
+                val recent = engine.location.value.location as ExplorerLocation.Recent
+                recent.items shouldBe listOf(kept)
+                recent.indexedAt.keys shouldBe setOf(kept.id)
+                recent.info shouldBe ExplorerLocation.Recent.Info(
+                    fileCount = 1,
+                    totalSize = 100L,
+                    windowDays = 30,
+                )
+            }
+
+        @Test
+        fun `an added file leaves the listing alone`() =
+            runTest(UnconfinedTestDispatcher()) {
+                val dispatcher = UnconfinedTestDispatcher(testScheduler)
+                val initial = newRun()
+                val engine = backgroundScope.newEngine(dispatcher)
+                val listed = recentFile("kept.txt", 100L)
+                val settled = recentListing(listed)
+
+                engine.setTarget(recentTarget)
+                initial.publish(settled)
+                advanceUntilIdle()
+
+                engine.hint(
+                    FileSystemEvent.Added(
+                        operationId = Operation.Id(),
+                        paths = setOf(recentFile("fresh.txt", 300L).lookup),
+                    )
+                )
+                advanceUntilIdle()
+
+                engine.location.value.location shouldBe settled
             }
     }
 }

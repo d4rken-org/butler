@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.permissions.core.PathRequirements
+import kotlin.time.Instant
 
 sealed interface ExplorerLocation {
     val locationId: String
@@ -59,6 +60,30 @@ sealed interface ExplorerLocation {
 
         data class Info(
             val locationCount: Int,
+        ) : LocationInfo
+    }
+
+    /**
+     * Files that recently appeared on the device, newest first.
+     *
+     * [indexedAt] sits here rather than on the items: the index time is not a creation time, and
+     * putting it on `RegularFile.createdAt` would mislabel it as one in the properties sheet, while
+     * a wrapper item type would cut these rows off from every existing file action.
+     */
+    data class Recent(
+        override val items: List<ExplorerItem>? = null,
+        override val info: Info? = null,
+        override val setupRequirements: PathRequirements = PathRequirements(),
+        override val progress: Progress.Data? = Progress.Data(),
+        val indexedAt: Map<String, Instant> = emptyMap(),
+    ) : ExplorerLocation {
+
+        override val locationId: String get() = "location://recent"
+
+        data class Info(
+            val fileCount: Int,
+            val totalSize: Long,
+            val windowDays: Int,
         ) : LocationInfo
     }
 

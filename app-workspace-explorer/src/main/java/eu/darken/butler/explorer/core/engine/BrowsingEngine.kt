@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.explorer.core.BreadcrumbGenerator
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -42,6 +43,7 @@ class BrowsingEngine @AssistedInject constructor(
     deviceLocationLoaderFactory: DeviceLocationLoader.Factory,
     networkLocationLoaderFactory: NetworkLocationLoader.Factory,
     trashLocationLoaderFactory: TrashLocationLoader.Factory,
+    recentLocationLoaderFactory: RecentLocationLoader.Factory,
     directoryLoaderFactory: DirectoryLocationLoader.Factory,
     private val breadcrumbGenerator: BreadcrumbGenerator,
 ) {
@@ -51,6 +53,7 @@ class BrowsingEngine @AssistedInject constructor(
     private val deviceLocationLoader = deviceLocationLoaderFactory.create(workspaceId)
     private val networkLocationLoader = networkLocationLoaderFactory.create(workspaceId)
     private val trashLocationLoader = trashLocationLoaderFactory.create(workspaceId)
+    private val recentLocationLoader = recentLocationLoaderFactory.create(workspaceId)
     private val directoryLoader = directoryLoaderFactory.create(workspaceId)
 
     private val sessionFlow = MutableStateFlow<Session?>(null)
@@ -263,7 +266,7 @@ class BrowsingEngine @AssistedInject constructor(
                         if (pendingHints.isNotEmpty()) {
                             log(tag) { "Loading complete, processing ${pendingHints.size} queued hints" }
                             pendingHints.forEach { event ->
-                                val current = _location.value.location as? ExplorerLocation.Directory ?: return@forEach
+                                val current = _location.value.location?.takeIf { it.acceptsHints } ?: return@forEach
                                 val updated = applyIncrementalUpdate(current, event)
                                 _location.value = _location.value.copy(location = updated)
                             }
@@ -318,6 +321,7 @@ class BrowsingEngine @AssistedInject constructor(
             target.parentItem,
             target.relativePath,
         )
+        is ExplorerNavigation.Target.Recent -> recentLocationLoader.loadRecent()
         is ExplorerNavigation.Target.Directory -> directoryLoader.loadDirectory(target.path)
     }
 
@@ -432,7 +436,7 @@ class BrowsingEngine @AssistedInject constructor(
 
     suspend fun hint(event: FileSystemEvent) = hintMutex.withLock {
         log(tag) { "hint(): $event" }
-        val current = _location.value.location as? ExplorerLocation.Directory ?: return@withLock
+        val current = _location.value.location?.takeIf { it.acceptsHints } ?: return@withLock
 
         if (current.isLoading) {
             log(tag) { "hint(): Queueing event (loading in progress)" }
@@ -447,6 +451,52 @@ class BrowsingEngine @AssistedInject constructor(
     }
 
     private suspend fun applyIncrementalUpdate(
+        current: ExplorerLocation,
+        event: FileSystemEvent
+    ): ExplorerLocation = when (current) {
+        is ExplorerLocation.Directory -> applyDirectoryUpdate(current, event)
+        is ExplorerLocation.Recent -> applyRecentUpdate(current, event)
+        else -> current
+    }
+
+    /**
+     * Recent is an index, not a folder: a row that is gone has to leave, but an added or modified
+     * path has no index time to place it by, so it is left for the next load.
+     */
+    private fun applyRecentUpdate(
+        current: ExplorerLocation.Recent,
+        event: FileSystemEvent,
+    ): ExplorerLocation.Recent {
+        if (event !is FileSystemEvent.Removed) {
+            log(tag) { "applyRecentUpdate(): ${event::class.simpleName} needs a reload, leaving the listing alone" }
+            return current
+        }
+        val currentItems = current.items ?: return current
+
+        // A folder delete reports only the folder, so its files have to be matched by descent.
+        val removedPaths = event.paths.map { it.lookedUp }
+        val remaining = currentItems.filter { item ->
+            item !is ExplorerItem.Path || removedPaths.none { item.path.isDescendantOfOrSelf(it) }
+        }
+        if (remaining.size == currentItems.size) {
+            log(tag) { "applyRecentUpdate(): Event doesn't affect the listing" }
+            return current
+        }
+
+        log(tag) { "applyRecentUpdate(): Removing ${currentItems.size - remaining.size} paths" }
+        val remainingFiles = remaining.filterIsInstance<ExplorerItem.File>()
+        val remainingIds = remaining.mapTo(mutableSetOf()) { it.id }
+        return current.copy(
+            items = remaining,
+            indexedAt = current.indexedAt.filterKeys { it in remainingIds },
+            info = current.info?.copy(
+                fileCount = remainingFiles.size,
+                totalSize = remainingFiles.sumOf { it.lookup.size ?: 0L },
+            ),
+        )
+    }
+
+    private suspend fun applyDirectoryUpdate(
         current: ExplorerLocation.Directory,
         event: FileSystemEvent
     ): ExplorerLocation.Directory {
@@ -564,6 +614,9 @@ internal fun ExplorerLocation.retainContentFrom(previous: ExplorerLocation): Exp
         is ExplorerLocation.Network -> (previous as? ExplorerLocation.Network)
             ?.let { copy(items = it.items, info = it.info) }
 
+        is ExplorerLocation.Recent -> (previous as? ExplorerLocation.Recent)
+            ?.let { copy(items = it.items, info = it.info, indexedAt = it.indexedAt) }
+
         is ExplorerLocation.Directory -> (previous as? ExplorerLocation.Directory)
             ?.let { copy(items = it.items, info = it.info) }
 
@@ -580,10 +633,19 @@ internal fun ExplorerLocation.withoutProgress(): ExplorerLocation = when (this) 
     is ExplorerLocation.Home -> copy(progress = null)
     is ExplorerLocation.Device -> copy(progress = null)
     is ExplorerLocation.Network -> copy(progress = null)
+    is ExplorerLocation.Recent -> copy(progress = null)
     is ExplorerLocation.Directory -> copy(progress = null)
     is ExplorerLocation.Trash.Root -> copy(progress = null)
     is ExplorerLocation.Trash.Nested -> copy(progress = null)
 }
+
+/**
+ * Whether a file operation's outcome can be folded into this listing without reloading it. Every
+ * other location is either derived from something other than paths, or reloads cheaply enough that
+ * an incremental update would only be a second source of truth.
+ */
+private val ExplorerLocation.acceptsHints: Boolean
+    get() = this is ExplorerLocation.Directory || this is ExplorerLocation.Recent
 
 /**
  * Whether this emission carries a listing of its own, as opposed to nothing yet or the loader's

@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.core.engine.backend
+package eu.darken.butler.common.files.mediastore
 
 import android.database.Cursor
 import eu.darken.butler.common.files.LocalPath
@@ -15,12 +15,20 @@ data class MediaStoreRow(
     val data: String?,
     val size: Long?,
     val modifiedAtEpochSeconds: Long?,
+    val addedAtEpochSeconds: Long? = null,
 )
 
-fun Cursor.readMediaStoreRow(dataIndex: Int, sizeIndex: Int, modifiedIndex: Int) = MediaStoreRow(
+/** A null [addedIndex] leaves [MediaStoreRow.addedAtEpochSeconds] null, for readers without that column. */
+fun Cursor.readMediaStoreRow(
+    dataIndex: Int,
+    sizeIndex: Int,
+    modifiedIndex: Int,
+    addedIndex: Int? = null,
+) = MediaStoreRow(
     data = if (isNull(dataIndex)) null else getString(dataIndex),
     size = if (isNull(sizeIndex)) null else getLong(sizeIndex),
     modifiedAtEpochSeconds = if (isNull(modifiedIndex)) null else getLong(modifiedIndex),
+    addedAtEpochSeconds = addedIndex?.let { if (isNull(it)) null else getLong(it) },
 )
 
 /**
@@ -30,7 +38,11 @@ fun Cursor.readMediaStoreRow(dataIndex: Int, sizeIndex: Int, modifiedIndex: Int)
 object MediaStoreRowDecoder {
 
     sealed interface Outcome {
-        data class Decoded(val lookup: LocalPathLookup) : Outcome
+        /** [addedAt] is the index time, null when the provider left it unset or at a sentinel value. */
+        data class Decoded(
+            val lookup: LocalPathLookup,
+            val addedAt: Instant? = null,
+        ) : Outcome
 
         /** Row has no usable filesystem path (NULL/blank DATA, e.g. redacted on scoped storage). */
         data object Unrepresentable : Outcome
@@ -47,7 +59,7 @@ object MediaStoreRowDecoder {
         if (!file.isAbsolute) return Outcome.Invalid("DATA is not absolute: $data")
 
         return Outcome.Decoded(
-            LocalPathLookup(
+            lookup = LocalPathLookup(
                 lookedUp = LocalPath.build(file),
                 // MediaStore collections only index files, never directories
                 fileType = FileType.FILE,
@@ -57,7 +69,10 @@ object MediaStoreRowDecoder {
                     ?.let { Instant.fromEpochSeconds(it) },
                 // DATE_ADDED is index-time, not file creation time — createdAt stays null
                 createdAt = null,
-            )
+            ),
+            addedAt = row.addedAtEpochSeconds
+                ?.takeIf { it > 0 }
+                ?.let { Instant.fromEpochSeconds(it) },
         )
     }
 }

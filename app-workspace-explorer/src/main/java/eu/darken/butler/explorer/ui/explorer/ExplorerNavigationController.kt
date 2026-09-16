@@ -12,6 +12,7 @@ import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.smb.SmbLocationInput
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.pkgs.installer.AppInstallFormat
@@ -130,7 +131,12 @@ class ExplorerNavigationController(
                         )
                     } else {
                         // Normal mode or other picker modes: show file options dialog
-                        dialogs.show(ExplorerDialogState.FileOptions(item))
+                        dialogs.show(
+                            ExplorerDialogState.FileOptions(
+                                item = item,
+                                showInFolder = getState().currentLocation is ExplorerLocation.Recent,
+                            )
+                        )
                     }
                 }
                 is ExplorerItem.Peek -> {
@@ -247,6 +253,48 @@ class ExplorerNavigationController(
     }
 
     /**
+     * Leaves a listing that is not the file's own folder for that folder, and highlights [path]
+     * there.
+     *
+     * Waits for the folder to be the current location before revealing, like [revealFavorite]:
+     * navigate() only enqueues, so a highlight stamped right after it would belong to the location
+     * being left and be dropped by the arrival.
+     */
+    fun showInFolder(path: APath<*>) = doLaunch {
+        val parent = path.parent
+        if (parent == null) {
+            log(tag, WARN) { "showInFolder(${path.path}): No parent folder to open" }
+            return@doLaunch
+        }
+        log(tag) { "showInFolder(${path.path}) -> ${parent.path}" }
+
+        val workspace = workspace()
+        workspace.navigate(ExplorerNavigation.Target.Directory(parent))
+        clearSelection()
+
+        val arrived = withTimeoutOrNull(DIRECTORY_ARRIVAL_TIMEOUT) {
+            workspace.state
+                .filterIsInstance<ExplorerWorkspace.State.Ready>()
+                .first { state ->
+                    val directory = state.currentLocation as? ExplorerLocation.Directory
+                    directory != null && directory.path.matches(parent) && directory.items != null &&
+                        !directory.isLoading
+                }
+        }
+        if (arrived == null) {
+            log(tag, WARN) { "showInFolder: ${parent.path} did not become current in time" }
+            return@doLaunch
+        }
+
+        revealItemsNow(
+            paths = listOf(path),
+            highlight = true,
+            highlightOwner = arrived.currentLocation?.locationId,
+            destination = arrived.currentLocation?.locationId,
+        )
+    }
+
+    /**
      * Navigate to the Home screen (where the favorites section lives) and reveal [path] there.
      *
      * Waits for Home to actually become the current location before revealing: highlights are
@@ -287,10 +335,18 @@ class ExplorerNavigationController(
         scope: ExplorerWorkspaceViewModel.RevealRequest.Scope =
             ExplorerWorkspaceViewModel.RevealRequest.Scope.Items,
         highlightOwner: String? = null,
+        destination: String? = null,
     ) {
         if (paths.isEmpty()) return
         log(tag) { "revealItems(${paths.map { it.path }}, highlight=$highlight, scope=$scope)" }
-        revealRequests.emit(ExplorerWorkspaceViewModel.RevealRequest(paths.first(), highlight, scope))
+        revealRequests.emit(
+            ExplorerWorkspaceViewModel.RevealRequest(
+                path = paths.first(),
+                highlight = highlight,
+                scope = scope,
+                destination = destination,
+            )
+        )
         if (highlight) {
             highlightedLocationId = highlightOwner ?: getState().currentLocation?.locationId
             highlightedItemIdsFlow.value = paths.map { it.toPathItemId() }.toSet()
@@ -338,5 +394,8 @@ class ExplorerNavigationController(
     companion object {
         /** How long [revealFavorite] waits for the Home screen before giving up on the reveal. */
         private val HOME_ARRIVAL_TIMEOUT = 2.seconds
+
+        /** Same for [showInFolder], with more room: a folder listing is a gateway walk, Home is not. */
+        private val DIRECTORY_ARRIVAL_TIMEOUT = 5.seconds
     }
 }

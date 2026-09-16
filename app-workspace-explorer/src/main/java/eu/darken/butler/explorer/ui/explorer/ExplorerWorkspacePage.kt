@@ -38,7 +38,6 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel.RevealRequest
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.dnd.ExplorerDragPayloadFactory
 import eu.darken.butler.explorer.ui.explorer.dnd.explorerDropTarget
@@ -46,7 +45,6 @@ import eu.darken.butler.explorer.ui.explorer.dnd.rememberExplorerDropState
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerReadyContent
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerTopBars
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
-import eu.darken.butler.explorer.ui.explorer.elements.favoriteContentIndex
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
@@ -405,26 +403,9 @@ private fun ExplorerRevealEffect(
             val result = mainStateSource
                 .mapNotNull { emittedState ->
                     emittedState ?: return@mapNotNull null
-                    val index = when (request.scope) {
-                        // Favorites live in a trailing section, not in `items`.
-                        RevealRequest.Scope.Favorites -> emittedState.favoriteContentIndex(request.path)
-                        RevealRequest.Scope.Items -> {
-                            val items = emittedState.items
-                            log(tag) { "State emission: ${items?.size ?: 0} items" }
-                            items?.indexOfFirst { item ->
-                                when (item) {
-                                    is ExplorerItem.Path -> {
-                                        val match = item.path.path == request.path.path
-                                        if (match) log(tag) { "Found match at item: ${item.path.path}" }
-                                        match
-                                    }
-                                    else -> false
-                                }
-                            }
-                        }
-                    }
-                    log(tag) { "Index search result: $index" }
-                    index?.takeIf { it >= 0 }?.let { it to emittedState.viewStyle.mode }
+                    val index = emittedState.revealIndexFor(request)
+                    log(tag) { "State emission: ${emittedState.items?.size ?: 0} items, index=$index" }
+                    index?.let { it to emittedState.viewStyle.mode }
                 }
                 .timeout(2.seconds)
                 .catch { e -> log(tag) { "Timeout or error waiting for item: $e" } }

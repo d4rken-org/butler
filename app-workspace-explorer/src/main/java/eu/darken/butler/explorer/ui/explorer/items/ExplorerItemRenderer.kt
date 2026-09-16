@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.items.grid.LookupItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.PREVIEWS_ALWAYS_SETTLED
@@ -23,6 +24,7 @@ import eu.darken.butler.explorer.ui.explorer.items.grid.TrashItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.TrashNestedItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.row.LookupItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.PeekRow
+import eu.darken.butler.explorer.ui.explorer.items.row.RecentItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
@@ -134,20 +136,41 @@ private fun ItemContent(
             val isHighlighted = item.id in state.highlightedItemIds
             val decorations = decorationsFor(item, state)
             val sizeFraction = item.sizeFractionOf(state.largestDirectorySize)
+            // Recent rows say which folder a file is in, which a grid cell has no room for, so the
+            // grid keeps the ordinary cell.
+            val recent = state.currentLocation as? ExplorerLocation.Recent
             when (viewStyle.mode) {
-                ExplorerViewStyle.Mode.LIST -> LookupItemRow(
-                    item = item,
-                    density = viewStyle.density,
-                    isSelected = isSelected,
-                    onToggleSelection = { onToggleSelection(item) },
-                    onClick = { onItemClick(item) },
-                    onLongClick = { onItemLongClick(item) },
-                    showSelection = showSelection,
-                    isEnabled = isEnabled,
-                    isHighlighted = isHighlighted,
-                    decorations = decorations,
-                    sizeFraction = sizeFraction,
-                )
+                ExplorerViewStyle.Mode.LIST -> {
+                    if (recent != null && item is ExplorerItem.File) {
+                        RecentItemRow(
+                            item = item,
+                            indexedAt = recent.indexedAt[item.id],
+                            density = viewStyle.density,
+                            isSelected = isSelected,
+                            onToggleSelection = { onToggleSelection(item) },
+                            onClick = { onItemClick(item) },
+                            onLongClick = { onItemLongClick(item) },
+                            showSelection = showSelection,
+                            isEnabled = isEnabled,
+                            isHighlighted = isHighlighted,
+                            decorations = decorations,
+                        )
+                    } else {
+                        LookupItemRow(
+                            item = item,
+                            density = viewStyle.density,
+                            isSelected = isSelected,
+                            onToggleSelection = { onToggleSelection(item) },
+                            onClick = { onItemClick(item) },
+                            onLongClick = { onItemLongClick(item) },
+                            showSelection = showSelection,
+                            isEnabled = isEnabled,
+                            isHighlighted = isHighlighted,
+                            decorations = decorations,
+                            sizeFraction = sizeFraction,
+                        )
+                    }
+                }
                 ExplorerViewStyle.Mode.GRID -> LookupItemGrid(
                     item = item,
                     density = viewStyle.density,

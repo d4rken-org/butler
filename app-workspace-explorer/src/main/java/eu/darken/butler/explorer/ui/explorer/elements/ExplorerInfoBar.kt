@@ -12,6 +12,7 @@ import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.Lan
 import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.Scale
+import androidx.compose.material.icons.twotone.Schedule
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.VisibilityOff
 import androidx.compose.runtime.Composable
@@ -183,6 +184,28 @@ fun ExplorerInfoBar(
                     )
                 }
 
+                is ExplorerLocation.Recent.Info -> {
+                    if (selectedCount == 0) {
+                        InfoChip(
+                            icon = Icons.TwoTone.Description,
+                            label = pluralStringResource(
+                                CommonR.plurals.common_files_count,
+                                visibleFileCount,
+                                visibleFileCount,
+                            ),
+                            onClick = selectFiles,
+                        )
+                        InfoChip(
+                            icon = Icons.TwoTone.Schedule,
+                            label = pluralStringResource(
+                                R.plurals.explorer_recent_window_subtitle,
+                                info.windowDays,
+                                info.windowDays,
+                            ),
+                        )
+                    }
+                }
+
                 is ExplorerLocation.Trash.Root.Info -> {
                     if (isTrashDisabled && selectedCount == 0) {
                         InfoChip(
@@ -292,6 +315,18 @@ fun ExplorerInfoBar(
                 // Nothing to total up: network capacity is never probed for the overview.
                 is ExplorerLocation.Network.Info -> Unit
 
+                is ExplorerLocation.Recent.Info -> {
+                    if (selectedCount > 0) return@WorkspaceInfoBar
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (visibleTotalSize != null) {
+                        InfoChip(
+                            icon = Icons.TwoTone.Scale,
+                            label = formatFileSize(visibleTotalSize),
+                            onClick = selectAll,
+                        )
+                    }
+                }
+
                 is ExplorerLocation.Trash.Root.Info -> {
                     if (selectedCount > 0) return@WorkspaceInfoBar
                     Spacer(modifier = Modifier.weight(1f))
@@ -393,6 +428,21 @@ private fun ExplorerInfoBarEmptyFolderPreview() {
 @Composable
 private fun ExplorerInfoBarHomePreview() {
     ExplorerInfoBar(info = MockDataProvider.createMockHomeInfo())
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerInfoBarRecentPreview() {
+    ExplorerInfoBar(
+        info = ExplorerLocation.Recent.Info(
+            fileCount = 23,
+            totalSize = MockDataProvider.MockSizes.mb(64),
+            windowDays = 30,
+        ),
+        visibleFileCount = 23,
+        visibleTotalSize = MockDataProvider.MockSizes.mb(64),
+    )
 }
 
 @Preview2

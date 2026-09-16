@@ -8,6 +8,7 @@ import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PhoneAndroid
+import androidx.compose.material.icons.twotone.Schedule
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.Usb
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -140,6 +141,22 @@ object MockDataProvider {
             createdAt = Instant.parse("2023-10-10T10:30:00Z"),
         )
     }
+
+    /** A file as the Recent listing shows it: it lives in a real folder somewhere on shared storage. */
+    fun createMockRecentFile(
+        name: String = "invoice_2026.pdf",
+        directory: String = "/storage/emulated/0/Download",
+        sizeKB: Long = 820,
+        hoursAgo: Long = 5,
+    ): ExplorerItem.RegularFile = ExplorerItem.RegularFile(
+        lookup = createMockLookup(
+            name = name,
+            path = "$directory/$name",
+            size = MockSizes.kb(sizeKB),
+            modifiedAt = MockTimes.hoursAgo(hoursAgo),
+        ),
+        mimeType = MimeInfo.fromFileName(name),
+    )
 
     fun createMockPeek(name: String = "loading.txt"): ExplorerItem.Peek {
         return ExplorerItem.Peek(
@@ -620,6 +637,16 @@ object MockDataProvider {
         target = ExplorerNavigation.Target.Device,
         // Same shape as HomeLocationLoader's "${Build.MODEL} (Android ${Build.VERSION.RELEASE}, API ${Build.VERSION.SDK_INT})".
         subtitle = caString { "Nimbus P9 (Android 16, API 36)" },
+    )
+
+    fun createRecentShortcut(windowDays: Int = 30): ExplorerItem.Shortcut = ExplorerItem.Shortcut(
+        shortcutId = "recent",
+        displayName = R.string.explorer_navigation_recent.toCaString(),
+        displayIcon = Icons.TwoTone.Schedule,
+        target = ExplorerNavigation.Target.Recent,
+        subtitle = caString { cx ->
+            cx.resources.getQuantityString(R.plurals.explorer_recent_window_subtitle, windowDays, windowDays)
+        },
     )
 
     fun createTrashShortcut(

@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -26,6 +27,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
@@ -361,6 +363,54 @@ class ExplorerNavigationControllerTest : BaseTest() {
         // The arrival event for Home must not wipe the highlight we just installed for it.
         controller.clearHighlights("home")
         controller.highlightedItemIds.value shouldBe setOf(target.path)
+
+        collector.cancel()
+    }
+
+    @Test
+    fun `show in folder waits for the finished listing, not the peek`() = runTest {
+        val parent = path("Documents")
+        val target = parent.child("report.pdf")
+
+        val workspaceState = MutableStateFlow<ExplorerWorkspace.State>(ExplorerWorkspace.State.Initializing)
+        val workspace = mockWorkspace().apply {
+            every { state } returns workspaceState
+        }
+        val controller = controller(workspace = workspace)
+        val received = mutableListOf<ExplorerWorkspaceViewModel.RevealRequest>()
+        val collector = launch { controller.revealRequests.collect { received.add(it) } }
+        runCurrent()
+
+        controller.showInFolder(target)
+        runCurrent()
+
+        coVerify { workspace.navigate(ExplorerNavigation.Target.Directory(parent)) }
+
+        // The peek pass publishes items while the load is still running: the rows are placeholders
+        // and the listing is not final, so a scroll index resolved against it points at the wrong
+        // row. The reveal has to keep waiting.
+        workspaceState.value = ExplorerWorkspace.State.Ready(
+            currentLocation = ExplorerLocation.Directory(
+                path = parent,
+                items = listOf(ExplorerItem.Peek(target)),
+                progress = Progress.Data(),
+            ),
+        )
+        runCurrent()
+
+        received shouldBe emptyList()
+
+        workspaceState.value = ExplorerWorkspace.State.Ready(
+            currentLocation = ExplorerLocation.Directory(
+                path = parent,
+                items = listOf(fileItem("report.pdf")),
+                progress = null,
+            ),
+        )
+        runCurrent()
+
+        received.single().path.path shouldBe target.path
+        received.single().highlight shouldBe true
 
         collector.cancel()
     }

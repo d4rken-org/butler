@@ -45,6 +45,7 @@ internal val ExplorerNavigation.Target.asStartTarget: ExplorerStartTarget?
         is ExplorerNavigation.Target.Home -> ExplorerStartTarget.HOME
         is ExplorerNavigation.Target.Device -> ExplorerStartTarget.DEVICE
         is ExplorerNavigation.Target.Network -> ExplorerStartTarget.NETWORK
+        is ExplorerNavigation.Target.Recent -> ExplorerStartTarget.RECENT
         is ExplorerNavigation.Target.Trash -> ExplorerStartTarget.TRASH
         is ExplorerNavigation.Target.Directory -> null
     }
@@ -55,5 +56,6 @@ internal val ExplorerStartTarget.asNavigationTarget: ExplorerNavigation.Target
         ExplorerStartTarget.HOME -> ExplorerNavigation.Target.Home
         ExplorerStartTarget.DEVICE -> ExplorerNavigation.Target.Device
         ExplorerStartTarget.NETWORK -> ExplorerNavigation.Target.Network
+        ExplorerStartTarget.RECENT -> ExplorerNavigation.Target.Recent
         ExplorerStartTarget.TRASH -> ExplorerNavigation.Target.Trash.Root
     }

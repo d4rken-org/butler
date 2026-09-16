@@ -6,11 +6,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.clipboard.mockFileLookup
@@ -18,10 +22,13 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStackState
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import io.kotest.assertions.withClue
+import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 import testhelpers.ComposeTest
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -190,9 +197,135 @@ class WorkspaceClipboardFloatingBarTest : ComposeTest() {
         composeTestRule.onNodeWithContentDescription(pasteLabel).assertDoesNotExist()
     }
 
+    /**
+     * A location that cannot accept a paste must not offer one. The bar itself stays: the clip is
+     * still there to inspect or dismiss, only the action that would no-op is gone.
+     */
+    @Test
+    fun `a location that cannot paste offers no paste action`() {
+        val clip = clip(FIRST_PATH)
+        var canPaste by mutableStateOf(true)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                FloatingBarStack(position = BarPosition.BOTTOM) {
+                    WorkspaceClipboardFloatingBar(
+                        key = KEY,
+                        workspaceType = Workspace.Type.EXPLORER,
+                        clipboardEntries = listOf(clip),
+                        canPaste = canPaste,
+                        onAction = {},
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithContentDescription(pasteLabel).assertIsDisplayed()
+
+        canPaste = false
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText(FIRST_PATH).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(pasteLabel).assertDoesNotExist()
+    }
+
+    /**
+     * `onNodeWithText` lands on the entry row itself: the row is clickable, so its merged node
+     * carries every text below it and spans the card's full width. The timestamp label is one of
+     * those merged children, so addressing it needs the unmerged tree.
+     */
+    private fun assertTimestampInset(timestamp: String, clue: String) {
+        val row = composeTestRule.onNodeWithText(FIRST_PATH).getUnclippedBoundsInRoot()
+        val label = composeTestRule
+            .onNodeWithText(timestamp, useUnmergedTree = true)
+            .getUnclippedBoundsInRoot()
+        withClue("$clue: timestamp ends at ${label.right}, row ends at ${row.right}") {
+            row.right - label.right shouldBeGreaterThanOrEqualTo MIN_TIMESTAMP_INSET
+        }
+    }
+
+    /**
+     * The row states no end padding, so the paste button's 48dp touch target is what holds the
+     * trailing timestamp off the card edge. Hiding the button must not strand the label against it.
+     */
+    @Test
+    fun `the timestamp stays off the card edge with or without a paste action`() {
+        val clip = clip(FIRST_PATH)
+        val timestamp = formatRelativeTime(context, clip.clippedAt)
+        var canPaste by mutableStateOf(true)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                FloatingBarStack(position = BarPosition.BOTTOM) {
+                    WorkspaceClipboardFloatingBar(
+                        key = KEY,
+                        workspaceType = Workspace.Type.EXPLORER,
+                        clipboardEntries = listOf(clip),
+                        canPaste = canPaste,
+                        onAction = {},
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        assertTimestampInset(timestamp, "canPaste=true")
+
+        canPaste = false
+        composeTestRule.waitForIdle()
+
+        assertTimestampInset(timestamp, "canPaste=false")
+    }
+
+    /**
+     * The paste button's 48dp touch target is also what gives the collapsed row its height, so a
+     * location that cannot paste must not leave the bar shorter than one that can.
+     *
+     * Native graphics mode: Robolectric's synthetic text measurement gives every line 36dp, so the
+     * two stacked labels would clear the threshold on their own whatever the row does.
+     */
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Test
+    fun `the collapsed row keeps its height with or without a paste action`() {
+        val clip = clip(FIRST_PATH)
+        var canPaste by mutableStateOf(true)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                FloatingBarStack(position = BarPosition.BOTTOM) {
+                    WorkspaceClipboardFloatingBar(
+                        key = KEY,
+                        workspaceType = Workspace.Type.EXPLORER,
+                        clipboardEntries = listOf(clip),
+                        canPaste = canPaste,
+                        onAction = {},
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        val withPaste = composeTestRule.onNodeWithText(FIRST_PATH).getUnclippedBoundsInRoot().height
+        withClue("canPaste=true: the row measures $withPaste") {
+            withPaste shouldBeGreaterThanOrEqualTo MIN_COLLAPSED_ROW_HEIGHT
+        }
+
+        canPaste = false
+        composeTestRule.waitForIdle()
+
+        val withoutPaste = composeTestRule.onNodeWithText(FIRST_PATH).getUnclippedBoundsInRoot().height
+        withClue("canPaste=false: the row measures $withoutPaste, against $withPaste with the button") {
+            withoutPaste shouldBeGreaterThanOrEqualTo MIN_COLLAPSED_ROW_HEIGHT
+        }
+    }
+
     companion object {
         private const val KEY = "clipboard"
         private const val FIRST_PATH = "/storage/emulated/0/Documents/report.pdf"
         private const val SECOND_PATH = "/storage/emulated/0/Pictures/photo.jpg"
+
+        /** Under the row's 16dp start inset, so a few dp of design drift does not fail the test. */
+        private val MIN_TIMESTAMP_INSET = 12.dp
+
+        /** Under the 48dp touch target the paste button contributes, with room for type drift. */
+        private val MIN_COLLAPSED_ROW_HEIGHT = 44.dp
     }
 }

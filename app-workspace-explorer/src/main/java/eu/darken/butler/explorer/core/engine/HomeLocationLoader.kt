@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Lan
 import androidx.compose.material.icons.twotone.PhoneAndroid
+import androidx.compose.material.icons.twotone.Schedule
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -64,6 +65,7 @@ class HomeLocationLoader @AssistedInject constructor(
         val trashCount = trashItems.size
         val trashEnabled = trashSettings.enabled.value()
         val networkCount = smbLocationManager.locations.first().size
+        val recentWindowDays = RECENT_WINDOW.inWholeDays.toInt()
 
         val shortcuts = buildList {
             add(
@@ -73,6 +75,22 @@ class HomeLocationLoader @AssistedInject constructor(
                     displayName = R.string.explorer_navigation_device.toCaString(),
                     target = ExplorerNavigation.Target.Device,
                     subtitle = caString { "${Build.MODEL} (Android ${Build.VERSION.RELEASE}, API ${Build.VERSION.SDK_INT})" },
+                )
+            )
+
+            add(
+                ExplorerItem.Shortcut(
+                    shortcutId = "recent",
+                    displayIcon = Icons.TwoTone.Schedule,
+                    displayName = R.string.explorer_navigation_recent.toCaString(),
+                    target = ExplorerNavigation.Target.Recent,
+                    subtitle = caString { cx ->
+                        cx.resources.getQuantityString(
+                            R.plurals.explorer_recent_window_subtitle,
+                            recentWindowDays,
+                            recentWindowDays,
+                        )
+                    },
                 )
             )
 

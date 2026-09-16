@@ -106,6 +106,38 @@ class ExplorerPickerHelperTest : BaseTest() {
     @Nested
     inner class CanConfirmSelection {
 
+        /**
+         * Recent is a listing of files scattered across storage, not a folder, so a folder picker
+         * has nothing to hand back while standing in it.
+         */
+        @Test
+        fun `a directory picker cannot confirm on recent`() {
+            val config = PickerConfig(
+                callerWorkspaceId = mockk(),
+                selection = PickerConfig.Selection.DirectorySingle,
+            )
+            helper.canConfirmSelection(
+                config = config,
+                currentLocation = ExplorerLocation.Recent(),
+                selectedItems = emptySet(),
+                saveAsFilename = "",
+            ) shouldBe false
+        }
+
+        @Test
+        fun `a mixed picker confirms a file selected in recent`() {
+            val config = PickerConfig(
+                callerWorkspaceId = mockk(),
+                selection = PickerConfig.Selection.MixedMulti,
+            )
+            helper.canConfirmSelection(
+                config = config,
+                currentLocation = ExplorerLocation.Recent(),
+                selectedItems = setOf(mockFile("/sdcard/Download/doc.pdf")),
+                saveAsFilename = "",
+            ) shouldBe true
+        }
+
         @Test
         fun `returns true when not in picker mode`() {
             helper.canConfirmSelection(

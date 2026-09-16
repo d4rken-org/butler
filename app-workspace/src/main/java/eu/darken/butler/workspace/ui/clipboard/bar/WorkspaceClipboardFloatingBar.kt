@@ -31,6 +31,7 @@ fun FloatingBarScope.WorkspaceClipboardFloatingBar(
     clipboardEntries: List<ClipboardClip>,
     onAction: (ClipboardBarAction) -> Unit,
     initialExpanded: Boolean = false,
+    canPaste: Boolean = true,
 ) {
     FloatingBar(
         key = key,
@@ -41,6 +42,7 @@ fun FloatingBarScope.WorkspaceClipboardFloatingBar(
         ClipboardBar(
             workspaceType = workspaceType,
             initialExpanded = initialExpanded,
+            canPaste = canPaste,
             clipboardEntries = clipboardEntries,
             onPasteClick = { onAction(ClipboardBarAction.Paste(it)) },
             onRemoveClick = { onAction(ClipboardBarAction.Remove(it)) },

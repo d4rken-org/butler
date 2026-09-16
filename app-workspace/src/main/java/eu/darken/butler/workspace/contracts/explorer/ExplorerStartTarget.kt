@@ -13,6 +13,7 @@ enum class ExplorerStartTarget {
     @SerialName("home") HOME,
     @SerialName("device") DEVICE,
     @SerialName("network") NETWORK,
+    @SerialName("recent") RECENT,
     @SerialName("trash") TRASH,
     ;
 }

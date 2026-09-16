@@ -57,6 +57,7 @@ fun ClipboardBar(
     workspaceType: Workspace.Type,
     modifier: Modifier = Modifier,
     initialExpanded: Boolean = false,
+    canPaste: Boolean = true,
     clipboardEntries: List<ClipboardClip>,
     onPasteClick: (ClipboardClip) -> Unit,
     onRemoveClick: (ClipboardClip) -> Unit,
@@ -140,6 +141,7 @@ fun ClipboardBar(
                             onEntryClick = { onEntryClick(entry) },
                             onRemoveClick = { onRemoveClick(entry) },
                             showOrigin = true, // Show origin for expanded entries
+                            canPaste = canPaste,
                             triggerDismiss = clearAllAnimationTrigger,
                             dismissDelay = index * 200L, // Cascade delay
                         )
@@ -160,6 +162,7 @@ fun ClipboardBar(
                             onEntryClick = { onEntryClick(entry) },
                             onRemoveClick = { onRemoveClick(entry) },
                             showOrigin = isExpanded,
+                            canPaste = canPaste,
                             triggerDismiss = clearAllAnimationTrigger,
                             dismissDelay = additionalEntries.size * 200L, // Latest entry has longest delay
                         )
@@ -179,6 +182,7 @@ private fun SwipeToDismissEntry(
     onEntryClick: () -> Unit,
     onRemoveClick: () -> Unit,
     showOrigin: Boolean = false,
+    canPaste: Boolean = true,
     triggerDismiss: Long = 0L,
     dismissDelay: Long = 0L,
 ) {
@@ -212,6 +216,7 @@ private fun SwipeToDismissEntry(
             onPasteClick = onPasteClick,
             onEntryClick = onEntryClick,
             showOrigin = showOrigin,
+            canPaste = canPaste,
         )
     }
 }

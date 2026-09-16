@@ -39,6 +39,15 @@ class ExplorerStartLocationTest : BaseTest() {
     }
 
     @Test
+    fun `a parked recent target restores to recent`() {
+        explorerStartTarget(
+            startPath = null,
+            startTarget = ExplorerStartTarget.RECENT,
+            defaultStartLocation = null,
+        ) shouldBe ExplorerNavigation.Target.Recent
+    }
+
+    @Test
     fun `a parked trash target restores to the trash root`() {
         explorerStartTarget(
             startPath = null,
@@ -96,6 +105,7 @@ class ExplorerStartLocationTest : BaseTest() {
     fun `navigation targets map onto their persistable stand-in`() {
         ExplorerNavigation.Target.Home.asStartTarget shouldBe ExplorerStartTarget.HOME
         ExplorerNavigation.Target.Device.asStartTarget shouldBe ExplorerStartTarget.DEVICE
+        ExplorerNavigation.Target.Recent.asStartTarget shouldBe ExplorerStartTarget.RECENT
         ExplorerNavigation.Target.Trash.Root.asStartTarget shouldBe ExplorerStartTarget.TRASH
         ExplorerNavigation.Target.Directory(downloads).asStartTarget shouldBe null
     }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -52,6 +53,7 @@ fun ClipboardEntryRow(
     onEntryClick: () -> Unit,
     modifier: Modifier = Modifier,
     showOrigin: Boolean = false,
+    canPaste: Boolean = true,
 ) {
     val (pasteIcon, pasteLabel) = when {
         workspaceType == Workspace.Type.SEARCHER -> Icons.TwoTone.FolderOpen to R.string.clipboard_open_in_explorer
@@ -62,10 +64,16 @@ fun ClipboardEntryRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            // Collapsed, the paste button's touch target is what gives the row its height; without it
+            // the lower text line sits on the card edge.
+            .defaultMinSize(minHeight = 48.dp)
             .background(MaterialTheme.colorScheme.tertiaryContainer)
             .clickable { onEntryClick() }
             .padding(vertical = if (showOrigin) 8.dp else 0.dp)
-            .padding(start = 16.dp),
+            .padding(start = 16.dp)
+            // The paste button's touch target is what holds trailing content off the card edge; without it
+            // the row has to supply the inset itself.
+            .padding(end = if (canPaste) 0.dp else 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         when (entry) {
@@ -204,15 +212,17 @@ fun ClipboardEntryRow(
                     }
                 }
 
-                IconButton(
-                    onClick = onPasteClick
-                ) {
-                    Icon(
-                        imageVector = pasteIcon,
-                        contentDescription = stringResource(pasteLabel),
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                    )
+                if (canPaste) {
+                    IconButton(
+                        onClick = onPasteClick
+                    ) {
+                        Icon(
+                            imageVector = pasteIcon,
+                            contentDescription = stringResource(pasteLabel),
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        )
+                    }
                 }
             }
 
@@ -338,15 +348,17 @@ fun ClipboardEntryRow(
                     }
                 }
 
-                IconButton(
-                    onClick = onPasteClick
-                ) {
-                    Icon(
-                        imageVector = pasteIcon,
-                        contentDescription = stringResource(pasteLabel),
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                    )
+                if (canPaste) {
+                    IconButton(
+                        onClick = onPasteClick
+                    ) {
+                        Icon(
+                            imageVector = pasteIcon,
+                            contentDescription = stringResource(pasteLabel),
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        )
+                    }
                 }
             }
         }

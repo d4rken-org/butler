@@ -134,6 +134,7 @@ fun ExplorerDialogHost(
                 item = dialogState.item,
                 trashEnabled = trashEnabled,
                 openActionsEnabled = fileOpenActionsEnabled,
+                showInFolder = dialogState.showInFolder,
                 onDismiss = { vm?.dismissDialog() },
                 onAction = { action -> vm?.executeAction(action) },
                 topInset = topInset,
