@@ -78,6 +78,27 @@ fun CustomThemeDialog(
     )
 }
 
+/** The roles the dialog's swatch row shows, in the order it shows them. */
+internal fun customThemePreviewSwatches(
+    seed: Color,
+    palette: ThemePalette,
+    style: ThemeStyle,
+    dark: Boolean,
+): List<Color> {
+    val scheme = ThemeColorProvider.getColorScheme(
+        seed = ThemeSeed(seed, palette),
+        style = style,
+        dark = dark,
+    )
+    return listOf(
+        scheme.primary,
+        scheme.secondary,
+        scheme.tertiary,
+        scheme.surface,
+        scheme.surfaceContainerHigh,
+    )
+}
+
 @Composable
 private fun CustomThemeDialogContent(
     picked: Hsv,
@@ -95,8 +116,9 @@ private fun CustomThemeDialogContent(
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
     val preview = remember(seedColor, palette, style, isDark) {
-        ThemeColorProvider.getColorScheme(
-            seed = ThemeSeed(seedColor, palette),
+        customThemePreviewSwatches(
+            seed = seedColor,
+            palette = palette,
             style = style,
             dark = isDark,
         )
@@ -116,13 +138,7 @@ private fun CustomThemeDialogContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    listOf(
-                        preview.primary,
-                        preview.secondary,
-                        preview.tertiary,
-                        preview.surface,
-                        preview.surfaceContainerHigh,
-                    ).forEach { role ->
+                    preview.forEach { role ->
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
