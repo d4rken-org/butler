@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.core.engine.backend
+package eu.darken.butler.common.files.mediastore
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.metadata.FileType
@@ -86,6 +86,53 @@ class MediaStoreRowDecoderTest : BaseTest() {
 
         outcome.shouldBeInstanceOf<MediaStoreRowDecoder.Outcome.Decoded>()
             .lookup.modifiedAt shouldBe Instant.fromEpochSeconds(32_503_680_000L)
+    }
+
+    @Test
+    fun `DATE_ADDED decodes into the index time`() {
+        val outcome = MediaStoreRowDecoder.decode(
+            MediaStoreRow(
+                data = "/storage/emulated/0/Download/report.pdf",
+                size = 1L,
+                modifiedAtEpochSeconds = 1_500_000_000L,
+                addedAtEpochSeconds = 1_700_000_000L,
+            )
+        )
+
+        val decoded = outcome.shouldBeInstanceOf<MediaStoreRowDecoder.Outcome.Decoded>()
+        decoded.addedAt shouldBe Instant.fromEpochSeconds(1_700_000_000L)
+        // Still not a creation time: DATE_ADDED says when the index saw the file.
+        decoded.lookup.createdAt shouldBe null
+    }
+
+    @Test
+    fun `a row read without the DATE_ADDED column has no index time`() {
+        val outcome = MediaStoreRowDecoder.decode(
+            MediaStoreRow(
+                data = "/storage/emulated/0/Download/report.pdf",
+                size = 1L,
+                modifiedAtEpochSeconds = 1_500_000_000L,
+            )
+        )
+
+        outcome.shouldBeInstanceOf<MediaStoreRowDecoder.Outcome.Decoded>().addedAt shouldBe null
+    }
+
+    /** Zero and negative are sentinels, not 1970: the Recent reader has to treat them like NULL. */
+    @Test
+    fun `zero and negative DATE_ADDED become null`() {
+        listOf(0L, -1L).forEach { sentinel ->
+            val outcome = MediaStoreRowDecoder.decode(
+                MediaStoreRow(
+                    data = "/storage/emulated/0/Download/report.pdf",
+                    size = 1L,
+                    modifiedAtEpochSeconds = 1_500_000_000L,
+                    addedAtEpochSeconds = sentinel,
+                )
+            )
+
+            outcome.shouldBeInstanceOf<MediaStoreRowDecoder.Outcome.Decoded>().addedAt shouldBe null
+        }
     }
 
     @Test
