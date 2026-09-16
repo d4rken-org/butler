@@ -66,7 +66,10 @@ fun ClipboardEntryRow(
             .background(MaterialTheme.colorScheme.tertiaryContainer)
             .clickable { onEntryClick() }
             .padding(vertical = if (showOrigin) 8.dp else 0.dp)
-            .padding(start = 16.dp),
+            .padding(start = 16.dp)
+            // The paste button's touch target is what holds trailing content off the card edge; without it
+            // the row has to supply the inset itself.
+            .padding(end = if (canPaste) 0.dp else 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         when (entry) {
