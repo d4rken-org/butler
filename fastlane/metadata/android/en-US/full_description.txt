@@ -2,7 +2,7 @@ Butler is a file manager for Android built around tabs. Browse, search, view and
 
 It's the file explorer for Android I always wanted, so I built it. Fast, private, open source.
 
-Butler works on internal storage, SD cards, USB OTG drives and network shares. And every file type, not just the media your gallery shows you.
+Butler works on internal storage, SD cards and USB OTG drives, and on network shares with Butler Pro. And every file type, not just the media your gallery shows you.
 
 <b>Tabs and workspaces</b>
 - Browse files in tabs and run any of Butler's tools in parallel.
