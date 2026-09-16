@@ -50,6 +50,7 @@ class GeneralSettingsScreenGateTest : ComposeTest() {
                     onThemeModeSelected = {},
                     onThemeStyleSelected = {},
                     onThemeColorSelected = {},
+                    onThemeCustomSelected = { _, _ -> },
                     onSuitColorSelected = {},
                     onUpgradeButler = { upgrades++ },
                     onUpdateCheckEnabledChange = {},

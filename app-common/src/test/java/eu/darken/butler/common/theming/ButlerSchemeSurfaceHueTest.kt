@@ -1,6 +1,7 @@
 package eu.darken.butler.common.theming
 
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -9,15 +10,9 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
- * Butler's palettes only spell out a handful of surface roles; `lightColorScheme`/`darkColorScheme`
- * fill the rest in from Material's own baseline, which is tinted towards purple. A role left to the
- * baseline therefore lands at the baseline's hue instead of the palette's, and any component that
- * uses it sits next to Butler surfaces in a foreign cast.
- *
- * The check is hue only: tone is what separates the container roles from each other, so it must be
- * free to move, while the hue is what the palette owns. [HUE_TOLERANCE] is wide enough for the hue
- * wobble a near-neutral tint picks up from 8-bit quantization and far narrower than the 26-171
- * degrees the Material baseline sits away from Butler's surfaces.
+ * Properties every generated scheme has to hold, whatever the generator does internally: surfaces
+ * stay off Material's purple baseline, AMOLED stays pure black, and a preset keeps the hue of the
+ * seed it is wired to.
  */
 class ButlerSchemeSurfaceHueTest : BaseTest() {
 
@@ -27,51 +22,20 @@ class ButlerSchemeSurfaceHueTest : BaseTest() {
 
         /** Below this HSV saturation a colour carries no hue worth comparing. */
         const val ACHROMATIC_SATURATION = 0.01
+
+        val STYLES = listOf(ThemeStyle.DEFAULT, ThemeStyle.MEDIUM_CONTRAST, ThemeStyle.HIGH_CONTRAST)
     }
 
-    private fun variants(
-        theme: String,
-        lightDefault: ColorScheme,
-        darkDefault: ColorScheme,
-        lightMedium: ColorScheme,
-        darkMedium: ColorScheme,
-        lightHigh: ColorScheme,
-        darkHigh: ColorScheme,
-    ): List<Triple<String, String, ColorScheme>> = listOf(
-        "LightDefault" to lightDefault,
-        "DarkDefault" to darkDefault,
-        "LightMediumContrast" to lightMedium,
-        "DarkMediumContrast" to darkMedium,
-        "LightHighContrast" to lightHigh,
-        "DarkHighContrast" to darkHigh,
-    ).map { (variant, scheme) -> Triple(theme, variant, scheme) }
-
-    private val schemes: List<Triple<String, String, ColorScheme>> =
-        variants(
-            "Green",
-            ButlerColorsGreen.LightDefault,
-            ButlerColorsGreen.DarkDefault,
-            ButlerColorsGreen.LightMediumContrast,
-            ButlerColorsGreen.DarkMediumContrast,
-            ButlerColorsGreen.LightHighContrast,
-            ButlerColorsGreen.DarkHighContrast,
-        ) + variants(
-            "Blue",
-            ButlerColorsBlue.LightDefault,
-            ButlerColorsBlue.DarkDefault,
-            ButlerColorsBlue.LightMediumContrast,
-            ButlerColorsBlue.DarkMediumContrast,
-            ButlerColorsBlue.LightHighContrast,
-            ButlerColorsBlue.DarkHighContrast,
-        ) + variants(
-            "Amoled",
-            ButlerColorsAmoled.LightDefault,
-            ButlerColorsAmoled.DarkDefault,
-            ButlerColorsAmoled.LightMediumContrast,
-            ButlerColorsAmoled.DarkMediumContrast,
-            ButlerColorsAmoled.LightHighContrast,
-            ButlerColorsAmoled.DarkHighContrast,
-        )
+    private fun schemes(dark: Boolean): List<Triple<ThemeColor, ThemeStyle, ColorScheme>> =
+        ThemeColor.entries.flatMap { color ->
+            STYLES.map { style ->
+                Triple(
+                    color,
+                    style,
+                    ThemeColorProvider.getColorScheme(ThemeState(color = color).themeSeed, style, dark),
+                )
+            }
+        }
 
     private fun Color.asHex(): String = "#%02x%02x%02x".format(
         (red * 255).roundToInt(),
@@ -108,41 +72,52 @@ class ButlerSchemeSurfaceHueTest : BaseTest() {
         return if (raw > 180.0) 360.0 - raw else raw
     }
 
-    private fun report(label: String, role: Color, surface: Color): String? {
-        val surfaceHue = surface.hue() ?: return null
-        val roleHue = role.hue() ?: return null
-        val distance = hueDistance(roleHue, surfaceHue)
-        if (distance <= HUE_TOLERANCE) return null
-        return "$label is ${role.asHex()} at hue ${"%.0f".format(roleHue)}deg while surface is " +
-            "${surface.asHex()} at hue ${"%.0f".format(surfaceHue)}deg, " +
-            "${"%.0f".format(distance)}deg apart"
-    }
-
     @Test
-    fun `surfaceContainerHigh carries the palette's own hue`() {
-        val offenders = schemes.mapNotNull { (theme, variant, scheme) ->
-            report("$theme.$variant surfaceContainerHigh", scheme.surfaceContainerHigh, scheme.surface)
+    fun `no generated surface lands on the Material baseline`() {
+        val baseline = lightColorScheme().surfaceContainerHigh
+
+        val offenders = schemes(dark = false).mapNotNull { (color, style, scheme) ->
+            if (scheme.surfaceContainerHigh != baseline) return@mapNotNull null
+            "$color.$style surfaceContainerHigh is the baseline ${baseline.asHex()}"
         }
-        withClue(
-            "schemes whose surfaceContainerHigh is off the palette's hue:\n" +
-                offenders.joinToString("\n")
-        ) {
+
+        withClue("schemes whose surfaceContainerHigh is Material's own:\n" + offenders.joinToString("\n")) {
             offenders.isEmpty() shouldBe true
         }
     }
 
-    /**
-     * The control for the criterion above: `surfaceVariant` is spelled out in every palette, so it
-     * has to clear the same bar. If this one ever goes red the tolerance is wrong, not the palette.
-     */
     @Test
-    fun `the hand-written surfaceVariant already clears the same bar`() {
-        val offenders = schemes.mapNotNull { (theme, variant, scheme) ->
-            report("$theme.$variant surfaceVariant", scheme.surfaceVariant, scheme.surface)
+    fun `the AMOLED preset is pure black in the dark`() {
+        STYLES.forEach { style ->
+            val scheme = ThemeColorProvider.getColorScheme(
+                ThemeColor.AMOLED.preset!!,
+                style,
+                dark = true,
+            )
+            withClue("$style surface is ${scheme.surface.asHex()}") {
+                scheme.surface shouldBe Color.Black
+            }
+            withClue("$style background is ${scheme.background.asHex()}") {
+                scheme.background shouldBe Color.Black
+            }
         }
-        withClue(
-            "hand-written surface roles that fail the criterion:\n" + offenders.joinToString("\n")
-        ) {
+    }
+
+    @Test
+    fun `each preset keeps the hue of its seed`() {
+        val offenders = ThemeColor.entries.mapNotNull { color ->
+            val seed = color.preset ?: return@mapNotNull null
+            val seedHue = seed.seed.hue() ?: return@mapNotNull null
+            val primary = ThemeColorProvider.getColorScheme(seed, ThemeStyle.DEFAULT, dark = false).primary
+            val primaryHue = primary.hue() ?: return@mapNotNull "$color primary ${primary.asHex()} has no hue"
+            val distance = hueDistance(primaryHue, seedHue)
+            if (distance <= HUE_TOLERANCE) return@mapNotNull null
+            "$color primary is ${primary.asHex()} at hue ${"%.0f".format(primaryHue)}deg while its " +
+                "seed ${seed.seed.asHex()} is at ${"%.0f".format(seedHue)}deg, " +
+                "${"%.0f".format(distance)}deg apart"
+        }
+
+        withClue("presets whose primary drifted off the seed:\n" + offenders.joinToString("\n")) {
             offenders.isEmpty() shouldBe true
         }
     }
