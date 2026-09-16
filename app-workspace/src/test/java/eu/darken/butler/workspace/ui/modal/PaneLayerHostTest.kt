@@ -73,6 +73,21 @@ class PaneLayerHostTest : ComposeTest() {
         }
     }
 
+    /**
+     * Advances the frozen clock until a pane focus request has been made.
+     *
+     * The effect that asks for the pane is keyed on the layer's focus state, so the frame that
+     * applies the focus write only schedules it and a later frame runs it. Each frame is drained
+     * before the next one, since a frozen clock advanced without a drain leaves the effect pending.
+     */
+    private fun advanceUntilPaneFocusRequested(requests: () -> Int) {
+        repeat(PANE_FOCUS_EFFECT_FRAMES) {
+            if (requests() > 0) return
+            composeTestRule.mainClock.advanceTimeByFrame()
+            composeTestRule.waitForIdle()
+        }
+    }
+
     @Test
     fun `the topmost layer is active and the ones below it are not`() {
         var contentActive: Boolean? = null
@@ -875,6 +890,12 @@ class PaneLayerHostTest : ComposeTest() {
         }
 
         composeTestRule.runOnIdle { modalFocus.requestFocus() }
+        // The deadline only starts once the effect does, a few frames after the focus write
+        repeat(PANE_FOCUS_EFFECT_FRAMES) {
+            composeTestRule.mainClock.advanceTimeByFrame()
+            composeTestRule.waitForIdle()
+        }
+        composeTestRule.runOnIdle { modalHasFocus shouldBe true }
         // Past the deadline for an answer that is never coming
         composeTestRule.mainClock.advanceTimeBy(2_000)
         composeTestRule.waitForIdle()
@@ -959,7 +980,7 @@ class PaneLayerHostTest : ComposeTest() {
 
         composeTestRule.mainClock.advanceTimeBy(100)
         composeTestRule.runOnIdle { modalFocus.requestFocus() }
-        composeTestRule.mainClock.advanceTimeByFrame()
+        advanceUntilPaneFocusRequested { paneFocusRequests }
         composeTestRule.runOnIdle {
             modalHasFocus shouldBe true
             (paneFocusRequests > 0) shouldBe true
@@ -2060,6 +2081,7 @@ class PaneLayerHostTest : ComposeTest() {
     companion object {
         private const val PULSE_DURATION_MS = 420L
         private const val PULSE_COMPOSE_FRAMES = 4
+        private const val PANE_FOCUS_EFFECT_FRAMES = 4
         private const val CONTENT_TAG = "layer.content"
         private const val OVERLAY_TAG = "layer.overlay"
         private const val OTHER_PANE_FIELD_TAG = "pane.b.field"
