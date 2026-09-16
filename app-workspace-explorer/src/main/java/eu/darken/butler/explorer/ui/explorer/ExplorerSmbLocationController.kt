@@ -22,6 +22,8 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RevealedPassword
 import eu.darken.butler.explorer.ui.explorer.dialogs.SmbLocationFormInput
+import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.upgrade.isProForUi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlin.uuid.Uuid
@@ -30,12 +32,15 @@ import kotlin.uuid.Uuid
  * Network location management: the add/edit form, its connection test, and rename/removal.
  *
  * Nothing is stored until the entered details actually connect, so a location in the list is always
- * one that worked at least once.
+ * one that worked at least once. Seeing and removing stored locations stays free, everything that
+ * opens a session does not - see [requirePro].
  */
 class ExplorerSmbLocationController(
     private val locationManager: SmbLocationManager,
     private val credentialStore: SmbCredentialStore,
     private val connectionTester: SmbConnectionTester,
+    private val upgradeRepo: UpgradeRepo,
+    private val navToUpgrade: () -> Unit,
     private val dialogs: ExplorerDialogController,
     private val workspace: suspend () -> ExplorerWorkspace,
     private val currentLocation: () -> ExplorerLocation?,
@@ -45,8 +50,22 @@ class ExplorerSmbLocationController(
     private val tag: String,
 ) {
 
-    fun showAddForm() {
+    /**
+     * Network shares are a Pro feature. The form is gated rather than its submit: editing is not a
+     * local-only change, [submit] connects to whatever endpoint the form now names.
+     *
+     * @return false when the upgrade screen was opened instead.
+     */
+    private suspend fun requirePro(): Boolean {
+        if (upgradeRepo.isProForUi()) return true
+        log(tag, INFO) { "Network shares are Pro-only, routing to the upgrade screen" }
+        navToUpgrade()
+        return false
+    }
+
+    fun showAddForm() = doLaunch {
         log(tag) { "showAddForm()" }
+        if (!requirePro()) return@doLaunch
         dialogs.show(ExplorerDialogState.SmbLocationForm())
     }
 
@@ -56,6 +75,7 @@ class ExplorerSmbLocationController(
      */
     fun showEditForm(locationId: Uuid) = doLaunch {
         log(tag) { "showEditForm($locationId)" }
+        if (!requirePro()) return@doLaunch
         val location = locationManager.get(locationId)
         if (location == null) {
             log(tag, ERROR) { "showEditForm(): Unknown location $locationId" }
@@ -229,7 +249,7 @@ class ExplorerSmbLocationController(
         refreshUnlessLive()
     }
 
-    /** Opens the form for a location whose password has to be entered again. */
+    /** Opens the form for a location whose password has to be entered again, gated like every form. */
     fun promptSignIn(locationId: Uuid) {
         log(tag) { "promptSignIn($locationId)" }
         showEditForm(locationId)

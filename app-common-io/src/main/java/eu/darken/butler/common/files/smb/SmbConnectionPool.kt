@@ -11,6 +11,8 @@ import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.upgrade.isProForUi
 import eu.darken.smb.SmbShare
 import eu.darken.smb.SmbCredentials
 import eu.darken.smb.SmbEndpoint
@@ -42,7 +44,17 @@ class SmbConnectionPool @Inject constructor(
     private val locationManager: SmbLocationManager,
     private val credentialStore: SmbCredentialStore,
     private val clientFactory: SmbClientFactory,
+    private val upgradeRepo: UpgradeRepo,
 ) {
+
+    /**
+     * Network shares are a Pro feature. Both entry points below go through here, so this covers every
+     * SMB byte - including the primitives [SmbGateway] inherits from [SmbFileSystemOps] rather than
+     * overriding, and the streams and file handles a lease outlives.
+     */
+    private suspend fun requirePro() {
+        if (!upgradeRepo.isProForUi()) throw SmbProRequiredException()
+    }
 
     /** A live share plus the lease keeping it alive. Closing it twice is a no-op. */
     class Lease(
@@ -100,6 +112,7 @@ class SmbConnectionPool @Inject constructor(
         retryOnTransportLoss: Boolean,
         block: suspend (Lease) -> R,
     ): R {
+        requirePro()
         try {
             return acquire(path.locationId).use { block(it) }
         } catch (e: CancellationException) {
@@ -118,6 +131,7 @@ class SmbConnectionPool @Inject constructor(
      * returned lease, even when its own close throws.
      */
     suspend fun acquire(locationId: Uuid): Lease {
+        requirePro()
         val location = locationManager.get(locationId)
             ?: throw SmbUnreachableException(locationId.toString())
 

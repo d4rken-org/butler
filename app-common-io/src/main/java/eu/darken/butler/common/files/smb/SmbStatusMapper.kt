@@ -77,7 +77,8 @@ object SmbStatusMapper {
 
     private fun isMapped(error: Throwable): Boolean = error is SmbUnreachableException || error is SmbAuthException ||
         error is SmbShareNotFoundException || error is SmbDialectNotSupportedException ||
-        error is SmbShareAccessDeniedException || error is SmbCredentialUnavailableException
+        error is SmbShareAccessDeniedException || error is SmbCredentialUnavailableException ||
+        error is SmbProRequiredException
 
     private fun wrap(message: String, path: APath<*>, cause: Throwable, write: Boolean): Throwable = when {
         write -> WriteException(message, path, cause)

@@ -18,10 +18,11 @@ Butler works on internal storage, SD cards, USB OTG drives and network shares. A
 - Operations keep running when you leave the app, with progress and a cancel button in the notification.
 - An operation history showing what ran, what succeeded and what failed.
 
-<b>Network shares</b>
+<b>Network shares (Butler Pro)</b>
 - Connect to Windows shares and NAS folders over SMB and browse them like any other storage.
 - Copy and move files between your device and the server, in both directions.
 - Sign in as a guest or with a username and password, stored encrypted on your device only.
+- Connecting needs the Butler Pro upgrade. Saved locations stay visible and removable without it.
 
 <b>Search and text</b>
 - Search by file name and within file contents, with regular expression (regex) support.
