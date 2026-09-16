@@ -36,6 +36,7 @@ import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.ButlerTip
+import eu.darken.butler.common.compose.ButlerTipDefaults
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.tour.guidedTourTarget
@@ -97,7 +98,7 @@ internal fun EmptyClassicWorkspaceContent(
                 }
 
                 ButlerTip(
-                    tips = listOf(R.string.workspace_classic_empty_tip),
+                    tips = ButlerTipDefaults.tips + R.string.workspace_classic_empty_tip,
                 )
 
                 // Separate the info group (empty-state + tip) from the action group
