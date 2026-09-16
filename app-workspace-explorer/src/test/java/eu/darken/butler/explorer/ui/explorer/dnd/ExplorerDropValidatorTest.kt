@@ -82,6 +82,13 @@ class ExplorerDropValidatorTest : BaseTest() {
         validateDropDestination(state(location = null), workspaceId, payload()) shouldBe null
     }
 
+    /** Recent lists files from all over storage, so there is no one folder a drop could land in. */
+    @Test
+    fun `recent refuses drops`() {
+        validateDropDestination(state(location = ExplorerLocation.Recent()), workspaceId, payload()) shouldBe null
+        validateTrashDrop(state(location = ExplorerLocation.Recent()), workspaceId, payload()) shouldBe false
+    }
+
     @Test
     fun `path conflicts are refused`() {
         val fromSameFolder = payload(path = destination.child("photo.jpg"))

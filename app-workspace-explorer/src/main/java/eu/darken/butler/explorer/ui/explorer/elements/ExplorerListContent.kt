@@ -11,9 +11,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Schedule
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -21,6 +24,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.dragselect.listDragSelect
 import eu.darken.butler.common.files.errors.PathNotFoundException
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -106,6 +110,12 @@ internal fun ExplorerListContent(
                                 vm?.executeAction(ExplorerActionBarItem.Network.AddLocation())
                             },
                             showAddAction = state.networkManagementEnabled,
+                        )
+
+                        state.currentLocation is ExplorerLocation.Recent -> EmptyDirectoryState(
+                            icon = Icons.TwoTone.Schedule,
+                            title = stringResource(R.string.explorer_recent_empty_title),
+                            caption = stringResource(R.string.explorer_recent_empty_message),
                         )
 
                         else -> EmptyDirectoryState()

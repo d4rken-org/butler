@@ -14,6 +14,7 @@ import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.FilterList
+import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.InstallMobile
@@ -381,6 +382,18 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
         ) : File {
             override val label = labelRes.toCaString()
             override val isDestructive = true
+        }
+
+        /**
+         * Leaves a listing that is not a folder for the folder the file actually sits in, and
+         * highlights it there.
+         */
+        data class ShowInFolder(
+            val item: ExplorerItem.File,
+            override val icon: ImageVector = Icons.TwoTone.FolderOpen,
+            val labelRes: Int = R.string.explorer_file_action_show_in_folder,
+        ) : File {
+            override val label = labelRes.toCaString()
         }
 
         data class ShowProperties(

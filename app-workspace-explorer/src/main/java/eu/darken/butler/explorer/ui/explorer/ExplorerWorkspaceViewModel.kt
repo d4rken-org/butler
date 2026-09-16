@@ -317,6 +317,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val highlight: Boolean = true,
         val scope: Scope = Scope.Items,
         val highlightDurationMs: Long = 2000L,
+        /**
+         * The location this reveal was aimed at, or null for a reveal of whatever is on screen.
+         * Compared against [State.listingLocationId], not [State.locationId].
+         */
+        val destination: String? = null,
     ) {
         /** Which part of the page content holds the reveal target. */
         enum class Scope { Items, Favorites }
@@ -510,6 +515,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     data class State(
         internal val currentLocation: ExplorerLocation? = null,
         val locationId: String? = null,
+        /**
+         * The location [items] were computed for. Not the same as [locationId] whenever the engine
+         * has already moved on and the processed listing has not caught up yet.
+         */
+        val listingLocationId: String? = null,
         val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
         val items: List<ExplorerItem>? = null,
         val error: Throwable? = null,
@@ -642,7 +652,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
         items?.let { rawItems ->
             val processed = viewSettings.applyFilters(rawItems, filterState, useRegexPatterns, showHidden)
-                .let { itemSorter.sortItems(it, resolvedSort.resolution.settings) }
+                .let { itemSorter.sortItemsFor(location, it, resolvedSort.resolution.settings) }
                 .let { applyFavoritePriority(it, location, pickerConfig, favoritePaths) }
             viewSettings.processListing(
                 locationId = location.locationId,
@@ -774,6 +784,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     State(
                         currentLocation = wsStateInner.currentLocation,
                         locationId = wsStateInner.currentLocation?.locationId,
+                        listingLocationId = listing?.locationId,
                         breadcrumbs = wsStateInner.currentBreadcrumbs ?: emptyList(),
                         items = items,
                         unfilteredItemCount = wsStateInner.currentLocation?.items?.size ?: 0,
@@ -963,7 +974,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val stateSnap = getState()
         val focusedIndex = stateSnap.focusedItemIndex ?: return@launch
         val focusedItem = stateSnap.items?.getOrNull(focusedIndex) as? ExplorerItem.Lookup ?: return@launch
-        if (stateSnap.currentLocation !is ExplorerLocation.Directory) return@launch
+        if (!stateSnap.currentLocation.allowsPathDeletion) return@launch
         // Archive contents are read-only; the keyboard-shortcut path bypasses action-bar gating.
         if (focusedItem.path is ArchivePath) return@launch
 
@@ -980,7 +991,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val stateSnap = getState()
         val selectedItems = selection.selectedItems.value
         if (selectedItems.isEmpty()) return@launch
-        if (stateSnap.currentLocation !is ExplorerLocation.Directory) return@launch
+        if (!stateSnap.currentLocation.allowsPathDeletion) return@launch
 
         val pathsToDelete = selectedItems
             .filterIsInstance<ExplorerItem.Lookup>()
@@ -1100,8 +1111,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 log(tag) { "deleteSelectedItems(): ${selection.selectedItems.value.size} items" }
                 val selectedItems = selection.selectedItems.value
                 if (selectedItems.isNotEmpty()) {
-                    val currentLocation = stateSnap.currentLocation
-                    if (currentLocation is ExplorerLocation.Directory) {
+                    if (stateSnap.currentLocation.allowsPathDeletion) {
                         val pathsToDelete = selectedItems
                             .filterIsInstance<ExplorerItem.Lookup>()
                             .map { it.lookup.lookedUp }
@@ -1453,6 +1463,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         items = setOf(action.item.lookup.lookedUp)
                     )
                 )
+            }
+            is ExplorerActionBarItem.File.ShowInFolder -> {
+                navigation.showInFolder(action.item.lookup.lookedUp)
             }
             is ExplorerActionBarItem.File.ShowProperties -> {
                 val infoContext = ItemInfo.InfoContext.SingleFile(action.item)
@@ -2589,6 +2602,13 @@ private fun ExplorerViewSettingsController.emptyRecoveryFor(
  * Top-level for the same reason as `applyFavoritePriority`: unit-testable without VM scaffolding.
  */
 internal fun List<ExplorerItem>?.hasSameItemsAs(other: List<ExplorerItem>?): Boolean = this == other
+
+/**
+ * Whether a delete may act on this location's selection. The rows have to stand for real paths the
+ * user owns, which holds for a folder listing and for Recent's index rows alike.
+ */
+private val ExplorerLocation?.allowsPathDeletion: Boolean
+    get() = this is ExplorerLocation.Directory || this is ExplorerLocation.Recent
 
 /**
  * Waits for the tab to actually be SHOWING [location]: a settled [ExplorerWorkspace.State] whose

@@ -19,6 +19,7 @@ import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DriveFileRenameOutline
+import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.InstallMobile
 import androidx.compose.material.icons.twotone.OpenInBrowser
@@ -75,6 +76,8 @@ fun FileOptionsBottomSheet(
     onAction: (ExplorerActionBarItem) -> Unit,
     modifier: Modifier = Modifier,
     openActionsEnabled: Boolean = true,
+    /** Only a listing that is not the file's own folder, i.e. Recent, has somewhere to send the user. */
+    showInFolder: Boolean = false,
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -89,6 +92,7 @@ fun FileOptionsBottomSheet(
             item = item,
             trashEnabled = trashEnabled,
             openActionsEnabled = openActionsEnabled,
+            showInFolder = showInFolder,
             onAction = onAction,
         )
     }
@@ -99,6 +103,7 @@ private fun FileOptionsContent(
     item: ExplorerItem.File,
     trashEnabled: Boolean,
     openActionsEnabled: Boolean,
+    showInFolder: Boolean,
     onAction: (ExplorerActionBarItem) -> Unit,
 ) {
     val context = LocalContext.current
@@ -282,6 +287,15 @@ private fun FileOptionsContent(
             }
         }
 
+        if (showInFolder) {
+            FileActionRow(
+                icon = Icons.TwoTone.FolderOpen,
+                title = stringResource(R.string.explorer_file_action_show_in_folder),
+                subtitle = stringResource(R.string.explorer_file_action_show_in_folder_subtitle),
+                onClick = { onAction(ExplorerActionBarItem.File.ShowInFolder(item)) },
+            )
+        }
+
         if (caps.canHandOffToOtherApps) {
             FileActionRow(
                 icon = Icons.TwoTone.Share,
@@ -434,6 +448,19 @@ private fun FileOptionsBottomSheetPreview() {
         trashEnabled = true,
         onDismiss = {},
         onAction = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FileOptionsBottomSheetFromRecentPreview() {
+    FileOptionsBottomSheet(
+        item = previewItem(),
+        trashEnabled = true,
+        onDismiss = {},
+        onAction = {},
+        showInFolder = true,
     )
 }
 

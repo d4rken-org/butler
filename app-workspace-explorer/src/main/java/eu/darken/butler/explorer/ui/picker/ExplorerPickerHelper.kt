@@ -208,7 +208,10 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.Common.ViewOptions,
             is ExplorerActionBarItem.Directory.Create,
             is ExplorerActionBarItem.Directory.CalculateSizes,
-            is ExplorerActionBarItem.Directory.DeselectAll -> true
+            is ExplorerActionBarItem.Directory.DeselectAll,
+            // Navigates this workspace to the file's folder, the same as tapping a breadcrumb; it
+            // spawns nothing, so a picker can offer it.
+            is ExplorerActionBarItem.File.ShowInFolder -> true
 
             // Handing a file to another workspace, also rendered by the file options sheet
             is ExplorerActionBarItem.File.Open,

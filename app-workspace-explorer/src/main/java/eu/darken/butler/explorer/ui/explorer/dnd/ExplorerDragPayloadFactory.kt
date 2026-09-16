@@ -23,16 +23,19 @@ object ExplorerDragPayloadFactory {
     ): WorkspaceDragPayload? {
         if (state.pickerConfig != null) return null
         if (pressed !is ExplorerItem.Lookup) return null
-        val directory = state.currentLocation as? ExplorerLocation.Directory ?: return null
+        val location = state.currentLocation
+        if (location !is ExplorerLocation.Directory && location !is ExplorerLocation.Recent) return null
 
         val items = (state.selectionState.selectedItems.filterIsInstance<ExplorerItem.Lookup>() + pressed)
             .distinctBy { it.id }
 
         // Mirrors the Cut/Move gating in DirectoryActionProvider: archive content is read-only and a
-        // move also has to delete from the source directory.
-        val allowMove = directory.path !is ArchivePath &&
+        // move also has to delete from the source directory. Recent is an index rather than a
+        // directory to move out of and has no writability of its own, so it drags copy-only.
+        val allowMove = location is ExplorerLocation.Directory &&
+            location.path !is ArchivePath &&
             items.none { it.path is ArchivePath } &&
-            directory.info?.isWritable == true
+            location.info?.isWritable == true
 
         return WorkspaceDragPayload(
             sourceWorkspaceId = workspaceId,

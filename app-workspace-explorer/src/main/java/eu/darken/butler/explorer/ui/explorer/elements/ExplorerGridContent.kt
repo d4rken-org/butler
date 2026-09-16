@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Schedule
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -28,6 +31,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.dragselect.gridDragSelect
 import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.explorer.core.ExplorerViewStyle
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -135,6 +139,12 @@ internal fun ExplorerGridContent(
                                 vm?.executeAction(ExplorerActionBarItem.Network.AddLocation())
                             },
                             showAddAction = state.networkManagementEnabled,
+                        )
+
+                        state.currentLocation is ExplorerLocation.Recent -> EmptyDirectoryState(
+                            icon = Icons.TwoTone.Schedule,
+                            title = stringResource(R.string.explorer_recent_empty_title),
+                            caption = stringResource(R.string.explorer_recent_empty_message),
                         )
 
                         else -> EmptyDirectoryState()

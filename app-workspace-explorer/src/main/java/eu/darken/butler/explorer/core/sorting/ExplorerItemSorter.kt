@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.core.Workspace
 import kotlin.time.Instant
 
@@ -19,6 +20,21 @@ class ExplorerItemSorter @AssistedInject constructor(
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "Page", "ItemSorter")
+
+    /**
+     * [sortItems], except where the loader's own order is the point of the listing.
+     *
+     * Recent ranks by the media index's DATE_ADDED, which no [SortSettings] mode can express and
+     * which the items do not carry, so re-sorting here could only destroy that ranking.
+     */
+    fun sortItemsFor(
+        location: ExplorerLocation,
+        items: List<ExplorerItem>,
+        sortSettings: SortSettings,
+    ): List<ExplorerItem> = when (location) {
+        is ExplorerLocation.Recent -> items
+        else -> sortItems(items, sortSettings)
+    }
 
     fun sortItems(
         items: List<ExplorerItem>,

@@ -99,7 +99,14 @@ sealed interface ExplorerDialogState {
         val useRegexPatterns: Boolean,
     ) : ExplorerDialogState
 
-    data class FileOptions(val item: ExplorerItem.File) : ExplorerDialogState
+    /**
+     * [showInFolder] is decided when the sheet opens: only a listing that is not the file's own
+     * folder - Recent - has somewhere to send the user.
+     */
+    data class FileOptions(
+        val item: ExplorerItem.File,
+        val showInFolder: Boolean = false,
+    ) : ExplorerDialogState
 
     data class CompressOptions(
         val sources: Set<APath<*>>,

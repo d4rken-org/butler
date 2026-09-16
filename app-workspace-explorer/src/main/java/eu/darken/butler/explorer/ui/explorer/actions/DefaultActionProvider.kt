@@ -11,6 +11,7 @@ class DefaultActionProvider @Inject constructor(
     private val deviceProvider: DeviceActionProvider,
     private val networkProvider: NetworkActionProvider,
     private val directoryProvider: DirectoryActionProvider,
+    private val recentProvider: RecentActionProvider,
     private val trashActionProvider: TrashActionProvider,
 ) : ExplorerActionProvider {
 
@@ -26,6 +27,7 @@ class DefaultActionProvider @Inject constructor(
             is ExplorerLocation.Device -> deviceProvider
             is ExplorerLocation.Network -> networkProvider
             is ExplorerLocation.Directory -> directoryProvider
+            is ExplorerLocation.Recent -> recentProvider
             is ExplorerLocation.Trash -> trashActionProvider
         }
 

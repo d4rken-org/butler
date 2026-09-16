@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import android.content.Context
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -12,6 +13,7 @@ import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.core.sorting.rules.ExplorerTabSortStore
 import eu.darken.butler.explorer.core.sorting.rules.FolderSortRulesRepo
 import eu.darken.butler.workspace.core.Workspace
@@ -19,6 +21,7 @@ import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -231,6 +234,25 @@ class ProcessedListingTest : BaseTest() {
         listings[1].items.shouldBeEmpty()
         listings[1].hiddenCount shouldBe 2
         listings[1].emptyRecovery shouldBe EmptyRecovery.SHOW_HIDDEN
+    }
+
+    /**
+     * The step between filtering and favorite ordering in the ViewModel's pipeline. Recent ranks by
+     * the media index's DATE_ADDED, which the sorter cannot see, so it has to leave that order be.
+     */
+    @Test
+    fun `a recent listing keeps the loader's order under a name sort`() {
+        val sorter = ExplorerItemSorter(workspaceId = Workspace.Id(), context = mockk<Context>(relaxed = true))
+        val loaderOrder = listOf(file("zeta.txt"), file("alpha.txt"), file("mid.txt"))
+        val nameAscending = SortSettings(mode = SortSettings.Mode.NAME, reversed = false)
+
+        sorter.sortItemsFor(ExplorerLocation.Recent(), loaderOrder, nameAscending) shouldBe loaderOrder
+        // Precondition: the same settings really do reorder an ordinary folder listing.
+        sorter.sortItemsFor(
+            ExplorerLocation.Directory(path = LocalPath.build("/tmp/listing-test")),
+            loaderOrder,
+            nameAscending,
+        ) shouldNotBe loaderOrder
     }
 
     @Test

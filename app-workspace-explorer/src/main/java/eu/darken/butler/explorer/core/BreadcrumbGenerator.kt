@@ -8,6 +8,7 @@ import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.Lan
 import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.PhoneAndroid
+import androidx.compose.material.icons.twotone.Schedule
 import androidx.compose.material.icons.twotone.FolderZip
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.datastore.value
@@ -43,6 +44,7 @@ class BreadcrumbGenerator @Inject constructor(
         is ExplorerLocation.Home -> listOf(HOME)
         is ExplorerLocation.Device -> listOf(HOME, DEVICE)
         is ExplorerLocation.Network -> listOf(HOME, NETWORK)
+        is ExplorerLocation.Recent -> listOf(HOME, RECENT)
         is ExplorerLocation.Trash.Root -> listOf(HOME, getTrashBreadcrumb())
         is ExplorerLocation.Trash.Nested -> buildList {
             add(HOME)
@@ -84,6 +86,12 @@ class BreadcrumbGenerator @Inject constructor(
                 is ExplorerNavigation.Target.Network -> {
                     add(HOME)
                     add(NETWORK)
+                }
+                // For exhaustiveness only: no loader sets a Recent parent, so a folder opened from
+                // Recent breadcrumbs as Home > Device > path and system Back is the way back.
+                is ExplorerNavigation.Target.Recent -> {
+                    add(HOME)
+                    add(if (location.path is SmbPath) NETWORK else DEVICE)
                 }
                 is ExplorerNavigation.Target.Trash -> {
                     add(HOME)
@@ -257,6 +265,12 @@ class BreadcrumbGenerator @Inject constructor(
             label = R.string.explorer_navigation_network.toCaString(),
             icon = Icons.TwoTone.Lan,
             target = ExplorerNavigation.Target.Network,
+        )
+
+        val RECENT = ExplorerBreadcrumb(
+            label = R.string.explorer_navigation_recent.toCaString(),
+            icon = Icons.TwoTone.Schedule,
+            target = ExplorerNavigation.Target.Recent,
         )
 
         val HOME = ExplorerBreadcrumb(

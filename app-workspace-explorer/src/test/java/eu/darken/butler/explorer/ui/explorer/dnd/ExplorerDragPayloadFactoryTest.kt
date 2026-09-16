@@ -162,4 +162,20 @@ class ExplorerDragPayloadFactoryTest : BaseTest() {
         build(state(location = ExplorerLocation.Home()), file("photo.jpg")) shouldBe null
         build(state(location = null), file("photo.jpg")) shouldBe null
     }
+
+    @Test
+    fun `recent drags the pressed item and the selection`() {
+        val selected = file("selected.jpg")
+        val pressed = file("pressed.jpg")
+
+        val payload = build(state(selected = setOf(selected), location = ExplorerLocation.Recent()), pressed)!!
+
+        payload.items.map { it.path } shouldContainExactly listOf(selected.path, pressed.path)
+    }
+
+    /** Recent is an index, not a directory to move out of, so a drag from it can only copy. */
+    @Test
+    fun `moving is blocked from recent`() {
+        build(state(location = ExplorerLocation.Recent()), file("photo.jpg"))!!.allowMove shouldBe false
+    }
 }
