@@ -130,6 +130,7 @@ class SmbConnectionPoolTest : BaseTest() {
             locationManager = locationManager,
             credentialStore = credentialStore,
             clientFactory = factory,
+            upgradeRepo = FakeUpgradeRepo(),
         )
     }
 
@@ -375,6 +376,7 @@ class SmbConnectionPoolTest : BaseTest() {
             locationManager = locations,
             credentialStore = credentialStore,
             clientFactory = factory,
+            upgradeRepo = FakeUpgradeRepo(),
         )
 
         val beforeEdit = async { pool.acquire(passwordLocation.id) }

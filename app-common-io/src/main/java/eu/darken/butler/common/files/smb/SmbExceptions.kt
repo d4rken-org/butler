@@ -83,6 +83,16 @@ class SmbDialectNotSupportedException(
     )
 }
 
+/** Network shares are a Pro feature, and every SMB session is opened through the connection pool. */
+class SmbProRequiredException : ReadException(message = "Network shares require Butler Pro"), HasLocalizedError {
+
+    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
+        throwable = this,
+        label = R.string.smb_error_pro_required_title.toCaString(),
+        description = R.string.smb_error_pro_required_description.toCaString(),
+    )
+}
+
 /** A path operation failed for a reason the caller has no dedicated handling for. */
 class SmbOperationException(
     message: String,

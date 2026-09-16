@@ -1,15 +1,21 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Lan
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
+import eu.darken.butler.upgrade.UpgradeRepo
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.Runs
@@ -27,6 +33,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import java.io.File
+import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 class ExplorerNavigationControllerTest : BaseTest() {
 
@@ -49,6 +57,40 @@ class ExplorerNavigationControllerTest : BaseTest() {
         return ExplorerItem.RegularFile(lookup = lookup, mimeType = MimeInfo("text/plain"))
     }
 
+    private fun networkItem(
+        status: ExplorerItem.Storage.Network.Status = ExplorerItem.Storage.Network.Status.AVAILABLE,
+    ): ExplorerItem.Storage.Network {
+        val location = SmbLocation(
+            id = Uuid.parse("11111111-2222-3333-4444-555555555555"),
+            label = "Home NAS",
+            host = "nas.local",
+            share = "media",
+            authType = SmbLocation.AuthType.PASSWORD,
+            rememberCredential = true,
+            credentialVersion = 1,
+            createdAt = Instant.fromEpochMilliseconds(0),
+            updatedAt = Instant.fromEpochMilliseconds(0),
+        )
+        return ExplorerItem.Storage.Network(
+            location = location,
+            displayName = "Home NAS".toCaString(),
+            displayIcon = Icons.TwoTone.Lan,
+            target = ExplorerNavigation.Target.Directory(location.rootPath),
+            subtitle = location.endpointLabel.toCaString(),
+            credentials = when (status) {
+                ExplorerItem.Storage.Network.Status.AVAILABLE -> SmbCredentialStore.Availability.AVAILABLE
+                ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> SmbCredentialStore.Availability.MISSING
+            },
+        )
+    }
+
+    private fun localItem() = ExplorerItem.Storage.Local(
+        localId = "primary",
+        displayName = "Internal storage".toCaString(),
+        displayIcon = Icons.TwoTone.Lan,
+        target = ExplorerNavigation.Target.Directory(path("storage")),
+    )
+
     private fun homeLocation(): ExplorerLocation.Home = mockk<ExplorerLocation.Home>().apply {
         every { locationId } returns "home"
         every { progress } returns null
@@ -67,6 +109,8 @@ class ExplorerNavigationControllerTest : BaseTest() {
         tag = "test",
     )
 
+    private var upgrades = 0
+
     private fun CoroutineScope.controller(
         workspace: ExplorerWorkspace = mockWorkspace(),
         dialogs: ExplorerDialogController = dialogs(),
@@ -76,6 +120,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         selectedItems: () -> Set<ExplorerItem> = { emptySet() },
         clearSelection: () -> Unit = {},
         state: ExplorerWorkspaceViewModel.State = ExplorerWorkspaceViewModel.State(),
+        upgradeRepo: UpgradeRepo = FakeUpgradeRepo(pro = true),
     ) = ExplorerNavigationController(
         workspaceId = workspaceId,
         workspace = { workspace },
@@ -83,6 +128,8 @@ class ExplorerNavigationControllerTest : BaseTest() {
         gatewaySwitch = mockk(),
         dialogs = dialogs,
         favoritesRepo = favoritesRepo,
+        upgradeRepo = upgradeRepo,
+        navToUpgrade = { upgrades++ },
         selectedItems = selectedItems,
         toggleSelection = {},
         clearSelection = clearSelection,
@@ -90,6 +137,72 @@ class ExplorerNavigationControllerTest : BaseTest() {
         doLaunch = { block -> launch { block() } },
         tag = "test",
     )
+
+    @Test
+    fun `a free user tapping a network location is routed to the upgrade screen`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace, upgradeRepo = FakeUpgradeRepo(pro = false))
+
+        controller.navigate(networkItem() as ExplorerItem)
+        runCurrent()
+
+        upgrades shouldBe 1
+        coVerify(exactly = 0) { workspace.navigate(any()) }
+    }
+
+    /** The sign-in form submits a live connection test, so it is gated like opening the share is. */
+    @Test
+    fun `a free user tapping a sign-in required location gets the upgrade screen, not the form`() = runTest {
+        val dialogs = dialogs()
+        val controller = controller(dialogs = dialogs, upgradeRepo = FakeUpgradeRepo(pro = false))
+        val item = networkItem(ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED)
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        upgrades shouldBe 1
+        dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `a pro user tapping a sign-in required location gets the form`() = runTest {
+        val dialogs = dialogs()
+        val controller = controller(dialogs = dialogs)
+        val item = networkItem(ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED)
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        upgrades shouldBe 0
+        val form = dialogs.current().shouldBeInstanceOf<ExplorerDialogState.SmbLocationForm>()
+        form.existing shouldBe item.location
+    }
+
+    @Test
+    fun `a pro user tapping a network location navigates into it`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace)
+        val item = networkItem()
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        upgrades shouldBe 0
+        coVerify { workspace.navigate(item.target) }
+    }
+
+    @Test
+    fun `a free user tapping local storage navigates into it`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace, upgradeRepo = FakeUpgradeRepo(pro = false))
+        val item = localItem()
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        upgrades shouldBe 0
+        coVerify { workspace.navigate(item.target) }
+    }
 
     @Test
     fun `directory tap navigates and clears selection`() = runTest {

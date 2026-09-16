@@ -163,6 +163,7 @@ class SmbGatewayIntegrationTest : BaseTest() {
             locationManager = FakeLocationManager(location),
             credentialStore = credentialStore,
             clientFactory = clientFactory,
+            upgradeRepo = FakeUpgradeRepo(),
         )
         return Rig(SmbFileSystemOps(pool, TestDispatcherProvider()), pool, credentialStore, location)
     }
