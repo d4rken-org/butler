@@ -24,6 +24,8 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
+import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.upgrade.isProForUi
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -48,6 +50,8 @@ class ExplorerNavigationController(
     private val gatewaySwitch: GatewaySwitch,
     private val dialogs: ExplorerDialogController,
     private val favoritesRepo: ExplorerFavoritesRepo,
+    private val upgradeRepo: UpgradeRepo,
+    private val navToUpgrade: () -> Unit,
     private val selectedItems: () -> Set<ExplorerItem>,
     private val toggleSelection: (ExplorerItem) -> Unit,
     private val clearSelection: () -> Unit,
@@ -143,17 +147,19 @@ class ExplorerNavigationController(
                 workspace().navigate(item.target)
                 clearSelection()
             }
-            is ExplorerItem.Storage -> {
+            is ExplorerItem.Storage -> when {
+                // Network shares are a Pro feature. The rows stay listed either way - that is where
+                // the offer is - but opening one means an SMB session, sign-in prompt included.
+                item is ExplorerItem.Storage.Network && !upgradeRepo.isProForUi() -> {
+                    log(tag, INFO) { "Network shares are Pro-only, routing to the upgrade screen" }
+                    navToUpgrade()
+                }
                 // Opening a location whose password is gone would just fail: ask for it first.
-                val needsSignIn = item is ExplorerItem.Storage.Network &&
-                    item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED
-                if (needsSignIn) {
-                    dialogs.show(
-                        ExplorerDialogState.SmbLocationForm(
-                            existing = (item as ExplorerItem.Storage.Network).location
-                        )
-                    )
-                } else {
+                item is ExplorerItem.Storage.Network &&
+                    item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED ->
+                    dialogs.show(ExplorerDialogState.SmbLocationForm(existing = item.location))
+
+                else -> {
                     workspace().navigate(item.target)
                     clearSelection()
                 }

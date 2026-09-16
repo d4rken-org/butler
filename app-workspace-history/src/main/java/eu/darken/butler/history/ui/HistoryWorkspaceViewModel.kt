@@ -183,10 +183,9 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         _selectedIds.value = emptySet()
     }
 
-    // One lock for BOTH gated action bar items, mirroring detailShareLock: while the gate is in
-    // flight the buttons stay live, so without it a second tap - Share twice, or Share then Delete -
-    // queues a second action that fires when billing settles. Acquired synchronously, before the
-    // coroutine is launched, so two taps in the same frame cannot both dispatch.
+    // Mirrors detailShareLock: while the export gate is in flight the button stays live, so without
+    // it a second tap queues a second share that fires when billing settles. Acquired synchronously,
+    // before the coroutine is launched, so two taps in the same frame cannot both dispatch.
     private val actionGateLock = Mutex()
 
     fun onActionClick(item: HistoryActionBarItem) {
@@ -216,22 +215,9 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
                 }
             }
             is HistoryActionBarItem.Delete -> {
-                if (!actionGateLock.tryLock()) return
-                val selectionAtTap = _selectedIds.value
-                launch {
-                    try {
-                        if (!upgradeRepo.isProForUi()) {
-                            showProPrompt()
-                            return@launch
-                        }
-                        val selectedIds = _selectedIds.value
-                        if (selectedIds != selectionAtTap) return@launch
-                        if (item.entries.any { it.id !in selectedIds }) return@launch
-                        _overlayState.update { it.copy(deleteConfirmEntries = item.entries) }
-                    } finally {
-                        actionGateLock.unlock()
-                    }
-                }
+                val selectedIds = _selectedIds.value
+                if (item.entries.any { it.id !in selectedIds }) return
+                _overlayState.update { it.copy(deleteConfirmEntries = item.entries) }
             }
         }
     }
@@ -271,14 +257,7 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
     fun shareEntry(entry: HistoryEntry) = launch {
         if (!detailShareLock.tryLock()) return@launch
         try {
-            // Gated before the query below, so a denied share never runs it. The sheet may have been
-            // dismissed while the gate ran, and a prompt for a share nobody can see anymore is noise.
-            val allowed = upgradeRepo.isProForUi()
             if (_overlayState.value.detailEntry?.id != entry.id) return@launch
-            if (!allowed) {
-                showProPrompt()
-                return@launch
-            }
             // An entry that reported no changes shares what the operation tried to touch instead. The
             // sheet's own load may still be in flight, and an empty list there is indistinguishable
             // from a finished one, so query rather than share a record that claims nothing happened.

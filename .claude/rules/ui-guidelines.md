@@ -6,7 +6,7 @@ paths: ["**/ui/**", "**/common/compose/**", "**/common/theming/**", "**/common/n
 
 ## User Interface
 
-- Full Jetpack Compose with Material 3; custom theming via `ButlerTheme` / `ButlerColors`; edge-to-edge.
+- Full Jetpack Compose with Material 3; custom theming via `ButlerTheme` / `ThemeColorProvider`; edge-to-edge.
 - Use icons from the `androidx.compose.material.icons.twotone` package where possible.
 - Compose previews use the `@Preview2` annotation and wrap the UI element in a `PreviewWrapper`.
 

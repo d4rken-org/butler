@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemePalette
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.external.ExternalOpenOption
@@ -66,6 +67,8 @@ class MainViewModelArrivalTest : BaseTest() {
             every { themeStyle } returns dataStoreValue(MutableStateFlow(ThemeStyle.DEFAULT))
             every { themeColor } returns dataStoreValue(MutableStateFlow(ThemeColor.GREEN))
             every { mascotSuitColor } returns mockk { every { flow } returns MutableStateFlow<Int?>(null) }
+            every { themeCustomSeed } returns mockk { every { flow } returns MutableStateFlow<Int?>(null) }
+            every { themeCustomPalette } returns dataStoreValue(MutableStateFlow(ThemePalette.TONAL_SPOT))
         }
         every { contentUriHelper.extractInfo(uri) } returns ContentUriHelper.SourceInfo(
             uri = uri,

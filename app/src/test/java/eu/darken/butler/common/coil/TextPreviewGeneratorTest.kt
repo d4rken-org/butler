@@ -14,6 +14,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemePalette
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.main.core.GeneralSettings
 import io.kotest.matchers.shouldBe
@@ -60,6 +61,12 @@ class TextPreviewGeneratorTest : BaseTest() {
             }
             every { mascotSuitColor } returns mockk {
                 every { flow } returns flowOf<Int?>(null)
+            }
+            every { themeCustomSeed } returns mockk {
+                every { flow } returns flowOf<Int?>(null)
+            }
+            every { themeCustomPalette } returns mockk {
+                every { flow } returns flowOf(ThemePalette.TONAL_SPOT)
             }
         }
 

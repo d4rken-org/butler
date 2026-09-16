@@ -12,14 +12,15 @@ import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.DebugSettings
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemePalette
 import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.common.updater.UpdateChecker
 import eu.darken.butler.main.core.motd.MotdSettings
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -65,6 +66,20 @@ class GeneralSettings @Inject constructor(
         onErrorFallbackToDefault = BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.RELEASE,
     )
 
+    /** An RGB seed for [ThemeColor.CUSTOM]. Null uses [ThemeState.DEFAULT_CUSTOM_SEED]. */
+    val themeCustomSeed = dataStore.createValue<Int?>(
+        key = "core.ui.theme.custom.seed",
+        defaultValue = null,
+        json = json,
+        onErrorFallbackToDefault = BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.RELEASE,
+    )
+    val themeCustomPalette = dataStore.createValue(
+        key = "core.ui.theme.custom.palette",
+        defaultValue = ThemePalette.TONAL_SPOT,
+        json = json,
+        onErrorFallbackToDefault = BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.RELEASE,
+    )
+
     val isOnboardingCompleted = dataStore.createValue("core.onboarding.completed", false)
 
     val isUpdateCheckEnabled = dataStore.createValue("updater.check.enabled", updateChecker.isEnabledByDefault())
@@ -78,6 +93,8 @@ class GeneralSettings @Inject constructor(
         themeMode,
         themeStyle,
         themeColor,
+        themeCustomSeed,
+        themeCustomPalette,
         mascotSuitColor,
         motdSettings.isMotdEnabled,
         isUpdateCheckEnabled,
@@ -96,8 +113,10 @@ val GeneralSettings.themeState: Flow<ThemeState>
         themeStyle.flow,
         themeColor.flow,
         mascotSuitColor.flow,
-    ) { mode, style, color, suitColor ->
-        ThemeState(mode, style, color, suitColor)
+        themeCustomSeed.flow,
+        themeCustomPalette.flow,
+    ) { mode, style, color, suitColor, customSeed, customPalette ->
+        ThemeState(mode, style, color, suitColor, customSeed, customPalette)
     }
 
 val GeneralSettings.themeStateBlocking: ThemeState
@@ -106,4 +125,6 @@ val GeneralSettings.themeStateBlocking: ThemeState
         themeStyle.valueBlocking,
         themeColor.valueBlocking,
         mascotSuitColor.valueBlocking,
+        themeCustomSeed.valueBlocking,
+        themeCustomPalette.valueBlocking,
     )

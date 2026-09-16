@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemePalette
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.workspace.core.Workspace
@@ -44,6 +45,8 @@ class WorkspacePreviewCaptureServiceTest : BaseTest() {
         every { themeStyle } returns mockk { every { flow } returns flowOf(ThemeStyle.DEFAULT) }
         every { themeColor } returns mockk { every { flow } returns flowOf(ThemeColor.GREEN) }
         every { mascotSuitColor } returns mockk { every { flow } returns flowOf<Int?>(null) }
+        every { themeCustomSeed } returns mockk { every { flow } returns flowOf<Int?>(null) }
+        every { themeCustomPalette } returns mockk { every { flow } returns flowOf(ThemePalette.TONAL_SPOT) }
     }
     private val pauseGate = WorkspacePauseGate()
 

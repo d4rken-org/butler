@@ -36,6 +36,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.rememberIsPro
 import eu.darken.butler.common.compose.systemBarsWithOptionalCutout
 import eu.darken.butler.common.compose.tour.LocalGuidedTourController
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -74,12 +75,16 @@ import eu.darken.butler.workspace.ui.floatingbar.FloatingBarScope
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.layout.isPinnedGeometry
+import eu.darken.butler.workspace.ui.layout.requiresPro
 import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRailDefaults
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
+import eu.darken.butler.workspace.ui.workspaces.tour.WorkspacePanesTour
+import eu.darken.butler.workspace.ui.workspaces.tour.WorkspaceSwipeTour
 import kotlin.uuid.Uuid
 
 @Composable
@@ -146,6 +151,69 @@ fun WorkspaceScreen(
         // tryStart is atomic: `attempted` is only set when the start actually took, so a transient
         // block (another tour active) cannot permanently suppress this one.
         tourStartAttempted = tourController.tryStart(firstTabTourDefinition)
+    }
+
+    // A full-screen modal and a global blocking dialog are platform windows of their own, drawn
+    // above the tour host, while the anchors underneath stay registered - so a registered anchor is
+    // no proof the user can see it, and a tour started then plays behind the dialog.
+    val tourSurfaceQuiet = !state.isRestoring &&
+        !isOverlayVisible &&
+        state.fullScreenModalWorkspace == null &&
+        managerDialogs.none { it.isBlocking && it is ManagerDialog.Global }
+
+    // Swiping only exists in the classic pager, which is what !hasNavigationRail selects: a
+    // SINGLE_RAIL / ADAPTIVE panel mode has one pane but composes the adaptive layout, where there
+    // is nothing to swipe. Two tabs is the minimum that makes "swipe between tabs" true.
+    // The two eligibility values are mutually exclusive by construction: WorkspaceDesign's init
+    // require ties hasNavigationRail to a non-SINGLE layout, and maxPanes > 1 implies non-SINGLE.
+    val swipeTourEligible = tourSurfaceQuiet &&
+        !design.hasNavigationRail &&
+        state.swipeGesturesEnabled &&
+        state.tabWorkspaces.size >= 2
+
+    // maxPanes, not hasNavigationRail: SINGLE_RAIL composes a rail over one pane, where the divider
+    // step has no target. At least one tab, or the rail list has no anchor at all - an empty lazy
+    // list measures zero on its cross axis, which guidedTourTarget drops rather than registers -
+    // and the first step would grace-skip.
+    val panesTourEligible = tourSurfaceQuiet &&
+        design.maxPanes > 1 &&
+        state.tabWorkspaces.isNotEmpty()
+
+    val swipeTourDefinition = remember(state.onDemandWorkspaceCreation) {
+        WorkspaceSwipeTour.definition(includeOnDemandStep = state.onDemandWorkspaceCreation)
+    }
+    val panesTourDefinition = remember { WorkspacePanesTour.definition() }
+
+    // Both tours become eligible at a moment another tour plausibly holds the session - the picker's
+    // own tour fires on the tab the user just created - and tryStart refuses while one is live. The
+    // session is observed so the effect re-runs once it clears.
+    val activeTourSession by tourController.session.collectAsState()
+    var swipeTourStartAttempted by remember { mutableStateOf(false) }
+    LaunchedEffect(swipeTourEligible, activeTourSession == null, swipeTourDefinition) {
+        if (!swipeTourEligible || swipeTourStartAttempted) return@LaunchedEffect
+        if (activeTourSession != null) return@LaunchedEffect
+        swipeTourStartAttempted = tourController.tryStart(swipeTourDefinition)
+    }
+    var panesTourStartAttempted by remember { mutableStateOf(false) }
+    LaunchedEffect(panesTourEligible, activeTourSession == null, panesTourDefinition) {
+        if (!panesTourEligible || panesTourStartAttempted) return@LaunchedEffect
+        if (activeTourSession != null) return@LaunchedEffect
+        panesTourStartAttempted = tourController.tryStart(panesTourDefinition)
+    }
+
+    // A rotation or a panel-mode change mid-tour leaves the copy describing a surface that is no
+    // longer there, and neither tour ends on its own: the swipe tour's steps are centerless, which
+    // never grace-skips, and the panes tour's Butler-button anchor survives into the classic layout,
+    // where that button's menu has no Layout row. skipForNow rather than dismissForever - the skip
+    // is in-memory, so the tour returns after an app restart instead of being burned for a rotation.
+    // Each branch mirrors its own start gate: the swipe tour needs the classic pager, which is what
+    // !hasNavigationRail selects, while the panes tour needs two panes - a rail stays composed over
+    // one pane, so pane count is the only thing that sees an ADAPTIVE window being narrowed.
+    LaunchedEffect(activeTourSession?.definition?.id, design.hasNavigationRail, design.maxPanes) {
+        val live = activeTourSession?.definition?.id ?: return@LaunchedEffect
+        val stale = (live == WorkspaceSwipeTour.id && design.hasNavigationRail) ||
+            (live == WorkspacePanesTour.id && design.maxPanes <= 1)
+        if (stale) tourController.skipForNow()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -288,9 +356,14 @@ fun WorkspaceScreen(
  * The placement follows the window, not the layout: a portrait window that ends up single-pane
  * without the rail also says BOTTOM. Everything reading it therefore gates on the rail being visible
  * rather than on the placement alone.
+ *
+ * @param isPro override for previews and tests; by default this reads the app's upgrade state.
  */
 @Composable
-fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
+fun rememberWorkspaceDesign(
+    state: WorkspacesViewModel.State,
+    isPro: Boolean = rememberIsPro(),
+): WorkspaceDesign {
     val windowSizeInfo = rememberWindowSizeInfo()
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -301,7 +374,7 @@ fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
         state.portraitPanelMode
     }
 
-    val effectivePaneLayout = when (effectivePanelMode) {
+    val storedLayout = when (effectivePanelMode) {
         WorkspacePanelMode.AUTO -> windowSizeInfo.recommendedLayout
         WorkspacePanelMode.ADAPTIVE -> windowSizeInfo.recommendedLayout
         WorkspacePanelMode.SINGLE -> WorkspaceDesign.Layout.SINGLE
@@ -313,6 +386,15 @@ fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
         WorkspacePanelMode.QUAD_GRID -> WorkspaceDesign.Layout.QUAD_GRID
     }
 
+    // A pinned geometry above what this window is recommended is Pro; without it the window falls
+    // back to that recommendation. The stored preference is never rewritten, so the pinned layout
+    // comes back with the entitlement.
+    val effectivePaneLayout = when {
+        !isPro && effectivePanelMode.requiresPro(windowSizeInfo.recommendedPaneCount) ->
+            windowSizeInfo.recommendedLayout
+        else -> storedLayout
+    }
+
     return WorkspaceDesign(
         layout = effectivePaneLayout,
         railPlacement = if (isLandscape) {
@@ -321,8 +403,11 @@ fun rememberWorkspaceDesign(state: WorkspacesViewModel.State): WorkspaceDesign {
             WorkspaceDesign.RailPlacement.BOTTOM
         },
         railButtonPlacement = state.railButtonPlacement,
+        // Read off the stored mode rather than the resolved layout: a downgraded pinned geometry
+        // still composes the rail, and the rail's Butler button is the only route to the Layout
+        // dialog - the one place the gated rows and their offer are visible.
         hasNavigationRail = effectivePaneLayout != WorkspaceDesign.Layout.SINGLE ||
-            effectivePanelMode == WorkspacePanelMode.SINGLE_RAIL ||
+            effectivePanelMode.isPinnedGeometry ||
             effectivePanelMode == WorkspacePanelMode.ADAPTIVE,
     )
 }

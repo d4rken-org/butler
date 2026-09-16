@@ -61,6 +61,17 @@ dependencies {
     addCoil()
     addLottie()
     addRoomDb()
+
+    // The org.jetbrains.compose artifacts material-kolor pulls in carry no classes, they only
+    // declare dependencies on AndroidX Compose, which would drag the stack past the version the
+    // Compose BOM pins.
+    implementation(libs.material.kolor) {
+        exclude(group = "org.jetbrains.compose.foundation")
+        exclude(group = "org.jetbrains.compose.material3")
+        exclude(group = "org.jetbrains.compose.runtime")
+        exclude(group = "org.jetbrains.compose.animation")
+        exclude(group = "org.jetbrains.compose.ui")
+    }
 }
 
 // Kover's verify rules can't filter per-rule (only the report can), so to gate ONLY the

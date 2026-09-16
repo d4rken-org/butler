@@ -182,7 +182,7 @@ private val BLUR_RADIUS: Dp = 16.dp
  * paying user twice in attention. It is NOT `isProForUi`, which gives an unsettled state a bounded
  * wait and then denies; nothing here is an entitlement boundary, so there is nothing to deny.
  */
-internal fun UpgradeRepo.Info?.rendersAsPro(): Boolean = when {
+fun UpgradeRepo.Info?.rendersAsPro(): Boolean = when {
     this == null -> true
     isPro -> true
     !isSettled -> true

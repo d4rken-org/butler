@@ -44,6 +44,7 @@ import eu.darken.butler.common.flow.combine as combineMany
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.destSetup
+import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.trash.TrashManager
 import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.common.ui.ViewModel4
@@ -251,6 +252,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         locationManager = smbLocationManager,
         credentialStore = smbCredentialStore,
         connectionTester = smbConnectionTester,
+        upgradeRepo = upgradeRepo,
+        navToUpgrade = ::navToUpgrade,
         dialogs = dialogs,
         workspace = ::getWorkspace,
         currentLocation = { cachedCurrentLocation },
@@ -285,6 +288,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         gatewaySwitch = gatewaySwitch,
         dialogs = dialogs,
         favoritesRepo = favoritesRepo,
+        upgradeRepo = upgradeRepo,
+        navToUpgrade = ::navToUpgrade,
         selectedItems = { selection.selectedItems.value },
         toggleSelection = { selection.toggle(it) },
         clearSelection = ::clearSelection,
@@ -530,7 +535,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val availableActions: List<ExplorerActionBarItem> = emptyList(),
         val dialogState: ExplorerDialogState = None,
         val setupRequirements: PathRequirements = PathRequirements(),
-        val isPro: Boolean = false,
         val filterState: FilterState = FilterState(),
         val useRegexPatterns: Boolean = false,
         val useBackButtonForNavigation: Boolean = false,
@@ -714,7 +718,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     viewSettings.viewStyle,
                     dialogs.state,
                     viewSettings.resolvedSort,
-                    upgradeRepo.upgradeInfo,
                     viewSettings.filterState,
                     explorerSettings.useRegexPatterns.flow,
                     explorerSettings.useBackButtonForNavigation.flow,
@@ -727,7 +730,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     favoritesController.feedback,
                     directorySizes,
                     favoritesSelection.selection,
-                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection ->
+                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection ->
                     val items = listing?.items
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
@@ -804,7 +807,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         availableActions = availableActions,
                         dialogState = dialogState.withLiveNetworkItem(wsStateInner.currentLocation?.items),
                         setupRequirements = wsStateInner.currentLocation?.setupRequirements ?: PathRequirements(),
-                        isPro = upgradeInfo.isPro,
                         filterState = filterState,
                         useRegexPatterns = useRegexPatterns,
                         useBackButtonForNavigation = useBackButtonForNavigation,
@@ -2290,6 +2292,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun showConflictSheet(operationId: Operation.Id) = conflicts.showSheet(operationId)
 
     fun dismissConflictSheet() = conflicts.dismissSheet()
+
+    /** What the network gates route to when a free user reaches for a Pro-only network action. */
+    private fun navToUpgrade() {
+        log(tag, INFO) { "navToUpgrade()" }
+        navTo(Nav.Main.upgrade())
+    }
 
     fun navigateToSetup(requirements: PathRequirements) = launch {
         log(tag) { "navigateToSetup(): Opening setup for $requirements" }

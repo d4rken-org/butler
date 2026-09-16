@@ -1,14 +1,17 @@
 package eu.darken.butler.workspace.ui.manager
 
 import dagger.hilt.android.lifecycle.HiltViewModel
+import eu.darken.butler.common.compose.rendersAsPro
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -19,12 +22,14 @@ import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.core.usage.WorkspaceUsageRepo
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.layout.requiresPro
 import eu.darken.butler.workspace.ui.template.QuickCreateItem
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 import eu.darken.butler.workspace.ui.template.availableTemplates
 import eu.darken.butler.workspace.ui.template.toQuickCreateItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 
@@ -34,6 +39,7 @@ class WorkspaceButtonViewModel @Inject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val workspacePageManager: WorkspacePageManager,
     private val workspaceSettings: WorkspaceSettings,
+    private val upgradeRepo: UpgradeRepo,
     workspaceTemplates: Set<@JvmSuppressWildcards WorkspaceTemplate>,
     usageRepo: WorkspaceUsageRepo,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Button", "VM")), WorkspaceButtonProvider {
@@ -119,8 +125,18 @@ class WorkspaceButtonViewModel @Inject constructor(
         }
     }
 
-    override fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode) = launch {
-        log(tag) { "setPanelMode(landscape=$landscape, $mode)" }
+    /**
+     * The picker already hides this behind a badge; this is the guard that outlives its state. It
+     * reads the same generous predicate the badge does - a layout is presentation, so an unsettled
+     * or error entitlement renders and persists as Pro rather than collapsing a paying user's panes.
+     */
+    override fun setPanelMode(landscape: Boolean, mode: WorkspacePanelMode, recommendedPaneCount: Int) = launch {
+        log(tag) { "setPanelMode(landscape=$landscape, $mode, recommended=$recommendedPaneCount)" }
+        if (mode.requiresPro(recommendedPaneCount) && !upgradeRepo.upgradeInfo.first().rendersAsPro()) {
+            log(tag, INFO) { "setPanelMode(): $mode needs Pro, routing to the upgrade screen" }
+            navTo(Nav.Main.upgrade())
+            return@launch
+        }
         if (landscape) {
             workspaceSettings.layoutModeLandscape.value(mode)
         } else {
