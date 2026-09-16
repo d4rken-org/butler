@@ -1913,13 +1913,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "onRename($result)" }
         dialogs.dismiss()
 
-        val currentLocation = getState().currentLocation as ExplorerLocation.Directory
+        val destination = renameDestination(result) ?: run {
+            log(tag, WARN) { "onRename(): ${result.item.path} has no parent to rename within" }
+            return@launch
+        }
         getWorkspace().execute(
             ExplorerCommand.Move(
                 sources = setOf(result.item),
-                destination = OperationPathPlan.Destination.RequestedTarget(
-                    currentLocation.path.child(result.newName),
-                ),
+                destination = OperationPathPlan.Destination.RequestedTarget(destination),
                 intent = Operation.Metadata.Intent.RENAME,
             )
         )
@@ -2598,6 +2599,18 @@ private fun ExplorerViewSettingsController.emptyRecoveryFor(
         else -> EmptyRecovery.SHOW_ALL
     }
 }
+
+/**
+ * The exact path a rename asks for: [RenameResult.newName] in the folder the renamed item lives in.
+ *
+ * Derived from the item rather than the listing, so it is correct in Recent too, where the rows are
+ * scattered across storage and the location has no path of its own. In a folder listing the two are
+ * the same, since a listed item's parent IS the listed folder.
+ *
+ * Top-level for the same reason as [hasSameItemsAs]: unit-testable without VM scaffolding.
+ */
+internal fun renameDestination(result: RenameResult): APath<*>? =
+    result.item.parent?.child(result.newName)
 
 /**
  * Whether two listings would render the same, i.e. whether the newer one can be dropped.
