@@ -19,20 +19,24 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.R
 import eu.darken.butler.common.theming.ThemeColor
+import eu.darken.butler.common.theming.ThemeColorProvider
+import eu.darken.butler.common.theming.ThemeSeed
+import eu.darken.butler.common.theming.ThemeStyle
 
 @Composable
 fun ThemeColorSelectorDialog(
     title: String,
     selectedOption: ThemeColor,
+    customSeed: ThemeSeed,
     onOptionSelected: (ThemeColor) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -43,6 +47,8 @@ fun ThemeColorSelectorDialog(
         title = { Text(text = title, style = MaterialTheme.typography.headlineSmall) },
         text = {
             Column {
+                // Re-selecting a row still reports it: that is how the already-selected Custom row
+                // doubles as "edit my custom theme".
                 ThemeColor.entries.forEach { option ->
                     Row(
                         modifier = Modifier
@@ -57,7 +63,7 @@ fun ThemeColorSelectorDialog(
                         )
                         Spacer(modifier = Modifier.width(16.dp))
 
-                        ColorPreviewIcon(themeColor = option)
+                        ColorPreviewIcon(themeColor = option, customSeed = customSeed)
 
                         Spacer(modifier = Modifier.width(12.dp))
 
@@ -78,11 +84,11 @@ fun ThemeColorSelectorDialog(
 }
 
 @Composable
-private fun ColorPreviewIcon(themeColor: ThemeColor) {
-    val (lightColor, darkColor) = when (themeColor) {
-        ThemeColor.GREEN -> Color(0xFF2E7D32) to Color(0xFF8AD68D)
-        ThemeColor.BLUE -> Color(0xFF1565C0) to Color(0xFFA6C8FF)
-        ThemeColor.AMOLED -> Color(0xFFE65100) to Color(0xFFFFB74D)
+private fun ColorPreviewIcon(themeColor: ThemeColor, customSeed: ThemeSeed) {
+    val (lightColor, darkColor) = remember(themeColor, customSeed) {
+        val seed = themeColor.preset ?: customSeed
+        ThemeColorProvider.getColorScheme(seed, ThemeStyle.DEFAULT, dark = false).primary to
+            ThemeColorProvider.getColorScheme(seed, ThemeStyle.DEFAULT, dark = true).primary
     }
 
     Row(
