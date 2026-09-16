@@ -525,7 +525,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val availableActions: List<ExplorerActionBarItem> = emptyList(),
         val dialogState: ExplorerDialogState = None,
         val setupRequirements: PathRequirements = PathRequirements(),
-        val isPro: Boolean = false,
         val filterState: FilterState = FilterState(),
         val useRegexPatterns: Boolean = false,
         val useBackButtonForNavigation: Boolean = false,
@@ -709,7 +708,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     viewSettings.viewStyle,
                     dialogs.state,
                     viewSettings.resolvedSort,
-                    upgradeRepo.upgradeInfo,
                     viewSettings.filterState,
                     explorerSettings.useRegexPatterns.flow,
                     explorerSettings.useBackButtonForNavigation.flow,
@@ -722,7 +720,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     favoritesController.feedback,
                     directorySizes,
                     favoritesSelection.selection,
-                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection ->
+                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection ->
                     val items = listing?.items
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
@@ -798,7 +796,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         availableActions = availableActions,
                         dialogState = dialogState.withLiveNetworkItem(wsStateInner.currentLocation?.items),
                         setupRequirements = wsStateInner.currentLocation?.setupRequirements ?: PathRequirements(),
-                        isPro = upgradeInfo.isPro,
                         filterState = filterState,
                         useRegexPatterns = useRegexPatterns,
                         useBackButtonForNavigation = useBackButtonForNavigation,
