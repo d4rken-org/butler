@@ -179,7 +179,7 @@ class ComponentDetailsSheetTest : ComposeTest() {
             onSetupRequested = { setupRequests++ },
         )
 
-        composeTestRule.onNodeWithText("Requires root or Shizuku — tap to set up").assertExists()
+        composeTestRule.onNodeWithText("Requires root or ADB access — tap to set up").assertExists()
         composeTestRule.onNodeWithText("Disable component").performScrollTo().performClick()
 
         setupRequests shouldBe 1

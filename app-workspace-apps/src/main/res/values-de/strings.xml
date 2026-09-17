@@ -69,8 +69,8 @@
     <string name="apps_path_internal_data_label">Interne Daten</string>
     <string name="apps_path_external_data_label">Externer Speicher</string>
     <string name="apps_path_requires_root_label">Root-Zugriff erforderlich</string>
-    <string name="apps_path_requires_shizuku_label">Shizuku erforderlich</string>
-    <string name="apps_path_requires_root_or_shizuku_label">Root-Zugriff oder Shizuku erforderlich</string>
+    <string name="apps_path_requires_shizuku_label">ADB-Zugriff erforderlich</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Root-Zugriff oder ADB-Zugriff erforderlich</string>
     <string name="apps_path_requires_access_label">Zusätzlicher Zugriff erforderlich</string>
     <string name="apps_storage_breakdown_label">Speicheraufteilung</string>
     <string name="apps_storage_app_label">App</string>
@@ -206,7 +206,7 @@
     <string name="apps_components_copy_package_action">Paketnamen kopieren</string>
     <string name="apps_components_action_enable">Komponente aktivieren</string>
     <string name="apps_components_action_disable">Komponente deaktivieren</string>
-    <string name="apps_components_action_requires_elevated">Root-Zugriff oder Shizuku erforderlich. Zum Einrichten tippen</string>
+    <string name="apps_components_action_requires_elevated">Root-Zugriff oder ADB-Zugriff erforderlich. Zum Einrichten tippen</string>
     <string name="apps_components_confirm_enable_title">Komponenten aktivieren?</string>
     <string name="apps_components_confirm_disable_title">Komponenten deaktivieren?</string>
     <string name="apps_components_confirm_enable_message">Die folgenden Komponenten werden aktiviert:</string>

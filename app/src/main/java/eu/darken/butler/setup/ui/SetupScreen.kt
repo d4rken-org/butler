@@ -1,5 +1,6 @@
 package eu.darken.butler.setup.ui
 
+import android.content.ActivityNotFoundException
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +39,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import eu.darken.butler.R
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -148,7 +150,18 @@ fun SetupScreenHost(
         vm.permissionRequestEvents.collect { intent ->
             log(TAG) { "Launching permission settings intent" }
             isPermissionSettingsLaunched = true
-            context.startActivity(intent)
+            try {
+                context.startActivity(intent)
+            } catch (e: ActivityNotFoundException) {
+                log(TAG, ERROR) { "No activity to handle $intent" }
+                isPermissionSettingsLaunched = false
+                vm.onPermissionIntentFailed(e)
+            } catch (e: SecurityException) {
+                // A handler that matched the intent can still refuse to be started by us.
+                log(TAG, ERROR) { "Failed to launch $intent due to $e" }
+                isPermissionSettingsLaunched = false
+                vm.onPermissionIntentFailed(e)
+            }
         }
     }
 
