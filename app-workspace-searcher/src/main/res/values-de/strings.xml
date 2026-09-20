@@ -202,6 +202,16 @@
     <string name="searcher_sort_mode_path_label">Pfad</string>
     <string name="searcher_sort_descending_label">Absteigende Reihenfolge</string>
 
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Wie Elemente angeordnet werden und wie viele Details sie zeigen</string>
+    <string name="searcher_view_mode_list_label">Liste</string>
+    <string name="searcher_view_mode_grid_label">Raster</string>
+    <string name="searcher_view_density_compact_label">Kompakt</string>
+    <string name="searcher_view_density_comfortable_label">Komfortabel</string>
+    <string name="searcher_view_density_detailed_label">Detailliert</string>
+    <string name="searcher_view_detail_modified_label">Geändert</string>
+    <string name="searcher_view_set_default_action">Als Standard festlegen</string>
+
     <!-- Permission setup -->
     <string name="searcher_setup_required_body">Für die Suche an einigen Speicherorten ist eine zusätzliche Einrichtung erforderlich.</string>
 </resources>

@@ -91,12 +91,14 @@
     <string name="workspace_expand_less_action">Weniger</string>
 
     <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Tabs und Arbeitsbereiche</string>
     <string name="workspace_button_menu_new_workspace_format">Neu: %1$s</string>
     <string name="workspace_button_menu_new_tab_action">Neuer Tab</string>
     <string name="workspace_button_menu_category_recent">Zuletzt</string>
     <string name="workspace_button_menu_category_other">Weitere</string>
     <string name="workspace_button_menu_category_current_tab">Dieser Tab</string>
     <string name="workspace_button_menu_manager_action">Tab-Verwaltung</string>
+    <string name="workspace_button_menu_layout_action">Anordnung</string>
     <string name="workspace_button_menu_close_current_action">Aktuellen Tab schließen</string>
     <plurals name="workspace_button_menu_close_current_stack_action">
         <item quantity="one">Aktuellen Tab schließen (%d Arbeitsbereich)</item>
@@ -132,6 +134,7 @@
     <string name="operations_state_successful">Erfolgreich</string>
     <string name="operations_state_failed">Fehlgeschlagen</string>
     <string name="operations_state_cancelled">Abgebrochen</string>
+    <string name="operations_state_cancelling">Wird abgebrochen…</string>
     <string name="operations_cancel_operation">Vorgang abbrechen</string>
     <string name="operations_cancel_dialog_title">Vorgang abbrechen?</string>
     <string name="operations_cancel_dialog_message">Möchtest Du diesen Vorgang wirklich abbrechen?</string>
@@ -151,6 +154,12 @@
     <string name="operations_details_destination_folder">Zielordner</string>
     <string name="operations_details_destination_path">Zielpfad</string>
     <string name="operations_details_affected_paths_with_count">Betroffene Pfade (%d)</string>
+    <string name="operations_details_problems_with_count">Probleme (%d)</string>
+    <string name="operations_details_problems_more">%d weitere nicht aufgeführt</string>
+    <string name="workspace_operation_packages_section_title">Apps</string>
+    <string name="workspace_operation_package_status_done">Fertig</string>
+    <string name="workspace_operation_package_status_failed">Fehlgeschlagen</string>
+    <string name="workspace_operation_package_status_declined">Abgelehnt</string>
     <string name="operations_details_section_expand">%1$s ausklappen</string>
     <string name="operations_details_section_collapse">%1$s einklappen</string>
     <string name="workspace_operations_performance_graph_label">Leistungsdiagramm</string>
@@ -271,6 +280,8 @@
     <string name="workspace_operation_performance_unavailable_collecting">Leistungsdaten werden gesammelt…</string>
     <string name="workspace_operation_performance_unavailable_insufficient">Für diesen Vorgang liegen nicht genügend Leistungsdaten für ein Diagramm vor.</string>
     <string name="workspace_operation_performance_unavailable_not_available">Für diesen Vorgang sind keine Leistungsdaten verfügbar.</string>
+    <string name="workspace_operation_performance_window_seconds">Letzte %1$d s</string>
+    <string name="workspace_operation_performance_window_minutes">Letzte %1$d min</string>
     <string name="workspace_operation_performance_unit_bytes">B/s</string>
     <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
     <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
@@ -332,6 +343,10 @@
         <item quantity="one">%1$d Tab geöffnet</item>
         <item quantity="other">%1$d Tabs geöffnet</item>
     </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Schließen nicht möglich: In %1$d Tab läuft noch ein Vorgang</item>
+        <item quantity="other">Schließen nicht möglich: In %1$d Tabs laufen noch Vorgänge</item>
+    </plurals>
 
     <!-- Workspace > Settings-->
     <string name="workspace_settings_title">Tabs</string>
@@ -340,6 +355,10 @@
     <string name="workspace_settings_swipe_gestures_desc">Wische nach links oder rechts, um zwischen Tabs zu wechseln.</string>
     <string name="workspace_settings_ondemand_creation_title">Tabs automatisch erstellen</string>
     <string name="workspace_settings_ondemand_creation_desc">Automatisch einen neuen Tab erstellen, wenn Du über den letzten Tab hinauswischst.</string>
+    <string name="workspace_settings_newtab_type_title">Typ für neue Tabs</string>
+    <string name="workspace_settings_newtab_type_desc">Arbeitsbereich, der geöffnet wird, wenn Du über den letzten Tab hinauswischst, einem leeren Bereich einen Tab hinzufügst oder den ersten Tab erstellst.</string>
+    <string name="workspace_settings_newtab_type_ask">Jedes Mal fragen</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Bei jedem neuen Tab die Auswahl des Tab-Typs anzeigen.</string>
     <string name="workspace_settings_live_preview_title">Live-Vorschau</string>
     <string name="workspace_settings_live_preview_desc">Live-Inhalte der Tabs in der Tab-Verwaltung anzeigen.</string>
     <string name="workspace_settings_other">Sonstiges</string>
@@ -350,6 +369,13 @@
     <string name="workspace_settings_layout_mode_landscape_desc">Wähle die Tab-Anordnung im Querformat.</string>
     <string name="workspace_settings_layout_mode_auto">Automatisch</string>
     <string name="workspace_settings_layout_mode_auto_desc">Anordnung automatisch an die Bildschirmgröße anpassen.</string>
+    <string name="workspace_settings_layout_mode_classic">Klassisch</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Jeweils ein Bereich, ohne Tab-Leiste.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Adaptiv</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Tab-Leiste plus so viele Bereiche, wie auf den Bildschirm passen. Pinne eine Anordnung über das Butler-Menü in der Leiste.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptiv (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Einzeln mit Tab-Leiste</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Ein Tab-Bereich plus die Tab-Leiste der Mehrbereichs-Anordnungen. Wechsle Tabs über die Leiste statt durch Wischen; die Leiste nimmt einen Streifen des Bildschirms ein.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Zwei nebeneinander</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Zwei Bereiche nebeneinander (links/rechts).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Zwei übereinander</string>
@@ -363,6 +389,13 @@
 
     <string name="workspace_settings_pane_click_to_focus_title">Zum Fokussieren klicken</string>
     <string name="workspace_settings_pane_click_to_focus_desc">Der erste Klick auf einen nicht fokussierten Bereich fokussiert ihn nur. Nicht fokussierte Bereiche reagieren auch nicht auf den Mauszeiger. Deaktiviere diese Option, um direkt mit ihnen zu interagieren.</string>
+
+    <string name="workspace_settings_rail_button_title">Butler-Schaltfläche</string>
+    <string name="workspace_settings_rail_button_desc">Lege fest, wo die Butler-Schaltfläche auf der Tab-Leiste sitzt.</string>
+    <string name="workspace_settings_rail_button_leading">Anfang</string>
+    <string name="workspace_settings_rail_button_leading_desc">Vor den Tabs im Hochformat, darüber im Querformat.</string>
+    <string name="workspace_settings_rail_button_trailing">Ende</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Nach den Tabs im Hochformat, darunter im Querformat. In Daumenreichweite für die Einhandbedienung.</string>
 
     <!-- Session -->
     <string name="workspace_settings_session_title">Sitzung</string>

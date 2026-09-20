@@ -38,6 +38,12 @@
     <string name="history_filter_kind_save">Speichern</string>
     <string name="history_filter_kind_compress">Komprimieren</string>
     <string name="history_filter_kind_extract">Entpacken</string>
+    <string name="history_filter_kind_enable">Aktivieren</string>
+    <string name="history_filter_kind_disable">Deaktivieren</string>
+    <string name="history_filter_kind_force_stop">Beenden erzwingen</string>
+    <string name="history_filter_kind_uninstall">Deinstallieren</string>
+    <string name="history_filter_kind_clear_data">Daten löschen</string>
+    <string name="history_filter_kind_components">Komponenten</string>
 
     <!-- Path scope chip + dialog -->
     <string name="history_path_scope_set_action">Pfadbereich festlegen…</string>
@@ -62,6 +68,8 @@
     <string name="history_entry_intent_paste_move">Eingefügt (verschoben)</string>
     <string name="history_entry_intent_drop_copy">Abgelegt (kopiert)</string>
     <string name="history_entry_intent_drop_move">Abgelegt (verschoben)</string>
+    <string name="history_entry_intent_enable_components">Komponenten aktiviert von</string>
+    <string name="history_entry_intent_disable_components">Komponenten deaktiviert von</string>
     <string name="history_entry_kind_copy">Kopiert</string>
     <string name="history_entry_kind_move">Verschoben</string>
     <string name="history_entry_kind_delete">Gelöscht</string>
@@ -72,6 +80,12 @@
     <string name="history_entry_kind_extract">Entpackt</string>
     <string name="history_entry_kind_restore">Wiederhergestellt</string>
     <string name="history_entry_kind_install">Installiert</string>
+    <string name="history_entry_kind_enable">Aktiviert</string>
+    <string name="history_entry_kind_disable">Deaktiviert</string>
+    <string name="history_entry_kind_force_stop">Zwangsweise beendet</string>
+    <string name="history_entry_kind_uninstall">Deinstalliert</string>
+    <string name="history_entry_kind_clear_data">Daten gelöscht von</string>
+    <string name="history_entry_kind_components">Komponenten geändert von</string>
     <!-- Row headline: what happened, followed by the file or folder it happened to -->
     <!-- Quoted so the double space survives the resource parser -->
     <string name="history_entry_headline_format">"%1$s  %2$s"</string>
@@ -95,6 +109,8 @@
     <string name="history_detail_copy_path_action">Pfad kopieren</string>
     <string name="history_detail_paths_empty">Keine betroffenen Pfade erfasst.</string>
     <string name="history_detail_label_attempted_paths">Zu bearbeitende Pfade</string>
+    <string name="history_detail_label_packages">Betroffene Apps</string>
+    <string name="history_detail_packages_empty">Keine betroffenen Apps erfasst.</string>
     <string name="history_detail_paths_truncated_callout">Die ersten %1$d von %2$d betroffenen Pfaden werden angezeigt.</string>
     <string name="history_detail_attempted_paths_truncated_callout">Die ersten %1$d von %2$d zu bearbeitenden Pfaden werden angezeigt.</string>
     <plurals name="history_detail_partial_errors_callout">
@@ -108,6 +124,7 @@
     <string name="history_origin_saver">Speichern unter</string>
     <string name="history_origin_developer">Entwicklerwerkzeuge</string>
     <string name="history_origin_viewer">Betrachter</string>
+    <string name="history_origin_apps">Apps</string>
 
     <!-- Duration formats -->
     <string name="history_duration_ms">%1$d ms</string>
@@ -162,6 +179,12 @@
     <string name="history_filter_kind_restore">Wiederherstellen</string>
     <string name="history_workspace_title_kind_install">Verlauf: Installieren</string>
     <string name="history_filter_kind_install">Installieren</string>
+    <string name="history_workspace_title_kind_enable">Verlauf: Aktivieren</string>
+    <string name="history_workspace_title_kind_disable">Verlauf: Deaktivieren</string>
+    <string name="history_workspace_title_kind_force_stop">Verlauf: Beenden erzwingen</string>
+    <string name="history_workspace_title_kind_uninstall">Verlauf: Deinstallieren</string>
+    <string name="history_workspace_title_kind_clear_data">Verlauf: Daten löschen</string>
+    <string name="history_workspace_title_kind_components">Verlauf: Komponenten</string>
 
     <!-- Selection actions -->
     <string name="history_action_select_all">Alle auswählen</string>
@@ -183,6 +206,7 @@
     <string name="history_share_label_error">Fehler</string>
     <string name="history_share_label_failed_items">Fehlgeschlagene Elemente</string>
     <string name="history_share_label_paths">Betroffene Pfade (%1$d)</string>
+    <string name="history_share_label_packages">Betroffene Apps (%1$d)</string>
     <string name="history_share_paths_more">… und %1$d weitere</string>
     <string name="history_share_truncated">… und %1$d weitere Einträge wurden nicht aufgenommen</string>
 </resources>
