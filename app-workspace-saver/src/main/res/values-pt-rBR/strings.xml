@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Salvar como</string>
+    <string name="saver_preview_label">Visualização</string>
+    <string name="saver_loading">Carregando…</string>
+    <string name="saver_shared_from">Compartilhado de %1$s</string>
+    <string name="saver_shared_generic">Compartilhado com Butler</string>
+    <string name="saver_destination_label">Destino</string>
+    <string name="saver_select_destination_hint">Selecione pasta de destino</string>
+    <string name="saver_filename_label">Nome do arquivo</string>
+    <string name="saver_save_action">Salvar</string>
+    <string name="saver_saving_progress">Salvando…</string>
+    <string name="saver_success_message">Arquivo salvo com sucesso</string>
+    <string name="saver_open_saved_action">Abrir diretório</string>
+    <string name="saver_retry_action">Tentar novamente</string>
+    <string name="saver_save_again_action">Salvar em novo local</string>
+    <string name="saver_close_tab_action">Fechar aba</string>
+    <string name="saver_close_butler_action">Fechar aba e voltar</string>
+    <string name="saver_done_action">Concluído</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">O arquivo de origem não está mais acessível. Compartilhe novamente.</item>
+        <item quantity="other">%1$d arquivos de origem não estão mais acessíveis. Compartilhe novamente.</item>
+    </plurals>
+    <string name="saver_error_source_expired">O arquivo de origem não está mais acessível</string>
+    <string name="saver_error_permission_denied">Permissão negada</string>
+    <string name="saver_error_write_failed">Falha ao salvar arquivo</string>
+    <string name="saver_error_file_exists">O arquivo já existe</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Salvar arquivos</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Salvando %1$d arquivo para %2$s</item>
+        <item quantity="other">Salvando %1$d arquivos para %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Salvar %1$d arquivo</item>
+        <item quantity="other">Salvar %1$d arquivos</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d arquivo salvo</item>
+        <item quantity="other">%1$d arquivos salvos</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d arquivo falhou</item>
+        <item quantity="other">%1$d arquivos falharam</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d arquivo pulado</item>
+        <item quantity="other">%1$d arquivos pulados</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d de %2$d arquivos salvos</string>
+</resources>

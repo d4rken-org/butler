@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">Histórico</string>
+    <string name="history_workspace_subtitle">Operações recentes de arquivo</string>
+    <string name="history_workspace_title_scoped">Histórico: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">Histórico: Falhado</string>
+    <string name="history_workspace_title_outcome_partial">Histórico: Parcial</string>
+    <string name="history_workspace_title_outcome_cancelled">Histórico: Cancelado</string>
+    <string name="history_workspace_title_outcome_completed">Histórico: Concluído</string>
+    <string name="history_workspace_title_kind_copy">Histórico: Copiar</string>
+    <string name="history_workspace_title_kind_move">Histórico: Mover</string>
+    <string name="history_workspace_title_kind_delete">Histórico: Excluir</string>
+    <string name="history_workspace_title_kind_create_file">Histórico: Criar arquivo</string>
+    <string name="history_workspace_title_kind_create_folder">Histórico: Criar pasta</string>
+    <string name="history_workspace_title_kind_save">Histórico: Salvar</string>
+    <string name="history_workspace_title_kind_compress">Histórico: Comprimir</string>
+    <string name="history_workspace_title_kind_extract">Histórico: Extrair</string>
+    <string name="history_workspace_title_filtered">Histórico (filtrado)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">Histórico: %1$d caminho</item>
+        <item quantity="other">Histórico: %1$d caminhos</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Todos</string>
+    <string name="history_filter_outcome_completed">Concluído</string>
+    <string name="history_filter_outcome_partial">Parcial</string>
+    <string name="history_filter_outcome_failed">Falhado</string>
+    <string name="history_filter_outcome_cancelled">Cancelado</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Copiar</string>
+    <string name="history_filter_kind_move">Mover</string>
+    <string name="history_filter_kind_delete">Excluir</string>
+    <string name="history_filter_kind_create_file">Criar arquivo</string>
+    <string name="history_filter_kind_create_folder">Criar pasta</string>
+    <string name="history_filter_kind_save">Salvar</string>
+    <string name="history_filter_kind_compress">Comprimir</string>
+    <string name="history_filter_kind_extract">Extrair</string>
+    <string name="history_filter_kind_enable">Ativar</string>
+    <string name="history_filter_kind_disable">Desativar</string>
+    <string name="history_filter_kind_force_stop">Forçar parada</string>
+    <string name="history_filter_kind_uninstall">Desinstalar</string>
+    <string name="history_filter_kind_clear_data">Limpar dados</string>
+    <string name="history_filter_kind_components">Componentes</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Definir escopo de caminho…</string>
+    <string name="history_path_scope_clear_action">Limpar escopo de caminho</string>
+    <string name="history_path_scope_dialog_title">Filtrar por caminho</string>
+    <string name="history_path_scope_dialog_description">Mostrar apenas operações que afetam este caminho ou seus subdiretórios.</string>
+    <string name="history_path_scope_dialog_input_label">Caminho</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Escolher pasta…</string>
+    <string name="history_path_scope_dialog_apply_action">Aplicar</string>
+    <string name="history_path_scope_dialog_cancel_action">Cancelar</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Hoje</string>
+    <string name="history_group_yesterday">Ontem</string>
+    <string name="history_group_this_week">Esta semana</string>
+    <string name="history_group_this_month">Este mês</string>
+    <string name="history_group_older">Mais antigo</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Renomeado</string>
+    <string name="history_entry_intent_paste_copy">Colado</string>
+    <string name="history_entry_intent_paste_move">Colado (mover)</string>
+    <string name="history_entry_intent_drop_copy">Descartado (copiar)</string>
+    <string name="history_entry_intent_drop_move">Descartado (mover)</string>
+    <string name="history_entry_intent_enable_components">Componentes ativados de</string>
+    <string name="history_entry_intent_disable_components">Componentes desativados de</string>
+    <string name="history_entry_kind_copy">Copiado</string>
+    <string name="history_entry_kind_move">Movido</string>
+    <string name="history_entry_kind_delete">Excluído</string>
+    <string name="history_entry_kind_create_file">Arquivo criado</string>
+    <string name="history_entry_kind_create_folder">Pasta criada</string>
+    <string name="history_entry_kind_save">Salvo</string>
+    <string name="history_entry_kind_compress">Comprimido</string>
+    <string name="history_entry_kind_extract">Extraído</string>
+    <string name="history_entry_kind_restore">Restaurado</string>
+    <string name="history_entry_kind_install">Instalado</string>
+    <string name="history_entry_kind_enable">Ativado</string>
+    <string name="history_entry_kind_disable">Desativado</string>
+    <string name="history_entry_kind_force_stop">Parada forçada</string>
+    <string name="history_entry_kind_uninstall">Desinstalado</string>
+    <string name="history_entry_kind_clear_data">Dados limpos de</string>
+    <string name="history_entry_kind_components">Componentes alterados de</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d caminho</item>
+        <item quantity="other">%d caminhos</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">Primeiros %1$d de %2$d caminhos afetados</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Iniciado</string>
+    <string name="history_detail_label_completed">Concluído</string>
+    <string name="history_detail_label_duration">Duração</string>
+    <string name="history_detail_label_outcome">Resultado</string>
+    <string name="history_detail_label_origin">Origem</string>
+    <string name="history_detail_label_error">Erro</string>
+    <string name="history_detail_label_paths">Caminhos afetados</string>
+    <string name="history_detail_label_partial_errors">Falhas por item</string>
+    <string name="history_detail_copy_path_action">Copiar caminho</string>
+    <string name="history_detail_paths_empty">Nenhum caminho afetado registrado.</string>
+    <string name="history_detail_label_attempted_paths">Caminhos tentados</string>
+    <string name="history_detail_label_packages">Aplicativos afetados</string>
+    <string name="history_detail_packages_empty">Nenhum aplicativo afetado registrado.</string>
+    <string name="history_detail_paths_truncated_callout">Mostrando primeiros %1$d de %2$d caminhos afetados.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Mostrando primeiros %1$d de %2$d caminhos tentados.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">%1$d item falhou durante esta operação.</item>
+        <item quantity="other">%1$d itens falharam durante esta operação.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Explorer</string>
+    <string name="history_origin_searcher">Pesquisar</string>
+    <string name="history_origin_saver">Saver</string>
+    <string name="history_origin_developer">Developer</string>
+    <string name="history_origin_viewer">Viewer</string>
+    <string name="history_origin_apps">Apps</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Nenhum histórico ainda</string>
+    <string name="history_empty_subtitle">Operações de arquivo aparecerão aqui conforme você usa Butler.</string>
+    <string name="history_empty_filtered_title">Nenhuma correspondência</string>
+    <string name="history_empty_filtered_subtitle">Nenhuma entrada de histórico corresponde ao filtro atual.</string>
+    <string name="history_empty_filtered_reset_action">Resetar filtro</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Resetar filtro</string>
+    <string name="history_toolbar_reset_filter_content_description">Resetar filtros</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">Primeiros %1$d de %2$d caminhos afetados</string>
+    <string name="history_add_filter_action">Adicionar filtro</string>
+    <string name="history_add_filter_sheet_title">Adicionar filtro</string>
+    <string name="history_add_filter_section_outcome">Resultado</string>
+    <string name="history_add_filter_section_kind">Tipo</string>
+    <string name="history_add_filter_section_path_scope">Escopo de caminho</string>
+    <string name="history_add_filter_add_path_action">Adicionar caminho…</string>
+    <string name="history_path_scope_remove_action">Remover</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d entrada</item>
+        <item quantity="other">%1$d entradas</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%1$d de %2$d mostrado</item>
+        <item quantity="other">%1$d de %2$d mostrados</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">Histórico</string>
+    <string name="history_settings_save_history_title">Salvar histórico</string>
+    <string name="history_settings_save_history_subtitle">Registrar operações de arquivo concluídas.</string>
+    <string name="history_settings_max_history_label">Máximo de itens de histórico</string>
+    <string name="history_settings_max_history_subtitle">Entradas mais antigas serão removidas quando este limite for excedido.</string>
+    <string name="history_settings_max_history_input_label">Número máximo de entradas</string>
+    <string name="history_settings_clear_history_title">Limpar histórico</string>
+    <string name="history_settings_clear_history_subtitle">Remover todas as entradas salvas (%1$d).</string>
+    <string name="history_clear_dialog_title">Limpar histórico?</string>
+    <string name="history_clear_dialog_message">Remove todas as entradas do banco de dados de histórico de operações. Isto não pode ser desfeito.</string>
+    <string name="history_clear_confirm_action">Limpar</string>
+    <string name="history_cleared_success">Histórico limpo</string>
+    <string name="history_workspace_title_kind_restore">Histórico: Restaurar</string>
+    <string name="history_filter_kind_restore">Restaurar</string>
+    <string name="history_workspace_title_kind_install">Histórico: Instalar</string>
+    <string name="history_filter_kind_install">Instalar</string>
+    <string name="history_workspace_title_kind_enable">Histórico: Ativar</string>
+    <string name="history_workspace_title_kind_disable">Histórico: Desativar</string>
+    <string name="history_workspace_title_kind_force_stop">Histórico: Forçar parada</string>
+    <string name="history_workspace_title_kind_uninstall">Histórico: Desinstalar</string>
+    <string name="history_workspace_title_kind_clear_data">Histórico: Limpar dados</string>
+    <string name="history_workspace_title_kind_components">Histórico: Componentes</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Selecionar tudo</string>
+    <string name="history_action_deselect_all">Desmarcar tudo</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Excluir %1$d entrada</item>
+        <item quantity="other">Excluir %1$d entradas</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Apenas os registros de histórico serão removidos; os arquivos em si não são afetados.</string>
+    <string name="history_pro_dialog_message">Compartilhar e excluir entradas de histórico faz parte da atualização. Limpar o histórico inteiro permanece gratuito nas configurações de histórico.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Resultado</string>
+    <string name="history_share_label_kind">Tipo</string>
+    <string name="history_share_label_origin">Origem</string>
+    <string name="history_share_label_summary">Resumo</string>
+    <string name="history_share_label_completed">Concluído</string>
+    <string name="history_share_label_duration">Duração</string>
+    <string name="history_share_label_error">Erro</string>
+    <string name="history_share_label_failed_items">Itens falhados</string>
+    <string name="history_share_label_paths">Caminhos afetados (%1$d)</string>
+    <string name="history_share_label_packages">Aplicativos afetados (%1$d)</string>
+    <string name="history_share_paths_more">… e %1$d mais</string>
+    <string name="history_share_truncated">… e %1$d mais entradas não incluídas</string>
+</resources>
