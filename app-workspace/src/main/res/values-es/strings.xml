@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Portapapeles</string>
+    <string name="clipboard_clear_all">Borrar todo</string>
+    <string name="clipboard_paste">Pegar</string>
+    <string name="clipboard_open_in_explorer">Abrir en el explorador</string>
+    <string name="clipboard_copy">Copiar</string>
+    <string name="clipboard_cut">Cortar</string>
+    <string name="clipboard_origin">Origen: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Copiar %d elemento</item>
+        <item quantity="other">Copiar %d elementos</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d elemento de %s</item>
+        <item quantity="other">%d elementos de %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Cortar %d elemento</item>
+        <item quantity="other">Cortar %d elementos</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d elemento de %s</item>
+        <item quantity="other">%d elementos de %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d ubicación</item>
+        <item quantity="other">%d ubicaciones</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d elemento de %2$s</item>
+        <item quantity="other">%1$d elementos de %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d elemento de %2$s</item>
+        <item quantity="other">%1$d elementos de %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Fragmento de texto</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d carácter</item>
+        <item quantity="other">%1$d caracteres</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Pegar como archivo</string>
+    <string name="clipboard_text_info_characters">Caracteres</string>
+    <string name="clipboard_text_info_lines">Líneas</string>
+    <string name="clipboard_text_info_content">Contenido</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Resumen</string>
+    <string name="clipboard_info_operation">Operación</string>
+    <string name="clipboard_info_items">Elementos</string>
+    <string name="clipboard_info_source">Origen</string>
+    <string name="clipboard_info_sources">Orígenes</string>
+    <string name="clipboard_info_workspace">Espacio de trabajo</string>
+    <string name="clipboard_info_workspace_closed">Cerrado</string>
+    <string name="clipboard_info_time">Hora</string>
+    <string name="clipboard_info_items_with_count">Elementos (%1$d)</string>
+    <string name="clipboard_info_actions">Acciones</string>
+    <string name="clipboard_info_go_to_source">Ir al origen</string>
+    <string name="clipboard_info_go_to_first_source">Ir al primer origen</string>
+    <string name="clipboard_info_remove">Quitar del portapapeles</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Portapapeles</string>
+    <string name="clipboard_settings_remove_on_paste_title">Quitar al pegar</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Quita los elementos copiados del portapapeles después de pegarlos</string>
+    <string name="clipboard_settings_max_items_title">Máximo de elementos</string>
+    <string name="clipboard_settings_max_items_desc">Número máximo de elementos en el portapapeles</string>
+
+    <string name="workspace_explorer_label">Explorador</string>
+    <string name="workspace_searcher_label">Búsqueda</string>
+    <string name="workspace_editor_label">Editor</string>
+    <string name="workspace_templates_label">Plantillas</string>
+    <string name="workspace_apps_label">Aplicaciones</string>
+    <string name="workspace_appdetails_label">Detalles de la aplicación</string>
+    <string name="workspace_saver_label">Guardar como</string>
+    <string name="workspace_developer_label">Desarrollador</string>
+    <string name="workspace_history_label">Historial</string>
+    <string name="workspace_bugreport_label">Informes de errores</string>
+    <string name="workspace_viewer_label">Visor</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Fotos</string>
+    <string name="workspace_searcher_target_videos">Videos</string>
+    <string name="workspace_searcher_target_music">Música</string>
+    <string name="workspace_searcher_target_downloads">Descargas</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Más</string>
+    <string name="workspace_expand_less_action">Menos</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Pestañas y espacios de trabajo</string>
+    <string name="workspace_button_menu_new_workspace_format">Nuevo %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Nueva pestaña</string>
+    <string name="workspace_button_menu_category_recent">Recientes</string>
+    <string name="workspace_button_menu_category_other">Otros</string>
+    <string name="workspace_button_menu_category_current_tab">Esta pestaña</string>
+    <string name="workspace_button_menu_manager_action">Administrador de pestañas</string>
+    <string name="workspace_button_menu_layout_action">Diseño</string>
+    <string name="workspace_button_menu_close_current_action">Cerrar pestaña actual</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Cerrar pestaña actual (%d espacio de trabajo)</item>
+        <item quantity="other">Cerrar pestaña actual (%d espacios de trabajo)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Configuración</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">¿Cerrar todas las pestañas?</string>
+    <string name="workspace_manager_close_all_message">Esto cerrará las %1$d %2$s abiertas. Esta acción no se puede deshacer.</string>
+    <string name="workspace_manager_close_all_message_singular">pestaña</string>
+    <string name="workspace_manager_close_all_message_plural">pestañas</string>
+    <string name="workspace_manager_close_all_action">Cerrar todo</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Algunas pestañas tienen cambios sin guardar que se perderán.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Descartar todo</string>
+    <string name="workspace_manager_close_selected_title">¿Cerrar las pestañas seleccionadas?</string>
+    <string name="workspace_manager_close_selected_message">Esto cerrará %1$d %2$s seleccionadas. Esta acción no se puede deshacer.</string>
+    <string name="workspace_manager_close_selected_action">Cerrar seleccionadas</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Algunas de las pestañas seleccionadas tienen cambios sin guardar que se perderán.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Descartar seleccionadas</string>
+    <string name="workspace_manager_pause_partial_title">¿Pausar pestañas?</string>
+    <string name="workspace_manager_pause_partial_message">%1$d de %2$d pestañas seleccionadas se pueden pausar. El resto están en uso, tienen cambios sin guardar o están abiertas actualmente.</string>
+    <string name="workspace_manager_pause_partial_action">Pausar %1$d</string>
+    <string name="workspace_fab_close_all">Cerrar todas las pestañas</string>
+    <string name="general_cancel_action">Cancelar</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Operaciones</string>
+    <string name="operations_clear_completed">Borrar completadas</string>
+    <string name="operations_state_queued">En cola</string>
+    <string name="operations_state_running">En ejecución</string>
+    <string name="operations_state_waiting">Esperando entrada</string>
+    <string name="operations_state_successful">Correcta</string>
+    <string name="operations_state_failed">Fallida</string>
+    <string name="operations_state_cancelled">Cancelada</string>
+    <string name="operations_state_cancelling">Cancelando…</string>
+    <string name="operations_cancel_operation">Cancelar operación</string>
+    <string name="operations_cancel_dialog_title">¿Cancelar la operación?</string>
+    <string name="operations_cancel_dialog_message">¿Seguro que quieres cancelar esta operación?</string>
+    <string name="operations_cancel_dialog_warning">Cancelar puede dejar los archivos en un estado inconsistente.</string>
+    <string name="operations_details_started_at">Iniciada</string>
+    <string name="operations_details_completed_at">Completada</string>
+    <string name="operations_details_duration">Duración</string>
+    <string name="operations_details_duration_not_started">No iniciada</string>
+    <string name="operations_details_progress">Progreso</string>
+    <string name="operations_details_error">Detalles del error</string>
+    <string name="operations_details_actions">Acciones</string>
+    <string name="operations_details_overview">Resumen</string>
+    <string name="operations_details_handle_issue">Resolver problema</string>
+    <string name="operations_details_show_in_history_action">Mostrar en el historial</string>
+    <string name="operations_details_status">Estado</string>
+    <string name="operations_details_result">Resultado</string>
+    <string name="operations_details_destination_folder">Carpeta de destino</string>
+    <string name="operations_details_destination_path">Ruta de destino</string>
+    <string name="operations_details_affected_paths_with_count">Rutas afectadas (%d)</string>
+    <string name="operations_details_problems_with_count">Problemas (%d)</string>
+    <string name="operations_details_problems_more">%d más sin mostrar</string>
+    <string name="workspace_operation_packages_section_title">Aplicaciones</string>
+    <string name="workspace_operation_package_status_done">Hecho</string>
+    <string name="workspace_operation_package_status_failed">Fallido</string>
+    <string name="workspace_operation_package_status_declined">Rechazado</string>
+    <string name="operations_details_section_expand">Expandir %1$s</string>
+    <string name="operations_details_section_collapse">Contraer %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Gráfico de rendimiento</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">¿Eliminar elemento?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">¿Eliminar %1$d elemento?</item>
+        <item quantity="other">¿Eliminar %1$d elementos?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Este elemento se eliminará permanentemente:</string>
+    <string name="workspace_dialog_delete_message_multiple">Estos elementos se eliminarán permanentemente:</string>
+    <string name="workspace_dialog_delete_more_items">… y %1$d más</string>
+    <string name="workspace_dialog_delete_warning">Esta acción no se puede deshacer.</string>
+    <string name="workspace_dialog_delete_permanently_action">Eliminar permanentemente</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Eliminar permanentemente en su lugar</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Algunos elementos no se pueden mover a la papelera y se gestionarán por separado.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">¿Mover a la papelera?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">¿Mover %1$d elemento a la papelera?</item>
+        <item quantity="other">¿Mover %1$d elementos a la papelera?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Este elemento se moverá a la papelera:</string>
+    <string name="workspace_dialog_trash_message_multiple">Estos elementos se moverán a la papelera:</string>
+    <string name="workspace_dialog_trash_hint">Encuéntralos en la ubicación Papelera</string>
+    <string name="workspace_dialog_move_to_trash_action">Mover</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d seleccionado</item>
+        <item quantity="other">%d seleccionados</item>
+    </plurals>
+    <string name="workspace_action_more">Más acciones</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Eliminación de archivos</string>
+    <string name="workspace_operation_delete_description_single">Eliminar \"%1$s\" de \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Eliminar %1$d elemento de \"%2$s\".</item>
+        <item quantity="other">Eliminar %1$d elementos de \"%2$s\".</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Instalación de la aplicación</string>
+    <string name="workspace_operation_install_description">Instalar \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">Leyendo el paquete…</string>
+    <string name="workspace_operation_install_progress_extracting">Descomprimiendo…</string>
+    <string name="workspace_operation_install_progress_writing">Entregando los archivos al instalador…</string>
+    <string name="workspace_operation_install_progress_committing">Finalizando la instalación…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Colocando los archivos de expansión…</string>
+    <string name="workspace_operation_install_summary_success">%1$s se instaló.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s se instaló, pero no se pudieron colocar sus archivos de expansión.</string>
+    <string name="workspace_install_unknown_sources_required">Butler necesita permiso para instalar aplicaciones. Concédelo en la configuración que se acaba de abrir y vuelve a intentarlo.</string>
+    <string name="workspace_install_obb_failed">La aplicación se instaló, pero no se pudieron colocar sus archivos de expansión: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d archivo eliminado.</item>
+        <item quantity="other">%1$d archivos eliminados.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d directorio eliminado.</item>
+        <item quantity="other">%1$d directorios eliminados.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d elemento omitido.</item>
+        <item quantity="other">%1$d elementos omitidos.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s liberados.</item>
+        <item quantity="other">%1$s liberados.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Moviendo a la papelera…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d archivo movido a la papelera.</item>
+        <item quantity="other">%1$d archivos movidos a la papelera.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d directorio movido a la papelera.</item>
+        <item quantity="other">%1$d directorios movidos a la papelera.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s liberados.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s liberados.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s restante.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Información</string>
+    <string name="workspace_file_info_name_label">Nombre</string>
+    <string name="workspace_file_info_path_label">Ruta</string>
+    <string name="workspace_file_info_type_label">Tipo</string>
+    <string name="workspace_file_info_type_file">Archivo</string>
+    <string name="workspace_file_info_type_directory">Directorio</string>
+    <string name="workspace_file_info_type_symlink">Enlace simbólico</string>
+    <string name="workspace_file_info_type_unknown">Desconocido</string>
+    <string name="workspace_file_info_size_label">Tamaño</string>
+    <string name="workspace_file_info_modified_label">Modificado</string>
+    <string name="workspace_file_info_created_label">Creado</string>
+    <string name="workspace_file_info_permissions_label">Permisos</string>
+    <string name="workspace_file_info_owner_label">Propietario</string>
+    <string name="workspace_file_info_child_count_label">Elementos</string>
+    <string name="workspace_file_info_symlink_target_label">Destino</string>
+    <string name="workspace_file_info_unknown">Desconocido</string>
+    <string name="workspace_file_info_copy_action">Copiar al portapapeles</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Seleccionados</string>
+    <string name="workspace_file_info_files_label">Archivos</string>
+    <string name="workspace_file_info_directories_label">Directorios</string>
+    <string name="workspace_file_info_total_size_label">Tamaño total</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Esta operación aún no ha comenzado.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Recopilando datos de rendimiento…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">No hay suficientes datos de rendimiento de esta operación para trazar un gráfico.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">No hay datos de rendimiento disponibles para esta operación.</string>
+    <string name="workspace_operation_performance_window_seconds">Últimos %1$d s</string>
+    <string name="workspace_operation_performance_window_minutes">Últimos %1$d min</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">elementos/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Mostrar detalles técnicos</string>
+    <string name="workspace_error_hide_details_action">Ocultar detalles técnicos</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Inicializando pestaña</string>
+    <string name="workspace_error_subtitle">Se produjo un error inesperado</string>
+    <string name="workspace_close_tab_action">Cerrar pestaña</string>
+    <string name="workspace_paused_body">Esta pestaña está pausada para ahorrar memoria y batería. Reanúdala para continuar.</string>
+    <string name="workspace_paused_error_body">No se pudo reanudar esta pestaña.</string>
+    <string name="workspace_paused_resume_action">Reanudar</string>
+    <string name="workspace_paused_label">Pausada</string>
+    <string name="workspace_paused_content_label">Contenido de la pestaña</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Archivo existente</string>
+    <string name="workspace_issue_collision_existing_folder_label">Carpeta existente</string>
+    <string name="workspace_issue_collision_new_file">Archivo entrante</string>
+    <string name="workspace_issue_collision_new_folder">Carpeta entrante</string>
+    <string name="workspace_issue_collision_overwrite">Reemplazar</string>
+    <string name="workspace_issue_collision_merge">Combinar</string>
+    <string name="workspace_issue_common_source_file">Archivo de origen</string>
+    <string name="workspace_issue_common_destination_file">Destino</string>
+    <string name="workspace_issue_common_skip">Omitir</string>
+    <string name="workspace_issue_common_rename">Cambiar nombre</string>
+    <string name="workspace_issue_common_rename_new">Cambiar nombre del nuevo</string>
+    <string name="workspace_issue_common_rename_existing">Cambiar nombre del existente</string>
+    <string name="workspace_issue_common_cancel">Cancelar</string>
+    <string name="workspace_issue_common_delete_permanently">Eliminar permanentemente</string>
+    <string name="workspace_issue_archive_password_label">Contraseña</string>
+    <string name="workspace_issue_archive_password_unlock">Desbloquear</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Elementos con errores</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… y %1$d elementos más</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Elementos afectados</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… y %1$d elementos más</string>
+    <string name="workspace_issue_apply_all">Aplicar a todos los problemas restantes</string>
+    <string name="workspace_issue_rename_new_name">Nuevo nombre</string>
+    <string name="workspace_issue_rename_dialog_title_new">Cambiar nombre del archivo entrante</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Cambiar nombre del archivo existente</string>
+    <string name="workspace_issue_type_folder">Carpeta</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">¿Abrir varias pestañas?</string>
+    <string name="workspace_open_tabs_confirmation_message">Esto abrirá %1$d pestañas.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Abrir con</string>
+    <string name="workspace_open_with_no_app_label">No se encontró ninguna otra aplicación</string>
+    <string name="workspace_open_with_no_app_description">Ninguna otra aplicación instalada puede abrir %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Se abrió %1$d pestaña</item>
+        <item quantity="other">Se abrieron %1$d pestañas</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">No se puede cerrar: aún hay una operación en curso en %1$d pestaña</item>
+        <item quantity="other">No se puede cerrar: aún hay operaciones en curso en %1$d pestañas</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">Pestañas</string>
+    <string name="workspace_settings_navigation">Navegación</string>
+    <string name="workspace_settings_swipe_gestures_title">Gestos de deslizamiento</string>
+    <string name="workspace_settings_swipe_gestures_desc">Desliza a la izquierda o a la derecha para cambiar entre pestañas.</string>
+    <string name="workspace_settings_ondemand_creation_title">Crear pestañas automáticamente</string>
+    <string name="workspace_settings_ondemand_creation_desc">Crea una pestaña nueva automáticamente al deslizar más allá de la última pestaña.</string>
+    <string name="workspace_settings_newtab_type_title">Tipo de pestaña nueva</string>
+    <string name="workspace_settings_newtab_type_desc">Espacio de trabajo que se abre al deslizar más allá de la última pestaña, al añadir una pestaña a un panel vacío o al crear la primera pestaña.</string>
+    <string name="workspace_settings_newtab_type_ask">Preguntar siempre</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Muestra el selector de tipo de pestaña para cada pestaña nueva.</string>
+    <string name="workspace_settings_live_preview_title">Vistas previas en vivo</string>
+    <string name="workspace_settings_live_preview_desc">Muestra el contenido en vivo de las pestañas en el administrador de pestañas.</string>
+    <string name="workspace_settings_other">Otros</string>
+    <string name="workspace_settings_layout_title">Diseño</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Modo de diseño vertical</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Elige el diseño de pestañas en orientación vertical.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Modo de diseño horizontal</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Elige el diseño de pestañas en orientación horizontal.</string>
+    <string name="workspace_settings_layout_mode_auto">Automático</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Clásico en pantallas pequeñas, riel de pestañas con paneles en las grandes.</string>
+    <string name="workspace_settings_layout_mode_classic">Clásico</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Un panel a la vez, sin el riel de pestañas.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Adaptable</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Riel de pestañas más tantos paneles como quepan en la pantalla. Fija un diseño desde el menú de Butler en el riel.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptable (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Único con riel de pestañas</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Un panel de pestaña más el riel de pestañas de los diseños con varios paneles. Cambia de pestaña desde el riel en lugar de deslizando; el riel ocupa una franja de la pantalla.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Doble vertical</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Dos paneles uno al lado del otro (izquierda/derecha).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Doble horizontal</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Dos paneles apilados (arriba/abajo).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Triple con barra lateral izquierda</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Un panel grande a la izquierda, dos paneles más pequeños apilados a la derecha.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Triple con barra lateral derecha</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Dos paneles más pequeños apilados a la izquierda, un panel grande a la derecha.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Cuadrícula cuádruple</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Cuatro paneles en una cuadrícula de 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Clic para enfocar</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">El primer clic en un panel sin foco solo lo enfoca, y los paneles sin foco no reaccionan al puntero del mouse. Desactívalo para interactuar con ellos directamente.</string>
+
+    <string name="workspace_settings_rail_button_title">Botón de Butler</string>
+    <string name="workspace_settings_rail_button_desc">Elige dónde se ubica el botón de Butler en el riel de pestañas.</string>
+    <string name="workspace_settings_rail_button_leading">Inicio</string>
+    <string name="workspace_settings_rail_button_leading_desc">Antes de las pestañas en vertical, encima de ellas en horizontal.</string>
+    <string name="workspace_settings_rail_button_trailing">Final</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Después de las pestañas en vertical, debajo de ellas en horizontal. Al alcance del pulgar para el uso con una sola mano.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Sesión</string>
+    <string name="workspace_settings_session_restore_title">Restaurar pestañas al iniciar</string>
+    <string name="workspace_settings_session_restore_desc">Restaura automáticamente las pestañas que estaban abiertas cuando se inicia la aplicación.</string>
+    <string name="workspace_settings_autopause_title">Pausar pestañas inactivas</string>
+    <string name="workspace_settings_autopause_desc">Las pestañas que no has visitado en un tiempo se pausan para ahorrar memoria y batería. Al abrir una, se reanuda.</string>
+    <string name="workspace_settings_autopause_delay_title">Pausar después de</string>
+    <string name="workspace_settings_autopause_delay_desc">Cuánto tiempo permanece una pestaña fuera de vista antes de pausarse.</string>
+    <string name="workspace_settings_undoclose_title">Deshacer cierre de pestañas</string>
+    <string name="workspace_settings_undoclose_desc">Al cerrar una pestaña, se ofrece la opción de recuperarla durante unos segundos.</string>
+    <string name="workspace_settings_session_data_title">Datos de la sesión</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d pestaña • %2$s</item>
+        <item quantity="other">%1$d pestañas • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">Se cerró \"%1$s\"</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Error al restaurar la sesión</string>
+    <string name="workspace_session_restoration_error_description">No se pudo restaurar tu sesión anterior de pestañas. Esto puede deberse a un error que se corregirá en una futura actualización.\n\nPuedes borrar la sesión guardada para seguir usando Butler, o esperar a una actualización.</string>
+    <string name="workspace_session_restoration_error_clear_action">Borrar sesión</string>
+    <string name="workspace_session_restoration_error_report_action">Informar de un problema</string>
+    <string name="workspace_session_restoration_error_confirm_title">¿Borrar sesión?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Esto eliminará permanentemente tu sesión de pestañas guardada. Esta acción no se puede deshacer.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Cambiar nombre de la pestaña</string>
+    <string name="workspace_rename_name_label">Nombre personalizado</string>
+    <string name="workspace_rename_name_hint">Deja vacío para usar el nombre automático</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Límite de pestañas alcanzado</string>
+    <string name="workspace_limit_reached_message">Los usuarios gratuitos pueden tener hasta %1$d pestañas abiertas a la vez. ¡Actualiza a Butler Pro para pestañas ilimitadas!</string>
+    <string name="workspace_limit_pick_tabs_message">Tu plan gratuito permite %1$d pestañas abiertas. Elige las que ya no necesites y ciérralas para hacer espacio.</string>
+    <string name="workspace_limit_no_slot_hint">Cerrar pestañas no liberará un espacio en este momento.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Cerrar %d pestaña</item>
+        <item quantity="other">Cerrar %d pestañas</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Elige al menos %d pestaña para cerrar.</item>
+        <item quantity="other">Elige al menos %d pestañas para cerrar.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Se abrió %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Cambios sin guardar</string>
+    <string name="workspace_limit_blocker_busy">Ocupada en este momento</string>
+    <string name="workspace_limit_blocker_attention">Esperándote</string>
+    <string name="workspace_limit_blocker_loading">Aún cargando</string>
+    <string name="workspace_limit_blocker_awaiting_result">Termina primero el selector abierto</string>
+    <string name="workspace_limit_blocker_unavailable">No se puede cerrar en este momento</string>
+    <string name="workspace_limit_stacked_content_desc">Cerrar esta pestaña también cierra lo que está apilado sobre ella</string>
+    <string name="workspace_limit_pro_description">Abre tantas pestañas como quieras.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d elemento</item>
+        <item quantity="other">%1$d elementos</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Restauración de la papelera</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Restaurar %d elemento de la papelera.</item>
+        <item quantity="other">Restaurar %d elementos de la papelera.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d elemento restaurado</item>
+        <item quantity="other">%d elementos restaurados</item>
+    </plurals>
+</resources>

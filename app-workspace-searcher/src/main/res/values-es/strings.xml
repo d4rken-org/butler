@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Búsqueda</string>
+    <string name="searcher_subtitle">Buscar archivos y contenido</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Configuración de búsqueda</string>
+    <string name="searcher_settings_search_category">Búsqueda</string>
+    <string name="searcher_settings_history">Historial de búsqueda</string>
+    <string name="searcher_settings_save_history_title">Guardar historial de búsqueda</string>
+    <string name="searcher_settings_save_history_subtitle">Recordar búsquedas anteriores</string>
+    <string name="searcher_settings_max_history_label">Máximo de entradas de historial</string>
+    <string name="searcher_settings_max_history_subtitle">Número máximo de búsquedas guardadas</string>
+    <string name="searcher_settings_max_history_input_label">Número de entradas (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Borrar historial de búsqueda</string>
+    <string name="searcher_settings_clear_history_subtitle">Eliminar todas las búsquedas guardadas (%1$d)</string>
+    <string name="searcher_settings_search_performance">Rendimiento</string>
+    <string name="searcher_settings_max_results_title">Máximo de resultados de búsqueda</string>
+    <string name="searcher_settings_max_results_subtitle">Limitar el número de resultados devueltos por búsqueda.</string>
+    <string name="searcher_settings_content_search_category">Búsqueda de contenido</string>
+    <string name="searcher_settings_include_binaries_title">Incluir archivos binarios</string>
+    <string name="searcher_settings_include_binaries_subtitle">Buscar el contenido de archivos binarios (puede ser lento y producir resultados irrelevantes)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Búsquedas recientes</string>
+    <string name="searcher_placeholder_search">Buscar archivos y carpetas</string>
+    <string name="searcher_placeholder_filename">Nombre de archivo</string>
+    <string name="searcher_placeholder_content">Contenido</string>
+    <string name="searcher_search_error">Error de búsqueda</string>
+    <string name="searcher_no_paths_hint">Toca + para agregar ubicaciones de búsqueda</string>
+    <string name="searcher_add_path_action">Agregar ubicación</string>
+    <string name="searcher_add_folder_action">Carpeta…</string>
+    <string name="searcher_multipath_show_fewer_action">Mostrar menos</string>
+    <string name="searcher_empty_state_title">Sin rutas de búsqueda configuradas</string>
+    <string name="searcher_empty_state_description">Agregar ubicaciones de almacenamiento para buscar en tus archivos</string>
+    <string name="searcher_add_default_paths_action">Agregar rutas de búsqueda predeterminadas</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Opciones</string>
+    <string name="searcher_option_case_sensitive_label">Distinguir mayúsculas y minúsculas</string>
+    <string name="searcher_option_case_sensitive_desc">Búsqueda que distingue mayúsculas y minúsculas</string>
+    <string name="searcher_option_whole_word_label">Palabra completa</string>
+    <string name="searcher_option_whole_word_desc">Búsqueda de palabra completa</string>
+    <string name="searcher_option_regex_label">Expresión regular</string>
+    <string name="searcher_option_regex_desc">Búsqueda de expresión regular</string>
+    <string name="searcher_option_search_content_label">Buscar contenido</string>
+    <string name="searcher_option_search_content_desc">Buscar el contenido de los archivos</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Plantillas</string>
+    <string name="searcher_templates_card_title">Plantillas de búsqueda rápida</string>
+    <string name="searcher_template_large_files">Archivos grandes</string>
+    <string name="searcher_template_large_files_desc">Archivos mayores de 100 MB</string>
+    <string name="searcher_template_recent_files">Archivos recientes</string>
+    <string name="searcher_template_recent_files_desc">Modificados en los últimos 7 días</string>
+    <string name="searcher_template_old_files">Archivos antiguos</string>
+    <string name="searcher_template_old_files_desc">No modificados durante más de un año</string>
+    <string name="searcher_template_images">Imágenes</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Vídeos</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Audio</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Documentos</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Archivos</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APKs</string>
+    <string name="searcher_template_apks_desc">Paquetes de aplicaciones Android</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d plantilla</item>
+        <item quantity="other">%d plantillas</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Filtro</string>
+    <string name="searcher_filter_add_action">Agregar filtro</string>
+    <string name="searcher_filter_title">Filtros de búsqueda</string>
+    <string name="searcher_filter_size_section">Tamaño de archivo</string>
+    <string name="searcher_filter_size_min">Tamaño mínimo</string>
+    <string name="searcher_filter_size_max">Tamaño máximo</string>
+    <string name="searcher_filter_date_section">Fecha de modificación</string>
+    <string name="searcher_filter_date_after">Modificado después de</string>
+    <string name="searcher_filter_date_before">Modificado antes de</string>
+    <string name="searcher_filter_date_any">En cualquier momento</string>
+    <string name="searcher_filter_date_24h">Últimas 24 horas</string>
+    <string name="searcher_filter_date_7d">Últimos 7 días</string>
+    <string name="searcher_filter_date_30d">Últimos 30 días</string>
+    <string name="searcher_filter_date_90d">Últimos 90 días</string>
+    <string name="searcher_filter_date_1y">Último año</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">mayor que</string>
+    <string name="searcher_filter_comparator_greater_or_equal">mayor o igual que</string>
+    <string name="searcher_filter_comparator_less_than">menor que</string>
+    <string name="searcher_filter_comparator_less_or_equal">menor o igual que</string>
+    <string name="searcher_filter_comparator_equal">igual a</string>
+    <string name="searcher_filter_size_value_label">Tamaño</string>
+    <string name="searcher_filter_size_at_least">Por lo menos</string>
+    <string name="searcher_filter_size_at_most">Como máximo</string>
+    <string name="searcher_filter_size_value_hint">p. ej. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Introduce un número con una unidad (KB, MB, GB). Un número sin unidad se trata como MB.</string>
+    <string name="searcher_filter_size_format_error">Tamaño inválido — usa un número y una unidad, p. ej. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Fecha</string>
+    <string name="searcher_filter_date_direction_after">Después de</string>
+    <string name="searcher_filter_date_direction_before">Antes de</string>
+    <string name="searcher_filter_type_label">Tipo</string>
+    <string name="searcher_filter_type_files">Archivos</string>
+    <string name="searcher_filter_type_directories">Carpetas</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Eliminar del historial</string>
+    <string name="searcher_history_clear_all_action">Borrar todo</string>
+    <string name="searcher_history_clear_dialog_title">Borrar historial de búsqueda</string>
+    <string name="searcher_history_clear_dialog_message">Esto eliminará todo el historial de búsqueda guardado. Esta acción no se puede deshacer.</string>
+    <string name="searcher_history_clear_confirm_action">Borrar</string>
+    <string name="searcher_history_cleared_success">Historial de búsqueda eliminado</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">Sin resultados</item>
+        <item quantity="one">%d resultado</item>
+        <item quantity="other">%d resultados</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">Mostrar %d más</item>
+        <item quantity="other">Mostrar %d más</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Buscando</string>
+    <string name="searcher_progress_action_searched">Buscado</string>
+    <string name="searcher_progress_status_completed_with_errors">Completado con errores</string>
+    <string name="searcher_result_limit_reached">Se alcanzó el límite de resultados</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Algunos elementos no pudieron ser completamente buscados</string>
+    <string name="searcher_progress_clear_action">Borrar</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d falló</item>
+        <item quantity="other">%d fallaron</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">%d elemento no pudo ser accedido</item>
+        <item quantity="other">%d elementos no pudieron ser accedidos</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…y %d más</item>
+        <item quantity="other">…y %d más</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android protege estas ubicaciones. Acceso adicional permite que Butler las busque.</string>
+    <string name="searcher_access_sheet_body_protected">Android protege estas ubicaciones. No hay forma de otorgar acceso en este dispositivo.</string>
+    <string name="searcher_access_sheet_unlock_action">Desbloquear acceso</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d ubicación</item>
+        <item quantity="other">%d ubicaciones</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d escaneado</item>
+        <item quantity="other">%d escaneados</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d encontrado</item>
+        <item quantity="other">%d encontrados</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Contexto de coincidencia</string>
+    <string name="searcher_match_line_label">Línea %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Abrir</string>
+    <string name="searcher_action_open_in_tab">Abrir en nueva pestaña</string>
+    <string name="searcher_action_open_with">Abrir con</string>
+    <string name="searcher_action_open_in_editor">Abrir en editor</string>
+    <string name="searcher_action_open_in_explorer">Abrir en explorador</string>
+    <string name="searcher_action_install">Instalar</string>
+    <string name="searcher_action_copy">Copiar</string>
+    <string name="searcher_action_cut">Cortar</string>
+    <string name="searcher_action_delete">Eliminar</string>
+    <string name="searcher_action_copy_path">Copiar ruta</string>
+    <string name="searcher_action_properties">Propiedades</string>
+    <string name="searcher_action_select_all">Seleccionar todo</string>
+    <string name="searcher_action_deselect_all">Deseleccionar todo</string>
+    <string name="searcher_action_open_in_new_tabs">Abrir en pestañas nuevas</string>
+    <string name="searcher_action_sort">Ordenar</string>
+    <string name="searcher_action_view">Vista</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Ordenar por</string>
+    <string name="searcher_sort_mode_name_label">Nombre</string>
+    <string name="searcher_sort_mode_size_label">Tamaño</string>
+    <string name="searcher_sort_mode_modified_label">Fecha de modificación</string>
+    <string name="searcher_sort_mode_created_label">Fecha de creación</string>
+    <string name="searcher_sort_mode_path_label">Ruta</string>
+    <string name="searcher_sort_descending_label">Orden descendente</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Cómo se organizan los elementos y cuánto detalle muestran</string>
+    <string name="searcher_view_mode_list_label">Lista</string>
+    <string name="searcher_view_mode_grid_label">Cuadrícula</string>
+    <string name="searcher_view_density_compact_label">Compacto</string>
+    <string name="searcher_view_density_comfortable_label">Cómodo</string>
+    <string name="searcher_view_density_detailed_label">Detallado</string>
+    <string name="searcher_view_detail_modified_label">Modificado</string>
+    <string name="searcher_view_set_default_action">Establecer como predeterminado</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Se requiere configuración adicional para buscar algunas ubicaciones.</string>
+</resources>
