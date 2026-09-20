@@ -1,0 +1,679 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Explorer</string>
+    <string name="explorer_subtitle">Sfoglia file e cartelle</string>
+    <string name="explorer_settings_title">Impostazioni Explorer</string>
+    <string name="explorer_settings_file_display">Visualizzazione file</string>
+    <string name="explorer_settings_filter_regex_title">Corrispondenza avanzata dei caratteri jolly</string>
+    <string name="explorer_settings_filter_regex_desc">Usa espressioni regolari nei filtri di inclusione/esclusione.</string>
+    <string name="explorer_settings_navigation">Navigazione</string>
+    <string name="explorer_settings_back_button_title">Navigazione con il pulsante Indietro</string>
+    <string name="explorer_settings_back_button_desc">Naviga nella cronologia con il pulsante o il gesto Indietro.</string>
+    <string name="explorer_settings_trash_category">Cestino</string>
+    <string name="explorer_settings_trash_enabled_title">Attiva cestino</string>
+    <string name="explorer_settings_trash_enabled_desc">Sposta i file eliminati nel cestino invece di eliminarli definitivamente</string>
+    <string name="explorer_settings_trash_auto_delete_title">Eliminazione automatica dopo</string>
+    <string name="explorer_settings_trash_auto_delete_desc">Elimina automaticamente gli elementi più vecchi di %d giorni</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d giorni</string>
+    <string name="explorer_settings_trash_max_size_title">Dimensione massima per archiviazione</string>
+    <string name="explorer_settings_trash_max_size_desc">Massimo %d MB per posizione di archiviazione</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Periodo di eliminazione automatica</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Dimensione massima per archiviazione</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Attivare il cestino?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">A differenza dei sistemi desktop, Android non ha un cestino integrato. Butler ne fornisce uno usando la sua cartella cache.\n\nTieni presente quanto segue:\n• L’indicatore di spazio del tuo dispositivo non riflette lo spazio liberato finché gli elementi non vengono eliminati definitivamente\n• Se lo spazio sul tuo dispositivo scarseggia, Android potrebbe svuotare la cache delle app, rimuovendo i file nel cestino</string>
+    <string name="explorer_settings_trash_enable_action">Attiva</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">File</string>
+    <string name="explorer_file_symlink_content_desc">Collegamento simbolico</string>
+    <string name="explorer_file_folder_content_desc">Cartella</string>
+    <string name="explorer_file_peek_content_desc">Caricamento informazioni file</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Collegamento</string>
+    <string name="explorer_file_storage_local_label">Locale</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Accesso in sola lettura</string>
+    <string name="explorer_file_storage_saf_write_only_label">Accesso in sola scrittura</string>
+    <string name="explorer_file_storage_saf_no_access_label">Nessun accesso</string>
+    <string name="explorer_file_storage_saf_uri_label">URI albero SAF</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s totali • %3$s liberi</string>
+    <string name="explorer_file_broken_link_label">Collegamento interrotto</string>
+    <string name="explorer_file_items_count">%1$d elementi</string>
+    <string name="explorer_file_empty">Vuoto</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · parziale</string>
+    <string name="explorer_sizes_estimate_description">Stimato dai totali di archiviazione di Android. Per i file non leggibili, lo spazio occupato viene usato come stima della dimensione del file. Potrebbero essere inclusi anche i file nascosti gestiti da Android. Altre posizioni non leggibili restano sconosciute.</string>
+    <string name="explorer_sizes_estimate_coverage">Non è stato possibile stimare Android/data perché altre parti dell’archiviazione non sono state misurate completamente.</string>
+    <string name="explorer_sizes_estimate_unavailable">Le statistiche di archiviazione di Android non erano disponibili. Le dimensioni misurate vengono comunque mostrate.</string>
+    <string name="explorer_sizes_estimate_inconsistent">I totali di archiviazione di Android non corrispondevano alla scansione. Le dimensioni misurate vengono comunque mostrate.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Seleziona cartella</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="one">Seleziona cartella (%d)</item>
+        <item quantity="other">Seleziona cartelle (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Seleziona file</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="one">Seleziona file (%d)</item>
+        <item quantity="other">Seleziona file (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="one">Seleziona elemento (%d)</item>
+        <item quantity="other">Seleziona elementi (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Seleziona questa cartella</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">Seleziona %d</item>
+        <item quantity="other">Seleziona %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Salva file</string>
+    <string name="explorer_picker_save_here_action">Salva qui</string>
+    <string name="explorer_picker_save_as_filename_label">Nome file</string>
+    <string name="explorer_picker_save_as_filename_hint">Inserisci il nome del file</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Aggiorna</string>
+    <string name="explorer_action_calculate_sizes">Calcola dimensioni</string>
+    <string name="explorer_action_sort">Ordina</string>
+    <string name="explorer_action_filter">Filtra</string>
+    <string name="explorer_action_view">Layout</string>
+    <string name="explorer_action_create">Crea</string>
+    <string name="explorer_action_rename">Rinomina</string>
+    <string name="explorer_action_copy">Copia</string>
+    <string name="explorer_action_cut">Taglia</string>
+    <string name="explorer_action_delete">Elimina</string>
+    <string name="explorer_action_select_all">Seleziona tutto</string>
+    <string name="explorer_action_deselect_all">Deseleziona tutto</string>
+    <string name="explorer_action_compress">Comprimi</string>
+    <string name="explorer_action_extract">Estrai</string>
+    <string name="explorer_action_add_location">Aggiungi posizione</string>
+    <string name="explorer_action_info">Info</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Informazioni</string>
+    <string name="explorer_info_name_label">Nome</string>
+    <string name="explorer_info_path_label">Percorso</string>
+    <string name="explorer_info_type_label">Tipo</string>
+    <string name="explorer_info_type_file">File</string>
+    <string name="explorer_info_type_directory">Directory</string>
+    <string name="explorer_info_size_label">Dimensione</string>
+    <string name="explorer_info_modified_label">Modificato</string>
+    <string name="explorer_info_created_label">Creato</string>
+    <string name="explorer_info_permissions_label">Permessi</string>
+    <string name="explorer_info_owner_label">Proprietario</string>
+    <string name="explorer_info_child_count_label">Elementi</string>
+    <string name="explorer_info_symlink_target_label">Destinazione</string>
+    <string name="explorer_info_symlink_status_label">Stato</string>
+    <string name="explorer_info_symlink_broken">Collegamento interrotto</string>
+    <string name="explorer_info_unknown">Sconosciuto</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Eliminato</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Permessi</string>
+    <string name="explorer_info_saf_granted_label">Concesso</string>
+    <string name="explorer_info_saf_permission_read">Lettura</string>
+    <string name="explorer_info_saf_permission_write">Scrittura</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Server</string>
+    <string name="explorer_info_network_port_label">Porta</string>
+    <string name="explorer_info_network_share_label">Condivisione</string>
+    <string name="explorer_info_network_folder_label">Cartella</string>
+    <string name="explorer_info_network_address_label">Indirizzo</string>
+    <string name="explorer_info_network_status_label">Stato</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Accesso</string>
+    <string name="explorer_info_network_domain_label">Dominio</string>
+    <string name="explorer_info_network_password_label">Password</string>
+    <string name="explorer_info_network_password_show_action">Mostra password</string>
+    <string name="explorer_info_network_password_hide_action">Nascondi password</string>
+    <string name="explorer_info_network_password_missing">Mancante, accedi di nuovo</string>
+    <string name="explorer_info_network_password_locked">Salvata, ma questo dispositivo non può sbloccarla</string>
+    <string name="explorer_info_network_added_label">Aggiunto</string>
+    <string name="explorer_info_network_updated_label">Aggiornato</string>
+    <string name="explorer_info_network_last_seen_label">Ultimo rilevamento</string>
+    <string name="explorer_info_network_last_seen_never">Mai</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Selezionati</string>
+    <string name="explorer_info_files_label">File</string>
+    <string name="explorer_info_directories_label">Directory</string>
+    <string name="explorer_info_total_size_label">Dimensione totale</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Posizioni</string>
+    <string name="explorer_info_shortcuts_label">Collegamenti</string>
+    <string name="explorer_info_total_capacity_label">Capacità totale</string>
+    <string name="explorer_info_used_space_label">Spazio usato</string>
+    <string name="explorer_info_free_space_label">Spazio libero</string>
+    <string name="explorer_info_usage_label">Utilizzo</string>
+    <string name="explorer_info_device_storage_total_label">Archiviazione del dispositivo</string>
+    <string name="explorer_info_device_storage_used_label">Usato</string>
+    <string name="explorer_info_device_storage_free_label">Libero</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Home</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Imposta come home</string>
+    <string name="explorer_breadcrumb_copy_path_action">Copia percorso</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Percorso copiato negli appunti</string>
+    <string name="explorer_navigation_device">Dispositivo</string>
+    <string name="explorer_navigation_network">Rete</string>
+    <string name="explorer_navigation_recent">Recenti</string>
+    <string name="explorer_navigation_recent_desc">File comparsi di recente su questo dispositivo</string>
+    <string name="explorer_navigation_trash">Cestino</string>
+    <string name="explorer_navigation_trash_desc">Ripristina i file eliminati</string>
+    <string name="explorer_navigation_trash_nested_desc">All’interno della cartella nel cestino</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Nessun elemento eliminato</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d elemento</item>
+        <item quantity="other">%d elementi</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Ripristina</string>
+    <string name="explorer_trash_restore_selected_action">Ripristina selezionati</string>
+    <string name="explorer_trash_delete_permanently_action">Elimina definitivamente</string>
+    <string name="explorer_trash_delete_selected_action">Elimina selezionati</string>
+    <string name="explorer_trash_empty_trash_action">Svuota cestino</string>
+    <string name="explorer_trash_empty_confirm">Svuotare il cestino?</string>
+    <string name="explorer_trash_empty_message">Tutti gli elementi nel cestino verranno eliminati definitivamente. Questa azione non può essere annullata.</string>
+    <string name="explorer_trash_empty_confirm_action">Svuota cestino</string>
+    <string name="explorer_trash_restore_desc">Ripristina nella posizione originale</string>
+    <string name="explorer_trash_item_unavailable">Elemento non disponibile</string>
+    <string name="explorer_trash_delete_warning">Questa azione non può essere annullata</string>
+    <string name="explorer_trash_disabled_warning">Cestino disattivato</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Caricamento del contenuto della cartella nel cestino…</string>
+    <string name="explorer_trash_nested_restore_action">Ripristina nella posizione originale</string>
+    <string name="explorer_trash_nested_delete_action">Elimina definitivamente</string>
+    <string name="explorer_trash_nested_restore_conflict">Il file esiste già nella posizione originale</string>
+    <string name="explorer_trash_nested_parent_missing">L’elemento principale non esiste più nel cestino</string>
+    <string name="explorer_trash_nested_path_missing">Il percorso non esiste più</string>
+    <string name="explorer_trash_error_items_not_found">Elementi non trovati nel cestino</string>
+    <string name="explorer_trash_error_restore_failed">Impossibile ripristinare gli elementi</string>
+    <string name="explorer_trash_error_delete_failed">Impossibile eliminare gli elementi</string>
+    <string name="explorer_trash_nested_error_restore_failed">Impossibile ripristinare %1$s</string>
+    <string name="explorer_trash_nested_error_delete_failed">Impossibile eliminare %1$s</string>
+
+    <string name="explorer_navigation_root">Directory radice</string>
+    <string name="explorer_navigation_rom">ROM di sistema</string>
+    <string name="explorer_navigation_internal_storage">Archiviazione pubblica interna</string>
+    <string name="explorer_navigation_external_storage">Archiviazione pubblica esterna</string>
+
+    <string name="explorer_loader_progress_directory_loading">Esplorazione di %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Controllo permessi</string>
+    <string name="explorer_loader_progress_directory_filesystem">Recupero informazioni sul file system</string>
+    <string name="explorer_loader_progress_directory_content">Caricamento contenuto cartella</string>
+    <string name="explorer_loader_progress_directory_content_details">Caricamento dettagli contenuto</string>
+    <string name="explorer_loader_progress_directory_content_extended">Caricamento dettagli estesi del contenuto</string>
+
+    <string name="explorer_loader_progress_device_loading">Caricamento dispositivo</string>
+    <string name="explorer_loader_progress_device_locations">Caricamento posizioni di archiviazione</string>
+
+    <string name="explorer_loader_progress_network_loading">Caricamento archiviazione di rete</string>
+
+    <string name="explorer_loader_progress_home_loading">Caricamento home</string>
+    <string name="explorer_loader_progress_trash_loading">Caricamento cestino…</string>
+    <string name="explorer_loader_progress_recent_loading">Caricamento file recenti…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d collegamento</item>
+        <item quantity="other">%d collegamenti</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d posizione</item>
+        <item quantity="other">%d posizioni</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d nascosto</item>
+        <item quantity="other">%d nascosti</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s liberi</string>
+    <string name="explorer_infobar_loading">Caricamento…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Crea nuovo elemento</string>
+    <string name="explorer_dialog_rename_title">Rinomina</string>
+    <string name="explorer_dialog_name_label">Nome</string>
+    <string name="explorer_dialog_type_label">Tipo</string>
+    <string name="explorer_dialog_type_folder">Cartella</string>
+    <string name="explorer_dialog_type_file">File</string>
+    <string name="explorer_dialog_create_text_file_title">Crea file da testo</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Anteprima</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d caratteri</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Aggiungi posizione di archiviazione</string>
+    <string name="explorer_add_device_storage_desc">Usa lo Storage Access Framework (SAF) per concedere a Butler l’accesso a posizioni di archiviazione aggiuntive come unità USB, cartelle virtuali delle app e altro ancora.</string>
+    <string name="explorer_add_device_storage_continue">Continua</string>
+    <string name="explorer_add_device_storage_cancel">Annulla</string>
+    <string name="explorer_add_device_storage_suggestions_title">App con archiviazione</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Apre la cartella di quest’app</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Rimuovi posizione</string>
+    <string name="explorer_device_remove_confirmation_title">Rimuovere la posizione di archiviazione?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">Rimuovere %1$d posizione di archiviazione?</item>
+        <item quantity="other">Rimuovere %1$d posizioni di archiviazione?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Questo revocherà l’accesso di Butler a questa posizione. I tuoi file non verranno eliminati.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d posizione di rete</item>
+        <item quantity="other">%d posizioni di rete</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Rete</string>
+    <string name="explorer_network_add_location_action">Aggiungi archiviazione di rete</string>
+    <string name="explorer_network_edit_location_action">Modifica archiviazione di rete</string>
+    <string name="explorer_network_remove_location_action">Rimuovi archiviazione di rete</string>
+    <string name="explorer_network_sign_in_required_label">Accesso richiesto</string>
+    <string name="explorer_network_status_checking_label">Verifica in corso…</string>
+    <string name="explorer_network_status_available_label">Disponibile</string>
+    <string name="explorer_network_status_unavailable_label">Non disponibile</string>
+    <string name="explorer_network_status_unavailable_since_format">Non disponibile (%1$s)</string>
+    <string name="explorer_network_empty_title">Ancora nessuna archiviazione di rete</string>
+    <string name="explorer_network_empty_caption">Aggiungi una condivisione Windows o una cartella NAS per sfogliarla qui.</string>
+    <string name="explorer_network_remove_confirmation_title">Rimuovere l’archiviazione di rete?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">Rimuovere %1$d archiviazione di rete?</item>
+        <item quantity="other">Rimuovere %1$d archiviazioni di rete?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler dimentica i dettagli del server e la password salvata. Nulla viene eliminato dal server.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Aggiungi archiviazione di rete</string>
+    <string name="explorer_network_form_edit_title">Modifica archiviazione di rete</string>
+    <string name="explorer_network_form_label_label">Nome (opzionale)</string>
+    <string name="explorer_network_form_host_label">Indirizzo server</string>
+    <string name="explorer_network_form_host_hint">nas.local o 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Porta</string>
+    <string name="explorer_network_form_share_label">Condivisione</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Cartella all’interno della condivisione (opzionale)</string>
+    <string name="explorer_network_form_auth_guest">Ospite</string>
+    <string name="explorer_network_form_auth_password">Nome utente e password</string>
+    <string name="explorer_network_form_username_label">Nome utente</string>
+    <string name="explorer_network_form_domain_label">Dominio (opzionale)</string>
+    <string name="explorer_network_form_password_label">Password</string>
+    <string name="explorer_network_form_password_kept_hint">Lascia vuoto per mantenere la password salvata</string>
+    <string name="explorer_network_form_remember_label">Ricorda password</string>
+    <string name="explorer_network_form_remember_hint">Salvata in modo crittografato solo su questo dispositivo</string>
+    <string name="explorer_network_form_test_and_save_action">Verifica e salva</string>
+    <string name="explorer_network_form_testing">Connessione in corso…</string>
+    <string name="explorer_network_form_error_host_blank">Inserisci un indirizzo server</string>
+    <string name="explorer_network_form_error_host_not_bare">Inserisci solo l’indirizzo del server, senza schema o percorso</string>
+    <string name="explorer_network_form_error_host_malformed">Non è un indirizzo server valido</string>
+    <string name="explorer_network_form_error_port">Inserisci una porta compresa tra 1 e 65535</string>
+    <string name="explorer_network_form_error_share_blank">Inserisci un nome di condivisione</string>
+    <string name="explorer_network_form_error_share_not_single">Inserisci solo il nome della condivisione, indica le sottocartelle più sotto</string>
+    <string name="explorer_network_form_error_share_malformed">Non è un nome di condivisione valido</string>
+    <string name="explorer_network_form_error_base_path">Questo percorso di cartella non può essere usato</string>
+    <string name="explorer_network_form_error_username_blank">Inserisci un nome utente</string>
+    <string name="explorer_network_form_error_password_required">Inserisci di nuovo la password per modificare il nome utente o il dominio</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Assegna nome alla posizione</string>
+    <string name="explorer_location_name_label">Nome posizione</string>
+    <string name="explorer_location_name_hint">Lascia vuoto per usare il nome predefinito</string>
+    <string name="explorer_location_rename_action">Rinomina posizione</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Aggiunto nell’ultimo giorno</item>
+        <item quantity="other">Aggiunto negli ultimi %d giorni</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Niente di nuovo qui</string>
+    <string name="explorer_recent_empty_message">I file che compaiono su questo dispositivo vengono mostrati qui</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Questa cartella è vuota</string>
+    <string name="explorer_empty_search_title">Nessun risultato di ricerca</string>
+    <string name="explorer_empty_search_caption">Prova un termine di ricerca diverso</string>
+    <string name="explorer_empty_folder_label">Cartella vuota</string>
+    <string name="explorer_empty_filtered_title">Nessun elemento corrispondente</string>
+    <string name="explorer_empty_filtered_caption">Prova a modificare i filtri</string>
+    <string name="explorer_empty_hidden_title">Qui ci sono solo elementi nascosti</string>
+    <string name="explorer_empty_hidden_caption">Questa scheda nasconde gli elementi il cui nome inizia con un punto</string>
+    <string name="explorer_empty_show_hidden_action">Mostra elementi nascosti</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Niente altro da mostrare</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Gli elementi nascosti e i tuoi filtri escludono ciascuno una parte di questa cartella</string>
+    <string name="explorer_empty_clear_filters_action">Cancella filtri</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Gli elementi nascosti e i filtri escludono tutto qui</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Mostrare gli elementi nascosti e cancellare i filtri di questa scheda li fa tornare visibili</string>
+    <string name="explorer_empty_show_all_action">Mostra tutti gli elementi</string>
+    <string name="explorer_path_not_found_title">Questa cartella non esiste più</string>
+    <string name="explorer_path_not_found_caption">È stata eliminata, rinominata o spostata altrove.</string>
+    <string name="explorer_path_not_found_back_action">Torna indietro</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Caricamento…</string>
+    <string name="explorer_file_peek_loading_text">Caricamento…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Niente da vedere qui… circolare 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Questa cartella è a dieta</string>
+    <string name="explorer_empty_folder_caption_3">Anche i file oggi sono tornati a casa presto</string>
+    <string name="explorer_empty_folder_caption_4">Cartella.exe ha smesso di funzionare</string>
+    <string name="explorer_empty_folder_caption_5">I file stanno giocando a nascondino</string>
+    <string name="explorer_empty_folder_caption_6">404: file non trovati</string>
+    <string name="explorer_empty_folder_caption_7">Questa cartella ha problemi di fiducia</string>
+    <string name="explorer_empty_folder_caption_8">I file sono andati in vacanza senza preavviso</string>
+    <string name="explorer_empty_folder_caption_9">Vuota come la mia anima… ma più organizzata</string>
+    <string name="explorer_empty_folder_caption_10">L’equivalente digitale dei cespugli rotolanti</string>
+    <string name="explorer_empty_folder_caption_11">I file mantengono il distanziamento sociale</string>
+    <string name="explorer_empty_folder_caption_12">Questa cartella pratica il minimalismo</string>
+    <string name="explorer_empty_folder_caption_13">Qualcuno si è dimenticato di dar da mangiare ai file</string>
+    <string name="explorer_empty_folder_caption_14">I file hanno lasciato l’edificio</string>
+    <string name="explorer_empty_folder_caption_15">Più vuota di una promessa elettorale</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Ordina per</string>
+    <string name="explorer_sort_mode_name_label">Nome</string>
+    <string name="explorer_sort_mode_size_label">Dimensione</string>
+    <string name="explorer_sort_mode_modified_label">Data di modifica</string>
+    <string name="explorer_sort_mode_created_label">Data di creazione</string>
+    <string name="explorer_sort_descending_label">Ordine decrescente</string>
+    <string name="explorer_sort_scope_label">Applica a</string>
+    <string name="explorer_sort_scope_all_folders">Tutte le cartelle</string>
+    <string name="explorer_sort_scope_this_folder">Questa cartella</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Questa cartella e le sottocartelle</string>
+    <string name="explorer_sort_scope_use_default_here">Usa il valore predefinito qui</string>
+    <string name="explorer_sort_only_this_tab_label">Solo per questa scheda</string>
+    <string name="explorer_sort_inherited_notice">Ordinato secondo una regola salvata per %1$s</string>
+    <string name="explorer_sort_suppressed_notice">Questo sostituisce la regola salvata per %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Questa scheda usa un proprio ordinamento predefinito</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Cancella</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Dimensioni cartelle</string>
+    <string name="explorer_sizes_sheet_label_calculated">Calcolato</string>
+    <string name="explorer_sizes_sheet_label_folders">Cartelle</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Posizioni non leggibili</string>
+    <string name="explorer_sizes_sheet_problems_more">Altri %1$d non elencati</string>
+    <string name="explorer_sizes_sheet_recalculate">Ricalcola</string>
+    <string name="explorer_sizes_sheet_discard">Scarta dimensioni</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Come sono disposti gli elementi e quanti dettagli mostrano</string>
+    <string name="explorer_view_mode_list_label">Elenco</string>
+    <string name="explorer_view_mode_grid_label">Griglia</string>
+    <string name="explorer_view_density_compact_label">Compatta</string>
+    <string name="explorer_view_density_comfortable_label">Comoda</string>
+    <string name="explorer_view_density_detailed_label">Dettagliata</string>
+    <string name="explorer_view_show_hidden_label">Mostra file nascosti</string>
+    <string name="explorer_view_set_default_action">Imposta come predefinito</string>
+    <string name="explorer_view_detail_created_label">Creato</string>
+    <string name="explorer_view_detail_modified_label">Modificato</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Regole di ordinamento cartelle</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Impostazioni di ordinamento salvate per singole cartelle</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Cancellare le regole di ordinamento delle cartelle?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Tutte le cartelle tornano all’ordinamento predefinito. Le schede con un proprio ordinamento personalizzato lo mantengono. Questa azione non può essere annullata.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Cancella tutto</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Tipo di file</string>
+    <string name="explorer_filter_type_all">Tutti</string>
+    <string name="explorer_filter_type_files">Solo file</string>
+    <string name="explorer_filter_type_folders">Solo cartelle</string>
+    <string name="explorer_filter_include_label">Pattern di inclusione</string>
+    <string name="explorer_filter_include_placeholder_simple">es. vacanza, rapporto, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">es. .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Pattern di esclusione</string>
+    <string name="explorer_filter_exclude_placeholder_simple">es. tmp, cache, old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">es. ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Attiva le espressioni regolari nelle impostazioni</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Permesso necessario</string>
+    <string name="explorer_permission_generic_description">Butler ha bisogno di un permesso aggiuntivo per sfogliare questa posizione.</string>
+    <string name="explorer_permission_setup_action">Apri configurazione</string>
+    <string name="explorer_grant_access_action">Concedi accesso</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Azioni</string>
+    <string name="explorer_file_info_type_label">Tipo</string>
+    <string name="explorer_file_info_size_label">Dimensione</string>
+    <string name="explorer_file_info_modified_label">Modificato</string>
+    <string name="explorer_file_action_install">Installa</string>
+    <string name="explorer_file_action_install_subtitle">Installa quest’app sul tuo dispositivo</string>
+    <string name="explorer_file_action_open">Apri</string>
+    <string name="explorer_file_action_open_subtitle">Visualizza qui, Indietro torna a questa cartella</string>
+    <string name="explorer_file_action_open_in_tab">Apri in una nuova scheda</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Visualizza in Butler come scheda a sé stante</string>
+    <string name="explorer_file_action_open_in_editor">Apri nell’editor</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Modifica in una nuova scheda</string>
+    <string name="explorer_file_action_open_with">Apri con</string>
+    <string name="explorer_file_action_open_with_subtitle">Scegli un’app esterna con cui aprire</string>
+    <string name="explorer_file_action_share">Condividi</string>
+    <string name="explorer_file_action_share_subtitle">Condividi tramite le app installate</string>
+    <string name="explorer_file_action_copy">Copia</string>
+    <string name="explorer_file_action_copy_subtitle">Copia negli appunti per incollarlo</string>
+    <string name="explorer_file_action_cut">Taglia</string>
+    <string name="explorer_file_action_cut_subtitle">Sposta negli appunti per incollarlo</string>
+    <string name="explorer_file_action_rename">Rinomina</string>
+    <string name="explorer_file_action_rename_subtitle">Cambia il nome del file</string>
+    <string name="explorer_file_action_delete">Elimina</string>
+    <string name="explorer_file_action_delete_subtitle">Rimuovi definitivamente questo file</string>
+    <string name="explorer_file_action_move_to_trash">Sposta nel cestino</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Sposta il file nel cestino</string>
+    <string name="explorer_file_action_properties">Proprietà</string>
+    <string name="explorer_file_action_properties_subtitle">Visualizza informazioni dettagliate sul file</string>
+    <string name="explorer_file_action_extract">Estrai</string>
+    <string name="explorer_file_action_extract_subtitle">Estrai il contenuto dell’archivio in una cartella</string>
+    <string name="explorer_file_action_show_in_folder">Mostra nella cartella</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Apri la cartella che contiene questo file</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">%d file creato.</item>
+        <item quantity="other">%d file creati.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">%d directory creata.</item>
+        <item quantity="other">%d directory create.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Operazione di copia</string>
+    <string name="explorer_operation_copy_description_single">Copia \"%1$s\" da \"%2$s\" a \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">Copia %1$d elemento in \"%2$s\".</item>
+        <item quantity="other">Copia %1$d elementi in \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%d file copiato.</item>
+        <item quantity="other">%d file copiati.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%d directory copiata.</item>
+        <item quantity="other">%d directory copiate.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">%s copiati.</item>
+        <item quantity="other">%s copiati.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Operazione di estrazione</string>
+    <string name="explorer_operation_extract_description">Estrai \"%1$s\" in \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Operazione di copia locale</string>
+    <string name="explorer_operation_download_copy_description">Copia \"%1$s\" in \"%2$s\" per la navigazione locale.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">%d file estratto.</item>
+        <item quantity="other">%d file estratti.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">%s estratti.</item>
+        <item quantity="other">%s estratti.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Operazione di compressione</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">Comprimi %1$d elemento in \"%2$s\".</item>
+        <item quantity="other">Comprimi %1$d elementi in \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">%d file compresso.</item>
+        <item quantity="other">%d file compressi.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Crea archivio</string>
+    <string name="explorer_compress_dialog_name_label">Nome archivio</string>
+    <string name="explorer_compress_dialog_format_label">Formato</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Si apre su qualsiasi dispositivo. Può essere protetto da password.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Più compatto con molti file. Nessuna protezione con password.</string>
+    <string name="explorer_compress_dialog_create_action">Crea</string>
+    <string name="explorer_compress_dialog_level_label">Livello di compressione</string>
+    <string name="explorer_compress_dialog_level_fast">Veloce</string>
+    <string name="explorer_compress_dialog_level_normal">Normale</string>
+    <string name="explorer_compress_dialog_level_best">Massima</string>
+    <string name="explorer_compress_dialog_password_label">Password (opzionale)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Conferma password</string>
+    <string name="explorer_compress_dialog_password_mismatch">Le password non corrispondono</string>
+    <string name="explorer_compress_dialog_password_weak">Password debole</string>
+    <string name="explorer_compress_dialog_password_notice">Il contenuto dei file è crittografato, i nomi dei file no.</string>
+    <string name="explorer_compress_dialog_password_show">Mostra password</string>
+    <string name="explorer_compress_dialog_password_hide">Nascondi password</string>
+    <string name="explorer_compress_dialog_overwrite_title">Sostituire l’archivio?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" esiste già e verrà sostituito.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Sostituisci</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">Rilasciare %1$d elemento?</item>
+        <item quantity="other">Rilasciare %1$d elementi?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">Copiare o spostare %1$d elemento in \"%2$s\"?</item>
+        <item quantity="other">Copiare o spostare %1$d elementi in \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">Copiare %1$d elemento in \"%2$s\"?</item>
+        <item quantity="other">Copiare %1$d elementi in \"%2$s\"?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Spostare nel cestino?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">Spostare %1$d elemento nel cestino?</item>
+        <item quantity="other">Spostare %1$d elementi nel cestino?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Operazione di spostamento</string>
+    <string name="explorer_operation_move_description_single">Sposta \"%1$s\" da \"%2$s\" a \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">Sposta %1$d elemento in \"%2$s\".</item>
+        <item quantity="other">Sposta %1$d elementi in \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%d file spostato.</item>
+        <item quantity="other">%d file spostati.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%d directory spostata.</item>
+        <item quantity="other">%d directory spostate.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">%s spostati.</item>
+        <item quantity="other">%s spostati.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Creazione cartella</string>
+    <string name="explorer_operation_create_description_directory">Crea la cartella \"%1$s\" in \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Creazione file</string>
+    <string name="explorer_operation_create_description_file">Crea il file \"%1$s\" in \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Creazione file di testo</string>
+    <string name="explorer_operation_create_text_file_description">Crea \"%1$s\" da frammento di testo</string>
+    <string name="explorer_operation_calculate_sizes_title">Calcolo dimensioni</string>
+    <string name="explorer_operation_calculate_sizes_description">Calcola le dimensioni delle cartelle in \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$d elemento analizzato</item>
+        <item quantity="other">%1$d elementi analizzati</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Calcolate le dimensioni di %1$d cartelle.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">Calcolate le dimensioni di %1$d cartelle, non è stato possibile leggere %2$d posizione.</item>
+        <item quantity="other">Calcolate le dimensioni di %1$d cartelle, non è stato possibile leggere %2$d posizioni.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Le dimensioni delle cartelle per \"%1$s\" sono state scartate perché è cambiata durante il calcolo.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Navigazione non riuscita</string>
+    <string name="explorer_aborted_dialog_title">Operazione interrotta</string>
+    <string name="explorer_aborted_dialog_message">Il caricamento è stato annullato prima che si potesse mostrare qualcosa.</string>
+    <string name="explorer_archive_unbrowsable_title">Impossibile sfogliare l’archivio qui</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" si trova su un’archiviazione che supporta solo la lettura sequenziale, ma sfogliare un archivio richiede accesso casuale. Estrai qui l’archivio, oppure scarica una copia locale per sfogliarlo.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Estrai archivio</string>
+    <string name="explorer_archive_unbrowsable_download_action">Scarica copia locale</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (accesso speciale)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (accesso speciale)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android limita l’accesso a questa cartella. Usa il selettore di cartelle per concedere l’accesso.</string>
+    <string name="explorer_permission_multiple_options_description">Puoi concedere l’accesso usando il selettore di cartelle di Android oppure configurare Root/Shizuku per un accesso più rapido a tutte le cartelle con restrizioni.</string>
+    <string name="explorer_permission_setup_both_description">Questa cartella richiede accesso con privilegi elevati. Installa e configura Root oppure Shizuku nella configurazione.</string>
+    <string name="explorer_permission_setup_shizuku_description">Questa cartella richiede accesso con privilegi elevati tramite Shizuku. Installa Shizuku Manager e configuralo nella configurazione.</string>
+    <string name="explorer_permission_setup_root_description">Questa cartella richiede accesso Root. Configura Root nella configurazione se il tuo dispositivo ha eseguito il root.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Usa il selettore di cartelle di Android per concedere l’accesso a questa cartella.</string>
+    <string name="explorer_permission_option_picker_action">Apri selettore SAF</string>
+
+    <string name="explorer_permission_option_setup_title">Accesso completo</string>
+    <string name="explorer_permission_option_setup_description">Configura Root o Shizuku per un accesso più rapido a tutte le cartelle con restrizioni.</string>
+    <string name="explorer_permission_option_setup_action">Configura</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Accesso all’archiviazione</string>
+    <string name="explorer_permission_option_storage_description">Concedi a Butler il permesso di accedere ai file nell’archiviazione del tuo dispositivo.</string>
+    <string name="explorer_permission_option_storage_action">Concedi permesso</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">Apri in nuove schede</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Preferiti</string>
+    <string name="explorer_action_add_to_favorites">Aggiungi ai preferiti</string>
+    <string name="explorer_action_remove_from_favorites">Rimuovi dai preferiti</string>
+    <string name="explorer_favorites_select_action">Seleziona</string>
+    <string name="explorer_favorites_unavailable_subtitle">Non accessibile</string>
+    <string name="explorer_favorites_unavailable_toast">Il preferito non è accessibile</string>
+    <string name="explorer_favorites_added_message">%1$s aggiunto ai preferiti</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">Aggiunto %1$d elemento ai preferiti</item>
+        <item quantity="other">Aggiunti %1$d elementi ai preferiti</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">%1$s rimosso dai preferiti</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">Rimosso %1$d elemento dai preferiti</item>
+        <item quantity="other">Rimossi %1$d elementi dai preferiti</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Rinomina preferito</string>
+    <string name="explorer_favorites_rename_hint">Nome preferito</string>
+    <string name="explorer_favorites_rename_description">Viene rinominata solo la voce nei preferiti, la cartella stessa mantiene il proprio nome.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">Questa scheda sostituisce l’ordinamento in %1$d cartella</item>
+        <item quantity="other">Questa scheda sostituisce l’ordinamento in %1$d cartelle</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d cartella</item>
+        <item quantity="other">%1$d cartelle</item>
+    </plurals>
+</resources>

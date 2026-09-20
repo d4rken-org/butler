@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Richiede Butler Pro</string>
+
+    <string name="upgrade_prompt_title">Aggiorna Butler</string>
+    <string name="upgrade_prompt_body">Butler Pro offre risultati migliori, più funzioni e opzioni per gli utenti esperti.</string>
+    <string name="upgrade_prompt_upgrade_action">Aggiorna</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">Ottieni %1$s</string>
+    <string name="upgrade_screen_preamble">Butler non ha pubblicità e non vende dati utente. Il mio lavoro è finanziato da te ❤️.</string>
+
+    <string name="upgrade_screen_how_title">Opzioni</string>
+    <string name="upgrade_screen_subscription_trial_action">Avvia la prova gratuita di 14 giorni</string>
+    <string name="upgrade_screen_subscription_action">Abbonati</string>
+    <string name="upgrade_screen_iap_action">Acquisto una tantum</string>
+    <string name="upgrade_screen_restore_purchase_action">Ripristina acquisto</string>
+    <string name="upgrade_screen_restore_banner_title">Hai già comprato Pro?</string>
+    <string name="upgrade_screen_restore_banner_body">Sembra che tu abbia effettuato l’aggiornamento a Pro su questo dispositivo in precedenza. Ripristina il tuo acquisto per sbloccarlo di nuovo.</string>
+    <string name="upgrade_screen_restore_checked_message">Butler ha appena controllato con Google Play, ma non è stato possibile confermare alcun acquisto Pro per l’account che Google Play utilizza per questa app.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Il controllo con Google Play non è stato completato in tempo, quindi lo stato dell’acquisto rimane sconosciuto. Niente è cambiato sul tuo account.</string>
+    <string name="upgrade_screen_restore_contact_hint">Ancora bloccato? Contattaci dall’indirizzo email che ha effettuato l’acquisto e includi il tuo numero d’ordine di Google Play.</string>
+    <string name="upgrade_screen_contact_support_action">Contatta il supporto</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">La sincronizzazione con il Play Store potrebbe richiedere tempo. Prova a riavviare il dispositivo, a cancellare la cache di Google Play o semplicemente ad aspettare.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">Più account possono confondere Google Play. Esci da altri account o installa tramite il sito Web di Google Play, che forza l’associazione con un account specifico.</string>
+    <string name="upgrade_screen_restore_success_message">Il tuo acquisto è stato ripristinato ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Lo stato sembra sbagliato?</string>
+    <string name="upgrade_screen_restore_status_body">Ricontrolla il tuo acquisto con Google Play. Questo può aiutare dopo un cambio di dispositivo o se hai cambiato account Google.</string>
+
+    <string name="upgrade_screen_offers_or">oppure</string>
+
+    <string name="upgrade_screen_offers_title">Opzioni di aggiornamento</string>
+    <string name="upgrade_screen_offers_body">Entrambe le opzioni sbloccano esattamente le stesse funzioni Pro, scegli quella che più si adatta al tuo budget.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Prezzi non disponibili</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler non ha potuto caricare le opzioni di aggiornamento da Google Play. Questo è spesso temporaneo, riprova tra poco.</string>
+    <string name="upgrade_screen_subscription_offer_title">Abbonamento annuale</string>
+    <string name="upgrade_screen_subscription_offer_body">Inizia con una prova gratuita di 14 giorni, quindi fatturazione una volta all’anno. Cancellabile in qualsiasi momento.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Fatturazione una volta all’anno. Cancellabile in qualsiasi momento.</string>
+    <string name="upgrade_screen_iap_offer_title">Compra una volta</string>
+    <string name="upgrade_screen_iap_offer_body">Paga una volta, è tuo per sempre. Nessun abbonamento.</string>
+    <string name="upgrade_screen_restore_body">Ripristinare chiede a Google Play di controllare di nuovo gli acquisti di questa app per l’account attuale.</string>
+
+    <string name="upgrade_screen_owned_hero_title">Hai Butler Pro!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Grazie per l’acquisto una tantum, sei a posto per sempre ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Grazie per l’abbonamento ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">Acquisto una tantum</string>
+    <string name="upgrade_screen_owned_iap_body">Possiedi l’aggiornamento Pro permanente.</string>
+    <string name="upgrade_screen_owned_sub_title">Abbonamento</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Il tuo abbonamento è attivo e si rinnova automaticamente.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Il tuo abbonamento è attivo ma impostato per non rinnovarsi. Pro rimane attivo fino al termine del periodo attuale.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">Possiedi l’acquisto una tantum ma il tuo abbonamento è ancora in fase di rinnovo. Cancellalo in Google Play per evitare di pagare due volte.</string>
+    <string name="upgrade_screen_manage_subscription_action">Gestisci abbonamento</string>
+
+    <string name="upgrade_screen_switch_locked_note">Per primo cancella il rinnovo tramite \"Gestisci abbonamento\", altrimenti verrai addebitato per entrambi.</string>
+    <string name="upgrade_screen_switch_purchase_note">Il tuo abbonamento non si rinnoverà, puoi tranquillamente acquistare l’acquisto una tantum ora.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Abbonamento ancora attivo</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Il tuo abbonamento è ancora impostato per rinnovarsi. Cancella prima il rinnovo in Google Play in modo che non venga addebitato per entrambi, quindi acquista l’acquisto una tantum.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">Impossibile verificare</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler non ha potuto confermare lo stato dell’acquisto con Google Play, quindi l’acquisto è stato fermato per evitare di addebitarti due volte. Per favore riprova tra poco.</string>
+
+    <string name="upgrade_screen_pending_card_title">Pagamento in sospeso</string>
+    <string name="upgrade_screen_pending_card_body">Google Play sta ancora elaborando il tuo pagamento. Pro si sblocca automaticamente una volta che il pagamento va a buon fine. Alcuni metodi di pagamento possono richiedere tempo. Non c’è altro che tu debba fare.</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play ha trovato un acquisto con un pagamento in sospeso e lo sta ancora elaborando. Pro si sblocca automaticamente una volta che il pagamento va a buon fine.</string>
+
+    <string name="upgrade_screen_grace_title">Conferma del tuo acquisto</string>
+    <string name="upgrade_screen_grace_body_short">Google Play sta per un momento a confermare lo stato Pro. Hai ancora accesso completo.</string>
+    <string name="upgrade_screen_grace_body">Google Play non ha ancora riconfermato lo stato Pro. Hai ancora accesso per ora. Se questo sembra sbagliato, prova a ripristinare l’acquisto.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">Già acquistato?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play segnala che possiedi già questo aggiornamento, ma non è stato possibile ripristinarlo automaticamente. Assicurati di aver effettuato l’accesso con l’account Google utilizzato per l’acquisto originale, quindi prova \"Ripristina acquisto\".</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play non è disponibile</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler non riesce a connettersi a Google Play. Google Play è installato e aggiornato? L’account Google è connesso? Prova a cancellare la cache dell’app Google Play e riavvia il dispositivo.</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can’t open Google Play’s app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Impossibile aprire Google Play. Potrebbe mancare, essere disabilitato o limitato su questo dispositivo.</string>
+    <string name="upgrades_gplay_billing_error_label">Problema con Google Play</string>
+    <string name="upgrades_gplay_billing_error_description">Qualcosa è andato storto durante la comunicazione con Google Play. Per favore riprova più tardi o riavvia il dispositivo.\n\nDettagli: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Errore Google Play</string>
+    <string name="upgrades_gplay_internal_error_description">Google Play ha riscontrato un errore interno. Prova quanto segue:\n\n• Riavvia il dispositivo\n• Cancella la cache del Google Play Store\n• Riprova più tardi</string>
+    <string name="upgrades_gplay_network_error_title">Errore di connessione</string>
+    <string name="upgrades_gplay_network_error_description">Butler non ha potuto raggiungere Google Play. Per favore controlla la tua connessione internet e riprova.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Offerta non disponibile</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play attualmente non offre questa opzione di aggiornamento per il tuo account. Per favore riprova più tardi o controlla il Google Play Store.</string>
+    <string name="upgrades_no_purchases_found_check_account">Nessun acquisto trovato. Stai utilizzando l’account giusto?</string>
+
+    <string name="upgrade_benefits_title">Vantaggi dell’aggiornamento</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Tab e operazioni illimitate\n• Personalizza design, feeling e aspetto\n• Opzioni e funzioni extra per ogni strumento\n• Accesso anticipato alle nuove funzioni\n• Uno sviluppatore motivato 🧙\ne altro…</string>
+</resources>

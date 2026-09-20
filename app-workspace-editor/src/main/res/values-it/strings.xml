@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Editor</string>
+    <string name="editor_subtitle">Modifica file di testo</string>
+    <string name="editor_settings_title">Impostazioni Editor</string>
+    <string name="editor_settings_show_line_numbers_title">Mostra numeri di riga</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Visualizza i numeri di riga nell’editor.</string>
+    <string name="editor_settings_word_wrap_title">A capo automatico</string>
+    <string name="editor_settings_word_wrap_subtitle">Spezza le righe lunghe per adattarle alla larghezza dello schermo.</string>
+    <string name="editor_settings_syntax_highlighting_title">Evidenziazione della sintassi</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Evidenzia il codice nei file supportati (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Dimensione del carattere</string>
+    <string name="editor_settings_font_size_subtitle">Dimensione del testo nell’editor</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Larghezza tabulazione</string>
+    <string name="editor_settings_tab_size_subtitle">Spazi occupati da un carattere di tabulazione</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Apri</string>
+    <string name="editor_action_save">Salva</string>
+    <string name="editor_action_save_as">Salva con nome…</string>
+    <string name="editor_action_close">Chiudi</string>
+    <string name="editor_action_undo">Annulla</string>
+    <string name="editor_action_redo">Ripeti</string>
+    <string name="editor_action_search">Cerca</string>
+    <string name="editor_action_go_to_line">Vai a riga</string>
+    <string name="editor_action_dismiss">Nascondi</string>
+    <string name="editor_action_previous">Precedente</string>
+    <string name="editor_action_next">Successivo</string>
+    <string name="editor_action_copy">Copia</string>
+    <string name="editor_action_cut">Taglia</string>
+    <string name="editor_action_copy_to_butler_clipboard">Copia negli appunti Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">Taglia negli appunti Butler</string>
+    <string name="editor_action_paste">Incolla</string>
+    <string name="editor_action_select_all">Seleziona tutto</string>
+    <string name="editor_action_delete">Elimina</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Sovrascrivere il file?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s esiste già. Il suo contenuto attuale verrà sostituito.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Sovrascrivi</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">È stato trovato un backup da un salvataggio interrotto:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Non è supportata la modifica come testo</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Righe molto lunghe</string>
+    <string name="editor_long_lines_banner_message">Le righe molto lunghe vengono accorciate per la visualizzazione; il contenuto completo viene preservato e salvato.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Mostra la parte successiva della riga</string>
+    <string name="editor_line_truncated_marker_previous_action">Mostra la parte precedente della riga</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">File non più disponibile</string>
+    <string name="editor_backing_lost_banner_message">Potrebbe essere stato spostato o eliminato. Questa visualizzazione è di sola lettura. Riaprilo o chiudilo.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Il file è sparito, ma esiste un backup</string>
+    <string name="editor_error_save_artifacts_description">«%1$s» manca, ma un salvataggio interrotto ha lasciato dietro questo: %2$s. Il tuo contenuto è molto probabilmente ancora in esso.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">File modificato su disco</string>
+    <string name="editor_external_change_banner_message">Un’altra app ha modificato questo file.</string>
+    <string name="editor_external_change_reload_action">Ricarica</string>
+    <string name="editor_external_change_keep_action">Continua a modificare</string>
+    <string name="editor_error_external_change">Questo file è stato modificato da un’altra app. Ricarica il file per continuare.</string>
+    <string name="editor_dialog_reload_confirm_title">Ricaricare il file?</string>
+    <string name="editor_dialog_reload_confirm_message">Il ricaricamento scarta le tue modifiche non salvate e mostra il contenuto attuale del file su disco.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d riga</item>
+        <item quantity="other">%1$d righe</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d carattere</item>
+        <item quantity="other">%1$d caratteri</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Selezionati %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Caricamento del file…</string>
+    <string name="editor_saving">Salvataggio in corso…</string>
+    <string name="editor_action_cancel_loading">Annulla</string>
+    <string name="editor_progress_opening">Apertura del file…</string>
+    <string name="editor_progress_saving">Salvataggio del file…</string>
+    <string name="editor_progress_building_index">Creazione dell’indice del file…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Errore sconosciuto</string>
+    <string name="editor_error_read_only">Questo file è di sola lettura e non può essere modificato.</string>
+    <string name="editor_error_save_integrity_label">Salvataggio interrotto</string>
+    <string name="editor_error_save_integrity">Il salvataggio è stato interrotto e il file su disco potrebbe essere incompleto. Ricarica il file prima di apportare altre modifiche.</string>
+    <string name="editor_error_clipboard_too_large_label">Selezione troppo grande</string>
+    <string name="editor_error_clipboard_too_large">La selezione è troppo grande per copiarla (limite %1$s).</string>
+    <string name="editor_error_paste_too_large_label">File troppo grande</string>
+    <string name="editor_error_paste_too_large">Questo file è troppo grande per incollarlo (massimo %1$s).</string>
+    <string name="editor_error_paste_binary_label">Non è un file di testo</string>
+    <string name="editor_error_paste_binary">Il contenuto di questo file non può essere incollato come testo.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d di %2$d risultato</item>
+        <item quantity="other">%1$d di %2$d risultati</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d di più di %2$d risultati</string>
+    <string name="editor_search_too_many_matches_label">Troppi risultati</string>
+    <string name="editor_search_too_many_matches">Più di %1$d risultati o troppo testo corrispondente. Restringi la ricerca per sostituire tutto.</string>
+    <string name="editor_search_placeholder">Cerca…</string>
+    <string name="editor_search_previous">Risultato precedente</string>
+    <string name="editor_search_next">Risultato successivo</string>
+    <string name="editor_search_case_sensitive_label">Maiuscole/minuscole</string>
+    <string name="editor_search_regex_label">Espressione regolare</string>
+    <string name="editor_search_whole_word_label">Parola intera</string>
+    <string name="editor_search_options_label">Opzioni di ricerca</string>
+    <string name="editor_search_replace_label">Sostituisci</string>
+    <string name="editor_search_replace_toggle">Attiva/disattiva sostituzione</string>
+    <string name="editor_search_replace_placeholder">Sostituisci con…</string>
+    <string name="editor_search_replace_one_action">Sostituisci</string>
+    <string name="editor_search_replace_all_action">Tutto</string>
+    <string name="editor_search_replaced_not_undoable">%1$d sostituito (troppo grande per annullare)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d sostituito</item>
+        <item quantity="other">%1$d sostituiti</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Vai a riga</string>
+    <string name="editor_dialog_go_to_line_label">Numero di riga (1–%1$d)</string>
+    <string name="editor_dialog_action_go">Vai</string>
+    <string name="editor_dialog_action_cancel">Annulla</string>
+    <string name="editor_dialog_close_confirm_title">Modifiche non salvate</string>
+    <string name="editor_dialog_close_confirm_message">Hai modifiche non salvate. Vuoi scartarle?</string>
+    <string name="editor_dialog_close_confirm_discard">Scarta</string>
+    <string name="editor_dialog_large_delete_confirm_title">Modificare una selezione grande?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Questa selezione è troppo grande per annullare. Continuare comunque?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Continua</string>
+    <string name="editor_encoding_dialog_title">Codifica</string>
+    <string name="editor_encoding_dialog_message">Riapri il file con una codifica diversa. Le modifiche non salvate vengono scartate; i byte non modificati rimangono invariati al salvataggio.</string>
+    <string name="editor_infobar_read_only">Sola lettura</string>
+    <string name="editor_line_ending_mixed">Misto</string>
+    <string name="editor_line_ending_dialog_title">Terminazioni di riga</string>
+    <string name="editor_line_ending_dialog_message">Converti tutti gli interruzioni di riga e salva il file, incluse le modifiche non salvate. La cronologia di annullamento viene cancellata.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Senza titolo</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Salvataggio automatico</string>
+    <string name="editor_settings_autosave_enabled_title">Abilita salvataggio automatico</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Salva automaticamente le modifiche dopo un periodo di inattività.</string>
+    <string name="editor_settings_autosave_interval_title">Intervallo salvataggio automatico</string>
+    <string name="editor_settings_autosave_interval_subtitle">Tempo di attesa dopo l’ultima modifica prima di salvare.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Intervallo salvataggio automatico</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Appunti</string>
+    <string name="editor_settings_clipboard_behavior_title">Appunti Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Controlla come le copie di testo vengono salvate negli appunti di Butler.</string>
+    <string name="editor_settings_clipboard_system_only">Solo sistema</string>
+    <string name="editor_settings_clipboard_system_only_desc">Copia solo negli appunti di sistema</string>
+    <string name="editor_settings_clipboard_butler_always">Aggiungi sempre a Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Salva anche negli appunti di Butler per incollare tra aree di lavoro</string>
+    <string name="editor_settings_clipboard_ask">Chiedi ogni volta</string>
+    <string name="editor_settings_clipboard_ask_desc">Chiedi prima di aggiungere agli appunti di Butler</string>
+</resources>

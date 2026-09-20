@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Eliminazione elementi in corso</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Copia elementi in corso</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Spostamento elementi in corso</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Scansione in corso…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">File già presente</string>
+    <string name="path_action_folder_exists_title">Cartella già presente</string>
+    <string name="path_action_file_exists_description">Un file denominato \"%1$s\" è già presente in \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">Una cartella denominata \"%1$s\" è già presente in \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">File non trovato</string>
+    <string name="path_action_not_found_description">\"%1$s\" è stato eliminato, rinominato o spostato altrove.</string>
+
+    <string name="path_action_permission_denied_title">Accesso negato</string>
+    <string name="path_action_permission_denied_description">Impossibile accedere a \"%1$s\" in \"%2$s\" a causa di autorizzazioni insufficienti.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Impossibile accedere a \"%1$s\" in \"%2$s\". Nessun metodo disponibile per eseguire questa operazione.</string>
+    <string name="path_action_permission_denied_readonly_description">Impossibile accedere a \"%1$s\" in \"%2$s\". Il file system è di sola lettura.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Impossibile accedere a \"%1$s\" in \"%2$s\". L’operazione è stata negata dal sistema.</string>
+
+    <string name="path_action_insufficient_space_title">Spazio insufficiente</string>
+    <string name="path_action_insufficient_space_description">Non c’è spazio di archiviazione sufficiente per copiare \"%1$s\" da \"%2$s\".</string>
+
+    <string name="path_action_unknown_error_title">Operazione non riuscita</string>
+
+    <!-- Failed replacement: where the user’s data ended up -->
+    <string name="path_action_data_kept_title">Sostituzione incompleta</string>
+    <string name="path_action_data_kept_new_data_description">Butler non ha potuto completare la scrittura di \"%1$s\". I tuoi nuovi dati sono conservati nella stessa cartella di \"%2$s\". Rinominalo per ripristinarlo o eliminalo per scartarlo.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler non ha potuto completare la scrittura di \"%1$s\", il file precedente rimane invariato. I tuoi nuovi dati sono conservati nella stessa cartella di \"%2$s\". Rinominalo per ripristinarlo o eliminalo per scartarlo.</string>
+    <string name="path_action_data_kept_both_description">Butler non ha potuto completare la scrittura di \"%1$s\". Nulla è andato perduto: il file precedente è conservato nella stessa cartella di \"%2$s\" e i tuoi nuovi dati come \"%3$s\". Rinomina quello che desideri mantenere.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler non ha potuto completare la scrittura di \"%1$s\" e non ha potuto verificare se \"%2$s\" è ancora presente. Una copia incompleta potrebbe essere conservata nella stessa cartella di \"%3$s\". Confronta entrambi prima di eliminarne uno.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler non ha potuto completare lo spostamento di \"%1$s\" e non riesce a determinare se ha lasciato la cartella. I tuoi dati sono conservati in quella cartella come \"%2$s\", oppure già in \"%3$s\". Controlla entrambi prima di eliminarne uno.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler non ha potuto completare la scrittura di \"%1$s\" e non riesce a determinare dove il file sia finito. È uno di tre file in quella cartella: \"%1$s\" stesso, \"%2$s\" oppure \"%3$s\". Controlla tutti e tre prima di eliminarne uno.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler non ha potuto completare la scrittura di \"%1$s\" e non riesce a determinare dove il file sia finito. È uno di due file in quella cartella: \"%1$s\" stesso oppure \"%2$s\". Controlla entrambi prima di eliminarne uno.</string>
+
+    <string name="path_action_trash_size_limit_title">Elementi troppo grandi per il Cestino</string>
+    <string name="path_action_trash_size_limit_description">%1$d elementi di dimensioni totali %2$s superano il limite di dimensione del Cestino (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">Spostamento nel Cestino non riuscito</string>
+    <string name="path_action_trash_move_failed_description">%1$d elementi non hanno potuto essere spostati nel Cestino.</string>
+
+    <string name="path_action_trash_not_supported_title">Cestino non supportato</string>
+    <string name="path_action_trash_not_supported_description">%1$d elementi si trovano in un’archiviazione che non supporta il Cestino.</string>
+
+    <string name="path_action_archive_password_title">Password richiesta</string>
+    <string name="path_action_archive_password_description">\"%1$s\" è crittografato. Immetti la password per leggerne il contenuto.</string>
+    <string name="path_action_archive_password_wrong_description">La password per \"%1$s\" era scorretta. Riprova.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Server non raggiungibile</string>
+    <string name="smb_error_unreachable_description">Butler non ha potuto raggiungere \"%1$s\". Verifica che il dispositivo sia sulla stessa rete e che il server sia acceso.</string>
+    <string name="smb_error_auth_title">Accesso non riuscito</string>
+    <string name="smb_error_auth_description">\"%1$s\" ha rifiutato il nome utente o la password.</string>
+    <string name="smb_error_share_access_denied_title">Nessun accesso a questa condivisione</string>
+    <string name="smb_error_share_access_denied_description">Questo account non può utilizzare \"%1$s\" in \"%2$s\". Verifica le autorizzazioni di condivisione nel server.</string>
+    <string name="smb_error_share_not_found_title">Condivisione non trovata</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" non esiste in \"%2$s\".</string>
+    <string name="smb_error_dialect_title">Server troppo vecchio</string>
+    <string name="smb_error_dialect_description">\"%1$s\" offre solo SMB1, che è insicuro e non supportato. Abilita SMB2 o versioni più recenti nel server.</string>
+    <string name="smb_error_credential_unavailable_title">Accesso richiesto</string>
+    <string name="smb_error_credential_unavailable_description">La password salvata per questa archiviazione di rete non può più essere letta. Immettila di nuovo per ripristinare la connessione.</string>
+    <string name="smb_error_pro_required_title">Le condivisioni di rete richiedono Butler Pro</string>
+    <string name="smb_error_pro_required_description">La connessione a condivisioni di rete fa parte di Butler Pro. I tuoi percorsi salvati rimangono elencati e possono essere rimossi senza di essa.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Bundle app protetto</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" è crittografato e può essere installato solo dall’app che l’ha creato.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">Formato APK set non supportato</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" è un APK set di bundletool. Butler non riesce a determinare quale variante si adatti a questo dispositivo.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Nessuna app da installare</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" non contiene alcun APK installabile.</string>
+
+    <string name="app_install_error_session_title">Installazione non riuscita</string>
+    <string name="app_install_error_session_description">Il sistema ha rifiutato l’installazione: %1$s</string>
+
+    <string name="app_install_error_busy_title">Un’altra installazione è in corso</string>
+    <string name="app_install_error_busy_description">\"%1$s\" è ancora in fase di installazione. Conferma o annulla quell’installazione prima di avviarne un’altra.</string>
+
+    <string name="app_install_error_no_elevation_title">Nessun accesso elevato</string>
+    <string name="app_install_error_no_elevation_description">L’accesso root o ADB non è attualmente disponibile.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Conferma richiesta</string>
+    <string name="app_install_confirm_pending_description">Android ha bisogno che tu confermi l’installazione di \"%1$s\" prima di completarla.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android ha bisogno che tu confermi questa installazione prima di completarla.</string>
+    <string name="app_install_confirm_pending_action">Conferma installazione</string>
+    <string name="app_install_confirm_pending_reason">Il programma di installazione è in attesa della tua conferma</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Conferma richiesta</string>
+    <string name="app_uninstall_confirm_pending_description">Android ha bisogno che tu confermi la rimozione di \"%1$s\" prima di completarla.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android ha bisogno che tu confermi questa rimozione prima di completarla.</string>
+    <string name="app_uninstall_confirm_pending_action">Conferma rimozione</string>
+    <string name="app_uninstall_confirm_pending_reason">Android è in attesa della tua conferma</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">La rimozione dell’app per un altro utente richiede root o Shizuku</string>
+    <string name="app_uninstall_no_result">Android non ha fornito un risultato</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Operazione file interrotta</string>
+    <string name="service_connection_lost_error_message">Il servizio per l’operazione file si è arrestato inaspettatamente. Riprova.</string>
+</resources>
