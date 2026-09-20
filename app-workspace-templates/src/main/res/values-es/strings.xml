@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Nuevo</string>
+    <string name="workspace_templates_choose_title">Pestaña nueva</string>
+    <string name="workspace_templates_choose_subtitle">Selecciona un tipo de pestaña. ¿Cómo puedo ayudarte?</string>
+    <string name="workspace_templates_name_tab_action">Nombra esta pestaña</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Elige una herramienta</string>
+    <string name="tour_templates_picker_body">Este es el selector de pestañas. Elige qué debería ser esta pestaña. Al elegir una, esta pestaña se convierte en esa herramienta.</string>
+    <string name="tour_templates_butler_button_title">Aquí es donde viven tus pestañas</string>
+    <string name="tour_templates_butler_button_body">Toca el botón Butler para el menú de pestañas: Crea una pestaña nueva, cierra la actual, o abre el administrador de pestañas completo. Mantenlo presionado para ir directamente al administrador de pestañas.</string>
+</resources>

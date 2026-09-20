@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Eliminando elementos</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Copiando elementos</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Moviendo elementos</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Explorando…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">El archivo ya existe</string>
+    <string name="path_action_folder_exists_title">La carpeta ya existe</string>
+    <string name="path_action_file_exists_description">Un archivo denominado \"%1$s\" ya existe en \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">Una carpeta denominada \"%1$s\" ya existe en \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">El archivo ya no existe</string>
+    <string name="path_action_not_found_description">\"%1$s\" fue eliminado, renombrado o movido a otro lugar.</string>
+
+    <string name="path_action_permission_denied_title">Permiso denegado</string>
+    <string name="path_action_permission_denied_description">No se puede acceder a \"%1$s\" en \"%2$s\" por permisos insuficientes.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">No se puede acceder a \"%1$s\" en \"%2$s\". No hay método disponible para realizar esta operación.</string>
+    <string name="path_action_permission_denied_readonly_description">No se puede acceder a \"%1$s\" en \"%2$s\". El sistema de archivos es de solo lectura.</string>
+    <string name="path_action_permission_denied_not_permitted_description">No se puede acceder a \"%1$s\" en \"%2$s\". El sistema denegó la operación.</string>
+
+    <string name="path_action_insufficient_space_title">No hay suficiente espacio</string>
+    <string name="path_action_insufficient_space_description">No hay suficiente espacio de almacenamiento disponible para copiar \"%1$s\" desde \"%2$s\".</string>
+
+    <string name="path_action_unknown_error_title">Error en la operación</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">Reemplazo sin terminar</string>
+    <string name="path_action_data_kept_new_data_description">Butler no pudo terminar de escribir \"%1$s\". Los datos nuevos se guardan en la misma carpeta que \"%2$s\". Renómbralo para recuperarlo o elimínalo para descartarlo.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler no pudo terminar de escribir \"%1$s\", el archivo anterior está sin cambios. Los datos nuevos se guardan en la misma carpeta que \"%2$s\". Renómbralo para recuperarlo o elimínalo para descartarlo.</string>
+    <string name="path_action_data_kept_both_description">Butler no pudo terminar de escribir \"%1$s\". No se perdió nada: el archivo anterior se guarda en la misma carpeta que \"%2$s\" y los datos nuevos en \"%3$s\". Renombra el que quieras guardar.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler no pudo terminar de escribir \"%1$s\" y no pudo comprobar si \"%2$s\" sigue ahí. Una copia incompleta puede guardarse en la misma carpeta que \"%3$s\". Compara ambas antes de eliminar alguna.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler no pudo terminar de mover \"%1$s\" y no puede determinar si salió de su carpeta. Los datos están guardados en esa carpeta como \"%2$s\" o ya están en \"%3$s\". Comprueba ambas antes de eliminar alguna.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler no pudo terminar de escribir \"%1$s\" y no puede determinar dónde acabó el archivo. Es uno de tres archivos en esa carpeta: \"%1$s\" mismo, \"%2$s\" o \"%3$s\". Comprueba todos tres antes de eliminar alguno.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler no pudo terminar de escribir \"%1$s\" y no puede determinar dónde acabó el archivo. Es uno de dos archivos en esa carpeta: \"%1$s\" mismo o \"%2$s\". Comprueba ambos antes de eliminar alguno.</string>
+
+    <string name="path_action_trash_size_limit_title">Los elementos son demasiado grandes para la papelera</string>
+    <string name="path_action_trash_size_limit_description">%1$d elementos que totalizan %2$s superan el límite de tamaño de la papelera (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">Error al mover a la papelera</string>
+    <string name="path_action_trash_move_failed_description">%1$d elementos no se pudieron mover a la papelera.</string>
+
+    <string name="path_action_trash_not_supported_title">La papelera no es compatible</string>
+    <string name="path_action_trash_not_supported_description">%1$d elementos están en un almacenamiento que no es compatible con la papelera.</string>
+
+    <string name="path_action_archive_password_title">Se requiere contraseña</string>
+    <string name="path_action_archive_password_description">\"%1$s\" está cifrado. Introduce la contraseña para leer su contenido.</string>
+    <string name="path_action_archive_password_wrong_description">La contraseña de \"%1$s\" era incorrecta. Inténtalo de nuevo.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Servidor no disponible</string>
+    <string name="smb_error_unreachable_description">Butler no pudo conectar con \"%1$s\". Comprueba que el dispositivo esté en la misma red y que el servidor esté encendido.</string>
+    <string name="smb_error_auth_title">Error al iniciar sesión</string>
+    <string name="smb_error_auth_description">\"%1$s\" rechazó el nombre de usuario o la contraseña.</string>
+    <string name="smb_error_share_access_denied_title">Sin acceso a este recurso compartido</string>
+    <string name="smb_error_share_access_denied_description">Es posible que esta cuenta no pueda usar \"%1$s\" en \"%2$s\". Comprueba los permisos de uso compartido en el servidor.</string>
+    <string name="smb_error_share_not_found_title">Recurso compartido no encontrado</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" no existe en \"%2$s\".</string>
+    <string name="smb_error_dialect_title">Servidor demasiado antiguo</string>
+    <string name="smb_error_dialect_description">\"%1$s\" solo ofrece SMB1, que no es seguro ni compatible. Habilita SMB2 o más nuevo en el servidor.</string>
+    <string name="smb_error_credential_unavailable_title">Se requiere iniciar sesión</string>
+    <string name="smb_error_credential_unavailable_description">La contraseña guardada para este almacenamiento de red ya no se puede leer. Ingrésala de nuevo para reconectar.</string>
+    <string name="smb_error_pro_required_title">Los recursos compartidos de red requieren Butler Pro</string>
+    <string name="smb_error_pro_required_description">La conexión a recursos compartidos de red es parte de Butler Pro. Las ubicaciones guardadas permanecen en la lista y se pueden eliminar sin ella.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Paquete de aplicación protegido</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" está cifrado y solo puede ser instalado por la aplicación que lo creó.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">Formato de conjunto APK no compatible</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" es un conjunto APK de bundletool. Butler no puede determinar cuál de sus variantes se ajusta a este dispositivo.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">No hay aplicación para instalar</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" no contiene ningún APK instalable.</string>
+
+    <string name="app_install_error_session_title">Error en la instalación</string>
+    <string name="app_install_error_session_description">El sistema rechazó la instalación: %1$s</string>
+
+    <string name="app_install_error_busy_title">Otra instalación está en progreso</string>
+    <string name="app_install_error_busy_description">\"%1$s\" aún se está instalando. Confirma o cancela esa instalación antes de iniciar otra.</string>
+
+    <string name="app_install_error_no_elevation_title">Sin acceso elevado</string>
+    <string name="app_install_error_no_elevation_description">El acceso root o ADB no está disponible actualmente.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Se requiere confirmación</string>
+    <string name="app_install_confirm_pending_description">Android necesita que confirmes la instalación de \"%1$s\" antes de poder terminar.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android necesita que confirmes esta instalación antes de poder terminar.</string>
+    <string name="app_install_confirm_pending_action">Confirmar instalación</string>
+    <string name="app_install_confirm_pending_reason">El instalador está esperando tu confirmación</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Se requiere confirmación</string>
+    <string name="app_uninstall_confirm_pending_description">Android necesita que confirmes la eliminación de \"%1$s\" antes de poder terminar.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android necesita que confirmes esta eliminación antes de poder terminar.</string>
+    <string name="app_uninstall_confirm_pending_action">Confirmar eliminación</string>
+    <string name="app_uninstall_confirm_pending_reason">Android está esperando tu confirmación</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Eliminar esta aplicación para otro usuario requiere root o Shizuku</string>
+    <string name="app_uninstall_no_result">Android no informó un resultado</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Operación de archivo interrumpida</string>
+    <string name="service_connection_lost_error_message">El servicio de operación de archivos se detuvo inesperadamente. Por favor, inténtalo de nuevo.</string>
+</resources>
