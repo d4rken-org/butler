@@ -14,10 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.ScrollAxisRange
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -192,17 +197,45 @@ class TourBubbleConfirmationTest : ComposeTest() {
         composeTestRule.onNodeWithContentDescription("Skip").performClick()
         composeTestRule.onNodeWithText("Skip the tour?").assertIsDisplayed()
 
-        // The column is taller than the bubble at this geometry: the stacked actions are reached
-        // by scrolling, and each still routes to its own callback.
-        composeTestRule.onNodeWithText("Disable all tours").performScrollTo().performClick()
+        // The column is taller than the bubble at this geometry: prove the scrolls below are
+        // actually required — the confirm's scroll container has a non-zero range, starts at the
+        // top, and the last action begins clipped off the bubble.
+        val scrollRange = confirmScrollRange()
+        withClue("scroll value=${scrollRange.value()} max=${scrollRange.maxValue()}") {
+            (scrollRange.maxValue() > 0f) shouldBe true
+            scrollRange.value() shouldBe 0f
+        }
+        val lastAction = composeTestRule.onNodeWithText("Disable all tours")
+        withClue("clipped=${lastAction.getBoundsInRoot()} unclipped=${lastAction.getUnclippedBoundsInRoot()}") {
+            (lastAction.getBoundsInRoot() != lastAction.getUnclippedBoundsInRoot()) shouldBe true
+        }
+
+        // The stacked actions are reached by scrolling, and each still routes to its own callback.
+        lastAction.performScrollTo().performClick()
         disableAllCount shouldBe 1
         dismissCount shouldBe 0
+        (confirmScrollRange().value() > 0f) shouldBe true
         composeTestRule.onNodeWithText("Don't show this tour").performScrollTo().performClick()
         dismissCount shouldBe 1
 
         composeTestRule.onNodeWithText("Continue tour").performScrollTo().performClick()
         composeTestRule.onNodeWithText("Body of step 1").assertIsDisplayed()
+
+        // Re-entering the confirm starts at the top again: its scroll state is per-confirm, not
+        // carried over from the previous visit.
+        composeTestRule.onNodeWithContentDescription("Skip").performClick()
+        composeTestRule.onNodeWithText("Skip the tour?").assertIsDisplayed()
+        val reentryRange = confirmScrollRange()
+        withClue("re-entry scroll value=${reentryRange.value()} max=${reentryRange.maxValue()}") {
+            (reentryRange.maxValue() > 0f) shouldBe true
+            reentryRange.value() shouldBe 0f
+        }
     }
+
+    private fun confirmScrollRange(): ScrollAxisRange =
+        composeTestRule.onNode(
+            hasScrollAction() and hasAnyDescendant(hasText("Skip the tour?")),
+        ).fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
 
     private fun assertRootSize(width: Dp, height: Dp) {
         val bounds = composeTestRule.onRoot().getUnclippedBoundsInRoot()
