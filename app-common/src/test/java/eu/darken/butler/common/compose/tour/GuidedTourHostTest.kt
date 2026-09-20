@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -49,6 +50,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -199,7 +201,7 @@ class GuidedTourHostTest : ComposeTest() {
             Text("CONTENT_MARKER")
         }
         composeTestRule.onNodeWithContentDescription("Skip").performClick()
-        composeTestRule.onNodeWithText("Don't show this tour").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("Don't show this tour").performClick()
         dismissCount shouldBe 1
         disableAllCount shouldBe 0
     }
@@ -218,9 +220,33 @@ class GuidedTourHostTest : ComposeTest() {
             Text("CONTENT_MARKER")
         }
         composeTestRule.onNodeWithContentDescription("Skip").performClick()
-        composeTestRule.onNodeWithText("Disable all tours").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("Disable all tours").performClick()
         disableAllCount shouldBe 1
         dismissCount shouldBe 0
+    }
+
+    @Test
+    fun `confirm title and all actions are fully visible without scrolling`() {
+        // The confirm takes the centerless safe-area placement even for anchored steps, so its
+        // whole column fits inside the bubble — no node may be clipped.
+        val sessionFlow = MutableStateFlow<TourSession?>(TourSession(protectedDef, 0))
+        composeTestRule.setHostContent(sessionFlow, preregister = mapOf("first" to targetRect)) {
+            Text("CONTENT_MARKER")
+        }
+        composeTestRule.onNodeWithContentDescription("Skip").performClick()
+        listOf(
+            "Skip the tour?",
+            "Continue tour",
+            "Don't show this tour",
+            "Disable all tours",
+        ).forEach { text ->
+            val node = composeTestRule.onNodeWithText(text)
+            val unclipped = node.getUnclippedBoundsInRoot()
+            val clipped = node.getBoundsInRoot()
+            withClue("$text: unclipped=$unclipped clipped=$clipped") {
+                clipped shouldBe unclipped
+            }
+        }
     }
 
     @Test

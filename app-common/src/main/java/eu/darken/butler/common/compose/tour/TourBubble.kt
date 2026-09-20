@@ -47,6 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -79,6 +80,7 @@ import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.Preview2Tablet
 
 // The tail's vertical extent must stay in sync between SpeechBubbleShape (which draws the tail
 // triangle outside the rounded-rect body) and SpeechBubbleSurface's content padding (which
@@ -120,72 +122,86 @@ internal fun TourBubble(
         val endPad = insets.calculateEndPadding(layoutDirection) + SideMargin
         val topPad = insets.calculateTopPadding() + SideMargin
         val bottomPad = insets.calculateBottomPadding() + SideMargin
+        val typography = MaterialTheme.typography
 
-        when (layout) {
-            is StepLayout.Anchored -> AnchoredBubble(
+        // The exit confirm always takes the centerless placement: its three stacked actions need
+        // the whole safe area, and the target-relative cap can clip them off the bubble even on
+        // roomy screens. The anchored cutout/ring stays visible behind it on purpose.
+        val placement = when {
+            layout is StepLayout.Anchored && !showConfirm -> anchoredPlacement(
                 rect = layout.rect,
-                step = step,
-                session = session,
-                showConfirm = showConfirm,
-                onShowConfirmChange = onShowConfirmChange,
-                isNarrow = isNarrow,
                 density = density,
+                typography = typography,
                 insets = insets,
                 maxWidth = maxWidth,
                 maxHeight = maxHeight,
                 startPad = startPad,
                 endPad = endPad,
-                onNext = onNext,
-                onPrevious = onPrevious,
-                onDontShowAgain = onDontShowAgain,
-                onDisableAllTours = onDisableAllTours,
-                onFocusWithinChanged = onFocusWithinChanged,
             )
 
-            StepLayout.Centerless -> CenterlessBubble(
-                step = step,
-                session = session,
-                showConfirm = showConfirm,
-                onShowConfirmChange = onShowConfirmChange,
-                isNarrow = isNarrow,
+            layout is StepLayout.Anchored || layout is StepLayout.Centerless -> centerlessPlacement(
+                density = density,
+                typography = typography,
                 maxHeight = maxHeight,
-                startPad = startPad,
-                endPad = endPad,
                 topPad = topPad,
                 bottomPad = bottomPad,
-                onNext = onNext,
-                onPrevious = onPrevious,
-                onDontShowAgain = onDontShowAgain,
-                onDisableAllTours = onDisableAllTours,
-                onFocusWithinChanged = onFocusWithinChanged,
             )
 
             // Pending is filtered out by GuidedTourHost before this point.
-            StepLayout.Pending -> Unit
+            else -> null
+        }
+
+        if (placement != null) {
+            Box(
+                modifier = Modifier
+                    .align(placement.alignment)
+                    .padding(
+                        top = placement.topPadding,
+                        bottom = placement.bottomPadding,
+                        start = startPad,
+                        end = endPad,
+                    )
+                    .widthIn(max = MaxBubbleWidth)
+                    .heightIn(max = placement.maxHeight),
+            ) {
+                BubbleCard(
+                    step = step,
+                    session = session,
+                    tail = placement.tail,
+                    isNarrow = isNarrow,
+                    showConfirm = showConfirm,
+                    onShowConfirmChange = onShowConfirmChange,
+                    onNext = onNext,
+                    onPrevious = onPrevious,
+                    onDontShowAgain = onDontShowAgain,
+                    onDisableAllTours = onDisableAllTours,
+                    onFocusWithinChanged = onFocusWithinChanged,
+                )
+            }
         }
     }
 }
 
-@Composable
-private fun BoxScope.AnchoredBubble(
+/** Where and how large the bubble may be: alignment in the host box, vertical padding, the height
+ * cap, and whether a tail points at the cutout. */
+private data class BubblePlacement(
+    val alignment: Alignment,
+    val topPadding: Dp,
+    val bottomPadding: Dp,
+    val maxHeight: Dp,
+    val tail: BubbleTail,
+)
+
+private fun anchoredPlacement(
     rect: Rect,
-    step: TourStep,
-    session: TourSession,
-    showConfirm: Boolean,
-    onShowConfirmChange: (Boolean) -> Unit,
-    isNarrow: Boolean,
     density: Density,
+    typography: Typography,
     insets: PaddingValues,
     maxWidth: Dp,
     maxHeight: Dp,
     startPad: Dp,
     endPad: Dp,
-    onNext: () -> Unit,
-    onPrevious: () -> Unit,
-    onDontShowAgain: () -> Unit,
-    onDisableAllTours: () -> Unit,
-    onFocusWithinChanged: (Boolean) -> Unit,
-) {
+): BubblePlacement {
     val maxHPx = with(density) { maxHeight.toPx() }
     val maxWPx = with(density) { maxWidth.toPx() }
     val topInsetPx = with(density) { insets.calculateTopPadding().toPx() }
@@ -233,7 +249,6 @@ private fun BoxScope.AnchoredBubble(
     // lands deep in the damped region while the text it stands in for is still growing.
     // lineHeight may be unspecified in a restyled theme and toDp() only accepts Sp, hence the
     // fallback to the style's own font size.
-    val typography = MaterialTheme.typography
     val wanted = with(density) {
         BubbleChrome + TailHeight +
             typography.titleMedium.lineHeight.takeOrElse { typography.titleMedium.fontSize }.toDp() +
@@ -246,61 +261,30 @@ private fun BoxScope.AnchoredBubble(
         .coerceAtMost((maxHeight - farPad - floor).coerceAtLeast(nearInset))
     val bubbleMaxHeight = (maxHeight - clampedY - farPad).coerceAtLeast(0.dp)
 
-    Box(
-        modifier = Modifier
-            .align(if (placeBelow) Alignment.TopCenter else Alignment.BottomCenter)
-            .padding(
-                top = if (placeBelow) clampedY else farTopPad,
-                bottom = if (!placeBelow) clampedY else farBottomPad,
-                start = startPad,
-                end = endPad,
-            )
-            .widthIn(max = MaxBubbleWidth)
-            .heightIn(max = bubbleMaxHeight),
-    ) {
-        BubbleCard(
-            step = step,
-            session = session,
-            tail = BubbleTail.OnEdge(
-                edge = if (placeBelow) SpeechBubbleShape.Edge.TOP else SpeechBubbleShape.Edge.BOTTOM,
-                xBias = tailXBias,
-            ),
-            isNarrow = isNarrow,
-            showConfirm = showConfirm,
-            onShowConfirmChange = onShowConfirmChange,
-            onNext = onNext,
-            onPrevious = onPrevious,
-            onDontShowAgain = onDontShowAgain,
-            onDisableAllTours = onDisableAllTours,
-            onFocusWithinChanged = onFocusWithinChanged,
-        )
-    }
+    return BubblePlacement(
+        alignment = if (placeBelow) Alignment.TopCenter else Alignment.BottomCenter,
+        topPadding = if (placeBelow) clampedY else farTopPad,
+        bottomPadding = if (!placeBelow) clampedY else farBottomPad,
+        maxHeight = bubbleMaxHeight,
+        tail = BubbleTail.OnEdge(
+            edge = if (placeBelow) SpeechBubbleShape.Edge.TOP else SpeechBubbleShape.Edge.BOTTOM,
+            xBias = tailXBias,
+        ),
+    )
 }
 
-@Composable
-private fun BoxScope.CenterlessBubble(
-    step: TourStep,
-    session: TourSession,
-    showConfirm: Boolean,
-    onShowConfirmChange: (Boolean) -> Unit,
-    isNarrow: Boolean,
+private fun centerlessPlacement(
+    density: Density,
+    typography: Typography,
     maxHeight: Dp,
-    startPad: Dp,
-    endPad: Dp,
     topPad: Dp,
     bottomPad: Dp,
-    onNext: () -> Unit,
-    onPrevious: () -> Unit,
-    onDontShowAgain: () -> Unit,
-    onDisableAllTours: () -> Unit,
-    onFocusWithinChanged: (Boolean) -> Unit,
-) {
+): BubblePlacement {
     // Cap height at the safe area; the body has its own vertical scroll for content that doesn't
-    // fit. Same chain-order trap as AnchoredBubble: padding runs before heightIn, so the floor has
-    // to be bought out of the two SideMargins. Never out of the raw insets - the bubble would slide
-    // under the system bars. No tail here, so no tail height in the budget.
-    val typography = MaterialTheme.typography
-    val wanted = with(LocalDensity.current) {
+    // fit. Same chain-order trap as anchoredPlacement: padding runs before heightIn, so the floor
+    // has to be bought out of the two SideMargins. Never out of the raw insets - the bubble would
+    // slide under the system bars. No tail here, so no tail height in the budget.
+    val wanted = with(density) {
         BubbleChrome +
             typography.titleMedium.lineHeight.takeOrElse { typography.titleMedium.fontSize }.toDp() +
             typography.bodyLarge.lineHeight.takeOrElse { typography.bodyLarge.fontSize }.toDp() +
@@ -311,27 +295,13 @@ private fun BoxScope.CenterlessBubble(
     val effectiveTopPad = topPad - giveBack
     val effectiveBottomPad = bottomPad - giveBack
     val bubbleMaxHeight = (maxHeight - effectiveTopPad - effectiveBottomPad).coerceAtLeast(0.dp)
-    Box(
-        modifier = Modifier
-            .align(Alignment.Center)
-            .padding(start = startPad, end = endPad, top = effectiveTopPad, bottom = effectiveBottomPad)
-            .widthIn(max = MaxBubbleWidth)
-            .heightIn(max = bubbleMaxHeight),
-    ) {
-        BubbleCard(
-            step = step,
-            session = session,
-            tail = BubbleTail.None,
-            isNarrow = isNarrow,
-            showConfirm = showConfirm,
-            onShowConfirmChange = onShowConfirmChange,
-            onNext = onNext,
-            onPrevious = onPrevious,
-            onDontShowAgain = onDontShowAgain,
-            onDisableAllTours = onDisableAllTours,
-            onFocusWithinChanged = onFocusWithinChanged,
-        )
-    }
+    return BubblePlacement(
+        alignment = Alignment.Center,
+        topPadding = effectiveTopPad,
+        bottomPadding = effectiveBottomPad,
+        maxHeight = bubbleMaxHeight,
+        tail = BubbleTail.None,
+    )
 }
 
 internal sealed interface BubbleTail {
@@ -853,6 +823,27 @@ private fun BubbleCardPreviewTailBottom() {
             session = previewSession.copy(stepIndex = 1),
             tail = BubbleTail.OnEdge(edge = SpeechBubbleShape.Edge.BOTTOM, xBias = 0.3f),
             isNarrow = false,
+            onNext = {},
+            onPrevious = {},
+            onDontShowAgain = {},
+            onDisableAllTours = {},
+        )
+    }
+}
+
+@Preview2Tablet
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TourBubblePreviewAnchoredConfirm() {
+    // Anchored step mid-confirm: the bubble drops its tail and centers in the safe area so all
+    // three actions fit, while the cutout/ring keeps pointing at the target behind it.
+    Box(modifier = Modifier.fillMaxSize()) {
+        TourBubble(
+            step = previewStep,
+            layout = StepLayout.Anchored(Rect(left = 200f, top = 100f, right = 800f, bottom = 460f)),
+            session = previewSession,
+            showConfirm = true,
+            onShowConfirmChange = {},
             onNext = {},
             onPrevious = {},
             onDontShowAgain = {},
