@@ -43,6 +43,13 @@
     <string name="explorer_file_broken_link_label">Defekte Verknüpfung</string>
     <string name="explorer_file_items_count">%1$d Elemente</string>
     <string name="explorer_file_empty">Leer</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · teilweise</string>
+    <string name="explorer_sizes_estimate_description">Geschätzt anhand der Speicher-Gesamtwerte von Android. Bei nicht lesbaren Dateien wird der belegte Speicherplatz als Schätzung der Dateigröße verwendet. Von Android verwaltete versteckte Dateien können ebenfalls enthalten sein. Andere nicht lesbare Speicherorte bleiben unbekannt.</string>
+    <string name="explorer_sizes_estimate_coverage">Android/data konnte nicht geschätzt werden, da andere Teile des Speichers nicht vollständig gemessen werden konnten.</string>
+    <string name="explorer_sizes_estimate_unavailable">Android-Speicherstatistiken waren nicht verfügbar. Gemessene Größen werden trotzdem angezeigt.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Die Speicher-Gesamtwerte von Android stimmten nicht mit dem Scan überein. Gemessene Größen werden trotzdem angezeigt.</string>
 
     <!-- Picker Mode -->
     <string name="explorer_picker_select_directory_title">Ordner auswählen</string>
@@ -71,6 +78,7 @@
 
     <!-- Explorer Actions -->
     <string name="explorer_action_refresh">Aktualisieren</string>
+    <string name="explorer_action_calculate_sizes">Größen berechnen</string>
     <string name="explorer_action_sort">Sortieren</string>
     <string name="explorer_action_filter">Filtern</string>
     <string name="explorer_action_view">Ansicht</string>
@@ -158,6 +166,8 @@
     <string name="explorer_breadcrumb_copy_path_confirmation">Pfad in die Zwischenablage kopiert</string>
     <string name="explorer_navigation_device">Gerät</string>
     <string name="explorer_navigation_network">Netzwerk</string>
+    <string name="explorer_navigation_recent">Kürzlich</string>
+    <string name="explorer_navigation_recent_desc">Dateien, die kürzlich auf diesem Gerät erschienen sind</string>
     <string name="explorer_navigation_trash">Papierkorb</string>
     <string name="explorer_navigation_trash_desc">Gelöschte Dateien wiederherstellen</string>
     <string name="explorer_navigation_trash_nested_desc">Im Ordner im Papierkorb</string>
@@ -213,6 +223,7 @@
 
     <string name="explorer_loader_progress_home_loading">Start wird geladen</string>
     <string name="explorer_loader_progress_trash_loading">Papierkorb wird geladen…</string>
+    <string name="explorer_loader_progress_recent_loading">Kürzliche Dateien werden geladen…</string>
 
     <!-- InfoBar -->
     <plurals name="explorer_infobar_shortcuts_count">
@@ -222,6 +233,10 @@
     <plurals name="explorer_infobar_location_count">
         <item quantity="one">%d Speicherort</item>
         <item quantity="other">%d Speicherorte</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d versteckt</item>
+        <item quantity="other">%d versteckt</item>
     </plurals>
     <string name="explorer_infobar_storage_free">%1$s frei</string>
     <string name="explorer_infobar_loading">Wird geladen…</string>
@@ -314,6 +329,14 @@
     <string name="explorer_location_name_hint">Leer lassen, um den Standardnamen zu verwenden</string>
     <string name="explorer_location_rename_action">Speicherort umbenennen</string>
 
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">In den letzten Tag hinzugefügt</item>
+        <item quantity="other">In den letzten %d Tagen hinzugefügt</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Hier gibt es nichts Neues</string>
+    <string name="explorer_recent_empty_message">Dateien, die auf diesem Gerät erscheinen, werden hier angezeigt</string>
+
     <!-- Empty States -->
     <string name="explorer_empty_folder_title">Dieser Ordner ist leer</string>
     <string name="explorer_empty_search_title">Keine Suchergebnisse</string>
@@ -321,6 +344,15 @@
     <string name="explorer_empty_folder_label">Leerer Ordner</string>
     <string name="explorer_empty_filtered_title">Keine passenden Elemente</string>
     <string name="explorer_empty_filtered_caption">Passe Deine Filter an</string>
+    <string name="explorer_empty_hidden_title">Hier gibt es nur versteckte Elemente</string>
+    <string name="explorer_empty_hidden_caption">Dieser Tab blendet Elemente aus, deren Name mit einem Punkt beginnt</string>
+    <string name="explorer_empty_show_hidden_action">Versteckte Elemente anzeigen</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Nichts mehr anzuzeigen</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Versteckte Elemente und Deine Filter blenden jeweils einen Teil dieses Ordners aus</string>
+    <string name="explorer_empty_clear_filters_action">Filter zurücksetzen</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Versteckte Elemente und Filter blenden hier alles aus</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Versteckte Elemente einblenden und die Filter dieses Tabs zurücksetzen, damit sie wieder erscheinen</string>
+    <string name="explorer_empty_show_all_action">Alle Elemente anzeigen</string>
     <string name="explorer_path_not_found_title">Dieser Ordner ist verschwunden</string>
     <string name="explorer_path_not_found_caption">Er wurde gelöscht, umbenannt oder an einen anderen Ort verschoben.</string>
     <string name="explorer_path_not_found_back_action">Zurück</string>
@@ -363,6 +395,27 @@
     <string name="explorer_sort_suppressed_notice">Überschreibt die für %1$s gespeicherte Regel</string>
     <string name="explorer_sort_tab_overrides_default_notice">Dieser Tab verwendet eine eigene Standardsortierung</string>
     <string name="explorer_sort_tab_overrides_clear_action">Aufheben</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Ordnergrößen</string>
+    <string name="explorer_sizes_sheet_label_calculated">Berechnet</string>
+    <string name="explorer_sizes_sheet_label_folders">Ordner</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Nicht lesbare Speicherorte</string>
+    <string name="explorer_sizes_sheet_problems_more">%1$d weitere nicht aufgeführt</string>
+    <string name="explorer_sizes_sheet_recalculate">Neu berechnen</string>
+    <string name="explorer_sizes_sheet_discard">Größen verwerfen</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Wie Elemente angeordnet werden und wie viele Details sie zeigen</string>
+    <string name="explorer_view_mode_list_label">Liste</string>
+    <string name="explorer_view_mode_grid_label">Raster</string>
+    <string name="explorer_view_density_compact_label">Kompakt</string>
+    <string name="explorer_view_density_comfortable_label">Komfortabel</string>
+    <string name="explorer_view_density_detailed_label">Detailliert</string>
+    <string name="explorer_view_show_hidden_label">Versteckte Dateien anzeigen</string>
+    <string name="explorer_view_set_default_action">Als Standard festlegen</string>
+    <string name="explorer_view_detail_created_label">Erstellt</string>
+    <string name="explorer_view_detail_modified_label">Geändert</string>
 
     <!-- Folder Sort Rules -->
     <string name="explorer_settings_folder_sort_rules_title">Ordnersortierregeln</string>
@@ -422,6 +475,8 @@
     <string name="explorer_file_action_properties_subtitle">Detaillierte Dateiinformationen anzeigen</string>
     <string name="explorer_file_action_extract">Entpacken</string>
     <string name="explorer_file_action_extract_subtitle">Archivinhalte in einen Ordner entpacken</string>
+    <string name="explorer_file_action_show_in_folder">Im Ordner anzeigen</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Den Ordner öffnen, in dem sich diese Datei befindet</string>
 
     <!-- Operations -->
     <plurals name="explorer_operation_report_files_created">
@@ -543,6 +598,18 @@
     <string name="explorer_operation_create_description_file">Datei \"%1$s\" unter \"%2$s\" erstellen</string>
     <string name="explorer_operation_create_text_file_title">Textdateierstellung</string>
     <string name="explorer_operation_create_text_file_description">\"%1$s\" aus Textausschnitt erstellen</string>
+    <string name="explorer_operation_calculate_sizes_title">Größenberechnung</string>
+    <string name="explorer_operation_calculate_sizes_description">Ordnergrößen in \"%1$s\" berechnen.</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$d Element gescannt</item>
+        <item quantity="other">%1$d Elemente gescannt</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Die Größen von %1$d Ordnern berechnet.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">Die Größen von %1$d Ordnern berechnet, %2$d Speicherort konnte nicht gelesen werden.</item>
+        <item quantity="other">Die Größen von %1$d Ordnern berechnet, %2$d Speicherorte konnten nicht gelesen werden.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Die Ordnergrößen für \"%1$s\" wurden verworfen, da sich der Ordner während der Berechnung geändert hat.</string>
 
     <!-- Navigation Error Messages -->
     <string name="explorer_navigation_error_title">Navigation fehlgeschlagen</string>
@@ -586,6 +653,7 @@
     <string name="explorer_favorites_section_title">Favoriten</string>
     <string name="explorer_action_add_to_favorites">Zu Favoriten hinzufügen</string>
     <string name="explorer_action_remove_from_favorites">Aus Favoriten entfernen</string>
+    <string name="explorer_favorites_select_action">Auswählen</string>
     <string name="explorer_favorites_unavailable_subtitle">Nicht zugänglich</string>
     <string name="explorer_favorites_unavailable_toast">Favorit ist nicht zugänglich</string>
     <string name="explorer_favorites_added_message">%1$s zu Favoriten hinzugefügt</string>
@@ -598,6 +666,9 @@
         <item quantity="one">%1$d Element aus Favoriten entfernt</item>
         <item quantity="other">%1$d Elemente aus Favoriten entfernt</item>
     </plurals>
+    <string name="explorer_favorites_rename_title">Favorit umbenennen</string>
+    <string name="explorer_favorites_rename_hint">Name des Favoriten</string>
+    <string name="explorer_favorites_rename_description">Nur der Eintrag in Deinen Favoriten wird umbenannt, der Ordner selbst behält seinen Namen.</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Dieser Tab überschreibt die Sortierung in %1$d Ordner</item>
         <item quantity="other">Dieser Tab überschreibt die Sortierung in %1$d Ordnern</item>

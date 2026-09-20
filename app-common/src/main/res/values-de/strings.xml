@@ -224,6 +224,29 @@
     <string name="ui_theme_color_green_label">Grün</string>
     <string name="ui_theme_color_blue_label">Blau</string>
     <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Benutzerdefiniert</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Tonal</string>
+    <string name="ui_theme_palette_neutral_label">Neutral</string>
+    <string name="ui_theme_palette_vibrant_label">Lebendig</string>
+    <string name="ui_theme_palette_expressive_label">Ausdrucksstark</string>
+    <string name="ui_theme_palette_rainbow_label">Regenbogen</string>
+    <string name="ui_theme_palette_fruitsalad_label">Fruchtsalat</string>
+    <string name="ui_theme_palette_monochrome_label">Monochrom</string>
+    <string name="ui_theme_palette_fidelity_label">Naturgetreu</string>
+    <string name="ui_theme_palette_content_label">Inhaltsbasiert</string>
+
+    <string name="ui_theme_custom_dialog_title">Eigenes Design</string>
+    <string name="ui_theme_custom_seed_label">Basisfarbe</string>
+    <string name="ui_theme_custom_palette_label">Palettenstil</string>
+    <string name="ui_theme_custom_default_action">Standard</string>
+
+    <string name="ui_mascot_suit_dialog_title">Butlers Anzug</string>
+    <string name="ui_mascot_suit_default_action">Standard</string>
+    <string name="ui_mascot_suit_hue_label">Farbton</string>
+    <string name="ui_mascot_suit_saturation_label">Sättigung</string>
+    <string name="ui_mascot_suit_brightness_label">Helligkeit</string>
+    <string name="ui_mascot_suit_value_description">Anzugfarbe %s</string>
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">Nutzungsstatistiken</string>
