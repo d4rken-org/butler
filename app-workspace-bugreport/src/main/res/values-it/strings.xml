@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Rapporti di errore</string>
+    <string name="bugreport_workspace_subtitle">Rapporti di arresti anomali ed errori</string>
+
+    <string name="bugreport_empty_title">Nessun rapporto</string>
+    <string name="bugreport_empty_subtitle">I rapporti di arresti anomali ed errori verranno visualizzati qui. Niente viene inviato automaticamente.</string>
+
+    <string name="bugreport_type_crash">Arresto anomalo</string>
+    <string name="bugreport_type_report">Rapporto</string>
+    <string name="bugreport_type_recording">Registrazione</string>
+
+    <string name="bugreport_record_action">Registra log di debug</string>
+    <string name="bugreport_record_short_action">Registra</string>
+    <string name="bugreport_stop_action">Interrompi registrazione</string>
+    <string name="bugreport_stop_short_action">Interrompi</string>
+    <string name="bugreport_recording_ongoing_label">Registrazione in corso…</string>
+
+    <string name="bugreport_recording_short_title">Registrazione molto breve</string>
+    <string name="bugreport_recording_short_message">Questa registrazione dura solo pochi secondi e potrebbe non contenere informazioni utili. Interromperla comunque?</string>
+    <string name="bugreport_recording_short_keep_action">Continua registrazione</string>
+
+    <string name="bugreport_rename_action">Rinomina</string>
+    <string name="bugreport_rename_dialog_title">Nomina questo rapporto</string>
+    <string name="bugreport_rename_name_label">Nome</string>
+    <string name="bugreport_rename_name_hint">Visualizzato nell’elenco e nel nome del file condiviso</string>
+
+    <string name="bugreport_share_action">Condividi</string>
+    <string name="bugreport_delete_action">Elimina</string>
+    <string name="bugreport_delete_all_action">Elimina tutto</string>
+    <string name="bugreport_delete_all_confirm_title">Eliminare tutti i log di debug?</string>
+    <string name="bugreport_delete_all_confirm_message">Verranno eliminati definitivamente tutti i log di debug registrati. Le registrazioni attive non saranno interessate.</string>
+    <string name="bugreport_delete_confirm_title">Eliminare questo rapporto?</string>
+    <string name="bugreport_delete_confirm_message">Verranno eliminati definitivamente questo rapporto e il relativo log.</string>
+    <string name="bugreport_cancel_action">Annulla</string>
+
+    <string name="bugreport_share_chooser_title">Condividi rapporto di errore</string>
+    <string name="bugreport_share_consent_title">Condividere il rapporto?</string>
+    <string name="bugreport_share_consent_message">Questo rapporto contiene i log dell’app che possono includere nomi di file, percorsi, informazioni dell’app e del dispositivo. Condividilo solo con persone di cui ti fidi.</string>
+
+    <string name="bugreport_detail_back_action">Indietro</string>
+    <string name="bugreport_detail_section_error">Errore</string>
+    <string name="bugreport_detail_section_log">Log recente</string>
+    <string name="bugreport_detail_field_type">Tipo</string>
+    <string name="bugreport_detail_field_time">Ora</string>
+    <string name="bugreport_detail_field_app_version">Versione app</string>
+    <string name="bugreport_detail_field_device">Dispositivo</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">Tipo di errore</string>
+    <string name="bugreport_detail_field_thread">Thread</string>
+    <string name="bugreport_detail_log_truncated">ultimi %1$d di %2$d righe</string>
+    <string name="bugreport_detail_log_count">%1$d righe</string>
+    <string name="bugreport_detail_log_empty">Nessun log acquisito</string>
+    <string name="bugreport_detail_log_error">Impossibile caricare il log</string>
+</resources>

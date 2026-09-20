@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Nuovo</string>
+    <string name="workspace_templates_choose_title">Nuovo tab</string>
+    <string name="workspace_templates_choose_subtitle">Seleziona un tipo di tab. Come posso aiutarti?</string>
+    <string name="workspace_templates_name_tab_action">Nomina questo tab</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Scegli uno strumento</string>
+    <string name="tour_templates_picker_body">Questo è il selezionatore tab, scegli a cosa dovrebbe servire questo tab. Selezionare uno trasforma questo tab nello strumento corrispondente.</string>
+    <string name="tour_templates_butler_button_title">I tuoi tab vivono qui</string>
+    <string name="tour_templates_butler_button_body">Tocca il pulsante Butler per il menu tab: crea un nuovo tab, chiudi quello attuale o apri il gestore tab completo. Tieni premuto per passare direttamente al gestore tab.</string>
+</resources>
