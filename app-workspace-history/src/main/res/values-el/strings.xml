@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">Ιστορικό</string>
+    <string name="history_workspace_subtitle">Πρόσφατες λειτουργίες αρχείων</string>
+    <string name="history_workspace_title_scoped">Ιστορικό: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">Ιστορικό: Αποτυχία</string>
+    <string name="history_workspace_title_outcome_partial">Ιστορικό: Μερική εκτέλεση</string>
+    <string name="history_workspace_title_outcome_cancelled">Ιστορικό: Ακύρωση</string>
+    <string name="history_workspace_title_outcome_completed">Ιστορικό: Ολοκλήρωση</string>
+    <string name="history_workspace_title_kind_copy">Ιστορικό: Αντιγραφή</string>
+    <string name="history_workspace_title_kind_move">Ιστορικό: Μετακίνηση</string>
+    <string name="history_workspace_title_kind_delete">Ιστορικό: Οριστική διαγραφή</string>
+    <string name="history_workspace_title_kind_create_file">Ιστορικό: Δημιουργία αρχείου</string>
+    <string name="history_workspace_title_kind_create_folder">Ιστορικό: Δημιουργία φακέλου</string>
+    <string name="history_workspace_title_kind_save">Ιστορικό: Αποθήκευση</string>
+    <string name="history_workspace_title_kind_compress">Ιστορικό: Συμπίεση</string>
+    <string name="history_workspace_title_kind_extract">Ιστορικό: Εξαγωγή</string>
+    <string name="history_workspace_title_filtered">Ιστορικό (φιλτραρισμένο)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">Ιστορικό: %1$d διαδρομή</item>
+        <item quantity="other">Ιστορικό: %1$d διαδρομές</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Όλα</string>
+    <string name="history_filter_outcome_completed">Ολοκλήρωση</string>
+    <string name="history_filter_outcome_partial">Μερική εκτέλεση</string>
+    <string name="history_filter_outcome_failed">Αποτυχία</string>
+    <string name="history_filter_outcome_cancelled">Ακύρωση</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Αντιγραφή</string>
+    <string name="history_filter_kind_move">Μετακίνηση</string>
+    <string name="history_filter_kind_delete">Οριστική διαγραφή</string>
+    <string name="history_filter_kind_create_file">Δημιουργία αρχείου</string>
+    <string name="history_filter_kind_create_folder">Δημιουργία φακέλου</string>
+    <string name="history_filter_kind_save">Αποθήκευση</string>
+    <string name="history_filter_kind_compress">Συμπίεση</string>
+    <string name="history_filter_kind_extract">Εξαγωγή</string>
+    <string name="history_filter_kind_enable">Ενεργοποίηση</string>
+    <string name="history_filter_kind_disable">Απενεργοποίηση</string>
+    <string name="history_filter_kind_force_stop">Δυναμική διακοπή</string>
+    <string name="history_filter_kind_uninstall">Κατάργηση</string>
+    <string name="history_filter_kind_clear_data">Διαγραφή δεδομένων</string>
+    <string name="history_filter_kind_components">Στοιχεία</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Ορισμός εύρους διαδρομής…</string>
+    <string name="history_path_scope_clear_action">Διαγραφή εύρους διαδρομής</string>
+    <string name="history_path_scope_dialog_title">Φιλτράρισμα κατά διαδρομή</string>
+    <string name="history_path_scope_dialog_description">Εμφάνιση μόνο λειτουργιών που επηρεάζουν αυτή τη διαδρομή ή τους απογόνους της.</string>
+    <string name="history_path_scope_dialog_input_label">Διαδρομή</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Επιλογή φακέλου…</string>
+    <string name="history_path_scope_dialog_apply_action">Εφαρμογή</string>
+    <string name="history_path_scope_dialog_cancel_action">Ακύρωση</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Σήμερα</string>
+    <string name="history_group_yesterday">Χθες</string>
+    <string name="history_group_this_week">Αυτή την εβδομάδα</string>
+    <string name="history_group_this_month">Αυτό το μήνα</string>
+    <string name="history_group_older">Παλαιότερα</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Μετονόμαση</string>
+    <string name="history_entry_intent_paste_copy">Επικόλληση</string>
+    <string name="history_entry_intent_paste_move">Επικόλληση (μετακίνηση)</string>
+    <string name="history_entry_intent_drop_copy">Απόθεση (αντιγραφή)</string>
+    <string name="history_entry_intent_drop_move">Απόθεση (μετακίνηση)</string>
+    <string name="history_entry_intent_enable_components">Ενεργοποιήθηκαν στοιχεία του</string>
+    <string name="history_entry_intent_disable_components">Απενεργοποιήθηκαν στοιχεία του</string>
+    <string name="history_entry_kind_copy">Αντιγράφηκε</string>
+    <string name="history_entry_kind_move">Μετακινήθηκε</string>
+    <string name="history_entry_kind_delete">Διαγράφηκε</string>
+    <string name="history_entry_kind_create_file">Δημιουργήθηκε αρχείο</string>
+    <string name="history_entry_kind_create_folder">Δημιουργήθηκε φάκελος</string>
+    <string name="history_entry_kind_save">Αποθηκεύτηκε</string>
+    <string name="history_entry_kind_compress">Συμπιέστηκε</string>
+    <string name="history_entry_kind_extract">Εξήχθη</string>
+    <string name="history_entry_kind_restore">Επαναφέρθηκε</string>
+    <string name="history_entry_kind_install">Εγκαταστάθηκε</string>
+    <string name="history_entry_kind_enable">Ενεργοποιήθηκε</string>
+    <string name="history_entry_kind_disable">Απενεργοποιήθηκε</string>
+    <string name="history_entry_kind_force_stop">Δυναμικά διακόπηκε</string>
+    <string name="history_entry_kind_uninstall">Κατηργήθηκε</string>
+    <string name="history_entry_kind_clear_data">Διαγράφηκαν τα δεδομένα του</string>
+    <string name="history_entry_kind_components">Άλλαξαν τα στοιχεία του</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d διαδρομή</item>
+        <item quantity="other">%d διαδρομές</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">Πρώτες %1$d από %2$d διαδρομές που επηρεάζονται</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Έναρξη</string>
+    <string name="history_detail_label_completed">Ολοκλήρωση</string>
+    <string name="history_detail_label_duration">Διάρκεια</string>
+    <string name="history_detail_label_outcome">Αποτέλεσμα</string>
+    <string name="history_detail_label_origin">Προέλευση</string>
+    <string name="history_detail_label_error">Σφάλμα</string>
+    <string name="history_detail_label_paths">Διαδρομές που επηρεάζονται</string>
+    <string name="history_detail_label_partial_errors">Αποτυχίες ανά αντικείμενο</string>
+    <string name="history_detail_copy_path_action">Αντιγραφή διαδρομής</string>
+    <string name="history_detail_paths_empty">Δεν καταγράφηκαν διαδρομές που επηρεάζονται.</string>
+    <string name="history_detail_label_attempted_paths">Διαδρομές που δοκιμάστηκαν</string>
+    <string name="history_detail_label_packages">Εφαρμογές που επηρεάζονται</string>
+    <string name="history_detail_packages_empty">Δεν καταγράφηκαν εφαρμογές που επηρεάζονται.</string>
+    <string name="history_detail_paths_truncated_callout">Εμφάνιση πρώτων %1$d από %2$d διαδρομών που επηρεάζονται.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Εμφάνιση πρώτων %1$d από %2$d διαδρομών που δοκιμάστηκαν.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">%1$d αντικείμενο απέτυχε κατά τη διάρκεια αυτής της λειτουργίας.</item>
+        <item quantity="other">%1$d αντικείμενα απέτυχαν κατά τη διάρκεια αυτής της λειτουργίας.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Εξερεύνηση</string>
+    <string name="history_origin_searcher">Αναζήτηση</string>
+    <string name="history_origin_saver">Αποθήκευση</string>
+    <string name="history_origin_developer">Προγραμματιστής</string>
+    <string name="history_origin_viewer">Προβολή</string>
+    <string name="history_origin_apps">Εφαρμογές</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Χωρίς ιστορικό ακόμη</string>
+    <string name="history_empty_subtitle">Οι λειτουργίες αρχείων θα εμφανίζονται εδώ καθώς χρησιμοποιείτε το Butler.</string>
+    <string name="history_empty_filtered_title">Χωρίς αποτελέσματα</string>
+    <string name="history_empty_filtered_subtitle">Καμία καταχώρηση ιστορικού δεν ταιριάζει με το τρέχον φίλτρο.</string>
+    <string name="history_empty_filtered_reset_action">Επαναφορά φίλτρου</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Επαναφορά φίλτρου</string>
+    <string name="history_toolbar_reset_filter_content_description">Επαναφορά φίλτρων</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">Πρώτες %1$d από %2$d διαδρομές που επηρεάζονται</string>
+    <string name="history_add_filter_action">Προσθήκη φίλτρου</string>
+    <string name="history_add_filter_sheet_title">Προσθήκη φίλτρου</string>
+    <string name="history_add_filter_section_outcome">Αποτέλεσμα</string>
+    <string name="history_add_filter_section_kind">Είδος</string>
+    <string name="history_add_filter_section_path_scope">Εύρος διαδρομής</string>
+    <string name="history_add_filter_add_path_action">Προσθήκη διαδρομής…</string>
+    <string name="history_path_scope_remove_action">Αφαίρεση</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d καταχώρηση</item>
+        <item quantity="other">%1$d καταχωρήσεις</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%1$d από %2$d εμφανίζεται</item>
+        <item quantity="other">%1$d από %2$d εμφανίζονται</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">Ιστορικό</string>
+    <string name="history_settings_save_history_title">Αποθήκευση ιστορικού</string>
+    <string name="history_settings_save_history_subtitle">Καταγραφή ολοκληρωμένων λειτουργιών αρχείων.</string>
+    <string name="history_settings_max_history_label">Μέγιστο ιστορικό αντικείμενα</string>
+    <string name="history_settings_max_history_subtitle">Οι παλαιότερες καταχωρήσεις αφαιρούνται όταν υπερβεί αυτό το όριο.</string>
+    <string name="history_settings_max_history_input_label">Μέγιστες καταχωρήσεις</string>
+    <string name="history_settings_clear_history_title">Διαγραφή ιστορικού</string>
+    <string name="history_settings_clear_history_subtitle">Αφαίρεση όλων των αποθηκευμένων καταχωρήσεων (%1$d).</string>
+    <string name="history_clear_dialog_title">Διαγραφή ιστορικού;</string>
+    <string name="history_clear_dialog_message">Αφαιρεί όλες τις καταχωρήσεις από τη βάση δεδομένων ιστορικού λειτουργιών. Αυτό δεν μπορεί να αναιρεθεί.</string>
+    <string name="history_clear_confirm_action">Διαγραφή</string>
+    <string name="history_cleared_success">Το ιστορικό διαγράφηκε</string>
+    <string name="history_workspace_title_kind_restore">Ιστορικό: Επαναφορά</string>
+    <string name="history_filter_kind_restore">Επαναφορά</string>
+    <string name="history_workspace_title_kind_install">Ιστορικό: Εγκατάσταση</string>
+    <string name="history_filter_kind_install">Εγκατάσταση</string>
+    <string name="history_workspace_title_kind_enable">Ιστορικό: Ενεργοποίηση</string>
+    <string name="history_workspace_title_kind_disable">Ιστορικό: Απενεργοποίηση</string>
+    <string name="history_workspace_title_kind_force_stop">Ιστορικό: Δυναμική διακοπή</string>
+    <string name="history_workspace_title_kind_uninstall">Ιστορικό: Κατάργηση</string>
+    <string name="history_workspace_title_kind_clear_data">Ιστορικό: Διαγραφή δεδομένων</string>
+    <string name="history_workspace_title_kind_components">Ιστορικό: Στοιχεία</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Επιλογή όλων</string>
+    <string name="history_action_deselect_all">Αποεπιλογή όλων</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Διαγραφή %1$d καταχώρησης</item>
+        <item quantity="other">Διαγραφή %1$d καταχωρήσεων</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Αφαιρούνται μόνο τα αρχεία ιστορικού, τα ίδια τα αρχεία δεν επηρεάζονται.</string>
+    <string name="history_pro_dialog_message">Η κοινοποίηση και η διαγραφή καταχωρήσεων ιστορικού αποτελούν μέρος της αναβάθμισης. Η διαγραφή ολόκληρου του ιστορικού παραμένει δωρεάν στις ρυθμίσεις ιστορικού.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Αποτέλεσμα</string>
+    <string name="history_share_label_kind">Είδος</string>
+    <string name="history_share_label_origin">Προέλευση</string>
+    <string name="history_share_label_summary">Σύνοψη</string>
+    <string name="history_share_label_completed">Ολοκλήρωση</string>
+    <string name="history_share_label_duration">Διάρκεια</string>
+    <string name="history_share_label_error">Σφάλμα</string>
+    <string name="history_share_label_failed_items">Αποτυχημένα αντικείμενα</string>
+    <string name="history_share_label_paths">Διαδρομές που επηρεάζονται (%1$d)</string>
+    <string name="history_share_label_packages">Εφαρμογές που επηρεάζονται (%1$d)</string>
+    <string name="history_share_paths_more">… και %1$d περισσότερα</string>
+    <string name="history_share_truncated">… και %1$d περισσότερες καταχωρήσεις που δεν περιλαμβάνονται</string>
+</resources>

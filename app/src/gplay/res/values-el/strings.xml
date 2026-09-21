@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Απαιτεί Butler Pro</string>
+
+    <string name="upgrade_prompt_title">Αναβάθμιση Butler</string>
+    <string name="upgrade_prompt_body">Το Butler Pro προσφέρει καλύτερα αποτελέσματα, περισσότερες δυνατότητες και επιλογές για προχωρημένους χρήστες.</string>
+    <string name="upgrade_prompt_upgrade_action">Αναβάθμιση</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">Αποκτήστε %1$s</string>
+    <string name="upgrade_screen_preamble">Το Butler δεν έχει διαφημίσεις και δεν πωλεί δεδομένα χρήστη. Το έργο μου χρηματοδοτείται από εσάς ❤️.</string>
+
+    <string name="upgrade_screen_how_title">Επιλογές</string>
+    <string name="upgrade_screen_subscription_trial_action">Δοκιμή χωρίς χρέωση 14 ημερών</string>
+    <string name="upgrade_screen_subscription_action">Συνδρομή</string>
+    <string name="upgrade_screen_iap_action">Μία φορά αγορά</string>
+    <string name="upgrade_screen_restore_purchase_action">Επαναφορά αγοράς</string>
+    <string name="upgrade_screen_restore_banner_title">Έχετε αγοράσει ήδη Pro;</string>
+    <string name="upgrade_screen_restore_banner_body">Φαίνεται ότι αναβαθμίστηκατε σε Pro σε αυτή τη συσκευή προηγουμένως. Επαναφέρετε την αγορά σας για να το ξεκλειδώσετε ξανά.</string>
+    <string name="upgrade_screen_restore_checked_message">Το Butler μόλις ελέγχθηκε με το Google Play, αλλά δεν θα μπορούσε να επιβεβαιωθεί καμία αγορά Pro για το λογαριασμό που χρησιμοποιεί το Google Play για αυτήν την εφαρμογή.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Ο έλεγχος με το Google Play δεν ολοκληρώθηκε στην ώρα του, επομένως η κατάσταση της αγοράς σας παραμένει άγνωστη. Τίποτα δεν άλλαξε στο λογαριασμό σας.</string>
+    <string name="upgrade_screen_restore_contact_hint">Ακόμα κολλημένοι; Επικοινωνήστε από το email που έκανε την αγορά και συμπεριλάβετε τον αριθμό παραγγελίας Google Play σας.</string>
+    <string name="upgrade_screen_contact_support_action">Επικοινωνία με την υποστήριξη</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Η συγχρονισμός με το Play Store μπορεί να διαρκέσει. Δοκιμάστε να κάνετε επανεκκίνηση, να διαγράψετε τη μνήμη cache του Google Play ή απλώς περιμένετε.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">Πολλαπλοί λογαριασμοί μπορούν να συγχέουν το Google Play. Αποσύνδεση από άλλους λογαριασμούς ή εγκατάσταση μέσω του ιστότοπου Google Play, που αναγκάζει συσχετίσεις με έναν συγκεκριμένο λογαριασμό.</string>
+    <string name="upgrade_screen_restore_success_message">Η αγορά σας αποκαταστάθηκε ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Η κατάσταση φαίνεται λανθασμένη;</string>
+    <string name="upgrade_screen_restore_status_body">Επανελέγχει την αγορά σας με το Google Play. Αυτό μπορεί να βοηθήσει μετά από αλλαγή συσκευής ή αν αλλάξατε λογαριασμούς Google.</string>
+
+    <string name="upgrade_screen_offers_or">ή</string>
+
+    <string name="upgrade_screen_offers_title">Επιλογές αναβάθμισης</string>
+    <string name="upgrade_screen_offers_body">Και οι δύο επιλογές ξεκλειδώνουν τις ίδιες δυνατότητες Pro — επιλέξτε ποια τιμολόγηση σας ταιριάζει.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Οι τιμές δεν είναι διαθέσιμες</string>
+    <string name="upgrade_screen_offers_unavailable_message">Το Butler δεν μπορούσε να φορτώσει τις επιλογές αναβάθμισης από το Google Play. Αυτό είναι συχνά προσωρινό — δοκιμάστε ξανά σε λίγο.</string>
+    <string name="upgrade_screen_subscription_offer_title">Ετήσια συνδρομή</string>
+    <string name="upgrade_screen_subscription_offer_body">Ξεκινά με δωρεάν δοκιμή 14 ημερών, στη συνέχεια χρεώνεται μία φορά ετησίως. Ακύρωση ανά πάσα στιγμή.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Χρεώνεται μία φορά ετησίως. Ακύρωση ανά πάσα στιγμή.</string>
+    <string name="upgrade_screen_iap_offer_title">Αγορά μία φορά</string>
+    <string name="upgrade_screen_iap_offer_body">Πληρώστε μία φορά, δική σας για πάντα. Χωρίς συνδρομή.</string>
+    <string name="upgrade_screen_restore_body">Η επαναφορά ζητά από το Google Play να ελέγξει ξανά τις αγορές αυτής της εφαρμογής για τον τρέχοντα λογαριασμό.</string>
+
+    <string name="upgrade_screen_owned_hero_title">Έχετε Butler Pro!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Ευχαριστώ για την αγορά μίας φοράς — είστε έτοιμοι για πάντα ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Ευχαριστώ που συνδρομητεύετε ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">Αγορά μία φορά</string>
+    <string name="upgrade_screen_owned_iap_body">Κατέχετε την μόνιμη αναβάθμιση Pro.</string>
+    <string name="upgrade_screen_owned_sub_title">Συνδρομή</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Η συνδρομή σας είναι ενεργή και ανανεώνεται αυτόματα.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Η συνδρομή σας είναι ενεργή αλλά έχει οριστεί να μην ανανεωθεί. Το Pro παραμένει έως το τέλος της τρέχουσας περιόδου.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">Κατέχετε την αγορά μίας φοράς αλλά η συνδρομή σας εξακολουθεί να ανανεώνεται. Ακυρώστε την στο Google Play για να αποφύγετε την πληρωμή δύο φορών.</string>
+    <string name="upgrade_screen_manage_subscription_action">Διαχείριση συνδρομής</string>
+
+    <string name="upgrade_screen_switch_locked_note">Πρώτα ακυρώστε την ανανέωση μέσω της \"Διαχείρισης συνδρομής\", διαφορετικά θα χρεωθείτε για τα δύο.</string>
+    <string name="upgrade_screen_switch_purchase_note">Η συνδρομή σας δεν θα ανανεωθεί — μπορείτε να αγοράσετε με ασφάλεια τώρα την αγορά μίας φοράς.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Η συνδρομή εξακολουθεί να είναι ενεργή</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Η συνδρομή σας εξακολουθεί να έχει οριστεί για ανανέωση. Ακυρώστε την ανανέωση στο Google Play πρώτα ώστε να μην χρεωθείτε για τα δύο, στη συνέχεια αγοράστε την αγορά μίας φοράς.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">Δεν ήταν δυνατή η επιβεβαίωση</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Το Butler δεν μπορούσε να επιβεβαιώσει την κατάσταση αγοράς σας με το Google Play, επομένως η αγορά σταμάτησε για να αποφύγει την χρέωση δύο φορών. Δοκιμάστε ξανά σε λίγο.</string>
+
+    <string name="upgrade_screen_pending_card_title">Πληρωμή σε εκκρεμότητα</string>
+    <string name="upgrade_screen_pending_card_body">Το Google Play επεξεργάζεται ακόμα την πληρωμή σας. Το Pro ξεκλειδώνεται αυτόματα μόλις η πληρωμή πραγματοποιηθεί. Ορισμένες μέθοδοι πληρωμής μπορεί να διαρκούν λίγο. Δεν χρειάζεται να κάνετε τίποτα άλλο.</string>
+    <string name="upgrade_screen_pending_dialog_message">Το Google Play βρήκε μια αγορά με μια πληρωμή σε εκκρεμότητα και εξακολουθεί να την επεξεργάζεται. Το Pro ξεκλειδώνεται αυτόματα μόλις η πληρωμή πραγματοποιηθεί.</string>
+
+    <string name="upgrade_screen_grace_title">Επιβεβαίωση της αγοράς σας</string>
+    <string name="upgrade_screen_grace_body_short">Το Google Play χρειάζεται λίγο χρόνο για να επιβεβαιώσει την κατάσταση Pro σας. Εξακολουθείτε να έχετε πλήρη πρόσβαση.</string>
+    <string name="upgrade_screen_grace_body">Το Google Play δεν έχει επανεπιβεβαιώσει ακόμα την κατάσταση Pro σας. Εξακολουθείτε να έχετε πρόσβαση προς το παρόν. Αν αυτό φαίνεται λανθασμένο, δοκιμάστε να επαναφέρετε την αγορά σας.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">Αγοράστηκε ήδη;</string>
+    <string name="upgrades_gplay_already_owned_error_description">Το Google Play αναφέρει ότι κατέχετε ήδη αυτήν την αναβάθμιση, αλλά δεν θα μπορούσε να αποκατασταθεί αυτόματα. Βεβαιωθείτε ότι είστε συνδεδεμένοι με το λογαριασμό Google που χρησιμοποιήθηκε για την αρχική αγορά, στη συνέχεια δοκιμάστε την \"Επαναφορά αγοράς\".</string>
+    <string name="upgrades_gplay_unavailable_error_title">Το Google Play δεν είναι διαθέσιμο</string>
+    <string name="upgrades_gplay_unavailable_error_description">Το Butler δεν μπορεί να συνδεθεί με το Google Play. Είναι το Google Play εγκατεστημένο και ενημερωμένο; Είστε συνδεδεμένοι με τον Λογαριασμό Google σας; Δοκιμάστε να διαγράψετε τη μνήμη cache της εφαρμογής Google Play και να κάνετε επανεκκίνηση της συσκευής σας.</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can’t open Google Play’s app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Δεν ήταν δυνατό το άνοιγμα του Google Play. Μπορεί να λείπει, να είναι απενεργοποιημένο ή περιορισμένο σε αυτήν τη συσκευή.</string>
+    <string name="upgrades_gplay_billing_error_label">Πρόβλημα Google Play</string>
+    <string name="upgrades_gplay_billing_error_description">Κάτι πήγε στραβά κατά την επικοινωνία με το Google Play. Δοκιμάστε ξανά αργότερα ή κάντε επανεκκίνηση της συσκευής σας.\n\nΛεπτομέρειες: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Σφάλμα Google Play</string>
+    <string name="upgrades_gplay_internal_error_description">Το Google Play αντιμετώπισε ένα εσωτερικό σφάλμα. Δοκιμάστε τα ακόλουθα:\n\n• Κάντε επανεκκίνηση της συσκευής σας\n• Διαγράψτε τη μνήμη cache του Google Play Store\n• Δοκιμάστε ξανά αργότερα</string>
+    <string name="upgrades_gplay_network_error_title">Σφάλμα σύνδεσης</string>
+    <string name="upgrades_gplay_network_error_description">Το Butler δεν μπορούσε να φτάσει το Google Play. Ελέγξτε τη σύνδεση Internet σας και δοκιμάστε ξανά.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Η προσφορά δεν είναι διαθέσιμη</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Το Google Play δεν προσφέρει αυτήν την επιλογή αναβάθμισης για το λογαριασμό σας. Δοκιμάστε ξανά αργότερα ή ελέγξτε το Google Play Store.</string>
+    <string name="upgrades_no_purchases_found_check_account">Δεν βρέθηκαν αγορές. Χρησιμοποιείτε το σωστό λογαριασμό;</string>
+
+    <string name="upgrade_benefits_title">Πλεονεκτήματα αναβάθμισης</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Απεριόριστες καρτέλες και λειτουργίες\n• Προσαρμογή σχεδίασης, αίσθησης και εμφάνισης\n• Επιπλέον επιλογές και δυνατότητες για κάθε εργαλείο\n• Πρώτη πρόσβαση σε νέες δυνατότητες\n• Ένας παρακινημένος προγραμματιστής 🧙\nκαι περισσότερα…</string>
+</resources>

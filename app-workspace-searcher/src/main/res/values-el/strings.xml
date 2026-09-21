@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Αναζήτηση</string>
+    <string name="searcher_subtitle">Αναζήτηση αρχείων και περιεχομένου</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Ρυθμίσεις αναζήτησης</string>
+    <string name="searcher_settings_search_category">Αναζήτηση</string>
+    <string name="searcher_settings_history">Ιστορικό αναζήτησης</string>
+    <string name="searcher_settings_save_history_title">Αποθήκευση ιστορικού αναζήτησης</string>
+    <string name="searcher_settings_save_history_subtitle">Αποθήκευση των προηγούμενων αναζητήσεων</string>
+    <string name="searcher_settings_max_history_label">Μέγιστες εγγραφές ιστορικού</string>
+    <string name="searcher_settings_max_history_subtitle">Μέγιστος αριθμός αποθηκευμένων αναζητήσεων</string>
+    <string name="searcher_settings_max_history_input_label">Αριθμός εγγραφών (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Καθαρισμός ιστορικού αναζήτησης</string>
+    <string name="searcher_settings_clear_history_subtitle">Αφαίρεση όλων των αποθηκευμένων αναζητήσεων (%1$d)</string>
+    <string name="searcher_settings_search_performance">Απόδοση</string>
+    <string name="searcher_settings_max_results_title">Μέγιστα αποτελέσματα αναζήτησης</string>
+    <string name="searcher_settings_max_results_subtitle">Περιορισμός του αριθμού των αποτελεσμάτων που επιστρέφονται ανά αναζήτηση.</string>
+    <string name="searcher_settings_content_search_category">Αναζήτηση περιεχομένου</string>
+    <string name="searcher_settings_include_binaries_title">Συμπερίληψη δυαδικών αρχείων</string>
+    <string name="searcher_settings_include_binaries_subtitle">Αναζήτηση περιεχομένου δυαδικών αρχείων (ενδέχεται να είναι αργή και να δώσει άσχετα αποτελέσματα)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Πρόσφατες αναζητήσεις</string>
+    <string name="searcher_placeholder_search">Αναζήτηση αρχείων και φακέλων</string>
+    <string name="searcher_placeholder_filename">Όνομα αρχείου</string>
+    <string name="searcher_placeholder_content">Περιεχόμενο</string>
+    <string name="searcher_search_error">Σφάλμα αναζήτησης</string>
+    <string name="searcher_no_paths_hint">Πάτησε + για προσθήκη θέσεων αναζήτησης</string>
+    <string name="searcher_add_path_action">Προσθήκη θέσης</string>
+    <string name="searcher_add_folder_action">Φάκελος…</string>
+    <string name="searcher_multipath_show_fewer_action">Εμφάνιση λιγότερων</string>
+    <string name="searcher_empty_state_title">Δεν έχουν ρυθμιστεί θέσεις αναζήτησης</string>
+    <string name="searcher_empty_state_description">Προσθέστε θέσεις αποθηκευτικού χώρου για αναζήτηση στα αρχεία σας</string>
+    <string name="searcher_add_default_paths_action">Προσθήκη προεπιλεγμένων θέσεων αναζήτησης</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Επιλογές</string>
+    <string name="searcher_option_case_sensitive_label">Διάκριση πεζών-κεφαλαίων</string>
+    <string name="searcher_option_case_sensitive_desc">Αναζήτηση με διάκριση πεζών-κεφαλαίων</string>
+    <string name="searcher_option_whole_word_label">Ολόκληρη λέξη</string>
+    <string name="searcher_option_whole_word_desc">Αναζήτηση ολόκληρης λέξης</string>
+    <string name="searcher_option_regex_label">Κανονική έκφραση</string>
+    <string name="searcher_option_regex_desc">Αναζήτηση κανονικής έκφρασης</string>
+    <string name="searcher_option_search_content_label">Αναζήτηση περιεχομένου</string>
+    <string name="searcher_option_search_content_desc">Αναζήτηση περιεχομένου αρχείων</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Πρότυπα</string>
+    <string name="searcher_templates_card_title">Γρήγορα πρότυπα αναζήτησης</string>
+    <string name="searcher_template_large_files">Μεγάλα αρχεία</string>
+    <string name="searcher_template_large_files_desc">Αρχεία μεγαλύτερα από 100 MB</string>
+    <string name="searcher_template_recent_files">Πρόσφατα αρχεία</string>
+    <string name="searcher_template_recent_files_desc">Τροποποιήθηκαν τις τελευταίες 7 ημέρες</string>
+    <string name="searcher_template_old_files">Παλιά αρχεία</string>
+    <string name="searcher_template_old_files_desc">Δεν τροποποιήθηκαν για περισσότερο από ένα χρόνο</string>
+    <string name="searcher_template_images">Εικόνες</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Βίντεο</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Ήχος</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Έγγραφα</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Αρχεία</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APKs</string>
+    <string name="searcher_template_apks_desc">Πακέτα εφαρμογών Android</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d πρότυπο</item>
+        <item quantity="other">%d πρότυπα</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Φίλτρο</string>
+    <string name="searcher_filter_add_action">Προσθήκη φίλτρου</string>
+    <string name="searcher_filter_title">Φίλτρα αναζήτησης</string>
+    <string name="searcher_filter_size_section">Μέγεθος αρχείου</string>
+    <string name="searcher_filter_size_min">Ελάχιστο μέγεθος</string>
+    <string name="searcher_filter_size_max">Μέγιστο μέγεθος</string>
+    <string name="searcher_filter_date_section">Ημερομηνία τροποποίησης</string>
+    <string name="searcher_filter_date_after">Τροποποιήθηκε μετά</string>
+    <string name="searcher_filter_date_before">Τροποποιήθηκε πριν</string>
+    <string name="searcher_filter_date_any">Οποιαδήποτε στιγμή</string>
+    <string name="searcher_filter_date_24h">Τελευταίες 24 ώρες</string>
+    <string name="searcher_filter_date_7d">Τελευταίες 7 ημέρες</string>
+    <string name="searcher_filter_date_30d">Τελευταίες 30 ημέρες</string>
+    <string name="searcher_filter_date_90d">Τελευταίες 90 ημέρες</string>
+    <string name="searcher_filter_date_1y">Τελευταίο χρόνο</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">μεγαλύτερο από</string>
+    <string name="searcher_filter_comparator_greater_or_equal">μεγαλύτερο ή ίσο</string>
+    <string name="searcher_filter_comparator_less_than">μικρότερο από</string>
+    <string name="searcher_filter_comparator_less_or_equal">μικρότερο ή ίσο</string>
+    <string name="searcher_filter_comparator_equal">ίσο με</string>
+    <string name="searcher_filter_size_value_label">Μέγεθος</string>
+    <string name="searcher_filter_size_at_least">Τουλάχιστον</string>
+    <string name="searcher_filter_size_at_most">Το πολύ</string>
+    <string name="searcher_filter_size_value_hint">π.χ. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Εισάγετε έναν αριθμό με μια μονάδα (KB, MB, GB). Ένας απλός αριθμός θεωρείται ότι είναι MB.</string>
+    <string name="searcher_filter_size_format_error">Μη έγκυρο μέγεθος — χρησιμοποιήστε έναν αριθμό και μια μονάδα, π.χ. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Ημερομηνία</string>
+    <string name="searcher_filter_date_direction_after">Μετά</string>
+    <string name="searcher_filter_date_direction_before">Πριν</string>
+    <string name="searcher_filter_type_label">Τύπος</string>
+    <string name="searcher_filter_type_files">Αρχεία</string>
+    <string name="searcher_filter_type_directories">Φάκελοι</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Αφαίρεση από το ιστορικό</string>
+    <string name="searcher_history_clear_all_action">Καθαρισμός όλων</string>
+    <string name="searcher_history_clear_dialog_title">Καθαρισμός ιστορικού αναζήτησης</string>
+    <string name="searcher_history_clear_dialog_message">Αυτό θα αφαιρέσει όλο το αποθηκευμένο ιστορικό αναζήτησης. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</string>
+    <string name="searcher_history_clear_confirm_action">Καθαρισμός</string>
+    <string name="searcher_history_cleared_success">Το ιστορικό αναζήτησης έχει καθαριστεί</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">Κανένα αποτέλεσμα</item>
+        <item quantity="one">%d αποτέλεσμα</item>
+        <item quantity="other">%d αποτελέσματα</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">Εμφάνιση %d ακόμη</item>
+        <item quantity="other">Εμφάνιση %d ακόμη</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Αναζήτηση</string>
+    <string name="searcher_progress_action_searched">Αναζητήθηκε</string>
+    <string name="searcher_progress_status_completed_with_errors">Ολοκληρώθηκε με σφάλματα</string>
+    <string name="searcher_result_limit_reached">Έχει επιτευχθεί το όριο των αποτελεσμάτων</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Ορισμένα στοιχεία δεν μπορούσαν να αναζητηθούν πλήρως</string>
+    <string name="searcher_progress_clear_action">Καθαρισμός</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d αποτυχία</item>
+        <item quantity="other">%d αποτυχίες</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">%d στοιχείο δεν μπορούσε να προσπελαστεί</item>
+        <item quantity="other">%d στοιχεία δεν μπορούσαν να προσπελαστούν</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…και %d περισσότερο</item>
+        <item quantity="other">…και %d περισσότερα</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn’t be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Το Android προστατεύει αυτές τις θέσεις. Η πρόσθετη πρόσβαση επιτρέπει στο Butler να τις αναζητήσει.</string>
+    <string name="searcher_access_sheet_body_protected">Το Android προστατεύει αυτές τις θέσεις. Δεν υπάρχει τρόπος να χορηγήσετε πρόσβαση σε αυτή τη συσκευή.</string>
+    <string name="searcher_access_sheet_unlock_action">Ξεκλείδωμα πρόσβασης</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d θέση</item>
+        <item quantity="other">%d θέσεις</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d σαρώθηκε</item>
+        <item quantity="other">%d σαρώθηκαν</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d βρέθηκε</item>
+        <item quantity="other">%d βρέθηκαν</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Πλαίσιο αντιστοίχισης</string>
+    <string name="searcher_match_line_label">Γραμμή %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Άνοιγμα</string>
+    <string name="searcher_action_open_in_tab">Άνοιγμα σε νέα καρτέλα</string>
+    <string name="searcher_action_open_with">Άνοιγμα με</string>
+    <string name="searcher_action_open_in_editor">Άνοιγμα στον Επεξεργαστή</string>
+    <string name="searcher_action_open_in_explorer">Άνοιγμα στην Εξερεύνηση</string>
+    <string name="searcher_action_install">Εγκατάσταση</string>
+    <string name="searcher_action_copy">Αντιγραφή</string>
+    <string name="searcher_action_cut">Αποκοπή</string>
+    <string name="searcher_action_delete">Διαγραφή</string>
+    <string name="searcher_action_copy_path">Αντιγραφή διαδρομής</string>
+    <string name="searcher_action_properties">Ιδιότητες</string>
+    <string name="searcher_action_select_all">Επιλογή όλων</string>
+    <string name="searcher_action_deselect_all">Αποεπιλογή όλων</string>
+    <string name="searcher_action_open_in_new_tabs">Άνοιγμα σε νέες καρτέλες</string>
+    <string name="searcher_action_sort">Ταξινόμηση</string>
+    <string name="searcher_action_view">Διάταξη</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Ταξινόμηση κατά</string>
+    <string name="searcher_sort_mode_name_label">Όνομα</string>
+    <string name="searcher_sort_mode_size_label">Μέγεθος</string>
+    <string name="searcher_sort_mode_modified_label">Ημερομηνία τροποποίησης</string>
+    <string name="searcher_sort_mode_created_label">Ημερομηνία δημιουργίας</string>
+    <string name="searcher_sort_mode_path_label">Διαδρομή</string>
+    <string name="searcher_sort_descending_label">Φθίνουσα σειρά</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Πώς διατάσσονται τα στοιχεία και πόσες λεπτομέρειες εμφανίζονται</string>
+    <string name="searcher_view_mode_list_label">Λίστα</string>
+    <string name="searcher_view_mode_grid_label">Πλέγμα</string>
+    <string name="searcher_view_density_compact_label">Συμπαγές</string>
+    <string name="searcher_view_density_comfortable_label">Άνετο</string>
+    <string name="searcher_view_density_detailed_label">Λεπτομερές</string>
+    <string name="searcher_view_detail_modified_label">Τροποποιήθηκε</string>
+    <string name="searcher_view_set_default_action">Ορισμός ως προεπιλογή</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Απαιτείται πρόσθετη ρύθμιση για αναζήτηση σε ορισμένες θέσεις.</string>
+</resources>

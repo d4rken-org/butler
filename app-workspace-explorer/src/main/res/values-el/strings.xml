@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Εξερεύνηση</string>
+    <string name="explorer_subtitle">Περιήγηση σε αρχεία και φακέλους</string>
+    <string name="explorer_settings_title">Ρυθμίσεις Εξερεύνησης</string>
+    <string name="explorer_settings_file_display">Εμφάνιση αρχείων</string>
+    <string name="explorer_settings_filter_regex_title">Προηγμένη αντιστοίχιση με wildcards</string>
+    <string name="explorer_settings_filter_regex_desc">Χρήση μοτίβων regex στα φίλτρα συμπερίληψης/εξαίρεσης.</string>
+    <string name="explorer_settings_navigation">Πλοήγηση</string>
+    <string name="explorer_settings_back_button_title">Πλοήγηση με το κουμπί «Πίσω»</string>
+    <string name="explorer_settings_back_button_desc">Πλοήγηση στο ιστορικό με το κουμπί ή τη χειρονομία «Πίσω».</string>
+    <string name="explorer_settings_trash_category">Κάδος</string>
+    <string name="explorer_settings_trash_enabled_title">Ενεργοποίηση κάδου</string>
+    <string name="explorer_settings_trash_enabled_desc">Μετακίνηση διαγραμμένων αρχείων στον κάδο αντί για οριστική διαγραφή</string>
+    <string name="explorer_settings_trash_auto_delete_title">Αυτόματη διαγραφή μετά από</string>
+    <string name="explorer_settings_trash_auto_delete_desc">Αυτόματη διαγραφή στοιχείων παλαιότερων από %d ημέρες</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d ημέρες</string>
+    <string name="explorer_settings_trash_max_size_title">Μέγιστο μέγεθος ανά αποθηκευτικό χώρο</string>
+    <string name="explorer_settings_trash_max_size_desc">%d MB το μέγιστο ανά αποθηκευτική θέση</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Περίοδος αυτόματης διαγραφής</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Μέγιστο μέγεθος ανά αποθηκευτικό χώρο</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Ενεργοποίηση κάδου;</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Σε αντίθεση με τα συστήματα υπολογιστών, το Android δεν διαθέτει ενσωματωμένο κάδο. Το Butler παρέχει έναν χρησιμοποιώντας τον φάκελο cache του.\n\nΈχετε υπόψη σας:\n• Η ένδειξη αποθηκευτικού χώρου της συσκευής σας δεν θα αντικατοπτρίζει τον ελευθερωμένο χώρο μέχρι να διαγραφούν οριστικά τα στοιχεία\n• Αν ο αποθηκευτικός χώρος της συσκευής σας μειωθεί, το Android ενδέχεται να διαγράψει τις κρυφές μνήμες (cache) των εφαρμογών, αφαιρώντας τα αρχεία που βρίσκονται στον κάδο</string>
+    <string name="explorer_settings_trash_enable_action">Ενεργοποίηση</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">Αρχείο</string>
+    <string name="explorer_file_symlink_content_desc">Συμβολικός σύνδεσμος</string>
+    <string name="explorer_file_folder_content_desc">Φάκελος</string>
+    <string name="explorer_file_peek_content_desc">Φόρτωση πληροφοριών αρχείου</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Συντόμευση</string>
+    <string name="explorer_file_storage_local_label">Τοπικό</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Πρόσβαση μόνο για ανάγνωση</string>
+    <string name="explorer_file_storage_saf_write_only_label">Πρόσβαση μόνο για εγγραφή</string>
+    <string name="explorer_file_storage_saf_no_access_label">Χωρίς πρόσβαση</string>
+    <string name="explorer_file_storage_saf_uri_label">SAF tree URI</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s σύνολο • %3$s ελεύθερο</string>
+    <string name="explorer_file_broken_link_label">Ανενεργός σύνδεσμος</string>
+    <string name="explorer_file_items_count">%1$d στοιχεία</string>
+    <string name="explorer_file_empty">Κενό</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · μερικό</string>
+    <string name="explorer_sizes_estimate_description">Εκτίμηση βάσει των συνολικών στοιχείων αποθηκευτικού χώρου του Android. Για μη αναγνώσιμα αρχεία, ο καταλαμβανόμενος χώρος χρησιμοποιείται ως εκτίμηση του μεγέθους του αρχείου. Ενδέχεται να περιλαμβάνονται και κρυφά αρχεία που διαχειρίζεται το Android. Άλλες μη αναγνώσιμες τοποθεσίες παραμένουν άγνωστες.</string>
+    <string name="explorer_sizes_estimate_coverage">Δεν ήταν δυνατή η εκτίμηση του Android/data επειδή άλλα τμήματα του αποθηκευτικού χώρου δεν μετρήθηκαν πλήρως.</string>
+    <string name="explorer_sizes_estimate_unavailable">Τα στατιστικά αποθηκευτικού χώρου του Android δεν ήταν διαθέσιμα. Τα μετρημένα μεγέθη εξακολουθούν να εμφανίζονται.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Τα συνολικά στοιχεία αποθηκευτικού χώρου του Android δεν συμφωνούσαν με τη σάρωση. Τα μετρημένα μεγέθη εξακολουθούν να εμφανίζονται.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Επιλογή φακέλου</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">Επιλογή φακέλων</item>
+        <item quantity="one">Επιλογή φακέλου (%d)</item>
+        <item quantity="other">Επιλογή φακέλων (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Επιλογή αρχείου</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">Επιλογή αρχείων</item>
+        <item quantity="one">Επιλογή αρχείου (%d)</item>
+        <item quantity="other">Επιλογή αρχείων (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">Επιλογή στοιχείων</item>
+        <item quantity="one">Επιλογή στοιχείου (%d)</item>
+        <item quantity="other">Επιλογή στοιχείων (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Επιλογή αυτού του φακέλου</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">Επιλογή %d</item>
+        <item quantity="other">Επιλογή %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Αποθήκευση αρχείου</string>
+    <string name="explorer_picker_save_here_action">Αποθήκευση εδώ</string>
+    <string name="explorer_picker_save_as_filename_label">Όνομα αρχείου</string>
+    <string name="explorer_picker_save_as_filename_hint">Εισαγάγετε όνομα αρχείου</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Ανανέωση</string>
+    <string name="explorer_action_calculate_sizes">Υπολογισμός μεγεθών</string>
+    <string name="explorer_action_sort">Ταξινόμηση</string>
+    <string name="explorer_action_filter">Φίλτρο</string>
+    <string name="explorer_action_view">Διάταξη</string>
+    <string name="explorer_action_create">Δημιουργία</string>
+    <string name="explorer_action_rename">Μετονομασία</string>
+    <string name="explorer_action_copy">Αντιγραφή</string>
+    <string name="explorer_action_cut">Αποκοπή</string>
+    <string name="explorer_action_delete">Διαγραφή</string>
+    <string name="explorer_action_select_all">Επιλογή όλων</string>
+    <string name="explorer_action_deselect_all">Αποεπιλογή όλων</string>
+    <string name="explorer_action_compress">Συμπίεση</string>
+    <string name="explorer_action_extract">Εξαγωγή</string>
+    <string name="explorer_action_add_location">Προσθήκη τοποθεσίας</string>
+    <string name="explorer_action_info">Πληροφορίες</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Πληροφορίες</string>
+    <string name="explorer_info_name_label">Όνομα</string>
+    <string name="explorer_info_path_label">Διαδρομή</string>
+    <string name="explorer_info_type_label">Τύπος</string>
+    <string name="explorer_info_type_file">Αρχείο</string>
+    <string name="explorer_info_type_directory">Φάκελος</string>
+    <string name="explorer_info_size_label">Μέγεθος</string>
+    <string name="explorer_info_modified_label">Τροποποιήθηκε</string>
+    <string name="explorer_info_created_label">Δημιουργήθηκε</string>
+    <string name="explorer_info_permissions_label">Δικαιώματα</string>
+    <string name="explorer_info_owner_label">Κάτοχος</string>
+    <string name="explorer_info_child_count_label">Στοιχεία</string>
+    <string name="explorer_info_symlink_target_label">Προορισμός</string>
+    <string name="explorer_info_symlink_status_label">Κατάσταση</string>
+    <string name="explorer_info_symlink_broken">Ανενεργός σύνδεσμος</string>
+    <string name="explorer_info_unknown">Άγνωστο</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Διαγράφηκε</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Δικαιώματα</string>
+    <string name="explorer_info_saf_granted_label">Παραχωρήθηκε</string>
+    <string name="explorer_info_saf_permission_read">Ανάγνωση</string>
+    <string name="explorer_info_saf_permission_write">Εγγραφή</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Διακομιστής</string>
+    <string name="explorer_info_network_port_label">Θύρα</string>
+    <string name="explorer_info_network_share_label">Κοινόχρηστος φάκελος</string>
+    <string name="explorer_info_network_folder_label">Φάκελος</string>
+    <string name="explorer_info_network_address_label">Διεύθυνση</string>
+    <string name="explorer_info_network_status_label">Κατάσταση</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Σύνδεση</string>
+    <string name="explorer_info_network_domain_label">Τομέας</string>
+    <string name="explorer_info_network_password_label">Κωδικός πρόσβασης</string>
+    <string name="explorer_info_network_password_show_action">Εμφάνιση κωδικού πρόσβασης</string>
+    <string name="explorer_info_network_password_hide_action">Απόκρυψη κωδικού πρόσβασης</string>
+    <string name="explorer_info_network_password_missing">Λείπει, συνδεθείτε ξανά</string>
+    <string name="explorer_info_network_password_locked">Αποθηκευμένος, αλλά αυτή η συσκευή δεν μπορεί να τον ξεκλειδώσει</string>
+    <string name="explorer_info_network_added_label">Προστέθηκε</string>
+    <string name="explorer_info_network_updated_label">Ενημερώθηκε</string>
+    <string name="explorer_info_network_last_seen_label">Τελευταία εμφάνιση</string>
+    <string name="explorer_info_network_last_seen_never">Ποτέ</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Επιλεγμένα</string>
+    <string name="explorer_info_files_label">Αρχεία</string>
+    <string name="explorer_info_directories_label">Φάκελοι</string>
+    <string name="explorer_info_total_size_label">Συνολικό μέγεθος</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Τοποθεσίες</string>
+    <string name="explorer_info_shortcuts_label">Συντομεύσεις</string>
+    <string name="explorer_info_total_capacity_label">Συνολική χωρητικότητα</string>
+    <string name="explorer_info_used_space_label">Χρησιμοποιημένος χώρος</string>
+    <string name="explorer_info_free_space_label">Ελεύθερος χώρος</string>
+    <string name="explorer_info_usage_label">Χρήση</string>
+    <string name="explorer_info_device_storage_total_label">Αποθηκευτικός χώρος συσκευής</string>
+    <string name="explorer_info_device_storage_used_label">Χρησιμοποιημένος</string>
+    <string name="explorer_info_device_storage_free_label">Ελεύθερος</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Αρχική</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Ορισμός ως αρχική</string>
+    <string name="explorer_breadcrumb_copy_path_action">Αντιγραφή διαδρομής</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Η διαδρομή αντιγράφηκε στο πρόχειρο</string>
+    <string name="explorer_navigation_device">Συσκευή</string>
+    <string name="explorer_navigation_network">Δίκτυο</string>
+    <string name="explorer_navigation_recent">Πρόσφατα</string>
+    <string name="explorer_navigation_recent_desc">Αρχεία που εμφανίστηκαν πρόσφατα σε αυτή τη συσκευή</string>
+    <string name="explorer_navigation_trash">Κάδος</string>
+    <string name="explorer_navigation_trash_desc">Ανάκτηση διαγραμμένων αρχείων</string>
+    <string name="explorer_navigation_trash_nested_desc">Μέσα σε διαγραμμένο φάκελο</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Δεν υπάρχουν διαγραμμένα στοιχεία</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d στοιχείο</item>
+        <item quantity="other">%d στοιχεία</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Ανάκτηση</string>
+    <string name="explorer_trash_restore_selected_action">Ανάκτηση επιλεγμένων</string>
+    <string name="explorer_trash_delete_permanently_action">Οριστική διαγραφή</string>
+    <string name="explorer_trash_delete_selected_action">Διαγραφή επιλεγμένων</string>
+    <string name="explorer_trash_empty_trash_action">Άδειασμα κάδου</string>
+    <string name="explorer_trash_empty_confirm">Άδειασμα κάδου;</string>
+    <string name="explorer_trash_empty_message">Όλα τα στοιχεία στον κάδο θα διαγραφούν οριστικά. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</string>
+    <string name="explorer_trash_empty_confirm_action">Άδειασμα κάδου</string>
+    <string name="explorer_trash_restore_desc">Ανάκτηση στην αρχική τοποθεσία</string>
+    <string name="explorer_trash_item_unavailable">Το στοιχείο δεν είναι διαθέσιμο</string>
+    <string name="explorer_trash_delete_warning">Αυτή η ενέργεια δεν μπορεί να αναιρεθεί</string>
+    <string name="explorer_trash_disabled_warning">Ο κάδος είναι απενεργοποιημένος</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Φόρτωση περιεχομένων διαγραμμένου φακέλου…</string>
+    <string name="explorer_trash_nested_restore_action">Ανάκτηση στην αρχική τοποθεσία</string>
+    <string name="explorer_trash_nested_delete_action">Οριστική διαγραφή</string>
+    <string name="explorer_trash_nested_restore_conflict">Υπάρχει ήδη αρχείο στην αρχική τοποθεσία</string>
+    <string name="explorer_trash_nested_parent_missing">Το γονικό στοιχείο δεν υπάρχει πλέον στον κάδο</string>
+    <string name="explorer_trash_nested_path_missing">Η διαδρομή δεν υπάρχει πλέον</string>
+    <string name="explorer_trash_error_items_not_found">Τα στοιχεία δεν βρέθηκαν στον κάδο</string>
+    <string name="explorer_trash_error_restore_failed">Η ανάκτηση των στοιχείων απέτυχε</string>
+    <string name="explorer_trash_error_delete_failed">Η διαγραφή των στοιχείων απέτυχε</string>
+    <string name="explorer_trash_nested_error_restore_failed">Η ανάκτηση του %1$s απέτυχε</string>
+    <string name="explorer_trash_nested_error_delete_failed">Η διαγραφή του %1$s απέτυχε</string>
+
+    <string name="explorer_navigation_root">Ριζικός κατάλογος</string>
+    <string name="explorer_navigation_rom">ROM συστήματος</string>
+    <string name="explorer_navigation_internal_storage">Εσωτερικός δημόσιος αποθηκευτικός χώρος</string>
+    <string name="explorer_navigation_external_storage">Εξωτερικός δημόσιος αποθηκευτικός χώρος</string>
+
+    <string name="explorer_loader_progress_directory_loading">Περιήγηση σε %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Έλεγχος δικαιωμάτων</string>
+    <string name="explorer_loader_progress_directory_filesystem">Ανάκτηση πληροφοριών συστήματος αρχείων</string>
+    <string name="explorer_loader_progress_directory_content">Φόρτωση περιεχομένου φακέλου</string>
+    <string name="explorer_loader_progress_directory_content_details">Φόρτωση λεπτομερειών περιεχομένου</string>
+    <string name="explorer_loader_progress_directory_content_extended">Φόρτωση εκτεταμένων λεπτομερειών περιεχομένου</string>
+
+    <string name="explorer_loader_progress_device_loading">Φόρτωση συσκευής</string>
+    <string name="explorer_loader_progress_device_locations">Φόρτωση αποθηκευτικών τοποθεσιών</string>
+
+    <string name="explorer_loader_progress_network_loading">Φόρτωση δικτυακού αποθηκευτικού χώρου</string>
+
+    <string name="explorer_loader_progress_home_loading">Φόρτωση αρχικής σελίδας</string>
+    <string name="explorer_loader_progress_trash_loading">Φόρτωση κάδου…</string>
+    <string name="explorer_loader_progress_recent_loading">Φόρτωση πρόσφατων αρχείων…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d συντόμευση</item>
+        <item quantity="other">%d συντομεύσεις</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d τοποθεσία</item>
+        <item quantity="other">%d τοποθεσίες</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d κρυφό</item>
+        <item quantity="other">%d κρυφά</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s ελεύθερα</string>
+    <string name="explorer_infobar_loading">Φόρτωση…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Δημιουργία νέου στοιχείου</string>
+    <string name="explorer_dialog_rename_title">Μετονομασία</string>
+    <string name="explorer_dialog_name_label">Όνομα</string>
+    <string name="explorer_dialog_type_label">Τύπος</string>
+    <string name="explorer_dialog_type_folder">Φάκελος</string>
+    <string name="explorer_dialog_type_file">Αρχείο</string>
+    <string name="explorer_dialog_create_text_file_title">Δημιουργία αρχείου από κείμενο</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Προεπισκόπηση</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d χαρακτήρες</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Προσθήκη αποθηκευτικής θέσης</string>
+    <string name="explorer_add_device_storage_desc">Χρησιμοποιήστε το Storage Access Framework (SAF) για να παραχωρήσετε στο Butler πρόσβαση σε επιπλέον αποθηκευτικές θέσεις, όπως συσκευές usb, εικονικούς φακέλους εφαρμογών και άλλα.</string>
+    <string name="explorer_add_device_storage_continue">Συνέχεια</string>
+    <string name="explorer_add_device_storage_cancel">Ακύρωση</string>
+    <string name="explorer_add_device_storage_suggestions_title">Εφαρμογές με αποθηκευτικό χώρο</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Ανοίγει τον φάκελο αυτής της εφαρμογής</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Αφαίρεση τοποθεσίας</string>
+    <string name="explorer_device_remove_confirmation_title">Αφαίρεση αποθηκευτικής θέσης;</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">Αφαίρεση %1$d αποθηκευτικής θέσης;</item>
+        <item quantity="other">Αφαίρεση %1$d αποθηκευτικών θέσεων;</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Αυτή η ενέργεια θα ανακαλέσει την πρόσβαση του Butler σε αυτή την τοποθεσία. Τα αρχεία σας δεν θα διαγραφούν.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d δικτυακή τοποθεσία</item>
+        <item quantity="other">%d δικτυακές τοποθεσίες</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Δίκτυο</string>
+    <string name="explorer_network_add_location_action">Προσθήκη δικτυακού αποθηκευτικού χώρου</string>
+    <string name="explorer_network_edit_location_action">Επεξεργασία δικτυακού αποθηκευτικού χώρου</string>
+    <string name="explorer_network_remove_location_action">Αφαίρεση δικτυακού αποθηκευτικού χώρου</string>
+    <string name="explorer_network_sign_in_required_label">Απαιτείται σύνδεση</string>
+    <string name="explorer_network_status_checking_label">Έλεγχος…</string>
+    <string name="explorer_network_status_available_label">Διαθέσιμο</string>
+    <string name="explorer_network_status_unavailable_label">Μη διαθέσιμο</string>
+    <string name="explorer_network_status_unavailable_since_format">Μη διαθέσιμο (%1$s)</string>
+    <string name="explorer_network_empty_title">Δεν υπάρχει ακόμη δικτυακός αποθηκευτικός χώρος</string>
+    <string name="explorer_network_empty_caption">Προσθέστε έναν κοινόχρηστο φάκελο Windows ή φάκελο NAS για να τον περιηγηθείτε εδώ.</string>
+    <string name="explorer_network_remove_confirmation_title">Αφαίρεση δικτυακού αποθηκευτικού χώρου;</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">Αφαίρεση %1$d δικτυακού αποθηκευτικού χώρου;</item>
+        <item quantity="other">Αφαίρεση %1$d δικτυακών αποθηκευτικών χώρων;</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Το Butler θα ξεχάσει τα στοιχεία του διακομιστή και τον αποθηκευμένο κωδικό πρόσβασης. Τίποτα στον διακομιστή δεν διαγράφεται.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Προσθήκη δικτυακού αποθηκευτικού χώρου</string>
+    <string name="explorer_network_form_edit_title">Επεξεργασία δικτυακού αποθηκευτικού χώρου</string>
+    <string name="explorer_network_form_label_label">Όνομα (προαιρετικό)</string>
+    <string name="explorer_network_form_host_label">Διεύθυνση διακομιστή</string>
+    <string name="explorer_network_form_host_hint">nas.local ή 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Θύρα</string>
+    <string name="explorer_network_form_share_label">Κοινόχρηστος φάκελος</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Φάκελος μέσα στον κοινόχρηστο φάκελο (προαιρετικό)</string>
+    <string name="explorer_network_form_auth_guest">Επισκέπτης</string>
+    <string name="explorer_network_form_auth_password">Όνομα χρήστη και κωδικός πρόσβασης</string>
+    <string name="explorer_network_form_username_label">Όνομα χρήστη</string>
+    <string name="explorer_network_form_domain_label">Τομέας (προαιρετικό)</string>
+    <string name="explorer_network_form_password_label">Κωδικός πρόσβασης</string>
+    <string name="explorer_network_form_password_kept_hint">Αφήστε το κενό για να διατηρηθεί ο αποθηκευμένος κωδικός πρόσβασης</string>
+    <string name="explorer_network_form_remember_label">Απομνημόνευση κωδικού πρόσβασης</string>
+    <string name="explorer_network_form_remember_hint">Αποθηκεύεται κρυπτογραφημένος μόνο σε αυτή τη συσκευή</string>
+    <string name="explorer_network_form_test_and_save_action">Δοκιμή &amp; αποθήκευση</string>
+    <string name="explorer_network_form_testing">Σύνδεση…</string>
+    <string name="explorer_network_form_error_host_blank">Εισαγάγετε διεύθυνση διακομιστή</string>
+    <string name="explorer_network_form_error_host_not_bare">Εισαγάγετε μόνο τη διεύθυνση του διακομιστή, χωρίς σχήμα ή διαδρομή</string>
+    <string name="explorer_network_form_error_host_malformed">Αυτή δεν είναι έγκυρη διεύθυνση διακομιστή</string>
+    <string name="explorer_network_form_error_port">Εισαγάγετε μια θύρα μεταξύ 1 και 65535</string>
+    <string name="explorer_network_form_error_share_blank">Εισαγάγετε όνομα κοινόχρηστου φακέλου</string>
+    <string name="explorer_network_form_error_share_not_single">Εισαγάγετε μόνο το όνομα του κοινόχρηστου φακέλου, οι υποφάκελοι μπαίνουν παρακάτω</string>
+    <string name="explorer_network_form_error_share_malformed">Αυτό δεν είναι έγκυρο όνομα κοινόχρηστου φακέλου</string>
+    <string name="explorer_network_form_error_base_path">Αυτή η διαδρομή φακέλου δεν μπορεί να χρησιμοποιηθεί</string>
+    <string name="explorer_network_form_error_username_blank">Εισαγάγετε όνομα χρήστη</string>
+    <string name="explorer_network_form_error_password_required">Εισαγάγετε ξανά τον κωδικό πρόσβασης για να αλλάξετε το όνομα χρήστη ή τον τομέα</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Ονομασία τοποθεσίας</string>
+    <string name="explorer_location_name_label">Όνομα τοποθεσίας</string>
+    <string name="explorer_location_name_hint">Αφήστε το κενό για χρήση του προεπιλεγμένου ονόματος</string>
+    <string name="explorer_location_rename_action">Μετονομασία τοποθεσίας</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Προστέθηκαν την τελευταία ημέρα</item>
+        <item quantity="other">Προστέθηκαν τις τελευταίες %d ημέρες</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Τίποτα καινούργιο εδώ</string>
+    <string name="explorer_recent_empty_message">Τα αρχεία που εμφανίζονται σε αυτή τη συσκευή εμφανίζονται εδώ</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Αυτός ο φάκελος είναι κενός</string>
+    <string name="explorer_empty_search_title">Δεν υπάρχουν αποτελέσματα αναζήτησης</string>
+    <string name="explorer_empty_search_caption">Δοκιμάστε διαφορετικό όρο αναζήτησης</string>
+    <string name="explorer_empty_folder_label">Κενός φάκελος</string>
+    <string name="explorer_empty_filtered_title">Δεν υπάρχουν στοιχεία που να ταιριάζουν</string>
+    <string name="explorer_empty_filtered_caption">Δοκιμάστε να προσαρμόσετε τα φίλτρα σας</string>
+    <string name="explorer_empty_hidden_title">Εδώ υπάρχουν μόνο κρυφά στοιχεία</string>
+    <string name="explorer_empty_hidden_caption">Αυτή η καρτέλα αποκρύπτει στοιχεία των οποίων το όνομα ξεκινά με τελεία</string>
+    <string name="explorer_empty_show_hidden_action">Εμφάνιση κρυφών στοιχείων</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Δεν έχει απομείνει τίποτα να εμφανιστεί</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Τα κρυφά στοιχεία και τα φίλτρα σας εξαιρούν το καθένα ένα μέρος αυτού του φακέλου</string>
+    <string name="explorer_empty_clear_filters_action">Εκκαθάριση φίλτρων</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Τα κρυφά στοιχεία και τα φίλτρα εξαιρούν τα πάντα εδώ</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Η εμφάνιση κρυφών στοιχείων και η εκκαθάριση των φίλτρων αυτής της καρτέλας τα επαναφέρει</string>
+    <string name="explorer_empty_show_all_action">Εμφάνιση όλων των στοιχείων</string>
+    <string name="explorer_path_not_found_title">Αυτός ο φάκελος δεν υπάρχει πια</string>
+    <string name="explorer_path_not_found_caption">Διαγράφηκε, μετονομάστηκε ή μετακινήθηκε αλλού.</string>
+    <string name="explorer_path_not_found_back_action">Επιστροφή</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Φόρτωση…</string>
+    <string name="explorer_file_peek_loading_text">Φόρτωση…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Τίποτα να δείτε εδώ… συνεχίστε το δρόμο σας 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Αυτός ο φάκελος κάνει δίαιτα</string>
+    <string name="explorer_empty_folder_caption_3">Ακόμα και τα αρχεία έφυγαν νωρίς σήμερα</string>
+    <string name="explorer_empty_folder_caption_4">Το Folder.exe σταμάτησε να λειτουργεί</string>
+    <string name="explorer_empty_folder_caption_5">Τα αρχεία παίζουν κρυφτό</string>
+    <string name="explorer_empty_folder_caption_6">404: Τα αρχεία δεν βρέθηκαν</string>
+    <string name="explorer_empty_folder_caption_7">Αυτός ο φάκελος έχει θέματα εμπιστοσύνης</string>
+    <string name="explorer_empty_folder_caption_8">Τα αρχεία έφυγαν διακοπές χωρίς προειδοποίηση</string>
+    <string name="explorer_empty_folder_caption_9">Άδειος σαν την ψυχή μου… αλλά πιο οργανωμένος</string>
+    <string name="explorer_empty_folder_caption_10">Το ψηφιακό αντίστοιχο του ξερόχορτου</string>
+    <string name="explorer_empty_folder_caption_11">Τα αρχεία τηρούν κοινωνικές αποστάσεις</string>
+    <string name="explorer_empty_folder_caption_12">Αυτός ο φάκελος ασκεί μινιμαλισμό</string>
+    <string name="explorer_empty_folder_caption_13">Κάποιος ξέχασε να ταΐσει τα αρχεία</string>
+    <string name="explorer_empty_folder_caption_14">Τα αρχεία έφυγαν από το κτίριο</string>
+    <string name="explorer_empty_folder_caption_15">Πιο άδειος από υπόσχεση πολιτικού</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Ταξινόμηση κατά</string>
+    <string name="explorer_sort_mode_name_label">Όνομα</string>
+    <string name="explorer_sort_mode_size_label">Μέγεθος</string>
+    <string name="explorer_sort_mode_modified_label">Ημερομηνία τροποποίησης</string>
+    <string name="explorer_sort_mode_created_label">Ημερομηνία δημιουργίας</string>
+    <string name="explorer_sort_descending_label">Φθίνουσα σειρά</string>
+    <string name="explorer_sort_scope_label">Εφαρμογή σε</string>
+    <string name="explorer_sort_scope_all_folders">Όλους τους φακέλους</string>
+    <string name="explorer_sort_scope_this_folder">Αυτόν τον φάκελο</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Αυτόν τον φάκελο και τους υποφακέλους</string>
+    <string name="explorer_sort_scope_use_default_here">Χρήση προεπιλογής εδώ</string>
+    <string name="explorer_sort_only_this_tab_label">Μόνο για αυτή την καρτέλα</string>
+    <string name="explorer_sort_inherited_notice">Ταξινομημένο βάσει κανόνα αποθηκευμένου για %1$s</string>
+    <string name="explorer_sort_suppressed_notice">Αυτό παρακάμπτει τον κανόνα που αποθηκεύτηκε για %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Αυτή η καρτέλα χρησιμοποιεί τη δική της προεπιλεγμένη σειρά ταξινόμησης</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Εκκαθάριση</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Μεγέθη φακέλων</string>
+    <string name="explorer_sizes_sheet_label_calculated">Υπολογίστηκε</string>
+    <string name="explorer_sizes_sheet_label_folders">Φάκελοι</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Μη αναγνώσιμες τοποθεσίες</string>
+    <string name="explorer_sizes_sheet_problems_more">%1$d ακόμη μη καταχωρημένα</string>
+    <string name="explorer_sizes_sheet_recalculate">Επανυπολογισμός</string>
+    <string name="explorer_sizes_sheet_discard">Απόρριψη μεγεθών</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Πώς είναι διατεταγμένα τα στοιχεία και πόσες λεπτομέρειες εμφανίζουν</string>
+    <string name="explorer_view_mode_list_label">Λίστα</string>
+    <string name="explorer_view_mode_grid_label">Πλέγμα</string>
+    <string name="explorer_view_density_compact_label">Συμπαγές</string>
+    <string name="explorer_view_density_comfortable_label">Άνετο</string>
+    <string name="explorer_view_density_detailed_label">Λεπτομερές</string>
+    <string name="explorer_view_show_hidden_label">Εμφάνιση κρυφών αρχείων</string>
+    <string name="explorer_view_set_default_action">Ορισμός ως προεπιλογή</string>
+    <string name="explorer_view_detail_created_label">Δημιουργήθηκε</string>
+    <string name="explorer_view_detail_modified_label">Τροποποιήθηκε</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Κανόνες ταξινόμησης φακέλων</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Ρυθμίσεις ταξινόμησης που αποθηκεύσατε για μεμονωμένους φακέλους</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Εκκαθάριση κανόνων ταξινόμησης φακέλων;</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Όλοι οι φάκελοι επιστρέφουν στην προεπιλεγμένη σειρά ταξινόμησης. Οι καρτέλες με δική τους παράκαμψη ταξινόμησης τη διατηρούν. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Εκκαθάριση όλων</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Τύπος αρχείου</string>
+    <string name="explorer_filter_type_all">Όλα</string>
+    <string name="explorer_filter_type_files">Μόνο αρχεία</string>
+    <string name="explorer_filter_type_folders">Μόνο φάκελοι</string>
+    <string name="explorer_filter_include_label">Μοτίβο συμπερίληψης</string>
+    <string name="explorer_filter_include_placeholder_simple">π.χ., διακοπές, αναφορά, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">π.χ., .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Μοτίβο εξαίρεσης</string>
+    <string name="explorer_filter_exclude_placeholder_simple">π.χ., tmp, cache, παλιά</string>
+    <string name="explorer_filter_exclude_placeholder_regex">π.χ., ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Ενεργοποιήστε τα μοτίβα regex στις ρυθμίσεις</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Απαιτείται άδεια</string>
+    <string name="explorer_permission_generic_description">Το Butler χρειάζεται επιπλέον άδεια για να περιηγηθεί σε αυτή την τοποθεσία.</string>
+    <string name="explorer_permission_setup_action">Άνοιγμα ρύθμισης</string>
+    <string name="explorer_grant_access_action">Παραχώρηση πρόσβασης</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Ενέργειες</string>
+    <string name="explorer_file_info_type_label">Τύπος</string>
+    <string name="explorer_file_info_size_label">Μέγεθος</string>
+    <string name="explorer_file_info_modified_label">Τροποποιήθηκε</string>
+    <string name="explorer_file_action_install">Εγκατάσταση</string>
+    <string name="explorer_file_action_install_subtitle">Εγκατάσταση αυτής της εφαρμογής στη συσκευή σας</string>
+    <string name="explorer_file_action_open">Άνοιγμα</string>
+    <string name="explorer_file_action_open_subtitle">Προβολή εδώ, το «πίσω» επιστρέφει σε αυτόν τον φάκελο</string>
+    <string name="explorer_file_action_open_in_tab">Άνοιγμα σε νέα καρτέλα</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Προβολή στο Butler ως δική του καρτέλα</string>
+    <string name="explorer_file_action_open_in_editor">Άνοιγμα στον επεξεργαστή</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Επεξεργασία σε νέα καρτέλα</string>
+    <string name="explorer_file_action_open_with">Άνοιγμα με</string>
+    <string name="explorer_file_action_open_with_subtitle">Επιλέξτε μια εξωτερική εφαρμογή για άνοιγμα</string>
+    <string name="explorer_file_action_share">Κοινή χρήση</string>
+    <string name="explorer_file_action_share_subtitle">Κοινή χρήση μέσω εγκατεστημένων εφαρμογών</string>
+    <string name="explorer_file_action_copy">Αντιγραφή</string>
+    <string name="explorer_file_action_copy_subtitle">Αντιγραφή στο πρόχειρο για επικόλληση</string>
+    <string name="explorer_file_action_cut">Αποκοπή</string>
+    <string name="explorer_file_action_cut_subtitle">Μετακίνηση στο πρόχειρο για επικόλληση</string>
+    <string name="explorer_file_action_rename">Μετονομασία</string>
+    <string name="explorer_file_action_rename_subtitle">Αλλαγή του ονόματος αρχείου</string>
+    <string name="explorer_file_action_delete">Διαγραφή</string>
+    <string name="explorer_file_action_delete_subtitle">Οριστική αφαίρεση αυτού του αρχείου</string>
+    <string name="explorer_file_action_move_to_trash">Μετακίνηση στον κάδο</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Μετακίνηση αρχείου στον κάδο</string>
+    <string name="explorer_file_action_properties">Ιδιότητες</string>
+    <string name="explorer_file_action_properties_subtitle">Προβολή λεπτομερών πληροφοριών αρχείου</string>
+    <string name="explorer_file_action_extract">Εξαγωγή</string>
+    <string name="explorer_file_action_extract_subtitle">Εξαγωγή περιεχομένων αρχειοθήκης σε φάκελο</string>
+    <string name="explorer_file_action_show_in_folder">Εμφάνιση στον φάκελο</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Άνοιγμα του φακέλου στον οποίο βρίσκεται αυτό το αρχείο</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">Δημιουργήθηκε %d αρχείο.</item>
+        <item quantity="other">Δημιουργήθηκαν %d αρχεία.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">Δημιουργήθηκε %d φάκελος.</item>
+        <item quantity="other">Δημιουργήθηκαν %d φάκελοι.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Λειτουργία αντιγραφής</string>
+    <string name="explorer_operation_copy_description_single">Αντιγραφή του \"%1$s\" από \"%2$s\" σε \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">Αντιγραφή %1$d στοιχείου στο \"%2$s\".</item>
+        <item quantity="other">Αντιγραφή %1$d στοιχείων στο \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%d αρχείο αντιγράφηκε.</item>
+        <item quantity="other">%d αρχεία αντιγράφηκαν.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%d φάκελος αντιγράφηκε.</item>
+        <item quantity="other">%d φάκελοι αντιγράφηκαν.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">Αντιγράφηκαν %s.</item>
+        <item quantity="other">Αντιγράφηκαν %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Λειτουργία εξαγωγής</string>
+    <string name="explorer_operation_extract_description">Εξαγωγή του \"%1$s\" σε \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Λειτουργία τοπικής αντιγραφής</string>
+    <string name="explorer_operation_download_copy_description">Αντιγραφή του \"%1$s\" σε \"%2$s\" για τοπική περιήγηση.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">Έγινε εξαγωγή %d αρχείου.</item>
+        <item quantity="other">Έγινε εξαγωγή %d αρχείων.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">Έγινε εξαγωγή %s.</item>
+        <item quantity="other">Έγινε εξαγωγή %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Λειτουργία συμπίεσης</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">Συμπίεση %1$d στοιχείου σε \"%2$s\".</item>
+        <item quantity="other">Συμπίεση %1$d στοιχείων σε \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">Συμπιέστηκε %d αρχείο.</item>
+        <item quantity="other">Συμπιέστηκαν %d αρχεία.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Δημιουργία αρχειοθήκης</string>
+    <string name="explorer_compress_dialog_name_label">Όνομα αρχειοθήκης</string>
+    <string name="explorer_compress_dialog_format_label">Μορφή</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Ανοίγει σε οποιαδήποτε συσκευή. Μπορεί να προστατευτεί με κωδικό πρόσβασης.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Μικρότερο μέγεθος για πολλά αρχεία. Χωρίς προστασία με κωδικό πρόσβασης.</string>
+    <string name="explorer_compress_dialog_create_action">Δημιουργία</string>
+    <string name="explorer_compress_dialog_level_label">Επίπεδο συμπίεσης</string>
+    <string name="explorer_compress_dialog_level_fast">Γρήγορο</string>
+    <string name="explorer_compress_dialog_level_normal">Κανονικό</string>
+    <string name="explorer_compress_dialog_level_best">Βέλτιστο</string>
+    <string name="explorer_compress_dialog_password_label">Κωδικός πρόσβασης (προαιρετικό)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Επιβεβαίωση κωδικού πρόσβασης</string>
+    <string name="explorer_compress_dialog_password_mismatch">Οι κωδικοί πρόσβασης δεν ταιριάζουν</string>
+    <string name="explorer_compress_dialog_password_weak">Αδύναμος κωδικός πρόσβασης</string>
+    <string name="explorer_compress_dialog_password_notice">Το περιεχόμενο των αρχείων είναι κρυπτογραφημένο, τα ονόματα αρχείων όχι.</string>
+    <string name="explorer_compress_dialog_password_show">Εμφάνιση κωδικού πρόσβασης</string>
+    <string name="explorer_compress_dialog_password_hide">Απόκρυψη κωδικού πρόσβασης</string>
+    <string name="explorer_compress_dialog_overwrite_title">Αντικατάσταση αρχειοθήκης;</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" υπάρχει ήδη και θα αντικατασταθεί.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Αντικατάσταση</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">Απόθεση %1$d στοιχείου;</item>
+        <item quantity="other">Απόθεση %1$d στοιχείων;</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">Αντιγραφή ή μετακίνηση %1$d στοιχείου στο \"%2$s\";</item>
+        <item quantity="other">Αντιγραφή ή μετακίνηση %1$d στοιχείων στο \"%2$s\";</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">Αντιγραφή %1$d στοιχείου στο \"%2$s\";</item>
+        <item quantity="other">Αντιγραφή %1$d στοιχείων στο \"%2$s\";</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Μετακίνηση στον κάδο;</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">Μετακίνηση %1$d στοιχείου στον κάδο;</item>
+        <item quantity="other">Μετακίνηση %1$d στοιχείων στον κάδο;</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Λειτουργία μετακίνησης</string>
+    <string name="explorer_operation_move_description_single">Μετακίνηση του \"%1$s\" από \"%2$s\" σε \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">Μετακίνηση %1$d στοιχείου σε \"%2$s\".</item>
+        <item quantity="other">Μετακίνηση %1$d στοιχείων σε \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%d αρχείο μετακινήθηκε.</item>
+        <item quantity="other">%d αρχεία μετακινήθηκαν.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%d φάκελος μετακινήθηκε.</item>
+        <item quantity="other">%d φάκελοι μετακινήθηκαν.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">Μετακινήθηκαν %s.</item>
+        <item quantity="other">Μετακινήθηκαν %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Δημιουργία φακέλου</string>
+    <string name="explorer_operation_create_description_directory">Δημιουργία φακέλου \"%1$s\" στο \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Δημιουργία αρχείου</string>
+    <string name="explorer_operation_create_description_file">Δημιουργία αρχείου \"%1$s\" στο \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Δημιουργία αρχείου κειμένου</string>
+    <string name="explorer_operation_create_text_file_description">Δημιουργία \"%1$s\" από απόσπασμα κειμένου</string>
+    <string name="explorer_operation_calculate_sizes_title">Υπολογισμός μεγεθών</string>
+    <string name="explorer_operation_calculate_sizes_description">Υπολογισμός μεγεθών φακέλων στο \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">Σαρώθηκε %1$d στοιχείο</item>
+        <item quantity="other">Σαρώθηκαν %1$d στοιχεία</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Υπολογίστηκαν τα μεγέθη %1$d φακέλων.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">Υπολογίστηκαν τα μεγέθη %1$d φακέλων, %2$d τοποθεσία δεν ήταν δυνατό να αναγνωστεί.</item>
+        <item quantity="other">Υπολογίστηκαν τα μεγέθη %1$d φακέλων, %2$d τοποθεσίες δεν ήταν δυνατό να αναγνωστούν.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Τα μεγέθη φακέλων για \"%1$s\" απορρίφθηκαν επειδή άλλαξε κατά τον υπολογισμό.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Η πλοήγηση απέτυχε</string>
+    <string name="explorer_aborted_dialog_title">Η λειτουργία διακόπηκε</string>
+    <string name="explorer_aborted_dialog_message">Η φόρτωση ακυρώθηκε πριν προλάβει να εμφανιστεί οτιδήποτε.</string>
+    <string name="explorer_archive_unbrowsable_title">Δεν είναι δυνατή η περιήγηση σε αυτή την αρχειοθήκη εδώ</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" βρίσκεται σε αποθηκευτικό χώρο που υποστηρίζει μόνο διαδοχική ανάγνωση, αλλά η περιήγηση σε αρχειοθήκη απαιτεί τυχαία πρόσβαση. Εξάγετε την αρχειοθήκη εδώ, ή κατεβάστε ένα τοπικό αντίγραφο για να την περιηγηθείτε.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Εξαγωγή αρχειοθήκης</string>
+    <string name="explorer_archive_unbrowsable_download_action">Λήψη τοπικού αντιγράφου</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (ειδική πρόσβαση)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (ειδική πρόσβαση)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Το Android περιορίζει την πρόσβαση σε αυτόν τον φάκελο. Χρησιμοποιήστε τον επιλογέα φακέλων για να παραχωρήσετε πρόσβαση.</string>
+    <string name="explorer_permission_multiple_options_description">Μπορείτε να παραχωρήσετε πρόσβαση χρησιμοποιώντας τον επιλογέα φακέλων του Android ή να ρυθμίσετε το Root/Shizuku για ταχύτερη πρόσβαση σε όλους τους περιορισμένους φακέλους.</string>
+    <string name="explorer_permission_setup_both_description">Αυτός ο φάκελος απαιτεί αυξημένα δικαιώματα πρόσβασης. Εγκαταστήστε και ρυθμίστε είτε το Root είτε το Shizuku στις ρυθμίσεις.</string>
+    <string name="explorer_permission_setup_shizuku_description">Αυτός ο φάκελος απαιτεί αυξημένα δικαιώματα πρόσβασης μέσω Shizuku. Εγκαταστήστε το Shizuku Manager και ρυθμίστε το στις ρυθμίσεις.</string>
+    <string name="explorer_permission_setup_root_description">Αυτός ο φάκελος απαιτεί πρόσβαση Root. Ρυθμίστε το Root στις ρυθμίσεις αν η συσκευή σας διαθέτει πρόσβαση root.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Χρησιμοποιήστε τον επιλογέα φακέλων του Android για να παραχωρήσετε πρόσβαση σε αυτόν τον φάκελο.</string>
+    <string name="explorer_permission_option_picker_action">Άνοιγμα επιλογέα SAF</string>
+
+    <string name="explorer_permission_option_setup_title">Πλήρης πρόσβαση</string>
+    <string name="explorer_permission_option_setup_description">Ρυθμίστε το Root ή το Shizuku για ταχύτερη πρόσβαση σε όλους τους περιορισμένους φακέλους.</string>
+    <string name="explorer_permission_option_setup_action">Ρύθμιση</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Πρόσβαση στον αποθηκευτικό χώρο</string>
+    <string name="explorer_permission_option_storage_description">Παραχωρήστε στο Butler άδεια πρόσβασης στα αρχεία στον αποθηκευτικό χώρο της συσκευής σας.</string>
+    <string name="explorer_permission_option_storage_action">Παραχώρηση άδειας</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">Άνοιγμα σε νέες καρτέλες</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Αγαπημένα</string>
+    <string name="explorer_action_add_to_favorites">Προσθήκη στα αγαπημένα</string>
+    <string name="explorer_action_remove_from_favorites">Αφαίρεση από τα αγαπημένα</string>
+    <string name="explorer_favorites_select_action">Επιλογή</string>
+    <string name="explorer_favorites_unavailable_subtitle">Μη προσβάσιμο</string>
+    <string name="explorer_favorites_unavailable_toast">Το αγαπημένο δεν είναι προσβάσιμο</string>
+    <string name="explorer_favorites_added_message">Το %1$s προστέθηκε στα αγαπημένα</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">Προστέθηκε %1$d στοιχείο στα αγαπημένα</item>
+        <item quantity="other">Προστέθηκαν %1$d στοιχεία στα αγαπημένα</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">Το %1$s αφαιρέθηκε από τα αγαπημένα</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">Αφαιρέθηκε %1$d στοιχείο από τα αγαπημένα</item>
+        <item quantity="other">Αφαιρέθηκαν %1$d στοιχεία από τα αγαπημένα</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Μετονομασία αγαπημένου</string>
+    <string name="explorer_favorites_rename_hint">Όνομα αγαπημένου</string>
+    <string name="explorer_favorites_rename_description">Μετονομάζεται μόνο η καταχώριση στα αγαπημένα σας, ο ίδιος ο φάκελος διατηρεί το όνομά του.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">Αυτή η καρτέλα παρακάμπτει τη σειρά ταξινόμησης σε %1$d φάκελο</item>
+        <item quantity="other">Αυτή η καρτέλα παρακάμπτει τη σειρά ταξινόμησης σε %1$d φακέλους</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d φάκελος</item>
+        <item quantity="other">%1$d φάκελοι</item>
+    </plurals>
+</resources>

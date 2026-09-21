@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Χώρος εργασίας εφαρμογών -->
+    <string name="apps_title">Εφαρμογές</string>
+    <string name="apps_subtitle">Διαχείριση εγκατεστημένων εφαρμογών</string>
+
+    <!-- Ετικέτες φίλτρων -->
+    <string name="apps_filter_app_type_label">Τύπος εφαρμογής</string>
+    <string name="apps_filter_type_all">Όλες</string>
+    <string name="apps_filter_type_user">Εφαρμογές χρήστη</string>
+    <string name="apps_filter_type_system">Εφαρμογές συστήματος</string>
+    <string name="apps_filter_status_label">Κατάσταση</string>
+    <string name="apps_filter_status_all">Όλες</string>
+    <string name="apps_filter_status_enabled">Ενεργοποιημένες</string>
+    <string name="apps_filter_status_disabled">Απενεργοποιημένες</string>
+
+
+    <!-- Επιλογές ταξινόμησης -->
+    <string name="apps_sort_mode_label">Ταξινόμηση κατά</string>
+    <string name="apps_sort_mode_name_label">Όνομα</string>
+    <string name="apps_sort_mode_size_label">Μέγεθος</string>
+    <string name="apps_sort_mode_install_date_label">Ημερομηνία εγκατάστασης</string>
+    <string name="apps_sort_mode_update_date_label">Ημερομηνία ενημέρωσης</string>
+    <string name="apps_sort_mode_package_name_label">Όνομα πακέτου</string>
+    <string name="apps_sort_descending_label">Φθίνουσα σειρά</string>
+    <string name="apps_sort_mode_size_slowdown_hint">Ο υπολογισμός μεγέθους εφαρμογών επιβραδύνει τη φόρτωση</string>
+
+    <!-- Ενέργειες -->
+    <string name="apps_action_launch">Εκκίνηση</string>
+    <string name="apps_action_open_info">Πληροφορίες εφαρμογής</string>
+    <string name="apps_action_disable">Απενεργοποίηση</string>
+    <string name="apps_action_enable">Ενεργοποίηση</string>
+    <string name="apps_action_uninstall">Απεγκατάσταση</string>
+    <string name="apps_action_clear_data">Εκκαθάριση δεδομένων</string>
+    <string name="apps_action_export_apk">Εξαγωγή APK</string>
+    <string name="apps_action_browse_path">Περιήγηση διαδρομής</string>
+    <string name="apps_action_share">Κοινή χρήση πληροφοριών</string>
+    <string name="apps_action_refresh">Ανανέωση</string>
+    <string name="apps_action_sort">Ταξινόμηση</string>
+    <string name="apps_action_filter">Φίλτρο</string>
+    <string name="apps_action_select_all">Επιλογή όλων</string>
+    <string name="apps_action_deselect_all">Αποεπιλογή όλων</string>
+    <string name="apps_action_open_in_tab">Άνοιγμα σε καρτέλα</string>
+    <string name="apps_action_force_stop">Αναγκαστικός τερματισμός</string>
+    <string name="apps_action_view">Διάταξη</string>
+
+    <!-- Επιλογές προβολής -->
+    <string name="apps_view_sheet_subtitle">Πώς διατάσσονται τα στοιχεία και πόση λεπτομέρεια εμφανίζουν</string>
+    <string name="apps_view_mode_list_label">Λίστα</string>
+    <string name="apps_view_mode_grid_label">Πλέγμα</string>
+    <string name="apps_view_density_compact_label">Συμπαγές</string>
+    <string name="apps_view_density_comfortable_label">Άνετο</string>
+    <string name="apps_view_density_detailed_label">Λεπτομερές</string>
+    <string name="apps_view_set_default_action">Ορισμός ως προεπιλογή</string>
+    <string name="apps_view_detail_dates_label">Εγκαταστάθηκε %1$s · Ενημερώθηκε %2$s</string>
+
+    <!-- Περιγραφές ενεργειών -->
+    <string name="apps_action_launch_desc">Έναρξη της εφαρμογής</string>
+    <string name="apps_action_open_info_desc">Προβολή λεπτομερών πληροφοριών συστήματος</string>
+    <string name="apps_action_enable_desc">Ενεργοποίηση αυτής της εφαρμογής</string>
+    <string name="apps_action_disable_desc">Απενεργοποίηση αυτής της εφαρμογής</string>
+    <string name="apps_action_uninstall_desc">Αφαίρεση αυτής της εφαρμογής</string>
+    <string name="apps_action_export_apk_desc">Αποθήκευση αρχείου APK στον αποθηκευτικό χώρο</string>
+    <string name="apps_action_share_desc">Κοινή χρήση λεπτομερειών εφαρμογής ως κείμενο</string>
+    <string name="apps_action_force_stop_desc">Άμεσος τερματισμός της εφαρμογής</string>
+    <string name="apps_action_clear_data_desc">Διαγραφή όλων των δεδομένων και ρυθμίσεων της εφαρμογής</string>
+
+    <!-- Ετικέτες πληροφοριών εφαρμογής -->
+    <string name="apps_package_name_label">Πακέτο</string>
+    <string name="apps_version_label">Έκδοση</string>
+    <string name="apps_size_label">Μέγεθος</string>
+    <string name="apps_size_chip_desc">Μέγεθος εφαρμογής: %1$s</string>
+    <string name="apps_size_permission_hint">Τα μεγέθη εφαρμογών απαιτούν πρόσβαση χρήσης</string>
+    <string name="apps_size_permission_body">Το Android αναφέρει μεγέθη εφαρμογών, δεδομένων και προσωρινής μνήμης μόνο σε εφαρμογές που διαθέτουν το δικαίωμα πρόσβασης χρήσης. Παραχωρήστε το για να δείτε την ανάλυση αποθηκευτικού χώρου αυτής της εφαρμογής.</string>
+
+    <!-- Λεπτομέρειες εφαρμογής -->
+    <string name="apps_details_storage_locations_label">Θέσεις αποθήκευσης</string>
+    <string name="apps_path_internal_data_label">Εσωτερικά δεδομένα</string>
+    <string name="apps_path_external_data_label">Εξωτερικός αποθηκευτικός χώρος</string>
+    <string name="apps_path_requires_root_label">Απαιτεί root</string>
+    <string name="apps_path_requires_shizuku_label">Απαιτεί Shizuku</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Απαιτεί root ή Shizuku</string>
+    <string name="apps_path_requires_access_label">Απαιτεί πρόσθετη πρόσβαση</string>
+    <string name="apps_storage_breakdown_label">Ανάλυση αποθηκευτικού χώρου</string>
+    <string name="apps_storage_app_label">Εφαρμογή</string>
+
+    <!-- Καρτέλες λεπτομερειών εφαρμογής -->
+    <string name="appdetails_tab_overview_label">Επισκόπηση</string>
+    <string name="appdetails_tab_packageinfo_label">Πληροφορίες πακέτου</string>
+
+    <!-- Ενέργειες λεπτομερειών εφαρμογής -->
+    <string name="appdetails_back_action">Πίσω στις εφαρμογές</string>
+    <string name="appdetails_close_action">Κλείσιμο</string>
+
+    <!-- Πληροφορίες πακέτου λεπτομερειών εφαρμογής -->
+    <string name="appdetails_packageinfo_title">Πληροφορίες πακέτου</string>
+    <string name="appdetails_packageinfo_view_action">Προβολή λεπτομερειών πακέτου</string>
+    <string name="appdetails_packageinfo_unavailable_msg">Δεν ήταν δυνατή η ανάγνωση των λεπτομερειών πακέτου της εφαρμογής.</string>
+    <string name="appdetails_packageinfo_permissions_header">Δικαιώματα (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">Πιστοποιητικά υπογραφής</string>
+    <string name="appdetails_packageinfo_package_label">Πακέτο</string>
+    <string name="appdetails_packageinfo_version_label">Έκδοση</string>
+    <string name="appdetails_packageinfo_min_sdk_label">Ελάχιστο SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">SDK στόχευσης</string>
+
+    <!-- Κενές καταστάσεις -->
+    <string name="apps_empty_no_apps">Δεν βρέθηκαν εφαρμογές</string>
+    <string name="apps_empty_no_apps_desc">Δοκιμάστε να προσαρμόσετε τα φίλτρα σας</string>
+    <string name="apps_empty_loading">Φόρτωση εφαρμογών…</string>
+
+    <!-- Αναζήτηση -->
+    <string name="apps_search_hint">Αναζήτηση εφαρμογών</string>
+
+    <!-- Πολλαπλή επιλογή -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">Επιλογή εφαρμογών</item>
+        <item quantity="one">%d επιλεγμένη</item>
+        <item quantity="other">%d επιλεγμένες</item>
+    </plurals>
+
+    <!-- Γραμμή πληροφοριών -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="one">%d εφαρμογή χρήστη</item>
+        <item quantity="other">%d εφαρμογές χρήστη</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="one">%d εφαρμογή συστήματος</item>
+        <item quantity="other">%d εφαρμογές συστήματος</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="one">%d επιλεγμένη</item>
+        <item quantity="other">%d επιλεγμένες</item>
+    </plurals>
+
+    <!-- Ενότητες λεπτομερειών εφαρμογής -->
+    <string name="apps_details_section_actions">Ενέργειες</string>
+    <string name="apps_details_section_overview">Επισκόπηση</string>
+    <string name="apps_details_section_storage">Αποθηκευτικός χώρος</string>
+
+    <!-- Γραμμή ενεργειών λεπτομερειών εφαρμογής -->
+    <string name="apps_details_more_options">Περισσότερες επιλογές</string>
+
+    <!-- Δεδομένα πακέτου λεπτομερειών εφαρμογής -->
+    <string name="apps_details_pkgdata_error_title">Δεν ήταν δυνατή η φόρτωση δεδομένων εφαρμογής</string>
+    <string name="apps_details_gone_title">Η εφαρμογή αφαιρέθηκε</string>
+    <string name="apps_details_gone_message">Αυτή η εφαρμογή δεν είναι πλέον εγκατεστημένη σε αυτήν τη συσκευή.</string>
+    <string name="apps_details_gone_close_action">Κλείσιμο</string>
+    <string name="apps_details_uninstalled_title">Απεγκαταστάθηκε για αυτόν τον χρήστη</string>
+    <string name="apps_details_uninstalled_message">Η εφαρμογή δεν είναι πλέον εγκατεστημένη για αυτόν τον χρήστη, αλλά τα αρχεία της παραμένουν στη συσκευή.</string>
+
+    <!-- Επιβεβαιώσεις λεπτομερειών εφαρμογής -->
+    <string name="apps_details_confirm_clear_data_title">Εκκαθάριση δεδομένων εφαρμογής;</string>
+    <string name="apps_details_confirm_clear_data_message">Όλα τα δεδομένα και οι ρυθμίσεις του %1$s θα διαγραφούν. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</string>
+    <string name="apps_details_confirm_uninstall_title">Απεγκατάσταση εφαρμογής;</string>
+    <string name="apps_details_confirm_uninstall_message">Το %1$s θα αφαιρεθεί από αυτήν τη συσκευή.</string>
+
+    <!-- Πληροφορίες εφαρμογής -->
+    <string name="apps_type_label">Τύπος</string>
+    <string name="apps_type_system">Εφαρμογή συστήματος</string>
+    <string name="apps_type_user">Εφαρμογή χρήστη</string>
+    <string name="apps_status_label">Κατάσταση</string>
+    <string name="apps_status_enabled">Ενεργοποιημένη</string>
+    <string name="apps_status_disabled">Απενεργοποιημένη</string>
+    <string name="apps_installed_label">Εγκαταστάθηκε</string>
+    <string name="apps_updated_label">Ενημερώθηκε</string>
+    <string name="apps_target_sdk_label">SDK στόχευσης</string>
+    <string name="apps_min_sdk_label">Ελάχιστο SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">Εγκαταστάθηκε από</string>
+    <string name="apps_permissions_label">Δικαιώματα</string>
+    <string name="apps_permissions_count">%1$d δικαιώματα</string>
+    <string name="apps_data_size_label">Δεδομένα</string>
+    <string name="apps_cache_size_label">Προσωρινή μνήμη</string>
+    <string name="apps_total_size_label">Σύνολο</string>
+
+    <!-- Ετικέτες εφαρμογής -->
+    <string name="apps_tag_system_label">Σύστημα</string>
+    <string name="apps_tag_disabled_label">Απενεργοποιημένη</string>
+    <string name="apps_tag_updated_label">Ενημερωμένη</string>
+    <string name="apps_tag_sideloaded_label">Πλευρική φόρτωση</string>
+    <string name="apps_tag_split_label">Διαχωρισμένο APK</string>
+    <string name="apps_tag_debug_label">Αποσφαλμάτωση</string>
+    <string name="apps_tag_user_label">Χρήστης %1$d</string>
+
+    <!-- Ετικέτες φίλτρων (εικονικές ετικέτες για φιλτράρισμα) -->
+    <string name="apps_filter_tag_enabled_label">Ενεργοποιημένη</string>
+    <string name="apps_filter_tag_user_app_label">Εφαρμογή χρήστη</string>
+    <string name="apps_filter_include_label">Πρέπει να ταιριάζει (όλα τα επιλεγμένα)</string>
+    <string name="apps_filter_exclude_label">Δεν πρέπει να ταιριάζει</string>
+    <string name="apps_filter_add_action">Φίλτρο</string>
+    <string name="apps_filter_hint">Πατήστε για συμπερίληψη, ξανά για εξαίρεση, ξανά για αφαίρεση</string>
+    <plurals name="apps_filter_count">
+        <item quantity="one">%d φίλτρο</item>
+        <item quantity="other">%d φίλτρα</item>
+    </plurals>
+
+    <!-- Ενότητα στοιχείων -->
+    <string name="apps_details_section_components">Στοιχεία</string>
+    <string name="apps_components_activities_label">Δραστηριότητες</string>
+    <string name="apps_components_services_label">Υπηρεσίες</string>
+    <string name="apps_components_receivers_label">Δέκτες μεταδόσεων</string>
+    <string name="apps_components_providers_label">Πάροχοι περιεχομένου</string>
+    <string name="apps_components_exported">Εξαγόμενο</string>
+    <string name="apps_components_disabled">Απενεργοποιημένο</string>
+    <string name="apps_components_empty">Δεν βρέθηκαν στοιχεία</string>
+    <string name="apps_components_no_matches">Κανένα στοιχείο δεν ταιριάζει με «%1$s»</string>
+    <string name="apps_components_and_more">…και %d ακόμη</string>
+    <string name="apps_components_view_all_action">Προβολή όλων των στοιχείων</string>
+    <string name="apps_components_loading">Φόρτωση στοιχείων…</string>
+    <string name="apps_components_error">Δεν ήταν δυνατή η φόρτωση στοιχείων</string>
+    <string name="apps_components_launch_failed">Δεν ήταν δυνατή η εκκίνηση της δραστηριότητας</string>
+    <string name="apps_components_kind_activity">Δραστηριότητα</string>
+    <string name="apps_components_kind_service">Υπηρεσία</string>
+    <string name="apps_components_kind_receiver">Δέκτης μετάδοσης</string>
+    <string name="apps_components_kind_provider">Πάροχος περιεχομένου</string>
+    <string name="apps_components_search_action">Αναζήτηση στοιχείων</string>
+    <string name="apps_components_search_hint">Αναζήτηση ονόματος ή πακέτου</string>
+    <string name="apps_components_state_label">Κατάσταση</string>
+    <string name="apps_components_state_enabled">Ενεργοποιημένο</string>
+    <string name="apps_components_state_disabled">Απενεργοποιημένο</string>
+    <string name="apps_components_field_type">Τύπος</string>
+    <string name="apps_components_field_package">Πακέτο</string>
+    <string name="apps_components_field_permission">Δικαίωμα</string>
+    <string name="apps_components_field_write_permission">Δικαίωμα εγγραφής</string>
+    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_process">Διεργασία</string>
+    <string name="apps_components_field_launch_mode">Λειτουργία εκκίνησης</string>
+    <string name="apps_components_launch_action">Εκκίνηση</string>
+    <string name="apps_components_copy_name_action">Αντιγραφή ονόματος στοιχείου</string>
+    <string name="apps_components_copy_package_action">Αντιγραφή ονόματος πακέτου</string>
+    <string name="apps_components_action_enable">Ενεργοποίηση στοιχείου</string>
+    <string name="apps_components_action_disable">Απενεργοποίηση στοιχείου</string>
+    <string name="apps_components_action_requires_elevated">Απαιτεί root ή Shizuku — πατήστε για ρύθμιση</string>
+    <string name="apps_components_confirm_enable_title">Ενεργοποίηση στοιχείων;</string>
+    <string name="apps_components_confirm_disable_title">Απενεργοποίηση στοιχείων;</string>
+    <string name="apps_components_confirm_enable_message">Τα ακόλουθα στοιχεία θα ενεργοποιηθούν:</string>
+    <string name="apps_components_confirm_disable_message">Τα ακόλουθα στοιχεία θα απενεργοποιηθούν. Αυτό μπορεί να χαλάσει τη λειτουργία της εφαρμογής.</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="one">%d επιλεγμένο στοιχείο</item>
+        <item quantity="other">%d επιλεγμένα στοιχεία</item>
+    </plurals>
+
+    <!-- Λειτουργίες πακέτου -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="one">Ενεργοποίηση εφαρμογής</item>
+        <item quantity="other">Ενεργοποίηση %d εφαρμογών</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="one">Απενεργοποίηση εφαρμογής</item>
+        <item quantity="other">Απενεργοποίηση %d εφαρμογών</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="one">Αναγκαστικός τερματισμός εφαρμογής</item>
+        <item quantity="other">Αναγκαστικός τερματισμός %d εφαρμογών</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="one">Απεγκατάσταση εφαρμογής</item>
+        <item quantity="other">Απεγκατάσταση %d εφαρμογών</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="one">Εκκαθάριση δεδομένων εφαρμογής</item>
+        <item quantity="other">Εκκαθάριση δεδομένων %d εφαρμογών</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="one">Ενεργοποίηση στοιχείου</item>
+        <item quantity="other">Ενεργοποίηση %d στοιχείων</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="one">Απενεργοποίηση στοιχείου</item>
+        <item quantity="other">Απενεργοποίηση %d στοιχείων</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="one">%d εφαρμογή</item>
+        <item quantity="other">%d εφαρμογές</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">Η εφαρμογή %1$s ενεργοποιήθηκε</string>
+    <string name="apps_operation_disable_summary">Η εφαρμογή %1$s απενεργοποιήθηκε</string>
+    <string name="apps_operation_force_stop_summary">Η εφαρμογή %1$s τερματίστηκε</string>
+    <string name="apps_operation_uninstall_summary">Η εφαρμογή %1$s απεγκαταστάθηκε</string>
+    <string name="apps_operation_clear_data_summary">Τα δεδομένα της εφαρμογής %1$s εκκαθαρίστηκαν</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="one">%1$d στοιχείο ενεργοποιήθηκε</item>
+        <item quantity="other">%1$d στοιχεία ενεργοποιήθηκαν</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="one">%1$d στοιχείο απενεργοποιήθηκε</item>
+        <item quantity="other">%1$d στοιχεία απενεργοποιήθηκαν</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">Δεν ήταν δυνατή η ολοκλήρωση για την εφαρμογή %1$s</string>
+    <string name="apps_operation_single_declined_summary">Η αφαίρεση της εφαρμογής %1$s απορρίφθηκε</string>
+    <string name="apps_operation_batch_summary">%1$d από %2$d ολοκληρώθηκαν</string>
+    <!-- Σε εισαγωγικά ώστε ο αρχικός διαχωριστής να διατηρείται από τον αναλυτή πόρων -->
+    <string name="apps_operation_batch_summary_failed">" · %1$d απέτυχαν"</string>
+    <string name="apps_operation_batch_summary_declined">" · %1$d απορρίφθηκαν"</string>
+
+    <!-- Γενική πλοήγηση -->
+    <string name="appdetails_back_generic_action">Πίσω</string>
+
+</resources>
