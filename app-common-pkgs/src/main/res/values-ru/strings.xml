@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">Неверный список приложений</string>
+    <string name="pkgrepo_invalid_inventory_error_description">Система предоставила неверный список установленных приложений для Butler.</string>
+</resources>

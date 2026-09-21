@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_welcome_title">Добро пожаловать в Butler</string>
+    <string name="onboarding_welcome_message">Вкладки для файлов.\nОбзор, поиск и редактирование — всё сразу.</string>
+    <string name="onboarding_welcome_subtitle">Открытый исходный код. Без рекламы. Без отслеживания.\nФайловый менеджер, который вы заслуживаете.</string>
+    <string name="onboarding_welcome_action">Начать обзор</string>
+    <string name="onboarding_beta_title">Формируйте будущее</string>
+    <string name="onboarding_beta_message">Это бета-версия (тестовая сборка). Действуйте с чувством юмора и имейте запасной план. Пожалуйста, сообщайте об ошибках, с которыми вы столкнётесь.</string>
+    <string name="onboarding_beta_action">Я ничего не боюсь</string>
+    <string name="onboarding_beta_feature_early_access_title">Ранний доступ</string>
+    <string name="onboarding_beta_feature_early_access_description">Попробуйте передовые функции раньше других.</string>
+    <string name="onboarding_beta_feature_influence_title">Прямое влияние</string>
+    <string name="onboarding_beta_feature_influence_description">Ваше мнение формирует развитие Butler.</string>
+    <string name="onboarding_beta_feature_feedback_title">Сообществом управляемый</string>
+    <string name="onboarding_beta_feature_feedback_description">Присоединяйтесь к сообществу опытных пользователей, совершенствующих Butler.</string>
+    <string name="onboarding_privacy_title">Конфиденциальность &amp; данные</string>
+    <string name="onboarding_privacy_message">Butler не содержит рекламы и не продаёт данные пользователей. Ваша конфиденциальность важна для меня.</string>
+    <string name="onboarding_privacy_read_action">Прочитать политику конфиденциальности</string>
+    <string name="onboarding_privacy_action">Принять</string>
+    <string name="onboarding_skip_action">Пропустить</string>
+    <string name="onboarding_progress_step">%1$d из %2$d</string>
+
+    <string name="onboarding_workspaces_title">Работа во вкладках</string>
+    <string name="onboarding_workspaces_message">Открывайте несколько вкладок и переключайтесь между ними — как в веб-браузере.</string>
+    <string name="onboarding_workspaces_action">Продолжить</string>
+    <string name="onboarding_workspaces_hint">Держите несколько вкладок открытыми одновременно.</string>
+    <string name="onboarding_workspaces_explorer_title">Обозреватель</string>
+    <string name="onboarding_workspaces_explorer_description">Обзор своих файлов.</string>
+    <string name="onboarding_workspaces_searcher_title">Поиск</string>
+    <string name="onboarding_workspaces_searcher_description">Найти нужное.</string>
+    <string name="onboarding_workspaces_editor_title">Редактор</string>
+    <string name="onboarding_workspaces_editor_description">Редактировать файлы.</string>
+    <string name="onboarding_workspaces_templates_title">Шаблоны</string>
+    <string name="onboarding_workspaces_templates_description">Сохранить свою конфигурацию.</string>
+    <string name="onboarding_workspaces_apps_description">Управление приложениями.</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">Новый обозреватель</string>
+    <string name="shortcut_explorer_new_long">Создать новую вкладку обозревателя</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">Ярлыки</string>
+    <string name="shortcuts_settings_subtitle">Настроить ярлыки запуска</string>
+    <string name="shortcuts_settings_enabled_title">Включить ярлыки</string>
+    <string name="shortcuts_settings_enabled_subtitle">Показывать часто используемые элементы в меню запуска</string>
+    <string name="shortcuts_settings_auto_remember_title">Запомнить посещённые пути</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Автоматически добавлять часто посещаемые пути как ярлыки</string>
+    <string name="shortcuts_settings_last_accessed_title">Последний доступ</string>
+    <string name="shortcuts_settings_max_count_title">Максимум ярлыков</string>
+    <string name="shortcuts_settings_max_count_subtitle">Сейчас отображается %d ярлыков</string>
+    <string name="shortcuts_settings_min_access_title">Минимум доступов</string>
+    <string name="shortcuts_settings_min_access_subtitle">Требуется %d доступов перед отображением</string>
+    <string name="shortcuts_settings_current_title">Текущие ярлыки</string>
+    <string name="shortcuts_settings_current_subtitle">%d ярлыков отслеживается</string>
+    <string name="shortcuts_settings_clear_title">Очистить историю ярлыков</string>
+    <string name="shortcuts_settings_clear_subtitle">Удалить все отслеживаемые ярлыки</string>
+    <string name="shortcuts_settings_clear_confirm_title">Очистить историю ярлыков?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Это удалит все отслеживаемые ярлыки. Закладки будут сохранены.</string>
+    <string name="shortcuts_settings_cleared_message">История ярлыков очищена</string>
+    <string name="shortcuts_settings_max_dialog_title">Максимум ярлыков</string>
+    <string name="shortcuts_settings_max_dialog_message">Количество ярлыков для отображения в меню запуска (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Минимум доступов</string>
+    <string name="shortcuts_settings_min_dialog_message">Сколько раз путь должен быть доступен перед отображением в качестве ярлыка (1–10)</string>
+
+    <string name="setup_usagestats_title">Статистика использования</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Доступ к уведомлениям</string>
+    <string name="setup_manage_storage_card_title">Управление внешним хранилищем</string>
+    <string name="setup_inventory_card_title">Инвентарь приложений</string>
+
+    <string name="setup_title">Настройка разрешений</string>
+    <string name="setup_settings_description">Настроить разрешения приложения и функции.</string>
+    <string name="setup_help_description">Справка</string>
+
+    <string name="setup_root_description">Обеспечивает доступ к системным файлам и защищённым каталогам для продвинутого управления файлами. Раскрывает полный потенциал Butler, включая доступ к данным приложений и системные изменения. Устройство должно быть рутировано.</string>
+    <string name="setup_shizuku_description">Альтернатива root, обеспечивающая привилегированные файловые операции через безопасный API. Обеспечивает доступ к ограниченным каталогам без традиционного root. Требуется установка и запуск приложения Shizuku.</string>
+    <string name="setup_notification_description">Показывает обновления для файловых операций, фоновых задач и прогресса передачи. Держит вас в курсе, когда операции завершены или произошли ошибки.</string>
+    <string name="setup_usagestats_description">Анализирует использование хранилища приложениями для выявления больших файлов и эффективного управления пространством. Все данные остаются на вашем устройстве и никогда не передаются.</string>
+    <string name="setup_storage_description">Полный доступ ко всему хранилищу устройства для быстрых файловых операций и пакетной обработки. Обеспечивает полное управление файлами без повторных запросов разрешений.</string>
+    <string name="setup_inventory_description">Просмотр всех установленных приложений для функций, таких как извлечение APK и анализ хранилища. Требуется на Android 11+ для просмотра полного списка приложений.</string>
+
+    <string name="setup_grant_access_label">Предоставить доступ</string>
+    <string name="setup_access_granted_label">Доступ предоставлен</string>
+    <string name="setup_use_root_label">Использовать root, если доступен</string>
+    <string name="setup_use_shizuku_label">Использовать Shizuku, если доступен</string>
+
+    <string name="setup_status_checking">Проверка…</string>
+    <string name="setup_status_completed">Настроено</string>
+    <string name="setup_status_required">Требуется</string>
+    <string name="setup_status_optional">Опционально</string>
+    <string name="setup_status_connected">Подключено</string>
+    <string name="setup_status_not_connected">Не подключено</string>
+    <string name="setup_status_not_installed">Не установлено</string>
+    <string name="setup_status_connecting">Подключение…</string>
+    <string name="setup_status_connection_failed">Ошибка подключения</string>
+    <string name="setup_status_unavailable">Недоступно</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">Уведомления отладки</string>
+    <string name="debug_log_consent_title">Журнал отладки</string>
+    <string name="debug_log_consent_explanation">Эта функция записывает всё, что делает приложение, в совместно используемый файл. Сгенерированный файл содержит конфиденциальную информацию (например, имена файлов и установленные приложения). Делитесь им только с доверенными сторонами (например, разработчик, устраняющий проблему).</string>
+    <string name="debug_log_recording_progress">Запись журнала отладки</string>
+    <string name="debug_log_record_action">Запись</string>
+    <string name="debug_log_record_full_action">Записать журнал отладки</string>
+    <string name="debug_log_stop_action">Остановить запись</string>
+    <string name="debug_log_screen_title">Регистратор журнала отладки</string>
+    <string name="debug_log_screen_sensitive_information_message">Сгенерированный файл содержит конфиденциальную информацию (например, имена файлов и установленные приложения). Делитесь им только с доверенными сторонами.</string>
+    <string name="debug_log_screen_session_path_label">Путь сеанса отладки</string>
+    <string name="debug_log_screen_log_files_label">Файлы журнала</string>
+    <string name="debug_log_screen_log_files_ready">Файлы журнала готовы (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Отклонить</string>
+    <string name="debug_log_file_label">Записанный файл журнала</string>
+    <string name="debug_banner_label">ЗАП</string>
+    <string name="debug_banner_label_expanded">Запись в файл журнала</string>
+    <string name="debug_banner_stop_action">Остановить</string>
+    <string name="debug_banner_view_action">Просмотр</string>
+    <string name="debug_banner_explanation">Запись активности приложения. Остановить по завершении, а затем поделиться журналом при сообщении об ошибках.</string>
+    <string name="debug_log_short_recording_title">Запись очень короткая</string>
+    <string name="debug_log_short_recording_message">Журналы отладки фиксируют то, что происходит во время записи. Начните запись, воспроизведите проблему, а затем остановите её. Эта запись может не содержать полезной информации.</string>
+    <string name="debug_log_short_recording_keep_action">Сохранить запись</string>
+
+    <string name="debug_logview_screen_title">Просмотр журнала</string>
+    <string name="debug_logview_pause_action">Пауза (заморозить экран)</string>
+    <string name="debug_logview_resume_action">Продолжить</string>
+    <string name="debug_logview_copy_action">Копировать журнал</string>
+    <string name="debug_logview_collapse_action">Свернуть</string>
+    <string name="debug_logview_close_action">Закрыть панель журнала</string>
+    <string name="debug_logview_resize_action">Изменить размер</string>
+    <string name="debug_logview_more_action">Ещё опции</string>
+    <string name="debug_logview_level_action">Уровень журнала</string>
+    <string name="debug_logview_clear_action">Очистить буфер</string>
+    <string name="debug_logview_search_action">Поиск</string>
+    <string name="debug_logview_search_clear_action">Очистить поиск</string>
+    <string name="debug_logview_search_close_action">Закрыть поиск</string>
+    <string name="debug_logview_search_prev_action">Предыдущий результат</string>
+    <string name="debug_logview_search_next_action">Следующий результат</string>
+    <string name="debug_logview_jump_to_bottom_action">Перейти к последнему</string>
+    <string name="debug_logview_paused_msg">Пауза — экран заморожен</string>
+    <string name="debug_logview_paused_new_msg">Пауза — %1$d новая строка с момента</string>
+    <string name="debug_logview_copied_msg">Журнал скопирован в буфер обмена</string>
+    <string name="debug_logview_copied_truncated_msg">Последние %1$d строк скопированы в буфер обмена</string>
+    <string name="debug_logview_share_label">Поделиться журналом</string>
+
+    <string name="settings_label">Параметры</string>
+    <string name="settings_category_tools_label">Инструменты</string>
+    <string name="settings_category_other_label">Прочее</string>
+    <string name="settings_category_integration_label">Интеграция</string>
+    <string name="general_settings_label">Общие</string>
+    <string name="general_settings_desc">Общие корректировки, влияющие на всё приложение.</string>
+    <string name="settings_category_ui_label">Пользовательский интерфейс</string>
+    <string name="ui_mascot_suit_setting_label">Наряд Butler</string>
+    <string name="ui_mascot_suit_setting_explanation">Цвет, из которого сшит наряд Butler.</string>
+    <string name="ui_theme_mode_setting_label">Режим темы</string>
+    <string name="ui_theme_mode_setting_explanation">Режим, используемый при оформлении приложения (например, ночь или день).</string>
+    <string name="ui_theme_style_setting_label">Стиль темы</string>
+    <string name="ui_theme_style_setting_explanation">Цветовой стиль, используемый при оформлении приложения.</string>
+    <string name="ui_theme_color_setting_label">Цвет темы</string>
+    <string name="ui_theme_color_setting_explanation">Цветовая палитра, используемая для оформления приложения.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Цвета предоставляются Material You из ваших обоев</string>
+    <string name="ui_theme_color_value_system">Системные цвета</string>
+    <string name="ui_language_override_label">Язык приложения</string>
+    <string name="ui_language_override_desc">Выберите другой язык для Butler, независимо от языка по умолчанию в вашей системе.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Избежать вырезов дисплея</string>
+    <string name="ui_display_cutout_avoid_setting_description">Держит интерфейс в стороне от вырезов камеры. Отключите, чтобы использовать больше экрана, но части интерфейса могут быть за вырезом.</string>
+
+    <string name="previews_settings_title">Превью</string>
+    <string name="previews_settings_subtitle">Управлять кешем превью изображений.</string>
+
+    <string name="tour_settings_reset_title">Сбросить управляемые туры</string>
+    <string name="tour_settings_reset_subtitle">Показывать управляемые туры снова, включая пропущенные или отключённые.</string>
+    <string name="tour_settings_reset_done">Управляемые туры были сброшены.</string>
+
+    <string name="storage_settings_title">Хранилище</string>
+    <string name="storage_settings_subtitle">Управлять кешем, хранилищем и корзиной Butler.</string>
+    <string name="storage_category_previews_label">Превью</string>
+    <string name="storage_previews_disk_cache_title">Кеш диска</string>
+    <string name="storage_previews_memory_cache_title">Кеш памяти</string>
+    <string name="storage_previews_max_size_title">Максимальный размер кеша</string>
+    <string name="storage_clear_disk_confirm_title">Очистить кеш диска?</string>
+    <string name="storage_clear_disk_confirm_message">Это удалит все кешированные превью изображений. Они будут пересозданы по мере необходимости.</string>
+    <string name="storage_clear_memory_confirm_title">Очистить кеш памяти?</string>
+    <string name="storage_clear_memory_confirm_message">Это удалит кешированные превью изображений из памяти. Они будут пересозданы по мере необходимости.</string>
+    <string name="storage_clear_all_confirm_title">Очистить все кеши?</string>
+    <string name="storage_clear_all_confirm_message">Это очистит оба кеша диска и памяти для превью изображений.</string>
+    <string name="storage_clear_all_previews_action">Очистить все кеши превью</string>
+    <string name="storage_clear_all_subtitle">Удалить все кеши превью</string>
+    <string name="storage_cache_cleared_message">Кеш очищен</string>
+    <string name="storage_size_50mb">50 МБ</string>
+    <string name="storage_size_250mb">250 МБ</string>
+    <string name="storage_size_512mb">512 МБ</string>
+    <string name="storage_size_1gb">1 ГБ</string>
+
+    <string name="updater_check_enabled_setting_title">Проверять обновления</string>
+    <string name="updater_check_enabled_setting_description">Позволить Butler проверять в сети наличие новой версии.</string>
+    <string name="motd_check_enabled_setting_title">Проверять объявления</string>
+    <string name="motd_check_enabled_setting_description">Позволить Butler получать важные сообщения от разработчика.</string>
+    <string name="motd_card_header">Объявление</string>
+
+    <string name="confirm_exit_setting_title">Подтверждение выхода</string>
+    <string name="confirm_exit_setting_description">Показывать диалог подтверждения при выходе из приложения.</string>
+    <string name="confirm_exit_dialog_title">Выход из Butler</string>
+    <string name="confirm_exit_dialog_message">Это закроет приложение и вернёт вас на главный экран.</string>
+    <string name="confirm_exit_dialog_exit">Выход</string>
+    <string name="confirm_exit_dialog_cancel">Отмена</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Не спрашивать снова</string>
+
+    <string name="settings_support_category_help_label">Получить помощь</string>
+    <string name="settings_support_label">Поддержка</string>
+    <string name="settings_support_description">Читайте документацию, сообщайте об ошибках, общайтесь с другими или записывайте журналы отладки.</string>
+    <string name="settings_support_wiki_label">Документация</string>
+    <string name="settings_support_wiki_description">Узнайте, как эффективно использовать Butler.</string>
+    <string name="settings_support_issue_tracker_description">Публичный трекер проблем для отчётов об ошибках и запросов функций.</string>
+    <string name="settings_support_issue_tracker_label">Трекер проблем</string>
+    <string name="settings_support_debuglog_label">Журнал отладки</string>
+    <string name="settings_support_debuglog_desc">Записывайте всё, что делает приложение, в текстовый файл, которым вы можете поделиться.</string>
+    <string name="settings_support_debuglog_recording_desc">Сейчас записывается информация отладки. Нажмите, чтобы остановить запись.</string>
+    <string name="settings_support_debuglog_path">Путь журнала: %1$s</string>
+    <string name="settings_support_bugreports_label">Отчёты об ошибках</string>
+    <string name="settings_support_bugreports_desc">Просматривайте отчёты о сбоях, записывайте журналы отладки и делитесь ими со мной.</string>
+    <string name="support_contact_report_type_crash">Отчёт о сбое</string>
+    <string name="support_contact_report_type_reported">Отчёт об ошибке</string>
+    <string name="support_contact_report_type_recording">Запись</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Место, где можно общаться и задавать вопросы.</string>
+
+    <string name="settings_acknowledgements_label">Благодарности</string>
+    <string name="settings_acknowledgements_description">Кредиты, лицензии и специальная благодарность.</string>
+    <string name="settings_acks_translation_header">Перевод</string>
+    <string name="settings_acks_translators_title">Переводчики</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Переводить Butler</string>
+    <string name="settings_acks_translate_desc">Помогите переводить Butler на свой язык.</string>
+
+    <string name="settings_acks_thanks_header">Спасибо</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">За поддержку перевода проектов с открытым исходным кодом.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Спасибо за значки, дизайны талисмана и анимации.</string>
+    <string name="settings_licenses_label">Лицензии</string>
+
+    <!-- Workspace Status Card -->
+    <string name="workspace_status_tab_singular">Вкладка</string>
+    <string name="workspace_status_tab_plural">Вкладки</string>
+    <string name="workspace_status_operation_singular">Операция</string>
+    <string name="workspace_status_operation_plural">Операции</string>
+    <string name="workspace_status_attention_label">Внимание</string>
+    <string name="workspace_status_unsaved_label">Несохранённое</string>
+    <string name="workspace_status_filter_tabs_desc">Показать все вкладки</string>
+    <string name="workspace_status_filter_operations_desc">Фильтр по вкладкам с операциями</string>
+    <string name="workspace_status_filter_attention_desc">Фильтр по вкладкам, требующим внимания</string>
+    <string name="workspace_status_filter_paused_desc">Фильтр по приостановленным вкладкам</string>
+    <string name="workspace_status_filter_unsaved_desc">Фильтр по вкладкам с несохранёнными изменениями</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Язык программирования Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Быстрый инжектор зависимостей для Android и Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Запускай код Java (и Kotlin) с root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Запуск рутированного кода Kotlin JVM легко с корутинами. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Использование системных API напрямую с привилегиями adb/root из обычных приложений через процесс Java, запущенный с app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Lottie компании Airbnb для Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Робот Android воспроизведён или изменён на основе работы, созданной и опубликованной Google, и используется в соответствии с условиями лицензии Creative Commons 3.0 Attribution License.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Современный набор инструментов Android для создания нативного пользовательского интерфейса. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Библиотеки Jetpack</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation и другие библиотеки AndroidX. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Расширения Kotlin</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Библиотеки Coroutines и Serialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Библиотека загрузки изображений на основе Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Криптографические примитивы для аутентификации, подписания и шифрования SMB. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Библиотеки Square</string>
+    <string name="acknowledgement_square_libraries_subtitle">Библиотеки сетевых операций Retrofit, OkHttp и OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Утилиты для Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Перетягивание и отпускание для LazyColumn в Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Библиотека семантического версионирования для Kotlin. (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Диаграммы и графики для Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Политика конфиденциальности</string>
+    <string name="settings_privacy_policy_desc">Ответственное обращение с данными.</string>
+
+
+    <string name="changelog_label">История изменений</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Статус обновления Butler</string>
+    <string name="upgrade_status_free">Статус: Бесплатная</string>
+    <string name="upgrade_status_pro">Статус: Pro</string>
+    <string name="upgrade_status_foss">Статус: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD карта</string>
+    <string name="storage_area_public_label">Публичное хранилище</string>
+    <string name="storage_area_public_app_data_label">Публичные данные приложения</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">Менеджер вкладок</string>
+    <string name="workspace_manager_empty_title">Нет вкладок</string>
+    <string name="workspace_manager_empty_subtitle">Создайте первую вкладку, чтобы начать</string>
+
+    <!-- Workspace > Empty Content-->
+    <string name="workspace_empty_create_action">Создать вкладку</string>
+    <string name="workspace_empty_create_hint">Работайте параллельно: создайте вкладку и преобразуйте её в инструмент по своему выбору.</string>
+    <string name="workspace_empty_settings_action">Открыть параметры</string>
+    <string name="workspace_empty_settings_hint">Настроить Butler под себя. Отрегулируйте, как ведут себя инструменты.</string>
+    <string name="workspace_classic_empty_tabs_closed">Нет открытых вкладок. Готово, когда вы готовы.</string>
+    <string name="workspace_classic_empty_tip">Совет: нажмите «Создать вкладку» и выберите инструмент — Обозреватель, Поиск, Редактор и ещё.</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">Начните со вкладки</string>
+    <string name="tour_first_tab_body">Butler работает во вкладках, как браузер: каждая — это свой инструмент — Обозреватель, Поиск, Редактор и ещё. Создайте первую вкладку.</string>
+    <string name="tour_manager_fab_title">Быстрые ярлыки</string>
+    <string name="tour_manager_fab_body">Нажмите на эту кнопку для быстрых ярлыков к инструментам, которые вы используете чаще всего, и чтобы закрыть все вкладки сразу.</string>
+    <string name="tour_manager_reorder_title">Переупорядочьте вкладки</string>
+    <string name="tour_manager_reorder_body">Нажмите и удерживайте название вкладки, а затем перетащите её, куда хотите. Это порядок, в котором вкладки появляются везде.</string>
+    <string name="tour_manager_select_title">Работать с несколькими вкладками</string>
+    <string name="tour_manager_select_body">Нажмите и удерживайте превью вкладки, чтобы начать выбирать вкладки. Затем нажмите на остальные и закройте или приостановите их все сразу.</string>
+    <string name="tour_manager_new_tab_title">Начните новую вкладку</string>
+    <string name="tour_manager_new_tab_body">Нажмите на эту карточку, чтобы выбрать любой инструмент для новой вкладки.</string>
+    <string name="tour_swipe_switch_title">Смахивайте между вкладками</string>
+    <string name="tour_swipe_switch_body">Смахните влево или вправо в любом месте на странице, чтобы переместиться между открытыми вкладками.</string>
+    <string name="tour_swipe_create_title">Смахните, чтобы начать вкладку</string>
+    <string name="tour_swipe_create_body">Смахните мимо последней вкладки, и Butler предложит вам новую.</string>
+    <string name="tour_swipe_panes_title">Более одной вкладки одновременно</string>
+    <string name="tour_swipe_panes_body">На большом экране или в альбомной ориентации Butler показывает несколько вкладок рядом. Параметры макета на вкладке «Вкладки» определяют, когда это происходит.</string>
+    <string name="tour_panes_rail_title">Все ваши вкладки</string>
+    <string name="tour_panes_rail_body">Каждая открытая вкладка находится здесь. Нажмите на одну и выберите область, в которую она должна пойти. Нажмите и удерживайте вкладку, затем перетащите, чтобы изменить их порядок.</string>
+    <string name="tour_panes_divider_title">Изменить размер областей</string>
+    <string name="tour_panes_divider_body">Перетащите этот разделитель, чтобы дать одной области больше места.</string>
+    <string name="tour_panes_layout_title">Изменить расположение</string>
+    <string name="tour_panes_layout_body">Нажмите кнопку Butler и выберите «Макет», чтобы переупорядочить области. Параметры на вкладке «Вкладки» закрепляют макет на ориентацию.</string>
+
+    <string name="workspace_creating_placeholder">Создание вкладки…</string>
+    <string name="workspace_ondemand_swipe_title">Смахните, чтобы создать новую вкладку</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">Область %1$d готова для содержимого</string>
+    <string name="workspace_adaptive_add_action">Добавить вкладку</string>
+
+    <string name="workspace_badge_tip_title">Совет: индикаторы кнопок вкладок</string>
+    <string name="workspace_badge_open_workspaces">Количество открытых вкладок</string>
+    <string name="workspace_badge_active_operations">Активные операции (копирование файлов, поиск и т. д.)</string>
+    <string name="workspace_badge_attention_items">Элементы, требующие внимания (не прошедшие или ожидающие операции, недоступные файлы)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">Отклонить</string>
+    <string name="workspace_manager_close_all_title">Закрыть все вкладки?</string>
+    <string name="workspace_manager_close_all_message">Это закроет все %1$d открытые %2$s. Это действие невозможно отменить.</string>
+    <string name="workspace_manager_close_all_message_singular">вкладку</string>
+    <string name="workspace_manager_close_all_message_plural">вкладок</string>
+    <string name="workspace_manager_close_all_action">Закрыть все</string>
+    <string name="workspace_manager_selection_count">%1$d выбрано</string>
+    <string name="workspace_manager_selection_select_all">Выбрать все</string>
+    <string name="workspace_manager_selection_pause_action">Приостановить выбранные</string>
+    <string name="workspace_manager_selection_close_action">Закрыть выбранные</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Выйти из режима выбора</string>
+    <string name="workspace_manager_selection_clear_content_desc">Очистить выбор</string>
+    <string name="workspace_manager_select_all_tabs_desc">Выбрать все вкладки</string>
+    <string name="workspace_manager_new_tab_card_title">Новая вкладка</string>
+    <string name="workspace_row_select_content_desc">Выбрать вкладку</string>
+    <string name="general_cancel_action">Отмена</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">Быстрые ярлыки</string>
+    <string name="workspace_fab_close_shortcuts">Закрыть ярлыки</string>
+    <string name="workspace_fab_close_all">Закрыть все вкладки</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">Назначить в область %1$d</string>
+    <string name="workspace_pane_show_action">Показать</string>
+    <string name="workspace_pane_close_action">Закрыть</string>
+    <string name="workspace_pane_unassign_action">Удалить из области</string>
+    <string name="workspace_dragging_description">Перетаскивание</string>
+    <string name="workspace_pane_current_description">В области %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">Закрыть вкладку</string>
+    <string name="workspace_row_more_options_content_desc">Ещё опции</string>
+    <string name="workspace_row_operations_running_content_desc">Работает</string>
+    <string name="workspace_row_operations_pending_content_desc">Работа ожидает</string>
+    <string name="workspace_row_pause_action">Приостановить</string>
+    <string name="workspace_row_resume_action">Продолжить</string>
+    <string name="workspace_row_stacked_content_desc">Расположено на этой вкладке</string>
+    <string name="workspace_row_unsaved_content_desc">Несохранённые изменения</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">Настроить поведение вкладок.</string>
+    <string name="explorer_settings_subtitle">Настроить поведение файлового обозревателя.</string>
+    <string name="searcher_settings_subtitle">Настроить поведение поиска.</string>
+    <string name="editor_settings_subtitle">Настроить поведение текстового редактора.</string>
+    <string name="history_settings_subtitle">Сохранение и очистка истории операций.</string>
+    <string name="clipboard_settings_subtitle">Настроить поведение буфера обмена.</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">Сохранить как…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">Открыть в Butler</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">Редактировать текст</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">Безымянный файл</string>
+    <string name="external_open_action_view">Просмотр</string>
+    <string name="external_open_action_edit">Редактировать как текст</string>
+    <string name="external_open_action_show_in_explorer">Показать в обозревателе</string>
+    <string name="external_open_action_save">Сохранить как…</string>
+    <string name="external_open_failed_label">Не удалось открыть файл</string>
+    <string name="external_open_failed_description">Butler не удалось открыть «%1$s».</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">Включить режим разработчика?</string>
+    <string name="settings_developer_mode_unlock_message">Это разблокирует продвинутые инструменты диагностики для устранения неполадок и тестирования.</string>
+    <string name="settings_developer_mode_unlock_action">Включить</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">%d шаг до режима разработчика</item>
+        <item quantity="few">%d шага до режима разработчика</item>
+        <item quantity="many">%d шагов до режима разработчика</item>
+        <item quantity="other">%d шага до режима разработчика</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">Связаться с разработчиком</string>
+    <string name="support_contact_description">Заполни форму, чтобы отправить мне письмо по электронной почте.</string>
+    <string name="support_contact_no_email_app">Приложение электронной почты не найдено</string>
+    <string name="support_contact_category_label">Категория</string>
+    <string name="support_contact_category_question">Вопрос</string>
+    <string name="support_contact_category_feature">Запрос функции</string>
+    <string name="support_contact_category_bug">Отчёт об ошибке</string>
+    <string name="support_contact_workspace_label">Связанная область</string>
+    <string name="support_contact_workspace_general">Общее</string>
+    <string name="support_contact_workspace_explorer">Обозреватель</string>
+    <string name="support_contact_workspace_searcher">Поиск</string>
+    <string name="support_contact_workspace_editor">Редактор</string>
+    <string name="support_contact_description_label">Описание</string>
+    <string name="support_contact_description_question_hint">Подробно опишите свой вопрос. Пожалуйста, будьте конкретны (минимум 20 слов).</string>
+    <string name="support_contact_description_feature_hint">Опишите функцию, которую вы хотели бы видеть. Пожалуйста, будьте конкретны (минимум 20 слов).</string>
+    <string name="support_contact_description_bug_hint">Опишите, что произошло и как воспроизвести проблему. Пожалуйста, будьте конкретны (минимум 20 слов).</string>
+    <string name="support_contact_expected_label">Ожидаемое поведение</string>
+    <string name="support_contact_expected_hint">Опишите, что вы ожидали увидеть (минимум 10 слов).</string>
+    <string name="support_contact_word_count">Минимум %1$d слов</string>
+    <string name="support_contact_debuglog_label">Журнал отладки</string>
+    <string name="support_contact_debuglog_empty">Журналы отладки не найдены. Сначала запиши один.</string>
+    <string name="support_contact_debuglog_picker_hint">Присоедини существующий журнал отладки или запиши новый.</string>
+    <string name="support_contact_send_action">Открыть приложение почты</string>
+    <string name="support_contact_welcome">Я читаю каждое сообщение лично и делаю всё возможное, чтобы ответить, но так как я работаю один, это может занять время. Спасибо за ваше терпение.</string>
+    <string name="support_contact_footer">Ваше сообщение будет отправлено по электронной почте. Информация об устройстве и конфигурации прилагается автоматически. Вы можете приложить скриншоты или видео к письму.\n\nНекоторые части письма будут на английском языке, чтобы я мог легко его понять.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">Хранилище журнала отладки</string>
+    <string name="support_debuglog_storage_description">%1$d сеансов журнала, %2$s</string>
+    <string name="support_debuglog_storage_empty">Журналы отладки не сохранены</string>
+    <string name="support_debuglog_delete_action">Удалить все журналы отладки</string>
+    <string name="support_debuglog_delete_description">Удалить все записанные файлы журнала отладки</string>
+    <string name="support_debuglog_delete_confirm_title">Удалить все журналы отладки?</string>
+    <string name="support_debuglog_delete_confirm_message">Это навсегда удалит все записанные сеансы журнала отладки. Активные записи не будут затронуты.</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">Остановить запись</string>
+    <string name="settings_support_debuglog_record_action">Записать журнал отладки</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">Сеансы журнала отладки</string>
+    <string name="support_debuglog_sessions_desc">Управлять записанными сеансами журнала отладки</string>
+    <string name="support_debuglog_sessions_empty">Нет сеансов журнала отладки</string>
+    <string name="support_debuglog_session_recording">Запись…</string>
+    <string name="support_debuglog_session_compressing">Сжатие…</string>
+    <string name="support_debuglog_session_failed_empty_log">Ошибка: пустой журнал</string>
+    <string name="support_debuglog_session_failed_missing_log">Ошибка: отсутствует журнал</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Ошибка: повреждённый архив</string>
+    <string name="support_debuglog_session_failed_zip_failed">Ошибка: ошибка сжатия</string>
+    <string name="support_debuglog_session_delete_title">Удалить сеанс отладки?</string>
+    <string name="support_debuglog_session_delete_message">Это навсегда удалит этот сеанс журнала отладки.</string>
+    <string name="support_debuglog_clear_action">Очистить всё</string>
+    <string name="support_debuglog_clear_confirm_message">Удалить все сохранённые сеансы журнала отладки?</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_screen_subtitle">Экспортировать информацию отладки для устранения неполадок</string>
+    <string name="debug_log_screen_sensitive_information_title">Конфиденциальная информация</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">Вы отправили сообщение?</string>
+    <string name="support_contact_sent_message">Если сообщение отправлено, прилагаемый журнал отладки будет удалён, чтобы сэкономить место. Если нет, вы можете его сохранить и попробовать позже.</string>
+    <string name="support_contact_debuglog_zip_error">Не удалось подготовить вложение журнала отладки</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">Прогресс файловых операций</string>
+    <string name="ops_notification_channel_progress_desc">Текущий прогресс для операций копирования, перемещения и удаления</string>
+    <string name="ops_notification_channel_attention_name">Оповещения о файловых операциях</string>
+    <string name="ops_notification_channel_attention_desc">Операции, требующие внимания или не прошедшие</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d файловая операция запущена</item>
+        <item quantity="few">%1$d файловые операции запущены</item>
+        <item quantity="many">%1$d файловых операций запущено</item>
+        <item quantity="other">%1$d файловые операции запущены</item>
+    </plurals>
+    <string name="ops_notification_state_queued">В очереди…</string>
+    <string name="ops_notification_state_cancelling">Отмена…</string>
+    <string name="ops_notification_state_attention_title">Требуется действие</string>
+    <string name="ops_notification_state_attention_text">Конфликт требует вашего внимания — нажмите, чтобы разрешить</string>
+    <string name="ops_notification_result_failed_title">Операция не прошла</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">Хотели бы вы оставить рецензию на Butler? ❤️</string>
+    <string name="review_app_dismiss_action">Может быть позже</string>
+    <string name="review_app_review_action">Рецензия</string>
+
+</resources>

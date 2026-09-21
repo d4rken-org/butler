@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Отчёты об ошибках</string>
+    <string name="bugreport_workspace_subtitle">Отчёты о сбоях и ошибках</string>
+
+    <string name="bugreport_empty_title">Нет отчётов</string>
+    <string name="bugreport_empty_subtitle">Отчёты о сбоях и ошибках будут появляться здесь. Ничего не отправляется автоматически.</string>
+
+    <string name="bugreport_type_crash">Сбой</string>
+    <string name="bugreport_type_report">Отчёт</string>
+    <string name="bugreport_type_recording">Запись</string>
+
+    <string name="bugreport_record_action">Записать журнал отладки</string>
+    <string name="bugreport_record_short_action">Запись</string>
+    <string name="bugreport_stop_action">Остановить запись</string>
+    <string name="bugreport_stop_short_action">Стоп</string>
+    <string name="bugreport_recording_ongoing_label">Идёт запись…</string>
+
+    <string name="bugreport_recording_short_title">Запись очень короткая</string>
+    <string name="bugreport_recording_short_message">Эта запись длится всего несколько секунд и может не содержать полезной информации. Остановить её всё равно?</string>
+    <string name="bugreport_recording_short_keep_action">Продолжить запись</string>
+
+    <string name="bugreport_rename_action">Переименовать</string>
+    <string name="bugreport_rename_dialog_title">Назовите этот отчёт</string>
+    <string name="bugreport_rename_name_label">Имя</string>
+    <string name="bugreport_rename_name_hint">Показывается в списке и в имени общего файла</string>
+
+    <string name="bugreport_share_action">Поделиться</string>
+    <string name="bugreport_delete_action">Удалить</string>
+    <string name="bugreport_delete_all_action">Удалить всё</string>
+    <string name="bugreport_delete_all_confirm_title">Удалить все журналы отладки?</string>
+    <string name="bugreport_delete_all_confirm_message">Все записанные сеансы журнала отладки будут удалены навсегда. Активные записи не будут затронуты.</string>
+    <string name="bugreport_delete_confirm_title">Удалить этот отчёт?</string>
+    <string name="bugreport_delete_confirm_message">Этот отчёт и его журнал будут удалены навсегда.</string>
+    <string name="bugreport_cancel_action">Отмена</string>
+
+    <string name="bugreport_share_chooser_title">Поделиться отчётом об ошибке</string>
+    <string name="bugreport_share_consent_title">Поделиться отчётом?</string>
+    <string name="bugreport_share_consent_message">Этот отчёт содержит журналы приложения, которые могут включать имена файлов, пути, информацию об приложении и устройстве. Делитесь им только с людьми, которым вы доверяете.</string>
+
+    <string name="bugreport_detail_back_action">Назад</string>
+    <string name="bugreport_detail_section_error">Ошибка</string>
+    <string name="bugreport_detail_section_log">Последний журнал</string>
+    <string name="bugreport_detail_field_type">Тип</string>
+    <string name="bugreport_detail_field_time">Время</string>
+    <string name="bugreport_detail_field_app_version">Версия приложения</string>
+    <string name="bugreport_detail_field_device">Устройство</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Сборка</string>
+    <string name="bugreport_detail_field_error_class">Тип ошибки</string>
+    <string name="bugreport_detail_field_thread">Поток</string>
+    <string name="bugreport_detail_log_truncated">последние %1$d из %2$d строк</string>
+    <string name="bugreport_detail_log_count">%1$d строк</string>
+    <string name="bugreport_detail_log_empty">Журнал не записан</string>
+    <string name="bugreport_detail_log_error">Не удалось загрузить журнал</string>
+</resources>

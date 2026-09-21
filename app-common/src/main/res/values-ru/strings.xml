@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Файловый менеджер экстра-класса</string>
+    <!-- Upgraded app title. %1$s is the app name, %2$s the tier qualifier ("Pro" or "FOSS", depending on the build). Reorder or repunctuate for your language; both placeholders must appear exactly once. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Значок приложения Butler</string>
+    <string name="butler_mascot_description">Талисман Butler</string>
+    <string name="butler_mascot_animation_random_description">Талисман Butler выполняет различные анимации</string>
+    <string name="butler_mascot_animation_wink_description">Талисман Butler подмигивает</string>
+    <string name="butler_mascot_animation_greeting_description">Талисман Butler машет в знак приветствия</string>
+    <string name="butler_mascot_animation_hatoff_description">Талисман Butler почтительно приподнимает шляпу</string>
+    <string name="butler_mascot_animation_drink_description">Талисман Butler пьёт</string>
+    <string name="butler_mascot_animation_moustache_description">Талисман Butler поглаживает усы</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Талисман Butler закрывает глаза, чтобы уснуть</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Талисман Butler храпит</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Талисман Butler просыпается</string>
+    <string name="butler_mascot_animation_cameo_description">Талисман SD Maid в гостевой роли</string>
+
+    <string name="slogan_general_message_0">К вашим услугам.</string>
+    <string name="slogan_general_message_1">Всё на своих местах.</string>
+    <string name="slogan_general_message_2">Порядок, а не хаос.</string>
+    <string name="slogan_general_message_3">Приношу ваши файлы.</string>
+    <string name="slogan_general_message_4">Все файлы по порядку.</string>
+    <string name="slogan_general_message_5">Всегда в порядке.</string>
+    <string name="slogan_general_message_6">Файлы найдены быстро!</string>
+    <string name="slogan_general_message_7">Доступ стал проще.</string>
+    <string name="slogan_general_message_8">Никогда не потеряет ваши файлы.</string>
+    <string name="slogan_general_message_9">Мастер на все руки.</string>
+    <string name="slogan_newyear_message_0">Как обычно, как и каждый год.</string>
+    <string name="slogan_xmas_message_0">Дважды проверяю файлы.</string>
+    <string name="slogan_xmas_message_1">В списке послушных.</string>
+    <string name="slogan_halloween_message_0">Boo-tler к вашим услугам.</string>
+    <string name="slogan_halloween_message_1">Никаких фокусов, только файлы.</string>
+    <string name="slogan_stpatricks_message_0">Чувствуете, что повезёт?</string>
+    <string name="slogan_stpatricks_message_1">Ищу ваш горшочек с золотом.</string>
+    <string name="slogan_aprilfools_message_0">Никаких шуток.</string>
+    <string name="slogan_aprilfools_message_1">Серьёзно организовано.</string>
+    <string name="slogan_oktoberfest_message_0">Prost за ваши файлы!</string>
+    <string name="slogan_oktoberfest_message_1">Файлы на розлив.</string>
+
+    <string name="general_share_action">Поделиться</string>
+    <string name="general_share_single_title">Поделиться %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Поделиться %d файлом</item>
+        <item quantity="few">Поделиться %d файлами</item>
+        <item quantity="many">Поделиться %d файлами</item>
+        <item quantity="other">Поделиться %d файлами</item>
+    </plurals>
+    <string name="general_done_action">Готово</string>
+    <string name="general_copy_action">Копировать</string>
+    <string name="general_cut_action">Вырезать</string>
+    <string name="general_move_action">Переместить</string>
+    <string name="general_paste_action">Вставить</string>
+    <string name="general_apply_action">Применить</string>
+    <string name="general_open_action">Открыть</string>
+    <string name="general_cancel_action">Отмена</string>
+    <string name="general_close_action">Закрыть</string>
+    <string name="general_confirm_action">Подтвердить</string>
+    <string name="general_reset_action">Сбросить</string>
+    <string name="general_save_action">Сохранить</string>
+    <string name="general_edit_action">Изменить</string>
+    <string name="general_na_label">Н/Д</string>
+    <!-- Announced by screen readers when a dialog opens -->
+    <string name="general_dialog_a11y_label">Диалог</string>
+    <string name="general_dismiss_action">Закрыть</string>
+    <string name="general_read_more_action">Подробнее</string>
+    <string name="general_mark_as_read_action">Отметить как прочитанное</string>
+    <string name="general_back_action">Назад</string>
+    <string name="general_navigate_up_action">Перейти на уровень выше</string>
+    <string name="general_error_label">Ошибка</string>
+    <string name="general_error_unknown_label">Неизвестная ошибка</string>
+    <string name="general_error_invalid_input_label">Недопустимые данные</string>
+    <string name="general_share_error_action">Поделиться ошибкой</string>
+    <string name="general_error_report_subject">Отчёт об ошибке %1$s (%2$s)</string>
+    <string name="general_error_report_consent_title">Поделиться отчётом об ошибке?</string>
+    <string name="general_error_report_consent_message">Отчёт содержит информацию об ошибке и созданную ею трассировку стека, последние записи журнала приложения, а также сведения о его состоянии: имена и пути файлов, поисковые запросы, имена пакетов, URI, сетевые и SMB-имена хостов, информацию о вашем устройстве и сборке, а также анонимный идентификатор установки. Делитесь им только с людьми, которым вы доверяете.</string>
+    <string name="general_error_report_consent_confirm">Поделиться отчётом</string>
+    <string name="general_privacy_policy_action">Политика конфиденциальности</string>
+    <string name="general_bug_report_subject">Отчёт о проблеме %1$s (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">Отчёт о проблеме %1$s: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Опишите, что произошло.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Опишите, что вы ожидали увидеть.)</string>
+    <string name="general_duration_input_label">Длительность</string>
+    <string name="general_size_input_label">Размер</string>
+    <string name="general_upgrade_action">Улучшить</string>
+    <string name="general_refresh_action">Обновить</string>
+    <string name="general_clear_action">Очистить</string>
+    <string name="general_expand_action">Развернуть</string>
+    <string name="general_collapse_action">Свернуть</string>
+    <string name="general_completed_label">Завершено</string>
+    <string name="general_cancelled_label">Отменено</string>
+    <string name="general_searching_label">Поиск</string>
+    <string name="general_searching_ellipsis">Поиск…</string>
+    <string name="general_progress_loading">Загрузка</string>
+    <string name="general_progress_loading_egg_0">Всё ещё быстрее iPhone</string>
+    <string name="general_progress_loading_egg_1">Загружаю дополнительную оперативную память</string>
+    <string name="general_progress_loading_egg_2">Осталось: скоро™</string>
+    <string name="general_progress_loading_egg_3">Процессор ушёл на кофе-брейк</string>
+    <string name="general_progress_loading_egg_4">Ожидание данных от Пепе Сильвии</string>
+    <string name="general_progress_loading_egg_5">Турбоэнкабулятор инициализируется</string>
+    <string name="general_progress_loading_egg_6">Передаю масло</string>
+    <string name="general_progress_loading_egg_7">Итак. Как вы держитесь?</string>
+    <string name="general_progress_loading_egg_8">Бип буп боп</string>
+    <string name="general_progress_loading_egg_9">Буферизация жизненных решений</string>
+    <string name="general_progress_loading_egg_10">Призываю Ктулху</string>
+    <string name="general_progress_loading_egg_11">Всё нормально</string>
+    <string name="general_progress_loading_egg_12">Пожалуйста, подождите</string>
+    <string name="general_progress_loading_egg_13">По крайней мере, вы не висите на линии</string>
+    <string name="general_progress_loading_egg_14">Наносить прямо на лоб</string>
+
+    <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dмс</item>
+        <item quantity="few">%dмс</item>
+        <item quantity="many">%dмс</item>
+        <item quantity="other">%dмс</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%dс</item>
+        <item quantity="few">%dс</item>
+        <item quantity="many">%dс</item>
+        <item quantity="other">%dс</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%dмин</item>
+        <item quantity="few">%dмин</item>
+        <item quantity="many">%dмин</item>
+        <item quantity="other">%dмин</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dч</item>
+        <item quantity="few">%dч</item>
+        <item quantity="many">%dч</item>
+        <item quantity="other">%dч</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dдн</item>
+        <item quantity="few">%dдн</item>
+        <item quantity="many">%dдн</item>
+        <item quantity="other">%dдн</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d секунда</item>
+        <item quantity="few">%d секунды</item>
+        <item quantity="many">%d секунд</item>
+        <item quantity="other">%d секунды</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d минута</item>
+        <item quantity="few">%d минуты</item>
+        <item quantity="many">%d минут</item>
+        <item quantity="other">%d минуты</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d час</item>
+        <item quantity="few">%d часа</item>
+        <item quantity="many">%d часов</item>
+        <item quantity="other">%d часа</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дня</item>
+    </plurals>
+
+    <string name="general_view_action">Просмотр</string>
+    <string name="general_delete_action">Удалить</string>
+    <string name="general_show_details_action">Показать подробности</string>
+    <string name="general_hide_details_action">Скрыть подробности</string>
+
+    <string name="general_delete_confirmation_title">Подтвердите удаление</string>
+    <string name="general_delete_confirmation_message_x">Удалить «%s»?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Удалить выбранные элементы (%d)?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">Удалён %d элемент.</item>
+        <item quantity="few">Удалены %d элемента.</item>
+        <item quantity="many">Удалены %d элементов.</item>
+        <item quantity="other">Удалены %d элемента.</item>
+    </plurals>
+
+    <string name="general_create_action">Создать</string>
+    <string name="general_rename_action">Переименовать</string>
+    <string name="general_retry_action">Повторить</string>
+    <string name="general_open_setup_action">Открыть настройку</string>
+    <string name="general_grant_usage_stats_action">Предоставить доступ к статистике использования</string>
+    <string name="general_grant_storage_permission_action">Предоставить разрешение на доступ к хранилищу</string>
+    <string name="general_grant_all_files_access_action">Разрешить доступ ко всем файлам</string>
+
+    <string name="general_result_user_cancel_msg">Пользователь отменил операцию.</string>
+
+    <string name="general_path_label">Путь</string>
+    <string name="general_filename_validation_error">Имя содержит недопустимые символы: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d из %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d из %2$d</string>
+
+    <string name="file_type_symbolic_link">Ссылка</string>
+    <string name="file_type_directory">Каталог</string>
+    <string name="file_type_file">Файл</string>
+    <string name="file_type_unknown">Неизвестно</string>
+
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">Изображение</string>
+    <string name="common_mimetype_video">Видео</string>
+    <string name="common_mimetype_audio">Аудио</string>
+    <string name="common_mimetype_text_plain">Простой текст</string>
+    <string name="common_mimetype_text">Текстовый документ</string>
+    <string name="common_mimetype_pdf">PDF-документ</string>
+    <string name="common_mimetype_document">Документ</string>
+    <string name="common_mimetype_archive">Архив</string>
+    <string name="common_mimetype_apk">Пакет Android</string>
+    <string name="common_mimetype_json">Файл JSON</string>
+    <string name="common_mimetype_xml">Файл XML</string>
+    <string name="common_mimetype_unknown">Неизвестный тип</string>
+
+    <string name="general_rom_type_auto_label">Автоматически (по умолчанию)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s элемент/с</item>
+        <item quantity="few">%s элемента/с</item>
+        <item quantity="many">%s элементов/с</item>
+        <item quantity="other">%s элемента/с</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/с</item>
+        <item quantity="few">%s/с</item>
+        <item quantity="many">%s/с</item>
+        <item quantity="other">%s/с</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Несоответствие типов: ожидалось %1$s, получено %2$s.</string>
+    <string name="general_error_cant_access_msg">Нет доступа к %s.</string>
+    <string name="general_error_archive_not_seekable_msg">%s нельзя открыть напрямую: хранилище, на котором он находится, поддерживает только последовательное чтение, а этот формат архива требует произвольного доступа.</string>
+    <string name="general_error_root_unavailable">Root-доступ недоступен.</string>
+    <string name="general_error_elevated_access_required">Для этой операции требуется расширенный доступ. Настройте Root или Shizuku в разделе настройки.</string>
+    <string name="general_error_no_compatible_app_found_msg">Не найдено подходящее приложение для обработки этого запроса.</string>
+    <string name="general_error_ipc_deadobject_title">Соединение со службой потеряно</string>
+    <string name="general_error_ipc_deadobject_description">Соединение с важной службой (например, Magisk, Shizuku или другой системной службой) неожиданно прервалось. Перезагрузите устройство. Если проблема повторится, проверьте наличие обновлений или свяжитесь со мной, чтобы я мог это исправить.</string>
+
+    <string name="ui_theme_mode_dark_label">Тёмная</string>
+    <string name="ui_theme_mode_light_label">Светлая</string>
+    <string name="ui_theme_mode_system_label">Системная</string>
+    <string name="ui_theme_style_default_label">Стандартный</string>
+    <string name="ui_theme_style_medium_contrast_label">Средний контраст</string>
+    <string name="ui_theme_style_high_contrast_label">Высокий контраст</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Зелёный</string>
+    <string name="ui_theme_color_blue_label">Синий</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Пользовательский</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Тональный</string>
+    <string name="ui_theme_palette_neutral_label">Нейтральный</string>
+    <string name="ui_theme_palette_vibrant_label">Яркий</string>
+    <string name="ui_theme_palette_expressive_label">Выразительный</string>
+    <string name="ui_theme_palette_rainbow_label">Радужный</string>
+    <string name="ui_theme_palette_fruitsalad_label">Фруктовый салат</string>
+    <string name="ui_theme_palette_monochrome_label">Монохромный</string>
+    <string name="ui_theme_palette_fidelity_label">Естественный</string>
+    <string name="ui_theme_palette_content_label">По содержимому</string>
+
+    <string name="ui_theme_custom_dialog_title">Пользовательская тема</string>
+    <string name="ui_theme_custom_seed_label">Базовый цвет</string>
+    <string name="ui_theme_custom_palette_label">Стиль палитры</string>
+    <string name="ui_theme_custom_default_action">По умолчанию</string>
+
+    <string name="ui_mascot_suit_dialog_title">Костюм Butler</string>
+    <string name="ui_mascot_suit_default_action">По умолчанию</string>
+    <string name="ui_mascot_suit_hue_label">Оттенок</string>
+    <string name="ui_mascot_suit_saturation_label">Насыщенность</string>
+    <string name="ui_mascot_suit_brightness_label">Яркость</string>
+    <string name="ui_mascot_suit_value_description">Цвет костюма %s</string>
+
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">Статистика использования</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Доступ к уведомлениям</string>
+    <string name="setup_manage_storage_card_title">Управление внешним хранилищем</string>
+    <string name="setup_inventory_card_title">Список приложений</string>
+
+    <!-- Common permission strings -->
+    <string name="setup_required_card_title">Требуется настройка</string>
+    <string name="setup_required_card_body">Для выполнения этой операции требуется дополнительная настройка.</string>
+    <string name="setup_required_card_setup_action">Открыть настройку</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">Открыть несколько вкладок?</string>
+    <string name="common_open_tabs_confirmation_message">Будет открыто вкладок: %1$d.</string>
+    <string name="common_open_tabs_success">Открыто вкладок: %1$d</string>
+    <string name="common_open_tabs_success_with_skipped">Открыто вкладок: %1$d (пропущено элементов: %2$d)</string>
+
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">Закрыть вкладку?</string>
+    <string name="general_tab_close_confirmation_message">Вы уверены, что хотите закрыть «%1$s»?</string>
+    <string name="general_tab_close_unsaved_title">Несохранённые изменения</string>
+    <string name="general_tab_close_unsaved_message">«%1$s» содержит несохранённые изменения. Закрыть и отменить их?</string>
+    <string name="general_tab_close_unsaved_message_multiple">«%1$s» и ещё %2$d вкладок содержат несохранённые изменения. Закрыть и отменить их?</string>
+    <string name="general_discard_action">Не сохранять</string>
+    <string name="general_tab_close_goto_action">Перейти к вкладке</string>
+
+    <!-- Exit app -->
+    <string name="general_press_back_again_to_exit">Нажмите «Назад» ещё раз для выхода</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">Выбрано: %d</item>
+        <item quantity="few">Выбрано: %d</item>
+        <item quantity="many">Выбрано: %d</item>
+        <item quantity="other">Выбрано: %d</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d папка</item>
+        <item quantity="few">%1$d папки</item>
+        <item quantity="many">%1$d папок</item>
+        <item quantity="other">%1$d папки</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d файл</item>
+        <item quantity="few">%1$d файла</item>
+        <item quantity="many">%1$d файлов</item>
+        <item quantity="other">%1$d файла</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Выбрать все папки</string>
+    <string name="common_select_all_files_action">Выбрать все файлы</string>
+    <string name="general_undo_action">Отменить</string>
+
+    <!-- Guided tours -->
+    <string name="tour_action_next">Далее</string>
+    <string name="tour_action_previous">Назад</string>
+    <string name="tour_action_cancel">Пропустить</string>
+    <string name="tour_confirm_title">Пропустить обзор?</string>
+    <string name="tour_confirm_message">Вы можете снова включить обзоры в любое время в настройках.</string>
+    <string name="tour_confirm_continue">Продолжить обзор</string>
+    <string name="tour_confirm_dont_show_this_tour">Не показывать этот обзор</string>
+    <string name="tour_confirm_disable_all">Отключить все обзоры</string>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">Используйте несколько областей, чтобы сравнивать файлы рядом друг с другом.</string>
+    <string name="common_tip_different_folders">Открывайте разные папки в каждой области для удобного управления файлами.</string>
+    <string name="common_tip_switch_layouts">Переключайте расположение областей в настройках вкладки.</string>
+    <string name="common_tip_elevated_access">Включите root или Shizuku в настройке для расширенных операций с файлами.</string>
+    <string name="common_tip_breadcrumb_home">Удерживайте элемент пути в Проводнике, чтобы сделать его домашним каталогом.</string>
+</resources>
