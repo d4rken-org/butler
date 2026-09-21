@@ -30,8 +30,6 @@
     <string name="onboarding_workspaces_searcher_description">Найти нужное.</string>
     <string name="onboarding_workspaces_editor_title">Редактор</string>
     <string name="onboarding_workspaces_editor_description">Редактировать файлы.</string>
-    <string name="onboarding_workspaces_templates_title">Шаблоны</string>
-    <string name="onboarding_workspaces_templates_description">Сохранить свою конфигурацию.</string>
     <string name="onboarding_workspaces_apps_description">Управление приложениями.</string>
 
     <!-- Explorer Shortcuts -->

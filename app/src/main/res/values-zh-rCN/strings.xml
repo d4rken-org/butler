@@ -30,8 +30,6 @@
     <string name="onboarding_workspaces_searcher_description">查找内容。</string>
     <string name="onboarding_workspaces_editor_title">编辑器</string>
     <string name="onboarding_workspaces_editor_description">编辑文件。</string>
-    <string name="onboarding_workspaces_templates_title">模板</string>
-    <string name="onboarding_workspaces_templates_description">保存您的配置。</string>
     <string name="onboarding_workspaces_apps_description">管理您的应用。</string>
 
     <!-- Explorer Shortcuts -->

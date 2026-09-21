@@ -29,8 +29,6 @@
     <string name="onboarding_workspaces_searcher_description">Vind spullen.</string>
     <string name="onboarding_workspaces_editor_title">Editor</string>
     <string name="onboarding_workspaces_editor_description">Bewerk bestanden.</string>
-    <string name="onboarding_workspaces_templates_title">Sjablonen</string>
-    <string name="onboarding_workspaces_templates_description">Sla je indeling op.</string>
     <string name="onboarding_workspaces_apps_description">Beheer je apps.</string>
 
     <!-- Verkenner-snelkoppelingen -->

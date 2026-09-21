@@ -30,8 +30,6 @@
     <string name="onboarding_workspaces_searcher_description">ابحث عمّا تريد.</string>
     <string name="onboarding_workspaces_editor_title">المحرر</string>
     <string name="onboarding_workspaces_editor_description">حرّر الملفات.</string>
-    <string name="onboarding_workspaces_templates_title">القوالب</string>
-    <string name="onboarding_workspaces_templates_description">احفظ إعداداتك.</string>
     <string name="onboarding_workspaces_apps_description">أدر تطبيقاتك.</string>
 
     <!-- Explorer Shortcuts -->

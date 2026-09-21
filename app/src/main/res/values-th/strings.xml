@@ -29,8 +29,6 @@
     <string name="onboarding_workspaces_searcher_description">ค้นหาสิ่งที่ต้องการ</string>
     <string name="onboarding_workspaces_editor_title">ตัวแก้ไข</string>
     <string name="onboarding_workspaces_editor_description">แก้ไขไฟล์</string>
-    <string name="onboarding_workspaces_templates_title">เทมเพลต</string>
-    <string name="onboarding_workspaces_templates_description">บันทึกการตั้งค่าที่ใช้งาน</string>
     <string name="onboarding_workspaces_apps_description">จัดการแอปของคุณ</string>
 
     <!-- Explorer Shortcuts -->

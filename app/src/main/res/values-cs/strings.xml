@@ -29,8 +29,6 @@
     <string name="onboarding_workspaces_searcher_description">Najděte, co hledáte.</string>
     <string name="onboarding_workspaces_editor_title">Editor</string>
     <string name="onboarding_workspaces_editor_description">Upravujte soubory.</string>
-    <string name="onboarding_workspaces_templates_title">Šablony</string>
-    <string name="onboarding_workspaces_templates_description">Uložte si své nastavení.</string>
     <string name="onboarding_workspaces_apps_description">Spravujte své aplikace.</string>
 
     <!-- Zástupci Průzkumníka -->
