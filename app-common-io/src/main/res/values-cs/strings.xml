@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Mazání položek</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Kopírování položek</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Přesouvání položek</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Prohledávání…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">Soubor již existuje</string>
+    <string name="path_action_folder_exists_title">Složka již existuje</string>
+    <string name="path_action_file_exists_description">Soubor s názvem \"%1$s\" již existuje v umístění \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">Složka s názvem \"%1$s\" již existuje v umístění \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">Soubor se nenalézá</string>
+    <string name="path_action_not_found_description">\"%1$s\" byl smazán, přejmenován nebo přesunut jinam.</string>
+
+    <string name="path_action_permission_denied_title">Přístup odepřen</string>
+    <string name="path_action_permission_denied_description">Nelze přistupovat k \"%1$s\" v umístění \"%2$s\" kvůli nedostatečným oprávněním.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Nelze přistupovat k \"%1$s\" v umístění \"%2$s\". Žádná metoda není k dispozici pro provedení této operace.</string>
+    <string name="path_action_permission_denied_readonly_description">Nelze přistupovat k \"%1$s\" v umístění \"%2$s\". Systém souborů je pouze pro čtení.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Nelze přistupovat k \"%1$s\" v umístění \"%2$s\". Operaci zamítl systém.</string>
+
+    <string name="path_action_insufficient_space_title">Nedostatek místa</string>
+    <string name="path_action_insufficient_space_description">Není dostupno dostatek místa v úložišti pro kopírování \"%1$s\" z umístění \"%2$s\".</string>
+
+    <string name="path_action_unknown_error_title">Operace selhala</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">Nahrazení nedokončeno</string>
+    <string name="path_action_data_kept_new_data_description">Butler nemohl dokončit zápis \"%1$s\". Vaše nová data jsou zachována ve stejné složce jako \"%2$s\". Přejmenujte je pro obnovení, nebo je smažte.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler nemohl dokončit zápis \"%1$s\", předchozí soubor zůstává nezměněn. Vaše nová data jsou zachována ve stejné složce jako \"%2$s\". Přejmenujte je pro obnovení, nebo je smažte.</string>
+    <string name="path_action_data_kept_both_description">Butler nemohl dokončit zápis \"%1$s\". Nic se neztratilo: předchozí soubor je zachován ve stejné složce jako \"%2$s\" a vaše nová data jako \"%3$s\". Přejmenujte ten, který chcete zachovat.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler nemohl dokončit zápis \"%1$s\" a nemohl zkontrolovat, zda \"%2$s\" stále existuje. Neúplná kopie může být zachována ve stejné složce jako \"%3$s\". Porovnejte obě před jejich smazáním.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler nemohl dokončit přesouvání \"%1$s\" a nemůže říci, zda opustilo svou složku. Vaše data jsou buď zachována v dané složce jako \"%2$s\", nebo již v umístění \"%3$s\". Zkontrolujte obě před jejich smazáním.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler nemohl dokončit zápis \"%1$s\" a nemůže říci, kde váš soubor skončil. Je to jeden ze tří souborů v dané složce: \"%1$s\" sám, \"%2$s\" nebo \"%3$s\". Zkontrolujte všechny tři před smazáním kteréhokoli.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler nemohl dokončit zápis \"%1$s\" a nemůže říci, kde váš soubor skončil. Je to jeden z těchto dvou souborů v dané složce: \"%1$s\" sám nebo \"%2$s\". Zkontrolujte oba před jejich smazáním.</string>
+
+    <string name="path_action_trash_size_limit_title">Položky příliš velké pro koš</string>
+    <string name="path_action_trash_size_limit_description">%1$d položek celkem %2$s překročuje limit velikosti koše (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">Přesunutí do koše se nezdařilo</string>
+    <string name="path_action_trash_move_failed_description">%1$d položek se nepodařilo přesunout do koše.</string>
+
+    <string name="path_action_trash_not_supported_title">Koš není podporován</string>
+    <string name="path_action_trash_not_supported_description">%1$d položek je na úložišti, které koš nepodporuje.</string>
+
+    <string name="path_action_archive_password_title">Vyžaduje se heslo</string>
+    <string name="path_action_archive_password_description">\"%1$s\" je zašifrováno. Zadejte heslo pro čtení jeho obsahu.</string>
+    <string name="path_action_archive_password_wrong_description">Heslo pro \"%1$s\" bylo nesprávné. Zkuste to znovu.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Server je nedostupný</string>
+    <string name="smb_error_unreachable_description">Butler se nemohl připojit k \"%1$s\". Zkontrolujte, že zařízení je ve stejné síti a že je server zapnut.</string>
+    <string name="smb_error_auth_title">Přihlášení se nezdařilo</string>
+    <string name="smb_error_auth_description">\"%1$s\" odmítl uživatelské jméno nebo heslo.</string>
+    <string name="smb_error_share_access_denied_title">Bez přístupu ke sdílené složce</string>
+    <string name="smb_error_share_access_denied_description">Tento účet nemůže používat \"%1$s\" na \"%2$s\". Zkontrolujte oprávnění ke sdílené složce na serveru.</string>
+    <string name="smb_error_share_not_found_title">Sdílená složka se nenalézá</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" na \"%2$s\" neexistuje.</string>
+    <string name="smb_error_dialect_title">Server je příliš starý</string>
+    <string name="smb_error_dialect_description">\"%1$s\" nabízí pouze SMB1, která je nezabezpečená a není podporována. Povolte SMB2 nebo novější na serveru.</string>
+    <string name="smb_error_credential_unavailable_title">Vyžaduje se přihlášení</string>
+    <string name="smb_error_credential_unavailable_description">Uložené heslo pro toto úložiště v síti již nelze přečíst. Zadejte jej znovu pro opětovné připojení.</string>
+    <string name="smb_error_pro_required_title">Sdílené složky v síti vyžadují Butler Pro</string>
+    <string name="smb_error_pro_required_description">Připojování ke sdíleným složkám v síti je součástí Butler Pro. Vaše uložená umístění zůstávají v seznamu a lze je odstranit bez něj.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Chráněný balíček aplikace</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" je zašifrován a lze jej instalovat pouze aplikací, která jej vytvořila.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">Formát sady APK není podporován</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" je sada APK bundletool. Butler nemůže určit, která z jejích variant se hodí pro toto zařízení.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Žádná aplikace k instalaci</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" neobsahuje žádný instalovatelný APK.</string>
+
+    <string name="app_install_error_session_title">Instalace se nezdařila</string>
+    <string name="app_install_error_session_description">Systém zamítl instalaci: %1$s</string>
+
+    <string name="app_install_error_busy_title">Instalace je již v procesu</string>
+    <string name="app_install_error_busy_description">\"%1$s\" je stále instalován. Potvrďte nebo zrušte danou instalaci před spuštěním další.</string>
+
+    <string name="app_install_error_no_elevation_title">Bez povýšeného přístupu</string>
+    <string name="app_install_error_no_elevation_description">Přístup root nebo ADB není v současné chvíli dostupný.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Vyžaduje se potvrzení</string>
+    <string name="app_install_confirm_pending_description">Android potřebuje, abyste potvrdili instalaci \"%1$s\" předtím, než ji bude moci dokončit.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android potřebuje, abyste potvrdili tuto instalaci předtím, než ji bude moci dokončit.</string>
+    <string name="app_install_confirm_pending_action">Potvrdit instalaci</string>
+    <string name="app_install_confirm_pending_reason">Instalátor čeká na vaše potvrzení</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Vyžaduje se potvrzení</string>
+    <string name="app_uninstall_confirm_pending_description">Android potřebuje, abyste potvrdili odstranění \"%1$s\" předtím, než ho bude moci dokončit.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android potřebuje, abyste potvrdili toto odstranění předtím, než ho bude moci dokončit.</string>
+    <string name="app_uninstall_confirm_pending_action">Potvrdit odstranění</string>
+    <string name="app_uninstall_confirm_pending_reason">Android čeká na vaše potvrzení</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Odstranění této aplikace pro jiného uživatele vyžaduje root nebo Shizuku</string>
+    <string name="app_uninstall_no_result">Android neohlásil výsledek</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Operace se souborem byla přerušena</string>
+    <string name="service_connection_lost_error_message">Služba pro operace se soubory se nečekaně zastavila. Zkuste to prosím znovu.</string>
+</resources>

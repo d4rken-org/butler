@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Nové</string>
+    <string name="workspace_templates_choose_title">Nová karta</string>
+    <string name="workspace_templates_choose_subtitle">Vyberte typ karty. Jak vám mohu pomoci?</string>
+    <string name="workspace_templates_name_tab_action">Pojmenovat tuto kartu</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Vyberte nástroj</string>
+    <string name="tour_templates_picker_body">Toto je výběr karty, zvolte, co by tato karta měla být. Výběr jedné změní tuto kartu na tento nástroj.</string>
+    <string name="tour_templates_butler_button_title">Vaše karty se nacházejí zde</string>
+    <string name="tour_templates_butler_button_body">Klepněte na tlačítko Butler pro nabídku karty: Vytvořit novou kartu, zavřít aktuální kartu nebo otevřít správce karet. Dlouhým stisknutím přejít přímo na správce karet.</string>
+</resources>

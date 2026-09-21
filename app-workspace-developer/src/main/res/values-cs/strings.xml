@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Vývojář</string>
+    <string name="developer_title">Vývojářské nástroje</string>
+    <string name="developer_subtitle">Vývojářské nástroje</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">Systém</string>
+    <string name="developer_tab_options">Možnosti</string>
+    <string name="developer_tab_workspaces">Karty</string>
+    <string name="developer_tab_logs">Protokoly</string>
+    <string name="developer_tab_testdata">Testovací data</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Možnosti ladění</string>
+    <string name="developer_options_debug_mode">Režim ladění</string>
+    <string name="developer_options_debug_mode_desc">Povolit podrobné protokolování</string>
+    <string name="developer_options_trace_mode">Režim trasování</string>
+    <string name="developer_options_trace_mode_desc">Povolit protokolování na úrovni trasování</string>
+    <string name="developer_options_floating_log">Plovoucí panel protokolu</string>
+    <string name="developer_options_floating_log_desc">Zobrazit přetahovanou vrstvu protokolu na všech obrazovkách</string>
+    <string name="developer_options_services_header">Testy služeb</string>
+    <string name="developer_options_root_test_action">Testovat Root</string>
+    <string name="developer_options_root_installed_label">Nainstalován</string>
+    <string name="developer_options_root_available_label">K dispozici</string>
+    <string name="developer_options_root_base_check_label">Základní kontrola</string>
+    <string name="developer_options_shizuku_test_action">Testovat Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">Nainstalován</string>
+    <string name="developer_options_shizuku_granted_label">Oprávnění</string>
+    <string name="developer_options_shizuku_compatible_label">Kompatibilní</string>
+    <string name="developer_options_shizuku_service_label">Služba</string>
+    <string name="developer_options_test_running">Testování…</string>
+    <string name="developer_options_result_yes">Ano</string>
+    <string name="developer_options_result_no">Ne</string>
+    <string name="developer_options_result_unknown">Neznámo</string>
+    <string name="developer_options_visibility_header">Viditelnost</string>
+    <string name="developer_options_hide_mode">Skrýt režim Vývojář</string>
+    <string name="developer_options_hide_mode_desc">Klepněte 7× na verzi v Nastavení pro opětovné povolení.</string>
+    <string name="developer_options_hide_action">Skrýt</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Zařízení</string>
+    <string name="developer_system_device_model">Model</string>
+    <string name="developer_system_device_manufacturer">Výrobce</string>
+    <string name="developer_system_device_api">Úroveň API</string>
+    <string name="developer_system_build_header">Sestavení</string>
+    <string name="developer_system_build_version">Verze</string>
+    <string name="developer_system_build_code">Kód verze</string>
+    <string name="developer_system_build_flavor">Varianta</string>
+    <string name="developer_system_build_type">Typ sestavení</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Paměť</string>
+    <string name="developer_system_memory_available">K dispozici</string>
+    <string name="developer_system_memory_total">Celkem</string>
+    <string name="developer_system_storage_header">Úložiště</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d kart</string>
+    <string name="developer_workspaces_empty">Žádné karty</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Vymazat</string>
+    <string name="developer_logs_pause">Pozastavit</string>
+    <string name="developer_logs_resume">Obnovit</string>
+    <string name="developer_logs_empty">Žádné protokoly</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Cílové cesty</string>
+    <string name="developer_testdata_no_paths">Nejsou vybrány žádné cílové cesty. Přidejte cesty pro generování testovacích dat.</string>
+    <string name="developer_testdata_add_path_action">Přidat cestu</string>
+    <string name="developer_testdata_options_header">Možnosti generování</string>
+    <string name="developer_testdata_large_files">Velké soubory</string>
+    <string name="developer_testdata_large_files_desc">1 MB, 10 MB, 100 MB, 1 GB, 2 GB, 4 GB, 8 GB</string>
+    <string name="developer_testdata_nested_structure">Vnořená struktura</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 složek, ~1100 souborů</string>
+    <string name="developer_testdata_text_files">Textové soubory pro Editor</string>
+    <string name="developer_testdata_text_files_desc">10 KB, 100 KB, 1 MB, 10 MB, 100 MB</string>
+    <string name="developer_testdata_generate_action">Generovat</string>
+    <string name="developer_testdata_generating">Generování…</string>
+    <string name="developer_testdata_history_header">Vzorové záznamy historie</string>
+    <string name="developer_testdata_history_desc">Vytvoří ~25 falešných záznamů operací od dneška až 30 dní zpět, smíšené druhy/výsledky/zdroje/cesty. Vkládá přímo do databáze historie; bezpečné pro opakované klepnutí.</string>
+    <string name="developer_testdata_history_generate_action">Generovat vzorovou historii</string>
+    <string name="developer_testdata_progress">%1$s z %2$s</string>
+    <string name="developer_testdata_complete">Testovací data vygenerována v:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Generovat velké soubory</string>
+    <string name="developer_operation_large_files_desc">Vytváření testovacích souborů v %1$s</string>
+    <string name="developer_operation_large_files_creating">Vytváření %1$s</string>
+
+    <string name="developer_operation_nested_title">Generovat vnořenou strukturu</string>
+    <string name="developer_operation_nested_desc">Vytváření hierarchie složek v %1$s</string>
+    <string name="developer_operation_nested_starting">Spouštění vnořené struktury…</string>
+    <string name="developer_operation_nested_creating">Vytváření %1$s</string>
+    <string name="developer_operation_nested_files_created">Vytvořeno %1$d souborů</string>
+
+    <string name="developer_operation_text_files_title">Generovat textové soubory</string>
+    <string name="developer_operation_text_files_desc">Vytváření textových souborů v %1$s</string>
+    <string name="developer_operation_text_files_creating">Vytváření %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d soubor</item>
+        <item quantity="few">%d soubory</item>
+        <item quantity="many">%d souborů</item>
+        <item quantity="other">%d souborů</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d složka</item>
+        <item quantity="few">%d složky</item>
+        <item quantity="many">%d složek</item>
+        <item quantity="other">%d složek</item>
+    </plurals>
+</resources>
