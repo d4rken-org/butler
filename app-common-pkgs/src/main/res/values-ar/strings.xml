@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">قائمة التطبيقات غير صحيحة</string>
+    <string name="pkgrepo_invalid_inventory_error_description">قدم النظام قائمة غير صحيحة بالتطبيقات المثبتة إلى Butler.</string>
+</resources>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">مطور</string>
+    <string name="developer_title">أدوات المطور</string>
+    <string name="developer_subtitle">أدوات التطوير</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">النظام</string>
+    <string name="developer_tab_options">الخيارات</string>
+    <string name="developer_tab_workspaces">مساحات العمل</string>
+    <string name="developer_tab_logs">السجلات</string>
+    <string name="developer_tab_testdata">بيانات الاختبار</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">خيارات التصحيح</string>
+    <string name="developer_options_debug_mode">وضع التصحيح</string>
+    <string name="developer_options_debug_mode_desc">تفعيل السجلات التفصيلية</string>
+    <string name="developer_options_trace_mode">وضع التتبع</string>
+    <string name="developer_options_trace_mode_desc">تفعيل تسجيل مستوى التتبع</string>
+    <string name="developer_options_floating_log">لوحة السجل العائمة</string>
+    <string name="developer_options_floating_log_desc">عرض طبقة سجل قابلة للسحب على جميع الشاشات</string>
+    <string name="developer_options_services_header">اختبارات الخدمة</string>
+    <string name="developer_options_root_test_action">اختبر Root</string>
+    <string name="developer_options_root_installed_label">مثبت</string>
+    <string name="developer_options_root_available_label">متاح</string>
+    <string name="developer_options_root_base_check_label">الفحص الأساسي</string>
+    <string name="developer_options_shizuku_test_action">اختبر Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">مثبت</string>
+    <string name="developer_options_shizuku_granted_label">الإذن</string>
+    <string name="developer_options_shizuku_compatible_label">متوافق</string>
+    <string name="developer_options_shizuku_service_label">الخدمة</string>
+    <string name="developer_options_test_running">جاري الاختبار…</string>
+    <string name="developer_options_result_yes">نعم</string>
+    <string name="developer_options_result_no">لا</string>
+    <string name="developer_options_result_unknown">غير معروف</string>
+    <string name="developer_options_visibility_header">الرؤية</string>
+    <string name="developer_options_hide_mode">إخفاء وضع المطور</string>
+    <string name="developer_options_hide_mode_desc">اضغط على الإصدار 7 مرات في الإعدادات لإعادة تفعيله.</string>
+    <string name="developer_options_hide_action">إخفاء</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">الجهاز</string>
+    <string name="developer_system_device_model">الموديل</string>
+    <string name="developer_system_device_manufacturer">الشركة المصنعة</string>
+    <string name="developer_system_device_api">مستوى API</string>
+    <string name="developer_system_build_header">البناء</string>
+    <string name="developer_system_build_version">الإصدار</string>
+    <string name="developer_system_build_code">رمز الإصدار</string>
+    <string name="developer_system_build_flavor">النكهة</string>
+    <string name="developer_system_build_type">نوع البناء</string>
+    <string name="developer_system_build_git">SHA Git</string>
+    <string name="developer_system_memory_header">الذاكرة</string>
+    <string name="developer_system_memory_available">متاح</string>
+    <string name="developer_system_memory_total">الإجمالي</string>
+    <string name="developer_system_storage_header">التخزين</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d مساحات عمل</string>
+    <string name="developer_workspaces_empty">لا توجد مساحات عمل</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">حذف</string>
+    <string name="developer_logs_pause">إيقاف مؤقت</string>
+    <string name="developer_logs_resume">استئناف</string>
+    <string name="developer_logs_empty">لا توجد سجلات</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">مسارات الهدف</string>
+    <string name="developer_testdata_no_paths">لم يتم تحديد أي مسارات هدف. أضف مسارات لإنشاء بيانات الاختبار.</string>
+    <string name="developer_testdata_add_path_action">أضف مسار</string>
+    <string name="developer_testdata_options_header">خيارات الإنشاء</string>
+    <string name="developer_testdata_large_files">ملفات كبيرة</string>
+    <string name="developer_testdata_large_files_desc">1MB، 10MB، 100MB، 1GB، 2GB، 4GB، 8GB</string>
+    <string name="developer_testdata_nested_structure">هيكل متداخل</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 مجلد، ~1100 ملف</string>
+    <string name="developer_testdata_text_files">ملفات نصية للمحرر</string>
+    <string name="developer_testdata_text_files_desc">10KB، 100KB، 1MB، 10MB، 100MB</string>
+    <string name="developer_testdata_generate_action">إنشاء</string>
+    <string name="developer_testdata_generating">جاري الإنشاء…</string>
+    <string name="developer_testdata_history_header">عينات من إدخالات السجل</string>
+    <string name="developer_testdata_history_desc">يملأ حوالي 25 إدخال عملية وهمية تغطي اليوم → 30 يوماً مضت، مع أنواع / نتائج / أصول / مسارات مختلطة. يتم الإدراج مباشرة في قاعدة بيانات السجل ؛ من الآمن إعادة الضغط.</string>
+    <string name="developer_testdata_history_generate_action">إنشاء عينة السجل</string>
+    <string name="developer_testdata_progress">%1$s من %2$s</string>
+    <string name="developer_testdata_complete">تم إنشاء بيانات الاختبار في:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">إنشاء ملفات كبيرة</string>
+    <string name="developer_operation_large_files_desc">إنشاء ملفات الاختبار في %1$s</string>
+    <string name="developer_operation_large_files_creating">إنشاء %1$s</string>
+
+    <string name="developer_operation_nested_title">إنشاء هيكل متداخل</string>
+    <string name="developer_operation_nested_desc">إنشاء تسلسل هرمي للمجلدات في %1$s</string>
+    <string name="developer_operation_nested_starting">بدء الهيكل المتداخل…</string>
+    <string name="developer_operation_nested_creating">إنشاء %1$s</string>
+    <string name="developer_operation_nested_files_created">تم إنشاء %1$d ملفات</string>
+
+    <string name="developer_operation_text_files_title">إنشاء ملفات نصية</string>
+    <string name="developer_operation_text_files_desc">إنشاء ملفات نصية في %1$s</string>
+    <string name="developer_operation_text_files_creating">إنشاء %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="zero">لم يتم إنشاء أي ملفات</item>
+        <item quantity="one">%d ملف تم إنشاؤه</item>
+        <item quantity="two">%d ملفان تم إنشاؤهما</item>
+        <item quantity="few">%d ملفات تم إنشاؤها</item>
+        <item quantity="many">%d ملفًا تم إنشاؤها</item>
+        <item quantity="other">%d ملف تم إنشاؤه</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="zero">لم يتم إنشاء أي مجلدات</item>
+        <item quantity="one">%d مجلد</item>
+        <item quantity="two">%d مجلدان</item>
+        <item quantity="few">%d مجلدات</item>
+        <item quantity="many">%d مجلدًا</item>
+        <item quantity="other">%d مجلد</item>
+    </plurals>
+</resources>

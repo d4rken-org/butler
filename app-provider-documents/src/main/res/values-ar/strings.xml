@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">وصول متقدم للجهاز</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">الجهاز</string>
+    <string name="documents_connection_device_summary">تخزين الجهاز المحلي</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">نظام الملفات الجذر</string>
+    <string name="provider_documents_storage_internal_label">التخزين الداخلي</string>
+    <string name="provider_documents_storage_sd_card_label">بطاقة SD</string>
+    <string name="provider_documents_storage_saf_label">موقع SAF</string>
+    <string name="provider_documents_storage_free_suffix">خالي</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">مطلوب وصول جذر لاستعراض هذا الموقع. قم بتفعيل وصول الجذر في إعدادات تطبيق Butler.</string>
+    <string name="provider_documents_error_requires_adb">مطلوب وصول ADB/Shizuku لاستعراض هذا الموقع. قم بتفعيل Shizuku في إعدادات تطبيق Butler.</string>
+    <string name="provider_documents_error_requires_storage">مطلوب إذن التخزين لاستعراض هذا الموقع. قم بمنح إذن التخزين في إعدادات تطبيق Butler.</string>
+    <string name="provider_documents_error_requires_permissions">مطلوبة أذونات إضافية لاستعراض هذا الموقع. تحقق من إعدادات تطبيق Butler.</string>
+    <string name="provider_documents_error_generic">لا يمكن الوصول إلى هذا الموقع. تحقق من تطبيق Butler للحصول على خيارات الوصول.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">موفر المستندات</string>
+    <string name="provider_documents_settings_subtitle">تكامل التطبيق الخارجي</string>
+    <string name="provider_documents_settings_category_integration_label">التكامل</string>
+    <string name="provider_documents_enabled_title">تفعيل موفر المستندات</string>
+    <string name="provider_documents_enabled_desc">السماح للتطبيقات الأخرى بالوصول إلى الملفات من خلال Butler باستخدام منتقي ملفات Android</string>
+</resources>

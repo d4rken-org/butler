@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">جاري حذف العناصر</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">جاري نسخ العناصر</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">جاري نقل العناصر</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">جاري الفحص…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">الملف موجود بالفعل</string>
+    <string name="path_action_folder_exists_title">المجلد موجود بالفعل</string>
+    <string name="path_action_file_exists_description">ملف باسم \"%1$s\" موجود بالفعل في \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">مجلد باسم \"%1$s\" موجود بالفعل في \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">الملف غير موجود</string>
+    <string name="path_action_not_found_description">\"%1$s\" تم حذفه أو إعادة تسميته أو نقله إلى مكان آخر.</string>
+
+    <string name="path_action_permission_denied_title">تم رفض الوصول</string>
+    <string name="path_action_permission_denied_description">لا يمكن الوصول إلى \"%1$s\" في \"%2$s\" بسبب صلاحيات غير كافية.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">لا يمكن الوصول إلى \"%1$s\" في \"%2$s\". لا توجد طريقة متاحة لتنفيذ هذه العملية.</string>
+    <string name="path_action_permission_denied_readonly_description">لا يمكن الوصول إلى \"%1$s\" في \"%2$s\". نظام الملفات للقراءة فقط.</string>
+    <string name="path_action_permission_denied_not_permitted_description">لا يمكن الوصول إلى \"%1$s\" في \"%2$s\". رفض النظام العملية.</string>
+
+    <string name="path_action_insufficient_space_title">مساحة غير كافية</string>
+    <string name="path_action_insufficient_space_description">لا توجد مساحة تخزين كافية لنسخ \"%1$s\" من \"%2$s\".</string>
+
+    <string name="path_action_unknown_error_title">فشلت العملية</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">الاستبدال لم يكتمل</string>
+    <string name="path_action_data_kept_new_data_description">تعذر على Butler إنهاء كتابة \"%1$s\". بيانتك الجديدة محفوظة في نفس مجلد \"%2$s\". أعد تسميتها لاستردادها أو احذفها للتخلي عنها.</string>
+    <string name="path_action_data_kept_original_in_place_description">تعذر على Butler إنهاء كتابة \"%1$s\"، الملف السابق بدون تغيير. بيانتك الجديدة محفوظة في نفس مجلد \"%2$s\". أعد تسميتها لاستردادها أو احذفها للتخلي عنها.</string>
+    <string name="path_action_data_kept_both_description">تعذر على Butler إنهاء كتابة \"%1$s\". لم يحدث فقدان للبيانات: الملف السابق محفوظ في نفس مجلد \"%2$s\" وبيانتك الجديدة في \"%3$s\". أعد تسمية الملف الذي تريد الاحتفاظ به.</string>
+    <string name="path_action_data_kept_maybe_partial_description">تعذر على Butler إنهاء كتابة \"%1$s\" ولم يتمكن من التحقق مما إذا كان \"%2$s\" لا يزال موجوداً. قد يكون نسخة غير مكتملة محفوظة في نفس مجلد \"%3$s\". قارن بينهما قبل حذف أحدهما.</string>
+    <string name="path_action_data_kept_intermediate_description">تعذر على Butler إنهاء نقل \"%1$s\" ولا يمكنه تحديد ما إذا كان قد ترك مجلده. بيانتك إما محفوظة في ذلك المجلد باسم \"%2$s\"، أو موجودة بالفعل في \"%3$s\". تحقق من كليهما قبل حذف أحدهما.</string>
+    <string name="path_action_data_kept_uncertain_description">تعذر على Butler إنهاء كتابة \"%1$s\" ولا يمكنه تحديد مكان انتهاء ملفك. إنه أحد ثلاثة ملفات في ذلك المجلد: \"%1$s\" نفسه، أو \"%2$s\" أو \"%3$s\". تحقق من الثلاثة جميعاً قبل حذف أي منها.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">تعذر على Butler إنهاء كتابة \"%1$s\" ولا يمكنه تحديد مكان انتهاء ملفك. إنه أحد ملفين في ذلك المجلد: \"%1$s\" نفسه أو \"%2$s\". تحقق من كليهما قبل حذف أحدهما.</string>
+
+    <string name="path_action_trash_size_limit_title">العناصر كبيرة جداً لسلة المحذوفات</string>
+    <string name="path_action_trash_size_limit_description">%1$d عناصر بإجمالي %2$s تتجاوز حد حجم سلة المحذوفات (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">فشل النقل إلى سلة المحذوفات</string>
+    <string name="path_action_trash_move_failed_description">تعذر نقل %1$d عناصر إلى سلة المحذوفات.</string>
+
+    <string name="path_action_trash_not_supported_title">سلة المحذوفات غير مدعومة</string>
+    <string name="path_action_trash_not_supported_description">%1$d عناصر موجودة على مساحة تخزين لا تدعم سلة المحذوفات.</string>
+
+    <string name="path_action_archive_password_title">كلمة مرور مطلوبة</string>
+    <string name="path_action_archive_password_description">\"%1$s\" مشفر. أدخل كلمة المرور لقراءة محتوياته.</string>
+    <string name="path_action_archive_password_wrong_description">كلمة المرور لـ \"%1$s\" غير صحيحة. حاول مرة أخرى.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">الخادم غير متوفر</string>
+    <string name="smb_error_unreachable_description">تعذر على Butler الوصول إلى \"%1$s\". تأكد من أن الجهاز موجود على نفس الشبكة وأن الخادم قيد التشغيل.</string>
+    <string name="smb_error_auth_title">فشل تسجيل الدخول</string>
+    <string name="smb_error_auth_description">\"%1$s\" رفض اسم المستخدم أو كلمة المرور.</string>
+    <string name="smb_error_share_access_denied_title">لا يوجد وصول إلى هذا المشاركة</string>
+    <string name="smb_error_share_access_denied_description">قد لا يتمكن هذا الحساب من استخدام \"%1$s\" على \"%2$s\". تحقق من أذونات المشاركة على الخادم.</string>
+    <string name="smb_error_share_not_found_title">لم يتم العثور على المشاركة</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" غير موجود على \"%2$s\".</string>
+    <string name="smb_error_dialect_title">الخادم قديم جداً</string>
+    <string name="smb_error_dialect_description">\"%1$s\" يقدم فقط SMB1، وهو غير آمن وغير مدعوم. فعّل SMB2 أو أحدث على الخادم.</string>
+    <string name="smb_error_credential_unavailable_title">تسجيل دخول مطلوب</string>
+    <string name="smb_error_credential_unavailable_description">لا يمكن قراءة كلمة المرور المحفوظة لهذه مساحة التخزين الشبكية. أدخلها مرة أخرى للاتصال من جديد.</string>
+    <string name="smb_error_pro_required_title">مشاركات الشبكة تتطلب Butler Pro</string>
+    <string name="smb_error_pro_required_description">يعتبر الاتصال بمشاركات الشبكة جزء من Butler Pro. المواقع المحفوظة لديك تبقى مدرجة ويمكن إزالتها بدونه.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">حزمة التطبيق محمية</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" مشفرة ويمكن تثبيتها فقط من قبل التطبيق الذي أنشأها.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">صيغة مجموعة APK غير مدعومة</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" مجموعة APK من bundletool. لا يمكن لـ Butler تحديد أي من متغيراتها يناسب هذا الجهاز.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">لا يوجد تطبيق لتثبيته</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" لا يحتوي على أي APK قابل للتثبيت.</string>
+
+    <string name="app_install_error_session_title">فشل التثبيت</string>
+    <string name="app_install_error_session_description">رفض النظام التثبيت: %1$s</string>
+
+    <string name="app_install_error_busy_title">التثبيت جاري بالفعل</string>
+    <string name="app_install_error_busy_description">\"%1$s\" لا يزال قيد التثبيت. أكّد أو ألغِ التثبيت قبل البدء بآخر.</string>
+
+    <string name="app_install_error_no_elevation_title">لا يوجد وصول مرتفع</string>
+    <string name="app_install_error_no_elevation_description">وصول Root أو ADB غير متوفر حالياً.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">تأكيد مطلوب</string>
+    <string name="app_install_confirm_pending_description">يحتاج Android إلى تأكيدك لتثبيت \"%1$s\" قبل أن يتمكن من الإنهاء.</string>
+    <string name="app_install_confirm_pending_description_unnamed">يحتاج Android إلى تأكيدك لهذا التثبيت قبل أن يتمكن من الإنهاء.</string>
+    <string name="app_install_confirm_pending_action">تأكيد التثبيت</string>
+    <string name="app_install_confirm_pending_reason">المثبت ينتظر تأكيدك</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">تأكيد مطلوب</string>
+    <string name="app_uninstall_confirm_pending_description">يحتاج Android إلى تأكيدك لإزالة \"%1$s\" قبل أن يتمكن من الإنهاء.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">يحتاج Android إلى تأكيدك لهذه الإزالة قبل أن يتمكن من الإنهاء.</string>
+    <string name="app_uninstall_confirm_pending_action">تأكيد الإزالة</string>
+    <string name="app_uninstall_confirm_pending_reason">Android ينتظر تأكيدك</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">إزالة هذا التطبيق لمستخدم آخر تتطلب root أو Shizuku</string>
+    <string name="app_uninstall_no_result">لم يُبلّغ Android عن نتيجة</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">تم قطع عملية الملف</string>
+    <string name="service_connection_lost_error_message">توقف خدمة عملية الملف بشكل غير متوقع. يُرجى المحاولة مرة أخرى.</string>
+</resources>

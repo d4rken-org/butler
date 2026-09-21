@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">افتح باستخدام</string>
+    <string name="viewer_image_content_description">صورة %1$s</string>
+    <string name="viewer_toolbar_folder_label">مجلد</string>
+    <string name="viewer_back_action">رجوع</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">الملف السابق</string>
+    <string name="viewer_next_file_action">الملف التالي</string>
+    <string name="viewer_open_location_action">فتح الموقع</string>
+    <string name="viewer_clipboard_copied">تم نسخ %1$s. ألصقه في علامة تبويب Explorer.</string>
+    <string name="viewer_clipboard_cut">تم قص %1$s. ألصقه في علامة تبويب Explorer لنقله.</string>
+    <string name="viewer_share_failed_label">تعذر مشاركة هذا الملف</string>
+    <string name="viewer_share_failed_description">لا يمكن تسليم %1$s إلى تطبيق آخر. يحدث هذا مع الملفات التي تتطلب وصول root أو ADB، والملفات التي لم تعد موجودة.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">الحجم</string>
+    <string name="viewer_info_modified_label">تاريخ التعديل</string>
+    <string name="viewer_info_created_label">تاريخ الإنشاء</string>
+    <string name="viewer_info_format_label">الصيغة</string>
+    <string name="viewer_info_dimensions_label">الأبعاد</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">الأذونات</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">المالك</string>
+    <string name="viewer_info_caption_label">رسالة مشتركة</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">عرض كل التفاصيل</string>
+    <string name="viewer_info_collapse_action">إخفاء التفاصيل</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">معاينة · 1 صفحة</string>
+    <string name="viewer_pdf_page_indicator">الصفحة %1$d من %2$d</string>
+    <string name="viewer_pdf_page_previous">الصفحة السابقة</string>
+    <string name="viewer_pdf_page_next">الصفحة التالية</string>
+    <string name="viewer_pdf_page_error">تعذر عرض الصفحة %1$d.</string>
+    <string name="viewer_pdf_page_content_description">معاينة PDF لـ %1$s، الصفحة %2$d من %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">هذا نوع الملف غير مدعوم حتى الآن</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">هذا أرشيف</string>
+    <string name="viewer_browse_archive_action">استعرض المحتويات</string>
+    <string name="viewer_archive_needs_copy_msg">احفظ نسخة على جهازك، ثم يمكن لـ Butler استعراض ما بداخله.</string>
+    <string name="viewer_archive_nested_msg">هذا الأرشيف موجود داخل أرشيف آخر. استخرجه أولاً لاستعراض ما بداخله.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">الإصدار</string>
+    <string name="viewer_apk_min_sdk_label">SDK الحد الأدنى</string>
+    <string name="viewer_apk_target_sdk_label">Target SDK</string>
+    <string name="viewer_apk_installed_label">مثبت</string>
+    <string name="viewer_apk_not_installed_value">غير مثبت</string>
+    <string name="viewer_apk_installed_unknown_value">تعذر الفحص</string>
+    <string name="viewer_apk_installed_older_hint">أقدم من هذا الملف</string>
+    <string name="viewer_apk_installed_newer_hint">أحدث من هذا الملف</string>
+    <string name="viewer_apk_permissions_header">الأذونات (%1$d)</string>
+    <string name="viewer_apk_signing_header">شهادات التوقيع</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">تثبيت</string>
+    <string name="viewer_bundle_format_label">صيغة الحزمة</string>
+    <string name="viewer_bundle_splits_label">ملفات APK بالداخل</string>
+    <string name="viewer_bundle_expansion_files_hint">يحتوي على ملفات التوسع التي يتم وضعها بعد تثبيت التطبيق.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">يتطلب وضع ملفات التوسع وصول root أو ADB. بدونها، يتم تثبيت التطبيق، لكن ملفات التوسع الخاصة به تبقى خلفك.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">رمز التطبيق لـ %1$s</string>
+    <string name="viewer_apk_icon_show_action">عرض الرمز</string>
+    <string name="viewer_apk_icon_save_action">احفظ الرمز</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">تم حفظ الرمز باسم %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">استبدال الملف؟</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s موجود بالفعل في هذا المجلد. سيؤدي حفظ الرمز إلى استبداله.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">استبدال</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">تم تغيير الملف</string>
+    <string name="viewer_external_change_message">تم تغيير هذا الملف على الجهاز. حدّث لتحميله مرة أخرى.</string>
+    <string name="viewer_external_change_gone_title">الملف مفقود</string>
+    <string name="viewer_external_change_gone_message">تم حذف هذا الملف أو لا يمكن الوصول إليه بعد الآن.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">تعذر عرض هذا الملف</string>
+    <string name="viewer_error_not_a_file_label">ليس ملفاً</string>
+    <string name="viewer_error_not_a_file_description">%1$s ليس ملف عادي.</string>
+    <string name="viewer_error_broken_symlink_label">اختصار مكسور</string>
+    <string name="viewer_error_broken_symlink_description">%1$s يشير إلى شيء لم يعد موجوداً.</string>
+    <string name="viewer_error_undecodable_label">صورة تالفة</string>
+    <string name="viewer_error_undecodable_description">تعذر فك تشفير %1$s. قد يكون الملف غير مكتمل أو تالفاً.</string>
+    <string name="viewer_error_file_gone_label">لم يتم العثور على الملف</string>
+    <string name="viewer_error_file_gone_description">%1$s غير موجود بعد الآن. قد تم نقله أو إعادة تسميته أو حذفه.</string>
+    <string name="viewer_error_empty_file_label">ملف فارغ</string>
+    <string name="viewer_error_empty_file_description">%1$s فارغ ولا يوجد شيء يمكن عرضه.</string>
+    <string name="viewer_error_apk_unreadable_label">ملف APK غير قابل للقراءة</string>
+    <string name="viewer_error_apk_unreadable_description">تعذر تحليل %1$s كحزمة تطبيق Android.</string>
+    <string name="viewer_error_icon_unavailable_label">لا يوجد رمز</string>
+    <string name="viewer_error_icon_unavailable_description">تعذر قراءة رمز التطبيق لـ %1$s.</string>
+    <string name="viewer_error_icon_target_notfile_label">الاسم مشغول بالفعل</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s موجود بالفعل هنا وليس ملف عادي، لذا لا يمكن استبداله.</string>
+    <string name="viewer_error_icon_target_appeared_label">ظهر الملف</string>
+    <string name="viewer_error_icon_target_appeared_description">تم إنشاء %1$s أثناء اختيارك مكان الحفظ. لم يتم استبدال أي شيء، حاول مرة أخرى.</string>
+    <string name="viewer_error_content_unreadable_label">تعذر قراءة هذا الملف</string>
+    <string name="viewer_error_content_unreadable_description">التطبيق الذي شارك %1$s لا يسمح بقراءته من قبل Butler. اطلب من هذا التطبيق مشاركته مرة أخرى.</string>
+    <string name="viewer_save_copy_action">احفظ نسخة…</string>
+    <string name="viewer_open_in_editor_action">افتح في المحرر</string>
+    <string name="viewer_text_truncated_bytes">تقتصر المعاينة على أول %1$s من هذا الملف.</string>
+    <string name="viewer_text_truncated_lines">تقتصر المعاينة على أول %1$s أسطر من هذا الملف.</string>
+    <string name="viewer_text_truncated_width">يتم تقصير الأسطر الطويلة في هذه المعاينة.</string>
+    <string name="viewer_text_unreadable_label">تعذر قراءة هذا الملف</string>
+</resources>
