@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">고급 기기 접근</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">기기</string>
+    <string name="documents_connection_device_summary">기기 로컬 저장공간</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">루트 파일시스템</string>
+    <string name="provider_documents_storage_internal_label">내부 저장공간</string>
+    <string name="provider_documents_storage_sd_card_label">SD 카드</string>
+    <string name="provider_documents_storage_saf_label">SAF 위치</string>
+    <string name="provider_documents_storage_free_suffix">여유</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">이 위치를 찾으려면 루트 접근이 필요합니다. Butler 앱 설정에서 루트 접근을 활성화하세요.</string>
+    <string name="provider_documents_error_requires_adb">이 위치를 찾으려면 ADB/Shizuku 접근이 필요합니다. Butler 앱 설정에서 Shizuku를 활성화하세요.</string>
+    <string name="provider_documents_error_requires_storage">이 위치를 찾으려면 저장공간 권한이 필요합니다. Butler 앱 설정에서 저장공간 권한을 부여하세요.</string>
+    <string name="provider_documents_error_requires_permissions">이 위치를 찾으려면 추가 권한이 필요합니다. Butler 앱 설정을 확인하세요.</string>
+    <string name="provider_documents_error_generic">이 위치에 접근할 수 없습니다. Butler 앱에서 접근 옵션을 확인하세요.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">문서 제공자</string>
+    <string name="provider_documents_settings_subtitle">외부 앱 통합</string>
+    <string name="provider_documents_settings_category_integration_label">통합</string>
+    <string name="provider_documents_enabled_title">문서 제공자 활성화</string>
+    <string name="provider_documents_enabled_desc">다른 앱이 Butler를 통해 Android 파일 선택기를 사용하여 파일에 접근하도록 허용</string>
+</resources>

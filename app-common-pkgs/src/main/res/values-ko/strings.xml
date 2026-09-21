@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">앱 목록이 올바르지 않음</string>
+    <string name="pkgrepo_invalid_inventory_error_description">시스템이 설치된 앱 목록을 Butler에 올바르게 제공하지 못했습니다.</string>
+</resources>
