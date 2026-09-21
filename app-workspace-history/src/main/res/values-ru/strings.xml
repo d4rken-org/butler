@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">История</string>
+    <string name="history_workspace_subtitle">Недавние операции с файлами</string>
+    <string name="history_workspace_title_scoped">История: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">История: Ошибка</string>
+    <string name="history_workspace_title_outcome_partial">История: Частично</string>
+    <string name="history_workspace_title_outcome_cancelled">История: Отменено</string>
+    <string name="history_workspace_title_outcome_completed">История: Завершено</string>
+    <string name="history_workspace_title_kind_copy">История: Копирование</string>
+    <string name="history_workspace_title_kind_move">История: Перемещение</string>
+    <string name="history_workspace_title_kind_delete">История: Удаление</string>
+    <string name="history_workspace_title_kind_create_file">История: Создание файла</string>
+    <string name="history_workspace_title_kind_create_folder">История: Создание папки</string>
+    <string name="history_workspace_title_kind_save">История: Сохранение</string>
+    <string name="history_workspace_title_kind_compress">История: Сжатие</string>
+    <string name="history_workspace_title_kind_extract">История: Распаковка</string>
+    <string name="history_workspace_title_filtered">История (отфильтрована)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">История: %1$d путь</item>
+        <item quantity="few">История: %1$d пути</item>
+        <item quantity="many">История: %1$d путей</item>
+        <item quantity="other">История: %1$d пути</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Все</string>
+    <string name="history_filter_outcome_completed">Завершено</string>
+    <string name="history_filter_outcome_partial">Частично</string>
+    <string name="history_filter_outcome_failed">Ошибка</string>
+    <string name="history_filter_outcome_cancelled">Отменено</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Копирование</string>
+    <string name="history_filter_kind_move">Перемещение</string>
+    <string name="history_filter_kind_delete">Удаление</string>
+    <string name="history_filter_kind_create_file">Создание файла</string>
+    <string name="history_filter_kind_create_folder">Создание папки</string>
+    <string name="history_filter_kind_save">Сохранение</string>
+    <string name="history_filter_kind_compress">Сжатие</string>
+    <string name="history_filter_kind_extract">Распаковка</string>
+    <string name="history_filter_kind_enable">Включение</string>
+    <string name="history_filter_kind_disable">Отключение</string>
+    <string name="history_filter_kind_force_stop">Принудительная остановка</string>
+    <string name="history_filter_kind_uninstall">Удаление</string>
+    <string name="history_filter_kind_clear_data">Очистка данных</string>
+    <string name="history_filter_kind_components">Компоненты</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Задать диапазон путей…</string>
+    <string name="history_path_scope_clear_action">Очистить диапазон путей</string>
+    <string name="history_path_scope_dialog_title">Фильтр по пути</string>
+    <string name="history_path_scope_dialog_description">Показывать только операции, затрагивающие этот путь или его подпапки.</string>
+    <string name="history_path_scope_dialog_input_label">Путь</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Выбрать папку…</string>
+    <string name="history_path_scope_dialog_apply_action">Применить</string>
+    <string name="history_path_scope_dialog_cancel_action">Отмена</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Сегодня</string>
+    <string name="history_group_yesterday">Вчера</string>
+    <string name="history_group_this_week">На этой неделе</string>
+    <string name="history_group_this_month">В этом месяце</string>
+    <string name="history_group_older">Старые</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Переименовано</string>
+    <string name="history_entry_intent_paste_copy">Вставлено</string>
+    <string name="history_entry_intent_paste_move">Вставлено (перемещение)</string>
+    <string name="history_entry_intent_drop_copy">Отпущено (копирование)</string>
+    <string name="history_entry_intent_drop_move">Отпущено (перемещение)</string>
+    <string name="history_entry_intent_enable_components">Включены компоненты</string>
+    <string name="history_entry_intent_disable_components">Отключены компоненты</string>
+    <string name="history_entry_kind_copy">Скопировано</string>
+    <string name="history_entry_kind_move">Перемещено</string>
+    <string name="history_entry_kind_delete">Удалено</string>
+    <string name="history_entry_kind_create_file">Файл создан</string>
+    <string name="history_entry_kind_create_folder">Папка создана</string>
+    <string name="history_entry_kind_save">Сохранено</string>
+    <string name="history_entry_kind_compress">Сжато</string>
+    <string name="history_entry_kind_extract">Распаковано</string>
+    <string name="history_entry_kind_restore">Восстановлено</string>
+    <string name="history_entry_kind_install">Установлено</string>
+    <string name="history_entry_kind_enable">Включено</string>
+    <string name="history_entry_kind_disable">Отключено</string>
+    <string name="history_entry_kind_force_stop">Принудительно остановлено</string>
+    <string name="history_entry_kind_uninstall">Удалено</string>
+    <string name="history_entry_kind_clear_data">Данные очищены</string>
+    <string name="history_entry_kind_components">Компоненты изменены</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d путь</item>
+        <item quantity="few">%d пути</item>
+        <item quantity="many">%d путей</item>
+        <item quantity="other">%d пути</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">Первых %1$d из %2$d затронутых путей</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Начало</string>
+    <string name="history_detail_label_completed">Завершение</string>
+    <string name="history_detail_label_duration">Продолжительность</string>
+    <string name="history_detail_label_outcome">Результат</string>
+    <string name="history_detail_label_origin">Источник</string>
+    <string name="history_detail_label_error">Ошибка</string>
+    <string name="history_detail_label_paths">Затронутые пути</string>
+    <string name="history_detail_label_partial_errors">Ошибки по элементам</string>
+    <string name="history_detail_copy_path_action">Копировать путь</string>
+    <string name="history_detail_paths_empty">Нет записанных затронутых путей.</string>
+    <string name="history_detail_label_attempted_paths">Попытанные пути</string>
+    <string name="history_detail_label_packages">Затронутые приложения</string>
+    <string name="history_detail_packages_empty">Нет записанных затронутых приложений.</string>
+    <string name="history_detail_paths_truncated_callout">Показаны первые %1$d из %2$d затронутых путей.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Показаны первые %1$d из %2$d попытанных путей.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">%1$d элемент не удался во время этой операции.</item>
+        <item quantity="few">%1$d элемента не удались во время этой операции.</item>
+        <item quantity="many">%1$d элементов не удались во время этой операции.</item>
+        <item quantity="other">%1$d элемента не удались во время этой операции.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Обозреватель</string>
+    <string name="history_origin_searcher">Поиск</string>
+    <string name="history_origin_saver">Сохранить как</string>
+    <string name="history_origin_developer">Инструменты разработчика</string>
+    <string name="history_origin_viewer">Просмотр</string>
+    <string name="history_origin_apps">Приложения</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d мс</string>
+    <string name="history_duration_seconds">%1$.1f с</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">История пуста</string>
+    <string name="history_empty_subtitle">Операции с файлами будут отображаться здесь по мере использования Butler.</string>
+    <string name="history_empty_filtered_title">Нет совпадений</string>
+    <string name="history_empty_filtered_subtitle">Нет записей истории, совпадающих с текущим фильтром.</string>
+    <string name="history_empty_filtered_reset_action">Сбросить фильтр</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Сбросить фильтр</string>
+    <string name="history_toolbar_reset_filter_content_description">Сбросить фильтры</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">Первых %1$d из %2$d затронутых путей</string>
+    <string name="history_add_filter_action">Добавить фильтр</string>
+    <string name="history_add_filter_sheet_title">Добавить фильтр</string>
+    <string name="history_add_filter_section_outcome">Результат</string>
+    <string name="history_add_filter_section_kind">Тип</string>
+    <string name="history_add_filter_section_path_scope">Диапазон путей</string>
+    <string name="history_add_filter_add_path_action">Добавить путь…</string>
+    <string name="history_path_scope_remove_action">Удалить</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d запись</item>
+        <item quantity="few">%1$d записи</item>
+        <item quantity="many">%1$d записей</item>
+        <item quantity="other">%1$d записи</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%1$d из %2$d показана</item>
+        <item quantity="few">%1$d из %2$d показаны</item>
+        <item quantity="many">%1$d из %2$d показано</item>
+        <item quantity="other">%1$d из %2$d показаны</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="few">(%1$d)</item>
+        <item quantity="many">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">История</string>
+    <string name="history_settings_save_history_title">Сохранять историю</string>
+    <string name="history_settings_save_history_subtitle">Записывать завершённые операции с файлами.</string>
+    <string name="history_settings_max_history_label">Максимум записей истории</string>
+    <string name="history_settings_max_history_subtitle">Старые записи будут удалены после превышения этого лимита.</string>
+    <string name="history_settings_max_history_input_label">Максимум записей</string>
+    <string name="history_settings_clear_history_title">Очистить историю</string>
+    <string name="history_settings_clear_history_subtitle">Удалить все сохранённые записи (%1$d).</string>
+    <string name="history_clear_dialog_title">Очистить историю?</string>
+    <string name="history_clear_dialog_message">Будут удалены все записи из базы данных истории операций. Это действие не может быть отменено.</string>
+    <string name="history_clear_confirm_action">Очистить</string>
+    <string name="history_cleared_success">История очищена</string>
+    <string name="history_workspace_title_kind_restore">История: Восстановление</string>
+    <string name="history_filter_kind_restore">Восстановление</string>
+    <string name="history_workspace_title_kind_install">История: Установка</string>
+    <string name="history_filter_kind_install">Установка</string>
+    <string name="history_workspace_title_kind_enable">История: Включение</string>
+    <string name="history_workspace_title_kind_disable">История: Отключение</string>
+    <string name="history_workspace_title_kind_force_stop">История: Принудительная остановка</string>
+    <string name="history_workspace_title_kind_uninstall">История: Удаление</string>
+    <string name="history_workspace_title_kind_clear_data">История: Очистка данных</string>
+    <string name="history_workspace_title_kind_components">История: Компоненты</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Выбрать все</string>
+    <string name="history_action_deselect_all">Снять выделение</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Удалить %1$d запись</item>
+        <item quantity="few">Удалить %1$d записи</item>
+        <item quantity="many">Удалить %1$d записей</item>
+        <item quantity="other">Удалить %1$d записи</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Будут удалены только записи истории, сами файлы останутся нетронутыми.</string>
+    <string name="history_pro_dialog_message">Поделиться и удалить записи истории — возможность обновления. Очистка всей истории остаётся бесплатной в настройках истории.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Результат</string>
+    <string name="history_share_label_kind">Тип</string>
+    <string name="history_share_label_origin">Источник</string>
+    <string name="history_share_label_summary">Резюме</string>
+    <string name="history_share_label_completed">Завершение</string>
+    <string name="history_share_label_duration">Продолжительность</string>
+    <string name="history_share_label_error">Ошибка</string>
+    <string name="history_share_label_failed_items">Элементы с ошибками</string>
+    <string name="history_share_label_paths">Затронутые пути (%1$d)</string>
+    <string name="history_share_label_packages">Затронутые приложения (%1$d)</string>
+    <string name="history_share_paths_more">… и ещё %1$d</string>
+    <string name="history_share_truncated">… и ещё %1$d записей не включены</string>
+</resources>

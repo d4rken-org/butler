@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Сохранить как</string>
+    <string name="saver_preview_label">Предпросмотр</string>
+    <string name="saver_loading">Загрузка…</string>
+    <string name="saver_shared_from">Получено от %1$s</string>
+    <string name="saver_shared_generic">Поделились с Butler</string>
+    <string name="saver_destination_label">Назначение</string>
+    <string name="saver_select_destination_hint">Выберите папку назначения</string>
+    <string name="saver_filename_label">Имя файла</string>
+    <string name="saver_save_action">Сохранить</string>
+    <string name="saver_saving_progress">Сохранение…</string>
+    <string name="saver_success_message">Файл успешно сохранён</string>
+    <string name="saver_open_saved_action">Открыть папку</string>
+    <string name="saver_retry_action">Повторить</string>
+    <string name="saver_save_again_action">Сохранить в другое место</string>
+    <string name="saver_close_tab_action">Закрыть вкладку</string>
+    <string name="saver_close_butler_action">Закрыть вкладку и вернуться</string>
+    <string name="saver_done_action">Готово</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Исходный файл больше недоступен. Поделитесь снова.</item>
+        <item quantity="few">%1$d исходных файла больше недоступны. Поделитесь снова.</item>
+        <item quantity="many">%1$d исходных файлов больше недоступны. Поделитесь снова.</item>
+        <item quantity="other">%1$d исходных файла больше недоступны. Поделитесь снова.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Исходный файл больше недоступен</string>
+    <string name="saver_error_permission_denied">Доступ запрещён</string>
+    <string name="saver_error_write_failed">Не удалось сохранить файл</string>
+    <string name="saver_error_file_exists">Файл уже существует</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Сохранить файлы</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Сохранение %1$d файла в %2$s</item>
+        <item quantity="few">Сохранение %1$d файлов в %2$s</item>
+        <item quantity="many">Сохранение %1$d файлов в %2$s</item>
+        <item quantity="other">Сохранение %1$d файлов в %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Сохранить %1$d файл</item>
+        <item quantity="few">Сохранить %1$d файла</item>
+        <item quantity="many">Сохранить %1$d файлов</item>
+        <item quantity="other">Сохранить %1$d файла</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d файл сохранён</item>
+        <item quantity="few">%1$d файла сохранены</item>
+        <item quantity="many">%1$d файлов сохранено</item>
+        <item quantity="other">%1$d файла сохранены</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d файл не сохранён</item>
+        <item quantity="few">%1$d файла не сохранены</item>
+        <item quantity="many">%1$d файлов не сохранено</item>
+        <item quantity="other">%1$d файла не сохранены</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d файл пропущен</item>
+        <item quantity="few">%1$d файла пропущены</item>
+        <item quantity="many">%1$d файлов пропущено</item>
+        <item quantity="other">%1$d файла пропущены</item>
+    </plurals>
+    <string name="saver_partial_success">Сохранено %1$d из %2$d файлов</string>
+</resources>

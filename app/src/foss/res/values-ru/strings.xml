@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Требует Butler FOSS</string>
+
+    <string name="upgrade_prompt_title">Обновить Butler</string>
+    <string name="upgrade_prompt_body">Разблокируйте дополнительные возможности и станьте спонсором, чтобы поддержать развитие приложения!</string>
+    <string name="upgrade_prompt_upgrade_action">Обновить</string>
+
+    <string name="upgrade_screen_title">Обновить Butler</string>
+    <string name="upgrade_screen_preamble">Butler не содержит объявлений и не продаёт данные пользователей. Дальнейшее развитие возможно только благодаря вам.</string>
+    <string name="upgrade_screen_how_title">Как помочь</string>
+    <string name="upgrade_screen_how_body">Станьте спонсором и поддержите разработку! Нажмите кнопку ниже, чтобы активировать все дополнительные возможности и открыть профиль GitHub Sponsors.</string>
+
+    <string name="upgrade_screen_sponsor_action">Спонсировать разработку</string>
+    <string name="upgrade_screen_sponsor_action_hint">Альтернатива — объявления, аналитика и Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Спасибо за поддержку разработки открытого ПО ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Уже возвращаетесь? Ваша поддержка помогает Butler жить — пожалуйста, посвятите немного времени странице спонсоров.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Не удалось открыть страницу спонсоров. Попробуйте открыть её в браузере.</string>
+
+    <string name="upgrade_screen_status_free_title">Вы используете бесплатную версию</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS полностью открыт. Разблокируйте дополнительные возможности, поддержав разработку.</string>
+    <string name="upgrade_screen_status_free_action">Посмотреть варианты обновления</string>
+    <string name="upgrade_screen_status_upgraded_title">Вы спонсор</string>
+    <string name="upgrade_screen_status_upgraded_body">Спасибо за поддержку разработки открытого ПО ❤️ Все дополнительные возможности разблокированы.</string>
+    <string name="upgrade_screen_supporter_since">Спонсор с %s</string>
+    <string name="upgrade_screen_recurring_title">Продолжим дальше</string>
+    <string name="upgrade_screen_recurring_body">Butler разрабатывается в свободное время. Постоянный взнос помогает приложению жить.</string>
+    <string name="upgrade_screen_recurring_action">Стать постоянным спонсором</string>
+
+    <string name="upgrade_benefits_title">Преимущества обновления</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Неограниченные вкладки и операции\n• Настраивайте внешний вид и стиль\n• Дополнительные параметры для каждого инструмента\n• Ранний доступ к новым функциям\n• Мотивированный разработчик 🧙\nи ещё многое…</string>
+</resources>

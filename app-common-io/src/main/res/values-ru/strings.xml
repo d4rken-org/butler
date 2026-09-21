@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Удаление элементов</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Копирование элементов</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Перемещение элементов</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Сканирование…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">Файл уже существует</string>
+    <string name="path_action_folder_exists_title">Папка уже существует</string>
+    <string name="path_action_file_exists_description">Файл с именем \"%1$s\" уже существует в \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">Папка с именем \"%1$s\" уже существует в \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">Файл исчез</string>
+    <string name="path_action_not_found_description">\"%1$s\" был удалён, переименован или перемещён.</string>
+
+    <string name="path_action_permission_denied_title">Доступ запрещён</string>
+    <string name="path_action_permission_denied_description">Невозможно получить доступ к \"%1$s\" в \"%2$s\" из-за отсутствия разрешений.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Невозможно получить доступ к \"%1$s\" в \"%2$s\". Нет способа выполнить эту операцию.</string>
+    <string name="path_action_permission_denied_readonly_description">Невозможно получить доступ к \"%1$s\" в \"%2$s\". Файловая система доступна только для чтения.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Невозможно получить доступ к \"%1$s\" в \"%2$s\". Система отклонила эту операцию.</string>
+
+    <string name="path_action_insufficient_space_title">Недостаточно места</string>
+    <string name="path_action_insufficient_space_description">Недостаточно места для копирования \"%1$s\" из \"%2$s\".</string>
+
+    <string name="path_action_unknown_error_title">Операция не выполнена</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">Замена не завершена</string>
+    <string name="path_action_data_kept_new_data_description">Butler не смог завершить запись \"%1$s\". Ваши новые данные сохранены в папке рядом с \"%2$s\". Переименуйте файл, чтобы восстановить его, или удалите, чтобы отбросить.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler не смог завершить запись \"%1$s\", исходный файл не изменился. Ваши новые данные сохранены в папке рядом с \"%2$s\". Переименуйте файл, чтобы восстановить его, или удалите, чтобы отбросить.</string>
+    <string name="path_action_data_kept_both_description">Butler не смог завершить запись \"%1$s\". Никакие данные не потеряны: исходный файл сохранён в папке рядом с \"%2$s\", а ваши новые данные как \"%3$s\". Переименуйте нужный вам файл.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler не смог завершить запись \"%1$s\" и не может проверить, находится ли \"%2$s\" на месте. Неполная копия может быть сохранена в папке рядом с \"%3$s\". Сравните оба файла перед удалением.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler не смог завершить перемещение \"%1$s\" и не может определить, вышел ли он из своей папки. Ваши данные либо сохранены в той папке как \"%2$s\", либо уже находятся в \"%3$s\". Проверьте оба варианта перед удалением.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler не смог завершить запись \"%1$s\" и не может определить, где оказался ваш файл. Это один из трёх файлов в той папке: \"%1$s\" сам по себе, \"%2$s\" или \"%3$s\". Проверьте все три перед удалением.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler не смог завершить запись \"%1$s\" и не может определить, где оказался ваш файл. Это один из двух файлов в той папке: сам \"%1$s\" или \"%2$s\". Проверьте оба перед удалением.</string>
+
+    <string name="path_action_trash_size_limit_title">Элементы слишком большие для Корзины</string>
+    <string name="path_action_trash_size_limit_description">%1$d элементов общим размером %2$s превышают лимит размера Корзины (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">Не удалось переместить в Корзину</string>
+    <string name="path_action_trash_move_failed_description">%1$d элементов не удалось переместить в Корзину.</string>
+
+    <string name="path_action_trash_not_supported_title">Корзина не поддерживается</string>
+    <string name="path_action_trash_not_supported_description">%1$d элементов находятся на хранилище, которое не поддерживает Корзину.</string>
+
+    <string name="path_action_archive_password_title">Требуется пароль</string>
+    <string name="path_action_archive_password_description">\"%1$s\" зашифрован. Введите пароль, чтобы прочитать его содержимое.</string>
+    <string name="path_action_archive_password_wrong_description">Пароль для \"%1$s\" неверный. Попробуйте ещё раз.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Сервер недоступен</string>
+    <string name="smb_error_unreachable_description">Butler не может достичь \"%1$s\". Убедитесь, что устройство находится в той же сети и сервер включен.</string>
+    <string name="smb_error_auth_title">Ошибка входа</string>
+    <string name="smb_error_auth_description">\"%1$s\" отклонил имя пользователя или пароль.</string>
+    <string name="smb_error_share_access_denied_title">Нет доступа к этой папке</string>
+    <string name="smb_error_share_access_denied_description">Эта учётная запись может не использовать \"%1$s\" на \"%2$s\". Проверьте разрешения папки на сервере.</string>
+    <string name="smb_error_share_not_found_title">Папка не найдена</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" не существует на \"%2$s\".</string>
+    <string name="smb_error_dialect_title">Сервер устарел</string>
+    <string name="smb_error_dialect_description">\"%1$s\" поддерживает только SMB1, которая небезопасна и не поддерживается. Включите SMB2 или новее на сервере.</string>
+    <string name="smb_error_credential_unavailable_title">Требуется вход</string>
+    <string name="smb_error_credential_unavailable_description">Сохранённый пароль для этого сетевого хранилища больше нельзя прочитать. Введите его снова, чтобы переподключиться.</string>
+    <string name="smb_error_pro_required_title">Сетевые папки требуют Butler Pro</string>
+    <string name="smb_error_pro_required_description">Подключение к сетевым папкам входит в Butler Pro. Ваши сохранённые местоположения остаются в списке и могут быть удалены без него.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Защищённый пакет приложения</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" зашифрован и может быть установлен только приложением, которое его создало.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">Формат набора APK не поддерживается</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" — это набор APK от bundletool. Butler не может определить, какой из его вариантов подходит для этого устройства.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Нет приложения для установки</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" не содержит никаких установляемых APK.</string>
+
+    <string name="app_install_error_session_title">Ошибка установки</string>
+    <string name="app_install_error_session_description">Система отклонила установку: %1$s</string>
+
+    <string name="app_install_error_busy_title">Уже выполняется другая установка</string>
+    <string name="app_install_error_busy_description">\"%1$s\" ещё устанавливается. Подтвердите или отмените эту установку перед запуском другой.</string>
+
+    <string name="app_install_error_no_elevation_title">Нет повышенного доступа</string>
+    <string name="app_install_error_no_elevation_description">Доступ root или ADB в настоящее время недоступен.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Требуется подтверждение</string>
+    <string name="app_install_confirm_pending_description">Android требует подтверждения установки \"%1$s\" перед завершением.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android требует подтверждения этой установки перед завершением.</string>
+    <string name="app_install_confirm_pending_action">Подтвердить установку</string>
+    <string name="app_install_confirm_pending_reason">Установщик ждёт вашего подтверждения</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Требуется подтверждение</string>
+    <string name="app_uninstall_confirm_pending_description">Android требует подтверждения удаления \"%1$s\" перед завершением.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android требует подтверждения этого удаления перед завершением.</string>
+    <string name="app_uninstall_confirm_pending_action">Подтвердить удаление</string>
+    <string name="app_uninstall_confirm_pending_reason">Android ждёт вашего подтверждения</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Удаление этого приложения для другого пользователя требует root или Shizuku</string>
+    <string name="app_uninstall_no_result">Android не сообщил результат</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Операция с файлами прервана</string>
+    <string name="service_connection_lost_error_message">Служба операций с файлами неожиданно остановилась. Попробуйте снова.</string>
+</resources>
