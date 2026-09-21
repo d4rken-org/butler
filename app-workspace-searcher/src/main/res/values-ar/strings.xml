@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">البحث</string>
+    <string name="searcher_subtitle">البحث عن الملفات والمحتوى</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">إعدادات البحث</string>
+    <string name="searcher_settings_search_category">البحث</string>
+    <string name="searcher_settings_history">سجل البحث</string>
+    <string name="searcher_settings_save_history_title">حفظ سجل البحث</string>
+    <string name="searcher_settings_save_history_subtitle">تذكر عمليات البحث السابقة</string>
+    <string name="searcher_settings_max_history_label">الحد الأقصى لإدخالات السجل</string>
+    <string name="searcher_settings_max_history_subtitle">الحد الأقصى لعدد عمليات البحث المحفوظة</string>
+    <string name="searcher_settings_max_history_input_label">عدد الإدخالات (1–500)</string>
+    <string name="searcher_settings_clear_history_title">مسح سجل البحث</string>
+    <string name="searcher_settings_clear_history_subtitle">إزالة جميع عمليات البحث المحفوظة (%1$d)</string>
+    <string name="searcher_settings_search_performance">الأداء</string>
+    <string name="searcher_settings_max_results_title">الحد الأقصى لنتائج البحث</string>
+    <string name="searcher_settings_max_results_subtitle">حد من عدد النتائج المُرجعة لكل بحث.</string>
+    <string name="searcher_settings_content_search_category">البحث في المحتوى</string>
+    <string name="searcher_settings_include_binaries_title">تضمين الملفات الثنائية</string>
+    <string name="searcher_settings_include_binaries_subtitle">البحث في محتوى الملفات الثنائية (قد يكون بطيئًا وينتج عنه نتائج غير ذات صلة)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">عمليات البحث الأخيرة</string>
+    <string name="searcher_placeholder_search">البحث عن الملفات والمجلدات</string>
+    <string name="searcher_placeholder_filename">اسم الملف</string>
+    <string name="searcher_placeholder_content">المحتوى</string>
+    <string name="searcher_search_error">خطأ في البحث</string>
+    <string name="searcher_no_paths_hint">اضغط + لإضافة مواقع البحث</string>
+    <string name="searcher_add_path_action">إضافة موقع</string>
+    <string name="searcher_add_folder_action">مجلد…</string>
+    <string name="searcher_multipath_show_fewer_action">إظهار أقل</string>
+    <string name="searcher_empty_state_title">لم يتم تكوين مسارات بحث</string>
+    <string name="searcher_empty_state_description">أضف مواقع التخزين للبحث في ملفاتك</string>
+    <string name="searcher_add_default_paths_action">إضافة مسارات البحث الافتراضية</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">الخيارات</string>
+    <string name="searcher_option_case_sensitive_label">حساس لحالة الأحرف</string>
+    <string name="searcher_option_case_sensitive_desc">بحث حساس لحالة الأحرف</string>
+    <string name="searcher_option_whole_word_label">كلمة كاملة</string>
+    <string name="searcher_option_whole_word_desc">بحث عن كلمة كاملة</string>
+    <string name="searcher_option_regex_label">تعبير عادي</string>
+    <string name="searcher_option_regex_desc">بحث بتعبير عادي</string>
+    <string name="searcher_option_search_content_label">البحث في المحتوى</string>
+    <string name="searcher_option_search_content_desc">البحث في محتوى الملفات</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">القوالب</string>
+    <string name="searcher_templates_card_title">قوالب البحث السريع</string>
+    <string name="searcher_template_large_files">الملفات الكبيرة</string>
+    <string name="searcher_template_large_files_desc">ملفات تزيد عن 100 ميجابايت</string>
+    <string name="searcher_template_recent_files">الملفات الأخيرة</string>
+    <string name="searcher_template_recent_files_desc">تم تعديلها في آخر 7 أيام</string>
+    <string name="searcher_template_old_files">الملفات القديمة</string>
+    <string name="searcher_template_old_files_desc">لم تُعدَّل منذ أكثر من سنة</string>
+    <string name="searcher_template_images">الصور</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">مقاطع الفيديو</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">الصوت</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">المستندات</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">الأرشيفات</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APKs</string>
+    <string name="searcher_template_apks_desc">حزم تطبيقات Android</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="zero">لا توجد قوالب</item>
+        <item quantity="one">قالب واحد</item>
+        <item quantity="two">قالبان</item>
+        <item quantity="few">%d قوالب</item>
+        <item quantity="many">%d قالب</item>
+        <item quantity="other">%d قالب</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">التصفية</string>
+    <string name="searcher_filter_add_action">إضافة تصفية</string>
+    <string name="searcher_filter_title">مرشحات البحث</string>
+    <string name="searcher_filter_size_section">حجم الملف</string>
+    <string name="searcher_filter_size_min">الحد الأدنى للحجم</string>
+    <string name="searcher_filter_size_max">الحد الأقصى للحجم</string>
+    <string name="searcher_filter_date_section">تاريخ التعديل</string>
+    <string name="searcher_filter_date_after">تم التعديل بعد</string>
+    <string name="searcher_filter_date_before">تم التعديل قبل</string>
+    <string name="searcher_filter_date_any">في أي وقت</string>
+    <string name="searcher_filter_date_24h">آخر 24 ساعة</string>
+    <string name="searcher_filter_date_7d">آخر 7 أيام</string>
+    <string name="searcher_filter_date_30d">آخر 30 يومًا</string>
+    <string name="searcher_filter_date_90d">آخر 90 يومًا</string>
+    <string name="searcher_filter_date_1y">آخر سنة</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">أكبر من</string>
+    <string name="searcher_filter_comparator_greater_or_equal">أكبر من أو يساوي</string>
+    <string name="searcher_filter_comparator_less_than">أقل من</string>
+    <string name="searcher_filter_comparator_less_or_equal">أقل من أو يساوي</string>
+    <string name="searcher_filter_comparator_equal">يساوي</string>
+    <string name="searcher_filter_size_value_label">الحجم</string>
+    <string name="searcher_filter_size_at_least">على الأقل</string>
+    <string name="searcher_filter_size_at_most">على الأكثر</string>
+    <string name="searcher_filter_size_value_hint">مثلاً 10 ميجابايت</string>
+    <string name="searcher_filter_size_format_help">أدخل رقمًا مع وحدة (KB, MB, GB). الرقم بدون وحدة يُعامل على أنه MB.</string>
+    <string name="searcher_filter_size_format_error">حجم غير صالح - استخدم رقمًا ووحدة، مثل 10 ميجابايت.</string>
+    <string name="searcher_filter_date_value_label">التاريخ</string>
+    <string name="searcher_filter_date_direction_after">بعد</string>
+    <string name="searcher_filter_date_direction_before">قبل</string>
+    <string name="searcher_filter_type_label">النوع</string>
+    <string name="searcher_filter_type_files">الملفات</string>
+    <string name="searcher_filter_type_directories">المجلدات</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">إزالة من السجل</string>
+    <string name="searcher_history_clear_all_action">مسح الكل</string>
+    <string name="searcher_history_clear_dialog_title">مسح سجل البحث</string>
+    <string name="searcher_history_clear_dialog_message">سيؤدي هذا إلى إزالة كل سجل البحث المحفوظ. لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="searcher_history_clear_confirm_action">مسح</string>
+    <string name="searcher_history_cleared_success">تم مسح سجل البحث</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">لا توجد نتائج</item>
+        <item quantity="one">نتيجة واحدة</item>
+        <item quantity="two">نتيجتان</item>
+        <item quantity="few">%d نتائج</item>
+        <item quantity="many">%d نتيجة</item>
+        <item quantity="other">%d نتيجة</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="zero">إظهار المزيد</item>
+        <item quantity="one">إظهار المزيد</item>
+        <item quantity="two">إظهار المزيد</item>
+        <item quantity="few">إظهار %d أكثر</item>
+        <item quantity="many">إظهار %d أكثر</item>
+        <item quantity="other">إظهار %d أكثر</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">جاري البحث</string>
+    <string name="searcher_progress_action_searched">تم البحث</string>
+    <string name="searcher_progress_status_completed_with_errors">اكتمل مع أخطاء</string>
+    <string name="searcher_result_limit_reached">تم الوصول إلى حد النتائج</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">لم يتمكن من البحث الكامل في بعض العناصر</string>
+    <string name="searcher_progress_clear_action">مسح</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="zero">لا توجد أخطاء</item>
+        <item quantity="one">خطأ واحد</item>
+        <item quantity="two">خطآن</item>
+        <item quantity="few">%d أخطاء</item>
+        <item quantity="many">%d خطأ</item>
+        <item quantity="other">%d خطأ</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="zero">لا توجد عناصر يتعذر الوصول إليها</item>
+        <item quantity="one">لم يتمكن من الوصول إلى عنصر واحد</item>
+        <item quantity="two">لم يتمكن من الوصول إلى عنصرين</item>
+        <item quantity="few">لم يتمكن من الوصول إلى %d عناصر</item>
+        <item quantity="many">لم يتمكن من الوصول إلى %d عنصر</item>
+        <item quantity="other">لم يتمكن من الوصول إلى %d عنصر</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="zero">…والمزيد</item>
+        <item quantity="one">…والعنصر الواحد الآخر</item>
+        <item quantity="two">…والعنصران الآخران</item>
+        <item quantity="few">…و%d عناصر أخرى</item>
+        <item quantity="many">…و%d عنصر آخر</item>
+        <item quantity="other">…و%d عنصر آخر</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">يحمي Android هذه المواقع. إتاحة وصول إضافي تسمح لـ Butler بالبحث فيها.</string>
+    <string name="searcher_access_sheet_body_protected">يحمي Android هذه المواقع. لا توجد طريقة لمنح الوصول على هذا الجهاز.</string>
+    <string name="searcher_access_sheet_unlock_action">فتح الوصول</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="zero">لا توجد مواقع</item>
+        <item quantity="one">موقع واحد</item>
+        <item quantity="two">موقعان</item>
+        <item quantity="few">%d مواقع</item>
+        <item quantity="many">%d موقع</item>
+        <item quantity="other">%d موقع</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="zero">لا شيء تم مسحه</item>
+        <item quantity="one">تم مسح واحد</item>
+        <item quantity="two">تم مسح اثنين</item>
+        <item quantity="few">تم مسح %d</item>
+        <item quantity="many">تم مسح %d</item>
+        <item quantity="other">تم مسح %d</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="zero">لا يوجد ما تم العثور عليه</item>
+        <item quantity="one">تم العثور على واحد</item>
+        <item quantity="two">تم العثور على اثنين</item>
+        <item quantity="few">تم العثور على %d</item>
+        <item quantity="many">تم العثور على %d</item>
+        <item quantity="other">تم العثور على %d</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">سياق المطابقة</string>
+    <string name="searcher_match_line_label">السطر %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">فتح</string>
+    <string name="searcher_action_open_in_tab">فتح في علامة تبويب جديدة</string>
+    <string name="searcher_action_open_with">فتح باستخدام</string>
+    <string name="searcher_action_open_in_editor">فتح في المحرر</string>
+    <string name="searcher_action_open_in_explorer">فتح في المستكشف</string>
+    <string name="searcher_action_install">تثبيت</string>
+    <string name="searcher_action_copy">نسخ</string>
+    <string name="searcher_action_cut">قص</string>
+    <string name="searcher_action_delete">حذف</string>
+    <string name="searcher_action_copy_path">نسخ المسار</string>
+    <string name="searcher_action_properties">الخصائص</string>
+    <string name="searcher_action_select_all">تحديد الكل</string>
+    <string name="searcher_action_deselect_all">إلغاء تحديد الكل</string>
+    <string name="searcher_action_open_in_new_tabs">فتح في علامات تبويب جديدة</string>
+    <string name="searcher_action_sort">ترتيب</string>
+    <string name="searcher_action_view">التخطيط</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">الترتيب حسب</string>
+    <string name="searcher_sort_mode_name_label">الاسم</string>
+    <string name="searcher_sort_mode_size_label">الحجم</string>
+    <string name="searcher_sort_mode_modified_label">تاريخ التعديل</string>
+    <string name="searcher_sort_mode_created_label">تاريخ الإنشاء</string>
+    <string name="searcher_sort_mode_path_label">المسار</string>
+    <string name="searcher_sort_descending_label">ترتيب تنازلي</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">كيفية ترتيب العناصر ومقدار التفاصيل التي تعرضها</string>
+    <string name="searcher_view_mode_list_label">قائمة</string>
+    <string name="searcher_view_mode_grid_label">شبكة</string>
+    <string name="searcher_view_density_compact_label">مضغوط</string>
+    <string name="searcher_view_density_comfortable_label">مريح</string>
+    <string name="searcher_view_density_detailed_label">مفصّل</string>
+    <string name="searcher_view_detail_modified_label">تاريخ التعديل</string>
+    <string name="searcher_view_set_default_action">تعيين كافتراضي</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">يلزم إعداد إضافي للبحث في بعض المواقع.</string>
+</resources>

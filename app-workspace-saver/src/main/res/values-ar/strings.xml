@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">حفظ باسم</string>
+    <string name="saver_preview_label">معاينة</string>
+    <string name="saver_loading">جارٍ التحميل…</string>
+    <string name="saver_shared_from">مشارك من %1$s</string>
+    <string name="saver_shared_generic">مشارك مع Butler</string>
+    <string name="saver_destination_label">الوجهة</string>
+    <string name="saver_select_destination_hint">اختر مجلد الوجهة</string>
+    <string name="saver_filename_label">اسم الملف</string>
+    <string name="saver_save_action">حفظ</string>
+    <string name="saver_saving_progress">جاري الحفظ…</string>
+    <string name="saver_success_message">تم حفظ الملف بنجاح</string>
+    <string name="saver_open_saved_action">فتح المجلد</string>
+    <string name="saver_retry_action">إعادة محاولة</string>
+    <string name="saver_save_again_action">حفظ في موقع جديد</string>
+    <string name="saver_close_tab_action">إغلاق علامة التبويب</string>
+    <string name="saver_close_butler_action">إغلاق علامة التبويب والعودة</string>
+    <string name="saver_done_action">تم</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="zero">لا يوجد ملفات مصدر يتعذر الوصول إليها</item>
+        <item quantity="one">ملف المصدر لم يعد متاحًا. يرجى المشاركة مرة أخرى.</item>
+        <item quantity="two">ملفا المصدر لم يعودا متاحين. يرجى المشاركة مرة أخرى.</item>
+        <item quantity="few">%1$d ملفات مصدر لم تعد متاحة. يرجى المشاركة مرة أخرى.</item>
+        <item quantity="many">%1$d ملف مصدر لم تعد متاحة. يرجى المشاركة مرة أخرى.</item>
+        <item quantity="other">%1$d ملف مصدر لم يعد متاحًا. يرجى المشاركة مرة أخرى.</item>
+    </plurals>
+    <string name="saver_error_source_expired">ملف المصدر لم يعد متاحًا</string>
+    <string name="saver_error_permission_denied">تم رفض الوصول</string>
+    <string name="saver_error_write_failed">فشل حفظ الملف</string>
+    <string name="saver_error_file_exists">الملف موجود بالفعل</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">حفظ الملفات</string>
+    <plurals name="saver_operation_description">
+        <item quantity="zero">لا توجد ملفات للحفظ</item>
+        <item quantity="one">حفظ %1$d ملف إلى %2$s</item>
+        <item quantity="two">حفظ %1$d ملفين إلى %2$s</item>
+        <item quantity="few">حفظ %1$d ملفات إلى %2$s</item>
+        <item quantity="many">حفظ %1$d ملف إلى %2$s</item>
+        <item quantity="other">حفظ %1$d ملفات إلى %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="zero">لا توجد ملفات للحفظ</item>
+        <item quantity="one">حفظ %1$d ملف</item>
+        <item quantity="two">حفظ %1$d ملفين</item>
+        <item quantity="few">حفظ %1$d ملفات</item>
+        <item quantity="many">حفظ %1$d ملف</item>
+        <item quantity="other">حفظ %1$d ملفات</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="zero">لم يتم حفظ أي ملفات</item>
+        <item quantity="one">%1$d ملف محفوظ</item>
+        <item quantity="two">%1$d ملفان محفوظان</item>
+        <item quantity="few">%1$d ملفات محفوظة</item>
+        <item quantity="many">%1$d ملف محفوظ</item>
+        <item quantity="other">%1$d ملفات محفوظة</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="zero">لم تفشل أي ملفات</item>
+        <item quantity="one">%1$d ملف فشل</item>
+        <item quantity="two">%1$d ملفان فشلا</item>
+        <item quantity="few">%1$d ملفات فشلت</item>
+        <item quantity="many">%1$d ملف فشل</item>
+        <item quantity="other">%1$d ملفات فشلت</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="zero">لم يتم تخطي أي ملفات</item>
+        <item quantity="one">%1$d ملف تم تخطيه</item>
+        <item quantity="two">%1$d ملفان تم تخطيهما</item>
+        <item quantity="few">%1$d ملفات تم تخطيها</item>
+        <item quantity="many">%1$d ملف تم تخطيه</item>
+        <item quantity="other">%1$d ملفات تم تخطيها</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d من %2$d ملف محفوظ</string>
+</resources>

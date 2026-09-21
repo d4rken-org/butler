@@ -1,0 +1,530 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_welcome_title">مرحبًا بك في Butler</string>
+    <string name="onboarding_welcome_message">علامات تبويب للملفات.\nتصفح وابحث وحرّر — كل ذلك في آن واحد.</string>
+    <string name="onboarding_welcome_subtitle">مفتوح المصدر. بلا إعلانات. بلا تتبع.\nمستكشف الملفات الذي تستحقه.</string>
+    <string name="onboarding_welcome_action">ابدأ الاستكشاف</string>
+    <string name="onboarding_beta_title">شكّل المستقبل</string>
+    <string name="onboarding_beta_message">هذا إصدار تجريبي (اختباري). تابع بروح الدعابة وخطة احتياطية. يُرجى الإبلاغ عن أي مشكلات تواجهها.</string>
+    <string name="onboarding_beta_action">لا أخشى شيئًا</string>
+    <string name="onboarding_beta_feature_early_access_title">وصول مبكر</string>
+    <string name="onboarding_beta_feature_early_access_description">جرّب أحدث الميزات قبل أي شخص آخر.</string>
+    <string name="onboarding_beta_feature_influence_title">تأثير مباشر</string>
+    <string name="onboarding_beta_feature_influence_description">ملاحظاتك تُشكّل تطوير Butler.</string>
+    <string name="onboarding_beta_feature_feedback_title">بقيادة المجتمع</string>
+    <string name="onboarding_beta_feature_feedback_description">انضم إلى مجتمع من المستخدمين المتمرسين الذين يعملون على تحسين Butler.</string>
+    <string name="onboarding_privacy_title">الخصوصية والبيانات</string>
+    <string name="onboarding_privacy_message">لا يحتوي Butler على إعلانات ولا يبيع بيانات المستخدمين. خصوصيتك مهمة بالنسبة لي.</string>
+    <string name="onboarding_privacy_read_action">قراءة سياسة الخصوصية</string>
+    <string name="onboarding_privacy_action">قبول</string>
+    <string name="onboarding_skip_action">تخطي</string>
+    <string name="onboarding_progress_step">%1$d من %2$d</string>
+
+    <string name="onboarding_workspaces_title">اعمل في علامات التبويب</string>
+    <string name="onboarding_workspaces_message">افتح عدة علامات تبويب وتنقّل بينها — تمامًا مثل متصفح الويب الخاص بك.</string>
+    <string name="onboarding_workspaces_action">متابعة</string>
+    <string name="onboarding_workspaces_hint">أبقِ عدة علامات تبويب مفتوحة في آن واحد.</string>
+    <string name="onboarding_workspaces_explorer_title">المستكشف</string>
+    <string name="onboarding_workspaces_explorer_description">تصفّح ملفاتك.</string>
+    <string name="onboarding_workspaces_searcher_title">البحث</string>
+    <string name="onboarding_workspaces_searcher_description">ابحث عمّا تريد.</string>
+    <string name="onboarding_workspaces_editor_title">المحرر</string>
+    <string name="onboarding_workspaces_editor_description">حرّر الملفات.</string>
+    <string name="onboarding_workspaces_templates_title">القوالب</string>
+    <string name="onboarding_workspaces_templates_description">احفظ إعداداتك.</string>
+    <string name="onboarding_workspaces_apps_description">أدر تطبيقاتك.</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">مستكشف جديد</string>
+    <string name="shortcut_explorer_new_long">إنشاء علامة تبويب مستكشف جديدة</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">الاختصارات</string>
+    <string name="shortcuts_settings_subtitle">تهيئة اختصارات المشغّل</string>
+    <string name="shortcuts_settings_enabled_title">تفعيل الاختصارات</string>
+    <string name="shortcuts_settings_enabled_subtitle">إظهار العناصر الأكثر استخدامًا في المشغّل</string>
+    <string name="shortcuts_settings_auto_remember_title">تذكّر المسارات التي تمت زيارتها</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">إضافة المسارات الأكثر زيارة تلقائيًا كاختصارات</string>
+    <string name="shortcuts_settings_last_accessed_title">آخر وصول</string>
+    <string name="shortcuts_settings_max_count_title">الحد الأقصى للاختصارات</string>
+    <string name="shortcuts_settings_max_count_subtitle">يتم حاليًا عرض %d اختصارات</string>
+    <string name="shortcuts_settings_min_access_title">الحد الأدنى لمرات الوصول</string>
+    <string name="shortcuts_settings_min_access_subtitle">يتطلب %d مرات وصول قبل العرض</string>
+    <string name="shortcuts_settings_current_title">الاختصارات الحالية</string>
+    <string name="shortcuts_settings_current_subtitle">تم تتبّع %d اختصارات</string>
+    <string name="shortcuts_settings_clear_title">مسح سجل الاختصارات</string>
+    <string name="shortcuts_settings_clear_subtitle">إزالة جميع الاختصارات المتتبَّعة</string>
+    <string name="shortcuts_settings_clear_confirm_title">مسح سجل الاختصارات؟</string>
+    <string name="shortcuts_settings_clear_confirm_message">سيؤدي هذا إلى إزالة جميع الاختصارات المتتبَّعة. ستبقى العلامات المرجعية محفوظة.</string>
+    <string name="shortcuts_settings_cleared_message">تم مسح سجل الاختصارات</string>
+    <string name="shortcuts_settings_max_dialog_title">الحد الأقصى للاختصارات</string>
+    <string name="shortcuts_settings_max_dialog_message">عدد الاختصارات المعروضة في المشغّل (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">الحد الأدنى لعدد مرات الوصول</string>
+    <string name="shortcuts_settings_min_dialog_message">عدد مرات الوصول إلى المسار قبل ظهوره كاختصار (1–10)</string>
+
+    <string name="setup_usagestats_title">إحصاءات الاستخدام</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">الوصول إلى الإشعارات</string>
+    <string name="setup_manage_storage_card_title">إدارة التخزين الخارجي</string>
+    <string name="setup_inventory_card_title">قائمة التطبيقات</string>
+
+    <string name="setup_title">إعداد الأذونات</string>
+    <string name="setup_settings_description">تهيئة أذونات التطبيق وميزاته.</string>
+    <string name="setup_help_description">مساعدة</string>
+
+    <string name="setup_root_description">يتيح الوصول إلى ملفات النظام والأدلة المحمية لإدارة متقدمة للملفات. يفتح كامل إمكانات Butler بما في ذلك الوصول إلى بيانات التطبيقات وتعديلات النظام. يجب أن يكون الجهاز مروَّتًا (root).</string>
+    <string name="setup_shizuku_description">بديل لـ root يوفّر عمليات ملفات متميزة عبر واجهة برمجة تطبيقات آمنة. يتيح الوصول إلى الأدلة المقيَّدة دون الحاجة إلى root التقليدي. يتطلب تثبيت تطبيق Shizuku وتشغيله.</string>
+    <string name="setup_notification_description">يعرض التحديثات الخاصة بعمليات الملفات والمهام في الخلفية وتقدّم النقل. يبقيك على اطّلاع عند اكتمال العمليات أو حدوث أخطاء.</string>
+    <string name="setup_usagestats_description">يحلّل استخدام التطبيقات للتخزين لتحديد الملفات الكبيرة والمساعدة في إدارة المساحة بفعالية. تبقى جميع البيانات على جهازك ولا تُرسَل مطلقًا.</string>
+    <string name="setup_storage_description">وصول كامل إلى جميع مساحة تخزين الجهاز لعمليات ملفات سريعة ومعالجة دفعية. يتيح إدارة شاملة للملفات دون تكرار طلبات الإذن.</string>
+    <string name="setup_inventory_description">عرض جميع التطبيقات المثبَّتة لميزات مثل استخراج APK وتحليل التخزين. مطلوب على Android 11 وما فوق لعرض القائمة الكاملة للتطبيقات.</string>
+
+    <string name="setup_grant_access_label">منح الوصول</string>
+    <string name="setup_access_granted_label">تم منح الوصول</string>
+    <string name="setup_use_root_label">استخدام root إذا كان متاحًا</string>
+    <string name="setup_use_shizuku_label">استخدام Shizuku إذا كان متاحًا</string>
+
+    <string name="setup_status_checking">جارٍ التحقق…</string>
+    <string name="setup_status_completed">مُهيَّأ</string>
+    <string name="setup_status_required">مطلوب</string>
+    <string name="setup_status_optional">اختياري</string>
+    <string name="setup_status_connected">متصل</string>
+    <string name="setup_status_not_connected">غير متصل</string>
+    <string name="setup_status_not_installed">غير مثبَّت</string>
+    <string name="setup_status_connecting">جارٍ الاتصال…</string>
+    <string name="setup_status_connection_failed">فشل الاتصال</string>
+    <string name="setup_status_unavailable">غير متاح</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">إشعارات التصحيح</string>
+    <string name="debug_log_consent_title">سجل التصحيح</string>
+    <string name="debug_log_consent_explanation">تسجّل هذه الميزة كل ما يقوم به التطبيق في ملف قابل للمشاركة. يحتوي الملف الناتج على معلومات حساسة (مثل أسماء الملفات والتطبيقات المثبَّتة). شاركه فقط مع جهات موثوقة (مثل مطوّر يعمل على حل مشكلة).</string>
+    <string name="debug_log_recording_progress">جارٍ تسجيل سجل التصحيح</string>
+    <string name="debug_log_record_action">تسجيل</string>
+    <string name="debug_log_record_full_action">تسجيل سجل التصحيح</string>
+    <string name="debug_log_stop_action">إيقاف التسجيل</string>
+    <string name="debug_log_screen_title">مسجّل سجل التصحيح</string>
+    <string name="debug_log_screen_sensitive_information_message">يحتوي الملف الناتج على معلومات حساسة (مثل أسماء الملفات والتطبيقات المثبَّتة). شاركه فقط مع جهات موثوقة.</string>
+    <string name="debug_log_screen_session_path_label">مسار جلسة التصحيح</string>
+    <string name="debug_log_screen_log_files_label">ملفات السجل</string>
+    <string name="debug_log_screen_log_files_ready">ملفات السجل جاهزة (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">تجاهل</string>
+    <string name="debug_log_file_label">ملف السجل المسجَّل</string>
+    <string name="debug_banner_label">تسجيل</string>
+    <string name="debug_banner_label_expanded">جارٍ تسجيل ملف السجل</string>
+    <string name="debug_banner_stop_action">إيقاف</string>
+    <string name="debug_banner_view_action">عرض</string>
+    <string name="debug_banner_explanation">جارٍ تسجيل نشاط التطبيق. أوقف التسجيل عند الانتهاء، ثم شارك السجل عند الإبلاغ عن الأخطاء.</string>
+    <string name="debug_log_short_recording_title">مدة التسجيل قصيرة جدًا</string>
+    <string name="debug_log_short_recording_message">تلتقط سجلات التصحيح ما يحدث أثناء تفعيل التسجيل. ابدأ التسجيل، وأعد إنتاج المشكلة، ثم أوقفه. قد لا يحتوي هذا التسجيل على معلومات مفيدة.</string>
+    <string name="debug_log_short_recording_keep_action">الاحتفاظ بالتسجيل</string>
+
+    <string name="debug_logview_screen_title">عارض السجل</string>
+    <string name="debug_logview_pause_action">إيقاف مؤقت (تجميد العرض)</string>
+    <string name="debug_logview_resume_action">استئناف</string>
+    <string name="debug_logview_copy_action">نسخ السجل</string>
+    <string name="debug_logview_collapse_action">طيّ</string>
+    <string name="debug_logview_close_action">إغلاق لوحة السجل</string>
+    <string name="debug_logview_resize_action">تغيير الحجم</string>
+    <string name="debug_logview_more_action">خيارات إضافية</string>
+    <string name="debug_logview_level_action">مستوى السجل</string>
+    <string name="debug_logview_clear_action">مسح المخزن المؤقت</string>
+    <string name="debug_logview_search_action">بحث</string>
+    <string name="debug_logview_search_clear_action">مسح البحث</string>
+    <string name="debug_logview_search_close_action">إغلاق البحث</string>
+    <string name="debug_logview_search_prev_action">التطابق السابق</string>
+    <string name="debug_logview_search_next_action">التطابق التالي</string>
+    <string name="debug_logview_jump_to_bottom_action">الانتقال إلى الأحدث</string>
+    <string name="debug_logview_paused_msg">متوقف مؤقتًا — العرض مجمَّد</string>
+    <string name="debug_logview_paused_new_msg">متوقف مؤقتًا — %1$d سطر جديد منذ ذلك الحين</string>
+    <string name="debug_logview_copied_msg">تم نسخ السجل إلى الحافظة</string>
+    <string name="debug_logview_copied_truncated_msg">تم نسخ آخر %1$d سطور إلى الحافظة</string>
+    <string name="debug_logview_share_label">مشاركة السجل</string>
+
+    <string name="settings_label">الإعدادات</string>
+    <string name="settings_category_tools_label">الأدوات</string>
+    <string name="settings_category_other_label">أخرى</string>
+    <string name="settings_category_integration_label">التكامل</string>
+    <string name="general_settings_label">عام</string>
+    <string name="general_settings_desc">تعديلات عامة تؤثر على التطبيق بأكمله.</string>
+    <string name="settings_category_ui_label">واجهة المستخدم</string>
+    <string name="ui_mascot_suit_setting_label">بدلة Butler</string>
+    <string name="ui_mascot_suit_setting_explanation">اللون الذي فُصِّلت منه ملابس Butler.</string>
+    <string name="ui_theme_mode_setting_label">وضع المظهر</string>
+    <string name="ui_theme_mode_setting_explanation">الوضع المستخدم في تنسيق مظهر التطبيق (مثل الليلي أو النهاري).</string>
+    <string name="ui_theme_style_setting_label">نمط المظهر</string>
+    <string name="ui_theme_style_setting_explanation">نمط الألوان المستخدم في تنسيق مظهر التطبيق.</string>
+    <string name="ui_theme_color_setting_label">لون المظهر</string>
+    <string name="ui_theme_color_setting_explanation">لوحة الألوان المستخدمة في تنسيق مظهر التطبيق.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">يتم توفير الألوان بواسطة Material You من خلفيتك</string>
+    <string name="ui_theme_color_value_system">ألوان النظام</string>
+    <string name="ui_language_override_label">لغة التطبيق</string>
+    <string name="ui_language_override_desc">اختر لغة مختلفة لـ Butler، بمعزل عن لغة نظامك الافتراضية.</string>
+    <string name="ui_display_cutout_avoid_setting_title">تجنّب فتحة الشاشة</string>
+    <string name="ui_display_cutout_avoid_setting_description">يُبقي الواجهة بعيدة عن فتحة الكاميرا. أوقف هذا الخيار لاستخدام مساحة أكبر من الشاشة، لكن قد تقع أجزاء من الواجهة خلف الفتحة عندئذٍ.</string>
+
+    <string name="previews_settings_title">المعاينات</string>
+    <string name="previews_settings_subtitle">إدارة ذاكرات التخزين المؤقت لمعاينات الصور.</string>
+
+    <string name="tour_settings_reset_title">إعادة ضبط الجولات الإرشادية</string>
+    <string name="tour_settings_reset_subtitle">إظهار الجولات الإرشادية مرة أخرى، بما في ذلك أي جولة تخطّيتها أو عطّلتها.</string>
+    <string name="tour_settings_reset_done">تمت إعادة ضبط الجولات الإرشادية.</string>
+
+    <string name="storage_settings_title">التخزين</string>
+    <string name="storage_settings_subtitle">إدارة ذاكرات التخزين المؤقت والتخزين وسلة المهملات الخاصة بـ Butler.</string>
+    <string name="storage_category_previews_label">المعاينات</string>
+    <string name="storage_previews_disk_cache_title">ذاكرة التخزين المؤقت للقرص</string>
+    <string name="storage_previews_memory_cache_title">ذاكرة التخزين المؤقت للذاكرة</string>
+    <string name="storage_previews_max_size_title">الحد الأقصى لحجم ذاكرة التخزين المؤقت</string>
+    <string name="storage_clear_disk_confirm_title">مسح ذاكرة التخزين المؤقت للقرص؟</string>
+    <string name="storage_clear_disk_confirm_message">سيؤدي هذا إلى إزالة جميع صور المعاينة المخزَّنة مؤقتًا. سيُعاد إنشاؤها عند الحاجة.</string>
+    <string name="storage_clear_memory_confirm_title">مسح ذاكرة التخزين المؤقت للذاكرة؟</string>
+    <string name="storage_clear_memory_confirm_message">سيؤدي هذا إلى إزالة صور المعاينة المخزَّنة مؤقتًا من الذاكرة. سيُعاد إنشاؤها عند الحاجة.</string>
+    <string name="storage_clear_all_confirm_title">مسح جميع ذاكرات التخزين المؤقت؟</string>
+    <string name="storage_clear_all_confirm_message">سيؤدي هذا إلى مسح ذاكرتي التخزين المؤقت للقرص والذاكرة الخاصتين بصور المعاينة.</string>
+    <string name="storage_clear_all_previews_action">مسح جميع ذاكرات التخزين المؤقت للمعاينات</string>
+    <string name="storage_clear_all_subtitle">إزالة جميع ذاكرات التخزين المؤقت للمعاينات</string>
+    <string name="storage_cache_cleared_message">تم مسح ذاكرة التخزين المؤقت</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">التحقق من التحديثات</string>
+    <string name="updater_check_enabled_setting_description">السماح لـ Butler بالتحقق عبر الإنترنت من توفر إصدار جديد.</string>
+    <string name="motd_check_enabled_setting_title">التحقق من الإعلانات</string>
+    <string name="motd_check_enabled_setting_description">السماح لـ Butler بجلب الرسائل المهمة من المطوّر.</string>
+    <string name="motd_card_header">إعلان</string>
+
+    <string name="confirm_exit_setting_title">تأكيد الخروج</string>
+    <string name="confirm_exit_setting_description">عرض مربع حوار للتأكيد عند الخروج من التطبيق.</string>
+    <string name="confirm_exit_dialog_title">الخروج من Butler</string>
+    <string name="confirm_exit_dialog_message">سيؤدي هذا إلى إغلاق التطبيق والعودة إلى الشاشة الرئيسية.</string>
+    <string name="confirm_exit_dialog_exit">خروج</string>
+    <string name="confirm_exit_dialog_cancel">إلغاء</string>
+    <string name="confirm_exit_dialog_dont_ask_again">عدم السؤال مرة أخرى</string>
+
+    <string name="settings_support_category_help_label">الحصول على المساعدة</string>
+    <string name="settings_support_label">الدعم</string>
+    <string name="settings_support_description">اقرأ الوثائق، وأبلغ عن المشكلات، وتحدّث مع الآخرين، أو سجّل سجلات التصحيح.</string>
+    <string name="settings_support_wiki_label">الوثائق</string>
+    <string name="settings_support_wiki_description">تعلّم كيفية استخدام Butler بفعالية.</string>
+    <string name="settings_support_issue_tracker_description">متعقّب مشكلات عام لتقارير الأخطاء وطلبات الميزات.</string>
+    <string name="settings_support_issue_tracker_label">متعقّب المشكلات</string>
+    <string name="settings_support_debuglog_label">سجل التصحيح</string>
+    <string name="settings_support_debuglog_desc">سجّل كل ما يقوم به التطبيق في ملف نصي يمكنك مشاركته.</string>
+    <string name="settings_support_debuglog_recording_desc">يتم حاليًا تسجيل معلومات التصحيح. اضغط لإيقاف التسجيل.</string>
+    <string name="settings_support_debuglog_path">مسار السجل: %1$s</string>
+    <string name="settings_support_bugreports_label">تقارير الأخطاء</string>
+    <string name="settings_support_bugreports_desc">اعرض تقارير التعطل، وسجّل سجلات التصحيح، وشاركها معي.</string>
+    <string name="support_contact_report_type_crash">تقرير تعطل</string>
+    <string name="support_contact_report_type_reported">تقرير خطأ</string>
+    <string name="support_contact_report_type_recording">تسجيل</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">مكان للتواجد فيه وطرح الأسئلة.</string>
+
+    <string name="settings_acknowledgements_label">شكر وتقدير</string>
+    <string name="settings_acknowledgements_description">الاعتمادات، والتراخيص، والشكر الخاص.</string>
+    <string name="settings_acks_translation_header">الترجمة</string>
+    <string name="settings_acks_translators_title">المترجمون</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">ترجمة Butler</string>
+    <string name="settings_acks_translate_desc">ساعد في ترجمة Butler إلى لغتك.</string>
+
+    <string name="settings_acks_thanks_header">شكر</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">لدعم ترجمة مشاريع المصدر المفتوح.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">شكرًا على الأيقونة، وتصاميم التميمة، والرسوم المتحركة.</string>
+    <string name="settings_licenses_label">التراخيص</string>
+
+    <!-- Workspace Status Card -->
+    <string name="workspace_status_tab_singular">علامة تبويب</string>
+    <string name="workspace_status_tab_plural">علامات تبويب</string>
+    <string name="workspace_status_operation_singular">عملية</string>
+    <string name="workspace_status_operation_plural">عمليات</string>
+    <string name="workspace_status_attention_label">انتباه</string>
+    <string name="workspace_status_unsaved_label">غير محفوظ</string>
+    <string name="workspace_status_filter_tabs_desc">إظهار جميع علامات التبويب</string>
+    <string name="workspace_status_filter_operations_desc">التصفية حسب علامات التبويب التي بها عمليات</string>
+    <string name="workspace_status_filter_attention_desc">التصفية حسب علامات التبويب التي تتطلب انتباهًا</string>
+    <string name="workspace_status_filter_paused_desc">التصفية حسب علامات التبويب المتوقفة مؤقتًا</string>
+    <string name="workspace_status_filter_unsaved_desc">التصفية حسب علامات التبويب ذات التغييرات غير المحفوظة</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">لغة البرمجة Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">حاقن تبعيات سريع لـ Android وJava. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">تشغيل كود Java (وKotlin) بصلاحيات root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">تشغيل كود Kotlin JVM المروَّت بسهولة باستخدام coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">استخدام واجهات برمجة تطبيقات النظام مباشرة بصلاحيات adb/root من تطبيقات عادية عبر عملية Java تُشغَّل باستخدام app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Lottie من Airbnb لنظام Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">رجل Android الآلي مُستنسَخ أو مُعدَّل من عمل أنشأته وشاركته Google، ويُستخدم وفقًا للشروط الموضحة في ترخيص Creative Commons 3.0 Attribution.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">مجموعة أدوات Android الحديثة لبناء واجهات مستخدم أصلية. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">مكتبات Jetpack</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room وWorkManager وDataStore وNavigation ومكتبات AndroidX أخرى. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">امتدادات Kotlin</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">مكتبتا Coroutines وSerialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">مكتبة تحميل صور مدعومة بـ Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">بدائيات تشفير لمصادقة SMB وتوقيعه وتشفيره. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">مكتبات Square</string>
+    <string name="acknowledgement_square_libraries_subtitle">مكتبات الشبكات Retrofit وOkHttp وOkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">أدوات مساعدة لـ Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">السحب والإفلات لـ LazyColumn في Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">مكتبة الإصدارات الدلالية لـ Kotlin. (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">مخططات ورسوم بيانية لـ Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">سياسة الخصوصية</string>
+    <string name="settings_privacy_policy_desc">التعامل مع البيانات بمسؤولية.</string>
+
+
+    <string name="changelog_label">سجل التغييرات</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">حالة ترقية Butler</string>
+    <string name="upgrade_status_free">الحالة: مجاني</string>
+    <string name="upgrade_status_pro">الحالة: Pro</string>
+    <string name="upgrade_status_foss">الحالة: FOSS</string>
+
+    <string name="storage_area_sdcard_label">بطاقة SD</string>
+    <string name="storage_area_public_label">التخزين العام</string>
+    <string name="storage_area_public_app_data_label">بيانات التطبيقات العامة</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">مدير علامات التبويب</string>
+    <string name="workspace_manager_empty_title">لا توجد علامات تبويب</string>
+    <string name="workspace_manager_empty_subtitle">أنشئ أول علامة تبويب للبدء</string>
+
+    <!-- Workspace > Empty Content-->
+    <string name="workspace_empty_create_action">إنشاء علامة تبويب</string>
+    <string name="workspace_empty_create_hint">اعمل بالتوازي: أنشئ علامة تبويب وحوّلها إلى الأداة التي تختارها.</string>
+    <string name="workspace_empty_settings_action">فتح الإعدادات</string>
+    <string name="workspace_empty_settings_hint">خصّص Butler وفق رغبتك. اضبط كيفية عمل الأدوات.</string>
+    <string name="workspace_classic_empty_tabs_closed">لا توجد علامات تبويب مفتوحة. جاهز عندما تكون مستعدًا.</string>
+    <string name="workspace_classic_empty_tip">نصيحة: اضغط على “إنشاء علامة تبويب” واختر أداة — المستكشف، البحث، المحرر، والمزيد.</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">ابدأ بعلامة تبويب</string>
+    <string name="tour_first_tab_body">يعمل Butler بعلامات التبويب، مثل المتصفح: كل واحدة أداة قائمة بذاتها — المستكشف، البحث، المحرر، والمزيد. أنشئ أول علامة تبويب لك.</string>
+    <string name="tour_manager_fab_title">اختصارات سريعة</string>
+    <string name="tour_manager_fab_body">اضغط هنا للوصول إلى اختصارات الأدوات التي تستخدمها أكثر، ولإغلاق جميع علامات التبويب دفعة واحدة.</string>
+    <string name="tour_manager_reorder_title">أعد ترتيب علامات التبويب</string>
+    <string name="tour_manager_reorder_body">اضغط مع الاستمرار على شريط عنوان علامة التبويب، ثم اسحبها إلى حيث تريد. هذا هو الترتيب الذي ستظهر به علامات التبويب في كل مكان آخر.</string>
+    <string name="tour_manager_select_title">اعمل على عدة علامات تبويب</string>
+    <string name="tour_manager_select_body">اضغط مع الاستمرار على معاينة علامة التبويب لبدء اختيار علامات التبويب. ثم اضغط على البقية وأغلقها أو أوقفها مؤقتًا جميعًا دفعة واحدة.</string>
+    <string name="tour_manager_new_tab_title">ابدأ علامة تبويب جديدة</string>
+    <string name="tour_manager_new_tab_body">اضغط على هذه البطاقة لاختيار أي أداة لعلامة تبويب جديدة.</string>
+    <string name="tour_swipe_switch_title">مرر بين علامات التبويب</string>
+    <string name="tour_swipe_switch_body">مرر يمينًا أو يسارًا في أي مكان على الصفحة للتنقل بين علامات التبويب المفتوحة.</string>
+    <string name="tour_swipe_create_title">مرر لبدء علامة تبويب</string>
+    <string name="tour_swipe_create_body">مرر متجاوزًا آخر علامة تبويب، ويعرض عليك Butler علامة تبويب جديدة.</string>
+    <string name="tour_swipe_panes_title">أكثر من علامة تبويب في آن واحد</string>
+    <string name="tour_swipe_panes_body">على شاشة أكبر، أو في الوضع الأفقي، يعرض Butler عدة علامات تبويب جنبًا إلى جنب. تحدّد إعدادات التخطيط ضمن علامات التبويب متى يحدث ذلك.</string>
+    <string name="tour_panes_rail_title">جميع علامات التبويب الخاصة بك</string>
+    <string name="tour_panes_rail_body">توجد هنا كل علامة تبويب مفتوحة. اضغط على واحدة واختر اللوحة التي يجب أن تنتقل إليها. اضغط مع الاستمرار على علامة تبويب، ثم اسحبها، لتغيير ترتيبها.</string>
+    <string name="tour_panes_divider_title">غيّر حجم اللوحات</string>
+    <string name="tour_panes_divider_body">اسحب هذا الفاصل لمنح إحدى اللوحات مساحة أكبر.</string>
+    <string name="tour_panes_layout_title">غيّر الترتيب</string>
+    <string name="tour_panes_layout_body">اضغط على زر Butler واختر التخطيط لإعادة ترتيب اللوحات. تُثبّت إعدادات علامات التبويب تخطيطًا لكل اتجاه.</string>
+
+    <string name="workspace_creating_placeholder">جارٍ إنشاء علامة التبويب…</string>
+    <string name="workspace_ondemand_swipe_title">مرر لإنشاء علامة تبويب جديدة</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">اللوحة %1$d جاهزة للمحتوى</string>
+    <string name="workspace_adaptive_add_action">إضافة علامة تبويب</string>
+
+    <string name="workspace_badge_tip_title">نصيحة: مؤشرات زر علامة التبويب</string>
+    <string name="workspace_badge_open_workspaces">عدد علامات التبويب المفتوحة</string>
+    <string name="workspace_badge_active_operations">العمليات النشطة (نسخ الملفات، عمليات البحث، إلخ)</string>
+    <string name="workspace_badge_attention_items">العناصر التي تتطلب انتباهًا (عمليات فاشلة أو منتظرة، ملفات يتعذر الوصول إليها)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">إغلاق</string>
+    <string name="workspace_manager_close_all_title">إغلاق جميع علامات التبويب؟</string>
+    <string name="workspace_manager_close_all_message">سيؤدي هذا إلى إغلاق جميع %1$d %2$s المفتوحة. لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="workspace_manager_close_all_message_singular">علامة تبويب</string>
+    <string name="workspace_manager_close_all_message_plural">علامات تبويب</string>
+    <string name="workspace_manager_close_all_action">إغلاق الكل</string>
+    <string name="workspace_manager_selection_count">تم تحديد %1$d</string>
+    <string name="workspace_manager_selection_select_all">تحديد الكل</string>
+    <string name="workspace_manager_selection_pause_action">إيقاف المحدد مؤقتًا</string>
+    <string name="workspace_manager_selection_close_action">إغلاق المحدد</string>
+    <string name="workspace_manager_selection_cancel_content_desc">الخروج من وضع التحديد</string>
+    <string name="workspace_manager_selection_clear_content_desc">مسح التحديد</string>
+    <string name="workspace_manager_select_all_tabs_desc">تحديد جميع علامات التبويب</string>
+    <string name="workspace_manager_new_tab_card_title">علامة تبويب جديدة</string>
+    <string name="workspace_row_select_content_desc">تحديد علامة التبويب</string>
+    <string name="general_cancel_action">إلغاء</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">اختصارات سريعة</string>
+    <string name="workspace_fab_close_shortcuts">إغلاق الاختصارات</string>
+    <string name="workspace_fab_close_all">إغلاق جميع علامات التبويب</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">تعيين إلى اللوحة %1$d</string>
+    <string name="workspace_pane_show_action">إظهار</string>
+    <string name="workspace_pane_close_action">إغلاق</string>
+    <string name="workspace_pane_unassign_action">إزالة من اللوحة</string>
+    <string name="workspace_dragging_description">جارٍ السحب</string>
+    <string name="workspace_pane_current_description">في اللوحة %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">إغلاق علامة التبويب</string>
+    <string name="workspace_row_more_options_content_desc">خيارات إضافية</string>
+    <string name="workspace_row_operations_running_content_desc">قيد العمل</string>
+    <string name="workspace_row_operations_pending_content_desc">عمل معلَّق</string>
+    <string name="workspace_row_pause_action">إيقاف مؤقت</string>
+    <string name="workspace_row_resume_action">استئناف</string>
+    <string name="workspace_row_stacked_content_desc">مكدَّسة على علامة التبويب هذه</string>
+    <string name="workspace_row_unsaved_content_desc">تغييرات غير محفوظة</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">تهيئة سلوك علامات التبويب.</string>
+    <string name="explorer_settings_subtitle">تهيئة سلوك مستكشف الملفات.</string>
+    <string name="searcher_settings_subtitle">تهيئة سلوك البحث.</string>
+    <string name="editor_settings_subtitle">تهيئة سلوك محرر النصوص.</string>
+    <string name="history_settings_subtitle">الاحتفاظ بسجل العمليات ومسحه.</string>
+    <string name="clipboard_settings_subtitle">تهيئة سلوك الحافظة.</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">حفظ باسم…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">فتح في Butler</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">تحرير النص</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">ملف بلا اسم</string>
+    <string name="external_open_action_view">عرض</string>
+    <string name="external_open_action_edit">تحرير كنص</string>
+    <string name="external_open_action_show_in_explorer">إظهار في المستكشف</string>
+    <string name="external_open_action_save">حفظ باسم…</string>
+    <string name="external_open_failed_label">تعذّر فتح الملف</string>
+    <string name="external_open_failed_description">تعذّر على Butler فتح \"%1$s\".</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">تفعيل وضع المطوّر؟</string>
+    <string name="settings_developer_mode_unlock_message">يؤدي هذا إلى فتح أدوات تشخيص متقدمة لاستكشاف الأخطاء وإصلاحها والاختبار.</string>
+    <string name="settings_developer_mode_unlock_action">تفعيل</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="zero">باقي %d خطوات للوصول إلى وضع المطوّر</item>
+        <item quantity="one">باقي %d خطوة للوصول إلى وضع المطوّر</item>
+        <item quantity="two">باقي %d خطوتان للوصول إلى وضع المطوّر</item>
+        <item quantity="few">باقي %d خطوات للوصول إلى وضع المطوّر</item>
+        <item quantity="many">باقي %d خطوة للوصول إلى وضع المطوّر</item>
+        <item quantity="other">باقي %d خطوة للوصول إلى وضع المطوّر</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">التواصل مع المطوّر</string>
+    <string name="support_contact_description">املأ نموذجًا لإرسال بريد إلكتروني لي.</string>
+    <string name="support_contact_no_email_app">لم يتم العثور على تطبيق بريد إلكتروني</string>
+    <string name="support_contact_category_label">الفئة</string>
+    <string name="support_contact_category_question">سؤال</string>
+    <string name="support_contact_category_feature">طلب ميزة</string>
+    <string name="support_contact_category_bug">تقرير خطأ</string>
+    <string name="support_contact_workspace_label">المجال المرتبط</string>
+    <string name="support_contact_workspace_general">عام</string>
+    <string name="support_contact_workspace_explorer">المستكشف</string>
+    <string name="support_contact_workspace_searcher">البحث</string>
+    <string name="support_contact_workspace_editor">المحرر</string>
+    <string name="support_contact_description_label">الوصف</string>
+    <string name="support_contact_description_question_hint">صف سؤالك بالتفصيل. يُرجى أن تكون محددًا (20 كلمة على الأقل).</string>
+    <string name="support_contact_description_feature_hint">صف الميزة التي تودّ رؤيتها. يُرجى أن تكون محددًا (20 كلمة على الأقل).</string>
+    <string name="support_contact_description_bug_hint">صف ما حدث وكيفية إعادة إنتاج المشكلة. يُرجى أن تكون محددًا (20 كلمة على الأقل).</string>
+    <string name="support_contact_expected_label">السلوك المتوقع</string>
+    <string name="support_contact_expected_hint">صف ما كنت تتوقع حدوثه (10 كلمات على الأقل).</string>
+    <string name="support_contact_word_count">%1$d كلمة على الأقل</string>
+    <string name="support_contact_debuglog_label">سجل التصحيح</string>
+    <string name="support_contact_debuglog_empty">لم يتم العثور على سجلات تصحيح. سجّل واحدًا أولًا.</string>
+    <string name="support_contact_debuglog_picker_hint">أرفق سجل تصحيح موجودًا، أو سجّل واحدًا جديدًا.</string>
+    <string name="support_contact_send_action">فتح تطبيق البريد الإلكتروني</string>
+    <string name="support_contact_welcome">أقرأ كل رسالة بنفسي وأبذل قصارى جهدي للرد، ولكن بما أنني أعمل على هذا بمفردي، فقد يستغرق الأمر بعض الوقت. أشكرك على صبرك.</string>
+    <string name="support_contact_footer">ستُرسَل رسالتك عبر البريد الإلكتروني. تُرفَق معلومات الجهاز والإعداد تلقائيًا. يمكنك إرفاق لقطات شاشة أو مقطع فيديو بالبريد الإلكتروني.\n\nستكون بعض أجزاء البريد الإلكتروني بالإنجليزية حتى أتمكن من فهمها بسهولة.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">تخزين سجلات التصحيح</string>
+    <string name="support_debuglog_storage_description">%1$d جلسات سجل، %2$s</string>
+    <string name="support_debuglog_storage_empty">لا توجد سجلات تصحيح مخزَّنة</string>
+    <string name="support_debuglog_delete_action">حذف جميع سجلات التصحيح</string>
+    <string name="support_debuglog_delete_description">إزالة جميع ملفات سجل التصحيح المسجَّلة</string>
+    <string name="support_debuglog_delete_confirm_title">حذف جميع سجلات التصحيح؟</string>
+    <string name="support_debuglog_delete_confirm_message">سيؤدي هذا إلى حذف جميع جلسات سجل التصحيح المسجَّلة نهائيًا. لن تتأثر التسجيلات النشطة.</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">إيقاف التسجيل</string>
+    <string name="settings_support_debuglog_record_action">تسجيل سجل التصحيح</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">جلسات سجل التصحيح</string>
+    <string name="support_debuglog_sessions_desc">إدارة جلسات سجل التصحيح المسجَّلة</string>
+    <string name="support_debuglog_sessions_empty">لا توجد جلسات سجل تصحيح</string>
+    <string name="support_debuglog_session_recording">جارٍ التسجيل…</string>
+    <string name="support_debuglog_session_compressing">جارٍ الضغط…</string>
+    <string name="support_debuglog_session_failed_empty_log">فشل: سجل فارغ</string>
+    <string name="support_debuglog_session_failed_missing_log">فشل: السجل مفقود</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">فشل: الأرشيف تالف</string>
+    <string name="support_debuglog_session_failed_zip_failed">فشل: خطأ في الضغط</string>
+    <string name="support_debuglog_session_delete_title">حذف جلسة التصحيح؟</string>
+    <string name="support_debuglog_session_delete_message">سيؤدي هذا إلى حذف جلسة سجل التصحيح هذه نهائيًا.</string>
+    <string name="support_debuglog_clear_action">مسح الكل</string>
+    <string name="support_debuglog_clear_confirm_message">حذف جميع جلسات سجل التصحيح المخزَّنة؟</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">سجل تصحيح Butler - %1$s</string>
+    <string name="debug_log_screen_subtitle">تصدير معلومات التصحيح لاستكشاف الأخطاء وإصلاحها</string>
+    <string name="debug_log_screen_sensitive_information_title">معلومات حساسة</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">هل أرسلت الرسالة؟</string>
+    <string name="support_contact_sent_message">إذا تم إرسال الرسالة، فسيُحذف سجل التصحيح المرفق لتوفير المساحة. إذا لم يتم إرسالها، يمكنك الاحتفاظ به والمحاولة مرة أخرى لاحقًا.</string>
+    <string name="support_contact_debuglog_zip_error">فشل تحضير مرفق سجل التصحيح</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">تقدّم عمليات الملفات</string>
+    <string name="ops_notification_channel_progress_desc">التقدّم الجاري لعمليات النسخ والنقل والحذف</string>
+    <string name="ops_notification_channel_attention_name">تنبيهات عمليات الملفات</string>
+    <string name="ops_notification_channel_attention_desc">العمليات التي تتطلب انتباهك أو التي فشلت</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="zero">%1$d عمليات ملفات قيد التشغيل</item>
+        <item quantity="one">%1$d عملية ملف قيد التشغيل</item>
+        <item quantity="two">%1$d عمليتا ملف قيد التشغيل</item>
+        <item quantity="few">%1$d عمليات ملفات قيد التشغيل</item>
+        <item quantity="many">%1$d عملية ملف قيد التشغيل</item>
+        <item quantity="other">%1$d عملية ملف قيد التشغيل</item>
+    </plurals>
+    <string name="ops_notification_state_queued">في قائمة الانتظار…</string>
+    <string name="ops_notification_state_cancelling">جارٍ الإلغاء…</string>
+    <string name="ops_notification_state_attention_title">إجراء مطلوب</string>
+    <string name="ops_notification_state_attention_text">يوجد تعارض يتطلب انتباهك — اضغط للحل</string>
+    <string name="ops_notification_result_failed_title">فشلت العملية</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">هل تودّ ترك تقييم لـ Butler؟ ❤️</string>
+    <string name="review_app_dismiss_action">ربما لاحقًا</string>
+    <string name="review_app_review_action">تقييم</string>
+
+</resources>
