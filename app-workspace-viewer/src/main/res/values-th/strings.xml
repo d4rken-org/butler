@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">เปิดด้วย</string>
+    <string name="viewer_image_content_description">รูปภาพ %1$s</string>
+    <string name="viewer_toolbar_folder_label">โฟลเดอร์</string>
+    <string name="viewer_back_action">ย้อนกลับ</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">ไฟล์ก่อนหน้า</string>
+    <string name="viewer_next_file_action">ไฟล์ถัดไป</string>
+    <string name="viewer_open_location_action">เปิดตำแหน่งที่อยู่</string>
+    <string name="viewer_clipboard_copied">%1$s ถูกคัดลอก วางในแท็บตัวจัดการไฟล์</string>
+    <string name="viewer_clipboard_cut">%1$s ถูกตัด วางในแท็บตัวจัดการไฟล์เพื่อย้าย</string>
+    <string name="viewer_share_failed_label">ไม่สามารถแบ่งปันไฟล์นี้ได้</string>
+    <string name="viewer_share_failed_description">%1$s ไม่สามารถส่งไปยังแอปอื่นได้ เกิดขึ้นกับไฟล์ที่ต้องใช้การเข้าถึง root หรือ ADB และไฟล์ที่ไม่มีอยู่แล้ว</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">ขนาด</string>
+    <string name="viewer_info_modified_label">แก้ไขเมื่อ</string>
+    <string name="viewer_info_created_label">สร้างเมื่อ</string>
+    <string name="viewer_info_format_label">รูปแบบ</string>
+    <string name="viewer_info_dimensions_label">มิติ</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">สิทธิ์</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">เจ้าของ</string>
+    <string name="viewer_info_caption_label">ข้อความที่แบ่งปัน</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">แสดงรายละเอียดทั้งหมด</string>
+    <string name="viewer_info_collapse_action">ซ่อนรายละเอียด</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">ดูตัวอย่าง · หน้า 1</string>
+    <string name="viewer_pdf_page_indicator">หน้า %1$d จาก %2$d</string>
+    <string name="viewer_pdf_page_previous">หน้าก่อนหน้า</string>
+    <string name="viewer_pdf_page_next">หน้าถัดไป</string>
+    <string name="viewer_pdf_page_error">ไม่สามารถแสดงหน้า %1$d ได้</string>
+    <string name="viewer_pdf_page_content_description">ดูตัวอย่าง PDF ของ %1$s หน้า %2$d จาก %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">ประเภทไฟล์นี้ยังไม่ได้รับการสนับสนุน</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">นี่คือไฟล์บีบอัด</string>
+    <string name="viewer_browse_archive_action">เรียกดูเนื้อหา</string>
+    <string name="viewer_archive_needs_copy_msg">บันทึกสำเนาในอุปกรณ์ของคุณ จากนั้น Butler จึงสามารถเรียกดูเนื้อหาข้างในได้</string>
+    <string name="viewer_archive_nested_msg">ไฟล์บีบอัดนี้อยู่ในไฟล์บีบอัดอื่น แยกไฟล์ก่อนจึงจะสามารถเรียกดูเนื้อหาข้างในได้</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">เวอร์ชัน</string>
+    <string name="viewer_apk_min_sdk_label">Min SDK</string>
+    <string name="viewer_apk_target_sdk_label">Target SDK</string>
+    <string name="viewer_apk_installed_label">ติดตั้ง</string>
+    <string name="viewer_apk_not_installed_value">ไม่ได้ติดตั้ง</string>
+    <string name="viewer_apk_installed_unknown_value">ไม่สามารถตรวจสอบได้</string>
+    <string name="viewer_apk_installed_older_hint">เก่ากว่าไฟล์นี้</string>
+    <string name="viewer_apk_installed_newer_hint">ใหม่กว่าไฟล์นี้</string>
+    <string name="viewer_apk_permissions_header">สิทธิ์ (%1$d)</string>
+    <string name="viewer_apk_signing_header">ใบรับรองลายเซ็น</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">ติดตั้ง</string>
+    <string name="viewer_bundle_format_label">รูปแบบบันเดิล</string>
+    <string name="viewer_bundle_splits_label">APK ข้างใน</string>
+    <string name="viewer_bundle_expansion_files_hint">มีไฟล์ส่วนขยายที่ติดตั้งหลังจากแอปติดตั้ง</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">การติดตั้งไฟล์ส่วนขยายต้องใช้การเข้าถึง root หรือ ADB หากไม่มี แอปจะติดตั้ง แต่ไฟล์ส่วนขยายจะยังคงอยู่เบื้องหลัง</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">ไอคอนแอปของ %1$s</string>
+    <string name="viewer_apk_icon_show_action">แสดงไอคอน</string>
+    <string name="viewer_apk_icon_save_action">บันทึกไอคอน</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">บันทึกไอคอนเป็น %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">แทนที่ไฟล์?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s มีอยู่แล้วในโฟลเดอร์นี้ การบันทึกไอคอนจะแทนที่มัน</string>
+    <string name="viewer_apk_icon_overwrite_confirm">แทนที่</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">ไฟล์เปลี่ยนแปลง</string>
+    <string name="viewer_external_change_message">ไฟล์นี้เปลี่ยนแปลงบนอุปกรณ์ รีเฟรชเพื่อโหลดอีกครั้ง</string>
+    <string name="viewer_external_change_gone_title">ไฟล์หายไป</string>
+    <string name="viewer_external_change_gone_message">ไฟล์นี้ถูกลบหรือไม่สามารถเข้าถึงได้อีกต่อไป</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">ไม่สามารถแสดงไฟล์นี้ได้</string>
+    <string name="viewer_error_not_a_file_label">ไม่ใช่ไฟล์</string>
+    <string name="viewer_error_not_a_file_description">%1$s ไม่ใช่ไฟล์ปกติ</string>
+    <string name="viewer_error_broken_symlink_label">ทางลัดที่เสียหาย</string>
+    <string name="viewer_error_broken_symlink_description">%1$s ชี้ไปยังสิ่งที่ไม่มีอยู่แล้ว</string>
+    <string name="viewer_error_undecodable_label">รูปภาพที่เสียหาย</string>
+    <string name="viewer_error_undecodable_description">%1$s ไม่สามารถถอดรหัสได้ ไฟล์อาจไม่สมบูรณ์หรือเสียหาย</string>
+    <string name="viewer_error_file_gone_label">ไม่พบไฟล์</string>
+    <string name="viewer_error_file_gone_description">%1$s ไม่มีอยู่แล้ว อาจถูกย้าย เปลี่ยนชื่อ หรือลบ</string>
+    <string name="viewer_error_empty_file_label">ไฟล์ว่าง</string>
+    <string name="viewer_error_empty_file_description">%1$s ว่างเปล่าและไม่มีอะไรให้แสดง</string>
+    <string name="viewer_error_apk_unreadable_label">APK ที่อ่านไม่ได้</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s ไม่สามารถแยกวิเคราะห์เป็นแพคเกจแอป Android ได้</string>
+    <string name="viewer_error_icon_unavailable_label">ไม่มีไอคอน</string>
+    <string name="viewer_error_icon_unavailable_description">ไม่สามารถอ่านไอคอนแอปของ %1$s ได้</string>
+    <string name="viewer_error_icon_target_notfile_label">ชื่อถูกใช้ไปแล้ว</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s มีอยู่แล้วและไม่ใช่ไฟล์ปกติ ดังนั้นจึงไม่สามารถแทนที่ได้</string>
+    <string name="viewer_error_icon_target_appeared_label">ปรากฎไฟล์</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s ถูกสร้างขึ้นขณะที่คุณเลือกตำแหน่งที่บันทึก ไม่มีอะไรถูกเขียนทับ ลองอีกครั้ง</string>
+    <string name="viewer_error_content_unreadable_label">ไม่สามารถอ่านไฟล์นี้ได้</string>
+    <string name="viewer_error_content_unreadable_description">แอปที่แบ่งปัน %1$s ไม่ยอมให้ Butler อ่านอีกต่อไป ขอให้แอปนั้นแบ่งปันอีกครั้ง</string>
+    <string name="viewer_save_copy_action">บันทึกสำเนา…</string>
+    <string name="viewer_open_in_editor_action">เปิดในตัวแก้ไข</string>
+    <string name="viewer_text_truncated_bytes">ดูตัวอย่างจำกัดเฉพาะ %1$s แรกของไฟล์นี้</string>
+    <string name="viewer_text_truncated_lines">ดูตัวอย่างจำกัดเฉพาะบรรทัด %1$s แรกของไฟล์นี้</string>
+    <string name="viewer_text_truncated_width">บรรทัดยาวมีการย่อลงในการดูตัวอย่างนี้</string>
+    <string name="viewer_text_unreadable_label">ไม่สามารถอ่านไฟล์นี้ได้</string>
+</resources>

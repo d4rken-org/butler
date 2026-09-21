@@ -1,0 +1,299 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">ตัวจัดการไฟล์สุดยอด</string>
+    <!-- Upgraded app title. %1$s is the app name, %2$s the tier qualifier ("Pro" or "FOSS", depending on the build). Reorder or repunctuate for your language; both placeholders must appear exactly once. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">ไอคอนแอป Butler</string>
+    <string name="butler_mascot_description">มาสคอต Butler</string>
+    <string name="butler_mascot_animation_random_description">มาสคอต Butler กำลังแสดงท่าทางหลากหลาย</string>
+    <string name="butler_mascot_animation_wink_description">มาสคอต Butler กำลังขยิบตา</string>
+    <string name="butler_mascot_animation_greeting_description">มาสคอต Butler กำลังโบกมือทักทาย</string>
+    <string name="butler_mascot_animation_hatoff_description">มาสคอต Butler กำลังยกหมวกแสดงความเคารพ</string>
+    <string name="butler_mascot_animation_drink_description">มาสคอต Butler กำลังดื่ม</string>
+    <string name="butler_mascot_animation_moustache_description">มาสคอต Butler กำลังลูบหนวด</string>
+    <string name="butler_mascot_animation_sleep_closing_description">มาสคอต Butler กำลังหลับตาเข้านอน</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">มาสคอต Butler กำลังกรน</string>
+    <string name="butler_mascot_animation_sleep_waking_description">มาสคอต Butler กำลังตื่นนอน</string>
+    <string name="butler_mascot_animation_cameo_description">มาสคอต SD Maid มาปรากฏตัวรับเชิญ</string>
+
+    <string name="slogan_general_message_0">พร้อมให้บริการ</string>
+    <string name="slogan_general_message_1">ทุกอย่างอยู่ในที่ของมัน</string>
+    <string name="slogan_general_message_2">เป็นระเบียบ ไม่วุ่นวาย</string>
+    <string name="slogan_general_message_3">กำลังไปหยิบไฟล์ของคุณ</string>
+    <string name="slogan_general_message_4">จัดไฟล์ทั้งหมดเรียงเป็นแถว</string>
+    <string name="slogan_general_message_5">เป็นระเบียบเสมอ</string>
+    <string name="slogan_general_message_6">หาไฟล์เจอไว!</string>
+    <string name="slogan_general_message_7">เข้าถึงง่ายดาย</string>
+    <string name="slogan_general_message_8">จะไม่มีวันทำไฟล์ของคุณหาย</string>
+    <string name="slogan_general_message_9">ทำได้สารพัดอย่าง</string>
+    <string name="slogan_newyear_message_0">ขั้นตอนเดียวกับทุกปี</string>
+    <string name="slogan_xmas_message_0">ตรวจไฟล์สองรอบ</string>
+    <string name="slogan_xmas_message_1">อยู่ในลิสต์เด็กดี</string>
+    <string name="slogan_halloween_message_0">บัตเลอร์สุดหลอน พร้อมให้บริการ</string>
+    <string name="slogan_halloween_message_1">ไม่มีกลลวง มีแต่ไฟล์</string>
+    <string name="slogan_stpatricks_message_0">รู้สึกโชคดีไหม</string>
+    <string name="slogan_stpatricks_message_1">ตามหาหม้อทองของคุณ</string>
+    <string name="slogan_aprilfools_message_0">ไม่มีการล้อเล่น</string>
+    <string name="slogan_aprilfools_message_1">จัดระเบียบอย่างจริงจัง</string>
+    <string name="slogan_oktoberfest_message_0">ชนแก้วให้ไฟล์ของคุณ!</string>
+    <string name="slogan_oktoberfest_message_1">ไฟล์พร้อมเสิร์ฟ</string>
+
+    <string name="general_share_action">แชร์</string>
+    <string name="general_share_single_title">แชร์ %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="other">แชร์ไฟล์ %d ไฟล์</item>
+    </plurals>
+    <string name="general_done_action">เสร็จสิ้น</string>
+    <string name="general_copy_action">คัดลอก</string>
+    <string name="general_cut_action">ตัด</string>
+    <string name="general_move_action">ย้าย</string>
+    <string name="general_paste_action">วาง</string>
+    <string name="general_apply_action">นำไปใช้</string>
+    <string name="general_open_action">เปิด</string>
+    <string name="general_cancel_action">ยกเลิก</string>
+    <string name="general_close_action">ปิด</string>
+    <string name="general_confirm_action">ยืนยัน</string>
+    <string name="general_reset_action">รีเซ็ต</string>
+    <string name="general_save_action">บันทึก</string>
+    <string name="general_edit_action">แก้ไข</string>
+    <string name="general_na_label">N/A</string>
+    <!-- Announced by screen readers when a dialog opens -->
+    <string name="general_dialog_a11y_label">กล่องโต้ตอบ</string>
+    <string name="general_dismiss_action">รับทราบ</string>
+    <string name="general_read_more_action">อ่านเพิ่มเติม</string>
+    <string name="general_mark_as_read_action">ทำเครื่องหมายว่าอ่านแล้ว</string>
+    <string name="general_back_action">กลับ</string>
+    <string name="general_navigate_up_action">นำทางขึ้น</string>
+    <string name="general_error_label">ข้อผิดพลาด</string>
+    <string name="general_error_unknown_label">ข้อผิดพลาดที่ไม่ทราบสาเหตุ</string>
+    <string name="general_error_invalid_input_label">ข้อมูลไม่ถูกต้อง</string>
+    <string name="general_share_error_action">แชร์ข้อผิดพลาด</string>
+    <string name="general_error_report_subject">รายงานข้อผิดพลาดของ %1$s (%2$s)</string>
+    <string name="general_error_report_consent_title">แชร์รายงานข้อผิดพลาดหรือไม่</string>
+    <string name="general_error_report_consent_message">รายงานนี้ประกอบด้วยข้อผิดพลาดและ stack trace ที่เกิดขึ้น บันทึกล่าสุดของแอป และรายละเอียดสถานะขณะนั้น ได้แก่ ชื่อและเส้นทางไฟล์ คำค้นหา ชื่อแพ็กเกจ URI ชื่อโฮสต์เครือข่ายและ SMB ข้อมูลอุปกรณ์และบิลด์ของคุณ และรหัสติดตั้งแบบไม่ระบุตัวตน แชร์ให้เฉพาะคนที่คุณไว้ใจเท่านั้น</string>
+    <string name="general_error_report_consent_confirm">แชร์รายงาน</string>
+    <string name="general_privacy_policy_action">นโยบายความเป็นส่วนตัว</string>
+    <string name="general_bug_report_subject">รายงานบั๊กของ %1$s (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">รายงานบั๊กของ %1$s: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(อธิบายสิ่งที่เกิดขึ้นตรงนี้)</string>
+    <string name="general_bug_report_body_expected_prompt">(อธิบายสิ่งที่คุณคาดว่าจะเกิดขึ้นแทน)</string>
+    <string name="general_duration_input_label">ระยะเวลา</string>
+    <string name="general_size_input_label">ขนาด</string>
+    <string name="general_upgrade_action">อัปเกรด</string>
+    <string name="general_refresh_action">รีเฟรช</string>
+    <string name="general_clear_action">ล้าง</string>
+    <string name="general_expand_action">ขยาย</string>
+    <string name="general_collapse_action">ย่อ</string>
+    <string name="general_completed_label">เสร็จสมบูรณ์</string>
+    <string name="general_cancelled_label">ยกเลิกแล้ว</string>
+    <string name="general_searching_label">กำลังค้นหา</string>
+    <string name="general_searching_ellipsis">กำลังค้นหา…</string>
+    <string name="general_progress_loading">กำลังโหลด</string>
+    <string name="general_progress_loading_egg_0">ยังเร็วกว่า iPhone</string>
+    <string name="general_progress_loading_egg_1">กำลังดาวน์โหลด RAM เพิ่ม</string>
+    <string name="general_progress_loading_egg_2">ETA: เร็ว ๆ นี้™</string>
+    <string name="general_progress_loading_egg_3">CPU กำลังพักดื่มกาแฟ</string>
+    <string name="general_progress_loading_egg_4">กำลังรอข้อมูลจาก Pepe Silvia</string>
+    <string name="general_progress_loading_egg_5">Turbo encabulator กำลังเริ่มทำงาน</string>
+    <string name="general_progress_loading_egg_6">กำลังส่งเนย</string>
+    <string name="general_progress_loading_egg_7">แล้วนี่ คุณไหวไหม</string>
+    <string name="general_progress_loading_egg_8">บี๊บ บูป บ็อบ</string>
+    <string name="general_progress_loading_egg_9">กำลังบัฟเฟอร์ทางเลือกชีวิต</string>
+    <string name="general_progress_loading_egg_10">กำลังเรียก Cthulhu</string>
+    <string name="general_progress_loading_egg_11">ไม่เป็นไร</string>
+    <string name="general_progress_loading_egg_12">กรุณารอสักครู่</string>
+    <string name="general_progress_loading_egg_13">อย่างน้อยคุณก็ไม่ต้องรอสาย</string>
+    <string name="general_progress_loading_egg_14">ทาตรงหน้าผากเลย</string>
+
+    <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="other">%dm</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="other">%d วินาที</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="other">%d นาที</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="other">%d ชั่วโมง</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="other">%d วัน</item>
+    </plurals>
+
+    <string name="general_view_action">ดู</string>
+    <string name="general_delete_action">ลบ</string>
+    <string name="general_show_details_action">แสดงรายละเอียด</string>
+    <string name="general_hide_details_action">ซ่อนรายละเอียด</string>
+
+    <string name="general_delete_confirmation_title">ยืนยันการลบ</string>
+    <string name="general_delete_confirmation_message_x">ลบ \"%s\" ใช่หรือไม่</string>
+    <string name="general_delete_confirmation_message_selected_x_items">ลบ %d รายการที่เลือกใช่หรือไม่</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="other">ลบแล้ว %d รายการ</item>
+    </plurals>
+
+    <string name="general_create_action">สร้าง</string>
+    <string name="general_rename_action">เปลี่ยนชื่อ</string>
+    <string name="general_retry_action">ลองใหม่</string>
+    <string name="general_open_setup_action">เปิดการตั้งค่าเริ่มต้น</string>
+    <string name="general_grant_usage_stats_action">อนุญาตการเข้าถึงข้อมูลการใช้งาน</string>
+    <string name="general_grant_storage_permission_action">อนุญาตสิทธิ์ที่เก็บข้อมูล</string>
+    <string name="general_grant_all_files_access_action">อนุญาตการเข้าถึงไฟล์ทั้งหมด</string>
+
+    <string name="general_result_user_cancel_msg">ผู้ใช้ยกเลิกการดำเนินการ</string>
+
+    <string name="general_path_label">เส้นทาง</string>
+    <string name="general_filename_validation_error">ชื่อมีอักขระที่ไม่ถูกต้อง: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d จาก %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d / %2$d</string>
+
+    <string name="file_type_symbolic_link">ลิงก์</string>
+    <string name="file_type_directory">โฟลเดอร์</string>
+    <string name="file_type_file">ไฟล์</string>
+    <string name="file_type_unknown">ไม่ทราบ</string>
+
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">รูปภาพ</string>
+    <string name="common_mimetype_video">วิดีโอ</string>
+    <string name="common_mimetype_audio">เสียง</string>
+    <string name="common_mimetype_text_plain">ข้อความธรรมดา</string>
+    <string name="common_mimetype_text">เอกสารข้อความ</string>
+    <string name="common_mimetype_pdf">เอกสาร PDF</string>
+    <string name="common_mimetype_document">เอกสาร</string>
+    <string name="common_mimetype_archive">ไฟล์บีบอัด</string>
+    <string name="common_mimetype_apk">แพ็กเกจ Android</string>
+    <string name="common_mimetype_json">ไฟล์ JSON</string>
+    <string name="common_mimetype_xml">ไฟล์ XML</string>
+    <string name="common_mimetype_unknown">ประเภทที่ไม่ทราบ</string>
+
+    <string name="general_rom_type_auto_label">อัตโนมัติ (ค่าเริ่มต้น)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="other">%s รายการ/วินาที</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="other">%s/วินาที</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">ประเภทไม่ตรงกัน: ต้องการ %1$s แต่ได้รับ %2$s</string>
+    <string name="general_error_cant_access_msg">ไม่สามารถเข้าถึง %s</string>
+    <string name="general_error_archive_not_seekable_msg">ไม่สามารถเรียกดู %s ได้โดยตรง เนื่องจากที่เก็บข้อมูลที่ไฟล์นี้อยู่รองรับการอ่านแบบลำดับเท่านั้น แต่รูปแบบไฟล์บีบอัดนี้ต้องการการเข้าถึงแบบสุ่ม</string>
+    <string name="general_error_root_unavailable">ไม่สามารถใช้สิทธิ์ root ได้</string>
+    <string name="general_error_elevated_access_required">การดำเนินการนี้ต้องใช้สิทธิ์ระดับสูง ตั้งค่า Root หรือ Shizuku ในการตั้งค่าเริ่มต้น</string>
+    <string name="general_error_no_compatible_app_found_msg">ไม่พบแอปที่รองรับสำหรับคำขอนี้</string>
+    <string name="general_error_ipc_deadobject_title">การเชื่อมต่อบริการหลุด</string>
+    <string name="general_error_ipc_deadobject_description">การเชื่อมต่อกับบริการสำคัญ (เช่น Magisk, Shizuku หรือบริการระดับระบบอื่น ๆ) ขาดหายไปอย่างไม่คาดคิด กรุณารีสตาร์ทอุปกรณ์ของคุณ หากปัญหายังคงอยู่ ให้ตรวจสอบการอัปเดตหรือติดต่อแจ้งปัญหาเพื่อรับการแก้ไข</string>
+
+    <string name="ui_theme_mode_dark_label">มืด</string>
+    <string name="ui_theme_mode_light_label">สว่าง</string>
+    <string name="ui_theme_mode_system_label">ระบบ</string>
+    <string name="ui_theme_style_default_label">ค่าเริ่มต้น</string>
+    <string name="ui_theme_style_medium_contrast_label">คอนทราสต์ปานกลาง</string>
+    <string name="ui_theme_style_high_contrast_label">คอนทราสต์สูง</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">เขียว</string>
+    <string name="ui_theme_color_blue_label">น้ำเงิน</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">กำหนดเอง</string>
+
+    <string name="ui_theme_palette_tonalspot_label">โทนสีนุ่มนวล</string>
+    <string name="ui_theme_palette_neutral_label">โทนสีกลาง</string>
+    <string name="ui_theme_palette_vibrant_label">โทนสีสดใส</string>
+    <string name="ui_theme_palette_expressive_label">โทนสีโดดเด่น</string>
+    <string name="ui_theme_palette_rainbow_label">โทนสีรุ้ง</string>
+    <string name="ui_theme_palette_fruitsalad_label">โทนสีผลไม้รวม</string>
+    <string name="ui_theme_palette_monochrome_label">โทนสีเดียว</string>
+    <string name="ui_theme_palette_fidelity_label">โทนสีตามต้นฉบับ</string>
+    <string name="ui_theme_palette_content_label">โทนสีตามภาพพื้นหลัง</string>
+
+    <string name="ui_theme_custom_dialog_title">ธีมกำหนดเอง</string>
+    <string name="ui_theme_custom_seed_label">สีตั้งต้น</string>
+    <string name="ui_theme_custom_palette_label">รูปแบบชุดสี</string>
+    <string name="ui_theme_custom_default_action">ค่าเริ่มต้น</string>
+
+    <string name="ui_mascot_suit_dialog_title">ชุดของ Butler</string>
+    <string name="ui_mascot_suit_default_action">ค่าเริ่มต้น</string>
+    <string name="ui_mascot_suit_hue_label">เฉดสี</string>
+    <string name="ui_mascot_suit_saturation_label">ความอิ่มตัวของสี</string>
+    <string name="ui_mascot_suit_brightness_label">ความสว่าง</string>
+    <string name="ui_mascot_suit_value_description">สีชุด %s</string>
+
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">สถิติการใช้งาน</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">การเข้าถึงการแจ้งเตือน</string>
+    <string name="setup_manage_storage_card_title">จัดการที่เก็บข้อมูลภายนอก</string>
+    <string name="setup_inventory_card_title">รายการแอปทั้งหมด</string>
+
+    <!-- Common permission strings -->
+    <string name="setup_required_card_title">ต้องตั้งค่าเริ่มต้น</string>
+    <string name="setup_required_card_body">ต้องตั้งค่าเพิ่มเติมเพื่อดำเนินการนี้</string>
+    <string name="setup_required_card_setup_action">เปิดการตั้งค่าเริ่มต้น</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">เปิดหลายแท็บหรือไม่</string>
+    <string name="common_open_tabs_confirmation_message">การดำเนินการนี้จะเปิดแท็บ %1$d แท็บ</string>
+    <string name="common_open_tabs_success">เปิดแท็บ %1$d แท็บแล้ว</string>
+    <string name="common_open_tabs_success_with_skipped">เปิดแท็บ %1$d แท็บแล้ว (ข้าม %2$d รายการ)</string>
+
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">ปิดแท็บหรือไม่</string>
+    <string name="general_tab_close_confirmation_message">ต้องการปิด \"%1$s\" ใช่หรือไม่</string>
+    <string name="general_tab_close_unsaved_title">การเปลี่ยนแปลงที่ยังไม่บันทึก</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" มีการเปลี่ยนแปลงที่ยังไม่บันทึก ต้องการปิดและละทิ้งการเปลี่ยนแปลงหรือไม่</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" และอีก %2$d รายการมีการเปลี่ยนแปลงที่ยังไม่บันทึก ต้องการปิดและละทิ้งการเปลี่ยนแปลงหรือไม่</string>
+    <string name="general_discard_action">ละทิ้ง</string>
+    <string name="general_tab_close_goto_action">ไปที่แท็บ</string>
+
+    <!-- Exit app -->
+    <string name="general_press_back_again_to_exit">กดย้อนกลับอีกครั้งเพื่อออก</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="other">เลือกแล้ว %d รายการ</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="other">%1$d โฟลเดอร์</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="other">%1$d ไฟล์</item>
+    </plurals>
+    <string name="common_select_all_folders_action">เลือกโฟลเดอร์ทั้งหมด</string>
+    <string name="common_select_all_files_action">เลือกไฟล์ทั้งหมด</string>
+    <string name="general_undo_action">เลิกทำ</string>
+
+    <!-- Guided tours -->
+    <string name="tour_action_next">ถัดไป</string>
+    <string name="tour_action_previous">ก่อนหน้า</string>
+    <string name="tour_action_cancel">ข้าม</string>
+    <string name="tour_confirm_title">ข้ามทัวร์นี้หรือไม่</string>
+    <string name="tour_confirm_message">คุณสามารถเปิดทัวร์อีกครั้งได้ทุกเมื่อจากการตั้งค่า</string>
+    <string name="tour_confirm_continue">ดำเนินทัวร์ต่อ</string>
+    <string name="tour_confirm_dont_show_this_tour">ไม่ต้องแสดงทัวร์นี้อีก</string>
+    <string name="tour_confirm_disable_all">ปิดทัวร์ทั้งหมด</string>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">ใช้หลายพาเนลเพื่อเปรียบเทียบไฟล์แบบเคียงข้างกัน</string>
+    <string name="common_tip_different_folders">เปิดโฟลเดอร์ต่างกันในแต่ละพาเนลเพื่อจัดการไฟล์ได้ง่ายขึ้น</string>
+    <string name="common_tip_switch_layouts">สลับรูปแบบพาเนลได้ในตัวจัดการการตั้งค่าแท็บ</string>
+    <string name="common_tip_elevated_access">เปิดใช้งาน root หรือ Shizuku ในการตั้งค่าเริ่มต้นเพื่อการดำเนินการไฟล์ขั้นสูง</string>
+    <string name="common_tip_breadcrumb_home">กดค้างที่แถบเส้นทางในตัวจัดการไฟล์เพื่อตั้งเป็นไดเรกทอรีหลักของคุณ</string>
+</resources>

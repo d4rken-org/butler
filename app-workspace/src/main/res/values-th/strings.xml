@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">คลิปบอร์ด</string>
+    <string name="clipboard_clear_all">ล้างทั้งหมด</string>
+    <string name="clipboard_paste">วาง</string>
+    <string name="clipboard_open_in_explorer">เปิดในตัวจัดการไฟล์</string>
+    <string name="clipboard_copy">คัดลอก</string>
+    <string name="clipboard_cut">ตัด</string>
+    <string name="clipboard_origin">ต้นทาง: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="other">คัดลอก %d รายการ</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="other">%d รายการจาก %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="other">ตัด %d รายการ</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="other">%d รายการจาก %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="other">%d ตำแหน่ง</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="other">%1$d รายการจาก %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="other">%1$d รายการจาก %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">ส่วนข้อความ</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="other">%1$d ตัวอักษร</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">วางเป็นไฟล์</string>
+    <string name="clipboard_text_info_characters">ตัวอักษร</string>
+    <string name="clipboard_text_info_lines">บรรทัด</string>
+    <string name="clipboard_text_info_content">เนื้อหา</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">ภาพรวม</string>
+    <string name="clipboard_info_operation">การดำเนินการ</string>
+    <string name="clipboard_info_items">รายการ</string>
+    <string name="clipboard_info_source">แหล่งที่มา</string>
+    <string name="clipboard_info_sources">แหล่งที่มา</string>
+    <string name="clipboard_info_workspace">เวิร์กสเปซ</string>
+    <string name="clipboard_info_workspace_closed">ปิดแล้ว</string>
+    <string name="clipboard_info_time">เวลา</string>
+    <string name="clipboard_info_items_with_count">รายการ (%1$d)</string>
+    <string name="clipboard_info_actions">การกระทำ</string>
+    <string name="clipboard_info_go_to_source">ไปที่แหล่งที่มา</string>
+    <string name="clipboard_info_go_to_first_source">ไปที่แหล่งที่มาแรก</string>
+    <string name="clipboard_info_remove">ลบออกจากคลิปบอร์ด</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">คลิปบอร์ด</string>
+    <string name="clipboard_settings_remove_on_paste_title">ลบเมื่อวาง</string>
+    <string name="clipboard_settings_remove_on_paste_desc">ลบรายการที่คัดลอกออกจากคลิปบอร์ดหลังวาง</string>
+    <string name="clipboard_settings_max_items_title">จำนวนรายการสูงสุด</string>
+    <string name="clipboard_settings_max_items_desc">จำนวนรายการสูงสุดในคลิปบอร์ด</string>
+
+    <string name="workspace_explorer_label">ตัวจัดการไฟล์</string>
+    <string name="workspace_searcher_label">ค้นหา</string>
+    <string name="workspace_editor_label">ตัวแก้ไข</string>
+    <string name="workspace_templates_label">เทมเพลต</string>
+    <string name="workspace_apps_label">แอป</string>
+    <string name="workspace_appdetails_label">รายละเอียดแอป</string>
+    <string name="workspace_saver_label">บันทึกเป็น</string>
+    <string name="workspace_developer_label">นักพัฒนา</string>
+    <string name="workspace_history_label">ประวัติ</string>
+    <string name="workspace_bugreport_label">รายงานข้อบกพร่อง</string>
+    <string name="workspace_viewer_label">ตัวดูไฟล์</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">รูปภาพ</string>
+    <string name="workspace_searcher_target_videos">วิดีโอ</string>
+    <string name="workspace_searcher_target_music">เพลง</string>
+    <string name="workspace_searcher_target_downloads">ดาวน์โหลด</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">เพิ่มเติม</string>
+    <string name="workspace_expand_less_action">น้อยลง</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">แท็บและเวิร์กสเปซ</string>
+    <string name="workspace_button_menu_new_workspace_format">%1$s ใหม่</string>
+    <string name="workspace_button_menu_new_tab_action">แท็บใหม่</string>
+    <string name="workspace_button_menu_category_recent">ล่าสุด</string>
+    <string name="workspace_button_menu_category_other">อื่นๆ</string>
+    <string name="workspace_button_menu_category_current_tab">แท็บนี้</string>
+    <string name="workspace_button_menu_manager_action">ตัวจัดการแท็บ</string>
+    <string name="workspace_button_menu_layout_action">เค้าโครง</string>
+    <string name="workspace_button_menu_close_current_action">ปิดแท็บปัจจุบัน</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="other">ปิดแท็บปัจจุบัน (เวิร์กสเปซ %d รายการ)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">การตั้งค่า</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">ปิดแท็บทั้งหมด?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="other">การกระทำนี้จะปิดแท็บที่เปิดอยู่ %1$d แท็บ การกระทำนี้ไม่สามารถย้อนกลับได้</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">ปิดทั้งหมด</string>
+    <string name="workspace_manager_close_all_unsaved_warning">บางแท็บมีการเปลี่ยนแปลงที่ยังไม่บันทึกซึ่งจะสูญหาย</string>
+    <string name="workspace_manager_close_all_unsaved_action">ละทิ้งทั้งหมด</string>
+    <string name="workspace_manager_close_selected_title">ปิดแท็บที่เลือก?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="other">การกระทำนี้จะปิดแท็บที่เลือกไว้ %1$d แท็บ การกระทำนี้ไม่สามารถย้อนกลับได้</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">ปิดที่เลือก</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">บางแท็บที่เลือกไว้มีการเปลี่ยนแปลงที่ยังไม่บันทึกซึ่งจะสูญหาย</string>
+    <string name="workspace_manager_close_selected_unsaved_action">ละทิ้งที่เลือก</string>
+    <string name="workspace_manager_pause_partial_title">หยุดแท็บชั่วคราว?</string>
+    <string name="workspace_manager_pause_partial_message">%1$d จาก %2$d แท็บที่เลือกสามารถหยุดชั่วคราวได้ ส่วนที่เหลือกำลังใช้งานอยู่ มีการเปลี่ยนแปลงที่ยังไม่บันทึก หรือเปิดอยู่ในขณะนี้</string>
+    <string name="workspace_manager_pause_partial_action">หยุดชั่วคราว %1$d</string>
+    <string name="general_cancel_action">ยกเลิก</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">การดำเนินการ</string>
+    <string name="operations_clear_completed">ล้างรายการที่เสร็จสิ้น</string>
+    <string name="operations_state_queued">อยู่ในคิว</string>
+    <string name="operations_state_running">กำลังทำงาน</string>
+    <string name="operations_state_waiting">รอการป้อนข้อมูล</string>
+    <string name="operations_state_successful">สำเร็จ</string>
+    <string name="operations_state_failed">ล้มเหลว</string>
+    <string name="operations_state_cancelled">ยกเลิกแล้ว</string>
+    <string name="operations_state_cancelling">กำลังยกเลิก…</string>
+    <string name="operations_cancel_operation">ยกเลิกการดำเนินการ</string>
+    <string name="operations_cancel_dialog_title">ยกเลิกการดำเนินการ?</string>
+    <string name="operations_cancel_dialog_message">คุณแน่ใจหรือไม่ว่าต้องการยกเลิกการดำเนินการนี้?</string>
+    <string name="operations_cancel_dialog_warning">การยกเลิกอาจทำให้ไฟล์อยู่ในสถานะที่ไม่สมบูรณ์</string>
+    <string name="operations_details_started_at">เริ่มเมื่อ</string>
+    <string name="operations_details_completed_at">เสร็จสิ้นเมื่อ</string>
+    <string name="operations_details_duration">ระยะเวลา</string>
+    <string name="operations_details_duration_not_started">ยังไม่เริ่ม</string>
+    <string name="operations_details_progress">ความคืบหน้า</string>
+    <string name="operations_details_error">รายละเอียดข้อผิดพลาด</string>
+    <string name="operations_details_actions">การกระทำ</string>
+    <string name="operations_details_overview">ภาพรวม</string>
+    <string name="operations_details_handle_issue">จัดการปัญหา</string>
+    <string name="operations_details_show_in_history_action">แสดงในประวัติ</string>
+    <string name="operations_details_status">สถานะ</string>
+    <string name="operations_details_result">ผลลัพธ์</string>
+    <string name="operations_details_destination_folder">โฟลเดอร์ปลายทาง</string>
+    <string name="operations_details_destination_path">เส้นทางปลายทาง</string>
+    <string name="operations_details_affected_paths_with_count">เส้นทางที่ได้รับผลกระทบ (%d)</string>
+    <string name="operations_details_problems_with_count">ปัญหา (%d)</string>
+    <string name="operations_details_problems_more">อีก %d รายการที่ไม่ได้แสดง</string>
+    <string name="workspace_operation_packages_section_title">แอป</string>
+    <string name="workspace_operation_package_status_done">เสร็จสิ้น</string>
+    <string name="workspace_operation_package_status_failed">ล้มเหลว</string>
+    <string name="workspace_operation_package_status_declined">ปฏิเสธแล้ว</string>
+    <string name="operations_details_section_expand">ขยาย %1$s</string>
+    <string name="operations_details_section_collapse">ย่อ %1$s</string>
+    <string name="workspace_operations_performance_graph_label">กราฟประสิทธิภาพ</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">ลบรายการนี้?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="other">ลบ %1$d รายการ?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">รายการนี้จะถูกลบถาวร:</string>
+    <string name="workspace_dialog_delete_message_multiple">รายการเหล่านี้จะถูกลบถาวร:</string>
+    <string name="workspace_dialog_delete_more_items">…และอีก %1$d รายการ</string>
+    <string name="workspace_dialog_delete_warning">การกระทำนี้ไม่สามารถย้อนกลับได้</string>
+    <string name="workspace_dialog_delete_permanently_action">ลบถาวร</string>
+    <string name="workspace_dialog_delete_permanently_toggle">ลบถาวรแทน</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">บางรายการไม่สามารถย้ายไปถังขยะได้ และจะได้รับการจัดการแยกต่างหาก</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">ย้ายไปถังขยะ?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="other">ย้าย %1$d รายการไปถังขยะ?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">รายการนี้จะถูกย้ายไปถังขยะ:</string>
+    <string name="workspace_dialog_trash_message_multiple">รายการเหล่านี้จะถูกย้ายไปถังขยะ:</string>
+    <string name="workspace_dialog_trash_hint">ค้นหาได้ในตำแหน่งถังขยะ</string>
+    <string name="workspace_dialog_move_to_trash_action">ย้าย</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="other">%d รายการที่เลือก</item>
+    </plurals>
+    <string name="workspace_action_more">การกระทำเพิ่มเติม</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">การลบไฟล์</string>
+    <string name="workspace_operation_delete_description_single">ลบ \"%1$s\" จาก \"%2$s\"</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="other">ลบ %1$d รายการจาก \"%2$s\"</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">การติดตั้งแอป</string>
+    <string name="workspace_operation_install_description">ติดตั้ง \"%1$s\"</string>
+    <string name="workspace_operation_install_progress_inspecting">กำลังอ่านแพ็กเกจ…</string>
+    <string name="workspace_operation_install_progress_extracting">กำลังแตกไฟล์…</string>
+    <string name="workspace_operation_install_progress_writing">กำลังส่งไฟล์ไปยังตัวติดตั้ง…</string>
+    <string name="workspace_operation_install_progress_committing">กำลังเสร็จสิ้นการติดตั้ง…</string>
+    <string name="workspace_operation_install_progress_placing_obb">กำลังวางไฟล์ส่วนขยาย…</string>
+    <string name="workspace_operation_install_summary_success">ติดตั้ง %1$s แล้ว</string>
+    <string name="workspace_operation_install_summary_success_partial">ติดตั้ง %1$s แล้ว แต่ไม่สามารถวางไฟล์ส่วนขยายได้</string>
+    <string name="workspace_install_unknown_sources_required">Butler ต้องการสิทธิ์ในการติดตั้งแอป ให้สิทธิ์ในหน้าการตั้งค่าที่เพิ่งเปิดขึ้น แล้วลองอีกครั้ง</string>
+    <string name="workspace_install_obb_failed">ติดตั้งแอปแล้ว แต่ไม่สามารถวางไฟล์ส่วนขยายได้: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="other">ลบไฟล์แล้ว %1$d ไฟล์</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="other">ลบโฟลเดอร์แล้ว %1$d โฟลเดอร์</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="other">ข้าม %1$d รายการ</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="other">คืนพื้นที่ว่าง %1$s</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">กำลังย้ายไปถังขยะ…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="other">ย้ายไฟล์ไปถังขยะแล้ว %1$d ไฟล์</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="other">ย้ายโฟลเดอร์ไปถังขยะแล้ว %1$d โฟลเดอร์</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">คืนพื้นที่ว่าง %1$s/s</string>
+    <string name="workspace_operation_progress_bytes_freed">คืนพื้นที่ว่าง %1$s</string>
+    <string name="workspace_operation_progress_time_remaining">เหลืออีก %1$s</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">ข้อมูล</string>
+    <string name="workspace_file_info_name_label">ชื่อ</string>
+    <string name="workspace_file_info_path_label">เส้นทาง</string>
+    <string name="workspace_file_info_type_label">ประเภท</string>
+    <string name="workspace_file_info_type_file">ไฟล์</string>
+    <string name="workspace_file_info_type_directory">โฟลเดอร์</string>
+    <string name="workspace_file_info_type_symlink">ลิงก์สัญลักษณ์</string>
+    <string name="workspace_file_info_type_unknown">ไม่ทราบ</string>
+    <string name="workspace_file_info_size_label">ขนาด</string>
+    <string name="workspace_file_info_modified_label">แก้ไขเมื่อ</string>
+    <string name="workspace_file_info_created_label">สร้างเมื่อ</string>
+    <string name="workspace_file_info_permissions_label">สิทธิ์</string>
+    <string name="workspace_file_info_owner_label">เจ้าของ</string>
+    <string name="workspace_file_info_child_count_label">รายการ</string>
+    <string name="workspace_file_info_symlink_target_label">เป้าหมาย</string>
+    <string name="workspace_file_info_unknown">ไม่ทราบ</string>
+    <string name="workspace_file_info_copy_action">คัดลอกไปยังคลิปบอร์ด</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">ที่เลือก</string>
+    <string name="workspace_file_info_files_label">ไฟล์</string>
+    <string name="workspace_file_info_directories_label">โฟลเดอร์</string>
+    <string name="workspace_file_info_total_size_label">ขนาดรวม</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">การดำเนินการนี้ยังไม่เริ่ม</string>
+    <string name="workspace_operation_performance_unavailable_collecting">กำลังรวบรวมข้อมูลประสิทธิภาพ…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">มีข้อมูลประสิทธิภาพจากการดำเนินการนี้ไม่เพียงพอที่จะสร้างกราฟ</string>
+    <string name="workspace_operation_performance_unavailable_not_available">ไม่มีข้อมูลประสิทธิภาพสำหรับการดำเนินการนี้</string>
+    <string name="workspace_operation_performance_window_seconds">%1$d วินาทีล่าสุด</string>
+    <string name="workspace_operation_performance_window_minutes">%1$d นาทีล่าสุด</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">รายการ/วินาที</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">แสดงรายละเอียดทางเทคนิค</string>
+    <string name="workspace_error_hide_details_action">ซ่อนรายละเอียดทางเทคนิค</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">กำลังเริ่มต้นแท็บ</string>
+    <string name="workspace_error_subtitle">เกิดข้อผิดพลาดที่ไม่คาดคิด</string>
+    <string name="workspace_close_tab_action">ปิดแท็บ</string>
+    <string name="workspace_paused_body">แท็บนี้หยุดชั่วคราวเพื่อประหยัดหน่วยความจำและแบตเตอรี่ ดำเนินการต่อเพื่อใช้งานต่อ</string>
+    <string name="workspace_paused_error_body">ไม่สามารถดำเนินการแท็บนี้ต่อได้</string>
+    <string name="workspace_paused_resume_action">ดำเนินการต่อ</string>
+    <string name="workspace_paused_label">หยุดชั่วคราว</string>
+    <string name="workspace_paused_content_label">เนื้อหาแท็บ</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">ไฟล์ที่มีอยู่</string>
+    <string name="workspace_issue_collision_existing_folder_label">โฟลเดอร์ที่มีอยู่</string>
+    <string name="workspace_issue_collision_new_file">ไฟล์ที่เข้ามา</string>
+    <string name="workspace_issue_collision_new_folder">โฟลเดอร์ที่เข้ามา</string>
+    <string name="workspace_issue_collision_overwrite">แทนที่</string>
+    <string name="workspace_issue_collision_merge">ผสาน</string>
+    <string name="workspace_issue_common_source_file">ไฟล์ต้นทาง</string>
+    <string name="workspace_issue_common_destination_file">ปลายทาง</string>
+    <string name="workspace_issue_common_skip">ข้าม</string>
+    <string name="workspace_issue_common_rename">เปลี่ยนชื่อ</string>
+    <string name="workspace_issue_common_rename_new">เปลี่ยนชื่อใหม่</string>
+    <string name="workspace_issue_common_rename_existing">เปลี่ยนชื่อเดิม</string>
+    <string name="workspace_issue_common_cancel">ยกเลิก</string>
+    <string name="workspace_issue_common_delete_permanently">ลบถาวร</string>
+    <string name="workspace_issue_archive_password_label">รหัสผ่าน</string>
+    <string name="workspace_issue_archive_password_unlock">ปลดล็อก</string>
+    <string name="workspace_issue_trash_move_failed_items_label">รายการที่ล้มเหลว</string>
+    <string name="workspace_issue_trash_move_failed_more_items">…และอีก %1$d รายการ</string>
+    <string name="workspace_issue_trash_not_supported_items_label">รายการที่ได้รับผลกระทบ</string>
+    <string name="workspace_issue_trash_not_supported_more_items">…และอีก %1$d รายการ</string>
+    <string name="workspace_issue_apply_all">ใช้กับปัญหาที่เหลือทั้งหมด</string>
+    <string name="workspace_issue_rename_new_name">ชื่อใหม่</string>
+    <string name="workspace_issue_rename_dialog_title_new">เปลี่ยนชื่อไฟล์ที่เข้ามา</string>
+    <string name="workspace_issue_rename_dialog_title_existing">เปลี่ยนชื่อไฟล์เดิม</string>
+    <string name="workspace_issue_type_folder">โฟลเดอร์</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">เปิดหลายแท็บ?</string>
+    <string name="workspace_open_tabs_confirmation_message">การกระทำนี้จะเปิด %1$d แท็บ</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">เปิดด้วย</string>
+    <string name="workspace_open_with_no_app_label">ไม่พบแอปอื่น</string>
+    <string name="workspace_open_with_no_app_description">ไม่มีแอปอื่นที่ติดตั้งไว้สามารถเปิด %1$s ได้</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="other">เปิด %1$d แท็บแล้ว</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="other">ปิดไม่ได้: มีการดำเนินการกำลังทำงานอยู่ใน %1$d แท็บ</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">แท็บ</string>
+    <string name="workspace_settings_navigation">การนำทาง</string>
+    <string name="workspace_settings_swipe_gestures_title">ท่าทางปัด</string>
+    <string name="workspace_settings_swipe_gestures_desc">ปัดซ้ายหรือขวาเพื่อสลับระหว่างแท็บ</string>
+    <string name="workspace_settings_ondemand_creation_title">สร้างแท็บอัตโนมัติ</string>
+    <string name="workspace_settings_ondemand_creation_desc">สร้างแท็บใหม่โดยอัตโนมัติเมื่อปัดเลยแท็บสุดท้าย</string>
+    <string name="workspace_settings_newtab_type_title">ประเภทแท็บใหม่</string>
+    <string name="workspace_settings_newtab_type_desc">เวิร์กสเปซที่จะเปิดเมื่อปัดเลยแท็บสุดท้าย เพิ่มแท็บในพาเนลที่ว่าง หรือสร้างแท็บแรก</string>
+    <string name="workspace_settings_newtab_type_ask">ถามทุกครั้ง</string>
+    <string name="workspace_settings_newtab_type_ask_desc">แสดงตัวเลือกประเภทแท็บสำหรับแท็บใหม่ทุกครั้ง</string>
+    <string name="workspace_settings_live_preview_title">ดูตัวอย่างสด</string>
+    <string name="workspace_settings_live_preview_desc">แสดงเนื้อหาแท็บแบบสดในตัวจัดการแท็บ</string>
+    <string name="workspace_settings_other">อื่นๆ</string>
+    <string name="workspace_settings_layout_title">เค้าโครง</string>
+    <string name="workspace_settings_layout_mode_portrait_title">โหมดเค้าโครงแนวตั้ง</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">เลือกเค้าโครงแท็บในแนวตั้ง</string>
+    <string name="workspace_settings_layout_mode_landscape_title">โหมดเค้าโครงแนวนอน</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">เลือกเค้าโครงแท็บในแนวนอน</string>
+    <string name="workspace_settings_layout_mode_auto">อัตโนมัติ</string>
+    <string name="workspace_settings_layout_mode_auto_desc">คลาสสิกบนหน้าจอขนาดเล็ก รางแท็บพร้อมพาเนลบนหน้าจอขนาดใหญ่</string>
+    <string name="workspace_settings_layout_mode_classic">คลาสสิก</string>
+    <string name="workspace_settings_layout_mode_classic_desc">แสดงพาเนลเดียวทีละครั้ง ไม่มีรางแท็บ</string>
+    <string name="workspace_settings_layout_mode_adaptive">อแดปทีฟ</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">รางแท็บพร้อมพาเนลมากเท่าที่หน้าจอรองรับ ปักหมุดเค้าโครงได้จากเมนู Butler ในราง</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">อแดปทีฟ (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">เดี่ยวพร้อมรางแท็บ</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">พาเนลแท็บเดียวพร้อมรางแท็บของเค้าโครงหลายพาเนล สลับแท็บจากรางแทนการปัด รางจะใช้พื้นที่แถบหนึ่งของหน้าจอ</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">คู่แนวตั้ง</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">สองพาเนลเรียงข้างกัน (ซ้าย/ขวา)</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">คู่แนวนอน</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">สองพาเนลเรียงซ้อนกัน (บน/ล่าง)</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">สามพาเนลแถบซ้าย</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">พาเนลใหญ่หนึ่งอันด้านซ้าย พาเนลเล็กสองอันซ้อนกันด้านขวา</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">สามพาเนลแถบขวา</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">พาเนลเล็กสองอันซ้อนกันด้านซ้าย พาเนลใหญ่หนึ่งอันด้านขวา</string>
+    <string name="workspace_settings_layout_mode_quad_grid">กริดสี่พาเนล</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">สี่พาเนลในกริด 2×2</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">คลิกเพื่อโฟกัส</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">การคลิกครั้งแรกบนพาเนลที่ไม่ได้โฟกัสจะโฟกัสพาเนลนั้นเท่านั้น และพาเนลที่ไม่ได้โฟกัสจะไม่ตอบสนองต่อตัวชี้เมาส์ ปิดการใช้งานเพื่อโต้ตอบกับพาเนลเหล่านั้นได้โดยตรง</string>
+
+    <string name="workspace_settings_rail_button_title">ปุ่ม Butler</string>
+    <string name="workspace_settings_rail_button_desc">เลือกตำแหน่งปุ่ม Butler บนรางแท็บ</string>
+    <string name="workspace_settings_rail_button_leading">เริ่มต้น</string>
+    <string name="workspace_settings_rail_button_leading_desc">ก่อนแท็บในแนวตั้ง อยู่เหนือแท็บในแนวนอน</string>
+    <string name="workspace_settings_rail_button_trailing">สิ้นสุด</string>
+    <string name="workspace_settings_rail_button_trailing_desc">หลังแท็บในแนวตั้ง อยู่ใต้แท็บในแนวนอน อยู่ในระยะนิ้วหัวแม่มือสำหรับการใช้งานมือเดียว</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">เซสชัน</string>
+    <string name="workspace_settings_session_restore_title">เรียกคืนแท็บเมื่อเริ่มต้น</string>
+    <string name="workspace_settings_session_restore_desc">เรียกคืนแท็บที่เปิดไว้ก่อนหน้าโดยอัตโนมัติเมื่อแอปเริ่มทำงาน</string>
+    <string name="workspace_settings_autopause_title">หยุดแท็บที่ไม่ได้ใช้งานชั่วคราว</string>
+    <string name="workspace_settings_autopause_desc">แท็บที่คุณไม่ได้ดูมาระยะหนึ่งจะหยุดชั่วคราวเพื่อประหยัดหน่วยความจำและแบตเตอรี่ การเปิดแท็บจะดำเนินการต่อ</string>
+    <string name="workspace_settings_autopause_delay_title">หยุดชั่วคราวหลังจาก</string>
+    <string name="workspace_settings_autopause_delay_desc">ระยะเวลาที่แท็บอยู่นอกสายตาก่อนที่จะหยุดชั่วคราว</string>
+    <string name="workspace_settings_undoclose_title">เลิกทำการปิดแท็บ</string>
+    <string name="workspace_settings_undoclose_desc">การปิดแท็บจะเสนอให้นำกลับมาได้ภายในไม่กี่วินาที</string>
+    <string name="workspace_settings_session_data_title">ข้อมูลเซสชัน</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="other">%1$d แท็บ • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">ปิด \"%1$s\" แล้ว</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">การเรียกคืนเซสชันล้มเหลว</string>
+    <string name="workspace_session_restoration_error_description">ไม่สามารถเรียกคืนเซสชันแท็บก่อนหน้าของคุณได้ ซึ่งอาจเกิดจากข้อบกพร่องที่จะได้รับการแก้ไขในการอัปเดตครั้งถัดไป\n\nคุณสามารถล้างเซสชันที่บันทึกไว้เพื่อใช้งาน Butler ต่อ หรือรอการอัปเดต</string>
+    <string name="workspace_session_restoration_error_clear_action">ล้างเซสชัน</string>
+    <string name="workspace_session_restoration_error_report_action">รายงานปัญหา</string>
+    <string name="workspace_session_restoration_error_confirm_title">ล้างเซสชัน?</string>
+    <string name="workspace_session_restoration_error_confirm_description">การกระทำนี้จะลบเซสชันแท็บที่บันทึกไว้ของคุณอย่างถาวร การกระทำนี้ไม่สามารถย้อนกลับได้</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">เปลี่ยนชื่อแท็บ</string>
+    <string name="workspace_rename_name_label">ชื่อกำหนดเอง</string>
+    <string name="workspace_rename_name_hint">เว้นว่างเพื่อใช้ชื่ออัตโนมัติ</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">ถึงขีดจำกัดแท็บแล้ว</string>
+    <string name="workspace_limit_reached_message">ผู้ใช้ฟรีสามารถเปิดแท็บได้สูงสุด %1$d แท็บพร้อมกัน อัปเกรดเป็น Butler Pro เพื่อเปิดแท็บได้ไม่จำกัด!</string>
+    <string name="workspace_limit_pick_tabs_message">แผนฟรีของคุณอนุญาตให้เปิดแท็บได้ %1$d แท็บ เลือกแท็บที่ไม่ต้องการแล้วปิดเพื่อเปิดพื้นที่ว่าง</string>
+    <string name="workspace_limit_no_slot_hint">การปิดแท็บจะยังไม่เปิดช่องว่างตอนนี้</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="other">ปิด %d แท็บ</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="other">เลือกอย่างน้อย %d แท็บเพื่อปิด</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">เปิด %1$s แล้ว</string>
+    <string name="workspace_limit_blocker_unsaved">การเปลี่ยนแปลงที่ยังไม่บันทึก</string>
+    <string name="workspace_limit_blocker_busy">ไม่ว่างในตอนนี้</string>
+    <string name="workspace_limit_blocker_attention">รอคุณอยู่</string>
+    <string name="workspace_limit_blocker_loading">กำลังโหลดอยู่</string>
+    <string name="workspace_limit_blocker_awaiting_result">จัดการตัวเลือกที่เปิดอยู่ให้เสร็จก่อน</string>
+    <string name="workspace_limit_blocker_unavailable">ยังปิดไม่ได้ในขณะนี้</string>
+    <string name="workspace_limit_stacked_content_desc">การปิดแท็บนี้จะปิดสิ่งที่ซ้อนอยู่บนแท็บนี้ด้วย</string>
+    <string name="workspace_limit_pro_description">เปิดแท็บได้มากเท่าที่ต้องการ</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="other">%1$d รายการ</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">การกู้คืนจากถังขยะ</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="other">กู้คืน %d รายการจากถังขยะ</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="other">กู้คืน %d รายการแล้ว</item>
+    </plurals>
+</resources>

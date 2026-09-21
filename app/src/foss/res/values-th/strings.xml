@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">ต้องการ Butler FOSS</string>
+
+    <string name="upgrade_prompt_title">อัปเกรด Butler</string>
+    <string name="upgrade_prompt_body">ปลดล็อกฟีเจอร์เพิ่มเติมและเป็นผู้สนับสนุนเพื่อสนับสนุนการพัฒนาต่อ</string>
+    <string name="upgrade_prompt_upgrade_action">อัปเกรด</string>
+
+    <string name="upgrade_screen_title">อัปเกรด Butler</string>
+    <string name="upgrade_screen_preamble">Butler ไม่มีโฆษณาและไม่ขายข้อมูลผู้ใช้ การพัฒนาต่อเนื่องทำได้ก็เพราะคุณ</string>
+    <string name="upgrade_screen_how_title">วิธีช่วยเหลือ</string>
+    <string name="upgrade_screen_how_body">เป็นผู้สนับสนุนและให้การอุดหนุนการพัฒนา แตะปุ่มด้านล่างเพื่อเปิดใช้ฟีเจอร์พิเศษทั้งหมดและเปิดโปรไฟล์ GitHub Sponsors ของฉัน</string>
+
+    <string name="upgrade_screen_sponsor_action">สนับสนุนการพัฒนา</string>
+    <string name="upgrade_screen_sponsor_action_hint">ทางเลือกอื่นคือ โฆษณา การวิเคราะห์ และ Google Play 🙁</string>
+    <string name="upgrade_screen_thanks_toast">ขอบคุณที่สนับสนุนการพัฒนาโอเพนซอร์ส ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">กลับมาแล้ว? การสนับสนุนของคุณทำให้ Butler มีชีวิต โปรดใช้เวลาตรวจสอบหน้าสปอนเซอร์</string>
+    <string name="upgrade_screen_sponsor_open_failed">ไม่สามารถเปิดหน้าสปอนเซอร์ได้ ลองเปิดในเบราว์เซอร์แทน</string>
+
+    <string name="upgrade_screen_status_free_title">คุณใช้เวอร์ชันฟรี</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS เป็นโอเพนซอร์สแบบเต็ม ปลดล็อกฟีเจอร์พิเศษโดยการสนับสนุนการพัฒนา</string>
+    <string name="upgrade_screen_status_free_action">ดูตัวเลือกการอัปเกรด</string>
+    <string name="upgrade_screen_status_upgraded_title">คุณเป็นผู้สนับสนุน</string>
+    <string name="upgrade_screen_status_upgraded_body">ขอบคุณที่สนับสนุนการพัฒนาโอเพนซอร์ส ❤️ ฟีเจอร์พิเศษทั้งหมดปลดล็อกแล้ว</string>
+    <string name="upgrade_screen_supporter_since">ผู้สนับสนุนตั้งแต่ %s</string>
+    <string name="upgrade_screen_recurring_title">ดำเนินการต่อ</string>
+    <string name="upgrade_screen_recurring_body">Butler ถูกพัฒนาในเวลาว่างของฉัน การบริจาคซ้ำๆ ช่วยให้มันคงอยู่</string>
+    <string name="upgrade_screen_recurring_action">เป็นสปอนเซอร์ที่บริจาคซ้ำ</string>
+
+    <string name="upgrade_benefits_title">ประโยชน์จากการอัปเกรด</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• แท็บและการดำเนินการไม่จำกัด\n• ปรับแต่งการออกแบบและลักษณะ\n• ตัวเลือกและฟีเจอร์พิเศษสำหรับแต่ละเครื่องมือ\n• การเข้าถึงฟีเจอร์ใหม่ก่อน\n• นักพัฒนาที่มีความสามารถ 🧙\nและอื่นๆ อีก…</string>
+</resources>

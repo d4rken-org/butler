@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">การเข้าถึงอุปกรณ์ขั้นสูง</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">อุปกรณ์</string>
+    <string name="documents_connection_device_summary">ที่เก็บข้อมูลอุปกรณ์ท้องถิ่น</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">ระบบไฟล์รูท</string>
+    <string name="provider_documents_storage_internal_label">ที่เก็บข้อมูลภายใน</string>
+    <string name="provider_documents_storage_sd_card_label">การ์ด SD</string>
+    <string name="provider_documents_storage_saf_label">ตำแหน่ง SAF</string>
+    <string name="provider_documents_storage_free_suffix">ว่าง</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">ต้องมีสิทธิ์รูทเพื่อเรียกดูตำแหน่งนี้ เปิดใช้การเข้าถึงรูทในการตั้งค่าแอป Butler</string>
+    <string name="provider_documents_error_requires_adb">ต้องมีสิทธิ์ ADB/Shizuku เพื่อเรียกดูตำแหน่งนี้ เปิดใช้ Shizuku ในการตั้งค่าแอป Butler</string>
+    <string name="provider_documents_error_requires_storage">ต้องมีสิทธิ์ที่เก็บข้อมูลเพื่อเรียกดูตำแหน่งนี้ ให้สิทธิ์ที่เก็บข้อมูลในการตั้งค่าแอป Butler</string>
+    <string name="provider_documents_error_requires_permissions">ต้องมีสิทธิ์เพิ่มเติมเพื่อเรียกดูตำแหน่งนี้ ตรวจสอบการตั้งค่าแอป Butler</string>
+    <string name="provider_documents_error_generic">ไม่สามารถเข้าถึงตำแหน่งนี้ได้ ตรวจสอบแอป Butler สำหรับตัวเลือกการเข้าถึง</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">ผู้ให้บริการเอกสาร</string>
+    <string name="provider_documents_settings_subtitle">การรวมแอปภายนอก</string>
+    <string name="provider_documents_settings_category_integration_label">การรวมตัว</string>
+    <string name="provider_documents_enabled_title">เปิดใช้ผู้ให้บริการเอกสาร</string>
+    <string name="provider_documents_enabled_desc">อนุญาตให้แอปอื่นเข้าถึงไฟล์ผ่าน Butler โดยใช้ตัวเลือกไฟล์ของ Android</string>
+</resources>

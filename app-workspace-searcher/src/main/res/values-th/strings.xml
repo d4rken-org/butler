@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">ค้นหา</string>
+    <string name="searcher_subtitle">ค้นหาไฟล์และเนื้อหา</string>
+    <!-- แท็บย่อยแสดงสถานที่ค้นหา เช่น "ดาวน์โหลด รูปภาพ +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">การตั้งค่าค้นหา</string>
+    <string name="searcher_settings_search_category">ค้นหา</string>
+    <string name="searcher_settings_history">ประวัติการค้นหา</string>
+    <string name="searcher_settings_save_history_title">บันทึกประวัติการค้นหา</string>
+    <string name="searcher_settings_save_history_subtitle">จำไว้การค้นหาครั้งก่อน</string>
+    <string name="searcher_settings_max_history_label">จำนวนประวัติสูงสุด</string>
+    <string name="searcher_settings_max_history_subtitle">จำนวนการค้นหาที่บันทึกไว้สูงสุด</string>
+    <string name="searcher_settings_max_history_input_label">จำนวนรายการ (1–500)</string>
+    <string name="searcher_settings_clear_history_title">ล้างประวัติการค้นหา</string>
+    <string name="searcher_settings_clear_history_subtitle">ลบการค้นหาที่บันทึกไว้ทั้งหมด (%1$d)</string>
+    <string name="searcher_settings_search_performance">ประสิทธิภาพ</string>
+    <string name="searcher_settings_max_results_title">ผลการค้นหาสูงสุด</string>
+    <string name="searcher_settings_max_results_subtitle">จำกัดจำนวนผลการค้นหาที่ส่งกลับต่อครั้ง</string>
+    <string name="searcher_settings_content_search_category">ค้นหาเนื้อหา</string>
+    <string name="searcher_settings_include_binaries_title">รวมไฟล์ไบนารี</string>
+    <string name="searcher_settings_include_binaries_subtitle">ค้นหาเนื้อหาของไฟล์ไบนารี (อาจช้าและให้ผลลัพธ์ที่ไม่เกี่ยวข้อง)</string>
+
+    <!-- ส่วนต่อประสานผู้ใช้ค้นหา -->
+    <string name="searcher_recent_searches">การค้นหาล่าสุด</string>
+    <string name="searcher_placeholder_search">ค้นหาไฟล์และโฟลเดอร์</string>
+    <string name="searcher_placeholder_filename">ชื่อไฟล์</string>
+    <string name="searcher_placeholder_content">เนื้อหา</string>
+    <string name="searcher_search_error">ข้อผิดพลาดในการค้นหา</string>
+    <string name="searcher_no_paths_hint">แตะ + เพื่อเพิ่มสถานที่ค้นหา</string>
+    <string name="searcher_add_path_action">เพิ่มสถานที่</string>
+    <string name="searcher_add_folder_action">โฟลเดอร์…</string>
+    <string name="searcher_multipath_show_fewer_action">แสดงน้อยลง</string>
+    <string name="searcher_empty_state_title">ไม่มีการตั้งค่าเส้นทางการค้นหา</string>
+    <string name="searcher_empty_state_description">เพิ่มสถานที่เก็บข้อมูลเพื่อค้นหาไฟล์ของคุณ</string>
+    <string name="searcher_add_default_paths_action">เพิ่มเส้นทางการค้นหาเริ่มต้น</string>
+
+    <!-- ตัวเลือกการค้นหา -->
+    <string name="searcher_options_action">ตัวเลือก</string>
+    <string name="searcher_option_case_sensitive_label">แยกตัวพิมพ์ใหญ่เล็ก</string>
+    <string name="searcher_option_case_sensitive_desc">การค้นหาที่แยกตัวพิมพ์ใหญ่เล็ก</string>
+    <string name="searcher_option_whole_word_label">คำทั้งคำ</string>
+    <string name="searcher_option_whole_word_desc">ค้นหาคำทั้งคำ</string>
+    <string name="searcher_option_regex_label">นิพจน์ทั่วไป</string>
+    <string name="searcher_option_regex_desc">ค้นหาโดยใช้นิพจน์ทั่วไป</string>
+    <string name="searcher_option_search_content_label">ค้นหาเนื้อหา</string>
+    <string name="searcher_option_search_content_desc">ค้นหาเนื้อหาของไฟล์</string>
+
+    <!-- เทมเพลตการค้นหา -->
+    <string name="searcher_templates_action">เทมเพลต</string>
+    <string name="searcher_templates_card_title">เทมเพลตการค้นหาด่วน</string>
+    <string name="searcher_template_large_files">ไฟล์ขนาดใหญ่</string>
+    <string name="searcher_template_large_files_desc">ไฟล์ที่มีขนาดมากกว่า 100 MB</string>
+    <string name="searcher_template_recent_files">ไฟล์ล่าสุด</string>
+    <string name="searcher_template_recent_files_desc">แก้ไขในช่วง 7 วันที่ผ่านมา</string>
+    <string name="searcher_template_old_files">ไฟล์เก่า</string>
+    <string name="searcher_template_old_files_desc">ไม่ได้แก้ไขมานานกว่า 1 ปี</string>
+    <string name="searcher_template_images">รูปภาพ</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">วิดีโอ</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">เสียง</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">เอกสาร</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">ไฟล์เก็บถาวร</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APKs</string>
+    <string name="searcher_template_apks_desc">แพคเกจแอป Android</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="other">%d เทมเพลต</item>
+    </plurals>
+
+    <!-- ตัวกรองการค้นหา -->
+    <string name="searcher_filter_action">ตัวกรอง</string>
+    <string name="searcher_filter_add_action">เพิ่มตัวกรอง</string>
+    <string name="searcher_filter_title">ตัวกรองการค้นหา</string>
+    <string name="searcher_filter_size_section">ขนาดไฟล์</string>
+    <string name="searcher_filter_size_min">ขนาดต่ำสุด</string>
+    <string name="searcher_filter_size_max">ขนาดสูงสุด</string>
+    <string name="searcher_filter_date_section">วันที่แก้ไข</string>
+    <string name="searcher_filter_date_after">แก้ไขหลังจาก</string>
+    <string name="searcher_filter_date_before">แก้ไขก่อน</string>
+    <string name="searcher_filter_date_any">ทุกเวลา</string>
+    <string name="searcher_filter_date_24h">24 ชั่วโมงที่ผ่านมา</string>
+    <string name="searcher_filter_date_7d">7 วันที่ผ่านมา</string>
+    <string name="searcher_filter_date_30d">30 วันที่ผ่านมา</string>
+    <string name="searcher_filter_date_90d">90 วันที่ผ่านมา</string>
+    <string name="searcher_filter_date_1y">ปีที่ผ่านมา</string>
+
+    <!-- ป้ายกำกับตัวเปรียบเทียบ -->
+    <string name="searcher_filter_comparator_greater_than">มากกว่า</string>
+    <string name="searcher_filter_comparator_greater_or_equal">มากกว่าหรือเท่ากับ</string>
+    <string name="searcher_filter_comparator_less_than">น้อยกว่า</string>
+    <string name="searcher_filter_comparator_less_or_equal">น้อยกว่าหรือเท่ากับ</string>
+    <string name="searcher_filter_comparator_equal">เท่ากับ</string>
+    <string name="searcher_filter_size_value_label">ขนาด</string>
+    <string name="searcher_filter_size_at_least">อย่างน้อย</string>
+    <string name="searcher_filter_size_at_most">มากที่สุด</string>
+    <string name="searcher_filter_size_value_hint">เช่น 10 MB</string>
+    <string name="searcher_filter_size_format_help">ป้อนตัวเลขพร้อมหน่วย (KB, MB, GB) ตัวเลขธรรมชาติถือว่าเป็น MB</string>
+    <string name="searcher_filter_size_format_error">ขนาดไม่ถูกต้อง ใช้ตัวเลขและหน่วย เช่น 10 MB</string>
+    <string name="searcher_filter_date_value_label">วันที่</string>
+    <string name="searcher_filter_date_direction_after">หลังจาก</string>
+    <string name="searcher_filter_date_direction_before">ก่อน</string>
+    <string name="searcher_filter_type_label">ประเภท</string>
+    <string name="searcher_filter_type_files">ไฟล์</string>
+    <string name="searcher_filter_type_directories">โฟลเดอร์</string>
+
+    <!-- การดำเนินการประวัติการค้นหา -->
+    <string name="searcher_history_remove_action">ลบออกจากประวัติ</string>
+    <string name="searcher_history_clear_all_action">ล้างทั้งหมด</string>
+    <string name="searcher_history_clear_dialog_title">ล้างประวัติการค้นหา</string>
+    <string name="searcher_history_clear_dialog_message">นี่จะลบประวัติการค้นหาที่บันทึกไว้ทั้งหมด การดำเนินการนี้ไม่สามารถเลิกทำได้</string>
+    <string name="searcher_history_clear_confirm_action">ล้าง</string>
+    <string name="searcher_history_cleared_success">ล้างประวัติการค้นหาแล้ว</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">ไม่มีผลการค้นหา</item>
+        <item quantity="other">%d ผลการค้นหา</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="other">แสดงเพิ่มเติม %d รายการ</item>
+    </plurals>
+
+    <!-- ความคืบหน้าการค้นหา -->
+    <string name="searcher_progress_action_searching">กำลังค้นหา</string>
+    <string name="searcher_progress_action_searched">ค้นหาแล้ว</string>
+    <string name="searcher_progress_status_completed_with_errors">เสร็จแล้วแต่มีข้อผิดพลาด</string>
+    <string name="searcher_result_limit_reached">ถึงขีดจำกัดผลการค้นหา</string>
+    <!-- แบนเนอร์: ไม่สามารถอ่านรายการบางรายการภายในสถานที่ค้นหา (เช่น ปฏิเสธสิทธิ์) -->
+    <string name="searcher_progress_items_partial">ไม่สามารถค้นหารายการบางรายการได้ครบถ้วน</string>
+    <string name="searcher_progress_clear_action">ล้าง</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="other">%d ล้มเหลว</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="other">%d รายการไม่สามารถเข้าถึงได้</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="other">…และ %d รายการเพิ่มเติม</item>
+    </plurals>
+
+    <!-- แผ่นรายละเอียดข้อผิดพลาดการเข้าถึง (เปิดจากบรรทัด "N รายการไม่สามารถเข้าถึงได้") -->
+    <string name="searcher_access_sheet_body_unlockable">Android ปกป้องสถานที่เหล่านี้ การเข้าถึงเพิ่มเติมช่วยให้ Butler ค้นหาได้</string>
+    <string name="searcher_access_sheet_body_protected">Android ปกป้องสถานที่เหล่านี้ ไม่มีวิธีให้สิทธิ์การเข้าถึงบนอุปกรณ์นี้</string>
+    <string name="searcher_access_sheet_unlock_action">ปลดล็อกการเข้าถึง</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="other">%d สถานที่</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="other">%d สแกนแล้ว</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="other">%d พบแล้ว</item>
+    </plurals>
+
+    <!-- บริบทที่ตรงกัน -->
+    <string name="searcher_match_context_label">บริบทที่ตรงกัน</string>
+    <string name="searcher_match_line_label">บรรทัด %1$d: %2$s</string>
+
+    <!-- สตริงการดำเนินการ -->
+    <string name="searcher_action_open">เปิด</string>
+    <string name="searcher_action_open_in_tab">เปิดในแท็บใหม่</string>
+    <string name="searcher_action_open_with">เปิดด้วย</string>
+    <string name="searcher_action_open_in_editor">เปิดในตัวแก้ไข</string>
+    <string name="searcher_action_open_in_explorer">เปิดในตัวจัดการไฟล์</string>
+    <string name="searcher_action_install">ติดตั้ง</string>
+    <string name="searcher_action_copy">คัดลอก</string>
+    <string name="searcher_action_cut">ตัด</string>
+    <string name="searcher_action_delete">ลบ</string>
+    <string name="searcher_action_copy_path">คัดลอกเส้นทาง</string>
+    <string name="searcher_action_properties">คุณสมบัติ</string>
+    <string name="searcher_action_select_all">เลือกทั้งหมด</string>
+    <string name="searcher_action_deselect_all">ยกเลิกการเลือกทั้งหมด</string>
+    <string name="searcher_action_open_in_new_tabs">เปิดในแท็บใหม่</string>
+    <string name="searcher_action_sort">เรียงลำดับ</string>
+    <string name="searcher_action_view">เลย์เอาต์</string>
+
+    <!-- ตัวเลือกการเรียงลำดับ -->
+    <string name="searcher_sort_mode_label">เรียงลำดับตาม</string>
+    <string name="searcher_sort_mode_name_label">ชื่อ</string>
+    <string name="searcher_sort_mode_size_label">ขนาด</string>
+    <string name="searcher_sort_mode_modified_label">วันที่แก้ไข</string>
+    <string name="searcher_sort_mode_created_label">วันที่สร้าง</string>
+    <string name="searcher_sort_mode_path_label">เส้นทาง</string>
+    <string name="searcher_sort_descending_label">ลำดับจากมากไปน้อย</string>
+
+    <!-- ตัวเลือกการแสดงผล -->
+    <string name="searcher_view_sheet_subtitle">วิธีการจัดเรียงรายการและระดับรายละเอียดที่แสดง</string>
+    <string name="searcher_view_mode_list_label">รายการ</string>
+    <string name="searcher_view_mode_grid_label">ตาราง</string>
+    <string name="searcher_view_density_compact_label">กะทัดรัด</string>
+    <string name="searcher_view_density_comfortable_label">สะดวกสบาย</string>
+    <string name="searcher_view_density_detailed_label">รายละเอียด</string>
+    <string name="searcher_view_detail_modified_label">แก้ไขแล้ว</string>
+    <string name="searcher_view_set_default_action">ตั้งเป็นค่าเริ่มต้น</string>
+
+    <!-- การตั้งค่าสิทธิ์ -->
+    <string name="searcher_setup_required_body">จำเป็นต้องตั้งค่าเพิ่มเติมเพื่อค้นหาสถานที่บางแห่ง</string>
+</resources>
