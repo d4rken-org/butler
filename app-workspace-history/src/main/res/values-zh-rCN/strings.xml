@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">历史</string>
+    <string name="history_workspace_subtitle">最近的文件操作</string>
+    <string name="history_workspace_title_scoped">历史：%1$s</string>
+    <string name="history_workspace_title_outcome_failed">历史：失败</string>
+    <string name="history_workspace_title_outcome_partial">历史：部分</string>
+    <string name="history_workspace_title_outcome_cancelled">历史：已取消</string>
+    <string name="history_workspace_title_outcome_completed">历史：已完成</string>
+    <string name="history_workspace_title_kind_copy">历史：复制</string>
+    <string name="history_workspace_title_kind_move">历史：移动</string>
+    <string name="history_workspace_title_kind_delete">历史：删除</string>
+    <string name="history_workspace_title_kind_create_file">历史：创建文件</string>
+    <string name="history_workspace_title_kind_create_folder">历史：创建文件夹</string>
+    <string name="history_workspace_title_kind_save">历史：保存</string>
+    <string name="history_workspace_title_kind_compress">历史：压缩</string>
+    <string name="history_workspace_title_kind_extract">历史：解压</string>
+    <string name="history_workspace_title_filtered">历史（已筛选）</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="other">历史：%1$d 个路径</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">全部</string>
+    <string name="history_filter_outcome_completed">已完成</string>
+    <string name="history_filter_outcome_partial">部分</string>
+    <string name="history_filter_outcome_failed">失败</string>
+    <string name="history_filter_outcome_cancelled">已取消</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">复制</string>
+    <string name="history_filter_kind_move">移动</string>
+    <string name="history_filter_kind_delete">删除</string>
+    <string name="history_filter_kind_create_file">创建文件</string>
+    <string name="history_filter_kind_create_folder">创建文件夹</string>
+    <string name="history_filter_kind_save">保存</string>
+    <string name="history_filter_kind_compress">压缩</string>
+    <string name="history_filter_kind_extract">解压</string>
+    <string name="history_filter_kind_enable">启用</string>
+    <string name="history_filter_kind_disable">禁用</string>
+    <string name="history_filter_kind_force_stop">强制停止</string>
+    <string name="history_filter_kind_uninstall">卸载</string>
+    <string name="history_filter_kind_clear_data">清除数据</string>
+    <string name="history_filter_kind_components">组件</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">设置路径范围…</string>
+    <string name="history_path_scope_clear_action">清除路径范围</string>
+    <string name="history_path_scope_dialog_title">按路径筛选</string>
+    <string name="history_path_scope_dialog_description">仅显示影响此路径或其子项的操作。</string>
+    <string name="history_path_scope_dialog_input_label">路径</string>
+    <string name="history_path_scope_dialog_pick_folder_action">选择文件夹…</string>
+    <string name="history_path_scope_dialog_apply_action">应用</string>
+    <string name="history_path_scope_dialog_cancel_action">取消</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">今天</string>
+    <string name="history_group_yesterday">昨天</string>
+    <string name="history_group_this_week">本周</string>
+    <string name="history_group_this_month">本月</string>
+    <string name="history_group_older">更早</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">已重命名</string>
+    <string name="history_entry_intent_paste_copy">已粘贴</string>
+    <string name="history_entry_intent_paste_move">已粘贴（移动）</string>
+    <string name="history_entry_intent_drop_copy">已拖放（复制）</string>
+    <string name="history_entry_intent_drop_move">已拖放（移动）</string>
+    <string name="history_entry_intent_enable_components">已启用以下项的组件：</string>
+    <string name="history_entry_intent_disable_components">已禁用以下项的组件：</string>
+    <string name="history_entry_kind_copy">已复制</string>
+    <string name="history_entry_kind_move">已移动</string>
+    <string name="history_entry_kind_delete">已删除</string>
+    <string name="history_entry_kind_create_file">已创建文件</string>
+    <string name="history_entry_kind_create_folder">已创建文件夹</string>
+    <string name="history_entry_kind_save">已保存</string>
+    <string name="history_entry_kind_compress">已压缩</string>
+    <string name="history_entry_kind_extract">已解压</string>
+    <string name="history_entry_kind_restore">已恢复</string>
+    <string name="history_entry_kind_install">已安装</string>
+    <string name="history_entry_kind_enable">已启用</string>
+    <string name="history_entry_kind_disable">已禁用</string>
+    <string name="history_entry_kind_force_stop">已强制停止</string>
+    <string name="history_entry_kind_uninstall">已卸载</string>
+    <string name="history_entry_kind_clear_data">已清除以下项的数据：</string>
+    <string name="history_entry_kind_components">已更改以下项的组件：</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="other">%d 个路径</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">前 %1$d 个，共 %2$d 个受影响的路径</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">已开始</string>
+    <string name="history_detail_label_completed">已完成</string>
+    <string name="history_detail_label_duration">持续时间</string>
+    <string name="history_detail_label_outcome">结果</string>
+    <string name="history_detail_label_origin">来源</string>
+    <string name="history_detail_label_error">错误</string>
+    <string name="history_detail_label_paths">受影响的路径</string>
+    <string name="history_detail_label_partial_errors">各项失败</string>
+    <string name="history_detail_copy_path_action">复制路径</string>
+    <string name="history_detail_paths_empty">未记录受影响的路径。</string>
+    <string name="history_detail_label_attempted_paths">尝试的路径</string>
+    <string name="history_detail_label_packages">受影响的应用</string>
+    <string name="history_detail_packages_empty">未记录受影响的应用。</string>
+    <string name="history_detail_paths_truncated_callout">显示前 %1$d 个，共 %2$d 个受影响的路径。</string>
+    <string name="history_detail_attempted_paths_truncated_callout">显示前 %1$d 个，共 %2$d 个尝试的路径。</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="other">%1$d 项在此操作期间失败。</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Explorer</string>
+    <string name="history_origin_searcher">搜索</string>
+    <string name="history_origin_saver">保存</string>
+    <string name="history_origin_developer">开发者</string>
+    <string name="history_origin_viewer">查看器</string>
+    <string name="history_origin_apps">应用</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d 毫秒</string>
+    <string name="history_duration_seconds">%1$.1f 秒</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">暂无历史</string>
+    <string name="history_empty_subtitle">使用 Butler 时，文件操作将显示在此处。</string>
+    <string name="history_empty_filtered_title">无匹配项</string>
+    <string name="history_empty_filtered_subtitle">没有历史记录与当前筛选器匹配。</string>
+    <string name="history_empty_filtered_reset_action">重置筛选器</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">重置筛选器</string>
+    <string name="history_toolbar_reset_filter_content_description">重置筛选器</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">前 %1$d 个，共 %2$d 个受影响的路径</string>
+    <string name="history_add_filter_action">添加筛选器</string>
+    <string name="history_add_filter_sheet_title">添加筛选器</string>
+    <string name="history_add_filter_section_outcome">结果</string>
+    <string name="history_add_filter_section_kind">类型</string>
+    <string name="history_add_filter_section_path_scope">路径范围</string>
+    <string name="history_add_filter_add_path_action">添加路径…</string>
+    <string name="history_path_scope_remove_action">删除</string>
+    <plurals name="history_summary_total">
+        <item quantity="other">%1$d 个条目</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="other">%1$d 个（共 %2$d 个）</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">历史</string>
+    <string name="history_settings_save_history_title">保存历史</string>
+    <string name="history_settings_save_history_subtitle">记录已完成的文件操作。</string>
+    <string name="history_settings_max_history_label">最多历史项数</string>
+    <string name="history_settings_max_history_subtitle">超过此限制后，将删除较早的条目。</string>
+    <string name="history_settings_max_history_input_label">最多条目数</string>
+    <string name="history_settings_clear_history_title">清除历史</string>
+    <string name="history_settings_clear_history_subtitle">删除所有存储的条目 (%1$d)。</string>
+    <string name="history_clear_dialog_title">清除历史？</string>
+    <string name="history_clear_dialog_message">从操作历史数据库中删除所有条目。此操作无法撤消。</string>
+    <string name="history_clear_confirm_action">清除</string>
+    <string name="history_cleared_success">历史已清除</string>
+    <string name="history_workspace_title_kind_restore">历史：恢复</string>
+    <string name="history_filter_kind_restore">恢复</string>
+    <string name="history_workspace_title_kind_install">历史：安装</string>
+    <string name="history_filter_kind_install">安装</string>
+    <string name="history_workspace_title_kind_enable">历史：启用</string>
+    <string name="history_workspace_title_kind_disable">历史：禁用</string>
+    <string name="history_workspace_title_kind_force_stop">历史：强制停止</string>
+    <string name="history_workspace_title_kind_uninstall">历史：卸载</string>
+    <string name="history_workspace_title_kind_clear_data">历史：清除数据</string>
+    <string name="history_workspace_title_kind_components">历史：组件</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">全选</string>
+    <string name="history_action_deselect_all">取消全选</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="other">删除 %1$d 个条目</item>
+    </plurals>
+    <string name="history_delete_dialog_message">仅删除历史记录，文件本身不会被修改。</string>
+    <string name="history_pro_dialog_message">分享和删除历史条目是升级的一部分。在历史设置中清除整个历史仍然是免费的。</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">结果</string>
+    <string name="history_share_label_kind">类型</string>
+    <string name="history_share_label_origin">来源</string>
+    <string name="history_share_label_summary">摘要</string>
+    <string name="history_share_label_completed">已完成</string>
+    <string name="history_share_label_duration">持续时间</string>
+    <string name="history_share_label_error">错误</string>
+    <string name="history_share_label_failed_items">失败的项目</string>
+    <string name="history_share_label_paths">受影响的路径 (%1$d)</string>
+    <string name="history_share_label_packages">受影响的应用 (%1$d)</string>
+    <string name="history_share_paths_more">… 及其他 %1$d 个</string>
+    <string name="history_share_truncated">… 及其他 %1$d 个未包含的条目</string>
+</resources>

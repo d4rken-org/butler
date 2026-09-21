@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">新建</string>
+    <string name="workspace_templates_choose_title">新选项卡</string>
+    <string name="workspace_templates_choose_subtitle">选择选项卡类型。我可以如何帮助你？</string>
+    <string name="workspace_templates_name_tab_action">命名此选项卡</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">选择工具</string>
+    <string name="tour_templates_picker_body">这是选项卡选择器，选择此选项卡应为什么。选择一个可以将此选项卡变为该工具。</string>
+    <string name="tour_templates_butler_button_title">你的选项卡在此</string>
+    <string name="tour_templates_butler_button_body">点击 Butler 按钮打开选项卡菜单：创建新选项卡、关闭当前选项卡或打开完整的选项卡管理器。长按可直接跳转到选项卡管理器。</string>
+</resources>

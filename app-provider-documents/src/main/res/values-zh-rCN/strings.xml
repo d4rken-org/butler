@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">高级设备访问</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">设备</string>
+    <string name="documents_connection_device_summary">本地设备存储</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">根文件系统</string>
+    <string name="provider_documents_storage_internal_label">内部存储</string>
+    <string name="provider_documents_storage_sd_card_label">SD卡</string>
+    <string name="provider_documents_storage_saf_label">SAF位置</string>
+    <string name="provider_documents_storage_free_suffix">可用</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">浏览此位置需要获得 Root 访问权限。请在 Butler 应用设置中启用 Root 访问。</string>
+    <string name="provider_documents_error_requires_adb">浏览此位置需要获得 ADB/Shizuku 访问权限。请在 Butler 应用设置中启用 Shizuku。</string>
+    <string name="provider_documents_error_requires_storage">浏览此位置需要存储权限。请在 Butler 应用设置中授予存储权限。</string>
+    <string name="provider_documents_error_requires_permissions">浏览此位置需要附加权限。请查看 Butler 应用设置。</string>
+    <string name="provider_documents_error_generic">无法访问此位置。请查看 Butler 应用中的访问选项。</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">文档提供程序</string>
+    <string name="provider_documents_settings_subtitle">外部应用集成</string>
+    <string name="provider_documents_settings_category_integration_label">集成</string>
+    <string name="provider_documents_enabled_title">启用文档提供程序</string>
+    <string name="provider_documents_enabled_desc">允许其他应用通过 Butler 使用 Android 的文件选择器访问文件</string>
+</resources>

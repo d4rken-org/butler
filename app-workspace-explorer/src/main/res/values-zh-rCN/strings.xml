@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">文件管理器</string>
+    <string name="explorer_subtitle">浏览文件和目录</string>
+    <string name="explorer_settings_title">文件管理器设置</string>
+    <string name="explorer_settings_file_display">文件显示</string>
+    <string name="explorer_settings_filter_regex_title">高级通配符匹配</string>
+    <string name="explorer_settings_filter_regex_desc">在包含/排除过滤器中使用正则表达式模式。</string>
+    <string name="explorer_settings_navigation">导航</string>
+    <string name="explorer_settings_back_button_title">返回按钮导航</string>
+    <string name="explorer_settings_back_button_desc">使用返回按钮/手势浏览历史记录。</string>
+    <string name="explorer_settings_trash_category">回收站</string>
+    <string name="explorer_settings_trash_enabled_title">启用回收站</string>
+    <string name="explorer_settings_trash_enabled_desc">将删除的文件移至回收站，而不是永久删除</string>
+    <string name="explorer_settings_trash_auto_delete_title">自动删除时限</string>
+    <string name="explorer_settings_trash_auto_delete_desc">自动删除超过 %d 天的项目</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d 天</string>
+    <string name="explorer_settings_trash_max_size_title">每个存储位置的最大容量</string>
+    <string name="explorer_settings_trash_max_size_desc">每个存储位置最多 %d MB</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">自动删除周期</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">每个存储位置的最大容量</string>
+    <string name="explorer_settings_trash_enable_dialog_title">启用回收站？</string>
+    <string name="explorer_settings_trash_enable_dialog_message">与桌面系统不同，Android 没有内置回收站。Butler 使用其缓存文件夹提供了一个。\n\n请注意：\n• 在项目被永久删除之前，设备的存储指示器不会反映已释放的空间\n• 如果设备存储空间不足，Android 可能会清除应用缓存，从而移除回收站中的文件</string>
+    <string name="explorer_settings_trash_enable_action">启用</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">文件</string>
+    <string name="explorer_file_symlink_content_desc">符号链接</string>
+    <string name="explorer_file_folder_content_desc">文件夹</string>
+    <string name="explorer_file_peek_content_desc">正在加载文件信息</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">快捷方式</string>
+    <string name="explorer_file_storage_local_label">本地</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">只读访问</string>
+    <string name="explorer_file_storage_saf_write_only_label">只写访问</string>
+    <string name="explorer_file_storage_saf_no_access_label">无访问权限</string>
+    <string name="explorer_file_storage_saf_uri_label">SAF 树 URI</string>
+    <string name="explorer_file_storage_size_format">%1$s • 共 %2$s • 剩余 %3$s</string>
+    <string name="explorer_file_broken_link_label">损坏的链接</string>
+    <string name="explorer_file_items_count">%1$d 个项目</string>
+    <string name="explorer_file_empty">空</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · 部分</string>
+    <string name="explorer_sizes_estimate_description">根据 Android 存储总量估算。对于无法读取的文件，将使用其占用的存储空间作为文件大小的估算值。Android 管理的隐藏文件也可能包含在内。其他无法读取的位置仍为未知。</string>
+    <string name="explorer_sizes_estimate_coverage">由于存储的其他部分未能完整测量，无法估算 Android/data 的大小。</string>
+    <string name="explorer_sizes_estimate_unavailable">Android 存储统计信息不可用。已测量的大小仍会显示。</string>
+    <string name="explorer_sizes_estimate_inconsistent">Android 存储总量与扫描结果不一致。已测量的大小仍会显示。</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">选择文件夹</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="other">选择文件夹 (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">选择文件</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="other">选择文件 (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="other">选择项目 (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">选择此文件夹</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="other">选择 %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">保存文件</string>
+    <string name="explorer_picker_save_here_action">保存到此处</string>
+    <string name="explorer_picker_save_as_filename_label">文件名</string>
+    <string name="explorer_picker_save_as_filename_hint">输入文件名</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">刷新</string>
+    <string name="explorer_action_calculate_sizes">计算大小</string>
+    <string name="explorer_action_sort">排序</string>
+    <string name="explorer_action_filter">筛选</string>
+    <string name="explorer_action_view">布局</string>
+    <string name="explorer_action_create">新建</string>
+    <string name="explorer_action_rename">重命名</string>
+    <string name="explorer_action_copy">复制</string>
+    <string name="explorer_action_cut">剪切</string>
+    <string name="explorer_action_delete">删除</string>
+    <string name="explorer_action_select_all">全选</string>
+    <string name="explorer_action_deselect_all">取消全选</string>
+    <string name="explorer_action_compress">压缩</string>
+    <string name="explorer_action_extract">解压</string>
+    <string name="explorer_action_add_location">添加位置</string>
+    <string name="explorer_action_info">信息</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">信息</string>
+    <string name="explorer_info_name_label">名称</string>
+    <string name="explorer_info_path_label">路径</string>
+    <string name="explorer_info_type_label">类型</string>
+    <string name="explorer_info_type_file">文件</string>
+    <string name="explorer_info_type_directory">目录</string>
+    <string name="explorer_info_size_label">大小</string>
+    <string name="explorer_info_modified_label">修改时间</string>
+    <string name="explorer_info_created_label">创建时间</string>
+    <string name="explorer_info_permissions_label">权限</string>
+    <string name="explorer_info_owner_label">所有者</string>
+    <string name="explorer_info_child_count_label">项目数</string>
+    <string name="explorer_info_symlink_target_label">目标</string>
+    <string name="explorer_info_symlink_status_label">状态</string>
+    <string name="explorer_info_symlink_broken">损坏的链接</string>
+    <string name="explorer_info_unknown">未知</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">删除时间</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">权限</string>
+    <string name="explorer_info_saf_granted_label">已授予</string>
+    <string name="explorer_info_saf_permission_read">读取</string>
+    <string name="explorer_info_saf_permission_write">写入</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">服务器</string>
+    <string name="explorer_info_network_port_label">端口</string>
+    <string name="explorer_info_network_share_label">共享</string>
+    <string name="explorer_info_network_folder_label">文件夹</string>
+    <string name="explorer_info_network_address_label">地址</string>
+    <string name="explorer_info_network_status_label">状态</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">登录</string>
+    <string name="explorer_info_network_domain_label">域</string>
+    <string name="explorer_info_network_password_label">密码</string>
+    <string name="explorer_info_network_password_show_action">显示密码</string>
+    <string name="explorer_info_network_password_hide_action">隐藏密码</string>
+    <string name="explorer_info_network_password_missing">缺失，请重新登录</string>
+    <string name="explorer_info_network_password_locked">已存储，但此设备无法解锁</string>
+    <string name="explorer_info_network_added_label">添加时间</string>
+    <string name="explorer_info_network_updated_label">更新时间</string>
+    <string name="explorer_info_network_last_seen_label">上次可见</string>
+    <string name="explorer_info_network_last_seen_never">从未</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">已选择</string>
+    <string name="explorer_info_files_label">文件</string>
+    <string name="explorer_info_directories_label">目录</string>
+    <string name="explorer_info_total_size_label">总大小</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">位置</string>
+    <string name="explorer_info_shortcuts_label">快捷方式</string>
+    <string name="explorer_info_total_capacity_label">总容量</string>
+    <string name="explorer_info_used_space_label">已用空间</string>
+    <string name="explorer_info_free_space_label">可用空间</string>
+    <string name="explorer_info_usage_label">使用情况</string>
+    <string name="explorer_info_device_storage_total_label">设备存储</string>
+    <string name="explorer_info_device_storage_used_label">已用</string>
+    <string name="explorer_info_device_storage_free_label">可用</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">主页</string>
+    <string name="explorer_breadcrumb_set_as_home_action">设为主页</string>
+    <string name="explorer_breadcrumb_copy_path_action">复制路径</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">路径已复制到剪贴板</string>
+    <string name="explorer_navigation_device">设备</string>
+    <string name="explorer_navigation_network">网络</string>
+    <string name="explorer_navigation_recent">最近</string>
+    <string name="explorer_navigation_recent_desc">此设备上最近出现的文件</string>
+    <string name="explorer_navigation_trash">回收站</string>
+    <string name="explorer_navigation_trash_desc">恢复已删除的文件</string>
+    <string name="explorer_navigation_trash_nested_desc">位于回收的文件夹内</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">没有已删除的项目</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="other">%d 个项目</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">恢复</string>
+    <string name="explorer_trash_restore_selected_action">恢复所选项</string>
+    <string name="explorer_trash_delete_permanently_action">永久删除</string>
+    <string name="explorer_trash_delete_selected_action">删除所选项</string>
+    <string name="explorer_trash_empty_trash_action">清空回收站</string>
+    <string name="explorer_trash_empty_confirm">清空回收站？</string>
+    <string name="explorer_trash_empty_message">回收站中的所有项目都将被永久删除，此操作无法撤销。</string>
+    <string name="explorer_trash_empty_confirm_action">清空回收站</string>
+    <string name="explorer_trash_restore_desc">恢复到原位置</string>
+    <string name="explorer_trash_item_unavailable">项目不可用</string>
+    <string name="explorer_trash_delete_warning">此操作无法撤销</string>
+    <string name="explorer_trash_disabled_warning">回收站已禁用</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">正在加载回收的文件夹内容…</string>
+    <string name="explorer_trash_nested_restore_action">恢复到原位置</string>
+    <string name="explorer_trash_nested_delete_action">永久删除</string>
+    <string name="explorer_trash_nested_restore_conflict">原位置已存在同名文件</string>
+    <string name="explorer_trash_nested_parent_missing">回收站中已不存在上级项目</string>
+    <string name="explorer_trash_nested_path_missing">路径已不存在</string>
+    <string name="explorer_trash_error_items_not_found">在回收站中未找到项目</string>
+    <string name="explorer_trash_error_restore_failed">恢复项目失败</string>
+    <string name="explorer_trash_error_delete_failed">删除项目失败</string>
+    <string name="explorer_trash_nested_error_restore_failed">恢复 %1$s 失败</string>
+    <string name="explorer_trash_nested_error_delete_failed">删除 %1$s 失败</string>
+
+    <string name="explorer_navigation_root">根目录</string>
+    <string name="explorer_navigation_rom">系统 ROM</string>
+    <string name="explorer_navigation_internal_storage">内部公共存储</string>
+    <string name="explorer_navigation_external_storage">外部公共存储</string>
+
+    <string name="explorer_loader_progress_directory_loading">正在浏览 %s</string>
+    <string name="explorer_loader_progress_directory_permissions">正在检查权限</string>
+    <string name="explorer_loader_progress_directory_filesystem">正在获取文件系统信息</string>
+    <string name="explorer_loader_progress_directory_content">正在加载文件夹内容</string>
+    <string name="explorer_loader_progress_directory_content_details">正在加载内容详情</string>
+    <string name="explorer_loader_progress_directory_content_extended">正在加载扩展内容详情</string>
+
+    <string name="explorer_loader_progress_device_loading">正在加载设备</string>
+    <string name="explorer_loader_progress_device_locations">正在加载存储位置</string>
+
+    <string name="explorer_loader_progress_network_loading">正在加载网络存储</string>
+
+    <string name="explorer_loader_progress_home_loading">正在加载主页</string>
+    <string name="explorer_loader_progress_trash_loading">正在加载回收站…</string>
+    <string name="explorer_loader_progress_recent_loading">正在加载最近文件…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="other">%d 个快捷方式</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="other">%d 个位置</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="other">%d 个隐藏</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">剩余 %1$s</string>
+    <string name="explorer_infobar_loading">正在加载…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">新建项目</string>
+    <string name="explorer_dialog_rename_title">重命名</string>
+    <string name="explorer_dialog_name_label">名称</string>
+    <string name="explorer_dialog_type_label">类型</string>
+    <string name="explorer_dialog_type_folder">文件夹</string>
+    <string name="explorer_dialog_type_file">文件</string>
+    <string name="explorer_dialog_create_text_file_title">从文本创建文件</string>
+    <string name="explorer_dialog_create_text_file_preview_label">预览</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d 个字符</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">添加存储位置</string>
+    <string name="explorer_add_device_storage_desc">使用 Storage Access Framework（SAF）授予 Butler 访问其他存储位置的权限，例如 USB 驱动器、虚拟应用文件夹等。</string>
+    <string name="explorer_add_device_storage_continue">继续</string>
+    <string name="explorer_add_device_storage_cancel">取消</string>
+    <string name="explorer_add_device_storage_suggestions_title">带有存储空间的应用</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">打开此应用的文件夹</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">移除位置</string>
+    <string name="explorer_device_remove_confirmation_title">移除存储位置？</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="other">移除 %1$d 个存储位置？</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">这将撤销 Butler 对此位置的访问权限，您的文件不会被删除。</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="other">%d 个网络位置</item>
+    </plurals>
+    <string name="explorer_network_storage_label">网络</string>
+    <string name="explorer_network_add_location_action">添加网络存储</string>
+    <string name="explorer_network_edit_location_action">编辑网络存储</string>
+    <string name="explorer_network_remove_location_action">移除网络存储</string>
+    <string name="explorer_network_sign_in_required_label">需要登录</string>
+    <string name="explorer_network_status_checking_label">正在检查…</string>
+    <string name="explorer_network_status_available_label">可用</string>
+    <string name="explorer_network_status_unavailable_label">不可用</string>
+    <string name="explorer_network_status_unavailable_since_format">不可用（%1$s）</string>
+    <string name="explorer_network_empty_title">尚无网络存储</string>
+    <string name="explorer_network_empty_caption">添加一个 Windows 共享或 NAS 文件夹即可在此浏览。</string>
+    <string name="explorer_network_remove_confirmation_title">移除网络存储？</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="other">移除 %1$d 个网络存储？</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler 将忘记服务器详情和已保存的密码，服务器上的内容不会被删除。</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">添加网络存储</string>
+    <string name="explorer_network_form_edit_title">编辑网络存储</string>
+    <string name="explorer_network_form_label_label">名称（可选）</string>
+    <string name="explorer_network_form_host_label">服务器地址</string>
+    <string name="explorer_network_form_host_hint">nas.local 或 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">端口</string>
+    <string name="explorer_network_form_share_label">共享</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">共享内的文件夹（可选）</string>
+    <string name="explorer_network_form_auth_guest">访客</string>
+    <string name="explorer_network_form_auth_password">用户名和密码</string>
+    <string name="explorer_network_form_username_label">用户名</string>
+    <string name="explorer_network_form_domain_label">域（可选）</string>
+    <string name="explorer_network_form_password_label">密码</string>
+    <string name="explorer_network_form_password_kept_hint">留空以保留已保存的密码</string>
+    <string name="explorer_network_form_remember_label">记住密码</string>
+    <string name="explorer_network_form_remember_hint">仅以加密方式存储在此设备上</string>
+    <string name="explorer_network_form_test_and_save_action">测试并保存</string>
+    <string name="explorer_network_form_testing">正在连接…</string>
+    <string name="explorer_network_form_error_host_blank">请输入服务器地址</string>
+    <string name="explorer_network_form_error_host_not_bare">请仅输入服务器地址，不含协议或路径</string>
+    <string name="explorer_network_form_error_host_malformed">这不是有效的服务器地址</string>
+    <string name="explorer_network_form_error_port">请输入 1 到 65535 之间的端口</string>
+    <string name="explorer_network_form_error_share_blank">请输入共享名称</string>
+    <string name="explorer_network_form_error_share_not_single">请仅输入共享名称，子文件夹请填写在下方</string>
+    <string name="explorer_network_form_error_share_malformed">这不是有效的共享名称</string>
+    <string name="explorer_network_form_error_base_path">无法使用此文件夹路径</string>
+    <string name="explorer_network_form_error_username_blank">请输入用户名</string>
+    <string name="explorer_network_form_error_password_required">要更改用户名或域，请重新输入密码</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">命名位置</string>
+    <string name="explorer_location_name_label">位置名称</string>
+    <string name="explorer_location_name_hint">留空以使用默认名称</string>
+    <string name="explorer_location_rename_action">重命名位置</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="other">最近 %d 天内添加</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">这里还没有新内容</string>
+    <string name="explorer_recent_empty_message">此设备上出现的文件会显示在这里</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">此文件夹为空</string>
+    <string name="explorer_empty_search_title">没有搜索结果</string>
+    <string name="explorer_empty_search_caption">请尝试其他搜索词</string>
+    <string name="explorer_empty_folder_label">空文件夹</string>
+    <string name="explorer_empty_filtered_title">没有匹配的项目</string>
+    <string name="explorer_empty_filtered_caption">请尝试调整过滤条件</string>
+    <string name="explorer_empty_hidden_title">此处只有隐藏项目</string>
+    <string name="explorer_empty_hidden_caption">此标签页隐藏了以点开头的项目</string>
+    <string name="explorer_empty_show_hidden_action">显示隐藏项目</string>
+    <string name="explorer_empty_hidden_or_filtered_title">没有可显示的内容</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">隐藏项目和过滤条件各自排除了此文件夹的一部分内容</string>
+    <string name="explorer_empty_clear_filters_action">清除过滤条件</string>
+    <string name="explorer_empty_hidden_and_filtered_title">隐藏项目和过滤条件排除了此处的所有内容</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">显示隐藏项目并清除此标签页的过滤条件即可恢复显示</string>
+    <string name="explorer_empty_show_all_action">显示所有项目</string>
+    <string name="explorer_path_not_found_title">此文件夹已不存在</string>
+    <string name="explorer_path_not_found_caption">它已被删除、重命名或移动到其他位置。</string>
+    <string name="explorer_path_not_found_back_action">返回</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">正在加载…</string>
+    <string name="explorer_file_peek_loading_text">正在加载…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">这里什么都没有…继续前进吧 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">这个文件夹在减肥</string>
+    <string name="explorer_empty_folder_caption_3">文件们今天提早下班了</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe 已停止工作</string>
+    <string name="explorer_empty_folder_caption_5">文件们在玩捉迷藏</string>
+    <string name="explorer_empty_folder_caption_6">404：未找到文件</string>
+    <string name="explorer_empty_folder_caption_7">这个文件夹有信任问题</string>
+    <string name="explorer_empty_folder_caption_8">文件们不告而别去度假了</string>
+    <string name="explorer_empty_folder_caption_9">空得像我的灵魂…但更有条理</string>
+    <string name="explorer_empty_folder_caption_10">数字世界里的滚草</string>
+    <string name="explorer_empty_folder_caption_11">文件们在保持社交距离</string>
+    <string name="explorer_empty_folder_caption_12">这个文件夹崇尚极简主义</string>
+    <string name="explorer_empty_folder_caption_13">有人忘记喂文件了</string>
+    <string name="explorer_empty_folder_caption_14">文件们已经离开了大楼</string>
+    <string name="explorer_empty_folder_caption_15">比政客的承诺还要空</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">排序方式</string>
+    <string name="explorer_sort_mode_name_label">名称</string>
+    <string name="explorer_sort_mode_size_label">大小</string>
+    <string name="explorer_sort_mode_modified_label">修改日期</string>
+    <string name="explorer_sort_mode_created_label">创建日期</string>
+    <string name="explorer_sort_descending_label">降序</string>
+    <string name="explorer_sort_scope_label">应用范围</string>
+    <string name="explorer_sort_scope_all_folders">所有文件夹</string>
+    <string name="explorer_sort_scope_this_folder">仅此文件夹</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">此文件夹及子文件夹</string>
+    <string name="explorer_sort_scope_use_default_here">在此使用默认设置</string>
+    <string name="explorer_sort_only_this_tab_label">仅此标签页</string>
+    <string name="explorer_sort_inherited_notice">按为 %1$s 保存的规则排序</string>
+    <string name="explorer_sort_suppressed_notice">这将覆盖为 %1$s 保存的规则</string>
+    <string name="explorer_sort_tab_overrides_default_notice">此标签页使用自己的默认排序方式</string>
+    <string name="explorer_sort_tab_overrides_clear_action">清除</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">文件夹大小</string>
+    <string name="explorer_sizes_sheet_label_calculated">已计算</string>
+    <string name="explorer_sizes_sheet_label_folders">文件夹</string>
+    <string name="explorer_sizes_sheet_label_unreadable">无法读取的位置</string>
+    <string name="explorer_sizes_sheet_problems_more">另有 %1$d 项未列出</string>
+    <string name="explorer_sizes_sheet_recalculate">重新计算</string>
+    <string name="explorer_sizes_sheet_discard">放弃大小数据</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">项目的排列方式及显示的详细程度</string>
+    <string name="explorer_view_mode_list_label">列表</string>
+    <string name="explorer_view_mode_grid_label">网格</string>
+    <string name="explorer_view_density_compact_label">紧凑</string>
+    <string name="explorer_view_density_comfortable_label">舒适</string>
+    <string name="explorer_view_density_detailed_label">详细</string>
+    <string name="explorer_view_show_hidden_label">显示隐藏文件</string>
+    <string name="explorer_view_set_default_action">设为默认</string>
+    <string name="explorer_view_detail_created_label">创建时间</string>
+    <string name="explorer_view_detail_modified_label">修改时间</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">文件夹排序规则</string>
+    <string name="explorer_settings_folder_sort_rules_desc">您为单个文件夹保存的排序设置</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">清除文件夹排序规则？</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">所有文件夹将恢复为默认排序方式，拥有自己排序设置的标签页将保留其设置。此操作无法撤销。</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">全部清除</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">文件类型</string>
+    <string name="explorer_filter_type_all">全部</string>
+    <string name="explorer_filter_type_files">仅文件</string>
+    <string name="explorer_filter_type_folders">仅文件夹</string>
+    <string name="explorer_filter_include_label">包含模式</string>
+    <string name="explorer_filter_include_placeholder_simple">例如：vacation、report、IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">例如：.*\\.txt$、^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">排除模式</string>
+    <string name="explorer_filter_exclude_placeholder_simple">例如：tmp、cache、old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">例如：^\\.、.*\\.tmp$、.*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 在设置中启用正则表达式模式</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">需要权限</string>
+    <string name="explorer_permission_generic_description">Butler 需要额外权限才能浏览此位置。</string>
+    <string name="explorer_permission_setup_action">打开设置</string>
+    <string name="explorer_grant_access_action">授予访问权限</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">操作</string>
+    <string name="explorer_file_info_type_label">类型</string>
+    <string name="explorer_file_info_size_label">大小</string>
+    <string name="explorer_file_info_modified_label">修改时间</string>
+    <string name="explorer_file_action_install">安装</string>
+    <string name="explorer_file_action_install_subtitle">在您的设备上安装此应用</string>
+    <string name="explorer_file_action_open">打开</string>
+    <string name="explorer_file_action_open_subtitle">在此查看，返回将回到此文件夹</string>
+    <string name="explorer_file_action_open_in_tab">在新标签页中打开</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">在 Butler 中作为独立标签页查看</string>
+    <string name="explorer_file_action_open_in_editor">在编辑器中打开</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">在新标签页中编辑</string>
+    <string name="explorer_file_action_open_with">打开方式</string>
+    <string name="explorer_file_action_open_with_subtitle">选择一个外部应用打开</string>
+    <string name="explorer_file_action_share">分享</string>
+    <string name="explorer_file_action_share_subtitle">通过已安装的应用分享</string>
+    <string name="explorer_file_action_copy">复制</string>
+    <string name="explorer_file_action_copy_subtitle">复制到剪贴板以便粘贴</string>
+    <string name="explorer_file_action_cut">剪切</string>
+    <string name="explorer_file_action_cut_subtitle">移动到剪贴板以便粘贴</string>
+    <string name="explorer_file_action_rename">重命名</string>
+    <string name="explorer_file_action_rename_subtitle">更改文件名</string>
+    <string name="explorer_file_action_delete">删除</string>
+    <string name="explorer_file_action_delete_subtitle">永久移除此文件</string>
+    <string name="explorer_file_action_move_to_trash">移至回收站</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">将文件移至回收站</string>
+    <string name="explorer_file_action_properties">属性</string>
+    <string name="explorer_file_action_properties_subtitle">查看详细文件信息</string>
+    <string name="explorer_file_action_extract">解压</string>
+    <string name="explorer_file_action_extract_subtitle">将压缩包内容解压到文件夹</string>
+    <string name="explorer_file_action_show_in_folder">在文件夹中显示</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">打开此文件所在的文件夹</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="other">已创建 %d 个文件。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="other">已创建 %d 个目录。</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">复制操作</string>
+    <string name="explorer_operation_copy_description_single">将“%1$s”从“%2$s”复制到“%3$s”。</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="other">将 %1$d 个项目复制到“%2$s”。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="other">已复制 %d 个文件。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="other">已复制 %d 个目录。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="other">已复制 %s。</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">解压操作</string>
+    <string name="explorer_operation_extract_description">将“%1$s”解压到“%2$s”。</string>
+    <string name="explorer_operation_download_copy_title">本地复制操作</string>
+    <string name="explorer_operation_download_copy_description">将“%1$s”复制到“%2$s”以便本地浏览。</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="other">已解压 %d 个文件。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="other">已解压 %s。</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">压缩操作</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="other">将 %1$d 个项目压缩到“%2$s”。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="other">已压缩 %d 个文件。</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">创建压缩包</string>
+    <string name="explorer_compress_dialog_name_label">压缩包名称</string>
+    <string name="explorer_compress_dialog_format_label">格式</string>
+    <string name="explorer_compress_dialog_format_zip_hint">可在任何设备上打开，可设置密码保护。</string>
+    <string name="explorer_compress_dialog_format_targz_hint">对多文件更小，不支持密码保护。</string>
+    <string name="explorer_compress_dialog_create_action">创建</string>
+    <string name="explorer_compress_dialog_level_label">压缩级别</string>
+    <string name="explorer_compress_dialog_level_fast">快速</string>
+    <string name="explorer_compress_dialog_level_normal">普通</string>
+    <string name="explorer_compress_dialog_level_best">最佳</string>
+    <string name="explorer_compress_dialog_password_label">密码（可选）</string>
+    <string name="explorer_compress_dialog_password_confirm_label">确认密码</string>
+    <string name="explorer_compress_dialog_password_mismatch">密码不匹配</string>
+    <string name="explorer_compress_dialog_password_weak">密码强度较弱</string>
+    <string name="explorer_compress_dialog_password_notice">文件内容已加密，文件名未加密。</string>
+    <string name="explorer_compress_dialog_password_show">显示密码</string>
+    <string name="explorer_compress_dialog_password_hide">隐藏密码</string>
+    <string name="explorer_compress_dialog_overwrite_title">替换压缩包？</string>
+    <string name="explorer_compress_dialog_overwrite_message">“%1$s”已存在，将被替换。</string>
+    <string name="explorer_compress_dialog_overwrite_action">替换</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="other">放置 %1$d 个项目？</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="other">将 %1$d 个项目复制或移动到“%2$s”？</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="other">将 %1$d 个项目复制到“%2$s”？</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">移至回收站？</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="other">将 %1$d 个项目移至回收站？</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">移动操作</string>
+    <string name="explorer_operation_move_description_single">将“%1$s”从“%2$s”移动到“%3$s”。</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="other">将 %1$d 个项目移动到“%2$s”。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="other">已移动 %d 个文件。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="other">已移动 %d 个目录。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="other">已移动 %s。</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">文件夹创建</string>
+    <string name="explorer_operation_create_description_directory">在“%2$s”创建文件夹“%1$s”</string>
+    <string name="explorer_operation_create_title_file">文件创建</string>
+    <string name="explorer_operation_create_description_file">在“%2$s”创建文件“%1$s”</string>
+    <string name="explorer_operation_create_text_file_title">文本文件创建</string>
+    <string name="explorer_operation_create_text_file_description">从文本片段创建“%1$s”</string>
+    <string name="explorer_operation_calculate_sizes_title">大小计算</string>
+    <string name="explorer_operation_calculate_sizes_description">计算“%1$s”中文件夹的大小。</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="other">已扫描 %1$d 个项目</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">已计算 %1$d 个文件夹的大小。</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="other">已计算 %1$d 个文件夹的大小，%2$d 个位置无法读取。</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">“%1$s”的文件夹大小已被放弃，因为其在计算过程中发生了变化。</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">导航失败</string>
+    <string name="explorer_aborted_dialog_title">操作已中止</string>
+    <string name="explorer_aborted_dialog_message">加载在显示任何内容之前已被取消。</string>
+    <string name="explorer_archive_unbrowsable_title">无法在此浏览压缩包</string>
+    <string name="explorer_archive_unbrowsable_msg">“%1$s”位于仅支持顺序读取的存储上，但浏览压缩包需要随机访问。请在此解压压缩包，或下载本地副本以浏览它。</string>
+    <string name="explorer_archive_unbrowsable_extract_action">解压压缩包</string>
+    <string name="explorer_archive_unbrowsable_download_action">下载本地副本</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data（特殊访问权限）</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb（特殊访问权限）</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android 限制了对此文件夹的访问。请使用文件夹选择器授予访问权限。</string>
+    <string name="explorer_permission_multiple_options_description">您可以使用 Android 的文件夹选择器授予访问权限，或设置 Root/Shizuku 以更快地访问所有受限文件夹。</string>
+    <string name="explorer_permission_setup_both_description">此文件夹需要提升的访问权限。请在设置中安装并配置 Root 或 Shizuku。</string>
+    <string name="explorer_permission_setup_shizuku_description">此文件夹需要通过 Shizuku 获得提升的访问权限。请安装 Shizuku Manager 并在设置中进行配置。</string>
+    <string name="explorer_permission_setup_root_description">此文件夹需要 Root 权限。如果您的设备已 Root，请在设置中进行配置。</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">使用 Android 的文件夹选择器授予对此文件夹的访问权限。</string>
+    <string name="explorer_permission_option_picker_action">打开 SAF 选择器</string>
+
+    <string name="explorer_permission_option_setup_title">完全访问权限</string>
+    <string name="explorer_permission_option_setup_description">设置 Root 或 Shizuku 以更快地访问所有受限文件夹。</string>
+    <string name="explorer_permission_option_setup_action">配置</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">存储访问权限</string>
+    <string name="explorer_permission_option_storage_description">授予 Butler 访问设备存储上文件的权限。</string>
+    <string name="explorer_permission_option_storage_action">授予权限</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">在新标签页中打开</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">收藏夹</string>
+    <string name="explorer_action_add_to_favorites">添加到收藏夹</string>
+    <string name="explorer_action_remove_from_favorites">从收藏夹中移除</string>
+    <string name="explorer_favorites_select_action">选择</string>
+    <string name="explorer_favorites_unavailable_subtitle">无法访问</string>
+    <string name="explorer_favorites_unavailable_toast">此收藏项无法访问</string>
+    <string name="explorer_favorites_added_message">已将 %1$s 添加到收藏夹</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="other">已将 %1$d 个项目添加到收藏夹</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">已将 %1$s 从收藏夹中移除</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="other">已将 %1$d 个项目从收藏夹中移除</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">重命名收藏项</string>
+    <string name="explorer_favorites_rename_hint">收藏项名称</string>
+    <string name="explorer_favorites_rename_description">仅重命名收藏夹中的条目，文件夹本身仍保留原名称。</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="other">此标签页覆盖了 %1$d 个文件夹的排序方式</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="other">%1$d 个文件夹</item>
+    </plurals>
+</resources>
