@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Deweloper</string>
+    <string name="developer_title">Narzędzia dewelopera</string>
+    <string name="developer_subtitle">Narzędzia programistyczne</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">System</string>
+    <string name="developer_tab_options">Opcje</string>
+    <string name="developer_tab_workspaces">Obszary robocze</string>
+    <string name="developer_tab_logs">Dzienniki</string>
+    <string name="developer_tab_testdata">Dane testowe</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Opcje debugowania</string>
+    <string name="developer_options_debug_mode">Tryb debugowania</string>
+    <string name="developer_options_debug_mode_desc">Włącz szczegółowe logowanie</string>
+    <string name="developer_options_trace_mode">Tryb śledzenia</string>
+    <string name="developer_options_trace_mode_desc">Włącz logowanie na poziomie śledzenia</string>
+    <string name="developer_options_floating_log">Pływający panel dziennika</string>
+    <string name="developer_options_floating_log_desc">Pokaż nakładkę dziennika, którą można przeciągać na wszystkich ekranach</string>
+    <string name="developer_options_services_header">Testy usług</string>
+    <string name="developer_options_root_test_action">Test Root</string>
+    <string name="developer_options_root_installed_label">Zainstalowany</string>
+    <string name="developer_options_root_available_label">Dostępny</string>
+    <string name="developer_options_root_base_check_label">Sprawdzenie podstawowe</string>
+    <string name="developer_options_shizuku_test_action">Test Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">Zainstalowany</string>
+    <string name="developer_options_shizuku_granted_label">Uprawnienie</string>
+    <string name="developer_options_shizuku_compatible_label">Kompatybilny</string>
+    <string name="developer_options_shizuku_service_label">Usługa</string>
+    <string name="developer_options_test_running">Testowanie…</string>
+    <string name="developer_options_result_yes">Tak</string>
+    <string name="developer_options_result_no">Nie</string>
+    <string name="developer_options_result_unknown">Nieznany</string>
+    <string name="developer_options_visibility_header">Widoczność</string>
+    <string name="developer_options_hide_mode">Ukryj tryb dewelopera</string>
+    <string name="developer_options_hide_mode_desc">Aby ponownie włączyć, naciśnij wersję 7 razy w Ustawieniach.</string>
+    <string name="developer_options_hide_action">Ukryj</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Urządzenie</string>
+    <string name="developer_system_device_model">Model</string>
+    <string name="developer_system_device_manufacturer">Producent</string>
+    <string name="developer_system_device_api">Poziom API</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">Wersja</string>
+    <string name="developer_system_build_code">Kod wersji</string>
+    <string name="developer_system_build_flavor">Wariant</string>
+    <string name="developer_system_build_type">Typ buildu</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Pamięć</string>
+    <string name="developer_system_memory_available">Dostępna</string>
+    <string name="developer_system_memory_total">Razem</string>
+    <string name="developer_system_storage_header">Magazyn</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d obszarów roboczych</string>
+    <string name="developer_workspaces_empty">Brak obszarów roboczych</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Wyczyść</string>
+    <string name="developer_logs_pause">Wstrzymaj</string>
+    <string name="developer_logs_resume">Wznów</string>
+    <string name="developer_logs_empty">Brak dzienników</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Ścieżki docelowe</string>
+    <string name="developer_testdata_no_paths">Nie wybrano żadnych ścieżek docelowych. Dodaj ścieżki, aby wygenerować dane testowe.</string>
+    <string name="developer_testdata_add_path_action">Dodaj ścieżkę</string>
+    <string name="developer_testdata_options_header">Opcje generowania</string>
+    <string name="developer_testdata_large_files">Duże pliki</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Struktura zagnieżdżona</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 folderów, ~1100 plików</string>
+    <string name="developer_testdata_text_files">Pliki tekstowe dla edytora</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Generuj</string>
+    <string name="developer_testdata_generating">Generowanie…</string>
+    <string name="developer_testdata_history_header">Przykładowe wpisy historii</string>
+    <string name="developer_testdata_history_desc">Wypełnia ~25 fałszywych wpisów operacji od dzisiaj do 30 dni temu, mieszane rodzaje/wyniki/pochodzenie/ścieżki. Wstawia bezpośrednio do bazy danych historii; bezpieczne do ponownego naciśnięcia.</string>
+    <string name="developer_testdata_history_generate_action">Generuj przykładową historię</string>
+    <string name="developer_testdata_progress">%1$s z %2$s</string>
+    <string name="developer_testdata_complete">Dane testowe wygenerowane w:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Generuj duże pliki</string>
+    <string name="developer_operation_large_files_desc">Tworzenie plików testowych w %1$s</string>
+    <string name="developer_operation_large_files_creating">Tworzenie %1$s</string>
+
+    <string name="developer_operation_nested_title">Generuj zagnieżdżoną strukturę</string>
+    <string name="developer_operation_nested_desc">Tworzenie hierarchii folderów w %1$s</string>
+    <string name="developer_operation_nested_starting">Uruchamianie zagnieżdżonej struktury…</string>
+    <string name="developer_operation_nested_creating">Tworzenie %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d pliki utworzone</string>
+
+    <string name="developer_operation_text_files_title">Generuj pliki tekstowe</string>
+    <string name="developer_operation_text_files_desc">Tworzenie plików tekstowych w %1$s</string>
+    <string name="developer_operation_text_files_creating">Tworzenie %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">Utworzono %d plik</item>
+        <item quantity="few">Utworzono %d pliki</item>
+        <item quantity="many">Utworzono %d plików</item>
+        <item quantity="other">Utworzono %d pliku</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d katalog</item>
+        <item quantity="few">%d katalogi</item>
+        <item quantity="many">%d katalogów</item>
+        <item quantity="other">%d katalogu</item>
+    </plurals>
+</resources>

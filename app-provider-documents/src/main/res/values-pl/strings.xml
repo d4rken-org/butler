@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Zaawansowany dostęp do urządzenia</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Urządzenie</string>
+    <string name="documents_connection_device_summary">Lokalna pamięć urządzenia</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">System plików root</string>
+    <string name="provider_documents_storage_internal_label">Pamięć wewnętrzna</string>
+    <string name="provider_documents_storage_sd_card_label">Karta SD</string>
+    <string name="provider_documents_storage_saf_label">Lokalizacja SAF</string>
+    <string name="provider_documents_storage_free_suffix">wolne</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">Dostęp root jest wymagany do przeglądania tej lokalizacji. Włącz dostęp root w ustawieniach aplikacji Butler.</string>
+    <string name="provider_documents_error_requires_adb">Dostęp ADB/Shizuku jest wymagany do przeglądania tej lokalizacji. Włącz Shizuku w ustawieniach aplikacji Butler.</string>
+    <string name="provider_documents_error_requires_storage">Uprawnienie do pamięci jest wymagane do przeglądania tej lokalizacji. Udziel uprawnienia w ustawieniach aplikacji Butler.</string>
+    <string name="provider_documents_error_requires_permissions">Dodatkowe uprawnienia są wymagane do przeglądania tej lokalizacji. Sprawdź ustawienia aplikacji Butler.</string>
+    <string name="provider_documents_error_generic">Nie można uzyskać dostępu do tej lokalizacji. Sprawdź aplikację Butler, aby zapoznać się z opcjami dostępu.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Dostawca dokumentów</string>
+    <string name="provider_documents_settings_subtitle">Integracja z aplikacjami zewnętrznymi</string>
+    <string name="provider_documents_settings_category_integration_label">Integracja</string>
+    <string name="provider_documents_enabled_title">Włącz dostawcę dokumentów</string>
+    <string name="provider_documents_enabled_desc">Pozwól innym aplikacjom na dostęp do plików przez Butler za pośrednictwem selektora plików Androida</string>
+</resources>
