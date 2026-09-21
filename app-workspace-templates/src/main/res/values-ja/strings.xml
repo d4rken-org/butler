@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">新規</string>
+    <string name="workspace_templates_choose_title">新しいタブ</string>
+    <string name="workspace_templates_choose_subtitle">タブの種類を選択してください。何かお手伝いできることはありますか？</string>
+    <string name="workspace_templates_name_tab_action">このタブに名前を付ける</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">ツールを選択</string>
+    <string name="tour_templates_picker_body">これはタブピッカーです。このタブがどのツールになるかを選択してください。選択するとこのタブがそのツールに変わります。</string>
+    <string name="tour_templates_butler_button_title">タブはここにあります</string>
+    <string name="tour_templates_butler_button_body">Butlerボタンをタップしてタブメニューを開きます。新しいタブを作成したり、現在のタブを閉じたり、フルタブマネージャーを開いたりできます。長く押すとタブマネージャーにジャンプします。</string>
+</resources>

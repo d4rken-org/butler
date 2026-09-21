@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">開発者</string>
+    <string name="developer_title">開発者ツール</string>
+    <string name="developer_subtitle">開発用ユーティリティ</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">システム</string>
+    <string name="developer_tab_options">オプション</string>
+    <string name="developer_tab_workspaces">ワークスペース</string>
+    <string name="developer_tab_logs">ログ</string>
+    <string name="developer_tab_testdata">テストデータ</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">デバッグオプション</string>
+    <string name="developer_options_debug_mode">デバッグモード</string>
+    <string name="developer_options_debug_mode_desc">詳細ログ出力を有効にします</string>
+    <string name="developer_options_trace_mode">トレースモード</string>
+    <string name="developer_options_trace_mode_desc">トレースレベルのログ出力を有効にします</string>
+    <string name="developer_options_floating_log">フローティングログパネル</string>
+    <string name="developer_options_floating_log_desc">すべての画面にドラッグ可能なログオーバーレイを表示します</string>
+    <string name="developer_options_services_header">サービステスト</string>
+    <string name="developer_options_root_test_action">Rootをテスト</string>
+    <string name="developer_options_root_installed_label">インストール済み</string>
+    <string name="developer_options_root_available_label">利用可能</string>
+    <string name="developer_options_root_base_check_label">ベースチェック</string>
+    <string name="developer_options_shizuku_test_action">Shizukuをテスト</string>
+    <string name="developer_options_shizuku_installed_label">インストール済み</string>
+    <string name="developer_options_shizuku_granted_label">権限</string>
+    <string name="developer_options_shizuku_compatible_label">互換性</string>
+    <string name="developer_options_shizuku_service_label">サービス</string>
+    <string name="developer_options_test_running">テスト中…</string>
+    <string name="developer_options_result_yes">はい</string>
+    <string name="developer_options_result_no">いいえ</string>
+    <string name="developer_options_result_unknown">不明</string>
+    <string name="developer_options_visibility_header">可視性</string>
+    <string name="developer_options_hide_mode">開発者モードを非表示にする</string>
+    <string name="developer_options_hide_mode_desc">設定でバージョンを7回タップして再度有効にできます。</string>
+    <string name="developer_options_hide_action">非表示</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">デバイス</string>
+    <string name="developer_system_device_model">モデル</string>
+    <string name="developer_system_device_manufacturer">メーカー</string>
+    <string name="developer_system_device_api">APIレベル</string>
+    <string name="developer_system_build_header">ビルド</string>
+    <string name="developer_system_build_version">バージョン</string>
+    <string name="developer_system_build_code">バージョンコード</string>
+    <string name="developer_system_build_flavor">Flavor</string>
+    <string name="developer_system_build_type">ビルドタイプ</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">メモリ</string>
+    <string name="developer_system_memory_available">利用可能</string>
+    <string name="developer_system_memory_total">合計</string>
+    <string name="developer_system_storage_header">ストレージ</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d個のワークスペース</string>
+    <string name="developer_workspaces_empty">ワークスペースなし</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">クリア</string>
+    <string name="developer_logs_pause">一時停止</string>
+    <string name="developer_logs_resume">再開</string>
+    <string name="developer_logs_empty">ログなし</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">ターゲットパス</string>
+    <string name="developer_testdata_no_paths">ターゲットパスが選択されていません。パスを追加してテストデータを生成します。</string>
+    <string name="developer_testdata_add_path_action">パスを追加</string>
+    <string name="developer_testdata_options_header">生成オプション</string>
+    <string name="developer_testdata_large_files">大きいファイル</string>
+    <string name="developer_testdata_large_files_desc">1MB、10MB、100MB、1GB、2GB、4GB、8GB</string>
+    <string name="developer_testdata_nested_structure">ネストされた構造</string>
+    <string name="developer_testdata_nested_structure_desc">～1100個のフォルダ、～1100個のファイル</string>
+    <string name="developer_testdata_text_files">エディター用テキストファイル</string>
+    <string name="developer_testdata_text_files_desc">10KB、100KB、1MB、10MB、100MB</string>
+    <string name="developer_testdata_generate_action">生成</string>
+    <string name="developer_testdata_generating">生成中…</string>
+    <string name="developer_testdata_history_header">サンプル履歴エントリ</string>
+    <string name="developer_testdata_history_desc">今日から30日前までの期間で、～25件の偽操作エントリを生成します。種類、結果、出所、パスが混在しています。履歴データベースに直接挿入されるため、再度実行しても安全です。</string>
+    <string name="developer_testdata_history_generate_action">サンプル履歴を生成</string>
+    <string name="developer_testdata_progress">%1$s/%2$s</string>
+    <string name="developer_testdata_complete">テストデータが生成されました：</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">大きいファイルを生成</string>
+    <string name="developer_operation_large_files_desc">%1$sにテストファイルを作成しています</string>
+    <string name="developer_operation_large_files_creating">%1$sを作成しています</string>
+
+    <string name="developer_operation_nested_title">ネストされた構造を生成</string>
+    <string name="developer_operation_nested_desc">%1$sにフォルダ階層を作成しています</string>
+    <string name="developer_operation_nested_starting">ネストされた構造を開始中…</string>
+    <string name="developer_operation_nested_creating">%1$sを作成しています</string>
+    <string name="developer_operation_nested_files_created">%1$d個のファイルが作成されました</string>
+
+    <string name="developer_operation_text_files_title">テキストファイルを生成</string>
+    <string name="developer_operation_text_files_desc">%1$sにテキストファイルを作成しています</string>
+    <string name="developer_operation_text_files_creating">%1$sを作成しています</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="other">%d個のファイルが作成されました</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="other">%d個のディレクトリ</item>
+    </plurals>
+</resources>

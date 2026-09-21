@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">アイテムを削除中</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">アイテムをコピー中</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">アイテムを移動中</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">スキャン中…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">ファイルは既に存在します</string>
+    <string name="path_action_folder_exists_title">フォルダは既に存在します</string>
+    <string name="path_action_file_exists_description">\"%1$s\" というファイルは \"%2$s\" に既に存在します。</string>
+    <string name="path_action_folder_exists_description">\"%1$s\" というフォルダは \"%2$s\" に既に存在します。</string>
+
+    <string name="path_action_not_found_title">ファイルが見つかりません</string>
+    <string name="path_action_not_found_description">\"%1$s\" は削除、名前変更、または移動されました。</string>
+
+    <string name="path_action_permission_denied_title">アクセスが拒否されました</string>
+    <string name="path_action_permission_denied_description">権限不足のため、\"%2$s\" にある \"%1$s\" にアクセスできません。</string>
+    <string name="path_action_permission_denied_no_mechanism_description">\"%2$s\" にある \"%1$s\" にアクセスできません。この操作を実行する方法がありません。</string>
+    <string name="path_action_permission_denied_readonly_description">\"%2$s\" にある \"%1$s\" にアクセスできません。ファイルシステムは読み取り専用です。</string>
+    <string name="path_action_permission_denied_not_permitted_description">\"%2$s\" にある \"%1$s\" にアクセスできません。システムがこの操作を拒否しました。</string>
+
+    <string name="path_action_insufficient_space_title">容量不足</string>
+    <string name="path_action_insufficient_space_description">\"%2$s\" から \"%1$s\" をコピーするのに十分なストレージ容量がありません。</string>
+
+    <string name="path_action_unknown_error_title">操作に失敗しました</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">置き換えが未完了</string>
+    <string name="path_action_data_kept_new_data_description">Butler は \"%1$s\" への書き込みを完了できませんでした。新しいデータは \"%2$s\" と同じフォルダに保持されています。名前を変更して復元するか、削除して破棄してください。</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler は \"%1$s\" への書き込みを完了できませんでした。以前のファイルは変更されていません。新しいデータは \"%2$s\" と同じフォルダに保持されています。名前を変更して復元するか、削除して破棄してください。</string>
+    <string name="path_action_data_kept_both_description">Butler は \"%1$s\" への書き込みを完了できませんでした。何も失われていません。以前のファイルは \"%2$s\" と同じフォルダに、新しいデータは \"%3$s\" に保持されています。保持したいものの名前を変更してください。</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler は \"%1$s\" への書き込みを完了できず、\"%2$s\" がまだ存在するかどうかを確認できませんでした。不完全なコピーが \"%3$s\" と同じフォルダに保持されている可能性があります。どちらか一方を削除する前に両方を比較してください。</string>
+    <string name="path_action_data_kept_intermediate_description">Butler は \"%1$s\" の移動を完了できず、フォルダを出たかどうかを確認できません。データはそのフォルダに \"%2$s\" として保持されているか、既に \"%3$s\" にあります。どちらか一方を削除する前に両方を確認してください。</string>
+    <string name="path_action_data_kept_uncertain_description">Butler は \"%1$s\" への書き込みを完了できず、ファイルがどこに終わったかを確認できません。そのフォルダにある 3 つのファイルのうちの 1 つです。\"%1$s\" 自体、\"%2$s\"、または \"%3$s\"。どれかを削除する前に 3 つすべてを確認してください。</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler は \"%1$s\" への書き込みを完了できず、ファイルがどこに終わったかを確認できません。そのフォルダにある 2 つのファイルのうちの 1 つです。\"%1$s\" 自体または \"%2$s\"。どちらか一方を削除する前に両方を確認してください。</string>
+
+    <string name="path_action_trash_size_limit_title">ゴミ箱には大きすぎるアイテム</string>
+    <string name="path_action_trash_size_limit_description">%1$d 個のアイテム（合計 %2$s）がゴミ箱のサイズ制限（%3$s）を超えています。</string>
+
+    <string name="path_action_trash_move_failed_title">ゴミ箱への移動に失敗しました</string>
+    <string name="path_action_trash_move_failed_description">%1$d 個のアイテムをゴミ箱に移動できませんでした。</string>
+
+    <string name="path_action_trash_not_supported_title">ゴミ箱は対応していません</string>
+    <string name="path_action_trash_not_supported_description">%1$d 個のアイテムは、ゴミ箱に対応していないストレージにあります。</string>
+
+    <string name="path_action_archive_password_title">パスワードが必要です</string>
+    <string name="path_action_archive_password_description">\"%1$s\" は暗号化されています。内容を読むにはパスワードを入力してください。</string>
+    <string name="path_action_archive_password_wrong_description">\"%1$s\" のパスワードが正しくありません。もう一度試してください。</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">サーバーに到達できません</string>
+    <string name="smb_error_unreachable_description">Butler は \"%1$s\" に到達できませんでした。デバイスが同じネットワーク上にあり、サーバーがオンになっていることを確認してください。</string>
+    <string name="smb_error_auth_title">サインインに失敗しました</string>
+    <string name="smb_error_auth_description">\"%1$s\" がユーザー名またはパスワードを拒否しました。</string>
+    <string name="smb_error_share_access_denied_title">このシェアにアクセスできません</string>
+    <string name="smb_error_share_access_denied_description">このアカウントは \"%2$s\" 上の \"%1$s\" を使用できない可能性があります。サーバーのシェアのアクセス許可を確認してください。</string>
+    <string name="smb_error_share_not_found_title">シェアが見つかりません</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" は \"%2$s\" に存在しません。</string>
+    <string name="smb_error_dialect_title">サーバーが古すぎます</string>
+    <string name="smb_error_dialect_description">\"%1$s\" は安全でなく、サポートされていない SMB1 のみを提供しています。サーバーで SMB2 以降を有効にしてください。</string>
+    <string name="smb_error_credential_unavailable_title">サインインが必要です</string>
+    <string name="smb_error_credential_unavailable_description">このネットワークストレージの保存済みパスワードは読み取れなくなりました。もう一度入力して再接続してください。</string>
+    <string name="smb_error_pro_required_title">ネットワークシェアには Butler Pro が必要です</string>
+    <string name="smb_error_pro_required_description">ネットワークシェアへの接続は Butler Pro の一部です。保存された場所はリストに残り、これなしで削除できます。</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">保護されたアプリバンドル</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" は暗号化されており、それを作成したアプリによってのみインストールできます。</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">APK セット形式はサポートされていません</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" は bundletool APK セットです。Butler はこのデバイスに合うバリアントを特定できません。</string>
+
+    <string name="app_install_error_unsupported_bundle_title">インストールするアプリがありません</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" はインストール可能な APK を含みません。</string>
+
+    <string name="app_install_error_session_title">インストールに失敗しました</string>
+    <string name="app_install_error_session_description">システムがインストールを拒否しました。%1$s</string>
+
+    <string name="app_install_error_busy_title">別のインストールが進行中です</string>
+    <string name="app_install_error_busy_description">\"%1$s\" はまだインストール中です。別のインストールを開始する前に、そのインストールを確認またはキャンセルしてください。</string>
+
+    <string name="app_install_error_no_elevation_title">昇格されたアクセスがありません</string>
+    <string name="app_install_error_no_elevation_description">Root または ADB アクセスは現在利用できません。</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">確認が必要です</string>
+    <string name="app_install_confirm_pending_description">完了する前に、Android は \"%1$s\" のインストールを確認する必要があります。</string>
+    <string name="app_install_confirm_pending_description_unnamed">完了する前に、Android はこのインストールを確認する必要があります。</string>
+    <string name="app_install_confirm_pending_action">インストールを確認</string>
+    <string name="app_install_confirm_pending_reason">インストーラーはあなたの確認を待っています</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">確認が必要です</string>
+    <string name="app_uninstall_confirm_pending_description">完了する前に、Android は \"%1$s\" の削除を確認する必要があります。</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">完了する前に、Android はこの削除を確認する必要があります。</string>
+    <string name="app_uninstall_confirm_pending_action">削除を確認</string>
+    <string name="app_uninstall_confirm_pending_reason">Android はあなたの確認を待っています</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">別のユーザーのこのアプリを削除するには、Root または Shizuku が必要です</string>
+    <string name="app_uninstall_no_result">Android は結果を報告しませんでした</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">ファイル操作が中断されました</string>
+    <string name="service_connection_lost_error_message">ファイル操作サービスが予期せず停止しました。もう一度お試しください。</string>
+</resources>

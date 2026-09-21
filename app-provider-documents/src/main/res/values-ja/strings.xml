@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">高度なデバイスアクセス</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">デバイス</string>
+    <string name="documents_connection_device_summary">ローカルデバイスストレージ</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">ルートファイルシステム</string>
+    <string name="provider_documents_storage_internal_label">内部ストレージ</string>
+    <string name="provider_documents_storage_sd_card_label">SDカード</string>
+    <string name="provider_documents_storage_saf_label">SAF の場所</string>
+    <string name="provider_documents_storage_free_suffix">空き容量</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">この場所にアクセスするにはroot権限が必要です。Butlerアプリの設定でroot権限を有効にしてください。</string>
+    <string name="provider_documents_error_requires_adb">この場所にアクセスするにはADB/Shizuku権限が必要です。Butlerアプリの設定でShizukuを有効にしてください。</string>
+    <string name="provider_documents_error_requires_storage">この場所にアクセスするにはストレージ権限が必要です。Butlerアプリの設定でストレージ権限を許可してください。</string>
+    <string name="provider_documents_error_requires_permissions">この場所にアクセスするには追加の権限が必要です。Butlerアプリの設定を確認してください。</string>
+    <string name="provider_documents_error_generic">この場所にアクセスできません。Butlerアプリでアクセスオプションを確認してください。</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">ドキュメントプロバイダー</string>
+    <string name="provider_documents_settings_subtitle">外部アプリの連携</string>
+    <string name="provider_documents_settings_category_integration_label">連携</string>
+    <string name="provider_documents_enabled_title">ドキュメントプロバイダーを有効にする</string>
+    <string name="provider_documents_enabled_desc">他のアプリがAndroidのファイルピッカーでButlerを使用してファイルにアクセスできるようにします</string>
+</resources>

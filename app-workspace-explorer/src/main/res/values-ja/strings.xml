@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">エクスプローラー</string>
+    <string name="explorer_subtitle">ファイルとフォルダを閲覧</string>
+    <string name="explorer_settings_title">エクスプローラー設定</string>
+    <string name="explorer_settings_file_display">ファイル表示</string>
+    <string name="explorer_settings_filter_regex_title">高度なワイルドカードマッチング</string>
+    <string name="explorer_settings_filter_regex_desc">含める・除外するフィルターで正規表現パターンを使用します。</string>
+    <string name="explorer_settings_navigation">ナビゲーション</string>
+    <string name="explorer_settings_back_button_title">戻るボタンでのナビゲーション</string>
+    <string name="explorer_settings_back_button_desc">戻るボタン・ジェスチャーで履歴を移動します。</string>
+    <string name="explorer_settings_trash_category">ゴミ箱</string>
+    <string name="explorer_settings_trash_enabled_title">ゴミ箱を有効にする</string>
+    <string name="explorer_settings_trash_enabled_desc">削除したファイルを完全に削除する代わりにゴミ箱に移動します</string>
+    <string name="explorer_settings_trash_auto_delete_title">自動削除までの期間</string>
+    <string name="explorer_settings_trash_auto_delete_desc">%d 日以上経過した項目を自動的に削除します</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d 日</string>
+    <string name="explorer_settings_trash_max_size_title">ストレージごとの最大サイズ</string>
+    <string name="explorer_settings_trash_max_size_desc">ストレージごとの最大 %d MB</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">自動削除の期間</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">ストレージごとの最大サイズ</string>
+    <string name="explorer_settings_trash_enable_dialog_title">ゴミ箱を有効にしますか？</string>
+    <string name="explorer_settings_trash_enable_dialog_message">デスクトップシステムと異なり、Androidには標準のゴミ箱機能がありません。Butlerはキャッシュフォルダを使ってゴミ箱を提供します。\n\n注意点:\n• 項目を完全に削除するまで、端末のストレージ表示には空き容量が反映されません\n• 端末のストレージ容量が少なくなると、Androidがアプリのキャッシュを消去し、ゴミ箱内のファイルが削除されることがあります</string>
+    <string name="explorer_settings_trash_enable_action">有効にする</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">ファイル</string>
+    <string name="explorer_file_symlink_content_desc">シンボリックリンク</string>
+    <string name="explorer_file_folder_content_desc">フォルダ</string>
+    <string name="explorer_file_peek_content_desc">ファイル情報を読み込み中</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">ショートカット</string>
+    <string name="explorer_file_storage_local_label">ローカル</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">読み取り専用アクセス</string>
+    <string name="explorer_file_storage_saf_write_only_label">書き込み専用アクセス</string>
+    <string name="explorer_file_storage_saf_no_access_label">アクセスなし</string>
+    <string name="explorer_file_storage_saf_uri_label">SAF ツリー URI</string>
+    <string name="explorer_file_storage_size_format">%1$s・合計 %2$s・空き %3$s</string>
+    <string name="explorer_file_broken_link_label">壊れたリンク</string>
+    <string name="explorer_file_items_count">%1$d 個の項目</string>
+    <string name="explorer_file_empty">空</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s・一部</string>
+    <string name="explorer_sizes_estimate_description">Android のストレージ合計から推定しています。読み取れないファイルについては、使用容量をファイルサイズの目安として使用します。Android が管理する非表示ファイルが含まれる場合もあります。その他の読み取れない場所については不明のままです。</string>
+    <string name="explorer_sizes_estimate_coverage">ストレージの他の部分を完全に測定できなかったため、Android/data を推定できませんでした。</string>
+    <string name="explorer_sizes_estimate_unavailable">Android のストレージ統計情報を取得できませんでした。測定済みのサイズは表示されています。</string>
+    <string name="explorer_sizes_estimate_inconsistent">Android のストレージ合計とスキャン結果が一致しませんでした。測定済みのサイズは表示されています。</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">フォルダを選択</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">フォルダを選択</item>
+        <item quantity="other">フォルダを選択 (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">ファイルを選択</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">ファイルを選択</item>
+        <item quantity="other">ファイルを選択 (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">項目を選択</item>
+        <item quantity="other">項目を選択 (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">このフォルダを選択</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="other">%d 個選択</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">ファイルを保存</string>
+    <string name="explorer_picker_save_here_action">ここに保存</string>
+    <string name="explorer_picker_save_as_filename_label">ファイル名</string>
+    <string name="explorer_picker_save_as_filename_hint">ファイル名を入力</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">更新</string>
+    <string name="explorer_action_calculate_sizes">サイズを計算</string>
+    <string name="explorer_action_sort">並べ替え</string>
+    <string name="explorer_action_filter">フィルター</string>
+    <string name="explorer_action_view">レイアウト</string>
+    <string name="explorer_action_create">作成</string>
+    <string name="explorer_action_rename">名前を変更</string>
+    <string name="explorer_action_copy">コピー</string>
+    <string name="explorer_action_cut">切り取り</string>
+    <string name="explorer_action_delete">削除</string>
+    <string name="explorer_action_select_all">すべて選択</string>
+    <string name="explorer_action_deselect_all">すべての選択を解除</string>
+    <string name="explorer_action_compress">圧縮</string>
+    <string name="explorer_action_extract">展開</string>
+    <string name="explorer_action_add_location">場所を追加</string>
+    <string name="explorer_action_info">情報</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">情報</string>
+    <string name="explorer_info_name_label">名前</string>
+    <string name="explorer_info_path_label">パス</string>
+    <string name="explorer_info_type_label">種類</string>
+    <string name="explorer_info_type_file">ファイル</string>
+    <string name="explorer_info_type_directory">フォルダ</string>
+    <string name="explorer_info_size_label">サイズ</string>
+    <string name="explorer_info_modified_label">更新日時</string>
+    <string name="explorer_info_created_label">作成日時</string>
+    <string name="explorer_info_permissions_label">権限</string>
+    <string name="explorer_info_owner_label">所有者</string>
+    <string name="explorer_info_child_count_label">項目数</string>
+    <string name="explorer_info_symlink_target_label">ターゲット</string>
+    <string name="explorer_info_symlink_status_label">ステータス</string>
+    <string name="explorer_info_symlink_broken">壊れたリンク</string>
+    <string name="explorer_info_unknown">不明</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">削除日時</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">権限</string>
+    <string name="explorer_info_saf_granted_label">付与済み</string>
+    <string name="explorer_info_saf_permission_read">読み取り</string>
+    <string name="explorer_info_saf_permission_write">書き込み</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">サーバー</string>
+    <string name="explorer_info_network_port_label">ポート</string>
+    <string name="explorer_info_network_share_label">共有</string>
+    <string name="explorer_info_network_folder_label">フォルダ</string>
+    <string name="explorer_info_network_address_label">アドレス</string>
+    <string name="explorer_info_network_status_label">ステータス</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">サインイン</string>
+    <string name="explorer_info_network_domain_label">ドメイン</string>
+    <string name="explorer_info_network_password_label">パスワード</string>
+    <string name="explorer_info_network_password_show_action">パスワードを表示</string>
+    <string name="explorer_info_network_password_hide_action">パスワードを隠す</string>
+    <string name="explorer_info_network_password_missing">未設定です。再度サインインしてください</string>
+    <string name="explorer_info_network_password_locked">保存されていますが、この端末では復号できません</string>
+    <string name="explorer_info_network_added_label">追加日時</string>
+    <string name="explorer_info_network_updated_label">更新日時</string>
+    <string name="explorer_info_network_last_seen_label">最終確認</string>
+    <string name="explorer_info_network_last_seen_never">なし</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">選択中</string>
+    <string name="explorer_info_files_label">ファイル</string>
+    <string name="explorer_info_directories_label">フォルダ</string>
+    <string name="explorer_info_total_size_label">合計サイズ</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">場所</string>
+    <string name="explorer_info_shortcuts_label">ショートカット</string>
+    <string name="explorer_info_total_capacity_label">総容量</string>
+    <string name="explorer_info_used_space_label">使用容量</string>
+    <string name="explorer_info_free_space_label">空き容量</string>
+    <string name="explorer_info_usage_label">使用状況</string>
+    <string name="explorer_info_device_storage_total_label">端末のストレージ</string>
+    <string name="explorer_info_device_storage_used_label">使用済み</string>
+    <string name="explorer_info_device_storage_free_label">空き</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">ホーム</string>
+    <string name="explorer_breadcrumb_set_as_home_action">ホームに設定</string>
+    <string name="explorer_breadcrumb_copy_path_action">パスをコピー</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">パスをクリップボードにコピーしました</string>
+    <string name="explorer_navigation_device">端末</string>
+    <string name="explorer_navigation_network">ネットワーク</string>
+    <string name="explorer_navigation_recent">最近</string>
+    <string name="explorer_navigation_recent_desc">この端末に最近追加されたファイル</string>
+    <string name="explorer_navigation_trash">ゴミ箱</string>
+    <string name="explorer_navigation_trash_desc">削除したファイルを復元</string>
+    <string name="explorer_navigation_trash_nested_desc">ゴミ箱内のフォルダ</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">削除された項目はありません</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="other">%d 個</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">復元</string>
+    <string name="explorer_trash_restore_selected_action">選択項目を復元</string>
+    <string name="explorer_trash_delete_permanently_action">完全に削除</string>
+    <string name="explorer_trash_delete_selected_action">選択項目を削除</string>
+    <string name="explorer_trash_empty_trash_action">ゴミ箱を空にする</string>
+    <string name="explorer_trash_empty_confirm">ゴミ箱を空にしますか？</string>
+    <string name="explorer_trash_empty_message">ゴミ箱内のすべての項目が完全に削除されます。この操作は元に戻せません。</string>
+    <string name="explorer_trash_empty_confirm_action">ゴミ箱を空にする</string>
+    <string name="explorer_trash_restore_desc">元の場所に復元</string>
+    <string name="explorer_trash_item_unavailable">項目を利用できません</string>
+    <string name="explorer_trash_delete_warning">この操作は元に戻せません</string>
+    <string name="explorer_trash_disabled_warning">ゴミ箱は無効です</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">ゴミ箱内のフォルダの内容を読み込み中…</string>
+    <string name="explorer_trash_nested_restore_action">元の場所に復元</string>
+    <string name="explorer_trash_nested_delete_action">完全に削除</string>
+    <string name="explorer_trash_nested_restore_conflict">元の場所に同名のファイルが既に存在します</string>
+    <string name="explorer_trash_nested_parent_missing">親項目はゴミ箱に存在しません</string>
+    <string name="explorer_trash_nested_path_missing">パスは存在しません</string>
+    <string name="explorer_trash_error_items_not_found">ゴミ箱内に項目が見つかりません</string>
+    <string name="explorer_trash_error_restore_failed">項目の復元に失敗しました</string>
+    <string name="explorer_trash_error_delete_failed">項目の削除に失敗しました</string>
+    <string name="explorer_trash_nested_error_restore_failed">%1$s の復元に失敗しました</string>
+    <string name="explorer_trash_nested_error_delete_failed">%1$s の削除に失敗しました</string>
+
+    <string name="explorer_navigation_root">ルートフォルダ</string>
+    <string name="explorer_navigation_rom">システムROM</string>
+    <string name="explorer_navigation_internal_storage">内部共有ストレージ</string>
+    <string name="explorer_navigation_external_storage">外部共有ストレージ</string>
+
+    <string name="explorer_loader_progress_directory_loading">%s を閲覧中</string>
+    <string name="explorer_loader_progress_directory_permissions">権限を確認中</string>
+    <string name="explorer_loader_progress_directory_filesystem">ファイルシステム情報を取得中</string>
+    <string name="explorer_loader_progress_directory_content">フォルダの内容を読み込み中</string>
+    <string name="explorer_loader_progress_directory_content_details">内容の詳細を読み込み中</string>
+    <string name="explorer_loader_progress_directory_content_extended">内容の詳細情報を読み込み中</string>
+
+    <string name="explorer_loader_progress_device_loading">端末を読み込み中</string>
+    <string name="explorer_loader_progress_device_locations">ストレージの場所を読み込み中</string>
+
+    <string name="explorer_loader_progress_network_loading">ネットワークストレージを読み込み中</string>
+
+    <string name="explorer_loader_progress_home_loading">ホームを読み込み中</string>
+    <string name="explorer_loader_progress_trash_loading">ゴミ箱を読み込み中…</string>
+    <string name="explorer_loader_progress_recent_loading">最近のファイルを読み込み中…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="other">%d 個のショートカット</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="other">%d 個の場所</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="other">%d 個が非表示</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">空き %1$s</string>
+    <string name="explorer_infobar_loading">読み込み中…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">新規項目を作成</string>
+    <string name="explorer_dialog_rename_title">名前を変更</string>
+    <string name="explorer_dialog_name_label">名前</string>
+    <string name="explorer_dialog_type_label">種類</string>
+    <string name="explorer_dialog_type_folder">フォルダ</string>
+    <string name="explorer_dialog_type_file">ファイル</string>
+    <string name="explorer_dialog_create_text_file_title">テキストからファイルを作成</string>
+    <string name="explorer_dialog_create_text_file_preview_label">プレビュー</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d 文字</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">ストレージの場所を追加</string>
+    <string name="explorer_add_device_storage_desc">ストレージアクセスフレームワーク（SAF）を使って、USBドライブや仮想アプリフォルダなど、追加のストレージの場所へのアクセスを Butler に許可します。</string>
+    <string name="explorer_add_device_storage_continue">続ける</string>
+    <string name="explorer_add_device_storage_cancel">キャンセル</string>
+    <string name="explorer_add_device_storage_suggestions_title">ストレージを持つアプリ</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">このアプリのフォルダを開きます</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">場所を削除</string>
+    <string name="explorer_device_remove_confirmation_title">ストレージの場所を削除しますか？</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="other">%1$d 個のストレージの場所を削除しますか？</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">これにより、この場所への Butler のアクセスが取り消されます。ファイルは削除されません。</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="other">%d 個のネットワークの場所</item>
+    </plurals>
+    <string name="explorer_network_storage_label">ネットワーク</string>
+    <string name="explorer_network_add_location_action">ネットワークストレージを追加</string>
+    <string name="explorer_network_edit_location_action">ネットワークストレージを編集</string>
+    <string name="explorer_network_remove_location_action">ネットワークストレージを削除</string>
+    <string name="explorer_network_sign_in_required_label">サインインが必要です</string>
+    <string name="explorer_network_status_checking_label">確認中…</string>
+    <string name="explorer_network_status_available_label">利用可能</string>
+    <string name="explorer_network_status_unavailable_label">利用不可</string>
+    <string name="explorer_network_status_unavailable_since_format">利用不可（%1$s）</string>
+    <string name="explorer_network_empty_title">ネットワークストレージがまだありません</string>
+    <string name="explorer_network_empty_caption">Windows 共有や NAS フォルダを追加すると、ここで閲覧できます。</string>
+    <string name="explorer_network_remove_confirmation_title">ネットワークストレージを削除しますか？</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="other">%1$d 個のネットワークストレージを削除しますか？</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler はサーバーの詳細情報と保存されたパスワードを削除します。サーバー上のデータは削除されません。</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">ネットワークストレージを追加</string>
+    <string name="explorer_network_form_edit_title">ネットワークストレージを編集</string>
+    <string name="explorer_network_form_label_label">名前（任意）</string>
+    <string name="explorer_network_form_host_label">サーバーアドレス</string>
+    <string name="explorer_network_form_host_hint">nas.local または 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">ポート</string>
+    <string name="explorer_network_form_share_label">共有</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">共有内のフォルダ（任意）</string>
+    <string name="explorer_network_form_auth_guest">ゲスト</string>
+    <string name="explorer_network_form_auth_password">ユーザー名とパスワード</string>
+    <string name="explorer_network_form_username_label">ユーザー名</string>
+    <string name="explorer_network_form_domain_label">ドメイン（任意）</string>
+    <string name="explorer_network_form_password_label">パスワード</string>
+    <string name="explorer_network_form_password_kept_hint">空欄のままにすると保存済みのパスワードを維持します</string>
+    <string name="explorer_network_form_remember_label">パスワードを保存</string>
+    <string name="explorer_network_form_remember_hint">この端末にのみ暗号化して保存されます</string>
+    <string name="explorer_network_form_test_and_save_action">テストして保存</string>
+    <string name="explorer_network_form_testing">接続中…</string>
+    <string name="explorer_network_form_error_host_blank">サーバーアドレスを入力してください</string>
+    <string name="explorer_network_form_error_host_not_bare">スキームやパスを含めず、サーバーアドレスのみを入力してください</string>
+    <string name="explorer_network_form_error_host_malformed">有効なサーバーアドレスではありません</string>
+    <string name="explorer_network_form_error_port">1〜65535 の範囲でポート番号を入力してください</string>
+    <string name="explorer_network_form_error_share_blank">共有名を入力してください</string>
+    <string name="explorer_network_form_error_share_not_single">共有名のみを入力し、サブフォルダは下の欄に入力してください</string>
+    <string name="explorer_network_form_error_share_malformed">有効な共有名ではありません</string>
+    <string name="explorer_network_form_error_base_path">このフォルダパスは使用できません</string>
+    <string name="explorer_network_form_error_username_blank">ユーザー名を入力してください</string>
+    <string name="explorer_network_form_error_password_required">ユーザー名またはドメインを変更するには、パスワードを再入力してください</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">場所に名前を付ける</string>
+    <string name="explorer_location_name_label">場所の名前</string>
+    <string name="explorer_location_name_hint">空欄のままにするとデフォルトの名前を使用します</string>
+    <string name="explorer_location_rename_action">場所の名前を変更</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="other">過去 %d 日間に追加</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">新着はありません</string>
+    <string name="explorer_recent_empty_message">この端末に追加されたファイルがここに表示されます</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">このフォルダは空です</string>
+    <string name="explorer_empty_search_title">検索結果がありません</string>
+    <string name="explorer_empty_search_caption">別のキーワードで検索してみてください</string>
+    <string name="explorer_empty_folder_label">空のフォルダ</string>
+    <string name="explorer_empty_filtered_title">一致する項目がありません</string>
+    <string name="explorer_empty_filtered_caption">フィルターを調整してみてください</string>
+    <string name="explorer_empty_hidden_title">非表示の項目のみです</string>
+    <string name="explorer_empty_hidden_caption">このタブでは、名前がドットで始まる項目を非表示にしています</string>
+    <string name="explorer_empty_show_hidden_action">非表示の項目を表示</string>
+    <string name="explorer_empty_hidden_or_filtered_title">表示できる項目がありません</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">非表示設定とフィルターにより、このフォルダの一部が除外されています</string>
+    <string name="explorer_empty_clear_filters_action">フィルターを解除</string>
+    <string name="explorer_empty_hidden_and_filtered_title">非表示設定とフィルターにより、すべての項目が除外されています</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">非表示の項目を表示し、このタブのフィルターを解除すると再び表示されます</string>
+    <string name="explorer_empty_show_all_action">すべての項目を表示</string>
+    <string name="explorer_path_not_found_title">このフォルダは存在しません</string>
+    <string name="explorer_path_not_found_caption">削除、名前変更、または別の場所への移動が行われました。</string>
+    <string name="explorer_path_not_found_back_action">戻る</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">読み込み中…</string>
+    <string name="explorer_file_peek_loading_text">読み込み中…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">ここは何もありません…流れ解散です 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">このフォルダはダイエット中です</string>
+    <string name="explorer_empty_folder_caption_3">ファイルたちも今日は早退したようです</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe は動作を停止しました</string>
+    <string name="explorer_empty_folder_caption_5">ファイルたちはかくれんぼ中です</string>
+    <string name="explorer_empty_folder_caption_6">404: ファイルが見つかりません</string>
+    <string name="explorer_empty_folder_caption_7">このフォルダは心を開いてくれません</string>
+    <string name="explorer_empty_folder_caption_8">ファイルたちは無断でバカンス中です</string>
+    <string name="explorer_empty_folder_caption_9">私の心と同じくらい空っぽ…でもこっちは整理整頓済み</string>
+    <string name="explorer_empty_folder_caption_10">ここだけ、木枯らしが吹いています</string>
+    <string name="explorer_empty_folder_caption_11">ファイルたちはソーシャルディスタンス中です</string>
+    <string name="explorer_empty_folder_caption_12">このフォルダはミニマリストです</string>
+    <string name="explorer_empty_folder_caption_13">誰かがファイルへの餌やりを忘れたようです</string>
+    <string name="explorer_empty_folder_caption_14">ファイルたちは退場しました</string>
+    <string name="explorer_empty_folder_caption_15">政治家の公約より空っぽです</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">並べ替え</string>
+    <string name="explorer_sort_mode_name_label">名前</string>
+    <string name="explorer_sort_mode_size_label">サイズ</string>
+    <string name="explorer_sort_mode_modified_label">更新日時</string>
+    <string name="explorer_sort_mode_created_label">作成日時</string>
+    <string name="explorer_sort_descending_label">降順</string>
+    <string name="explorer_sort_scope_label">適用範囲</string>
+    <string name="explorer_sort_scope_all_folders">すべてのフォルダ</string>
+    <string name="explorer_sort_scope_this_folder">このフォルダ</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">このフォルダとサブフォルダ</string>
+    <string name="explorer_sort_scope_use_default_here">ここではデフォルトを使用</string>
+    <string name="explorer_sort_only_this_tab_label">このタブのみ</string>
+    <string name="explorer_sort_inherited_notice">%1$s 用に保存されたルールで並べ替えています</string>
+    <string name="explorer_sort_suppressed_notice">%1$s 用に保存されたルールを上書きしています</string>
+    <string name="explorer_sort_tab_overrides_default_notice">このタブは独自のデフォルトの並べ替え順を使用しています</string>
+    <string name="explorer_sort_tab_overrides_clear_action">クリア</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">フォルダサイズ</string>
+    <string name="explorer_sizes_sheet_label_calculated">計算済み</string>
+    <string name="explorer_sizes_sheet_label_folders">フォルダ</string>
+    <string name="explorer_sizes_sheet_label_unreadable">読み取れない場所</string>
+    <string name="explorer_sizes_sheet_problems_more">他 %1$d 個は表示されていません</string>
+    <string name="explorer_sizes_sheet_recalculate">再計算</string>
+    <string name="explorer_sizes_sheet_discard">サイズを破棄</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">項目の並べ方と表示する情報量</string>
+    <string name="explorer_view_mode_list_label">リスト</string>
+    <string name="explorer_view_mode_grid_label">グリッド</string>
+    <string name="explorer_view_density_compact_label">コンパクト</string>
+    <string name="explorer_view_density_comfortable_label">ゆったり</string>
+    <string name="explorer_view_density_detailed_label">詳細</string>
+    <string name="explorer_view_show_hidden_label">非表示ファイルを表示</string>
+    <string name="explorer_view_set_default_action">デフォルトに設定</string>
+    <string name="explorer_view_detail_created_label">作成日時</string>
+    <string name="explorer_view_detail_modified_label">更新日時</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">フォルダの並べ替えルール</string>
+    <string name="explorer_settings_folder_sort_rules_desc">個々のフォルダに保存した並べ替え設定</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">フォルダの並べ替えルールをクリアしますか？</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">すべてのフォルダがデフォルトの並べ替え順に戻ります。独自の並べ替えを設定しているタブはそのまま維持されます。この操作は元に戻せません。</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">すべてクリア</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">ファイルの種類</string>
+    <string name="explorer_filter_type_all">すべて</string>
+    <string name="explorer_filter_type_files">ファイルのみ</string>
+    <string name="explorer_filter_type_folders">フォルダのみ</string>
+    <string name="explorer_filter_include_label">含めるパターン</string>
+    <string name="explorer_filter_include_placeholder_simple">例: vacation, report, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">例: .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">除外するパターン</string>
+    <string name="explorer_filter_exclude_placeholder_simple">例: tmp, cache, old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">例: ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 設定で正規表現パターンを有効にできます</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">権限が必要です</string>
+    <string name="explorer_permission_generic_description">この場所を閲覧するには、Butler に追加の権限が必要です。</string>
+    <string name="explorer_permission_setup_action">設定を開く</string>
+    <string name="explorer_grant_access_action">アクセスを許可</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">操作</string>
+    <string name="explorer_file_info_type_label">種類</string>
+    <string name="explorer_file_info_size_label">サイズ</string>
+    <string name="explorer_file_info_modified_label">更新日時</string>
+    <string name="explorer_file_action_install">インストール</string>
+    <string name="explorer_file_action_install_subtitle">このアプリを端末にインストールします</string>
+    <string name="explorer_file_action_open">開く</string>
+    <string name="explorer_file_action_open_subtitle">ここで表示し、戻るとこのフォルダに戻ります</string>
+    <string name="explorer_file_action_open_in_tab">新しいタブで開く</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Butler内で独立したタブとして表示します</string>
+    <string name="explorer_file_action_open_in_editor">エディターで開く</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">新しいタブで編集します</string>
+    <string name="explorer_file_action_open_with">他のアプリで開く</string>
+    <string name="explorer_file_action_open_with_subtitle">開くための外部アプリを選択します</string>
+    <string name="explorer_file_action_share">共有</string>
+    <string name="explorer_file_action_share_subtitle">インストール済みのアプリで共有します</string>
+    <string name="explorer_file_action_copy">コピー</string>
+    <string name="explorer_file_action_copy_subtitle">貼り付け用にクリップボードへコピーします</string>
+    <string name="explorer_file_action_cut">切り取り</string>
+    <string name="explorer_file_action_cut_subtitle">貼り付け用にクリップボードへ移動します</string>
+    <string name="explorer_file_action_rename">名前を変更</string>
+    <string name="explorer_file_action_rename_subtitle">ファイル名を変更します</string>
+    <string name="explorer_file_action_delete">削除</string>
+    <string name="explorer_file_action_delete_subtitle">このファイルを完全に削除します</string>
+    <string name="explorer_file_action_move_to_trash">ゴミ箱に移動</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">ファイルをゴミ箱に移動します</string>
+    <string name="explorer_file_action_properties">プロパティ</string>
+    <string name="explorer_file_action_properties_subtitle">詳細なファイル情報を表示します</string>
+    <string name="explorer_file_action_extract">展開</string>
+    <string name="explorer_file_action_extract_subtitle">アーカイブの内容をフォルダに展開します</string>
+    <string name="explorer_file_action_show_in_folder">フォルダで表示</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">このファイルがあるフォルダを開きます</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="other">%d 個のファイルを作成しました。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="other">%d 個のフォルダを作成しました。</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">コピー操作</string>
+    <string name="explorer_operation_copy_description_single">\"%1$s\" を \"%2$s\" から \"%3$s\" にコピーします。</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="other">%1$d 個の項目を \"%2$s\" にコピーします。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="other">%d 個のファイルをコピーしました。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="other">%d 個のフォルダをコピーしました。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="other">%s をコピーしました。</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">展開操作</string>
+    <string name="explorer_operation_extract_description">\"%1$s\" を \"%2$s\" に展開します。</string>
+    <string name="explorer_operation_download_copy_title">ローカルコピー操作</string>
+    <string name="explorer_operation_download_copy_description">ローカルで閲覧するために \"%1$s\" を \"%2$s\" にコピーします。</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="other">%d 個のファイルを展開しました。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="other">%s を展開しました。</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">圧縮操作</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="other">%1$d 個の項目を \"%2$s\" に圧縮します。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="other">%d 個のファイルを圧縮しました。</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">アーカイブを作成</string>
+    <string name="explorer_compress_dialog_name_label">アーカイブ名</string>
+    <string name="explorer_compress_dialog_format_label">形式</string>
+    <string name="explorer_compress_dialog_format_zip_hint">どの端末でも開けます。パスワードで保護できます。</string>
+    <string name="explorer_compress_dialog_format_targz_hint">ファイル数が多い場合により小さくなります。パスワード保護はできません。</string>
+    <string name="explorer_compress_dialog_create_action">作成</string>
+    <string name="explorer_compress_dialog_level_label">圧縮レベル</string>
+    <string name="explorer_compress_dialog_level_fast">高速</string>
+    <string name="explorer_compress_dialog_level_normal">標準</string>
+    <string name="explorer_compress_dialog_level_best">最高</string>
+    <string name="explorer_compress_dialog_password_label">パスワード（任意）</string>
+    <string name="explorer_compress_dialog_password_confirm_label">パスワードを確認</string>
+    <string name="explorer_compress_dialog_password_mismatch">パスワードが一致しません</string>
+    <string name="explorer_compress_dialog_password_weak">弱いパスワードです</string>
+    <string name="explorer_compress_dialog_password_notice">ファイルの内容は暗号化されますが、ファイル名は暗号化されません。</string>
+    <string name="explorer_compress_dialog_password_show">パスワードを表示</string>
+    <string name="explorer_compress_dialog_password_hide">パスワードを隠す</string>
+    <string name="explorer_compress_dialog_overwrite_title">アーカイブを置き換えますか？</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" は既に存在するため、置き換えられます。</string>
+    <string name="explorer_compress_dialog_overwrite_action">置き換え</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="other">%1$d 個の項目をドロップしますか？</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="other">%1$d 個の項目を \"%2$s\" にコピーまたは移動しますか？</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="other">%1$d 個の項目を \"%2$s\" にコピーしますか？</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">ゴミ箱に移動しますか？</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="other">%1$d 個の項目をゴミ箱に移動しますか？</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">移動操作</string>
+    <string name="explorer_operation_move_description_single">\"%1$s\" を \"%2$s\" から \"%3$s\" に移動します。</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="other">%1$d 個の項目を \"%2$s\" に移動します。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="other">%d 個のファイルを移動しました。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="other">%d 個のフォルダを移動しました。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="other">%s を移動しました。</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">フォルダの作成</string>
+    <string name="explorer_operation_create_description_directory">\"%2$s\" にフォルダ \"%1$s\" を作成</string>
+    <string name="explorer_operation_create_title_file">ファイルの作成</string>
+    <string name="explorer_operation_create_description_file">\"%2$s\" にファイル \"%1$s\" を作成</string>
+    <string name="explorer_operation_create_text_file_title">テキストファイルの作成</string>
+    <string name="explorer_operation_create_text_file_description">テキストスニペットから \"%1$s\" を作成</string>
+    <string name="explorer_operation_calculate_sizes_title">サイズ計算</string>
+    <string name="explorer_operation_calculate_sizes_description">\"%1$s\" 内のフォルダサイズを計算します。</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="other">%1$d 個の項目をスキャン済み</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">%1$d 個のフォルダのサイズを計算しました。</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="other">%1$d 個のフォルダのサイズを計算しました。%2$d 個の場所は読み取れませんでした。</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">計算中に変更されたため、\"%1$s\" のフォルダサイズは破棄されました。</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">移動に失敗しました</string>
+    <string name="explorer_aborted_dialog_title">操作を中止しました</string>
+    <string name="explorer_aborted_dialog_message">何も表示されないうちに読み込みがキャンセルされました。</string>
+    <string name="explorer_archive_unbrowsable_title">ここではアーカイブを閲覧できません</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" は順次読み取りのみに対応したストレージ上にありますが、アーカイブの閲覧にはランダムアクセスが必要です。ここでアーカイブを展開するか、ローカルコピーをダウンロードして閲覧してください。</string>
+    <string name="explorer_archive_unbrowsable_extract_action">アーカイブを展開</string>
+    <string name="explorer_archive_unbrowsable_download_action">ローカルコピーをダウンロード</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data（特別なアクセス）</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb（特別なアクセス）</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android はこのフォルダへのアクセスを制限しています。フォルダピッカーを使ってアクセスを許可してください。</string>
+    <string name="explorer_permission_multiple_options_description">Android のフォルダピッカーを使ってアクセスを許可するか、Root または Shizuku を設定してすべての制限フォルダに高速にアクセスできます。</string>
+    <string name="explorer_permission_setup_both_description">このフォルダには昇格されたアクセス権が必要です。設定で Root または Shizuku をインストールして構成してください。</string>
+    <string name="explorer_permission_setup_shizuku_description">このフォルダには Shizuku 経由の昇格されたアクセス権が必要です。Shizuku Manager をインストールし、設定で構成してください。</string>
+    <string name="explorer_permission_setup_root_description">このフォルダには Root アクセスが必要です。端末が root化されている場合は、設定で Root を構成してください。</string>
+
+    <string name="explorer_permission_option_picker_title">ストレージアクセスフレームワーク</string>
+    <string name="explorer_permission_option_picker_description">Android のフォルダピッカーを使ってこのフォルダへのアクセスを許可します。</string>
+    <string name="explorer_permission_option_picker_action">SAF ピッカーを開く</string>
+
+    <string name="explorer_permission_option_setup_title">完全なアクセス</string>
+    <string name="explorer_permission_option_setup_description">Root または Shizuku を構成すると、すべての制限フォルダに高速にアクセスできます。</string>
+    <string name="explorer_permission_option_setup_action">構成</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">ストレージアクセス</string>
+    <string name="explorer_permission_option_storage_description">端末のストレージ上のファイルにアクセスする権限を Butler に許可します。</string>
+    <string name="explorer_permission_option_storage_action">権限を許可</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">新しいタブで開く</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">お気に入り</string>
+    <string name="explorer_action_add_to_favorites">お気に入りに追加</string>
+    <string name="explorer_action_remove_from_favorites">お気に入りから削除</string>
+    <string name="explorer_favorites_select_action">選択</string>
+    <string name="explorer_favorites_unavailable_subtitle">アクセスできません</string>
+    <string name="explorer_favorites_unavailable_toast">お気に入りにアクセスできません</string>
+    <string name="explorer_favorites_added_message">%1$s をお気に入りに追加しました</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="other">%1$d 個の項目をお気に入りに追加しました</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">%1$s をお気に入りから削除しました</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="other">%1$d 個の項目をお気に入りから削除しました</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">お気に入りの名前を変更</string>
+    <string name="explorer_favorites_rename_hint">お気に入りの名前</string>
+    <string name="explorer_favorites_rename_description">お気に入り内の項目のみが名前変更され、フォルダ自体の名前は変わりません。</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="other">このタブは %1$d 個のフォルダで並べ替え順を上書きしています</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="other">%1$d 個のフォルダ</item>
+    </plurals>
+</resources>

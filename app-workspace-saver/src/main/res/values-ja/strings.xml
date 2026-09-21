@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">名前を付けて保存</string>
+    <string name="saver_preview_label">プレビュー</string>
+    <string name="saver_loading">読み込み中…</string>
+    <string name="saver_shared_from">%1$sから共有されました</string>
+    <string name="saver_shared_generic">Butlerと共有されました</string>
+    <string name="saver_destination_label">保存先</string>
+    <string name="saver_select_destination_hint">保存先フォルダを選択してください</string>
+    <string name="saver_filename_label">ファイル名</string>
+    <string name="saver_save_action">保存</string>
+    <string name="saver_saving_progress">保存中…</string>
+    <string name="saver_success_message">ファイルが正常に保存されました</string>
+    <string name="saver_open_saved_action">フォルダを開く</string>
+    <string name="saver_retry_action">再試行</string>
+    <string name="saver_save_again_action">別の場所に保存</string>
+    <string name="saver_close_tab_action">タブを閉じる</string>
+    <string name="saver_close_butler_action">タブを閉じて戻る</string>
+    <string name="saver_done_action">完了</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="other">ソースファイルにアクセスできなくなりました。もう一度共有してください。</item>
+    </plurals>
+    <string name="saver_error_source_expired">ソースファイルにアクセスできません</string>
+    <string name="saver_error_permission_denied">権限がありません</string>
+    <string name="saver_error_write_failed">ファイルの保存に失敗しました</string>
+    <string name="saver_error_file_exists">ファイルは既に存在します</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">ファイルを保存</string>
+    <plurals name="saver_operation_description">
+        <item quantity="other">%1$d 個のファイルを%2$sに保存中</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="other">%1$d 個のファイルを保存</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="other">%1$d 個のファイルが保存されました</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="other">%1$d 個のファイルが失敗しました</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="other">%1$d 個のファイルがスキップされました</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d 個のファイルが保存されました（全%2$d個）</string>
+</resources>

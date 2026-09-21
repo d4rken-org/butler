@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">無効なアプリリスト</string>
+    <string name="pkgrepo_invalid_inventory_error_description">システムがButlerに無効なインストール済みアプリのリストを提供しました。</string>
+</resources>

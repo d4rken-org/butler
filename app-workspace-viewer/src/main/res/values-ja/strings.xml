@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">別のアプリで開く</string>
+    <string name="viewer_image_content_description">画像 %1$s</string>
+    <string name="viewer_toolbar_folder_label">フォルダ</string>
+    <string name="viewer_back_action">戻る</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">前のファイル</string>
+    <string name="viewer_next_file_action">次のファイル</string>
+    <string name="viewer_open_location_action">場所を開く</string>
+    <string name="viewer_clipboard_copied">%1$s をコピーしました。エクスプローラーのタブに貼り付けてください。</string>
+    <string name="viewer_clipboard_cut">%1$s を切り取りました。エクスプローラーのタブに貼り付けて移動してください。</string>
+    <string name="viewer_share_failed_label">このファイルを共有できませんでした</string>
+    <string name="viewer_share_failed_description">%1$s は別のアプリに渡すことができません。これは root または ADB アクセスが必要なファイル、あるいは存在しなくなったファイルで発生します。</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">サイズ</string>
+    <string name="viewer_info_modified_label">更新日時</string>
+    <string name="viewer_info_created_label">作成日時</string>
+    <string name="viewer_info_format_label">ファイル形式</string>
+    <string name="viewer_info_dimensions_label">寸法</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">権限</string>
+    <string name="viewer_info_permissions_value">%1$s（%2$s）</string>
+    <string name="viewer_info_owner_label">所有者</string>
+    <string name="viewer_info_caption_label">共有メッセージ</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">詳細をすべて表示</string>
+    <string name="viewer_info_collapse_action">詳細を非表示</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">プレビュー・1 ページ</string>
+    <string name="viewer_pdf_page_indicator">ページ %1$d / %2$d</string>
+    <string name="viewer_pdf_page_previous">前のページ</string>
+    <string name="viewer_pdf_page_next">次のページ</string>
+    <string name="viewer_pdf_page_error">ページ %1$d は表示できませんでした。</string>
+    <string name="viewer_pdf_page_content_description">%1$s の PDF プレビュー、ページ %2$d / %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">このファイル形式はまだサポートされていません</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">アーカイブです</string>
+    <string name="viewer_browse_archive_action">コンテンツを参照</string>
+    <string name="viewer_archive_needs_copy_msg">デバイスにコピーを保存すると、Butler が中身を参照できます。</string>
+    <string name="viewer_archive_nested_msg">このアーカイブは別のアーカイブに含まれています。中身を参照するには先に抽出してください。</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">バージョン</string>
+    <string name="viewer_apk_min_sdk_label">Min SDK</string>
+    <string name="viewer_apk_target_sdk_label">Target SDK</string>
+    <string name="viewer_apk_installed_label">インストール済み</string>
+    <string name="viewer_apk_not_installed_value">インストールされていません</string>
+    <string name="viewer_apk_installed_unknown_value">確認できませんでした</string>
+    <string name="viewer_apk_installed_older_hint">このファイルより古い</string>
+    <string name="viewer_apk_installed_newer_hint">このファイルより新しい</string>
+    <string name="viewer_apk_permissions_header">権限（%1$d 個）</string>
+    <string name="viewer_apk_signing_header">署名証明書</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">インストール</string>
+    <string name="viewer_bundle_format_label">バンドル形式</string>
+    <string name="viewer_bundle_splits_label">内部の APK</string>
+    <string name="viewer_bundle_expansion_files_hint">アプリのインストール後に配置される拡張ファイルが含まれています。</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">拡張ファイルの配置には root または ADB アクセスが必要です。なしではアプリはインストールされますが、拡張ファイルは残ります。</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">%1$s のアプリアイコン</string>
+    <string name="viewer_apk_icon_show_action">アイコンを表示</string>
+    <string name="viewer_apk_icon_save_action">アイコンを保存</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">アイコンが %1$s として保存されました。</string>
+    <string name="viewer_apk_icon_overwrite_title">ファイルを置き換えますか？</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s はこのフォルダに既に存在します。アイコンを保存すると置き換わります。</string>
+    <string name="viewer_apk_icon_overwrite_confirm">置き換え</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">ファイルが変更されました</string>
+    <string name="viewer_external_change_message">このファイルはデバイスで変更されました。更新して再度読み込んでください。</string>
+    <string name="viewer_external_change_gone_title">ファイルがなくなりました</string>
+    <string name="viewer_external_change_gone_message">このファイルは削除されたか、アクセスできなくなりました。</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">このファイルを表示できません</string>
+    <string name="viewer_error_not_a_file_label">ファイルではありません</string>
+    <string name="viewer_error_not_a_file_description">%1$s は通常のファイルではありません。</string>
+    <string name="viewer_error_broken_symlink_label">破損したショートカット</string>
+    <string name="viewer_error_broken_symlink_description">%1$s は存在しなくなった対象を指しています。</string>
+    <string name="viewer_error_undecodable_label">破損した画像</string>
+    <string name="viewer_error_undecodable_description">%1$s をデコードできませんでした。ファイルが不完全または破損している可能性があります。</string>
+    <string name="viewer_error_file_gone_label">ファイルが見つかりません</string>
+    <string name="viewer_error_file_gone_description">%1$s は存在しなくなりました。移動されたか、名前が変更されたか、削除された可能性があります。</string>
+    <string name="viewer_error_empty_file_label">空のファイル</string>
+    <string name="viewer_error_empty_file_description">%1$s は空で、表示するものがありません。</string>
+    <string name="viewer_error_apk_unreadable_label">読み取り不可の APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s は Android アプリパッケージとして解析できませんでした。</string>
+    <string name="viewer_error_icon_unavailable_label">アイコンなし</string>
+    <string name="viewer_error_icon_unavailable_description">%1$s のアプリアイコンが読み取れませんでした。</string>
+    <string name="viewer_error_icon_target_notfile_label">名前は既に使用されています</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s はここに既に存在し、通常のファイルではないため、置き換えられません。</string>
+    <string name="viewer_error_icon_target_appeared_label">ファイルが作成されました</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s は保存場所を選択している間に作成されました。上書きされていません。もう一度試してください。</string>
+    <string name="viewer_error_content_unreadable_label">このファイルは読み取れません</string>
+    <string name="viewer_error_content_unreadable_description">%1$s を共有したアプリが Butler による読み取りを許可していません。そのアプリに再度共有するよう依頼してください。</string>
+    <string name="viewer_save_copy_action">コピーを保存…</string>
+    <string name="viewer_open_in_editor_action">エディターで開く</string>
+    <string name="viewer_text_truncated_bytes">プレビューはこのファイルの最初の %1$s に制限されています。</string>
+    <string name="viewer_text_truncated_lines">プレビューはこのファイルの最初の %1$s 行に制限されています。</string>
+    <string name="viewer_text_truncated_width">このプレビューでは長い行は短縮されています。</string>
+    <string name="viewer_text_unreadable_label">このファイルを読み取ることができませんでした</string>
+</resources>
