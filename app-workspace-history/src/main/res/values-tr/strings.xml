@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">Geçmiş</string>
+    <string name="history_workspace_subtitle">Son dosya işlemleri</string>
+    <string name="history_workspace_title_scoped">Geçmiş: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">Geçmiş: Başarısız</string>
+    <string name="history_workspace_title_outcome_partial">Geçmiş: Kısmi</string>
+    <string name="history_workspace_title_outcome_cancelled">Geçmiş: İptal Edildi</string>
+    <string name="history_workspace_title_outcome_completed">Geçmiş: Tamamlandı</string>
+    <string name="history_workspace_title_kind_copy">Geçmiş: Kopyala</string>
+    <string name="history_workspace_title_kind_move">Geçmiş: Taşı</string>
+    <string name="history_workspace_title_kind_delete">Geçmiş: Sil</string>
+    <string name="history_workspace_title_kind_create_file">Geçmiş: Dosya Oluştur</string>
+    <string name="history_workspace_title_kind_create_folder">Geçmiş: Klasör Oluştur</string>
+    <string name="history_workspace_title_kind_save">Geçmiş: Kaydet</string>
+    <string name="history_workspace_title_kind_compress">Geçmiş: Sıkıştır</string>
+    <string name="history_workspace_title_kind_extract">Geçmiş: Çıkart</string>
+    <string name="history_workspace_title_filtered">Geçmiş (filtrelenmiş)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">Geçmiş: %1$d yol</item>
+        <item quantity="other">Geçmiş: %1$d yol</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Tümü</string>
+    <string name="history_filter_outcome_completed">Tamamlandı</string>
+    <string name="history_filter_outcome_partial">Kısmi</string>
+    <string name="history_filter_outcome_failed">Başarısız</string>
+    <string name="history_filter_outcome_cancelled">İptal Edildi</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Kopyala</string>
+    <string name="history_filter_kind_move">Taşı</string>
+    <string name="history_filter_kind_delete">Sil</string>
+    <string name="history_filter_kind_create_file">Dosya Oluştur</string>
+    <string name="history_filter_kind_create_folder">Klasör Oluştur</string>
+    <string name="history_filter_kind_save">Kaydet</string>
+    <string name="history_filter_kind_compress">Sıkıştır</string>
+    <string name="history_filter_kind_extract">Çıkart</string>
+    <string name="history_filter_kind_enable">Etkinleştir</string>
+    <string name="history_filter_kind_disable">Devre Dışı Bırak</string>
+    <string name="history_filter_kind_force_stop">Zorla Durdur</string>
+    <string name="history_filter_kind_uninstall">Kaldır</string>
+    <string name="history_filter_kind_clear_data">Verileri Temizle</string>
+    <string name="history_filter_kind_components">Bileşenler</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Yol kapsamını ayarla…</string>
+    <string name="history_path_scope_clear_action">Yol kapsamını temizle</string>
+    <string name="history_path_scope_dialog_title">Yola göre filtrele</string>
+    <string name="history_path_scope_dialog_description">Yalnızca bu yolu veya alt yollarını etkileyen işlemleri göster.</string>
+    <string name="history_path_scope_dialog_input_label">Yol</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Klasör seç…</string>
+    <string name="history_path_scope_dialog_apply_action">Uygula</string>
+    <string name="history_path_scope_dialog_cancel_action">İptal</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Bugün</string>
+    <string name="history_group_yesterday">Dün</string>
+    <string name="history_group_this_week">Bu hafta</string>
+    <string name="history_group_this_month">Bu ay</string>
+    <string name="history_group_older">Daha Eski</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Yeniden Adlandırıldı</string>
+    <string name="history_entry_intent_paste_copy">Yapıştırıldı</string>
+    <string name="history_entry_intent_paste_move">Yapıştırıldı (taşındı)</string>
+    <string name="history_entry_intent_drop_copy">Bırakıldı (kopyalandı)</string>
+    <string name="history_entry_intent_drop_move">Bırakıldı (taşındı)</string>
+    <string name="history_entry_intent_enable_components">Bileşenleri etkinleştirildi:</string>
+    <string name="history_entry_intent_disable_components">Bileşenleri devre dışı bırakıldı:</string>
+    <string name="history_entry_kind_copy">Kopyalandı</string>
+    <string name="history_entry_kind_move">Taşındı</string>
+    <string name="history_entry_kind_delete">Silindi</string>
+    <string name="history_entry_kind_create_file">Dosya Oluşturuldu</string>
+    <string name="history_entry_kind_create_folder">Klasör Oluşturuldu</string>
+    <string name="history_entry_kind_save">Kaydedildi</string>
+    <string name="history_entry_kind_compress">Sıkıştırıldı</string>
+    <string name="history_entry_kind_extract">Çıkartıldı</string>
+    <string name="history_entry_kind_restore">Geri Yüklendi</string>
+    <string name="history_entry_kind_install">Yüklendi</string>
+    <string name="history_entry_kind_enable">Etkinleştirildi</string>
+    <string name="history_entry_kind_disable">Devre Dışı Bırakıldı</string>
+    <string name="history_entry_kind_force_stop">Zorla Durduruldu</string>
+    <string name="history_entry_kind_uninstall">Kaldırıldı</string>
+    <string name="history_entry_kind_clear_data">Verileri temizlendi:</string>
+    <string name="history_entry_kind_components">Bileşenleri değiştirildi:</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d yol</item>
+        <item quantity="other">%d yol</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">İlk %1$d (%2$d) etkilenen yol</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Başladı</string>
+    <string name="history_detail_label_completed">Tamamlandı</string>
+    <string name="history_detail_label_duration">Süre</string>
+    <string name="history_detail_label_outcome">Sonuç</string>
+    <string name="history_detail_label_origin">Kaynak</string>
+    <string name="history_detail_label_error">Hata</string>
+    <string name="history_detail_label_paths">Etkilenen Yollar</string>
+    <string name="history_detail_label_partial_errors">Öğe Bazında Hatalar</string>
+    <string name="history_detail_copy_path_action">Yolu Kopyala</string>
+    <string name="history_detail_paths_empty">Etkilenen yol kaydedilmedi.</string>
+    <string name="history_detail_label_attempted_paths">Denenen Yollar</string>
+    <string name="history_detail_label_packages">Etkilenen Uygulamalar</string>
+    <string name="history_detail_packages_empty">Etkilenen uygulama kaydedilmedi.</string>
+    <string name="history_detail_paths_truncated_callout">İlk %1$d (%2$d) etkilenen yol gösterilmektedir.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">İlk %1$d (%2$d) denenen yol gösterilmektedir.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">%1$d öğe bu işlem sırasında başarısız oldu.</item>
+        <item quantity="other">%1$d öğe bu işlem sırasında başarısız oldu.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Explorer</string>
+    <string name="history_origin_searcher">Ara</string>
+    <string name="history_origin_saver">Kaydetme</string>
+    <string name="history_origin_developer">Geliştirici</string>
+    <string name="history_origin_viewer">Görüntüleyici</string>
+    <string name="history_origin_apps">Uygulamalar</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Henüz geçmiş yok</string>
+    <string name="history_empty_subtitle">Dosya işlemleri Butler\'ı kullanırken burada görüntülenecektir.</string>
+    <string name="history_empty_filtered_title">Eşleşme yok</string>
+    <string name="history_empty_filtered_subtitle">Geçmiş girişlerinden hiçbiri mevcut filtreyle eşleşmiyor.</string>
+    <string name="history_empty_filtered_reset_action">Filtreyi Sıfırla</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Filtreyi Sıfırla</string>
+    <string name="history_toolbar_reset_filter_content_description">Filtreleri Sıfırla</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">İlk %1$d (%2$d) etkilenen yol</string>
+    <string name="history_add_filter_action">Filtre Ekle</string>
+    <string name="history_add_filter_sheet_title">Filtre Ekle</string>
+    <string name="history_add_filter_section_outcome">Sonuç</string>
+    <string name="history_add_filter_section_kind">Tür</string>
+    <string name="history_add_filter_section_path_scope">Yol Kapsamı</string>
+    <string name="history_add_filter_add_path_action">Yol Ekle…</string>
+    <string name="history_path_scope_remove_action">Kaldır</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d giriş</item>
+        <item quantity="other">%1$d giriş</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%1$d / %2$d gösterildi</item>
+        <item quantity="other">%1$d / %2$d gösterildi</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">Geçmiş</string>
+    <string name="history_settings_save_history_title">Geçmişi Kaydet</string>
+    <string name="history_settings_save_history_subtitle">Tamamlanan dosya işlemlerini kaydet.</string>
+    <string name="history_settings_max_history_label">Maksimum geçmiş öğeleri</string>
+    <string name="history_settings_max_history_subtitle">Bu sınır aşıldığında eski girişler kaldırılır.</string>
+    <string name="history_settings_max_history_input_label">Maksimum girişler</string>
+    <string name="history_settings_clear_history_title">Geçmişi Temizle</string>
+    <string name="history_settings_clear_history_subtitle">Depolanan tüm girişleri kaldır (%1$d).</string>
+    <string name="history_clear_dialog_title">Geçmiş temizlensin mi?</string>
+    <string name="history_clear_dialog_message">Operasyon geçmişi veritabanındaki tüm girişleri kaldırır. Bu geri alınamaz.</string>
+    <string name="history_clear_confirm_action">Temizle</string>
+    <string name="history_cleared_success">Geçmiş temizlendi</string>
+    <string name="history_workspace_title_kind_restore">Geçmiş: Geri Yükle</string>
+    <string name="history_filter_kind_restore">Geri Yükle</string>
+    <string name="history_workspace_title_kind_install">Geçmiş: Yükle</string>
+    <string name="history_filter_kind_install">Yükle</string>
+    <string name="history_workspace_title_kind_enable">Geçmiş: Etkinleştir</string>
+    <string name="history_workspace_title_kind_disable">Geçmiş: Devre Dışı Bırak</string>
+    <string name="history_workspace_title_kind_force_stop">Geçmiş: Zorla Durdur</string>
+    <string name="history_workspace_title_kind_uninstall">Geçmiş: Kaldır</string>
+    <string name="history_workspace_title_kind_clear_data">Geçmiş: Verileri Temizle</string>
+    <string name="history_workspace_title_kind_components">Geçmiş: Bileşenler</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Tümünü seç</string>
+    <string name="history_action_deselect_all">Seçimi kaldır</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Sil %1$d giriş</item>
+        <item quantity="other">Sil %1$d giriş</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Yalnızca geçmiş kayıtları kaldırılır, dosyaların kendileri dokunulmaz.</string>
+    <string name="history_pro_dialog_message">Geçmiş girişlerini paylaşmak ve silmek yükseltmenin bir parçasıdır. Tüm geçmişin temizlenmesi geçmiş ayarlarında ücretsiz kalır.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Sonuç</string>
+    <string name="history_share_label_kind">Tür</string>
+    <string name="history_share_label_origin">Kaynak</string>
+    <string name="history_share_label_summary">Özet</string>
+    <string name="history_share_label_completed">Tamamlandı</string>
+    <string name="history_share_label_duration">Süre</string>
+    <string name="history_share_label_error">Hata</string>
+    <string name="history_share_label_failed_items">Başarısız Öğeler</string>
+    <string name="history_share_label_paths">Etkilenen Yollar (%1$d)</string>
+    <string name="history_share_label_packages">Etkilenen Uygulamalar (%1$d)</string>
+    <string name="history_share_paths_more">… ve %1$d daha</string>
+    <string name="history_share_truncated">… ve %1$d daha giriş dahil edilmedi</string>
+</resources>

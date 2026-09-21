@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Editör</string>
+    <string name="editor_subtitle">Metin dosyalarını düzenle</string>
+    <string name="editor_settings_title">Editör ayarları</string>
+    <string name="editor_settings_show_line_numbers_title">Satır numaralarını göster</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Editörde satır numaralarını görüntüle.</string>
+    <string name="editor_settings_word_wrap_title">Satır kaydır</string>
+    <string name="editor_settings_word_wrap_subtitle">Uzun satırları ekran genişliğine uyacak şekilde kaydır.</string>
+    <string name="editor_settings_syntax_highlighting_title">Sözdizimi vurgulaması</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Desteklenen dosyalarda renk kodlaması (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Yazı tipi boyutu</string>
+    <string name="editor_settings_font_size_subtitle">Editördeki metin boyutu</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Sekme genişliği</string>
+    <string name="editor_settings_tab_size_subtitle">Bir sekme karakterinin kapladığı boşluk sayısı</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Aç</string>
+    <string name="editor_action_save">Kaydet</string>
+    <string name="editor_action_save_as">Farklı kaydet…</string>
+    <string name="editor_action_close">Kapat</string>
+    <string name="editor_action_undo">Geri al</string>
+    <string name="editor_action_redo">İleri al</string>
+    <string name="editor_action_search">Ara</string>
+    <string name="editor_action_go_to_line">Satıra git</string>
+    <string name="editor_action_dismiss">Kapat</string>
+    <string name="editor_action_previous">Önceki</string>
+    <string name="editor_action_next">Sonraki</string>
+    <string name="editor_action_copy">Kopyala</string>
+    <string name="editor_action_cut">Kes</string>
+    <string name="editor_action_copy_to_butler_clipboard">Butler panosuna kopyala</string>
+    <string name="editor_action_cut_to_butler_clipboard">Butler panosuna kes</string>
+    <string name="editor_action_paste">Yapıştır</string>
+    <string name="editor_action_select_all">Tümünü seç</string>
+    <string name="editor_action_delete">Sil</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Dosyayı üzerine yazılsın mı?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s zaten var. Geçerli içeriği yerine yazılacak.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Üzerine yaz</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Kesintiye uğramış bir kayıttan yedek bulundu:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Metin olarak düzenleme desteklenmiyor</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Çok uzun satırlar</string>
+    <string name="editor_long_lines_banner_message">Çok uzun satırlar görüntüleme için kısaltılır; tam içerik korunur ve kaydedilir.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Satırın sonraki bölümünü göster</string>
+    <string name="editor_line_truncated_marker_previous_action">Satırın önceki bölümünü göster</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Dosya artık kullanılamıyor</string>
+    <string name="editor_backing_lost_banner_message">Taşınmış veya silinmiş olabilir. Bu görünüm salt okunurdur — yeniden açın veya kapatın.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Dosya kayıp ancak yedek var</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" eksik, ancak kesintiye uğramış bir kayıt şunu bıraktı: %2$s. İçeriğiniz büyük olasılıkla orada.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Dosya diskte değiştirildi</string>
+    <string name="editor_external_change_banner_message">Başka bir uygulama bu dosyayı değiştirdi.</string>
+    <string name="editor_external_change_reload_action">Yeniden yükle</string>
+    <string name="editor_external_change_keep_action">Düzenlemeye devam et</string>
+    <string name="editor_error_external_change">Bu dosya başka bir uygulama tarafından değiştirildi. Devam etmek için dosyayı yeniden yükleyin.</string>
+    <string name="editor_dialog_reload_confirm_title">Dosya yeniden yüklensin mi?</string>
+    <string name="editor_dialog_reload_confirm_message">Yeniden yükleme kaydedilmemiş değişikliklerinizi atıp dosyanın diskteki geçerli içeriğini gösterir.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d satır</item>
+        <item quantity="other">%1$d satır</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d karakter</item>
+        <item quantity="other">%1$d karakter</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Seçili: %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$d S · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Dosya yükleniyor…</string>
+    <string name="editor_saving">Kaydediliyor…</string>
+    <string name="editor_action_cancel_loading">İptal</string>
+    <string name="editor_progress_opening">Dosya açılıyor…</string>
+    <string name="editor_progress_saving">Dosya kaydediliyor…</string>
+    <string name="editor_progress_building_index">Dosya dizini oluşturuluyor…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Bilinmeyen hata</string>
+    <string name="editor_error_read_only">Bu dosya salt okunurdur ve değiştirilemez.</string>
+    <string name="editor_error_save_integrity_label">Kayıt kesintiye uğradı</string>
+    <string name="editor_error_save_integrity">Kayıt kesintiye uğradı ve diskteki dosya eksik olabilir. Devam etmeden önce dosyayı yeniden yükleyin.</string>
+    <string name="editor_error_clipboard_too_large_label">Seçim çok büyük</string>
+    <string name="editor_error_clipboard_too_large">Seçim kopyalanmak için çok büyük (sınır %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Dosya çok büyük</string>
+    <string name="editor_error_paste_too_large">Bu dosya yapıştırılmak için çok büyük (maksimum %1$s).</string>
+    <string name="editor_error_paste_binary_label">Metin dosyası değil</string>
+    <string name="editor_error_paste_binary">Bu dosyanın içeriği metin olarak yapıştırılamaz.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d / %2$d sonuç</item>
+        <item quantity="other">%1$d / %2$d sonuç</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d / %2$d+ sonuç</string>
+    <string name="editor_search_too_many_matches_label">Çok fazla eşleşme</string>
+    <string name="editor_search_too_many_matches">%1$d\'den fazla eşleşme veya çok fazla eşleşen metin — hepsini değiştirmek için aramayı daraltın.</string>
+    <string name="editor_search_placeholder">Ara…</string>
+    <string name="editor_search_previous">Önceki sonuç</string>
+    <string name="editor_search_next">Sonraki sonuç</string>
+    <string name="editor_search_case_sensitive_label">Büyük/küçük harfe duyarlı</string>
+    <string name="editor_search_regex_label">Düzenli ifade</string>
+    <string name="editor_search_whole_word_label">Tam kelime</string>
+    <string name="editor_search_options_label">Arama seçenekleri</string>
+    <string name="editor_search_replace_label">Değiştir</string>
+    <string name="editor_search_replace_toggle">Değiştirmeyi aç/kapat</string>
+    <string name="editor_search_replace_placeholder">Şununla değiştir…</string>
+    <string name="editor_search_replace_one_action">Değiştir</string>
+    <string name="editor_search_replace_all_action">Tümü</string>
+    <string name="editor_search_replaced_not_undoable">%1$d değiştirildi (geri almak için çok büyük)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d değiştirildi</item>
+        <item quantity="other">%1$d değiştirildi</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Satıra git</string>
+    <string name="editor_dialog_go_to_line_label">Satır numarası (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Git</string>
+    <string name="editor_dialog_action_cancel">İptal</string>
+    <string name="editor_dialog_close_confirm_title">Kaydedilmemiş Değişiklikler</string>
+    <string name="editor_dialog_close_confirm_message">Kaydedilmemiş değişiklikleriniz var. Bunları atılsın mı?</string>
+    <string name="editor_dialog_close_confirm_discard">At</string>
+    <string name="editor_dialog_large_delete_confirm_title">Büyük seçim düzenlensin mi?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Bu seçim geri almak için çok büyük. Yine de devam edilsin mi?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Devam et</string>
+    <string name="editor_encoding_dialog_title">Kodlama</string>
+    <string name="editor_encoding_dialog_message">Dosyayı farklı kodlamada yeniden açın. Kaydedilmemiş değişiklikler atılır; düzenlenmeyen baytlar kaydedilirken dokunulmaz kalır.</string>
+    <string name="editor_infobar_read_only">Salt okunur</string>
+    <string name="editor_line_ending_mixed">Karışık</string>
+    <string name="editor_line_ending_dialog_title">Satır sonları</string>
+    <string name="editor_line_ending_dialog_message">Tüm satır sonlarını dönüştürün ve dosyayı kaydedin, kaydedilmemiş değişiklikleri de dahil. Geri al geçmişi temizlenir.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Başlıksız</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Otomatik kayıt</string>
+    <string name="editor_settings_autosave_enabled_title">Otomatik kaydı etkinleştir</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Hareketsizlik döneminden sonra değişiklikleri otomatik olarak kaydeder.</string>
+    <string name="editor_settings_autosave_interval_title">Otomatik kayıt aralığı</string>
+    <string name="editor_settings_autosave_interval_subtitle">Son düzenlemeden sonra kaydedilmeden önceki bekleme süresi.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Otomatik kayıt aralığı</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Pano</string>
+    <string name="editor_settings_clipboard_behavior_title">Butler panosu</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Metin kopyalarının Butler panosuna nasıl kaydedileceğini kontrol edin.</string>
+    <string name="editor_settings_clipboard_system_only">Yalnızca sistem</string>
+    <string name="editor_settings_clipboard_system_only_desc">Yalnızca sistem panosuna kopyala</string>
+    <string name="editor_settings_clipboard_butler_always">Her zaman Butler\'a ekle</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Aynı zamanda Butler panosuna kaydet, çalışma alanları arasında yapıştırmak için</string>
+    <string name="editor_settings_clipboard_ask">Her seferinde sor</string>
+    <string name="editor_settings_clipboard_ask_desc">Butler panosuna eklemeden önce sor</string>
+</resources>

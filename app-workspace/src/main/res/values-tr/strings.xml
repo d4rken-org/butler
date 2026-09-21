@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Pano</string>
+    <string name="clipboard_clear_all">Tümünü temizle</string>
+    <string name="clipboard_paste">Yapıştır</string>
+    <string name="clipboard_open_in_explorer">Gezginde aç</string>
+    <string name="clipboard_copy">Kopyala</string>
+    <string name="clipboard_cut">Kes</string>
+    <string name="clipboard_origin">Kaynak: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">%d öğeyi kopyala</item>
+        <item quantity="other">%d öğeyi kopyala</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d öğe, %s konumundan</item>
+        <item quantity="other">%d öğe, %s konumundan</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">%d öğeyi kes</item>
+        <item quantity="other">%d öğeyi kes</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d öğe, %s konumundan</item>
+        <item quantity="other">%d öğe, %s konumundan</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d konum</item>
+        <item quantity="other">%d konum</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%2$s konumundan %1$d öğe</item>
+        <item quantity="other">%2$s konumundan %1$d öğe</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%2$s konumundan %1$d öğe</item>
+        <item quantity="other">%2$s konumundan %1$d öğe</item>
+    </plurals>
+    <string name="clipboard_text_title">Metin parçası</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d karakter</item>
+        <item quantity="other">%1$d karakter</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Dosya olarak yapıştır</string>
+    <string name="clipboard_text_info_characters">Karakterler</string>
+    <string name="clipboard_text_info_lines">Satırlar</string>
+    <string name="clipboard_text_info_content">İçerik</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Genel bakış</string>
+    <string name="clipboard_info_operation">İşlem</string>
+    <string name="clipboard_info_items">Öğeler</string>
+    <string name="clipboard_info_source">Kaynak</string>
+    <string name="clipboard_info_sources">Kaynaklar</string>
+    <string name="clipboard_info_workspace">Sekme</string>
+    <string name="clipboard_info_workspace_closed">Kapatıldı</string>
+    <string name="clipboard_info_time">Zaman</string>
+    <string name="clipboard_info_items_with_count">Öğeler (%1$d)</string>
+    <string name="clipboard_info_actions">Eylemler</string>
+    <string name="clipboard_info_go_to_source">Kaynağa git</string>
+    <string name="clipboard_info_go_to_first_source">İlk kaynağa git</string>
+    <string name="clipboard_info_remove">Panodan kaldır</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Pano</string>
+    <string name="clipboard_settings_remove_on_paste_title">Yapıştırınca kaldır</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Yapıştırdıktan sonra kopyalanan öğeleri panodan kaldır</string>
+    <string name="clipboard_settings_max_items_title">Maksimum öğe sayısı</string>
+    <string name="clipboard_settings_max_items_desc">Pano içindeki maksimum öğe sayısı</string>
+
+    <string name="workspace_explorer_label">Gezgin</string>
+    <string name="workspace_searcher_label">Arama</string>
+    <string name="workspace_editor_label">Düzenleyici</string>
+    <string name="workspace_templates_label">Şablonlar</string>
+    <string name="workspace_apps_label">Uygulamalar</string>
+    <string name="workspace_appdetails_label">Uygulama ayrıntıları</string>
+    <string name="workspace_saver_label">Farklı kaydet</string>
+    <string name="workspace_developer_label">Geliştirici</string>
+    <string name="workspace_history_label">Geçmiş</string>
+    <string name="workspace_bugreport_label">Hata raporları</string>
+    <string name="workspace_viewer_label">Görüntüleyici</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Fotoğraflar</string>
+    <string name="workspace_searcher_target_videos">Videolar</string>
+    <string name="workspace_searcher_target_music">Müzik</string>
+    <string name="workspace_searcher_target_downloads">İndirilenler</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Daha fazla</string>
+    <string name="workspace_expand_less_action">Daha az</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Sekmeler ve çalışma alanları</string>
+    <string name="workspace_button_menu_new_workspace_format">Yeni %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Yeni sekme</string>
+    <string name="workspace_button_menu_category_recent">Son kullanılanlar</string>
+    <string name="workspace_button_menu_category_other">Diğer</string>
+    <string name="workspace_button_menu_category_current_tab">Bu sekme</string>
+    <string name="workspace_button_menu_manager_action">Sekme yöneticisi</string>
+    <string name="workspace_button_menu_layout_action">Düzen</string>
+    <string name="workspace_button_menu_close_current_action">Geçerli sekmeyi kapat</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Geçerli sekmeyi kapat (%d çalışma alanı)</item>
+        <item quantity="other">Geçerli sekmeyi kapat (%d çalışma alanı)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Ayarlar</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Tüm sekmeler kapatılsın mı?</string>
+    <string name="workspace_manager_close_all_message">Açık olan %1$d %2$s kapatılacak. Bu işlem geri alınamaz.</string>
+    <string name="workspace_manager_close_all_message_singular">sekme</string>
+    <string name="workspace_manager_close_all_message_plural">sekme</string>
+    <string name="workspace_manager_close_all_action">Tümünü kapat</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Bazı sekmelerde kaydedilmemiş değişiklikler var, bunlar kaybolacak.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Tümünü yok say</string>
+    <string name="workspace_manager_close_selected_title">Seçili sekmeler kapatılsın mı?</string>
+    <string name="workspace_manager_close_selected_message">Seçili olan %1$d %2$s kapatılacak. Bu işlem geri alınamaz.</string>
+    <string name="workspace_manager_close_selected_action">Seçilenleri kapat</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Seçili sekmelerin bazılarında kaydedilmemiş değişiklikler var, bunlar kaybolacak.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Seçilenleri yok say</string>
+    <string name="workspace_manager_pause_partial_title">Sekmeler duraklatılsın mı?</string>
+    <string name="workspace_manager_pause_partial_message">Seçili %2$d sekmeden %1$d tanesi duraklatılabilir. Diğerleri kullanımda, kaydedilmemiş değişiklikler içeriyor veya şu anda açık.</string>
+    <string name="workspace_manager_pause_partial_action">%1$d tanesini duraklat</string>
+    <string name="workspace_fab_close_all">Tüm sekmeleri kapat</string>
+    <string name="general_cancel_action">İptal</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">İşlemler</string>
+    <string name="operations_clear_completed">Tamamlananları temizle</string>
+    <string name="operations_state_queued">Sırada</string>
+    <string name="operations_state_running">Çalışıyor</string>
+    <string name="operations_state_waiting">Giriş bekleniyor</string>
+    <string name="operations_state_successful">Başarılı</string>
+    <string name="operations_state_failed">Başarısız</string>
+    <string name="operations_state_cancelled">İptal edildi</string>
+    <string name="operations_state_cancelling">İptal ediliyor…</string>
+    <string name="operations_cancel_operation">İşlemi iptal et</string>
+    <string name="operations_cancel_dialog_title">İşlem iptal edilsin mi?</string>
+    <string name="operations_cancel_dialog_message">Bu işlemi iptal etmek istediğinizden emin misiniz?</string>
+    <string name="operations_cancel_dialog_warning">İptal etmek, dosyaları tutarsız bir durumda bırakabilir.</string>
+    <string name="operations_details_started_at">Başlangıç</string>
+    <string name="operations_details_completed_at">Tamamlanma</string>
+    <string name="operations_details_duration">Süre</string>
+    <string name="operations_details_duration_not_started">Başlamadı</string>
+    <string name="operations_details_progress">İlerleme</string>
+    <string name="operations_details_error">Hata ayrıntıları</string>
+    <string name="operations_details_actions">Eylemler</string>
+    <string name="operations_details_overview">Genel bakış</string>
+    <string name="operations_details_handle_issue">Sorunu çöz</string>
+    <string name="operations_details_show_in_history_action">Geçmişte göster</string>
+    <string name="operations_details_status">Durum</string>
+    <string name="operations_details_result">Sonuç</string>
+    <string name="operations_details_destination_folder">Hedef klasör</string>
+    <string name="operations_details_destination_path">Hedef yol</string>
+    <string name="operations_details_affected_paths_with_count">Etkilenen yollar (%d)</string>
+    <string name="operations_details_problems_with_count">Sorunlar (%d)</string>
+    <string name="operations_details_problems_more">%d tane daha listelenmedi</string>
+    <string name="workspace_operation_packages_section_title">Uygulamalar</string>
+    <string name="workspace_operation_package_status_done">Tamamlandı</string>
+    <string name="workspace_operation_package_status_failed">Başarısız</string>
+    <string name="workspace_operation_package_status_declined">Reddedildi</string>
+    <string name="operations_details_section_expand">%1$s öğesini genişlet</string>
+    <string name="operations_details_section_collapse">%1$s öğesini daralt</string>
+    <string name="workspace_operations_performance_graph_label">Performans grafiği</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Öğe silinsin mi?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">%1$d öğe silinsin mi?</item>
+        <item quantity="other">%1$d öğe silinsin mi?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Bu öğe kalıcı olarak silinecek:</string>
+    <string name="workspace_dialog_delete_message_multiple">Bu öğeler kalıcı olarak silinecek:</string>
+    <string name="workspace_dialog_delete_more_items">… ve %1$d tane daha</string>
+    <string name="workspace_dialog_delete_warning">Bu işlem geri alınamaz.</string>
+    <string name="workspace_dialog_delete_permanently_action">Kalıcı olarak sil</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Bunun yerine kalıcı olarak sil</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Bazı öğeler çöp kutusuna taşınamıyor ve ayrıca işlenecek.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Çöp kutusuna taşınsın mı?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">%1$d öğe çöp kutusuna taşınsın mı?</item>
+        <item quantity="other">%1$d öğe çöp kutusuna taşınsın mı?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Bu öğe çöp kutusuna taşınacak:</string>
+    <string name="workspace_dialog_trash_message_multiple">Bu öğeler çöp kutusuna taşınacak:</string>
+    <string name="workspace_dialog_trash_hint">Bunları Çöp Kutusu konumunda bulabilirsiniz</string>
+    <string name="workspace_dialog_move_to_trash_action">Taşı</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d seçildi</item>
+        <item quantity="other">%d seçildi</item>
+    </plurals>
+    <string name="workspace_action_more">Diğer eylemler</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Dosya silme</string>
+    <string name="workspace_operation_delete_description_single">\"%2$s\" içinden \"%1$s\" öğesini sil.</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">\"%2$s\" içinden %1$d öğe sil.</item>
+        <item quantity="other">\"%2$s\" içinden %1$d öğe sil.</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Uygulama kurulumu</string>
+    <string name="workspace_operation_install_description">\"%1$s\" öğesini kur.</string>
+    <string name="workspace_operation_install_progress_inspecting">Paket okunuyor…</string>
+    <string name="workspace_operation_install_progress_extracting">Paket açılıyor…</string>
+    <string name="workspace_operation_install_progress_writing">Dosyalar yükleyiciye aktarılıyor…</string>
+    <string name="workspace_operation_install_progress_committing">Kurulum tamamlanıyor…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Genişletme dosyaları yerleştiriliyor…</string>
+    <string name="workspace_operation_install_summary_success">%1$s kuruldu.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s kuruldu, ancak genişletme dosyaları yerleştirilemedi.</string>
+    <string name="workspace_install_unknown_sources_required">Butler\'ın uygulama kurabilmesi için izne ihtiyacı var. Az önce açılan ayarlardan izni verin, ardından tekrar deneyin.</string>
+    <string name="workspace_install_obb_failed">Uygulama kuruldu, ancak genişletme dosyaları yerleştirilemedi: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d dosya silindi.</item>
+        <item quantity="other">%1$d dosya silindi.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d dizin silindi.</item>
+        <item quantity="other">%1$d dizin silindi.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d öğe atlandı.</item>
+        <item quantity="other">%1$d öğe atlandı.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s boşaltıldı.</item>
+        <item quantity="other">%1$s boşaltıldı.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Çöp kutusuna taşınıyor…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d dosya çöp kutusuna taşındı.</item>
+        <item quantity="other">%1$d dosya çöp kutusuna taşındı.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d dizin çöp kutusuna taşındı.</item>
+        <item quantity="other">%1$d dizin çöp kutusuna taşındı.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/sn boşaltılıyor.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s boşaltıldı.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s kaldı.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Bilgi</string>
+    <string name="workspace_file_info_name_label">Ad</string>
+    <string name="workspace_file_info_path_label">Yol</string>
+    <string name="workspace_file_info_type_label">Tür</string>
+    <string name="workspace_file_info_type_file">Dosya</string>
+    <string name="workspace_file_info_type_directory">Dizin</string>
+    <string name="workspace_file_info_type_symlink">Sembolik bağlantı</string>
+    <string name="workspace_file_info_type_unknown">Bilinmiyor</string>
+    <string name="workspace_file_info_size_label">Boyut</string>
+    <string name="workspace_file_info_modified_label">Değiştirilme</string>
+    <string name="workspace_file_info_created_label">Oluşturulma</string>
+    <string name="workspace_file_info_permissions_label">İzinler</string>
+    <string name="workspace_file_info_owner_label">Sahip</string>
+    <string name="workspace_file_info_child_count_label">Öğeler</string>
+    <string name="workspace_file_info_symlink_target_label">Hedef</string>
+    <string name="workspace_file_info_unknown">Bilinmiyor</string>
+    <string name="workspace_file_info_copy_action">Panoya kopyala</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Seçili</string>
+    <string name="workspace_file_info_files_label">Dosyalar</string>
+    <string name="workspace_file_info_directories_label">Dizinler</string>
+    <string name="workspace_file_info_total_size_label">Toplam boyut</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Bu işlem henüz başlamadı.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Performans verileri toplanıyor…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Bu işlemden grafik oluşturmak için yeterli performans verisi yok.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Bu işlem için performans verisi mevcut değil.</string>
+    <string name="workspace_operation_performance_window_seconds">Son %1$d sn</string>
+    <string name="workspace_operation_performance_window_minutes">Son %1$d dk</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">öğe/sn</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Teknik ayrıntıları göster</string>
+    <string name="workspace_error_hide_details_action">Teknik ayrıntıları gizle</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Sekme başlatılıyor</string>
+    <string name="workspace_error_subtitle">Beklenmeyen bir hata oluştu</string>
+    <string name="workspace_close_tab_action">Sekmeyi kapat</string>
+    <string name="workspace_paused_body">Bellek ve pil tasarrufu için bu sekme duraklatıldı. Devam etmek için sürdürün.</string>
+    <string name="workspace_paused_error_body">Bu sekme sürdürülemedi.</string>
+    <string name="workspace_paused_resume_action">Sürdür</string>
+    <string name="workspace_paused_label">Duraklatıldı</string>
+    <string name="workspace_paused_content_label">Sekme içeriği</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Mevcut dosya</string>
+    <string name="workspace_issue_collision_existing_folder_label">Mevcut klasör</string>
+    <string name="workspace_issue_collision_new_file">Gelen dosya</string>
+    <string name="workspace_issue_collision_new_folder">Gelen klasör</string>
+    <string name="workspace_issue_collision_overwrite">Değiştir</string>
+    <string name="workspace_issue_collision_merge">Birleştir</string>
+    <string name="workspace_issue_common_source_file">Kaynak dosya</string>
+    <string name="workspace_issue_common_destination_file">Hedef</string>
+    <string name="workspace_issue_common_skip">Atla</string>
+    <string name="workspace_issue_common_rename">Yeniden adlandır</string>
+    <string name="workspace_issue_common_rename_new">Yeniyi yeniden adlandır</string>
+    <string name="workspace_issue_common_rename_existing">Mevcut olanı yeniden adlandır</string>
+    <string name="workspace_issue_common_cancel">İptal</string>
+    <string name="workspace_issue_common_delete_permanently">Kalıcı olarak sil</string>
+    <string name="workspace_issue_archive_password_label">Parola</string>
+    <string name="workspace_issue_archive_password_unlock">Kilidi aç</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Başarısız öğeler</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… ve %1$d öğe daha</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Etkilenen öğeler</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… ve %1$d öğe daha</string>
+    <string name="workspace_issue_apply_all">Kalan tüm sorunlara uygula</string>
+    <string name="workspace_issue_rename_new_name">Yeni ad</string>
+    <string name="workspace_issue_rename_dialog_title_new">Gelen dosyayı yeniden adlandır</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Mevcut dosyayı yeniden adlandır</string>
+    <string name="workspace_issue_type_folder">Klasör</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Birden fazla sekme açılsın mı?</string>
+    <string name="workspace_open_tabs_confirmation_message">Bu işlem %1$d sekme açacak.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Birlikte aç</string>
+    <string name="workspace_open_with_no_app_label">Başka uygulama bulunamadı</string>
+    <string name="workspace_open_with_no_app_description">Yüklü başka bir uygulama %1$s öğesini açamıyor.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">%1$d sekme açıldı</item>
+        <item quantity="other">%1$d sekme açıldı</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Kapatılamıyor: %1$d sekmede hâlâ işlem çalışıyor</item>
+        <item quantity="other">Kapatılamıyor: %1$d sekmede hâlâ işlem çalışıyor</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">Sekmeler</string>
+    <string name="workspace_settings_navigation">Gezinme</string>
+    <string name="workspace_settings_swipe_gestures_title">Kaydırma hareketleri</string>
+    <string name="workspace_settings_swipe_gestures_desc">Sekmeler arasında geçiş yapmak için sola veya sağa kaydırın.</string>
+    <string name="workspace_settings_ondemand_creation_title">Sekmeleri otomatik oluştur</string>
+    <string name="workspace_settings_ondemand_creation_desc">Son sekmeden sonra kaydırıldığında otomatik olarak yeni sekme oluştur.</string>
+    <string name="workspace_settings_newtab_type_title">Yeni sekme türü</string>
+    <string name="workspace_settings_newtab_type_desc">Son sekmeden sonra kaydırıldığında, boş bir bölmeye sekme eklendiğinde veya ilk sekme oluşturulduğunda açılan çalışma alanı.</string>
+    <string name="workspace_settings_newtab_type_ask">Her seferinde sor</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Her yeni sekme için sekme türü seçicisini göster.</string>
+    <string name="workspace_settings_live_preview_title">Canlı önizlemeler</string>
+    <string name="workspace_settings_live_preview_desc">Sekme yöneticisinde canlı sekme içeriğini göster.</string>
+    <string name="workspace_settings_other">Diğer</string>
+    <string name="workspace_settings_layout_title">Düzen</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Dikey düzen modu</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Dikey yönde sekme düzenini seçin.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Yatay düzen modu</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Yatay yönde sekme düzenini seçin.</string>
+    <string name="workspace_settings_layout_mode_auto">Otomatik</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Küçük ekranlarda klasik, büyük ekranlarda bölmeli sekme rayı.</string>
+    <string name="workspace_settings_layout_mode_classic">Klasik</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Sekme rayı olmadan, aynı anda tek bölme.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Uyarlanabilir</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Sekme rayı ile ekrana sığan kadar bölme. Raydaki Butler menüsünden bir düzen sabitleyin.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Uyarlanabilir (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Sekme raylı tekli</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Çok bölmeli düzenlerin sekme rayıyla birlikte tek sekme bölmesi. Sekmeler arasında kaydırma yerine raydan geçiş yapın; ray ekranda bir şerit kaplar.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Dikey ikili</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Yan yana iki bölme (sol/sağ).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Yatay ikili</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Üst üste iki bölme (üst/alt).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Üçlü, kenar çubuğu solda</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Solda bir büyük bölme, sağda üst üste iki küçük bölme.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Üçlü, kenar çubuğu sağda</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Solda üst üste iki küçük bölme, sağda bir büyük bölme.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Dörtlü ızgara</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">2×2 ızgarada dört bölme.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Odaklamak için tıkla</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Odakta olmayan bir bölmeye yapılan ilk tıklama yalnızca ona odaklanır; odakta olmayan bölmeler fare imlecine tepki vermez. Doğrudan etkileşim kurmak için kapatın.</string>
+
+    <string name="workspace_settings_rail_button_title">Butler düğmesi</string>
+    <string name="workspace_settings_rail_button_desc">Butler düğmesinin sekme rayında nerede duracağını seçin.</string>
+    <string name="workspace_settings_rail_button_leading">Başlangıç</string>
+    <string name="workspace_settings_rail_button_leading_desc">Dikey modda sekmelerden önce, yatay modda üstlerinde.</string>
+    <string name="workspace_settings_rail_button_trailing">Son</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Dikey modda sekmelerden sonra, yatay modda altlarında. Tek elle kullanım için başparmak erişiminde.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Oturum</string>
+    <string name="workspace_settings_session_restore_title">Başlangıçta sekmeleri geri yükle</string>
+    <string name="workspace_settings_session_restore_desc">Uygulama başladığında daha önce açık olan sekmeleri otomatik olarak geri yükle.</string>
+    <string name="workspace_settings_autopause_title">Boşta kalan sekmeleri duraklat</string>
+    <string name="workspace_settings_autopause_desc">Bir süredir bakmadığınız sekmeler bellek ve pil tasarrufu için duraklatılır. Birini açmak onu sürdürür.</string>
+    <string name="workspace_settings_autopause_delay_title">Şu süre sonra duraklat</string>
+    <string name="workspace_settings_autopause_delay_desc">Bir sekmenin duraklatılmadan önce görünmez kalacağı süre.</string>
+    <string name="workspace_settings_undoclose_title">Sekme kapatmayı geri al</string>
+    <string name="workspace_settings_undoclose_desc">Bir sekmeyi kapatmak, birkaç saniyeliğine onu geri getirme seçeneği sunar.</string>
+    <string name="workspace_settings_session_data_title">Oturum verisi</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d sekme • %2$s</item>
+        <item quantity="other">%1$d sekme • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">\"%1$s\" kapatıldı</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Oturum geri yüklenemedi</string>
+    <string name="workspace_session_restoration_error_description">Önceki sekme oturumunuz geri yüklenemedi. Bunun nedeni, gelecekteki bir güncellemede düzeltilecek bir hata olabilir.\n\nButler\'ı kullanmaya devam etmek için kaydedilmiş oturumu temizleyebilir veya bir güncellemeyi bekleyebilirsiniz.</string>
+    <string name="workspace_session_restoration_error_clear_action">Oturumu temizle</string>
+    <string name="workspace_session_restoration_error_report_action">Sorunu bildir</string>
+    <string name="workspace_session_restoration_error_confirm_title">Oturum temizlensin mi?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Bu işlem, kaydedilmiş sekme oturumunuzu kalıcı olarak siler. Bu işlem geri alınamaz.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Sekmeyi yeniden adlandır</string>
+    <string name="workspace_rename_name_label">Özel ad</string>
+    <string name="workspace_rename_name_hint">Otomatik adı kullanmak için boş bırakın</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Sekme sınırına ulaşıldı</string>
+    <string name="workspace_limit_reached_message">Ücretsiz kullanıcılar aynı anda en fazla %1$d sekme açık tutabilir. Sınırsız sekme için Butler Pro\'ya yükseltin!</string>
+    <string name="workspace_limit_pick_tabs_message">Ücretsiz planınız %1$d açık sekmeye izin veriyor. Artık ihtiyacınız olmayanları seçip kapatarak yer açın.</string>
+    <string name="workspace_limit_no_slot_hint">Sekmeleri kapatmak şu anda yer açmayacak.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">%d sekmeyi kapat</item>
+        <item quantity="other">%d sekmeyi kapat</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Kapatmak için en az %d sekme seçin.</item>
+        <item quantity="other">Kapatmak için en az %d sekme seçin.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">%1$s açıldı</string>
+    <string name="workspace_limit_blocker_unsaved">Kaydedilmemiş değişiklikler</string>
+    <string name="workspace_limit_blocker_busy">Şu anda meşgul</string>
+    <string name="workspace_limit_blocker_attention">Sizi bekliyor</string>
+    <string name="workspace_limit_blocker_loading">Hâlâ yükleniyor</string>
+    <string name="workspace_limit_blocker_awaiting_result">Önce açık seçiciyi tamamlayın</string>
+    <string name="workspace_limit_blocker_unavailable">Şu anda kapatılamaz</string>
+    <string name="workspace_limit_stacked_content_desc">Bu sekmeyi kapatmak, üzerine yığılmış olanları da kapatır</string>
+    <string name="workspace_limit_pro_description">İstediğiniz kadar sekme açın.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d öğe</item>
+        <item quantity="other">%1$d öğe</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Çöp kutusundan geri yükleme</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Çöp kutusundan %d öğe geri yükle.</item>
+        <item quantity="other">Çöp kutusundan %d öğe geri yükle.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d öğe geri yüklendi</item>
+        <item quantity="other">%d öğe geri yüklendi</item>
+    </plurals>
+</resources>
