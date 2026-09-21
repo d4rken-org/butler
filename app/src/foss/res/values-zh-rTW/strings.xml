@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">需要 Butler FOSS</string>
+
+    <string name="upgrade_prompt_title">升級 Butler</string>
+    <string name="upgrade_prompt_body">解鎖更多功能並成為贊助者以支持持續開發！</string>
+    <string name="upgrade_prompt_upgrade_action">升級</string>
+
+    <string name="upgrade_screen_title">升級 Butler</string>
+    <string name="upgrade_screen_preamble">Butler 沒有廣告，也不會販售使用者資料。持續開發只有靠您的支持才能進行。</string>
+    <string name="upgrade_screen_how_title">如何幫助</string>
+    <string name="upgrade_screen_how_body">成為贊助者並贊助開發！輕觸下方按鈕以啟用所有額外功能並打開我的 GitHub Sponsors 個人資料。</string>
+
+    <string name="upgrade_screen_sponsor_action">贊助開發</string>
+    <string name="upgrade_screen_sponsor_action_hint">另一種選擇是廣告、分析和 Google Play 🙁。</string>
+    <string name="upgrade_screen_thanks_toast">感謝您支持開源開發 ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">已經回來了？您的支持讓 Butler 活著——請花點時間查看贊助者頁面。</string>
+    <string name="upgrade_screen_sponsor_open_failed">無法開啟贊助者頁面。請嘗試在瀏覽器中開啟。</string>
+
+    <string name="upgrade_screen_status_free_title">您在使用免費版本</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS 完全開源。透過支持開發來解鎖額外功能。</string>
+    <string name="upgrade_screen_status_free_action">查看升級選項</string>
+    <string name="upgrade_screen_status_upgraded_title">您是贊助者</string>
+    <string name="upgrade_screen_status_upgraded_body">感謝您支持開源開發 ❤️ 所有額外功能已解鎖。</string>
+    <string name="upgrade_screen_supporter_since">自 %s 起的贊助者</string>
+    <string name="upgrade_screen_recurring_title">繼續支持</string>
+    <string name="upgrade_screen_recurring_body">Butler 是我在業餘時間開發的。定期捐款有助於保持其活力。</string>
+    <string name="upgrade_screen_recurring_action">成為定期贊助者</string>
+
+    <string name="upgrade_benefits_title">升級福利</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• 無限制的分頁和操作\n• 自訂設計、感觀和外觀\n• 每個工具的額外選項和功能\n• 搶先存取新功能\n• 一名積極的開發者 🧙\n以及更多…</string>
+</resources>

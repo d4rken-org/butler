@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">紀錄</string>
+    <string name="history_workspace_subtitle">最近的檔案操作</string>
+    <string name="history_workspace_title_scoped">紀錄：%1$s</string>
+    <string name="history_workspace_title_outcome_failed">紀錄：失敗</string>
+    <string name="history_workspace_title_outcome_partial">紀錄：部分</string>
+    <string name="history_workspace_title_outcome_cancelled">紀錄：已取消</string>
+    <string name="history_workspace_title_outcome_completed">紀錄：已完成</string>
+    <string name="history_workspace_title_kind_copy">紀錄：複製</string>
+    <string name="history_workspace_title_kind_move">紀錄：移動</string>
+    <string name="history_workspace_title_kind_delete">紀錄：刪除</string>
+    <string name="history_workspace_title_kind_create_file">紀錄：建立檔案</string>
+    <string name="history_workspace_title_kind_create_folder">紀錄：建立資料夾</string>
+    <string name="history_workspace_title_kind_save">紀錄：儲存</string>
+    <string name="history_workspace_title_kind_compress">紀錄：壓縮</string>
+    <string name="history_workspace_title_kind_extract">紀錄：解壓縮</string>
+    <string name="history_workspace_title_filtered">紀錄（已篩選）</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="other">紀錄：%1$d 個路徑</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">全部</string>
+    <string name="history_filter_outcome_completed">已完成</string>
+    <string name="history_filter_outcome_partial">部分</string>
+    <string name="history_filter_outcome_failed">失敗</string>
+    <string name="history_filter_outcome_cancelled">已取消</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">複製</string>
+    <string name="history_filter_kind_move">移動</string>
+    <string name="history_filter_kind_delete">刪除</string>
+    <string name="history_filter_kind_create_file">建立檔案</string>
+    <string name="history_filter_kind_create_folder">建立資料夾</string>
+    <string name="history_filter_kind_save">儲存</string>
+    <string name="history_filter_kind_compress">壓縮</string>
+    <string name="history_filter_kind_extract">解壓縮</string>
+    <string name="history_filter_kind_enable">啟用</string>
+    <string name="history_filter_kind_disable">停用</string>
+    <string name="history_filter_kind_force_stop">強制停止</string>
+    <string name="history_filter_kind_uninstall">解除安裝</string>
+    <string name="history_filter_kind_clear_data">清除資料</string>
+    <string name="history_filter_kind_components">元件</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">設定路徑範圍…</string>
+    <string name="history_path_scope_clear_action">清除路徑範圍</string>
+    <string name="history_path_scope_dialog_title">依路徑篩選</string>
+    <string name="history_path_scope_dialog_description">只顯示影響此路徑或其子項目的操作。</string>
+    <string name="history_path_scope_dialog_input_label">路徑</string>
+    <string name="history_path_scope_dialog_pick_folder_action">選擇資料夾…</string>
+    <string name="history_path_scope_dialog_apply_action">套用</string>
+    <string name="history_path_scope_dialog_cancel_action">取消</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">今天</string>
+    <string name="history_group_yesterday">昨天</string>
+    <string name="history_group_this_week">這週</string>
+    <string name="history_group_this_month">這個月</string>
+    <string name="history_group_older">更早</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">已重新命名</string>
+    <string name="history_entry_intent_paste_copy">已貼上</string>
+    <string name="history_entry_intent_paste_move">已貼上（移動）</string>
+    <string name="history_entry_intent_drop_copy">已放下（複製）</string>
+    <string name="history_entry_intent_drop_move">已放下（移動）</string>
+    <string name="history_entry_intent_enable_components">已啟用元件</string>
+    <string name="history_entry_intent_disable_components">已停用元件</string>
+    <string name="history_entry_kind_copy">已複製</string>
+    <string name="history_entry_kind_move">已移動</string>
+    <string name="history_entry_kind_delete">已刪除</string>
+    <string name="history_entry_kind_create_file">已建立檔案</string>
+    <string name="history_entry_kind_create_folder">已建立資料夾</string>
+    <string name="history_entry_kind_save">已儲存</string>
+    <string name="history_entry_kind_compress">已壓縮</string>
+    <string name="history_entry_kind_extract">已解壓縮</string>
+    <string name="history_entry_kind_restore">已復原</string>
+    <string name="history_entry_kind_install">已安裝</string>
+    <string name="history_entry_kind_enable">已啟用</string>
+    <string name="history_entry_kind_disable">已停用</string>
+    <string name="history_entry_kind_force_stop">已強制停止</string>
+    <string name="history_entry_kind_uninstall">已解除安裝</string>
+    <string name="history_entry_kind_clear_data">已清除資料</string>
+    <string name="history_entry_kind_components">已變更元件</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="other">%d 個路徑</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">已受影響的前 %1$d 個路徑（共 %2$d 個）</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">已開始</string>
+    <string name="history_detail_label_completed">已完成</string>
+    <string name="history_detail_label_duration">持續時間</string>
+    <string name="history_detail_label_outcome">結果</string>
+    <string name="history_detail_label_origin">來源</string>
+    <string name="history_detail_label_error">錯誤</string>
+    <string name="history_detail_label_paths">已受影響的路徑</string>
+    <string name="history_detail_label_partial_errors">個別項目失敗</string>
+    <string name="history_detail_copy_path_action">複製路徑</string>
+    <string name="history_detail_paths_empty">未記錄已受影響的路徑。</string>
+    <string name="history_detail_label_attempted_paths">嘗試過的路徑</string>
+    <string name="history_detail_label_packages">受影響的應用程式</string>
+    <string name="history_detail_packages_empty">未記錄受影響的應用程式。</string>
+    <string name="history_detail_paths_truncated_callout">顯示已受影響的前 %1$d 個路徑（共 %2$d 個）。</string>
+    <string name="history_detail_attempted_paths_truncated_callout">顯示嘗試過的前 %1$d 個路徑（共 %2$d 個）。</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="other">%1$d 個項目在此操作期間失敗。</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">檔案總管</string>
+    <string name="history_origin_searcher">搜尋</string>
+    <string name="history_origin_saver">儲存位置</string>
+    <string name="history_origin_developer">開發者</string>
+    <string name="history_origin_viewer">檢視器</string>
+    <string name="history_origin_apps">應用程式</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d 毫秒</string>
+    <string name="history_duration_seconds">%1$.1f 秒</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">尚無紀錄</string>
+    <string name="history_empty_subtitle">檔案操作會在您使用 Butler 時在此顯示。</string>
+    <string name="history_empty_filtered_title">無符合項目</string>
+    <string name="history_empty_filtered_subtitle">沒有紀錄符合目前的篩選條件。</string>
+    <string name="history_empty_filtered_reset_action">重設篩選</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">重設篩選</string>
+    <string name="history_toolbar_reset_filter_content_description">重設篩選</string>
+    <string name="history_entry_paths_truncated_short">%1$d 個+</string>
+    <string name="history_entry_paths_truncated_content_description">已受影響的前 %1$d 個路徑（共 %2$d 個）</string>
+    <string name="history_add_filter_action">新增篩選</string>
+    <string name="history_add_filter_sheet_title">新增篩選</string>
+    <string name="history_add_filter_section_outcome">結果</string>
+    <string name="history_add_filter_section_kind">類型</string>
+    <string name="history_add_filter_section_path_scope">路徑範圍</string>
+    <string name="history_add_filter_add_path_action">新增路徑…</string>
+    <string name="history_path_scope_remove_action">移除</string>
+    <plurals name="history_summary_total">
+        <item quantity="other">%1$d 個項目</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="other">顯示 %1$d 個（共 %2$d 個）</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="other">（%1$d）</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">紀錄</string>
+    <string name="history_settings_save_history_title">儲存紀錄</string>
+    <string name="history_settings_save_history_subtitle">記錄已完成的檔案操作。</string>
+    <string name="history_settings_max_history_label">紀錄項目數上限</string>
+    <string name="history_settings_max_history_subtitle">超過此限制後會移除較舊的項目。</string>
+    <string name="history_settings_max_history_input_label">最大項目數</string>
+    <string name="history_settings_clear_history_title">清除紀錄</string>
+    <string name="history_settings_clear_history_subtitle">移除所有儲存的項目（%1$d）。</string>
+    <string name="history_clear_dialog_title">要清除紀錄嗎？</string>
+    <string name="history_clear_dialog_message">會從操作紀錄資料庫中移除所有項目。此動作無法復原。</string>
+    <string name="history_clear_confirm_action">清除</string>
+    <string name="history_cleared_success">紀錄已清除</string>
+    <string name="history_workspace_title_kind_restore">紀錄：復原</string>
+    <string name="history_filter_kind_restore">復原</string>
+    <string name="history_workspace_title_kind_install">紀錄：安裝</string>
+    <string name="history_filter_kind_install">安裝</string>
+    <string name="history_workspace_title_kind_enable">紀錄：啟用</string>
+    <string name="history_workspace_title_kind_disable">紀錄：停用</string>
+    <string name="history_workspace_title_kind_force_stop">紀錄：強制停止</string>
+    <string name="history_workspace_title_kind_uninstall">紀錄：解除安裝</string>
+    <string name="history_workspace_title_kind_clear_data">紀錄：清除資料</string>
+    <string name="history_workspace_title_kind_components">紀錄：元件</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">全選</string>
+    <string name="history_action_deselect_all">取消全選</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="other">刪除 %1$d 個項目</item>
+    </plurals>
+    <string name="history_delete_dialog_message">只會移除紀錄，檔案本身不會被刪除。</string>
+    <string name="history_pro_dialog_message">分享和刪除紀錄項目是升級的一部分。清除整個紀錄仍可在紀錄設定中免費進行。</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">結果</string>
+    <string name="history_share_label_kind">類型</string>
+    <string name="history_share_label_origin">來源</string>
+    <string name="history_share_label_summary">摘要</string>
+    <string name="history_share_label_completed">已完成</string>
+    <string name="history_share_label_duration">持續時間</string>
+    <string name="history_share_label_error">錯誤</string>
+    <string name="history_share_label_failed_items">失敗的項目</string>
+    <string name="history_share_label_paths">已受影響的路徑（%1$d）</string>
+    <string name="history_share_label_packages">受影響的應用程式（%1$d）</string>
+    <string name="history_share_paths_more">…以及其他 %1$d 個</string>
+    <string name="history_share_truncated">…以及其他 %1$d 個項目未包含</string>
+</resources>

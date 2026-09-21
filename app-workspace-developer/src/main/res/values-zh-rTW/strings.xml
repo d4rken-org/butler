@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">開發者</string>
+    <string name="developer_title">開發者工具</string>
+    <string name="developer_subtitle">開發公用程式</string>
+
+    <!-- 分頁 -->
+    <string name="developer_tab_system">系統</string>
+    <string name="developer_tab_options">選項</string>
+    <string name="developer_tab_workspaces">工作區</string>
+    <string name="developer_tab_logs">日誌</string>
+    <string name="developer_tab_testdata">測試資料</string>
+
+    <!-- 選項部分 -->
+    <string name="developer_options_debug_header">偵錯選項</string>
+    <string name="developer_options_debug_mode">偵錯模式</string>
+    <string name="developer_options_debug_mode_desc">啟用詳細日誌</string>
+    <string name="developer_options_trace_mode">追蹤模式</string>
+    <string name="developer_options_trace_mode_desc">啟用追蹤層級日誌</string>
+    <string name="developer_options_floating_log">浮動日誌面板</string>
+    <string name="developer_options_floating_log_desc">在所有畫面上顯示可拖曳的日誌疊加層</string>
+    <string name="developer_options_services_header">服務測試</string>
+    <string name="developer_options_root_test_action">測試 Root</string>
+    <string name="developer_options_root_installed_label">已安裝</string>
+    <string name="developer_options_root_available_label">可用</string>
+    <string name="developer_options_root_base_check_label">基本檢查</string>
+    <string name="developer_options_shizuku_test_action">測試 Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">已安裝</string>
+    <string name="developer_options_shizuku_granted_label">權限</string>
+    <string name="developer_options_shizuku_compatible_label">相容</string>
+    <string name="developer_options_shizuku_service_label">服務</string>
+    <string name="developer_options_test_running">測試中…</string>
+    <string name="developer_options_result_yes">是</string>
+    <string name="developer_options_result_no">否</string>
+    <string name="developer_options_result_unknown">未知</string>
+    <string name="developer_options_visibility_header">可見性</string>
+    <string name="developer_options_hide_mode">隱藏開發者模式</string>
+    <string name="developer_options_hide_mode_desc">在設定中輕觸版本 7 次即可重新啟用。</string>
+    <string name="developer_options_hide_action">隱藏</string>
+
+    <!-- 系統資訊部分 -->
+    <string name="developer_system_device_header">裝置</string>
+    <string name="developer_system_device_model">型號</string>
+    <string name="developer_system_device_manufacturer">製造商</string>
+    <string name="developer_system_device_api">API 級別</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">版本</string>
+    <string name="developer_system_build_code">版本代碼</string>
+    <string name="developer_system_build_flavor">Flavor</string>
+    <string name="developer_system_build_type">Build 類型</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">記憶體</string>
+    <string name="developer_system_memory_available">可用</string>
+    <string name="developer_system_memory_total">總計</string>
+    <string name="developer_system_storage_header">儲存空間</string>
+
+    <!-- 工作區部分 -->
+    <string name="developer_workspaces_count">%d 個工作區</string>
+    <string name="developer_workspaces_empty">無工作區</string>
+
+    <!-- 日誌部分 -->
+    <string name="developer_logs_clear">清除</string>
+    <string name="developer_logs_pause">暫停</string>
+    <string name="developer_logs_resume">繼續</string>
+    <string name="developer_logs_empty">無日誌</string>
+
+    <!-- 測試資料部分 -->
+    <string name="developer_testdata_target_paths_label">目標路徑</string>
+    <string name="developer_testdata_no_paths">未選取任何目標路徑。請新增路徑以產生測試資料。</string>
+    <string name="developer_testdata_add_path_action">新增路徑</string>
+    <string name="developer_testdata_options_header">產生選項</string>
+    <string name="developer_testdata_large_files">大型檔案</string>
+    <string name="developer_testdata_large_files_desc">1MB、10MB、100MB、1GB、2GB、4GB、8GB</string>
+    <string name="developer_testdata_nested_structure">巢狀結構</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 個資料夾、~1100 個檔案</string>
+    <string name="developer_testdata_text_files">編輯器用文字檔案</string>
+    <string name="developer_testdata_text_files_desc">10KB、100KB、1MB、10MB、100MB</string>
+    <string name="developer_testdata_generate_action">產生</string>
+    <string name="developer_testdata_generating">產生中…</string>
+    <string name="developer_testdata_history_header">樣本紀錄項目</string>
+    <string name="developer_testdata_history_desc">填入約 25 個假操作項目，跨越今天至 30 天前，混合種類/結果/來源/路徑。直接插入紀錄資料庫；可安全重複輕觸。</string>
+    <string name="developer_testdata_history_generate_action">產生樣本紀錄</string>
+    <string name="developer_testdata_progress">%1$s 之 %2$s</string>
+    <string name="developer_testdata_complete">產生測試資料於：</string>
+
+    <!-- 測試資料操作 -->
+    <string name="developer_operation_large_files_title">產生大型檔案</string>
+    <string name="developer_operation_large_files_desc">在 %1$s 中建立測試檔案</string>
+    <string name="developer_operation_large_files_creating">建立 %1$s</string>
+
+    <string name="developer_operation_nested_title">產生巢狀結構</string>
+    <string name="developer_operation_nested_desc">在 %1$s 中建立資料夾階層</string>
+    <string name="developer_operation_nested_starting">正在啟動巢狀結構…</string>
+    <string name="developer_operation_nested_creating">建立 %1$s</string>
+    <string name="developer_operation_nested_files_created">已建立 %1$d 個檔案</string>
+
+    <string name="developer_operation_text_files_title">產生文字檔案</string>
+    <string name="developer_operation_text_files_desc">在 %1$s 中建立文字檔案</string>
+    <string name="developer_operation_text_files_creating">建立 %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="other">已建立 %d 個檔案</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="other">已建立 %d 個資料夾</item>
+    </plurals>
+</resources>

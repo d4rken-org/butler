@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 檔案總管 -->
+    <string name="explorer_title">檔案總管</string>
+    <string name="explorer_subtitle">瀏覽檔案與資料夾</string>
+    <string name="explorer_settings_title">檔案總管設定</string>
+    <string name="explorer_settings_file_display">檔案顯示</string>
+    <string name="explorer_settings_filter_regex_title">進階萬用字元比對</string>
+    <string name="explorer_settings_filter_regex_desc">在包含／排除篩選條件中使用正規表示式。</string>
+    <string name="explorer_settings_navigation">導覽</string>
+    <string name="explorer_settings_back_button_title">返回鍵導覽</string>
+    <string name="explorer_settings_back_button_desc">使用返回鍵／手勢瀏覽歷史記錄。</string>
+    <string name="explorer_settings_trash_category">回收桶</string>
+    <string name="explorer_settings_trash_enabled_title">啟用回收桶</string>
+    <string name="explorer_settings_trash_enabled_desc">將刪除的檔案移至回收桶，而非永久刪除</string>
+    <string name="explorer_settings_trash_auto_delete_title">自動刪除時間</string>
+    <string name="explorer_settings_trash_auto_delete_desc">自動刪除超過 %d 天的項目</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d 天</string>
+    <string name="explorer_settings_trash_max_size_title">每個儲存空間的最大容量</string>
+    <string name="explorer_settings_trash_max_size_desc">每個儲存位置最多 %d MB</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">自動刪除期限</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">每個儲存空間的最大容量</string>
+    <string name="explorer_settings_trash_enable_dialog_title">要啟用回收桶嗎？</string>
+    <string name="explorer_settings_trash_enable_dialog_message">與桌面系統不同，Android 沒有內建回收桶。Butler 使用其快取資料夾提供這項功能。\n\n請注意：\n• 在項目被永久刪除之前，裝置的儲存空間指示器不會反映已釋放的空間\n• 如果裝置儲存空間不足，Android 可能會清除應用程式快取，導致回收桶中的檔案遭到刪除</string>
+    <string name="explorer_settings_trash_enable_action">啟用</string>
+
+    <!-- 檔案列內容描述 -->
+    <string name="explorer_file_regular_content_desc">檔案</string>
+    <string name="explorer_file_symlink_content_desc">符號連結</string>
+    <string name="explorer_file_folder_content_desc">資料夾</string>
+    <string name="explorer_file_peek_content_desc">正在載入檔案資訊</string>
+
+    <!-- 檔案列 UI 字串 -->
+    <string name="explorer_file_shortcut_label">捷徑</string>
+    <string name="explorer_file_storage_local_label">本機</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">唯讀存取</string>
+    <string name="explorer_file_storage_saf_write_only_label">唯寫存取</string>
+    <string name="explorer_file_storage_saf_no_access_label">無法存取</string>
+    <string name="explorer_file_storage_saf_uri_label">SAF 樹狀 URI</string>
+    <string name="explorer_file_storage_size_format">%1$s • 總計 %2$s • 剩餘 %3$s</string>
+    <string name="explorer_file_broken_link_label">損壞的連結</string>
+    <string name="explorer_file_items_count">%1$d 個項目</string>
+    <string name="explorer_file_empty">空的</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · 部分</string>
+    <string name="explorer_sizes_estimate_description">根據 Android 儲存空間總計推估。對於無法讀取的檔案，會以佔用的儲存空間作為檔案大小的估計值。也可能包含由 Android 管理的隱藏檔案。其他無法讀取的位置則維持未知。</string>
+    <string name="explorer_sizes_estimate_coverage">由於儲存空間的其他部分無法完整測量，因此無法估算 Android/data。</string>
+    <string name="explorer_sizes_estimate_unavailable">無法取得 Android 儲存空間統計資訊，仍會顯示已測量的大小。</string>
+    <string name="explorer_sizes_estimate_inconsistent">Android 儲存空間總計與掃描結果不一致，仍會顯示已測量的大小。</string>
+
+    <!-- 選擇模式 -->
+    <string name="explorer_picker_select_directory_title">選取資料夾</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">選取資料夾</item>
+        <item quantity="other">選取資料夾 (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">選取檔案</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">選取檔案</item>
+        <item quantity="other">選取檔案 (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">選取項目</item>
+        <item quantity="other">選取項目 (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">選取此資料夾</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="other">選取 %d 項</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">儲存檔案</string>
+    <string name="explorer_picker_save_here_action">儲存於此</string>
+    <string name="explorer_picker_save_as_filename_label">檔案名稱</string>
+    <string name="explorer_picker_save_as_filename_hint">輸入檔案名稱</string>
+
+    <!-- 檔案總管操作 -->
+    <string name="explorer_action_refresh">重新整理</string>
+    <string name="explorer_action_calculate_sizes">計算大小</string>
+    <string name="explorer_action_sort">排序</string>
+    <string name="explorer_action_filter">篩選</string>
+    <string name="explorer_action_view">版面配置</string>
+    <string name="explorer_action_create">建立</string>
+    <string name="explorer_action_rename">重新命名</string>
+    <string name="explorer_action_copy">複製</string>
+    <string name="explorer_action_cut">剪下</string>
+    <string name="explorer_action_delete">刪除</string>
+    <string name="explorer_action_select_all">全選</string>
+    <string name="explorer_action_deselect_all">取消全選</string>
+    <string name="explorer_action_compress">壓縮</string>
+    <string name="explorer_action_extract">解壓縮</string>
+    <string name="explorer_action_add_location">新增位置</string>
+    <string name="explorer_action_info">資訊</string>
+
+    <!-- 項目資訊 -->
+    <string name="explorer_info_title">資訊</string>
+    <string name="explorer_info_name_label">名稱</string>
+    <string name="explorer_info_path_label">路徑</string>
+    <string name="explorer_info_type_label">類型</string>
+    <string name="explorer_info_type_file">檔案</string>
+    <string name="explorer_info_type_directory">目錄</string>
+    <string name="explorer_info_size_label">大小</string>
+    <string name="explorer_info_modified_label">修改時間</string>
+    <string name="explorer_info_created_label">建立時間</string>
+    <string name="explorer_info_permissions_label">權限</string>
+    <string name="explorer_info_owner_label">擁有者</string>
+    <string name="explorer_info_child_count_label">項目</string>
+    <string name="explorer_info_symlink_target_label">目標</string>
+    <string name="explorer_info_symlink_status_label">狀態</string>
+    <string name="explorer_info_symlink_broken">損壞的連結</string>
+    <string name="explorer_info_unknown">未知</string>
+
+    <!-- 回收桶項目資訊 -->
+    <string name="explorer_trash_info_deleted_label">刪除時間</string>
+
+    <!-- SAF 資訊 -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">權限</string>
+    <string name="explorer_info_saf_granted_label">已授予</string>
+    <string name="explorer_info_saf_permission_read">讀取</string>
+    <string name="explorer_info_saf_permission_write">寫入</string>
+
+    <!-- 網路資訊 -->
+    <string name="explorer_info_network_server_label">伺服器</string>
+    <string name="explorer_info_network_port_label">連接埠</string>
+    <string name="explorer_info_network_share_label">共用</string>
+    <string name="explorer_info_network_folder_label">資料夾</string>
+    <string name="explorer_info_network_address_label">位址</string>
+    <string name="explorer_info_network_status_label">狀態</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">登入</string>
+    <string name="explorer_info_network_domain_label">網域</string>
+    <string name="explorer_info_network_password_label">密碼</string>
+    <string name="explorer_info_network_password_show_action">顯示密碼</string>
+    <string name="explorer_info_network_password_hide_action">隱藏密碼</string>
+    <string name="explorer_info_network_password_missing">遺失，請重新登入</string>
+    <string name="explorer_info_network_password_locked">已儲存，但此裝置無法解鎖</string>
+    <string name="explorer_info_network_added_label">新增時間</string>
+    <string name="explorer_info_network_updated_label">更新時間</string>
+    <string name="explorer_info_network_last_seen_label">最後偵測到</string>
+    <string name="explorer_info_network_last_seen_never">從未</string>
+
+    <!-- 多重項目資訊 -->
+    <string name="explorer_info_selected_label">已選取</string>
+    <string name="explorer_info_files_label">檔案</string>
+    <string name="explorer_info_directories_label">目錄</string>
+    <string name="explorer_info_total_size_label">總大小</string>
+
+    <!-- 裝置／首頁檢視資訊 -->
+    <string name="explorer_info_locations_label">位置</string>
+    <string name="explorer_info_shortcuts_label">捷徑</string>
+    <string name="explorer_info_total_capacity_label">總容量</string>
+    <string name="explorer_info_used_space_label">已用空間</string>
+    <string name="explorer_info_free_space_label">可用空間</string>
+    <string name="explorer_info_usage_label">使用量</string>
+    <string name="explorer_info_device_storage_total_label">裝置儲存空間</string>
+    <string name="explorer_info_device_storage_used_label">已使用</string>
+    <string name="explorer_info_device_storage_free_label">可用</string>
+
+    <!-- 導覽 -->
+    <string name="explorer_navigation_home">首頁</string>
+    <string name="explorer_breadcrumb_set_as_home_action">設為首頁</string>
+    <string name="explorer_breadcrumb_copy_path_action">複製路徑</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">已將路徑複製到剪貼簿</string>
+    <string name="explorer_navigation_device">裝置</string>
+    <string name="explorer_navigation_network">網路</string>
+    <string name="explorer_navigation_recent">最近</string>
+    <string name="explorer_navigation_recent_desc">此裝置上最近出現的檔案</string>
+    <string name="explorer_navigation_trash">回收桶</string>
+    <string name="explorer_navigation_trash_desc">還原已刪除的檔案</string>
+    <string name="explorer_navigation_trash_nested_desc">在已刪除的資料夾內</string>
+
+    <!-- 回收桶 -->
+    <string name="explorer_trash_empty_state">沒有已刪除的項目</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="other">%d 個項目</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">還原</string>
+    <string name="explorer_trash_restore_selected_action">還原所選項目</string>
+    <string name="explorer_trash_delete_permanently_action">永久刪除</string>
+    <string name="explorer_trash_delete_selected_action">刪除所選項目</string>
+    <string name="explorer_trash_empty_trash_action">清空回收桶</string>
+    <string name="explorer_trash_empty_confirm">要清空回收桶嗎？</string>
+    <string name="explorer_trash_empty_message">回收桶中的所有項目都將被永久刪除，此操作無法復原。</string>
+    <string name="explorer_trash_empty_confirm_action">清空回收桶</string>
+    <string name="explorer_trash_restore_desc">還原到原始位置</string>
+    <string name="explorer_trash_item_unavailable">項目無法使用</string>
+    <string name="explorer_trash_delete_warning">此操作無法復原</string>
+    <string name="explorer_trash_disabled_warning">回收桶已停用</string>
+
+    <!-- 巢狀回收桶 -->
+    <string name="explorer_trash_nested_loading">正在載入已刪除資料夾的內容…</string>
+    <string name="explorer_trash_nested_restore_action">還原到原始位置</string>
+    <string name="explorer_trash_nested_delete_action">永久刪除</string>
+    <string name="explorer_trash_nested_restore_conflict">原始位置已有相同檔案</string>
+    <string name="explorer_trash_nested_parent_missing">上層項目已不存在於回收桶中</string>
+    <string name="explorer_trash_nested_path_missing">路徑已不存在</string>
+    <string name="explorer_trash_error_items_not_found">在回收桶中找不到項目</string>
+    <string name="explorer_trash_error_restore_failed">還原項目失敗</string>
+    <string name="explorer_trash_error_delete_failed">刪除項目失敗</string>
+    <string name="explorer_trash_nested_error_restore_failed">還原 \"%1$s\" 失敗</string>
+    <string name="explorer_trash_nested_error_delete_failed">刪除 \"%1$s\" 失敗</string>
+
+    <string name="explorer_navigation_root">根目錄</string>
+    <string name="explorer_navigation_rom">系統 ROM</string>
+    <string name="explorer_navigation_internal_storage">內部公用儲存空間</string>
+    <string name="explorer_navigation_external_storage">外部公用儲存空間</string>
+
+    <string name="explorer_loader_progress_directory_loading">正在瀏覽 %s</string>
+    <string name="explorer_loader_progress_directory_permissions">正在檢查權限</string>
+    <string name="explorer_loader_progress_directory_filesystem">正在取得檔案系統資訊</string>
+    <string name="explorer_loader_progress_directory_content">正在載入資料夾內容</string>
+    <string name="explorer_loader_progress_directory_content_details">正在載入內容詳細資訊</string>
+    <string name="explorer_loader_progress_directory_content_extended">正在載入延伸內容詳細資訊</string>
+
+    <string name="explorer_loader_progress_device_loading">正在載入裝置</string>
+    <string name="explorer_loader_progress_device_locations">正在載入儲存位置</string>
+
+    <string name="explorer_loader_progress_network_loading">正在載入網路儲存空間</string>
+
+    <string name="explorer_loader_progress_home_loading">正在載入首頁</string>
+    <string name="explorer_loader_progress_trash_loading">正在載入回收桶…</string>
+    <string name="explorer_loader_progress_recent_loading">正在載入最近的檔案…</string>
+
+    <!-- 資訊列 -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="other">%d 個捷徑</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="other">%d 個位置</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="other">%d 個隱藏項目</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">剩餘 %1$s</string>
+    <string name="explorer_infobar_loading">載入中…</string>
+
+    <!-- 對話方塊 -->
+    <string name="explorer_dialog_create_title">建立新項目</string>
+    <string name="explorer_dialog_rename_title">重新命名</string>
+    <string name="explorer_dialog_name_label">名稱</string>
+    <string name="explorer_dialog_type_label">類型</string>
+    <string name="explorer_dialog_type_folder">資料夾</string>
+    <string name="explorer_dialog_type_file">檔案</string>
+    <string name="explorer_dialog_create_text_file_title">從文字建立檔案</string>
+    <string name="explorer_dialog_create_text_file_preview_label">預覽</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d 個字元</string>
+
+    <!-- 新增裝置儲存空間對話方塊 -->
+    <string name="explorer_add_device_storage_title">新增儲存位置</string>
+    <string name="explorer_add_device_storage_desc">使用儲存空間存取架構 (SAF) 授予 Butler 存取其他儲存位置的權限，例如 USB 隨身碟、應用程式虛擬資料夾等。</string>
+    <string name="explorer_add_device_storage_continue">繼續</string>
+    <string name="explorer_add_device_storage_cancel">取消</string>
+    <string name="explorer_add_device_storage_suggestions_title">具有儲存空間的應用程式</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">開啟此應用程式的資料夾</string>
+
+    <!-- 裝置儲存空間操作 -->
+    <string name="explorer_device_action_remove_location">移除位置</string>
+    <string name="explorer_device_remove_confirmation_title">要移除儲存位置嗎？</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="other">要移除 %1$d 個儲存位置嗎？</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">這會撤銷 Butler 對此位置的存取權，您的檔案不會被刪除。</string>
+
+    <!-- 網路儲存空間 -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="other">%d 個網路位置</item>
+    </plurals>
+    <string name="explorer_network_storage_label">網路</string>
+    <string name="explorer_network_add_location_action">新增網路儲存空間</string>
+    <string name="explorer_network_edit_location_action">編輯網路儲存空間</string>
+    <string name="explorer_network_remove_location_action">移除網路儲存空間</string>
+    <string name="explorer_network_sign_in_required_label">需要登入</string>
+    <string name="explorer_network_status_checking_label">檢查中…</string>
+    <string name="explorer_network_status_available_label">可用</string>
+    <string name="explorer_network_status_unavailable_label">無法使用</string>
+    <string name="explorer_network_status_unavailable_since_format">無法使用 (%1$s)</string>
+    <string name="explorer_network_empty_title">尚無網路儲存空間</string>
+    <string name="explorer_network_empty_caption">新增 Windows 共用資料夾或 NAS 資料夾即可在此瀏覽。</string>
+    <string name="explorer_network_remove_confirmation_title">要移除網路儲存空間嗎？</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="other">要移除 %1$d 個網路儲存空間嗎？</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler 會忘記伺服器詳細資料和已儲存的密碼，伺服器上的內容不會被刪除。</string>
+
+    <!-- 網路儲存空間表單 -->
+    <string name="explorer_network_form_add_title">新增網路儲存空間</string>
+    <string name="explorer_network_form_edit_title">編輯網路儲存空間</string>
+    <string name="explorer_network_form_label_label">名稱（選填）</string>
+    <string name="explorer_network_form_host_label">伺服器位址</string>
+    <string name="explorer_network_form_host_hint">nas.local 或 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">連接埠</string>
+    <string name="explorer_network_form_share_label">共用</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">共用資料夾內的路徑（選填）</string>
+    <string name="explorer_network_form_auth_guest">訪客</string>
+    <string name="explorer_network_form_auth_password">使用者名稱與密碼</string>
+    <string name="explorer_network_form_username_label">使用者名稱</string>
+    <string name="explorer_network_form_domain_label">網域（選填）</string>
+    <string name="explorer_network_form_password_label">密碼</string>
+    <string name="explorer_network_form_password_kept_hint">留空以保留已儲存的密碼</string>
+    <string name="explorer_network_form_remember_label">記住密碼</string>
+    <string name="explorer_network_form_remember_hint">僅以加密方式儲存在此裝置上</string>
+    <string name="explorer_network_form_test_and_save_action">測試並儲存</string>
+    <string name="explorer_network_form_testing">連線中…</string>
+    <string name="explorer_network_form_error_host_blank">請輸入伺服器位址</string>
+    <string name="explorer_network_form_error_host_not_bare">請只輸入伺服器位址，不要包含通訊協定或路徑</string>
+    <string name="explorer_network_form_error_host_malformed">這不是有效的伺服器位址</string>
+    <string name="explorer_network_form_error_port">請輸入 1 到 65535 之間的連接埠</string>
+    <string name="explorer_network_form_error_share_blank">請輸入共用名稱</string>
+    <string name="explorer_network_form_error_share_not_single">請只輸入共用名稱，子資料夾請填在下方</string>
+    <string name="explorer_network_form_error_share_malformed">這不是有效的共用名稱</string>
+    <string name="explorer_network_form_error_base_path">無法使用此資料夾路徑</string>
+    <string name="explorer_network_form_error_username_blank">請輸入使用者名稱</string>
+    <string name="explorer_network_form_error_password_required">如要變更使用者名稱或網域，請重新輸入密碼</string>
+
+    <!-- 位置命名 -->
+    <string name="explorer_location_name_title">為位置命名</string>
+    <string name="explorer_location_name_label">位置名稱</string>
+    <string name="explorer_location_name_hint">留空以使用預設名稱</string>
+    <string name="explorer_location_rename_action">重新命名位置</string>
+
+    <!-- 最近 -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="other">%d 天內新增</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">這裡沒有新項目</string>
+    <string name="explorer_recent_empty_message">在此裝置上出現的檔案會顯示在這裡</string>
+
+    <!-- 空白狀態 -->
+    <string name="explorer_empty_folder_title">此資料夾是空的</string>
+    <string name="explorer_empty_search_title">沒有搜尋結果</string>
+    <string name="explorer_empty_search_caption">請嘗試其他搜尋字詞</string>
+    <string name="explorer_empty_folder_label">空資料夾</string>
+    <string name="explorer_empty_filtered_title">沒有符合的項目</string>
+    <string name="explorer_empty_filtered_caption">請嘗試調整篩選條件</string>
+    <string name="explorer_empty_hidden_title">這裡只有隱藏項目</string>
+    <string name="explorer_empty_hidden_caption">此分頁會隱藏名稱以點開頭的項目</string>
+    <string name="explorer_empty_show_hidden_action">顯示隱藏項目</string>
+    <string name="explorer_empty_hidden_or_filtered_title">沒有可顯示的項目</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">隱藏項目和篩選條件各自排除了此資料夾的部分內容</string>
+    <string name="explorer_empty_clear_filters_action">清除篩選條件</string>
+    <string name="explorer_empty_hidden_and_filtered_title">隱藏項目和篩選條件排除了這裡的所有內容</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">顯示隱藏項目並清除此分頁的篩選條件即可讓它們重新出現</string>
+    <string name="explorer_empty_show_all_action">顯示所有項目</string>
+    <string name="explorer_path_not_found_title">此資料夾已不存在</string>
+    <string name="explorer_path_not_found_caption">它已被刪除、重新命名，或移動到其他地方。</string>
+    <string name="explorer_path_not_found_back_action">返回</string>
+
+    <!-- 狀態訊息 -->
+    <string name="explorer_loading">載入中…</string>
+    <string name="explorer_file_peek_loading_text">載入中…</string>
+
+    <!-- 空資料夾標語 -->
+    <string name="explorer_empty_folder_caption_1">這裡沒什麼好看的，走吧 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">這個資料夾在減肥</string>
+    <string name="explorer_empty_folder_caption_3">檔案們今天都提早下班了</string>
+    <string name="explorer_empty_folder_caption_4">資料夾.exe 已停止運作</string>
+    <string name="explorer_empty_folder_caption_5">檔案們在玩捉迷藏</string>
+    <string name="explorer_empty_folder_caption_6">404：找不到檔案</string>
+    <string name="explorer_empty_folder_caption_7">這個資料夾對誰都有戒心</string>
+    <string name="explorer_empty_folder_caption_8">檔案們不告而別，出去度假了</string>
+    <string name="explorer_empty_folder_caption_9">空得像我的靈魂…但至少比較整齊</string>
+    <string name="explorer_empty_folder_caption_10">這裡空得像座數位廢棄城鎮</string>
+    <string name="explorer_empty_folder_caption_11">檔案們正在保持社交距離</string>
+    <string name="explorer_empty_folder_caption_12">這個資料夾奉行極簡主義</string>
+    <string name="explorer_empty_folder_caption_13">有人忘記餵檔案了</string>
+    <string name="explorer_empty_folder_caption_14">檔案們早就搬走了</string>
+    <string name="explorer_empty_folder_caption_15">比政客的承諾還空虛</string>
+
+    <!-- 排序選項 -->
+    <string name="explorer_sort_mode_label">排序方式</string>
+    <string name="explorer_sort_mode_name_label">名稱</string>
+    <string name="explorer_sort_mode_size_label">大小</string>
+    <string name="explorer_sort_mode_modified_label">修改日期</string>
+    <string name="explorer_sort_mode_created_label">建立日期</string>
+    <string name="explorer_sort_descending_label">遞減排序</string>
+    <string name="explorer_sort_scope_label">套用範圍</string>
+    <string name="explorer_sort_scope_all_folders">所有資料夾</string>
+    <string name="explorer_sort_scope_this_folder">此資料夾</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">此資料夾及子資料夾</string>
+    <string name="explorer_sort_scope_use_default_here">在此使用預設值</string>
+    <string name="explorer_sort_only_this_tab_label">僅適用於此分頁</string>
+    <string name="explorer_sort_inherited_notice">依 %1$s 已儲存的排序規則排序</string>
+    <string name="explorer_sort_suppressed_notice">這會覆寫 %1$s 已儲存的規則</string>
+    <string name="explorer_sort_tab_overrides_default_notice">此分頁使用自己的預設排序方式</string>
+    <string name="explorer_sort_tab_overrides_clear_action">清除</string>
+
+    <!-- 資料夾大小 -->
+    <string name="explorer_sizes_sheet_title">資料夾大小</string>
+    <string name="explorer_sizes_sheet_label_calculated">已計算</string>
+    <string name="explorer_sizes_sheet_label_folders">資料夾</string>
+    <string name="explorer_sizes_sheet_label_unreadable">無法讀取的位置</string>
+    <string name="explorer_sizes_sheet_problems_more">另有 %1$d 項未列出</string>
+    <string name="explorer_sizes_sheet_recalculate">重新計算</string>
+    <string name="explorer_sizes_sheet_discard">捨棄大小資訊</string>
+
+    <!-- 檢視選項 -->
+    <string name="explorer_view_sheet_subtitle">項目的排列方式及顯示的詳細程度</string>
+    <string name="explorer_view_mode_list_label">清單</string>
+    <string name="explorer_view_mode_grid_label">網格</string>
+    <string name="explorer_view_density_compact_label">精簡</string>
+    <string name="explorer_view_density_comfortable_label">適中</string>
+    <string name="explorer_view_density_detailed_label">詳細</string>
+    <string name="explorer_view_show_hidden_label">顯示隱藏檔案</string>
+    <string name="explorer_view_set_default_action">設為預設</string>
+    <string name="explorer_view_detail_created_label">建立時間</string>
+    <string name="explorer_view_detail_modified_label">修改時間</string>
+
+    <!-- 資料夾排序規則 -->
+    <string name="explorer_settings_folder_sort_rules_title">資料夾排序規則</string>
+    <string name="explorer_settings_folder_sort_rules_desc">您為個別資料夾儲存的排序設定</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">要清除資料夾排序規則嗎？</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">所有資料夾都會恢復為預設排序方式。已設定專屬排序的分頁則會保留原設定。此操作無法復原。</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">全部清除</string>
+
+    <!-- 篩選選項 -->
+    <string name="explorer_filter_file_type_label">檔案類型</string>
+    <string name="explorer_filter_type_all">全部</string>
+    <string name="explorer_filter_type_files">僅檔案</string>
+    <string name="explorer_filter_type_folders">僅資料夾</string>
+    <string name="explorer_filter_include_label">包含模式</string>
+    <string name="explorer_filter_include_placeholder_simple">例如：vacation、report、IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">例如：.*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">排除模式</string>
+    <string name="explorer_filter_exclude_placeholder_simple">例如：tmp、cache、old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">例如：^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 在設定中啟用正規表示式</string>
+
+    <!-- 權限訊息 -->
+    <string name="explorer_permission_required_title">需要權限</string>
+    <string name="explorer_permission_generic_description">Butler 需要額外權限才能瀏覽此位置。</string>
+    <string name="explorer_permission_setup_action">開啟設定精靈</string>
+    <string name="explorer_grant_access_action">授予存取權</string>
+
+    <!-- 檔案選項 -->
+    <string name="explorer_file_options_actions">操作</string>
+    <string name="explorer_file_info_type_label">類型</string>
+    <string name="explorer_file_info_size_label">大小</string>
+    <string name="explorer_file_info_modified_label">修改時間</string>
+    <string name="explorer_file_action_install">安裝</string>
+    <string name="explorer_file_action_install_subtitle">在您的裝置上安裝此應用程式</string>
+    <string name="explorer_file_action_open">開啟</string>
+    <string name="explorer_file_action_open_subtitle">在此檢視，返回會回到此資料夾</string>
+    <string name="explorer_file_action_open_in_tab">在新分頁中開啟</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">在 Butler 中以獨立分頁檢視</string>
+    <string name="explorer_file_action_open_in_editor">在編輯器中開啟</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">在新分頁中編輯</string>
+    <string name="explorer_file_action_open_with">開啟方式</string>
+    <string name="explorer_file_action_open_with_subtitle">選擇外部應用程式開啟</string>
+    <string name="explorer_file_action_share">分享</string>
+    <string name="explorer_file_action_share_subtitle">透過已安裝的應用程式分享</string>
+    <string name="explorer_file_action_copy">複製</string>
+    <string name="explorer_file_action_copy_subtitle">複製到剪貼簿以供貼上</string>
+    <string name="explorer_file_action_cut">剪下</string>
+    <string name="explorer_file_action_cut_subtitle">移至剪貼簿以供貼上</string>
+    <string name="explorer_file_action_rename">重新命名</string>
+    <string name="explorer_file_action_rename_subtitle">變更檔案名稱</string>
+    <string name="explorer_file_action_delete">刪除</string>
+    <string name="explorer_file_action_delete_subtitle">永久移除此檔案</string>
+    <string name="explorer_file_action_move_to_trash">移至回收桶</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">將檔案移至回收桶</string>
+    <string name="explorer_file_action_properties">屬性</string>
+    <string name="explorer_file_action_properties_subtitle">檢視詳細的檔案資訊</string>
+    <string name="explorer_file_action_extract">解壓縮</string>
+    <string name="explorer_file_action_extract_subtitle">將壓縮檔內容解壓縮到資料夾</string>
+    <string name="explorer_file_action_show_in_folder">在資料夾中顯示</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">開啟此檔案所在的資料夾</string>
+
+    <!-- 操作 -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="other">已建立 %d 個檔案。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="other">已建立 %d 個資料夾。</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">複製操作</string>
+    <string name="explorer_operation_copy_description_single">將 \"%1$s\" 從 \"%2$s\" 複製到 \"%3$s\"。</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="other">將 %1$d 個項目複製到 \"%2$s\"。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="other">已複製 %d 個檔案。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="other">已複製 %d 個資料夾。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="other">已複製 %s。</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">解壓縮操作</string>
+    <string name="explorer_operation_extract_description">將 \"%1$s\" 解壓縮到 \"%2$s\"。</string>
+    <string name="explorer_operation_download_copy_title">本機複製操作</string>
+    <string name="explorer_operation_download_copy_description">將 \"%1$s\" 複製到 \"%2$s\" 以供本機瀏覽。</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="other">已解壓縮 %d 個檔案。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="other">已解壓縮 %s。</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">壓縮操作</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="other">將 %1$d 個項目壓縮至 \"%2$s\"。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="other">已壓縮 %d 個檔案。</item>
+    </plurals>
+
+    <!-- 壓縮對話方塊 -->
+    <string name="explorer_compress_dialog_title">建立壓縮檔</string>
+    <string name="explorer_compress_dialog_name_label">壓縮檔名稱</string>
+    <string name="explorer_compress_dialog_format_label">格式</string>
+    <string name="explorer_compress_dialog_format_zip_hint">可在任何裝置上開啟，可設定密碼保護。</string>
+    <string name="explorer_compress_dialog_format_targz_hint">檔案較多時體積較小，不支援密碼保護。</string>
+    <string name="explorer_compress_dialog_create_action">建立</string>
+    <string name="explorer_compress_dialog_level_label">壓縮等級</string>
+    <string name="explorer_compress_dialog_level_fast">快速</string>
+    <string name="explorer_compress_dialog_level_normal">一般</string>
+    <string name="explorer_compress_dialog_level_best">最佳</string>
+    <string name="explorer_compress_dialog_password_label">密碼（選填）</string>
+    <string name="explorer_compress_dialog_password_confirm_label">確認密碼</string>
+    <string name="explorer_compress_dialog_password_mismatch">密碼不一致</string>
+    <string name="explorer_compress_dialog_password_weak">密碼強度不足</string>
+    <string name="explorer_compress_dialog_password_notice">檔案內容會加密，但檔案名稱不會。</string>
+    <string name="explorer_compress_dialog_password_show">顯示密碼</string>
+    <string name="explorer_compress_dialog_password_hide">隱藏密碼</string>
+    <string name="explorer_compress_dialog_overwrite_title">要取代壓縮檔嗎？</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" 已存在，將會被取代。</string>
+    <string name="explorer_compress_dialog_overwrite_action">取代</string>
+
+    <!-- 放置對話方塊（從其他窗格拖曳進來的項目） -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="other">要放置 %1$d 個項目嗎？</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="other">要將 %1$d 個項目複製或移動到 \"%2$s\" 嗎？</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="other">要將 %1$d 個項目複製到 \"%2$s\" 嗎？</item>
+    </plurals>
+
+    <!-- 回收桶放置對話方塊（拖曳到回收桶檢視的項目） -->
+    <string name="explorer_trash_drop_confirmation_title">要移至回收桶嗎？</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="other">要將 %1$d 個項目移至回收桶嗎？</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">移動操作</string>
+    <string name="explorer_operation_move_description_single">將 \"%1$s\" 從 \"%2$s\" 移動到 \"%3$s\"。</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="other">將 %1$d 個項目移動到 \"%2$s\"。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="other">已移動 %d 個檔案。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="other">已移動 %d 個資料夾。</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="other">已移動 %s。</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">建立資料夾</string>
+    <string name="explorer_operation_create_description_directory">在 \"%2$s\" 建立資料夾 \"%1$s\"</string>
+    <string name="explorer_operation_create_title_file">建立檔案</string>
+    <string name="explorer_operation_create_description_file">在 \"%2$s\" 建立檔案 \"%1$s\"</string>
+    <string name="explorer_operation_create_text_file_title">建立文字檔</string>
+    <string name="explorer_operation_create_text_file_description">從文字片段建立 \"%1$s\"</string>
+    <string name="explorer_operation_calculate_sizes_title">計算大小</string>
+    <string name="explorer_operation_calculate_sizes_description">計算 \"%1$s\" 中的資料夾大小。</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="other">已掃描 %1$d 個項目</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">已計算 %1$d 個資料夾的大小。</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="other">已計算 %1$d 個資料夾的大小，%2$d 個位置無法讀取。</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">\"%1$s\" 的資料夾大小已捨棄，因為在計算期間發生變更。</string>
+
+    <!-- 導覽錯誤訊息 -->
+    <string name="explorer_navigation_error_title">導覽失敗</string>
+    <string name="explorer_aborted_dialog_title">操作已中止</string>
+    <string name="explorer_aborted_dialog_message">在顯示任何內容之前，載入已被取消。</string>
+    <string name="explorer_archive_unbrowsable_title">無法在此瀏覽壓縮檔</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" 位於僅支援循序讀取的儲存空間，但瀏覽壓縮檔需要隨機存取。請在此解壓縮，或下載本機副本以進行瀏覽。</string>
+    <string name="explorer_archive_unbrowsable_extract_action">解壓縮</string>
+    <string name="explorer_archive_unbrowsable_download_action">下載本機副本</string>
+
+    <!-- SAF 位置自動標籤 -->
+    <string name="explorer_saf_location_android_data_label">Android/data（特殊存取權）</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb（特殊存取權）</string>
+
+    <!-- 權限請求卡片說明 -->
+    <string name="explorer_permission_saf_workaround_description">Android 限制了對此資料夾的存取權，請使用資料夾選擇工具來授予存取權。</string>
+    <string name="explorer_permission_multiple_options_description">您可以使用 Android 的資料夾選擇工具授予存取權，或設定 Root／Shizuku 以更快速存取所有受限資料夾。</string>
+    <string name="explorer_permission_setup_both_description">此資料夾需要更高的存取權限，請在設定精靈中安裝並設定 Root 或 Shizuku。</string>
+    <string name="explorer_permission_setup_shizuku_description">此資料夾需要透過 Shizuku 取得更高的存取權限，請安裝 Shizuku Manager 並在設定精靈中完成設定。</string>
+    <string name="explorer_permission_setup_root_description">此資料夾需要 Root 存取權限，如果您的裝置已取得 Root，請在設定精靈中設定 Root。</string>
+
+    <string name="explorer_permission_option_picker_title">儲存空間存取架構</string>
+    <string name="explorer_permission_option_picker_description">使用 Android 的資料夾選擇工具授予此資料夾的存取權。</string>
+    <string name="explorer_permission_option_picker_action">開啟 SAF 選擇工具</string>
+
+    <string name="explorer_permission_option_setup_title">完整存取權</string>
+    <string name="explorer_permission_option_setup_description">設定 Root 或 Shizuku 以更快速存取所有受限資料夾。</string>
+    <string name="explorer_permission_option_setup_action">設定</string>
+
+    <!-- 權限請求卡片－儲存空間存取選項 -->
+    <string name="explorer_permission_option_storage_title">儲存空間存取權</string>
+    <string name="explorer_permission_option_storage_description">授予 Butler 存取裝置儲存空間中檔案的權限。</string>
+    <string name="explorer_permission_option_storage_action">授予權限</string>
+
+    <!-- 在新分頁中開啟操作 -->
+    <string name="explorer_action_open_in_new_tabs">在新分頁中開啟</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- 我的最愛資料夾與檔案 -->
+    <string name="explorer_favorites_section_title">我的最愛</string>
+    <string name="explorer_action_add_to_favorites">加入我的最愛</string>
+    <string name="explorer_action_remove_from_favorites">從我的最愛移除</string>
+    <string name="explorer_favorites_select_action">選取</string>
+    <string name="explorer_favorites_unavailable_subtitle">無法存取</string>
+    <string name="explorer_favorites_unavailable_toast">此我的最愛項目無法存取</string>
+    <string name="explorer_favorites_added_message">已將 %1$s 加入我的最愛</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="other">已將 %1$d 個項目加入我的最愛</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">已將 %1$s 從我的最愛移除</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="other">已將 %1$d 個項目從我的最愛移除</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">重新命名我的最愛項目</string>
+    <string name="explorer_favorites_rename_hint">我的最愛名稱</string>
+    <string name="explorer_favorites_rename_description">僅重新命名我的最愛中的項目，資料夾本身的名稱不會變更。</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="other">此分頁在 %1$d 個資料夾中覆寫了排序方式</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="other">%1$d 個資料夾</item>
+    </plurals>
+</resources>

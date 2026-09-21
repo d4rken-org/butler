@@ -1,0 +1,299 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">檔案總管界的佼佼者</string>
+    <!-- Upgraded app title. %1$s is the app name, %2$s the tier qualifier ("Pro" or "FOSS", depending on the build). Reorder or repunctuate for your language; both placeholders must appear exactly once. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Butler 應用程式圖示</string>
+    <string name="butler_mascot_description">Butler 吉祥物</string>
+    <string name="butler_mascot_animation_random_description">Butler 吉祥物正在表演各種動作</string>
+    <string name="butler_mascot_animation_wink_description">Butler 吉祥物眨眼</string>
+    <string name="butler_mascot_animation_greeting_description">Butler 吉祥物揮手打招呼</string>
+    <string name="butler_mascot_animation_hatoff_description">Butler 吉祥物恭敬地脫帽致意</string>
+    <string name="butler_mascot_animation_drink_description">Butler 吉祥物正在喝飲料</string>
+    <string name="butler_mascot_animation_moustache_description">Butler 吉祥物撫摸鬍子</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Butler 吉祥物閉眼準備入睡</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Butler 吉祥物打呼</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Butler 吉祥物醒來</string>
+    <string name="butler_mascot_animation_cameo_description">SD Maid 吉祥物客串登場</string>
+
+    <string name="slogan_general_message_0">為您服務。</string>
+    <string name="slogan_general_message_1">萬物各有其位。</string>
+    <string name="slogan_general_message_2">井然有序，而非雜亂無章。</string>
+    <string name="slogan_general_message_3">正在為您取得檔案。</string>
+    <string name="slogan_general_message_4">所有檔案井井有條。</string>
+    <string name="slogan_general_message_5">始終井然有序。</string>
+    <string name="slogan_general_message_6">快速找到檔案！</string>
+    <string name="slogan_general_message_7">輕鬆取用。</string>
+    <string name="slogan_general_message_8">絕不遺失您的檔案。</string>
+    <string name="slogan_general_message_9">身兼多職。</string>
+    <string name="slogan_newyear_message_0">跟往年一樣的老規矩。</string>
+    <string name="slogan_xmas_message_0">仔細檢查檔案兩遍。</string>
+    <string name="slogan_xmas_message_1">名列乖寶寶名單。</string>
+    <string name="slogan_halloween_message_0">萬聖節管家，為您服務。</string>
+    <string name="slogan_halloween_message_1">不搗蛋，只找檔案。</string>
+    <string name="slogan_stpatricks_message_0">感覺幸運嗎？</string>
+    <string name="slogan_stpatricks_message_1">為您尋找那罐金幣。</string>
+    <string name="slogan_aprilfools_message_0">不開玩笑。</string>
+    <string name="slogan_aprilfools_message_1">認真整理，一絲不苟。</string>
+    <string name="slogan_oktoberfest_message_0">為您的檔案乾杯！</string>
+    <string name="slogan_oktoberfest_message_1">檔案，隨時取用。</string>
+
+    <string name="general_share_action">分享</string>
+    <string name="general_share_single_title">分享 %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="other">分享 %d 個檔案</item>
+    </plurals>
+    <string name="general_done_action">完成</string>
+    <string name="general_copy_action">複製</string>
+    <string name="general_cut_action">剪下</string>
+    <string name="general_move_action">移動</string>
+    <string name="general_paste_action">貼上</string>
+    <string name="general_apply_action">套用</string>
+    <string name="general_open_action">開啟</string>
+    <string name="general_cancel_action">取消</string>
+    <string name="general_close_action">關閉</string>
+    <string name="general_confirm_action">確認</string>
+    <string name="general_reset_action">重設</string>
+    <string name="general_save_action">儲存</string>
+    <string name="general_edit_action">編輯</string>
+    <string name="general_na_label">N/A</string>
+    <!-- Announced by screen readers when a dialog opens -->
+    <string name="general_dialog_a11y_label">對話方塊</string>
+    <string name="general_dismiss_action">忽略</string>
+    <string name="general_read_more_action">閱讀更多</string>
+    <string name="general_mark_as_read_action">標示為已讀</string>
+    <string name="general_back_action">返回</string>
+    <string name="general_navigate_up_action">返回上一層</string>
+    <string name="general_error_label">錯誤</string>
+    <string name="general_error_unknown_label">未知錯誤</string>
+    <string name="general_error_invalid_input_label">輸入無效</string>
+    <string name="general_share_error_action">分享錯誤</string>
+    <string name="general_error_report_subject">%1$s 錯誤報告（%2$s）</string>
+    <string name="general_error_report_consent_title">要分享錯誤報告嗎？</string>
+    <string name="general_error_report_consent_message">此報告包含錯誤內容與其產生的堆疊追蹤記錄、應用程式最近的記錄軌跡，以及當時所處狀態的詳細資訊：檔案名稱與路徑、搜尋查詢、套件名稱、URI、網路與 SMB 主機名稱、您的裝置與 Build 資訊，以及匿名安裝 ID。請只與您信任的人分享。</string>
+    <string name="general_error_report_consent_confirm">分享報告</string>
+    <string name="general_privacy_policy_action">隱私權政策</string>
+    <string name="general_bug_report_subject">%1$s 錯誤回報（%2$s）</string>
+    <string name="general_bug_report_subject_labeled">%1$s 錯誤回報：%2$s（%3$s）</string>
+    <string name="general_bug_report_body_what_happened_prompt">（請在此描述發生的狀況。）</string>
+    <string name="general_bug_report_body_expected_prompt">（請描述您原本預期的結果。）</string>
+    <string name="general_duration_input_label">持續時間</string>
+    <string name="general_size_input_label">大小</string>
+    <string name="general_upgrade_action">升級</string>
+    <string name="general_refresh_action">重新整理</string>
+    <string name="general_clear_action">清除</string>
+    <string name="general_expand_action">展開</string>
+    <string name="general_collapse_action">收合</string>
+    <string name="general_completed_label">已完成</string>
+    <string name="general_cancelled_label">已取消</string>
+    <string name="general_searching_label">搜尋中</string>
+    <string name="general_searching_ellipsis">搜尋中…</string>
+    <string name="general_progress_loading">載入中</string>
+    <string name="general_progress_loading_egg_0">依然比 iPhone 快</string>
+    <string name="general_progress_loading_egg_1">正在下載更多 RAM</string>
+    <string name="general_progress_loading_egg_2">預計完成時間：快了™</string>
+    <string name="general_progress_loading_egg_3">CPU 正在喝咖啡小憩</string>
+    <string name="general_progress_loading_egg_4">正在等待 Pepe Silvia 的資料</string>
+    <string name="general_progress_loading_egg_5">Turbo Encabulator 正在啟動中</string>
+    <string name="general_progress_loading_egg_6">正在遞奶油</string>
+    <string name="general_progress_loading_egg_7">那麼，你還撐得住嗎？</string>
+    <string name="general_progress_loading_egg_8">嗶嗶波波</string>
+    <string name="general_progress_loading_egg_9">正在緩衝人生抉擇</string>
+    <string name="general_progress_loading_egg_10">正在召喚克蘇魯</string>
+    <string name="general_progress_loading_egg_11">一切都好</string>
+    <string name="general_progress_loading_egg_12">請稍候</string>
+    <string name="general_progress_loading_egg_13">至少你不用在電話上等待</string>
+    <string name="general_progress_loading_egg_14">直接塗抹在額頭上</string>
+
+    <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="other">%dm</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="other">%d 秒</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="other">%d 分鐘</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="other">%d 小時</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="other">%d 天</item>
+    </plurals>
+
+    <string name="general_view_action">檢視</string>
+    <string name="general_delete_action">刪除</string>
+    <string name="general_show_details_action">顯示詳細資訊</string>
+    <string name="general_hide_details_action">隱藏詳細資訊</string>
+
+    <string name="general_delete_confirmation_title">確認刪除</string>
+    <string name="general_delete_confirmation_message_x">要刪除「%s」嗎？</string>
+    <string name="general_delete_confirmation_message_selected_x_items">要刪除已選取的 %d 個項目嗎？</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="other">已刪除 %d 個項目。</item>
+    </plurals>
+
+    <string name="general_create_action">建立</string>
+    <string name="general_rename_action">重新命名</string>
+    <string name="general_retry_action">重試</string>
+    <string name="general_open_setup_action">開啟設定精靈</string>
+    <string name="general_grant_usage_stats_action">授予使用狀況存取權</string>
+    <string name="general_grant_storage_permission_action">授予儲存空間權限</string>
+    <string name="general_grant_all_files_access_action">允許存取所有檔案</string>
+
+    <string name="general_result_user_cancel_msg">使用者已取消操作。</string>
+
+    <string name="general_path_label">路徑</string>
+    <string name="general_filename_validation_error">名稱包含無效字元：%1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d / %2$d：%3$s</string>
+    <string name="common_x_of_y_label">%1$d / %2$d</string>
+
+    <string name="file_type_symbolic_link">連結</string>
+    <string name="file_type_directory">資料夾</string>
+    <string name="file_type_file">檔案</string>
+    <string name="file_type_unknown">未知</string>
+
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">圖片</string>
+    <string name="common_mimetype_video">影片</string>
+    <string name="common_mimetype_audio">音訊</string>
+    <string name="common_mimetype_text_plain">純文字</string>
+    <string name="common_mimetype_text">文字文件</string>
+    <string name="common_mimetype_pdf">PDF 文件</string>
+    <string name="common_mimetype_document">文件</string>
+    <string name="common_mimetype_archive">封存檔</string>
+    <string name="common_mimetype_apk">Android 應用程式安裝檔</string>
+    <string name="common_mimetype_json">JSON 檔案</string>
+    <string name="common_mimetype_xml">XML 檔案</string>
+    <string name="common_mimetype_unknown">未知類型</string>
+
+    <string name="general_rom_type_auto_label">自動（預設）</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="other">%s 個項目/秒</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="other">%s/秒</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">類型不符：預期為 %1$s，但實際為 %2$s。</string>
+    <string name="general_error_cant_access_msg">無法存取 %s。</string>
+    <string name="general_error_archive_not_seekable_msg">無法直接瀏覽 %s：其所在的儲存空間僅支援循序讀取，但此封存格式需要隨機存取。</string>
+    <string name="general_error_root_unavailable">無法使用 Root 存取權。</string>
+    <string name="general_error_elevated_access_required">此操作需要提升的存取權限，請在設定精靈中設定 Root 或 Shizuku。</string>
+    <string name="general_error_no_compatible_app_found_msg">找不到相容的應用程式可處理此要求。</string>
+    <string name="general_error_ipc_deadobject_title">服務連線中斷</string>
+    <string name="general_error_ipc_deadobject_description">與重要服務（例如 Magisk、Shizuku 或其他系統層級服務）的連線意外中斷。請重新啟動裝置。如果問題持續發生，請檢查是否有更新，或回報此問題。</string>
+
+    <string name="ui_theme_mode_dark_label">深色</string>
+    <string name="ui_theme_mode_light_label">淺色</string>
+    <string name="ui_theme_mode_system_label">系統</string>
+    <string name="ui_theme_style_default_label">預設</string>
+    <string name="ui_theme_style_medium_contrast_label">中對比度</string>
+    <string name="ui_theme_style_high_contrast_label">高對比度</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">綠色</string>
+    <string name="ui_theme_color_blue_label">藍色</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">自訂</string>
+
+    <string name="ui_theme_palette_tonalspot_label">色調重點</string>
+    <string name="ui_theme_palette_neutral_label">中性</string>
+    <string name="ui_theme_palette_vibrant_label">鮮豔</string>
+    <string name="ui_theme_palette_expressive_label">豐富多變</string>
+    <string name="ui_theme_palette_rainbow_label">彩虹</string>
+    <string name="ui_theme_palette_fruitsalad_label">繽紛色彩</string>
+    <string name="ui_theme_palette_monochrome_label">單色</string>
+    <string name="ui_theme_palette_fidelity_label">忠實原色</string>
+    <string name="ui_theme_palette_content_label">內容色彩</string>
+
+    <string name="ui_theme_custom_dialog_title">自訂主題</string>
+    <string name="ui_theme_custom_seed_label">基礎色彩</string>
+    <string name="ui_theme_custom_palette_label">調色盤樣式</string>
+    <string name="ui_theme_custom_default_action">預設</string>
+
+    <string name="ui_mascot_suit_dialog_title">Butler 的西裝</string>
+    <string name="ui_mascot_suit_default_action">預設</string>
+    <string name="ui_mascot_suit_hue_label">色相</string>
+    <string name="ui_mascot_suit_saturation_label">飽和度</string>
+    <string name="ui_mascot_suit_brightness_label">亮度</string>
+    <string name="ui_mascot_suit_value_description">西裝顏色 %s</string>
+
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">使用狀況統計</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">通知存取權</string>
+    <string name="setup_manage_storage_card_title">管理外部儲存空間</string>
+    <string name="setup_inventory_card_title">應用程式清單</string>
+
+    <!-- Common permission strings -->
+    <string name="setup_required_card_title">需要完成設定精靈</string>
+    <string name="setup_required_card_body">執行此操作前，需要先完成額外的設定精靈步驟。</string>
+    <string name="setup_required_card_setup_action">開啟設定精靈</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">要開啟多個分頁嗎？</string>
+    <string name="common_open_tabs_confirmation_message">這將會開啟 %1$d 個分頁。</string>
+    <string name="common_open_tabs_success">已開啟 %1$d 個分頁</string>
+    <string name="common_open_tabs_success_with_skipped">已開啟 %1$d 個分頁（略過 %2$d 個項目）</string>
+
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">要關閉分頁嗎？</string>
+    <string name="general_tab_close_confirmation_message">確定要關閉「%1$s」嗎？</string>
+    <string name="general_tab_close_unsaved_title">尚未儲存的變更</string>
+    <string name="general_tab_close_unsaved_message">「%1$s」有尚未儲存的變更，要關閉並捨棄這些變更嗎？</string>
+    <string name="general_tab_close_unsaved_message_multiple">「%1$s」及另外 %2$d 個項目有尚未儲存的變更，要關閉並捨棄這些變更嗎？</string>
+    <string name="general_discard_action">捨棄</string>
+    <string name="general_tab_close_goto_action">前往該分頁</string>
+
+    <!-- Exit app -->
+    <string name="general_press_back_again_to_exit">再按一次返回鍵以離開</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="other">已選取 %d 項</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="other">%1$d 個資料夾</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="other">%1$d 個檔案</item>
+    </plurals>
+    <string name="common_select_all_folders_action">全選資料夾</string>
+    <string name="common_select_all_files_action">全選檔案</string>
+    <string name="general_undo_action">復原</string>
+
+    <!-- Guided tours -->
+    <string name="tour_action_next">下一步</string>
+    <string name="tour_action_previous">上一步</string>
+    <string name="tour_action_cancel">略過</string>
+    <string name="tour_confirm_title">要略過導覽嗎？</string>
+    <string name="tour_confirm_message">您可以隨時在設定中重新啟用導覽。</string>
+    <string name="tour_confirm_continue">繼續導覽</string>
+    <string name="tour_confirm_dont_show_this_tour">不再顯示此導覽</string>
+    <string name="tour_confirm_disable_all">停用所有導覽</string>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">使用多個窗格，並排比較檔案。</string>
+    <string name="common_tip_different_folders">在每個窗格開啟不同的資料夾，輕鬆管理檔案。</string>
+    <string name="common_tip_switch_layouts">在分頁設定管理員中切換窗格版面配置。</string>
+    <string name="common_tip_elevated_access">在設定精靈中啟用 Root 或 Shizuku，以使用進階檔案操作功能。</string>
+    <string name="common_tip_breadcrumb_home">長按檔案總管中的路徑列項目，將其設為首頁資料夾。</string>
+</resources>
