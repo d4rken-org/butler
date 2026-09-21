@@ -23,13 +23,13 @@ platform :android do
   # Play's API track names do not line up with the Console labels:
   # internal = Internal testing, alpha = Closed testing, beta = Open testing, production = Production.
   #
-  # Butler is in closed testing, so BOTH lanes upload to 'alpha' and neither touches the production
+  # Butler is in open testing, so BOTH lanes upload to 'beta' and neither touches the production
   # track. A -beta tag comes through :beta and a -rc tag through :production, but while we are in
-  # closed testing they are the same destination and only the build type differs. Promotion out of
-  # closed testing happens in the Console. When Butler leaves closed testing, move both lanes up
-  # together ('beta' for open testing, later 'production') instead of letting them drift apart.
+  # open testing they are the same destination and only the build type differs. Promotion out of
+  # open testing happens in the Console. When Butler leaves open testing, move both lanes up
+  # together ('production') instead of letting them drift apart.
   #
-  # No rollout percentage on either lane: a staged rollout on a closed track would leave most
+  # No rollout percentage on either lane: a staged rollout on a test track would leave most
   # testers on the previous build, which is the opposite of what a test track is for.
   #
   # The first-upload draft dance is done. eu.darken.butler has a published release, so supply's
@@ -38,7 +38,7 @@ platform :android do
     gradle(task: 'clean bundleGplayBeta')
     sh "bash ./remove_unsupported_languages.sh"
     supply(
-        track: 'alpha',
+        track: 'beta',
         package_name: 'eu.darken.butler',
         skip_upload_changelogs: 'false',
         skip_upload_apk: 'true',
@@ -52,7 +52,7 @@ platform :android do
     gradle(task: 'clean bundleGplayRelease')
     sh "bash ./remove_unsupported_languages.sh"
     supply(
-        track: 'alpha',
+        track: 'beta',
         package_name: 'eu.darken.butler',
         skip_upload_changelogs: 'false',
         skip_upload_apk: 'true',

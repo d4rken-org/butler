@@ -31,10 +31,10 @@ Files updated by every release:
 
 | Tag suffix | FOSS build | GitHub release | Gplay lane | Play track | Rollout |
 |---|---|---|---|---|---|
-| `-beta<n>` | `assembleFossBeta` | pre-release | `lane :beta` | `alpha` | full |
-| `-rc<n>` | `assembleFossRelease` | release | `lane :production` | `alpha` | full |
+| `-beta<n>` | `assembleFossBeta` | pre-release | `lane :beta` | `beta` | full |
+| `-rc<n>` | `assembleFossRelease` | release | `lane :production` | `beta` | full |
 
-Butler is in closed testing, so `lane :production` uploads to the **`alpha`** track, not to production. Play's API track names do not match the Console labels: `alpha` is Closed testing, `beta` is Open testing. Promotion out of closed testing happens in the Console. When Butler leaves closed testing, move both lanes up together in `fastlane/Fastfile` rather than letting them drift onto different tracks.
+Butler is in open testing, so `lane :production` uploads to the **`beta`** track, not to production. Play's API track names do not match the Console labels: `alpha` is Closed testing, `beta` is Open testing. Promotion out of open testing happens in the Console. When Butler leaves open testing, move both lanes up together in `fastlane/Fastfile` rather than letting them drift onto different tracks.
 
 `lane :listing_only` and `lane :screenshots_only` name the `production` track but upload no binaries; they only refresh store listing metadata and screenshots.
 
