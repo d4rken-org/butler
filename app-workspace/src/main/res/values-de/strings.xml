@@ -108,21 +108,24 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_close_all_title">Alle Tabs schließen?</string>
-    <string name="workspace_manager_close_all_message">Dadurch werden alle offenen Tabs geschlossen (%1$d %2$s). Diese Aktion kann nicht rückgängig gemacht werden.</string>
-    <string name="workspace_manager_close_all_message_singular">Tab</string>
-    <string name="workspace_manager_close_all_message_plural">Tabs</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Dadurch wird %1$d offener Tab geschlossen. Diese Aktion kann nicht rückgängig gemacht werden.</item>
+        <item quantity="other">Dadurch werden alle %1$d offenen Tabs geschlossen. Diese Aktion kann nicht rückgängig gemacht werden.</item>
+    </plurals>
     <string name="workspace_manager_close_all_action">Alle schließen</string>
     <string name="workspace_manager_close_all_unsaved_warning">Einige Tabs enthalten ungespeicherte Änderungen, die dabei verloren gehen.</string>
     <string name="workspace_manager_close_all_unsaved_action">Alle verwerfen</string>
     <string name="workspace_manager_close_selected_title">Ausgewählte Tabs schließen?</string>
-    <string name="workspace_manager_close_selected_message">Dadurch werden die ausgewählten Tabs geschlossen (%1$d %2$s). Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Dadurch wird %1$d ausgewählter Tab geschlossen. Diese Aktion kann nicht rückgängig gemacht werden.</item>
+        <item quantity="other">Dadurch werden %1$d ausgewählte Tabs geschlossen. Diese Aktion kann nicht rückgängig gemacht werden.</item>
+    </plurals>
     <string name="workspace_manager_close_selected_action">Ausgewählte schließen</string>
     <string name="workspace_manager_close_selected_unsaved_warning">Einige ausgewählte Tabs enthalten ungespeicherte Änderungen, die dabei verloren gehen.</string>
     <string name="workspace_manager_close_selected_unsaved_action">Ausgewählte verwerfen</string>
     <string name="workspace_manager_pause_partial_title">Tabs pausieren?</string>
     <string name="workspace_manager_pause_partial_message">%1$d von %2$d ausgewählten Tabs können pausiert werden. Die übrigen werden verwendet, enthalten ungespeicherte Änderungen oder sind gerade geöffnet.</string>
     <string name="workspace_manager_pause_partial_action">%1$d pausieren</string>
-    <string name="workspace_fab_close_all">Alle Tabs schließen</string>
     <string name="general_cancel_action">Abbrechen</string>
 
     <!-- Operations -->

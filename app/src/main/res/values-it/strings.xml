@@ -240,12 +240,26 @@
     <string name="settings_licenses_label">Licenze</string>
 
     <!-- Workspace Status Card -->
-    <string name="workspace_status_tab_singular">Scheda</string>
-    <string name="workspace_status_tab_plural">Schede</string>
-    <string name="workspace_status_operation_singular">Operazione</string>
-    <string name="workspace_status_operation_plural">Operazioni</string>
-    <string name="workspace_status_attention_label">Attenzione</string>
-    <string name="workspace_status_unsaved_label">Non salvato</string>
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d Scheda</item>
+        <item quantity="other">%1$d Schede</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d Operazione</item>
+        <item quantity="other">%1$d Operazioni</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Attenzione</item>
+        <item quantity="other">%1$d Attenzione</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Non salvata</item>
+        <item quantity="other">%1$d Non salvate</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d In pausa</item>
+        <item quantity="other">%1$d In pausa</item>
+    </plurals>
     <string name="workspace_status_filter_tabs_desc">Mostra tutte le schede</string>
     <string name="workspace_status_filter_operations_desc">Filtra per schede con operazioni</string>
     <string name="workspace_status_filter_attention_desc">Filtra per schede che richiedono attenzione</string>
@@ -360,11 +374,6 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">Ignora</string>
-    <string name="workspace_manager_close_all_title">Chiudere tutte le schede?</string>
-    <string name="workspace_manager_close_all_message">Questa azione chiuderà tutte le %1$d %2$s aperte. Non può essere annullata.</string>
-    <string name="workspace_manager_close_all_message_singular">scheda</string>
-    <string name="workspace_manager_close_all_message_plural">schede</string>
-    <string name="workspace_manager_close_all_action">Chiudi tutte</string>
     <string name="workspace_manager_selection_count">%1$d selezionate</string>
     <string name="workspace_manager_selection_select_all">Seleziona tutte</string>
     <string name="workspace_manager_selection_pause_action">Metti in pausa selezionate</string>

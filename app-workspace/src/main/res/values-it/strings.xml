@@ -108,21 +108,24 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_close_all_title">Chiudere tutte le schede?</string>
-    <string name="workspace_manager_close_all_message">Questa azione chiuderà tutte le %1$d %2$s aperte. Non può essere annullata.</string>
-    <string name="workspace_manager_close_all_message_singular">scheda</string>
-    <string name="workspace_manager_close_all_message_plural">schede</string>
-    <string name="workspace_manager_close_all_action">Chiudi tutto</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Questa azione chiuderà %1$d scheda aperta. Non può essere annullata.</item>
+        <item quantity="other">Questa azione chiuderà tutte le %1$d schede aperte. Non può essere annullata.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Chiudi tutte</string>
     <string name="workspace_manager_close_all_unsaved_warning">Alcune schede hanno modifiche non salvate che andranno perse.</string>
     <string name="workspace_manager_close_all_unsaved_action">Scarta tutto</string>
     <string name="workspace_manager_close_selected_title">Chiudere le schede selezionate?</string>
-    <string name="workspace_manager_close_selected_message">Questa azione chiuderà %1$d %2$s selezionate. Non può essere annullata.</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Questa azione chiuderà %1$d scheda selezionata. Non può essere annullata.</item>
+        <item quantity="other">Questa azione chiuderà %1$d schede selezionate. Non può essere annullata.</item>
+    </plurals>
     <string name="workspace_manager_close_selected_action">Chiudi selezionate</string>
     <string name="workspace_manager_close_selected_unsaved_warning">Alcune schede selezionate hanno modifiche non salvate che andranno perse.</string>
     <string name="workspace_manager_close_selected_unsaved_action">Scarta selezionate</string>
     <string name="workspace_manager_pause_partial_title">Mettere in pausa le schede?</string>
     <string name="workspace_manager_pause_partial_message">%1$d delle %2$d schede selezionate possono essere messe in pausa. Le altre sono in uso, contengono modifiche non salvate o sono attualmente aperte.</string>
     <string name="workspace_manager_pause_partial_action">Metti in pausa %1$d</string>
-    <string name="workspace_fab_close_all">Chiudi tutte le schede</string>
     <string name="general_cancel_action">Annulla</string>
 
     <!-- Operations -->

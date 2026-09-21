@@ -239,12 +239,26 @@
     <string name="settings_licenses_label">Lizenzen</string>
 
     <!-- Workspace Status Card -->
-    <string name="workspace_status_tab_singular">Tab</string>
-    <string name="workspace_status_tab_plural">Tabs</string>
-    <string name="workspace_status_operation_singular">Vorgang</string>
-    <string name="workspace_status_operation_plural">Vorgänge</string>
-    <string name="workspace_status_attention_label">Achtung</string>
-    <string name="workspace_status_unsaved_label">Ungespeichert</string>
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d Tab</item>
+        <item quantity="other">%1$d Tabs</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d Vorgang</item>
+        <item quantity="other">%1$d Vorgänge</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Achtung</item>
+        <item quantity="other">%1$d Achtung</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Ungespeichert</item>
+        <item quantity="other">%1$d Ungespeichert</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d Pausiert</item>
+        <item quantity="other">%1$d Pausiert</item>
+    </plurals>
     <string name="workspace_status_filter_tabs_desc">Alle Tabs anzeigen</string>
     <string name="workspace_status_filter_operations_desc">Nach Tabs mit Vorgängen filtern</string>
     <string name="workspace_status_filter_attention_desc">Nach Tabs filtern, die Aufmerksamkeit erfordern</string>
@@ -359,11 +373,6 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">Schließen</string>
-    <string name="workspace_manager_close_all_title">Alle Tabs schließen?</string>
-    <string name="workspace_manager_close_all_message">Dadurch werden alle offenen Tabs geschlossen (%1$d %2$s). Diese Aktion kann nicht rückgängig gemacht werden.</string>
-    <string name="workspace_manager_close_all_message_singular">Tab</string>
-    <string name="workspace_manager_close_all_message_plural">Tabs</string>
-    <string name="workspace_manager_close_all_action">Alle schließen</string>
     <string name="workspace_manager_selection_count">%1$d ausgewählt</string>
     <string name="workspace_manager_selection_select_all">Alle auswählen</string>
     <string name="workspace_manager_selection_pause_action">Ausgewählte pausieren</string>

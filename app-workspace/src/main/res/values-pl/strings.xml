@@ -126,21 +126,28 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_close_all_title">Zamknąć wszystkie karty?</string>
-    <string name="workspace_manager_close_all_message">Spowoduje to zamknięcie wszystkich %1$d otwartych %2$s. Tej czynności nie można cofnąć.</string>
-    <string name="workspace_manager_close_all_message_singular">karta</string>
-    <string name="workspace_manager_close_all_message_plural">kart</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Spowoduje to zamknięcie %1$d otwartej karty. Tej czynności nie można cofnąć.</item>
+        <item quantity="few">Spowoduje to zamknięcie wszystkich %1$d otwartych kart. Tej czynności nie można cofnąć.</item>
+        <item quantity="many">Spowoduje to zamknięcie wszystkich %1$d otwartych kart. Tej czynności nie można cofnąć.</item>
+        <item quantity="other">Spowoduje to zamknięcie wszystkich %1$d otwartych kart. Tej czynności nie można cofnąć.</item>
+    </plurals>
     <string name="workspace_manager_close_all_action">Zamknij wszystkie</string>
     <string name="workspace_manager_close_all_unsaved_warning">Niektóre karty mają niezapisane zmiany, które zostaną utracone.</string>
     <string name="workspace_manager_close_all_unsaved_action">Odrzuć wszystkie</string>
     <string name="workspace_manager_close_selected_title">Zamknąć wybrane karty?</string>
-    <string name="workspace_manager_close_selected_message">Spowoduje to zamknięcie %1$d wybranych %2$s. Tej czynności nie można cofnąć.</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Spowoduje to zamknięcie %1$d wybranej karty. Tej czynności nie można cofnąć.</item>
+        <item quantity="few">Spowoduje to zamknięcie %1$d wybranych kart. Tej czynności nie można cofnąć.</item>
+        <item quantity="many">Spowoduje to zamknięcie %1$d wybranych kart. Tej czynności nie można cofnąć.</item>
+        <item quantity="other">Spowoduje to zamknięcie %1$d wybranych kart. Tej czynności nie można cofnąć.</item>
+    </plurals>
     <string name="workspace_manager_close_selected_action">Zamknij wybrane</string>
     <string name="workspace_manager_close_selected_unsaved_warning">Niektóre wybrane karty mają niezapisane zmiany, które zostaną utracone.</string>
     <string name="workspace_manager_close_selected_unsaved_action">Odrzuć wybrane</string>
     <string name="workspace_manager_pause_partial_title">Wstrzymać karty?</string>
     <string name="workspace_manager_pause_partial_message">%1$d z %2$d wybranych kart można wstrzymać. Pozostałe są używane, zawierają niezapisane zmiany lub są obecnie otwarte.</string>
     <string name="workspace_manager_pause_partial_action">Wstrzymaj %1$d</string>
-    <string name="workspace_fab_close_all">Zamknij wszystkie karty</string>
     <string name="general_cancel_action">Anuluj</string>
 
     <!-- Operations -->

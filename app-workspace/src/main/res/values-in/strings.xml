@@ -99,21 +99,22 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_close_all_title">Tutup semua tab?</string>
-    <string name="workspace_manager_close_all_message">Ini akan menutup semua %1$d %2$s yang terbuka. Tindakan ini tidak dapat dibatalkan.</string>
-    <string name="workspace_manager_close_all_message_singular">tab</string>
-    <string name="workspace_manager_close_all_message_plural">tab</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="other">Ini akan menutup semua %1$d tab yang terbuka. Tindakan ini tidak dapat dibatalkan.</item>
+    </plurals>
     <string name="workspace_manager_close_all_action">Tutup semua</string>
     <string name="workspace_manager_close_all_unsaved_warning">Beberapa tab memiliki perubahan yang belum disimpan dan akan hilang.</string>
     <string name="workspace_manager_close_all_unsaved_action">Buang semua</string>
     <string name="workspace_manager_close_selected_title">Tutup tab yang dipilih?</string>
-    <string name="workspace_manager_close_selected_message">Ini akan menutup %1$d %2$s yang dipilih. Tindakan ini tidak dapat dibatalkan.</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="other">Ini akan menutup %1$d tab yang dipilih. Tindakan ini tidak dapat dibatalkan.</item>
+    </plurals>
     <string name="workspace_manager_close_selected_action">Tutup yang dipilih</string>
     <string name="workspace_manager_close_selected_unsaved_warning">Beberapa tab yang dipilih memiliki perubahan yang belum disimpan dan akan hilang.</string>
     <string name="workspace_manager_close_selected_unsaved_action">Buang yang dipilih</string>
     <string name="workspace_manager_pause_partial_title">Jeda tab?</string>
     <string name="workspace_manager_pause_partial_message">%1$d dari %2$d tab yang dipilih dapat dijeda. Sisanya sedang digunakan, memiliki perubahan yang belum disimpan, atau sedang terbuka.</string>
     <string name="workspace_manager_pause_partial_action">Jeda %1$d</string>
-    <string name="workspace_fab_close_all">Tutup semua tab</string>
     <string name="general_cancel_action">Batal</string>
 
     <!-- Operations -->

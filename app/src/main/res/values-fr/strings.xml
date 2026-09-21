@@ -240,12 +240,26 @@
     <string name="settings_licenses_label">Licences</string>
 
     <!-- Workspace Status Card -->
-    <string name="workspace_status_tab_singular">Onglet</string>
-    <string name="workspace_status_tab_plural">Onglets</string>
-    <string name="workspace_status_operation_singular">Opération</string>
-    <string name="workspace_status_operation_plural">Opérations</string>
-    <string name="workspace_status_attention_label">Attention</string>
-    <string name="workspace_status_unsaved_label">Non enregistré</string>
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d Onglet</item>
+        <item quantity="other">%1$d Onglets</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d Opération</item>
+        <item quantity="other">%1$d Opérations</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Attention</item>
+        <item quantity="other">%1$d Attention</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Non enregistré</item>
+        <item quantity="other">%1$d Non enregistrés</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d En pause</item>
+        <item quantity="other">%1$d En pause</item>
+    </plurals>
     <string name="workspace_status_filter_tabs_desc">Afficher tous les onglets</string>
     <string name="workspace_status_filter_operations_desc">Filtrer les onglets avec des opérations</string>
     <string name="workspace_status_filter_attention_desc">Filtrer les onglets nécessitant une attention</string>
@@ -360,11 +374,6 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">Fermer</string>
-    <string name="workspace_manager_close_all_title">Fermer tous les onglets ?</string>
-    <string name="workspace_manager_close_all_message">Cela fermera les %1$d %2$s ouverts. Cette action est irréversible.</string>
-    <string name="workspace_manager_close_all_message_singular">onglet</string>
-    <string name="workspace_manager_close_all_message_plural">onglets</string>
-    <string name="workspace_manager_close_all_action">Tout fermer</string>
     <string name="workspace_manager_selection_count">%1$d sélectionné(s)</string>
     <string name="workspace_manager_selection_select_all">Tout sélectionner</string>
     <string name="workspace_manager_selection_pause_action">Mettre la sélection en pause</string>
