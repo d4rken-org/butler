@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Trình soạn thảo</string>
+    <string name="editor_subtitle">Chỉnh sửa các tệp văn bản</string>
+    <string name="editor_settings_title">Cài đặt trình soạn thảo</string>
+    <string name="editor_settings_show_line_numbers_title">Hiển thị số dòng</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Hiển thị số dòng trong trình soạn thảo.</string>
+    <string name="editor_settings_word_wrap_title">Xuống dòng tự động</string>
+    <string name="editor_settings_word_wrap_subtitle">Bao các dòng dài để vừa với chiều rộng màn hình.</string>
+    <string name="editor_settings_syntax_highlighting_title">Tô sáng cú pháp</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Tô màu mã trong các tệp được hỗ trợ (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Kích thước phông chữ</string>
+    <string name="editor_settings_font_size_subtitle">Kích thước văn bản trong trình soạn thảo</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Chiều rộng tab</string>
+    <string name="editor_settings_tab_size_subtitle">Số ký tự khoảng cách mà một tab chiếm</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Mở</string>
+    <string name="editor_action_save">Lưu</string>
+    <string name="editor_action_save_as">Lưu dưới dạng…</string>
+    <string name="editor_action_close">Đóng</string>
+    <string name="editor_action_undo">Hoàn tác</string>
+    <string name="editor_action_redo">Làm lại</string>
+    <string name="editor_action_search">Tìm kiếm</string>
+    <string name="editor_action_go_to_line">Đi tới dòng</string>
+    <string name="editor_action_dismiss">Đóng</string>
+    <string name="editor_action_previous">Trước đó</string>
+    <string name="editor_action_next">Tiếp theo</string>
+    <string name="editor_action_copy">Sao chép</string>
+    <string name="editor_action_cut">Cắt</string>
+    <string name="editor_action_copy_to_butler_clipboard">Sao chép vào bộ nhớ tạm Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">Cắt vào bộ nhớ tạm Butler</string>
+    <string name="editor_action_paste">Dán</string>
+    <string name="editor_action_select_all">Chọn tất cả</string>
+    <string name="editor_action_delete">Xóa</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Ghi đè tệp?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s đã tồn tại. Nội dung hiện tại sẽ được thay thế.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Ghi đè</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Tìm thấy bản sao lưu từ một lần lưu bị gián đoạn:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Chỉnh sửa dưới dạng văn bản không được hỗ trợ</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Dòng rất dài</string>
+    <string name="editor_long_lines_banner_message">Các dòng rất dài được rút gọn để hiển thị; nội dung đầy đủ được giữ nguyên và lưu.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Hiển thị phần tiếp theo của dòng</string>
+    <string name="editor_line_truncated_marker_previous_action">Hiển thị phần trước đó của dòng</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Tệp không còn khả dụng</string>
+    <string name="editor_backing_lost_banner_message">Tệp có thể đã bị di chuyển hoặc xóa. Chế độ xem này chỉ đọc — mở lại hoặc đóng nó.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Tệp đã mất, nhưng bản sao lưu vẫn còn</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" bị thiếu, nhưng một lần lưu bị gián đoạn để lại điều này: %2$s. Nội dung của bạn rất có thể vẫn còn trong đó.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Tệp đã thay đổi trên đĩa</string>
+    <string name="editor_external_change_banner_message">Một ứng dụng khác đã sửa đổi tệp này.</string>
+    <string name="editor_external_change_reload_action">Tải lại</string>
+    <string name="editor_external_change_keep_action">Tiếp tục chỉnh sửa</string>
+    <string name="editor_error_external_change">Tệp này đã bị một ứng dụng khác thay đổi. Tải lại tệp để tiếp tục.</string>
+    <string name="editor_dialog_reload_confirm_title">Tải lại tệp?</string>
+    <string name="editor_dialog_reload_confirm_message">Tải lại sẽ loại bỏ các thay đổi chưa lưu của bạn và hiển thị nội dung hiện tại của tệp trên đĩa.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="other">%1$d dòng</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="other">%1$d ký tự</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Đã chọn %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dD · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Đang tải tệp…</string>
+    <string name="editor_saving">Đang lưu…</string>
+    <string name="editor_action_cancel_loading">Hủy</string>
+    <string name="editor_progress_opening">Đang mở tệp…</string>
+    <string name="editor_progress_saving">Đang lưu tệp…</string>
+    <string name="editor_progress_building_index">Đang xây dựng chỉ mục tệp…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Lỗi không xác định</string>
+    <string name="editor_error_read_only">Tệp này chỉ đọc và không thể thay đổi được.</string>
+    <string name="editor_error_save_integrity_label">Lưu bị gián đoạn</string>
+    <string name="editor_error_save_integrity">Lưu bị gián đoạn và tệp trên đĩa có thể không hoàn chỉnh. Tải lại tệp trước khi tiếp tục chỉnh sửa.</string>
+    <string name="editor_error_clipboard_too_large_label">Lựa chọn quá lớn</string>
+    <string name="editor_error_clipboard_too_large">Lựa chọn quá lớn để sao chép (giới hạn %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Tệp quá lớn</string>
+    <string name="editor_error_paste_too_large">Tệp này quá lớn để dán (tối đa %1$s).</string>
+    <string name="editor_error_paste_binary_label">Không phải tệp văn bản</string>
+    <string name="editor_error_paste_binary">Nội dung tệp này không thể được dán dưới dạng văn bản.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="other">%1$d / %2$d kết quả</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d / %2$d+ kết quả</string>
+    <string name="editor_search_too_many_matches_label">Quá nhiều kết quả khớp</string>
+    <string name="editor_search_too_many_matches">Hơn %1$d kết quả khớp hoặc quá nhiều văn bản khớp — hãy thu hẹp tìm kiếm để thay thế tất cả.</string>
+    <string name="editor_search_placeholder">Tìm kiếm…</string>
+    <string name="editor_search_previous">Kết quả trước đó</string>
+    <string name="editor_search_next">Kết quả tiếp theo</string>
+    <string name="editor_search_case_sensitive_label">Phân biệt chữ hoa chữ thường</string>
+    <string name="editor_search_regex_label">Biểu thức chính quy</string>
+    <string name="editor_search_whole_word_label">Từ nguyên</string>
+    <string name="editor_search_options_label">Tùy chọn tìm kiếm</string>
+    <string name="editor_search_replace_label">Thay thế</string>
+    <string name="editor_search_replace_toggle">Bật/tắt thay thế</string>
+    <string name="editor_search_replace_placeholder">Thay thế bằng…</string>
+    <string name="editor_search_replace_one_action">Thay thế</string>
+    <string name="editor_search_replace_all_action">Tất cả</string>
+    <string name="editor_search_replaced_not_undoable">%1$d đã thay thế (quá lớn để hoàn tác)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="other">%1$d đã thay thế</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Đi tới dòng</string>
+    <string name="editor_dialog_go_to_line_label">Số dòng (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Đi</string>
+    <string name="editor_dialog_action_cancel">Hủy</string>
+    <string name="editor_dialog_close_confirm_title">Thay đổi chưa lưu</string>
+    <string name="editor_dialog_close_confirm_message">Bạn có các thay đổi chưa lưu. Loại bỏ chúng?</string>
+    <string name="editor_dialog_close_confirm_discard">Loại bỏ</string>
+    <string name="editor_dialog_large_delete_confirm_title">Chỉnh sửa lựa chọn lớn?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Lựa chọn này quá lớn để hoàn tác. Tiếp tục nút này?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Tiếp tục</string>
+    <string name="editor_encoding_dialog_title">Mã hóa</string>
+    <string name="editor_encoding_dialog_message">Mở lại tệp với mã hóa khác. Các thay đổi chưa lưu sẽ bị loại bỏ; các byte chưa được chỉnh sửa vẫn giữ nguyên khi lưu.</string>
+    <string name="editor_infobar_read_only">Chỉ đọc</string>
+    <string name="editor_line_ending_mixed">Hỗn hợp</string>
+    <string name="editor_line_ending_dialog_title">Kết thúc dòng</string>
+    <string name="editor_line_ending_dialog_message">Chuyển đổi tất cả các dòng ngắt và lưu tệp, bao gồm các thay đổi chưa lưu. Lịch sử hoàn tác được xóa.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Chưa đặt tên</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Lưu tự động</string>
+    <string name="editor_settings_autosave_enabled_title">Bật lưu tự động</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Tự động lưu các thay đổi sau một khoảng thời gian không hoạt động.</string>
+    <string name="editor_settings_autosave_interval_title">Khoảng thời gian lưu tự động</string>
+    <string name="editor_settings_autosave_interval_subtitle">Thời gian chờ sau lần chỉnh sửa cuối cùng trước khi lưu.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Khoảng thời gian lưu tự động</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Bộ nhớ tạm</string>
+    <string name="editor_settings_clipboard_behavior_title">Bộ nhớ tạm Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Kiểm soát cách các bản sao văn bản được lưu vào bộ nhớ tạm của Butler.</string>
+    <string name="editor_settings_clipboard_system_only">Chỉ hệ thống</string>
+    <string name="editor_settings_clipboard_system_only_desc">Chỉ sao chép vào bộ nhớ tạm hệ thống</string>
+    <string name="editor_settings_clipboard_butler_always">Luôn thêm vào Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Cũng lưu vào bộ nhớ tạm của Butler để dán trên các không gian làm việc</string>
+    <string name="editor_settings_clipboard_ask">Hỏi mỗi lần</string>
+    <string name="editor_settings_clipboard_ask_desc">Nhắc trước khi thêm vào bộ nhớ tạm của Butler</string>
+</resources>

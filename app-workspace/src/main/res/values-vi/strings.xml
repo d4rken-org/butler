@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Khay nhớ tạm -->
+    <string name="clipboard_header_title">Khay nhớ tạm</string>
+    <string name="clipboard_clear_all">Xóa tất cả</string>
+    <string name="clipboard_paste">Dán</string>
+    <string name="clipboard_open_in_explorer">Mở trong Trình duyệt tệp</string>
+    <string name="clipboard_copy">Sao chép</string>
+    <string name="clipboard_cut">Cắt</string>
+    <string name="clipboard_origin">Nguồn: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="other">Sao chép %d mục</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="other">%d mục từ %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="other">Cắt %d mục</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="other">%d mục từ %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="other">%d vị trí</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="other">%1$d mục từ %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="other">%1$d mục từ %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Đoạn văn bản</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="other">%1$d ký tự</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Dán dưới dạng tệp</string>
+    <string name="clipboard_text_info_characters">Ký tự</string>
+    <string name="clipboard_text_info_lines">Dòng</string>
+    <string name="clipboard_text_info_content">Nội dung</string>
+
+    <!-- Hộp thoại thông tin khay nhớ tạm -->
+    <string name="clipboard_info_overview">Tổng quan</string>
+    <string name="clipboard_info_operation">Thao tác</string>
+    <string name="clipboard_info_items">Mục</string>
+    <string name="clipboard_info_source">Nguồn</string>
+    <string name="clipboard_info_sources">Nguồn</string>
+    <string name="clipboard_info_workspace">Không gian làm việc</string>
+    <string name="clipboard_info_workspace_closed">Đã đóng</string>
+    <string name="clipboard_info_time">Thời gian</string>
+    <string name="clipboard_info_items_with_count">Mục (%1$d)</string>
+    <string name="clipboard_info_actions">Hành động</string>
+    <string name="clipboard_info_go_to_source">Đi tới nguồn</string>
+    <string name="clipboard_info_go_to_first_source">Đi tới nguồn đầu tiên</string>
+    <string name="clipboard_info_remove">Xóa khỏi khay nhớ tạm</string>
+
+    <!-- Cài đặt khay nhớ tạm -->
+    <string name="clipboard_settings_title">Khay nhớ tạm</string>
+    <string name="clipboard_settings_remove_on_paste_title">Xóa khi dán</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Xóa các mục đã sao chép khỏi khay nhớ tạm sau khi dán</string>
+    <string name="clipboard_settings_max_items_title">Số mục tối đa</string>
+    <string name="clipboard_settings_max_items_desc">Số lượng mục tối đa trong khay nhớ tạm</string>
+
+    <string name="workspace_explorer_label">Trình duyệt tệp</string>
+    <string name="workspace_searcher_label">Tìm kiếm</string>
+    <string name="workspace_editor_label">Trình soạn thảo</string>
+    <string name="workspace_templates_label">Mẫu</string>
+    <string name="workspace_apps_label">Ứng dụng</string>
+    <string name="workspace_appdetails_label">Chi tiết ứng dụng</string>
+    <string name="workspace_saver_label">Lưu dưới dạng</string>
+    <string name="workspace_developer_label">Nhà phát triển</string>
+    <string name="workspace_history_label">Lịch sử</string>
+    <string name="workspace_bugreport_label">Báo cáo lỗi</string>
+    <string name="workspace_viewer_label">Trình xem</string>
+
+    <!-- Mục tiêu tìm kiếm phương tiện -->
+    <string name="workspace_searcher_target_photos">Ảnh</string>
+    <string name="workspace_searcher_target_videos">Video</string>
+    <string name="workspace_searcher_target_music">Nhạc</string>
+    <string name="workspace_searcher_target_downloads">Tải xuống</string>
+
+    <!-- Hành động giao diện không gian làm việc -->
+    <string name="workspace_expand_more_action">Thêm</string>
+    <string name="workspace_expand_less_action">Thu gọn</string>
+
+    <!-- Menu nút không gian làm việc -->
+    <string name="workspace_button_description">Thẻ và không gian làm việc</string>
+    <string name="workspace_button_menu_new_workspace_format">%1$s mới</string>
+    <string name="workspace_button_menu_new_tab_action">Thẻ mới</string>
+    <string name="workspace_button_menu_category_recent">Gần đây</string>
+    <string name="workspace_button_menu_category_other">Khác</string>
+    <string name="workspace_button_menu_category_current_tab">Thẻ này</string>
+    <string name="workspace_button_menu_manager_action">Quản lý thẻ</string>
+    <string name="workspace_button_menu_layout_action">Bố cục</string>
+    <string name="workspace_button_menu_close_current_action">Đóng thẻ hiện tại</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="other">Đóng thẻ hiện tại (%d không gian làm việc)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Cài đặt</string>
+
+    <!-- Hành động trình quản lý không gian làm việc -->
+    <string name="workspace_manager_close_all_title">Đóng tất cả thẻ?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="other">Thao tác này sẽ đóng tất cả %1$d thẻ đang mở. Hành động này không thể hoàn tác.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Đóng tất cả</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Một số thẻ có thay đổi chưa lưu sẽ bị mất.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Loại bỏ tất cả</string>
+    <string name="workspace_manager_close_selected_title">Đóng các thẻ đã chọn?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="other">Thao tác này sẽ đóng %1$d thẻ đã chọn. Hành động này không thể hoàn tác.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">Đóng thẻ đã chọn</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Một số thẻ đã chọn có thay đổi chưa lưu sẽ bị mất.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Loại bỏ thẻ đã chọn</string>
+    <string name="workspace_manager_pause_partial_title">Tạm dừng thẻ?</string>
+    <string name="workspace_manager_pause_partial_message">%1$d trong số %2$d thẻ đã chọn có thể tạm dừng. Số còn lại đang được sử dụng, có thay đổi chưa lưu, hoặc đang mở.</string>
+    <string name="workspace_manager_pause_partial_action">Tạm dừng %1$d</string>
+    <string name="general_cancel_action">Hủy</string>
+
+    <!-- Thao tác -->
+    <string name="operations_header_title">Thao tác</string>
+    <string name="operations_clear_completed">Xóa mục đã hoàn tất</string>
+    <string name="operations_state_queued">Trong hàng đợi</string>
+    <string name="operations_state_running">Đang chạy</string>
+    <string name="operations_state_waiting">Đang chờ nhập</string>
+    <string name="operations_state_successful">Thành công</string>
+    <string name="operations_state_failed">Thất bại</string>
+    <string name="operations_state_cancelled">Đã hủy</string>
+    <string name="operations_state_cancelling">Đang hủy…</string>
+    <string name="operations_cancel_operation">Hủy thao tác</string>
+    <string name="operations_cancel_dialog_title">Hủy thao tác?</string>
+    <string name="operations_cancel_dialog_message">Bạn có chắc chắn muốn hủy thao tác này không?</string>
+    <string name="operations_cancel_dialog_warning">Việc hủy có thể khiến tệp ở trạng thái không nhất quán.</string>
+    <string name="operations_details_started_at">Bắt đầu</string>
+    <string name="operations_details_completed_at">Hoàn tất</string>
+    <string name="operations_details_duration">Thời lượng</string>
+    <string name="operations_details_duration_not_started">Chưa bắt đầu</string>
+    <string name="operations_details_progress">Tiến trình</string>
+    <string name="operations_details_error">Chi tiết lỗi</string>
+    <string name="operations_details_actions">Hành động</string>
+    <string name="operations_details_overview">Tổng quan</string>
+    <string name="operations_details_handle_issue">Xử lý sự cố</string>
+    <string name="operations_details_show_in_history_action">Xem trong lịch sử</string>
+    <string name="operations_details_status">Trạng thái</string>
+    <string name="operations_details_result">Kết quả</string>
+    <string name="operations_details_destination_folder">Thư mục đích</string>
+    <string name="operations_details_destination_path">Đường dẫn đích</string>
+    <string name="operations_details_affected_paths_with_count">Đường dẫn bị ảnh hưởng (%d)</string>
+    <string name="operations_details_problems_with_count">Vấn đề (%d)</string>
+    <string name="operations_details_problems_more">%d mục khác không được liệt kê</string>
+    <string name="workspace_operation_packages_section_title">Ứng dụng</string>
+    <string name="workspace_operation_package_status_done">Xong</string>
+    <string name="workspace_operation_package_status_failed">Thất bại</string>
+    <string name="workspace_operation_package_status_declined">Đã từ chối</string>
+    <string name="operations_details_section_expand">Mở rộng %1$s</string>
+    <string name="operations_details_section_collapse">Thu gọn %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Biểu đồ hiệu năng</string>
+
+    <!-- Hộp thoại xác nhận xóa -->
+    <string name="workspace_dialog_delete_title_single">Xóa mục?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="other">Xóa %1$d mục?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Mục này sẽ bị xóa vĩnh viễn:</string>
+    <string name="workspace_dialog_delete_message_multiple">Các mục này sẽ bị xóa vĩnh viễn:</string>
+    <string name="workspace_dialog_delete_more_items">… và %1$d mục khác</string>
+    <string name="workspace_dialog_delete_warning">Hành động này không thể hoàn tác.</string>
+    <string name="workspace_dialog_delete_permanently_action">Xóa vĩnh viễn</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Xóa vĩnh viễn thay vì chuyển vào thùng rác</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Một số mục không thể chuyển vào thùng rác và sẽ được xử lý riêng.</string>
+
+    <!-- Hộp thoại thùng rác -->
+    <string name="workspace_dialog_trash_title_single">Chuyển vào thùng rác?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="other">Chuyển %1$d mục vào thùng rác?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Mục này sẽ được chuyển vào thùng rác:</string>
+    <string name="workspace_dialog_trash_message_multiple">Các mục này sẽ được chuyển vào thùng rác:</string>
+    <string name="workspace_dialog_trash_hint">Tìm các mục này trong thùng rác</string>
+    <string name="workspace_dialog_move_to_trash_action">Chuyển</string>
+
+    <!-- Thanh hành động -->
+    <plurals name="workspace_selection_count">
+        <item quantity="other">Đã chọn %d mục</item>
+    </plurals>
+    <string name="workspace_action_more">Thêm hành động</string>
+
+    <!-- Thao tác xóa (dùng chung giữa các không gian làm việc) -->
+    <string name="workspace_operation_delete_title">Xóa tệp</string>
+    <string name="workspace_operation_delete_description_single">Xóa \"%1$s\" khỏi \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="other">Xóa %1$d mục khỏi \"%2$s\".</item>
+    </plurals>
+
+    <!-- Thao tác cài đặt ứng dụng (dùng chung giữa các không gian làm việc) -->
+    <string name="workspace_operation_install_title">Cài đặt ứng dụng</string>
+    <string name="workspace_operation_install_description">Cài đặt \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">Đang đọc gói…</string>
+    <string name="workspace_operation_install_progress_extracting">Đang giải nén…</string>
+    <string name="workspace_operation_install_progress_writing">Đang chuyển tệp cho trình cài đặt…</string>
+    <string name="workspace_operation_install_progress_committing">Đang hoàn tất cài đặt…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Đang đặt tệp mở rộng…</string>
+    <string name="workspace_operation_install_summary_success">%1$s đã được cài đặt.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s đã được cài đặt, nhưng không thể đặt tệp mở rộng của ứng dụng này.</string>
+    <string name="workspace_install_unknown_sources_required">Butler cần quyền để cài đặt ứng dụng. Hãy cấp quyền trong phần cài đặt vừa mở, sau đó thử lại.</string>
+    <string name="workspace_install_obb_failed">Ứng dụng đã được cài đặt, nhưng không thể đặt tệp mở rộng của ứng dụng: %1$s</string>
+
+    <!-- Báo cáo thao tác xóa -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="other">Đã xóa %1$d tệp.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="other">Đã xóa %1$d thư mục.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="other">Đã bỏ qua %1$d mục.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="other">Đã giải phóng %1$s.</item>
+    </plurals>
+
+    <!-- Báo cáo thao tác thùng rác -->
+    <string name="workspace_operation_progress_moving_to_trash">Đang chuyển vào thùng rác…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="other">Đã chuyển %1$d tệp vào thùng rác.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="other">Đã chuyển %1$d thư mục vào thùng rác.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">Đã giải phóng %1$s/giây.</string>
+    <string name="workspace_operation_progress_bytes_freed">Đã giải phóng %1$s.</string>
+    <string name="workspace_operation_progress_time_remaining">Còn lại %1$s.</string>
+
+    <!-- Hộp thoại thông tin tệp (dùng chung giữa các không gian làm việc) -->
+    <string name="workspace_file_info_title">Thông tin</string>
+    <string name="workspace_file_info_name_label">Tên</string>
+    <string name="workspace_file_info_path_label">Đường dẫn</string>
+    <string name="workspace_file_info_type_label">Loại</string>
+    <string name="workspace_file_info_type_file">Tệp</string>
+    <string name="workspace_file_info_type_directory">Thư mục</string>
+    <string name="workspace_file_info_type_symlink">Liên kết tượng trưng</string>
+    <string name="workspace_file_info_type_unknown">Không xác định</string>
+    <string name="workspace_file_info_size_label">Kích thước</string>
+    <string name="workspace_file_info_modified_label">Đã sửa đổi</string>
+    <string name="workspace_file_info_created_label">Đã tạo</string>
+    <string name="workspace_file_info_permissions_label">Quyền</string>
+    <string name="workspace_file_info_owner_label">Chủ sở hữu</string>
+    <string name="workspace_file_info_child_count_label">Số mục</string>
+    <string name="workspace_file_info_symlink_target_label">Đích</string>
+    <string name="workspace_file_info_unknown">Không xác định</string>
+    <string name="workspace_file_info_copy_action">Sao chép vào khay nhớ tạm</string>
+
+    <!-- Hộp thoại thông tin nhiều mục -->
+    <string name="workspace_file_info_selected_label">Đã chọn</string>
+    <string name="workspace_file_info_files_label">Tệp</string>
+    <string name="workspace_file_info_directories_label">Thư mục</string>
+    <string name="workspace_file_info_total_size_label">Tổng kích thước</string>
+
+    <!-- Biểu đồ hiệu năng -->
+    <string name="workspace_operation_performance_unavailable_not_started">Thao tác này chưa bắt đầu.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Đang thu thập dữ liệu hiệu năng…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Không có đủ dữ liệu hiệu năng từ thao tác này để vẽ biểu đồ.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Không có dữ liệu hiệu năng cho thao tác này.</string>
+    <string name="workspace_operation_performance_window_seconds">%1$d giây gần nhất</string>
+    <string name="workspace_operation_performance_window_minutes">%1$d phút gần nhất</string>
+    <string name="workspace_operation_performance_unit_bytes">B/giây</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/giây</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/giây</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/giây</string>
+    <string name="workspace_operation_performance_unit_items">mục/giây</string>
+
+    <!-- Hiển thị lỗi (dùng chung giữa các không gian làm việc) -->
+    <string name="workspace_error_show_details_action">Xem chi tiết kỹ thuật</string>
+    <string name="workspace_error_hide_details_action">Ẩn chi tiết kỹ thuật</string>
+
+    <!-- Thành phần trạng thái không gian làm việc -->
+    <string name="workspace_initializing_title">Đang khởi tạo thẻ</string>
+    <string name="workspace_error_subtitle">Đã xảy ra lỗi không mong muốn</string>
+    <string name="workspace_close_tab_action">Đóng thẻ</string>
+    <string name="workspace_paused_body">Thẻ này đã tạm dừng để tiết kiệm bộ nhớ và pin. Hãy tiếp tục để dùng lại.</string>
+    <string name="workspace_paused_error_body">Không thể tiếp tục thẻ này.</string>
+    <string name="workspace_paused_resume_action">Tiếp tục</string>
+    <string name="workspace_paused_label">Đã tạm dừng</string>
+    <string name="workspace_paused_content_label">Nội dung thẻ</string>
+
+    <!-- Giải quyết sự cố (xử lý xung đột) -->
+    <string name="workspace_issue_collision_existing_file_label">Tệp hiện có</string>
+    <string name="workspace_issue_collision_existing_folder_label">Thư mục hiện có</string>
+    <string name="workspace_issue_collision_new_file">Tệp mới đến</string>
+    <string name="workspace_issue_collision_new_folder">Thư mục mới đến</string>
+    <string name="workspace_issue_collision_overwrite">Thay thế</string>
+    <string name="workspace_issue_collision_merge">Hợp nhất</string>
+    <string name="workspace_issue_common_source_file">Tệp nguồn</string>
+    <string name="workspace_issue_common_destination_file">Đích</string>
+    <string name="workspace_issue_common_skip">Bỏ qua</string>
+    <string name="workspace_issue_common_rename">Đổi tên</string>
+    <string name="workspace_issue_common_rename_new">Đổi tên mục mới</string>
+    <string name="workspace_issue_common_rename_existing">Đổi tên mục hiện có</string>
+    <string name="workspace_issue_common_cancel">Hủy</string>
+    <string name="workspace_issue_common_delete_permanently">Xóa vĩnh viễn</string>
+    <string name="workspace_issue_archive_password_label">Mật khẩu</string>
+    <string name="workspace_issue_archive_password_unlock">Mở khóa</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Mục thất bại</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… và %1$d mục khác</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Mục bị ảnh hưởng</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… và %1$d mục khác</string>
+    <string name="workspace_issue_apply_all">Áp dụng cho tất cả sự cố còn lại</string>
+    <string name="workspace_issue_rename_new_name">Tên mới</string>
+    <string name="workspace_issue_rename_dialog_title_new">Đổi tên tệp mới đến</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Đổi tên tệp hiện có</string>
+    <string name="workspace_issue_type_folder">Thư mục</string>
+
+    <!-- Hộp thoại xác nhận mở nhiều thẻ -->
+    <string name="workspace_open_tabs_confirmation_title">Mở nhiều thẻ?</string>
+    <string name="workspace_open_tabs_confirmation_message">Thao tác này sẽ mở %1$d thẻ.</string>
+
+    <!-- Mở bằng (chuyển tệp cho ứng dụng khác) -->
+    <string name="workspace_open_with_chooser_title">Mở bằng</string>
+    <string name="workspace_open_with_no_app_label">Không tìm thấy ứng dụng khác</string>
+    <string name="workspace_open_with_no_app_description">Không có ứng dụng nào khác đã cài đặt có thể mở %1$s.</string>
+
+    <!-- Thông báo biểu ngữ không gian làm việc -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="other">Đã mở %1$d thẻ</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="other">Không thể đóng: có thao tác vẫn đang chạy trong %1$d thẻ</item>
+    </plurals>
+
+    <!-- Không gian làm việc > Cài đặt-->
+    <string name="workspace_settings_title">Thẻ</string>
+    <string name="workspace_settings_navigation">Điều hướng</string>
+    <string name="workspace_settings_swipe_gestures_title">Cử chỉ vuốt</string>
+    <string name="workspace_settings_swipe_gestures_desc">Vuốt sang trái hoặc phải để chuyển giữa các thẻ.</string>
+    <string name="workspace_settings_ondemand_creation_title">Tự động tạo thẻ</string>
+    <string name="workspace_settings_ondemand_creation_desc">Tự động tạo thẻ mới khi vuốt qua thẻ cuối cùng.</string>
+    <string name="workspace_settings_newtab_type_title">Loại thẻ mới</string>
+    <string name="workspace_settings_newtab_type_desc">Không gian làm việc được mở khi vuốt qua thẻ cuối cùng, thêm thẻ vào khung trống, hoặc tạo thẻ đầu tiên.</string>
+    <string name="workspace_settings_newtab_type_ask">Hỏi mỗi lần</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Hiển thị bộ chọn loại thẻ cho mỗi thẻ mới.</string>
+    <string name="workspace_settings_live_preview_title">Xem trước trực tiếp</string>
+    <string name="workspace_settings_live_preview_desc">Hiển thị nội dung thẻ trực tiếp trong trình quản lý thẻ.</string>
+    <string name="workspace_settings_other">Khác</string>
+    <string name="workspace_settings_layout_title">Bố cục</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Chế độ bố cục dọc</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Chọn bố cục thẻ ở hướng dọc.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Chế độ bố cục ngang</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Chọn bố cục thẻ ở hướng ngang.</string>
+    <string name="workspace_settings_layout_mode_auto">Tự động</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Cổ điển trên màn hình nhỏ, thanh thẻ kèm khung trên màn hình lớn.</string>
+    <string name="workspace_settings_layout_mode_classic">Cổ điển</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Từng khung một, không có thanh thẻ.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Thích ứng</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Thanh thẻ cùng số khung tối đa mà màn hình có thể chứa. Ghim một bố cục từ menu Butler trên thanh.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Thích ứng (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Đơn kèm thanh thẻ</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Một khung thẻ cùng thanh thẻ của các bố cục nhiều khung. Chuyển thẻ từ thanh thay vì vuốt; thanh chiếm một dải trên màn hình.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Đôi dọc</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Hai khung cạnh nhau (trái/phải).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Đôi ngang</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Hai khung xếp chồng (trên/dưới).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Ba khung, thanh bên trái</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Một khung lớn bên trái, hai khung nhỏ xếp chồng bên phải.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Ba khung, thanh bên phải</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Hai khung nhỏ xếp chồng bên trái, một khung lớn bên phải.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Lưới bốn khung</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Bốn khung trong lưới 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Nhấp để lấy tiêu điểm</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Lần nhấp đầu tiên vào khung chưa được lấy tiêu điểm chỉ lấy tiêu điểm cho khung đó, và các khung chưa lấy tiêu điểm không phản hồi con trỏ chuột. Tắt để tương tác trực tiếp với chúng.</string>
+
+    <string name="workspace_settings_rail_button_title">Nút Butler</string>
+    <string name="workspace_settings_rail_button_desc">Chọn vị trí nút Butler trên thanh thẻ.</string>
+    <string name="workspace_settings_rail_button_leading">Đầu</string>
+    <string name="workspace_settings_rail_button_leading_desc">Trước các thẻ ở chế độ dọc, phía trên chúng ở chế độ ngang.</string>
+    <string name="workspace_settings_rail_button_trailing">Cuối</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Sau các thẻ ở chế độ dọc, phía dưới chúng ở chế độ ngang. Trong tầm với ngón tay cái khi dùng một tay.</string>
+
+    <!-- Phiên -->
+    <string name="workspace_settings_session_title">Phiên</string>
+    <string name="workspace_settings_session_restore_title">Khôi phục thẻ khi khởi động</string>
+    <string name="workspace_settings_session_restore_desc">Tự động khôi phục các thẻ đã mở trước đó khi ứng dụng khởi động.</string>
+    <string name="workspace_settings_autopause_title">Tạm dừng thẻ không hoạt động</string>
+    <string name="workspace_settings_autopause_desc">Các thẻ bạn chưa xem trong một thời gian sẽ được tạm dừng để tiết kiệm bộ nhớ và pin. Mở lại sẽ tiếp tục thẻ đó.</string>
+    <string name="workspace_settings_autopause_delay_title">Tạm dừng sau</string>
+    <string name="workspace_settings_autopause_delay_desc">Thời gian một thẻ ở ngoài tầm nhìn trước khi bị tạm dừng.</string>
+    <string name="workspace_settings_undoclose_title">Hoàn tác đóng thẻ</string>
+    <string name="workspace_settings_undoclose_desc">Khi đóng một thẻ, bạn có vài giây để mở lại thẻ đó.</string>
+    <string name="workspace_settings_session_data_title">Dữ liệu phiên</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="other">%1$d thẻ • %2$s</item>
+    </plurals>
+
+    <!-- Hoàn tác đóng -->
+    <string name="workspace_closed_undo_message">Đã đóng \"%1$s\"</string>
+
+    <!-- Lỗi khôi phục phiên -->
+    <string name="workspace_session_restoration_error_title">Khôi phục phiên thất bại</string>
+    <string name="workspace_session_restoration_error_description">Không thể khôi phục phiên thẻ trước đó của bạn. Điều này có thể do lỗi sẽ được khắc phục trong bản cập nhật sau.\n\nBạn có thể xóa phiên đã lưu để tiếp tục sử dụng Butler, hoặc chờ bản cập nhật.</string>
+    <string name="workspace_session_restoration_error_clear_action">Xóa phiên</string>
+    <string name="workspace_session_restoration_error_report_action">Báo cáo sự cố</string>
+    <string name="workspace_session_restoration_error_confirm_title">Xóa phiên?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Thao tác này sẽ xóa vĩnh viễn phiên thẻ đã lưu của bạn. Hành động này không thể hoàn tác.</string>
+
+    <!-- Đổi tên thẻ -->
+    <string name="workspace_rename_dialog_title">Đổi tên thẻ</string>
+    <string name="workspace_rename_name_label">Tên tùy chỉnh</string>
+    <string name="workspace_rename_name_hint">Để trống để dùng tên tự động</string>
+
+    <!-- Giới hạn thẻ -->
+    <string name="workspace_limit_reached_title">Đã đạt giới hạn thẻ</string>
+    <string name="workspace_limit_reached_message">Người dùng miễn phí có thể mở tối đa %1$d thẻ cùng lúc. Nâng cấp lên Butler Pro để mở thẻ không giới hạn!</string>
+    <string name="workspace_limit_pick_tabs_message">Gói miễn phí của bạn cho phép mở %1$d thẻ. Hãy chọn những thẻ bạn không cần nữa và đóng chúng để có thêm chỗ.</string>
+    <string name="workspace_limit_no_slot_hint">Đóng thẻ hiện không giải phóng thêm chỗ trống.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="other">Đóng %d thẻ</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="other">Chọn ít nhất %d thẻ để đóng.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Đã mở %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Thay đổi chưa lưu</string>
+    <string name="workspace_limit_blocker_busy">Đang bận</string>
+    <string name="workspace_limit_blocker_attention">Đang chờ bạn</string>
+    <string name="workspace_limit_blocker_loading">Đang tải</string>
+    <string name="workspace_limit_blocker_awaiting_result">Hoàn tất bộ chọn đang mở trước</string>
+    <string name="workspace_limit_blocker_unavailable">Không thể đóng lúc này</string>
+    <string name="workspace_limit_stacked_content_desc">Đóng thẻ này cũng đóng luôn những gì xếp chồng trên đó</string>
+    <string name="workspace_limit_pro_description">Mở bao nhiêu thẻ tùy thích.</string>
+
+    <!-- Kéo và thả -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="other">%1$d mục</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Thao tác khôi phục -->
+    <string name="workspace_operation_restore_title">Khôi phục từ thùng rác</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="other">Khôi phục %d mục từ thùng rác.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="other">Đã khôi phục %d mục</item>
+    </plurals>
+</resources>

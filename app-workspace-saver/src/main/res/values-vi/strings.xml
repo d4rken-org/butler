@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Lưu dưới dạng</string>
+    <string name="saver_preview_label">Xem trước</string>
+    <string name="saver_loading">Đang tải…</string>
+    <string name="saver_shared_from">Chia sẻ từ %1$s</string>
+    <string name="saver_shared_generic">Chia sẻ với Butler</string>
+    <string name="saver_destination_label">Đích đến</string>
+    <string name="saver_select_destination_hint">Chọn thư mục đích đến</string>
+    <string name="saver_filename_label">Tên tệp</string>
+    <string name="saver_save_action">Lưu</string>
+    <string name="saver_saving_progress">Đang lưu…</string>
+    <string name="saver_success_message">Tệp đã lưu thành công</string>
+    <string name="saver_open_saved_action">Mở thư mục</string>
+    <string name="saver_retry_action">Thử lại</string>
+    <string name="saver_save_again_action">Lưu tới vị trí khác</string>
+    <string name="saver_close_tab_action">Đóng thẻ</string>
+    <string name="saver_close_butler_action">Đóng thẻ và quay lại</string>
+    <string name="saver_done_action">Xong</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="other">%1$d tệp nguồn không còn có thể truy cập. Vui lòng chia sẻ lại.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Tệp nguồn không còn có thể truy cập</string>
+    <string name="saver_error_permission_denied">Quyền bị từ chối</string>
+    <string name="saver_error_write_failed">Không lưu được tệp</string>
+    <string name="saver_error_file_exists">Tệp đã tồn tại</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Lưu tệp</string>
+    <plurals name="saver_operation_description">
+        <item quantity="other">Đang lưu %1$d tệp tới %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="other">Lưu %1$d tệp</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="other">%1$d tệp đã lưu</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="other">%1$d tệp thất bại</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="other">%1$d tệp bị bỏ qua</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d của %2$d tệp đã lưu</string>
+</resources>

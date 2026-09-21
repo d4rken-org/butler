@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Yêu cầu Butler FOSS</string>
+
+    <string name="upgrade_prompt_title">Nâng cấp Butler</string>
+    <string name="upgrade_prompt_body">Mở khóa các tính năng bổ sung và trở thành nhà tài trợ để hỗ trợ sự phát triển liên tục!</string>
+    <string name="upgrade_prompt_upgrade_action">Nâng cấp</string>
+
+    <string name="upgrade_screen_title">Nâng cấp Butler</string>
+    <string name="upgrade_screen_preamble">Butler không có quảng cáo và không bán dữ liệu người dùng. Sự phát triển tiếp tục chỉ có thể thực hiện được nhờ bạn.</string>
+    <string name="upgrade_screen_how_title">Cách giúp đỡ</string>
+    <string name="upgrade_screen_how_body">Trở thành nhà tài trợ và hỗ trợ phát triển! Nhấn nút bên dưới để kích hoạt tất cả các tính năng bổ sung và mở hồ sơ GitHub Sponsors của tôi.</string>
+
+    <string name="upgrade_screen_sponsor_action">Tài trợ phát triển</string>
+    <string name="upgrade_screen_sponsor_action_hint">Lựa chọn thay thế là quảng cáo, phân tích và Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Cảm ơn bạn đã hỗ trợ phát triển phần mềm mở ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Quay lại rồi? Sự hỗ trợ của bạn giữ Butler sống — vui lòng dành chút thời gian để kiểm tra trang nhà tài trợ.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Không thể mở trang nhà tài trợ. Hãy thử mở nó trong trình duyệt thay vào đó.</string>
+
+    <string name="upgrade_screen_status_free_title">Bạn đang dùng phiên bản miễn phí</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS hoàn toàn mở nguồn. Mở khóa các tính năng bổ sung bằng cách hỗ trợ phát triển.</string>
+    <string name="upgrade_screen_status_free_action">Xem tùy chọn nâng cấp</string>
+    <string name="upgrade_screen_status_upgraded_title">Bạn là một nhà tài trợ</string>
+    <string name="upgrade_screen_status_upgraded_body">Cảm ơn bạn đã hỗ trợ phát triển phần mềm mở ❤️ Tất cả các tính năng bổ sung đều được mở khóa.</string>
+    <string name="upgrade_screen_supporter_since">Nhà tài trợ kể từ %s</string>
+    <string name="upgrade_screen_recurring_title">Tiếp tục</string>
+    <string name="upgrade_screen_recurring_body">Butler được phát triển trong thời gian rảnh rỗi của tôi. Một khoản đóng góp lặp lại giúp giữ nó sống.</string>
+    <string name="upgrade_screen_recurring_action">Trở thành nhà tài trợ lặp lại</string>
+
+    <string name="upgrade_benefits_title">Lợi ích nâng cấp</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Thẻ và thao tác không giới hạn\n• Tùy chỉnh thiết kế, cảm giác và giao diện\n• Tùy chọn và tính năng bổ sung cho từng công cụ\n• Truy cập sớm vào các tính năng mới\n• Một nhà phát triển động lực 🧙\nvà hơn thế nữa…</string>
+</resources>

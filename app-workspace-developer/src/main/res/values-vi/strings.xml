@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Nhà phát triển</string>
+    <string name="developer_title">Công cụ Nhà phát triển</string>
+    <string name="developer_subtitle">Tiện ích phát triển</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">Hệ thống</string>
+    <string name="developer_tab_options">Tùy chọn</string>
+    <string name="developer_tab_workspaces">Không gian làm việc</string>
+    <string name="developer_tab_logs">Nhật ký</string>
+    <string name="developer_tab_testdata">Dữ liệu Kiểm thử</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Tùy chọn Gỡ lỗi</string>
+    <string name="developer_options_debug_mode">Chế độ gỡ lỗi</string>
+    <string name="developer_options_debug_mode_desc">Bật ghi nhật ký chi tiết</string>
+    <string name="developer_options_trace_mode">Chế độ theo dõi</string>
+    <string name="developer_options_trace_mode_desc">Bật ghi nhật ký cấp độ theo dõi</string>
+    <string name="developer_options_floating_log">Bảng nhật ký nổi</string>
+    <string name="developer_options_floating_log_desc">Hiển thị lớp phủ nhật ký kéo được trên tất cả các màn hình</string>
+    <string name="developer_options_services_header">Kiểm tra Dịch vụ</string>
+    <string name="developer_options_root_test_action">Kiểm tra Root</string>
+    <string name="developer_options_root_installed_label">Đã cài đặt</string>
+    <string name="developer_options_root_available_label">Có sẵn</string>
+    <string name="developer_options_root_base_check_label">Kiểm tra cơ sở</string>
+    <string name="developer_options_shizuku_test_action">Kiểm tra Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">Đã cài đặt</string>
+    <string name="developer_options_shizuku_granted_label">Quyền hạn</string>
+    <string name="developer_options_shizuku_compatible_label">Tương thích</string>
+    <string name="developer_options_shizuku_service_label">Dịch vụ</string>
+    <string name="developer_options_test_running">Đang kiểm tra…</string>
+    <string name="developer_options_result_yes">Có</string>
+    <string name="developer_options_result_no">Không</string>
+    <string name="developer_options_result_unknown">Không xác định</string>
+    <string name="developer_options_visibility_header">Hiển thị</string>
+    <string name="developer_options_hide_mode">Ẩn Chế độ Nhà phát triển</string>
+    <string name="developer_options_hide_mode_desc">Nhấn phiên bản 7 lần trong Cài đặt để bật lại.</string>
+    <string name="developer_options_hide_action">Ẩn</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Thiết bị</string>
+    <string name="developer_system_device_model">Mẫu</string>
+    <string name="developer_system_device_manufacturer">Nhà sản xuất</string>
+    <string name="developer_system_device_api">Cấp độ API</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">Phiên bản</string>
+    <string name="developer_system_build_code">Mã Phiên bản</string>
+    <string name="developer_system_build_flavor">Biến thể</string>
+    <string name="developer_system_build_type">Loại Build</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Bộ nhớ</string>
+    <string name="developer_system_memory_available">Có sẵn</string>
+    <string name="developer_system_memory_total">Tổng</string>
+    <string name="developer_system_storage_header">Bộ nhớ</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d không gian làm việc</string>
+    <string name="developer_workspaces_empty">Không có không gian làm việc nào</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Xóa</string>
+    <string name="developer_logs_pause">Tạm dừng</string>
+    <string name="developer_logs_resume">Tiếp tục</string>
+    <string name="developer_logs_empty">Không có nhật ký nào</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Đường dẫn Đích</string>
+    <string name="developer_testdata_no_paths">Chưa chọn đường dẫn đích. Thêm đường dẫn để tạo dữ liệu kiểm thử.</string>
+    <string name="developer_testdata_add_path_action">Thêm đường dẫn</string>
+    <string name="developer_testdata_options_header">Tùy chọn Tạo</string>
+    <string name="developer_testdata_large_files">Tệp lớn</string>
+    <string name="developer_testdata_large_files_desc">1 MB, 10 MB, 100 MB, 1 GB, 2 GB, 4 GB, 8 GB</string>
+    <string name="developer_testdata_nested_structure">Cấu trúc lồng nhau</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 thư mục, ~1100 tệp</string>
+    <string name="developer_testdata_text_files">Tệp văn bản cho Trình soạn thảo</string>
+    <string name="developer_testdata_text_files_desc">10 KB, 100 KB, 1 MB, 10 MB, 100 MB</string>
+    <string name="developer_testdata_generate_action">Tạo</string>
+    <string name="developer_testdata_generating">Đang tạo…</string>
+    <string name="developer_testdata_history_header">Mục nhập lịch sử mẫu</string>
+    <string name="developer_testdata_history_desc">Điền ~25 mục thao tác giả mạo kéo dài từ hôm nay → 30 ngày trước, các loại/kết quả/nguồn gốc/đường dẫn khác nhau. Chèn trực tiếp vào cơ sở dữ liệu lịch sử; an toàn để nhấn lại.</string>
+    <string name="developer_testdata_history_generate_action">Tạo lịch sử mẫu</string>
+    <string name="developer_testdata_progress">%1$s trên %2$s</string>
+    <string name="developer_testdata_complete">Dữ liệu kiểm thử được tạo tại:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Tạo Tệp Lớn</string>
+    <string name="developer_operation_large_files_desc">Đang tạo tệp kiểm thử trong %1$s</string>
+    <string name="developer_operation_large_files_creating">Đang tạo %1$s</string>
+
+    <string name="developer_operation_nested_title">Tạo Cấu trúc Lồng nhau</string>
+    <string name="developer_operation_nested_desc">Đang tạo phân cấp thư mục trong %1$s</string>
+    <string name="developer_operation_nested_starting">Bắt đầu cấu trúc lồng nhau…</string>
+    <string name="developer_operation_nested_creating">Đang tạo %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d tệp được tạo</string>
+
+    <string name="developer_operation_text_files_title">Tạo Tệp Văn bản</string>
+    <string name="developer_operation_text_files_desc">Đang tạo tệp văn bản trong %1$s</string>
+    <string name="developer_operation_text_files_creating">Đang tạo %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="other">%d tệp được tạo</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="other">%d thư mục</item>
+    </plurals>
+</resources>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Báo cáo lỗi</string>
+    <string name="bugreport_workspace_subtitle">Báo cáo sự cố &amp; lỗi</string>
+
+    <string name="bugreport_empty_title">Không có báo cáo</string>
+    <string name="bugreport_empty_subtitle">Các báo cáo sự cố và lỗi sẽ xuất hiện ở đây. Không gửi bất cứ điều gì một cách tự động.</string>
+
+    <string name="bugreport_type_crash">Sự cố</string>
+    <string name="bugreport_type_report">Báo cáo</string>
+    <string name="bugreport_type_recording">Bản ghi</string>
+
+    <string name="bugreport_record_action">Ghi lại nhật ký gỡ lỗi</string>
+    <string name="bugreport_record_short_action">Ghi lại</string>
+    <string name="bugreport_stop_action">Dừng ghi lại</string>
+    <string name="bugreport_stop_short_action">Dừng</string>
+    <string name="bugreport_recording_ongoing_label">Đang ghi lại…</string>
+
+    <string name="bugreport_recording_short_title">Bản ghi rất ngắn</string>
+    <string name="bugreport_recording_short_message">Bản ghi này chỉ dài vài giây và có thể không chứa thông tin hữu ích. Dừng nó dù sao?</string>
+    <string name="bugreport_recording_short_keep_action">Tiếp tục ghi lại</string>
+
+    <string name="bugreport_rename_action">Đổi tên</string>
+    <string name="bugreport_rename_dialog_title">Đặt tên cho báo cáo này</string>
+    <string name="bugreport_rename_name_label">Tên</string>
+    <string name="bugreport_rename_name_hint">Hiển thị trong danh sách và trong tên tệp được chia sẻ</string>
+
+    <string name="bugreport_share_action">Chia sẻ</string>
+    <string name="bugreport_delete_action">Xóa</string>
+    <string name="bugreport_delete_all_action">Xóa tất cả</string>
+    <string name="bugreport_delete_all_confirm_title">Xóa tất cả nhật ký gỡ lỗi?</string>
+    <string name="bugreport_delete_all_confirm_message">Điều này sẽ xóa vĩnh viễn tất cả các phiên nhật ký gỡ lỗi được ghi lại. Các bản ghi đang hoạt động sẽ không bị ảnh hưởng.</string>
+    <string name="bugreport_delete_confirm_title">Xóa báo cáo này?</string>
+    <string name="bugreport_delete_confirm_message">Điều này sẽ xóa vĩnh viễn báo cáo này và nhật ký của nó.</string>
+    <string name="bugreport_cancel_action">Hủy</string>
+
+    <string name="bugreport_share_chooser_title">Chia sẻ báo cáo lỗi</string>
+    <string name="bugreport_share_consent_title">Chia sẻ báo cáo?</string>
+    <string name="bugreport_share_consent_message">Báo cáo này bao gồm nhật ký ứng dụng có thể chứa tên tệp, đường dẫn và thông tin ứng dụng và thiết bị. Chỉ chia sẻ nó với những người bạn tin tưởng.</string>
+
+    <string name="bugreport_detail_back_action">Quay lại</string>
+    <string name="bugreport_detail_section_error">Lỗi</string>
+    <string name="bugreport_detail_section_log">Nhật ký gần đây</string>
+    <string name="bugreport_detail_field_type">Loại</string>
+    <string name="bugreport_detail_field_time">Thời gian</string>
+    <string name="bugreport_detail_field_app_version">Phiên bản ứng dụng</string>
+    <string name="bugreport_detail_field_device">Thiết bị</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">Loại lỗi</string>
+    <string name="bugreport_detail_field_thread">Luồng</string>
+    <string name="bugreport_detail_log_truncated">%1$d dòng cuối cùng trong %2$d dòng</string>
+    <string name="bugreport_detail_log_count">%1$d dòng</string>
+    <string name="bugreport_detail_log_empty">Không có nhật ký nào được ghi lại</string>
+    <string name="bugreport_detail_log_error">Không thể tải nhật ký</string>
+</resources>

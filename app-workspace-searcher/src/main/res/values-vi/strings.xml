@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Tìm kiếm</string>
+    <string name="searcher_subtitle">Tìm tệp và nội dung</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Cài đặt tìm kiếm</string>
+    <string name="searcher_settings_search_category">Tìm kiếm</string>
+    <string name="searcher_settings_history">Lịch sử tìm kiếm</string>
+    <string name="searcher_settings_save_history_title">Lưu lịch sử tìm kiếm</string>
+    <string name="searcher_settings_save_history_subtitle">Ghi nhớ những lần tìm kiếm trước</string>
+    <string name="searcher_settings_max_history_label">Số mục lịch sử tối đa</string>
+    <string name="searcher_settings_max_history_subtitle">Số lượng tối đa các lần tìm kiếm đã lưu</string>
+    <string name="searcher_settings_max_history_input_label">Số mục (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Xóa lịch sử tìm kiếm</string>
+    <string name="searcher_settings_clear_history_subtitle">Xóa tất cả các lần tìm kiếm đã lưu (%1$d)</string>
+    <string name="searcher_settings_search_performance">Hiệu suất</string>
+    <string name="searcher_settings_max_results_title">Số lượng kết quả tối đa</string>
+    <string name="searcher_settings_max_results_subtitle">Giới hạn số lượng kết quả trả về cho mỗi lần tìm kiếm.</string>
+    <string name="searcher_settings_content_search_category">Tìm kiếm nội dung</string>
+    <string name="searcher_settings_include_binaries_title">Bao gồm các tệp nhị phân</string>
+    <string name="searcher_settings_include_binaries_subtitle">Tìm kiếm nội dung của các tệp nhị phân (có thể chậm và tạo ra các kết quả không phù hợp)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Tìm kiếm gần đây</string>
+    <string name="searcher_placeholder_search">Tìm kiếm tệp và thư mục</string>
+    <string name="searcher_placeholder_filename">Tên tệp</string>
+    <string name="searcher_placeholder_content">Nội dung</string>
+    <string name="searcher_search_error">Lỗi tìm kiếm</string>
+    <string name="searcher_no_paths_hint">Nhấn + để thêm vị trí tìm kiếm</string>
+    <string name="searcher_add_path_action">Thêm vị trí</string>
+    <string name="searcher_add_folder_action">Thư mục…</string>
+    <string name="searcher_multipath_show_fewer_action">Ẩn bớt</string>
+    <string name="searcher_empty_state_title">Không có vị trí tìm kiếm nào được cấu hình</string>
+    <string name="searcher_empty_state_description">Thêm vị trí bộ nhớ để tìm kiếm các tệp của bạn</string>
+    <string name="searcher_add_default_paths_action">Thêm vị trí tìm kiếm mặc định</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Tùy chọn</string>
+    <string name="searcher_option_case_sensitive_label">Phân biệt chữ hoa chữ thường</string>
+    <string name="searcher_option_case_sensitive_desc">Tìm kiếm phân biệt chữ hoa chữ thường</string>
+    <string name="searcher_option_whole_word_label">Từ nguyên vẹn</string>
+    <string name="searcher_option_whole_word_desc">Tìm kiếm từ nguyên vẹn</string>
+    <string name="searcher_option_regex_label">Biểu thức chính quy</string>
+    <string name="searcher_option_regex_desc">Tìm kiếm biểu thức chính quy</string>
+    <string name="searcher_option_search_content_label">Tìm kiếm nội dung</string>
+    <string name="searcher_option_search_content_desc">Tìm kiếm nội dung tệp</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Mẫu</string>
+    <string name="searcher_templates_card_title">Mẫu tìm kiếm nhanh</string>
+    <string name="searcher_template_large_files">Tệp lớn</string>
+    <string name="searcher_template_large_files_desc">Tệp lớn hơn 100 MB</string>
+    <string name="searcher_template_recent_files">Tệp gần đây</string>
+    <string name="searcher_template_recent_files_desc">Đã sửa đổi trong 7 ngày qua</string>
+    <string name="searcher_template_old_files">Tệp cũ</string>
+    <string name="searcher_template_old_files_desc">Chưa sửa đổi trong hơn một năm</string>
+    <string name="searcher_template_images">Hình ảnh</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Video</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Âm thanh</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Tài liệu</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Tệp lưu trữ</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APK</string>
+    <string name="searcher_template_apks_desc">Gói ứng dụng Android</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="other">%d mẫu</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Bộ lọc</string>
+    <string name="searcher_filter_add_action">Thêm bộ lọc</string>
+    <string name="searcher_filter_title">Bộ lọc tìm kiếm</string>
+    <string name="searcher_filter_size_section">Kích thước tệp</string>
+    <string name="searcher_filter_size_min">Kích thước tối thiểu</string>
+    <string name="searcher_filter_size_max">Kích thước tối đa</string>
+    <string name="searcher_filter_date_section">Ngày sửa đổi</string>
+    <string name="searcher_filter_date_after">Sửa đổi sau</string>
+    <string name="searcher_filter_date_before">Sửa đổi trước</string>
+    <string name="searcher_filter_date_any">Bất kỳ lúc nào</string>
+    <string name="searcher_filter_date_24h">24 giờ qua</string>
+    <string name="searcher_filter_date_7d">7 ngày qua</string>
+    <string name="searcher_filter_date_30d">30 ngày qua</string>
+    <string name="searcher_filter_date_90d">90 ngày qua</string>
+    <string name="searcher_filter_date_1y">Năm qua</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">lớn hơn</string>
+    <string name="searcher_filter_comparator_greater_or_equal">lớn hơn hoặc bằng</string>
+    <string name="searcher_filter_comparator_less_than">nhỏ hơn</string>
+    <string name="searcher_filter_comparator_less_or_equal">nhỏ hơn hoặc bằng</string>
+    <string name="searcher_filter_comparator_equal">bằng</string>
+    <string name="searcher_filter_size_value_label">Kích thước</string>
+    <string name="searcher_filter_size_at_least">Ít nhất</string>
+    <string name="searcher_filter_size_at_most">Nhiều nhất</string>
+    <string name="searcher_filter_size_value_hint">ví dụ: 10 MB</string>
+    <string name="searcher_filter_size_format_help">Nhập một số có đơn vị (KB, MB, GB). Một số không có đơn vị sẽ được coi là MB.</string>
+    <string name="searcher_filter_size_format_error">Kích thước không hợp lệ — hãy sử dụng số và đơn vị, ví dụ: 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Ngày</string>
+    <string name="searcher_filter_date_direction_after">Sau</string>
+    <string name="searcher_filter_date_direction_before">Trước</string>
+    <string name="searcher_filter_type_label">Loại</string>
+    <string name="searcher_filter_type_files">Tệp</string>
+    <string name="searcher_filter_type_directories">Thư mục</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Xóa khỏi lịch sử</string>
+    <string name="searcher_history_clear_all_action">Xóa tất cả</string>
+    <string name="searcher_history_clear_dialog_title">Xóa lịch sử tìm kiếm</string>
+    <string name="searcher_history_clear_dialog_message">Thao tác này sẽ xóa tất cả lịch sử tìm kiếm đã lưu. Không thể hoàn tác thao tác này.</string>
+    <string name="searcher_history_clear_confirm_action">Xóa</string>
+    <string name="searcher_history_cleared_success">Lịch sử tìm kiếm đã được xóa</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">Không có kết quả</item>
+        <item quantity="other">%d kết quả</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="other">Hiển thị thêm %d</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Đang tìm kiếm</string>
+    <string name="searcher_progress_action_searched">Đã tìm kiếm</string>
+    <string name="searcher_progress_status_completed_with_errors">Hoàn thành với các lỗi</string>
+    <string name="searcher_result_limit_reached">Đã đạt giới hạn kết quả</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Một số mục không thể tìm kiếm đầy đủ</string>
+    <string name="searcher_progress_clear_action">Xóa</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="other">%d lần thất bại</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="other">%d mục không thể truy cập</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="other">…và %d mục khác</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android bảo vệ các vị trí này. Cho phép truy cập bổ sung sẽ giúp Butler tìm kiếm trong chúng.</string>
+    <string name="searcher_access_sheet_body_protected">Android bảo vệ các vị trí này. Không có cách nào để cấp quyền truy cập trên thiết bị này.</string>
+    <string name="searcher_access_sheet_unlock_action">Mở khóa quyền truy cập</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="other">%d vị trí</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="other">%d đã quét</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="other">%d tìm thấy</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Bối cảnh khớp</string>
+    <string name="searcher_match_line_label">Dòng %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Mở</string>
+    <string name="searcher_action_open_in_tab">Mở trong thẻ mới</string>
+    <string name="searcher_action_open_with">Mở bằng</string>
+    <string name="searcher_action_open_in_editor">Mở trong trình soạn thảo</string>
+    <string name="searcher_action_open_in_explorer">Mở trong trình duyệt tệp</string>
+    <string name="searcher_action_install">Cài đặt</string>
+    <string name="searcher_action_copy">Sao chép</string>
+    <string name="searcher_action_cut">Cắt</string>
+    <string name="searcher_action_delete">Xóa</string>
+    <string name="searcher_action_copy_path">Sao chép đường dẫn</string>
+    <string name="searcher_action_properties">Thuộc tính</string>
+    <string name="searcher_action_select_all">Chọn tất cả</string>
+    <string name="searcher_action_deselect_all">Bỏ chọn tất cả</string>
+    <string name="searcher_action_open_in_new_tabs">Mở trong các thẻ mới</string>
+    <string name="searcher_action_sort">Sắp xếp</string>
+    <string name="searcher_action_view">Bố cục</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Sắp xếp theo</string>
+    <string name="searcher_sort_mode_name_label">Tên</string>
+    <string name="searcher_sort_mode_size_label">Kích thước</string>
+    <string name="searcher_sort_mode_modified_label">Ngày sửa đổi</string>
+    <string name="searcher_sort_mode_created_label">Ngày tạo</string>
+    <string name="searcher_sort_mode_path_label">Đường dẫn</string>
+    <string name="searcher_sort_descending_label">Thứ tự giảm dần</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Cách sắp xếp các mục và mức độ chi tiết được hiển thị</string>
+    <string name="searcher_view_mode_list_label">Danh sách</string>
+    <string name="searcher_view_mode_grid_label">Lưới</string>
+    <string name="searcher_view_density_compact_label">Gọn</string>
+    <string name="searcher_view_density_comfortable_label">Thoải mái</string>
+    <string name="searcher_view_density_detailed_label">Chi tiết</string>
+    <string name="searcher_view_detail_modified_label">Đã sửa đổi</string>
+    <string name="searcher_view_set_default_action">Đặt làm mặc định</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Cần cấu hình bổ sung để tìm kiếm một số vị trí.</string>
+</resources>

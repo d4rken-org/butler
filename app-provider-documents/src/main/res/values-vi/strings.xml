@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Truy cập thiết bị nâng cao</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Thiết bị</string>
+    <string name="documents_connection_device_summary">Bộ nhớ thiết bị cục bộ</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Hệ thống tệp gốc</string>
+    <string name="provider_documents_storage_internal_label">Bộ nhớ nội bộ</string>
+    <string name="provider_documents_storage_sd_card_label">Thẻ SD</string>
+    <string name="provider_documents_storage_saf_label">Vị trí SAF</string>
+    <string name="provider_documents_storage_free_suffix">còn trống</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">Cần quyền truy cập root để duyệt vị trí này. Bật quyền truy cập root trong cài đặt ứng dụng Butler.</string>
+    <string name="provider_documents_error_requires_adb">Cần quyền truy cập ADB/Shizuku để duyệt vị trí này. Bật Shizuku trong cài đặt ứng dụng Butler.</string>
+    <string name="provider_documents_error_requires_storage">Cần quyền truy cập bộ nhớ để duyệt vị trí này. Cấp quyền truy cập bộ nhớ trong cài đặt ứng dụng Butler.</string>
+    <string name="provider_documents_error_requires_permissions">Cần quyền bổ sung để duyệt vị trí này. Kiểm tra cài đặt ứng dụng Butler.</string>
+    <string name="provider_documents_error_generic">Không thể truy cập vị trí này. Kiểm tra ứng dụng Butler để tìm các tùy chọn truy cập.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Documents Provider</string>
+    <string name="provider_documents_settings_subtitle">Tích hợp ứng dụng bên ngoài</string>
+    <string name="provider_documents_settings_category_integration_label">Tích hợp</string>
+    <string name="provider_documents_enabled_title">Bật Documents Provider</string>
+    <string name="provider_documents_enabled_desc">Cho phép các ứng dụng khác truy cập tệp thông qua Butler bằng bộ chọn tệp của Android</string>
+</resources>

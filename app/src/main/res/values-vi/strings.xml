@@ -1,0 +1,523 @@
+<resources>
+    <string name="onboarding_welcome_title">Chào mừng đến với Butler</string>
+    <string name="onboarding_welcome_message">Thẻ cho tệp.\nDuyệt, tìm kiếm và chỉnh sửa — tất cả cùng lúc.</string>
+    <string name="onboarding_welcome_subtitle">Mã nguồn mở. Không quảng cáo. Không theo dõi.\nTrình duyệt tệp bạn xứng đáng có.</string>
+    <string name="onboarding_welcome_action">Bắt đầu khám phá</string>
+    <string name="onboarding_beta_title">Định hình tương lai</string>
+    <string name="onboarding_beta_message">Đây là bản beta (thử nghiệm). Hãy tiếp tục với chút hài hước và một kế hoạch sao lưu. Vui lòng báo cáo các sự cố bạn gặp phải.</string>
+    <string name="onboarding_beta_action">Tôi chẳng sợ gì cả</string>
+    <string name="onboarding_beta_feature_early_access_title">Truy cập sớm</string>
+    <string name="onboarding_beta_feature_early_access_description">Trải nghiệm các tính năng tiên tiến trước mọi người.</string>
+    <string name="onboarding_beta_feature_influence_title">Tác động trực tiếp</string>
+    <string name="onboarding_beta_feature_influence_description">Phản hồi của bạn định hình quá trình phát triển Butler.</string>
+    <string name="onboarding_beta_feature_feedback_title">Do cộng đồng dẫn dắt</string>
+    <string name="onboarding_beta_feature_feedback_description">Tham gia cộng đồng người dùng chuyên sâu đang cải thiện Butler.</string>
+    <string name="onboarding_privacy_title">Quyền riêng tư &amp; dữ liệu</string>
+    <string name="onboarding_privacy_message">Butler không có quảng cáo và không bán dữ liệu người dùng. Quyền riêng tư của bạn rất quan trọng đối với tôi.</string>
+    <string name="onboarding_privacy_read_action">Đọc chính sách quyền riêng tư</string>
+    <string name="onboarding_privacy_action">Đồng ý</string>
+    <string name="onboarding_skip_action">Bỏ qua</string>
+    <string name="onboarding_progress_step">%1$d trên %2$d</string>
+
+    <string name="onboarding_workspaces_title">Làm việc theo thẻ</string>
+    <string name="onboarding_workspaces_message">Mở nhiều thẻ và chuyển đổi giữa chúng — giống như trình duyệt web của bạn.</string>
+    <string name="onboarding_workspaces_action">Tiếp tục</string>
+    <string name="onboarding_workspaces_hint">Giữ nhiều thẻ mở cùng lúc.</string>
+    <string name="onboarding_workspaces_explorer_title">Trình duyệt tệp</string>
+    <string name="onboarding_workspaces_explorer_description">Duyệt tệp của bạn.</string>
+    <string name="onboarding_workspaces_searcher_title">Tìm kiếm</string>
+    <string name="onboarding_workspaces_searcher_description">Tìm mọi thứ.</string>
+    <string name="onboarding_workspaces_editor_title">Trình soạn thảo</string>
+    <string name="onboarding_workspaces_editor_description">Chỉnh sửa tệp.</string>
+    <string name="onboarding_workspaces_templates_title">Mẫu</string>
+    <string name="onboarding_workspaces_templates_description">Lưu lại thiết lập của bạn.</string>
+    <string name="onboarding_workspaces_apps_description">Quản lý ứng dụng của bạn.</string>
+
+    <!-- Lối tắt Trình duyệt tệp -->
+    <string name="shortcut_explorer_new_short">Trình duyệt tệp mới</string>
+    <string name="shortcut_explorer_new_long">Tạo thẻ trình duyệt tệp mới</string>
+
+    <!-- Cài đặt lối tắt -->
+    <string name="shortcuts_settings_title">Lối tắt</string>
+    <string name="shortcuts_settings_subtitle">Cấu hình lối tắt trên màn hình chính</string>
+    <string name="shortcuts_settings_enabled_title">Bật lối tắt</string>
+    <string name="shortcuts_settings_enabled_subtitle">Hiển thị các mục thường dùng trên màn hình chính</string>
+    <string name="shortcuts_settings_auto_remember_title">Ghi nhớ các đường dẫn đã truy cập</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Tự động thêm các đường dẫn thường truy cập làm lối tắt</string>
+    <string name="shortcuts_settings_last_accessed_title">Truy cập gần nhất</string>
+    <string name="shortcuts_settings_max_count_title">Số lối tắt tối đa</string>
+    <string name="shortcuts_settings_max_count_subtitle">Hiện đang hiển thị %d lối tắt</string>
+    <string name="shortcuts_settings_min_access_title">Số lần truy cập tối thiểu</string>
+    <string name="shortcuts_settings_min_access_subtitle">Yêu cầu %d lần truy cập trước khi hiển thị</string>
+    <string name="shortcuts_settings_current_title">Lối tắt hiện tại</string>
+    <string name="shortcuts_settings_current_subtitle">%d lối tắt đang được theo dõi</string>
+    <string name="shortcuts_settings_clear_title">Xóa lịch sử lối tắt</string>
+    <string name="shortcuts_settings_clear_subtitle">Xóa tất cả lối tắt đang theo dõi</string>
+    <string name="shortcuts_settings_clear_confirm_title">Xóa lịch sử lối tắt?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Thao tác này sẽ xóa tất cả lối tắt đang theo dõi. Các mục đánh dấu sẽ được giữ lại.</string>
+    <string name="shortcuts_settings_cleared_message">Đã xóa lịch sử lối tắt</string>
+    <string name="shortcuts_settings_max_dialog_title">Số lối tắt tối đa</string>
+    <string name="shortcuts_settings_max_dialog_message">Số lượng lối tắt hiển thị trên màn hình chính (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Số lần truy cập tối thiểu</string>
+    <string name="shortcuts_settings_min_dialog_message">Số lần một đường dẫn phải được truy cập trước khi xuất hiện dưới dạng lối tắt (1–10)</string>
+
+    <string name="setup_usagestats_title">Thống kê sử dụng</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Quyền truy cập thông báo</string>
+    <string name="setup_manage_storage_card_title">Quản lý bộ nhớ ngoài</string>
+    <string name="setup_inventory_card_title">Danh sách ứng dụng</string>
+
+    <string name="setup_title">Thiết lập quyền</string>
+    <string name="setup_settings_description">Cấu hình quyền và tính năng của ứng dụng.</string>
+    <string name="setup_help_description">Trợ giúp</string>
+
+    <string name="setup_root_description">Cho phép truy cập vào tệp hệ thống và thư mục được bảo vệ để quản lý tệp nâng cao. Mở khóa toàn bộ tiềm năng của Butler, bao gồm truy cập dữ liệu ứng dụng và chỉnh sửa hệ thống. Thiết bị phải được root.</string>
+    <string name="setup_shizuku_description">Một giải pháp thay thế cho root, cung cấp các thao tác tệp đặc quyền thông qua API an toàn. Cho phép truy cập vào thư mục bị hạn chế mà không cần root truyền thống. Yêu cầu ứng dụng Shizuku đã được cài đặt và đang chạy.</string>
+    <string name="setup_notification_description">Hiển thị cập nhật cho các thao tác tệp, tác vụ nền và tiến trình chuyển tệp. Giúp bạn luôn nắm được khi thao tác hoàn tất hoặc xảy ra lỗi.</string>
+    <string name="setup_usagestats_description">Phân tích dung lượng lưu trữ của ứng dụng để xác định tệp lớn và giúp quản lý dung lượng hiệu quả. Mọi dữ liệu đều được giữ trên thiết bị của bạn và không bao giờ được truyền đi.</string>
+    <string name="setup_storage_description">Toàn quyền truy cập vào bộ nhớ thiết bị để thao tác tệp nhanh và xử lý hàng loạt. Cho phép quản lý tệp toàn diện mà không cần yêu cầu quyền lặp lại.</string>
+    <string name="setup_inventory_description">Xem tất cả ứng dụng đã cài đặt cho các tính năng như trích xuất APK và phân tích dung lượng. Bắt buộc trên Android 11+ để xem danh sách ứng dụng đầy đủ.</string>
+
+    <string name="setup_grant_access_label">Cấp quyền truy cập</string>
+    <string name="setup_access_granted_label">Đã cấp quyền truy cập</string>
+    <string name="setup_use_root_label">Dùng root nếu có</string>
+    <string name="setup_use_shizuku_label">Dùng Shizuku nếu có</string>
+
+    <string name="setup_status_checking">Đang kiểm tra…</string>
+    <string name="setup_status_completed">Đã cấu hình</string>
+    <string name="setup_status_required">Bắt buộc</string>
+    <string name="setup_status_optional">Tùy chọn</string>
+    <string name="setup_status_connected">Đã kết nối</string>
+    <string name="setup_status_not_connected">Chưa kết nối</string>
+    <string name="setup_status_not_installed">Chưa cài đặt</string>
+    <string name="setup_status_connecting">Đang kết nối…</string>
+    <string name="setup_status_connection_failed">Kết nối thất bại</string>
+    <string name="setup_status_unavailable">Không khả dụng</string>
+
+    <!-- Nhật ký gỡ lỗi -->
+    <string name="debug_notification_channel_label">Thông báo gỡ lỗi</string>
+    <string name="debug_log_consent_title">Nhật ký gỡ lỗi</string>
+    <string name="debug_log_consent_explanation">Tính năng này ghi lại mọi hoạt động của ứng dụng vào một tệp có thể chia sẻ. Tệp tạo ra chứa thông tin nhạy cảm (ví dụ: tên tệp và ứng dụng đã cài đặt). Chỉ chia sẻ với bên đáng tin cậy (ví dụ: nhà phát triển đang khắc phục sự cố).</string>
+    <string name="debug_log_recording_progress">Đang ghi nhật ký gỡ lỗi</string>
+    <string name="debug_log_record_action">Ghi</string>
+    <string name="debug_log_record_full_action">Ghi nhật ký gỡ lỗi</string>
+    <string name="debug_log_stop_action">Dừng ghi</string>
+    <string name="debug_log_screen_title">Trình ghi nhật ký gỡ lỗi</string>
+    <string name="debug_log_screen_sensitive_information_message">Tệp tạo ra chứa thông tin nhạy cảm (ví dụ: tên tệp và ứng dụng đã cài đặt). Chỉ chia sẻ với bên đáng tin cậy.</string>
+    <string name="debug_log_screen_session_path_label">Đường dẫn phiên gỡ lỗi</string>
+    <string name="debug_log_screen_log_files_label">Tệp nhật ký</string>
+    <string name="debug_log_screen_log_files_ready">Tệp nhật ký đã sẵn sàng (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Hủy bỏ</string>
+    <string name="debug_log_file_label">Tệp nhật ký đã ghi</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">Đang ghi tệp nhật ký</string>
+    <string name="debug_banner_stop_action">Dừng</string>
+    <string name="debug_banner_view_action">Xem</string>
+    <string name="debug_banner_explanation">Đang ghi lại hoạt động của ứng dụng. Dừng khi xong, sau đó chia sẻ nhật ký khi báo cáo lỗi.</string>
+    <string name="debug_log_short_recording_title">Bản ghi rất ngắn</string>
+    <string name="debug_log_short_recording_message">Nhật ký gỡ lỗi ghi lại những gì xảy ra trong lúc đang ghi. Hãy bắt đầu ghi, tái hiện sự cố, rồi dừng lại. Bản ghi này có thể không chứa thông tin hữu ích.</string>
+    <string name="debug_log_short_recording_keep_action">Giữ lại bản ghi</string>
+
+    <string name="debug_logview_screen_title">Trình xem nhật ký</string>
+    <string name="debug_logview_pause_action">Tạm dừng (đóng băng màn hình hiển thị)</string>
+    <string name="debug_logview_resume_action">Tiếp tục</string>
+    <string name="debug_logview_copy_action">Sao chép nhật ký</string>
+    <string name="debug_logview_collapse_action">Thu gọn</string>
+    <string name="debug_logview_close_action">Đóng bảng nhật ký</string>
+    <string name="debug_logview_resize_action">Thay đổi kích thước</string>
+    <string name="debug_logview_more_action">Thêm tùy chọn</string>
+    <string name="debug_logview_level_action">Mức độ nhật ký</string>
+    <string name="debug_logview_clear_action">Xóa bộ đệm</string>
+    <string name="debug_logview_search_action">Tìm kiếm</string>
+    <string name="debug_logview_search_clear_action">Xóa tìm kiếm</string>
+    <string name="debug_logview_search_close_action">Đóng tìm kiếm</string>
+    <string name="debug_logview_search_prev_action">Kết quả trước</string>
+    <string name="debug_logview_search_next_action">Kết quả tiếp theo</string>
+    <string name="debug_logview_jump_to_bottom_action">Đến mục mới nhất</string>
+    <string name="debug_logview_paused_msg">Đã tạm dừng — màn hình hiển thị đang đóng băng</string>
+    <string name="debug_logview_paused_new_msg">Đã tạm dừng — %1$d dòng mới kể từ đó</string>
+    <string name="debug_logview_copied_msg">Đã sao chép nhật ký vào bộ nhớ tạm</string>
+    <string name="debug_logview_copied_truncated_msg">Đã sao chép %1$d dòng cuối vào bộ nhớ tạm</string>
+    <string name="debug_logview_share_label">Chia sẻ nhật ký</string>
+
+    <string name="settings_label">Cài đặt</string>
+    <string name="settings_category_tools_label">Công cụ</string>
+    <string name="settings_category_other_label">Khác</string>
+    <string name="settings_category_integration_label">Tích hợp</string>
+    <string name="general_settings_label">Chung</string>
+    <string name="general_settings_desc">Các tùy chỉnh chung ảnh hưởng đến toàn bộ ứng dụng.</string>
+    <string name="settings_category_ui_label">Giao diện người dùng</string>
+    <string name="ui_mascot_suit_setting_label">Trang phục của Butler</string>
+    <string name="ui_mascot_suit_setting_explanation">Màu sắc trang phục của Butler được may từ đó.</string>
+    <string name="ui_theme_mode_setting_label">Chế độ giao diện</string>
+    <string name="ui_theme_mode_setting_explanation">Chế độ được dùng khi tạo giao diện cho ứng dụng (ví dụ: ban đêm hoặc ban ngày).</string>
+    <string name="ui_theme_style_setting_label">Kiểu giao diện</string>
+    <string name="ui_theme_style_setting_explanation">Kiểu màu sắc được dùng khi tạo giao diện cho ứng dụng.</string>
+    <string name="ui_theme_color_setting_label">Màu giao diện</string>
+    <string name="ui_theme_color_setting_explanation">Bảng màu được dùng để tạo giao diện cho ứng dụng.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Màu sắc được cung cấp bởi Material You từ hình nền của bạn</string>
+    <string name="ui_theme_color_value_system">Màu hệ thống</string>
+    <string name="ui_language_override_label">Ngôn ngữ ứng dụng</string>
+    <string name="ui_language_override_desc">Chọn một ngôn ngữ khác cho Butler, độc lập với ngôn ngữ mặc định của hệ thống.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Tránh phần khuyết màn hình</string>
+    <string name="ui_display_cutout_avoid_setting_description">Giữ cho giao diện không bị che bởi phần khuyết camera. Tắt để sử dụng nhiều diện tích màn hình hơn, nhưng khi đó một số phần của giao diện có thể nằm khuất sau phần khuyết.</string>
+
+    <string name="previews_settings_title">Xem trước</string>
+    <string name="previews_settings_subtitle">Quản lý bộ nhớ đệm xem trước hình ảnh.</string>
+
+    <string name="tour_settings_reset_title">Đặt lại hướng dẫn</string>
+    <string name="tour_settings_reset_subtitle">Hiển thị lại các hướng dẫn, kể cả những hướng dẫn bạn đã bỏ qua hoặc tắt.</string>
+    <string name="tour_settings_reset_done">Đã đặt lại các hướng dẫn.</string>
+
+    <string name="storage_settings_title">Bộ nhớ</string>
+    <string name="storage_settings_subtitle">Quản lý bộ nhớ đệm, dung lượng lưu trữ và thùng rác của Butler.</string>
+    <string name="storage_category_previews_label">Xem trước</string>
+    <string name="storage_previews_disk_cache_title">Bộ nhớ đệm ổ đĩa</string>
+    <string name="storage_previews_memory_cache_title">Bộ nhớ đệm RAM</string>
+    <string name="storage_previews_max_size_title">Dung lượng bộ nhớ đệm tối đa</string>
+    <string name="storage_clear_disk_confirm_title">Xóa bộ nhớ đệm ổ đĩa?</string>
+    <string name="storage_clear_disk_confirm_message">Thao tác này sẽ xóa tất cả hình ảnh xem trước đã lưu đệm. Chúng sẽ được tạo lại khi cần.</string>
+    <string name="storage_clear_memory_confirm_title">Xóa bộ nhớ đệm RAM?</string>
+    <string name="storage_clear_memory_confirm_message">Thao tác này sẽ xóa hình ảnh xem trước đã lưu đệm khỏi bộ nhớ RAM. Chúng sẽ được tạo lại khi cần.</string>
+    <string name="storage_clear_all_confirm_title">Xóa tất cả bộ nhớ đệm?</string>
+    <string name="storage_clear_all_confirm_message">Thao tác này sẽ xóa cả bộ nhớ đệm ổ đĩa và RAM cho hình ảnh xem trước.</string>
+    <string name="storage_clear_all_previews_action">Xóa tất cả bộ nhớ đệm xem trước</string>
+    <string name="storage_clear_all_subtitle">Xóa tất cả bộ nhớ đệm xem trước</string>
+    <string name="storage_cache_cleared_message">Đã xóa bộ nhớ đệm</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">Kiểm tra cập nhật</string>
+    <string name="updater_check_enabled_setting_description">Cho phép Butler kiểm tra trực tuyến xem có phiên bản mới hay không.</string>
+    <string name="motd_check_enabled_setting_title">Kiểm tra thông báo</string>
+    <string name="motd_check_enabled_setting_description">Cho phép Butler lấy các thông báo quan trọng từ nhà phát triển.</string>
+    <string name="motd_card_header">Thông báo</string>
+
+    <string name="confirm_exit_setting_title">Xác nhận khi thoát</string>
+    <string name="confirm_exit_setting_description">Hiển thị hộp thoại xác nhận khi thoát ứng dụng.</string>
+    <string name="confirm_exit_dialog_title">Thoát Butler</string>
+    <string name="confirm_exit_dialog_message">Thao tác này sẽ đóng ứng dụng và quay về màn hình chính.</string>
+    <string name="confirm_exit_dialog_exit">Thoát</string>
+    <string name="confirm_exit_dialog_cancel">Hủy</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Không hỏi lại</string>
+
+    <string name="settings_support_category_help_label">Nhận trợ giúp</string>
+    <string name="settings_support_label">Hỗ trợ</string>
+    <string name="settings_support_description">Đọc tài liệu, báo cáo sự cố, trò chuyện với người khác hoặc ghi nhật ký gỡ lỗi.</string>
+    <string name="settings_support_wiki_label">Tài liệu</string>
+    <string name="settings_support_wiki_description">Tìm hiểu cách sử dụng Butler hiệu quả.</string>
+    <string name="settings_support_issue_tracker_description">Nơi công khai theo dõi sự cố cho báo cáo lỗi và yêu cầu tính năng.</string>
+    <string name="settings_support_issue_tracker_label">Theo dõi sự cố</string>
+    <string name="settings_support_debuglog_label">Nhật ký gỡ lỗi</string>
+    <string name="settings_support_debuglog_desc">Ghi lại mọi hoạt động của ứng dụng vào một tệp văn bản mà bạn có thể chia sẻ.</string>
+    <string name="settings_support_debuglog_recording_desc">Đang ghi thông tin gỡ lỗi. Nhấn để dừng ghi.</string>
+    <string name="settings_support_debuglog_path">Đường dẫn nhật ký: %1$s</string>
+    <string name="settings_support_bugreports_label">Báo cáo lỗi</string>
+    <string name="settings_support_bugreports_desc">Xem báo cáo sự cố, ghi nhật ký gỡ lỗi và chia sẻ chúng với tôi.</string>
+    <string name="support_contact_report_type_crash">Báo cáo sự cố</string>
+    <string name="support_contact_report_type_reported">Báo cáo lỗi</string>
+    <string name="support_contact_report_type_recording">Bản ghi</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Nơi trò chuyện và đặt câu hỏi.</string>
+
+    <string name="settings_acknowledgements_label">Lời cảm ơn</string>
+    <string name="settings_acknowledgements_description">Ghi công, giấy phép và lời cảm ơn đặc biệt.</string>
+    <string name="settings_acks_translation_header">Bản dịch</string>
+    <string name="settings_acks_translators_title">Người dịch</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Dịch Butler</string>
+    <string name="settings_acks_translate_desc">Giúp dịch Butler sang ngôn ngữ của bạn.</string>
+
+    <string name="settings_acks_thanks_header">Lời cảm ơn</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">Vì đã hỗ trợ dịch các dự án mã nguồn mở.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Cảm ơn vì biểu tượng, thiết kế linh vật và hoạt ảnh.</string>
+    <string name="settings_licenses_label">Giấy phép</string>
+
+    <!-- Thẻ trạng thái không gian làm việc -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="other">%1$d thẻ</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="other">%1$d thao tác</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="other">%1$d cần chú ý</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="other">%1$d chưa lưu</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="other">%1$d tạm dừng</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">Hiển thị tất cả thẻ</string>
+    <string name="workspace_status_filter_operations_desc">Lọc theo thẻ có thao tác</string>
+    <string name="workspace_status_filter_attention_desc">Lọc theo thẻ cần chú ý</string>
+    <string name="workspace_status_filter_paused_desc">Lọc theo thẻ đang tạm dừng</string>
+    <string name="workspace_status_filter_unsaved_desc">Lọc theo thẻ có thay đổi chưa lưu</string>
+
+    <!-- Lời cảm ơn -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Ngôn ngữ lập trình Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Một trình chèn phụ thuộc nhanh cho Android và Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Chạy mã Java (và Kotlin) với quyền root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Chạy mã Kotlin JVM có root dễ dàng hơn nhờ coroutine. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Sử dụng trực tiếp các API hệ thống với đặc quyền adb/root từ ứng dụng thông thường thông qua một tiến trình Java khởi chạy bằng app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Lottie của Airbnb cho Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Robot Android được sao chép hoặc chỉnh sửa từ tác phẩm do Google tạo ra và chia sẻ, được sử dụng theo các điều khoản mô tả trong Giấy phép Creative Commons 3.0 Attribution.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Bộ công cụ hiện đại của Android để xây dựng giao diện gốc. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Thư viện Jetpack</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation và các thư viện AndroidX khác. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Tiện ích mở rộng Kotlin</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Thư viện Coroutines và Serialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Thư viện tải hình ảnh dựa trên Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Các thành phần mật mã cơ bản cho xác thực, ký và mã hóa SMB. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Thư viện Square</string>
+    <string name="acknowledgement_square_libraries_subtitle">Thư viện mạng Retrofit, OkHttp và OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Các tiện ích cho Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Kéo và thả cho LazyColumn trong Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Thư viện đánh số phiên bản ngữ nghĩa cho Kotlin. (Giấy phép MIT)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Biểu đồ cho Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Chính sách quyền riêng tư</string>
+    <string name="settings_privacy_policy_desc">Xử lý dữ liệu có trách nhiệm.</string>
+
+
+    <string name="changelog_label">Nhật ký thay đổi</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Trạng thái nâng cấp Butler</string>
+    <string name="upgrade_status_free">Trạng thái: Miễn phí</string>
+    <string name="upgrade_status_pro">Trạng thái: Pro</string>
+    <string name="upgrade_status_foss">Trạng thái: FOSS</string>
+
+    <string name="storage_area_sdcard_label">Thẻ SD</string>
+    <string name="storage_area_public_label">Bộ nhớ công khai</string>
+    <string name="storage_area_public_app_data_label">Dữ liệu ứng dụng công khai</string>
+
+    <!-- Không gian làm việc -->
+    <!-- Không gian làm việc > Quản lý -->
+    <string name="workspace_manager_title">Quản lý thẻ</string>
+    <string name="workspace_manager_empty_title">Không có thẻ nào</string>
+    <string name="workspace_manager_empty_subtitle">Tạo thẻ đầu tiên để bắt đầu</string>
+
+    <!-- Không gian làm việc > Nội dung trống-->
+    <string name="workspace_empty_create_action">Tạo thẻ</string>
+    <string name="workspace_empty_create_hint">Làm việc song song: Tạo một thẻ và biến nó thành công cụ bạn muốn.</string>
+    <string name="workspace_empty_settings_action">Mở cài đặt</string>
+    <string name="workspace_empty_settings_hint">Tùy chỉnh Butler theo ý thích của bạn. Điều chỉnh cách các công cụ hoạt động.</string>
+    <string name="workspace_classic_empty_tabs_closed">Không có thẻ nào đang mở. Sẵn sàng khi bạn cần.</string>
+    <string name="workspace_classic_empty_tip">Mẹo: Nhấn “Tạo thẻ” và chọn một công cụ — Trình duyệt tệp, Tìm kiếm, Trình soạn thảo và nhiều hơn nữa.</string>
+
+    <!-- Không gian làm việc > Hướng dẫn -->
+    <string name="tour_first_tab_title">Bắt đầu với một thẻ</string>
+    <string name="tour_first_tab_body">Butler hoạt động theo thẻ, giống như trình duyệt: mỗi thẻ là một công cụ riêng — Trình duyệt tệp, Tìm kiếm, Trình soạn thảo và nhiều hơn nữa. Hãy tạo thẻ đầu tiên của bạn.</string>
+    <string name="tour_manager_fab_title">Lối tắt nhanh</string>
+    <string name="tour_manager_fab_body">Nhấn vào đây để có lối tắt đến các công cụ bạn dùng nhiều nhất, và để đóng tất cả thẻ cùng lúc.</string>
+    <string name="tour_manager_reorder_title">Sắp xếp lại thẻ của bạn</string>
+    <string name="tour_manager_reorder_body">Nhấn giữ thanh tiêu đề của một thẻ, sau đó kéo đến vị trí bạn muốn. Đây cũng là thứ tự thẻ xuất hiện ở mọi nơi khác.</string>
+    <string name="tour_manager_select_title">Thao tác trên nhiều thẻ</string>
+    <string name="tour_manager_select_body">Nhấn giữ hình xem trước của một thẻ để bắt đầu chọn thẻ. Sau đó nhấn vào các thẻ còn lại và đóng hoặc tạm dừng tất cả cùng lúc.</string>
+    <string name="tour_manager_new_tab_title">Bắt đầu một thẻ mới</string>
+    <string name="tour_manager_new_tab_body">Nhấn vào thẻ này để chọn bất kỳ công cụ nào cho một thẻ mới.</string>
+    <string name="tour_swipe_switch_title">Vuốt để chuyển thẻ</string>
+    <string name="tour_swipe_switch_body">Vuốt sang trái hoặc phải ở bất kỳ đâu trên trang để chuyển giữa các thẻ đang mở.</string>
+    <string name="tour_swipe_create_title">Vuốt để tạo thẻ mới</string>
+    <string name="tour_swipe_create_body">Vuốt qua thẻ cuối cùng và Butler sẽ đề nghị tạo cho bạn một thẻ mới.</string>
+    <string name="tour_swipe_panes_title">Nhiều hơn một thẻ cùng lúc</string>
+    <string name="tour_swipe_panes_body">Trên màn hình lớn hơn, hoặc ở chế độ ngang, Butler hiển thị nhiều thẻ cạnh nhau. Cài đặt bố cục trong mục Thẻ quyết định khi nào điều này xảy ra.</string>
+    <string name="tour_panes_rail_title">Tất cả thẻ của bạn</string>
+    <string name="tour_panes_rail_body">Mọi thẻ đang mở đều nằm ở đây. Nhấn vào một thẻ và chọn khung mà nó sẽ chuyển đến. Nhấn giữ một thẻ rồi kéo để thay đổi thứ tự.</string>
+    <string name="tour_panes_divider_title">Thay đổi kích thước khung</string>
+    <string name="tour_panes_divider_body">Kéo thanh chia này để nhường thêm không gian cho một khung.</string>
+    <string name="tour_panes_layout_title">Thay đổi cách sắp xếp</string>
+    <string name="tour_panes_layout_body">Nhấn nút Butler và chọn Bố cục để sắp xếp lại các khung. Cài đặt Thẻ sẽ ghim một bố cục riêng cho mỗi hướng màn hình.</string>
+
+    <string name="workspace_creating_placeholder">Đang tạo thẻ…</string>
+    <string name="workspace_ondemand_swipe_title">Vuốt để tạo thẻ mới</string>
+
+    <!-- Không gian làm việc thích ứng -->
+    <string name="workspace_adaptive_pane_ready">Khung %1$d đã sẵn sàng để hiển thị nội dung</string>
+    <string name="workspace_adaptive_add_action">Thêm thẻ</string>
+
+    <string name="workspace_badge_tip_title">Mẹo: Chỉ báo trên nút thẻ</string>
+    <string name="workspace_badge_open_workspaces">Số thẻ đang mở</string>
+    <string name="workspace_badge_active_operations">Thao tác đang hoạt động (sao chép tệp, tìm kiếm, v.v.)</string>
+    <string name="workspace_badge_attention_items">Mục cần chú ý (thao tác thất bại hoặc đang chờ, tệp không thể truy cập)</string>
+
+    <!-- Hành động quản lý không gian làm việc -->
+    <string name="workspace_manager_dismiss_content_desc">Đóng</string>
+    <string name="workspace_manager_selection_count">Đã chọn %1$d</string>
+    <string name="workspace_manager_selection_select_all">Chọn tất cả</string>
+    <string name="workspace_manager_selection_pause_action">Tạm dừng mục đã chọn</string>
+    <string name="workspace_manager_selection_close_action">Đóng mục đã chọn</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Thoát chế độ chọn</string>
+    <string name="workspace_manager_selection_clear_content_desc">Bỏ chọn tất cả</string>
+    <string name="workspace_manager_select_all_tabs_desc">Chọn tất cả thẻ</string>
+    <string name="workspace_manager_new_tab_card_title">Thẻ mới</string>
+    <string name="workspace_row_select_content_desc">Chọn thẻ</string>
+    <string name="general_cancel_action">Hủy</string>
+
+    <!-- Nút FAB quản lý không gian làm việc -->
+    <string name="workspace_fab_quick_shortcuts">Lối tắt nhanh</string>
+    <string name="workspace_fab_close_shortcuts">Đóng lối tắt</string>
+    <string name="workspace_fab_close_all">Đóng tất cả thẻ</string>
+
+    <!-- Thanh điều hướng không gian làm việc -->
+    <string name="workspace_pane_assign_action">Gán vào khung %1$d</string>
+    <string name="workspace_pane_show_action">Hiển thị</string>
+    <string name="workspace_pane_close_action">Đóng</string>
+    <string name="workspace_pane_unassign_action">Xóa khỏi khung</string>
+    <string name="workspace_dragging_description">Đang kéo</string>
+    <string name="workspace_pane_current_description">Trong khung %1$d</string>
+
+    <!-- Hàng quản lý không gian làm việc -->
+    <string name="workspace_row_close_content_desc">Đóng thẻ</string>
+    <string name="workspace_row_more_options_content_desc">Thêm tùy chọn</string>
+    <string name="workspace_row_operations_running_content_desc">Đang xử lý</string>
+    <string name="workspace_row_operations_pending_content_desc">Đang chờ xử lý</string>
+    <string name="workspace_row_pause_action">Tạm dừng</string>
+    <string name="workspace_row_resume_action">Tiếp tục</string>
+    <string name="workspace_row_stacked_content_desc">Xếp chồng trên thẻ này</string>
+    <string name="workspace_row_unsaved_content_desc">Thay đổi chưa lưu</string>
+
+    <!-- Mục lục cài đặt -->
+    <string name="workspace_settings_subtitle">Cấu hình cách hoạt động của thẻ.</string>
+    <string name="explorer_settings_subtitle">Cấu hình cách hoạt động của trình duyệt tệp.</string>
+    <string name="searcher_settings_subtitle">Cấu hình cách hoạt động của tìm kiếm.</string>
+    <string name="editor_settings_subtitle">Cấu hình cách hoạt động của trình soạn thảo văn bản.</string>
+    <string name="history_settings_subtitle">Lưu giữ và xóa lịch sử thao tác.</string>
+    <string name="clipboard_settings_subtitle">Cấu hình cách hoạt động của bộ nhớ tạm.</string>
+
+    <!-- Đích chia sẻ Saver -->
+    <string name="saver_share_label">Lưu dưới dạng…</string>
+
+    <!-- Đích chia sẻ tệp đơn -->
+    <string name="share_receive_label">Mở bằng Butler</string>
+
+    <!-- Đích chia sẻ Trình soạn thảo -->
+    <string name="editor_share_label">Chỉnh sửa văn bản</string>
+
+    <!-- Mở bằng: tệp do ứng dụng khác chuyển đến Butler -->
+    <string name="external_open_unknown_file_title">Tệp không tên</string>
+    <string name="external_open_action_view">Xem</string>
+    <string name="external_open_action_edit">Chỉnh sửa dưới dạng văn bản</string>
+    <string name="external_open_action_show_in_explorer">Hiển thị trong Trình duyệt tệp</string>
+    <string name="external_open_action_save">Lưu dưới dạng…</string>
+    <string name="external_open_failed_label">Không thể mở tệp</string>
+    <string name="external_open_failed_description">Butler không thể mở \"%1$s\".</string>
+
+    <!-- Chế độ nhà phát triển -->
+    <string name="settings_developer_mode_unlock_title">Bật Chế độ nhà phát triển?</string>
+    <string name="settings_developer_mode_unlock_message">Thao tác này sẽ mở khóa các công cụ chẩn đoán nâng cao để khắc phục sự cố và thử nghiệm.</string>
+    <string name="settings_developer_mode_unlock_action">Bật</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="other">Còn %d lần nữa để mở Chế độ nhà phát triển</item>
+    </plurals>
+
+    <!-- Hỗ trợ: Biểu mẫu liên hệ -->
+    <string name="support_contact_label">Liên hệ nhà phát triển</string>
+    <string name="support_contact_description">Điền vào biểu mẫu để gửi email cho tôi.</string>
+    <string name="support_contact_no_email_app">Không tìm thấy ứng dụng email</string>
+    <string name="support_contact_category_label">Danh mục</string>
+    <string name="support_contact_category_question">Câu hỏi</string>
+    <string name="support_contact_category_feature">Yêu cầu tính năng</string>
+    <string name="support_contact_category_bug">Báo cáo lỗi</string>
+    <string name="support_contact_workspace_label">Khu vực liên quan</string>
+    <string name="support_contact_workspace_general">Chung</string>
+    <string name="support_contact_workspace_explorer">Trình duyệt tệp</string>
+    <string name="support_contact_workspace_searcher">Tìm kiếm</string>
+    <string name="support_contact_workspace_editor">Trình soạn thảo</string>
+    <string name="support_contact_description_label">Mô tả</string>
+    <string name="support_contact_description_question_hint">Mô tả chi tiết câu hỏi của bạn. Vui lòng nêu cụ thể (tối thiểu 20 từ).</string>
+    <string name="support_contact_description_feature_hint">Mô tả tính năng bạn muốn có. Vui lòng nêu cụ thể (tối thiểu 20 từ).</string>
+    <string name="support_contact_description_bug_hint">Mô tả điều đã xảy ra và cách tái hiện sự cố. Vui lòng nêu cụ thể (tối thiểu 20 từ).</string>
+    <string name="support_contact_expected_label">Hành vi mong đợi</string>
+    <string name="support_contact_expected_hint">Mô tả điều bạn mong đợi sẽ xảy ra (tối thiểu 10 từ).</string>
+    <string name="support_contact_word_count">Tối thiểu %1$d từ</string>
+    <string name="support_contact_debuglog_label">Nhật ký gỡ lỗi</string>
+    <string name="support_contact_debuglog_empty">Không tìm thấy nhật ký gỡ lỗi nào. Hãy ghi một nhật ký trước.</string>
+    <string name="support_contact_debuglog_picker_hint">Đính kèm một nhật ký gỡ lỗi có sẵn, hoặc ghi một nhật ký mới.</string>
+    <string name="support_contact_send_action">Mở ứng dụng email</string>
+    <string name="support_contact_welcome">Tôi tự mình đọc từng tin nhắn và cố gắng trả lời hết sức có thể, nhưng vì làm việc một mình nên có thể mất chút thời gian. Cảm ơn bạn đã kiên nhẫn.</string>
+    <string name="support_contact_footer">Tin nhắn của bạn sẽ được gửi qua email. Thông tin thiết bị và thiết lập sẽ được đính kèm tự động. Bạn có thể đính kèm ảnh chụp màn hình hoặc video vào email.\n\nMột số phần của email sẽ bằng tiếng Anh để tôi dễ dàng hiểu hơn.</string>
+
+    <!-- Hỗ trợ: Bộ nhớ nhật ký gỡ lỗi -->
+    <string name="support_debuglog_storage_label">Bộ nhớ nhật ký gỡ lỗi</string>
+    <string name="support_debuglog_storage_description">%1$d phiên nhật ký, %2$s</string>
+    <string name="support_debuglog_storage_empty">Chưa lưu nhật ký gỡ lỗi nào</string>
+    <string name="support_debuglog_delete_action">Xóa tất cả nhật ký gỡ lỗi</string>
+    <string name="support_debuglog_delete_description">Xóa tất cả tệp nhật ký gỡ lỗi đã ghi</string>
+    <string name="support_debuglog_delete_confirm_title">Xóa tất cả nhật ký gỡ lỗi?</string>
+    <string name="support_debuglog_delete_confirm_message">Thao tác này sẽ xóa vĩnh viễn tất cả các phiên nhật ký gỡ lỗi đã ghi. Các bản ghi đang hoạt động sẽ không bị ảnh hưởng.</string>
+
+    <!-- Hỗ trợ: Hành động nhật ký gỡ lỗi -->
+    <string name="settings_support_debuglog_stop_action">Dừng ghi</string>
+    <string name="settings_support_debuglog_record_action">Ghi nhật ký gỡ lỗi</string>
+
+    <!-- Hỗ trợ: Bảng phiên gỡ lỗi -->
+    <string name="support_debuglog_sessions_label">Các phiên nhật ký gỡ lỗi</string>
+    <string name="support_debuglog_sessions_desc">Quản lý các phiên nhật ký gỡ lỗi đã ghi</string>
+    <string name="support_debuglog_sessions_empty">Không có phiên nhật ký gỡ lỗi nào</string>
+    <string name="support_debuglog_session_recording">Đang ghi…</string>
+    <string name="support_debuglog_session_compressing">Đang nén…</string>
+    <string name="support_debuglog_session_failed_empty_log">Thất bại: nhật ký trống</string>
+    <string name="support_debuglog_session_failed_missing_log">Thất bại: thiếu nhật ký</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Thất bại: tệp nén bị hỏng</string>
+    <string name="support_debuglog_session_failed_zip_failed">Thất bại: lỗi khi nén</string>
+    <string name="support_debuglog_session_delete_title">Xóa phiên gỡ lỗi?</string>
+    <string name="support_debuglog_session_delete_message">Thao tác này sẽ xóa vĩnh viễn phiên nhật ký gỡ lỗi này.</string>
+    <string name="support_debuglog_clear_action">Xóa tất cả</string>
+    <string name="support_debuglog_clear_confirm_message">Xóa tất cả các phiên nhật ký gỡ lỗi đã lưu?</string>
+
+    <!-- Màn hình nhật ký gỡ lỗi -->
+    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_screen_subtitle">Xuất thông tin gỡ lỗi để khắc phục sự cố</string>
+    <string name="debug_log_screen_sensitive_information_title">Thông tin nhạy cảm</string>
+
+    <!-- Hỗ trợ: Biểu mẫu liên hệ -->
+    <string name="support_contact_sent_title">Bạn đã gửi tin nhắn chưa?</string>
+    <string name="support_contact_sent_message">Nếu tin nhắn đã được gửi, nhật ký gỡ lỗi đính kèm sẽ bị xóa để tiết kiệm dung lượng. Nếu chưa, bạn có thể giữ lại và thử lại sau.</string>
+    <string name="support_contact_debuglog_zip_error">Không thể chuẩn bị tệp đính kèm nhật ký gỡ lỗi</string>
+
+    <!-- Thao tác tệp nền: thông báo tiến trình & cảnh báo -->
+    <string name="ops_notification_channel_progress_name">Tiến trình thao tác tệp</string>
+    <string name="ops_notification_channel_progress_desc">Tiến trình đang diễn ra cho các thao tác sao chép, di chuyển và xóa</string>
+    <string name="ops_notification_channel_attention_name">Cảnh báo thao tác tệp</string>
+    <string name="ops_notification_channel_attention_desc">Các thao tác cần bạn chú ý hoặc đã thất bại</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="other">%1$d thao tác tệp đang chạy</item>
+    </plurals>
+    <string name="ops_notification_state_queued">Đang xếp hàng…</string>
+    <string name="ops_notification_state_cancelling">Đang hủy…</string>
+    <string name="ops_notification_state_attention_title">Cần thao tác</string>
+    <string name="ops_notification_state_attention_text">Có xung đột cần bạn chú ý — nhấn để giải quyết</string>
+    <string name="ops_notification_result_failed_title">Thao tác thất bại</string>
+
+    <!-- Lời nhắc đánh giá -->
+    <string name="review_app_body">Bạn có muốn để lại đánh giá cho Butler không? ❤️</string>
+    <string name="review_app_dismiss_action">Để sau</string>
+    <string name="review_app_review_action">Đánh giá</string>
+
+</resources>

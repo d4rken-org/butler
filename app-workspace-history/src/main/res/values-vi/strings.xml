@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">Lịch sử</string>
+    <string name="history_workspace_subtitle">Thao tác tệp gần đây</string>
+    <string name="history_workspace_title_scoped">Lịch sử: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">Lịch sử: Thất bại</string>
+    <string name="history_workspace_title_outcome_partial">Lịch sử: Một phần</string>
+    <string name="history_workspace_title_outcome_cancelled">Lịch sử: Đã hủy</string>
+    <string name="history_workspace_title_outcome_completed">Lịch sử: Hoàn thành</string>
+    <string name="history_workspace_title_kind_copy">Lịch sử: Sao chép</string>
+    <string name="history_workspace_title_kind_move">Lịch sử: Di chuyển</string>
+    <string name="history_workspace_title_kind_delete">Lịch sử: Xóa</string>
+    <string name="history_workspace_title_kind_create_file">Lịch sử: Tạo tệp</string>
+    <string name="history_workspace_title_kind_create_folder">Lịch sử: Tạo thư mục</string>
+    <string name="history_workspace_title_kind_save">Lịch sử: Lưu</string>
+    <string name="history_workspace_title_kind_compress">Lịch sử: Nén</string>
+    <string name="history_workspace_title_kind_extract">Lịch sử: Giải nén</string>
+    <string name="history_workspace_title_filtered">Lịch sử (lọc)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="other">Lịch sử: %1$d đường dẫn</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Tất cả</string>
+    <string name="history_filter_outcome_completed">Hoàn thành</string>
+    <string name="history_filter_outcome_partial">Một phần</string>
+    <string name="history_filter_outcome_failed">Thất bại</string>
+    <string name="history_filter_outcome_cancelled">Đã hủy</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Sao chép</string>
+    <string name="history_filter_kind_move">Di chuyển</string>
+    <string name="history_filter_kind_delete">Xóa</string>
+    <string name="history_filter_kind_create_file">Tạo tệp</string>
+    <string name="history_filter_kind_create_folder">Tạo thư mục</string>
+    <string name="history_filter_kind_save">Lưu</string>
+    <string name="history_filter_kind_compress">Nén</string>
+    <string name="history_filter_kind_extract">Giải nén</string>
+    <string name="history_filter_kind_enable">Bật</string>
+    <string name="history_filter_kind_disable">Tắt</string>
+    <string name="history_filter_kind_force_stop">Buộc dừng</string>
+    <string name="history_filter_kind_uninstall">Gỡ cài đặt</string>
+    <string name="history_filter_kind_clear_data">Xóa dữ liệu</string>
+    <string name="history_filter_kind_components">Thành phần</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Đặt phạm vi đường dẫn…</string>
+    <string name="history_path_scope_clear_action">Xóa phạm vi đường dẫn</string>
+    <string name="history_path_scope_dialog_title">Lọc theo đường dẫn</string>
+    <string name="history_path_scope_dialog_description">Chỉ hiển thị thao tác ảnh hưởng đến đường dẫn này hoặc các thư mục con của nó.</string>
+    <string name="history_path_scope_dialog_input_label">Đường dẫn</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Chọn thư mục…</string>
+    <string name="history_path_scope_dialog_apply_action">Áp dụng</string>
+    <string name="history_path_scope_dialog_cancel_action">Hủy</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Hôm nay</string>
+    <string name="history_group_yesterday">Hôm qua</string>
+    <string name="history_group_this_week">Tuần này</string>
+    <string name="history_group_this_month">Tháng này</string>
+    <string name="history_group_older">Cũ hơn</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Đã đổi tên</string>
+    <string name="history_entry_intent_paste_copy">Đã dán</string>
+    <string name="history_entry_intent_paste_move">Đã dán (di chuyển)</string>
+    <string name="history_entry_intent_drop_copy">Đã thả (sao chép)</string>
+    <string name="history_entry_intent_drop_move">Đã thả (di chuyển)</string>
+    <string name="history_entry_intent_enable_components">Đã bật thành phần của</string>
+    <string name="history_entry_intent_disable_components">Đã tắt thành phần của</string>
+    <string name="history_entry_kind_copy">Đã sao chép</string>
+    <string name="history_entry_kind_move">Đã di chuyển</string>
+    <string name="history_entry_kind_delete">Đã xóa</string>
+    <string name="history_entry_kind_create_file">Đã tạo tệp</string>
+    <string name="history_entry_kind_create_folder">Đã tạo thư mục</string>
+    <string name="history_entry_kind_save">Đã lưu</string>
+    <string name="history_entry_kind_compress">Đã nén</string>
+    <string name="history_entry_kind_extract">Đã giải nén</string>
+    <string name="history_entry_kind_restore">Đã khôi phục</string>
+    <string name="history_entry_kind_install">Đã cài đặt</string>
+    <string name="history_entry_kind_enable">Đã bật</string>
+    <string name="history_entry_kind_disable">Đã tắt</string>
+    <string name="history_entry_kind_force_stop">Đã buộc dừng</string>
+    <string name="history_entry_kind_uninstall">Đã gỡ cài đặt</string>
+    <string name="history_entry_kind_clear_data">Đã xóa dữ liệu của</string>
+    <string name="history_entry_kind_components">Đã thay đổi thành phần của</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="other">%d đường dẫn</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">Đầu tiên %1$d trong %2$d đường dẫn bị ảnh hưởng</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Bắt đầu</string>
+    <string name="history_detail_label_completed">Hoàn thành</string>
+    <string name="history_detail_label_duration">Thời lượng</string>
+    <string name="history_detail_label_outcome">Kết quả</string>
+    <string name="history_detail_label_origin">Nguồn gốc</string>
+    <string name="history_detail_label_error">Lỗi</string>
+    <string name="history_detail_label_paths">Đường dẫn bị ảnh hưởng</string>
+    <string name="history_detail_label_partial_errors">Lỗi từng mục</string>
+    <string name="history_detail_copy_path_action">Sao chép đường dẫn</string>
+    <string name="history_detail_paths_empty">Không có đường dẫn bị ảnh hưởng được ghi lại.</string>
+    <string name="history_detail_label_attempted_paths">Các đường dẫn đã cố gắng</string>
+    <string name="history_detail_label_packages">Ứng dụng bị ảnh hưởng</string>
+    <string name="history_detail_packages_empty">Không có ứng dụng bị ảnh hưởng được ghi lại.</string>
+    <string name="history_detail_paths_truncated_callout">Hiển thị %1$d trong %2$d đường dẫn bị ảnh hưởng.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Hiển thị %1$d trong %2$d đường dẫn đã cố gắng.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="other">%1$d mục không thành công trong thao tác này.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Trình duyệt tệp</string>
+    <string name="history_origin_searcher">Tìm kiếm</string>
+    <string name="history_origin_saver">Trình lưu</string>
+    <string name="history_origin_developer">Nhà phát triển</string>
+    <string name="history_origin_viewer">Trình xem</string>
+    <string name="history_origin_apps">Ứng dụng</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Chưa có lịch sử</string>
+    <string name="history_empty_subtitle">Thao tác tệp sẽ xuất hiện ở đây khi bạn sử dụng Butler.</string>
+    <string name="history_empty_filtered_title">Không có kết quả trùng khớp</string>
+    <string name="history_empty_filtered_subtitle">Không có mục lịch sử nào phù hợp với bộ lọc hiện tại.</string>
+    <string name="history_empty_filtered_reset_action">Đặt lại bộ lọc</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Đặt lại bộ lọc</string>
+    <string name="history_toolbar_reset_filter_content_description">Đặt lại bộ lọc</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">%1$d trong %2$d đường dẫn bị ảnh hưởng</string>
+    <string name="history_add_filter_action">Thêm bộ lọc</string>
+    <string name="history_add_filter_sheet_title">Thêm bộ lọc</string>
+    <string name="history_add_filter_section_outcome">Kết quả</string>
+    <string name="history_add_filter_section_kind">Loại</string>
+    <string name="history_add_filter_section_path_scope">Phạm vi đường dẫn</string>
+    <string name="history_add_filter_add_path_action">Thêm đường dẫn…</string>
+    <string name="history_path_scope_remove_action">Xóa</string>
+    <plurals name="history_summary_total">
+        <item quantity="other">%1$d mục</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="other">%1$d trên %2$d được hiển thị</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">Lịch sử</string>
+    <string name="history_settings_save_history_title">Lưu lịch sử</string>
+    <string name="history_settings_save_history_subtitle">Ghi lại thao tác tệp đã hoàn thành.</string>
+    <string name="history_settings_max_history_label">Số mục lịch sử tối đa</string>
+    <string name="history_settings_max_history_subtitle">Các mục cũ hơn sẽ bị xóa khi vượt quá giới hạn này.</string>
+    <string name="history_settings_max_history_input_label">Số mục tối đa</string>
+    <string name="history_settings_clear_history_title">Xóa lịch sử</string>
+    <string name="history_settings_clear_history_subtitle">Xóa tất cả các mục được lưu trữ (%1$d).</string>
+    <string name="history_clear_dialog_title">Xóa lịch sử?</string>
+    <string name="history_clear_dialog_message">Xóa tất cả các mục từ cơ sở dữ liệu lịch sử thao tác. Không thể hoàn tác điều này.</string>
+    <string name="history_clear_confirm_action">Xóa</string>
+    <string name="history_cleared_success">Lịch sử đã bị xóa</string>
+    <string name="history_workspace_title_kind_restore">Lịch sử: Khôi phục</string>
+    <string name="history_filter_kind_restore">Khôi phục</string>
+    <string name="history_workspace_title_kind_install">Lịch sử: Cài đặt</string>
+    <string name="history_filter_kind_install">Cài đặt</string>
+    <string name="history_workspace_title_kind_enable">Lịch sử: Bật</string>
+    <string name="history_workspace_title_kind_disable">Lịch sử: Tắt</string>
+    <string name="history_workspace_title_kind_force_stop">Lịch sử: Buộc dừng</string>
+    <string name="history_workspace_title_kind_uninstall">Lịch sử: Gỡ cài đặt</string>
+    <string name="history_workspace_title_kind_clear_data">Lịch sử: Xóa dữ liệu</string>
+    <string name="history_workspace_title_kind_components">Lịch sử: Thành phần</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Chọn tất cả</string>
+    <string name="history_action_deselect_all">Bỏ chọn tất cả</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="other">Xóa %1$d mục</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Chỉ các bản ghi lịch sử bị xóa, tệp không bị ảnh hưởng.</string>
+    <string name="history_pro_dialog_message">Chia sẻ và xóa mục lịch sử là một phần của bản nâng cấp. Xóa toàn bộ lịch sử vẫn miễn phí trong cài đặt lịch sử.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Kết quả</string>
+    <string name="history_share_label_kind">Loại</string>
+    <string name="history_share_label_origin">Nguồn gốc</string>
+    <string name="history_share_label_summary">Tóm tắt</string>
+    <string name="history_share_label_completed">Hoàn thành</string>
+    <string name="history_share_label_duration">Thời lượng</string>
+    <string name="history_share_label_error">Lỗi</string>
+    <string name="history_share_label_failed_items">Mục không thành công</string>
+    <string name="history_share_label_paths">Đường dẫn bị ảnh hưởng (%1$d)</string>
+    <string name="history_share_label_packages">Ứng dụng bị ảnh hưởng (%1$d)</string>
+    <string name="history_share_paths_more">… và %1$d mục khác</string>
+    <string name="history_share_truncated">… và %1$d mục không được bao gồm</string>
+</resources>
