@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Raporty błędów</string>
+    <string name="bugreport_workspace_subtitle">Raporty awarii i błędów</string>
+
+    <string name="bugreport_empty_title">Brak raportów</string>
+    <string name="bugreport_empty_subtitle">Raporty awarii i błędów pojawią się tutaj. Nic nie jest wysyłane automatycznie.</string>
+
+    <string name="bugreport_type_crash">Awaria</string>
+    <string name="bugreport_type_report">Raport</string>
+    <string name="bugreport_type_recording">Nagranie</string>
+
+    <string name="bugreport_record_action">Nagraj dziennik debugowania</string>
+    <string name="bugreport_record_short_action">Nagraj</string>
+    <string name="bugreport_stop_action">Zatrzymaj nagrywanie</string>
+    <string name="bugreport_stop_short_action">Zatrzymaj</string>
+    <string name="bugreport_recording_ongoing_label">Nagrywanie…</string>
+
+    <string name="bugreport_recording_short_title">Nagranie jest bardzo krótkie</string>
+    <string name="bugreport_recording_short_message">To nagranie trwa tylko kilka sekund i może nie zawierać przydatnych informacji. Zatrzymać je mimo to?</string>
+    <string name="bugreport_recording_short_keep_action">Kontynuuj nagrywanie</string>
+
+    <string name="bugreport_rename_action">Zmień nazwę</string>
+    <string name="bugreport_rename_dialog_title">Nazwij ten raport</string>
+    <string name="bugreport_rename_name_label">Nazwa</string>
+    <string name="bugreport_rename_name_hint">Wyświetlana na liście i w nazwie udostępnianego pliku</string>
+
+    <string name="bugreport_share_action">Udostępnij</string>
+    <string name="bugreport_delete_action">Usuń</string>
+    <string name="bugreport_delete_all_action">Usuń wszystkie</string>
+    <string name="bugreport_delete_all_confirm_title">Usunąć wszystkie dzienniki debugowania?</string>
+    <string name="bugreport_delete_all_confirm_message">Spowoduje to trwałe usunięcie wszystkich nagranych sesji dziennika debugowania. Aktywne nagrania nie będą dotyczyć.</string>
+    <string name="bugreport_delete_confirm_title">Usunąć ten raport?</string>
+    <string name="bugreport_delete_confirm_message">Spowoduje to trwałe usunięcie tego raportu i jego dziennika.</string>
+    <string name="bugreport_cancel_action">Anuluj</string>
+
+    <string name="bugreport_share_chooser_title">Udostępnij raport błędu</string>
+    <string name="bugreport_share_consent_title">Udostępnić raport?</string>
+    <string name="bugreport_share_consent_message">Ten raport zawiera dzienniki aplikacji, które mogą zawierać nazwy plików, ścieżki oraz informacje o aplikacji i urządzeniu. Udostępniaj go tylko osobom, którym ufasz.</string>
+
+    <string name="bugreport_detail_back_action">Wróć</string>
+    <string name="bugreport_detail_section_error">Błąd</string>
+    <string name="bugreport_detail_section_log">Ostatni dziennik</string>
+    <string name="bugreport_detail_field_type">Typ</string>
+    <string name="bugreport_detail_field_time">Czas</string>
+    <string name="bugreport_detail_field_app_version">Wersja aplikacji</string>
+    <string name="bugreport_detail_field_device">Urządzenie</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">Typ błędu</string>
+    <string name="bugreport_detail_field_thread">Wątek</string>
+    <string name="bugreport_detail_log_truncated">ostatnich %1$d z %2$d wierszy</string>
+    <string name="bugreport_detail_log_count">%1$d wierszy</string>
+    <string name="bugreport_detail_log_empty">Nie przechwycono dziennika</string>
+    <string name="bugreport_detail_log_error">Nie można załadować dziennika</string>
+</resources>

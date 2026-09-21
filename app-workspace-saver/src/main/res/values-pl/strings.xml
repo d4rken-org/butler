@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Zapisz jako</string>
+    <string name="saver_preview_label">Podgląd</string>
+    <string name="saver_loading">Ładowanie…</string>
+    <string name="saver_shared_from">Udostępniono od %1$s</string>
+    <string name="saver_shared_generic">Udostępniono z Butler</string>
+    <string name="saver_destination_label">Lokalizacja docelowa</string>
+    <string name="saver_select_destination_hint">Wybierz folder docelowy</string>
+    <string name="saver_filename_label">Nazwa pliku</string>
+    <string name="saver_save_action">Zapisz</string>
+    <string name="saver_saving_progress">Zapisywanie…</string>
+    <string name="saver_success_message">Plik zapisany pomyślnie</string>
+    <string name="saver_open_saved_action">Otwórz katalog</string>
+    <string name="saver_retry_action">Spróbuj ponownie</string>
+    <string name="saver_save_again_action">Zapisz w nowej lokalizacji</string>
+    <string name="saver_close_tab_action">Zamknij kartę</string>
+    <string name="saver_close_butler_action">Zamknij kartę i wróć</string>
+    <string name="saver_done_action">Gotowe</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Plik źródłowy jest niedostępny. Udostępnij go ponownie.</item>
+        <item quantity="few">%1$d pliki źródłowe są niedostępne. Udostępnij je ponownie.</item>
+        <item quantity="many">%1$d plików źródłowych jest niedostępnych. Udostępnij je ponownie.</item>
+        <item quantity="other">%1$d pliku źródłowego jest niedostępny. Udostępnij go ponownie.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Plik źródłowy jest niedostępny</string>
+    <string name="saver_error_permission_denied">Odmowa dostępu</string>
+    <string name="saver_error_write_failed">Nie udało się zapisać pliku</string>
+    <string name="saver_error_file_exists">Plik już istnieje</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Zapisz pliki</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Zapisywanie %1$d pliku do %2$s</item>
+        <item quantity="few">Zapisywanie %1$d plików do %2$s</item>
+        <item quantity="many">Zapisywanie %1$d plików do %2$s</item>
+        <item quantity="other">Zapisywanie %1$d pliku do %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Zapisz %1$d plik</item>
+        <item quantity="few">Zapisz %1$d pliki</item>
+        <item quantity="many">Zapisz %1$d plików</item>
+        <item quantity="other">Zapisz %1$d pliku</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d plik zapisany</item>
+        <item quantity="few">%1$d pliki zapisane</item>
+        <item quantity="many">%1$d plików zapisanych</item>
+        <item quantity="other">%1$d pliku zapisanego</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d plik nie zapisany</item>
+        <item quantity="few">%1$d pliki nie zapisane</item>
+        <item quantity="many">%1$d plików nie zapisanych</item>
+        <item quantity="other">%1$d pliku nie zapisanego</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d plik pominięty</item>
+        <item quantity="few">%1$d pliki pominięte</item>
+        <item quantity="many">%1$d plików pominiętych</item>
+        <item quantity="other">%1$d pliku pominięty</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d z %2$d plików zapisanych</string>
+</resources>

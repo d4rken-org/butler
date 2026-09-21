@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Schowek</string>
+    <string name="clipboard_clear_all">Wyczyść wszystko</string>
+    <string name="clipboard_paste">Wklej</string>
+    <string name="clipboard_open_in_explorer">Otwórz w eksploratorze</string>
+    <string name="clipboard_copy">Kopiuj</string>
+    <string name="clipboard_cut">Wytnij</string>
+    <string name="clipboard_origin">Źródło: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Kopiuj %d element</item>
+        <item quantity="few">Kopiuj %d elementy</item>
+        <item quantity="many">Kopiuj %d elementów</item>
+        <item quantity="other">Kopiuj %d elementu</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d element z %s</item>
+        <item quantity="few">%d elementy z %s</item>
+        <item quantity="many">%d elementów z %s</item>
+        <item quantity="other">%d elementu z %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Wytnij %d element</item>
+        <item quantity="few">Wytnij %d elementy</item>
+        <item quantity="many">Wytnij %d elementów</item>
+        <item quantity="other">Wytnij %d elementu</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d element z %s</item>
+        <item quantity="few">%d elementy z %s</item>
+        <item quantity="many">%d elementów z %s</item>
+        <item quantity="other">%d elementu z %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d lokalizacja</item>
+        <item quantity="few">%d lokalizacje</item>
+        <item quantity="many">%d lokalizacji</item>
+        <item quantity="other">%d lokalizacji</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d element z %2$s</item>
+        <item quantity="few">%1$d elementy z %2$s</item>
+        <item quantity="many">%1$d elementów z %2$s</item>
+        <item quantity="other">%1$d elementu z %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d element z %2$s</item>
+        <item quantity="few">%1$d elementy z %2$s</item>
+        <item quantity="many">%1$d elementów z %2$s</item>
+        <item quantity="other">%1$d elementu z %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Fragment tekstu</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d znak</item>
+        <item quantity="few">%1$d znaki</item>
+        <item quantity="many">%1$d znaków</item>
+        <item quantity="other">%1$d znaku</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Wklej jako plik</string>
+    <string name="clipboard_text_info_characters">Znaki</string>
+    <string name="clipboard_text_info_lines">Wiersze</string>
+    <string name="clipboard_text_info_content">Zawartość</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Przegląd</string>
+    <string name="clipboard_info_operation">Operacja</string>
+    <string name="clipboard_info_items">Elementy</string>
+    <string name="clipboard_info_source">Źródło</string>
+    <string name="clipboard_info_sources">Źródła</string>
+    <string name="clipboard_info_workspace">Obszar roboczy</string>
+    <string name="clipboard_info_workspace_closed">Zamknięty</string>
+    <string name="clipboard_info_time">Czas</string>
+    <string name="clipboard_info_items_with_count">Elementy (%1$d)</string>
+    <string name="clipboard_info_actions">Działania</string>
+    <string name="clipboard_info_go_to_source">Przejdź do źródła</string>
+    <string name="clipboard_info_go_to_first_source">Przejdź do pierwszego źródła</string>
+    <string name="clipboard_info_remove">Usuń ze schowka</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Schowek</string>
+    <string name="clipboard_settings_remove_on_paste_title">Usuwaj po wklejeniu</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Usuwaj skopiowane elementy ze schowka po wklejeniu</string>
+    <string name="clipboard_settings_max_items_title">Maksymalna liczba elementów</string>
+    <string name="clipboard_settings_max_items_desc">Maksymalna liczba elementów w schowku</string>
+
+    <string name="workspace_explorer_label">Eksplorator</string>
+    <string name="workspace_searcher_label">Szukaj</string>
+    <string name="workspace_editor_label">Edytor</string>
+    <string name="workspace_templates_label">Szablony</string>
+    <string name="workspace_apps_label">Aplikacje</string>
+    <string name="workspace_appdetails_label">Szczegóły aplikacji</string>
+    <string name="workspace_saver_label">Zapisz jako</string>
+    <string name="workspace_developer_label">Deweloper</string>
+    <string name="workspace_history_label">Historia</string>
+    <string name="workspace_bugreport_label">Zgłoszenia błędów</string>
+    <string name="workspace_viewer_label">Podgląd</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Zdjęcia</string>
+    <string name="workspace_searcher_target_videos">Filmy</string>
+    <string name="workspace_searcher_target_music">Muzyka</string>
+    <string name="workspace_searcher_target_downloads">Pobrane</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Więcej</string>
+    <string name="workspace_expand_less_action">Mniej</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Karty i obszary robocze</string>
+    <string name="workspace_button_menu_new_workspace_format">Nowy: %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Nowa karta</string>
+    <string name="workspace_button_menu_category_recent">Ostatnie</string>
+    <string name="workspace_button_menu_category_other">Inne</string>
+    <string name="workspace_button_menu_category_current_tab">Ta karta</string>
+    <string name="workspace_button_menu_manager_action">Menedżer kart</string>
+    <string name="workspace_button_menu_layout_action">Układ</string>
+    <string name="workspace_button_menu_close_current_action">Zamknij bieżącą kartę</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Zamknij bieżącą kartę (%d obszar roboczy)</item>
+        <item quantity="few">Zamknij bieżącą kartę (%d obszary robocze)</item>
+        <item quantity="many">Zamknij bieżącą kartę (%d obszarów roboczych)</item>
+        <item quantity="other">Zamknij bieżącą kartę (%d obszaru roboczego)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Ustawienia</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Zamknąć wszystkie karty?</string>
+    <string name="workspace_manager_close_all_message">Spowoduje to zamknięcie wszystkich %1$d otwartych %2$s. Tej czynności nie można cofnąć.</string>
+    <string name="workspace_manager_close_all_message_singular">karta</string>
+    <string name="workspace_manager_close_all_message_plural">kart</string>
+    <string name="workspace_manager_close_all_action">Zamknij wszystkie</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Niektóre karty mają niezapisane zmiany, które zostaną utracone.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Odrzuć wszystkie</string>
+    <string name="workspace_manager_close_selected_title">Zamknąć wybrane karty?</string>
+    <string name="workspace_manager_close_selected_message">Spowoduje to zamknięcie %1$d wybranych %2$s. Tej czynności nie można cofnąć.</string>
+    <string name="workspace_manager_close_selected_action">Zamknij wybrane</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Niektóre wybrane karty mają niezapisane zmiany, które zostaną utracone.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Odrzuć wybrane</string>
+    <string name="workspace_manager_pause_partial_title">Wstrzymać karty?</string>
+    <string name="workspace_manager_pause_partial_message">%1$d z %2$d wybranych kart można wstrzymać. Pozostałe są używane, zawierają niezapisane zmiany lub są obecnie otwarte.</string>
+    <string name="workspace_manager_pause_partial_action">Wstrzymaj %1$d</string>
+    <string name="workspace_fab_close_all">Zamknij wszystkie karty</string>
+    <string name="general_cancel_action">Anuluj</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Operacje</string>
+    <string name="operations_clear_completed">Wyczyść zakończone</string>
+    <string name="operations_state_queued">W kolejce</string>
+    <string name="operations_state_running">W toku</string>
+    <string name="operations_state_waiting">Oczekiwanie na dane</string>
+    <string name="operations_state_successful">Powodzenie</string>
+    <string name="operations_state_failed">Niepowodzenie</string>
+    <string name="operations_state_cancelled">Anulowano</string>
+    <string name="operations_state_cancelling">Anulowanie…</string>
+    <string name="operations_cancel_operation">Anuluj operację</string>
+    <string name="operations_cancel_dialog_title">Anulować operację?</string>
+    <string name="operations_cancel_dialog_message">Czy na pewno chcesz anulować tę operację?</string>
+    <string name="operations_cancel_dialog_warning">Anulowanie może pozostawić pliki w niespójnym stanie.</string>
+    <string name="operations_details_started_at">Rozpoczęto</string>
+    <string name="operations_details_completed_at">Zakończono</string>
+    <string name="operations_details_duration">Czas trwania</string>
+    <string name="operations_details_duration_not_started">Nie rozpoczęto</string>
+    <string name="operations_details_progress">Postęp</string>
+    <string name="operations_details_error">Szczegóły błędu</string>
+    <string name="operations_details_actions">Działania</string>
+    <string name="operations_details_overview">Przegląd</string>
+    <string name="operations_details_handle_issue">Rozwiąż problem</string>
+    <string name="operations_details_show_in_history_action">Pokaż w historii</string>
+    <string name="operations_details_status">Status</string>
+    <string name="operations_details_result">Wynik</string>
+    <string name="operations_details_destination_folder">Folder docelowy</string>
+    <string name="operations_details_destination_path">Ścieżka docelowa</string>
+    <string name="operations_details_affected_paths_with_count">Dotknięte ścieżki (%d)</string>
+    <string name="operations_details_problems_with_count">Problemy (%d)</string>
+    <string name="operations_details_problems_more">Jeszcze %d nie wyświetlono</string>
+    <string name="workspace_operation_packages_section_title">Aplikacje</string>
+    <string name="workspace_operation_package_status_done">Gotowe</string>
+    <string name="workspace_operation_package_status_failed">Niepowodzenie</string>
+    <string name="workspace_operation_package_status_declined">Odrzucono</string>
+    <string name="operations_details_section_expand">Rozwiń %1$s</string>
+    <string name="operations_details_section_collapse">Zwiń %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Wykres wydajności</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Usunąć element?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Usunąć %1$d element?</item>
+        <item quantity="few">Usunąć %1$d elementy?</item>
+        <item quantity="many">Usunąć %1$d elementów?</item>
+        <item quantity="other">Usunąć %1$d elementu?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Ten element zostanie trwale usunięty:</string>
+    <string name="workspace_dialog_delete_message_multiple">Te elementy zostaną trwale usunięte:</string>
+    <string name="workspace_dialog_delete_more_items">… i %1$d więcej</string>
+    <string name="workspace_dialog_delete_warning">Tej czynności nie można cofnąć.</string>
+    <string name="workspace_dialog_delete_permanently_action">Usuń trwale</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Usuń trwale zamiast tego</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Niektórych elementów nie można przenieść do kosza — zostaną obsłużone osobno.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Przenieść do kosza?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Przenieść %1$d element do kosza?</item>
+        <item quantity="few">Przenieść %1$d elementy do kosza?</item>
+        <item quantity="many">Przenieść %1$d elementów do kosza?</item>
+        <item quantity="other">Przenieść %1$d elementu do kosza?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Ten element zostanie przeniesiony do kosza:</string>
+    <string name="workspace_dialog_trash_message_multiple">Te elementy zostaną przeniesione do kosza:</string>
+    <string name="workspace_dialog_trash_hint">Znajdziesz je w lokalizacji Kosz</string>
+    <string name="workspace_dialog_move_to_trash_action">Przenieś</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d zaznaczono</item>
+        <item quantity="few">%d zaznaczono</item>
+        <item quantity="many">%d zaznaczono</item>
+        <item quantity="other">%d zaznaczono</item>
+    </plurals>
+    <string name="workspace_action_more">Więcej działań</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Usuwanie plików</string>
+    <string name="workspace_operation_delete_description_single">Usuń „%1$s” z „%2$s”.</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Usuń %1$d element z „%2$s”.</item>
+        <item quantity="few">Usuń %1$d elementy z „%2$s”.</item>
+        <item quantity="many">Usuń %1$d elementów z „%2$s”.</item>
+        <item quantity="other">Usuń %1$d elementu z „%2$s”.</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Instalacja aplikacji</string>
+    <string name="workspace_operation_install_description">Zainstaluj „%1$s”.</string>
+    <string name="workspace_operation_install_progress_inspecting">Odczytywanie pakietu…</string>
+    <string name="workspace_operation_install_progress_extracting">Rozpakowywanie…</string>
+    <string name="workspace_operation_install_progress_writing">Przekazywanie plików instalatorowi…</string>
+    <string name="workspace_operation_install_progress_committing">Kończenie instalacji…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Umieszczanie plików rozszerzeń…</string>
+    <string name="workspace_operation_install_summary_success">Zainstalowano %1$s.</string>
+    <string name="workspace_operation_install_summary_success_partial">Zainstalowano %1$s, ale nie udało się umieścić jego plików rozszerzeń.</string>
+    <string name="workspace_install_unknown_sources_required">Butler potrzebuje uprawnienia do instalowania aplikacji. Przyznaj je w ustawieniach, które właśnie się otworzyły, a następnie spróbuj ponownie.</string>
+    <string name="workspace_install_obb_failed">Aplikacja została zainstalowana, ale nie udało się umieścić jej plików rozszerzeń: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">Usunięto %1$d plik.</item>
+        <item quantity="few">Usunięto %1$d pliki.</item>
+        <item quantity="many">Usunięto %1$d plików.</item>
+        <item quantity="other">Usunięto %1$d pliku.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">Usunięto %1$d katalog.</item>
+        <item quantity="few">Usunięto %1$d katalogi.</item>
+        <item quantity="many">Usunięto %1$d katalogów.</item>
+        <item quantity="other">Usunięto %1$d katalogu.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">Pominięto %1$d element.</item>
+        <item quantity="few">Pominięto %1$d elementy.</item>
+        <item quantity="many">Pominięto %1$d elementów.</item>
+        <item quantity="other">Pominięto %1$d elementu.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">Zwolniono %1$s.</item>
+        <item quantity="few">Zwolniono %1$s.</item>
+        <item quantity="many">Zwolniono %1$s.</item>
+        <item quantity="other">Zwolniono %1$s.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Przenoszenie do kosza…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">Przeniesiono do kosza %1$d plik.</item>
+        <item quantity="few">Przeniesiono do kosza %1$d pliki.</item>
+        <item quantity="many">Przeniesiono do kosza %1$d plików.</item>
+        <item quantity="other">Przeniesiono do kosza %1$d pliku.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">Przeniesiono do kosza %1$d katalog.</item>
+        <item quantity="few">Przeniesiono do kosza %1$d katalogi.</item>
+        <item quantity="many">Przeniesiono do kosza %1$d katalogów.</item>
+        <item quantity="other">Przeniesiono do kosza %1$d katalogu.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">Zwolniono %1$s/s.</string>
+    <string name="workspace_operation_progress_bytes_freed">Zwolniono %1$s.</string>
+    <string name="workspace_operation_progress_time_remaining">Pozostało: %1$s.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Informacje</string>
+    <string name="workspace_file_info_name_label">Nazwa</string>
+    <string name="workspace_file_info_path_label">Ścieżka</string>
+    <string name="workspace_file_info_type_label">Typ</string>
+    <string name="workspace_file_info_type_file">Plik</string>
+    <string name="workspace_file_info_type_directory">Katalog</string>
+    <string name="workspace_file_info_type_symlink">Dowiązanie symboliczne</string>
+    <string name="workspace_file_info_type_unknown">Nieznany</string>
+    <string name="workspace_file_info_size_label">Rozmiar</string>
+    <string name="workspace_file_info_modified_label">Zmodyfikowano</string>
+    <string name="workspace_file_info_created_label">Utworzono</string>
+    <string name="workspace_file_info_permissions_label">Uprawnienia</string>
+    <string name="workspace_file_info_owner_label">Właściciel</string>
+    <string name="workspace_file_info_child_count_label">Elementy</string>
+    <string name="workspace_file_info_symlink_target_label">Cel</string>
+    <string name="workspace_file_info_unknown">Nieznane</string>
+    <string name="workspace_file_info_copy_action">Kopiuj do schowka</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Zaznaczone</string>
+    <string name="workspace_file_info_files_label">Pliki</string>
+    <string name="workspace_file_info_directories_label">Katalogi</string>
+    <string name="workspace_file_info_total_size_label">Łączny rozmiar</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Ta operacja jeszcze się nie rozpoczęła.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Zbieranie danych o wydajności…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Za mało danych o wydajności tej operacji, aby narysować wykres.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Dane o wydajności nie są dostępne dla tej operacji.</string>
+    <string name="workspace_operation_performance_window_seconds">Ostatnie %1$d s</string>
+    <string name="workspace_operation_performance_window_minutes">Ostatnie %1$d min</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">elementów/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Pokaż szczegóły techniczne</string>
+    <string name="workspace_error_hide_details_action">Ukryj szczegóły techniczne</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Inicjowanie karty</string>
+    <string name="workspace_error_subtitle">Wystąpił nieoczekiwany błąd</string>
+    <string name="workspace_close_tab_action">Zamknij kartę</string>
+    <string name="workspace_paused_body">Ta karta jest wstrzymana, aby oszczędzać pamięć i baterię. Wznów ją, aby kontynuować.</string>
+    <string name="workspace_paused_error_body">Nie udało się wznowić tej karty.</string>
+    <string name="workspace_paused_resume_action">Wznów</string>
+    <string name="workspace_paused_label">Wstrzymano</string>
+    <string name="workspace_paused_content_label">Zawartość karty</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Istniejący plik</string>
+    <string name="workspace_issue_collision_existing_folder_label">Istniejący folder</string>
+    <string name="workspace_issue_collision_new_file">Nadchodzący plik</string>
+    <string name="workspace_issue_collision_new_folder">Nadchodzący folder</string>
+    <string name="workspace_issue_collision_overwrite">Zastąp</string>
+    <string name="workspace_issue_collision_merge">Scal</string>
+    <string name="workspace_issue_common_source_file">Plik źródłowy</string>
+    <string name="workspace_issue_common_destination_file">Cel</string>
+    <string name="workspace_issue_common_skip">Pomiń</string>
+    <string name="workspace_issue_common_rename">Zmień nazwę</string>
+    <string name="workspace_issue_common_rename_new">Zmień nazwę nowego</string>
+    <string name="workspace_issue_common_rename_existing">Zmień nazwę istniejącego</string>
+    <string name="workspace_issue_common_cancel">Anuluj</string>
+    <string name="workspace_issue_common_delete_permanently">Usuń trwale</string>
+    <string name="workspace_issue_archive_password_label">Hasło</string>
+    <string name="workspace_issue_archive_password_unlock">Odblokuj</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Elementy zakończone niepowodzeniem</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… i %1$d więcej elementów</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Dotknięte elementy</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… i %1$d więcej elementów</string>
+    <string name="workspace_issue_apply_all">Zastosuj do wszystkich pozostałych problemów</string>
+    <string name="workspace_issue_rename_new_name">Nowa nazwa</string>
+    <string name="workspace_issue_rename_dialog_title_new">Zmień nazwę nadchodzącego pliku</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Zmień nazwę istniejącego pliku</string>
+    <string name="workspace_issue_type_folder">Folder</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Otworzyć wiele kart?</string>
+    <string name="workspace_open_tabs_confirmation_message">Spowoduje to otwarcie %1$d kart.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Otwórz za pomocą</string>
+    <string name="workspace_open_with_no_app_label">Nie znaleziono innej aplikacji</string>
+    <string name="workspace_open_with_no_app_description">Żadna inna zainstalowana aplikacja nie może otworzyć %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Otwarto %1$d kartę</item>
+        <item quantity="few">Otwarto %1$d karty</item>
+        <item quantity="many">Otwarto %1$d kart</item>
+        <item quantity="other">Otwarto %1$d karty</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Nie można zamknąć: w %1$d karcie nadal trwa operacja</item>
+        <item quantity="few">Nie można zamknąć: w %1$d kartach nadal trwają operacje</item>
+        <item quantity="many">Nie można zamknąć: w %1$d kartach nadal trwają operacje</item>
+        <item quantity="other">Nie można zamknąć: w %1$d kartach nadal trwają operacje</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">Karty</string>
+    <string name="workspace_settings_navigation">Nawigacja</string>
+    <string name="workspace_settings_swipe_gestures_title">Gesty przesunięcia</string>
+    <string name="workspace_settings_swipe_gestures_desc">Przesuń palcem w lewo lub w prawo, aby przełączać karty.</string>
+    <string name="workspace_settings_ondemand_creation_title">Automatyczne tworzenie kart</string>
+    <string name="workspace_settings_ondemand_creation_desc">Automatycznie twórz nową kartę po przesunięciu poza ostatnią kartę.</string>
+    <string name="workspace_settings_newtab_type_title">Typ nowej karty</string>
+    <string name="workspace_settings_newtab_type_desc">Obszar roboczy otwierany po przesunięciu poza ostatnią kartę, dodaniu karty do pustego panelu lub utworzeniu pierwszej karty.</string>
+    <string name="workspace_settings_newtab_type_ask">Pytaj za każdym razem</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Pokazuj wybór typu karty dla każdej nowej karty.</string>
+    <string name="workspace_settings_live_preview_title">Podglądy na żywo</string>
+    <string name="workspace_settings_live_preview_desc">Pokazuj zawartość kart na żywo w menedżerze kart.</string>
+    <string name="workspace_settings_other">Inne</string>
+    <string name="workspace_settings_layout_title">Układ</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Układ w pionie</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Wybierz układ kart w orientacji pionowej.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Układ w poziomie</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Wybierz układ kart w orientacji poziomej.</string>
+    <string name="workspace_settings_layout_mode_auto">Automatyczny</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Klasyczny na małych ekranach, pasek kart z panelami na dużych.</string>
+    <string name="workspace_settings_layout_mode_classic">Klasyczny</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Jeden panel naraz, bez paska kart.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Adaptacyjny</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Pasek kart plus tyle paneli, ile zmieści się na ekranie. Przypnij układ z menu Butler na pasku.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptacyjny (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Pojedynczy z paskiem kart</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Jeden panel karty plus pasek kart z układów wielopanelowych. Przełączaj karty z paska zamiast przesuwaniem; pasek zajmuje pasmo ekranu.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Podwójny pionowy</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Dwa panele obok siebie (lewy/prawy).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Podwójny poziomy</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Dwa panele jeden nad drugim (górny/dolny).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Potrójny, panel boczny po lewej</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Jeden duży panel po lewej, dwa mniejsze panele jeden nad drugim po prawej.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Potrójny, panel boczny po prawej</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Dwa mniejsze panele jeden nad drugim po lewej, jeden duży panel po prawej.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Siatka poczwórna</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Cztery panele w siatce 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Kliknięcie, aby ustawić fokus</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Pierwsze kliknięcie niezaznaczonego panelu tylko ustawia na nim fokus, a niezaznaczone panele nie reagują na wskaźnik myszy. Wyłącz, aby wchodzić z nimi w interakcję bezpośrednio.</string>
+
+    <string name="workspace_settings_rail_button_title">Przycisk Butler</string>
+    <string name="workspace_settings_rail_button_desc">Wybierz, gdzie znajduje się przycisk Butler na pasku kart.</string>
+    <string name="workspace_settings_rail_button_leading">Początek</string>
+    <string name="workspace_settings_rail_button_leading_desc">Przed kartami w orientacji pionowej, nad nimi w poziomej.</string>
+    <string name="workspace_settings_rail_button_trailing">Koniec</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Za kartami w orientacji pionowej, pod nimi w poziomej. W zasięgu kciuka do obsługi jedną ręką.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Sesja</string>
+    <string name="workspace_settings_session_restore_title">Przywracaj karty przy starcie</string>
+    <string name="workspace_settings_session_restore_desc">Automatycznie przywracaj wcześniej otwarte karty przy uruchomieniu aplikacji.</string>
+    <string name="workspace_settings_autopause_title">Wstrzymuj nieaktywne karty</string>
+    <string name="workspace_settings_autopause_desc">Karty, których nie oglądano przez jakiś czas, są wstrzymywane, aby oszczędzać pamięć i baterię. Otwarcie karty ją wznawia.</string>
+    <string name="workspace_settings_autopause_delay_title">Wstrzymuj po</string>
+    <string name="workspace_settings_autopause_delay_desc">Jak długo karta pozostaje poza widokiem, zanim zostanie wstrzymana.</string>
+    <string name="workspace_settings_undoclose_title">Cofanie zamknięcia kart</string>
+    <string name="workspace_settings_undoclose_desc">Po zamknięciu karty przez kilka sekund można ją przywrócić.</string>
+    <string name="workspace_settings_session_data_title">Dane sesji</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d karta • %2$s</item>
+        <item quantity="few">%1$d karty • %2$s</item>
+        <item quantity="many">%1$d kart • %2$s</item>
+        <item quantity="other">%1$d karty • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">Zamknięto „%1$s”</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Nie udało się przywrócić sesji</string>
+    <string name="workspace_session_restoration_error_description">Nie udało się przywrócić poprzedniej sesji kart. Może to być spowodowane błędem, który zostanie naprawiony w przyszłej aktualizacji.\n\nMożesz wyczyścić zapisaną sesję, aby dalej korzystać z Butler, lub poczekać na aktualizację.</string>
+    <string name="workspace_session_restoration_error_clear_action">Wyczyść sesję</string>
+    <string name="workspace_session_restoration_error_report_action">Zgłoś problem</string>
+    <string name="workspace_session_restoration_error_confirm_title">Wyczyścić sesję?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Spowoduje to trwałe usunięcie zapisanej sesji kart. Tej czynności nie można cofnąć.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Zmień nazwę karty</string>
+    <string name="workspace_rename_name_label">Własna nazwa</string>
+    <string name="workspace_rename_name_hint">Pozostaw puste, aby użyć nazwy automatycznej</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Osiągnięto limit kart</string>
+    <string name="workspace_limit_reached_message">Użytkownicy darmowej wersji mogą mieć otwartych jednocześnie maksymalnie %1$d kart. Przejdź na Butler Pro, aby mieć nieograniczoną liczbę kart!</string>
+    <string name="workspace_limit_pick_tabs_message">Twój darmowy plan pozwala na %1$d otwartych kart. Wybierz te, których już nie potrzebujesz, i zamknij je, aby zrobić miejsce.</string>
+    <string name="workspace_limit_no_slot_hint">Zamknięcie kart nie zwolni teraz miejsca.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Zamknij %d kartę</item>
+        <item quantity="few">Zamknij %d karty</item>
+        <item quantity="many">Zamknij %d kart</item>
+        <item quantity="other">Zamknij %d karty</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Wybierz co najmniej %d kartę do zamknięcia.</item>
+        <item quantity="few">Wybierz co najmniej %d karty do zamknięcia.</item>
+        <item quantity="many">Wybierz co najmniej %d kart do zamknięcia.</item>
+        <item quantity="other">Wybierz co najmniej %d karty do zamknięcia.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Otwarto: %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Niezapisane zmiany</string>
+    <string name="workspace_limit_blocker_busy">Aktualnie zajęta</string>
+    <string name="workspace_limit_blocker_attention">Czeka na ciebie</string>
+    <string name="workspace_limit_blocker_loading">Wciąż się ładuje</string>
+    <string name="workspace_limit_blocker_awaiting_result">Najpierw zakończ otwarty wybór</string>
+    <string name="workspace_limit_blocker_unavailable">Nie można teraz zamknąć</string>
+    <string name="workspace_limit_stacked_content_desc">Zamknięcie tej karty zamyka też to, co jest na niej ułożone</string>
+    <string name="workspace_limit_pro_description">Otwieraj tyle kart, ile chcesz.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d element</item>
+        <item quantity="few">%1$d elementy</item>
+        <item quantity="many">%1$d elementów</item>
+        <item quantity="other">%1$d elementu</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Przywracanie z kosza</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Przywróć %d element z kosza.</item>
+        <item quantity="few">Przywróć %d elementy z kosza.</item>
+        <item quantity="many">Przywróć %d elementów z kosza.</item>
+        <item quantity="other">Przywróć %d elementu z kosza.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">Przywrócono %d element</item>
+        <item quantity="few">Przywrócono %d elementy</item>
+        <item quantity="many">Przywrócono %d elementów</item>
+        <item quantity="other">Przywrócono %d elementu</item>
+    </plurals>
+</resources>

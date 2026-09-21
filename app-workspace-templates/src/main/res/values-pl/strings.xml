@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Nowy</string>
+    <string name="workspace_templates_choose_title">Nowa karta</string>
+    <string name="workspace_templates_choose_subtitle">Wybierz typ karty. Jak się sprawdzę?</string>
+    <string name="workspace_templates_name_tab_action">Nazwij tę kartę</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Wybierz narzędzie</string>
+    <string name="tour_templates_picker_body">To jest selektor karty, wybierz, czym powinna być ta karta. Wybranie jednego zmienia tę kartę na to narzędzie.</string>
+    <string name="tour_templates_butler_button_title">Twoje karty znajdują się tutaj</string>
+    <string name="tour_templates_butler_button_body">Naciśnij przycisk Butler, aby wyświetlić menu karty: utwórz nową kartę, zamknij bieżącą lub otwórz pełny menedżer kart. Naciśnij go długo, aby przejść bezpośrednio do menedżera kart.</string>
+</resources>
