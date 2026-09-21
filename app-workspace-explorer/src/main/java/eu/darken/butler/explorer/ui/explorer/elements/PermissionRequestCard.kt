@@ -59,6 +59,14 @@ private fun getDescriptionForRequirements(
         needsStorageOnly && !hasSAFPicker ->
             R.string.explorer_permission_generic_description
 
+        // SAF picker + Root only
+        hasSAFPicker && needsRoot && !needsShizuku ->
+            R.string.explorer_permission_multiple_options_root_description
+
+        // SAF picker + Shizuku only
+        hasSAFPicker && needsShizuku && !needsRoot ->
+            R.string.explorer_permission_multiple_options_shizuku_description
+
         // SAF picker + Root/Shizuku options
         hasSAFPicker && (needsRoot || needsShizuku) ->
             R.string.explorer_permission_multiple_options_description
@@ -81,6 +89,31 @@ private fun getDescriptionForRequirements(
 
         // Fallback
         else -> R.string.explorer_permission_generic_description
+    }
+}
+
+private fun getOptionDescriptionForRequirements(
+    requirements: PathRequirements
+): Int {
+    val allModules = requirements.combos.flatten()
+    val needsRoot = SetupModule.Type.ROOT in allModules
+    val needsShizuku = SetupModule.Type.SHIZUKU in allModules
+
+    return when {
+        // Root OR Shizuku (alternatives)
+        needsRoot && needsShizuku ->
+            R.string.explorer_permission_option_setup_description
+
+        // Root only
+        needsRoot && !needsShizuku ->
+            R.string.explorer_permission_option_setup_root_description
+
+        // Shizuku only
+        needsShizuku && !needsRoot ->
+            R.string.explorer_permission_option_setup_shizuku_description
+
+        // Fallback
+        else -> R.string.explorer_permission_option_setup_description
     }
 }
 
@@ -175,7 +208,7 @@ fun PermissionRequestCard(
                     PermissionOptionCard(
                         icon = Icons.TwoTone.Settings,
                         title = stringResource(R.string.explorer_permission_option_setup_title),
-                        description = stringResource(R.string.explorer_permission_option_setup_description),
+                        description = stringResource(getOptionDescriptionForRequirements(setupRequirements)),
                         actionLabel = stringResource(R.string.explorer_permission_option_setup_action),
                         onAction = onNavigateToSetup,
                     )
@@ -290,6 +323,18 @@ private fun PermissionRequestCardSetupOnlyPreview() {
                 setOf(SetupModule.Type.ROOT),
                 setOf(SetupModule.Type.SHIZUKU),
             ),
+        ),
+        onNavigateToSetup = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun PermissionRequestCardRootOnlyPreview() {
+    PermissionRequestCard(
+        setupRequirements = PathRequirements(
+            combos = setOf(setOf(SetupModule.Type.ROOT)),
         ),
         onNavigateToSetup = {},
     )
