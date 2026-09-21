@@ -42,8 +42,17 @@
     <string name="apps_action_deselect_all">Auswahl aufheben</string>
     <string name="apps_action_open_in_tab">In Tab öffnen</string>
     <string name="apps_action_force_stop">Beenden erzwingen</string>
-    <string name="apps_action_view_grid">Rasteransicht</string>
-    <string name="apps_action_view_list">Listenansicht</string>
+    <string name="apps_action_view">Ansicht</string>
+
+    <!-- View options -->
+    <string name="apps_view_sheet_subtitle">Wie Elemente angeordnet werden und wie viele Details sie zeigen</string>
+    <string name="apps_view_mode_list_label">Liste</string>
+    <string name="apps_view_mode_grid_label">Raster</string>
+    <string name="apps_view_density_compact_label">Kompakt</string>
+    <string name="apps_view_density_comfortable_label">Komfortabel</string>
+    <string name="apps_view_density_detailed_label">Detailliert</string>
+    <string name="apps_view_set_default_action">Als Standard festlegen</string>
+    <string name="apps_view_detail_dates_label">Installiert %1$s · Aktualisiert %2$s</string>
 
     <!-- Action Descriptions -->
     <string name="apps_action_launch_desc">App starten</string>
@@ -130,6 +139,20 @@
     <!-- App Details Action Bar -->
     <string name="apps_details_more_options">Weitere Optionen</string>
 
+    <!-- App Details package data -->
+    <string name="apps_details_pkgdata_error_title">App-Daten konnten nicht geladen werden</string>
+    <string name="apps_details_gone_title">App entfernt</string>
+    <string name="apps_details_gone_message">Diese App ist auf diesem Gerät nicht mehr installiert.</string>
+    <string name="apps_details_gone_close_action">Schließen</string>
+    <string name="apps_details_uninstalled_title">Für diesen Benutzer deinstalliert</string>
+    <string name="apps_details_uninstalled_message">Die App ist für diesen Benutzer nicht mehr installiert, aber ihre Dateien befinden sich weiterhin auf dem Gerät.</string>
+
+    <!-- App Details confirmations -->
+    <string name="apps_details_confirm_clear_data_title">App-Daten löschen?</string>
+    <string name="apps_details_confirm_clear_data_message">Alle Daten und Einstellungen von %1$s werden gelöscht. Dies kann nicht rückgängig gemacht werden.</string>
+    <string name="apps_details_confirm_uninstall_title">App deinstallieren?</string>
+    <string name="apps_details_confirm_uninstall_message">%1$s wird von diesem Gerät entfernt.</string>
+
     <!-- App Information -->
     <string name="apps_type_label">Typ</string>
     <string name="apps_type_system">System-App</string>
@@ -215,6 +238,59 @@
         <item quantity="one">%d Komponente ausgewählt</item>
         <item quantity="other">%d Komponenten ausgewählt</item>
     </plurals>
+
+    <!-- Package operations -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="one">App aktivieren</item>
+        <item quantity="other">%d Apps aktivieren</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="one">App deaktivieren</item>
+        <item quantity="other">%d Apps deaktivieren</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="one">Beenden der App erzwingen</item>
+        <item quantity="other">Beenden von %d Apps erzwingen</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="one">App deinstallieren</item>
+        <item quantity="other">%d Apps deinstallieren</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="one">App-Daten löschen</item>
+        <item quantity="other">Daten von %d Apps löschen</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="one">Komponente aktivieren</item>
+        <item quantity="other">%d Komponenten aktivieren</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="one">Komponente deaktivieren</item>
+        <item quantity="other">%d Komponenten deaktivieren</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="one">%d App</item>
+        <item quantity="other">%d Apps</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">%1$s aktiviert</string>
+    <string name="apps_operation_disable_summary">%1$s deaktiviert</string>
+    <string name="apps_operation_force_stop_summary">%1$s beendet</string>
+    <string name="apps_operation_uninstall_summary">%1$s deinstalliert</string>
+    <string name="apps_operation_clear_data_summary">Daten von %1$s gelöscht</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="one">%1$d Komponente aktiviert</item>
+        <item quantity="other">%1$d Komponenten aktiviert</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="one">%1$d Komponente deaktiviert</item>
+        <item quantity="other">%1$d Komponenten deaktiviert</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">Konnte für %1$s nicht abgeschlossen werden</string>
+    <string name="apps_operation_single_declined_summary">Entfernen von %1$s abgelehnt</string>
+    <string name="apps_operation_batch_summary">%1$d von %2$d abgeschlossen</string>
+    <!-- Quoted so the leading separator survives the resource parser -->
+    <string name="apps_operation_batch_summary_failed">" · %1$d fehlgeschlagen"</string>
+    <string name="apps_operation_batch_summary_declined">" · %1$d abgelehnt"</string>
 
     <!-- Generic navigation -->
     <string name="appdetails_back_generic_action">Zurück</string>

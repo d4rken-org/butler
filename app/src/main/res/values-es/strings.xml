@@ -1,0 +1,531 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_welcome_title">Te damos la bienvenida a Butler</string>
+    <string name="onboarding_welcome_message">Pestañas para tus archivos.\nExplora, busca y edita, todo a la vez.</string>
+    <string name="onboarding_welcome_subtitle">Código abierto. Sin anuncios. Sin rastreo.\nEl explorador de archivos que mereces.</string>
+    <string name="onboarding_welcome_action">Empezar a explorar</string>
+    <string name="onboarding_beta_title">Dale forma al futuro</string>
+    <string name="onboarding_beta_message">Esta es una versión beta (de prueba). Continúa con sentido del humor y un plan de respaldo. Informa cualquier problema que encuentres.</string>
+    <string name="onboarding_beta_action">No le temo a nada</string>
+    <string name="onboarding_beta_feature_early_access_title">Acceso anticipado</string>
+    <string name="onboarding_beta_feature_early_access_description">Prueba las funciones más innovadoras antes que nadie.</string>
+    <string name="onboarding_beta_feature_influence_title">Impacto directo</string>
+    <string name="onboarding_beta_feature_influence_description">Tus comentarios dan forma al desarrollo de Butler.</string>
+    <string name="onboarding_beta_feature_feedback_title">Impulsado por la comunidad</string>
+    <string name="onboarding_beta_feature_feedback_description">Únete a una comunidad de usuarios avanzados que mejoran Butler.</string>
+    <string name="onboarding_privacy_title">Privacidad y datos</string>
+    <string name="onboarding_privacy_message">Butler no tiene anuncios y no vende los datos de los usuarios. Tu privacidad es importante para mí.</string>
+    <string name="onboarding_privacy_read_action">Leer política de privacidad</string>
+    <string name="onboarding_privacy_action">Aceptar</string>
+    <string name="onboarding_skip_action">Omitir</string>
+    <string name="onboarding_progress_step">%1$d de %2$d</string>
+
+    <string name="onboarding_workspaces_title">Trabaja en pestañas</string>
+    <string name="onboarding_workspaces_message">Abre varias pestañas y cambia entre ellas, igual que en tu navegador web.</string>
+    <string name="onboarding_workspaces_action">Continuar</string>
+    <string name="onboarding_workspaces_hint">Mantén varias pestañas abiertas al mismo tiempo.</string>
+    <string name="onboarding_workspaces_explorer_title">Explorador</string>
+    <string name="onboarding_workspaces_explorer_description">Explora tus archivos.</string>
+    <string name="onboarding_workspaces_searcher_title">Búsqueda</string>
+    <string name="onboarding_workspaces_searcher_description">Encuentra lo que buscas.</string>
+    <string name="onboarding_workspaces_editor_title">Editor</string>
+    <string name="onboarding_workspaces_editor_description">Edita archivos.</string>
+    <string name="onboarding_workspaces_templates_title">Plantillas</string>
+    <string name="onboarding_workspaces_templates_description">Guarda tu configuración.</string>
+    <string name="onboarding_workspaces_apps_description">Administra tus aplicaciones.</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">Nuevo explorador</string>
+    <string name="shortcut_explorer_new_long">Crear una nueva pestaña de explorador</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">Accesos directos</string>
+    <string name="shortcuts_settings_subtitle">Configura los accesos directos de la pantalla de inicio</string>
+    <string name="shortcuts_settings_enabled_title">Habilitar accesos directos</string>
+    <string name="shortcuts_settings_enabled_subtitle">Muestra los elementos usados con frecuencia en la pantalla de inicio</string>
+    <string name="shortcuts_settings_auto_remember_title">Recordar rutas visitadas</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Añade automáticamente las rutas visitadas con frecuencia como accesos directos</string>
+    <string name="shortcuts_settings_last_accessed_title">Último acceso</string>
+    <string name="shortcuts_settings_max_count_title">Máximo de accesos directos</string>
+    <string name="shortcuts_settings_max_count_subtitle">Mostrando actualmente %d accesos directos</string>
+    <string name="shortcuts_settings_min_access_title">Accesos mínimos</string>
+    <string name="shortcuts_settings_min_access_subtitle">Requiere %d accesos antes de mostrarse</string>
+    <string name="shortcuts_settings_current_title">Accesos directos actuales</string>
+    <string name="shortcuts_settings_current_subtitle">%d accesos directos registrados</string>
+    <string name="shortcuts_settings_clear_title">Borrar historial de accesos directos</string>
+    <string name="shortcuts_settings_clear_subtitle">Elimina todos los accesos directos registrados</string>
+    <string name="shortcuts_settings_clear_confirm_title">¿Borrar el historial de accesos directos?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Esto eliminará todos los accesos directos registrados. Los marcadores se conservarán.</string>
+    <string name="shortcuts_settings_cleared_message">Historial de accesos directos borrado</string>
+    <string name="shortcuts_settings_max_dialog_title">Máximo de accesos directos</string>
+    <string name="shortcuts_settings_max_dialog_message">Número de accesos directos que se mostrarán en la pantalla de inicio (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Número mínimo de accesos</string>
+    <string name="shortcuts_settings_min_dialog_message">Cuántas veces se debe acceder a una ruta antes de que aparezca como acceso directo (1–10)</string>
+
+    <string name="setup_usagestats_title">Estadísticas de uso</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Acceso a notificaciones</string>
+    <string name="setup_manage_storage_card_title">Administrar almacenamiento externo</string>
+    <string name="setup_inventory_card_title">Inventario de aplicaciones</string>
+
+    <string name="setup_title">Configuración de permisos</string>
+    <string name="setup_settings_description">Configura los permisos y funciones de la aplicación.</string>
+    <string name="setup_help_description">Ayuda</string>
+
+    <string name="setup_root_description">Habilita el acceso a archivos del sistema y directorios protegidos para una gestión de archivos avanzada. Desbloquea todo el potencial de Butler, incluido el acceso a datos de aplicaciones y modificaciones del sistema. El dispositivo debe tener root.</string>
+    <string name="setup_shizuku_description">Alternativa a root que ofrece operaciones de archivos con privilegios mediante una API segura. Permite acceder a directorios restringidos sin necesidad de root tradicional. Requiere que la aplicación Shizuku esté instalada y en ejecución.</string>
+    <string name="setup_notification_description">Muestra actualizaciones de las operaciones de archivos, tareas en segundo plano y progreso de transferencias. Te mantiene informado cuando las operaciones finalizan o se producen errores.</string>
+    <string name="setup_usagestats_description">Analiza el uso de almacenamiento de las aplicaciones para identificar archivos grandes y ayudarte a administrar el espacio de forma eficaz. Todos los datos permanecen en tu dispositivo y nunca se transmiten.</string>
+    <string name="setup_storage_description">Acceso completo a todo el almacenamiento del dispositivo para operaciones de archivos rápidas y procesamiento por lotes. Permite una gestión de archivos completa sin solicitudes de permiso repetidas.</string>
+    <string name="setup_inventory_description">Consulta todas las aplicaciones instaladas para funciones como la extracción de APK y el análisis de almacenamiento. Necesario en Android 11 o superior para ver la lista completa de aplicaciones.</string>
+
+    <string name="setup_grant_access_label">Conceder acceso</string>
+    <string name="setup_access_granted_label">Acceso concedido</string>
+    <string name="setup_use_root_label">Usar root si está disponible</string>
+    <string name="setup_use_shizuku_label">Usar Shizuku si está disponible</string>
+
+    <string name="setup_status_checking">Comprobando…</string>
+    <string name="setup_status_completed">Configurado</string>
+    <string name="setup_status_required">Obligatorio</string>
+    <string name="setup_status_optional">Opcional</string>
+    <string name="setup_status_connected">Conectado</string>
+    <string name="setup_status_not_connected">No conectado</string>
+    <string name="setup_status_not_installed">No instalado</string>
+    <string name="setup_status_connecting">Conectando…</string>
+    <string name="setup_status_connection_failed">Error de conexión</string>
+    <string name="setup_status_unavailable">No disponible</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">Notificaciones de depuración</string>
+    <string name="debug_log_consent_title">Registro de depuración</string>
+    <string name="debug_log_consent_explanation">Esta función registra todo lo que hace la aplicación en un archivo que puedes compartir. El archivo generado contiene información sensible (por ejemplo, nombres de archivos y aplicaciones instaladas). Compártelo únicamente con personas de confianza (por ejemplo, un desarrollador que esté resolviendo un problema).</string>
+    <string name="debug_log_recording_progress">Grabando registro de depuración</string>
+    <string name="debug_log_record_action">Grabar</string>
+    <string name="debug_log_record_full_action">Grabar registro de depuración</string>
+    <string name="debug_log_stop_action">Detener grabación</string>
+    <string name="debug_log_screen_title">Grabadora de registro de depuración</string>
+    <string name="debug_log_screen_sensitive_information_message">El archivo generado contiene información sensible (por ejemplo, nombres de archivos y aplicaciones instaladas). Compártelo únicamente con personas de confianza.</string>
+    <string name="debug_log_screen_session_path_label">Ruta de la sesión de depuración</string>
+    <string name="debug_log_screen_log_files_label">Archivos de registro</string>
+    <string name="debug_log_screen_log_files_ready">Archivos de registro listos (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Descartar</string>
+    <string name="debug_log_file_label">Archivo de registro grabado</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">Grabando archivo de registro</string>
+    <string name="debug_banner_stop_action">Detener</string>
+    <string name="debug_banner_view_action">Ver</string>
+    <string name="debug_banner_explanation">Grabando la actividad de la aplicación. Detén la grabación cuando termines y comparte el registro al informar errores.</string>
+    <string name="debug_log_short_recording_title">La grabación es muy corta</string>
+    <string name="debug_log_short_recording_message">Los registros de depuración capturan lo que ocurre mientras la grabación está activa. Inicia la grabación, reproduce el problema y luego detente. Es posible que esta grabación no contenga información útil.</string>
+    <string name="debug_log_short_recording_keep_action">Seguir grabando</string>
+
+    <string name="debug_logview_screen_title">Visor de registros</string>
+    <string name="debug_logview_pause_action">Pausar (congelar pantalla)</string>
+    <string name="debug_logview_resume_action">Reanudar</string>
+    <string name="debug_logview_copy_action">Copiar registro</string>
+    <string name="debug_logview_collapse_action">Contraer</string>
+    <string name="debug_logview_close_action">Cerrar panel de registro</string>
+    <string name="debug_logview_resize_action">Cambiar tamaño</string>
+    <string name="debug_logview_more_action">Más opciones</string>
+    <string name="debug_logview_level_action">Nivel de registro</string>
+    <string name="debug_logview_clear_action">Borrar búfer</string>
+    <string name="debug_logview_search_action">Buscar</string>
+    <string name="debug_logview_search_clear_action">Borrar búsqueda</string>
+    <string name="debug_logview_search_close_action">Cerrar búsqueda</string>
+    <string name="debug_logview_search_prev_action">Coincidencia anterior</string>
+    <string name="debug_logview_search_next_action">Siguiente coincidencia</string>
+    <string name="debug_logview_jump_to_bottom_action">Ir a lo más reciente</string>
+    <string name="debug_logview_paused_msg">Pausado: pantalla congelada</string>
+    <string name="debug_logview_paused_new_msg">Pausado: %1$d línea(s) nueva(s) desde entonces</string>
+    <string name="debug_logview_copied_msg">Registro copiado al portapapeles</string>
+    <string name="debug_logview_copied_truncated_msg">Se copiaron las últimas %1$d líneas al portapapeles</string>
+    <string name="debug_logview_share_label">Compartir registro</string>
+
+    <string name="settings_label">Configuración</string>
+    <string name="settings_category_tools_label">Herramientas</string>
+    <string name="settings_category_other_label">Otros</string>
+    <string name="settings_category_integration_label">Integración</string>
+    <string name="general_settings_label">General</string>
+    <string name="general_settings_desc">Ajustes generales que afectan a toda la aplicación.</string>
+    <string name="settings_category_ui_label">Interfaz de usuario</string>
+    <string name="ui_mascot_suit_setting_label">El traje de Butler</string>
+    <string name="ui_mascot_suit_setting_explanation">El color con el que está confeccionado el atuendo de Butler.</string>
+    <string name="ui_theme_mode_setting_label">Modo de tema</string>
+    <string name="ui_theme_mode_setting_explanation">El modo que se usa para aplicar el tema (por ejemplo, noche o día).</string>
+    <string name="ui_theme_style_setting_label">Estilo de tema</string>
+    <string name="ui_theme_style_setting_explanation">El estilo de color que se usa para aplicar el tema de la aplicación.</string>
+    <string name="ui_theme_color_setting_label">Color de tema</string>
+    <string name="ui_theme_color_setting_explanation">La paleta de colores que se usa para aplicar el tema de la aplicación.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Los colores los proporciona Material You a partir de tu fondo de pantalla</string>
+    <string name="ui_theme_color_value_system">Colores del sistema</string>
+    <string name="ui_language_override_label">Idioma de la aplicación</string>
+    <string name="ui_language_override_desc">Selecciona un idioma diferente para Butler, independiente del idioma predeterminado de tu sistema.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Evitar el recorte de pantalla</string>
+    <string name="ui_display_cutout_avoid_setting_description">Mantiene la interfaz alejada del recorte de la cámara. Desactívalo para aprovechar más pantalla, aunque algunas partes de la interfaz podrían quedar detrás del recorte.</string>
+
+    <string name="previews_settings_title">Vistas previas</string>
+    <string name="previews_settings_subtitle">Administra las cachés de vistas previas de imágenes.</string>
+
+    <string name="tour_settings_reset_title">Reiniciar los tours guiados</string>
+    <string name="tour_settings_reset_subtitle">Vuelve a mostrar los tours guiados, incluidos los que hayas omitido o desactivado.</string>
+    <string name="tour_settings_reset_done">Los tours guiados se han reiniciado.</string>
+
+    <string name="storage_settings_title">Almacenamiento</string>
+    <string name="storage_settings_subtitle">Administra las cachés, el almacenamiento y la papelera de Butler.</string>
+    <string name="storage_category_previews_label">Vistas previas</string>
+    <string name="storage_previews_disk_cache_title">Caché de disco</string>
+    <string name="storage_previews_memory_cache_title">Caché de memoria</string>
+    <string name="storage_previews_max_size_title">Tamaño máximo de la caché</string>
+    <string name="storage_clear_disk_confirm_title">¿Borrar la caché de disco?</string>
+    <string name="storage_clear_disk_confirm_message">Esto eliminará todas las imágenes de vista previa almacenadas en caché. Se regenerarán según sea necesario.</string>
+    <string name="storage_clear_memory_confirm_title">¿Borrar la caché de memoria?</string>
+    <string name="storage_clear_memory_confirm_message">Esto eliminará de la memoria las imágenes de vista previa almacenadas en caché. Se regenerarán según sea necesario.</string>
+    <string name="storage_clear_all_confirm_title">¿Borrar todas las cachés?</string>
+    <string name="storage_clear_all_confirm_message">Esto borrará las cachés de disco y de memoria de las imágenes de vista previa.</string>
+    <string name="storage_clear_all_previews_action">Borrar todas las cachés de vistas previas</string>
+    <string name="storage_clear_all_subtitle">Elimina todas las cachés de vistas previas</string>
+    <string name="storage_cache_cleared_message">Caché borrada</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">Buscar actualizaciones</string>
+    <string name="updater_check_enabled_setting_description">Permite que Butler compruebe en línea si hay una nueva versión disponible.</string>
+    <string name="motd_check_enabled_setting_title">Buscar anuncios</string>
+    <string name="motd_check_enabled_setting_description">Permite que Butler obtenga mensajes importantes del desarrollador.</string>
+    <string name="motd_card_header">Anuncio</string>
+
+    <string name="confirm_exit_setting_title">Confirmar salida</string>
+    <string name="confirm_exit_setting_description">Muestra un cuadro de diálogo de confirmación al salir de la aplicación.</string>
+    <string name="confirm_exit_dialog_title">Salir de Butler</string>
+    <string name="confirm_exit_dialog_message">Esto cerrará la aplicación y volverás a la pantalla de inicio.</string>
+    <string name="confirm_exit_dialog_exit">Salir</string>
+    <string name="confirm_exit_dialog_cancel">Cancelar</string>
+    <string name="confirm_exit_dialog_dont_ask_again">No volver a preguntar</string>
+
+    <string name="settings_support_category_help_label">Obtener ayuda</string>
+    <string name="settings_support_label">Soporte</string>
+    <string name="settings_support_description">Consulta la documentación, informa problemas, chatea con otros usuarios o graba registros de depuración.</string>
+    <string name="settings_support_wiki_label">Documentación</string>
+    <string name="settings_support_wiki_description">Aprende a usar Butler de forma eficaz.</string>
+    <string name="settings_support_issue_tracker_description">Un rastreador de incidencias público para informes de errores y solicitudes de funciones.</string>
+    <string name="settings_support_issue_tracker_label">Rastreador de incidencias</string>
+    <string name="settings_support_debuglog_label">Registro de depuración</string>
+    <string name="settings_support_debuglog_desc">Graba todo lo que hace la aplicación en un archivo de texto que puedes compartir.</string>
+    <string name="settings_support_debuglog_recording_desc">Actualmente se está grabando información de depuración. Toca para detener la grabación.</string>
+    <string name="settings_support_debuglog_path">Ruta del registro: %1$s</string>
+    <string name="settings_support_bugreports_label">Informes de errores</string>
+    <string name="settings_support_bugreports_desc">Consulta los informes de fallos, graba registros de depuración y compártelos conmigo.</string>
+    <string name="support_contact_report_type_crash">Informe de fallo</string>
+    <string name="support_contact_report_type_reported">Informe de error</string>
+    <string name="support_contact_report_type_recording">Grabación</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Un lugar para pasar el rato y hacer preguntas.</string>
+
+    <string name="settings_acknowledgements_label">Agradecimientos</string>
+    <string name="settings_acknowledgements_description">Créditos, licencias y agradecimientos especiales.</string>
+    <string name="settings_acks_translation_header">Traducción</string>
+    <string name="settings_acks_translators_title">Traductores</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Traducir Butler</string>
+    <string name="settings_acks_translate_desc">Ayuda a traducir Butler a tu idioma.</string>
+
+    <string name="settings_acks_thanks_header">Gracias</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">Por apoyar la traducción de proyectos de código abierto.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Gracias por el icono, los diseños de la mascota y las animaciones.</string>
+    <string name="settings_licenses_label">Licencias</string>
+
+    <!-- Workspace Status Card -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d Pestaña</item>
+        <item quantity="other">%1$d Pestañas</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d Operación</item>
+        <item quantity="other">%1$d Operaciones</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Atención</item>
+        <item quantity="other">%1$d Atención</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Sin guardar</item>
+        <item quantity="other">%1$d Sin guardar</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d Pausada</item>
+        <item quantity="other">%1$d Pausadas</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">Mostrar todas las pestañas</string>
+    <string name="workspace_status_filter_operations_desc">Filtrar por pestañas con operaciones</string>
+    <string name="workspace_status_filter_attention_desc">Filtrar por pestañas que necesitan atención</string>
+    <string name="workspace_status_filter_paused_desc">Filtrar por pestañas en pausa</string>
+    <string name="workspace_status_filter_unsaved_desc">Filtrar por pestañas con cambios sin guardar</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">El lenguaje de programación Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Un inyector de dependencias rápido para Android y Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">¡Ejecuta código Java (y Kotlin) como root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Ejecuta código Kotlin JVM con root de forma sencilla gracias a las corrutinas. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Usa las API del sistema directamente con privilegios de adb/root desde aplicaciones normales mediante un proceso Java iniciado con app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Lottie de Airbnb para Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">El robot de Android se reproduce o modifica a partir de un trabajo creado y compartido por Google, y se usa conforme a los términos descritos en la Creative Commons 3.0 Attribution License.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">El kit de herramientas moderno de Android para crear interfaces nativas. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Bibliotecas de Jetpack</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation y otras bibliotecas de AndroidX. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Extensiones de Kotlin</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Bibliotecas de Coroutines y Serialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Biblioteca de carga de imágenes basada en Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Primitivas criptográficas para la autenticación, firma y cifrado de SMB. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Bibliotecas de Square</string>
+    <string name="acknowledgement_square_libraries_subtitle">Bibliotecas de red Retrofit, OkHttp y OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Utilidades para Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Arrastrar y soltar para LazyColumn en Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Biblioteca de versionado semántico para Kotlin. (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Gráficos y diagramas para Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Política de privacidad</string>
+    <string name="settings_privacy_policy_desc">Gestión responsable de datos.</string>
+
+
+    <string name="changelog_label">Registro de cambios</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Estado de Butler</string>
+    <string name="upgrade_status_free">Estado: Gratis</string>
+    <string name="upgrade_status_pro">Estado: Pro</string>
+    <string name="upgrade_status_foss">Estado: FOSS</string>
+
+    <string name="storage_area_sdcard_label">Tarjeta SD</string>
+    <string name="storage_area_public_label">Almacenamiento público</string>
+    <string name="storage_area_public_app_data_label">Datos públicos de aplicaciones</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">Gestor de pestañas</string>
+    <string name="workspace_manager_empty_title">Sin pestañas</string>
+    <string name="workspace_manager_empty_subtitle">Crea tu primera pestaña para empezar</string>
+
+    <!-- Workspace > Empty Content-->
+    <string name="workspace_empty_create_action">Crear pestaña</string>
+    <string name="workspace_empty_create_hint">Trabaja en paralelo: crea una pestaña y conviértela en la herramienta que quieras.</string>
+    <string name="workspace_empty_settings_action">Abrir configuración</string>
+    <string name="workspace_empty_settings_hint">Personaliza Butler a tu gusto. Ajusta el comportamiento de las herramientas.</string>
+    <string name="workspace_classic_empty_tabs_closed">No hay pestañas abiertas. Listo cuando tú lo estés.</string>
+    <string name="workspace_classic_empty_tip">Consejo: toca «Crear pestaña» y elige una herramienta: Explorador, Búsqueda, Editor y más.</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">Empieza con una pestaña</string>
+    <string name="tour_first_tab_body">Butler funciona con pestañas, como un navegador: cada una es una herramienta en sí misma (Explorador, Búsqueda, Editor y más). Crea tu primera pestaña.</string>
+    <string name="tour_manager_fab_title">Accesos rápidos</string>
+    <string name="tour_manager_fab_body">Toca aquí para acceder rápidamente a las herramientas que más usas y para cerrar todas las pestañas a la vez.</string>
+    <string name="tour_manager_reorder_title">Reordena tus pestañas</string>
+    <string name="tour_manager_reorder_body">Mantén pulsada la barra de título de una pestaña y arrástrala adonde quieras. Este es el orden en que aparecerán tus pestañas en todos los demás lugares.</string>
+    <string name="tour_manager_select_title">Trabaja en varias pestañas</string>
+    <string name="tour_manager_select_body">Mantén pulsada la vista previa de una pestaña para empezar a seleccionar pestañas. Luego toca el resto y ciérralas o ponlas todas en pausa a la vez.</string>
+    <string name="tour_manager_new_tab_title">Inicia una nueva pestaña</string>
+    <string name="tour_manager_new_tab_body">Toca esta tarjeta para elegir cualquier herramienta para una nueva pestaña.</string>
+    <string name="tour_swipe_switch_title">Desliza entre pestañas</string>
+    <string name="tour_swipe_switch_body">Desliza hacia la izquierda o la derecha en cualquier parte de la página para moverte entre tus pestañas abiertas.</string>
+    <string name="tour_swipe_create_title">Desliza para iniciar una pestaña</string>
+    <string name="tour_swipe_create_body">Desliza más allá de tu última pestaña y Butler te ofrecerá una nueva.</string>
+    <string name="tour_swipe_panes_title">Más de una pestaña a la vez</string>
+    <string name="tour_swipe_panes_body">En una pantalla más grande, o en horizontal, Butler muestra varias pestañas una junto a otra. La configuración de diseño en Pestañas determina cuándo sucede esto.</string>
+    <string name="tour_panes_rail_title">Todas tus pestañas</string>
+    <string name="tour_panes_rail_body">Aquí se encuentran todas las pestañas abiertas. Toca una y elige el panel al que debe ir. Mantén pulsada una pestaña y arrástrala para cambiar su orden.</string>
+    <string name="tour_panes_divider_title">Cambia el tamaño de los paneles</string>
+    <string name="tour_panes_divider_body">Arrastra este divisor para darle más espacio a un panel.</string>
+    <string name="tour_panes_layout_title">Cambia la disposición</string>
+    <string name="tour_panes_layout_body">Toca el botón de Butler y elige Diseño para reorganizar los paneles. La configuración de Pestañas fija un diseño para cada orientación.</string>
+
+    <string name="workspace_creating_placeholder">Creando pestaña…</string>
+    <string name="workspace_ondemand_swipe_title">Desliza para crear una nueva pestaña</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">El panel %1$d está listo para contenido</string>
+    <string name="workspace_adaptive_add_action">Añadir pestaña</string>
+
+    <string name="workspace_badge_tip_title">Consejo: indicadores del botón de pestañas</string>
+    <string name="workspace_badge_open_workspaces">Número de pestañas abiertas</string>
+    <string name="workspace_badge_active_operations">Operaciones activas (copias de archivos, búsquedas, etc.)</string>
+    <string name="workspace_badge_attention_items">Elementos que necesitan atención (operaciones fallidas o en espera, archivos inaccesibles)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">Descartar</string>
+    <string name="workspace_manager_selection_count">%1$d seleccionadas</string>
+    <string name="workspace_manager_selection_select_all">Seleccionar todas</string>
+    <string name="workspace_manager_selection_pause_action">Pausar seleccionadas</string>
+    <string name="workspace_manager_selection_close_action">Cerrar seleccionadas</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Salir del modo de selección</string>
+    <string name="workspace_manager_selection_clear_content_desc">Borrar selección</string>
+    <string name="workspace_manager_select_all_tabs_desc">Seleccionar todas las pestañas</string>
+    <string name="workspace_manager_new_tab_card_title">Nueva pestaña</string>
+    <string name="workspace_row_select_content_desc">Seleccionar pestaña</string>
+    <string name="general_cancel_action">Cancelar</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">Accesos rápidos</string>
+    <string name="workspace_fab_close_shortcuts">Cerrar accesos rápidos</string>
+    <string name="workspace_fab_close_all">Cerrar todas las pestañas</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">Asignar al panel %1$d</string>
+    <string name="workspace_pane_show_action">Mostrar</string>
+    <string name="workspace_pane_close_action">Cerrar</string>
+    <string name="workspace_pane_unassign_action">Quitar del panel</string>
+    <string name="workspace_dragging_description">Arrastrando</string>
+    <string name="workspace_pane_current_description">En el panel %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">Cerrar pestaña</string>
+    <string name="workspace_row_more_options_content_desc">Más opciones</string>
+    <string name="workspace_row_operations_running_content_desc">Trabajando</string>
+    <string name="workspace_row_operations_pending_content_desc">Trabajo pendiente</string>
+    <string name="workspace_row_pause_action">Pausar</string>
+    <string name="workspace_row_resume_action">Reanudar</string>
+    <string name="workspace_row_stacked_content_desc">Apilada en esta pestaña</string>
+    <string name="workspace_row_unsaved_content_desc">Cambios sin guardar</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">Configura el comportamiento de las pestañas.</string>
+    <string name="explorer_settings_subtitle">Configura el comportamiento del explorador de archivos.</string>
+    <string name="searcher_settings_subtitle">Configura el comportamiento de la búsqueda.</string>
+    <string name="editor_settings_subtitle">Configura el comportamiento del editor de texto.</string>
+    <string name="history_settings_subtitle">Retención y borrado del historial de operaciones.</string>
+    <string name="clipboard_settings_subtitle">Configura el comportamiento del portapapeles.</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">Guardar como…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">Abrir en Butler</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">Editar texto</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">Archivo sin nombre</string>
+    <string name="external_open_action_view">Ver</string>
+    <string name="external_open_action_edit">Editar como texto</string>
+    <string name="external_open_action_show_in_explorer">Mostrar en el explorador</string>
+    <string name="external_open_action_save">Guardar como…</string>
+    <string name="external_open_failed_label">No se pudo abrir el archivo</string>
+    <string name="external_open_failed_description">Butler no pudo abrir \"%1$s\".</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">¿Habilitar el modo desarrollador?</string>
+    <string name="settings_developer_mode_unlock_message">Esto desbloquea herramientas de diagnóstico avanzadas para solucionar problemas y hacer pruebas.</string>
+    <string name="settings_developer_mode_unlock_action">Habilitar</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">A %d paso del modo desarrollador</item>
+        <item quantity="other">A %d pasos del modo desarrollador</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">Contactar al desarrollador</string>
+    <string name="support_contact_description">Completa un formulario para enviarme un correo electrónico.</string>
+    <string name="support_contact_no_email_app">No se encontró ninguna aplicación de correo</string>
+    <string name="support_contact_category_label">Categoría</string>
+    <string name="support_contact_category_question">Pregunta</string>
+    <string name="support_contact_category_feature">Solicitud de función</string>
+    <string name="support_contact_category_bug">Informe de error</string>
+    <string name="support_contact_workspace_label">Área relacionada</string>
+    <string name="support_contact_workspace_general">General</string>
+    <string name="support_contact_workspace_explorer">Explorador</string>
+    <string name="support_contact_workspace_searcher">Búsqueda</string>
+    <string name="support_contact_workspace_editor">Editor</string>
+    <string name="support_contact_description_label">Descripción</string>
+    <string name="support_contact_description_question_hint">Describe tu pregunta en detalle. Sé específico (mínimo 20 palabras).</string>
+    <string name="support_contact_description_feature_hint">Describe la función que te gustaría ver. Sé específico (mínimo 20 palabras).</string>
+    <string name="support_contact_description_bug_hint">Describe qué ocurrió y cómo reproducir el problema. Sé específico (mínimo 20 palabras).</string>
+    <string name="support_contact_expected_label">Comportamiento esperado</string>
+    <string name="support_contact_expected_hint">Describe lo que esperabas que ocurriera (mínimo 10 palabras).</string>
+    <string name="support_contact_word_count">Al menos %1$d palabras</string>
+    <string name="support_contact_debuglog_label">Registro de depuración</string>
+    <string name="support_contact_debuglog_empty">No se encontraron registros de depuración. Graba uno primero.</string>
+    <string name="support_contact_debuglog_picker_hint">Adjunta un registro de depuración existente o graba uno nuevo.</string>
+    <string name="support_contact_send_action">Abrir aplicación de correo</string>
+    <string name="support_contact_welcome">Leo cada mensaje personalmente y hago todo lo posible por responder, pero como trabajo en esto yo solo, puede llevar algo de tiempo. Gracias por tu paciencia.</string>
+    <string name="support_contact_footer">Tu mensaje se enviará por correo electrónico. La información del dispositivo y la configuración se adjunta automáticamente. Puedes adjuntar capturas de pantalla o un video al correo.\n\nAlgunas partes del correo estarán en inglés para que pueda entenderlo fácilmente.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">Almacenamiento de registros de depuración</string>
+    <string name="support_debuglog_storage_description">%1$d sesiones de registro, %2$s</string>
+    <string name="support_debuglog_storage_empty">No hay registros de depuración almacenados</string>
+    <string name="support_debuglog_delete_action">Eliminar todos los registros de depuración</string>
+    <string name="support_debuglog_delete_description">Elimina todos los archivos de registro de depuración grabados</string>
+    <string name="support_debuglog_delete_confirm_title">¿Eliminar todos los registros de depuración?</string>
+    <string name="support_debuglog_delete_confirm_message">Esto eliminará permanentemente todas las sesiones de registro de depuración grabadas. Las grabaciones activas no se verán afectadas.</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">Detener grabación</string>
+    <string name="settings_support_debuglog_record_action">Grabar registro de depuración</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">Sesiones de registro de depuración</string>
+    <string name="support_debuglog_sessions_desc">Administra las sesiones de registro de depuración grabadas</string>
+    <string name="support_debuglog_sessions_empty">No hay sesiones de registro de depuración</string>
+    <string name="support_debuglog_session_recording">Grabando…</string>
+    <string name="support_debuglog_session_compressing">Comprimiendo…</string>
+    <string name="support_debuglog_session_failed_empty_log">Error: registro vacío</string>
+    <string name="support_debuglog_session_failed_missing_log">Error: falta el registro</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Error: archivo dañado</string>
+    <string name="support_debuglog_session_failed_zip_failed">Error: fallo de compresión</string>
+    <string name="support_debuglog_session_delete_title">¿Eliminar sesión de depuración?</string>
+    <string name="support_debuglog_session_delete_message">Esto eliminará permanentemente esta sesión de registro de depuración.</string>
+    <string name="support_debuglog_clear_action">Borrar todo</string>
+    <string name="support_debuglog_clear_confirm_message">¿Eliminar todas las sesiones de registro de depuración almacenadas?</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_screen_subtitle">Exporta información de depuración para solucionar problemas</string>
+    <string name="debug_log_screen_sensitive_information_title">Información sensible</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">¿Enviaste el mensaje?</string>
+    <string name="support_contact_sent_message">Si el mensaje se envió, el registro de depuración adjunto se eliminará para ahorrar espacio. Si no, puedes conservarlo e intentarlo de nuevo más tarde.</string>
+    <string name="support_contact_debuglog_zip_error">No se pudo preparar el archivo adjunto del registro de depuración</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">Progreso de operaciones de archivos</string>
+    <string name="ops_notification_channel_progress_desc">Progreso en curso de las operaciones de copia, movimiento y eliminación</string>
+    <string name="ops_notification_channel_attention_name">Alertas de operaciones de archivos</string>
+    <string name="ops_notification_channel_attention_desc">Operaciones que necesitan tu atención o que han fallado</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d operación de archivo en curso</item>
+        <item quantity="other">%1$d operaciones de archivo en curso</item>
+    </plurals>
+    <string name="ops_notification_state_queued">En cola…</string>
+    <string name="ops_notification_state_cancelling">Cancelando…</string>
+    <string name="ops_notification_state_attention_title">Se requiere acción</string>
+    <string name="ops_notification_state_attention_text">Un conflicto necesita tu atención: toca para resolverlo</string>
+    <string name="ops_notification_result_failed_title">Operación fallida</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">¿Te gustaría dejarle una reseña a Butler? ❤️</string>
+    <string name="review_app_dismiss_action">Quizás más tarde</string>
+    <string name="review_app_review_action">Reseñar</string>
+
+</resources>

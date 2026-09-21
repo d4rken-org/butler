@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Informes de erros</string>
+    <string name="bugreport_workspace_subtitle">Relatórios de falhas e erros</string>
+
+    <string name="bugreport_empty_title">Sem relatórios</string>
+    <string name="bugreport_empty_subtitle">Relatórios de falhas e erros aparecerão aqui. Nada é enviado automaticamente.</string>
+
+    <string name="bugreport_type_crash">Falha</string>
+    <string name="bugreport_type_report">Relatório</string>
+    <string name="bugreport_type_recording">Gravação</string>
+
+    <string name="bugreport_record_action">Registrar log de depuração</string>
+    <string name="bugreport_record_short_action">Registrar</string>
+    <string name="bugreport_stop_action">Parar de registrar</string>
+    <string name="bugreport_stop_short_action">Parar</string>
+    <string name="bugreport_recording_ongoing_label">Registrando…</string>
+
+    <string name="bugreport_recording_short_title">A gravação é muito curta</string>
+    <string name="bugreport_recording_short_message">Esta gravação dura apenas alguns segundos e pode não conter informações úteis. Parar mesmo assim?</string>
+    <string name="bugreport_recording_short_keep_action">Continuar registrando</string>
+
+    <string name="bugreport_rename_action">Renomear</string>
+    <string name="bugreport_rename_dialog_title">Nomeie este relatório</string>
+    <string name="bugreport_rename_name_label">Nome</string>
+    <string name="bugreport_rename_name_hint">Mostrado na lista e no nome do arquivo compartilhado</string>
+
+    <string name="bugreport_share_action">Compartilhar</string>
+    <string name="bugreport_delete_action">Excluir</string>
+    <string name="bugreport_delete_all_action">Excluir tudo</string>
+    <string name="bugreport_delete_all_confirm_title">Excluir todos os logs de depuração?</string>
+    <string name="bugreport_delete_all_confirm_message">Isso excluirá permanentemente todas as sessões de log de depuração registradas. As gravações ativas não serão afetadas.</string>
+    <string name="bugreport_delete_confirm_title">Excluir este relatório?</string>
+    <string name="bugreport_delete_confirm_message">Isso excluirá permanentemente este relatório e seu log.</string>
+    <string name="bugreport_cancel_action">Cancelar</string>
+
+    <string name="bugreport_share_chooser_title">Compartilhar relatório de erros</string>
+    <string name="bugreport_share_consent_title">Compartilhar relatório?</string>
+    <string name="bugreport_share_consent_message">Este relatório inclui logs do aplicativo que podem conter nomes de arquivos, caminhos e informações do aplicativo e do dispositivo. Compartilhe apenas com pessoas em que você confia.</string>
+
+    <string name="bugreport_detail_back_action">Voltar</string>
+    <string name="bugreport_detail_section_error">Erro</string>
+    <string name="bugreport_detail_section_log">Log recente</string>
+    <string name="bugreport_detail_field_type">Tipo</string>
+    <string name="bugreport_detail_field_time">Hora</string>
+    <string name="bugreport_detail_field_app_version">Versão do aplicativo</string>
+    <string name="bugreport_detail_field_device">Dispositivo</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Compilação</string>
+    <string name="bugreport_detail_field_error_class">Tipo de erro</string>
+    <string name="bugreport_detail_field_thread">Thread</string>
+    <string name="bugreport_detail_log_truncated">últimos %1$d de %2$d linhas</string>
+    <string name="bugreport_detail_log_count">%1$d linhas</string>
+    <string name="bugreport_detail_log_empty">Nenhum log capturado</string>
+    <string name="bugreport_detail_log_error">Não foi possível carregar o log</string>
+</resources>

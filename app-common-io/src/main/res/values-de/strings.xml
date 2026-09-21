@@ -31,6 +31,16 @@
 
     <string name="path_action_unknown_error_title">Vorgang fehlgeschlagen</string>
 
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">Ersetzen nicht abgeschlossen</string>
+    <string name="path_action_data_kept_new_data_description">Butler konnte das Schreiben von \"%1$s\" nicht abschließen. Deine neuen Daten sind im selben Ordner als \"%2$s\" erhalten geblieben. Benenne sie um, um sie wiederherzustellen, oder lösche sie, um sie zu verwerfen.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler konnte das Schreiben von \"%1$s\" nicht abschließen, die vorherige Datei ist unverändert. Deine neuen Daten sind im selben Ordner als \"%2$s\" erhalten geblieben. Benenne sie um, um sie wiederherzustellen, oder lösche sie, um sie zu verwerfen.</string>
+    <string name="path_action_data_kept_both_description">Butler konnte das Schreiben von \"%1$s\" nicht abschließen. Es ist nichts verloren gegangen: Die vorherige Datei ist im selben Ordner als \"%2$s\" erhalten geblieben, Deine neuen Daten als \"%3$s\". Benenne die Datei um, die Du behalten möchtest.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler konnte das Schreiben von \"%1$s\" nicht abschließen und konnte nicht prüfen, ob \"%2$s\" noch vorhanden ist. Möglicherweise ist eine unvollständige Kopie im selben Ordner als \"%3$s\" erhalten geblieben. Vergleiche beide, bevor Du eine davon löschst.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler konnte das Verschieben von \"%1$s\" nicht abschließen und kann nicht feststellen, ob die Datei ihren Ordner bereits verlassen hat. Deine Daten sind entweder in diesem Ordner als \"%2$s\" erhalten geblieben oder bereits unter \"%3$s\". Prüfe beide, bevor Du eine davon löschst.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler konnte das Schreiben von \"%1$s\" nicht abschließen und kann nicht feststellen, wo Deine Datei gelandet ist. Sie ist eine von drei Dateien in diesem Ordner: \"%1$s\" selbst, \"%2$s\" oder \"%3$s\". Prüfe alle drei, bevor Du eine davon löschst.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler konnte das Schreiben von \"%1$s\" nicht abschließen und kann nicht feststellen, wo Deine Datei gelandet ist. Sie ist eine von zwei Dateien in diesem Ordner: \"%1$s\" selbst oder \"%2$s\". Prüfe beide, bevor Du eine davon löschst.</string>
+
     <string name="path_action_trash_size_limit_title">Elemente zu groß für den Papierkorb</string>
     <string name="path_action_trash_size_limit_description">Die Gesamtgröße (%2$s) überschreitet die Größenbegrenzung des Papierkorbs (%3$s). Betroffene Elemente: %1$d.</string>
 
@@ -57,6 +67,8 @@
     <string name="smb_error_dialect_description">\"%1$s\" bietet nur SMB1 an, das unsicher ist und nicht unterstützt wird. Aktiviere SMB2 oder höher auf dem Server.</string>
     <string name="smb_error_credential_unavailable_title">Anmeldung erforderlich</string>
     <string name="smb_error_credential_unavailable_description">Das gespeicherte Passwort für diesen Netzwerkspeicher kann nicht mehr gelesen werden. Gib es erneut ein, um die Verbindung wiederherzustellen.</string>
+    <string name="smb_error_pro_required_title">Netzwerkfreigaben erfordern Butler Pro</string>
+    <string name="smb_error_pro_required_description">Die Verbindung zu Netzwerkfreigaben ist Teil von Butler Pro. Deine gespeicherten Speicherorte bleiben aufgelistet und können auch ohne Pro entfernt werden.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Geschütztes App-Bundle</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" ist verschlüsselt und kann nur von der App installiert werden, die es erstellt hat.</string>
@@ -82,6 +94,17 @@
     <string name="app_install_confirm_pending_description_unnamed">Android benötigt Deine Bestätigung, um diese Installation abzuschließen.</string>
     <string name="app_install_confirm_pending_action">Installation bestätigen</string>
     <string name="app_install_confirm_pending_reason">Das Installationsprogramm wartet auf Deine Bestätigung</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Bestätigung erforderlich</string>
+    <string name="app_uninstall_confirm_pending_description">Android benötigt Deine Bestätigung, um die Entfernung von \"%1$s\" abzuschließen.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android benötigt Deine Bestätigung, um diese Entfernung abzuschließen.</string>
+    <string name="app_uninstall_confirm_pending_action">Entfernung bestätigen</string>
+    <string name="app_uninstall_confirm_pending_reason">Android wartet auf Deine Bestätigung</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Das Entfernen dieser App für einen anderen Nutzer erfordert Root oder Shizuku</string>
+    <string name="app_uninstall_no_result">Android hat kein Ergebnis gemeldet</string>
 
     <!-- Service connection errors -->
     <string name="service_connection_lost_error_title">Dateivorgang unterbrochen</string>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Éditeur</string>
+    <string name="editor_subtitle">Éditer les fichiers texte</string>
+    <string name="editor_settings_title">Paramètres de l’éditeur</string>
+    <string name="editor_settings_show_line_numbers_title">Afficher les numéros de ligne</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Affiche les numéros de ligne dans l’éditeur.</string>
+    <string name="editor_settings_word_wrap_title">Renvoi à la ligne</string>
+    <string name="editor_settings_word_wrap_subtitle">Renvoie les longues lignes à la largeur de l’écran.</string>
+    <string name="editor_settings_syntax_highlighting_title">Coloration syntaxique</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Affiche les couleurs syntaxiques dans les fichiers pris en charge (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Taille de police</string>
+    <string name="editor_settings_font_size_subtitle">Taille du texte dans l’éditeur</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Largeur de tabulation</string>
+    <string name="editor_settings_tab_size_subtitle">Nombre d’espaces qu’un caractère de tabulation occupe</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Ouvrir</string>
+    <string name="editor_action_save">Enregistrer</string>
+    <string name="editor_action_save_as">Enregistrer sous…</string>
+    <string name="editor_action_close">Fermer</string>
+    <string name="editor_action_undo">Annuler</string>
+    <string name="editor_action_redo">Rétablir</string>
+    <string name="editor_action_search">Rechercher</string>
+    <string name="editor_action_go_to_line">Aller à la ligne</string>
+    <string name="editor_action_dismiss">Masquer</string>
+    <string name="editor_action_previous">Précédent</string>
+    <string name="editor_action_next">Suivant</string>
+    <string name="editor_action_copy">Copier</string>
+    <string name="editor_action_cut">Couper</string>
+    <string name="editor_action_copy_to_butler_clipboard">Copier dans le presse-papiers Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">Couper dans le presse-papiers Butler</string>
+    <string name="editor_action_paste">Coller</string>
+    <string name="editor_action_select_all">Tout sélectionner</string>
+    <string name="editor_action_delete">Supprimer</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Écraser le fichier ?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s existe déjà. Son contenu actuel sera remplacé.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Écraser</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Une sauvegarde d’un enregistrement interrompu a été trouvée :\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">L’édition en tant que texte n’est pas prise en charge</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Lignes très longues</string>
+    <string name="editor_long_lines_banner_message">Les lignes très longues sont raccourcies pour l’affichage ; le contenu complet est conservé et enregistré.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Afficher la partie suivante de la ligne</string>
+    <string name="editor_line_truncated_marker_previous_action">Afficher la partie précédente de la ligne</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Fichier plus disponible</string>
+    <string name="editor_backing_lost_banner_message">Il a peut-être été déplacé ou supprimé. Cette vue est en lecture seule — réouvrez-la ou fermez-la.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Fichier disparu, mais une sauvegarde existe</string>
+    <string name="editor_error_save_artifacts_description">« %1$s » est manquant, mais un enregistrement interrompu a laissé ceci : %2$s. Votre contenu s’y trouve très probablement.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Fichier modifié sur le disque</string>
+    <string name="editor_external_change_banner_message">Une autre application a modifié ce fichier.</string>
+    <string name="editor_external_change_reload_action">Recharger</string>
+    <string name="editor_external_change_keep_action">Continuer l’édition</string>
+    <string name="editor_error_external_change">Ce fichier a été modifié par une autre application. Rechargez le fichier pour continuer.</string>
+    <string name="editor_dialog_reload_confirm_title">Recharger le fichier ?</string>
+    <string name="editor_dialog_reload_confirm_message">Le rechargement supprime vos modifications non enregistrées et affiche le contenu actuel du fichier sur le disque.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d ligne</item>
+        <item quantity="other">%1$d lignes</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d caractère</item>
+        <item quantity="other">%1$d caractères</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Sélectionné : %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$d L · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Chargement du fichier…</string>
+    <string name="editor_saving">Enregistrement en cours…</string>
+    <string name="editor_action_cancel_loading">Annuler</string>
+    <string name="editor_progress_opening">Ouverture du fichier…</string>
+    <string name="editor_progress_saving">Enregistrement du fichier…</string>
+    <string name="editor_progress_building_index">Construction de l’index…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Erreur inconnue</string>
+    <string name="editor_error_read_only">Ce fichier est en lecture seule et ne peut pas être modifié.</string>
+    <string name="editor_error_save_integrity_label">Enregistrement interrompu</string>
+    <string name="editor_error_save_integrity">L’enregistrement a été interrompu et le fichier sur le disque peut être incomplet. Rechargez le fichier avant de le modifier davantage.</string>
+    <string name="editor_error_clipboard_too_large_label">Sélection trop grande</string>
+    <string name="editor_error_clipboard_too_large">La sélection est trop grande pour être copiée (limite : %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Fichier trop volumineux</string>
+    <string name="editor_error_paste_too_large">Ce fichier est trop volumineux pour être collé (maximum : %1$s).</string>
+    <string name="editor_error_paste_binary_label">Pas un fichier texte</string>
+    <string name="editor_error_paste_binary">Le contenu de ce fichier ne peut pas être collé en tant que texte.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d sur %2$d résultat</item>
+        <item quantity="other">%1$d sur %2$d résultats</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d sur %2$d+ résultats</string>
+    <string name="editor_search_too_many_matches_label">Trop de résultats</string>
+    <string name="editor_search_too_many_matches">Plus de %1$d résultats ou trop de texte correspondant — affinez la recherche pour remplacer tous.</string>
+    <string name="editor_search_placeholder">Rechercher…</string>
+    <string name="editor_search_previous">Résultat précédent</string>
+    <string name="editor_search_next">Résultat suivant</string>
+    <string name="editor_search_case_sensitive_label">Respecter la casse</string>
+    <string name="editor_search_regex_label">Expression régulière</string>
+    <string name="editor_search_whole_word_label">Mot entier</string>
+    <string name="editor_search_options_label">Options de recherche</string>
+    <string name="editor_search_replace_label">Remplacer</string>
+    <string name="editor_search_replace_toggle">Afficher/masquer la fonction de remplacement</string>
+    <string name="editor_search_replace_placeholder">Remplacer par…</string>
+    <string name="editor_search_replace_one_action">Remplacer</string>
+    <string name="editor_search_replace_all_action">Tous</string>
+    <string name="editor_search_replaced_not_undoable">%1$d remplacé (trop grand pour annuler)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d remplacé</item>
+        <item quantity="other">%1$d remplacé</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Aller à la ligne</string>
+    <string name="editor_dialog_go_to_line_label">Numéro de ligne (1 à %1$d)</string>
+    <string name="editor_dialog_action_go">Aller</string>
+    <string name="editor_dialog_action_cancel">Annuler</string>
+    <string name="editor_dialog_close_confirm_title">Modifications non enregistrées</string>
+    <string name="editor_dialog_close_confirm_message">Vous avez des modifications non enregistrées. Les abandonner ?</string>
+    <string name="editor_dialog_close_confirm_discard">Abandonner</string>
+    <string name="editor_dialog_large_delete_confirm_title">Modifier une grande sélection ?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Cette sélection est trop grande pour annuler la modification. Continuer quand même ?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Continuer</string>
+    <string name="editor_encoding_dialog_title">Encodage</string>
+    <string name="editor_encoding_dialog_message">Rouvrez le fichier avec un encodage différent. Les modifications non enregistrées sont abandonnées ; les octets non modifiés restent inchangés lors de l’enregistrement.</string>
+    <string name="editor_infobar_read_only">Lecture seule</string>
+    <string name="editor_line_ending_mixed">Mixte</string>
+    <string name="editor_line_ending_dialog_title">Fins de ligne</string>
+    <string name="editor_line_ending_dialog_message">Convertissez tous les sauts de ligne et enregistrez le fichier, y compris les modifications non enregistrées. L’historique d’annulation est effacé.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Sans titre</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Enregistrement automatique</string>
+    <string name="editor_settings_autosave_enabled_title">Activer l’enregistrement automatique</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Enregistre automatiquement les modifications après une période d’inactivité.</string>
+    <string name="editor_settings_autosave_interval_title">Intervalle d’enregistrement automatique</string>
+    <string name="editor_settings_autosave_interval_subtitle">Temps d’attente après la dernière modification avant l’enregistrement.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Intervalle d’enregistrement automatique</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Presse-papiers</string>
+    <string name="editor_settings_clipboard_behavior_title">Presse-papiers Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Contrôle la façon dont les copies de texte sont enregistrées dans le presse-papiers de Butler.</string>
+    <string name="editor_settings_clipboard_system_only">Système uniquement</string>
+    <string name="editor_settings_clipboard_system_only_desc">Copier uniquement vers le presse-papiers système</string>
+    <string name="editor_settings_clipboard_butler_always">Toujours ajouter à Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Enregistrer également dans le presse-papiers de Butler pour coller entre les espaces de travail</string>
+    <string name="editor_settings_clipboard_ask">Demander à chaque fois</string>
+    <string name="editor_settings_clipboard_ask_desc">Demander confirmation avant d’ajouter au presse-papiers de Butler</string>
+</resources>

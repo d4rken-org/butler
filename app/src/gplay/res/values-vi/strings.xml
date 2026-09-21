@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Yêu cầu Butler Pro</string>
+
+    <string name="upgrade_prompt_title">Nâng cấp Butler</string>
+    <string name="upgrade_prompt_body">Butler Pro mang lại kết quả tốt hơn, nhiều tính năng và tùy chọn cho những người dùng nâng cao.</string>
+    <string name="upgrade_prompt_upgrade_action">Nâng cấp</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">Nhận %1$s</string>
+    <string name="upgrade_screen_preamble">Butler không có quảng cáo và không bán dữ liệu người dùng. Công việc của tôi được tài trợ bởi bạn ❤️.</string>
+
+    <string name="upgrade_screen_how_title">Tùy chọn</string>
+    <string name="upgrade_screen_subscription_trial_action">Bắt đầu dùng thử 14 ngày miễn phí</string>
+    <string name="upgrade_screen_subscription_action">Đăng ký</string>
+    <string name="upgrade_screen_iap_action">Mua một lần</string>
+    <string name="upgrade_screen_restore_purchase_action">Khôi phục mua hàng</string>
+    <string name="upgrade_screen_restore_banner_title">Đã mua Pro rồi?</string>
+    <string name="upgrade_screen_restore_banner_body">Có vẻ như bạn đã nâng cấp lên Pro trên thiết bị này trước đây. Khôi phục mua hàng của bạn để mở khóa nó lại.</string>
+    <string name="upgrade_screen_restore_checked_message">Butler vừa kiểm tra với Google Play, nhưng không thể xác nhận được mua hàng Pro cho tài khoản mà Google Play sử dụng cho ứng dụng này.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Kiểm tra với Google Play không hoàn tất kịp thời, vì vậy trạng thái mua hàng của bạn vẫn chưa được biết. Không có gì thay đổi trên tài khoản của bạn.</string>
+    <string name="upgrade_screen_restore_contact_hint">Vẫn gặp trở ngại? Hãy liên hệ từ email đã mua hàng và bao gồm số đơn hàng Google Play của bạn.</string>
+    <string name="upgrade_screen_contact_support_action">Liên hệ hỗ trợ</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Đồng bộ hóa Play Store có thể mất thời gian. Hãy thử khởi động lại, xóa bộ nhớ đệm Google Play hoặc chỉ cần chờ đợi.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">Nhiều tài khoản có thể làm cho Google Play bối rối. Hãy đăng xuất khỏi các tài khoản khác hoặc cài đặt thông qua trang web Google Play, điều này buộc phải liên kết với một tài khoản cụ thể.</string>
+    <string name="upgrade_screen_restore_success_message">Mua hàng của bạn đã được khôi phục ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Trạng thái có vẻ sai?</string>
+    <string name="upgrade_screen_restore_status_body">Kiểm tra lại mua hàng của bạn với Google Play. Điều này có thể giúp sau khi thay đổi thiết bị hoặc nếu bạn chuyển tài khoản Google.</string>
+
+    <string name="upgrade_screen_offers_or">hoặc</string>
+
+    <string name="upgrade_screen_offers_title">Tùy chọn nâng cấp</string>
+    <string name="upgrade_screen_offers_body">Cả hai tùy chọn đều mở khóa các tính năng Pro hoàn toàn giống nhau — chọn giá phù hợp với bạn.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Giá không sẵn có</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler không thể tải các tùy chọn nâng cấp từ Google Play. Điều này thường là tạm thời — hãy thử lại sau một lát.</string>
+    <string name="upgrade_screen_subscription_offer_title">Gói đăng ký hàng năm</string>
+    <string name="upgrade_screen_subscription_offer_body">Bắt đầu với dùng thử 14 ngày miễn phí, sau đó tính phí một lần mỗi năm. Hủy bất cứ lúc nào.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Tính phí một lần mỗi năm. Hủy bất cứ lúc nào.</string>
+    <string name="upgrade_screen_iap_offer_title">Mua một lần</string>
+    <string name="upgrade_screen_iap_offer_body">Trả tiền một lần, của bạn mãi mãi. Không có gói đăng ký.</string>
+    <string name="upgrade_screen_restore_body">Khôi phục yêu cầu Google Play kiểm tra lại các mua hàng của ứng dụng này cho tài khoản hiện tại.</string>
+
+    <string name="upgrade_screen_owned_hero_title">Bạn có Butler Pro rồi!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Cảm ơn vì lần mua một lần — bạn đã sẵn sàng mãi mãi ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Cảm ơn vì đã đăng ký ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">Mua một lần</string>
+    <string name="upgrade_screen_owned_iap_body">Bạn sở hữu bản nâng cấp Pro vĩnh viễn.</string>
+    <string name="upgrade_screen_owned_sub_title">Gói đăng ký</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Gói đăng ký của bạn đang hoạt động và tự động gia hạn.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Gói đăng ký của bạn đang hoạt động nhưng được đặt thành không gia hạn. Pro tồn tại cho đến khi kỳ hiện tại kết thúc.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">Bạn sở hữu mua một lần nhưng gói đăng ký của bạn vẫn đang gia hạn. Hãy hủy nó trong Google Play để tránh trả tiền hai lần.</string>
+    <string name="upgrade_screen_manage_subscription_action">Quản lý gói đăng ký</string>
+
+    <string name="upgrade_screen_switch_locked_note">Trước hết hủy gia hạn thông qua \"Quản lý gói đăng ký\", nếu không bạn sẽ bị tính phí cho cả hai.</string>
+    <string name="upgrade_screen_switch_purchase_note">Gói đăng ký của bạn sẽ không gia hạn — bạn có thể an toàn mua một lần ngay bây giờ.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Gói đăng ký vẫn đang hoạt động</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Gói đăng ký của bạn vẫn được đặt để gia hạn. Trước tiên hủy gia hạn trong Google Play để bạn không bị tính phí cho cả hai, sau đó mua một lần.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">Không thể xác minh</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler không thể xác nhận trạng thái mua hàng của bạn với Google Play, vì vậy mua hàng đã bị dừng để tránh tính phí cho bạn hai lần. Vui lòng thử lại sau một lát.</string>
+
+    <string name="upgrade_screen_pending_card_title">Thanh toán đang chờ xử lý</string>
+    <string name="upgrade_screen_pending_card_body">Google Play vẫn đang xử lý thanh toán của bạn. Pro tự động mở khóa khi thanh toán được xử lý. Một số phương pháp thanh toán có thể mất thời gian. Không có gì khác bạn cần phải làm.</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play tìm thấy một mua hàng với thanh toán đang chờ xử lý và vẫn đang xử lý nó. Pro tự động mở khóa khi thanh toán được xử lý.</string>
+
+    <string name="upgrade_screen_grace_title">Xác nhận mua hàng của bạn</string>
+    <string name="upgrade_screen_grace_body_short">Google Play đang mất một lúc để xác nhận trạng thái Pro của bạn. Bạn vẫn có quyền truy cập đầy đủ.</string>
+    <string name="upgrade_screen_grace_body">Google Play vẫn chưa xác nhận lại trạng thái Pro của bạn. Bạn vẫn có quyền truy cập bây giờ. Nếu điều này có vẻ sai, hãy thử khôi phục mua hàng của bạn.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">Đã mua rồi?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play báo cáo rằng bạn đã sở hữu bản nâng cấp này, nhưng không thể khôi phục tự động. Hãy đảm bảo bạn đăng nhập bằng tài khoản Google được sử dụng cho lần mua ban đầu, sau đó thử \"Khôi phục mua hàng\".</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play không khả dụng</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler không thể kết nối đến Google Play. Google Play có được cài đặt và cập nhật không? Tài khoản Google của bạn đã đăng nhập chưa? Hãy thử xóa bộ nhớ đệm của ứng dụng Google Play và khởi động lại thiết bị của bạn.</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can't open Google Play's app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Không thể mở Google Play. Nó có thể bị thiếu, vô hiệu hóa hoặc bị hạn chế trên thiết bị này.</string>
+    <string name="upgrades_gplay_billing_error_label">Vấn đề Google Play</string>
+    <string name="upgrades_gplay_billing_error_description">Có điều gì đó không ổn khi nói chuyện với Google Play. Vui lòng thử lại sau hoặc khởi động lại thiết bị của bạn.\n\nChi tiết: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Lỗi Google Play</string>
+    <string name="upgrades_gplay_internal_error_description">Google Play gặp phải lỗi nội bộ. Vui lòng thử những việc sau:\n\n• Khởi động lại thiết bị của bạn\n• Xóa bộ nhớ đệm Google Play Store\n• Thử lại sau</string>
+    <string name="upgrades_gplay_network_error_title">Lỗi kết nối</string>
+    <string name="upgrades_gplay_network_error_description">Butler không thể kết nối đến Google Play. Vui lòng kiểm tra kết nối internet và thử lại.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Ưu đãi không khả dụng</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play hiện không cung cấp tùy chọn nâng cấp này cho tài khoản của bạn. Vui lòng thử lại sau hoặc kiểm tra Google Play Store.</string>
+    <string name="upgrades_no_purchases_found_check_account">Không tìm thấy mua hàng nào. Bạn có đang sử dụng tài khoản đúng không?</string>
+
+    <string name="upgrade_benefits_title">Lợi ích nâng cấp</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Số thẻ và thao tác không giới hạn\n• Tùy chỉnh thiết kế, cảm nhận và giao diện\n• Các tùy chọn và tính năng bổ sung cho mỗi công cụ\n• Truy cập sớm vào các tính năng mới\n• Một nhà phát triển có động lực 🧙\nvà nhiều hơn nữa…</string>
+</resources>

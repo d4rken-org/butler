@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Προγραμματιστής</string>
+    <string name="developer_title">Εργαλεία Προγραμματιστή</string>
+    <string name="developer_subtitle">Βοηθητικά εργαλεία ανάπτυξης</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">Σύστημα</string>
+    <string name="developer_tab_options">Επιλογές</string>
+    <string name="developer_tab_workspaces">Χώροι εργασίας</string>
+    <string name="developer_tab_logs">Αρχεία καταγραφής</string>
+    <string name="developer_tab_testdata">Δεδομένα δοκιμής</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Επιλογές αποσφαλμάτωσης</string>
+    <string name="developer_options_debug_mode">Λειτουργία αποσφαλμάτωσης</string>
+    <string name="developer_options_debug_mode_desc">Ενεργοποίηση λεπτομερούς καταγραφής</string>
+    <string name="developer_options_trace_mode">Λειτουργία ιχνηλάτησης</string>
+    <string name="developer_options_trace_mode_desc">Ενεργοποίηση καταγραφής επιπέδου ιχνηλάτησης</string>
+    <string name="developer_options_floating_log">Κινητό παράθυρο καταγραφής</string>
+    <string name="developer_options_floating_log_desc">Εμφάνιση ενός έλκυστου επιπέδου καταγραφής σε όλες τις οθόνες</string>
+    <string name="developer_options_services_header">Δοκιμές υπηρεσίας</string>
+    <string name="developer_options_root_test_action">Δοκιμή Root</string>
+    <string name="developer_options_root_installed_label">Εγκατεστημένο</string>
+    <string name="developer_options_root_available_label">Διαθέσιμο</string>
+    <string name="developer_options_root_base_check_label">Βασικός έλεγχος</string>
+    <string name="developer_options_shizuku_test_action">Δοκιμή Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">Εγκατεστημένο</string>
+    <string name="developer_options_shizuku_granted_label">Δικαίωμα</string>
+    <string name="developer_options_shizuku_compatible_label">Συμβατό</string>
+    <string name="developer_options_shizuku_service_label">Υπηρεσία</string>
+    <string name="developer_options_test_running">Δοκιμή σε εξέλιξη…</string>
+    <string name="developer_options_result_yes">Ναι</string>
+    <string name="developer_options_result_no">Όχι</string>
+    <string name="developer_options_result_unknown">Άγνωστο</string>
+    <string name="developer_options_visibility_header">Ορατότητα</string>
+    <string name="developer_options_hide_mode">Απόκρυψη λειτουργίας προγραμματιστή</string>
+    <string name="developer_options_hide_mode_desc">Αγγίξτε την έκδοση 7 φορές στις Ρυθμίσεις για να ενεργοποιήσετε ξανά.</string>
+    <string name="developer_options_hide_action">Απόκρυψη</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Συσκευή</string>
+    <string name="developer_system_device_model">Μοντέλο</string>
+    <string name="developer_system_device_manufacturer">Κατασκευαστής</string>
+    <string name="developer_system_device_api">Επίπεδο API</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">Έκδοση</string>
+    <string name="developer_system_build_code">Κώδικας έκδοσης</string>
+    <string name="developer_system_build_flavor">Παραλλαγή</string>
+    <string name="developer_system_build_type">Τύπος κατασκευής</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Μνήμη</string>
+    <string name="developer_system_memory_available">Διαθέσιμη</string>
+    <string name="developer_system_memory_total">Σύνολο</string>
+    <string name="developer_system_storage_header">Αποθηκευτικός χώρος</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d χώροι εργασίας</string>
+    <string name="developer_workspaces_empty">Χωρίς χώρους εργασίας</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Απαλοιφή</string>
+    <string name="developer_logs_pause">Παύση</string>
+    <string name="developer_logs_resume">Συνέχιση</string>
+    <string name="developer_logs_empty">Χωρίς αρχεία καταγραφής</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Διαδρομές προορισμού</string>
+    <string name="developer_testdata_no_paths">Δεν επιλέχθηκαν διαδρομές προορισμού. Προσθέστε διαδρομές για δημιουργία δεδομένων δοκιμής.</string>
+    <string name="developer_testdata_add_path_action">Προσθήκη διαδρομής</string>
+    <string name="developer_testdata_options_header">Επιλογές δημιουργίας</string>
+    <string name="developer_testdata_large_files">Μεγάλα αρχεία</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Ένθετη δομή</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 φάκελοι, ~1100 αρχεία</string>
+    <string name="developer_testdata_text_files">Αρχεία κειμένου για Επεξεργαστή</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Δημιουργία</string>
+    <string name="developer_testdata_generating">Δημιουργία σε εξέλιξη…</string>
+    <string name="developer_testdata_history_header">Δείγματα εγγραφών ιστορικού</string>
+    <string name="developer_testdata_history_desc">Συμπληρώνει ~25 ψευδείς εγγραφές λειτουργίας από σήμερα έως 30 ημέρες πριν, μεικτών τύπων, αποτελεσμάτων, προελεύσεων και διαδρομών. Εισάγονται απευθείας στη βάση δεδομένων ιστορικού· ασφαλές να αγγίξετε ξανά.</string>
+    <string name="developer_testdata_history_generate_action">Δημιουργία δείγματος ιστορικού</string>
+    <string name="developer_testdata_progress">%1$s από %2$s</string>
+    <string name="developer_testdata_complete">Δεδομένα δοκιμής δημιουργήθηκαν στο:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Δημιουργία μεγάλων αρχείων</string>
+    <string name="developer_operation_large_files_desc">Δημιουργία αρχείων δοκιμής σε %1$s</string>
+    <string name="developer_operation_large_files_creating">Δημιουργία %1$s</string>
+
+    <string name="developer_operation_nested_title">Δημιουργία ένθετης δομής</string>
+    <string name="developer_operation_nested_desc">Δημιουργία ιεραρχίας φακέλων σε %1$s</string>
+    <string name="developer_operation_nested_starting">Έναρξη ένθετης δομής…</string>
+    <string name="developer_operation_nested_creating">Δημιουργία %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d αρχεία δημιουργήθηκαν</string>
+
+    <string name="developer_operation_text_files_title">Δημιουργία αρχείων κειμένου</string>
+    <string name="developer_operation_text_files_desc">Δημιουργία αρχείων κειμένου σε %1$s</string>
+    <string name="developer_operation_text_files_creating">Δημιουργία %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d αρχείο δημιουργήθηκε</item>
+        <item quantity="other">%d αρχεία δημιουργήθηκαν</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d φάκελος</item>
+        <item quantity="other">%d φάκελοι</item>
+    </plurals>
+</resources>

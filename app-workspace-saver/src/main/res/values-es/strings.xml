@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Guardar como</string>
+    <string name="saver_preview_label">Vista previa</string>
+    <string name="saver_loading">Cargando…</string>
+    <string name="saver_shared_from">Compartido desde %1$s</string>
+    <string name="saver_shared_generic">Compartido con Butler</string>
+    <string name="saver_destination_label">Destino</string>
+    <string name="saver_select_destination_hint">Seleccionar carpeta de destino</string>
+    <string name="saver_filename_label">Nombre de archivo</string>
+    <string name="saver_save_action">Guardar</string>
+    <string name="saver_saving_progress">Guardando…</string>
+    <string name="saver_success_message">Archivo guardado correctamente</string>
+    <string name="saver_open_saved_action">Abrir directorio</string>
+    <string name="saver_retry_action">Reintentar</string>
+    <string name="saver_save_again_action">Guardar en nueva ubicación</string>
+    <string name="saver_close_tab_action">Cerrar pestaña</string>
+    <string name="saver_close_butler_action">Cerrar pestaña y volver</string>
+    <string name="saver_done_action">Listo</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">El archivo de origen ya no es accesible. Comparte de nuevo.</item>
+        <item quantity="other">%1$d archivos de origen ya no son accesibles. Comparte de nuevo.</item>
+    </plurals>
+    <string name="saver_error_source_expired">El archivo de origen ya no es accesible</string>
+    <string name="saver_error_permission_denied">Permiso denegado</string>
+    <string name="saver_error_write_failed">Error al guardar el archivo</string>
+    <string name="saver_error_file_exists">El archivo ya existe</string>
+
+    <!-- Operation strings -->
+    <plurals name="saver_operation_description">
+        <item quantity="one">Guardando %1$d archivo en %2$s</item>
+        <item quantity="other">Guardando %1$d archivos en %2$s</item>
+    </plurals>
+    <string name="saver_operation_title">Guardar archivos</string>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Guardar %1$d archivo</item>
+        <item quantity="other">Guardar %1$d archivos</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d archivo guardado</item>
+        <item quantity="other">%1$d archivos guardados</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d archivo falló</item>
+        <item quantity="other">%1$d archivos fallaron</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d archivo omitido</item>
+        <item quantity="other">%1$d archivos omitidos</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d de %2$d archivos guardados</string>
+</resources>

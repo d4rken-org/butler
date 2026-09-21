@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Fevkalade dosya gezgini</string>
+    <!-- Upgraded app title. %1$s is the app name, %2$s the tier qualifier ("Pro" or "FOSS", depending on the build). Reorder or repunctuate for your language; both placeholders must appear exactly once. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Butler uygulama simgesi</string>
+    <string name="butler_mascot_description">Butler maskotu</string>
+    <string name="butler_mascot_animation_random_description">Butler maskotu çeşitli animasyonlar yapıyor</string>
+    <string name="butler_mascot_animation_wink_description">Butler maskotu göz kırpıyor</string>
+    <string name="butler_mascot_animation_greeting_description">Butler maskotu el sallayarak selamlıyor</string>
+    <string name="butler_mascot_animation_hatoff_description">Butler maskotu saygıyla şapka çıkarıyor</string>
+    <string name="butler_mascot_animation_drink_description">Butler maskotu içki içiyor</string>
+    <string name="butler_mascot_animation_moustache_description">Butler maskotu bıyığını okşuyor</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Butler maskotu uyumak için gözlerini kapatıyor</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Butler maskotu horluyor</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Butler maskotu uyanıyor</string>
+    <string name="butler_mascot_animation_cameo_description">SD Maid maskotu konuk olarak beliriyor</string>
+
+    <string name="slogan_general_message_0">Hizmetinizde.</string>
+    <string name="slogan_general_message_1">Her şey yerli yerinde.</string>
+    <string name="slogan_general_message_2">Düzen, kaos değil.</string>
+    <string name="slogan_general_message_3">Dosyalarınız getiriliyor.</string>
+    <string name="slogan_general_message_4">Tüm dosyalarınız sırayla.</string>
+    <string name="slogan_general_message_5">Her zaman düzenli.</string>
+    <string name="slogan_general_message_6">Dosyalar hızla bulundu!</string>
+    <string name="slogan_general_message_7">Erişim kolaylaştı.</string>
+    <string name="slogan_general_message_8">Dosyalarınızı asla kaybetmeyecek.</string>
+    <string name="slogan_general_message_9">Birçok şapka takıyor.</string>
+    <string name="slogan_newyear_message_0">Her yıl olduğu gibi aynı prosedür.</string>
+    <string name="slogan_xmas_message_0">Dosyaları iki kez kontrol ediyor.</string>
+    <string name="slogan_xmas_message_1">Uslular listesinde.</string>
+    <string name="slogan_halloween_message_0">Boo-tler hizmetinizde.</string>
+    <string name="slogan_halloween_message_1">Hile yok, sadece dosyalar.</string>
+    <string name="slogan_stpatricks_message_0">Kendini şanslı mı hissediyorsun?</string>
+    <string name="slogan_stpatricks_message_1">Altın küpünüzü buluyor.</string>
+    <string name="slogan_aprilfools_message_0">Şaka yok.</string>
+    <string name="slogan_aprilfools_message_1">Ciddi anlamda düzenli.</string>
+    <string name="slogan_oktoberfest_message_0">Dosyalarınıza şerefe!</string>
+    <string name="slogan_oktoberfest_message_1">Dosyalar fıçıdan.</string>
+
+    <string name="general_share_action">Paylaş</string>
+    <string name="general_share_single_title">%s paylaş</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">%d dosyayı paylaş</item>
+        <item quantity="other">%d dosyayı paylaş</item>
+    </plurals>
+    <string name="general_done_action">Bitti</string>
+    <string name="general_copy_action">Kopyala</string>
+    <string name="general_cut_action">Kes</string>
+    <string name="general_move_action">Taşı</string>
+    <string name="general_paste_action">Yapıştır</string>
+    <string name="general_apply_action">Uygula</string>
+    <string name="general_open_action">Aç</string>
+    <string name="general_cancel_action">İptal</string>
+    <string name="general_close_action">Kapat</string>
+    <string name="general_confirm_action">Onayla</string>
+    <string name="general_reset_action">Sıfırla</string>
+    <string name="general_save_action">Kaydet</string>
+    <string name="general_edit_action">Düzenle</string>
+    <string name="general_na_label">Yok</string>
+    <!-- Announced by screen readers when a dialog opens -->
+    <string name="general_dialog_a11y_label">İletişim kutusu</string>
+    <string name="general_dismiss_action">Kapat</string>
+    <string name="general_read_more_action">Devamını oku</string>
+    <string name="general_mark_as_read_action">Okundu olarak işaretle</string>
+    <string name="general_back_action">Geri</string>
+    <string name="general_navigate_up_action">Yukarı git</string>
+    <string name="general_error_label">Hata</string>
+    <string name="general_error_unknown_label">Bilinmeyen hata</string>
+    <string name="general_error_invalid_input_label">Geçersiz giriş</string>
+    <string name="general_share_error_action">Hatayı paylaş</string>
+    <string name="general_error_report_subject">%1$s Hata Raporu (%2$s)</string>
+    <string name="general_error_report_consent_title">Hata raporu paylaşılsın mı?</string>
+    <string name="general_error_report_consent_message">Bu rapor; hatayı ve oluşturduğu yığın izlemesini, uygulamanın son günlük kayıtlarını ve bulunduğu durumla ilgili ayrıntıları içerir: dosya adları ve yolları, arama sorguları, paket adları, URI\'ler, ağ ve SMB sunucu adları, cihaz ve derleme bilgileriniz ile anonim bir kurulum kimliği. Yalnızca güvendiğiniz kişilerle paylaşın.</string>
+    <string name="general_error_report_consent_confirm">Raporu paylaş</string>
+    <string name="general_privacy_policy_action">Gizlilik politikası</string>
+    <string name="general_bug_report_subject">%1$s Hata Bildirimi (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">%1$s Hata Bildirimi: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Ne olduğunu buraya yazın.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Bunun yerine ne beklediğinizi buraya yazın.)</string>
+    <string name="general_duration_input_label">Süre</string>
+    <string name="general_size_input_label">Boyut</string>
+    <string name="general_upgrade_action">Yükselt</string>
+    <string name="general_refresh_action">Yenile</string>
+    <string name="general_clear_action">Temizle</string>
+    <string name="general_expand_action">Genişlet</string>
+    <string name="general_collapse_action">Daralt</string>
+    <string name="general_completed_label">Tamamlandı</string>
+    <string name="general_cancelled_label">İptal edildi</string>
+    <string name="general_searching_label">Aranıyor</string>
+    <string name="general_searching_ellipsis">Aranıyor…</string>
+    <string name="general_progress_loading">Yükleniyor</string>
+    <string name="general_progress_loading_egg_0">Yine de bir iPhone\'dan hızlı</string>
+    <string name="general_progress_loading_egg_1">Daha fazla RAM indiriliyor</string>
+    <string name="general_progress_loading_egg_2">Tahmini süre: Yakında™</string>
+    <string name="general_progress_loading_egg_3">İşlemci kahve molasında</string>
+    <string name="general_progress_loading_egg_4">Pepe Silvia\'dan veri bekleniyor</string>
+    <string name="general_progress_loading_egg_5">Turbo enkabülatör devreye giriyor</string>
+    <string name="general_progress_loading_egg_6">Tereyağı uzatılıyor</string>
+    <string name="general_progress_loading_egg_7">Peki. Nasıl dayanıyorsun?</string>
+    <string name="general_progress_loading_egg_8">Bip bip bop</string>
+    <string name="general_progress_loading_egg_9">Hayat tercihleri arabelleğe alınıyor</string>
+    <string name="general_progress_loading_egg_10">Cthulhu çağrılıyor</string>
+    <string name="general_progress_loading_egg_11">Sorun yok</string>
+    <string name="general_progress_loading_egg_12">Lütfen bekleyin</string>
+    <string name="general_progress_loading_egg_13">En azından beklemede değilsin</string>
+    <string name="general_progress_loading_egg_14">Doğrudan alına uygulayın</string>
+
+    <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%dsn</item>
+        <item quantity="other">%dsn</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%ddk</item>
+        <item quantity="other">%ddk</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dsa</item>
+        <item quantity="other">%dsa</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dg</item>
+        <item quantity="other">%dg</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d saniye</item>
+        <item quantity="other">%d saniye</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d dakika</item>
+        <item quantity="other">%d dakika</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d saat</item>
+        <item quantity="other">%d saat</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d gün</item>
+        <item quantity="other">%d gün</item>
+    </plurals>
+
+    <string name="general_view_action">Görüntüle</string>
+    <string name="general_delete_action">Sil</string>
+    <string name="general_show_details_action">Ayrıntıları göster</string>
+    <string name="general_hide_details_action">Ayrıntıları gizle</string>
+
+    <string name="general_delete_confirmation_title">Silmeyi onayla</string>
+    <string name="general_delete_confirmation_message_x">\"%s\" silinsin mi?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Seçili %d öğe silinsin mi?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">%d öğe silindi.</item>
+        <item quantity="other">%d öğe silindi.</item>
+    </plurals>
+
+    <string name="general_create_action">Oluştur</string>
+    <string name="general_rename_action">Yeniden adlandır</string>
+    <string name="general_retry_action">Yeniden dene</string>
+    <string name="general_open_setup_action">Kurulumu aç</string>
+    <string name="general_grant_usage_stats_action">Kullanım erişimi ver</string>
+    <string name="general_grant_storage_permission_action">Depolama izni ver</string>
+    <string name="general_grant_all_files_access_action">Tüm dosyalara erişime izin ver</string>
+
+    <string name="general_result_user_cancel_msg">Kullanıcı işlemi iptal etti.</string>
+
+    <string name="general_path_label">Yol</string>
+    <string name="general_filename_validation_error">Ad geçersiz karakterler içeriyor: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d / %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d / %2$d</string>
+
+    <string name="file_type_symbolic_link">Bağlantı</string>
+    <string name="file_type_directory">Dizin</string>
+    <string name="file_type_file">Dosya</string>
+    <string name="file_type_unknown">Bilinmeyen</string>
+
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">Görsel</string>
+    <string name="common_mimetype_video">Video</string>
+    <string name="common_mimetype_audio">Ses</string>
+    <string name="common_mimetype_text_plain">Düz metin</string>
+    <string name="common_mimetype_text">Metin belgesi</string>
+    <string name="common_mimetype_pdf">PDF belgesi</string>
+    <string name="common_mimetype_document">Belge</string>
+    <string name="common_mimetype_archive">Arşiv</string>
+    <string name="common_mimetype_apk">Android paketi</string>
+    <string name="common_mimetype_json">JSON dosyası</string>
+    <string name="common_mimetype_xml">XML dosyası</string>
+    <string name="common_mimetype_unknown">Bilinmeyen tür</string>
+
+    <string name="general_rom_type_auto_label">Otomatik (varsayılan)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s öğe/sn</item>
+        <item quantity="other">%s öğe/sn</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/sn</item>
+        <item quantity="other">%s/sn</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Tür uyuşmazlığı: %1$s bekleniyordu, ancak %2$s alındı.</string>
+    <string name="general_error_cant_access_msg">%s içine erişilemiyor.</string>
+    <string name="general_error_archive_not_seekable_msg">%s doğrudan gezinilemiyor: bulunduğu depolama yalnızca sıralı okumayı destekliyor, ancak bu arşiv biçimi rastgele erişim gerektiriyor.</string>
+    <string name="general_error_root_unavailable">Root erişimi kullanılamıyor.</string>
+    <string name="general_error_elevated_access_required">Bu işlem yükseltilmiş erişim gerektiriyor. Kurulum\'da Root veya Shizuku\'yu yapılandırın.</string>
+    <string name="general_error_no_compatible_app_found_msg">Bu isteği işleyecek uyumlu bir uygulama bulunamadı.</string>
+    <string name="general_error_ipc_deadobject_title">Hizmet bağlantısı koptu</string>
+    <string name="general_error_ipc_deadobject_description">Kritik bir hizmetle (ör. Magisk, Shizuku veya diğer sistem düzeyi hizmetler) olan bağlantı beklenmedik şekilde koptu. Lütfen cihazınızı yeniden başlatın. Sorun devam ederse güncellemeleri kontrol edin veya düzeltebilmem için benimle iletişime geçin.</string>
+
+    <string name="ui_theme_mode_dark_label">Koyu</string>
+    <string name="ui_theme_mode_light_label">Açık</string>
+    <string name="ui_theme_mode_system_label">Sistem</string>
+    <string name="ui_theme_style_default_label">Varsayılan</string>
+    <string name="ui_theme_style_medium_contrast_label">Orta kontrast</string>
+    <string name="ui_theme_style_high_contrast_label">Yüksek kontrast</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Yeşil</string>
+    <string name="ui_theme_color_blue_label">Mavi</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Özel</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Tonal nokta</string>
+    <string name="ui_theme_palette_neutral_label">Nötr</string>
+    <string name="ui_theme_palette_vibrant_label">Canlı</string>
+    <string name="ui_theme_palette_expressive_label">Etkileyici</string>
+    <string name="ui_theme_palette_rainbow_label">Gökkuşağı</string>
+    <string name="ui_theme_palette_fruitsalad_label">Meyve salatası</string>
+    <string name="ui_theme_palette_monochrome_label">Tek renkli</string>
+    <string name="ui_theme_palette_fidelity_label">Doğruluk</string>
+    <string name="ui_theme_palette_content_label">İçerik</string>
+
+    <string name="ui_theme_custom_dialog_title">Özel tema</string>
+    <string name="ui_theme_custom_seed_label">Temel renk</string>
+    <string name="ui_theme_custom_palette_label">Palet stili</string>
+    <string name="ui_theme_custom_default_action">Varsayılan</string>
+
+    <string name="ui_mascot_suit_dialog_title">Butler\'ın kıyafeti</string>
+    <string name="ui_mascot_suit_default_action">Varsayılan</string>
+    <string name="ui_mascot_suit_hue_label">Ton</string>
+    <string name="ui_mascot_suit_saturation_label">Doygunluk</string>
+    <string name="ui_mascot_suit_brightness_label">Parlaklık</string>
+    <string name="ui_mascot_suit_value_description">Kıyafet rengi %s</string>
+
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">Kullanım istatistikleri</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Bildirim erişimi</string>
+    <string name="setup_manage_storage_card_title">Harici depolamayı yönet</string>
+    <string name="setup_inventory_card_title">Uygulama envanteri</string>
+
+    <!-- Common permission strings -->
+    <string name="setup_required_card_title">Kurulum gerekli</string>
+    <string name="setup_required_card_body">Bu işlemi gerçekleştirmek için ek kurulum gerekiyor.</string>
+    <string name="setup_required_card_setup_action">Kurulumu aç</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">Birden fazla sekme açılsın mı?</string>
+    <string name="common_open_tabs_confirmation_message">Bu, %1$d sekme açacak.</string>
+    <string name="common_open_tabs_success">%1$d sekme açıldı</string>
+    <string name="common_open_tabs_success_with_skipped">%1$d sekme açıldı (%2$d öğe atlandı)</string>
+
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">Sekme kapatılsın mı?</string>
+    <string name="general_tab_close_confirmation_message">\"%1$s\" sekmesini kapatmak istediğinizden emin misiniz?</string>
+    <string name="general_tab_close_unsaved_title">Kaydedilmemiş değişiklikler</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" içinde kaydedilmemiş değişiklikler var. Kapatılıp değişiklikler silinsin mi?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" ve %2$d sekme daha kaydedilmemiş değişiklikler içeriyor. Kapatılıp değişiklikler silinsin mi?</string>
+    <string name="general_discard_action">Sil</string>
+    <string name="general_tab_close_goto_action">Sekmeye git</string>
+
+    <!-- Exit app -->
+    <string name="general_press_back_again_to_exit">Çıkmak için tekrar geri tuşuna basın</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d seçildi</item>
+        <item quantity="other">%d seçildi</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d klasör</item>
+        <item quantity="other">%1$d klasör</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d dosya</item>
+        <item quantity="other">%1$d dosya</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Tüm klasörleri seç</string>
+    <string name="common_select_all_files_action">Tüm dosyaları seç</string>
+    <string name="general_undo_action">Geri al</string>
+
+    <!-- Guided tours -->
+    <string name="tour_action_next">İleri</string>
+    <string name="tour_action_previous">Geri</string>
+    <string name="tour_action_cancel">Atla</string>
+    <string name="tour_confirm_title">Tur atlansın mı?</string>
+    <string name="tour_confirm_message">Turları istediğiniz zaman Ayarlar\'dan tekrar etkinleştirebilirsiniz.</string>
+    <string name="tour_confirm_continue">Tura devam et</string>
+    <string name="tour_confirm_dont_show_this_tour">Bu turu gösterme</string>
+    <string name="tour_confirm_disable_all">Tüm turları devre dışı bırak</string>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">Dosyaları yan yana karşılaştırmak için birden fazla bölme kullanın.</string>
+    <string name="common_tip_different_folders">Kolay dosya yönetimi için her bölmede farklı klasörler açın.</string>
+    <string name="common_tip_switch_layouts">Bölme düzenleri arasında sekme ayarları yöneticisinden geçiş yapın.</string>
+    <string name="common_tip_elevated_access">Gelişmiş dosya işlemleri için Kurulum\'da root veya Shizuku\'yu etkinleştirin.</string>
+    <string name="common_tip_breadcrumb_home">Bir Explorer breadcrumb\'ını ana dizininiz olarak ayarlamak için uzun basın.</string>
+</resources>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">錯誤報告</string>
+    <string name="bugreport_workspace_subtitle">當機及錯誤報告</string>
+
+    <string name="bugreport_empty_title">沒有報告</string>
+    <string name="bugreport_empty_subtitle">當機及錯誤報告將顯示在這裡。不會自動傳送任何內容。</string>
+
+    <string name="bugreport_type_crash">當機</string>
+    <string name="bugreport_type_report">報告</string>
+    <string name="bugreport_type_recording">錄製</string>
+
+    <string name="bugreport_record_action">錄製除錯紀錄</string>
+    <string name="bugreport_record_short_action">錄製</string>
+    <string name="bugreport_stop_action">停止錄製</string>
+    <string name="bugreport_stop_short_action">停止</string>
+    <string name="bugreport_recording_ongoing_label">正在錄製…</string>
+
+    <string name="bugreport_recording_short_title">錄製時間過短</string>
+    <string name="bugreport_recording_short_message">此錄製檔只有幾秒長，可能不含有用的資訊。仍要停止嗎？</string>
+    <string name="bugreport_recording_short_keep_action">繼續錄製</string>
+
+    <string name="bugreport_rename_action">重新命名</string>
+    <string name="bugreport_rename_dialog_title">為報告命名</string>
+    <string name="bugreport_rename_name_label">名稱</string>
+    <string name="bugreport_rename_name_hint">顯示在清單中及共用檔名中</string>
+
+    <string name="bugreport_share_action">分享</string>
+    <string name="bugreport_delete_action">刪除</string>
+    <string name="bugreport_delete_all_action">刪除全部</string>
+    <string name="bugreport_delete_all_confirm_title">刪除所有除錯紀錄？</string>
+    <string name="bugreport_delete_all_confirm_message">這將永久刪除所有已錄製的除錯紀錄工作階段。進行中的錄製不受影響。</string>
+    <string name="bugreport_delete_confirm_title">刪除此報告？</string>
+    <string name="bugreport_delete_confirm_message">這將永久刪除此報告及其紀錄。</string>
+    <string name="bugreport_cancel_action">取消</string>
+
+    <string name="bugreport_share_chooser_title">分享錯誤報告</string>
+    <string name="bugreport_share_consent_title">分享報告？</string>
+    <string name="bugreport_share_consent_message">此報告包含應用程式紀錄，其中可能包含檔名、路徑以及應用程式和裝置資訊。只與信任的人分享。</string>
+
+    <string name="bugreport_detail_back_action">返回</string>
+    <string name="bugreport_detail_section_error">錯誤</string>
+    <string name="bugreport_detail_section_log">最近的紀錄</string>
+    <string name="bugreport_detail_field_type">類型</string>
+    <string name="bugreport_detail_field_time">時間</string>
+    <string name="bugreport_detail_field_app_version">應用程式版本</string>
+    <string name="bugreport_detail_field_device">裝置</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">錯誤類型</string>
+    <string name="bugreport_detail_field_thread">執行緒</string>
+    <string name="bugreport_detail_log_truncated">最後 %1$d 行（共 %2$d 行）</string>
+    <string name="bugreport_detail_log_count">%1$d 行</string>
+    <string name="bugreport_detail_log_empty">沒有擷取紀錄</string>
+    <string name="bugreport_detail_log_error">無法載入紀錄</string>
+</resources>

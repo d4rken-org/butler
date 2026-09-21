@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apps Workspace -->
+    <string name="apps_title">Aplikacje</string>
+    <string name="apps_subtitle">Zarządzaj zainstalowanymi aplikacjami</string>
+
+    <!-- Filter Labels -->
+    <string name="apps_filter_app_type_label">Typ aplikacji</string>
+    <string name="apps_filter_type_all">Wszystkie</string>
+    <string name="apps_filter_type_user">Aplikacje użytkownika</string>
+    <string name="apps_filter_type_system">Aplikacje systemowe</string>
+    <string name="apps_filter_status_label">Stan</string>
+    <string name="apps_filter_status_all">Wszystkie</string>
+    <string name="apps_filter_status_enabled">Włączone</string>
+    <string name="apps_filter_status_disabled">Wyłączone</string>
+
+
+    <!-- Sort Options -->
+    <string name="apps_sort_mode_label">Sortuj według</string>
+    <string name="apps_sort_mode_name_label">Nazwy</string>
+    <string name="apps_sort_mode_size_label">Rozmiaru</string>
+    <string name="apps_sort_mode_install_date_label">Daty instalacji</string>
+    <string name="apps_sort_mode_update_date_label">Daty aktualizacji</string>
+    <string name="apps_sort_mode_package_name_label">Nazwy pakietu</string>
+    <string name="apps_sort_descending_label">Malejąco</string>
+    <string name="apps_sort_mode_size_slowdown_hint">Obliczanie rozmiaru aplikacji spowalnia wczytywanie</string>
+
+    <!-- Actions -->
+    <string name="apps_action_launch">Uruchom</string>
+    <string name="apps_action_open_info">Informacje o aplikacji</string>
+    <string name="apps_action_disable">Wyłącz</string>
+    <string name="apps_action_enable">Włącz</string>
+    <string name="apps_action_uninstall">Odinstaluj</string>
+    <string name="apps_action_clear_data">Wyczyść dane</string>
+    <string name="apps_action_export_apk">Eksportuj APK</string>
+    <string name="apps_action_browse_path">Przeglądaj ścieżkę</string>
+    <string name="apps_action_share">Udostępnij informacje</string>
+    <string name="apps_action_refresh">Odśwież</string>
+    <string name="apps_action_sort">Sortuj</string>
+    <string name="apps_action_filter">Filtruj</string>
+    <string name="apps_action_select_all">Zaznacz wszystkie</string>
+    <string name="apps_action_deselect_all">Odznacz wszystkie</string>
+    <string name="apps_action_open_in_tab">Otwórz w karcie</string>
+    <string name="apps_action_force_stop">Wymuś zatrzymanie</string>
+    <string name="apps_action_view">Widok</string>
+
+    <!-- View options -->
+    <string name="apps_view_sheet_subtitle">Jak elementy są rozmieszczone i ile szczegółów pokazują</string>
+    <string name="apps_view_mode_list_label">Lista</string>
+    <string name="apps_view_mode_grid_label">Siatka</string>
+    <string name="apps_view_density_compact_label">Kompaktowy</string>
+    <string name="apps_view_density_comfortable_label">Komfortowy</string>
+    <string name="apps_view_density_detailed_label">Szczegółowy</string>
+    <string name="apps_view_set_default_action">Ustaw jako domyślne</string>
+    <string name="apps_view_detail_dates_label">Zainstalowano %1$s · Zaktualizowano %2$s</string>
+
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">Uruchom aplikację</string>
+    <string name="apps_action_open_info_desc">Wyświetl szczegółowe informacje systemowe</string>
+    <string name="apps_action_enable_desc">Włącz tę aplikację</string>
+    <string name="apps_action_disable_desc">Wyłącz tę aplikację</string>
+    <string name="apps_action_uninstall_desc">Usuń tę aplikację</string>
+    <string name="apps_action_export_apk_desc">Zapisz plik APK w pamięci</string>
+    <string name="apps_action_share_desc">Udostępnij informacje o aplikacji jako tekst</string>
+    <string name="apps_action_force_stop_desc">Natychmiast zatrzymaj aplikację</string>
+    <string name="apps_action_clear_data_desc">Usuń wszystkie dane i ustawienia aplikacji</string>
+
+    <!-- App Info Labels -->
+    <string name="apps_package_name_label">Pakiet</string>
+    <string name="apps_version_label">Wersja</string>
+    <string name="apps_size_label">Rozmiar</string>
+    <string name="apps_size_chip_desc">Rozmiar aplikacji: %1$s</string>
+    <string name="apps_size_permission_hint">Rozmiar aplikacji wymaga dostępu do danych o użyciu</string>
+    <string name="apps_size_permission_body">Android przekazuje rozmiar aplikacji, danych i pamięci podręcznej tylko aplikacjom z uprawnieniem dostępu do danych o użyciu. Przyznaj je, aby zobaczyć podział pamięci tej aplikacji.</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">Lokalizacje pamięci</string>
+    <string name="apps_path_internal_data_label">Dane wewnętrzne</string>
+    <string name="apps_path_external_data_label">Pamięć zewnętrzna</string>
+    <string name="apps_path_requires_root_label">Wymaga roota</string>
+    <string name="apps_path_requires_shizuku_label">Wymaga Shizuku</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Wymaga roota lub Shizuku</string>
+    <string name="apps_path_requires_access_label">Wymaga dodatkowego dostępu</string>
+    <string name="apps_storage_breakdown_label">Podział pamięci</string>
+    <string name="apps_storage_app_label">Aplikacja</string>
+
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">Przegląd</string>
+    <string name="appdetails_tab_packageinfo_label">Informacje o pakiecie</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">Powrót do aplikacji</string>
+    <string name="appdetails_close_action">Zamknij</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_title">Informacje o pakiecie</string>
+    <string name="appdetails_packageinfo_view_action">Wyświetl szczegóły pakietu</string>
+    <string name="appdetails_packageinfo_unavailable_msg">Nie udało się odczytać szczegółów pakietu aplikacji.</string>
+    <string name="appdetails_packageinfo_permissions_header">Uprawnienia (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">Certyfikaty podpisu</string>
+    <string name="appdetails_packageinfo_package_label">Pakiet</string>
+    <string name="appdetails_packageinfo_version_label">Wersja</string>
+    <string name="appdetails_packageinfo_min_sdk_label">Min. SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">Docelowy SDK</string>
+
+    <!-- Empty States -->
+    <string name="apps_empty_no_apps">Nie znaleziono aplikacji</string>
+    <string name="apps_empty_no_apps_desc">Spróbuj zmienić filtry</string>
+    <string name="apps_empty_loading">Wczytywanie aplikacji…</string>
+
+    <!-- Search -->
+    <string name="apps_search_hint">Szukaj aplikacji</string>
+
+    <!-- Multi-select -->
+    <plurals name="apps_selected_count">
+        <item quantity="one">Zaznaczono %d</item>
+        <item quantity="few">Zaznaczono %d</item>
+        <item quantity="many">Zaznaczono %d</item>
+        <item quantity="other">Zaznaczono %d</item>
+    </plurals>
+
+    <!-- Info Bar -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="one">%d aplikacja użytkownika</item>
+        <item quantity="few">%d aplikacje użytkownika</item>
+        <item quantity="many">%d aplikacji użytkownika</item>
+        <item quantity="other">%d aplikacji użytkownika</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="one">%d aplikacja systemowa</item>
+        <item quantity="few">%d aplikacje systemowe</item>
+        <item quantity="many">%d aplikacji systemowych</item>
+        <item quantity="other">%d aplikacji systemowej</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="one">Zaznaczono %d</item>
+        <item quantity="few">Zaznaczono %d</item>
+        <item quantity="many">Zaznaczono %d</item>
+        <item quantity="other">Zaznaczono %d</item>
+    </plurals>
+
+    <!-- App Details Sections -->
+    <string name="apps_details_section_actions">Działania</string>
+    <string name="apps_details_section_overview">Przegląd</string>
+    <string name="apps_details_section_storage">Pamięć</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">Więcej opcji</string>
+
+    <!-- App Details package data -->
+    <string name="apps_details_pkgdata_error_title">Nie udało się wczytać danych aplikacji</string>
+    <string name="apps_details_gone_title">Aplikacja usunięta</string>
+    <string name="apps_details_gone_message">Ta aplikacja nie jest już zainstalowana na tym urządzeniu.</string>
+    <string name="apps_details_gone_close_action">Zamknij</string>
+    <string name="apps_details_uninstalled_title">Odinstalowana dla tego użytkownika</string>
+    <string name="apps_details_uninstalled_message">Aplikacja nie jest już zainstalowana dla tego użytkownika, ale jej pliki wciąż znajdują się na urządzeniu.</string>
+
+    <!-- App Details confirmations -->
+    <string name="apps_details_confirm_clear_data_title">Wyczyścić dane aplikacji?</string>
+    <string name="apps_details_confirm_clear_data_message">Wszystkie dane i ustawienia %1$s zostaną usunięte. Tej operacji nie można cofnąć.</string>
+    <string name="apps_details_confirm_uninstall_title">Odinstalować aplikację?</string>
+    <string name="apps_details_confirm_uninstall_message">%1$s zostanie usunięta z tego urządzenia.</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">Typ</string>
+    <string name="apps_type_system">Aplikacja systemowa</string>
+    <string name="apps_type_user">Aplikacja użytkownika</string>
+    <string name="apps_status_label">Stan</string>
+    <string name="apps_status_enabled">Włączona</string>
+    <string name="apps_status_disabled">Wyłączona</string>
+    <string name="apps_installed_label">Zainstalowano</string>
+    <string name="apps_updated_label">Ostatnia aktualizacja</string>
+    <string name="apps_target_sdk_label">Docelowy SDK</string>
+    <string name="apps_min_sdk_label">Minimalny SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">Zainstalowano przez</string>
+    <string name="apps_permissions_label">Uprawnienia</string>
+    <string name="apps_permissions_count">Uprawnienia: %1$d</string>
+    <string name="apps_data_size_label">Dane</string>
+    <string name="apps_cache_size_label">Pamięć podręczna</string>
+    <string name="apps_total_size_label">Łącznie</string>
+
+    <!-- App Tags -->
+    <string name="apps_tag_system_label">Systemowa</string>
+    <string name="apps_tag_disabled_label">Wyłączona</string>
+    <string name="apps_tag_updated_label">Zaktualizowana</string>
+    <string name="apps_tag_sideloaded_label">Zainstalowana ręcznie</string>
+    <string name="apps_tag_split_label">Podzielony APK</string>
+    <string name="apps_tag_debug_label">Debugowalna</string>
+    <string name="apps_tag_user_label">Użytkownik %1$d</string>
+
+    <!-- Filter Tags (virtual tags for filtering) -->
+    <string name="apps_filter_tag_enabled_label">Włączone</string>
+    <string name="apps_filter_tag_user_app_label">Aplikacja użytkownika</string>
+    <string name="apps_filter_include_label">Musi pasować (wszystkie zaznaczone)</string>
+    <string name="apps_filter_exclude_label">Nie może pasować</string>
+    <string name="apps_filter_add_action">Filtruj</string>
+    <string name="apps_filter_hint">Dotknij, aby uwzględnić, dotknij ponownie, aby wykluczyć, dotknij jeszcze raz, aby usunąć</string>
+    <plurals name="apps_filter_count">
+        <item quantity="one">%d filtr</item>
+        <item quantity="few">%d filtry</item>
+        <item quantity="many">%d filtrów</item>
+        <item quantity="other">%d filtra</item>
+    </plurals>
+
+    <!-- Components Section -->
+    <string name="apps_details_section_components">Komponenty</string>
+    <string name="apps_components_activities_label">Aktywności</string>
+    <string name="apps_components_services_label">Usługi</string>
+    <string name="apps_components_receivers_label">Odbiorniki rozgłoszeń</string>
+    <string name="apps_components_providers_label">Dostawcy treści</string>
+    <string name="apps_components_exported">Eksportowany</string>
+    <string name="apps_components_disabled">Wyłączony</string>
+    <string name="apps_components_empty">Nie znaleziono komponentów</string>
+    <string name="apps_components_no_matches">Brak komponentów pasujących do „%1$s”</string>
+    <string name="apps_components_and_more">…i jeszcze %d</string>
+    <string name="apps_components_view_all_action">Zobacz wszystkie komponenty</string>
+    <string name="apps_components_loading">Wczytywanie komponentów…</string>
+    <string name="apps_components_error">Nie udało się wczytać komponentów</string>
+    <string name="apps_components_launch_failed">Nie udało się uruchomić aktywności</string>
+    <string name="apps_components_kind_activity">Aktywność</string>
+    <string name="apps_components_kind_service">Usługa</string>
+    <string name="apps_components_kind_receiver">Odbiornik rozgłoszeń</string>
+    <string name="apps_components_kind_provider">Dostawca treści</string>
+    <string name="apps_components_search_action">Szukaj komponentów</string>
+    <string name="apps_components_search_hint">Szukaj nazwy lub pakietu</string>
+    <string name="apps_components_state_label">Stan</string>
+    <string name="apps_components_state_enabled">Włączony</string>
+    <string name="apps_components_state_disabled">Wyłączony</string>
+    <string name="apps_components_field_type">Typ</string>
+    <string name="apps_components_field_package">Pakiet</string>
+    <string name="apps_components_field_permission">Uprawnienie</string>
+    <string name="apps_components_field_write_permission">Uprawnienie do zapisu</string>
+    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_process">Proces</string>
+    <string name="apps_components_field_launch_mode">Tryb uruchamiania</string>
+    <string name="apps_components_launch_action">Uruchom</string>
+    <string name="apps_components_copy_name_action">Kopiuj nazwę komponentu</string>
+    <string name="apps_components_copy_package_action">Kopiuj nazwę pakietu</string>
+    <string name="apps_components_action_enable">Włącz komponent</string>
+    <string name="apps_components_action_disable">Wyłącz komponent</string>
+    <string name="apps_components_action_requires_elevated">Wymaga roota lub Shizuku — dotknij, aby skonfigurować</string>
+    <string name="apps_components_confirm_enable_title">Włączyć komponenty?</string>
+    <string name="apps_components_confirm_disable_title">Wyłączyć komponenty?</string>
+    <string name="apps_components_confirm_enable_message">Następujące komponenty zostaną włączone:</string>
+    <string name="apps_components_confirm_disable_message">Następujące komponenty zostaną wyłączone. Może to zakłócić działanie aplikacji.</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="one">Zaznaczono %d komponent</item>
+        <item quantity="few">Zaznaczono %d komponenty</item>
+        <item quantity="many">Zaznaczono %d komponentów</item>
+        <item quantity="other">Zaznaczono %d komponentu</item>
+    </plurals>
+
+    <!-- Package operations -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="one">Włącz aplikację</item>
+        <item quantity="few">Włącz %d aplikacje</item>
+        <item quantity="many">Włącz %d aplikacji</item>
+        <item quantity="other">Włącz %d aplikacji</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="one">Wyłącz aplikację</item>
+        <item quantity="few">Wyłącz %d aplikacje</item>
+        <item quantity="many">Wyłącz %d aplikacji</item>
+        <item quantity="other">Wyłącz %d aplikacji</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="one">Zatrzymaj przymusowo aplikację</item>
+        <item quantity="few">Zatrzymaj przymusowo %d aplikacje</item>
+        <item quantity="many">Zatrzymaj przymusowo %d aplikacji</item>
+        <item quantity="other">Zatrzymaj przymusowo %d aplikacji</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="one">Odinstaluj aplikację</item>
+        <item quantity="few">Odinstaluj %d aplikacje</item>
+        <item quantity="many">Odinstaluj %d aplikacji</item>
+        <item quantity="other">Odinstaluj %d aplikacji</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="one">Wyczyść dane aplikacji</item>
+        <item quantity="few">Wyczyść dane %d aplikacji</item>
+        <item quantity="many">Wyczyść dane %d aplikacji</item>
+        <item quantity="other">Wyczyść dane %d aplikacji</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="one">Włącz komponent</item>
+        <item quantity="few">Włącz %d komponenty</item>
+        <item quantity="many">Włącz %d komponentów</item>
+        <item quantity="other">Włącz %d komponentu</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="one">Wyłącz komponent</item>
+        <item quantity="few">Wyłącz %d komponenty</item>
+        <item quantity="many">Wyłącz %d komponentów</item>
+        <item quantity="other">Wyłącz %d komponentu</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="one">%d aplikacja</item>
+        <item quantity="few">%d aplikacje</item>
+        <item quantity="many">%d aplikacji</item>
+        <item quantity="other">%d aplikacji</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">%1$s włączona</string>
+    <string name="apps_operation_disable_summary">%1$s wyłączona</string>
+    <string name="apps_operation_force_stop_summary">%1$s zatrzymana</string>
+    <string name="apps_operation_uninstall_summary">%1$s odinstalowana</string>
+    <string name="apps_operation_clear_data_summary">Dane %1$s wyczyszczone</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="one">Włączono %1$d komponent</item>
+        <item quantity="few">Włączono %1$d komponenty</item>
+        <item quantity="many">Włączono %1$d komponentów</item>
+        <item quantity="other">Włączono %1$d komponentu</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="one">Wyłączono %1$d komponent</item>
+        <item quantity="few">Wyłączono %1$d komponenty</item>
+        <item quantity="many">Wyłączono %1$d komponentów</item>
+        <item quantity="other">Wyłączono %1$d komponentu</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">Nie udało się wykonać dla %1$s</string>
+    <string name="apps_operation_single_declined_summary">Odrzucono usunięcie %1$s</string>
+    <string name="apps_operation_batch_summary">%1$d z %2$d wykonano</string>
+    <!-- Quoted so the leading separator survives the resource parser -->
+    <string name="apps_operation_batch_summary_failed">" · %1$d nie powiodło się"</string>
+    <string name="apps_operation_batch_summary_declined">" · %1$d odrzucono"</string>
+
+    <!-- Generic navigation -->
+    <string name="appdetails_back_generic_action">Wstecz</string>
+
+</resources>

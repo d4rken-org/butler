@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Άνοιγμα με</string>
+    <string name="viewer_image_content_description">Εικόνα %1$s</string>
+    <string name="viewer_toolbar_folder_label">Φάκελος</string>
+    <string name="viewer_back_action">Πίσω</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">Προηγούμενο αρχείο</string>
+    <string name="viewer_next_file_action">Επόμενο αρχείο</string>
+    <string name="viewer_open_location_action">Άνοιγμα τοποθεσίας</string>
+    <string name="viewer_clipboard_copied">%1$s αντιγράφηκε. Επικολλήστε το σε μια καρτέλα Εξερεύνησης.</string>
+    <string name="viewer_clipboard_cut">%1$s αποκόπηκε. Επικολλήστε το σε μια καρτέλα Εξερεύνησης για να το μετακινήσετε.</string>
+    <string name="viewer_share_failed_label">Δεν ήταν δυνατή η κοινή χρήση αυτού του αρχείου</string>
+    <string name="viewer_share_failed_description">Το %1$s δεν μπορεί να δοθεί σε άλλη εφαρμογή. Αυτό συμβαίνει με αρχεία που χρειάζονται root ή πρόσβαση ADB, και με αρχεία που δεν υπάρχουν πλέον.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Μέγεθος</string>
+    <string name="viewer_info_modified_label">Τροποποιήθηκε</string>
+    <string name="viewer_info_created_label">Δημιουργήθηκε</string>
+    <string name="viewer_info_format_label">Μορφή</string>
+    <string name="viewer_info_dimensions_label">Διαστάσεις</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Δικαιώματα</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Κάτοχος</string>
+    <string name="viewer_info_caption_label">Μήνυμα κοινής χρήσης</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Εμφάνιση όλων των λεπτομερειών</string>
+    <string name="viewer_info_collapse_action">Απόκρυψη λεπτομερειών</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">Προεπισκόπηση · 1 σελίδα</string>
+    <string name="viewer_pdf_page_indicator">Σελίδα %1$d από %2$d</string>
+    <string name="viewer_pdf_page_previous">Προηγούμενη σελίδα</string>
+    <string name="viewer_pdf_page_next">Επόμενη σελίδα</string>
+    <string name="viewer_pdf_page_error">Η σελίδα %1$d δεν μπορούσε να εμφανιστεί.</string>
+    <string name="viewer_pdf_page_content_description">Προεπισκόπηση PDF του %1$s, σελίδα %2$d από %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">Αυτός ο τύπος αρχείου δεν υποστηρίζεται ακόμα</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">Αυτό είναι ένα αρχειοθήκη</string>
+    <string name="viewer_browse_archive_action">Περιήγηση περιεχομένων</string>
+    <string name="viewer_archive_needs_copy_msg">Αποθηκεύστε ένα αντίγραφο στη συσκευή σας, κατόπιν η Butler μπορεί να περιηγηθεί το περιεχόμενό του.</string>
+    <string name="viewer_archive_nested_msg">Αυτή η αρχειοθήκη βρίσκεται μέσα σε άλλη αρχειοθήκη. Εξάγετε την πρώτα για να δείτε το περιεχόμενό της.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">Έκδοση</string>
+    <string name="viewer_apk_min_sdk_label">Ελάχιστο SDK</string>
+    <string name="viewer_apk_target_sdk_label">Στοχευόμενο SDK</string>
+    <string name="viewer_apk_installed_label">Εγκατεστημένο</string>
+    <string name="viewer_apk_not_installed_value">Δεν είναι εγκατεστημένο</string>
+    <string name="viewer_apk_installed_unknown_value">Δεν ήταν δυνατό να ελεγχθεί</string>
+    <string name="viewer_apk_installed_older_hint">Παλαιότερο από αυτό το αρχείο</string>
+    <string name="viewer_apk_installed_newer_hint">Νεότερο από αυτό το αρχείο</string>
+    <string name="viewer_apk_permissions_header">Δικαιώματα (%1$d)</string>
+    <string name="viewer_apk_signing_header">Πιστοποιητικά υπογραφής</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">Εγκατάσταση</string>
+    <string name="viewer_bundle_format_label">Μορφή πακέτου</string>
+    <string name="viewer_bundle_splits_label">APKs μέσα</string>
+    <string name="viewer_bundle_expansion_files_hint">Περιέχει αρχεία επέκτασης που τοποθετούνται μετά την εγκατάσταση της εφαρμογής.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Η τοποθέτηση αρχείων επέκτασης απαιτεί root ή πρόσβαση ADB. Χωρίς αυτό, η εφαρμογή εγκαθίσταται, αλλά τα αρχεία επέκτασης παραμένουν πίσω.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">Εικόνα εφαρμογής του %1$s</string>
+    <string name="viewer_apk_icon_show_action">Εμφάνιση εικόνας</string>
+    <string name="viewer_apk_icon_save_action">Αποθήκευση εικόνας</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Η εικόνα αποθηκεύτηκε ως %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Αντικατάσταση αρχείου;</string>
+    <string name="viewer_apk_icon_overwrite_message">Το %1$s υπάρχει ήδη σε αυτόν τον φάκελο. Αποθήκευση της εικόνας θα το αντικαταστήσει.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Αντικατάσταση</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">Το αρχείο άλλαξε</string>
+    <string name="viewer_external_change_message">Αυτό το αρχείο άλλαξε στη συσκευή. Ανανεώστε για να το φορτώσετε ξανά.</string>
+    <string name="viewer_external_change_gone_title">Το αρχείο έχει χαθεί</string>
+    <string name="viewer_external_change_gone_message">Αυτό το αρχείο διαγράφηκε ή δεν μπορεί πλέον να προσπελαστεί.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Δεν είναι δυνατή η εμφάνιση αυτού του αρχείου</string>
+    <string name="viewer_error_not_a_file_label">Δεν είναι αρχείο</string>
+    <string name="viewer_error_not_a_file_description">Το %1$s δεν είναι κανονικό αρχείο.</string>
+    <string name="viewer_error_broken_symlink_label">Χαλασμένη συντόμευση</string>
+    <string name="viewer_error_broken_symlink_description">Το %1$s δείχνει σε κάτι που δεν υπάρχει πλέον.</string>
+    <string name="viewer_error_undecodable_label">Κατεστραμμένη εικόνα</string>
+    <string name="viewer_error_undecodable_description">Το %1$s δεν μπορούσε να αποκωδικοποιηθεί. Το αρχείο μπορεί να είναι ημιτελές ή κατεστραμμένο.</string>
+    <string name="viewer_error_file_gone_label">Το αρχείο δεν βρέθηκε</string>
+    <string name="viewer_error_file_gone_description">Το %1$s δεν υπάρχει πλέον. Μπορεί να έχει μετακινηθεί, μετονομαστεί ή διαγραφεί.</string>
+    <string name="viewer_error_empty_file_label">Κενό αρχείο</string>
+    <string name="viewer_error_empty_file_description">Το %1$s είναι κενό και δεν έχει τίποτα να εμφανίσει.</string>
+    <string name="viewer_error_apk_unreadable_label">Μη αναγνώσιμο APK</string>
+    <string name="viewer_error_apk_unreadable_description">Το %1$s δεν μπορούσε να αναλυθεί ως πακέτο εφαρμογής Android.</string>
+    <string name="viewer_error_icon_unavailable_label">Δεν υπάρχει εικόνα</string>
+    <string name="viewer_error_icon_unavailable_description">Η εικόνα εφαρμογής του %1$s δεν μπορούσε να διαβαστεί.</string>
+    <string name="viewer_error_icon_target_notfile_label">Το όνομα χρησιμοποιείται ήδη</string>
+    <string name="viewer_error_icon_target_notfile_description">Το %1$s υπάρχει ήδη εδώ και δεν είναι κανονικό αρχείο, επομένως δεν μπορεί να αντικατασταθεί.</string>
+    <string name="viewer_error_icon_target_appeared_label">Εμφανίστηκε αρχείο</string>
+    <string name="viewer_error_icon_target_appeared_description">Το %1$s δημιουργήθηκε ενώ επιλέγατε πού να αποθηκεύσετε. Τίποτα δεν αντικαταστάθηκε, δοκιμάστε ξανά.</string>
+    <string name="viewer_error_content_unreadable_label">Δεν είναι δυνατή η ανάγνωση αυτού του αρχείου</string>
+    <string name="viewer_error_content_unreadable_description">Η εφαρμογή που κοινοποίησε το %1$s δεν επιτρέπει πλέον στη Butler να το διαβάσει. Ζητήστε από αυτήν την εφαρμογή να το κοινοποιήσει ξανά.</string>
+    <string name="viewer_save_copy_action">Αποθήκευση αντιγράφου…</string>
+    <string name="viewer_open_in_editor_action">Άνοιγμα στον Επεξεργαστή</string>
+    <string name="viewer_text_truncated_bytes">Η προεπισκόπηση περιορίζεται στα πρώτα %1$s αυτού του αρχείου.</string>
+    <string name="viewer_text_truncated_lines">Η προεπισκόπηση περιορίζεται στις πρώτες %1$s γραμμές αυτού του αρχείου.</string>
+    <string name="viewer_text_truncated_width">Οι μεγάλες γραμμές συντέμνονται σε αυτήν την προεπισκόπηση.</string>
+    <string name="viewer_text_unreadable_label">Αυτό το αρχείο δεν μπορούσε να διαβαστεί</string>
+</resources>

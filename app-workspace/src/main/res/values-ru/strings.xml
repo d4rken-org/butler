@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Буфер обмена</string>
+    <string name="clipboard_clear_all">Очистить всё</string>
+    <string name="clipboard_paste">Вставить</string>
+    <string name="clipboard_open_in_explorer">Открыть в проводнике</string>
+    <string name="clipboard_copy">Копировать</string>
+    <string name="clipboard_cut">Вырезать</string>
+    <string name="clipboard_origin">Источник: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Копировать %d элемент</item>
+        <item quantity="few">Копировать %d элемента</item>
+        <item quantity="many">Копировать %d элементов</item>
+        <item quantity="other">Копировать %d элемента</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d элемент из %s</item>
+        <item quantity="few">%d элемента из %s</item>
+        <item quantity="many">%d элементов из %s</item>
+        <item quantity="other">%d элемента из %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Вырезать %d элемент</item>
+        <item quantity="few">Вырезать %d элемента</item>
+        <item quantity="many">Вырезать %d элементов</item>
+        <item quantity="other">Вырезать %d элемента</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d элемент из %s</item>
+        <item quantity="few">%d элемента из %s</item>
+        <item quantity="many">%d элементов из %s</item>
+        <item quantity="other">%d элемента из %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d место</item>
+        <item quantity="few">%d места</item>
+        <item quantity="many">%d мест</item>
+        <item quantity="other">%d места</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d элемент из %2$s</item>
+        <item quantity="few">%1$d элемента из %2$s</item>
+        <item quantity="many">%1$d элементов из %2$s</item>
+        <item quantity="other">%1$d элемента из %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d элемент из %2$s</item>
+        <item quantity="few">%1$d элемента из %2$s</item>
+        <item quantity="many">%1$d элементов из %2$s</item>
+        <item quantity="other">%1$d элемента из %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Фрагмент текста</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d символ</item>
+        <item quantity="few">%1$d символа</item>
+        <item quantity="many">%1$d символов</item>
+        <item quantity="other">%1$d символа</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Вставить как файл</string>
+    <string name="clipboard_text_info_characters">Символы</string>
+    <string name="clipboard_text_info_lines">Строки</string>
+    <string name="clipboard_text_info_content">Содержимое</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Обзор</string>
+    <string name="clipboard_info_operation">Операция</string>
+    <string name="clipboard_info_items">Элементы</string>
+    <string name="clipboard_info_source">Источник</string>
+    <string name="clipboard_info_sources">Источники</string>
+    <string name="clipboard_info_workspace">Рабочая область</string>
+    <string name="clipboard_info_workspace_closed">Закрыта</string>
+    <string name="clipboard_info_time">Время</string>
+    <string name="clipboard_info_items_with_count">Элементы (%1$d)</string>
+    <string name="clipboard_info_actions">Действия</string>
+    <string name="clipboard_info_go_to_source">Перейти к источнику</string>
+    <string name="clipboard_info_go_to_first_source">Перейти к первому источнику</string>
+    <string name="clipboard_info_remove">Удалить из буфера обмена</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Буфер обмена</string>
+    <string name="clipboard_settings_remove_on_paste_title">Удалять после вставки</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Удалять скопированные элементы из буфера обмена после вставки</string>
+    <string name="clipboard_settings_max_items_title">Максимум элементов</string>
+    <string name="clipboard_settings_max_items_desc">Максимальное количество элементов в буфере обмена</string>
+
+    <string name="workspace_explorer_label">Проводник</string>
+    <string name="workspace_searcher_label">Поиск</string>
+    <string name="workspace_editor_label">Редактор</string>
+    <string name="workspace_templates_label">Шаблоны</string>
+    <string name="workspace_apps_label">Приложения</string>
+    <string name="workspace_appdetails_label">Сведения о приложении</string>
+    <string name="workspace_saver_label">Сохранить как</string>
+    <string name="workspace_developer_label">Разработчик</string>
+    <string name="workspace_history_label">История</string>
+    <string name="workspace_bugreport_label">Отчёты об ошибках</string>
+    <string name="workspace_viewer_label">Просмотр</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Фото</string>
+    <string name="workspace_searcher_target_videos">Видео</string>
+    <string name="workspace_searcher_target_music">Музыка</string>
+    <string name="workspace_searcher_target_downloads">Загрузки</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Ещё</string>
+    <string name="workspace_expand_less_action">Свернуть</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Вкладки и рабочие области</string>
+    <string name="workspace_button_menu_new_workspace_format">Новый: %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Новая вкладка</string>
+    <string name="workspace_button_menu_category_recent">Недавние</string>
+    <string name="workspace_button_menu_category_other">Другое</string>
+    <string name="workspace_button_menu_category_current_tab">Эта вкладка</string>
+    <string name="workspace_button_menu_manager_action">Менеджер вкладок</string>
+    <string name="workspace_button_menu_layout_action">Расположение</string>
+    <string name="workspace_button_menu_close_current_action">Закрыть текущую вкладку</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Закрыть текущую вкладку (%d рабочая область)</item>
+        <item quantity="few">Закрыть текущую вкладку (%d рабочие области)</item>
+        <item quantity="many">Закрыть текущую вкладку (%d рабочих областей)</item>
+        <item quantity="other">Закрыть текущую вкладку (%d рабочие области)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Настройки</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Закрыть все вкладки?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Это закроет %1$d открытую вкладку. Это действие нельзя отменить.</item>
+        <item quantity="few">Это закроет все %1$d открытые вкладки. Это действие нельзя отменить.</item>
+        <item quantity="many">Это закроет все %1$d открытых вкладок. Это действие нельзя отменить.</item>
+        <item quantity="other">Это закроет все %1$d открытых вкладок. Это действие нельзя отменить.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Закрыть все</string>
+    <string name="workspace_manager_close_all_unsaved_warning">В некоторых вкладках есть несохранённые изменения, которые будут потеряны.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Отклонить всё</string>
+    <string name="workspace_manager_close_selected_title">Закрыть выбранные вкладки?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Это закроет %1$d выбранную вкладку. Это действие нельзя отменить.</item>
+        <item quantity="few">Это закроет %1$d выбранные вкладки. Это действие нельзя отменить.</item>
+        <item quantity="many">Это закроет %1$d выбранных вкладок. Это действие нельзя отменить.</item>
+        <item quantity="other">Это закроет %1$d выбранных вкладок. Это действие нельзя отменить.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">Закрыть выбранные</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">В некоторых выбранных вкладках есть несохранённые изменения, которые будут потеряны.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Отклонить выбранные</string>
+    <string name="workspace_manager_pause_partial_title">Приостановить вкладки?</string>
+    <string name="workspace_manager_pause_partial_message">Можно приостановить %1$d из %2$d выбранных вкладок. Остальные используются, содержат несохранённые изменения или сейчас открыты.</string>
+    <string name="workspace_manager_pause_partial_action">Приостановить %1$d</string>
+    <string name="general_cancel_action">Отмена</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Операции</string>
+    <string name="operations_clear_completed">Очистить завершённые</string>
+    <string name="operations_state_queued">В очереди</string>
+    <string name="operations_state_running">Выполняется</string>
+    <string name="operations_state_waiting">Ожидание ввода</string>
+    <string name="operations_state_successful">Успешно</string>
+    <string name="operations_state_failed">Сбой</string>
+    <string name="operations_state_cancelled">Отменено</string>
+    <string name="operations_state_cancelling">Отмена…</string>
+    <string name="operations_cancel_operation">Отменить операцию</string>
+    <string name="operations_cancel_dialog_title">Отменить операцию?</string>
+    <string name="operations_cancel_dialog_message">Вы уверены, что хотите отменить эту операцию?</string>
+    <string name="operations_cancel_dialog_warning">Отмена может оставить файлы в несогласованном состоянии.</string>
+    <string name="operations_details_started_at">Начато</string>
+    <string name="operations_details_completed_at">Завершено</string>
+    <string name="operations_details_duration">Длительность</string>
+    <string name="operations_details_duration_not_started">Не начато</string>
+    <string name="operations_details_progress">Прогресс</string>
+    <string name="operations_details_error">Сведения об ошибке</string>
+    <string name="operations_details_actions">Действия</string>
+    <string name="operations_details_overview">Обзор</string>
+    <string name="operations_details_handle_issue">Обработать проблему</string>
+    <string name="operations_details_show_in_history_action">Показать в истории</string>
+    <string name="operations_details_status">Статус</string>
+    <string name="operations_details_result">Результат</string>
+    <string name="operations_details_destination_folder">Папка назначения</string>
+    <string name="operations_details_destination_path">Путь назначения</string>
+    <string name="operations_details_affected_paths_with_count">Затронутые пути (%d)</string>
+    <string name="operations_details_problems_with_count">Проблемы (%d)</string>
+    <string name="operations_details_problems_more">Ещё %d не показано</string>
+    <string name="workspace_operation_packages_section_title">Приложения</string>
+    <string name="workspace_operation_package_status_done">Готово</string>
+    <string name="workspace_operation_package_status_failed">Сбой</string>
+    <string name="workspace_operation_package_status_declined">Отклонено</string>
+    <string name="operations_details_section_expand">Развернуть %1$s</string>
+    <string name="operations_details_section_collapse">Свернуть %1$s</string>
+    <string name="workspace_operations_performance_graph_label">График производительности</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Удалить элемент?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Удалить %1$d элемент?</item>
+        <item quantity="few">Удалить %1$d элемента?</item>
+        <item quantity="many">Удалить %1$d элементов?</item>
+        <item quantity="other">Удалить %1$d элемента?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Этот элемент будет удалён навсегда:</string>
+    <string name="workspace_dialog_delete_message_multiple">Эти элементы будут удалены навсегда:</string>
+    <string name="workspace_dialog_delete_more_items">…и ещё %1$d</string>
+    <string name="workspace_dialog_delete_warning">Это действие нельзя отменить.</string>
+    <string name="workspace_dialog_delete_permanently_action">Удалить навсегда</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Удалить навсегда вместо этого</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Некоторые элементы нельзя переместить в корзину, они будут обработаны отдельно.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Переместить в корзину?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Переместить %1$d элемент в корзину?</item>
+        <item quantity="few">Переместить %1$d элемента в корзину?</item>
+        <item quantity="many">Переместить %1$d элементов в корзину?</item>
+        <item quantity="other">Переместить %1$d элемента в корзину?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Этот элемент будет перемещён в корзину:</string>
+    <string name="workspace_dialog_trash_message_multiple">Эти элементы будут перемещены в корзину:</string>
+    <string name="workspace_dialog_trash_hint">Их можно найти в разделе «Корзина»</string>
+    <string name="workspace_dialog_move_to_trash_action">Переместить</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d выбрано</item>
+        <item quantity="few">%d выбрано</item>
+        <item quantity="many">%d выбрано</item>
+        <item quantity="other">%d выбрано</item>
+    </plurals>
+    <string name="workspace_action_more">Другие действия</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Удаление файлов</string>
+    <string name="workspace_operation_delete_description_single">Удалить «%1$s» из «%2$s».</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Удалить %1$d элемент из «%2$s».</item>
+        <item quantity="few">Удалить %1$d элемента из «%2$s».</item>
+        <item quantity="many">Удалить %1$d элементов из «%2$s».</item>
+        <item quantity="other">Удалить %1$d элемента из «%2$s».</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Установка приложения</string>
+    <string name="workspace_operation_install_description">Установить «%1$s».</string>
+    <string name="workspace_operation_install_progress_inspecting">Чтение пакета…</string>
+    <string name="workspace_operation_install_progress_extracting">Распаковка…</string>
+    <string name="workspace_operation_install_progress_writing">Передача файлов установщику…</string>
+    <string name="workspace_operation_install_progress_committing">Завершение установки…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Размещение файлов расширения…</string>
+    <string name="workspace_operation_install_summary_success">Установлено: %1$s.</string>
+    <string name="workspace_operation_install_summary_success_partial">Установлено: %1$s, но не удалось разместить файлы расширения.</string>
+    <string name="workspace_install_unknown_sources_required">Butler требуется разрешение на установку приложений. Предоставьте его в открывшихся настройках и повторите попытку.</string>
+    <string name="workspace_install_obb_failed">Приложение установлено, но не удалось разместить файлы расширения: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d файл удалён.</item>
+        <item quantity="few">%1$d файла удалено.</item>
+        <item quantity="many">%1$d файлов удалено.</item>
+        <item quantity="other">%1$d файла удалено.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d каталог удалён.</item>
+        <item quantity="few">%1$d каталога удалено.</item>
+        <item quantity="many">%1$d каталогов удалено.</item>
+        <item quantity="other">%1$d каталога удалено.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d элемент пропущен.</item>
+        <item quantity="few">%1$d элемента пропущено.</item>
+        <item quantity="many">%1$d элементов пропущено.</item>
+        <item quantity="other">%1$d элемента пропущено.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s освобождено.</item>
+        <item quantity="few">%1$s освобождено.</item>
+        <item quantity="many">%1$s освобождено.</item>
+        <item quantity="other">%1$s освобождено.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Перемещение в корзину…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d файл перемещён в корзину.</item>
+        <item quantity="few">%1$d файла перемещено в корзину.</item>
+        <item quantity="many">%1$d файлов перемещено в корзину.</item>
+        <item quantity="other">%1$d файла перемещено в корзину.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d каталог перемещён в корзину.</item>
+        <item quantity="few">%1$d каталога перемещено в корзину.</item>
+        <item quantity="many">%1$d каталогов перемещено в корзину.</item>
+        <item quantity="other">%1$d каталога перемещено в корзину.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/с освобождено.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s освобождено.</string>
+    <string name="workspace_operation_progress_time_remaining">Осталось: %1$s.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Информация</string>
+    <string name="workspace_file_info_name_label">Имя</string>
+    <string name="workspace_file_info_path_label">Путь</string>
+    <string name="workspace_file_info_type_label">Тип</string>
+    <string name="workspace_file_info_type_file">Файл</string>
+    <string name="workspace_file_info_type_directory">Каталог</string>
+    <string name="workspace_file_info_type_symlink">Символическая ссылка</string>
+    <string name="workspace_file_info_type_unknown">Неизвестно</string>
+    <string name="workspace_file_info_size_label">Размер</string>
+    <string name="workspace_file_info_modified_label">Изменено</string>
+    <string name="workspace_file_info_created_label">Создано</string>
+    <string name="workspace_file_info_permissions_label">Разрешения</string>
+    <string name="workspace_file_info_owner_label">Владелец</string>
+    <string name="workspace_file_info_child_count_label">Элементы</string>
+    <string name="workspace_file_info_symlink_target_label">Цель</string>
+    <string name="workspace_file_info_unknown">Неизвестно</string>
+    <string name="workspace_file_info_copy_action">Копировать в буфер обмена</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Выбрано</string>
+    <string name="workspace_file_info_files_label">Файлы</string>
+    <string name="workspace_file_info_directories_label">Каталоги</string>
+    <string name="workspace_file_info_total_size_label">Общий размер</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Эта операция ещё не началась.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Сбор данных о производительности…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Недостаточно данных о производительности этой операции для построения графика.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Данные о производительности для этой операции недоступны.</string>
+    <string name="workspace_operation_performance_window_seconds">Последние %1$d с</string>
+    <string name="workspace_operation_performance_window_minutes">Последние %1$d мин</string>
+    <string name="workspace_operation_performance_unit_bytes">Б/с</string>
+    <string name="workspace_operation_performance_unit_kilobytes">КБ/с</string>
+    <string name="workspace_operation_performance_unit_megabytes">МБ/с</string>
+    <string name="workspace_operation_performance_unit_gigabytes">ГБ/с</string>
+    <string name="workspace_operation_performance_unit_items">элементов/с</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Показать технические сведения</string>
+    <string name="workspace_error_hide_details_action">Скрыть технические сведения</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Инициализация вкладки</string>
+    <string name="workspace_error_subtitle">Произошла непредвиденная ошибка</string>
+    <string name="workspace_close_tab_action">Закрыть вкладку</string>
+    <string name="workspace_paused_body">Эта вкладка приостановлена для экономии памяти и заряда батареи. Возобновите её, чтобы продолжить.</string>
+    <string name="workspace_paused_error_body">Не удалось возобновить эту вкладку.</string>
+    <string name="workspace_paused_resume_action">Возобновить</string>
+    <string name="workspace_paused_label">Приостановлено</string>
+    <string name="workspace_paused_content_label">Содержимое вкладки</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Существующий файл</string>
+    <string name="workspace_issue_collision_existing_folder_label">Существующая папка</string>
+    <string name="workspace_issue_collision_new_file">Входящий файл</string>
+    <string name="workspace_issue_collision_new_folder">Входящая папка</string>
+    <string name="workspace_issue_collision_overwrite">Заменить</string>
+    <string name="workspace_issue_collision_merge">Объединить</string>
+    <string name="workspace_issue_common_source_file">Исходный файл</string>
+    <string name="workspace_issue_common_destination_file">Назначение</string>
+    <string name="workspace_issue_common_skip">Пропустить</string>
+    <string name="workspace_issue_common_rename">Переименовать</string>
+    <string name="workspace_issue_common_rename_new">Переименовать новый</string>
+    <string name="workspace_issue_common_rename_existing">Переименовать существующий</string>
+    <string name="workspace_issue_common_cancel">Отмена</string>
+    <string name="workspace_issue_common_delete_permanently">Удалить навсегда</string>
+    <string name="workspace_issue_archive_password_label">Пароль</string>
+    <string name="workspace_issue_archive_password_unlock">Разблокировать</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Элементы с ошибками</string>
+    <string name="workspace_issue_trash_move_failed_more_items">…и ещё %1$d элементов</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Затронутые элементы</string>
+    <string name="workspace_issue_trash_not_supported_more_items">…и ещё %1$d элементов</string>
+    <string name="workspace_issue_apply_all">Применить ко всем оставшимся проблемам</string>
+    <string name="workspace_issue_rename_new_name">Новое имя</string>
+    <string name="workspace_issue_rename_dialog_title_new">Переименовать входящий файл</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Переименовать существующий файл</string>
+    <string name="workspace_issue_type_folder">Папка</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Открыть несколько вкладок?</string>
+    <string name="workspace_open_tabs_confirmation_message">Будет открыто %1$d вкладок.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Открыть с помощью</string>
+    <string name="workspace_open_with_no_app_label">Другое приложение не найдено</string>
+    <string name="workspace_open_with_no_app_description">Ни одно другое установленное приложение не может открыть %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Открыта %1$d вкладка</item>
+        <item quantity="few">Открыто %1$d вкладки</item>
+        <item quantity="many">Открыто %1$d вкладок</item>
+        <item quantity="other">Открыто %1$d вкладки</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Не удалось закрыть: в %1$d вкладке ещё выполняется операция</item>
+        <item quantity="few">Не удалось закрыть: в %1$d вкладках ещё выполняются операции</item>
+        <item quantity="many">Не удалось закрыть: в %1$d вкладках ещё выполняются операции</item>
+        <item quantity="other">Не удалось закрыть: в %1$d вкладках ещё выполняются операции</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">Вкладки</string>
+    <string name="workspace_settings_navigation">Навигация</string>
+    <string name="workspace_settings_swipe_gestures_title">Жесты свайпа</string>
+    <string name="workspace_settings_swipe_gestures_desc">Проводите пальцем влево или вправо для переключения между вкладками.</string>
+    <string name="workspace_settings_ondemand_creation_title">Автосоздание вкладок</string>
+    <string name="workspace_settings_ondemand_creation_desc">Автоматически создавать новую вкладку при свайпе за последнюю вкладку.</string>
+    <string name="workspace_settings_newtab_type_title">Тип новой вкладки</string>
+    <string name="workspace_settings_newtab_type_desc">Рабочая область, которая открывается при свайпе за последнюю вкладку, добавлении вкладки в пустую панель или создании первой вкладки.</string>
+    <string name="workspace_settings_newtab_type_ask">Спрашивать каждый раз</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Показывать выбор типа вкладки для каждой новой вкладки.</string>
+    <string name="workspace_settings_live_preview_title">Живой предпросмотр</string>
+    <string name="workspace_settings_live_preview_desc">Показывать содержимое вкладок в реальном времени в менеджере вкладок.</string>
+    <string name="workspace_settings_other">Прочее</string>
+    <string name="workspace_settings_layout_title">Расположение</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Расположение в портретной ориентации</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Выберите расположение вкладок в портретной ориентации.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Расположение в альбомной ориентации</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Выберите расположение вкладок в альбомной ориентации.</string>
+    <string name="workspace_settings_layout_mode_auto">Автоматически</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Классическое на маленьких экранах, панель вкладок с панелями на больших.</string>
+    <string name="workspace_settings_layout_mode_classic">Классическое</string>
+    <string name="workspace_settings_layout_mode_classic_desc">По одной панели за раз, без панели вкладок.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Адаптивное</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Панель вкладок плюс столько панелей, сколько помещается на экране. Закрепите расположение через меню Butler на панели.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Адаптивное (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Одиночное с панелью вкладок</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Одна панель вкладки плюс панель вкладок из многопанельных расположений. Переключайте вкладки с панели вместо свайпа; панель занимает полосу экрана.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Два по вертикали</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Две панели рядом (слева/справа).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Два по горизонтали</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Две панели друг над другом (сверху/снизу).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Три, большая слева</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Одна большая панель слева, две меньшие панели друг над другом справа.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Три, большая справа</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Две меньшие панели друг над другом слева, одна большая панель справа.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Сетка из четырёх</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Четыре панели в сетке 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Клик для фокуса</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Первый клик по нефокусированной панели только фокусирует её, и нефокусированные панели не реагируют на указатель мыши. Отключите, чтобы взаимодействовать с ними напрямую.</string>
+
+    <string name="workspace_settings_rail_button_title">Кнопка Butler</string>
+    <string name="workspace_settings_rail_button_desc">Выберите положение кнопки Butler на панели вкладок.</string>
+    <string name="workspace_settings_rail_button_leading">В начале</string>
+    <string name="workspace_settings_rail_button_leading_desc">Перед вкладками в портретной ориентации, над ними в альбомной.</string>
+    <string name="workspace_settings_rail_button_trailing">В конце</string>
+    <string name="workspace_settings_rail_button_trailing_desc">После вкладок в портретной ориентации, под ними в альбомной. В пределах досягаемости большого пальца для работы одной рукой.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Сессия</string>
+    <string name="workspace_settings_session_restore_title">Восстанавливать вкладки при запуске</string>
+    <string name="workspace_settings_session_restore_desc">Автоматически восстанавливать ранее открытые вкладки при запуске приложения.</string>
+    <string name="workspace_settings_autopause_title">Приостанавливать неактивные вкладки</string>
+    <string name="workspace_settings_autopause_desc">Вкладки, которые вы давно не открывали, приостанавливаются для экономии памяти и заряда батареи. Открытие вкладки возобновляет её.</string>
+    <string name="workspace_settings_autopause_delay_title">Приостанавливать через</string>
+    <string name="workspace_settings_autopause_delay_desc">Как долго вкладка остаётся неактивной, прежде чем будет приостановлена.</string>
+    <string name="workspace_settings_undoclose_title">Отмена закрытия вкладок</string>
+    <string name="workspace_settings_undoclose_desc">После закрытия вкладки в течение нескольких секунд можно вернуть её обратно.</string>
+    <string name="workspace_settings_session_data_title">Данные сессии</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d вкладка • %2$s</item>
+        <item quantity="few">%1$d вкладки • %2$s</item>
+        <item quantity="many">%1$d вкладок • %2$s</item>
+        <item quantity="other">%1$d вкладки • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">Закрыто «%1$s»</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Не удалось восстановить сессию</string>
+    <string name="workspace_session_restoration_error_description">Не удалось восстановить предыдущую сессию вкладок. Возможно, это связано с ошибкой, которая будет исправлена в будущем обновлении.\n\nВы можете очистить сохранённую сессию, чтобы продолжить пользоваться Butler, или дождаться обновления.</string>
+    <string name="workspace_session_restoration_error_clear_action">Очистить сессию</string>
+    <string name="workspace_session_restoration_error_report_action">Сообщить о проблеме</string>
+    <string name="workspace_session_restoration_error_confirm_title">Очистить сессию?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Это навсегда удалит вашу сохранённую сессию вкладок. Это действие нельзя отменить.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Переименовать вкладку</string>
+    <string name="workspace_rename_name_label">Пользовательское имя</string>
+    <string name="workspace_rename_name_hint">Оставьте пустым, чтобы использовать автоматическое имя</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Достигнут лимит вкладок</string>
+    <string name="workspace_limit_reached_message">Пользователи бесплатной версии могут открыть не более %1$d вкладок одновременно. Перейдите на Butler Pro для неограниченного количества вкладок!</string>
+    <string name="workspace_limit_pick_tabs_message">Ваш бесплатный план допускает %1$d открытых вкладок. Выберите ненужные и закройте их, чтобы освободить место.</string>
+    <string name="workspace_limit_no_slot_hint">Закрытие вкладок сейчас не освободит место.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Закрыть %d вкладку</item>
+        <item quantity="few">Закрыть %d вкладки</item>
+        <item quantity="many">Закрыть %d вкладок</item>
+        <item quantity="other">Закрыть %d вкладки</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Выберите минимум %d вкладку для закрытия.</item>
+        <item quantity="few">Выберите минимум %d вкладки для закрытия.</item>
+        <item quantity="many">Выберите минимум %d вкладок для закрытия.</item>
+        <item quantity="other">Выберите минимум %d вкладки для закрытия.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Открыто: %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Несохранённые изменения</string>
+    <string name="workspace_limit_blocker_busy">Сейчас занята</string>
+    <string name="workspace_limit_blocker_attention">Ждёт вас</string>
+    <string name="workspace_limit_blocker_loading">Ещё загружается</string>
+    <string name="workspace_limit_blocker_awaiting_result">Сначала завершите выбор в открытом диалоге</string>
+    <string name="workspace_limit_blocker_unavailable">Сейчас нельзя закрыть</string>
+    <string name="workspace_limit_stacked_content_desc">Закрытие этой вкладки также закроет то, что открыто поверх неё</string>
+    <string name="workspace_limit_pro_description">Открывайте сколько угодно вкладок.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d элемент</item>
+        <item quantity="few">%1$d элемента</item>
+        <item quantity="many">%1$d элементов</item>
+        <item quantity="other">%1$d элемента</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Восстановление из корзины</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Восстановить %d элемент из корзины.</item>
+        <item quantity="few">Восстановить %d элемента из корзины.</item>
+        <item quantity="many">Восстановить %d элементов из корзины.</item>
+        <item quantity="other">Восстановить %d элемента из корзины.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d элемент восстановлен</item>
+        <item quantity="few">%d элемента восстановлено</item>
+        <item quantity="many">%d элементов восстановлено</item>
+        <item quantity="other">%d элемента восстановлено</item>
+    </plurals>
+</resources>

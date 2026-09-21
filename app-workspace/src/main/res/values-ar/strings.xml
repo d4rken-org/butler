@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">الحافظة</string>
+    <string name="clipboard_clear_all">مسح الكل</string>
+    <string name="clipboard_paste">لصق</string>
+    <string name="clipboard_open_in_explorer">فتح في المستكشف</string>
+    <string name="clipboard_copy">نسخ</string>
+    <string name="clipboard_cut">قص</string>
+    <string name="clipboard_origin">المصدر: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="zero">نسخ %d عنصر</item>
+        <item quantity="one">نسخ عنصر واحد</item>
+        <item quantity="two">نسخ عنصرين</item>
+        <item quantity="few">نسخ %d عناصر</item>
+        <item quantity="many">نسخ %d عنصرًا</item>
+        <item quantity="other">نسخ %d عنصر</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="zero">%d عنصر من %s</item>
+        <item quantity="one">عنصر واحد من %s</item>
+        <item quantity="two">عنصران من %s</item>
+        <item quantity="few">%d عناصر من %s</item>
+        <item quantity="many">%d عنصرًا من %s</item>
+        <item quantity="other">%d عنصر من %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="zero">قص %d عنصر</item>
+        <item quantity="one">قص عنصر واحد</item>
+        <item quantity="two">قص عنصرين</item>
+        <item quantity="few">قص %d عناصر</item>
+        <item quantity="many">قص %d عنصرًا</item>
+        <item quantity="other">قص %d عنصر</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="zero">%d عنصر من %s</item>
+        <item quantity="one">عنصر واحد من %s</item>
+        <item quantity="two">عنصران من %s</item>
+        <item quantity="few">%d عناصر من %s</item>
+        <item quantity="many">%d عنصرًا من %s</item>
+        <item quantity="other">%d عنصر من %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="zero">%d موقع</item>
+        <item quantity="one">موقع واحد</item>
+        <item quantity="two">موقعان</item>
+        <item quantity="few">%d مواقع</item>
+        <item quantity="many">%d موقعًا</item>
+        <item quantity="other">%d موقع</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="zero">%1$d عنصر من %2$s</item>
+        <item quantity="one">عنصر واحد من %2$s</item>
+        <item quantity="two">عنصران من %2$s</item>
+        <item quantity="few">%1$d عناصر من %2$s</item>
+        <item quantity="many">%1$d عنصرًا من %2$s</item>
+        <item quantity="other">%1$d عنصر من %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="zero">%1$d عنصر من %2$s</item>
+        <item quantity="one">عنصر واحد من %2$s</item>
+        <item quantity="two">عنصران من %2$s</item>
+        <item quantity="few">%1$d عناصر من %2$s</item>
+        <item quantity="many">%1$d عنصرًا من %2$s</item>
+        <item quantity="other">%1$d عنصر من %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">مقتطف نصي</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="zero">%1$d حرف</item>
+        <item quantity="one">حرف واحد</item>
+        <item quantity="two">حرفان</item>
+        <item quantity="few">%1$d أحرف</item>
+        <item quantity="many">%1$d حرفًا</item>
+        <item quantity="other">%1$d حرف</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">لصق كملف</string>
+    <string name="clipboard_text_info_characters">الأحرف</string>
+    <string name="clipboard_text_info_lines">الأسطر</string>
+    <string name="clipboard_text_info_content">المحتوى</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">نظرة عامة</string>
+    <string name="clipboard_info_operation">العملية</string>
+    <string name="clipboard_info_items">العناصر</string>
+    <string name="clipboard_info_source">المصدر</string>
+    <string name="clipboard_info_sources">المصادر</string>
+    <string name="clipboard_info_workspace">مساحة العمل</string>
+    <string name="clipboard_info_workspace_closed">مغلقة</string>
+    <string name="clipboard_info_time">الوقت</string>
+    <string name="clipboard_info_items_with_count">العناصر (%1$d)</string>
+    <string name="clipboard_info_actions">الإجراءات</string>
+    <string name="clipboard_info_go_to_source">الانتقال إلى المصدر</string>
+    <string name="clipboard_info_go_to_first_source">الانتقال إلى المصدر الأول</string>
+    <string name="clipboard_info_remove">إزالة من الحافظة</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">الحافظة</string>
+    <string name="clipboard_settings_remove_on_paste_title">الإزالة بعد اللصق</string>
+    <string name="clipboard_settings_remove_on_paste_desc">إزالة العناصر المنسوخة من الحافظة بعد لصقها</string>
+    <string name="clipboard_settings_max_items_title">الحد الأقصى للعناصر</string>
+    <string name="clipboard_settings_max_items_desc">الحد الأقصى لعدد العناصر في الحافظة</string>
+
+    <string name="workspace_explorer_label">المستكشف</string>
+    <string name="workspace_searcher_label">بحث</string>
+    <string name="workspace_editor_label">المحرر</string>
+    <string name="workspace_templates_label">القوالب</string>
+    <string name="workspace_apps_label">التطبيقات</string>
+    <string name="workspace_appdetails_label">تفاصيل التطبيق</string>
+    <string name="workspace_saver_label">حفظ باسم</string>
+    <string name="workspace_developer_label">المطوّر</string>
+    <string name="workspace_history_label">السجل</string>
+    <string name="workspace_bugreport_label">تقارير الأعطال</string>
+    <string name="workspace_viewer_label">العارض</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">الصور</string>
+    <string name="workspace_searcher_target_videos">مقاطع الفيديو</string>
+    <string name="workspace_searcher_target_music">الموسيقى</string>
+    <string name="workspace_searcher_target_downloads">التنزيلات</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">المزيد</string>
+    <string name="workspace_expand_less_action">أقل</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">علامات التبويب ومساحات العمل</string>
+    <string name="workspace_button_menu_new_workspace_format">%1$s جديد</string>
+    <string name="workspace_button_menu_new_tab_action">علامة تبويب جديدة</string>
+    <string name="workspace_button_menu_category_recent">الأخيرة</string>
+    <string name="workspace_button_menu_category_other">أخرى</string>
+    <string name="workspace_button_menu_category_current_tab">هذه العلامة</string>
+    <string name="workspace_button_menu_manager_action">مدير علامات التبويب</string>
+    <string name="workspace_button_menu_layout_action">التخطيط</string>
+    <string name="workspace_button_menu_close_current_action">إغلاق العلامة الحالية</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="zero">إغلاق العلامة الحالية (%d مساحة عمل)</item>
+        <item quantity="one">إغلاق العلامة الحالية (مساحة عمل واحدة)</item>
+        <item quantity="two">إغلاق العلامة الحالية (مساحتا عمل)</item>
+        <item quantity="few">إغلاق العلامة الحالية (%d مساحات عمل)</item>
+        <item quantity="many">إغلاق العلامة الحالية (%d مساحة عمل)</item>
+        <item quantity="other">إغلاق العلامة الحالية (%d مساحة عمل)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">الإعدادات</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">إغلاق جميع علامات التبويب؟</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="zero">سيؤدي هذا إلى إغلاق %1$d علامة تبويب مفتوحة. لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="one">سيؤدي هذا إلى إغلاق علامة تبويب واحدة مفتوحة. لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="two">سيؤدي هذا إلى إغلاق علامتي تبويب مفتوحتين. لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="few">سيؤدي هذا إلى إغلاق %1$d علامات تبويب مفتوحة. لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="many">سيؤدي هذا إلى إغلاق %1$d علامة تبويب مفتوحة. لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="other">سيؤدي هذا إلى إغلاق %1$d علامة تبويب مفتوحة. لا يمكن التراجع عن هذا الإجراء.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">إغلاق الكل</string>
+    <string name="workspace_manager_close_all_unsaved_warning">بعض علامات التبويب بها تغييرات غير محفوظة ستُفقد.</string>
+    <string name="workspace_manager_close_all_unsaved_action">تجاهل الكل</string>
+    <string name="workspace_manager_close_selected_title">إغلاق علامات التبويب المحددة؟</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="zero">سيؤدي هذا إلى إغلاق %1$d علامة تبويب محددة. لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="one">سيؤدي هذا إلى إغلاق علامة تبويب واحدة محددة. لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="two">سيؤدي هذا إلى إغلاق علامتي تبويب محددتين. لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="few">سيؤدي هذا إلى إغلاق %1$d علامات تبويب محددة. لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="many">سيؤدي هذا إلى إغلاق %1$d علامة تبويب محددة. لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="other">سيؤدي هذا إلى إغلاق %1$d علامة تبويب محددة. لا يمكن التراجع عن هذا الإجراء.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">إغلاق المحدد</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">بعض علامات التبويب المحددة بها تغييرات غير محفوظة ستُفقد.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">تجاهل المحدد</string>
+    <string name="workspace_manager_pause_partial_title">إيقاف علامات التبويب مؤقتًا؟</string>
+    <string name="workspace_manager_pause_partial_message">يمكن إيقاف %1$d من أصل %2$d علامة تبويب محددة مؤقتًا. البقية قيد الاستخدام، أو بها تغييرات غير محفوظة، أو مفتوحة حاليًا.</string>
+    <string name="workspace_manager_pause_partial_action">إيقاف %1$d مؤقتًا</string>
+    <string name="general_cancel_action">إلغاء</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">العمليات</string>
+    <string name="operations_clear_completed">مسح المكتملة</string>
+    <string name="operations_state_queued">في قائمة الانتظار</string>
+    <string name="operations_state_running">قيد التشغيل</string>
+    <string name="operations_state_waiting">بانتظار الإدخال</string>
+    <string name="operations_state_successful">ناجحة</string>
+    <string name="operations_state_failed">فشلت</string>
+    <string name="operations_state_cancelled">ملغاة</string>
+    <string name="operations_state_cancelling">جارٍ الإلغاء…</string>
+    <string name="operations_cancel_operation">إلغاء العملية</string>
+    <string name="operations_cancel_dialog_title">إلغاء العملية؟</string>
+    <string name="operations_cancel_dialog_message">هل أنت متأكد من رغبتك في إلغاء هذه العملية؟</string>
+    <string name="operations_cancel_dialog_warning">قد يترك الإلغاء الملفات في حالة غير متسقة.</string>
+    <string name="operations_details_started_at">بدأت</string>
+    <string name="operations_details_completed_at">اكتملت</string>
+    <string name="operations_details_duration">المدة</string>
+    <string name="operations_details_duration_not_started">لم تبدأ بعد</string>
+    <string name="operations_details_progress">التقدم</string>
+    <string name="operations_details_error">تفاصيل الخطأ</string>
+    <string name="operations_details_actions">الإجراءات</string>
+    <string name="operations_details_overview">نظرة عامة</string>
+    <string name="operations_details_handle_issue">معالجة المشكلة</string>
+    <string name="operations_details_show_in_history_action">إظهار في السجل</string>
+    <string name="operations_details_status">الحالة</string>
+    <string name="operations_details_result">النتيجة</string>
+    <string name="operations_details_destination_folder">مجلد الوجهة</string>
+    <string name="operations_details_destination_path">مسار الوجهة</string>
+    <string name="operations_details_affected_paths_with_count">المسارات المتأثرة (%d)</string>
+    <string name="operations_details_problems_with_count">المشكلات (%d)</string>
+    <string name="operations_details_problems_more">%d أخرى غير مدرجة</string>
+    <string name="workspace_operation_packages_section_title">التطبيقات</string>
+    <string name="workspace_operation_package_status_done">تم</string>
+    <string name="workspace_operation_package_status_failed">فشل</string>
+    <string name="workspace_operation_package_status_declined">مرفوض</string>
+    <string name="operations_details_section_expand">توسيع %1$s</string>
+    <string name="operations_details_section_collapse">طي %1$s</string>
+    <string name="workspace_operations_performance_graph_label">مخطط الأداء</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">حذف العنصر؟</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="zero">حذف %1$d عنصر؟</item>
+        <item quantity="one">حذف عنصر واحد؟</item>
+        <item quantity="two">حذف عنصرين؟</item>
+        <item quantity="few">حذف %1$d عناصر؟</item>
+        <item quantity="many">حذف %1$d عنصرًا؟</item>
+        <item quantity="other">حذف %1$d عنصر؟</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">سيُحذف هذا العنصر نهائيًا:</string>
+    <string name="workspace_dialog_delete_message_multiple">ستُحذف هذه العناصر نهائيًا:</string>
+    <string name="workspace_dialog_delete_more_items">… و%1$d أخرى</string>
+    <string name="workspace_dialog_delete_warning">لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="workspace_dialog_delete_permanently_action">حذف نهائي</string>
+    <string name="workspace_dialog_delete_permanently_toggle">الحذف نهائيًا بدلًا من ذلك</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">بعض العناصر لا يمكن نقلها إلى سلة المحذوفات وستُعالج بشكل منفصل.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">نقل إلى سلة المحذوفات؟</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="zero">نقل %1$d عنصر إلى سلة المحذوفات؟</item>
+        <item quantity="one">نقل عنصر واحد إلى سلة المحذوفات؟</item>
+        <item quantity="two">نقل عنصرين إلى سلة المحذوفات؟</item>
+        <item quantity="few">نقل %1$d عناصر إلى سلة المحذوفات؟</item>
+        <item quantity="many">نقل %1$d عنصرًا إلى سلة المحذوفات؟</item>
+        <item quantity="other">نقل %1$d عنصر إلى سلة المحذوفات؟</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">سيُنقل هذا العنصر إلى سلة المحذوفات:</string>
+    <string name="workspace_dialog_trash_message_multiple">ستُنقل هذه العناصر إلى سلة المحذوفات:</string>
+    <string name="workspace_dialog_trash_hint">اعثر عليها في موقع سلة المحذوفات</string>
+    <string name="workspace_dialog_move_to_trash_action">نقل</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="zero">%d محدد</item>
+        <item quantity="one">عنصر واحد محدد</item>
+        <item quantity="two">عنصران محددان</item>
+        <item quantity="few">%d محددة</item>
+        <item quantity="many">%d محددًا</item>
+        <item quantity="other">%d محدد</item>
+    </plurals>
+    <string name="workspace_action_more">المزيد من الإجراءات</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">حذف الملفات</string>
+    <string name="workspace_operation_delete_description_single">حذف \"%1$s\" من \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="zero">حذف %1$d عنصر من \"%2$s\".</item>
+        <item quantity="one">حذف عنصر واحد من \"%2$s\".</item>
+        <item quantity="two">حذف عنصرين من \"%2$s\".</item>
+        <item quantity="few">حذف %1$d عناصر من \"%2$s\".</item>
+        <item quantity="many">حذف %1$d عنصرًا من \"%2$s\".</item>
+        <item quantity="other">حذف %1$d عنصر من \"%2$s\".</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">تثبيت التطبيق</string>
+    <string name="workspace_operation_install_description">تثبيت \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">جارٍ قراءة الحزمة…</string>
+    <string name="workspace_operation_install_progress_extracting">جارٍ فك الضغط…</string>
+    <string name="workspace_operation_install_progress_writing">جارٍ تسليم الملفات إلى المثبِّت…</string>
+    <string name="workspace_operation_install_progress_committing">جارٍ إنهاء التثبيت…</string>
+    <string name="workspace_operation_install_progress_placing_obb">جارٍ وضع ملفات التوسيع…</string>
+    <string name="workspace_operation_install_summary_success">تم تثبيت %1$s.</string>
+    <string name="workspace_operation_install_summary_success_partial">تم تثبيت %1$s، لكن تعذر وضع ملفات التوسيع الخاصة به.</string>
+    <string name="workspace_install_unknown_sources_required">يحتاج Butler إلى إذن لتثبيت التطبيقات. امنحه في الإعدادات التي فُتحت للتو، ثم أعد المحاولة.</string>
+    <string name="workspace_install_obb_failed">تم تثبيت التطبيق، لكن تعذر وضع ملفات التوسيع الخاصة به: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="zero">تم حذف %1$d ملف.</item>
+        <item quantity="one">تم حذف ملف واحد.</item>
+        <item quantity="two">تم حذف ملفين.</item>
+        <item quantity="few">تم حذف %1$d ملفات.</item>
+        <item quantity="many">تم حذف %1$d ملفًا.</item>
+        <item quantity="other">تم حذف %1$d ملف.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="zero">تم حذف %1$d مجلد.</item>
+        <item quantity="one">تم حذف مجلد واحد.</item>
+        <item quantity="two">تم حذف مجلدين.</item>
+        <item quantity="few">تم حذف %1$d مجلدات.</item>
+        <item quantity="many">تم حذف %1$d مجلدًا.</item>
+        <item quantity="other">تم حذف %1$d مجلد.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="zero">تم تخطي %1$d عنصر.</item>
+        <item quantity="one">تم تخطي عنصر واحد.</item>
+        <item quantity="two">تم تخطي عنصرين.</item>
+        <item quantity="few">تم تخطي %1$d عناصر.</item>
+        <item quantity="many">تم تخطي %1$d عنصرًا.</item>
+        <item quantity="other">تم تخطي %1$d عنصر.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="zero">تم تحرير %1$s.</item>
+        <item quantity="one">تم تحرير %1$s.</item>
+        <item quantity="two">تم تحرير %1$s.</item>
+        <item quantity="few">تم تحرير %1$s.</item>
+        <item quantity="many">تم تحرير %1$s.</item>
+        <item quantity="other">تم تحرير %1$s.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">جارٍ النقل إلى سلة المحذوفات…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="zero">تم نقل %1$d ملف إلى سلة المحذوفات.</item>
+        <item quantity="one">تم نقل ملف واحد إلى سلة المحذوفات.</item>
+        <item quantity="two">تم نقل ملفين إلى سلة المحذوفات.</item>
+        <item quantity="few">تم نقل %1$d ملفات إلى سلة المحذوفات.</item>
+        <item quantity="many">تم نقل %1$d ملفًا إلى سلة المحذوفات.</item>
+        <item quantity="other">تم نقل %1$d ملف إلى سلة المحذوفات.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="zero">تم نقل %1$d مجلد إلى سلة المحذوفات.</item>
+        <item quantity="one">تم نقل مجلد واحد إلى سلة المحذوفات.</item>
+        <item quantity="two">تم نقل مجلدين إلى سلة المحذوفات.</item>
+        <item quantity="few">تم نقل %1$d مجلدات إلى سلة المحذوفات.</item>
+        <item quantity="many">تم نقل %1$d مجلدًا إلى سلة المحذوفات.</item>
+        <item quantity="other">تم نقل %1$d مجلد إلى سلة المحذوفات.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">تم تحرير %1$s/ث.</string>
+    <string name="workspace_operation_progress_bytes_freed">تم تحرير %1$s.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s متبقية.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">معلومات</string>
+    <string name="workspace_file_info_name_label">الاسم</string>
+    <string name="workspace_file_info_path_label">المسار</string>
+    <string name="workspace_file_info_type_label">النوع</string>
+    <string name="workspace_file_info_type_file">ملف</string>
+    <string name="workspace_file_info_type_directory">مجلد</string>
+    <string name="workspace_file_info_type_symlink">رابط رمزي</string>
+    <string name="workspace_file_info_type_unknown">غير معروف</string>
+    <string name="workspace_file_info_size_label">الحجم</string>
+    <string name="workspace_file_info_modified_label">تاريخ التعديل</string>
+    <string name="workspace_file_info_created_label">تاريخ الإنشاء</string>
+    <string name="workspace_file_info_permissions_label">الأذونات</string>
+    <string name="workspace_file_info_owner_label">المالك</string>
+    <string name="workspace_file_info_child_count_label">العناصر</string>
+    <string name="workspace_file_info_symlink_target_label">الهدف</string>
+    <string name="workspace_file_info_unknown">غير معروف</string>
+    <string name="workspace_file_info_copy_action">نسخ إلى الحافظة</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">المحدد</string>
+    <string name="workspace_file_info_files_label">الملفات</string>
+    <string name="workspace_file_info_directories_label">المجلدات</string>
+    <string name="workspace_file_info_total_size_label">الحجم الإجمالي</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">لم تبدأ هذه العملية بعد.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">جارٍ جمع بيانات الأداء…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">لا توجد بيانات أداء كافية من هذه العملية لرسم مخطط.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">بيانات الأداء غير متوفرة لهذه العملية.</string>
+    <string name="workspace_operation_performance_window_seconds">آخر %1$d ث</string>
+    <string name="workspace_operation_performance_window_minutes">آخر %1$d د</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">عنصر/ث</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">إظهار التفاصيل التقنية</string>
+    <string name="workspace_error_hide_details_action">إخفاء التفاصيل التقنية</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">جارٍ تهيئة علامة التبويب</string>
+    <string name="workspace_error_subtitle">حدث خطأ غير متوقع</string>
+    <string name="workspace_close_tab_action">إغلاق علامة التبويب</string>
+    <string name="workspace_paused_body">تم إيقاف علامة التبويب هذه مؤقتًا لتوفير الذاكرة والبطارية. استأنفها للمتابعة.</string>
+    <string name="workspace_paused_error_body">تعذر استئناف علامة التبويب هذه.</string>
+    <string name="workspace_paused_resume_action">استئناف</string>
+    <string name="workspace_paused_label">متوقفة مؤقتًا</string>
+    <string name="workspace_paused_content_label">محتوى علامة التبويب</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">الملف الموجود</string>
+    <string name="workspace_issue_collision_existing_folder_label">المجلد الموجود</string>
+    <string name="workspace_issue_collision_new_file">الملف الوارد</string>
+    <string name="workspace_issue_collision_new_folder">المجلد الوارد</string>
+    <string name="workspace_issue_collision_overwrite">استبدال</string>
+    <string name="workspace_issue_collision_merge">دمج</string>
+    <string name="workspace_issue_common_source_file">ملف المصدر</string>
+    <string name="workspace_issue_common_destination_file">الوجهة</string>
+    <string name="workspace_issue_common_skip">تخطي</string>
+    <string name="workspace_issue_common_rename">إعادة تسمية</string>
+    <string name="workspace_issue_common_rename_new">إعادة تسمية الجديد</string>
+    <string name="workspace_issue_common_rename_existing">إعادة تسمية الموجود</string>
+    <string name="workspace_issue_common_cancel">إلغاء</string>
+    <string name="workspace_issue_common_delete_permanently">حذف نهائي</string>
+    <string name="workspace_issue_archive_password_label">كلمة المرور</string>
+    <string name="workspace_issue_archive_password_unlock">فتح القفل</string>
+    <string name="workspace_issue_trash_move_failed_items_label">العناصر الفاشلة</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… و%1$d عناصر أخرى</string>
+    <string name="workspace_issue_trash_not_supported_items_label">العناصر المتأثرة</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… و%1$d عناصر أخرى</string>
+    <string name="workspace_issue_apply_all">تطبيق على كل المشكلات المتبقية</string>
+    <string name="workspace_issue_rename_new_name">الاسم الجديد</string>
+    <string name="workspace_issue_rename_dialog_title_new">إعادة تسمية الملف الوارد</string>
+    <string name="workspace_issue_rename_dialog_title_existing">إعادة تسمية الملف الموجود</string>
+    <string name="workspace_issue_type_folder">مجلد</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">فتح عدة علامات تبويب؟</string>
+    <string name="workspace_open_tabs_confirmation_message">سيؤدي هذا إلى فتح %1$d علامات تبويب.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">فتح باستخدام</string>
+    <string name="workspace_open_with_no_app_label">لم يُعثر على تطبيق آخر</string>
+    <string name="workspace_open_with_no_app_description">لا يمكن لأي تطبيق آخر مثبَّت فتح %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="zero">تم فتح %1$d علامة تبويب</item>
+        <item quantity="one">تم فتح علامة تبويب واحدة</item>
+        <item quantity="two">تم فتح علامتي تبويب</item>
+        <item quantity="few">تم فتح %1$d علامات تبويب</item>
+        <item quantity="many">تم فتح %1$d علامة تبويب</item>
+        <item quantity="other">تم فتح %1$d علامة تبويب</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="zero">تعذر الإغلاق: لا تزال هناك عملية قيد التشغيل في %1$d علامة تبويب</item>
+        <item quantity="one">تعذر الإغلاق: لا تزال هناك عملية قيد التشغيل في علامة تبويب واحدة</item>
+        <item quantity="two">تعذر الإغلاق: لا تزال هناك عملية قيد التشغيل في علامتي تبويب</item>
+        <item quantity="few">تعذر الإغلاق: لا تزال العمليات قيد التشغيل في %1$d علامات تبويب</item>
+        <item quantity="many">تعذر الإغلاق: لا تزال العمليات قيد التشغيل في %1$d علامة تبويب</item>
+        <item quantity="other">تعذر الإغلاق: لا تزال العمليات قيد التشغيل في %1$d علامة تبويب</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">علامات التبويب</string>
+    <string name="workspace_settings_navigation">التنقل</string>
+    <string name="workspace_settings_swipe_gestures_title">إيماءات التمرير</string>
+    <string name="workspace_settings_swipe_gestures_desc">مرر لليسار أو اليمين للتبديل بين علامات التبويب.</string>
+    <string name="workspace_settings_ondemand_creation_title">إنشاء علامات تبويب تلقائيًا</string>
+    <string name="workspace_settings_ondemand_creation_desc">إنشاء علامة تبويب جديدة تلقائيًا عند التمرير بعد آخر علامة تبويب.</string>
+    <string name="workspace_settings_newtab_type_title">نوع علامة التبويب الجديدة</string>
+    <string name="workspace_settings_newtab_type_desc">مساحة العمل التي تُفتح عند التمرير بعد آخر علامة تبويب، أو إضافة علامة تبويب إلى جزء فارغ، أو إنشاء أول علامة تبويب.</string>
+    <string name="workspace_settings_newtab_type_ask">السؤال في كل مرة</string>
+    <string name="workspace_settings_newtab_type_ask_desc">إظهار محدد نوع علامة التبويب لكل علامة تبويب جديدة.</string>
+    <string name="workspace_settings_live_preview_title">المعاينات المباشرة</string>
+    <string name="workspace_settings_live_preview_desc">إظهار محتوى علامة التبويب المباشر في مدير علامات التبويب.</string>
+    <string name="workspace_settings_other">أخرى</string>
+    <string name="workspace_settings_layout_title">التخطيط</string>
+    <string name="workspace_settings_layout_mode_portrait_title">وضع التخطيط الرأسي</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">اختر تخطيط علامات التبويب في الاتجاه الرأسي.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">وضع التخطيط الأفقي</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">اختر تخطيط علامات التبويب في الاتجاه الأفقي.</string>
+    <string name="workspace_settings_layout_mode_auto">تلقائي</string>
+    <string name="workspace_settings_layout_mode_auto_desc">كلاسيكي على الشاشات الصغيرة، وشريط علامات تبويب مع أجزاء على الشاشات الكبيرة.</string>
+    <string name="workspace_settings_layout_mode_classic">كلاسيكي</string>
+    <string name="workspace_settings_layout_mode_classic_desc">جزء واحد في كل مرة، بدون شريط علامات التبويب.</string>
+    <string name="workspace_settings_layout_mode_adaptive">تكيفي</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">شريط علامات تبويب مع أكبر عدد ممكن من الأجزاء التي تسعها الشاشة. ثبِّت تخطيطًا من قائمة Butler في الشريط.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">تكيفي (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">مفرد مع شريط علامات التبويب</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">جزء علامة تبويب واحد بالإضافة إلى شريط علامات التبويب الخاص بالتخطيطات متعددة الأجزاء. بدِّل علامات التبويب من الشريط بدلًا من التمرير؛ يشغل الشريط شريطًا من الشاشة.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">مزدوج رأسي</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">جزآن جنبًا إلى جنب (يسار/يمين).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">مزدوج أفقي</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">جزآن متراكبان (أعلى/أسفل).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">ثلاثي مع شريط جانبي يسار</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">جزء كبير على اليسار، وجزآن أصغر متراكبان على اليمين.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">ثلاثي مع شريط جانبي يمين</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">جزآن أصغر متراكبان على اليسار، وجزء كبير على اليمين.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">شبكة رباعية</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">أربعة أجزاء في شبكة 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">النقر للتركيز</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">النقرة الأولى على جزء غير مركَّز عليه تركّز عليه فقط، ولا تستجيب الأجزاء غير المركَّز عليها لمؤشر الفأرة. أوقف هذا للتفاعل معها مباشرة.</string>
+
+    <string name="workspace_settings_rail_button_title">زر Butler</string>
+    <string name="workspace_settings_rail_button_desc">اختر مكان زر Butler على شريط علامات التبويب.</string>
+    <string name="workspace_settings_rail_button_leading">البداية</string>
+    <string name="workspace_settings_rail_button_leading_desc">قبل علامات التبويب في الوضع الرأسي، وفوقها في الوضع الأفقي.</string>
+    <string name="workspace_settings_rail_button_trailing">النهاية</string>
+    <string name="workspace_settings_rail_button_trailing_desc">بعد علامات التبويب في الوضع الرأسي، وتحتها في الوضع الأفقي. في متناول الإبهام للاستخدام بيد واحدة.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">الجلسة</string>
+    <string name="workspace_settings_session_restore_title">استعادة علامات التبويب عند بدء التشغيل</string>
+    <string name="workspace_settings_session_restore_desc">استعادة علامات التبويب المفتوحة سابقًا تلقائيًا عند بدء تشغيل التطبيق.</string>
+    <string name="workspace_settings_autopause_title">إيقاف علامات التبويب الخاملة مؤقتًا</string>
+    <string name="workspace_settings_autopause_desc">يتم إيقاف علامات التبويب التي لم تطّلع عليها لفترة مؤقتًا لتوفير الذاكرة والبطارية. فتح إحداها يستأنفها.</string>
+    <string name="workspace_settings_autopause_delay_title">الإيقاف المؤقت بعد</string>
+    <string name="workspace_settings_autopause_delay_desc">المدة التي تبقى فيها علامة التبويب بعيدة عن الأنظار قبل إيقافها مؤقتًا.</string>
+    <string name="workspace_settings_undoclose_title">التراجع عن إغلاق علامات التبويب</string>
+    <string name="workspace_settings_undoclose_desc">يعرض إغلاق علامة تبويب خيار إعادتها لبضع ثوانٍ.</string>
+    <string name="workspace_settings_session_data_title">بيانات الجلسة</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="zero">%1$d علامة تبويب • %2$s</item>
+        <item quantity="one">علامة تبويب واحدة • %2$s</item>
+        <item quantity="two">علامتا تبويب • %2$s</item>
+        <item quantity="few">%1$d علامات تبويب • %2$s</item>
+        <item quantity="many">%1$d علامة تبويب • %2$s</item>
+        <item quantity="other">%1$d علامة تبويب • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">تم إغلاق \"%1$s\"</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">فشلت استعادة الجلسة</string>
+    <string name="workspace_session_restoration_error_description">تعذرت استعادة جلسة علامات التبويب السابقة. قد يكون هذا بسبب خطأ سيُصلح في تحديث مستقبلي.\n\nيمكنك مسح الجلسة المحفوظة لمتابعة استخدام Butler، أو انتظار التحديث.</string>
+    <string name="workspace_session_restoration_error_clear_action">مسح الجلسة</string>
+    <string name="workspace_session_restoration_error_report_action">الإبلاغ عن مشكلة</string>
+    <string name="workspace_session_restoration_error_confirm_title">مسح الجلسة؟</string>
+    <string name="workspace_session_restoration_error_confirm_description">سيؤدي هذا إلى حذف جلسة علامات التبويب المحفوظة نهائيًا. لا يمكن التراجع عن هذا الإجراء.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">إعادة تسمية علامة التبويب</string>
+    <string name="workspace_rename_name_label">اسم مخصص</string>
+    <string name="workspace_rename_name_hint">اتركه فارغًا لاستخدام الاسم التلقائي</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">تم بلوغ حد علامات التبويب</string>
+    <string name="workspace_limit_reached_message">يمكن للمستخدمين المجانيين فتح ما يصل إلى %1$d علامات تبويب في وقت واحد. اشترك في Butler Pro لعدد غير محدود من علامات التبويب!</string>
+    <string name="workspace_limit_pick_tabs_message">تتيح خطتك المجانية %1$d علامة تبويب مفتوحة. اختر ما لم تعد بحاجة إليه وأغلقه لإفساح المجال.</string>
+    <string name="workspace_limit_no_slot_hint">إغلاق علامات التبويب لن يُحرر مكانًا الآن.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="zero">إغلاق %d علامة تبويب</item>
+        <item quantity="one">إغلاق علامة تبويب واحدة</item>
+        <item quantity="two">إغلاق علامتي تبويب</item>
+        <item quantity="few">إغلاق %d علامات تبويب</item>
+        <item quantity="many">إغلاق %d علامة تبويب</item>
+        <item quantity="other">إغلاق %d علامة تبويب</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="zero">اختر %d علامة تبويب على الأقل لإغلاقها.</item>
+        <item quantity="one">اختر علامة تبويب واحدة على الأقل لإغلاقها.</item>
+        <item quantity="two">اختر علامتي تبويب على الأقل لإغلاقهما.</item>
+        <item quantity="few">اختر %d علامات تبويب على الأقل لإغلاقها.</item>
+        <item quantity="many">اختر %d علامة تبويب على الأقل لإغلاقها.</item>
+        <item quantity="other">اختر %d علامة تبويب على الأقل لإغلاقها.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">تم فتح %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">تغييرات غير محفوظة</string>
+    <string name="workspace_limit_blocker_busy">مشغولة الآن</string>
+    <string name="workspace_limit_blocker_attention">بانتظارك</string>
+    <string name="workspace_limit_blocker_loading">لا تزال قيد التحميل</string>
+    <string name="workspace_limit_blocker_awaiting_result">أنهِ المحدد المفتوح أولًا</string>
+    <string name="workspace_limit_blocker_unavailable">لا يمكن إغلاقها الآن</string>
+    <string name="workspace_limit_stacked_content_desc">إغلاق علامة التبويب هذه يغلق أيضًا ما هو مكدّس عليها</string>
+    <string name="workspace_limit_pro_description">افتح أكبر عدد تريده من علامات التبويب.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="zero">%1$d عنصر</item>
+        <item quantity="one">عنصر واحد</item>
+        <item quantity="two">عنصران</item>
+        <item quantity="few">%1$d عناصر</item>
+        <item quantity="many">%1$d عنصرًا</item>
+        <item quantity="other">%1$d عنصر</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s، %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">استعادة من سلة المحذوفات</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="zero">استعادة %d عنصر من سلة المحذوفات.</item>
+        <item quantity="one">استعادة عنصر واحد من سلة المحذوفات.</item>
+        <item quantity="two">استعادة عنصرين من سلة المحذوفات.</item>
+        <item quantity="few">استعادة %d عناصر من سلة المحذوفات.</item>
+        <item quantity="many">استعادة %d عنصرًا من سلة المحذوفات.</item>
+        <item quantity="other">استعادة %d عنصر من سلة المحذوفات.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="zero">تم استعادة %d عنصر</item>
+        <item quantity="one">تم استعادة عنصر واحد</item>
+        <item quantity="two">تم استعادة عنصرين</item>
+        <item quantity="few">تم استعادة %d عناصر</item>
+        <item quantity="many">تم استعادة %d عنصرًا</item>
+        <item quantity="other">تم استعادة %d عنصر</item>
+    </plurals>
+</resources>

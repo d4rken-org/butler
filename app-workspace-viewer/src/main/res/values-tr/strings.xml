@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Birlikte aç</string>
+    <string name="viewer_image_content_description">Resim %1$s</string>
+    <string name="viewer_toolbar_folder_label">Klasör</string>
+    <string name="viewer_back_action">Geri</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">Önceki dosya</string>
+    <string name="viewer_next_file_action">Sonraki dosya</string>
+    <string name="viewer_open_location_action">Konumu aç</string>
+    <string name="viewer_clipboard_copied">%1$s kopyalandı. Explorer sekmesinde yapıştırın.</string>
+    <string name="viewer_clipboard_cut">%1$s kesildi. Explorer sekmesinde yapıştırarak taşıyın.</string>
+    <string name="viewer_share_failed_label">Bu dosya paylaşılamadı</string>
+    <string name="viewer_share_failed_description">%1$s başka bir uygulamaya verilemez. Bu, root veya ADB erişimi gerektiren dosyalarda ve artık mevcut olmayan dosyalarda oluşur.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Boyut</string>
+    <string name="viewer_info_modified_label">Değiştirilme</string>
+    <string name="viewer_info_created_label">Oluşturulma</string>
+    <string name="viewer_info_format_label">Format</string>
+    <string name="viewer_info_dimensions_label">Boyutlar</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">İzinler</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Sahibi</string>
+    <string name="viewer_info_caption_label">Paylaşılan ileti</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Tüm ayrıntıları göster</string>
+    <string name="viewer_info_collapse_action">Ayrıntıları gizle</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">Önizleme · 1 sayfa</string>
+    <string name="viewer_pdf_page_indicator">%1$d. sayfa / %2$d</string>
+    <string name="viewer_pdf_page_previous">Önceki sayfa</string>
+    <string name="viewer_pdf_page_next">Sonraki sayfa</string>
+    <string name="viewer_pdf_page_error">%1$d. sayfa görüntülenemedi.</string>
+    <string name="viewer_pdf_page_content_description">%1$s dosyasının PDF önizlemesi, %2$d. sayfa / %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">Bu dosya türü henüz desteklenmiyor</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">Bu bir arşivdir</string>
+    <string name="viewer_browse_archive_action">İçeriği gözat</string>
+    <string name="viewer_archive_needs_copy_msg">Cihazınıza bir kopya kaydedin, sonra Butler içeriğine göz atabilir.</string>
+    <string name="viewer_archive_nested_msg">Bu arşiv başka bir arşivin içindedir. İçeriğine göz atmak için önce çıkartın.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">Sürüm</string>
+    <string name="viewer_apk_min_sdk_label">Min SDK</string>
+    <string name="viewer_apk_target_sdk_label">Target SDK</string>
+    <string name="viewer_apk_installed_label">Yüklü</string>
+    <string name="viewer_apk_not_installed_value">Yüklü değil</string>
+    <string name="viewer_apk_installed_unknown_value">Kontrol edilemedi</string>
+    <string name="viewer_apk_installed_older_hint">Bu dosyadan daha eski</string>
+    <string name="viewer_apk_installed_newer_hint">Bu dosyadan daha yeni</string>
+    <string name="viewer_apk_permissions_header">İzinler (%1$d)</string>
+    <string name="viewer_apk_signing_header">İmzalama sertifikaları</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">Yükle</string>
+    <string name="viewer_bundle_format_label">Bundle formatı</string>
+    <string name="viewer_bundle_splits_label">İçindeki APK\'ler</string>
+    <string name="viewer_bundle_expansion_files_hint">Uygulama yüklendikten sonra yerleştirilen genişletme dosyalarını içerir.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Genişletme dosyalarını yerleştirmek root veya ADB erişimi gerektirir. Olmadan uygulama yüklenir ancak genişletme dosyaları geri kalır.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">%1$s uygulamasının simgesi</string>
+    <string name="viewer_apk_icon_show_action">Simgeyi göster</string>
+    <string name="viewer_apk_icon_save_action">Simgeyi kaydet</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Simge %1$s olarak kaydedildi</string>
+    <string name="viewer_apk_icon_overwrite_title">Dosya değiştirilsin mi?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s bu klasörde zaten var. Simgeyi kaydetmek onu değiştirir.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Değiştir</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">Dosya değişti</string>
+    <string name="viewer_external_change_message">Bu dosya cihazda değişti. Tekrar yüklemek için yenileyin.</string>
+    <string name="viewer_external_change_gone_title">Dosya silindi</string>
+    <string name="viewer_external_change_gone_message">Bu dosya silindi veya artık erişilemez hale geldi.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Bu dosya gösterilemiyor</string>
+    <string name="viewer_error_not_a_file_label">Dosya değil</string>
+    <string name="viewer_error_not_a_file_description">%1$s normal bir dosya değil.</string>
+    <string name="viewer_error_broken_symlink_label">Kırık kısayol</string>
+    <string name="viewer_error_broken_symlink_description">%1$s artık mevcut olmayan bir şeye işaret ediyor.</string>
+    <string name="viewer_error_undecodable_label">Hasar görmüş resim</string>
+    <string name="viewer_error_undecodable_description">%1$s çözülemedi. Dosya eksik veya hasar görmüş olabilir.</string>
+    <string name="viewer_error_file_gone_label">Dosya bulunamadı</string>
+    <string name="viewer_error_file_gone_description">%1$s artık yok. Taşınmış, yeniden adlandırılmış veya silinmiş olabilir.</string>
+    <string name="viewer_error_empty_file_label">Boş dosya</string>
+    <string name="viewer_error_empty_file_description">%1$s boş ve gösterilecek bir şey yok.</string>
+    <string name="viewer_error_apk_unreadable_label">Okunamayan APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s bir Android uygulama paketi olarak ayrıştırılamadı.</string>
+    <string name="viewer_error_icon_unavailable_label">Simge yok</string>
+    <string name="viewer_error_icon_unavailable_description">%1$s uygulamasının simgesi okunamadı.</string>
+    <string name="viewer_error_icon_target_notfile_label">Ad zaten kullanımda</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s burada zaten var ve normal bir dosya değil, bu yüzden değiştirilemez.</string>
+    <string name="viewer_error_icon_target_appeared_label">Dosya oluşturuldu</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s nereye kaydedeceğinizi seçerken oluşturuldu. Hiçbir şey üzerine yazılmadı, tekrar deneyin.</string>
+    <string name="viewer_error_content_unreadable_label">Bu dosya okunamıyor</string>
+    <string name="viewer_error_content_unreadable_description">%1$s dosyasını paylaşan uygulama artık Butler\'ın onu okumasına izin vermiyor. Bu uygulamadan yeniden paylaşmasını isteyin.</string>
+    <string name="viewer_save_copy_action">Bir kopya kaydet…</string>
+    <string name="viewer_open_in_editor_action">Düzenleyicide aç</string>
+    <string name="viewer_text_truncated_bytes">Önizleme bu dosyanın ilk %1$s ile sınırlıdır.</string>
+    <string name="viewer_text_truncated_lines">Önizleme bu dosyanın ilk %1$s satırıyla sınırlıdır.</string>
+    <string name="viewer_text_truncated_width">Uzun satırlar bu önizlemede kısaltılmıştır.</string>
+    <string name="viewer_text_unreadable_label">Bu dosya okunamadı</string>
+</resources>

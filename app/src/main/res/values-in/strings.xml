@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_welcome_title">Selamat datang di Butler</string>
+    <string name="onboarding_welcome_message">Tab untuk berkas.\nJelajahi, cari, dan edit — semua sekaligus.</string>
+    <string name="onboarding_welcome_subtitle">Sumber terbuka. Bebas iklan. Tanpa pelacakan.\nPenjelajah berkas yang Anda inginkan.</string>
+    <string name="onboarding_welcome_action">Mulai menjelajah</string>
+    <string name="onboarding_beta_title">Bentuk masa depan</string>
+    <string name="onboarding_beta_message">Ini adalah build beta (pengujian). Lanjutkan dengan selera humor dan rencana cadangan. Mohon laporkan masalah yang Anda temui.</string>
+    <string name="onboarding_beta_action">Aku tak takut apa pun</string>
+    <string name="onboarding_beta_feature_early_access_title">Akses awal</string>
+    <string name="onboarding_beta_feature_early_access_description">Coba fitur terbaru sebelum orang lain.</string>
+    <string name="onboarding_beta_feature_influence_title">Dampak langsung</string>
+    <string name="onboarding_beta_feature_influence_description">Masukan Anda membentuk pengembangan Butler.</string>
+    <string name="onboarding_beta_feature_feedback_title">Digerakkan komunitas</string>
+    <string name="onboarding_beta_feature_feedback_description">Bergabunglah dengan komunitas pengguna mahir yang menyempurnakan Butler.</string>
+    <string name="onboarding_privacy_title">Privasi &amp; data</string>
+    <string name="onboarding_privacy_message">Butler tidak memiliki iklan dan tidak menjual data pengguna. Privasi Anda penting bagi saya.</string>
+    <string name="onboarding_privacy_read_action">Baca kebijakan privasi</string>
+    <string name="onboarding_privacy_action">Terima</string>
+    <string name="onboarding_skip_action">Lewati</string>
+    <string name="onboarding_progress_step">%1$d dari %2$d</string>
+
+    <string name="onboarding_workspaces_title">Bekerja dalam tab</string>
+    <string name="onboarding_workspaces_message">Buka beberapa tab dan beralih di antaranya — seperti browser web Anda.</string>
+    <string name="onboarding_workspaces_action">Lanjutkan</string>
+    <string name="onboarding_workspaces_hint">Biarkan beberapa tab tetap terbuka sekaligus.</string>
+    <string name="onboarding_workspaces_explorer_title">Explorer</string>
+    <string name="onboarding_workspaces_explorer_description">Jelajahi berkas Anda.</string>
+    <string name="onboarding_workspaces_searcher_title">Pencarian</string>
+    <string name="onboarding_workspaces_searcher_description">Temukan sesuatu.</string>
+    <string name="onboarding_workspaces_editor_title">Editor</string>
+    <string name="onboarding_workspaces_editor_description">Edit berkas.</string>
+    <string name="onboarding_workspaces_templates_title">Templat</string>
+    <string name="onboarding_workspaces_templates_description">Simpan pengaturan Anda.</string>
+    <string name="onboarding_workspaces_apps_description">Kelola aplikasi Anda.</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">Explorer baru</string>
+    <string name="shortcut_explorer_new_long">Buat tab explorer baru</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">Pintasan</string>
+    <string name="shortcuts_settings_subtitle">Konfigurasi pintasan peluncur</string>
+    <string name="shortcuts_settings_enabled_title">Aktifkan pintasan</string>
+    <string name="shortcuts_settings_enabled_subtitle">Tampilkan item yang sering digunakan di peluncur</string>
+    <string name="shortcuts_settings_auto_remember_title">Ingat lokasi yang dikunjungi</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Otomatis tambahkan lokasi yang sering dikunjungi sebagai pintasan</string>
+    <string name="shortcuts_settings_last_accessed_title">Terakhir diakses</string>
+    <string name="shortcuts_settings_max_count_title">Jumlah maksimum pintasan</string>
+    <string name="shortcuts_settings_max_count_subtitle">Saat ini menampilkan %d pintasan</string>
+    <string name="shortcuts_settings_min_access_title">Akses minimum</string>
+    <string name="shortcuts_settings_min_access_subtitle">Memerlukan %d akses sebelum ditampilkan</string>
+    <string name="shortcuts_settings_current_title">Pintasan saat ini</string>
+    <string name="shortcuts_settings_current_subtitle">%d pintasan terlacak</string>
+    <string name="shortcuts_settings_clear_title">Hapus riwayat pintasan</string>
+    <string name="shortcuts_settings_clear_subtitle">Hapus semua pintasan yang terlacak</string>
+    <string name="shortcuts_settings_clear_confirm_title">Hapus riwayat pintasan?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Ini akan menghapus semua pintasan yang terlacak. Markah akan tetap dipertahankan.</string>
+    <string name="shortcuts_settings_cleared_message">Riwayat pintasan dihapus</string>
+    <string name="shortcuts_settings_max_dialog_title">Jumlah maksimum pintasan</string>
+    <string name="shortcuts_settings_max_dialog_message">Jumlah pintasan yang ditampilkan di peluncur (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Jumlah akses minimum</string>
+    <string name="shortcuts_settings_min_dialog_message">Berapa kali suatu lokasi harus diakses sebelum muncul sebagai pintasan (1–10)</string>
+
+    <string name="setup_usagestats_title">Statistik penggunaan</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Akses notifikasi</string>
+    <string name="setup_manage_storage_card_title">Kelola penyimpanan eksternal</string>
+    <string name="setup_inventory_card_title">Inventaris aplikasi</string>
+
+    <string name="setup_title">Pengaturan izin</string>
+    <string name="setup_settings_description">Konfigurasi izin dan fitur aplikasi.</string>
+    <string name="setup_help_description">Bantuan</string>
+
+    <string name="setup_root_description">Mengaktifkan akses ke berkas sistem dan direktori yang dilindungi untuk manajemen berkas tingkat lanjut. Membuka potensi penuh Butler termasuk akses data aplikasi dan modifikasi sistem. Perangkat harus di-root.</string>
+    <string name="setup_shizuku_description">Alternatif untuk root yang menyediakan operasi berkas dengan hak istimewa melalui API yang aman. Memungkinkan akses ke direktori terbatas tanpa root tradisional. Memerlukan aplikasi Shizuku terpasang dan berjalan.</string>
+    <string name="setup_notification_description">Menampilkan pembaruan untuk operasi berkas, tugas latar belakang, dan progres transfer. Memberi tahu Anda saat operasi selesai atau terjadi kesalahan.</string>
+    <string name="setup_usagestats_description">Menganalisis penggunaan penyimpanan aplikasi untuk mengidentifikasi berkas besar dan membantu mengelola ruang secara efektif. Semua data tetap di perangkat Anda dan tidak pernah dikirim.</string>
+    <string name="setup_storage_description">Akses penuh ke semua penyimpanan perangkat untuk operasi berkas yang cepat dan pemrosesan massal. Mengaktifkan manajemen berkas menyeluruh tanpa permintaan izin berulang.</string>
+    <string name="setup_inventory_description">Lihat semua aplikasi terpasang untuk fitur seperti ekstraksi APK dan analisis penyimpanan. Diperlukan pada Android 11+ untuk melihat daftar aplikasi lengkap.</string>
+
+    <string name="setup_grant_access_label">Berikan akses</string>
+    <string name="setup_access_granted_label">Akses diberikan</string>
+    <string name="setup_use_root_label">Gunakan root jika tersedia</string>
+    <string name="setup_use_shizuku_label">Gunakan Shizuku jika tersedia</string>
+
+    <string name="setup_status_checking">Memeriksa…</string>
+    <string name="setup_status_completed">Dikonfigurasi</string>
+    <string name="setup_status_required">Diperlukan</string>
+    <string name="setup_status_optional">Opsional</string>
+    <string name="setup_status_connected">Terhubung</string>
+    <string name="setup_status_not_connected">Tidak terhubung</string>
+    <string name="setup_status_not_installed">Tidak terpasang</string>
+    <string name="setup_status_connecting">Menghubungkan…</string>
+    <string name="setup_status_connection_failed">Koneksi gagal</string>
+    <string name="setup_status_unavailable">Tidak tersedia</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">Notifikasi debug</string>
+    <string name="debug_log_consent_title">Log debug</string>
+    <string name="debug_log_consent_explanation">Fitur ini merekam semua aktivitas aplikasi ke dalam berkas yang dapat dibagikan. Berkas yang dihasilkan berisi informasi sensitif (misalnya nama berkas dan aplikasi terpasang). Bagikan hanya dengan pihak tepercaya (misalnya pengembang yang menangani masalah).</string>
+    <string name="debug_log_recording_progress">Merekam log debug</string>
+    <string name="debug_log_record_action">Rekam</string>
+    <string name="debug_log_record_full_action">Rekam log debug</string>
+    <string name="debug_log_stop_action">Hentikan perekaman</string>
+    <string name="debug_log_screen_title">Perekam log debug</string>
+    <string name="debug_log_screen_sensitive_information_message">Berkas yang dihasilkan berisi informasi sensitif (misalnya nama berkas dan aplikasi terpasang). Bagikan hanya dengan pihak tepercaya.</string>
+    <string name="debug_log_screen_session_path_label">Lokasi sesi debug</string>
+    <string name="debug_log_screen_log_files_label">Berkas log</string>
+    <string name="debug_log_screen_log_files_ready">Berkas log siap (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Buang</string>
+    <string name="debug_log_file_label">Berkas log terekam</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">Merekam berkas log</string>
+    <string name="debug_banner_stop_action">Hentikan</string>
+    <string name="debug_banner_view_action">Lihat</string>
+    <string name="debug_banner_explanation">Merekam aktivitas aplikasi. Hentikan jika sudah selesai, lalu bagikan log saat melaporkan bug.</string>
+    <string name="debug_log_short_recording_title">Rekaman terlalu singkat</string>
+    <string name="debug_log_short_recording_message">Log debug merekam apa yang terjadi selama perekaman aktif. Mulai rekam, ulangi masalahnya, lalu hentikan. Rekaman ini mungkin tidak berisi informasi yang berguna.</string>
+    <string name="debug_log_short_recording_keep_action">Tetap simpan rekaman</string>
+
+    <string name="debug_logview_screen_title">Penampil Log</string>
+    <string name="debug_logview_pause_action">Jeda (bekukan tampilan)</string>
+    <string name="debug_logview_resume_action">Lanjutkan</string>
+    <string name="debug_logview_copy_action">Salin log</string>
+    <string name="debug_logview_collapse_action">Ciutkan</string>
+    <string name="debug_logview_close_action">Tutup panel log</string>
+    <string name="debug_logview_resize_action">Ubah ukuran</string>
+    <string name="debug_logview_more_action">Opsi lainnya</string>
+    <string name="debug_logview_level_action">Tingkat log</string>
+    <string name="debug_logview_clear_action">Kosongkan buffer</string>
+    <string name="debug_logview_search_action">Cari</string>
+    <string name="debug_logview_search_clear_action">Hapus pencarian</string>
+    <string name="debug_logview_search_close_action">Tutup pencarian</string>
+    <string name="debug_logview_search_prev_action">Kecocokan sebelumnya</string>
+    <string name="debug_logview_search_next_action">Kecocokan berikutnya</string>
+    <string name="debug_logview_jump_to_bottom_action">Lompat ke terbaru</string>
+    <string name="debug_logview_paused_msg">Dijeda — tampilan dibekukan</string>
+    <string name="debug_logview_paused_new_msg">Dijeda — %1$d baris baru sejak itu</string>
+    <string name="debug_logview_copied_msg">Log disalin ke papan klip</string>
+    <string name="debug_logview_copied_truncated_msg">%1$d baris terakhir disalin ke papan klip</string>
+    <string name="debug_logview_share_label">Bagikan log</string>
+
+    <string name="settings_label">Pengaturan</string>
+    <string name="settings_category_tools_label">Alat</string>
+    <string name="settings_category_other_label">Lainnya</string>
+    <string name="settings_category_integration_label">Integrasi</string>
+    <string name="general_settings_label">Umum</string>
+    <string name="general_settings_desc">Penyesuaian umum yang memengaruhi seluruh aplikasi.</string>
+    <string name="settings_category_ui_label">Antarmuka pengguna</string>
+    <string name="ui_mascot_suit_setting_label">Setelan Butler</string>
+    <string name="ui_mascot_suit_setting_explanation">Warna setelan yang dikenakan Butler.</string>
+    <string name="ui_theme_mode_setting_label">Mode tema</string>
+    <string name="ui_theme_mode_setting_explanation">Mode yang digunakan saat menerapkan tema aplikasi (misalnya malam atau siang).</string>
+    <string name="ui_theme_style_setting_label">Gaya tema</string>
+    <string name="ui_theme_style_setting_explanation">Gaya warna yang digunakan saat menerapkan tema aplikasi.</string>
+    <string name="ui_theme_color_setting_label">Warna tema</string>
+    <string name="ui_theme_color_setting_explanation">Palet warna yang digunakan untuk tema aplikasi.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Warna disediakan oleh Material You dari wallpaper Anda</string>
+    <string name="ui_theme_color_value_system">Warna sistem</string>
+    <string name="ui_language_override_label">Bahasa aplikasi</string>
+    <string name="ui_language_override_desc">Pilih bahasa lain untuk Butler, terlepas dari bahasa default sistem Anda.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Hindari cutout layar</string>
+    <string name="ui_display_cutout_avoid_setting_description">Menjaga antarmuka tetap bersih dari cutout kamera. Nonaktifkan untuk menggunakan lebih banyak layar, tetapi sebagian antarmuka mungkin berada di balik cutout.</string>
+
+    <string name="previews_settings_title">Pratinjau</string>
+    <string name="previews_settings_subtitle">Kelola cache pratinjau gambar.</string>
+
+    <string name="tour_settings_reset_title">Setel ulang tur berpemandu</string>
+    <string name="tour_settings_reset_subtitle">Tampilkan kembali tur berpemandu, termasuk yang pernah Anda lewati atau nonaktifkan.</string>
+    <string name="tour_settings_reset_done">Tur berpemandu telah disetel ulang.</string>
+
+    <string name="storage_settings_title">Penyimpanan</string>
+    <string name="storage_settings_subtitle">Kelola cache, penyimpanan, dan sampah Butler.</string>
+    <string name="storage_category_previews_label">Pratinjau</string>
+    <string name="storage_previews_disk_cache_title">Cache disk</string>
+    <string name="storage_previews_memory_cache_title">Cache memori</string>
+    <string name="storage_previews_max_size_title">Ukuran cache maksimum</string>
+    <string name="storage_clear_disk_confirm_title">Hapus cache disk?</string>
+    <string name="storage_clear_disk_confirm_message">Ini akan menghapus semua gambar pratinjau yang di-cache. Gambar akan dibuat ulang sesuai kebutuhan.</string>
+    <string name="storage_clear_memory_confirm_title">Hapus cache memori?</string>
+    <string name="storage_clear_memory_confirm_message">Ini akan menghapus gambar pratinjau yang di-cache dari memori. Gambar akan dibuat ulang sesuai kebutuhan.</string>
+    <string name="storage_clear_all_confirm_title">Hapus semua cache?</string>
+    <string name="storage_clear_all_confirm_message">Ini akan menghapus cache disk dan memori untuk gambar pratinjau.</string>
+    <string name="storage_clear_all_previews_action">Hapus semua cache pratinjau</string>
+    <string name="storage_clear_all_subtitle">Hapus semua cache pratinjau</string>
+    <string name="storage_cache_cleared_message">Cache dihapus</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">Periksa pembaruan</string>
+    <string name="updater_check_enabled_setting_description">Izinkan Butler memeriksa secara daring apakah versi baru tersedia.</string>
+    <string name="motd_check_enabled_setting_title">Periksa pengumuman</string>
+    <string name="motd_check_enabled_setting_description">Izinkan Butler mengambil pesan penting dari pengembang.</string>
+    <string name="motd_card_header">Pengumuman</string>
+
+    <string name="confirm_exit_setting_title">Konfirmasi keluar</string>
+    <string name="confirm_exit_setting_description">Tampilkan dialog konfirmasi saat keluar dari aplikasi.</string>
+    <string name="confirm_exit_dialog_title">Keluar dari Butler</string>
+    <string name="confirm_exit_dialog_message">Ini akan menutup aplikasi dan kembali ke layar utama Anda.</string>
+    <string name="confirm_exit_dialog_exit">Keluar</string>
+    <string name="confirm_exit_dialog_cancel">Batal</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Jangan tanya lagi</string>
+
+    <string name="settings_support_category_help_label">Dapatkan bantuan</string>
+    <string name="settings_support_label">Dukungan</string>
+    <string name="settings_support_description">Baca dokumentasi, laporkan masalah, mengobrol dengan orang lain, atau rekam log debug.</string>
+    <string name="settings_support_wiki_label">Dokumentasi</string>
+    <string name="settings_support_wiki_description">Pelajari cara menggunakan Butler secara efektif.</string>
+    <string name="settings_support_issue_tracker_description">Pelacak masalah publik untuk laporan bug dan permintaan fitur.</string>
+    <string name="settings_support_issue_tracker_label">Pelacak masalah</string>
+    <string name="settings_support_debuglog_label">Log debug</string>
+    <string name="settings_support_debuglog_desc">Rekam semua aktivitas aplikasi ke dalam berkas teks yang dapat Anda bagikan.</string>
+    <string name="settings_support_debuglog_recording_desc">Sedang merekam informasi debug. Ketuk untuk menghentikan perekaman.</string>
+    <string name="settings_support_debuglog_path">Lokasi log: %1$s</string>
+    <string name="settings_support_bugreports_label">Laporan bug</string>
+    <string name="settings_support_bugreports_desc">Lihat laporan crash, rekam log debug, dan bagikan dengan saya.</string>
+    <string name="support_contact_report_type_crash">Laporan crash</string>
+    <string name="support_contact_report_type_reported">Laporan bug</string>
+    <string name="support_contact_report_type_recording">Rekaman</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Tempat berkumpul dan mengajukan pertanyaan.</string>
+
+    <string name="settings_acknowledgements_label">Ucapan terima kasih</string>
+    <string name="settings_acknowledgements_description">Kredit, lisensi, dan ucapan terima kasih khusus.</string>
+    <string name="settings_acks_translation_header">Terjemahan</string>
+    <string name="settings_acks_translators_title">Penerjemah</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Terjemahkan Butler</string>
+    <string name="settings_acks_translate_desc">Bantu terjemahkan Butler ke bahasa Anda.</string>
+
+    <string name="settings_acks_thanks_header">Terima kasih</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">Atas dukungannya terhadap penerjemahan proyek sumber terbuka.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Terima kasih atas ikon, desain maskot, dan animasinya.</string>
+    <string name="settings_licenses_label">Lisensi</string>
+
+    <!-- Workspace Status Card -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="other">%1$d Tab</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="other">%1$d Operasi</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="other">%1$d Perhatian</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="other">%1$d Belum disimpan</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="other">%1$d Dijeda</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">Tampilkan semua tab</string>
+    <string name="workspace_status_filter_operations_desc">Saring berdasarkan tab dengan operasi</string>
+    <string name="workspace_status_filter_attention_desc">Saring berdasarkan tab yang memerlukan perhatian</string>
+    <string name="workspace_status_filter_paused_desc">Saring berdasarkan tab yang dijeda</string>
+    <string name="workspace_status_filter_unsaved_desc">Saring berdasarkan tab dengan perubahan belum disimpan</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Bahasa pemrograman Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Injektor dependensi cepat untuk Android dan Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Jalankan kode Java (dan Kotlin) sebagai root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Menjalankan kode Kotlin JVM ber-root dengan mudah menggunakan coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Menggunakan API sistem secara langsung dengan hak istimewa adb/root dari aplikasi biasa melalui proses Java yang dimulai dengan app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Lottie milik Airbnb untuk Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Robot Android direproduksi atau dimodifikasi dari karya yang dibuat dan dibagikan oleh Google, dan digunakan sesuai ketentuan yang dijelaskan dalam Creative Commons 3.0 Attribution License.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Toolkit modern Android untuk membangun UI native. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Pustaka Jetpack</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation, dan pustaka AndroidX lainnya. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Ekstensi Kotlin</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Pustaka Coroutines dan Serialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Pustaka pemuatan gambar berbasis Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Primitif kriptografi untuk autentikasi, penandatanganan, dan enkripsi SMB. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Pustaka Square</string>
+    <string name="acknowledgement_square_libraries_subtitle">Pustaka jaringan Retrofit, OkHttp, dan OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Utilitas untuk Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Seret dan lepas untuk LazyColumn di Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Pustaka pemberian versi semantik untuk Kotlin. (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Grafik dan bagan untuk Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Kebijakan privasi</string>
+    <string name="settings_privacy_policy_desc">Menangani data secara bertanggung jawab.</string>
+
+
+    <string name="changelog_label">Log perubahan</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Status peningkatan Butler</string>
+    <string name="upgrade_status_free">Status: Gratis</string>
+    <string name="upgrade_status_pro">Status: Pro</string>
+    <string name="upgrade_status_foss">Status: FOSS</string>
+
+    <string name="storage_area_sdcard_label">Kartu SD</string>
+    <string name="storage_area_public_label">Penyimpanan publik</string>
+    <string name="storage_area_public_app_data_label">Data aplikasi publik</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">Pengelola tab</string>
+    <string name="workspace_manager_empty_title">Tidak ada tab</string>
+    <string name="workspace_manager_empty_subtitle">Buat tab pertama Anda untuk memulai</string>
+
+    <!-- Workspace > Empty Content-->
+    <string name="workspace_empty_create_action">Buat tab</string>
+    <string name="workspace_empty_create_hint">Bekerja secara paralel: Buat tab dan jadikan sebagai alat pilihan Anda.</string>
+    <string name="workspace_empty_settings_action">Buka pengaturan</string>
+    <string name="workspace_empty_settings_hint">Sesuaikan Butler sesuai keinginan Anda. Atur cara kerja alat-alatnya.</string>
+    <string name="workspace_classic_empty_tabs_closed">Tidak ada tab terbuka. Siap saat Anda siap.</string>
+    <string name="workspace_classic_empty_tip">Tip: Ketuk “Buat tab” dan pilih alat — Explorer, Pencarian, Editor, dan lainnya.</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">Mulai dengan sebuah tab</string>
+    <string name="tour_first_tab_body">Butler bekerja dalam tab, seperti browser: masing-masing adalah alat tersendiri — Explorer, Pencarian, Editor, dan lainnya. Buat tab pertama Anda.</string>
+    <string name="tour_manager_fab_title">Pintasan cepat</string>
+    <string name="tour_manager_fab_body">Ketuk ini untuk pintasan ke alat yang paling sering Anda gunakan, dan untuk menutup semua tab sekaligus.</string>
+    <string name="tour_manager_reorder_title">Susun ulang tab Anda</string>
+    <string name="tour_manager_reorder_body">Tekan dan tahan bilah judul tab, lalu seret ke posisi yang Anda inginkan. Ini adalah urutan tab Anda di tempat lain.</string>
+    <string name="tour_manager_select_title">Bekerja pada beberapa tab</string>
+    <string name="tour_manager_select_body">Tekan dan tahan pratinjau tab untuk mulai memilih tab. Lalu ketuk sisanya dan tutup atau jeda semuanya sekaligus.</string>
+    <string name="tour_manager_new_tab_title">Mulai tab baru</string>
+    <string name="tour_manager_new_tab_body">Ketuk kartu ini untuk memilih alat apa pun untuk tab baru.</string>
+    <string name="tour_swipe_switch_title">Geser antar tab</string>
+    <string name="tour_swipe_switch_body">Geser ke kiri atau kanan di mana pun pada halaman untuk berpindah antar tab yang terbuka.</string>
+    <string name="tour_swipe_create_title">Geser untuk memulai tab</string>
+    <string name="tour_swipe_create_body">Geser melewati tab terakhir Anda dan Butler menawarkan tab baru.</string>
+    <string name="tour_swipe_panes_title">Lebih dari satu tab sekaligus</string>
+    <string name="tour_swipe_panes_body">Pada layar yang lebih besar, atau dalam orientasi lanskap, Butler menampilkan beberapa tab berdampingan. Pengaturan tata letak di bawah Tab menentukan kapan ini terjadi.</string>
+    <string name="tour_panes_rail_title">Semua tab Anda</string>
+    <string name="tour_panes_rail_body">Setiap tab terbuka ada di sini. Ketuk satu dan pilih panel tujuannya. Tekan dan tahan sebuah tab, lalu seret, untuk mengubah urutannya.</string>
+    <string name="tour_panes_divider_title">Ubah ukuran panel</string>
+    <string name="tour_panes_divider_body">Seret pembatas ini untuk memberi ruang lebih pada salah satu panel.</string>
+    <string name="tour_panes_layout_title">Ubah susunan</string>
+    <string name="tour_panes_layout_body">Ketuk tombol Butler dan pilih Tata Letak untuk menyusun ulang panel. Pengaturan Tab mengunci satu tata letak per orientasi.</string>
+
+    <string name="workspace_creating_placeholder">Membuat tab…</string>
+    <string name="workspace_ondemand_swipe_title">Geser untuk membuat tab baru</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">Panel %1$d siap untuk konten</string>
+    <string name="workspace_adaptive_add_action">Tambah tab</string>
+
+    <string name="workspace_badge_tip_title">Tip: Indikator tombol tab</string>
+    <string name="workspace_badge_open_workspaces">Jumlah tab yang terbuka</string>
+    <string name="workspace_badge_active_operations">Operasi aktif (penyalinan berkas, pencarian, dll.)</string>
+    <string name="workspace_badge_attention_items">Item yang memerlukan perhatian (operasi gagal atau menunggu, berkas tidak terjangkau)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">Tutup</string>
+    <string name="workspace_manager_selection_count">%1$d dipilih</string>
+    <string name="workspace_manager_selection_select_all">Pilih semua</string>
+    <string name="workspace_manager_selection_pause_action">Jeda yang dipilih</string>
+    <string name="workspace_manager_selection_close_action">Tutup yang dipilih</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Keluar dari mode pemilihan</string>
+    <string name="workspace_manager_selection_clear_content_desc">Hapus pilihan</string>
+    <string name="workspace_manager_select_all_tabs_desc">Pilih semua tab</string>
+    <string name="workspace_manager_new_tab_card_title">Tab baru</string>
+    <string name="workspace_row_select_content_desc">Pilih tab</string>
+    <string name="general_cancel_action">Batal</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">Pintasan cepat</string>
+    <string name="workspace_fab_close_shortcuts">Tutup pintasan</string>
+    <string name="workspace_fab_close_all">Tutup semua tab</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">Tetapkan ke panel %1$d</string>
+    <string name="workspace_pane_show_action">Tampilkan</string>
+    <string name="workspace_pane_close_action">Tutup</string>
+    <string name="workspace_pane_unassign_action">Hapus dari panel</string>
+    <string name="workspace_dragging_description">Menyeret</string>
+    <string name="workspace_pane_current_description">Di panel %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">Tutup tab</string>
+    <string name="workspace_row_more_options_content_desc">Opsi lainnya</string>
+    <string name="workspace_row_operations_running_content_desc">Bekerja</string>
+    <string name="workspace_row_operations_pending_content_desc">Pekerjaan tertunda</string>
+    <string name="workspace_row_pause_action">Jeda</string>
+    <string name="workspace_row_resume_action">Lanjutkan</string>
+    <string name="workspace_row_stacked_content_desc">Ditumpuk pada tab ini</string>
+    <string name="workspace_row_unsaved_content_desc">Perubahan belum disimpan</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">Konfigurasi perilaku tab.</string>
+    <string name="explorer_settings_subtitle">Konfigurasi perilaku penjelajah berkas.</string>
+    <string name="searcher_settings_subtitle">Konfigurasi perilaku pencarian.</string>
+    <string name="editor_settings_subtitle">Konfigurasi perilaku editor teks.</string>
+    <string name="history_settings_subtitle">Retensi dan penghapusan riwayat operasi.</string>
+    <string name="clipboard_settings_subtitle">Konfigurasi perilaku papan klip.</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">Simpan sebagai…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">Buka di Butler</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">Edit teks</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">Berkas tanpa nama</string>
+    <string name="external_open_action_view">Lihat</string>
+    <string name="external_open_action_edit">Edit sebagai teks</string>
+    <string name="external_open_action_show_in_explorer">Tampilkan di Explorer</string>
+    <string name="external_open_action_save">Simpan sebagai…</string>
+    <string name="external_open_failed_label">Tidak dapat membuka berkas</string>
+    <string name="external_open_failed_description">Butler tidak dapat membuka \"%1$s\".</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">Aktifkan Mode Pengembang?</string>
+    <string name="settings_developer_mode_unlock_message">Ini membuka alat diagnostik tingkat lanjut untuk pemecahan masalah dan pengujian.</string>
+    <string name="settings_developer_mode_unlock_action">Aktifkan</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="other">%d langkah lagi menuju Mode Pengembang</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">Hubungi pengembang</string>
+    <string name="support_contact_description">Isi formulir untuk mengirim email kepada saya.</string>
+    <string name="support_contact_no_email_app">Tidak ada aplikasi email ditemukan</string>
+    <string name="support_contact_category_label">Kategori</string>
+    <string name="support_contact_category_question">Pertanyaan</string>
+    <string name="support_contact_category_feature">Permintaan fitur</string>
+    <string name="support_contact_category_bug">Laporan bug</string>
+    <string name="support_contact_workspace_label">Area terkait</string>
+    <string name="support_contact_workspace_general">Umum</string>
+    <string name="support_contact_workspace_explorer">Explorer</string>
+    <string name="support_contact_workspace_searcher">Pencarian</string>
+    <string name="support_contact_workspace_editor">Editor</string>
+    <string name="support_contact_description_label">Deskripsi</string>
+    <string name="support_contact_description_question_hint">Jelaskan pertanyaan Anda secara rinci. Mohon spesifik (minimal 20 kata).</string>
+    <string name="support_contact_description_feature_hint">Jelaskan fitur yang ingin Anda lihat. Mohon spesifik (minimal 20 kata).</string>
+    <string name="support_contact_description_bug_hint">Jelaskan apa yang terjadi dan cara mereproduksi masalahnya. Mohon spesifik (minimal 20 kata).</string>
+    <string name="support_contact_expected_label">Perilaku yang diharapkan</string>
+    <string name="support_contact_expected_hint">Jelaskan apa yang Anda harapkan terjadi (minimal 10 kata).</string>
+    <string name="support_contact_word_count">Minimal %1$d kata</string>
+    <string name="support_contact_debuglog_label">Log debug</string>
+    <string name="support_contact_debuglog_empty">Tidak ada log debug ditemukan. Rekam satu terlebih dahulu.</string>
+    <string name="support_contact_debuglog_picker_hint">Lampirkan log debug yang ada, atau rekam yang baru.</string>
+    <string name="support_contact_send_action">Buka aplikasi email</string>
+    <string name="support_contact_welcome">Saya membaca setiap pesan sendiri dan berusaha sebaik mungkin untuk membalas, tetapi karena saya mengerjakan ini sendirian, mungkin perlu sedikit waktu. Terima kasih atas kesabaran Anda.</string>
+    <string name="support_contact_footer">Pesan Anda akan dikirim melalui email. Informasi perangkat dan pengaturan dilampirkan secara otomatis. Anda dapat melampirkan tangkapan layar atau video ke email.\n\nSebagian isi email akan dalam bahasa Inggris agar mudah saya pahami.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">Penyimpanan log debug</string>
+    <string name="support_debuglog_storage_description">%1$d sesi log, %2$s</string>
+    <string name="support_debuglog_storage_empty">Tidak ada log debug tersimpan</string>
+    <string name="support_debuglog_delete_action">Hapus semua log debug</string>
+    <string name="support_debuglog_delete_description">Hapus semua berkas log debug yang terekam</string>
+    <string name="support_debuglog_delete_confirm_title">Hapus semua log debug?</string>
+    <string name="support_debuglog_delete_confirm_message">Ini akan menghapus secara permanen semua sesi log debug yang terekam. Rekaman yang sedang berlangsung tidak akan terpengaruh.</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">Hentikan perekaman</string>
+    <string name="settings_support_debuglog_record_action">Rekam log debug</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">Sesi log debug</string>
+    <string name="support_debuglog_sessions_desc">Kelola sesi log debug yang terekam</string>
+    <string name="support_debuglog_sessions_empty">Tidak ada sesi log debug</string>
+    <string name="support_debuglog_session_recording">Merekam…</string>
+    <string name="support_debuglog_session_compressing">Mengompresi…</string>
+    <string name="support_debuglog_session_failed_empty_log">Gagal: log kosong</string>
+    <string name="support_debuglog_session_failed_missing_log">Gagal: log hilang</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Gagal: arsip rusak</string>
+    <string name="support_debuglog_session_failed_zip_failed">Gagal: kesalahan kompresi</string>
+    <string name="support_debuglog_session_delete_title">Hapus sesi debug?</string>
+    <string name="support_debuglog_session_delete_message">Ini akan menghapus secara permanen sesi log debug ini.</string>
+    <string name="support_debuglog_clear_action">Hapus semua</string>
+    <string name="support_debuglog_clear_confirm_message">Hapus semua sesi log debug yang tersimpan?</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_screen_subtitle">Ekspor informasi debug untuk pemecahan masalah</string>
+    <string name="debug_log_screen_sensitive_information_title">Informasi Sensitif</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">Apakah Anda sudah mengirim pesan?</string>
+    <string name="support_contact_sent_message">Jika pesan sudah terkirim, log debug yang dilampirkan akan dihapus untuk menghemat ruang. Jika belum, Anda dapat menyimpannya dan mencoba lagi nanti.</string>
+    <string name="support_contact_debuglog_zip_error">Gagal menyiapkan lampiran log debug</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">Progres operasi berkas</string>
+    <string name="ops_notification_channel_progress_desc">Progres berlangsung untuk operasi salin, pindah, dan hapus</string>
+    <string name="ops_notification_channel_attention_name">Peringatan operasi berkas</string>
+    <string name="ops_notification_channel_attention_desc">Operasi yang memerlukan perhatian Anda atau telah gagal</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="other">%1$d operasi berkas berjalan</item>
+    </plurals>
+    <string name="ops_notification_state_queued">Dalam antrean…</string>
+    <string name="ops_notification_state_cancelling">Membatalkan…</string>
+    <string name="ops_notification_state_attention_title">Tindakan diperlukan</string>
+    <string name="ops_notification_state_attention_text">Ada konflik yang memerlukan perhatian Anda — ketuk untuk menyelesaikannya</string>
+    <string name="ops_notification_result_failed_title">Operasi gagal</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">Apakah Anda ingin memberi Butler sebuah ulasan? ❤️</string>
+    <string name="review_app_dismiss_action">Nanti saja</string>
+    <string name="review_app_review_action">Ulasan</string>
+
+</resources>

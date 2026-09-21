@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Απαιτείται Butler FOSS</string>
+
+    <string name="upgrade_prompt_title">Αναβάθμιση του Butler</string>
+    <string name="upgrade_prompt_body">Ξεκλειδώστε πρόσθετες δυνατότητες και γίνετε χορηγός για να υποστηρίξετε τη συνεχιζόμενη ανάπτυξη!</string>
+    <string name="upgrade_prompt_upgrade_action">Αναβάθμιση</string>
+
+    <string name="upgrade_screen_title">Αναβάθμιση του Butler</string>
+    <string name="upgrade_screen_preamble">Το Butler δεν έχει διαφημίσεις και δεν πουλά δεδομένα χρήστη. Η συνεχιζόμενη ανάπτυξη είναι δυνατή μόνο χάρη σας.</string>
+    <string name="upgrade_screen_how_title">Πώς να βοηθήσετε</string>
+    <string name="upgrade_screen_how_body">Γίνετε χορηγός και χρηματοδοτήστε την ανάπτυξη! Πατήστε το κουμπί παρακάτω για να ενεργοποιήσετε όλες τις πρόσθετες δυνατότητες και ανοίξετε το προφίλ μου στο GitHub Sponsors.</string>
+
+    <string name="upgrade_screen_sponsor_action">Χρηματοδότηση ανάπτυξης</string>
+    <string name="upgrade_screen_sponsor_action_hint">Η εναλλακτική λύση είναι διαφημίσεις, ανάλυση και Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Ευχαριστώ που υποστηρίζετε την ανάπτυξη ανοιχτού κώδικα ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Ήδη ξανά; Η υποστήριξή σας κρατά το Butler ζωντανό — παρακαλώ αφιερώστε λίγο χρόνο για να δείτε τη σελίδα χορηγών.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Δεν ήταν δυνατό το άνοιγμα της σελίδας χορηγών. Δοκιμάστε να την ανοίξετε σε ένα πρόγραμμα περιήγησης αντ’ αυτού.</string>
+
+    <string name="upgrade_screen_status_free_title">Χρησιμοποιείτε την δωρεάν έκδοση</string>
+    <string name="upgrade_screen_status_free_body">Το Butler FOSS είναι πλήρως ανοιχτού κώδικα. Ξεκλειδώστε τις πρόσθετες δυνατότητες με την υποστήριξη της ανάπτυξης.</string>
+    <string name="upgrade_screen_status_free_action">Δείτε επιλογές αναβάθμισης</string>
+    <string name="upgrade_screen_status_upgraded_title">Είστε υποστηρικτής</string>
+    <string name="upgrade_screen_status_upgraded_body">Ευχαριστώ που υποστηρίζετε την ανάπτυξη ανοιχτού κώδικα ❤️ Όλες οι πρόσθετες δυνατότητες είναι ξεκλειδωμένες.</string>
+    <string name="upgrade_screen_supporter_since">Υποστηρικτής από %s</string>
+    <string name="upgrade_screen_recurring_title">Συνεχίστε έτσι</string>
+    <string name="upgrade_screen_recurring_body">Το Butler αναπτύσσεται στον ελεύθερό μου χρόνο. Μια περιοδική δωρεά βοηθά να παραμείνει ζωντανό.</string>
+    <string name="upgrade_screen_recurring_action">Γίνετε περιοδικός χορηγός</string>
+
+    <string name="upgrade_benefits_title">Πλεονεκτήματα αναβάθμισης</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Απεριόριστες καρτέλες και λειτουργίες\n• Προσαρμόστε το σχεδιασμό, την αίσθηση και την εμφάνιση\n• Πρόσθετες επιλογές και δυνατότητες για κάθε εργαλείο\n• Πρώιμη πρόσβαση σε νέες δυνατότητες\n• Ένας μοτιβοποιημένος προγραμματιστής 🧙\nκαι άλλα…</string>
+</resources>

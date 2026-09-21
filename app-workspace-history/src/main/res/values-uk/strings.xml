@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">Історія</string>
+    <string name="history_workspace_subtitle">Останні операції з файлами</string>
+    <string name="history_workspace_title_scoped">Історія: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">Історія: Невдалі</string>
+    <string name="history_workspace_title_outcome_partial">Історія: Часткові</string>
+    <string name="history_workspace_title_outcome_cancelled">Історія: Скасовані</string>
+    <string name="history_workspace_title_outcome_completed">Історія: Завершені</string>
+    <string name="history_workspace_title_kind_copy">Історія: Копіювання</string>
+    <string name="history_workspace_title_kind_move">Історія: Переміщення</string>
+    <string name="history_workspace_title_kind_delete">Історія: Видалення</string>
+    <string name="history_workspace_title_kind_create_file">Історія: Створення файлу</string>
+    <string name="history_workspace_title_kind_create_folder">Історія: Створення теки</string>
+    <string name="history_workspace_title_kind_save">Історія: Збереження</string>
+    <string name="history_workspace_title_kind_compress">Історія: Стиснення</string>
+    <string name="history_workspace_title_kind_extract">Історія: Розпакування</string>
+    <string name="history_workspace_title_filtered">Історія (фільтровано)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">Історія: %1$d шлях</item>
+        <item quantity="few">Історія: %1$d шляхи</item>
+        <item quantity="many">Історія: %1$d шляхів</item>
+        <item quantity="other">Історія: %1$d шляхів</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Усі</string>
+    <string name="history_filter_outcome_completed">Завершені</string>
+    <string name="history_filter_outcome_partial">Часткові</string>
+    <string name="history_filter_outcome_failed">Невдалі</string>
+    <string name="history_filter_outcome_cancelled">Скасовані</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Копіювання</string>
+    <string name="history_filter_kind_move">Переміщення</string>
+    <string name="history_filter_kind_delete">Видалення</string>
+    <string name="history_filter_kind_create_file">Створення файлу</string>
+    <string name="history_filter_kind_create_folder">Створення теки</string>
+    <string name="history_filter_kind_save">Збереження</string>
+    <string name="history_filter_kind_compress">Стиснення</string>
+    <string name="history_filter_kind_extract">Розпакування</string>
+    <string name="history_filter_kind_enable">Увімкнення</string>
+    <string name="history_filter_kind_disable">Вимкнення</string>
+    <string name="history_filter_kind_force_stop">Примусова зупинка</string>
+    <string name="history_filter_kind_uninstall">Видалення</string>
+    <string name="history_filter_kind_clear_data">Очищення даних</string>
+    <string name="history_filter_kind_components">Компоненти</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Установити область шляху…</string>
+    <string name="history_path_scope_clear_action">Очистити область шляху</string>
+    <string name="history_path_scope_dialog_title">Фільтрувати за шляхом</string>
+    <string name="history_path_scope_dialog_description">Показувати лише операції, які впливають на цей шлях або його підтеки.</string>
+    <string name="history_path_scope_dialog_input_label">Шлях</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Вибрати теку…</string>
+    <string name="history_path_scope_dialog_apply_action">Застосувати</string>
+    <string name="history_path_scope_dialog_cancel_action">Скасувати</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Сьогодні</string>
+    <string name="history_group_yesterday">Вчора</string>
+    <string name="history_group_this_week">На цьому тижні</string>
+    <string name="history_group_this_month">На цьому місяці</string>
+    <string name="history_group_older">Старіші</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Перейменовано</string>
+    <string name="history_entry_intent_paste_copy">Вставлено</string>
+    <string name="history_entry_intent_paste_move">Вставлено (переміщення)</string>
+    <string name="history_entry_intent_drop_copy">Скинуто (копіювання)</string>
+    <string name="history_entry_intent_drop_move">Скинуто (переміщення)</string>
+    <string name="history_entry_intent_enable_components">Увімкнено компоненти</string>
+    <string name="history_entry_intent_disable_components">Вимкнено компоненти</string>
+    <string name="history_entry_kind_copy">Скопійовано</string>
+    <string name="history_entry_kind_move">Переміщено</string>
+    <string name="history_entry_kind_delete">Видалено</string>
+    <string name="history_entry_kind_create_file">Створено файл</string>
+    <string name="history_entry_kind_create_folder">Створено теку</string>
+    <string name="history_entry_kind_save">Збережено</string>
+    <string name="history_entry_kind_compress">Стиснуто</string>
+    <string name="history_entry_kind_extract">Розпаковано</string>
+    <string name="history_entry_kind_restore">Відновлено</string>
+    <string name="history_entry_kind_install">Встановлено</string>
+    <string name="history_entry_kind_enable">Увімкнено</string>
+    <string name="history_entry_kind_disable">Вимкнено</string>
+    <string name="history_entry_kind_force_stop">Примусово зупинено</string>
+    <string name="history_entry_kind_uninstall">Видалено</string>
+    <string name="history_entry_kind_clear_data">Очищено дані</string>
+    <string name="history_entry_kind_components">Змінено компоненти</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d шлях</item>
+        <item quantity="few">%d шляхи</item>
+        <item quantity="many">%d шляхів</item>
+        <item quantity="other">%d шляхів</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">Перші %1$d із %2$d вплинутих шляхів</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Розпочато</string>
+    <string name="history_detail_label_completed">Завершено</string>
+    <string name="history_detail_label_duration">Тривалість</string>
+    <string name="history_detail_label_outcome">Результат</string>
+    <string name="history_detail_label_origin">Джерело</string>
+    <string name="history_detail_label_error">Помилка</string>
+    <string name="history_detail_label_paths">Задіяні шляхи</string>
+    <string name="history_detail_label_partial_errors">Помилки за елементами</string>
+    <string name="history_detail_copy_path_action">Копіювати шлях</string>
+    <string name="history_detail_paths_empty">Немає записаних вплинутих шляхів.</string>
+    <string name="history_detail_label_attempted_paths">Спроби для шляхів</string>
+    <string name="history_detail_label_packages">Задіяні програми</string>
+    <string name="history_detail_packages_empty">Немає записаних вплинутих програм.</string>
+    <string name="history_detail_paths_truncated_callout">Показано перші %1$d із %2$d вплинутих шляхів.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Показано перші %1$d із %2$d опроваджених шляхів.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">%1$d елемент не вдалося обробити під час цієї операції.</item>
+        <item quantity="few">%1$d елементи не вдалося обробити під час цієї операції.</item>
+        <item quantity="many">%1$d елементів не вдалося обробити під час цієї операції.</item>
+        <item quantity="other">%1$d елементів не вдалося обробити під час цієї операції.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Провідник</string>
+    <string name="history_origin_searcher">Пошук</string>
+    <string name="history_origin_saver">Зберігання</string>
+    <string name="history_origin_developer">Розробник</string>
+    <string name="history_origin_viewer">Переглядач</string>
+    <string name="history_origin_apps">Програми</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Історія пуста</string>
+    <string name="history_empty_subtitle">Операції з файлами з’являтимуться тут, коли ви користуватимете Butler.</string>
+    <string name="history_empty_filtered_title">Немає збігів</string>
+    <string name="history_empty_filtered_subtitle">Жодні записи історії не відповідають поточному фільтру.</string>
+    <string name="history_empty_filtered_reset_action">Скинути фільтр</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Скинути фільтр</string>
+    <string name="history_toolbar_reset_filter_content_description">Скинути фільтри</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">Перші %1$d із %2$d вплинутих шляхів</string>
+    <string name="history_add_filter_action">Додати фільтр</string>
+    <string name="history_add_filter_sheet_title">Додати фільтр</string>
+    <string name="history_add_filter_section_outcome">Результат</string>
+    <string name="history_add_filter_section_kind">Вид</string>
+    <string name="history_add_filter_section_path_scope">Область шляху</string>
+    <string name="history_add_filter_add_path_action">Додати шлях…</string>
+    <string name="history_path_scope_remove_action">Видалити</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d запис</item>
+        <item quantity="few">%1$d записи</item>
+        <item quantity="many">%1$d записів</item>
+        <item quantity="other">%1$d записів</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%1$d із %2$d показано</item>
+        <item quantity="few">%1$d із %2$d показано</item>
+        <item quantity="many">%1$d із %2$d показано</item>
+        <item quantity="other">%1$d із %2$d показано</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="few">(%1$d)</item>
+        <item quantity="many">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">Історія</string>
+    <string name="history_settings_save_history_title">Зберігати історію</string>
+    <string name="history_settings_save_history_subtitle">Записувати завершені операції з файлами.</string>
+    <string name="history_settings_max_history_label">Макс. записів історії</string>
+    <string name="history_settings_max_history_subtitle">Старіші записи видаляються після перевищення цієї межі.</string>
+    <string name="history_settings_max_history_input_label">Максимальна кількість записів</string>
+    <string name="history_settings_clear_history_title">Очистити історію</string>
+    <string name="history_settings_clear_history_subtitle">Видалити всі збережені записи (%1$d).</string>
+    <string name="history_clear_dialog_title">Очистити історію?</string>
+    <string name="history_clear_dialog_message">Видаляє всі записи з бази даних історії операцій. Це неможливо відмінити.</string>
+    <string name="history_clear_confirm_action">Очистити</string>
+    <string name="history_cleared_success">Історія очищена</string>
+    <string name="history_workspace_title_kind_restore">Відновлення</string>
+    <string name="history_filter_kind_restore">Відновлення</string>
+    <string name="history_workspace_title_kind_install">Історія: Встановлення</string>
+    <string name="history_filter_kind_install">Встановлення</string>
+    <string name="history_workspace_title_kind_enable">Історія: Увімкнення</string>
+    <string name="history_workspace_title_kind_disable">Історія: Вимкнення</string>
+    <string name="history_workspace_title_kind_force_stop">Історія: Примусова зупинка</string>
+    <string name="history_workspace_title_kind_uninstall">Історія: Видалення</string>
+    <string name="history_workspace_title_kind_clear_data">Історія: Очищення даних</string>
+    <string name="history_workspace_title_kind_components">Історія: Компоненти</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Вибрати все</string>
+    <string name="history_action_deselect_all">Зняти вибір</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Видалити %1$d запис</item>
+        <item quantity="few">Видалити %1$d записи</item>
+        <item quantity="many">Видалити %1$d записів</item>
+        <item quantity="other">Видалити %1$d записів</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Видаляються лише записи історії, самі файли не чіпаються.</string>
+    <string name="history_pro_dialog_message">Спільний доступ та видалення записів історії — частина оновлення. Очищення всієї історії залишається безплатним у параметрах історії.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Результат</string>
+    <string name="history_share_label_kind">Вид</string>
+    <string name="history_share_label_origin">Джерело</string>
+    <string name="history_share_label_summary">Зведення</string>
+    <string name="history_share_label_completed">Завершено</string>
+    <string name="history_share_label_duration">Тривалість</string>
+    <string name="history_share_label_error">Помилка</string>
+    <string name="history_share_label_failed_items">Елементи з помилками</string>
+    <string name="history_share_label_paths">Задіяні шляхи (%1$d)</string>
+    <string name="history_share_label_packages">Задіяні програми (%1$d)</string>
+    <string name="history_share_paths_more">… ще %1$d</string>
+    <string name="history_share_truncated">… ще %1$d записів не включено</string>
+</resources>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Ontwikkelaar</string>
+    <string name="developer_title">Ontwikkelhulpmiddelen</string>
+    <string name="developer_subtitle">Hulpprogramma’s voor ontwikkeling</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">Systeem</string>
+    <string name="developer_tab_options">Opties</string>
+    <string name="developer_tab_workspaces">Werkruimten</string>
+    <string name="developer_tab_logs">Logboeken</string>
+    <string name="developer_tab_testdata">Testgegevens</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Debugopties</string>
+    <string name="developer_options_debug_mode">Debugmodus</string>
+    <string name="developer_options_debug_mode_desc">Uitgebreid logboeken inschakelen</string>
+    <string name="developer_options_trace_mode">Tracemodus</string>
+    <string name="developer_options_trace_mode_desc">Logboeken op traceerniveau inschakelen</string>
+    <string name="developer_options_floating_log">Zwevend logboekvenster</string>
+    <string name="developer_options_floating_log_desc">Een versleepbaar logboekvenster op alle schermen weergeven</string>
+    <string name="developer_options_services_header">Servicetests</string>
+    <string name="developer_options_root_test_action">Root testen</string>
+    <string name="developer_options_root_installed_label">Geïnstalleerd</string>
+    <string name="developer_options_root_available_label">Beschikbaar</string>
+    <string name="developer_options_root_base_check_label">Basiscontrole</string>
+    <string name="developer_options_shizuku_test_action">Shizuku testen</string>
+    <string name="developer_options_shizuku_installed_label">Geïnstalleerd</string>
+    <string name="developer_options_shizuku_granted_label">Machtigingen</string>
+    <string name="developer_options_shizuku_compatible_label">Compatibel</string>
+    <string name="developer_options_shizuku_service_label">Service</string>
+    <string name="developer_options_test_running">Testen…</string>
+    <string name="developer_options_result_yes">Ja</string>
+    <string name="developer_options_result_no">Nee</string>
+    <string name="developer_options_result_unknown">Onbekend</string>
+    <string name="developer_options_visibility_header">Zichtbaarheid</string>
+    <string name="developer_options_hide_mode">Ontwikkelaarsmodus verbergen</string>
+    <string name="developer_options_hide_mode_desc">Tik 7 keer op de versie in Instellingen om opnieuw in te schakelen.</string>
+    <string name="developer_options_hide_action">Verbergen</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Apparaat</string>
+    <string name="developer_system_device_model">Model</string>
+    <string name="developer_system_device_manufacturer">Fabrikant</string>
+    <string name="developer_system_device_api">API-niveau</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">Versie</string>
+    <string name="developer_system_build_code">Versiecode</string>
+    <string name="developer_system_build_flavor">Flavor</string>
+    <string name="developer_system_build_type">Buildtype</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Geheugen</string>
+    <string name="developer_system_memory_available">Beschikbaar</string>
+    <string name="developer_system_memory_total">Totaal</string>
+    <string name="developer_system_storage_header">Opslag</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d werkruimten</string>
+    <string name="developer_workspaces_empty">Geen werkruimten</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Wissen</string>
+    <string name="developer_logs_pause">Pauzeren</string>
+    <string name="developer_logs_resume">Hervatten</string>
+    <string name="developer_logs_empty">Geen logboeken</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Doelpaden</string>
+    <string name="developer_testdata_no_paths">Geen doelpaden geselecteerd. Voeg paden toe om testgegevens te genereren.</string>
+    <string name="developer_testdata_add_path_action">Pad toevoegen</string>
+    <string name="developer_testdata_options_header">Generatieopties</string>
+    <string name="developer_testdata_large_files">Grote bestanden</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Geneste structuur</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 mappen, ~1100 bestanden</string>
+    <string name="developer_testdata_text_files">Tekstbestanden voor Editor</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Genereren</string>
+    <string name="developer_testdata_generating">Genereren…</string>
+    <string name="developer_testdata_history_header">Voorbeeldgeschiedenisitems</string>
+    <string name="developer_testdata_history_desc">Vult ~25 valse bewerkingsitems in van vandaag tot 30 dagen geleden, gemengde soorten/resultaten/herkomsten/paden. Voegt rechtstreeks in de geschiedenisdatabase in; veilig om meermaals uit te voeren.</string>
+    <string name="developer_testdata_history_generate_action">Voorbeeldgeschiedenis genereren</string>
+    <string name="developer_testdata_progress">%1$s van %2$s</string>
+    <string name="developer_testdata_complete">Testgegevens gegenereerd op:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Grote bestanden genereren</string>
+    <string name="developer_operation_large_files_desc">Testbestanden maken in %1$s</string>
+    <string name="developer_operation_large_files_creating">%1$s maken</string>
+
+    <string name="developer_operation_nested_title">Geneste structuur genereren</string>
+    <string name="developer_operation_nested_desc">Mappenhiërarchie maken in %1$s</string>
+    <string name="developer_operation_nested_starting">Geneste structuur starten…</string>
+    <string name="developer_operation_nested_creating">%1$s maken</string>
+    <string name="developer_operation_nested_files_created">%1$d bestanden gemaakt</string>
+
+    <string name="developer_operation_text_files_title">Tekstbestanden genereren</string>
+    <string name="developer_operation_text_files_desc">Tekstbestanden maken in %1$s</string>
+    <string name="developer_operation_text_files_creating">%1$s maken</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d bestand gemaakt</item>
+        <item quantity="other">%d bestanden gemaakt</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d map</item>
+        <item quantity="other">%d mappen</item>
+    </plurals>
+</resources>

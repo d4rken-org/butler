@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Αναφορές σφαλμάτων</string>
+    <string name="bugreport_workspace_subtitle">Αναφορές κατάρρευσης &amp; σφαλμάτων</string>
+
+    <string name="bugreport_empty_title">Χωρίς αναφορές</string>
+    <string name="bugreport_empty_subtitle">Αναφορές κατάρρευσης και σφαλμάτων θα εμφανιστούν εδώ. Δεν αποστέλλεται τίποτα αυτόματα.</string>
+
+    <string name="bugreport_type_crash">Κατάρρευση</string>
+    <string name="bugreport_type_report">Αναφορά</string>
+    <string name="bugreport_type_recording">Εγγραφή</string>
+
+    <string name="bugreport_record_action">Εγγραφή αρχείου καταγραφής σφαλμάτων</string>
+    <string name="bugreport_record_short_action">Εγγραφή</string>
+    <string name="bugreport_stop_action">Διακοπή εγγραφής</string>
+    <string name="bugreport_stop_short_action">Διακοπή</string>
+    <string name="bugreport_recording_ongoing_label">Εγγραφή…</string>
+
+    <string name="bugreport_recording_short_title">Η εγγραφή είναι πολύ σύντομη</string>
+    <string name="bugreport_recording_short_message">Αυτή η εγγραφή διαρκεί μόνο λίγα δευτερόλεπτα και ενδέχεται να μην περιέχει χρήσιμες πληροφορίες. Να διακοπεί ούτως ή άλλως;</string>
+    <string name="bugreport_recording_short_keep_action">Συνέχιση εγγραφής</string>
+
+    <string name="bugreport_rename_action">Μετονομασία</string>
+    <string name="bugreport_rename_dialog_title">Ονομασία της αναφοράς</string>
+    <string name="bugreport_rename_name_label">Όνομα</string>
+    <string name="bugreport_rename_name_hint">Εμφανίζεται στη λίστα και στο όνομα του κοινόχρηστου αρχείου</string>
+
+    <string name="bugreport_share_action">Κοινοποίηση</string>
+    <string name="bugreport_delete_action">Διαγραφή</string>
+    <string name="bugreport_delete_all_action">Διαγραφή όλων</string>
+    <string name="bugreport_delete_all_confirm_title">Να διαγραφούν όλα τα αρχεία καταγραφής;</string>
+    <string name="bugreport_delete_all_confirm_message">Αυτό θα διαγράψει οριστικά όλες τις καταγεγραμμένες συνεδρίες αρχείου καταγραφής. Οι ενεργές εγγραφές δεν θα επηρεαστούν.</string>
+    <string name="bugreport_delete_confirm_title">Να διαγραφεί αυτή η αναφορά;</string>
+    <string name="bugreport_delete_confirm_message">Αυτό θα διαγράψει οριστικά αυτή την αναφορά και το αρχείο της.</string>
+    <string name="bugreport_cancel_action">Ακύρωση</string>
+
+    <string name="bugreport_share_chooser_title">Κοινοποίηση αναφοράς σφάλματος</string>
+    <string name="bugreport_share_consent_title">Κοινοποίηση αναφοράς;</string>
+    <string name="bugreport_share_consent_message">Αυτή η αναφορά περιλαμβάνει αρχεία καταγραφής εφαρμογής που μπορούν να περιέχουν ονόματα αρχείων, διαδρομές και πληροφορίες εφαρμογής και συσκευής. Κοινοποιήστε την μόνο σε άτομα που εμπιστεύεστε.</string>
+
+    <string name="bugreport_detail_back_action">Επιστροφή</string>
+    <string name="bugreport_detail_section_error">Σφάλμα</string>
+    <string name="bugreport_detail_section_log">Πρόσφατη καταγραφή</string>
+    <string name="bugreport_detail_field_type">Τύπος</string>
+    <string name="bugreport_detail_field_time">Ώρα</string>
+    <string name="bugreport_detail_field_app_version">Έκδοση εφαρμογής</string>
+    <string name="bugreport_detail_field_device">Συσκευή</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">Τύπος σφάλματος</string>
+    <string name="bugreport_detail_field_thread">Νήμα</string>
+    <string name="bugreport_detail_log_truncated">τελευταίες %1$d από %2$d γραμμές</string>
+    <string name="bugreport_detail_log_count">%1$d γραμμές</string>
+    <string name="bugreport_detail_log_empty">Δεν καταγράφηκε καταγραφή</string>
+    <string name="bugreport_detail_log_error">Δεν ήταν δυνατή η φόρτωση της καταγραφής</string>
+</resources>

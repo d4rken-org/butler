@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">需要 Butler Pro</string>
+
+    <string name="upgrade_prompt_title">升级 Butler</string>
+    <string name="upgrade_prompt_body">Butler Pro 为高级用户提供更好的结果、更多功能和选项。</string>
+    <string name="upgrade_prompt_upgrade_action">升级</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">获取 %1$s</string>
+    <string name="upgrade_screen_preamble">Butler 没有广告，也不出售用户数据。我的工作由您赞助 ❤️。</string>
+
+    <string name="upgrade_screen_how_title">选项</string>
+    <string name="upgrade_screen_subscription_trial_action">开始免费 14 天试用</string>
+    <string name="upgrade_screen_subscription_action">订阅</string>
+    <string name="upgrade_screen_iap_action">一次性购买</string>
+    <string name="upgrade_screen_restore_purchase_action">恢复购买</string>
+    <string name="upgrade_screen_restore_banner_title">已购买 Pro？</string>
+    <string name="upgrade_screen_restore_banner_body">看起来您之前在此设备上升级过 Pro。恢复购买以再次解锁它。</string>
+    <string name="upgrade_screen_restore_checked_message">Butler 刚检查了 Google Play，但无法确认用于此应用的 Google Play 账户有 Pro 购买。</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Google Play 检查未能按时完成，所以您的购买状态仍然未知。您的账户未做任何更改。</string>
+    <string name="upgrade_screen_restore_contact_hint">仍需帮助？请从进行购买的电子邮件地址与我们联系，并提供您的 Google Play 订单号。</string>
+    <string name="upgrade_screen_contact_support_action">联系支持</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Play Store 同步可能需要时间。尝试重启设备、清除 Google Play 缓存，或者耐心等待。</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">多个账户可能会使 Google Play 混淆。退出其他账户，或通过 Google Play 网站安装，这会强制与特定账户关联。</string>
+    <string name="upgrade_screen_restore_success_message">您的购买已恢复 ❤️</string>
+    <string name="upgrade_screen_restore_status_title">状态看起来不对？</string>
+    <string name="upgrade_screen_restore_status_body">在 Google Play 中重新检查您的购买。这在更换设备或切换 Google 账户后会有帮助。</string>
+
+    <string name="upgrade_screen_offers_or">或</string>
+
+    <string name="upgrade_screen_offers_title">升级选项</string>
+    <string name="upgrade_screen_offers_body">两个选项都解锁完全相同的 Pro 功能——选择适合您的定价。</string>
+    <string name="upgrade_screen_offers_unavailable_title">价格不可用</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler 无法从 Google Play 加载升级选项。这通常是暂时的——请稍后重试。</string>
+    <string name="upgrade_screen_subscription_offer_title">年度订阅</string>
+    <string name="upgrade_screen_subscription_offer_body">开始时有免费的 14 天试用，然后每年计费一次。随时可以取消。</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">每年计费一次。随时可以取消。</string>
+    <string name="upgrade_screen_iap_offer_title">一次性购买</string>
+    <string name="upgrade_screen_iap_offer_body">一次付费，永久拥有。无需订阅。</string>
+    <string name="upgrade_screen_restore_body">恢复请求 Google Play 为当前账户重新检查此应用的购买。</string>
+
+    <string name="upgrade_screen_owned_hero_title">您拥有 Butler Pro！</string>
+    <string name="upgrade_screen_owned_hero_iap_body">感谢您的一次性购买——您已永久持有 ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">感谢您的订阅 ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">一次性购买</string>
+    <string name="upgrade_screen_owned_iap_body">您拥有永久的 Pro 升级。</string>
+    <string name="upgrade_screen_owned_sub_title">订阅</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">您的订阅已激活，会自动续费。</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">您的订阅已激活但设置为不续费。Pro 会保持到当前周期结束。</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">您拥有一次性购买，但您的订阅仍在续费。在 Google Play 中取消以避免重复扣费。</string>
+    <string name="upgrade_screen_manage_subscription_action">管理订阅</string>
+
+    <string name="upgrade_screen_switch_locked_note">首先通过"管理订阅"取消续费，否则您会同时被扣费。</string>
+    <string name="upgrade_screen_switch_purchase_note">您的订阅将不再续费——您现在可以安全地购买一次性购买。</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">订阅仍然有效</string>
+    <string name="upgrade_screen_sub_still_renewing_message">您的订阅仍然设置为续费。首先在 Google Play 中取消续费，以便您不会同时被扣费，然后购买一次性购买。</string>
+    <string name="upgrade_screen_purchase_check_failed_title">无法验证</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler 无法与 Google Play 确认您的购买状态，所以购买被停止以避免您被重复扣费。请稍后重试。</string>
+
+    <string name="upgrade_screen_pending_card_title">待处理付款</string>
+    <string name="upgrade_screen_pending_card_body">Google Play 仍在处理您的付款。付款处理后，Pro 将自动解锁。某些付款方式可能需要一段时间。您无需做任何其他操作。</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play 发现了一笔待处理付款的购买，仍在处理中。付款处理后，Pro 将自动解锁。</string>
+
+    <string name="upgrade_screen_grace_title">确认您的购买</string>
+    <string name="upgrade_screen_grace_body_short">Google Play 正在花时间确认您的 Pro 状态。您仍然拥有完全访问权限。</string>
+    <string name="upgrade_screen_grace_body">Google Play 仍未重新确认您的 Pro 状态。您现在仍有访问权限。如果这看起来不对，请尝试恢复购买。</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">已购买？</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play 报告您已拥有此升级，但它无法自动恢复。请确保您登录的 Google 账户与原始购买使用的账户相同，然后尝试"恢复购买"。</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play 不可用</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler 无法连接到 Google Play。Google Play 已安装且是最新版本吗？您的 Google 账户已登录吗？尝试清除 Google Play 应用缓存并重启设备。</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can't open Google Play's app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">无法打开 Google Play。它可能在此设备上丢失、禁用或受限。</string>
+    <string name="upgrades_gplay_billing_error_label">Google Play 问题</string>
+    <string name="upgrades_gplay_billing_error_description">与 Google Play 通信时出错。请稍后重试或重启您的设备。\n\n详情：%s</string>
+    <string name="upgrades_gplay_internal_error_title">Google Play 错误</string>
+    <string name="upgrades_gplay_internal_error_description">Google Play 遇到内部错误。请尝试以下操作：\n\n• 重启您的设备\n• 清除 Google Play Store 缓存\n• 稍后重试</string>
+    <string name="upgrades_gplay_network_error_title">连接错误</string>
+    <string name="upgrades_gplay_network_error_description">Butler 无法访问 Google Play。请检查您的互联网连接并重试。</string>
+    <string name="upgrades_gplay_offer_unavailable_title">优惠不可用</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play 目前为您的账户提供此升级选项。请稍后重试或检查 Google Play Store。</string>
+    <string name="upgrades_no_purchases_found_check_account">未找到购买。您使用的是正确的账户吗？</string>
+
+    <string name="upgrade_benefits_title">升级的好处</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• 无限制的选项卡和操作\n• 自定义设计、感受和外观\n• 每个工具的额外选项和功能\n• 新功能的早期访问\n• 一个有动力的开发者 🧙\n以及更多…</string>
+</resources>

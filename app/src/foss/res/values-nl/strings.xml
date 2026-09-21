@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Vereist Butler FOSS</string>
+
+    <string name="upgrade_prompt_title">Butler upgraden</string>
+    <string name="upgrade_prompt_body">Ontgrendel extra functies en word patroon om de voortdurende ontwikkeling te steunen!</string>
+    <string name="upgrade_prompt_upgrade_action">Upgraden</string>
+
+    <string name="upgrade_screen_title">Butler upgraden</string>
+    <string name="upgrade_screen_preamble">Butler heeft geen advertenties en verkoopt geen gebruikersgegevens. Doorontwikkeling is alleen mogelijk dankzij jou.</string>
+    <string name="upgrade_screen_how_title">Hoe je kunt helpen</string>
+    <string name="upgrade_screen_how_body">Word patroon en sponsor de ontwikkeling! Tik op de knop hieronder om alle extra functies in te schakelen en mijn GitHub Sponsors-profiel te openen.</string>
+
+    <string name="upgrade_screen_sponsor_action">Ondersteun de ontwikkeling</string>
+    <string name="upgrade_screen_sponsor_action_hint">Het alternatief zijn advertenties, analytics en Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Dank je voor het steunen van open-source-ontwikkeling ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Alweer terug? Jouw ondersteuning houdt Butler levend, neem even de tijd om de sponsorpagina te bekijken.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Kon de sponsorpagina niet openen. Probeer deze in plaats daarvan in een browser te openen.</string>
+
+    <string name="upgrade_screen_status_free_title">Je hebt de gratis versie</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS is volledig open source. Ontgrendel de extra functies door de ontwikkeling te steunen.</string>
+    <string name="upgrade_screen_status_free_action">Bekijk upgradeopties</string>
+    <string name="upgrade_screen_status_upgraded_title">Je bent supporter</string>
+    <string name="upgrade_screen_status_upgraded_body">Dank je voor het steunen van open-source-ontwikkeling ❤️ Alle extra functies zijn ontgrendeld.</string>
+    <string name="upgrade_screen_supporter_since">Supporter sinds %s</string>
+    <string name="upgrade_screen_recurring_title">Zorg dat het doorgaat</string>
+    <string name="upgrade_screen_recurring_body">Butler wordt in mijn vrije tijd ontwikkeld. Een terugkerende donatie helpt het levend te houden.</string>
+    <string name="upgrade_screen_recurring_action">Word terugkerende sponsor</string>
+
+    <string name="upgrade_benefits_title">Upgradevoordelen</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Onbeperkte tabbladen en bewerkingen\n• Pas ontwerp, uitvoering en uiterlijk aan\n• Extra opties en functies voor elk hulpmiddel\n• Vroegtijdige toegang tot nieuwe functies\n• Een gemotiveerde ontwikkelaar 🧙\nen meer…</string>
+</resources>

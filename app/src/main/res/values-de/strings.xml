@@ -146,6 +146,8 @@
     <string name="general_settings_label">Allgemein</string>
     <string name="general_settings_desc">Allgemeine Anpassungen, die sich auf die gesamte App auswirken.</string>
     <string name="settings_category_ui_label">Benutzeroberfläche</string>
+    <string name="ui_mascot_suit_setting_label">Butlers Anzug</string>
+    <string name="ui_mascot_suit_setting_explanation">Die Farbe, aus der Butlers Anzug geschneidert ist.</string>
     <string name="ui_theme_mode_setting_label">Designmodus</string>
     <string name="ui_theme_mode_setting_explanation">Der zum Gestalten der App verwendete Modus (z. B. Tag oder Nacht).</string>
     <string name="ui_theme_style_setting_label">Designstil</string>
@@ -235,12 +237,26 @@
     <string name="settings_licenses_label">Lizenzen</string>
 
     <!-- Workspace Status Card -->
-    <string name="workspace_status_tab_singular">Tab</string>
-    <string name="workspace_status_tab_plural">Tabs</string>
-    <string name="workspace_status_operation_singular">Vorgang</string>
-    <string name="workspace_status_operation_plural">Vorgänge</string>
-    <string name="workspace_status_attention_label">Achtung</string>
-    <string name="workspace_status_unsaved_label">Ungespeichert</string>
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d Tab</item>
+        <item quantity="other">%1$d Tabs</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d Vorgang</item>
+        <item quantity="other">%1$d Vorgänge</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Achtung</item>
+        <item quantity="other">%1$d Achtung</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Ungespeichert</item>
+        <item quantity="other">%1$d Ungespeichert</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d Pausiert</item>
+        <item quantity="other">%1$d Pausiert</item>
+    </plurals>
     <string name="workspace_status_filter_tabs_desc">Alle Tabs anzeigen</string>
     <string name="workspace_status_filter_operations_desc">Nach Tabs mit Vorgängen filtern</string>
     <string name="workspace_status_filter_attention_desc">Nach Tabs filtern, die Aufmerksamkeit erfordern</string>
@@ -328,6 +344,18 @@
     <string name="tour_manager_select_body">Halte die Vorschau eines Tabs gedrückt, um Tabs auszuwählen. Tippe dann auf die übrigen Tabs, um alle gemeinsam zu schließen oder zu pausieren.</string>
     <string name="tour_manager_new_tab_title">Neuen Tab beginnen</string>
     <string name="tour_manager_new_tab_body">Tippe auf diese Karte, um ein beliebiges Werkzeug für einen neuen Tab auszuwählen.</string>
+    <string name="tour_swipe_switch_title">Zwischen Tabs wischen</string>
+    <string name="tour_swipe_switch_body">Wische auf der Seite nach links oder rechts, um zwischen Deinen geöffneten Tabs zu wechseln.</string>
+    <string name="tour_swipe_create_title">Wischen, um einen Tab zu starten</string>
+    <string name="tour_swipe_create_body">Wische über Deinen letzten Tab hinaus, und Butler bietet Dir einen neuen an.</string>
+    <string name="tour_swipe_panes_title">Mehr als ein Tab gleichzeitig</string>
+    <string name="tour_swipe_panes_body">Auf einem größeren Bildschirm oder im Querformat zeigt Butler mehrere Tabs nebeneinander an. Die Layout-Einstellungen unter Tabs legen fest, wann das geschieht.</string>
+    <string name="tour_panes_rail_title">Alle Deine Tabs</string>
+    <string name="tour_panes_rail_body">Hier findest Du alle geöffneten Tabs. Tippe auf einen und wähle den Bereich aus, dem er zugewiesen werden soll. Halte einen Tab gedrückt und ziehe ihn, um die Reihenfolge zu ändern.</string>
+    <string name="tour_panes_divider_title">Bereiche in der Größe anpassen</string>
+    <string name="tour_panes_divider_body">Ziehe diese Trennlinie, um einem Bereich mehr Platz zu geben.</string>
+    <string name="tour_panes_layout_title">Anordnung ändern</string>
+    <string name="tour_panes_layout_body">Tippe auf die Butler-Schaltfläche und wähle Layout, um die Bereiche neu anzuordnen. Die Tab-Einstellungen legen ein Layout pro Ausrichtung fest.</string>
 
     <string name="workspace_creating_placeholder">Tab wird erstellt…</string>
     <string name="workspace_ondemand_swipe_title">Wischen, um neuen Tab zu erstellen</string>
@@ -343,11 +371,6 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">Schließen</string>
-    <string name="workspace_manager_close_all_title">Alle Tabs schließen?</string>
-    <string name="workspace_manager_close_all_message">Dadurch werden alle offenen Tabs geschlossen (%1$d %2$s). Diese Aktion kann nicht rückgängig gemacht werden.</string>
-    <string name="workspace_manager_close_all_message_singular">Tab</string>
-    <string name="workspace_manager_close_all_message_plural">Tabs</string>
-    <string name="workspace_manager_close_all_action">Alle schließen</string>
     <string name="workspace_manager_selection_count">%1$d ausgewählt</string>
     <string name="workspace_manager_selection_select_all">Alle auswählen</string>
     <string name="workspace_manager_selection_pause_action">Ausgewählte pausieren</string>
@@ -366,6 +389,7 @@
 
     <!-- Workspace Navigation Rail -->
     <string name="workspace_pane_assign_action">Bereich %1$d zuweisen</string>
+    <string name="workspace_pane_show_action">Anzeigen</string>
     <string name="workspace_pane_close_action">Schließen</string>
     <string name="workspace_pane_unassign_action">Aus Bereich entfernen</string>
     <string name="workspace_dragging_description">Wird gezogen</string>
@@ -374,6 +398,8 @@
     <!-- Workspace Manager Row -->
     <string name="workspace_row_close_content_desc">Tab schließen</string>
     <string name="workspace_row_more_options_content_desc">Weitere Optionen</string>
+    <string name="workspace_row_operations_running_content_desc">Wird ausgeführt</string>
+    <string name="workspace_row_operations_pending_content_desc">Arbeit ausstehend</string>
     <string name="workspace_row_pause_action">Pausieren</string>
     <string name="workspace_row_resume_action">Fortsetzen</string>
     <string name="workspace_row_stacked_content_desc">Auf diesem Tab gestapelt</string>
@@ -489,6 +515,7 @@
         <item quantity="other">%1$d Dateivorgänge laufen</item>
     </plurals>
     <string name="ops_notification_state_queued">In Warteschlange…</string>
+    <string name="ops_notification_state_cancelling">Wird abgebrochen…</string>
     <string name="ops_notification_state_attention_title">Aktion erforderlich</string>
     <string name="ops_notification_state_attention_text">Ein Konflikt erfordert Deine Aufmerksamkeit. Tippe hier, um ihn zu lösen.</string>
     <string name="ops_notification_result_failed_title">Vorgang fehlgeschlagen</string>

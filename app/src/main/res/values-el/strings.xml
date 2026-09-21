@@ -1,0 +1,530 @@
+<resources>
+    <string name="onboarding_welcome_title">Καλώς ήρθατε στο Butler</string>
+    <string name="onboarding_welcome_message">Καρτέλες για αρχεία.\nΠεριήγηση, αναζήτηση και επεξεργασία — όλα ταυτόχρονα.</string>
+    <string name="onboarding_welcome_subtitle">Ανοιχτού κώδικα. Χωρίς διαφημίσεις. Χωρίς παρακολούθηση.\nΟ file explorer που σας αξίζει.</string>
+    <string name="onboarding_welcome_action">Έναρξη εξερεύνησης</string>
+    <string name="onboarding_beta_title">Διαμορφώστε το μέλλον</string>
+    <string name="onboarding_beta_message">Αυτή είναι μια beta (δοκιμαστική) έκδοση. Προχωρήστε με χιούμορ και ένα σχέδιο εφεδρικής αντιγραφής. Παρακαλώ αναφέρετε τυχόν προβλήματα που συναντάτε.</string>
+    <string name="onboarding_beta_action">Δεν φοβάμαι τίποτα</string>
+    <string name="onboarding_beta_feature_early_access_title">Πρόωρη πρόσβαση</string>
+    <string name="onboarding_beta_feature_early_access_description">Δοκιμάστε πρωτοποριακές λειτουργίες πριν από όλους.</string>
+    <string name="onboarding_beta_feature_influence_title">Άμεση επιρροή</string>
+    <string name="onboarding_beta_feature_influence_description">Τα σχόλιά σας διαμορφώνουν την ανάπτυξη του Butler.</string>
+    <string name="onboarding_beta_feature_feedback_title">Καθοδηγούμενο από την κοινότητα</string>
+    <string name="onboarding_beta_feature_feedback_description">Γίνετε μέλος μιας κοινότητας power user που βελτιώνουν το Butler.</string>
+    <string name="onboarding_privacy_title">Απόρρητο &amp; δεδομένα</string>
+    <string name="onboarding_privacy_message">Το Butler δεν περιέχει διαφημίσεις και δεν πουλάει δεδομένα χρηστών. Το απόρρητό σας είναι σημαντικό για εμένα.</string>
+    <string name="onboarding_privacy_read_action">Ανάγνωση πολιτικής απορρήτου</string>
+    <string name="onboarding_privacy_action">Αποδοχή</string>
+    <string name="onboarding_skip_action">Παράλειψη</string>
+    <string name="onboarding_progress_step">%1$d από %2$d</string>
+
+    <string name="onboarding_workspaces_title">Δουλέψτε σε καρτέλες</string>
+    <string name="onboarding_workspaces_message">Ανοίξτε πολλές καρτέλες και εναλλαχθείτε μεταξύ τους — όπως στο πρόγραμμα περιήγησής σας.</string>
+    <string name="onboarding_workspaces_action">Συνέχεια</string>
+    <string name="onboarding_workspaces_hint">Κρατήστε πολλές καρτέλες ανοιχτές ταυτόχρονα.</string>
+    <string name="onboarding_workspaces_explorer_title">Εξερεύνηση</string>
+    <string name="onboarding_workspaces_explorer_description">Περιηγηθείτε στα αρχεία σας.</string>
+    <string name="onboarding_workspaces_searcher_title">Αναζήτηση</string>
+    <string name="onboarding_workspaces_searcher_description">Βρείτε πράγματα.</string>
+    <string name="onboarding_workspaces_editor_title">Επεξεργαστής</string>
+    <string name="onboarding_workspaces_editor_description">Επεξεργαστείτε αρχεία.</string>
+    <string name="onboarding_workspaces_templates_title">Πρότυπα</string>
+    <string name="onboarding_workspaces_templates_description">Αποθηκεύστε τη διαμόρφωσή σας.</string>
+    <string name="onboarding_workspaces_apps_description">Διαχειριστείτε τις εφαρμογές σας.</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">Νέα εξερεύνηση</string>
+    <string name="shortcut_explorer_new_long">Δημιουργία νέας καρτέλας εξερεύνησης</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">Συντομεύσεις</string>
+    <string name="shortcuts_settings_subtitle">Διαμόρφωση συντομεύσεων εκκίνησης</string>
+    <string name="shortcuts_settings_enabled_title">Ενεργοποίηση συντομεύσεων</string>
+    <string name="shortcuts_settings_enabled_subtitle">Εμφάνιση συχνά χρησιμοποιούμενων στοιχείων στην αρχική οθόνη</string>
+    <string name="shortcuts_settings_auto_remember_title">Απομνημόνευση διαδρομών που επισκεφθήκατε</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Αυτόματη προσθήκη συχνά επισκεπτόμενων διαδρομών ως συντομεύσεις</string>
+    <string name="shortcuts_settings_last_accessed_title">Τελευταία πρόσβαση</string>
+    <string name="shortcuts_settings_max_count_title">Μέγιστος αριθμός συντομεύσεων</string>
+    <string name="shortcuts_settings_max_count_subtitle">Εμφανίζονται αυτή τη στιγμή %d συντομεύσεις</string>
+    <string name="shortcuts_settings_min_access_title">Ελάχιστες προσβάσεις</string>
+    <string name="shortcuts_settings_min_access_subtitle">Απαιτούνται %d προσβάσεις πριν την εμφάνιση</string>
+    <string name="shortcuts_settings_current_title">Τρέχουσες συντομεύσεις</string>
+    <string name="shortcuts_settings_current_subtitle">%d συντομεύσεις παρακολουθούνται</string>
+    <string name="shortcuts_settings_clear_title">Εκκαθάριση ιστορικού συντομεύσεων</string>
+    <string name="shortcuts_settings_clear_subtitle">Αφαίρεση όλων των συντομεύσεων που παρακολουθούνται</string>
+    <string name="shortcuts_settings_clear_confirm_title">Εκκαθάριση ιστορικού συντομεύσεων;</string>
+    <string name="shortcuts_settings_clear_confirm_message">Αυτό θα αφαιρέσει όλες τις συντομεύσεις που παρακολουθούνται. Τα αγαπημένα θα διατηρηθούν.</string>
+    <string name="shortcuts_settings_cleared_message">Το ιστορικό συντομεύσεων εκκαθαρίστηκε</string>
+    <string name="shortcuts_settings_max_dialog_title">Μέγιστος αριθμός συντομεύσεων</string>
+    <string name="shortcuts_settings_max_dialog_message">Αριθμός συντομεύσεων προς εμφάνιση στην αρχική οθόνη (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Ελάχιστος αριθμός προσβάσεων</string>
+    <string name="shortcuts_settings_min_dialog_message">Πόσες φορές πρέπει να γίνει πρόσβαση σε μια διαδρομή πριν εμφανιστεί ως συντόμευση (1–10)</string>
+
+    <string name="setup_usagestats_title">Στατιστικά χρήσης</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Πρόσβαση σε ειδοποιήσεις</string>
+    <string name="setup_manage_storage_card_title">Διαχείριση εξωτερικού αποθηκευτικού χώρου</string>
+    <string name="setup_inventory_card_title">Απογραφή εφαρμογών</string>
+
+    <string name="setup_title">Ρύθμιση δικαιωμάτων</string>
+    <string name="setup_settings_description">Διαμόρφωση δικαιωμάτων και λειτουργιών της εφαρμογής.</string>
+    <string name="setup_help_description">Βοήθεια</string>
+
+    <string name="setup_root_description">Ενεργοποιεί την πρόσβαση σε αρχεία συστήματος και προστατευμένους καταλόγους για προηγμένη διαχείριση αρχείων. Ξεκλειδώνει όλες τις δυνατότητες του Butler, συμπεριλαμβανομένης της πρόσβασης σε δεδομένα εφαρμογών και τροποποιήσεων συστήματος. Η συσκευή πρέπει να έχει γίνει root.</string>
+    <string name="setup_shizuku_description">Εναλλακτική του root που παρέχει προνομιακές λειτουργίες αρχείων μέσω ασφαλούς API. Επιτρέπει πρόσβαση σε περιορισμένους καταλόγους χωρίς παραδοσιακό root. Απαιτεί την εγκατάσταση και εκτέλεση της εφαρμογής Shizuku.</string>
+    <string name="setup_notification_description">Εμφανίζει ενημερώσεις για λειτουργίες αρχείων, εργασίες παρασκηνίου και πρόοδο μεταφοράς. Σας κρατά ενήμερους όταν οι λειτουργίες ολοκληρώνονται ή προκύπτουν σφάλματα.</string>
+    <string name="setup_usagestats_description">Αναλύει τη χρήση αποθηκευτικού χώρου των εφαρμογών για τον εντοπισμό μεγάλων αρχείων και τη βοήθεια στην αποτελεσματική διαχείριση χώρου. Όλα τα δεδομένα παραμένουν στη συσκευή σας και δεν μεταδίδονται ποτέ.</string>
+    <string name="setup_storage_description">Πλήρης πρόσβαση σε όλο τον αποθηκευτικό χώρο της συσκευής για γρήγορες λειτουργίες αρχείων και μαζική επεξεργασία. Επιτρέπει ολοκληρωμένη διαχείριση αρχείων χωρίς επαναλαμβανόμενες προτροπές δικαιωμάτων.</string>
+    <string name="setup_inventory_description">Δείτε όλες τις εγκατεστημένες εφαρμογές για λειτουργίες όπως εξαγωγή APK και ανάλυση αποθηκευτικού χώρου. Απαιτείται στο Android 11+ για την προβολή της πλήρους λίστας εφαρμογών.</string>
+
+    <string name="setup_grant_access_label">Παραχώρηση πρόσβασης</string>
+    <string name="setup_access_granted_label">Η πρόσβαση παραχωρήθηκε</string>
+    <string name="setup_use_root_label">Χρήση root όπου είναι διαθέσιμο</string>
+    <string name="setup_use_shizuku_label">Χρήση Shizuku όπου είναι διαθέσιμο</string>
+
+    <string name="setup_status_checking">Έλεγχος…</string>
+    <string name="setup_status_completed">Ρυθμισμένο</string>
+    <string name="setup_status_required">Απαιτείται</string>
+    <string name="setup_status_optional">Προαιρετικό</string>
+    <string name="setup_status_connected">Συνδεδεμένο</string>
+    <string name="setup_status_not_connected">Δεν είναι συνδεδεμένο</string>
+    <string name="setup_status_not_installed">Δεν είναι εγκατεστημένο</string>
+    <string name="setup_status_connecting">Σύνδεση…</string>
+    <string name="setup_status_connection_failed">Η σύνδεση απέτυχε</string>
+    <string name="setup_status_unavailable">Μη διαθέσιμο</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">Ειδοποιήσεις αποσφαλμάτωσης</string>
+    <string name="debug_log_consent_title">Αρχείο καταγραφής αποσφαλμάτωσης</string>
+    <string name="debug_log_consent_explanation">Αυτή η λειτουργία καταγράφει όλα όσα κάνει η εφαρμογή σε ένα αρχείο που μπορεί να κοινοποιηθεί. Το αρχείο που δημιουργείται περιέχει ευαίσθητες πληροφορίες (π.χ. ονόματα αρχείων και εγκατεστημένες εφαρμογές). Κοινοποιήστε το μόνο σε αξιόπιστα μέρη (π.χ. έναν προγραμματιστή που αντιμετωπίζει ένα πρόβλημα).</string>
+    <string name="debug_log_recording_progress">Καταγραφή αρχείου καταγραφής αποσφαλμάτωσης</string>
+    <string name="debug_log_record_action">Εγγραφή</string>
+    <string name="debug_log_record_full_action">Εγγραφή αρχείου καταγραφής αποσφαλμάτωσης</string>
+    <string name="debug_log_stop_action">Διακοπή εγγραφής</string>
+    <string name="debug_log_screen_title">Εγγραφή αρχείου καταγραφής αποσφαλμάτωσης</string>
+    <string name="debug_log_screen_sensitive_information_message">Το αρχείο που δημιουργείται περιέχει ευαίσθητες πληροφορίες (π.χ. ονόματα αρχείων και εγκατεστημένες εφαρμογές). Κοινοποιήστε το μόνο σε αξιόπιστα μέρη.</string>
+    <string name="debug_log_screen_session_path_label">Διαδρομή συνεδρίας αποσφαλμάτωσης</string>
+    <string name="debug_log_screen_log_files_label">Αρχεία καταγραφής</string>
+    <string name="debug_log_screen_log_files_ready">Τα αρχεία καταγραφής είναι έτοιμα (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Απόρριψη</string>
+    <string name="debug_log_file_label">Καταγεγραμμένο αρχείο καταγραφής</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">Καταγραφή αρχείου καταγραφής</string>
+    <string name="debug_banner_stop_action">Διακοπή</string>
+    <string name="debug_banner_view_action">Προβολή</string>
+    <string name="debug_banner_explanation">Καταγραφή δραστηριότητας εφαρμογής. Διακόψτε την όταν τελειώσετε, και μετά κοινοποιήστε το αρχείο καταγραφής όταν αναφέρετε σφάλματα.</string>
+    <string name="debug_log_short_recording_title">Η καταγραφή είναι πολύ σύντομη</string>
+    <string name="debug_log_short_recording_message">Τα αρχεία καταγραφής αποσφαλμάτωσης καταγράφουν ό,τι συμβαίνει όσο η εγγραφή είναι ενεργή. Ξεκινήστε την εγγραφή, αναπαραγάγετε το πρόβλημα, και μετά διακόψτε την. Αυτή η καταγραφή μπορεί να μην περιέχει χρήσιμες πληροφορίες.</string>
+    <string name="debug_log_short_recording_keep_action">Διατήρηση εγγραφής</string>
+
+    <string name="debug_logview_screen_title">Προβολή αρχείου καταγραφής</string>
+    <string name="debug_logview_pause_action">Παύση (πάγωμα προβολής)</string>
+    <string name="debug_logview_resume_action">Συνέχιση</string>
+    <string name="debug_logview_copy_action">Αντιγραφή αρχείου καταγραφής</string>
+    <string name="debug_logview_collapse_action">Σύμπτυξη</string>
+    <string name="debug_logview_close_action">Κλείσιμο πλαισίου καταγραφής</string>
+    <string name="debug_logview_resize_action">Αλλαγή μεγέθους</string>
+    <string name="debug_logview_more_action">Περισσότερες επιλογές</string>
+    <string name="debug_logview_level_action">Επίπεδο καταγραφής</string>
+    <string name="debug_logview_clear_action">Εκκαθάριση buffer</string>
+    <string name="debug_logview_search_action">Αναζήτηση</string>
+    <string name="debug_logview_search_clear_action">Εκκαθάριση αναζήτησης</string>
+    <string name="debug_logview_search_close_action">Κλείσιμο αναζήτησης</string>
+    <string name="debug_logview_search_prev_action">Προηγούμενο αποτέλεσμα</string>
+    <string name="debug_logview_search_next_action">Επόμενο αποτέλεσμα</string>
+    <string name="debug_logview_jump_to_bottom_action">Μετάβαση στο πιο πρόσφατο</string>
+    <string name="debug_logview_paused_msg">Σε παύση — η προβολή έχει παγώσει</string>
+    <string name="debug_logview_paused_new_msg">Σε παύση — %1$d νέα γραμμή(-ές) από τότε</string>
+    <string name="debug_logview_copied_msg">Το αρχείο καταγραφής αντιγράφηκε στο πρόχειρο</string>
+    <string name="debug_logview_copied_truncated_msg">Οι τελευταίες %1$d γραμμές αντιγράφηκαν στο πρόχειρο</string>
+    <string name="debug_logview_share_label">Κοινοποίηση αρχείου καταγραφής</string>
+
+    <string name="settings_label">Ρυθμίσεις</string>
+    <string name="settings_category_tools_label">Εργαλεία</string>
+    <string name="settings_category_other_label">Άλλα</string>
+    <string name="settings_category_integration_label">Ενσωμάτωση</string>
+    <string name="general_settings_label">Γενικά</string>
+    <string name="general_settings_desc">Γενικές ρυθμίσεις που επηρεάζουν ολόκληρη την εφαρμογή.</string>
+    <string name="settings_category_ui_label">Περιβάλλον χρήστη</string>
+    <string name="ui_mascot_suit_setting_label">Το κοστούμι του Butler</string>
+    <string name="ui_mascot_suit_setting_explanation">Το χρώμα από το οποίο είναι φτιαγμένο το κοστούμι του Butler.</string>
+    <string name="ui_theme_mode_setting_label">Λειτουργία θέματος</string>
+    <string name="ui_theme_mode_setting_explanation">Η λειτουργία που χρησιμοποιείται για τη θεματοποίηση της εφαρμογής (π.χ. νύχτα ή ημέρα).</string>
+    <string name="ui_theme_style_setting_label">Στυλ θέματος</string>
+    <string name="ui_theme_style_setting_explanation">Το στυλ χρωμάτων που χρησιμοποιείται για τη θεματοποίηση της εφαρμογής.</string>
+    <string name="ui_theme_color_setting_label">Χρώμα θέματος</string>
+    <string name="ui_theme_color_setting_explanation">Η παλέτα χρωμάτων που χρησιμοποιείται για τη θεματοποίηση της εφαρμογής.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Τα χρώματα παρέχονται από το Material You με βάση την ταπετσαρία σας</string>
+    <string name="ui_theme_color_value_system">Χρώματα συστήματος</string>
+    <string name="ui_language_override_label">Γλώσσα εφαρμογής</string>
+    <string name="ui_language_override_desc">Επιλέξτε διαφορετική γλώσσα για το Butler, ανεξάρτητα από την προεπιλεγμένη γλώσσα του συστήματός σας.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Αποφυγή εγκοπής οθόνης</string>
+    <string name="ui_display_cutout_avoid_setting_description">Κρατά το περιβάλλον χρήστη μακριά από την εγκοπή της κάμερας. Απενεργοποιήστε το για να χρησιμοποιήσετε περισσότερο χώρο της οθόνης, αλλά τότε τμήματα του περιβάλλοντος χρήστη μπορεί να βρεθούν πίσω από την εγκοπή.</string>
+
+    <string name="previews_settings_title">Προεπισκοπήσεις</string>
+    <string name="previews_settings_subtitle">Διαχείριση κρυφής μνήμης προεπισκοπήσεων εικόνων.</string>
+
+    <string name="tour_settings_reset_title">Επαναφορά καθοδηγούμενων περιηγήσεων</string>
+    <string name="tour_settings_reset_subtitle">Εμφανίστε ξανά τις καθοδηγούμενες περιηγήσεις, συμπεριλαμβανομένων όσων παραλείψατε ή απενεργοποιήσατε.</string>
+    <string name="tour_settings_reset_done">Οι καθοδηγούμενες περιηγήσεις επαναφέρθηκαν.</string>
+
+    <string name="storage_settings_title">Αποθηκευτικός χώρος</string>
+    <string name="storage_settings_subtitle">Διαχείριση κρυφής μνήμης, αποθηκευτικού χώρου και κάδου του Butler.</string>
+    <string name="storage_category_previews_label">Προεπισκοπήσεις</string>
+    <string name="storage_previews_disk_cache_title">Κρυφή μνήμη δίσκου</string>
+    <string name="storage_previews_memory_cache_title">Κρυφή μνήμη RAM</string>
+    <string name="storage_previews_max_size_title">Μέγιστο μέγεθος κρυφής μνήμης</string>
+    <string name="storage_clear_disk_confirm_title">Εκκαθάριση κρυφής μνήμης δίσκου;</string>
+    <string name="storage_clear_disk_confirm_message">Αυτό θα αφαιρέσει όλες τις αποθηκευμένες εικόνες προεπισκόπησης. Θα δημιουργηθούν ξανά όποτε χρειαστεί.</string>
+    <string name="storage_clear_memory_confirm_title">Εκκαθάριση κρυφής μνήμης RAM;</string>
+    <string name="storage_clear_memory_confirm_message">Αυτό θα αφαιρέσει τις αποθηκευμένες εικόνες προεπισκόπησης από τη μνήμη RAM. Θα δημιουργηθούν ξανά όποτε χρειαστεί.</string>
+    <string name="storage_clear_all_confirm_title">Εκκαθάριση όλων των κρυφών μνημών;</string>
+    <string name="storage_clear_all_confirm_message">Αυτό θα εκκαθαρίσει τόσο την κρυφή μνήμη δίσκου όσο και τη μνήμη RAM για τις εικόνες προεπισκόπησης.</string>
+    <string name="storage_clear_all_previews_action">Εκκαθάριση όλων των κρυφών μνημών προεπισκόπησης</string>
+    <string name="storage_clear_all_subtitle">Αφαίρεση όλων των κρυφών μνημών προεπισκόπησης</string>
+    <string name="storage_cache_cleared_message">Η κρυφή μνήμη εκκαθαρίστηκε</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">Έλεγχος για ενημερώσεις</string>
+    <string name="updater_check_enabled_setting_description">Επιτρέψτε στο Butler να ελέγχει διαδικτυακά αν είναι διαθέσιμη νέα έκδοση.</string>
+    <string name="motd_check_enabled_setting_title">Έλεγχος ανακοινώσεων</string>
+    <string name="motd_check_enabled_setting_description">Επιτρέψτε στο Butler να λαμβάνει σημαντικά μηνύματα από τον προγραμματιστή.</string>
+    <string name="motd_card_header">Ανακοίνωση</string>
+
+    <string name="confirm_exit_setting_title">Επιβεβαίωση εξόδου</string>
+    <string name="confirm_exit_setting_description">Εμφάνιση παραθύρου επιβεβαίωσης κατά την έξοδο από την εφαρμογή.</string>
+    <string name="confirm_exit_dialog_title">Έξοδος από το Butler</string>
+    <string name="confirm_exit_dialog_message">Αυτό θα κλείσει την εφαρμογή και θα επιστρέψει στην αρχική σας οθόνη.</string>
+    <string name="confirm_exit_dialog_exit">Έξοδος</string>
+    <string name="confirm_exit_dialog_cancel">Ακύρωση</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Να μην ξαναγίνει η ερώτηση</string>
+
+    <string name="settings_support_category_help_label">Λήψη βοήθειας</string>
+    <string name="settings_support_label">Υποστήριξη</string>
+    <string name="settings_support_description">Διαβάστε την τεκμηρίωση, αναφέρετε προβλήματα, συνομιλήστε με άλλους ή καταγράψτε αρχεία αποσφαλμάτωσης.</string>
+    <string name="settings_support_wiki_label">Τεκμηρίωση</string>
+    <string name="settings_support_wiki_description">Μάθετε πώς να χρησιμοποιείτε το Butler αποτελεσματικά.</string>
+    <string name="settings_support_issue_tracker_description">Ένα δημόσιο σύστημα καταγραφής θεμάτων για αναφορές σφαλμάτων και αιτήματα λειτουργιών.</string>
+    <string name="settings_support_issue_tracker_label">Σύστημα καταγραφής θεμάτων</string>
+    <string name="settings_support_debuglog_label">Αρχείο καταγραφής αποσφαλμάτωσης</string>
+    <string name="settings_support_debuglog_desc">Καταγράψτε όλα όσα κάνει η εφαρμογή σε ένα αρχείο κειμένου που μπορείτε να κοινοποιήσετε.</string>
+    <string name="settings_support_debuglog_recording_desc">Καταγραφή πληροφοριών αποσφαλμάτωσης σε εξέλιξη. Πατήστε για διακοπή της εγγραφής.</string>
+    <string name="settings_support_debuglog_path">Διαδρομή αρχείου καταγραφής: %1$s</string>
+    <string name="settings_support_bugreports_label">Αναφορές σφαλμάτων</string>
+    <string name="settings_support_bugreports_desc">Δείτε αναφορές κατάρρευσης, καταγράψτε αρχεία αποσφαλμάτωσης και κοινοποιήστε τα σε μένα.</string>
+    <string name="support_contact_report_type_crash">Αναφορά κατάρρευσης</string>
+    <string name="support_contact_report_type_reported">Αναφορά σφάλματος</string>
+    <string name="support_contact_report_type_recording">Εγγραφή</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Ένα μέρος για να περνάτε χρόνο και να κάνετε ερωτήσεις.</string>
+
+    <string name="settings_acknowledgements_label">Ευχαριστίες</string>
+    <string name="settings_acknowledgements_description">Συντελεστές, άδειες χρήσης και ειδικές ευχαριστίες.</string>
+    <string name="settings_acks_translation_header">Μετάφραση</string>
+    <string name="settings_acks_translators_title">Μεταφραστές</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Μετάφρασε το Butler</string>
+    <string name="settings_acks_translate_desc">Βοηθήστε στη μετάφραση του Butler στη γλώσσα σας.</string>
+
+    <string name="settings_acks_thanks_header">Ευχαριστίες</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">Για την υποστήριξη της μετάφρασης έργων ανοιχτού κώδικα.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Ευχαριστίες για το εικονίδιο, τους σχεδιασμούς μασκότ και τα κινούμενα σχέδια.</string>
+    <string name="settings_licenses_label">Άδειες χρήσης</string>
+
+    <!-- Workspace Status Card -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d Καρτέλα</item>
+        <item quantity="other">%1$d Καρτέλες</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d Λειτουργία</item>
+        <item quantity="other">%1$d Λειτουργίες</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Προσοχή</item>
+        <item quantity="other">%1$d Προσοχή</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Μη αποθηκευμένο</item>
+        <item quantity="other">%1$d Μη αποθηκευμένο</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d Σε παύση</item>
+        <item quantity="other">%1$d Σε παύση</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">Εμφάνιση όλων των καρτελών</string>
+    <string name="workspace_status_filter_operations_desc">Φιλτράρισμα κατά καρτέλες με λειτουργίες</string>
+    <string name="workspace_status_filter_attention_desc">Φιλτράρισμα κατά καρτέλες που χρειάζονται προσοχή</string>
+    <string name="workspace_status_filter_paused_desc">Φιλτράρισμα κατά καρτέλες σε παύση</string>
+    <string name="workspace_status_filter_unsaved_desc">Φιλτράρισμα κατά καρτέλες με μη αποθηκευμένες αλλαγές</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Η γλώσσα προγραμματισμού Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Ένας γρήγορος εγχυτής εξαρτήσεων για Android και Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Εκτελέστε κώδικα Java (και Kotlin) ως root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Εκτέλεση rooted κώδικα Kotlin JVM εύκολα με coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Χρήση API συστήματος απευθείας με δικαιώματα adb/root από κανονικές εφαρμογές μέσω μιας διεργασίας Java που ξεκινά με app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Το Lottie της Airbnb για Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Το ρομπότ Android αναπαράγεται ή τροποποιείται από έργο που δημιουργήθηκε και μοιράστηκε η Google, χρησιμοποιούμενο σύμφωνα με τους όρους που περιγράφονται στην άδεια Creative Commons 3.0 Attribution.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Η σύγχρονη εργαλειοθήκη της Android για την κατασκευή εγγενούς περιβάλλοντος χρήστη. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Βιβλιοθήκες Jetpack</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation και άλλες βιβλιοθήκες AndroidX. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Επεκτάσεις Kotlin</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Βιβλιοθήκες Coroutines και Serialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Βιβλιοθήκη φόρτωσης εικόνων βασισμένη σε Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Κρυπτογραφικά δομικά στοιχεία για έλεγχο ταυτότητας, υπογραφή και κρυπτογράφηση SMB. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Βιβλιοθήκες Square</string>
+    <string name="acknowledgement_square_libraries_subtitle">Βιβλιοθήκες δικτύωσης Retrofit, OkHttp και OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Βοηθητικά εργαλεία για το Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Μεταφορά και απόθεση για LazyColumn στο Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Βιβλιοθήκη σημασιολογικής έκδοσης για Kotlin. (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Γραφήματα και διαγράμματα για το Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Πολιτική απορρήτου</string>
+    <string name="settings_privacy_policy_desc">Υπεύθυνη διαχείριση δεδομένων.</string>
+
+
+    <string name="changelog_label">Ιστορικό αλλαγών</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Κατάσταση αναβάθμισης Butler</string>
+    <string name="upgrade_status_free">Κατάσταση: Δωρεάν</string>
+    <string name="upgrade_status_pro">Κατάσταση: Pro</string>
+    <string name="upgrade_status_foss">Κατάσταση: FOSS</string>
+
+    <string name="storage_area_sdcard_label">Κάρτα SD</string>
+    <string name="storage_area_public_label">Δημόσιος αποθηκευτικός χώρος</string>
+    <string name="storage_area_public_app_data_label">Δημόσια δεδομένα εφαρμογών</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">Διαχείριση καρτελών</string>
+    <string name="workspace_manager_empty_title">Καμία καρτέλα</string>
+    <string name="workspace_manager_empty_subtitle">Δημιουργήστε την πρώτη σας καρτέλα για να ξεκινήσετε</string>
+
+    <!-- Workspace > Empty Content-->
+    <string name="workspace_empty_create_action">Δημιουργία καρτέλας</string>
+    <string name="workspace_empty_create_hint">Δουλέψτε παράλληλα: Δημιουργήστε μια καρτέλα και μετατρέψτε την στο εργαλείο της επιλογής σας.</string>
+    <string name="workspace_empty_settings_action">Άνοιγμα ρυθμίσεων</string>
+    <string name="workspace_empty_settings_hint">Προσαρμόστε το Butler στα μέτρα σας. Ρυθμίστε τη συμπεριφορά των εργαλείων.</string>
+    <string name="workspace_classic_empty_tabs_closed">Καμία ανοιχτή καρτέλα. Έτοιμο όποτε είστε κι εσείς.</string>
+    <string name="workspace_classic_empty_tip">Συμβουλή: Πατήστε «Δημιουργία καρτέλας» και επιλέξτε ένα εργαλείο — Εξερεύνηση, Αναζήτηση, Επεξεργαστής και άλλα.</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">Ξεκινήστε με μια καρτέλα</string>
+    <string name="tour_first_tab_body">Το Butler λειτουργεί σε καρτέλες, όπως ένα πρόγραμμα περιήγησης: η καθεμία είναι ένα ξεχωριστό εργαλείο — Εξερεύνηση, Αναζήτηση, Επεξεργαστής και άλλα. Δημιουργήστε την πρώτη σας καρτέλα.</string>
+    <string name="tour_manager_fab_title">Γρήγορες συντομεύσεις</string>
+    <string name="tour_manager_fab_body">Πατήστε εδώ για συντομεύσεις στα εργαλεία που χρησιμοποιείτε περισσότερο, και για να κλείσετε όλες τις καρτέλες μονομιάς.</string>
+    <string name="tour_manager_reorder_title">Αναδιάταξη των καρτελών σας</string>
+    <string name="tour_manager_reorder_body">Πατήστε παρατεταμένα τη γραμμή τίτλου μιας καρτέλας και μετά σύρτε την όπου θέλετε. Αυτή είναι η σειρά με την οποία εμφανίζονται οι καρτέλες σας παντού αλλού.</string>
+    <string name="tour_manager_select_title">Δουλέψτε σε πολλές καρτέλες</string>
+    <string name="tour_manager_select_body">Πατήστε παρατεταμένα την προεπισκόπηση μιας καρτέλας για να ξεκινήσετε την επιλογή καρτελών. Μετά πατήστε τις υπόλοιπες και κλείστε ή θέστε τις όλες σε παύση με μία κίνηση.</string>
+    <string name="tour_manager_new_tab_title">Ξεκινήστε μια νέα καρτέλα</string>
+    <string name="tour_manager_new_tab_body">Πατήστε αυτή την κάρτα για να επιλέξετε οποιοδήποτε εργαλείο για μια νέα καρτέλα.</string>
+    <string name="tour_swipe_switch_title">Σύρετε για εναλλαγή καρτελών</string>
+    <string name="tour_swipe_switch_body">Σύρτε αριστερά ή δεξιά οπουδήποτε στη σελίδα για να μετακινηθείτε μεταξύ των ανοιχτών σας καρτελών.</string>
+    <string name="tour_swipe_create_title">Σύρετε για να ξεκινήσετε μια καρτέλα</string>
+    <string name="tour_swipe_create_body">Σύρτε πέρα από την τελευταία σας καρτέλα και το Butler σας προσφέρει μια καινούρια.</string>
+    <string name="tour_swipe_panes_title">Περισσότερες από μία καρτέλα ταυτόχρονα</string>
+    <string name="tour_swipe_panes_body">Σε μεγαλύτερη οθόνη, ή σε οριζόντιο προσανατολισμό, το Butler εμφανίζει πολλές καρτέλες δίπλα-δίπλα. Οι ρυθμίσεις διάταξης στις Καρτέλες καθορίζουν πότε συμβαίνει αυτό.</string>
+    <string name="tour_panes_rail_title">Όλες οι καρτέλες σας</string>
+    <string name="tour_panes_rail_body">Κάθε ανοιχτή καρτέλα βρίσκεται εδώ. Πατήστε μία και επιλέξτε το τμήμα στο οποίο θα πάει. Πατήστε παρατεταμένα μια καρτέλα και μετά σύρτε την για να αλλάξετε τη σειρά τους.</string>
+    <string name="tour_panes_divider_title">Αλλαγή μεγέθους τμημάτων</string>
+    <string name="tour_panes_divider_body">Σύρτε αυτόν τον διαχωριστή για να δώσετε σε ένα τμήμα περισσότερο χώρο.</string>
+    <string name="tour_panes_layout_title">Αλλάξτε τη διάταξη</string>
+    <string name="tour_panes_layout_body">Πατήστε το κουμπί Butler και επιλέξτε Διάταξη για να αναδιατάξετε τα τμήματα. Οι ρυθμίσεις Καρτελών ορίζουν μια σταθερή διάταξη ανά προσανατολισμό.</string>
+
+    <string name="workspace_creating_placeholder">Δημιουργία καρτέλας…</string>
+    <string name="workspace_ondemand_swipe_title">Σύρτε για δημιουργία νέας καρτέλας</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">Το τμήμα %1$d είναι έτοιμο για περιεχόμενο</string>
+    <string name="workspace_adaptive_add_action">Προσθήκη καρτέλας</string>
+
+    <string name="workspace_badge_tip_title">Συμβουλή: Ενδείξεις κουμπιού καρτέλας</string>
+    <string name="workspace_badge_open_workspaces">Αριθμός ανοιχτών καρτελών</string>
+    <string name="workspace_badge_active_operations">Ενεργές λειτουργίες (αντιγραφές αρχείων, αναζητήσεις κ.λπ.)</string>
+    <string name="workspace_badge_attention_items">Στοιχεία που χρειάζονται προσοχή (αποτυχημένες ή σε αναμονή λειτουργίες, μη προσβάσιμα αρχεία)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">Απόρριψη</string>
+    <string name="workspace_manager_selection_count">%1$d επιλεγμένα</string>
+    <string name="workspace_manager_selection_select_all">Επιλογή όλων</string>
+    <string name="workspace_manager_selection_pause_action">Παύση επιλεγμένων</string>
+    <string name="workspace_manager_selection_close_action">Κλείσιμο επιλεγμένων</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Έξοδος από τη λειτουργία επιλογής</string>
+    <string name="workspace_manager_selection_clear_content_desc">Εκκαθάριση επιλογής</string>
+    <string name="workspace_manager_select_all_tabs_desc">Επιλογή όλων των καρτελών</string>
+    <string name="workspace_manager_new_tab_card_title">Νέα καρτέλα</string>
+    <string name="workspace_row_select_content_desc">Επιλογή καρτέλας</string>
+    <string name="general_cancel_action">Ακύρωση</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">Γρήγορες συντομεύσεις</string>
+    <string name="workspace_fab_close_shortcuts">Κλείσιμο συντομεύσεων</string>
+    <string name="workspace_fab_close_all">Κλείσιμο όλων των καρτελών</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">Ανάθεση στο τμήμα %1$d</string>
+    <string name="workspace_pane_show_action">Εμφάνιση</string>
+    <string name="workspace_pane_close_action">Κλείσιμο</string>
+    <string name="workspace_pane_unassign_action">Αφαίρεση από το τμήμα</string>
+    <string name="workspace_dragging_description">Μεταφορά σε εξέλιξη</string>
+    <string name="workspace_pane_current_description">Στο τμήμα %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">Κλείσιμο καρτέλας</string>
+    <string name="workspace_row_more_options_content_desc">Περισσότερες επιλογές</string>
+    <string name="workspace_row_operations_running_content_desc">Σε εξέλιξη</string>
+    <string name="workspace_row_operations_pending_content_desc">Εκκρεμεί εργασία</string>
+    <string name="workspace_row_pause_action">Παύση</string>
+    <string name="workspace_row_resume_action">Συνέχιση</string>
+    <string name="workspace_row_stacked_content_desc">Στοιβαγμένο σε αυτή την καρτέλα</string>
+    <string name="workspace_row_unsaved_content_desc">Μη αποθηκευμένες αλλαγές</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">Διαμόρφωση συμπεριφοράς καρτελών.</string>
+    <string name="explorer_settings_subtitle">Διαμόρφωση συμπεριφοράς εξερεύνησης αρχείων.</string>
+    <string name="searcher_settings_subtitle">Διαμόρφωση συμπεριφοράς αναζήτησης.</string>
+    <string name="editor_settings_subtitle">Διαμόρφωση συμπεριφοράς επεξεργαστή κειμένου.</string>
+    <string name="history_settings_subtitle">Διατήρηση και εκκαθάριση ιστορικού λειτουργιών.</string>
+    <string name="clipboard_settings_subtitle">Διαμόρφωση συμπεριφοράς προχείρου.</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">Αποθήκευση ως…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">Άνοιγμα στο Butler</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">Επεξεργασία κειμένου</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">Ανώνυμο αρχείο</string>
+    <string name="external_open_action_view">Προβολή</string>
+    <string name="external_open_action_edit">Επεξεργασία ως κείμενο</string>
+    <string name="external_open_action_show_in_explorer">Εμφάνιση στην Εξερεύνηση</string>
+    <string name="external_open_action_save">Αποθήκευση ως…</string>
+    <string name="external_open_failed_label">Δεν ήταν δυνατό το άνοιγμα του αρχείου</string>
+    <string name="external_open_failed_description">Το Butler δεν μπόρεσε να ανοίξει το \"%1$s\".</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">Ενεργοποίηση λειτουργίας προγραμματιστή;</string>
+    <string name="settings_developer_mode_unlock_message">Αυτό ξεκλειδώνει προηγμένα διαγνωστικά εργαλεία για αντιμετώπιση προβλημάτων και δοκιμές.</string>
+    <string name="settings_developer_mode_unlock_action">Ενεργοποίηση</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">%d βήμα ακόμα για τη λειτουργία προγραμματιστή</item>
+        <item quantity="other">%d βήματα ακόμα για τη λειτουργία προγραμματιστή</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">Επικοινωνία με τον προγραμματιστή</string>
+    <string name="support_contact_description">Συμπληρώστε μια φόρμα για να μου στείλετε email.</string>
+    <string name="support_contact_no_email_app">Δεν βρέθηκε εφαρμογή email</string>
+    <string name="support_contact_category_label">Κατηγορία</string>
+    <string name="support_contact_category_question">Ερώτηση</string>
+    <string name="support_contact_category_feature">Αίτημα λειτουργίας</string>
+    <string name="support_contact_category_bug">Αναφορά σφάλματος</string>
+    <string name="support_contact_workspace_label">Σχετική περιοχή</string>
+    <string name="support_contact_workspace_general">Γενικά</string>
+    <string name="support_contact_workspace_explorer">Εξερεύνηση</string>
+    <string name="support_contact_workspace_searcher">Αναζήτηση</string>
+    <string name="support_contact_workspace_editor">Επεξεργαστής</string>
+    <string name="support_contact_description_label">Περιγραφή</string>
+    <string name="support_contact_description_question_hint">Περιγράψτε την ερώτησή σας λεπτομερώς, όσο πιο συγκεκριμένα γίνεται (τουλάχιστον 20 λέξεις).</string>
+    <string name="support_contact_description_feature_hint">Περιγράψτε τη λειτουργία που θα θέλατε να δείτε, όσο πιο συγκεκριμένα γίνεται (τουλάχιστον 20 λέξεις).</string>
+    <string name="support_contact_description_bug_hint">Περιγράψτε τι συνέβη και πώς μπορεί να αναπαραχθεί το πρόβλημα, όσο πιο συγκεκριμένα γίνεται (τουλάχιστον 20 λέξεις).</string>
+    <string name="support_contact_expected_label">Αναμενόμενη συμπεριφορά</string>
+    <string name="support_contact_expected_hint">Περιγράψτε τι περιμένατε να συμβεί (τουλάχιστον 10 λέξεις).</string>
+    <string name="support_contact_word_count">Τουλάχιστον %1$d λέξεις</string>
+    <string name="support_contact_debuglog_label">Αρχείο καταγραφής αποσφαλμάτωσης</string>
+    <string name="support_contact_debuglog_empty">Δεν βρέθηκαν αρχεία καταγραφής αποσφαλμάτωσης. Καταγράψτε πρώτα ένα.</string>
+    <string name="support_contact_debuglog_picker_hint">Επισυνάψτε ένα υπάρχον αρχείο καταγραφής αποσφαλμάτωσης, ή καταγράψτε ένα νέο.</string>
+    <string name="support_contact_send_action">Άνοιγμα εφαρμογής email</string>
+    <string name="support_contact_welcome">Διαβάζω κάθε μήνυμα προσωπικά και προσπαθώ να απαντήσω όσο καλύτερα μπορώ, αλλά επειδή δουλεύω σε αυτό μόνος μου, μπορεί να χρειαστεί λίγος χρόνος. Ευχαριστώ για την υπομονή σας.</string>
+    <string name="support_contact_footer">Το μήνυμά σας θα σταλεί μέσω email. Πληροφορίες συσκευής και ρύθμισης επισυνάπτονται αυτόματα. Μπορείτε να επισυνάψετε στιγμιότυπα οθόνης ή βίντεο στο email.\n\nΟρισμένα μέρη του email θα είναι στα αγγλικά ώστε να μπορώ να τα καταλάβω εύκολα.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">Αποθήκευση αρχείων καταγραφής αποσφαλμάτωσης</string>
+    <string name="support_debuglog_storage_description">%1$d συνεδρίες καταγραφής, %2$s</string>
+    <string name="support_debuglog_storage_empty">Δεν έχουν αποθηκευτεί αρχεία καταγραφής αποσφαλμάτωσης</string>
+    <string name="support_debuglog_delete_action">Διαγραφή όλων των αρχείων καταγραφής αποσφαλμάτωσης</string>
+    <string name="support_debuglog_delete_description">Αφαίρεση όλων των καταγεγραμμένων αρχείων αποσφαλμάτωσης</string>
+    <string name="support_debuglog_delete_confirm_title">Διαγραφή όλων των αρχείων καταγραφής αποσφαλμάτωσης;</string>
+    <string name="support_debuglog_delete_confirm_message">Αυτό θα διαγράψει οριστικά όλες τις καταγεγραμμένες συνεδρίες αρχείων καταγραφής αποσφαλμάτωσης. Οι ενεργές εγγραφές δεν θα επηρεαστούν.</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">Διακοπή εγγραφής</string>
+    <string name="settings_support_debuglog_record_action">Εγγραφή αρχείου καταγραφής αποσφαλμάτωσης</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">Συνεδρίες αρχείου καταγραφής αποσφαλμάτωσης</string>
+    <string name="support_debuglog_sessions_desc">Διαχείριση καταγεγραμμένων συνεδριών αρχείου καταγραφής αποσφαλμάτωσης</string>
+    <string name="support_debuglog_sessions_empty">Καμία συνεδρία αρχείου καταγραφής αποσφαλμάτωσης</string>
+    <string name="support_debuglog_session_recording">Καταγραφή…</string>
+    <string name="support_debuglog_session_compressing">Συμπίεση…</string>
+    <string name="support_debuglog_session_failed_empty_log">Απέτυχε: κενό αρχείο καταγραφής</string>
+    <string name="support_debuglog_session_failed_missing_log">Απέτυχε: λείπει το αρχείο καταγραφής</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Απέτυχε: κατεστραμμένο αρχείο</string>
+    <string name="support_debuglog_session_failed_zip_failed">Απέτυχε: σφάλμα συμπίεσης</string>
+    <string name="support_debuglog_session_delete_title">Διαγραφή συνεδρίας αποσφαλμάτωσης;</string>
+    <string name="support_debuglog_session_delete_message">Αυτό θα διαγράψει οριστικά αυτή τη συνεδρία αρχείου καταγραφής αποσφαλμάτωσης.</string>
+    <string name="support_debuglog_clear_action">Εκκαθάριση όλων</string>
+    <string name="support_debuglog_clear_confirm_message">Διαγραφή όλων των αποθηκευμένων συνεδριών αρχείου καταγραφής αποσφαλμάτωσης;</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_screen_subtitle">Εξαγωγή πληροφοριών αποσφαλμάτωσης για αντιμετώπιση προβλημάτων</string>
+    <string name="debug_log_screen_sensitive_information_title">Ευαίσθητες πληροφορίες</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">Στείλατε το μήνυμα;</string>
+    <string name="support_contact_sent_message">Αν το μήνυμα εστάλη, το επισυναπτόμενο αρχείο καταγραφής αποσφαλμάτωσης θα διαγραφεί για εξοικονόμηση χώρου. Αν όχι, μπορείτε να το κρατήσετε και να ξαναπροσπαθήσετε αργότερα.</string>
+    <string name="support_contact_debuglog_zip_error">Απέτυχε η προετοιμασία του συνημμένου αρχείου καταγραφής αποσφαλμάτωσης</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">Πρόοδος λειτουργίας αρχείων</string>
+    <string name="ops_notification_channel_progress_desc">Συνεχιζόμενη πρόοδος για λειτουργίες αντιγραφής, μετακίνησης και διαγραφής</string>
+    <string name="ops_notification_channel_attention_name">Ειδοποιήσεις λειτουργιών αρχείων</string>
+    <string name="ops_notification_channel_attention_desc">Λειτουργίες που χρειάζονται την προσοχή σας ή απέτυχαν</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d λειτουργία αρχείων σε εξέλιξη</item>
+        <item quantity="other">%1$d λειτουργίες αρχείων σε εξέλιξη</item>
+    </plurals>
+    <string name="ops_notification_state_queued">Σε αναμονή…</string>
+    <string name="ops_notification_state_cancelling">Ακύρωση…</string>
+    <string name="ops_notification_state_attention_title">Απαιτείται ενέργεια</string>
+    <string name="ops_notification_state_attention_text">Μια σύγκρουση χρειάζεται την προσοχή σας — πατήστε για επίλυση</string>
+    <string name="ops_notification_result_failed_title">Η λειτουργία απέτυχε</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">Θα θέλατε να αφήσετε μια αξιολόγηση για το Butler; ❤️</string>
+    <string name="review_app_dismiss_action">Ίσως αργότερα</string>
+    <string name="review_app_review_action">Αξιολόγηση</string>
+
+</resources>

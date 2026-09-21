@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Επεξεργαστής</string>
+    <string name="editor_subtitle">Επεξεργασία αρχείων κειμένου</string>
+    <string name="editor_settings_title">Ρυθμίσεις Επεξεργαστή</string>
+    <string name="editor_settings_show_line_numbers_title">Εμφάνιση αριθμών γραμμών</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Εμφάνιση αριθμών γραμμών στον επεξεργαστή.</string>
+    <string name="editor_settings_word_wrap_title">Αναδίπλωση γραμμών</string>
+    <string name="editor_settings_word_wrap_subtitle">Αναδίπλωση μεγάλων γραμμών για προσαρμογή στο πλάτος της οθόνης.</string>
+    <string name="editor_settings_syntax_highlighting_title">Χρωματική σήμανση σύνταξης</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Χρωματική κωδικοποίηση σε υποστηριζόμενα αρχεία (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Μέγεθος γραμματοσειράς</string>
+    <string name="editor_settings_font_size_subtitle">Μέγεθος κειμένου στον επεξεργαστή</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Πλάτος στηλοθέτη</string>
+    <string name="editor_settings_tab_size_subtitle">Κενά που καταλαμβάνει ένας χαρακτήρας στηλοθέτη</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Άνοιγμα</string>
+    <string name="editor_action_save">Αποθήκευση</string>
+    <string name="editor_action_save_as">Αποθήκευση ως…</string>
+    <string name="editor_action_close">Κλείσιμο</string>
+    <string name="editor_action_undo">Αναίρεση</string>
+    <string name="editor_action_redo">Επανάληψη</string>
+    <string name="editor_action_search">Αναζήτηση</string>
+    <string name="editor_action_go_to_line">Μετάβαση στη γραμμή</string>
+    <string name="editor_action_dismiss">Απόρριψη</string>
+    <string name="editor_action_previous">Προηγούμενο</string>
+    <string name="editor_action_next">Επόμενο</string>
+    <string name="editor_action_copy">Αντιγραφή</string>
+    <string name="editor_action_cut">Αποκοπή</string>
+    <string name="editor_action_copy_to_butler_clipboard">Αντιγραφή στο πρόχειρο Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">Αποκοπή στο πρόχειρο Butler</string>
+    <string name="editor_action_paste">Επικόλληση</string>
+    <string name="editor_action_select_all">Επιλογή όλων</string>
+    <string name="editor_action_delete">Διαγραφή</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Αντικατάσταση αρχείου;</string>
+    <string name="editor_dialog_save_as_overwrite_message">Το %1$s υπάρχει ήδη. Το τρέχον περιεχόμενό του θα αντικατασταθεί.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Αντικατάσταση</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Βρέθηκε αντίγραφο ασφαλείας από μια διακοπείσα αποθήκευση:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Η επεξεργασία ως κείμενο δεν υποστηρίζεται</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Πολύ μεγάλες γραμμές</string>
+    <string name="editor_long_lines_banner_message">Πολύ μεγάλες γραμμές περικόπτονται για την εμφάνιση· το πλήρες περιεχόμενο διατηρείται και αποθηκεύεται.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Εμφάνιση του επόμενου τμήματος της γραμμής</string>
+    <string name="editor_line_truncated_marker_previous_action">Εμφάνιση του προηγούμενου τμήματος της γραμμής</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Το αρχείο δεν είναι πλέον διαθέσιμο</string>
+    <string name="editor_backing_lost_banner_message">Ενδέχεται να μετακινήθηκε ή να διαγραφεί. Αυτή η προβολή είναι μόνο για ανάγνωση — ανοίξτε ή κλείστε την.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Το αρχείο λείπει, αλλά υπάρχει αντίγραφο ασφαλείας</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" λείπει, αλλά μια διακοπείσα αποθήκευση άφησε αυτό πίσω: %2$s. Το περιεχόμενό σας βρίσκεται πιθανότατα ακόμα σ’ αυτό.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Το αρχείο άλλαξε στο δίσκο</string>
+    <string name="editor_external_change_banner_message">Άλλη εφαρμογή τροποποίησε αυτό το αρχείο.</string>
+    <string name="editor_external_change_reload_action">Επαναφόρτωση</string>
+    <string name="editor_external_change_keep_action">Συνέχιση επεξεργασίας</string>
+    <string name="editor_error_external_change">Αυτό το αρχείο άλλαξε απ’ άλλη εφαρμογή. Επαναφορτώστε το αρχείο για να συνεχίσετε.</string>
+    <string name="editor_dialog_reload_confirm_title">Επαναφόρτωση αρχείου;</string>
+    <string name="editor_dialog_reload_confirm_message">Η επαναφόρτωση απορρίπτει τις μη αποθηκευμένες αλλαγές σας και εμφανίζει το τρέχον περιεχόμενο του αρχείου στο δίσκο.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d γραμμή</item>
+        <item quantity="other">%1$d γραμμές</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d χαρακτήρας</item>
+        <item quantity="other">%1$d χαρακτήρες</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Επιλεγμένα %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Φόρτωση αρχείου…</string>
+    <string name="editor_saving">Αποθήκευση…</string>
+    <string name="editor_action_cancel_loading">Ακύρωση</string>
+    <string name="editor_progress_opening">Άνοιγμα αρχείου…</string>
+    <string name="editor_progress_saving">Αποθήκευση αρχείου…</string>
+    <string name="editor_progress_building_index">Δημιουργία ευρετηρίου αρχείου…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Άγνωστο σφάλμα</string>
+    <string name="editor_error_read_only">Αυτό το αρχείο είναι μόνο για ανάγνωση και δεν μπορεί να τροποποιηθεί.</string>
+    <string name="editor_error_save_integrity_label">Η αποθήκευση διακόπηκε</string>
+    <string name="editor_error_save_integrity">Η αποθήκευση διακόπηκε και το αρχείο στο δίσκο ενδέχεται να είναι ημιτελές. Επαναφορτώστε το αρχείο πριν επεξεργαστείτε περαιτέρω.</string>
+    <string name="editor_error_clipboard_too_large_label">Η επιλογή είναι πολύ μεγάλη</string>
+    <string name="editor_error_clipboard_too_large">Η επιλογή είναι πολύ μεγάλη για αντιγραφή (όριο %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Το αρχείο είναι πολύ μεγάλο</string>
+    <string name="editor_error_paste_too_large">Αυτό το αρχείο είναι πολύ μεγάλο για να επικολληθεί (μέγιστο %1$s).</string>
+    <string name="editor_error_paste_binary_label">Δεν είναι αρχείο κειμένου</string>
+    <string name="editor_error_paste_binary">Το περιεχόμενο αυτού του αρχείου δεν μπορεί να επικολληθεί ως κείμενο.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d από %2$d αποτέλεσμα</item>
+        <item quantity="other">%1$d από %2$d αποτελέσματα</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d από %2$d+ αποτελέσματα</string>
+    <string name="editor_search_too_many_matches_label">Πολλές αντιστοιχίες</string>
+    <string name="editor_search_too_many_matches">Περισσότερες από %1$d αντιστοιχίες ή πολύ αντιστοιχούμενο κείμενο — περιορίστε την αναζήτηση για αντικατάσταση όλων.</string>
+    <string name="editor_search_placeholder">Αναζήτηση…</string>
+    <string name="editor_search_previous">Προηγούμενο αποτέλεσμα</string>
+    <string name="editor_search_next">Επόμενο αποτέλεσμα</string>
+    <string name="editor_search_case_sensitive_label">Διάκριση πεζών-κεφαλαίων</string>
+    <string name="editor_search_regex_label">Κανονική έκφραση</string>
+    <string name="editor_search_whole_word_label">Ολόκληρη λέξη</string>
+    <string name="editor_search_options_label">Επιλογές αναζήτησης</string>
+    <string name="editor_search_replace_label">Αντικατάσταση</string>
+    <string name="editor_search_replace_toggle">Εναλλαγή αντικατάστασης</string>
+    <string name="editor_search_replace_placeholder">Αντικατάσταση με…</string>
+    <string name="editor_search_replace_one_action">Αντικατάσταση</string>
+    <string name="editor_search_replace_all_action">Όλα</string>
+    <string name="editor_search_replaced_not_undoable">%1$d αντικαταστάθηκε (πολύ μεγάλο για αναίρεση)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d αντικαταστάθηκε</item>
+        <item quantity="other">%1$d αντικαταστάθηκαν</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Μετάβαση στη γραμμή</string>
+    <string name="editor_dialog_go_to_line_label">Αριθμός γραμμής (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Μετάβαση</string>
+    <string name="editor_dialog_action_cancel">Ακύρωση</string>
+    <string name="editor_dialog_close_confirm_title">Μη αποθηκευμένες αλλαγές</string>
+    <string name="editor_dialog_close_confirm_message">Έχετε μη αποθηκευμένες αλλαγές. Να απορριφθούν;</string>
+    <string name="editor_dialog_close_confirm_discard">Απόρριψη</string>
+    <string name="editor_dialog_large_delete_confirm_title">Επεξεργασία μεγάλης επιλογής;</string>
+    <string name="editor_dialog_large_delete_confirm_message">Αυτή η επιλογή είναι πολύ μεγάλη για αναίρεση. Συνέχιση πάντως;</string>
+    <string name="editor_dialog_large_delete_confirm_action">Συνέχιση</string>
+    <string name="editor_encoding_dialog_title">Κωδικοποίηση</string>
+    <string name="editor_encoding_dialog_message">Ανοίξτε το αρχείο ξανά με διαφορετική κωδικοποίηση. Οι μη αποθηκευμένες αλλαγές απορρίπτονται· τα μη τροποποιημένα bytes παραμένουν αμετάβλητα κατά την αποθήκευση.</string>
+    <string name="editor_infobar_read_only">Μόνο για ανάγνωση</string>
+    <string name="editor_line_ending_mixed">Μικτά</string>
+    <string name="editor_line_ending_dialog_title">Τέλη γραμμών</string>
+    <string name="editor_line_ending_dialog_message">Μετατροπή όλων των τελών γραμμής και αποθήκευση του αρχείου, συμπεριλαμβανομένων των μη αποθηκευμένων αλλαγών. Το ιστορικό αναίρεσης διαγράφεται.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Χωρίς τίτλο</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Αυτόματη αποθήκευση</string>
+    <string name="editor_settings_autosave_enabled_title">Ενεργοποίηση αυτόματης αποθήκευσης</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Αυτόματη αποθήκευση αλλαγών μετά απ’ ένα χρονικό διάστημα αδράνειας.</string>
+    <string name="editor_settings_autosave_interval_title">Διάστημα αυτόματης αποθήκευσης</string>
+    <string name="editor_settings_autosave_interval_subtitle">Χρόνος αναμονής μετά την τελευταία επεξεργασία πριν την αποθήκευση.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Διάστημα αυτόματης αποθήκευσης</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Πρόχειρο</string>
+    <string name="editor_settings_clipboard_behavior_title">Πρόχειρο Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Έλεγχος του τρόπου αποθήκευσης αντιγράφων κειμένου στο πρόχειρο Butler.</string>
+    <string name="editor_settings_clipboard_system_only">Μόνο σύστημα</string>
+    <string name="editor_settings_clipboard_system_only_desc">Αντιγραφή μόνο στο πρόχειρο του συστήματος</string>
+    <string name="editor_settings_clipboard_butler_always">Πάντα προσθήκη στο Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Αποθήκευση επίσης στο πρόχειρο Butler για κοινή χρήση σε όλες τις εργασίες</string>
+    <string name="editor_settings_clipboard_ask">Ερώτηση κάθε φορά</string>
+    <string name="editor_settings_clipboard_ask_desc">Ερώτηση πριν την προσθήκη στο πρόχειρο Butler</string>
+</resources>

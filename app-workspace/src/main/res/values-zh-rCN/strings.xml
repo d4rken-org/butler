@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">剪贴板</string>
+    <string name="clipboard_clear_all">全部清除</string>
+    <string name="clipboard_paste">粘贴</string>
+    <string name="clipboard_open_in_explorer">在文件管理器中打开</string>
+    <string name="clipboard_copy">复制</string>
+    <string name="clipboard_cut">剪切</string>
+    <string name="clipboard_origin">来源：%s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="other">复制 %d 个项目</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="other">来自 %s 的 %d 个项目</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="other">剪切 %d 个项目</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="other">来自 %s 的 %d 个项目</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="other">%d 个位置</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="other">来自 %2$s 的 %1$d 个项目</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="other">来自 %2$s 的 %1$d 个项目</item>
+    </plurals>
+    <string name="clipboard_text_title">文本片段</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="other">%1$d 个字符</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">粘贴为文件</string>
+    <string name="clipboard_text_info_characters">字符数</string>
+    <string name="clipboard_text_info_lines">行数</string>
+    <string name="clipboard_text_info_content">内容</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">概览</string>
+    <string name="clipboard_info_operation">操作</string>
+    <string name="clipboard_info_items">项目</string>
+    <string name="clipboard_info_source">来源</string>
+    <string name="clipboard_info_sources">来源</string>
+    <string name="clipboard_info_workspace">工作区</string>
+    <string name="clipboard_info_workspace_closed">已关闭</string>
+    <string name="clipboard_info_time">时间</string>
+    <string name="clipboard_info_items_with_count">项目（%1$d）</string>
+    <string name="clipboard_info_actions">操作</string>
+    <string name="clipboard_info_go_to_source">转到来源</string>
+    <string name="clipboard_info_go_to_first_source">转到第一个来源</string>
+    <string name="clipboard_info_remove">从剪贴板中移除</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">剪贴板</string>
+    <string name="clipboard_settings_remove_on_paste_title">粘贴后移除</string>
+    <string name="clipboard_settings_remove_on_paste_desc">粘贴后从剪贴板中移除已复制的项目</string>
+    <string name="clipboard_settings_max_items_title">最大项目数</string>
+    <string name="clipboard_settings_max_items_desc">剪贴板中的最大项目数量</string>
+
+    <string name="workspace_explorer_label">文件管理器</string>
+    <string name="workspace_searcher_label">搜索</string>
+    <string name="workspace_editor_label">编辑器</string>
+    <string name="workspace_templates_label">模板</string>
+    <string name="workspace_apps_label">应用</string>
+    <string name="workspace_appdetails_label">应用详情</string>
+    <string name="workspace_saver_label">另存为</string>
+    <string name="workspace_developer_label">开发者</string>
+    <string name="workspace_history_label">历史记录</string>
+    <string name="workspace_bugreport_label">错误报告</string>
+    <string name="workspace_viewer_label">查看器</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">照片</string>
+    <string name="workspace_searcher_target_videos">视频</string>
+    <string name="workspace_searcher_target_music">音乐</string>
+    <string name="workspace_searcher_target_downloads">下载</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">更多</string>
+    <string name="workspace_expand_less_action">收起</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">标签页与工作区</string>
+    <string name="workspace_button_menu_new_workspace_format">新建%1$s</string>
+    <string name="workspace_button_menu_new_tab_action">新建标签页</string>
+    <string name="workspace_button_menu_category_recent">最近</string>
+    <string name="workspace_button_menu_category_other">其他</string>
+    <string name="workspace_button_menu_category_current_tab">当前标签页</string>
+    <string name="workspace_button_menu_manager_action">标签页管理器</string>
+    <string name="workspace_button_menu_layout_action">布局</string>
+    <string name="workspace_button_menu_close_current_action">关闭当前标签页</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="other">关闭当前标签页（%d 个工作区）</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">设置</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">关闭所有标签页？</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="other">这将关闭全部 %1$d 个已打开的标签页。此操作无法撤消。</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">全部关闭</string>
+    <string name="workspace_manager_close_all_unsaved_warning">部分标签页有未保存的更改，这些更改将丢失。</string>
+    <string name="workspace_manager_close_all_unsaved_action">全部放弃</string>
+    <string name="workspace_manager_close_selected_title">关闭所选标签页？</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="other">这将关闭 %1$d 个已选中的标签页。此操作无法撤消。</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">关闭所选</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">部分所选标签页有未保存的更改，这些更改将丢失。</string>
+    <string name="workspace_manager_close_selected_unsaved_action">放弃所选</string>
+    <string name="workspace_manager_pause_partial_title">暂停标签页？</string>
+    <string name="workspace_manager_pause_partial_message">在已选中的 %2$d 个标签页中，有 %1$d 个可以暂停。其余标签页正在使用中、含有未保存的更改，或当前处于打开状态。</string>
+    <string name="workspace_manager_pause_partial_action">暂停 %1$d 个</string>
+    <string name="general_cancel_action">取消</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">操作</string>
+    <string name="operations_clear_completed">清除已完成</string>
+    <string name="operations_state_queued">排队中</string>
+    <string name="operations_state_running">运行中</string>
+    <string name="operations_state_waiting">等待输入</string>
+    <string name="operations_state_successful">已成功</string>
+    <string name="operations_state_failed">已失败</string>
+    <string name="operations_state_cancelled">已取消</string>
+    <string name="operations_state_cancelling">正在取消…</string>
+    <string name="operations_cancel_operation">取消操作</string>
+    <string name="operations_cancel_dialog_title">取消操作？</string>
+    <string name="operations_cancel_dialog_message">确定要取消此操作吗？</string>
+    <string name="operations_cancel_dialog_warning">取消操作可能会使文件处于不一致的状态。</string>
+    <string name="operations_details_started_at">开始时间</string>
+    <string name="operations_details_completed_at">完成时间</string>
+    <string name="operations_details_duration">持续时间</string>
+    <string name="operations_details_duration_not_started">尚未开始</string>
+    <string name="operations_details_progress">进度</string>
+    <string name="operations_details_error">错误详情</string>
+    <string name="operations_details_actions">操作</string>
+    <string name="operations_details_overview">概览</string>
+    <string name="operations_details_handle_issue">处理问题</string>
+    <string name="operations_details_show_in_history_action">在历史记录中显示</string>
+    <string name="operations_details_status">状态</string>
+    <string name="operations_details_result">结果</string>
+    <string name="operations_details_destination_folder">目标文件夹</string>
+    <string name="operations_details_destination_path">目标路径</string>
+    <string name="operations_details_affected_paths_with_count">受影响的路径（%d）</string>
+    <string name="operations_details_problems_with_count">问题（%d）</string>
+    <string name="operations_details_problems_more">另有 %d 项未列出</string>
+    <string name="workspace_operation_packages_section_title">应用</string>
+    <string name="workspace_operation_package_status_done">已完成</string>
+    <string name="workspace_operation_package_status_failed">已失败</string>
+    <string name="workspace_operation_package_status_declined">已拒绝</string>
+    <string name="operations_details_section_expand">展开%1$s</string>
+    <string name="operations_details_section_collapse">收起%1$s</string>
+    <string name="workspace_operations_performance_graph_label">性能图表</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">删除项目？</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="other">删除 %1$d 个项目？</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">此项目将被永久删除：</string>
+    <string name="workspace_dialog_delete_message_multiple">这些项目将被永久删除：</string>
+    <string name="workspace_dialog_delete_more_items">…以及另外 %1$d 项</string>
+    <string name="workspace_dialog_delete_warning">此操作无法撤消。</string>
+    <string name="workspace_dialog_delete_permanently_action">永久删除</string>
+    <string name="workspace_dialog_delete_permanently_toggle">改为永久删除</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">部分项目无法移至回收站，将被单独处理。</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">移至回收站？</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="other">将 %1$d 个项目移至回收站？</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">此项目将被移至回收站：</string>
+    <string name="workspace_dialog_trash_message_multiple">这些项目将被移至回收站：</string>
+    <string name="workspace_dialog_trash_hint">可在回收站位置中找到它们</string>
+    <string name="workspace_dialog_move_to_trash_action">移动</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="other">已选择 %d 个</item>
+    </plurals>
+    <string name="workspace_action_more">更多操作</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">文件删除</string>
+    <string name="workspace_operation_delete_description_single">从“%2$s”中删除“%1$s”。</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="other">从“%2$s”中删除 %1$d 个项目。</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">应用安装</string>
+    <string name="workspace_operation_install_description">安装“%1$s”。</string>
+    <string name="workspace_operation_install_progress_inspecting">正在读取安装包…</string>
+    <string name="workspace_operation_install_progress_extracting">正在解包…</string>
+    <string name="workspace_operation_install_progress_writing">正在将文件交给安装程序…</string>
+    <string name="workspace_operation_install_progress_committing">正在完成安装…</string>
+    <string name="workspace_operation_install_progress_placing_obb">正在放置扩展文件…</string>
+    <string name="workspace_operation_install_summary_success">%1$s 已安装。</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s 已安装，但其扩展文件未能放置。</string>
+    <string name="workspace_install_unknown_sources_required">Butler 需要安装应用的权限。请在刚打开的设置中授予该权限，然后重试。</string>
+    <string name="workspace_install_obb_failed">应用已安装，但其扩展文件未能放置：%1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="other">已删除 %1$d 个文件。</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="other">已删除 %1$d 个目录。</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="other">已跳过 %1$d 个项目。</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="other">已释放 %1$s。</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">正在移至回收站…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="other">已将 %1$d 个文件移至回收站。</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="other">已将 %1$d 个目录移至回收站。</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">释放速度 %1$s/s。</string>
+    <string name="workspace_operation_progress_bytes_freed">已释放 %1$s。</string>
+    <string name="workspace_operation_progress_time_remaining">剩余 %1$s。</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">信息</string>
+    <string name="workspace_file_info_name_label">名称</string>
+    <string name="workspace_file_info_path_label">路径</string>
+    <string name="workspace_file_info_type_label">类型</string>
+    <string name="workspace_file_info_type_file">文件</string>
+    <string name="workspace_file_info_type_directory">目录</string>
+    <string name="workspace_file_info_type_symlink">符号链接</string>
+    <string name="workspace_file_info_type_unknown">未知</string>
+    <string name="workspace_file_info_size_label">大小</string>
+    <string name="workspace_file_info_modified_label">修改时间</string>
+    <string name="workspace_file_info_created_label">创建时间</string>
+    <string name="workspace_file_info_permissions_label">权限</string>
+    <string name="workspace_file_info_owner_label">所有者</string>
+    <string name="workspace_file_info_child_count_label">项目数</string>
+    <string name="workspace_file_info_symlink_target_label">目标</string>
+    <string name="workspace_file_info_unknown">未知</string>
+    <string name="workspace_file_info_copy_action">复制到剪贴板</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">已选择</string>
+    <string name="workspace_file_info_files_label">文件</string>
+    <string name="workspace_file_info_directories_label">目录</string>
+    <string name="workspace_file_info_total_size_label">总大小</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">此操作尚未开始。</string>
+    <string name="workspace_operation_performance_unavailable_collecting">正在收集性能数据…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">此操作的性能数据不足，无法绘制图表。</string>
+    <string name="workspace_operation_performance_unavailable_not_available">此操作无可用的性能数据。</string>
+    <string name="workspace_operation_performance_window_seconds">最近 %1$d 秒</string>
+    <string name="workspace_operation_performance_window_minutes">最近 %1$d 分钟</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">项目/秒</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">显示技术详情</string>
+    <string name="workspace_error_hide_details_action">隐藏技术详情</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">正在初始化标签页</string>
+    <string name="workspace_error_subtitle">发生意外错误</string>
+    <string name="workspace_close_tab_action">关闭标签页</string>
+    <string name="workspace_paused_body">为节省内存和电量，此标签页已暂停。恢复后即可继续使用。</string>
+    <string name="workspace_paused_error_body">此标签页无法恢复。</string>
+    <string name="workspace_paused_resume_action">恢复</string>
+    <string name="workspace_paused_label">已暂停</string>
+    <string name="workspace_paused_content_label">标签页内容</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">现有文件</string>
+    <string name="workspace_issue_collision_existing_folder_label">现有文件夹</string>
+    <string name="workspace_issue_collision_new_file">传入文件</string>
+    <string name="workspace_issue_collision_new_folder">传入文件夹</string>
+    <string name="workspace_issue_collision_overwrite">替换</string>
+    <string name="workspace_issue_collision_merge">合并</string>
+    <string name="workspace_issue_common_source_file">源文件</string>
+    <string name="workspace_issue_common_destination_file">目标</string>
+    <string name="workspace_issue_common_skip">跳过</string>
+    <string name="workspace_issue_common_rename">重命名</string>
+    <string name="workspace_issue_common_rename_new">重命名新项目</string>
+    <string name="workspace_issue_common_rename_existing">重命名现有项目</string>
+    <string name="workspace_issue_common_cancel">取消</string>
+    <string name="workspace_issue_common_delete_permanently">永久删除</string>
+    <string name="workspace_issue_archive_password_label">密码</string>
+    <string name="workspace_issue_archive_password_unlock">解锁</string>
+    <string name="workspace_issue_trash_move_failed_items_label">失败的项目</string>
+    <string name="workspace_issue_trash_move_failed_more_items">…以及另外 %1$d 个项目</string>
+    <string name="workspace_issue_trash_not_supported_items_label">受影响的项目</string>
+    <string name="workspace_issue_trash_not_supported_more_items">…以及另外 %1$d 个项目</string>
+    <string name="workspace_issue_apply_all">应用于所有剩余问题</string>
+    <string name="workspace_issue_rename_new_name">新名称</string>
+    <string name="workspace_issue_rename_dialog_title_new">重命名传入文件</string>
+    <string name="workspace_issue_rename_dialog_title_existing">重命名现有文件</string>
+    <string name="workspace_issue_type_folder">文件夹</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">打开多个标签页？</string>
+    <string name="workspace_open_tabs_confirmation_message">这将打开 %1$d 个标签页。</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">打开方式</string>
+    <string name="workspace_open_with_no_app_label">未找到其他应用</string>
+    <string name="workspace_open_with_no_app_description">没有其他已安装的应用可以打开 %1$s。</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="other">已打开 %1$d 个标签页</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="other">无法关闭：仍有 %1$d 个标签页正在运行操作</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">标签页</string>
+    <string name="workspace_settings_navigation">导航</string>
+    <string name="workspace_settings_swipe_gestures_title">滑动手势</string>
+    <string name="workspace_settings_swipe_gestures_desc">左右滑动可切换标签页。</string>
+    <string name="workspace_settings_ondemand_creation_title">自动新建标签页</string>
+    <string name="workspace_settings_ondemand_creation_desc">滑过最后一个标签页时自动新建标签页。</string>
+    <string name="workspace_settings_newtab_type_title">新标签页类型</string>
+    <string name="workspace_settings_newtab_type_desc">滑过最后一个标签页、向空白窗格添加标签页或创建第一个标签页时打开的工作区类型。</string>
+    <string name="workspace_settings_newtab_type_ask">每次都询问</string>
+    <string name="workspace_settings_newtab_type_ask_desc">每次新建标签页时显示标签页类型选择器。</string>
+    <string name="workspace_settings_live_preview_title">实时预览</string>
+    <string name="workspace_settings_live_preview_desc">在标签页管理器中显示标签页的实时内容。</string>
+    <string name="workspace_settings_other">其他</string>
+    <string name="workspace_settings_layout_title">布局</string>
+    <string name="workspace_settings_layout_mode_portrait_title">竖屏布局模式</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">选择竖屏方向下的标签页布局。</string>
+    <string name="workspace_settings_layout_mode_landscape_title">横屏布局模式</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">选择横屏方向下的标签页布局。</string>
+    <string name="workspace_settings_layout_mode_auto">自动</string>
+    <string name="workspace_settings_layout_mode_auto_desc">小屏幕上使用经典模式，大屏幕上使用带窗格的标签页导航栏。</string>
+    <string name="workspace_settings_layout_mode_classic">经典</string>
+    <string name="workspace_settings_layout_mode_classic_desc">一次显示一个窗格，不含标签页导航栏。</string>
+    <string name="workspace_settings_layout_mode_adaptive">自适应</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">标签页导航栏加上屏幕能容纳的尽可能多的窗格。可在导航栏的 Butler 菜单中固定某种布局。</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">自适应（%1$s）</string>
+    <string name="workspace_settings_layout_mode_single_rail">单窗格带标签页导航栏</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">一个标签页窗格加上多窗格布局中的标签页导航栏。通过导航栏而非滑动来切换标签页；导航栏会占用屏幕的一部分。</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">垂直双栏</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">两个窗格左右并排显示。</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">水平双栏</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">两个窗格上下叠放显示。</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">三栏（侧栏在左）</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">左侧一个大窗格，右侧两个较小窗格上下叠放。</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">三栏（侧栏在右）</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">左侧两个较小窗格上下叠放，右侧一个大窗格。</string>
+    <string name="workspace_settings_layout_mode_quad_grid">四宫格</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">四个窗格以 2×2 网格排列。</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">点击以聚焦</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">点击未聚焦的窗格时，第一次点击只会使其获得焦点，未聚焦的窗格不会响应鼠标指针。关闭此选项可直接与其交互。</string>
+
+    <string name="workspace_settings_rail_button_title">Butler 按钮</string>
+    <string name="workspace_settings_rail_button_desc">选择 Butler 按钮在标签页导航栏中的位置。</string>
+    <string name="workspace_settings_rail_button_leading">起始位置</string>
+    <string name="workspace_settings_rail_button_leading_desc">竖屏时位于标签页之前，横屏时位于标签页上方。</string>
+    <string name="workspace_settings_rail_button_trailing">末尾位置</string>
+    <string name="workspace_settings_rail_button_trailing_desc">竖屏时位于标签页之后，横屏时位于标签页下方。方便单手操作时拇指触及。</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">会话</string>
+    <string name="workspace_settings_session_restore_title">启动时恢复标签页</string>
+    <string name="workspace_settings_session_restore_desc">应用启动时自动恢复之前打开的标签页。</string>
+    <string name="workspace_settings_autopause_title">暂停闲置标签页</string>
+    <string name="workspace_settings_autopause_desc">长时间未查看的标签页会被暂停，以节省内存和电量。打开后即可恢复。</string>
+    <string name="workspace_settings_autopause_delay_title">暂停延迟</string>
+    <string name="workspace_settings_autopause_delay_desc">标签页在被暂停前保持不可见的时长。</string>
+    <string name="workspace_settings_undoclose_title">撤消关闭标签页</string>
+    <string name="workspace_settings_undoclose_desc">关闭标签页后，会在几秒内提供恢复选项。</string>
+    <string name="workspace_settings_session_data_title">会话数据</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="other">%1$d 个标签页 • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">已关闭“%1$s”</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">会话恢复失败</string>
+    <string name="workspace_session_restoration_error_description">无法恢复您之前的标签页会话。这可能是由于某个错误导致的，该错误将在未来的更新中修复。\n\n您可以清除已保存的会话以继续使用 Butler，或等待更新。</string>
+    <string name="workspace_session_restoration_error_clear_action">清除会话</string>
+    <string name="workspace_session_restoration_error_report_action">报告问题</string>
+    <string name="workspace_session_restoration_error_confirm_title">清除会话？</string>
+    <string name="workspace_session_restoration_error_confirm_description">这将永久删除您已保存的标签页会话。此操作无法撤消。</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">重命名标签页</string>
+    <string name="workspace_rename_name_label">自定义名称</string>
+    <string name="workspace_rename_name_hint">留空以使用自动生成的名称</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">已达到标签页数量上限</string>
+    <string name="workspace_limit_reached_message">免费用户最多可同时打开 %1$d 个标签页。升级到 Butler Pro 即可无限制打开标签页！</string>
+    <string name="workspace_limit_pick_tabs_message">您的免费方案最多允许打开 %1$d 个标签页。请选择不再需要的标签页并关闭，以腾出空间。</string>
+    <string name="workspace_limit_no_slot_hint">目前关闭标签页无法腾出空间。</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="other">关闭 %d 个标签页</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="other">请至少选择 %d 个标签页以关闭。</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">已打开 %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">未保存的更改</string>
+    <string name="workspace_limit_blocker_busy">当前正忙</string>
+    <string name="workspace_limit_blocker_attention">等待您的操作</string>
+    <string name="workspace_limit_blocker_loading">仍在加载</string>
+    <string name="workspace_limit_blocker_awaiting_result">请先完成打开的选择器操作</string>
+    <string name="workspace_limit_blocker_unavailable">当前无法关闭</string>
+    <string name="workspace_limit_stacked_content_desc">关闭此标签页也会关闭叠放在其上的内容</string>
+    <string name="workspace_limit_pro_description">随心所欲地打开标签页。</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="other">%1$d 个项目</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s，%2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">回收站恢复</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="other">从回收站恢复 %d 个项目。</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="other">已恢复 %d 个项目</item>
+    </plurals>
+</resources>

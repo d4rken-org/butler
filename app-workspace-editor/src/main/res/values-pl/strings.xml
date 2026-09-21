@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Edytor</string>
+    <string name="editor_subtitle">Edytuj pliki tekstowe</string>
+    <string name="editor_settings_title">Ustawienia edytora</string>
+    <string name="editor_settings_show_line_numbers_title">Wyświetlaj numery linii</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Wyświetla numery linii w edytorze.</string>
+    <string name="editor_settings_word_wrap_title">Zawinięcie linii</string>
+    <string name="editor_settings_word_wrap_subtitle">Zawija długie linie do szerokości ekranu.</string>
+    <string name="editor_settings_syntax_highlighting_title">Podświetlanie składni</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Kolorowanie kodu w obsługiwanych plikach (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Rozmiar czcionki</string>
+    <string name="editor_settings_font_size_subtitle">Rozmiar tekstu w edytorze</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Szerokość tabulacji</string>
+    <string name="editor_settings_tab_size_subtitle">Liczba spacji, jakie zajmuje znak tabulacji</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Otwórz</string>
+    <string name="editor_action_save">Zapisz</string>
+    <string name="editor_action_save_as">Zapisz jako…</string>
+    <string name="editor_action_close">Zamknij</string>
+    <string name="editor_action_undo">Cofnij</string>
+    <string name="editor_action_redo">Ponów</string>
+    <string name="editor_action_search">Szukaj</string>
+    <string name="editor_action_go_to_line">Przejdź do linii</string>
+    <string name="editor_action_dismiss">Odrzuć</string>
+    <string name="editor_action_previous">Poprzedni</string>
+    <string name="editor_action_next">Następny</string>
+    <string name="editor_action_copy">Kopiuj</string>
+    <string name="editor_action_cut">Wytnij</string>
+    <string name="editor_action_copy_to_butler_clipboard">Kopiuj do schowka Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">Wytnij do schowka Butler</string>
+    <string name="editor_action_paste">Wklej</string>
+    <string name="editor_action_select_all">Zaznacz wszystko</string>
+    <string name="editor_action_delete">Usuń</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Zastąpić plik?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s już istnieje. Jego zawartość zostanie zastąpiona.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Zastąp</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Znaleziono kopię zapasową przerwanych zapisów:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Edytowanie jako tekst nie jest obsługiwane</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Bardzo długie linie</string>
+    <string name="editor_long_lines_banner_message">Bardzo długie linie są skracane do wyświetlenia; pełna zawartość jest zachowywana i zapisywana.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Pokaż następną część linii</string>
+    <string name="editor_line_truncated_marker_previous_action">Pokaż poprzednią część linii</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Plik już nie jest dostępny</string>
+    <string name="editor_backing_lost_banner_message">Mógł być przeniesiony lub usunięty. Ten widok jest tylko do odczytu — otwórz go ponownie lub zamknij.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Plik zniknął, ale pozostała kopia zapasowa</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" brakuje, ale przerwany zapis zostawił to: %2$s. Twoja zawartość bardzo prawdopodobnie wciąż się tam znajduje.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Plik zmienił się na dysku</string>
+    <string name="editor_external_change_banner_message">Inna aplikacja zmodyfikowała ten plik.</string>
+    <string name="editor_external_change_reload_action">Załaduj ponownie</string>
+    <string name="editor_external_change_keep_action">Kontynuuj edycję</string>
+    <string name="editor_error_external_change">Ten plik został zmieniony przez inną aplikację. Załaduj plik ponownie, aby kontynuować.</string>
+    <string name="editor_dialog_reload_confirm_title">Załadować plik ponownie?</string>
+    <string name="editor_dialog_reload_confirm_message">Ponowne załadowanie odrzuci niezapisane zmiany i wyświetli aktualną zawartość pliku na dysku.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d wiersz</item>
+        <item quantity="few">%1$d wiersze</item>
+        <item quantity="many">%1$d wierszy</item>
+        <item quantity="other">%1$d wierszy</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d znak</item>
+        <item quantity="few">%1$d znaki</item>
+        <item quantity="many">%1$d znaków</item>
+        <item quantity="other">%1$d znaków</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Zaznaczone: %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Ładowanie pliku…</string>
+    <string name="editor_saving">Zapisywanie…</string>
+    <string name="editor_action_cancel_loading">Anuluj</string>
+    <string name="editor_progress_opening">Otwieranie pliku…</string>
+    <string name="editor_progress_saving">Zapisywanie pliku…</string>
+    <string name="editor_progress_building_index">Budowanie indeksu…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Nieznany błąd</string>
+    <string name="editor_error_read_only">Ten plik jest tylko do odczytu i nie może być zmieniony.</string>
+    <string name="editor_error_save_integrity_label">Zapis przerwany</string>
+    <string name="editor_error_save_integrity">Zapis został przerwany i plik na dysku może być niekompletny. Załaduj plik ponownie przed dalszą edycją.</string>
+    <string name="editor_error_clipboard_too_large_label">Zaznaczenie za duże</string>
+    <string name="editor_error_clipboard_too_large">Zaznaczenie jest za duże do skopiowania (limit %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Plik za duży</string>
+    <string name="editor_error_paste_too_large">Ten plik jest za duży, aby go wkleić (max %1$s).</string>
+    <string name="editor_error_paste_binary_label">Nie jest plikiem tekstowym</string>
+    <string name="editor_error_paste_binary">Zawartość tego pliku nie może być wklejona jako tekst.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d z %2$d wyniku</item>
+        <item quantity="few">%1$d z %2$d wyników</item>
+        <item quantity="many">%1$d z %2$d wyników</item>
+        <item quantity="other">%1$d z %2$d wyników</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d z %2$d+ wyników</string>
+    <string name="editor_search_too_many_matches_label">Za wiele wyników</string>
+    <string name="editor_search_too_many_matches">Więcej niż %1$d wyników lub zbyt dużo dopasowanego tekstu — zawęź wyszukiwanie, aby zastąpić wszystko.</string>
+    <string name="editor_search_placeholder">Szukaj…</string>
+    <string name="editor_search_previous">Poprzedni wynik</string>
+    <string name="editor_search_next">Następny wynik</string>
+    <string name="editor_search_case_sensitive_label">Rozróżniaj wielkie i małe litery</string>
+    <string name="editor_search_regex_label">Wyrażenie regularne</string>
+    <string name="editor_search_whole_word_label">Całe słowo</string>
+    <string name="editor_search_options_label">Opcje wyszukiwania</string>
+    <string name="editor_search_replace_label">Zastąp</string>
+    <string name="editor_search_replace_toggle">Pokaż/ukryj zastąpianie</string>
+    <string name="editor_search_replace_placeholder">Zastąp na…</string>
+    <string name="editor_search_replace_one_action">Zastąp</string>
+    <string name="editor_search_replace_all_action">Wszystko</string>
+    <string name="editor_search_replaced_not_undoable">%1$d zastąpionych (za duże do cofnięcia)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d zastąpiony</item>
+        <item quantity="few">%1$d zastąpione</item>
+        <item quantity="many">%1$d zastąpionych</item>
+        <item quantity="other">%1$d zastąpionych</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Przejdź do linii</string>
+    <string name="editor_dialog_go_to_line_label">Numer linii (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Przejdź</string>
+    <string name="editor_dialog_action_cancel">Anuluj</string>
+    <string name="editor_dialog_close_confirm_title">Niezapisane zmiany</string>
+    <string name="editor_dialog_close_confirm_message">Masz niezapisane zmiany. Odrzucić je?</string>
+    <string name="editor_dialog_close_confirm_discard">Odrzuć</string>
+    <string name="editor_dialog_large_delete_confirm_title">Edytować duże zaznaczenie?</string>
+    <string name="editor_dialog_large_delete_confirm_message">To zaznaczenie jest za duże do cofnięcia. Kontynuować?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Kontynuuj</string>
+    <string name="editor_encoding_dialog_title">Kodowanie</string>
+    <string name="editor_encoding_dialog_message">Otwórz plik ponownie z innym kodowaniem. Niezapisane zmiany zostaną odrzucone; niezmodyfikowane bajty pozostają niezmienione przy zapisie.</string>
+    <string name="editor_infobar_read_only">Tylko do odczytu</string>
+    <string name="editor_line_ending_mixed">Mieszane</string>
+    <string name="editor_line_ending_dialog_title">Zakończenia linii</string>
+    <string name="editor_line_ending_dialog_message">Konwertuj wszystkie podziały linii i zapisz plik, w tym niezapisane zmiany. Historia cofnięć zostanie wyczyszczona.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Bez tytułu</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Automatyczne zapisywanie</string>
+    <string name="editor_settings_autosave_enabled_title">Włącz automatyczne zapisywanie</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Automatycznie zapisuj zmiany po okresie bezczynności.</string>
+    <string name="editor_settings_autosave_interval_title">Interwał automatycznego zapisywania</string>
+    <string name="editor_settings_autosave_interval_subtitle">Czas oczekiwania po ostatniej edycji przed zapisem.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Interwał automatycznego zapisywania</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Schowek</string>
+    <string name="editor_settings_clipboard_behavior_title">Schowek Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Kontroluj sposób, w jaki kopie tekstu są zapisywane w schowku Butler.</string>
+    <string name="editor_settings_clipboard_system_only">Tylko system</string>
+    <string name="editor_settings_clipboard_system_only_desc">Kopiuj tylko do schowka systemowego</string>
+    <string name="editor_settings_clipboard_butler_always">Zawsze dodaj do Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Również zapisz w schowku Butler dla wklejania między obszarami roboczymi</string>
+    <string name="editor_settings_clipboard_ask">Zapytaj za każdym razem</string>
+    <string name="editor_settings_clipboard_ask_desc">Pytaj przed dodaniem do schowka Butler</string>
+</resources>

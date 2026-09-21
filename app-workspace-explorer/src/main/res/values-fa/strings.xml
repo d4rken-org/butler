@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">کاوشگر</string>
+    <string name="explorer_subtitle">مرور فایل‌ها و پوشه‌ها</string>
+    <string name="explorer_settings_title">تنظیمات کاوشگر</string>
+    <string name="explorer_settings_file_display">نمایش فایل</string>
+    <string name="explorer_settings_filter_regex_title">تطبیق پیشرفته الگو</string>
+    <string name="explorer_settings_filter_regex_desc">از الگوهای regex در فیلترهای شامل/مستثنی استفاده کنید.</string>
+    <string name="explorer_settings_navigation">پیمایش</string>
+    <string name="explorer_settings_back_button_title">پیمایش با دکمه بازگشت</string>
+    <string name="explorer_settings_back_button_desc">با دکمه یا اشاره بازگشت در تاریخچه پیمایش کنید.</string>
+    <string name="explorer_settings_trash_category">سطل زباله</string>
+    <string name="explorer_settings_trash_enabled_title">فعال‌سازی سطل زباله</string>
+    <string name="explorer_settings_trash_enabled_desc">فایل‌های حذف‌شده را به‌جای حذف دائمی، به سطل زباله منتقل کنید</string>
+    <string name="explorer_settings_trash_auto_delete_title">حذف خودکار پس از</string>
+    <string name="explorer_settings_trash_auto_delete_desc">موارد قدیمی‌تر از %d روز به‌طور خودکار حذف می‌شوند</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d روز</string>
+    <string name="explorer_settings_trash_max_size_title">حداکثر اندازه برای هر حافظه</string>
+    <string name="explorer_settings_trash_max_size_desc">حداکثر %d مگابایت برای هر مکان حافظه</string>
+    <string name="explorer_settings_trash_max_size_value">%d مگابایت</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">بازه حذف خودکار</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">حداکثر اندازه برای هر حافظه</string>
+    <string name="explorer_settings_trash_enable_dialog_title">سطل زباله فعال شود؟</string>
+    <string name="explorer_settings_trash_enable_dialog_message">برخلاف سیستم‌های دسکتاپ، اندروید سطل زباله داخلی ندارد. Butler با استفاده از پوشه کش خود این امکان را فراهم می‌کند.\n\nنکاتی که باید در نظر بگیرید:\n• نشانگر حافظه دستگاه شما فضای آزادشده را تا حذف دائمی موارد نشان نمی‌دهد\n• اگر فضای حافظه دستگاه شما کم باشد، اندروید ممکن است کش برنامه‌ها را پاک کند و فایل‌های داخل سطل زباله را حذف کند</string>
+    <string name="explorer_settings_trash_enable_action">فعال‌سازی</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">فایل</string>
+    <string name="explorer_file_symlink_content_desc">پیوند نمادین</string>
+    <string name="explorer_file_folder_content_desc">پوشه</string>
+    <string name="explorer_file_peek_content_desc">در حال بارگذاری اطلاعات فایل</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">میان‌بر</string>
+    <string name="explorer_file_storage_local_label">محلی</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">دسترسی فقط‌خواندنی</string>
+    <string name="explorer_file_storage_saf_write_only_label">دسترسی فقط‌نوشتنی</string>
+    <string name="explorer_file_storage_saf_no_access_label">بدون دسترسی</string>
+    <string name="explorer_file_storage_saf_uri_label">URI درخت SAF</string>
+    <string name="explorer_file_storage_size_format">%1$s • مجموع %2$s • %3$s آزاد</string>
+    <string name="explorer_file_broken_link_label">پیوند خراب</string>
+    <string name="explorer_file_items_count">%1$d مورد</string>
+    <string name="explorer_file_empty">خالی</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · جزئی</string>
+    <string name="explorer_sizes_estimate_description">برآورد شده از مجموع حافظه اندروید. برای فایل‌های غیرقابل‌خواندن، فضای اشغال‌شده به‌عنوان برآورد اندازه فایل استفاده می‌شود. فایل‌های مخفی مدیریت‌شده توسط اندروید نیز ممکن است در نظر گرفته شوند. سایر مکان‌های غیرقابل‌خواندن نامشخص باقی می‌مانند.</string>
+    <string name="explorer_sizes_estimate_coverage">اندازه Android/data قابل برآورد نبود زیرا سایر بخش‌های حافظه به‌طور کامل اندازه‌گیری نشدند.</string>
+    <string name="explorer_sizes_estimate_unavailable">آمار حافظه اندروید در دسترس نبود. اندازه‌های اندازه‌گیری‌شده همچنان نمایش داده می‌شوند.</string>
+    <string name="explorer_sizes_estimate_inconsistent">مجموع حافظه اندروید با نتیجه اسکن مطابقت نداشت. اندازه‌های اندازه‌گیری‌شده همچنان نمایش داده می‌شوند.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">انتخاب پوشه</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">انتخاب پوشه‌ها</item>
+        <item quantity="one">انتخاب پوشه (%d)</item>
+        <item quantity="other">انتخاب پوشه‌ها (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">انتخاب فایل</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">انتخاب فایل‌ها</item>
+        <item quantity="one">انتخاب فایل (%d)</item>
+        <item quantity="other">انتخاب فایل‌ها (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">انتخاب موارد</item>
+        <item quantity="one">انتخاب مورد (%d)</item>
+        <item quantity="other">انتخاب موارد (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">انتخاب این پوشه</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">انتخاب %d</item>
+        <item quantity="other">انتخاب %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">ذخیره فایل</string>
+    <string name="explorer_picker_save_here_action">ذخیره اینجا</string>
+    <string name="explorer_picker_save_as_filename_label">نام فایل</string>
+    <string name="explorer_picker_save_as_filename_hint">نام فایل را وارد کنید</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">تازه‌سازی</string>
+    <string name="explorer_action_calculate_sizes">محاسبه اندازه‌ها</string>
+    <string name="explorer_action_sort">مرتب‌سازی</string>
+    <string name="explorer_action_filter">فیلتر</string>
+    <string name="explorer_action_view">چیدمان</string>
+    <string name="explorer_action_create">ایجاد</string>
+    <string name="explorer_action_rename">تغییر نام</string>
+    <string name="explorer_action_copy">کپی</string>
+    <string name="explorer_action_cut">برش</string>
+    <string name="explorer_action_delete">حذف</string>
+    <string name="explorer_action_select_all">انتخاب همه</string>
+    <string name="explorer_action_deselect_all">لغو انتخاب همه</string>
+    <string name="explorer_action_compress">فشرده‌سازی</string>
+    <string name="explorer_action_extract">استخراج</string>
+    <string name="explorer_action_add_location">افزودن مکان</string>
+    <string name="explorer_action_info">اطلاعات</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">اطلاعات</string>
+    <string name="explorer_info_name_label">نام</string>
+    <string name="explorer_info_path_label">مسیر</string>
+    <string name="explorer_info_type_label">نوع</string>
+    <string name="explorer_info_type_file">فایل</string>
+    <string name="explorer_info_type_directory">پوشه</string>
+    <string name="explorer_info_size_label">اندازه</string>
+    <string name="explorer_info_modified_label">تغییر یافته</string>
+    <string name="explorer_info_created_label">ایجاد شده</string>
+    <string name="explorer_info_permissions_label">مجوزها</string>
+    <string name="explorer_info_owner_label">مالک</string>
+    <string name="explorer_info_child_count_label">موارد</string>
+    <string name="explorer_info_symlink_target_label">هدف</string>
+    <string name="explorer_info_symlink_status_label">وضعیت</string>
+    <string name="explorer_info_symlink_broken">پیوند خراب</string>
+    <string name="explorer_info_unknown">نامشخص</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">حذف‌شده</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">مجوزها</string>
+    <string name="explorer_info_saf_granted_label">اعطاشده</string>
+    <string name="explorer_info_saf_permission_read">خواندن</string>
+    <string name="explorer_info_saf_permission_write">نوشتن</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">سرور</string>
+    <string name="explorer_info_network_port_label">پورت</string>
+    <string name="explorer_info_network_share_label">اشتراک</string>
+    <string name="explorer_info_network_folder_label">پوشه</string>
+    <string name="explorer_info_network_address_label">نشانی</string>
+    <string name="explorer_info_network_status_label">وضعیت</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">ورود</string>
+    <string name="explorer_info_network_domain_label">دامنه</string>
+    <string name="explorer_info_network_password_label">گذرواژه</string>
+    <string name="explorer_info_network_password_show_action">نمایش گذرواژه</string>
+    <string name="explorer_info_network_password_hide_action">پنهان کردن گذرواژه</string>
+    <string name="explorer_info_network_password_missing">موجود نیست، دوباره وارد شوید</string>
+    <string name="explorer_info_network_password_locked">ذخیره شده است، اما این دستگاه نمی‌تواند آن را باز کند</string>
+    <string name="explorer_info_network_added_label">افزوده‌شده</string>
+    <string name="explorer_info_network_updated_label">به‌روزرسانی‌شده</string>
+    <string name="explorer_info_network_last_seen_label">آخرین مشاهده</string>
+    <string name="explorer_info_network_last_seen_never">هرگز</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">انتخاب‌شده</string>
+    <string name="explorer_info_files_label">فایل‌ها</string>
+    <string name="explorer_info_directories_label">پوشه‌ها</string>
+    <string name="explorer_info_total_size_label">اندازه کل</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">مکان‌ها</string>
+    <string name="explorer_info_shortcuts_label">میان‌برها</string>
+    <string name="explorer_info_total_capacity_label">ظرفیت کل</string>
+    <string name="explorer_info_used_space_label">فضای استفاده‌شده</string>
+    <string name="explorer_info_free_space_label">فضای آزاد</string>
+    <string name="explorer_info_usage_label">میزان استفاده</string>
+    <string name="explorer_info_device_storage_total_label">حافظه دستگاه</string>
+    <string name="explorer_info_device_storage_used_label">استفاده‌شده</string>
+    <string name="explorer_info_device_storage_free_label">آزاد</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">خانه</string>
+    <string name="explorer_breadcrumb_set_as_home_action">تنظیم به‌عنوان خانه</string>
+    <string name="explorer_breadcrumb_copy_path_action">کپی مسیر</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">مسیر در کلیپ‌بورد کپی شد</string>
+    <string name="explorer_navigation_device">دستگاه</string>
+    <string name="explorer_navigation_network">شبکه</string>
+    <string name="explorer_navigation_recent">اخیر</string>
+    <string name="explorer_navigation_recent_desc">فایل‌هایی که به‌تازگی در این دستگاه ظاهر شده‌اند</string>
+    <string name="explorer_navigation_trash">سطل زباله</string>
+    <string name="explorer_navigation_trash_desc">بازیابی فایل‌های حذف‌شده</string>
+    <string name="explorer_navigation_trash_nested_desc">داخل پوشه حذف‌شده</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">موردی حذف نشده است</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d مورد</item>
+        <item quantity="other">%d مورد</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">بازیابی</string>
+    <string name="explorer_trash_restore_selected_action">بازیابی موارد انتخاب‌شده</string>
+    <string name="explorer_trash_delete_permanently_action">حذف دائمی</string>
+    <string name="explorer_trash_delete_selected_action">حذف موارد انتخاب‌شده</string>
+    <string name="explorer_trash_empty_trash_action">خالی کردن سطل زباله</string>
+    <string name="explorer_trash_empty_confirm">سطل زباله خالی شود؟</string>
+    <string name="explorer_trash_empty_message">همه موارد داخل سطل زباله برای همیشه حذف خواهند شد. این کار قابل بازگشت نیست.</string>
+    <string name="explorer_trash_empty_confirm_action">خالی کردن سطل زباله</string>
+    <string name="explorer_trash_restore_desc">بازیابی به مکان اصلی</string>
+    <string name="explorer_trash_item_unavailable">مورد در دسترس نیست</string>
+    <string name="explorer_trash_delete_warning">این کار قابل بازگشت نیست</string>
+    <string name="explorer_trash_disabled_warning">سطل زباله غیرفعال است</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">در حال بارگذاری محتوای پوشه حذف‌شده…</string>
+    <string name="explorer_trash_nested_restore_action">بازیابی به مکان اصلی</string>
+    <string name="explorer_trash_nested_delete_action">حذف دائمی</string>
+    <string name="explorer_trash_nested_restore_conflict">فایلی با همین نام در مکان اصلی وجود دارد</string>
+    <string name="explorer_trash_nested_parent_missing">مورد والد دیگر در سطل زباله وجود ندارد</string>
+    <string name="explorer_trash_nested_path_missing">مسیر دیگر وجود ندارد</string>
+    <string name="explorer_trash_error_items_not_found">موارد در سطل زباله یافت نشدند</string>
+    <string name="explorer_trash_error_restore_failed">بازیابی موارد ناموفق بود</string>
+    <string name="explorer_trash_error_delete_failed">حذف موارد ناموفق بود</string>
+    <string name="explorer_trash_nested_error_restore_failed">بازیابی %1$s ناموفق بود</string>
+    <string name="explorer_trash_nested_error_delete_failed">حذف %1$s ناموفق بود</string>
+
+    <string name="explorer_navigation_root">پوشه ریشه</string>
+    <string name="explorer_navigation_rom">رام سیستم</string>
+    <string name="explorer_navigation_internal_storage">حافظه داخلی عمومی</string>
+    <string name="explorer_navigation_external_storage">حافظه خارجی عمومی</string>
+
+    <string name="explorer_loader_progress_directory_loading">در حال مرور %s</string>
+    <string name="explorer_loader_progress_directory_permissions">در حال بررسی مجوزها</string>
+    <string name="explorer_loader_progress_directory_filesystem">در حال دریافت اطلاعات فایل‌سیستم</string>
+    <string name="explorer_loader_progress_directory_content">در حال بارگذاری محتوای پوشه</string>
+    <string name="explorer_loader_progress_directory_content_details">در حال بارگذاری جزئیات محتوا</string>
+    <string name="explorer_loader_progress_directory_content_extended">در حال بارگذاری جزئیات گسترده محتوا</string>
+
+    <string name="explorer_loader_progress_device_loading">در حال بارگذاری دستگاه</string>
+    <string name="explorer_loader_progress_device_locations">در حال بارگذاری مکان‌های حافظه</string>
+
+    <string name="explorer_loader_progress_network_loading">در حال بارگذاری حافظه شبکه</string>
+
+    <string name="explorer_loader_progress_home_loading">در حال بارگذاری خانه</string>
+    <string name="explorer_loader_progress_trash_loading">در حال بارگذاری سطل زباله…</string>
+    <string name="explorer_loader_progress_recent_loading">در حال بارگذاری فایل‌های اخیر…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d میان‌بر</item>
+        <item quantity="other">%d میان‌بر</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d مکان</item>
+        <item quantity="other">%d مکان</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d مخفی</item>
+        <item quantity="other">%d مخفی</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s آزاد</string>
+    <string name="explorer_infobar_loading">در حال بارگذاری…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">ایجاد مورد جدید</string>
+    <string name="explorer_dialog_rename_title">تغییر نام</string>
+    <string name="explorer_dialog_name_label">نام</string>
+    <string name="explorer_dialog_type_label">نوع</string>
+    <string name="explorer_dialog_type_folder">پوشه</string>
+    <string name="explorer_dialog_type_file">فایل</string>
+    <string name="explorer_dialog_create_text_file_title">ایجاد فایل از متن</string>
+    <string name="explorer_dialog_create_text_file_preview_label">پیش‌نمایش</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d نویسه</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">افزودن مکان حافظه</string>
+    <string name="explorer_add_device_storage_desc">از چارچوب دسترسی به حافظه (SAF) برای اعطای دسترسی به Butler به مکان‌های حافظه دیگر مانند درایوهای USB، پوشه‌های مجازی برنامه‌ها و موارد دیگر استفاده کنید.</string>
+    <string name="explorer_add_device_storage_continue">ادامه</string>
+    <string name="explorer_add_device_storage_cancel">لغو</string>
+    <string name="explorer_add_device_storage_suggestions_title">برنامه‌های دارای حافظه</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">پوشه این برنامه را باز می‌کند</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">حذف مکان</string>
+    <string name="explorer_device_remove_confirmation_title">مکان حافظه حذف شود؟</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">%1$d مکان حافظه حذف شود؟</item>
+        <item quantity="other">%1$d مکان حافظه حذف شوند؟</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">این کار دسترسی Butler به این مکان را لغو می‌کند. فایل‌های شما حذف نخواهند شد.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d مکان شبکه</item>
+        <item quantity="other">%d مکان شبکه</item>
+    </plurals>
+    <string name="explorer_network_storage_label">شبکه</string>
+    <string name="explorer_network_add_location_action">افزودن حافظه شبکه</string>
+    <string name="explorer_network_edit_location_action">ویرایش حافظه شبکه</string>
+    <string name="explorer_network_remove_location_action">حذف حافظه شبکه</string>
+    <string name="explorer_network_sign_in_required_label">نیاز به ورود</string>
+    <string name="explorer_network_status_checking_label">در حال بررسی…</string>
+    <string name="explorer_network_status_available_label">در دسترس</string>
+    <string name="explorer_network_status_unavailable_label">در دسترس نیست</string>
+    <string name="explorer_network_status_unavailable_since_format">در دسترس نیست (%1$s)</string>
+    <string name="explorer_network_empty_title">هنوز حافظه شبکه‌ای وجود ندارد</string>
+    <string name="explorer_network_empty_caption">برای مرور در اینجا، یک اشتراک ویندوز یا پوشه NAS اضافه کنید.</string>
+    <string name="explorer_network_remove_confirmation_title">حافظه شبکه حذف شود؟</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">%1$d حافظه شبکه حذف شود؟</item>
+        <item quantity="other">%1$d حافظه شبکه حذف شوند؟</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler جزئیات سرور و گذرواژه ذخیره‌شده را فراموش می‌کند. چیزی در سرور حذف نمی‌شود.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">افزودن حافظه شبکه</string>
+    <string name="explorer_network_form_edit_title">ویرایش حافظه شبکه</string>
+    <string name="explorer_network_form_label_label">نام (اختیاری)</string>
+    <string name="explorer_network_form_host_label">نشانی سرور</string>
+    <string name="explorer_network_form_host_hint">nas.local یا 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">پورت</string>
+    <string name="explorer_network_form_share_label">اشتراک</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">پوشه داخل اشتراک (اختیاری)</string>
+    <string name="explorer_network_form_auth_guest">مهمان</string>
+    <string name="explorer_network_form_auth_password">نام کاربری و گذرواژه</string>
+    <string name="explorer_network_form_username_label">نام کاربری</string>
+    <string name="explorer_network_form_domain_label">دامنه (اختیاری)</string>
+    <string name="explorer_network_form_password_label">گذرواژه</string>
+    <string name="explorer_network_form_password_kept_hint">برای حفظ گذرواژه ذخیره‌شده، خالی بگذارید</string>
+    <string name="explorer_network_form_remember_label">به خاطر سپردن گذرواژه</string>
+    <string name="explorer_network_form_remember_hint">فقط به‌صورت رمزگذاری‌شده روی این دستگاه ذخیره می‌شود</string>
+    <string name="explorer_network_form_test_and_save_action">آزمایش و ذخیره</string>
+    <string name="explorer_network_form_testing">در حال اتصال…</string>
+    <string name="explorer_network_form_error_host_blank">نشانی سرور را وارد کنید</string>
+    <string name="explorer_network_form_error_host_not_bare">فقط نشانی سرور را وارد کنید، بدون طرح یا مسیر</string>
+    <string name="explorer_network_form_error_host_malformed">این نشانی سرور معتبر نیست</string>
+    <string name="explorer_network_form_error_port">پورتی بین 1 و 65535 وارد کنید</string>
+    <string name="explorer_network_form_error_share_blank">نام اشتراک را وارد کنید</string>
+    <string name="explorer_network_form_error_share_not_single">فقط نام اشتراک را وارد کنید، زیرپوشه‌ها را در پایین قرار دهید</string>
+    <string name="explorer_network_form_error_share_malformed">این نام اشتراک معتبر نیست</string>
+    <string name="explorer_network_form_error_base_path">این مسیر پوشه قابل استفاده نیست</string>
+    <string name="explorer_network_form_error_username_blank">نام کاربری را وارد کنید</string>
+    <string name="explorer_network_form_error_password_required">برای تغییر نام کاربری یا دامنه، گذرواژه را دوباره وارد کنید</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">نام‌گذاری مکان</string>
+    <string name="explorer_location_name_label">نام مکان</string>
+    <string name="explorer_location_name_hint">برای استفاده از نام پیش‌فرض، خالی بگذارید</string>
+    <string name="explorer_location_rename_action">تغییر نام مکان</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">افزوده‌شده در روز گذشته</item>
+        <item quantity="other">افزوده‌شده در %d روز گذشته</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">چیز جدیدی اینجا نیست</string>
+    <string name="explorer_recent_empty_message">فایل‌هایی که در این دستگاه ظاهر می‌شوند اینجا نشان داده می‌شوند</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">این پوشه خالی است</string>
+    <string name="explorer_empty_search_title">نتیجه‌ای یافت نشد</string>
+    <string name="explorer_empty_search_caption">عبارت جستجوی دیگری را امتحان کنید</string>
+    <string name="explorer_empty_folder_label">پوشه خالی</string>
+    <string name="explorer_empty_filtered_title">موردی مطابقت ندارد</string>
+    <string name="explorer_empty_filtered_caption">فیلترهای خود را تنظیم کنید</string>
+    <string name="explorer_empty_hidden_title">فقط موارد مخفی اینجا هستند</string>
+    <string name="explorer_empty_hidden_caption">این زبانه مواردی را که نامشان با نقطه شروع می‌شود پنهان می‌کند</string>
+    <string name="explorer_empty_show_hidden_action">نمایش موارد مخفی</string>
+    <string name="explorer_empty_hidden_or_filtered_title">چیزی برای نمایش باقی نمانده است</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">موارد مخفی و فیلترهای شما هرکدام بخشی از این پوشه را مستثنی می‌کنند</string>
+    <string name="explorer_empty_clear_filters_action">پاک کردن فیلترها</string>
+    <string name="explorer_empty_hidden_and_filtered_title">موارد مخفی و فیلترها همه‌چیز را در اینجا مستثنی می‌کنند</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">نمایش موارد مخفی و پاک کردن فیلترهای این زبانه، آن‌ها را بازمی‌گرداند</string>
+    <string name="explorer_empty_show_all_action">نمایش همه موارد</string>
+    <string name="explorer_path_not_found_title">این پوشه دیگر وجود ندارد</string>
+    <string name="explorer_path_not_found_caption">حذف شده، تغییر نام یافته یا به جای دیگری منتقل شده است.</string>
+    <string name="explorer_path_not_found_back_action">بازگشت</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">در حال بارگذاری…</string>
+    <string name="explorer_file_peek_loading_text">در حال بارگذاری…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">چیزی برای دیدن نیست… رد شوید 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">این پوشه رژیم گرفته است</string>
+    <string name="explorer_empty_folder_caption_3">حتی فایل‌ها هم امروز زود رفتند خانه</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe از کار افتاده است</string>
+    <string name="explorer_empty_folder_caption_5">فایل‌ها دارند قایم‌موشک بازی می‌کنند</string>
+    <string name="explorer_empty_folder_caption_6">404: فایلی یافت نشد</string>
+    <string name="explorer_empty_folder_caption_7">این پوشه به کسی اعتماد ندارد</string>
+    <string name="explorer_empty_folder_caption_8">فایل‌ها بدون خبر رفتند تعطیلات</string>
+    <string name="explorer_empty_folder_caption_9">خالی مثل روح من… ولی منظم‌تر</string>
+    <string name="explorer_empty_folder_caption_10">معادل دیجیتالی یک بیابان خالی</string>
+    <string name="explorer_empty_folder_caption_11">فایل‌ها فاصله‌گذاری اجتماعی رعایت می‌کنند</string>
+    <string name="explorer_empty_folder_caption_12">این پوشه مینیمالیسم را تمرین می‌کند</string>
+    <string name="explorer_empty_folder_caption_13">یکی یادش رفته به فایل‌ها غذا بدهد</string>
+    <string name="explorer_empty_folder_caption_14">فایل‌ها ساختمان را ترک کرده‌اند</string>
+    <string name="explorer_empty_folder_caption_15">خالی‌تر از وعده یک سیاستمدار</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">مرتب‌سازی بر اساس</string>
+    <string name="explorer_sort_mode_name_label">نام</string>
+    <string name="explorer_sort_mode_size_label">اندازه</string>
+    <string name="explorer_sort_mode_modified_label">تاریخ تغییر</string>
+    <string name="explorer_sort_mode_created_label">تاریخ ایجاد</string>
+    <string name="explorer_sort_descending_label">ترتیب نزولی</string>
+    <string name="explorer_sort_scope_label">اعمال در</string>
+    <string name="explorer_sort_scope_all_folders">همه پوشه‌ها</string>
+    <string name="explorer_sort_scope_this_folder">این پوشه</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">این پوشه و زیرپوشه‌ها</string>
+    <string name="explorer_sort_scope_use_default_here">استفاده از پیش‌فرض اینجا</string>
+    <string name="explorer_sort_only_this_tab_label">فقط برای این زبانه</string>
+    <string name="explorer_sort_inherited_notice">مرتب‌شده بر اساس قانونی که برای %1$s ذخیره شده است</string>
+    <string name="explorer_sort_suppressed_notice">این قانون ذخیره‌شده برای %1$s را نادیده می‌گیرد</string>
+    <string name="explorer_sort_tab_overrides_default_notice">این زبانه از ترتیب مرتب‌سازی پیش‌فرض خودش استفاده می‌کند</string>
+    <string name="explorer_sort_tab_overrides_clear_action">پاک کردن</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">اندازه پوشه‌ها</string>
+    <string name="explorer_sizes_sheet_label_calculated">محاسبه‌شده</string>
+    <string name="explorer_sizes_sheet_label_folders">پوشه‌ها</string>
+    <string name="explorer_sizes_sheet_label_unreadable">مکان‌های غیرقابل‌خواندن</string>
+    <string name="explorer_sizes_sheet_problems_more">%1$d مورد دیگر فهرست نشده</string>
+    <string name="explorer_sizes_sheet_recalculate">محاسبه مجدد</string>
+    <string name="explorer_sizes_sheet_discard">دور ریختن اندازه‌ها</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">نحوه چیدمان موارد و میزان جزئیاتی که نشان می‌دهند</string>
+    <string name="explorer_view_mode_list_label">فهرست</string>
+    <string name="explorer_view_mode_grid_label">شبکه</string>
+    <string name="explorer_view_density_compact_label">فشرده</string>
+    <string name="explorer_view_density_comfortable_label">راحت</string>
+    <string name="explorer_view_density_detailed_label">جزئی</string>
+    <string name="explorer_view_show_hidden_label">نمایش فایل‌های مخفی</string>
+    <string name="explorer_view_set_default_action">تنظیم به‌عنوان پیش‌فرض</string>
+    <string name="explorer_view_detail_created_label">ایجاد شده</string>
+    <string name="explorer_view_detail_modified_label">تغییر یافته</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">قوانین مرتب‌سازی پوشه‌ها</string>
+    <string name="explorer_settings_folder_sort_rules_desc">تنظیمات مرتب‌سازی که برای پوشه‌های جداگانه ذخیره کرده‌اید</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">قوانین مرتب‌سازی پوشه‌ها پاک شوند؟</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">همه پوشه‌ها به ترتیب مرتب‌سازی پیش‌فرض بازمی‌گردند. زبانه‌هایی که ترتیب اختصاصی خود را دارند آن را حفظ می‌کنند. این کار قابل بازگشت نیست.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">پاک کردن همه</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">نوع فایل</string>
+    <string name="explorer_filter_type_all">همه</string>
+    <string name="explorer_filter_type_files">فقط فایل‌ها</string>
+    <string name="explorer_filter_type_folders">فقط پوشه‌ها</string>
+    <string name="explorer_filter_include_label">الگوی شامل</string>
+    <string name="explorer_filter_include_placeholder_simple">مثلاً vacation، report، IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">مثلاً .*\\.txt$، ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">الگوی مستثنی</string>
+    <string name="explorer_filter_exclude_placeholder_simple">مثلاً tmp، cache، old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">مثلاً ^\\.، .*\\.tmp$، .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 الگوهای regex را در تنظیمات فعال کنید</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">نیاز به مجوز</string>
+    <string name="explorer_permission_generic_description">Butler برای مرور این مکان به مجوز بیشتری نیاز دارد.</string>
+    <string name="explorer_permission_setup_action">باز کردن تنظیم</string>
+    <string name="explorer_grant_access_action">اعطای دسترسی</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">کنش‌ها</string>
+    <string name="explorer_file_info_type_label">نوع</string>
+    <string name="explorer_file_info_size_label">اندازه</string>
+    <string name="explorer_file_info_modified_label">تغییر یافته</string>
+    <string name="explorer_file_action_install">نصب</string>
+    <string name="explorer_file_action_install_subtitle">این برنامه را روی دستگاه خود نصب کنید</string>
+    <string name="explorer_file_action_open">باز کردن</string>
+    <string name="explorer_file_action_open_subtitle">اینجا مشاهده کنید، بازگشت شما را به این پوشه برمی‌گرداند</string>
+    <string name="explorer_file_action_open_in_tab">باز کردن در زبانه جدید</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">در Butler به‌عنوان زبانه‌ای جداگانه مشاهده کنید</string>
+    <string name="explorer_file_action_open_in_editor">باز کردن در ویرایشگر</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">در زبانه جدید ویرایش کنید</string>
+    <string name="explorer_file_action_open_with">باز کردن با</string>
+    <string name="explorer_file_action_open_with_subtitle">برنامه‌ای خارجی برای باز کردن انتخاب کنید</string>
+    <string name="explorer_file_action_share">اشتراک‌گذاری</string>
+    <string name="explorer_file_action_share_subtitle">با استفاده از برنامه‌های نصب‌شده به اشتراک بگذارید</string>
+    <string name="explorer_file_action_copy">کپی</string>
+    <string name="explorer_file_action_copy_subtitle">برای چسباندن، در کلیپ‌بورد کپی کنید</string>
+    <string name="explorer_file_action_cut">برش</string>
+    <string name="explorer_file_action_cut_subtitle">برای چسباندن، به کلیپ‌بورد منتقل کنید</string>
+    <string name="explorer_file_action_rename">تغییر نام</string>
+    <string name="explorer_file_action_rename_subtitle">نام فایل را تغییر دهید</string>
+    <string name="explorer_file_action_delete">حذف</string>
+    <string name="explorer_file_action_delete_subtitle">این فایل را برای همیشه حذف کنید</string>
+    <string name="explorer_file_action_move_to_trash">انتقال به سطل زباله</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">فایل را به سطل زباله منتقل کنید</string>
+    <string name="explorer_file_action_properties">ویژگی‌ها</string>
+    <string name="explorer_file_action_properties_subtitle">اطلاعات کامل فایل را مشاهده کنید</string>
+    <string name="explorer_file_action_extract">استخراج</string>
+    <string name="explorer_file_action_extract_subtitle">محتوای بایگانی را در پوشه‌ای استخراج کنید</string>
+    <string name="explorer_file_action_show_in_folder">نمایش در پوشه</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">پوشه‌ای که این فایل در آن است را باز کنید</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">%d فایل ایجاد شد.</item>
+        <item quantity="other">%d فایل ایجاد شد.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">%d پوشه ایجاد شد.</item>
+        <item quantity="other">%d پوشه ایجاد شد.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">عملیات کپی</string>
+    <string name="explorer_operation_copy_description_single">کپی \"%1$s\" از \"%2$s\" به \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">کپی %1$d مورد به \"%2$s\".</item>
+        <item quantity="other">کپی %1$d مورد به \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%d فایل کپی شد.</item>
+        <item quantity="other">%d فایل کپی شد.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%d پوشه کپی شد.</item>
+        <item quantity="other">%d پوشه کپی شد.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">%s کپی شد.</item>
+        <item quantity="other">%s کپی شد.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">عملیات استخراج</string>
+    <string name="explorer_operation_extract_description">استخراج \"%1$s\" به \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">عملیات کپی محلی</string>
+    <string name="explorer_operation_download_copy_description">کپی \"%1$s\" به \"%2$s\" برای مرور محلی.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">%d فایل استخراج شد.</item>
+        <item quantity="other">%d فایل استخراج شد.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">%s استخراج شد.</item>
+        <item quantity="other">%s استخراج شد.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">عملیات فشرده‌سازی</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">فشرده‌سازی %1$d مورد در \"%2$s\".</item>
+        <item quantity="other">فشرده‌سازی %1$d مورد در \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">%d فایل فشرده شد.</item>
+        <item quantity="other">%d فایل فشرده شد.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">ایجاد بایگانی</string>
+    <string name="explorer_compress_dialog_name_label">نام بایگانی</string>
+    <string name="explorer_compress_dialog_format_label">قالب</string>
+    <string name="explorer_compress_dialog_format_zip_hint">روی هر دستگاهی باز می‌شود. می‌تواند با گذرواژه محافظت شود.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">برای تعداد زیاد فایل کوچک‌تر است. بدون محافظت با گذرواژه.</string>
+    <string name="explorer_compress_dialog_create_action">ایجاد</string>
+    <string name="explorer_compress_dialog_level_label">سطح فشرده‌سازی</string>
+    <string name="explorer_compress_dialog_level_fast">سریع</string>
+    <string name="explorer_compress_dialog_level_normal">معمولی</string>
+    <string name="explorer_compress_dialog_level_best">بهترین</string>
+    <string name="explorer_compress_dialog_password_label">گذرواژه (اختیاری)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">تأیید گذرواژه</string>
+    <string name="explorer_compress_dialog_password_mismatch">گذرواژه‌ها مطابقت ندارند</string>
+    <string name="explorer_compress_dialog_password_weak">گذرواژه ضعیف</string>
+    <string name="explorer_compress_dialog_password_notice">محتوای فایل‌ها رمزگذاری می‌شود، نام فایل‌ها خیر.</string>
+    <string name="explorer_compress_dialog_password_show">نمایش گذرواژه</string>
+    <string name="explorer_compress_dialog_password_hide">پنهان کردن گذرواژه</string>
+    <string name="explorer_compress_dialog_overwrite_title">بایگانی جایگزین شود؟</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" از قبل وجود دارد و جایگزین خواهد شد.</string>
+    <string name="explorer_compress_dialog_overwrite_action">جایگزینی</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">%1$d مورد رها شود؟</item>
+        <item quantity="other">%1$d مورد رها شوند؟</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">%1$d مورد در \"%2$s\" کپی یا منتقل شود؟</item>
+        <item quantity="other">%1$d مورد در \"%2$s\" کپی یا منتقل شوند؟</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">%1$d مورد در \"%2$s\" کپی شود؟</item>
+        <item quantity="other">%1$d مورد در \"%2$s\" کپی شوند؟</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">به سطل زباله منتقل شود؟</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">%1$d مورد به سطل زباله منتقل شود؟</item>
+        <item quantity="other">%1$d مورد به سطل زباله منتقل شوند؟</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">عملیات انتقال</string>
+    <string name="explorer_operation_move_description_single">انتقال \"%1$s\" از \"%2$s\" به \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">انتقال %1$d مورد به \"%2$s\".</item>
+        <item quantity="other">انتقال %1$d مورد به \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%d فایل منتقل شد.</item>
+        <item quantity="other">%d فایل منتقل شد.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%d پوشه منتقل شد.</item>
+        <item quantity="other">%d پوشه منتقل شد.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">%s منتقل شد.</item>
+        <item quantity="other">%s منتقل شد.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">ایجاد پوشه</string>
+    <string name="explorer_operation_create_description_directory">ایجاد پوشه \"%1$s\" در \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">ایجاد فایل</string>
+    <string name="explorer_operation_create_description_file">ایجاد فایل \"%1$s\" در \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">ایجاد فایل متنی</string>
+    <string name="explorer_operation_create_text_file_description">ایجاد \"%1$s\" از قطعه متن</string>
+    <string name="explorer_operation_calculate_sizes_title">محاسبه اندازه</string>
+    <string name="explorer_operation_calculate_sizes_description">محاسبه اندازه پوشه‌ها در \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$d مورد اسکن شد</item>
+        <item quantity="other">%1$d مورد اسکن شد</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">اندازه %1$d پوشه محاسبه شد.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">اندازه %1$d پوشه محاسبه شد، %2$d مکان قابل خواندن نبود.</item>
+        <item quantity="other">اندازه %1$d پوشه محاسبه شد، %2$d مکان قابل خواندن نبود.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">اندازه‌های پوشه \"%1$s\" دور ریخته شدند زیرا در حین محاسبه تغییر کرد.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">پیمایش ناموفق بود</string>
+    <string name="explorer_aborted_dialog_title">عملیات لغو شد</string>
+    <string name="explorer_aborted_dialog_message">بارگذاری پیش از نمایش هر چیزی لغو شد.</string>
+    <string name="explorer_archive_unbrowsable_title">این بایگانی در اینجا قابل مرور نیست</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" روی حافظه‌ای است که فقط از خواندن ترتیبی پشتیبانی می‌کند، اما مرور یک بایگانی به دسترسی تصادفی نیاز دارد. بایگانی را اینجا استخراج کنید یا یک کپی محلی برای مرور آن دانلود کنید.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">استخراج بایگانی</string>
+    <string name="explorer_archive_unbrowsable_download_action">دانلود کپی محلی</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (دسترسی ویژه)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (دسترسی ویژه)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">اندروید دسترسی به این پوشه را محدود می‌کند. برای اعطای دسترسی از انتخاب‌گر پوشه استفاده کنید.</string>
+    <string name="explorer_permission_multiple_options_description">می‌توانید با استفاده از انتخاب‌گر پوشه اندروید دسترسی بدهید یا Root/Shizuku را برای دسترسی سریع‌تر به همه پوشه‌های محدودشده تنظیم کنید.</string>
+    <string name="explorer_permission_setup_both_description">این پوشه به دسترسی بالاتر نیاز دارد. در بخش تنظیم، Root یا Shizuku را نصب و پیکربندی کنید.</string>
+    <string name="explorer_permission_setup_shizuku_description">این پوشه به دسترسی بالاتر از طریق Shizuku نیاز دارد. Shizuku Manager را نصب کنید و در بخش تنظیم پیکربندی کنید.</string>
+    <string name="explorer_permission_setup_root_description">این پوشه به دسترسی Root نیاز دارد. اگر دستگاه شما روت شده است، Root را در بخش تنظیم پیکربندی کنید.</string>
+
+    <string name="explorer_permission_option_picker_title">چارچوب دسترسی به حافظه (SAF)</string>
+    <string name="explorer_permission_option_picker_description">برای اعطای دسترسی به این پوشه از انتخاب‌گر پوشه اندروید استفاده کنید.</string>
+    <string name="explorer_permission_option_picker_action">باز کردن انتخاب‌گر SAF</string>
+
+    <string name="explorer_permission_option_setup_title">دسترسی کامل</string>
+    <string name="explorer_permission_option_setup_description">برای دسترسی سریع‌تر به همه پوشه‌های محدودشده، Root یا Shizuku را پیکربندی کنید.</string>
+    <string name="explorer_permission_option_setup_action">پیکربندی</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">دسترسی به حافظه</string>
+    <string name="explorer_permission_option_storage_description">به Butler اجازه دسترسی به فایل‌های حافظه دستگاه خود را بدهید.</string>
+    <string name="explorer_permission_option_storage_action">اعطای مجوز</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">باز کردن در زبانه‌های جدید</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">علاقه‌مندی‌ها</string>
+    <string name="explorer_action_add_to_favorites">افزودن به علاقه‌مندی‌ها</string>
+    <string name="explorer_action_remove_from_favorites">حذف از علاقه‌مندی‌ها</string>
+    <string name="explorer_favorites_select_action">انتخاب</string>
+    <string name="explorer_favorites_unavailable_subtitle">در دسترس نیست</string>
+    <string name="explorer_favorites_unavailable_toast">علاقه‌مندی در دسترس نیست</string>
+    <string name="explorer_favorites_added_message">%1$s به علاقه‌مندی‌ها افزوده شد</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">%1$d مورد به علاقه‌مندی‌ها افزوده شد</item>
+        <item quantity="other">%1$d مورد به علاقه‌مندی‌ها افزوده شد</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">%1$s از علاقه‌مندی‌ها حذف شد</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">%1$d مورد از علاقه‌مندی‌ها حذف شد</item>
+        <item quantity="other">%1$d مورد از علاقه‌مندی‌ها حذف شد</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">تغییر نام علاقه‌مندی</string>
+    <string name="explorer_favorites_rename_hint">نام علاقه‌مندی</string>
+    <string name="explorer_favorites_rename_description">فقط ورودی داخل علاقه‌مندی‌های شما تغییر نام می‌دهد، خود پوشه نام خود را حفظ می‌کند.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">این زبانه ترتیب مرتب‌سازی را در %1$d پوشه نادیده می‌گیرد</item>
+        <item quantity="other">این زبانه ترتیب مرتب‌سازی را در %1$d پوشه نادیده می‌گیرد</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d پوشه</item>
+        <item quantity="other">%1$d پوشه</item>
+    </plurals>
+</resources>

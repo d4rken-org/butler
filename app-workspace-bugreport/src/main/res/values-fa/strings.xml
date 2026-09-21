@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">گزارش‌های خرابی</string>
+    <string name="bugreport_workspace_subtitle">گزارش‌های خرابی و خطا</string>
+
+    <string name="bugreport_empty_title">بدون گزارش</string>
+    <string name="bugreport_empty_subtitle">گزارش‌های خرابی و خطا در اینجا ظاهر می‌شوند. هیچ‌چیز به‌صورت خودکار ارسال نمی‌شود.</string>
+
+    <string name="bugreport_type_crash">خرابی</string>
+    <string name="bugreport_type_report">گزارش</string>
+    <string name="bugreport_type_recording">ضبط</string>
+
+    <string name="bugreport_record_action">ضبط گزارش اشکال‌زدایی</string>
+    <string name="bugreport_record_short_action">ضبط</string>
+    <string name="bugreport_stop_action">توقف ضبط</string>
+    <string name="bugreport_stop_short_action">توقف</string>
+    <string name="bugreport_recording_ongoing_label">ضبط در حال انجام…</string>
+
+    <string name="bugreport_recording_short_title">ضبط بسیار کوتاه است</string>
+    <string name="bugreport_recording_short_message">این ضبط تنها چند ثانیه‌ای است و ممکن است اطلاعات مفیدی نداشته باشد. به‌هرحال متوقف کنید؟</string>
+    <string name="bugreport_recording_short_keep_action">ادامه ضبط</string>
+
+    <string name="bugreport_rename_action">تغییر نام</string>
+    <string name="bugreport_rename_dialog_title">نام‌گذاری این گزارش</string>
+    <string name="bugreport_rename_name_label">نام</string>
+    <string name="bugreport_rename_name_hint">در فهرست و نام فایل اشتراک‌گذاری‌شده نمایش داده می‌شود</string>
+
+    <string name="bugreport_share_action">اشتراک‌گذاری</string>
+    <string name="bugreport_delete_action">حذف</string>
+    <string name="bugreport_delete_all_action">حذف همه</string>
+    <string name="bugreport_delete_all_confirm_title">همه‌ی گزارش‌های اشکال‌زدایی حذف شوند؟</string>
+    <string name="bugreport_delete_all_confirm_message">این کار تمام جلسات گزارش اشکال‌زدایی ضبط‌شده را به‌صورت دائمی حذف خواهد کرد. ضبط‌های فعال متأثر نخواهند شد.</string>
+    <string name="bugreport_delete_confirm_title">این گزارش حذف شود؟</string>
+    <string name="bugreport_delete_confirm_message">این کار این گزارش و گزارش آن را به‌صورت دائمی حذف خواهد کرد.</string>
+    <string name="bugreport_cancel_action">لغو</string>
+
+    <string name="bugreport_share_chooser_title">اشتراک‌گذاری گزارش خرابی</string>
+    <string name="bugreport_share_consent_title">گزارش اشتراک‌گذاری شود؟</string>
+    <string name="bugreport_share_consent_message">این گزارش شامل گزارش‌های برنامه است که می‌تواند نام‌های فایل، مسیرها و اطلاعات برنامه و دستگاه را شامل شود. تنها با افرادی که به‌آن‌ها اعتماد دارید اشتراک‌گذاری کنید.</string>
+
+    <string name="bugreport_detail_back_action">بازگشت</string>
+    <string name="bugreport_detail_section_error">خطا</string>
+    <string name="bugreport_detail_section_log">آخرین گزارش</string>
+    <string name="bugreport_detail_field_type">نوع</string>
+    <string name="bugreport_detail_field_time">زمان</string>
+    <string name="bugreport_detail_field_app_version">نسخه برنامه</string>
+    <string name="bugreport_detail_field_device">دستگاه</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">نوع خطا</string>
+    <string name="bugreport_detail_field_thread">رشته</string>
+    <string name="bugreport_detail_log_truncated">آخرین %1$d از %2$d خط</string>
+    <string name="bugreport_detail_log_count">%1$d خط</string>
+    <string name="bugreport_detail_log_empty">گزارشی ضبط نشده</string>
+    <string name="bugreport_detail_log_error">نتوانست گزارش را بارگذاری کند</string>
+</resources>

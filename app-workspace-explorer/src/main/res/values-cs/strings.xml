@@ -1,0 +1,754 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Průzkumník</string>
+    <string name="explorer_subtitle">Procházet soubory a složky</string>
+    <string name="explorer_settings_title">Nastavení Průzkumníka</string>
+    <string name="explorer_settings_file_display">Zobrazení souborů</string>
+    <string name="explorer_settings_filter_regex_title">Pokročilé zástupné vzory</string>
+    <string name="explorer_settings_filter_regex_desc">Použít regulární výrazy ve filtrech pro zahrnutí/vyloučení.</string>
+    <string name="explorer_settings_navigation">Navigace</string>
+    <string name="explorer_settings_back_button_title">Navigace tlačítkem zpět</string>
+    <string name="explorer_settings_back_button_desc">Procházet historii tlačítkem nebo gestem zpět.</string>
+    <string name="explorer_settings_trash_category">Koš</string>
+    <string name="explorer_settings_trash_enabled_title">Povolit koš</string>
+    <string name="explorer_settings_trash_enabled_desc">Přesunout smazané soubory do koše místo jejich trvalého smazání</string>
+    <string name="explorer_settings_trash_auto_delete_title">Automaticky smazat po</string>
+    <string name="explorer_settings_trash_auto_delete_desc">Automaticky smazat položky starší než %d dní</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d dní</string>
+    <string name="explorer_settings_trash_max_size_title">Maximální velikost na úložiště</string>
+    <string name="explorer_settings_trash_max_size_desc">Maximálně %d MB na umístění úložiště</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Doba automatického smazání</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Maximální velikost na úložiště</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Povolit koš?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Na rozdíl od stolních systémů nemá Android vestavěný koš. Butler ho poskytuje pomocí své mezipaměti.\n\nMějte na paměti:\n• Ukazatel úložiště vašeho zařízení neodrazí uvolněné místo, dokud nejsou položky trvale smazány\n• Pokud zařízení dochází úložiště, Android může vymazat mezipaměti aplikací a tím odstranit položky z koše</string>
+    <string name="explorer_settings_trash_enable_action">Povolit</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">Soubor</string>
+    <string name="explorer_file_symlink_content_desc">Symbolický odkaz</string>
+    <string name="explorer_file_folder_content_desc">Složka</string>
+    <string name="explorer_file_peek_content_desc">Načítání informací o souboru</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Zkratka</string>
+    <string name="explorer_file_storage_local_label">Místní</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Přístup jen pro čtení</string>
+    <string name="explorer_file_storage_saf_write_only_label">Přístup jen pro zápis</string>
+    <string name="explorer_file_storage_saf_no_access_label">Bez přístupu</string>
+    <string name="explorer_file_storage_saf_uri_label">URI stromu SAF</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s celkem • %3$s volných</string>
+    <string name="explorer_file_broken_link_label">Nefunkční odkaz</string>
+    <string name="explorer_file_items_count">%1$d položek</string>
+    <string name="explorer_file_empty">Prázdné</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · částečné</string>
+    <string name="explorer_sizes_estimate_description">Odhadnuto z celkových hodnot úložiště systému Android. U nečitelných souborů se jako odhad velikosti souboru použije obsazené úložiště. Mohou být zahrnuty i skryté soubory spravované systémem Android. Ostatní nečitelná umístění zůstávají neznámá.</string>
+    <string name="explorer_sizes_estimate_coverage">Android/data nebylo možné odhadnout, protože ostatní části úložiště se nepodařilo změřit celé.</string>
+    <string name="explorer_sizes_estimate_unavailable">Statistiky úložiště systému Android nebyly dostupné. Naměřené velikosti se přesto zobrazují.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Celkové hodnoty úložiště systému Android neodpovídaly skenování. Naměřené velikosti se přesto zobrazují.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Vybrat složku</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">Vybrat složky</item>
+        <item quantity="one">Vybrat složku (%d)</item>
+        <item quantity="few">Vybrat složky (%d)</item>
+        <item quantity="many">Vybrat složky (%d)</item>
+        <item quantity="other">Vybrat složek (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Vybrat soubor</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">Vybrat soubory</item>
+        <item quantity="one">Vybrat soubor (%d)</item>
+        <item quantity="few">Vybrat soubory (%d)</item>
+        <item quantity="many">Vybrat souboru (%d)</item>
+        <item quantity="other">Vybrat souborů (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">Vybrat položky</item>
+        <item quantity="one">Vybrat položku (%d)</item>
+        <item quantity="few">Vybrat položky (%d)</item>
+        <item quantity="many">Vybrat položky (%d)</item>
+        <item quantity="other">Vybrat položek (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Vybrat tuto složku</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">Vybrat %d</item>
+        <item quantity="few">Vybrat %d</item>
+        <item quantity="many">Vybrat %d</item>
+        <item quantity="other">Vybrat %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Uložit soubor</string>
+    <string name="explorer_picker_save_here_action">Uložit sem</string>
+    <string name="explorer_picker_save_as_filename_label">Název souboru</string>
+    <string name="explorer_picker_save_as_filename_hint">Zadejte název souboru</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Obnovit</string>
+    <string name="explorer_action_calculate_sizes">Vypočítat velikosti</string>
+    <string name="explorer_action_sort">Seřadit</string>
+    <string name="explorer_action_filter">Filtrovat</string>
+    <string name="explorer_action_view">Rozložení</string>
+    <string name="explorer_action_create">Vytvořit</string>
+    <string name="explorer_action_rename">Přejmenovat</string>
+    <string name="explorer_action_copy">Kopírovat</string>
+    <string name="explorer_action_cut">Vyjmout</string>
+    <string name="explorer_action_delete">Smazat</string>
+    <string name="explorer_action_select_all">Vybrat vše</string>
+    <string name="explorer_action_deselect_all">Zrušit výběr</string>
+    <string name="explorer_action_compress">Komprimovat</string>
+    <string name="explorer_action_extract">Rozbalit</string>
+    <string name="explorer_action_add_location">Přidat umístění</string>
+    <string name="explorer_action_info">Informace</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Informace</string>
+    <string name="explorer_info_name_label">Název</string>
+    <string name="explorer_info_path_label">Cesta</string>
+    <string name="explorer_info_type_label">Typ</string>
+    <string name="explorer_info_type_file">Soubor</string>
+    <string name="explorer_info_type_directory">Složka</string>
+    <string name="explorer_info_size_label">Velikost</string>
+    <string name="explorer_info_modified_label">Změněno</string>
+    <string name="explorer_info_created_label">Vytvořeno</string>
+    <string name="explorer_info_permissions_label">Oprávnění</string>
+    <string name="explorer_info_owner_label">Vlastník</string>
+    <string name="explorer_info_child_count_label">Položky</string>
+    <string name="explorer_info_symlink_target_label">Cíl</string>
+    <string name="explorer_info_symlink_status_label">Stav</string>
+    <string name="explorer_info_symlink_broken">Nefunkční odkaz</string>
+    <string name="explorer_info_unknown">Neznámé</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Smazáno</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Oprávnění</string>
+    <string name="explorer_info_saf_granted_label">Uděleno</string>
+    <string name="explorer_info_saf_permission_read">Čtení</string>
+    <string name="explorer_info_saf_permission_write">Zápis</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Server</string>
+    <string name="explorer_info_network_port_label">Port</string>
+    <string name="explorer_info_network_share_label">Sdílená složka</string>
+    <string name="explorer_info_network_folder_label">Složka</string>
+    <string name="explorer_info_network_address_label">Adresa</string>
+    <string name="explorer_info_network_status_label">Stav</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Přihlášení</string>
+    <string name="explorer_info_network_domain_label">Doména</string>
+    <string name="explorer_info_network_password_label">Heslo</string>
+    <string name="explorer_info_network_password_show_action">Zobrazit heslo</string>
+    <string name="explorer_info_network_password_hide_action">Skrýt heslo</string>
+    <string name="explorer_info_network_password_missing">Chybí, přihlaste se znovu</string>
+    <string name="explorer_info_network_password_locked">Uloženo, ale toto zařízení ho nedokáže odemknout</string>
+    <string name="explorer_info_network_added_label">Přidáno</string>
+    <string name="explorer_info_network_updated_label">Aktualizováno</string>
+    <string name="explorer_info_network_last_seen_label">Naposledy viděno</string>
+    <string name="explorer_info_network_last_seen_never">Nikdy</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Vybráno</string>
+    <string name="explorer_info_files_label">Soubory</string>
+    <string name="explorer_info_directories_label">Složky</string>
+    <string name="explorer_info_total_size_label">Celková velikost</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Umístění</string>
+    <string name="explorer_info_shortcuts_label">Zkratky</string>
+    <string name="explorer_info_total_capacity_label">Celková kapacita</string>
+    <string name="explorer_info_used_space_label">Využité místo</string>
+    <string name="explorer_info_free_space_label">Volné místo</string>
+    <string name="explorer_info_usage_label">Využití</string>
+    <string name="explorer_info_device_storage_total_label">Úložiště zařízení</string>
+    <string name="explorer_info_device_storage_used_label">Využito</string>
+    <string name="explorer_info_device_storage_free_label">Volné</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Domů</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Nastavit jako domovskou</string>
+    <string name="explorer_breadcrumb_copy_path_action">Kopírovat cestu</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Cesta zkopírována do schránky</string>
+    <string name="explorer_navigation_device">Zařízení</string>
+    <string name="explorer_navigation_network">Síť</string>
+    <string name="explorer_navigation_recent">Nedávné</string>
+    <string name="explorer_navigation_recent_desc">Soubory, které se na tomto zařízení nedávno objevily</string>
+    <string name="explorer_navigation_trash">Koš</string>
+    <string name="explorer_navigation_trash_desc">Obnovit smazané soubory</string>
+    <string name="explorer_navigation_trash_nested_desc">Uvnitř smazané složky</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Žádné smazané položky</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d položka</item>
+        <item quantity="few">%d položky</item>
+        <item quantity="many">%d položky</item>
+        <item quantity="other">%d položek</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Obnovit</string>
+    <string name="explorer_trash_restore_selected_action">Obnovit vybrané</string>
+    <string name="explorer_trash_delete_permanently_action">Trvale smazat</string>
+    <string name="explorer_trash_delete_selected_action">Smazat vybrané</string>
+    <string name="explorer_trash_empty_trash_action">Vyprázdnit koš</string>
+    <string name="explorer_trash_empty_confirm">Vyprázdnit koš?</string>
+    <string name="explorer_trash_empty_message">Všechny položky v koši budou trvale smazány. Tuto akci nelze vrátit zpět.</string>
+    <string name="explorer_trash_empty_confirm_action">Vyprázdnit koš</string>
+    <string name="explorer_trash_restore_desc">Obnovit na původní umístění</string>
+    <string name="explorer_trash_item_unavailable">Položka není dostupná</string>
+    <string name="explorer_trash_delete_warning">Tuto akci nelze vrátit zpět</string>
+    <string name="explorer_trash_disabled_warning">Koš je vypnutý</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Načítání obsahu smazané složky…</string>
+    <string name="explorer_trash_nested_restore_action">Obnovit na původní umístění</string>
+    <string name="explorer_trash_nested_delete_action">Trvale smazat</string>
+    <string name="explorer_trash_nested_restore_conflict">Na původním umístění soubor již existuje</string>
+    <string name="explorer_trash_nested_parent_missing">Nadřazená položka se v koši už nenachází</string>
+    <string name="explorer_trash_nested_path_missing">Cesta už neexistuje</string>
+    <string name="explorer_trash_error_items_not_found">Položky nebyly v koši nalezeny</string>
+    <string name="explorer_trash_error_restore_failed">Obnovení položek se nezdařilo</string>
+    <string name="explorer_trash_error_delete_failed">Smazání položek se nezdařilo</string>
+    <string name="explorer_trash_nested_error_restore_failed">Obnovení %1$s se nezdařilo</string>
+    <string name="explorer_trash_nested_error_delete_failed">Smazání %1$s se nezdařilo</string>
+
+    <string name="explorer_navigation_root">Kořenový adresář</string>
+    <string name="explorer_navigation_rom">Systémový ROM</string>
+    <string name="explorer_navigation_internal_storage">Interní veřejné úložiště</string>
+    <string name="explorer_navigation_external_storage">Externí veřejné úložiště</string>
+
+    <string name="explorer_loader_progress_directory_loading">Procházení %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Kontrola oprávnění</string>
+    <string name="explorer_loader_progress_directory_filesystem">Načítání informací o souborovém systému</string>
+    <string name="explorer_loader_progress_directory_content">Načítání obsahu složky</string>
+    <string name="explorer_loader_progress_directory_content_details">Načítání podrobností o obsahu</string>
+    <string name="explorer_loader_progress_directory_content_extended">Načítání rozšířených podrobností o obsahu</string>
+
+    <string name="explorer_loader_progress_device_loading">Načítání zařízení</string>
+    <string name="explorer_loader_progress_device_locations">Načítání umístění úložiště</string>
+
+    <string name="explorer_loader_progress_network_loading">Načítání síťového úložiště</string>
+
+    <string name="explorer_loader_progress_home_loading">Načítání domovské obrazovky</string>
+    <string name="explorer_loader_progress_trash_loading">Načítání koše…</string>
+    <string name="explorer_loader_progress_recent_loading">Načítání nedávných souborů…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d zkratka</item>
+        <item quantity="few">%d zkratky</item>
+        <item quantity="many">%d zkratky</item>
+        <item quantity="other">%d zkratek</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d umístění</item>
+        <item quantity="few">%d umístění</item>
+        <item quantity="many">%d umístění</item>
+        <item quantity="other">%d umístění</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d skrytá položka</item>
+        <item quantity="few">%d skryté položky</item>
+        <item quantity="many">%d skryté položky</item>
+        <item quantity="other">%d skrytých položek</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s volných</string>
+    <string name="explorer_infobar_loading">Načítání…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Vytvořit novou položku</string>
+    <string name="explorer_dialog_rename_title">Přejmenovat</string>
+    <string name="explorer_dialog_name_label">Název</string>
+    <string name="explorer_dialog_type_label">Typ</string>
+    <string name="explorer_dialog_type_folder">Složka</string>
+    <string name="explorer_dialog_type_file">Soubor</string>
+    <string name="explorer_dialog_create_text_file_title">Vytvořit soubor z textu</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Náhled</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d znaků</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Přidat umístění úložiště</string>
+    <string name="explorer_add_device_storage_desc">Pomocí Storage Access Framework (SAF) udělte Butleru přístup k dalším umístěním úložiště, jako jsou USB disky, virtuální složky aplikací a další.</string>
+    <string name="explorer_add_device_storage_continue">Pokračovat</string>
+    <string name="explorer_add_device_storage_cancel">Zrušit</string>
+    <string name="explorer_add_device_storage_suggestions_title">Aplikace s úložištěm</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Otevře složku této aplikace</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Odebrat umístění</string>
+    <string name="explorer_device_remove_confirmation_title">Odebrat umístění úložiště?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">Odebrat %1$d umístění úložiště?</item>
+        <item quantity="few">Odebrat %1$d umístění úložiště?</item>
+        <item quantity="many">Odebrat %1$d umístění úložiště?</item>
+        <item quantity="other">Odebrat %1$d umístění úložiště?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Butleru bude odebrán přístup k tomuto umístění. Vaše soubory nebudou smazány.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d síťové umístění</item>
+        <item quantity="few">%d síťová umístění</item>
+        <item quantity="many">%d síťového umístění</item>
+        <item quantity="other">%d síťových umístění</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Síť</string>
+    <string name="explorer_network_add_location_action">Přidat síťové úložiště</string>
+    <string name="explorer_network_edit_location_action">Upravit síťové úložiště</string>
+    <string name="explorer_network_remove_location_action">Odebrat síťové úložiště</string>
+    <string name="explorer_network_sign_in_required_label">Vyžadováno přihlášení</string>
+    <string name="explorer_network_status_checking_label">Kontrola…</string>
+    <string name="explorer_network_status_available_label">Dostupné</string>
+    <string name="explorer_network_status_unavailable_label">Nedostupné</string>
+    <string name="explorer_network_status_unavailable_since_format">Nedostupné (%1$s)</string>
+    <string name="explorer_network_empty_title">Zatím žádné síťové úložiště</string>
+    <string name="explorer_network_empty_caption">Přidejte sdílenou složku Windows nebo složku NAS a procházejte ji zde.</string>
+    <string name="explorer_network_remove_confirmation_title">Odebrat síťové úložiště?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">Odebrat %1$d síťové úložiště?</item>
+        <item quantity="few">Odebrat %1$d síťová úložiště?</item>
+        <item quantity="many">Odebrat %1$d síťového úložiště?</item>
+        <item quantity="other">Odebrat %1$d síťových úložišť?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler zapomene údaje o serveru a uložené heslo. Na serveru se nic nesmaže.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Přidat síťové úložiště</string>
+    <string name="explorer_network_form_edit_title">Upravit síťové úložiště</string>
+    <string name="explorer_network_form_label_label">Název (volitelné)</string>
+    <string name="explorer_network_form_host_label">Adresa serveru</string>
+    <string name="explorer_network_form_host_hint">nas.local nebo 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Port</string>
+    <string name="explorer_network_form_share_label">Sdílená složka</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Složka uvnitř sdílené složky (volitelné)</string>
+    <string name="explorer_network_form_auth_guest">Host</string>
+    <string name="explorer_network_form_auth_password">Uživatelské jméno a heslo</string>
+    <string name="explorer_network_form_username_label">Uživatelské jméno</string>
+    <string name="explorer_network_form_domain_label">Doména (volitelné)</string>
+    <string name="explorer_network_form_password_label">Heslo</string>
+    <string name="explorer_network_form_password_kept_hint">Ponechte prázdné pro zachování uloženého hesla</string>
+    <string name="explorer_network_form_remember_label">Zapamatovat heslo</string>
+    <string name="explorer_network_form_remember_hint">Uloženo šifrovaně pouze na tomto zařízení</string>
+    <string name="explorer_network_form_test_and_save_action">Otestovat &amp; uložit</string>
+    <string name="explorer_network_form_testing">Připojování…</string>
+    <string name="explorer_network_form_error_host_blank">Zadejte adresu serveru</string>
+    <string name="explorer_network_form_error_host_not_bare">Zadejte pouze adresu serveru, bez schématu nebo cesty</string>
+    <string name="explorer_network_form_error_host_malformed">Toto není platná adresa serveru</string>
+    <string name="explorer_network_form_error_port">Zadejte port v rozsahu 1 až 65535</string>
+    <string name="explorer_network_form_error_share_blank">Zadejte název sdílené složky</string>
+    <string name="explorer_network_form_error_share_not_single">Zadejte pouze název sdílené složky, podsložky uveďte níže</string>
+    <string name="explorer_network_form_error_share_malformed">Toto není platný název sdílené složky</string>
+    <string name="explorer_network_form_error_base_path">Tuto cestu ke složce nelze použít</string>
+    <string name="explorer_network_form_error_username_blank">Zadejte uživatelské jméno</string>
+    <string name="explorer_network_form_error_password_required">Pro změnu uživatelského jména nebo domény zadejte heslo znovu</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Pojmenovat umístění</string>
+    <string name="explorer_location_name_label">Název umístění</string>
+    <string name="explorer_location_name_hint">Ponechte prázdné pro použití výchozího názvu</string>
+    <string name="explorer_location_rename_action">Přejmenovat umístění</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Přidáno za poslední den</item>
+        <item quantity="few">Přidáno za poslední %d dny</item>
+        <item quantity="many">Přidáno za posledních %d dne</item>
+        <item quantity="other">Přidáno za posledních %d dní</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Nic nového</string>
+    <string name="explorer_recent_empty_message">Soubory, které se na tomto zařízení objeví, se zobrazí zde</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Tato složka je prázdná</string>
+    <string name="explorer_empty_search_title">Žádné výsledky hledání</string>
+    <string name="explorer_empty_search_caption">Zkuste jiný hledaný výraz</string>
+    <string name="explorer_empty_folder_label">Prázdná složka</string>
+    <string name="explorer_empty_filtered_title">Žádné odpovídající položky</string>
+    <string name="explorer_empty_filtered_caption">Zkuste upravit filtry</string>
+    <string name="explorer_empty_hidden_title">Jsou zde pouze skryté položky</string>
+    <string name="explorer_empty_hidden_caption">Tato karta skrývá položky, jejichž název začíná tečkou</string>
+    <string name="explorer_empty_show_hidden_action">Zobrazit skryté položky</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Není co zobrazit</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Skryté položky i filtry vylučují část této složky</string>
+    <string name="explorer_empty_clear_filters_action">Vymazat filtry</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Skryté položky a filtry zde vylučují úplně vše</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Zobrazení skrytých položek a vymazání filtrů této karty je vrátí zpět</string>
+    <string name="explorer_empty_show_all_action">Zobrazit všechny položky</string>
+    <string name="explorer_path_not_found_title">Tato složka už neexistuje</string>
+    <string name="explorer_path_not_found_caption">Byla smazána, přejmenována nebo přesunuta jinam.</string>
+    <string name="explorer_path_not_found_back_action">Přejít zpět</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Načítání…</string>
+    <string name="explorer_file_peek_loading_text">Načítání…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Tady není nic vidět… jděte dál 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Tahle složka drží dietu</string>
+    <string name="explorer_empty_folder_caption_3">Dokonce i soubory dnes odešly domů dřív</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe přestal reagovat</string>
+    <string name="explorer_empty_folder_caption_5">Soubory si hrají na schovávanou</string>
+    <string name="explorer_empty_folder_caption_6">404: Soubory nenalezeny</string>
+    <string name="explorer_empty_folder_caption_7">Tahle složka má problém s důvěrou</string>
+    <string name="explorer_empty_folder_caption_8">Soubory odjely na dovolenou bez upozornění</string>
+    <string name="explorer_empty_folder_caption_9">Prázdná jako moje duše… ale uspořádanější</string>
+    <string name="explorer_empty_folder_caption_10">Digitální obdoba opuštěné prérie</string>
+    <string name="explorer_empty_folder_caption_11">Soubory dodržují rozestupy</string>
+    <string name="explorer_empty_folder_caption_12">Tahle složka praktikuje minimalismus</string>
+    <string name="explorer_empty_folder_caption_13">Někdo zapomněl nakrmit soubory</string>
+    <string name="explorer_empty_folder_caption_14">Soubory opustily budovu</string>
+    <string name="explorer_empty_folder_caption_15">Prázdnější než slib politika</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Seřadit podle</string>
+    <string name="explorer_sort_mode_name_label">Názvu</string>
+    <string name="explorer_sort_mode_size_label">Velikosti</string>
+    <string name="explorer_sort_mode_modified_label">Data změny</string>
+    <string name="explorer_sort_mode_created_label">Data vytvoření</string>
+    <string name="explorer_sort_descending_label">Sestupné řazení</string>
+    <string name="explorer_sort_scope_label">Použít na</string>
+    <string name="explorer_sort_scope_all_folders">Všechny složky</string>
+    <string name="explorer_sort_scope_this_folder">Tuto složku</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Tuto složku a podsložky</string>
+    <string name="explorer_sort_scope_use_default_here">Použít výchozí zde</string>
+    <string name="explorer_sort_only_this_tab_label">Pouze pro tuto kartu</string>
+    <string name="explorer_sort_inherited_notice">Seřazeno podle pravidla uloženého pro %1$s</string>
+    <string name="explorer_sort_suppressed_notice">Toto přepisuje pravidlo uložené pro %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Tato karta používá vlastní výchozí pořadí řazení</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Vymazat</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Velikosti složek</string>
+    <string name="explorer_sizes_sheet_label_calculated">Vypočítáno</string>
+    <string name="explorer_sizes_sheet_label_folders">Složky</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Nečitelná umístění</string>
+    <string name="explorer_sizes_sheet_problems_more">%1$d dalších nevypsáno</string>
+    <string name="explorer_sizes_sheet_recalculate">Přepočítat</string>
+    <string name="explorer_sizes_sheet_discard">Zahodit velikosti</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Jak jsou položky uspořádané a kolik podrobností zobrazují</string>
+    <string name="explorer_view_mode_list_label">Seznam</string>
+    <string name="explorer_view_mode_grid_label">Mřížka</string>
+    <string name="explorer_view_density_compact_label">Kompaktní</string>
+    <string name="explorer_view_density_comfortable_label">Pohodlné</string>
+    <string name="explorer_view_density_detailed_label">Podrobné</string>
+    <string name="explorer_view_show_hidden_label">Zobrazit skryté soubory</string>
+    <string name="explorer_view_set_default_action">Nastavit jako výchozí</string>
+    <string name="explorer_view_detail_created_label">Vytvořeno</string>
+    <string name="explorer_view_detail_modified_label">Změněno</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Pravidla řazení složek</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Nastavení řazení uložená pro jednotlivé složky</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Vymazat pravidla řazení složek?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Všechny složky se vrátí k výchozímu pořadí řazení. Karty s vlastním přepsáním řazení si ho ponechají. Tuto akci nelze vrátit zpět.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Vymazat vše</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Typ souboru</string>
+    <string name="explorer_filter_type_all">Vše</string>
+    <string name="explorer_filter_type_files">Pouze soubory</string>
+    <string name="explorer_filter_type_folders">Pouze složky</string>
+    <string name="explorer_filter_include_label">Vzor pro zahrnutí</string>
+    <string name="explorer_filter_include_placeholder_simple">např. dovolená, zpráva, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">např. .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Vzor pro vyloučení</string>
+    <string name="explorer_filter_exclude_placeholder_simple">např. tmp, cache, staré</string>
+    <string name="explorer_filter_exclude_placeholder_regex">např. ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Povolte regulární výrazy v nastavení</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Vyžadováno oprávnění</string>
+    <string name="explorer_permission_generic_description">Butler potřebuje další oprávnění pro procházení tohoto umístění.</string>
+    <string name="explorer_permission_setup_action">Otevřít nastavení</string>
+    <string name="explorer_grant_access_action">Udělit přístup</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Akce</string>
+    <string name="explorer_file_info_type_label">Typ</string>
+    <string name="explorer_file_info_size_label">Velikost</string>
+    <string name="explorer_file_info_modified_label">Změněno</string>
+    <string name="explorer_file_action_install">Instalovat</string>
+    <string name="explorer_file_action_install_subtitle">Nainstalovat tuto aplikaci do zařízení</string>
+    <string name="explorer_file_action_open">Otevřít</string>
+    <string name="explorer_file_action_open_subtitle">Zobrazit zde, tlačítko zpět vrátí do této složky</string>
+    <string name="explorer_file_action_open_in_tab">Otevřít na nové kartě</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Zobrazit v Butleru jako samostatnou kartu</string>
+    <string name="explorer_file_action_open_in_editor">Otevřít v editoru</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Upravit na nové kartě</string>
+    <string name="explorer_file_action_open_with">Otevřít pomocí</string>
+    <string name="explorer_file_action_open_with_subtitle">Vyberte externí aplikaci pro otevření</string>
+    <string name="explorer_file_action_share">Sdílet</string>
+    <string name="explorer_file_action_share_subtitle">Sdílet přes nainstalované aplikace</string>
+    <string name="explorer_file_action_copy">Kopírovat</string>
+    <string name="explorer_file_action_copy_subtitle">Zkopírovat do schránky pro vložení</string>
+    <string name="explorer_file_action_cut">Vyjmout</string>
+    <string name="explorer_file_action_cut_subtitle">Přesunout do schránky pro vložení</string>
+    <string name="explorer_file_action_rename">Přejmenovat</string>
+    <string name="explorer_file_action_rename_subtitle">Změnit název souboru</string>
+    <string name="explorer_file_action_delete">Smazat</string>
+    <string name="explorer_file_action_delete_subtitle">Trvale odstranit tento soubor</string>
+    <string name="explorer_file_action_move_to_trash">Přesunout do koše</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Přesunout soubor do koše</string>
+    <string name="explorer_file_action_properties">Vlastnosti</string>
+    <string name="explorer_file_action_properties_subtitle">Zobrazit podrobné informace o souboru</string>
+    <string name="explorer_file_action_extract">Rozbalit</string>
+    <string name="explorer_file_action_extract_subtitle">Rozbalit obsah archivu do složky</string>
+    <string name="explorer_file_action_show_in_folder">Zobrazit ve složce</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Otevřít složku, ve které se tento soubor nachází</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">Vytvořen %d soubor.</item>
+        <item quantity="few">Vytvořeny %d soubory.</item>
+        <item quantity="many">Vytvořeno %d souboru.</item>
+        <item quantity="other">Vytvořeno %d souborů.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">Vytvořena %d složka.</item>
+        <item quantity="few">Vytvořeny %d složky.</item>
+        <item quantity="many">Vytvořeno %d složky.</item>
+        <item quantity="other">Vytvořeno %d složek.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Operace kopírování</string>
+    <string name="explorer_operation_copy_description_single">Kopírovat \"%1$s\" z \"%2$s\" do \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">Kopírovat %1$d položku do \"%2$s\".</item>
+        <item quantity="few">Kopírovat %1$d položky do \"%2$s\".</item>
+        <item quantity="many">Kopírovat %1$d položky do \"%2$s\".</item>
+        <item quantity="other">Kopírovat %1$d položek do \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">Zkopírován %d soubor.</item>
+        <item quantity="few">Zkopírovány %d soubory.</item>
+        <item quantity="many">Zkopírováno %d souboru.</item>
+        <item quantity="other">Zkopírováno %d souborů.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">Zkopírována %d složka.</item>
+        <item quantity="few">Zkopírovány %d složky.</item>
+        <item quantity="many">Zkopírováno %d složky.</item>
+        <item quantity="other">Zkopírováno %d složek.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">Zkopírováno %s.</item>
+        <item quantity="few">Zkopírováno %s.</item>
+        <item quantity="many">Zkopírováno %s.</item>
+        <item quantity="other">Zkopírováno %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Operace rozbalení</string>
+    <string name="explorer_operation_extract_description">Rozbalit \"%1$s\" do \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Operace místní kopie</string>
+    <string name="explorer_operation_download_copy_description">Zkopírovat \"%1$s\" do \"%2$s\" pro místní procházení.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">Rozbalen %d soubor.</item>
+        <item quantity="few">Rozbaleny %d soubory.</item>
+        <item quantity="many">Rozbaleno %d souboru.</item>
+        <item quantity="other">Rozbaleno %d souborů.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">Rozbaleno %s.</item>
+        <item quantity="few">Rozbaleno %s.</item>
+        <item quantity="many">Rozbaleno %s.</item>
+        <item quantity="other">Rozbaleno %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Operace komprese</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">Komprimovat %1$d položku do \"%2$s\".</item>
+        <item quantity="few">Komprimovat %1$d položky do \"%2$s\".</item>
+        <item quantity="many">Komprimovat %1$d položky do \"%2$s\".</item>
+        <item quantity="other">Komprimovat %1$d položek do \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">Komprimován %d soubor.</item>
+        <item quantity="few">Komprimovány %d soubory.</item>
+        <item quantity="many">Komprimováno %d souboru.</item>
+        <item quantity="other">Komprimováno %d souborů.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Vytvořit archiv</string>
+    <string name="explorer_compress_dialog_name_label">Název archivu</string>
+    <string name="explorer_compress_dialog_format_label">Formát</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Otevře se na jakémkoli zařízení. Lze chránit heslem.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Menší pro velké množství souborů. Bez ochrany heslem.</string>
+    <string name="explorer_compress_dialog_create_action">Vytvořit</string>
+    <string name="explorer_compress_dialog_level_label">Úroveň komprese</string>
+    <string name="explorer_compress_dialog_level_fast">Rychlá</string>
+    <string name="explorer_compress_dialog_level_normal">Normální</string>
+    <string name="explorer_compress_dialog_level_best">Nejlepší</string>
+    <string name="explorer_compress_dialog_password_label">Heslo (volitelné)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Potvrďte heslo</string>
+    <string name="explorer_compress_dialog_password_mismatch">Hesla se neshodují</string>
+    <string name="explorer_compress_dialog_password_weak">Slabé heslo</string>
+    <string name="explorer_compress_dialog_password_notice">Obsah souborů je šifrovaný, názvy souborů nikoli.</string>
+    <string name="explorer_compress_dialog_password_show">Zobrazit heslo</string>
+    <string name="explorer_compress_dialog_password_hide">Skrýt heslo</string>
+    <string name="explorer_compress_dialog_overwrite_title">Nahradit archiv?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" již existuje a bude nahrazen.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Nahradit</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">Upustit %1$d položku?</item>
+        <item quantity="few">Upustit %1$d položky?</item>
+        <item quantity="many">Upustit %1$d položky?</item>
+        <item quantity="other">Upustit %1$d položek?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">Kopírovat nebo přesunout %1$d položku do \"%2$s\"?</item>
+        <item quantity="few">Kopírovat nebo přesunout %1$d položky do \"%2$s\"?</item>
+        <item quantity="many">Kopírovat nebo přesunout %1$d položky do \"%2$s\"?</item>
+        <item quantity="other">Kopírovat nebo přesunout %1$d položek do \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">Kopírovat %1$d položku do \"%2$s\"?</item>
+        <item quantity="few">Kopírovat %1$d položky do \"%2$s\"?</item>
+        <item quantity="many">Kopírovat %1$d položky do \"%2$s\"?</item>
+        <item quantity="other">Kopírovat %1$d položek do \"%2$s\"?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Přesunout do koše?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">Přesunout %1$d položku do koše?</item>
+        <item quantity="few">Přesunout %1$d položky do koše?</item>
+        <item quantity="many">Přesunout %1$d položky do koše?</item>
+        <item quantity="other">Přesunout %1$d položek do koše?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Operace přesunu</string>
+    <string name="explorer_operation_move_description_single">Přesunout \"%1$s\" z \"%2$s\" do \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">Přesunout %1$d položku do \"%2$s\".</item>
+        <item quantity="few">Přesunout %1$d položky do \"%2$s\".</item>
+        <item quantity="many">Přesunout %1$d položky do \"%2$s\".</item>
+        <item quantity="other">Přesunout %1$d položek do \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">Přesunut %d soubor.</item>
+        <item quantity="few">Přesunuty %d soubory.</item>
+        <item quantity="many">Přesunuto %d souboru.</item>
+        <item quantity="other">Přesunuto %d souborů.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">Přesunuta %d složka.</item>
+        <item quantity="few">Přesunuty %d složky.</item>
+        <item quantity="many">Přesunuto %d složky.</item>
+        <item quantity="other">Přesunuto %d složek.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">Přesunuto %s.</item>
+        <item quantity="few">Přesunuto %s.</item>
+        <item quantity="many">Přesunuto %s.</item>
+        <item quantity="other">Přesunuto %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Vytvoření složky</string>
+    <string name="explorer_operation_create_description_directory">Vytvořit složku \"%1$s\" v \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Vytvoření souboru</string>
+    <string name="explorer_operation_create_description_file">Vytvořit soubor \"%1$s\" v \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Vytvoření textového souboru</string>
+    <string name="explorer_operation_create_text_file_description">Vytvořit \"%1$s\" z textového úryvku</string>
+    <string name="explorer_operation_calculate_sizes_title">Výpočet velikosti</string>
+    <string name="explorer_operation_calculate_sizes_description">Vypočítat velikosti složek v \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">Prohledána %1$d položka</item>
+        <item quantity="few">Prohledány %1$d položky</item>
+        <item quantity="many">Prohledáno %1$d položky</item>
+        <item quantity="other">Prohledáno %1$d položek</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Vypočítány velikosti %1$d složek.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">Vypočítány velikosti %1$d složek, %2$d umístění se nepodařilo přečíst.</item>
+        <item quantity="few">Vypočítány velikosti %1$d složek, %2$d umístění se nepodařila přečíst.</item>
+        <item quantity="many">Vypočítány velikosti %1$d složek, %2$d umístění se nepodařilo přečíst.</item>
+        <item quantity="other">Vypočítány velikosti %1$d složek, %2$d umístění se nepodařilo přečíst.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Velikosti složek pro \"%1$s\" byly zahozeny, protože se během výpočtu změnily.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Navigace selhala</string>
+    <string name="explorer_aborted_dialog_title">Operace přerušena</string>
+    <string name="explorer_aborted_dialog_message">Načítání bylo zrušeno dříve, než se stihlo cokoli zobrazit.</string>
+    <string name="explorer_archive_unbrowsable_title">Tento archiv zde nelze procházet</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" se nachází na úložišti, které podporuje pouze sekvenční čtení, ale procházení archivu vyžaduje náhodný přístup. Rozbalte archiv zde, nebo si stáhněte místní kopii a procházejte ji.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Rozbalit archiv</string>
+    <string name="explorer_archive_unbrowsable_download_action">Stáhnout místní kopii</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (zvláštní přístup)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (zvláštní přístup)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android omezuje přístup k této složce. Pro udělení přístupu použijte výběr složky.</string>
+    <string name="explorer_permission_multiple_options_description">Přístup můžete udělit pomocí výběru složky v systému Android, nebo nastavit Root/Shizuku pro rychlejší přístup ke všem omezeným složkám.</string>
+    <string name="explorer_permission_setup_both_description">Tato složka vyžaduje rozšířený přístup. V nastavení nainstalujte a nakonfigurujte Root nebo Shizuku.</string>
+    <string name="explorer_permission_setup_shizuku_description">Tato složka vyžaduje rozšířený přístup přes Shizuku. Nainstalujte Shizuku Manager a nakonfigurujte ho v nastavení.</string>
+    <string name="explorer_permission_setup_root_description">Tato složka vyžaduje přístup Root. Pokud má vaše zařízení root, nakonfigurujte Root v nastavení.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Pro udělení přístupu k této složce použijte výběr složky v systému Android.</string>
+    <string name="explorer_permission_option_picker_action">Otevřít výběr SAF</string>
+
+    <string name="explorer_permission_option_setup_title">Plný přístup</string>
+    <string name="explorer_permission_option_setup_description">Nakonfigurujte Root nebo Shizuku pro rychlejší přístup ke všem omezeným složkám.</string>
+    <string name="explorer_permission_option_setup_action">Nakonfigurovat</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Přístup k úložišti</string>
+    <string name="explorer_permission_option_storage_description">Udělte Butleru oprávnění pro přístup k souborům v úložišti zařízení.</string>
+    <string name="explorer_permission_option_storage_action">Udělit oprávnění</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">Otevřít na nových kartách</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Oblíbené</string>
+    <string name="explorer_action_add_to_favorites">Přidat do oblíbených</string>
+    <string name="explorer_action_remove_from_favorites">Odebrat z oblíbených</string>
+    <string name="explorer_favorites_select_action">Vybrat</string>
+    <string name="explorer_favorites_unavailable_subtitle">Nedostupné</string>
+    <string name="explorer_favorites_unavailable_toast">Oblíbená položka není dostupná</string>
+    <string name="explorer_favorites_added_message">Přidáno %1$s do oblíbených</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">Přidána %1$d položka do oblíbených</item>
+        <item quantity="few">Přidány %1$d položky do oblíbených</item>
+        <item quantity="many">Přidáno %1$d položky do oblíbených</item>
+        <item quantity="other">Přidáno %1$d položek do oblíbených</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">Odebráno %1$s z oblíbených</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">Odebrána %1$d položka z oblíbených</item>
+        <item quantity="few">Odebrány %1$d položky z oblíbených</item>
+        <item quantity="many">Odebráno %1$d položky z oblíbených</item>
+        <item quantity="other">Odebráno %1$d položek z oblíbených</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Přejmenovat oblíbenou položku</string>
+    <string name="explorer_favorites_rename_hint">Název oblíbené položky</string>
+    <string name="explorer_favorites_rename_description">Přejmenuje se pouze záznam v oblíbených, složka samotná si ponechá svůj název.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">Tato karta přepisuje pořadí řazení v %1$d složce</item>
+        <item quantity="few">Tato karta přepisuje pořadí řazení v %1$d složkách</item>
+        <item quantity="many">Tato karta přepisuje pořadí řazení v %1$d složkách</item>
+        <item quantity="other">Tato karta přepisuje pořadí řazení v %1$d složkách</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d složka</item>
+        <item quantity="few">%1$d složky</item>
+        <item quantity="many">%1$d složky</item>
+        <item quantity="other">%1$d složek</item>
+    </plurals>
+</resources>

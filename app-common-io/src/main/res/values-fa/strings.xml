@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">حذف موارد</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">کپی موارد</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">انتقال موارد</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">اسکن…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">فایل از قبل وجود دارد</string>
+    <string name="path_action_folder_exists_title">پوشه از قبل وجود دارد</string>
+    <string name="path_action_file_exists_description">فایلی به نام \"%1$s\" قبلاً در \"%2$s\" وجود دارد.</string>
+    <string name="path_action_folder_exists_description">پوشه‌ای به نام \"%1$s\" قبلاً در \"%2$s\" وجود دارد.</string>
+
+    <string name="path_action_not_found_title">فایل حذف شده است</string>
+    <string name="path_action_not_found_description">\"%1$s\" حذف شده یا تغییر نام یافته یا به جای دیگری منتقل شده است.</string>
+
+    <string name="path_action_permission_denied_title">مجوز رد شد</string>
+    <string name="path_action_permission_denied_description">دسترسی به \"%1$s\" در \"%2$s\" به دلیل مجوزهای ناکافی ممکن نیست.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">دسترسی به \"%1$s\" در \"%2$s\" ممکن نیست. هیچ روشی برای انجام این عملیات در دسترس نیست.</string>
+    <string name="path_action_permission_denied_readonly_description">دسترسی به \"%1$s\" در \"%2$s\" ممکن نیست. سیستم‌فایل فقط برای خواندن است.</string>
+    <string name="path_action_permission_denied_not_permitted_description">دسترسی به \"%1$s\" در \"%2$s\" ممکن نیست. سیستم این عملیات را رد کرد.</string>
+
+    <string name="path_action_insufficient_space_title">فضای کافی نیست</string>
+    <string name="path_action_insufficient_space_description">فضای ذخیره‌سازی کافی برای کپی \"%1$s\" از \"%2$s\" در دسترس نیست.</string>
+
+    <string name="path_action_unknown_error_title">عملیات ناموفق بود</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">جایگزینی تمام نشد</string>
+    <string name="path_action_data_kept_new_data_description">Butler نتوانست نوشتن \"%1$s\" را تمام کند. داده‌های جدید شما در همان پوشه \"%2$s\" نگه داشته شدند. برای بازیابی نام آن را تغییر دهید یا برای حذف آن را حذف کنید.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler نتوانست نوشتن \"%1$s\" را تمام کند، فایل قبلی بدون تغییر باقی است. داده‌های جدید شما در همان پوشه \"%2$s\" نگه داشته شدند. برای بازیابی نام آن را تغییر دهید یا برای حذف آن را حذف کنید.</string>
+    <string name="path_action_data_kept_both_description">Butler نتوانست نوشتن \"%1$s\" را تمام کند. چیزی گم نشد: فایل قبلی در همان پوشه \"%2$s\" نگه داشته شد و داده‌های جدید شما به عنوان \"%3$s\" نگه داشته شدند. نامی را که می‌خواهید نگه دارید انتخاب کنید.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler نتوانست نوشتن \"%1$s\" را تمام کند و نتوانست بررسی کند که آیا \"%2$s\" هنوز وجود دارد. یک کپی ناقص ممکن است در همان پوشه \"%3$s\" نگه داشته شود. قبل از حذف یکی از آنها هر دو را مقایسه کنید.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler نتوانست انتقال \"%1$s\" را تمام کند و نمی‌تواند بگوید که آیا از پوشه خود بیرون رفته است. داده‌های شما یا در آن پوشه به عنوان \"%2$s\" نگه داشته شدند یا قبلاً در \"%3$s\" هستند. قبل از حذف یکی از آنها هر دو را بررسی کنید.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler نتوانست نوشتن \"%1$s\" را تمام کند و نمی‌تواند بگوید فایل شما کجا رفته است. این یکی از سه فایل در آن پوشه است: \"%1$s\" خود، \"%2$s\" یا \"%3$s\". قبل از حذف هر کدام هر سه را بررسی کنید.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler نتوانست نوشتن \"%1$s\" را تمام کند و نمی‌تواند بگوید فایل شما کجا رفته است. این یکی از دو فایل در آن پوشه است: \"%1$s\" خود یا \"%2$s\". قبل از حذف یکی از آنها هر دو را بررسی کنید.</string>
+
+    <string name="path_action_trash_size_limit_title">موارد برای سطل زباله خیلی بزرگ هستند</string>
+    <string name="path_action_trash_size_limit_description">%1$d موارد در مجموع %2$s از حد اندازه سطل زباله (%3$s) فراتر می‌روند.</string>
+
+    <string name="path_action_trash_move_failed_title">انتقال به سطل زباله ناموفق بود</string>
+    <string name="path_action_trash_move_failed_description">%1$d موارد نتوانستند به سطل زباله منتقل شوند.</string>
+
+    <string name="path_action_trash_not_supported_title">سطل زباله پشتیبانی نشده است</string>
+    <string name="path_action_trash_not_supported_description">%1$d موارد روی ذخیره‌سازی قرار دارند که از سطل زباله پشتیبانی نمی‌کند.</string>
+
+    <string name="path_action_archive_password_title">رمز عبور مورد نیاز است</string>
+    <string name="path_action_archive_password_description">\"%1$s\" رمزگذاری شده است. برای خواندن محتویات آن رمز عبور را وارد کنید.</string>
+    <string name="path_action_archive_password_wrong_description">رمز عبور برای \"%1$s\" نادرست بود. دوباره تلاش کنید.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">سرور در دسترس نیست</string>
+    <string name="smb_error_unreachable_description">Butler نتوانست به \"%1$s\" دسترسی پیدا کند. بررسی کنید که دستگاه در همان شبکه است و سرور روشن است.</string>
+    <string name="smb_error_auth_title">ورود ناموفق بود</string>
+    <string name="smb_error_auth_description">\"%1$s\" نام کاربری یا رمز عبور را رد کرد.</string>
+    <string name="smb_error_share_access_denied_title">بدون دسترسی به این اشتراک</string>
+    <string name="smb_error_share_access_denied_description">این حساب ممکن است نتواند از \"%1$s\" روی \"%2$s\" استفاده کند. مجوزهای اشتراک را روی سرور بررسی کنید.</string>
+    <string name="smb_error_share_not_found_title">اشتراک یافت نشد</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" روی \"%2$s\" وجود ندارد.</string>
+    <string name="smb_error_dialect_title">سرور خیلی قدیمی است</string>
+    <string name="smb_error_dialect_description">\"%1$s\" تنها SMB1 را ارائه می‌دهد، که نامطمئن و پشتیبانی نشده است. SMB2 یا جدیدتر را روی سرور فعال کنید.</string>
+    <string name="smb_error_credential_unavailable_title">ورود مورد نیاز است</string>
+    <string name="smb_error_credential_unavailable_description">رمز عبور ذخیره شده برای این ذخیره‌سازی شبکه دیگر قابل خواندن نیست. برای اتصال دوباره آن را وارد کنید.</string>
+    <string name="smb_error_pro_required_title">اشتراک‌های شبکه نیاز به Butler Pro دارند</string>
+    <string name="smb_error_pro_required_description">اتصال به اشتراک‌های شبکه بخشی از Butler Pro است. مکان‌های ذخیره شده شما لیست شده می‌ماند و می‌توانند بدون آن حذف شوند.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">بسته برنامه محافظت شده</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" رمزگذاری شده است و تنها می‌تواند توسط برنامه‌ای که آن را ایجاد کرد نصب شود.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">قالب APK set پشتیبانی نشده است</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" مجموعه APK bundletool است. Butler نمی‌تواند کدام یک از گونه‌های آن برای این دستگاه مناسب است را تعیین کند.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">برنامه‌ای برای نصب وجود ندارد</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" شامل هیچ APK قابل نصب نیست.</string>
+
+    <string name="app_install_error_session_title">نصب ناموفق بود</string>
+    <string name="app_install_error_session_description">سیستم نصب را رد کرد: %1$s</string>
+
+    <string name="app_install_error_busy_title">نصب دیگری در حال انجام است</string>
+    <string name="app_install_error_busy_description">\"%1$s\" هنوز در حال نصب است. آن نصب را تأیید یا لغو کنید قبل از شروع نصب دیگر.</string>
+
+    <string name="app_install_error_no_elevation_title">دسترسی ارتقا‌یافته وجود ندارد</string>
+    <string name="app_install_error_no_elevation_description">دسترسی root یا ADB در حال حاضر در دسترس نیست.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">تأیید مورد نیاز است</string>
+    <string name="app_install_confirm_pending_description">Android به شما نیاز دارد که نصب \"%1$s\" را قبل از اتمام تأیید کنید.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android به شما نیاز دارد که این نصب را قبل از اتمام تأیید کنید.</string>
+    <string name="app_install_confirm_pending_action">تأیید نصب</string>
+    <string name="app_install_confirm_pending_reason">نصب‌کننده در انتظار تأیید شما است</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">تأیید مورد نیاز است</string>
+    <string name="app_uninstall_confirm_pending_description">Android به شما نیاز دارد که حذف \"%1$s\" را قبل از اتمام تأیید کنید.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android به شما نیاز دارد که این حذف را قبل از اتمام تأیید کنید.</string>
+    <string name="app_uninstall_confirm_pending_action">تأیید حذف</string>
+    <string name="app_uninstall_confirm_pending_reason">Android در انتظار تأیید شما است</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">حذف این برنامه برای کاربر دیگری نیاز به root یا Shizuku دارد</string>
+    <string name="app_uninstall_no_result">Android نتیجه‌ای را گزارش نکرد</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">عملیات فایل قطع شد</string>
+    <string name="service_connection_lost_error_message">سرویس عملیات فایل غیر منتظره متوقف شد. لطفاً دوباره تلاش کنید.</string>
+</resources>

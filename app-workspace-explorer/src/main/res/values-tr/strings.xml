@@ -1,0 +1,679 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Gezgin</string>
+    <string name="explorer_subtitle">Dosyalara ve dizinlere göz atın</string>
+    <string name="explorer_settings_title">Gezgin ayarları</string>
+    <string name="explorer_settings_file_display">Dosya görünümü</string>
+    <string name="explorer_settings_filter_regex_title">Gelişmiş joker karakter eşleştirme</string>
+    <string name="explorer_settings_filter_regex_desc">Dahil etme/hariç tutma filtrelerinde regex desenleri kullanın.</string>
+    <string name="explorer_settings_navigation">Gezinme</string>
+    <string name="explorer_settings_back_button_title">Geri düğmesiyle gezinme</string>
+    <string name="explorer_settings_back_button_desc">Geri düğmesi/hareketiyle geçmişte gezinin.</string>
+    <string name="explorer_settings_trash_category">Çöp kutusu</string>
+    <string name="explorer_settings_trash_enabled_title">Çöp kutusunu etkinleştir</string>
+    <string name="explorer_settings_trash_enabled_desc">Silinen dosyaları kalıcı olarak silmek yerine çöp kutusuna taşıyın</string>
+    <string name="explorer_settings_trash_auto_delete_title">Şu süre sonra otomatik sil</string>
+    <string name="explorer_settings_trash_auto_delete_desc">%d günden eski öğeleri otomatik olarak sil</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d gün</string>
+    <string name="explorer_settings_trash_max_size_title">Depolama başına maksimum boyut</string>
+    <string name="explorer_settings_trash_max_size_desc">Depolama konumu başına en fazla %d MB</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Otomatik silme süresi</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Depolama başına maksimum boyut</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Çöp kutusu etkinleştirilsin mi?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Masaüstü sistemlerinden farklı olarak Android\'de yerleşik bir çöp kutusu yoktur. Butler, önbellek klasörünü kullanarak bir tane sağlar.\n\nUnutmayın:\n• Öğeler kalıcı olarak silinene kadar cihazınızın depolama göstergesi boşalan alanı yansıtmaz\n• Cihazınızda depolama alanı azalırsa Android, uygulama önbelleklerini temizleyerek çöpe atılan dosyaları kaldırabilir</string>
+    <string name="explorer_settings_trash_enable_action">Etkinleştir</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">Dosya</string>
+    <string name="explorer_file_symlink_content_desc">Sembolik bağlantı</string>
+    <string name="explorer_file_folder_content_desc">Klasör</string>
+    <string name="explorer_file_peek_content_desc">Dosya bilgisi yükleniyor</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Kısayol</string>
+    <string name="explorer_file_storage_local_label">Yerel</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Yalnızca okuma erişimi</string>
+    <string name="explorer_file_storage_saf_write_only_label">Yalnızca yazma erişimi</string>
+    <string name="explorer_file_storage_saf_no_access_label">Erişim yok</string>
+    <string name="explorer_file_storage_saf_uri_label">SAF ağaç URI\'si</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s toplam • %3$s boş</string>
+    <string name="explorer_file_broken_link_label">Bozuk bağlantı</string>
+    <string name="explorer_file_items_count">%1$d öğe</string>
+    <string name="explorer_file_empty">Boş</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · kısmi</string>
+    <string name="explorer_sizes_estimate_description">Android depolama toplamlarından tahmin edilmiştir. Okunamayan dosyalarda, dosya boyutu tahmini olarak kullanılan alan esas alınır. Android tarafından yönetilen gizli dosyalar da dahil edilebilir. Okunamayan diğer konumlar bilinmeyen olarak kalır.</string>
+    <string name="explorer_sizes_estimate_coverage">Depolamanın diğer bölümleri tam olarak ölçülemediği için Android/data tahmin edilemedi.</string>
+    <string name="explorer_sizes_estimate_unavailable">Android depolama istatistikleri kullanılamadı. Ölçülen boyutlar yine de gösteriliyor.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Android depolama toplamları tarama sonucuyla uyuşmadı. Ölçülen boyutlar yine de gösteriliyor.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Klasör seç</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="one">Klasör seç (%d)</item>
+        <item quantity="other">Klasör seç (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Dosya seç</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="one">Dosya seç (%d)</item>
+        <item quantity="other">Dosya seç (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="one">Öğe seç (%d)</item>
+        <item quantity="other">Öğe seç (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Bu klasörü seç</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">%d seç</item>
+        <item quantity="other">%d seç</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Dosyayı kaydet</string>
+    <string name="explorer_picker_save_here_action">Buraya kaydet</string>
+    <string name="explorer_picker_save_as_filename_label">Dosya adı</string>
+    <string name="explorer_picker_save_as_filename_hint">Dosya adını girin</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Yenile</string>
+    <string name="explorer_action_calculate_sizes">Boyutları hesapla</string>
+    <string name="explorer_action_sort">Sırala</string>
+    <string name="explorer_action_filter">Filtrele</string>
+    <string name="explorer_action_view">Düzen</string>
+    <string name="explorer_action_create">Oluştur</string>
+    <string name="explorer_action_rename">Yeniden adlandır</string>
+    <string name="explorer_action_copy">Kopyala</string>
+    <string name="explorer_action_cut">Kes</string>
+    <string name="explorer_action_delete">Sil</string>
+    <string name="explorer_action_select_all">Tümünü seç</string>
+    <string name="explorer_action_deselect_all">Seçimi kaldır</string>
+    <string name="explorer_action_compress">Sıkıştır</string>
+    <string name="explorer_action_extract">Çıkart</string>
+    <string name="explorer_action_add_location">Konum ekle</string>
+    <string name="explorer_action_info">Bilgi</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Bilgi</string>
+    <string name="explorer_info_name_label">Ad</string>
+    <string name="explorer_info_path_label">Yol</string>
+    <string name="explorer_info_type_label">Tür</string>
+    <string name="explorer_info_type_file">Dosya</string>
+    <string name="explorer_info_type_directory">Dizin</string>
+    <string name="explorer_info_size_label">Boyut</string>
+    <string name="explorer_info_modified_label">Değiştirilme</string>
+    <string name="explorer_info_created_label">Oluşturulma</string>
+    <string name="explorer_info_permissions_label">İzinler</string>
+    <string name="explorer_info_owner_label">Sahibi</string>
+    <string name="explorer_info_child_count_label">Öğeler</string>
+    <string name="explorer_info_symlink_target_label">Hedef</string>
+    <string name="explorer_info_symlink_status_label">Durum</string>
+    <string name="explorer_info_symlink_broken">Bozuk bağlantı</string>
+    <string name="explorer_info_unknown">Bilinmiyor</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Silinme</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">İzinler</string>
+    <string name="explorer_info_saf_granted_label">Verilen</string>
+    <string name="explorer_info_saf_permission_read">Okuma</string>
+    <string name="explorer_info_saf_permission_write">Yazma</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Sunucu</string>
+    <string name="explorer_info_network_port_label">Port</string>
+    <string name="explorer_info_network_share_label">Paylaşım</string>
+    <string name="explorer_info_network_folder_label">Klasör</string>
+    <string name="explorer_info_network_address_label">Adres</string>
+    <string name="explorer_info_network_status_label">Durum</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Oturum açma</string>
+    <string name="explorer_info_network_domain_label">Etki alanı</string>
+    <string name="explorer_info_network_password_label">Şifre</string>
+    <string name="explorer_info_network_password_show_action">Şifreyi göster</string>
+    <string name="explorer_info_network_password_hide_action">Şifreyi gizle</string>
+    <string name="explorer_info_network_password_missing">Eksik, yeniden oturum açın</string>
+    <string name="explorer_info_network_password_locked">Kayıtlı, ancak bu cihaz kilidini açamıyor</string>
+    <string name="explorer_info_network_added_label">Eklenme</string>
+    <string name="explorer_info_network_updated_label">Güncellenme</string>
+    <string name="explorer_info_network_last_seen_label">Son görülme</string>
+    <string name="explorer_info_network_last_seen_never">Hiç</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Seçili</string>
+    <string name="explorer_info_files_label">Dosyalar</string>
+    <string name="explorer_info_directories_label">Dizinler</string>
+    <string name="explorer_info_total_size_label">Toplam boyut</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Konumlar</string>
+    <string name="explorer_info_shortcuts_label">Kısayollar</string>
+    <string name="explorer_info_total_capacity_label">Toplam kapasite</string>
+    <string name="explorer_info_used_space_label">Kullanılan alan</string>
+    <string name="explorer_info_free_space_label">Boş alan</string>
+    <string name="explorer_info_usage_label">Kullanım</string>
+    <string name="explorer_info_device_storage_total_label">Cihaz depolaması</string>
+    <string name="explorer_info_device_storage_used_label">Kullanılan</string>
+    <string name="explorer_info_device_storage_free_label">Boş</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Ana sayfa</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Ana sayfa olarak ayarla</string>
+    <string name="explorer_breadcrumb_copy_path_action">Yolu kopyala</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Yol panoya kopyalandı</string>
+    <string name="explorer_navigation_device">Cihaz</string>
+    <string name="explorer_navigation_network">Ağ</string>
+    <string name="explorer_navigation_recent">Son kullanılanlar</string>
+    <string name="explorer_navigation_recent_desc">Bu cihazda son zamanlarda görünen dosyalar</string>
+    <string name="explorer_navigation_trash">Çöp kutusu</string>
+    <string name="explorer_navigation_trash_desc">Silinen dosyaları kurtar</string>
+    <string name="explorer_navigation_trash_nested_desc">Çöpe atılmış klasörün içinde</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Silinen öğe yok</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d öğe</item>
+        <item quantity="other">%d öğe</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Geri yükle</string>
+    <string name="explorer_trash_restore_selected_action">Seçilenleri geri yükle</string>
+    <string name="explorer_trash_delete_permanently_action">Kalıcı olarak sil</string>
+    <string name="explorer_trash_delete_selected_action">Seçilenleri sil</string>
+    <string name="explorer_trash_empty_trash_action">Çöp kutusunu boşalt</string>
+    <string name="explorer_trash_empty_confirm">Çöp kutusu boşaltılsın mı?</string>
+    <string name="explorer_trash_empty_message">Çöp kutusundaki tüm öğeler kalıcı olarak silinecek. Bu işlem geri alınamaz.</string>
+    <string name="explorer_trash_empty_confirm_action">Çöp kutusunu boşalt</string>
+    <string name="explorer_trash_restore_desc">Orijinal konumuna geri yükle</string>
+    <string name="explorer_trash_item_unavailable">Öğe kullanılamıyor</string>
+    <string name="explorer_trash_delete_warning">Bu işlem geri alınamaz</string>
+    <string name="explorer_trash_disabled_warning">Çöp kutusu devre dışı</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Çöpe atılan klasörün içeriği yükleniyor…</string>
+    <string name="explorer_trash_nested_restore_action">Orijinal konumuna geri yükle</string>
+    <string name="explorer_trash_nested_delete_action">Kalıcı olarak sil</string>
+    <string name="explorer_trash_nested_restore_conflict">Orijinal konumda aynı adlı bir dosya zaten var</string>
+    <string name="explorer_trash_nested_parent_missing">Üst öğe artık çöp kutusunda yok</string>
+    <string name="explorer_trash_nested_path_missing">Yol artık mevcut değil</string>
+    <string name="explorer_trash_error_items_not_found">Öğeler çöp kutusunda bulunamadı</string>
+    <string name="explorer_trash_error_restore_failed">Öğeler geri yüklenemedi</string>
+    <string name="explorer_trash_error_delete_failed">Öğeler silinemedi</string>
+    <string name="explorer_trash_nested_error_restore_failed">%1$s geri yüklenemedi</string>
+    <string name="explorer_trash_nested_error_delete_failed">%1$s silinemedi</string>
+
+    <string name="explorer_navigation_root">Kök dizin</string>
+    <string name="explorer_navigation_rom">Sistem ROM\'u</string>
+    <string name="explorer_navigation_internal_storage">Dahili genel depolama</string>
+    <string name="explorer_navigation_external_storage">Harici genel depolama</string>
+
+    <string name="explorer_loader_progress_directory_loading">%s içine göz atılıyor</string>
+    <string name="explorer_loader_progress_directory_permissions">İzinler kontrol ediliyor</string>
+    <string name="explorer_loader_progress_directory_filesystem">Dosya sistemi bilgisi alınıyor</string>
+    <string name="explorer_loader_progress_directory_content">Klasör içeriği yükleniyor</string>
+    <string name="explorer_loader_progress_directory_content_details">İçerik ayrıntıları yükleniyor</string>
+    <string name="explorer_loader_progress_directory_content_extended">Genişletilmiş içerik ayrıntıları yükleniyor</string>
+
+    <string name="explorer_loader_progress_device_loading">Cihaz yükleniyor</string>
+    <string name="explorer_loader_progress_device_locations">Depolama konumları yükleniyor</string>
+
+    <string name="explorer_loader_progress_network_loading">Ağ depolaması yükleniyor</string>
+
+    <string name="explorer_loader_progress_home_loading">Ana sayfa yükleniyor</string>
+    <string name="explorer_loader_progress_trash_loading">Çöp kutusu yükleniyor…</string>
+    <string name="explorer_loader_progress_recent_loading">Son kullanılan dosyalar yükleniyor…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d kısayol</item>
+        <item quantity="other">%d kısayol</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d konum</item>
+        <item quantity="other">%d konum</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d gizli</item>
+        <item quantity="other">%d gizli</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s boş</string>
+    <string name="explorer_infobar_loading">Yükleniyor…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Yeni öğe oluştur</string>
+    <string name="explorer_dialog_rename_title">Yeniden adlandır</string>
+    <string name="explorer_dialog_name_label">Ad</string>
+    <string name="explorer_dialog_type_label">Tür</string>
+    <string name="explorer_dialog_type_folder">Klasör</string>
+    <string name="explorer_dialog_type_file">Dosya</string>
+    <string name="explorer_dialog_create_text_file_title">Metinden dosya oluştur</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Önizleme</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d karakter</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Depolama konumu ekle</string>
+    <string name="explorer_add_device_storage_desc">Butler\'a USB sürücüler, sanal uygulama klasörleri ve daha fazlası gibi ek depolama konumlarına erişim izni vermek için Storage Access Framework (SAF) kullanın.</string>
+    <string name="explorer_add_device_storage_continue">Devam et</string>
+    <string name="explorer_add_device_storage_cancel">İptal</string>
+    <string name="explorer_add_device_storage_suggestions_title">Depolamaya sahip uygulamalar</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Bu uygulamanın klasörünü açar</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Konumu kaldır</string>
+    <string name="explorer_device_remove_confirmation_title">Depolama konumu kaldırılsın mı?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">%1$d depolama konumu kaldırılsın mı?</item>
+        <item quantity="other">%1$d depolama konumu kaldırılsın mı?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Bu, Butler\'ın bu konuma erişimini iptal eder. Dosyalarınız silinmeyecek.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d ağ konumu</item>
+        <item quantity="other">%d ağ konumu</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Ağ</string>
+    <string name="explorer_network_add_location_action">Ağ depolaması ekle</string>
+    <string name="explorer_network_edit_location_action">Ağ depolamasını düzenle</string>
+    <string name="explorer_network_remove_location_action">Ağ depolamasını kaldır</string>
+    <string name="explorer_network_sign_in_required_label">Oturum açma gerekli</string>
+    <string name="explorer_network_status_checking_label">Kontrol ediliyor…</string>
+    <string name="explorer_network_status_available_label">Kullanılabilir</string>
+    <string name="explorer_network_status_unavailable_label">Kullanılamıyor</string>
+    <string name="explorer_network_status_unavailable_since_format">Kullanılamıyor (%1$s)</string>
+    <string name="explorer_network_empty_title">Henüz ağ depolaması yok</string>
+    <string name="explorer_network_empty_caption">Buradan göz atmak için bir Windows paylaşımı veya NAS klasörü ekleyin.</string>
+    <string name="explorer_network_remove_confirmation_title">Ağ depolaması kaldırılsın mı?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">%1$d ağ depolaması kaldırılsın mı?</item>
+        <item quantity="other">%1$d ağ depolaması kaldırılsın mı?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler sunucu bilgilerini ve kayıtlı şifreyi unutur. Sunucudaki hiçbir şey silinmez.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Ağ depolaması ekle</string>
+    <string name="explorer_network_form_edit_title">Ağ depolamasını düzenle</string>
+    <string name="explorer_network_form_label_label">Ad (isteğe bağlı)</string>
+    <string name="explorer_network_form_host_label">Sunucu adresi</string>
+    <string name="explorer_network_form_host_hint">nas.local veya 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Port</string>
+    <string name="explorer_network_form_share_label">Paylaşım</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Paylaşım içindeki klasör (isteğe bağlı)</string>
+    <string name="explorer_network_form_auth_guest">Misafir</string>
+    <string name="explorer_network_form_auth_password">Kullanıcı adı ve şifre</string>
+    <string name="explorer_network_form_username_label">Kullanıcı adı</string>
+    <string name="explorer_network_form_domain_label">Etki alanı (isteğe bağlı)</string>
+    <string name="explorer_network_form_password_label">Şifre</string>
+    <string name="explorer_network_form_password_kept_hint">Kayıtlı şifreyi korumak için boş bırakın</string>
+    <string name="explorer_network_form_remember_label">Şifreyi hatırla</string>
+    <string name="explorer_network_form_remember_hint">Yalnızca bu cihazda şifreli olarak saklanır</string>
+    <string name="explorer_network_form_test_and_save_action">Test et ve kaydet</string>
+    <string name="explorer_network_form_testing">Bağlanıyor…</string>
+    <string name="explorer_network_form_error_host_blank">Bir sunucu adresi girin</string>
+    <string name="explorer_network_form_error_host_not_bare">Yalnızca sunucu adresini girin, şema veya yol eklemeyin</string>
+    <string name="explorer_network_form_error_host_malformed">Bu geçerli bir sunucu adresi değil</string>
+    <string name="explorer_network_form_error_port">1 ile 65535 arasında bir port girin</string>
+    <string name="explorer_network_form_error_share_blank">Bir paylaşım adı girin</string>
+    <string name="explorer_network_form_error_share_not_single">Yalnızca paylaşım adını girin, alt klasörleri aşağıya ekleyin</string>
+    <string name="explorer_network_form_error_share_malformed">Bu geçerli bir paylaşım adı değil</string>
+    <string name="explorer_network_form_error_base_path">Bu klasör yolu kullanılamaz</string>
+    <string name="explorer_network_form_error_username_blank">Bir kullanıcı adı girin</string>
+    <string name="explorer_network_form_error_password_required">Kullanıcı adını veya etki alanını değiştirmek için şifreyi yeniden girin</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Konumu adlandır</string>
+    <string name="explorer_location_name_label">Konum adı</string>
+    <string name="explorer_location_name_hint">Varsayılan adı kullanmak için boş bırakın</string>
+    <string name="explorer_location_rename_action">Konumu yeniden adlandır</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Son bir gün içinde eklendi</item>
+        <item quantity="other">Son %d gün içinde eklendi</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Burada yeni bir şey yok</string>
+    <string name="explorer_recent_empty_message">Bu cihazda görünen dosyalar burada listelenir</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Bu klasör boş</string>
+    <string name="explorer_empty_search_title">Arama sonucu yok</string>
+    <string name="explorer_empty_search_caption">Farklı bir arama terimi deneyin</string>
+    <string name="explorer_empty_folder_label">Boş klasör</string>
+    <string name="explorer_empty_filtered_title">Eşleşen öğe yok</string>
+    <string name="explorer_empty_filtered_caption">Filtrelerinizi ayarlamayı deneyin</string>
+    <string name="explorer_empty_hidden_title">Burada yalnızca gizli öğeler var</string>
+    <string name="explorer_empty_hidden_caption">Bu sekme, adı nokta ile başlayan öğeleri gizler</string>
+    <string name="explorer_empty_show_hidden_action">Gizli öğeleri göster</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Gösterilecek bir şey kalmadı</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Gizli öğeler ve filtreleriniz bu klasörün bir kısmını hariç tutuyor</string>
+    <string name="explorer_empty_clear_filters_action">Filtreleri temizle</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Gizli öğeler ve filtreler buradaki her şeyi hariç tutuyor</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Gizli öğeleri göstermek ve bu sekmenin filtrelerini temizlemek onları geri getirir</string>
+    <string name="explorer_empty_show_all_action">Tüm öğeleri göster</string>
+    <string name="explorer_path_not_found_title">Bu klasör artık yok</string>
+    <string name="explorer_path_not_found_caption">Silinmiş, yeniden adlandırılmış veya başka bir yere taşınmış.</string>
+    <string name="explorer_path_not_found_back_action">Geri dön</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Yükleniyor…</string>
+    <string name="explorer_file_peek_loading_text">Yükleniyor…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Burada görülecek bir şey yok… geçin gitsin 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Bu klasör diyette</string>
+    <string name="explorer_empty_folder_caption_3">Dosyalar bile bugün erken eve gitti</string>
+    <string name="explorer_empty_folder_caption_4">Klasör.exe çalışmayı durdurdu</string>
+    <string name="explorer_empty_folder_caption_5">Dosyalar saklambaç oynuyor</string>
+    <string name="explorer_empty_folder_caption_6">404: Dosya bulunamadı</string>
+    <string name="explorer_empty_folder_caption_7">Bu klasörün güven sorunları var</string>
+    <string name="explorer_empty_folder_caption_8">Dosyalar haber vermeden tatile çıktı</string>
+    <string name="explorer_empty_folder_caption_9">Ruhum kadar boş… ama daha düzenli</string>
+    <string name="explorer_empty_folder_caption_10">Dijital dünyanın ıssız çölü gibi</string>
+    <string name="explorer_empty_folder_caption_11">Dosyalar sosyal mesafeye uyuyor</string>
+    <string name="explorer_empty_folder_caption_12">Bu klasör minimalizmi benimsiyor</string>
+    <string name="explorer_empty_folder_caption_13">Birileri dosyaları beslemeyi unuttu</string>
+    <string name="explorer_empty_folder_caption_14">Dosyalar binayı terk etti</string>
+    <string name="explorer_empty_folder_caption_15">Bir politikacının vaadinden daha boş</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Sıralama ölçütü</string>
+    <string name="explorer_sort_mode_name_label">Ad</string>
+    <string name="explorer_sort_mode_size_label">Boyut</string>
+    <string name="explorer_sort_mode_modified_label">Değiştirilme tarihi</string>
+    <string name="explorer_sort_mode_created_label">Oluşturulma tarihi</string>
+    <string name="explorer_sort_descending_label">Azalan sıra</string>
+    <string name="explorer_sort_scope_label">Şunlara uygula</string>
+    <string name="explorer_sort_scope_all_folders">Tüm klasörler</string>
+    <string name="explorer_sort_scope_this_folder">Bu klasör</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Bu klasör ve alt klasörler</string>
+    <string name="explorer_sort_scope_use_default_here">Burada varsayılanı kullan</string>
+    <string name="explorer_sort_only_this_tab_label">Yalnızca bu sekme için</string>
+    <string name="explorer_sort_inherited_notice">%1$s için kaydedilen kurala göre sıralandı</string>
+    <string name="explorer_sort_suppressed_notice">Bu, %1$s için kaydedilen kuralı geçersiz kılar</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Bu sekme kendi varsayılan sıralama düzenini kullanıyor</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Temizle</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Klasör boyutları</string>
+    <string name="explorer_sizes_sheet_label_calculated">Hesaplanan</string>
+    <string name="explorer_sizes_sheet_label_folders">Klasörler</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Okunamayan konumlar</string>
+    <string name="explorer_sizes_sheet_problems_more">%1$d tanesi daha listelenmedi</string>
+    <string name="explorer_sizes_sheet_recalculate">Yeniden hesapla</string>
+    <string name="explorer_sizes_sheet_discard">Boyutları at</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Öğelerin nasıl düzenlendiği ve ne kadar ayrıntı gösterdiği</string>
+    <string name="explorer_view_mode_list_label">Liste</string>
+    <string name="explorer_view_mode_grid_label">Izgara</string>
+    <string name="explorer_view_density_compact_label">Kompakt</string>
+    <string name="explorer_view_density_comfortable_label">Rahat</string>
+    <string name="explorer_view_density_detailed_label">Ayrıntılı</string>
+    <string name="explorer_view_show_hidden_label">Gizli dosyaları göster</string>
+    <string name="explorer_view_set_default_action">Varsayılan olarak ayarla</string>
+    <string name="explorer_view_detail_created_label">Oluşturulma</string>
+    <string name="explorer_view_detail_modified_label">Değiştirilme</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Klasör sıralama kuralları</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Tek tek klasörler için kaydettiğiniz sıralama ayarları</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Klasör sıralama kuralları temizlensin mi?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Tüm klasörler varsayılan sıralama düzenine döner. Kendi sıralama geçersiz kılmasına sahip sekmeler bunu korur. Bu işlem geri alınamaz.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Tümünü temizle</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Dosya türü</string>
+    <string name="explorer_filter_type_all">Tümü</string>
+    <string name="explorer_filter_type_files">Yalnızca dosyalar</string>
+    <string name="explorer_filter_type_folders">Yalnızca klasörler</string>
+    <string name="explorer_filter_include_label">Dahil etme deseni</string>
+    <string name="explorer_filter_include_placeholder_simple">örn. tatil, rapor, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">örn. .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Hariç tutma deseni</string>
+    <string name="explorer_filter_exclude_placeholder_simple">örn. tmp, cache, old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">örn. ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Ayarlardan regex desenlerini etkinleştirin</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">İzin gerekli</string>
+    <string name="explorer_permission_generic_description">Butler\'ın bu konuma göz atabilmesi için ek izne ihtiyacı var.</string>
+    <string name="explorer_permission_setup_action">Kurulumu aç</string>
+    <string name="explorer_grant_access_action">Erişim izni ver</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">İşlemler</string>
+    <string name="explorer_file_info_type_label">Tür</string>
+    <string name="explorer_file_info_size_label">Boyut</string>
+    <string name="explorer_file_info_modified_label">Değiştirilme</string>
+    <string name="explorer_file_action_install">Yükle</string>
+    <string name="explorer_file_action_install_subtitle">Bu uygulamayı cihazınıza yükleyin</string>
+    <string name="explorer_file_action_open">Aç</string>
+    <string name="explorer_file_action_open_subtitle">Burada görüntüle, geri tuşu bu klasöre döner</string>
+    <string name="explorer_file_action_open_in_tab">Yeni sekmede aç</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Butler\'da kendi sekmesi olarak görüntüle</string>
+    <string name="explorer_file_action_open_in_editor">Düzenleyicide aç</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Yeni bir sekmede düzenle</string>
+    <string name="explorer_file_action_open_with">Birlikte aç</string>
+    <string name="explorer_file_action_open_with_subtitle">Açmak için harici bir uygulama seçin</string>
+    <string name="explorer_file_action_share">Paylaş</string>
+    <string name="explorer_file_action_share_subtitle">Yüklü uygulamalar aracılığıyla paylaşın</string>
+    <string name="explorer_file_action_copy">Kopyala</string>
+    <string name="explorer_file_action_copy_subtitle">Yapıştırmak için panoya kopyala</string>
+    <string name="explorer_file_action_cut">Kes</string>
+    <string name="explorer_file_action_cut_subtitle">Yapıştırmak için panoya taşı</string>
+    <string name="explorer_file_action_rename">Yeniden adlandır</string>
+    <string name="explorer_file_action_rename_subtitle">Dosya adını değiştir</string>
+    <string name="explorer_file_action_delete">Sil</string>
+    <string name="explorer_file_action_delete_subtitle">Bu dosyayı kalıcı olarak kaldır</string>
+    <string name="explorer_file_action_move_to_trash">Çöp kutusuna taşı</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Dosyayı çöp kutusuna taşı</string>
+    <string name="explorer_file_action_properties">Özellikler</string>
+    <string name="explorer_file_action_properties_subtitle">Ayrıntılı dosya bilgilerini görüntüle</string>
+    <string name="explorer_file_action_extract">Çıkart</string>
+    <string name="explorer_file_action_extract_subtitle">Arşiv içeriğini bir klasöre çıkart</string>
+    <string name="explorer_file_action_show_in_folder">Klasörde göster</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Bu dosyanın bulunduğu klasörü aç</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">%d dosya oluşturuldu.</item>
+        <item quantity="other">%d dosya oluşturuldu.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">%d dizin oluşturuldu.</item>
+        <item quantity="other">%d dizin oluşturuldu.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Kopyalama işlemi</string>
+    <string name="explorer_operation_copy_description_single">\"%1$s\" öğesini \"%2$s\" konumundan \"%3$s\" konumuna kopyala.</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">%1$d öğeyi \"%2$s\" konumuna kopyala.</item>
+        <item quantity="other">%1$d öğeyi \"%2$s\" konumuna kopyala.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%d dosya kopyalandı.</item>
+        <item quantity="other">%d dosya kopyalandı.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%d dizin kopyalandı.</item>
+        <item quantity="other">%d dizin kopyalandı.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">%s kopyalandı.</item>
+        <item quantity="other">%s kopyalandı.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Çıkartma işlemi</string>
+    <string name="explorer_operation_extract_description">\"%1$s\" öğesini \"%2$s\" konumuna çıkart.</string>
+    <string name="explorer_operation_download_copy_title">Yerel kopyalama işlemi</string>
+    <string name="explorer_operation_download_copy_description">Yerelde görüntülemek için \"%1$s\" öğesini \"%2$s\" konumuna kopyala.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">%d dosya çıkartıldı.</item>
+        <item quantity="other">%d dosya çıkartıldı.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">%s çıkartıldı.</item>
+        <item quantity="other">%s çıkartıldı.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Sıkıştırma işlemi</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">%1$d öğeyi \"%2$s\" içine sıkıştır.</item>
+        <item quantity="other">%1$d öğeyi \"%2$s\" içine sıkıştır.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">%d dosya sıkıştırıldı.</item>
+        <item quantity="other">%d dosya sıkıştırıldı.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Arşiv oluştur</string>
+    <string name="explorer_compress_dialog_name_label">Arşiv adı</string>
+    <string name="explorer_compress_dialog_format_label">Biçim</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Her cihazda açılır. Şifreyle korunabilir.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Çok sayıda dosya için daha küçük. Şifre koruması yok.</string>
+    <string name="explorer_compress_dialog_create_action">Oluştur</string>
+    <string name="explorer_compress_dialog_level_label">Sıkıştırma düzeyi</string>
+    <string name="explorer_compress_dialog_level_fast">Hızlı</string>
+    <string name="explorer_compress_dialog_level_normal">Normal</string>
+    <string name="explorer_compress_dialog_level_best">En iyi</string>
+    <string name="explorer_compress_dialog_password_label">Şifre (isteğe bağlı)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Şifreyi onayla</string>
+    <string name="explorer_compress_dialog_password_mismatch">Şifreler eşleşmiyor</string>
+    <string name="explorer_compress_dialog_password_weak">Zayıf şifre</string>
+    <string name="explorer_compress_dialog_password_notice">Dosya içerikleri şifrelenir, dosya adları şifrelenmez.</string>
+    <string name="explorer_compress_dialog_password_show">Şifreyi göster</string>
+    <string name="explorer_compress_dialog_password_hide">Şifreyi gizle</string>
+    <string name="explorer_compress_dialog_overwrite_title">Arşiv değiştirilsin mi?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" zaten var ve değiştirilecek.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Değiştir</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">%1$d öğe bırakılsın mı?</item>
+        <item quantity="other">%1$d öğe bırakılsın mı?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">%1$d öğe \"%2$s\" konumuna kopyalansın veya taşınsın mı?</item>
+        <item quantity="other">%1$d öğe \"%2$s\" konumuna kopyalansın veya taşınsın mı?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">%1$d öğe \"%2$s\" konumuna kopyalansın mı?</item>
+        <item quantity="other">%1$d öğe \"%2$s\" konumuna kopyalansın mı?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Çöp kutusuna taşınsın mı?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">%1$d öğe çöp kutusuna taşınsın mı?</item>
+        <item quantity="other">%1$d öğe çöp kutusuna taşınsın mı?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Taşıma işlemi</string>
+    <string name="explorer_operation_move_description_single">\"%1$s\" öğesini \"%2$s\" konumundan \"%3$s\" konumuna taşı.</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">%1$d öğeyi \"%2$s\" konumuna taşı.</item>
+        <item quantity="other">%1$d öğeyi \"%2$s\" konumuna taşı.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%d dosya taşındı.</item>
+        <item quantity="other">%d dosya taşındı.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%d dizin taşındı.</item>
+        <item quantity="other">%d dizin taşındı.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">%s taşındı.</item>
+        <item quantity="other">%s taşındı.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Klasör oluşturma</string>
+    <string name="explorer_operation_create_description_directory">\"%2$s\" konumunda \"%1$s\" klasörünü oluştur</string>
+    <string name="explorer_operation_create_title_file">Dosya oluşturma</string>
+    <string name="explorer_operation_create_description_file">\"%2$s\" konumunda \"%1$s\" dosyasını oluştur</string>
+    <string name="explorer_operation_create_text_file_title">Metin dosyası oluşturma</string>
+    <string name="explorer_operation_create_text_file_description">Metin parçacığından \"%1$s\" oluştur</string>
+    <string name="explorer_operation_calculate_sizes_title">Boyut hesaplama</string>
+    <string name="explorer_operation_calculate_sizes_description">\"%1$s\" içindeki klasör boyutlarını hesapla.</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$d öğe tarandı</item>
+        <item quantity="other">%1$d öğe tarandı</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">%1$d klasörün boyutu hesaplandı.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">%1$d klasörün boyutu hesaplandı, %2$d konum okunamadı.</item>
+        <item quantity="other">%1$d klasörün boyutu hesaplandı, %2$d konum okunamadı.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">\"%1$s\" için klasör boyutları, hesaplama sırasında değiştiği için atıldı.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Gezinme başarısız oldu</string>
+    <string name="explorer_aborted_dialog_title">İşlem iptal edildi</string>
+    <string name="explorer_aborted_dialog_message">Herhangi bir şey gösterilmeden önce yükleme iptal edildi.</string>
+    <string name="explorer_archive_unbrowsable_title">Arşiv burada görüntülenemiyor</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" yalnızca sıralı okumayı destekleyen bir depolama alanında, ancak bir arşive göz atmak rastgele erişim gerektirir. Arşivi buraya çıkartın veya göz atmak için yerel bir kopyasını indirin.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Arşivi çıkart</string>
+    <string name="explorer_archive_unbrowsable_download_action">Yerel kopya indir</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (özel erişim)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (özel erişim)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android bu klasöre erişimi kısıtlıyor. Erişim vermek için klasör seçiciyi kullanın.</string>
+    <string name="explorer_permission_multiple_options_description">Erişimi Android\'in klasör seçicisini kullanarak verebilir veya tüm kısıtlı klasörlere daha hızlı erişim için Root/Shizuku kurabilirsiniz.</string>
+    <string name="explorer_permission_setup_both_description">Bu klasör yükseltilmiş erişim gerektiriyor. Kurulumda Root veya Shizuku\'yu yükleyip yapılandırın.</string>
+    <string name="explorer_permission_setup_shizuku_description">Bu klasör Shizuku aracılığıyla yükseltilmiş erişim gerektiriyor. Shizuku Manager\'ı yükleyin ve kurulumda yapılandırın.</string>
+    <string name="explorer_permission_setup_root_description">Bu klasör Root erişimi gerektiriyor. Cihazınız root\'luysa kurulumda Root\'u yapılandırın.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Bu klasöre erişim vermek için Android\'in klasör seçicisini kullanın.</string>
+    <string name="explorer_permission_option_picker_action">SAF seçiciyi aç</string>
+
+    <string name="explorer_permission_option_setup_title">Tam erişim</string>
+    <string name="explorer_permission_option_setup_description">Tüm kısıtlı klasörlere daha hızlı erişim için Root veya Shizuku\'yu yapılandırın.</string>
+    <string name="explorer_permission_option_setup_action">Yapılandır</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Depolama erişimi</string>
+    <string name="explorer_permission_option_storage_description">Butler\'a cihaz depolamanızdaki dosyalara erişim izni verin.</string>
+    <string name="explorer_permission_option_storage_action">İzin ver</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">Yeni sekmelerde aç</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Favoriler</string>
+    <string name="explorer_action_add_to_favorites">Favorilere ekle</string>
+    <string name="explorer_action_remove_from_favorites">Favorilerden kaldır</string>
+    <string name="explorer_favorites_select_action">Seç</string>
+    <string name="explorer_favorites_unavailable_subtitle">Erişilemiyor</string>
+    <string name="explorer_favorites_unavailable_toast">Favoriye erişilemiyor</string>
+    <string name="explorer_favorites_added_message">%1$s favorilere eklendi</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">%1$d öğe favorilere eklendi</item>
+        <item quantity="other">%1$d öğe favorilere eklendi</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">%1$s favorilerden kaldırıldı</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">%1$d öğe favorilerden kaldırıldı</item>
+        <item quantity="other">%1$d öğe favorilerden kaldırıldı</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Favoriyi yeniden adlandır</string>
+    <string name="explorer_favorites_rename_hint">Favori adı</string>
+    <string name="explorer_favorites_rename_description">Yalnızca favorilerinizdeki kayıt yeniden adlandırılır, klasörün kendi adı değişmez.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">Bu sekme, %1$d klasördeki sıralama düzenini geçersiz kılıyor</item>
+        <item quantity="other">Bu sekme, %1$d klasördeki sıralama düzenini geçersiz kılıyor</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d klasör</item>
+        <item quantity="other">%1$d klasör</item>
+    </plurals>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Baru</string>
+    <string name="workspace_templates_choose_title">Tab baru</string>
+    <string name="workspace_templates_choose_subtitle">Pilih jenis tab. Bagaimana saya bisa membantu?</string>
+    <string name="workspace_templates_name_tab_action">Beri nama tab ini</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Pilih alat</string>
+    <string name="tour_templates_picker_body">Ini adalah pemilih tab, pilih apa yang harus menjadi tab ini. Memilih satu mengubah tab ini menjadi alat itu.</string>
+    <string name="tour_templates_butler_button_title">Tab Anda ada di sini</string>
+    <string name="tour_templates_butler_button_body">Ketuk tombol Butler untuk menu tab: Buat tab baru, tutup tab saat ini, atau buka pengelola tab lengkap. Tekan lama untuk langsung ke pengelola tab.</string>
+</resources>

@@ -1,0 +1,523 @@
+<resources>
+    <string name="onboarding_welcome_title">歡迎使用 Butler</string>
+    <string name="onboarding_welcome_message">檔案也有分頁。\n瀏覽、搜尋、編輯，一次完成。</string>
+    <string name="onboarding_welcome_subtitle">開放原始碼。無廣告。不追蹤。\n值得擁有的檔案總管。</string>
+    <string name="onboarding_welcome_action">開始探索</string>
+    <string name="onboarding_beta_title">共同打造未來</string>
+    <string name="onboarding_beta_message">這是測試版（beta）版本，請抱持幽默感並做好備份，遇到問題請回報。</string>
+    <string name="onboarding_beta_action">無所畏懼</string>
+    <string name="onboarding_beta_feature_early_access_title">搶先體驗</string>
+    <string name="onboarding_beta_feature_early_access_description">搶先體驗最新功能。</string>
+    <string name="onboarding_beta_feature_influence_title">直接影響</string>
+    <string name="onboarding_beta_feature_influence_description">意見回饋將影響 Butler 的發展方向。</string>
+    <string name="onboarding_beta_feature_feedback_title">社群驅動</string>
+    <string name="onboarding_beta_feature_feedback_description">加入資深使用者社群，一起改進 Butler。</string>
+    <string name="onboarding_privacy_title">隱私與資料</string>
+    <string name="onboarding_privacy_message">Butler 沒有廣告，也不會出售使用者資料，你的隱私對我很重要。</string>
+    <string name="onboarding_privacy_read_action">閱讀隱私權政策</string>
+    <string name="onboarding_privacy_action">接受</string>
+    <string name="onboarding_skip_action">略過</string>
+    <string name="onboarding_progress_step">%1$d / %2$d</string>
+
+    <string name="onboarding_workspaces_title">以分頁工作</string>
+    <string name="onboarding_workspaces_message">開啟多個分頁並切換使用，就像瀏覽器一樣。</string>
+    <string name="onboarding_workspaces_action">繼續</string>
+    <string name="onboarding_workspaces_hint">同時開啟多個分頁。</string>
+    <string name="onboarding_workspaces_explorer_title">檔案總管</string>
+    <string name="onboarding_workspaces_explorer_description">瀏覽檔案。</string>
+    <string name="onboarding_workspaces_searcher_title">搜尋</string>
+    <string name="onboarding_workspaces_searcher_description">找東西。</string>
+    <string name="onboarding_workspaces_editor_title">編輯器</string>
+    <string name="onboarding_workspaces_editor_description">編輯檔案。</string>
+    <string name="onboarding_workspaces_templates_title">範本</string>
+    <string name="onboarding_workspaces_templates_description">儲存目前的分頁配置。</string>
+    <string name="onboarding_workspaces_apps_description">管理應用程式。</string>
+
+    <!-- 檔案總管捷徑 -->
+    <string name="shortcut_explorer_new_short">新增檔案總管</string>
+    <string name="shortcut_explorer_new_long">建立新的檔案總管分頁</string>
+
+    <!-- 捷徑設定 -->
+    <string name="shortcuts_settings_title">捷徑</string>
+    <string name="shortcuts_settings_subtitle">設定啟動器捷徑</string>
+    <string name="shortcuts_settings_enabled_title">啟用捷徑</string>
+    <string name="shortcuts_settings_enabled_subtitle">在啟動器中顯示常用項目</string>
+    <string name="shortcuts_settings_auto_remember_title">記住造訪過的路徑</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">自動將常造訪的路徑加入捷徑</string>
+    <string name="shortcuts_settings_last_accessed_title">最近存取</string>
+    <string name="shortcuts_settings_max_count_title">捷徑數量上限</string>
+    <string name="shortcuts_settings_max_count_subtitle">目前顯示 %d 個捷徑</string>
+    <string name="shortcuts_settings_min_access_title">最低存取次數</string>
+    <string name="shortcuts_settings_min_access_subtitle">需存取 %d 次才會顯示</string>
+    <string name="shortcuts_settings_current_title">目前的捷徑</string>
+    <string name="shortcuts_settings_current_subtitle">已追蹤 %d 個捷徑</string>
+    <string name="shortcuts_settings_clear_title">清除捷徑紀錄</string>
+    <string name="shortcuts_settings_clear_subtitle">移除所有已追蹤的捷徑</string>
+    <string name="shortcuts_settings_clear_confirm_title">要清除捷徑紀錄嗎？</string>
+    <string name="shortcuts_settings_clear_confirm_message">這將移除所有已追蹤的捷徑，我的最愛不受影響。</string>
+    <string name="shortcuts_settings_cleared_message">捷徑紀錄已清除</string>
+    <string name="shortcuts_settings_max_dialog_title">捷徑數量上限</string>
+    <string name="shortcuts_settings_max_dialog_message">啟動器中顯示的捷徑數量（1–4）</string>
+    <string name="shortcuts_settings_min_dialog_title">最低存取次數</string>
+    <string name="shortcuts_settings_min_dialog_message">路徑需存取多少次才會顯示為捷徑（1–10）</string>
+
+    <string name="setup_usagestats_title">使用狀況統計</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">通知存取權</string>
+    <string name="setup_manage_storage_card_title">管理外部儲存空間</string>
+    <string name="setup_inventory_card_title">應用程式清單</string>
+
+    <string name="setup_title">權限設定</string>
+    <string name="setup_settings_description">設定應用程式權限與功能。</string>
+    <string name="setup_help_description">說明</string>
+
+    <string name="setup_root_description">啟用系統檔案與受保護目錄的存取權限，供進階檔案管理使用。解鎖 Butler 的完整功能，包括應用程式資料存取與系統修改。裝置需要已取得 root 權限。</string>
+    <string name="setup_shizuku_description">root 的替代方案，透過安全的 API 提供具權限的檔案操作。無需傳統 root 即可存取受限目錄。需要安裝並執行 Shizuku 應用程式。</string>
+    <string name="setup_notification_description">顯示檔案操作、背景工作與傳輸進度的更新通知，在操作完成或發生錯誤時通知你。</string>
+    <string name="setup_usagestats_description">分析應用程式的儲存空間使用狀況，找出大型檔案，有效管理空間。所有資料都留在裝置上，絕不會傳送出去。</string>
+    <string name="setup_storage_description">完整存取裝置所有儲存空間，實現快速檔案操作與批次處理，無需重複的權限提示即可進行全面的檔案管理。</string>
+    <string name="setup_inventory_description">檢視所有已安裝的應用程式，用於 APK 擷取、儲存空間分析等功能。在 Android 11 以上版本，需要此權限才能檢視完整的應用程式清單。</string>
+
+    <string name="setup_grant_access_label">授予權限</string>
+    <string name="setup_access_granted_label">已授予權限</string>
+    <string name="setup_use_root_label">如可用則使用 root</string>
+    <string name="setup_use_shizuku_label">如可用則使用 Shizuku</string>
+
+    <string name="setup_status_checking">檢查中…</string>
+    <string name="setup_status_completed">已設定</string>
+    <string name="setup_status_required">必要</string>
+    <string name="setup_status_optional">選用</string>
+    <string name="setup_status_connected">已連線</string>
+    <string name="setup_status_not_connected">未連線</string>
+    <string name="setup_status_not_installed">未安裝</string>
+    <string name="setup_status_connecting">連線中…</string>
+    <string name="setup_status_connection_failed">連線失敗</string>
+    <string name="setup_status_unavailable">無法使用</string>
+
+    <!-- 偵錯記錄 -->
+    <string name="debug_notification_channel_label">偵錯通知</string>
+    <string name="debug_log_consent_title">偵錯記錄</string>
+    <string name="debug_log_consent_explanation">此功能會將應用程式的所有活動記錄到可分享的檔案中。產生的檔案包含敏感資訊（例如檔案名稱與已安裝的應用程式），請只與可信任的對象分享（例如協助排除問題的開發者）。</string>
+    <string name="debug_log_recording_progress">正在錄製偵錯記錄</string>
+    <string name="debug_log_record_action">錄製</string>
+    <string name="debug_log_record_full_action">錄製偵錯記錄</string>
+    <string name="debug_log_stop_action">停止錄製</string>
+    <string name="debug_log_screen_title">偵錯記錄工具</string>
+    <string name="debug_log_screen_sensitive_information_message">產生的檔案包含敏感資訊（例如檔案名稱與已安裝的應用程式），請只與可信任的對象分享。</string>
+    <string name="debug_log_screen_session_path_label">偵錯工作階段路徑</string>
+    <string name="debug_log_screen_log_files_label">記錄檔案</string>
+    <string name="debug_log_screen_log_files_ready">記錄檔案已就緒（ZIP：%1$s）</string>
+    <string name="debug_log_screen_discard_action">捨棄</string>
+    <string name="debug_log_file_label">已錄製的記錄檔案</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">正在錄製記錄檔案</string>
+    <string name="debug_banner_stop_action">停止</string>
+    <string name="debug_banner_view_action">檢視</string>
+    <string name="debug_banner_explanation">正在錄製應用程式活動，完成後請停止錄製，並在回報問題時分享記錄。</string>
+    <string name="debug_log_short_recording_title">錄製時間過短</string>
+    <string name="debug_log_short_recording_message">偵錯記錄只會擷取錄製期間發生的事，請先開始錄製、重現問題後再停止。這次錄製可能沒有包含有用的資訊。</string>
+    <string name="debug_log_short_recording_keep_action">繼續錄製</string>
+
+    <string name="debug_logview_screen_title">記錄檢視器</string>
+    <string name="debug_logview_pause_action">暫停（凍結畫面）</string>
+    <string name="debug_logview_resume_action">繼續</string>
+    <string name="debug_logview_copy_action">複製記錄</string>
+    <string name="debug_logview_collapse_action">收合</string>
+    <string name="debug_logview_close_action">關閉記錄面板</string>
+    <string name="debug_logview_resize_action">調整大小</string>
+    <string name="debug_logview_more_action">更多選項</string>
+    <string name="debug_logview_level_action">記錄層級</string>
+    <string name="debug_logview_clear_action">清除緩衝區</string>
+    <string name="debug_logview_search_action">搜尋</string>
+    <string name="debug_logview_search_clear_action">清除搜尋</string>
+    <string name="debug_logview_search_close_action">關閉搜尋</string>
+    <string name="debug_logview_search_prev_action">上一個相符項目</string>
+    <string name="debug_logview_search_next_action">下一個相符項目</string>
+    <string name="debug_logview_jump_to_bottom_action">跳至最新</string>
+    <string name="debug_logview_paused_msg">已暫停，畫面已凍結</string>
+    <string name="debug_logview_paused_new_msg">已暫停，期間新增 %1$d 行</string>
+    <string name="debug_logview_copied_msg">記錄已複製到剪貼簿</string>
+    <string name="debug_logview_copied_truncated_msg">已將最後 %1$d 行複製到剪貼簿</string>
+    <string name="debug_logview_share_label">分享記錄</string>
+
+    <string name="settings_label">設定</string>
+    <string name="settings_category_tools_label">工具</string>
+    <string name="settings_category_other_label">其他</string>
+    <string name="settings_category_integration_label">整合</string>
+    <string name="general_settings_label">一般</string>
+    <string name="general_settings_desc">影響整個應用程式的一般調整。</string>
+    <string name="settings_category_ui_label">使用者介面</string>
+    <string name="ui_mascot_suit_setting_label">Butler 的服裝</string>
+    <string name="ui_mascot_suit_setting_explanation">Butler 服裝的顏色。</string>
+    <string name="ui_theme_mode_setting_label">主題模式</string>
+    <string name="ui_theme_mode_setting_explanation">應用程式主題所使用的模式（例如日間或夜間）。</string>
+    <string name="ui_theme_style_setting_label">主題樣式</string>
+    <string name="ui_theme_style_setting_explanation">應用程式主題所使用的色彩樣式。</string>
+    <string name="ui_theme_color_setting_label">主題色彩</string>
+    <string name="ui_theme_color_setting_explanation">應用程式主題所使用的色彩配置。</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">色彩由 Material You 根據桌布提供</string>
+    <string name="ui_theme_color_value_system">系統色彩</string>
+    <string name="ui_language_override_label">應用程式語言</string>
+    <string name="ui_language_override_desc">為 Butler 選擇不同的語言，不受系統預設語言影響。</string>
+    <string name="ui_display_cutout_avoid_setting_title">避開螢幕挖孔</string>
+    <string name="ui_display_cutout_avoid_setting_description">讓介面避開相機挖孔區域。關閉後可使用更多螢幕空間，但部分介面可能會被挖孔遮擋。</string>
+
+    <string name="previews_settings_title">預覽</string>
+    <string name="previews_settings_subtitle">管理圖片預覽快取。</string>
+
+    <string name="tour_settings_reset_title">重設導覽教學</string>
+    <string name="tour_settings_reset_subtitle">再次顯示導覽教學，包括已略過或停用的項目。</string>
+    <string name="tour_settings_reset_done">導覽教學已重設。</string>
+
+    <string name="storage_settings_title">儲存空間</string>
+    <string name="storage_settings_subtitle">管理 Butler 的快取、儲存空間與回收桶。</string>
+    <string name="storage_category_previews_label">預覽</string>
+    <string name="storage_previews_disk_cache_title">磁碟快取</string>
+    <string name="storage_previews_memory_cache_title">記憶體快取</string>
+    <string name="storage_previews_max_size_title">快取容量上限</string>
+    <string name="storage_clear_disk_confirm_title">要清除磁碟快取嗎？</string>
+    <string name="storage_clear_disk_confirm_message">這將移除所有快取的預覽圖片，需要時會重新產生。</string>
+    <string name="storage_clear_memory_confirm_title">要清除記憶體快取嗎？</string>
+    <string name="storage_clear_memory_confirm_message">這將從記憶體中移除快取的預覽圖片，需要時會重新產生。</string>
+    <string name="storage_clear_all_confirm_title">要清除所有快取嗎？</string>
+    <string name="storage_clear_all_confirm_message">這將清除預覽圖片的磁碟與記憶體快取。</string>
+    <string name="storage_clear_all_previews_action">清除所有預覽快取</string>
+    <string name="storage_clear_all_subtitle">移除所有預覽快取</string>
+    <string name="storage_cache_cleared_message">快取已清除</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">檢查更新</string>
+    <string name="updater_check_enabled_setting_description">允許 Butler 上線檢查是否有新版本。</string>
+    <string name="motd_check_enabled_setting_title">檢查公告</string>
+    <string name="motd_check_enabled_setting_description">允許 Butler 取得開發者的重要訊息。</string>
+    <string name="motd_card_header">公告</string>
+
+    <string name="confirm_exit_setting_title">確認結束</string>
+    <string name="confirm_exit_setting_description">結束應用程式時顯示確認對話方塊。</string>
+    <string name="confirm_exit_dialog_title">結束 Butler</string>
+    <string name="confirm_exit_dialog_message">這將關閉應用程式並返回主畫面。</string>
+    <string name="confirm_exit_dialog_exit">結束</string>
+    <string name="confirm_exit_dialog_cancel">取消</string>
+    <string name="confirm_exit_dialog_dont_ask_again">不再詢問</string>
+
+    <string name="settings_support_category_help_label">取得協助</string>
+    <string name="settings_support_label">支援</string>
+    <string name="settings_support_description">閱讀文件、回報問題、與他人交流，或錄製偵錯記錄。</string>
+    <string name="settings_support_wiki_label">文件</string>
+    <string name="settings_support_wiki_description">了解如何有效使用 Butler。</string>
+    <string name="settings_support_issue_tracker_description">用於回報問題與功能請求的公開問題追蹤系統。</string>
+    <string name="settings_support_issue_tracker_label">問題追蹤系統</string>
+    <string name="settings_support_debuglog_label">偵錯記錄</string>
+    <string name="settings_support_debuglog_desc">將應用程式的所有活動錄製為可分享的文字檔案。</string>
+    <string name="settings_support_debuglog_recording_desc">目前正在錄製偵錯資訊，點按可停止錄製。</string>
+    <string name="settings_support_debuglog_path">記錄路徑：%1$s</string>
+    <string name="settings_support_bugreports_label">錯誤回報</string>
+    <string name="settings_support_bugreports_desc">檢視當機報告、錄製偵錯記錄，並與我分享。</string>
+    <string name="support_contact_report_type_crash">當機報告</string>
+    <string name="support_contact_report_type_reported">錯誤回報</string>
+    <string name="support_contact_report_type_recording">錄製記錄</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">交流閒聊與提問的地方。</string>
+
+    <string name="settings_acknowledgements_label">致謝</string>
+    <string name="settings_acknowledgements_description">製作團隊、授權條款與特別感謝。</string>
+    <string name="settings_acks_translation_header">翻譯</string>
+    <string name="settings_acks_translators_title">翻譯人員</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">翻譯 Butler</string>
+    <string name="settings_acks_translate_desc">協助將 Butler 翻譯成你的語言。</string>
+
+    <string name="settings_acks_thanks_header">感謝</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">支援開放原始碼專案的翻譯工作。</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">感謝提供圖示、吉祥物設計與動畫。</string>
+    <string name="settings_licenses_label">授權條款</string>
+
+    <!-- 分頁狀態卡片 -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="other">%1$d 個分頁</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="other">%1$d 項操作</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="other">%1$d 個待處理</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="other">%1$d 個未儲存</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="other">%1$d 個已暫停</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">顯示所有分頁</string>
+    <string name="workspace_status_filter_operations_desc">篩選有進行中操作的分頁</string>
+    <string name="workspace_status_filter_attention_desc">篩選需要注意的分頁</string>
+    <string name="workspace_status_filter_paused_desc">篩選已暫停的分頁</string>
+    <string name="workspace_status_filter_unsaved_desc">篩選有未儲存變更的分頁</string>
+
+    <!-- 致謝 -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project（APACHE 2.0）</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Kotlin 程式語言。（APACHE 2.0）</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">適用於 Android 與 Java 的快速相依性注入工具。（APACHE 2.0）</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">以 root 權限執行 Java（與 Kotlin）程式碼！（APACHE 2.0）</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">透過協同程式，輕鬆執行具 root 權限的 Kotlin JVM 程式碼。（APACHE 2.0）</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">透過 app_process 啟動的 Java 處理程序，讓一般應用程式以 adb／root 權限直接使用系統 API。（APACHE 2.0）</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com（SIL Open Font License 1.1／Attribution 4.0 International）</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Airbnb 的 Lottie for Android。（APACHE 2.0）</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Android 機器人係重製或修改自 Google 建立並分享的作品，依 Creative Commons 3.0 Attribution License 所述條款使用。</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Android 用於建構原生使用者介面的現代化工具組。（APACHE 2.0）</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpack 函式庫</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room、WorkManager、DataStore、Navigation 及其他 AndroidX 函式庫。（APACHE 2.0）</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin 擴充功能</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Coroutines 與 Serialization 函式庫。（APACHE 2.0）</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">以 Kotlin Coroutines 為基礎的圖片載入函式庫。（APACHE 2.0）</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">用於 SMB 驗證、簽署與加密的密碼學基礎元件。（MIT）</string>
+    <string name="acknowledgement_square_libraries_title">Square 函式庫</string>
+    <string name="acknowledgement_square_libraries_subtitle">Retrofit、OkHttp 與 OkIO 網路函式庫。（APACHE 2.0）</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">適用於 Jetpack Compose 的工具集。（APACHE 2.0）</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Compose 中 LazyColumn 的拖放功能。（APACHE 2.0）</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">適用於 Kotlin 的語意化版本函式庫。（MIT License）</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">適用於 Jetpack Compose 的圖表函式庫。（APACHE 2.0）</string>
+
+    <string name="settings_privacy_policy_label">隱私權政策</string>
+    <string name="settings_privacy_policy_desc">負責任地處理資料。</string>
+
+
+    <string name="changelog_label">版本紀錄</string>
+
+    <!-- 升級狀態 -->
+    <string name="settings_upgrade_status_label">Butler 升級狀態</string>
+    <string name="upgrade_status_free">狀態：免費版</string>
+    <string name="upgrade_status_pro">狀態：Pro 版</string>
+    <string name="upgrade_status_foss">狀態：FOSS 版</string>
+
+    <string name="storage_area_sdcard_label">SD 卡</string>
+    <string name="storage_area_public_label">公共儲存空間</string>
+    <string name="storage_area_public_app_data_label">公共應用程式資料</string>
+
+    <!-- 分頁 -->
+    <!-- 分頁 > 管理員 -->
+    <string name="workspace_manager_title">分頁管理員</string>
+    <string name="workspace_manager_empty_title">沒有分頁</string>
+    <string name="workspace_manager_empty_subtitle">建立第一個分頁開始使用</string>
+
+    <!-- 分頁 > 空白內容-->
+    <string name="workspace_empty_create_action">建立分頁</string>
+    <string name="workspace_empty_create_hint">並行工作：建立分頁並選擇要使用的工具。</string>
+    <string name="workspace_empty_settings_action">開啟設定</string>
+    <string name="workspace_empty_settings_hint">依喜好自訂 Butler，調整各項工具的行為。</string>
+    <string name="workspace_classic_empty_tabs_closed">沒有開啟的分頁，隨時準備就緒。</string>
+    <string name="workspace_classic_empty_tip">提示：點按「建立分頁」並選擇工具，例如檔案總管、搜尋、編輯器等。</string>
+
+    <!-- 分頁 > 導覽教學 -->
+    <string name="tour_first_tab_title">從分頁開始</string>
+    <string name="tour_first_tab_body">Butler 採用分頁式操作，就像瀏覽器一樣：每個分頁都是獨立的工具，例如檔案總管、搜尋、編輯器等。建立你的第一個分頁。</string>
+    <string name="tour_manager_fab_title">快速捷徑</string>
+    <string name="tour_manager_fab_body">點按這裡可快速前往常用工具，或一次關閉所有分頁。</string>
+    <string name="tour_manager_reorder_title">重新排列分頁</string>
+    <string name="tour_manager_reorder_body">按住分頁的標題列並拖曳到想要的位置，其他地方顯示的分頁順序也會跟著改變。</string>
+    <string name="tour_manager_select_title">同時處理多個分頁</string>
+    <string name="tour_manager_select_body">按住分頁預覽即可開始選取，接著點按其他分頁，然後一次關閉或暫停所有選取的分頁。</string>
+    <string name="tour_manager_new_tab_title">開始新分頁</string>
+    <string name="tour_manager_new_tab_body">點按此卡片，為新分頁選擇任一工具。</string>
+    <string name="tour_swipe_switch_title">滑動切換分頁</string>
+    <string name="tour_swipe_switch_body">在頁面上任意位置向左或向右滑動，即可在已開啟的分頁間切換。</string>
+    <string name="tour_swipe_create_title">滑動建立分頁</string>
+    <string name="tour_swipe_create_body">滑過最後一個分頁，Butler 就會為你建立新分頁。</string>
+    <string name="tour_swipe_panes_title">同時顯示多個分頁</string>
+    <string name="tour_swipe_panes_body">在較大的螢幕或橫向模式下，Butler 會並排顯示多個分頁。「分頁」下的版面設定可決定何時啟用此功能。</string>
+    <string name="tour_panes_rail_title">所有分頁</string>
+    <string name="tour_panes_rail_body">所有已開啟的分頁都在這裡。點按任一分頁，選擇要放入的窗格。按住分頁並拖曳即可調整順序。</string>
+    <string name="tour_panes_divider_title">調整窗格大小</string>
+    <string name="tour_panes_divider_body">拖曳此分隔線，讓其中一個窗格獲得更多空間。</string>
+    <string name="tour_panes_layout_title">變更排列方式</string>
+    <string name="tour_panes_layout_body">點按 Butler 按鈕並選擇「版面配置」以重新排列窗格。「分頁」設定可為每個方向固定一種版面配置。</string>
+
+    <string name="workspace_creating_placeholder">正在建立分頁…</string>
+    <string name="workspace_ondemand_swipe_title">滑動以建立新分頁</string>
+
+    <!-- 自適應分頁 -->
+    <string name="workspace_adaptive_pane_ready">窗格 %1$d 已準備好顯示內容</string>
+    <string name="workspace_adaptive_add_action">新增分頁</string>
+
+    <string name="workspace_badge_tip_title">提示：分頁按鈕指示</string>
+    <string name="workspace_badge_open_workspaces">已開啟的分頁數量</string>
+    <string name="workspace_badge_active_operations">進行中的操作（複製檔案、搜尋等）</string>
+    <string name="workspace_badge_attention_items">需要注意的項目（失敗或等待中的操作、無法存取的檔案）</string>
+
+    <!-- 分頁管理員操作 -->
+    <string name="workspace_manager_dismiss_content_desc">關閉</string>
+    <string name="workspace_manager_selection_count">已選取 %1$d 個</string>
+    <string name="workspace_manager_selection_select_all">全選</string>
+    <string name="workspace_manager_selection_pause_action">暫停已選取的分頁</string>
+    <string name="workspace_manager_selection_close_action">關閉已選取的分頁</string>
+    <string name="workspace_manager_selection_cancel_content_desc">離開選取模式</string>
+    <string name="workspace_manager_selection_clear_content_desc">清除選取</string>
+    <string name="workspace_manager_select_all_tabs_desc">選取所有分頁</string>
+    <string name="workspace_manager_new_tab_card_title">新增分頁</string>
+    <string name="workspace_row_select_content_desc">選取分頁</string>
+    <string name="general_cancel_action">取消</string>
+
+    <!-- 分頁管理員浮動按鈕 -->
+    <string name="workspace_fab_quick_shortcuts">快速捷徑</string>
+    <string name="workspace_fab_close_shortcuts">關閉捷徑</string>
+    <string name="workspace_fab_close_all">關閉所有分頁</string>
+
+    <!-- 分頁導覽軌 -->
+    <string name="workspace_pane_assign_action">指派至窗格 %1$d</string>
+    <string name="workspace_pane_show_action">顯示</string>
+    <string name="workspace_pane_close_action">關閉</string>
+    <string name="workspace_pane_unassign_action">從窗格移除</string>
+    <string name="workspace_dragging_description">拖曳中</string>
+    <string name="workspace_pane_current_description">位於窗格 %1$d</string>
+
+    <!-- 分頁管理員列 -->
+    <string name="workspace_row_close_content_desc">關閉分頁</string>
+    <string name="workspace_row_more_options_content_desc">更多選項</string>
+    <string name="workspace_row_operations_running_content_desc">處理中</string>
+    <string name="workspace_row_operations_pending_content_desc">等待處理</string>
+    <string name="workspace_row_pause_action">暫停</string>
+    <string name="workspace_row_resume_action">繼續</string>
+    <string name="workspace_row_stacked_content_desc">疊加於此分頁</string>
+    <string name="workspace_row_unsaved_content_desc">未儲存的變更</string>
+
+    <!-- 設定索引 -->
+    <string name="workspace_settings_subtitle">設定分頁行為。</string>
+    <string name="explorer_settings_subtitle">設定檔案總管行為。</string>
+    <string name="searcher_settings_subtitle">設定搜尋行為。</string>
+    <string name="editor_settings_subtitle">設定文字編輯器行為。</string>
+    <string name="history_settings_subtitle">操作紀錄的保留與清除設定。</string>
+    <string name="clipboard_settings_subtitle">設定剪貼簿行為。</string>
+
+    <!-- 儲存分享目標 -->
+    <string name="saver_share_label">另存為…</string>
+
+    <!-- 單一檔案分享目標 -->
+    <string name="share_receive_label">以 Butler 開啟</string>
+
+    <!-- 編輯器分享目標 -->
+    <string name="editor_share_label">編輯文字</string>
+
+    <!-- 開啟方式：其他應用程式傳送給 Butler 的檔案 -->
+    <string name="external_open_unknown_file_title">未命名檔案</string>
+    <string name="external_open_action_view">檢視</string>
+    <string name="external_open_action_edit">以文字編輯</string>
+    <string name="external_open_action_show_in_explorer">在檔案總管中顯示</string>
+    <string name="external_open_action_save">另存為…</string>
+    <string name="external_open_failed_label">無法開啟檔案</string>
+    <string name="external_open_failed_description">Butler 無法開啟「%1$s」。</string>
+
+    <!-- 開發人員模式 -->
+    <string name="settings_developer_mode_unlock_title">要啟用開發人員模式嗎？</string>
+    <string name="settings_developer_mode_unlock_message">這將解鎖用於疑難排解與測試的進階診斷工具。</string>
+    <string name="settings_developer_mode_unlock_action">啟用</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="other">距離開發人員模式還差 %d 步</item>
+    </plurals>
+
+    <!-- 支援：聯絡表單 -->
+    <string name="support_contact_label">聯絡開發者</string>
+    <string name="support_contact_description">填寫表單以寄送電子郵件給我。</string>
+    <string name="support_contact_no_email_app">找不到電子郵件應用程式</string>
+    <string name="support_contact_category_label">類別</string>
+    <string name="support_contact_category_question">問題</string>
+    <string name="support_contact_category_feature">功能建議</string>
+    <string name="support_contact_category_bug">錯誤回報</string>
+    <string name="support_contact_workspace_label">相關範圍</string>
+    <string name="support_contact_workspace_general">一般</string>
+    <string name="support_contact_workspace_explorer">檔案總管</string>
+    <string name="support_contact_workspace_searcher">搜尋</string>
+    <string name="support_contact_workspace_editor">編輯器</string>
+    <string name="support_contact_description_label">描述</string>
+    <string name="support_contact_description_question_hint">詳細描述你的問題，請盡量具體（至少 20 個字）。</string>
+    <string name="support_contact_description_feature_hint">描述你希望新增的功能，請盡量具體（至少 20 個字）。</string>
+    <string name="support_contact_description_bug_hint">描述發生的狀況與重現問題的方式，請盡量具體（至少 20 個字）。</string>
+    <string name="support_contact_expected_label">預期行為</string>
+    <string name="support_contact_expected_hint">描述你原本預期的結果（至少 10 個字）。</string>
+    <string name="support_contact_word_count">至少 %1$d 個字</string>
+    <string name="support_contact_debuglog_label">偵錯記錄</string>
+    <string name="support_contact_debuglog_empty">找不到偵錯記錄，請先錄製一份。</string>
+    <string name="support_contact_debuglog_picker_hint">附加現有的偵錯記錄，或錄製新的記錄。</string>
+    <string name="support_contact_send_action">開啟電子郵件應用程式</string>
+    <string name="support_contact_welcome">每則訊息我都會親自閱讀並盡力回覆，但由於是我一個人維護，可能需要一點時間，感謝你的耐心等候。</string>
+    <string name="support_contact_footer">你的訊息將透過電子郵件寄出，裝置與設定資訊會自動附加。你可以在郵件中附上截圖或影片。\n\n郵件的部分內容會以英文呈現，方便我理解。</string>
+
+    <!-- 支援：偵錯記錄儲存空間 -->
+    <string name="support_debuglog_storage_label">偵錯記錄儲存空間</string>
+    <string name="support_debuglog_storage_description">%1$d 個記錄工作階段，%2$s</string>
+    <string name="support_debuglog_storage_empty">未儲存任何偵錯記錄</string>
+    <string name="support_debuglog_delete_action">刪除所有偵錯記錄</string>
+    <string name="support_debuglog_delete_description">移除所有已錄製的偵錯記錄檔案</string>
+    <string name="support_debuglog_delete_confirm_title">要刪除所有偵錯記錄嗎？</string>
+    <string name="support_debuglog_delete_confirm_message">這將永久刪除所有已錄製的偵錯記錄工作階段，進行中的錄製不受影響。</string>
+
+    <!-- 支援：偵錯記錄操作 -->
+    <string name="settings_support_debuglog_stop_action">停止錄製</string>
+    <string name="settings_support_debuglog_record_action">錄製偵錯記錄</string>
+
+    <!-- 支援：偵錯工作階段底部工作表 -->
+    <string name="support_debuglog_sessions_label">偵錯記錄工作階段</string>
+    <string name="support_debuglog_sessions_desc">管理已錄製的偵錯記錄工作階段</string>
+    <string name="support_debuglog_sessions_empty">沒有偵錯記錄工作階段</string>
+    <string name="support_debuglog_session_recording">錄製中…</string>
+    <string name="support_debuglog_session_compressing">壓縮中…</string>
+    <string name="support_debuglog_session_failed_empty_log">失敗：記錄為空</string>
+    <string name="support_debuglog_session_failed_missing_log">失敗：記錄遺失</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">失敗：封存檔已損毀</string>
+    <string name="support_debuglog_session_failed_zip_failed">失敗：壓縮錯誤</string>
+    <string name="support_debuglog_session_delete_title">要刪除此偵錯工作階段嗎？</string>
+    <string name="support_debuglog_session_delete_message">這將永久刪除此偵錯記錄工作階段。</string>
+    <string name="support_debuglog_clear_action">全部清除</string>
+    <string name="support_debuglog_clear_confirm_message">要刪除所有已儲存的偵錯記錄工作階段嗎？</string>
+
+    <!-- 偵錯記錄畫面 -->
+    <string name="debug_log_share_subject">Butler 偵錯記錄 - %1$s</string>
+    <string name="debug_log_screen_subtitle">匯出偵錯資訊以進行疑難排解</string>
+    <string name="debug_log_screen_sensitive_information_title">敏感資訊</string>
+
+    <!-- 支援：聯絡表單 -->
+    <string name="support_contact_sent_title">訊息已寄出了嗎？</string>
+    <string name="support_contact_sent_message">如果訊息已寄出，附加的偵錯記錄將被刪除以節省空間；如果尚未寄出，你可以保留它稍後再試。</string>
+    <string name="support_contact_debuglog_zip_error">無法準備偵錯記錄附件</string>
+
+    <!-- 背景檔案操作：進度與提醒通知 -->
+    <string name="ops_notification_channel_progress_name">檔案操作進度</string>
+    <string name="ops_notification_channel_progress_desc">複製、移動與刪除操作的進行中進度</string>
+    <string name="ops_notification_channel_attention_name">檔案操作提醒</string>
+    <string name="ops_notification_channel_attention_desc">需要注意或已失敗的操作</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="other">%1$d 項操作進行中</item>
+    </plurals>
+    <string name="ops_notification_state_queued">排隊中…</string>
+    <string name="ops_notification_state_cancelling">取消中…</string>
+    <string name="ops_notification_state_attention_title">需要處理</string>
+    <string name="ops_notification_state_attention_text">有衝突需要處理，點按以解決</string>
+    <string name="ops_notification_result_failed_title">操作失敗</string>
+
+    <!-- 評價提示 -->
+    <string name="review_app_body">願意給 Butler 一則評價嗎？❤️</string>
+    <string name="review_app_dismiss_action">之後再說</string>
+    <string name="review_app_review_action">評價</string>
+
+</resources>

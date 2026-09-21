@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">ตัวแก้ไข</string>
+    <string name="editor_subtitle">แก้ไขไฟล์ข้อความ</string>
+    <string name="editor_settings_title">การตั้งค่าตัวแก้ไข</string>
+    <string name="editor_settings_show_line_numbers_title">แสดงหมายเลขบรรทัด</string>
+    <string name="editor_settings_show_line_numbers_subtitle">แสดงหมายเลขบรรทัดในตัวแก้ไข</string>
+    <string name="editor_settings_word_wrap_title">ตัดบรรทัด</string>
+    <string name="editor_settings_word_wrap_subtitle">ตัดบรรทัดยาวให้พอดีกับความกว้างของหน้าจอ</string>
+    <string name="editor_settings_syntax_highlighting_title">ไฮไลต์ไวยากรณ์</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">เพิ่มสีให้กับโค้ดในไฟล์ที่รองรับ (JavaScript, Bash, Markdown, JSON)</string>
+    <string name="editor_settings_font_size_title">ขนาดฟอนต์</string>
+    <string name="editor_settings_font_size_subtitle">ขนาดข้อความในตัวแก้ไข</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">ขนาดแท็บ</string>
+    <string name="editor_settings_tab_size_subtitle">ช่องว่างที่อักษรแท็บครอบคลุม</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">เปิด</string>
+    <string name="editor_action_save">บันทึก</string>
+    <string name="editor_action_save_as">บันทึกเป็น…</string>
+    <string name="editor_action_close">ปิด</string>
+    <string name="editor_action_undo">เลิกทำ</string>
+    <string name="editor_action_redo">ทำซ้ำ</string>
+    <string name="editor_action_search">ค้นหา</string>
+    <string name="editor_action_go_to_line">ไปที่บรรทัด</string>
+    <string name="editor_action_dismiss">ปิด</string>
+    <string name="editor_action_previous">ก่อนหน้า</string>
+    <string name="editor_action_next">ถัดไป</string>
+    <string name="editor_action_copy">คัดลอก</string>
+    <string name="editor_action_cut">ตัด</string>
+    <string name="editor_action_copy_to_butler_clipboard">คัดลอกไปยังคลิปบอร์ดของ Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">ตัดไปยังคลิปบอร์ดของ Butler</string>
+    <string name="editor_action_paste">วาง</string>
+    <string name="editor_action_select_all">เลือกทั้งหมด</string>
+    <string name="editor_action_delete">ลบ</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">เขียนทับไฟล์หรือไม่</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s มีอยู่แล้ว เนื้อหาปัจจุบันจะถูกแทนที่</string>
+    <string name="editor_dialog_save_as_overwrite_action">เขียนทับ</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">พบการสำรองข้อมูลจากการบันทึกที่ถูกหยุด:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">ไม่รองรับการแก้ไขเป็นข้อความ</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">บรรทัดยาวมาก</string>
+    <string name="editor_long_lines_banner_message">บรรทัดยาวจะถูกตัดให้สั้นเพื่อแสดง แต่เนื้อหาเต็มจะถูกเก็บรักษาและบันทึก</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">แสดงส่วนถัดไปของบรรทัด</string>
+    <string name="editor_line_truncated_marker_previous_action">แสดงส่วนก่อนหน้าของบรรทัด</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">ไฟล์ไม่พร้อมใช้งาน</string>
+    <string name="editor_backing_lost_banner_message">ไฟล์อาจย้ายหรือลบไปแล้ว มุมมองนี้อ่านเฉพาะ — เปิดใหม่หรือปิดมัน</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">ไฟล์หายไป แต่มีการสำรองข้อมูล</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" หายไป แต่การบันทึกที่ถูกหยุดทิ้งไว้อย่างนี้: %2$s เนื้อหาของคุณมีแนวโน้มยังอยู่ในไฟล์นี้</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">ไฟล์เปลี่ยนแปลงบนดิสก์</string>
+    <string name="editor_external_change_banner_message">แอปอื่นแก้ไขไฟล์นี้</string>
+    <string name="editor_external_change_reload_action">โหลดใหม่</string>
+    <string name="editor_external_change_keep_action">ทำการแก้ไขต่อ</string>
+    <string name="editor_error_external_change">ไฟล์นี้ถูกแอปอื่นเปลี่ยนแปลง โหลดไฟล์ใหม่เพื่อดำเนินการต่อ</string>
+    <string name="editor_dialog_reload_confirm_title">โหลดไฟล์ใหม่หรือไม่</string>
+    <string name="editor_dialog_reload_confirm_message">การโหลดใหม่จะทิ้งการเปลี่ยนแปลงยังไม่บันทึกและแสดงเนื้อหาปัจจุบันของไฟล์บนดิสก์</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="other">%1$d บรรทัด</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="other">%1$d ตัวอักษร</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">เลือก %1$s %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">กำลังโหลดไฟล์…</string>
+    <string name="editor_saving">กำลังบันทึก…</string>
+    <string name="editor_action_cancel_loading">ยกเลิก</string>
+    <string name="editor_progress_opening">กำลังเปิดไฟล์…</string>
+    <string name="editor_progress_saving">กำลังบันทึกไฟล์…</string>
+    <string name="editor_progress_building_index">กำลังสร้างดัชนีไฟล์…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">ข้อผิดพลาดที่ไม่ทราบ</string>
+    <string name="editor_error_read_only">ไฟล์นี้อ่านเฉพาะและไม่สามารถเปลี่ยนแปลงได้</string>
+    <string name="editor_error_save_integrity_label">บันทึกถูกหยุด</string>
+    <string name="editor_error_save_integrity">การบันทึกถูกหยุดและไฟล์บนดิสก์อาจไม่สมบูรณ์ โหลดไฟล์ใหม่ก่อนแก้ไขต่อไป</string>
+    <string name="editor_error_clipboard_too_large_label">การเลือกใหญ่เกินไป</string>
+    <string name="editor_error_clipboard_too_large">การเลือกใหญ่เกินไปที่จะคัดลอก (จำกัด %1$s)</string>
+    <string name="editor_error_paste_too_large_label">ไฟล์ใหญ่เกินไป</string>
+    <string name="editor_error_paste_too_large">ไฟล์นี้ใหญ่เกินไปที่จะวาง (สูงสุด %1$s)</string>
+    <string name="editor_error_paste_binary_label">ไม่ใช่ไฟล์ข้อความ</string>
+    <string name="editor_error_paste_binary">เนื้อหาของไฟล์นี้ไม่สามารถวางเป็นข้อความได้</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="other">%1$d จาก %2$d ผลลัพธ์</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d จาก %2$d+ ผลลัพธ์</string>
+    <string name="editor_search_too_many_matches_label">ผลลัพธ์มากเกินไป</string>
+    <string name="editor_search_too_many_matches">มากกว่า %1$d ผลลัพธ์หรือข้อความที่ตรงกันมากเกินไป — จำกัดการค้นหาเพื่อแทนที่ทั้งหมด</string>
+    <string name="editor_search_placeholder">ค้นหา…</string>
+    <string name="editor_search_previous">ผลลัพธ์ก่อนหน้า</string>
+    <string name="editor_search_next">ผลลัพธ์ถัดไป</string>
+    <string name="editor_search_case_sensitive_label">ขึ้นต่อตัวอักษร</string>
+    <string name="editor_search_regex_label">นิพจน์ปกติ</string>
+    <string name="editor_search_whole_word_label">คำทั้งคำ</string>
+    <string name="editor_search_options_label">ตัวเลือกการค้นหา</string>
+    <string name="editor_search_replace_label">แทนที่</string>
+    <string name="editor_search_replace_toggle">เปิด/ปิดการแทนที่</string>
+    <string name="editor_search_replace_placeholder">แทนที่ด้วย…</string>
+    <string name="editor_search_replace_one_action">แทนที่</string>
+    <string name="editor_search_replace_all_action">ทั้งหมด</string>
+    <string name="editor_search_replaced_not_undoable">แทนที่ %1$d (ใหญ่เกินไปสำหรับเลิกทำ)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="other">แทนที่ %1$d</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">ไปที่บรรทัด</string>
+    <string name="editor_dialog_go_to_line_label">หมายเลขบรรทัด (1-%1$d)</string>
+    <string name="editor_dialog_action_go">ไป</string>
+    <string name="editor_dialog_action_cancel">ยกเลิก</string>
+    <string name="editor_dialog_close_confirm_title">การเปลี่ยนแปลงยังไม่บันทึก</string>
+    <string name="editor_dialog_close_confirm_message">คุณมีการเปลี่ยนแปลงยังไม่บันทึก ทำให้ทิ้งไปหรือไม่</string>
+    <string name="editor_dialog_close_confirm_discard">ทิ้ง</string>
+    <string name="editor_dialog_large_delete_confirm_title">แก้ไขการเลือกขนาดใหญ่หรือไม่</string>
+    <string name="editor_dialog_large_delete_confirm_message">การเลือกนี้ใหญ่เกินไปที่จะเลิกทำ ยังคงดำเนินการต่อหรือไม่</string>
+    <string name="editor_dialog_large_delete_confirm_action">ดำเนินการต่อ</string>
+    <string name="editor_encoding_dialog_title">การเข้ารหัส</string>
+    <string name="editor_encoding_dialog_message">เปิดไฟล์ใหม่ด้วยการเข้ารหัสที่แตกต่าง การเปลี่ยนแปลงยังไม่บันทึกจะถูกทิ้ง ไบต์ที่ไม่แก้ไขจะคงเดิมเมื่อบันทึก</string>
+    <string name="editor_infobar_read_only">อ่านเฉพาะ</string>
+    <string name="editor_line_ending_mixed">ผสม</string>
+    <string name="editor_line_ending_dialog_title">สิ้นสุดบรรทัด</string>
+    <string name="editor_line_ending_dialog_message">แปลงการแตกบรรทัดทั้งหมดและบันทึกไฟล์ รวมถึงการเปลี่ยนแปลงยังไม่บันทึก ประวัติเลิกทำจะถูกล้าง</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">ไม่มีชื่อ</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">บันทึกอัตโนมัติ</string>
+    <string name="editor_settings_autosave_enabled_title">เปิดใช้การบันทึกอัตโนมัติ</string>
+    <string name="editor_settings_autosave_enabled_subtitle">บันทึกการเปลี่ยนแปลงโดยอัตโนมัติหลังจากหยุดชั่วครู่</string>
+    <string name="editor_settings_autosave_interval_title">ช่วงเวลาการบันทึกอัตโนมัติ</string>
+    <string name="editor_settings_autosave_interval_subtitle">เวลารอหลังจากแก้ไขครั้งสุดท้ายก่อนบันทึก</string>
+    <string name="editor_settings_autosave_interval_dialog_title">ช่วงเวลาการบันทึกอัตโนมัติ</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">คลิปบอร์ด</string>
+    <string name="editor_settings_clipboard_behavior_title">คลิปบอร์ดของ Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">ควบคุมวิธีการบันทึกสำเนาข้อความไปยังคลิปบอร์ดของ Butler</string>
+    <string name="editor_settings_clipboard_system_only">ระบบเท่านั้น</string>
+    <string name="editor_settings_clipboard_system_only_desc">คัดลอกไปยังคลิปบอร์ดระบบเท่านั้น</string>
+    <string name="editor_settings_clipboard_butler_always">เพิ่มไป Butler เสมอ</string>
+    <string name="editor_settings_clipboard_butler_always_desc">บันทึกไปยังคลิปบอร์ดของ Butler ด้วยเพื่อวางข้ามพื้นที่ทำงาน</string>
+    <string name="editor_settings_clipboard_ask">ถามทุกครั้ง</string>
+    <string name="editor_settings_clipboard_ask_desc">ขอยืนยันก่อนเพิ่มไปยังคลิปบอร์ดของ Butler</string>
+</resources>

@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Διαγραφή στοιχείων</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Αντιγραφή στοιχείων</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Μετακίνηση στοιχείων</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Σάρωση…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">Το αρχείο υπάρχει ήδη</string>
+    <string name="path_action_folder_exists_title">Ο φάκελος υπάρχει ήδη</string>
+    <string name="path_action_file_exists_description">Ένα αρχείο με όνομα \"%1$s\" υπάρχει ήδη στο \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">Ένας φάκελος με όνομα \"%1$s\" υπάρχει ήδη στο \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">Το αρχείο δεν υπάρχει</string>
+    <string name="path_action_not_found_description">Το \"%1$s\" διαγράφηκε, μετονομάστηκε ή μετακινήθηκε κάπου αλλού.</string>
+
+    <string name="path_action_permission_denied_title">Άδεια ανεπιτρέπτη</string>
+    <string name="path_action_permission_denied_description">Δεν είναι δυνατή η πρόσβαση στο \"%1$s\" στο \"%2$s\" λόγω ανεπαρκών δικαιωμάτων.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Δεν είναι δυνατή η πρόσβαση στο \"%1$s\" στο \"%2$s\". Δεν υπάρχει διαθέσιμη μέθοδος για την εκτέλεση αυτής της λειτουργίας.</string>
+    <string name="path_action_permission_denied_readonly_description">Δεν είναι δυνατή η πρόσβαση στο \"%1$s\" στο \"%2$s\". Το σύστημα αρχείων είναι μόνο για ανάγνωση.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Δεν είναι δυνατή η πρόσβαση στο \"%1$s\" στο \"%2$s\". Η λειτουργία απορρίφθηκε από το σύστημα.</string>
+
+    <string name="path_action_insufficient_space_title">Ανεπαρκής χώρος</string>
+    <string name="path_action_insufficient_space_description">Δεν υπάρχει αρκετός αποθηκευτικός χώρος για την αντιγραφή του \"%1$s\" από το \"%2$s\".</string>
+
+    <string name="path_action_unknown_error_title">Η λειτουργία απέτυχε</string>
+
+    <!-- Failed replacement: where the user’s data ended up -->
+    <string name="path_action_data_kept_title">Αντικατάσταση ημιτελής</string>
+    <string name="path_action_data_kept_new_data_description">Το Butler δεν μπόρεσε να ολοκληρώσει την εγγραφή του \"%1$s\". Τα νέα σας δεδομένα διατηρήθηκαν στον ίδιο φάκελο με το \"%2$s\". Μετονομάστε το για να το ανακτήσετε ή διαγράψτε το για να το απορρίψετε.</string>
+    <string name="path_action_data_kept_original_in_place_description">Το Butler δεν μπόρεσε να ολοκληρώσει την εγγραφή του \"%1$s\", το προηγούμενο αρχείο παρέμεινε αμετάβλητο. Τα νέα σας δεδομένα διατηρήθηκαν στον ίδιο φάκελο με το \"%2$s\". Μετονομάστε το για να το ανακτήσετε ή διαγράψτε το για να το απορρίψετε.</string>
+    <string name="path_action_data_kept_both_description">Το Butler δεν μπόρεσε να ολοκληρώσει την εγγραφή του \"%1$s\". Τίποτα δεν χάθηκε: το προηγούμενο αρχείο διατηρήθηκε στον ίδιο φάκελο με το \"%2$s\" και τα νέα σας δεδομένα ως \"%3$s\". Μετονομάστε αυτό που θέλετε να κρατήσετε.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Το Butler δεν μπόρεσε να ολοκληρώσει την εγγραφή του \"%1$s\" και δεν μπόρεσε να ελέγξει εάν το \"%2$s\" είναι ακόμα εκεί. Ένα ημιτελές αντίγραφο μπορεί να διατηρηθεί στον ίδιο φάκελο με το \"%3$s\". Συγκρίνετε και τα δύο πριν διαγράψετε οποιοδήποτε.</string>
+    <string name="path_action_data_kept_intermediate_description">Το Butler δεν μπόρεσε να ολοκληρώσει τη μετακίνηση του \"%1$s\" και δεν μπορεί να πει εάν έφυγε από τον φάκελό του. Τα δεδομένα σας είναι είτε διατηρημένα σ’ αυτόν τον φάκελο ως \"%2$s\", είτε ήδη στο \"%3$s\". Ελέγξτε και τα δύο πριν διαγράψετε οποιοδήποτε.</string>
+    <string name="path_action_data_kept_uncertain_description">Το Butler δεν μπόρεσε να ολοκληρώσει την εγγραφή του \"%1$s\" και δεν μπορεί να πει πού κατέληξε το αρχείο σας. Είναι ένα από τρία αρχεία σ’ αυτόν τον φάκελο: το ίδιο το \"%1$s\", το \"%2$s\" ή το \"%3$s\". Ελέγξτε και τα τρία πριν διαγράψετε κάποιο από αυτά.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Το Butler δεν μπόρεσε να ολοκληρώσει την εγγραφή του \"%1$s\" και δεν μπορεί να πει πού κατέληξε το αρχείο σας. Είναι ένα από δύο αρχεία σ’ αυτόν τον φάκελο: το ίδιο το \"%1$s\" ή το \"%2$s\". Ελέγξτε και τα δύο πριν διαγράψετε οποιοδήποτε.</string>
+
+    <string name="path_action_trash_size_limit_title">Στοιχεία πολύ μεγάλα για τον κάδο</string>
+    <string name="path_action_trash_size_limit_description">%1$d στοιχεία με σύνολο %2$s υπερβαίνουν το όριο μεγέθους του κάδου (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">Αποτυχία μετακίνησης στον κάδο</string>
+    <string name="path_action_trash_move_failed_description">%1$d στοιχεία δεν μπορούσαν να μετακινηθούν στον κάδο.</string>
+
+    <string name="path_action_trash_not_supported_title">Κάδος δεν υποστηρίζεται</string>
+    <string name="path_action_trash_not_supported_description">%1$d στοιχεία βρίσκονται σε αποθηκευτικό χώρο που δεν υποστηρίζει τον κάδο.</string>
+
+    <string name="path_action_archive_password_title">Απαιτείται κωδικός</string>
+    <string name="path_action_archive_password_description">Το \"%1$s\" είναι κρυπτογραφημένο. Εισάγετε τον κωδικό για να διαβάσετε τα περιεχόμενά του.</string>
+    <string name="path_action_archive_password_wrong_description">Ο κωδικός για το \"%1$s\" ήταν λάθος. Προσπαθήστε ξανά.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Ο διακομιστής δεν είναι προσβάσιμος</string>
+    <string name="smb_error_unreachable_description">Το Butler δεν μπόρεσε να προσεγγίσει το \"%1$s\". Ελέγξτε ότι η συσκευή είναι στο ίδιο δίκτυο και ότι ο διακομιστής είναι ενεργοποιημένος.</string>
+    <string name="smb_error_auth_title">Η σύνδεση απέτυχε</string>
+    <string name="smb_error_auth_description">Το \"%1$s\" απέρριψε το όνομα χρήστη ή τον κωδικό.</string>
+    <string name="smb_error_share_access_denied_title">Δεν υπάρχει πρόσβαση σ’ αυτό το κοινό</string>
+    <string name="smb_error_share_access_denied_description">Αυτός ο λογαριασμός ενδέχεται να μην μπορεί να χρησιμοποιήσει το \"%1$s\" στο \"%2$s\". Ελέγξτε τα δικαιώματα κοινής χρήσης στο διακομιστή.</string>
+    <string name="smb_error_share_not_found_title">Το κοινό δεν βρέθηκε</string>
+    <string name="smb_error_share_not_found_description">Το \"%1$s\" δεν υπάρχει στο \"%2$s\".</string>
+    <string name="smb_error_dialect_title">Ο διακομιστής είναι πολύ παλιός</string>
+    <string name="smb_error_dialect_description">Το \"%1$s\" προσφέρει μόνο SMB1, το οποίο είναι ανασφαλές και δεν υποστηρίζεται. Ενεργοποιήστε SMB2 ή νεότερο στο διακομιστή.</string>
+    <string name="smb_error_credential_unavailable_title">Απαιτείται σύνδεση</string>
+    <string name="smb_error_credential_unavailable_description">Ο αποθηκευμένος κωδικός για αυτόν τον αποθηκευτικό χώρο δικτύου δεν μπορεί πλέον να διαβαστεί. Εισάγετε τον ξανά για να επανασυνδεθείτε.</string>
+    <string name="smb_error_pro_required_title">Τα κοινά δικτύου απαιτούν Butler Pro</string>
+    <string name="smb_error_pro_required_description">Η σύνδεση με κοινά δικτύου είναι μέρος του Butler Pro. Οι αποθηκευμένες τοποθεσίες σας παραμένουν σε λίστα και μπορούν να αφαιρεθούν χωρίς αυτό.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Προστατευμένη δέσμη εφαρμογής</string>
+    <string name="app_install_error_protected_bundle_description">Το \"%1$s\" είναι κρυπτογραφημένο και μπορεί να εγκατασταθεί μόνο από την εφαρμογή που το δημιούργησε.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">Η μορφή συνόλου APK δεν υποστηρίζεται</string>
+    <string name="app_install_error_unsupported_apk_set_description">Το \"%1$s\" είναι ένα σύνολο APK bundletool. Το Butler δεν μπορεί να πει ποια από τις παραλλαγές του ταιριάζει σ’ αυτή τη συσκευή.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Δεν υπάρχει εφαρμογή για εγκατάσταση</string>
+    <string name="app_install_error_unsupported_bundle_description">Το \"%1$s\" δεν περιέχει κάποιο εγκαταστάσιμο APK.</string>
+
+    <string name="app_install_error_session_title">Η εγκατάσταση απέτυχε</string>
+    <string name="app_install_error_session_description">Το σύστημα απέρριψε την εγκατάσταση: %1$s</string>
+
+    <string name="app_install_error_busy_title">Μια άλλη εγκατάσταση είναι σε εξέλιξη</string>
+    <string name="app_install_error_busy_description">Το \"%1$s\" εγκαθίσταται ακόμα. Επιβεβαιώστε ή ακυρώστε αυτήν την εγκατάσταση πριν ξεκινήσετε μια άλλη.</string>
+
+    <string name="app_install_error_no_elevation_title">Δεν υπάρχει ανυψωμένη πρόσβαση</string>
+    <string name="app_install_error_no_elevation_description">Η πρόσβαση Root ή ADB δεν είναι αυτήν τη στιγμή διαθέσιμη.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Απαιτείται επιβεβαίωση</string>
+    <string name="app_install_confirm_pending_description">Το Android χρειάζεται να επιβεβαιώσετε την εγκατάσταση του \"%1$s\" πριν ολοκληρωθεί.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Το Android χρειάζεται να επιβεβαιώσετε αυτήν την εγκατάσταση πριν ολοκληρωθεί.</string>
+    <string name="app_install_confirm_pending_action">Επιβεβαίωση εγκατάστασης</string>
+    <string name="app_install_confirm_pending_reason">Το πρόγραμμα εγκατάστασης περιμένει την επιβεβαίωσή σας</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Απαιτείται επιβεβαίωση</string>
+    <string name="app_uninstall_confirm_pending_description">Το Android χρειάζεται να επιβεβαιώσετε την αφαίρεση του \"%1$s\" πριν ολοκληρωθεί.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Το Android χρειάζεται να επιβεβαιώσετε αυτήν την αφαίρεση πριν ολοκληρωθεί.</string>
+    <string name="app_uninstall_confirm_pending_action">Επιβεβαίωση αφαίρεσης</string>
+    <string name="app_uninstall_confirm_pending_reason">Το Android περιμένει την επιβεβαίωσή σας</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Η αφαίρεση αυτής της εφαρμογής για άλλο χρήστη χρειάζεται root ή Shizuku</string>
+    <string name="app_uninstall_no_result">Το Android δεν ανέφερε αποτέλεσμα</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Η λειτουργία αρχείου διακόπηκε</string>
+    <string name="service_connection_lost_error_message">Η υπηρεσία λειτουργίας αρχείου σταμάτησε απροσδόκητα. Παρακαλώ προσπαθήστε ξανά.</string>
+</resources>

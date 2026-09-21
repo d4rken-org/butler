@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Nouveau</string>
+    <string name="workspace_templates_choose_title">Nouvel onglet</string>
+    <string name="workspace_templates_choose_subtitle">Sélectionnez un type d’onglet. Comment puis-je vous aider ?</string>
+    <string name="workspace_templates_name_tab_action">Nommer cet onglet</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Choisir un outil</string>
+    <string name="tour_templates_picker_body">C’est le sélecteur d’onglets. Choisissez à quoi doit servir cet onglet. Votre sélection transforme cet onglet en l’outil correspondant.</string>
+    <string name="tour_templates_butler_button_title">Vos onglets sont ici</string>
+    <string name="tour_templates_butler_button_body">Appuyez sur le bouton Butler pour le menu des onglets : créer un nouvel onglet, fermer celui-ci ou ouvrir le gestionnaire d’onglets complet. Appuyez longuement pour accéder directement au gestionnaire d’onglets.</string>
+</resources>

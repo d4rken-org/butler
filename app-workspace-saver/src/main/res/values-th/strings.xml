@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">บันทึกเป็น</string>
+    <string name="saver_preview_label">ดูตัวอย่าง</string>
+    <string name="saver_loading">กำลังโหลด…</string>
+    <string name="saver_shared_from">แชร์มาจาก %1$s</string>
+    <string name="saver_shared_generic">แชร์กับ Butler</string>
+    <string name="saver_destination_label">ปลายทาง</string>
+    <string name="saver_select_destination_hint">เลือกโฟลเดอร์ปลายทาง</string>
+    <string name="saver_filename_label">ชื่อไฟล์</string>
+    <string name="saver_save_action">บันทึก</string>
+    <string name="saver_saving_progress">กำลังบันทึก…</string>
+    <string name="saver_success_message">บันทึกไฟล์สำเร็จ</string>
+    <string name="saver_open_saved_action">เปิดโฟลเดอร์</string>
+    <string name="saver_retry_action">ลองใหม่</string>
+    <string name="saver_save_again_action">บันทึกไปยังตำแหน่งใหม่</string>
+    <string name="saver_close_tab_action">ปิดแท็บ</string>
+    <string name="saver_close_butler_action">ปิดแท็บและกลับ</string>
+    <string name="saver_done_action">เสร็จ</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="other">ไฟล์ต้นทาง %1$d ไฟล์ไม่สามารถเข้าถึงได้แล้ว โปรดแชร์อีกครั้ง</item>
+    </plurals>
+    <string name="saver_error_source_expired">ไฟล์ต้นทางไม่สามารถเข้าถึงได้แล้ว</string>
+    <string name="saver_error_permission_denied">ปฏิเสธการอนุญาต</string>
+    <string name="saver_error_write_failed">ล้มเหลวในการบันทึกไฟล์</string>
+    <string name="saver_error_file_exists">ไฟล์มีอยู่แล้ว</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">บันทึกไฟล์</string>
+    <plurals name="saver_operation_description">
+        <item quantity="other">กำลังบันทึก %1$d ไฟล์ไปยัง %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="other">บันทึก %1$d ไฟล์</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="other">บันทึก %1$d ไฟล์แล้ว</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="other">ไฟล์ %1$d ไฟล์ล้มเหลว</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="other">ข้าม %1$d ไฟล์</item>
+    </plurals>
+    <string name="saver_partial_success">บันทึก %1$d จาก %2$d ไฟล์</string>
+</resources>

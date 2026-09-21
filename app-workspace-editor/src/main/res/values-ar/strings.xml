@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">محرر</string>
+    <string name="editor_subtitle">تحرير ملفات نصية</string>
+    <string name="editor_settings_title">إعدادات المحرر</string>
+    <string name="editor_settings_show_line_numbers_title">عرض أرقام الأسطر</string>
+    <string name="editor_settings_show_line_numbers_subtitle">اعرض أرقام الأسطر في المحرر.</string>
+    <string name="editor_settings_word_wrap_title">التفاف الأسطر</string>
+    <string name="editor_settings_word_wrap_subtitle">التفف الأسطر الطويلة لتناسب عرض الشاشة.</string>
+    <string name="editor_settings_syntax_highlighting_title">تمييز بناء الجملة</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">لون الأكواد في الملفات المدعومة (JavaScript، Bash، Markdown، JSON).</string>
+    <string name="editor_settings_font_size_title">حجم الخط</string>
+    <string name="editor_settings_font_size_subtitle">حجم النص في المحرر</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">عرض الجدولة</string>
+    <string name="editor_settings_tab_size_subtitle">عدد المسافات التي يشغلها حرف الجدولة</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">فتح</string>
+    <string name="editor_action_save">حفظ</string>
+    <string name="editor_action_save_as">حفظ باسم…</string>
+    <string name="editor_action_close">إغلاق</string>
+    <string name="editor_action_undo">تراجع</string>
+    <string name="editor_action_redo">إعادة</string>
+    <string name="editor_action_search">بحث</string>
+    <string name="editor_action_go_to_line">الذهاب إلى السطر</string>
+    <string name="editor_action_dismiss">إلغاء</string>
+    <string name="editor_action_previous">السابق</string>
+    <string name="editor_action_next">التالي</string>
+    <string name="editor_action_copy">نسخ</string>
+    <string name="editor_action_cut">قص</string>
+    <string name="editor_action_copy_to_butler_clipboard">نسخ إلى حافظة Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">قص إلى حافظة Butler</string>
+    <string name="editor_action_paste">لصق</string>
+    <string name="editor_action_select_all">تحديد الكل</string>
+    <string name="editor_action_delete">حذف</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">استبدال الملف؟</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s موجود بالفعل. سيتم استبدال محتواه الحالي.</string>
+    <string name="editor_dialog_save_as_overwrite_action">استبدال</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">تم العثور على نسخة احتياطية من عملية حفظ متوقفة:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">التحرير كنص غير مدعوم</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">أسطر طويلة جدًا</string>
+    <string name="editor_long_lines_banner_message">يتم اختصار الأسطر الطويلة جدًا للعرض؛ يتم الحفاظ على المحتوى الكامل وحفظه.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">عرض الجزء التالي من السطر</string>
+    <string name="editor_line_truncated_marker_previous_action">عرض الجزء السابق من السطر</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">الملف غير متاح بعد الآن</string>
+    <string name="editor_backing_lost_banner_message">قد يكون قد تم نقله أو حذفه. هذا العرض للقراءة فقط — أعد فتحه أو أغلقه.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">الملف مفقود، لكن نسخة احتياطية موجودة</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" مفقود، لكن عملية حفظ متوقفة تركت هذا: %2$s. المحتوى الخاص بك موجود على الأغلب فيه.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">تغيير الملف على القرص</string>
+    <string name="editor_external_change_banner_message">طبق آخر عدّل هذا الملف.</string>
+    <string name="editor_external_change_reload_action">إعادة تحميل</string>
+    <string name="editor_external_change_keep_action">متابعة التحرير</string>
+    <string name="editor_error_external_change">تم تعديل هذا الملف بواسطة تطبيق آخر. أعد تحميل الملف للمتابعة.</string>
+    <string name="editor_dialog_reload_confirm_title">إعادة تحميل الملف؟</string>
+    <string name="editor_dialog_reload_confirm_message">إعادة التحميل تتجاهل التغييرات غير المحفوظة وتعرض محتوى الملف الحالي على القرص.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="zero">لا توجد أسطر</item>
+        <item quantity="one">%1$d سطر</item>
+        <item quantity="two">%1$d سطران</item>
+        <item quantity="few">%1$d أسطر</item>
+        <item quantity="many">%1$d سطرًا</item>
+        <item quantity="other">%1$d سطر</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="zero">لا توجد أحرف</item>
+        <item quantity="one">%1$d حرف</item>
+        <item quantity="two">%1$d حرفان</item>
+        <item quantity="few">%1$d أحرف</item>
+        <item quantity="many">%1$d حرفًا</item>
+        <item quantity="other">%1$d حرف</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">المحدد %1$s، %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">جاري تحميل الملف…</string>
+    <string name="editor_saving">جاري الحفظ…</string>
+    <string name="editor_action_cancel_loading">إلغاء</string>
+    <string name="editor_progress_opening">جاري فتح الملف…</string>
+    <string name="editor_progress_saving">جاري حفظ الملف…</string>
+    <string name="editor_progress_building_index">جاري بناء فهرس الملف…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">خطأ غير معروف</string>
+    <string name="editor_error_read_only">هذا الملف للقراءة فقط ولا يمكن تغييره.</string>
+    <string name="editor_error_save_integrity_label">تم إيقاف الحفظ</string>
+    <string name="editor_error_save_integrity">تم إيقاف الحفظ وقد يكون الملف على القرص غير كامل. أعد تحميل الملف قبل تحريره بشكل إضافي.</string>
+    <string name="editor_error_clipboard_too_large_label">التحديد كبير جدًا</string>
+    <string name="editor_error_clipboard_too_large">التحديد كبير جدًا للنسخ (الحد: %1$s).</string>
+    <string name="editor_error_paste_too_large_label">الملف كبير جدًا</string>
+    <string name="editor_error_paste_too_large">هذا الملف كبير جدًا للصق (الحد الأقصى: %1$s).</string>
+    <string name="editor_error_paste_binary_label">ليس ملف نصي</string>
+    <string name="editor_error_paste_binary">لا يمكن لصق محتوى هذا الملف كنص.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="zero">%1$d من 0 نتيجة</item>
+        <item quantity="one">%1$d من نتيجة واحدة</item>
+        <item quantity="two">%1$d من نتيجتين</item>
+        <item quantity="few">%1$d من %2$d نتائج</item>
+        <item quantity="many">%1$d من %2$d نتيجة</item>
+        <item quantity="other">%1$d من %2$d نتيجة</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d من أكثر من %2$d نتيجة</string>
+    <string name="editor_search_too_many_matches_label">عدد كبير جدًا من المطابقات</string>
+    <string name="editor_search_too_many_matches">أكثر من %1$d مطابقة أو نص مطابق كثير جدًا — ضيّق البحث لاستبدال الكل.</string>
+    <string name="editor_search_placeholder">بحث…</string>
+    <string name="editor_search_previous">النتيجة السابقة</string>
+    <string name="editor_search_next">النتيجة التالية</string>
+    <string name="editor_search_case_sensitive_label">حساس لحالة الأحرف</string>
+    <string name="editor_search_regex_label">تعبير منتظم</string>
+    <string name="editor_search_whole_word_label">كلمة كاملة</string>
+    <string name="editor_search_options_label">خيارات البحث</string>
+    <string name="editor_search_replace_label">استبدال</string>
+    <string name="editor_search_replace_toggle">تشغيل/إيقاف الاستبدال</string>
+    <string name="editor_search_replace_placeholder">استبدال بـ…</string>
+    <string name="editor_search_replace_one_action">استبدال</string>
+    <string name="editor_search_replace_all_action">الكل</string>
+    <string name="editor_search_replaced_not_undoable">%1$d مستبدل (كبير جدًا للتراجع)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="zero">لم يتم استبدال أي شيء</item>
+        <item quantity="one">%1$d مستبدل</item>
+        <item quantity="two">%1$d مستبدل</item>
+        <item quantity="few">%1$d مستبدل</item>
+        <item quantity="many">%1$d مستبدل</item>
+        <item quantity="other">%1$d مستبدل</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">الذهاب إلى السطر</string>
+    <string name="editor_dialog_go_to_line_label">رقم السطر (1–%1$d)</string>
+    <string name="editor_dialog_action_go">اذهب</string>
+    <string name="editor_dialog_action_cancel">إلغاء</string>
+    <string name="editor_dialog_close_confirm_title">تغييرات غير محفوظة</string>
+    <string name="editor_dialog_close_confirm_message">لديك تغييرات غير محفوظة. هل تريد تجاهلها؟</string>
+    <string name="editor_dialog_close_confirm_discard">تجاهل</string>
+    <string name="editor_dialog_large_delete_confirm_title">تحرير تحديد كبير؟</string>
+    <string name="editor_dialog_large_delete_confirm_message">هذا التحديد كبير جدًا للتراجع عنه. هل تريد المتابعة على أي حال؟</string>
+    <string name="editor_dialog_large_delete_confirm_action">متابعة</string>
+    <string name="editor_encoding_dialog_title">الترميز</string>
+    <string name="editor_encoding_dialog_message">أعد فتح الملف بترميز مختلف. يتم تجاهل التغييرات غير المحفوظة؛ البايتات غير المحررة تبقى دون تغيير عند الحفظ.</string>
+    <string name="editor_infobar_read_only">للقراءة فقط</string>
+    <string name="editor_line_ending_mixed">مختلط</string>
+    <string name="editor_line_ending_dialog_title">نهايات الأسطر</string>
+    <string name="editor_line_ending_dialog_message">تحويل جميع فواصل الأسطر وحفظ الملف، بما في ذلك التغييرات غير المحفوظة. سيتم حذف سجل التراجع.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">بدون عنوان</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">الحفظ التلقائي</string>
+    <string name="editor_settings_autosave_enabled_title">تفعيل الحفظ التلقائي</string>
+    <string name="editor_settings_autosave_enabled_subtitle">حفظ التغييرات تلقائيًا بعد فترة من عدم النشاط.</string>
+    <string name="editor_settings_autosave_interval_title">فترة الحفظ التلقائي</string>
+    <string name="editor_settings_autosave_interval_subtitle">المدة المراد الانتظار بعدها بعد آخر تحرير قبل الحفظ.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">فترة الحفظ التلقائي</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">الحافظة</string>
+    <string name="editor_settings_clipboard_behavior_title">حافظة Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">التحكم في كيفية حفظ نسخ النصوص إلى حافظة Butler.</string>
+    <string name="editor_settings_clipboard_system_only">النظام فقط</string>
+    <string name="editor_settings_clipboard_system_only_desc">نسخ إلى حافظة النظام فقط</string>
+    <string name="editor_settings_clipboard_butler_always">إضافة إلى Butler دائمًا</string>
+    <string name="editor_settings_clipboard_butler_always_desc">حفظ أيضًا إلى حافظة Butler للصق عبر مساحات العمل</string>
+    <string name="editor_settings_clipboard_ask">اسأل في كل مرة</string>
+    <string name="editor_settings_clipboard_ask_desc">اطلب التأكيد قبل الإضافة إلى حافظة Butler</string>
+</resources>

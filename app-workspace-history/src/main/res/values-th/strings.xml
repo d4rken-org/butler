@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">ประวัติ</string>
+    <string name="history_workspace_subtitle">การดำเนินการไฟล์ล่าสุด</string>
+    <string name="history_workspace_title_scoped">ประวัติ: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">ประวัติ: ล้มเหลว</string>
+    <string name="history_workspace_title_outcome_partial">ประวัติ: บางส่วน</string>
+    <string name="history_workspace_title_outcome_cancelled">ประวัติ: ยกเลิก</string>
+    <string name="history_workspace_title_outcome_completed">ประวัติ: เสร็จสิ้น</string>
+    <string name="history_workspace_title_kind_copy">ประวัติ: คัดลอก</string>
+    <string name="history_workspace_title_kind_move">ประวัติ: ย้าย</string>
+    <string name="history_workspace_title_kind_delete">ประวัติ: ลบ</string>
+    <string name="history_workspace_title_kind_create_file">ประวัติ: สร้างไฟล์</string>
+    <string name="history_workspace_title_kind_create_folder">ประวัติ: สร้างโฟลเดอร์</string>
+    <string name="history_workspace_title_kind_save">ประวัติ: บันทึก</string>
+    <string name="history_workspace_title_kind_compress">ประวัติ: บีบอัด</string>
+    <string name="history_workspace_title_kind_extract">ประวัติ: แยกไฟล์</string>
+    <string name="history_workspace_title_filtered">ประวัติ (กรอง)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="other">ประวัติ: %1$d เส้นทาง</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">ทั้งหมด</string>
+    <string name="history_filter_outcome_completed">เสร็จสิ้น</string>
+    <string name="history_filter_outcome_partial">บางส่วน</string>
+    <string name="history_filter_outcome_failed">ล้มเหลว</string>
+    <string name="history_filter_outcome_cancelled">ยกเลิก</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">คัดลอก</string>
+    <string name="history_filter_kind_move">ย้าย</string>
+    <string name="history_filter_kind_delete">ลบ</string>
+    <string name="history_filter_kind_create_file">สร้างไฟล์</string>
+    <string name="history_filter_kind_create_folder">สร้างโฟลเดอร์</string>
+    <string name="history_filter_kind_save">บันทึก</string>
+    <string name="history_filter_kind_compress">บีบอัด</string>
+    <string name="history_filter_kind_extract">แยกไฟล์</string>
+    <string name="history_filter_kind_enable">เปิดใช้</string>
+    <string name="history_filter_kind_disable">ปิดใช้</string>
+    <string name="history_filter_kind_force_stop">บังคับหยุด</string>
+    <string name="history_filter_kind_uninstall">ถอนการติดตั้ง</string>
+    <string name="history_filter_kind_clear_data">ล้างข้อมูล</string>
+    <string name="history_filter_kind_components">องค์ประกอบ</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">ตั้งค่าขอบเขตเส้นทาง…</string>
+    <string name="history_path_scope_clear_action">ล้างขอบเขตเส้นทาง</string>
+    <string name="history_path_scope_dialog_title">กรองตามเส้นทาง</string>
+    <string name="history_path_scope_dialog_description">แสดงเฉพาะการดำเนินการที่มีผลต่อเส้นทางนี้และเส้นทางย่อย</string>
+    <string name="history_path_scope_dialog_input_label">เส้นทาง</string>
+    <string name="history_path_scope_dialog_pick_folder_action">เลือกโฟลเดอร์…</string>
+    <string name="history_path_scope_dialog_apply_action">ใช้</string>
+    <string name="history_path_scope_dialog_cancel_action">ยกเลิก</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">วันนี้</string>
+    <string name="history_group_yesterday">เมื่อวาน</string>
+    <string name="history_group_this_week">สัปดาห์นี้</string>
+    <string name="history_group_this_month">เดือนนี้</string>
+    <string name="history_group_older">เก่ากว่า</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">เปลี่ยนชื่อ</string>
+    <string name="history_entry_intent_paste_copy">วาง</string>
+    <string name="history_entry_intent_paste_move">วาง (ย้าย)</string>
+    <string name="history_entry_intent_drop_copy">ปล่อย (คัดลอก)</string>
+    <string name="history_entry_intent_drop_move">ปล่อย (ย้าย)</string>
+    <string name="history_entry_intent_enable_components">เปิดใช้องค์ประกอบของ</string>
+    <string name="history_entry_intent_disable_components">ปิดใช้องค์ประกอบของ</string>
+    <string name="history_entry_kind_copy">คัดลอก</string>
+    <string name="history_entry_kind_move">ย้าย</string>
+    <string name="history_entry_kind_delete">ลบ</string>
+    <string name="history_entry_kind_create_file">สร้างไฟล์</string>
+    <string name="history_entry_kind_create_folder">สร้างโฟลเดอร์</string>
+    <string name="history_entry_kind_save">บันทึก</string>
+    <string name="history_entry_kind_compress">บีบอัด</string>
+    <string name="history_entry_kind_extract">แยกไฟล์</string>
+    <string name="history_entry_kind_restore">ย้อนคืน</string>
+    <string name="history_entry_kind_install">ติดตั้ง</string>
+    <string name="history_entry_kind_enable">เปิดใช้</string>
+    <string name="history_entry_kind_disable">ปิดใช้</string>
+    <string name="history_entry_kind_force_stop">บังคับหยุด</string>
+    <string name="history_entry_kind_uninstall">ถอนการติดตั้ง</string>
+    <string name="history_entry_kind_clear_data">ล้างข้อมูลของ</string>
+    <string name="history_entry_kind_components">เปลี่ยนองค์ประกอบของ</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="other">%d เส้นทาง</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">แสดง %1$d จาก %2$d เส้นทางที่ได้รับผลกระทบ</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">เริ่มต้น</string>
+    <string name="history_detail_label_completed">เสร็จสิ้น</string>
+    <string name="history_detail_label_duration">ระยะเวลา</string>
+    <string name="history_detail_label_outcome">ผลลัพธ์</string>
+    <string name="history_detail_label_origin">ที่มา</string>
+    <string name="history_detail_label_error">ข้อผิดพลาด</string>
+    <string name="history_detail_label_paths">เส้นทางที่ได้รับผลกระทบ</string>
+    <string name="history_detail_label_partial_errors">ความล้มเหลวต่อรายการ</string>
+    <string name="history_detail_copy_path_action">คัดลอกเส้นทาง</string>
+    <string name="history_detail_paths_empty">ไม่มีเส้นทางที่ได้รับผลกระทบบันทึกไว้</string>
+    <string name="history_detail_label_attempted_paths">เส้นทางที่พยายาม</string>
+    <string name="history_detail_label_packages">แอปที่ได้รับผลกระทบ</string>
+    <string name="history_detail_packages_empty">ไม่มีแอปที่ได้รับผลกระทบบันทึกไว้</string>
+    <string name="history_detail_paths_truncated_callout">แสดง %1$d จาก %2$d เส้นทางที่ได้รับผลกระทบ</string>
+    <string name="history_detail_attempted_paths_truncated_callout">แสดง %1$d จาก %2$d เส้นทางที่พยายาม</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="other">%1$d รายการล้มเหลวในการดำเนินการนี้</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">ตัวจัดการไฟล์</string>
+    <string name="history_origin_searcher">ค้นหา</string>
+    <string name="history_origin_saver">การบันทึก</string>
+    <string name="history_origin_developer">นักพัฒนา</string>
+    <string name="history_origin_viewer">ตัวดูไฟล์</string>
+    <string name="history_origin_apps">แอป</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f วินาที</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">ยังไม่มีประวัติ</string>
+    <string name="history_empty_subtitle">การดำเนินการไฟล์จะปรากฏที่นี่เมื่อคุณใช้ Butler</string>
+    <string name="history_empty_filtered_title">ไม่มีผลลัพธ์</string>
+    <string name="history_empty_filtered_subtitle">ไม่มีรายการประวัติที่ตรงกับตัวกรองปัจจุบัน</string>
+    <string name="history_empty_filtered_reset_action">รีเซ็ตตัวกรอง</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">รีเซ็ตตัวกรอง</string>
+    <string name="history_toolbar_reset_filter_content_description">รีเซ็ตตัวกรอง</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">แสดง %1$d จาก %2$d เส้นทางที่ได้รับผลกระทบ</string>
+    <string name="history_add_filter_action">เพิ่มตัวกรอง</string>
+    <string name="history_add_filter_sheet_title">เพิ่มตัวกรอง</string>
+    <string name="history_add_filter_section_outcome">ผลลัพธ์</string>
+    <string name="history_add_filter_section_kind">ประเภท</string>
+    <string name="history_add_filter_section_path_scope">ขอบเขตเส้นทาง</string>
+    <string name="history_add_filter_add_path_action">เพิ่มเส้นทาง…</string>
+    <string name="history_path_scope_remove_action">ลบ</string>
+    <plurals name="history_summary_total">
+        <item quantity="other">%1$d รายการ</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="other">แสดง %1$d จาก %2$d</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">ประวัติ</string>
+    <string name="history_settings_save_history_title">บันทึกประวัติ</string>
+    <string name="history_settings_save_history_subtitle">บันทึกการดำเนินการไฟล์ที่เสร็จสิ้น</string>
+    <string name="history_settings_max_history_label">จำนวนรายการประวัติสูงสุด</string>
+    <string name="history_settings_max_history_subtitle">รายการที่เก่าจะถูกลบเมื่อเกินข้อจำกัดนี้</string>
+    <string name="history_settings_max_history_input_label">จำนวนรายการสูงสุด</string>
+    <string name="history_settings_clear_history_title">ล้างประวัติ</string>
+    <string name="history_settings_clear_history_subtitle">ลบรายการที่เก็บไว้ทั้งหมด (%1$d)</string>
+    <string name="history_clear_dialog_title">ล้างประวัติ</string>
+    <string name="history_clear_dialog_message">ลบรายการทั้งหมดจากฐานข้อมูลประวัติการดำเนินการ ไม่สามารถเลิกทำได้</string>
+    <string name="history_clear_confirm_action">ล้าง</string>
+    <string name="history_cleared_success">ล้างประวัติแล้ว</string>
+    <string name="history_workspace_title_kind_restore">ประวัติ: ย้อนคืน</string>
+    <string name="history_filter_kind_restore">ย้อนคืน</string>
+    <string name="history_workspace_title_kind_install">ประวัติ: ติดตั้ง</string>
+    <string name="history_filter_kind_install">ติดตั้ง</string>
+    <string name="history_workspace_title_kind_enable">ประวัติ: เปิดใช้</string>
+    <string name="history_workspace_title_kind_disable">ประวัติ: ปิดใช้</string>
+    <string name="history_workspace_title_kind_force_stop">ประวัติ: บังคับหยุด</string>
+    <string name="history_workspace_title_kind_uninstall">ประวัติ: ถอนการติดตั้ง</string>
+    <string name="history_workspace_title_kind_clear_data">ประวัติ: ล้างข้อมูล</string>
+    <string name="history_workspace_title_kind_components">ประวัติ: องค์ประกอบ</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">เลือกทั้งหมด</string>
+    <string name="history_action_deselect_all">ยกเลิกการเลือกทั้งหมด</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="other">ลบ %1$d รายการ</item>
+    </plurals>
+    <string name="history_delete_dialog_message">ลบเฉพาะบันทึกประวัติ ไฟล์เองจะไม่ได้รับผลกระทบ</string>
+    <string name="history_pro_dialog_message">การแชร์และลบรายการประวัติเป็นส่วนหนึ่งของการอัปเกรด การล้างประวัติทั้งหมดยังคงฟรีในการตั้งค่าประวัติ</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">ผลลัพธ์</string>
+    <string name="history_share_label_kind">ประเภท</string>
+    <string name="history_share_label_origin">ที่มา</string>
+    <string name="history_share_label_summary">สรุป</string>
+    <string name="history_share_label_completed">เสร็จสิ้น</string>
+    <string name="history_share_label_duration">ระยะเวลา</string>
+    <string name="history_share_label_error">ข้อผิดพลาด</string>
+    <string name="history_share_label_failed_items">รายการที่ล้มเหลว</string>
+    <string name="history_share_label_paths">เส้นทางที่ได้รับผลกระทบ (%1$d)</string>
+    <string name="history_share_label_packages">แอปที่ได้รับผลกระทบ (%1$d)</string>
+    <string name="history_share_paths_more">… และ %1$d รายการเพิ่มเติม</string>
+    <string name="history_share_truncated">… และ %1$d รายการเพิ่มเติมที่ไม่รวมไว้</string>
+</resources>

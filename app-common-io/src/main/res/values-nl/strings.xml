@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Items verwijderen</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Items kopiëren</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Items verplaatsen</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Scannen…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">Bestand bestaat al</string>
+    <string name="path_action_folder_exists_title">Map bestaat al</string>
+    <string name="path_action_file_exists_description">Een bestand met de naam \"%1$s\" bestaat al op \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">Een map met de naam \"%1$s\" bestaat al op \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">Bestand is weg</string>
+    <string name="path_action_not_found_description">\"%1$s\" is verwijderd, hernoemd of ergens anders verplaatst.</string>
+
+    <string name="path_action_permission_denied_title">Toestemming geweigerd</string>
+    <string name="path_action_permission_denied_description">Kan geen toegang krijgen tot \"%1$s\" op \"%2$s\" vanwege onvoldoende machtigingen.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Kan geen toegang krijgen tot \"%1$s\" op \"%2$s\". Geen methode beschikbaar om deze bewerking uit te voeren.</string>
+    <string name="path_action_permission_denied_readonly_description">Kan geen toegang krijgen tot \"%1$s\" op \"%2$s\". Het bestandssysteem is alleen-lezen.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Kan geen toegang krijgen tot \"%1$s\" op \"%2$s\". De bewerking is door het systeem geweigerd.</string>
+
+    <string name="path_action_insufficient_space_title">Onvoldoende ruimte</string>
+    <string name="path_action_insufficient_space_description">Er is niet genoeg opslagruimte beschikbaar om \"%1$s\" van \"%2$s\" te kopiëren.</string>
+
+    <string name="path_action_unknown_error_title">Bewerking mislukt</string>
+
+    <!-- Failed replacement: where the user’s data ended up -->
+    <string name="path_action_data_kept_title">Vervanging niet voltooid</string>
+    <string name="path_action_data_kept_new_data_description">Butler kon het schrijven van \"%1$s\" niet voltooien. Je nieuwe gegevens worden bewaard in dezelfde map als \"%2$s\". Hernoem het om het terug te krijgen, of verwijder het om het weg te gooien.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler kon het schrijven van \"%1$s\" niet voltooien, het vorige bestand is ongewijzigd. Je nieuwe gegevens worden bewaard in dezelfde map als \"%2$s\". Hernoem het om het terug te krijgen, of verwijder het om het weg te gooien.</string>
+    <string name="path_action_data_kept_both_description">Butler kon het schrijven van \"%1$s\" niet voltooien. Niets is verloren: het vorige bestand wordt bewaard in dezelfde map als \"%2$s\" en je nieuwe gegevens als \"%3$s\". Hernoem degene die je wilt behouden.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler kon het schrijven van \"%1$s\" niet voltooien en kon niet controleren of \"%2$s\" nog daar is. Een onvolledig exemplaar kan worden bewaard in dezelfde map als \"%3$s\". Vergelijk beide voordat je een van beide verwijdert.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler kon het verplaatsen van \"%1$s\" niet voltooien en kan niet bepalen of het zijn map heeft verlaten. Je gegevens worden ofwel bewaard in die map als \"%2$s\", ofwel al op \"%3$s\". Controleer beide voordat je een van beide verwijdert.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler kon het schrijven van \"%1$s\" niet voltooien en kan niet bepalen waar je bestand is geëindigd. Het is een van drie bestanden in die map: \"%1$s\" zelf, \"%2$s\" of \"%3$s\". Controleer alle drie voordat je een van alle drie verwijdert.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler kon het schrijven van \"%1$s\" niet voltooien en kan niet bepalen waar je bestand is geëindigd. Het is een van twee bestanden in die map: \"%1$s\" zelf of \"%2$s\". Controleer beide voordat je een van beide verwijdert.</string>
+
+    <string name="path_action_trash_size_limit_title">Items te groot voor prullenbak</string>
+    <string name="path_action_trash_size_limit_description">%1$d items met een totaal van %2$s overschrijden de grootttelimiet van de prullenbak (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">Kan niet naar prullenbak verplaatsen</string>
+    <string name="path_action_trash_move_failed_description">%1$d items konden niet naar de prullenbak worden verplaatst.</string>
+
+    <string name="path_action_trash_not_supported_title">Prullenbak niet ondersteund</string>
+    <string name="path_action_trash_not_supported_description">%1$d items staan op opslag die de prullenbak niet ondersteunt.</string>
+
+    <string name="path_action_archive_password_title">Wachtwoord vereist</string>
+    <string name="path_action_archive_password_description">\"%1$s\" is versleuteld. Voer het wachtwoord in om de inhoud ervan te lezen.</string>
+    <string name="path_action_archive_password_wrong_description">Het wachtwoord voor \"%1$s\" was onjuist. Probeer opnieuw.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Server onbereikbaar</string>
+    <string name="smb_error_unreachable_description">Butler kon \"%1$s\" niet bereiken. Controleer of het apparaat in hetzelfde netwerk is en of de server is ingeschakeld.</string>
+    <string name="smb_error_auth_title">Aanmelding mislukt</string>
+    <string name="smb_error_auth_description">\"%1$s\" heeft de gebruikersnaam of het wachtwoord afgewezen.</string>
+    <string name="smb_error_share_access_denied_title">Geen toegang tot deze share</string>
+    <string name="smb_error_share_access_denied_description">Dit account mag \"%1$s\" op \"%2$s\" niet gebruiken. Controleer de sharerechten op de server.</string>
+    <string name="smb_error_share_not_found_title">Share niet gevonden</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" bestaat niet op \"%2$s\".</string>
+    <string name="smb_error_dialect_title">Server te oud</string>
+    <string name="smb_error_dialect_description">\"%1$s\" biedt alleen SMB1, wat onveilig en niet ondersteund is. Schakel SMB2 of nieuwer in op de server.</string>
+    <string name="smb_error_credential_unavailable_title">Aanmelding vereist</string>
+    <string name="smb_error_credential_unavailable_description">Het opgeslagen wachtwoord voor deze netwerkopslag kan niet meer worden gelezen. Voer het opnieuw in om opnieuw verbinding te maken.</string>
+    <string name="smb_error_pro_required_title">Netwerkshares vereisen Butler Pro</string>
+    <string name="smb_error_pro_required_description">Verbinding maken met netwerkshares maakt deel uit van Butler Pro. Je opgeslagen locaties blijven vermeld staan en kunnen zonder het worden verwijderd.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Beveiligde app-bundel</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" is versleuteld en kan alleen worden geïnstalleerd door de app die deze heeft gemaakt.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">APK-setindeling niet ondersteund</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" is een bundletool APK-set. Butler kan niet bepalen welke variant op dit apparaat past.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Geen app om te installeren</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" bevat geen installeerbare APK.</string>
+
+    <string name="app_install_error_session_title">Installatie mislukt</string>
+    <string name="app_install_error_session_description">Het systeem heeft de installatie afgewezen: %1$s</string>
+
+    <string name="app_install_error_busy_title">Een andere installatie is in uitvoering</string>
+    <string name="app_install_error_busy_description">\"%1$s\" wordt nog steeds geïnstalleerd. Bevestig of annuleer die installatie voordat je een ander start.</string>
+
+    <string name="app_install_error_no_elevation_title">Geen verhoogde toegang</string>
+    <string name="app_install_error_no_elevation_description">Root- of ADB-toegang is momenteel niet beschikbaar.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Bevestiging vereist</string>
+    <string name="app_install_confirm_pending_description">Android vraagt je om de installatie van \"%1$s\" te bevestigen voordat het kan worden afgerond.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android vraagt je om deze installatie te bevestigen voordat het kan worden afgerond.</string>
+    <string name="app_install_confirm_pending_action">Installatie bevestigen</string>
+    <string name="app_install_confirm_pending_reason">Het installatieprogramma wacht op je bevestiging</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Bevestiging vereist</string>
+    <string name="app_uninstall_confirm_pending_description">Android vraagt je om het verwijderen van \"%1$s\" te bevestigen voordat het kan worden afgerond.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android vraagt je om dit verwijderen te bevestigen voordat het kan worden afgerond.</string>
+    <string name="app_uninstall_confirm_pending_action">Verwijdering bevestigen</string>
+    <string name="app_uninstall_confirm_pending_reason">Android wacht op je bevestiging</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Het verwijderen van deze app voor een andere gebruiker vereist root of Shizuku</string>
+    <string name="app_uninstall_no_result">Android heeft geen resultaat gerapporteerd</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Bestandsbewerking onderbroken</string>
+    <string name="service_connection_lost_error_message">De service voor bestandsbewerking is onverwacht gestopt. Probeer alstublieft opnieuw.</string>
+</resources>

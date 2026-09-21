@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">履歴</string>
+    <string name="history_workspace_subtitle">最近のファイル操作</string>
+    <string name="history_workspace_title_scoped">履歴: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">履歴: 失敗</string>
+    <string name="history_workspace_title_outcome_partial">履歴: 部分的</string>
+    <string name="history_workspace_title_outcome_cancelled">履歴: キャンセル</string>
+    <string name="history_workspace_title_outcome_completed">履歴: 完了</string>
+    <string name="history_workspace_title_kind_copy">履歴: コピー</string>
+    <string name="history_workspace_title_kind_move">履歴: 移動</string>
+    <string name="history_workspace_title_kind_delete">履歴: 削除</string>
+    <string name="history_workspace_title_kind_create_file">履歴: ファイル作成</string>
+    <string name="history_workspace_title_kind_create_folder">履歴: フォルダ作成</string>
+    <string name="history_workspace_title_kind_save">履歴: 保存</string>
+    <string name="history_workspace_title_kind_compress">履歴: 圧縮</string>
+    <string name="history_workspace_title_kind_extract">履歴: 展開</string>
+    <string name="history_workspace_title_filtered">履歴(フィルタ適用中)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="other">履歴: %1$dパス</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">すべて</string>
+    <string name="history_filter_outcome_completed">完了</string>
+    <string name="history_filter_outcome_partial">部分的</string>
+    <string name="history_filter_outcome_failed">失敗</string>
+    <string name="history_filter_outcome_cancelled">キャンセル</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">コピー</string>
+    <string name="history_filter_kind_move">移動</string>
+    <string name="history_filter_kind_delete">削除</string>
+    <string name="history_filter_kind_create_file">ファイル作成</string>
+    <string name="history_filter_kind_create_folder">フォルダ作成</string>
+    <string name="history_filter_kind_save">保存</string>
+    <string name="history_filter_kind_compress">圧縮</string>
+    <string name="history_filter_kind_extract">展開</string>
+    <string name="history_filter_kind_enable">有効化</string>
+    <string name="history_filter_kind_disable">無効化</string>
+    <string name="history_filter_kind_force_stop">強制停止</string>
+    <string name="history_filter_kind_uninstall">アンインストール</string>
+    <string name="history_filter_kind_clear_data">データ削除</string>
+    <string name="history_filter_kind_components">コンポーネント</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">パススコープを設定…</string>
+    <string name="history_path_scope_clear_action">パススコープをクリア</string>
+    <string name="history_path_scope_dialog_title">パスでフィルタ</string>
+    <string name="history_path_scope_dialog_description">このパスまたはその下位ディレクトリに影響する操作のみを表示します。</string>
+    <string name="history_path_scope_dialog_input_label">パス</string>
+    <string name="history_path_scope_dialog_pick_folder_action">フォルダを選択…</string>
+    <string name="history_path_scope_dialog_apply_action">適用</string>
+    <string name="history_path_scope_dialog_cancel_action">キャンセル</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">今日</string>
+    <string name="history_group_yesterday">昨日</string>
+    <string name="history_group_this_week">今週</string>
+    <string name="history_group_this_month">今月</string>
+    <string name="history_group_older">前月以前</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">名前を変更</string>
+    <string name="history_entry_intent_paste_copy">貼り付け</string>
+    <string name="history_entry_intent_paste_move">貼り付け(移動)</string>
+    <string name="history_entry_intent_drop_copy">ドロップ(コピー)</string>
+    <string name="history_entry_intent_drop_move">ドロップ(移動)</string>
+    <string name="history_entry_intent_enable_components">有効化</string>
+    <string name="history_entry_intent_disable_components">無効化</string>
+    <string name="history_entry_kind_copy">コピー</string>
+    <string name="history_entry_kind_move">移動</string>
+    <string name="history_entry_kind_delete">削除</string>
+    <string name="history_entry_kind_create_file">ファイル作成</string>
+    <string name="history_entry_kind_create_folder">フォルダ作成</string>
+    <string name="history_entry_kind_save">保存</string>
+    <string name="history_entry_kind_compress">圧縮</string>
+    <string name="history_entry_kind_extract">展開</string>
+    <string name="history_entry_kind_restore">復元</string>
+    <string name="history_entry_kind_install">インストール</string>
+    <string name="history_entry_kind_enable">有効化</string>
+    <string name="history_entry_kind_disable">無効化</string>
+    <string name="history_entry_kind_force_stop">強制停止</string>
+    <string name="history_entry_kind_uninstall">アンインストール</string>
+    <string name="history_entry_kind_clear_data">データ削除</string>
+    <string name="history_entry_kind_components">コンポーネント変更</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="other">%d件のパス</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">%2$d件中最初の%1$d件のパスを表示</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">開始</string>
+    <string name="history_detail_label_completed">完了</string>
+    <string name="history_detail_label_duration">所要時間</string>
+    <string name="history_detail_label_outcome">結果</string>
+    <string name="history_detail_label_origin">発信元</string>
+    <string name="history_detail_label_error">エラー</string>
+    <string name="history_detail_label_paths">影響を受けたパス</string>
+    <string name="history_detail_label_partial_errors">項目ごとのエラー</string>
+    <string name="history_detail_copy_path_action">パスをコピー</string>
+    <string name="history_detail_paths_empty">影響を受けたパスは記録されていません。</string>
+    <string name="history_detail_label_attempted_paths">試行されたパス</string>
+    <string name="history_detail_label_packages">影響を受けたアプリ</string>
+    <string name="history_detail_packages_empty">影響を受けたアプリは記録されていません。</string>
+    <string name="history_detail_paths_truncated_callout">%2$d件中最初の%1$d件のパスを表示しています。</string>
+    <string name="history_detail_attempted_paths_truncated_callout">%2$d件中最初の%1$d件の試行パスを表示しています。</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="other">この操作中に%1$d件の項目が失敗しました。</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">エクスプローラー</string>
+    <string name="history_origin_searcher">検索</string>
+    <string name="history_origin_saver">保存</string>
+    <string name="history_origin_developer">開発者</string>
+    <string name="history_origin_viewer">ビューアー</string>
+    <string name="history_origin_apps">アプリ</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$dms</string>
+    <string name="history_duration_seconds">%1$.1fs</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">まだ履歴がありません</string>
+    <string name="history_empty_subtitle">Butlerを使用するとファイル操作がここに表示されます。</string>
+    <string name="history_empty_filtered_title">一致する項目がありません</string>
+    <string name="history_empty_filtered_subtitle">現在のフィルタに一致する履歴エントリがありません。</string>
+    <string name="history_empty_filtered_reset_action">フィルタをリセット</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">フィルタをリセット</string>
+    <string name="history_toolbar_reset_filter_content_description">フィルタをリセット</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">%2$d件中最初の%1$d件の影響を受けたパス</string>
+    <string name="history_add_filter_action">フィルタを追加</string>
+    <string name="history_add_filter_sheet_title">フィルタを追加</string>
+    <string name="history_add_filter_section_outcome">結果</string>
+    <string name="history_add_filter_section_kind">種類</string>
+    <string name="history_add_filter_section_path_scope">パススコープ</string>
+    <string name="history_add_filter_add_path_action">パスを追加…</string>
+    <string name="history_path_scope_remove_action">削除</string>
+    <plurals name="history_summary_total">
+        <item quantity="other">%1$d件のエントリ</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="other">%2$d件中%1$d件を表示</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">履歴</string>
+    <string name="history_settings_save_history_title">履歴を保存</string>
+    <string name="history_settings_save_history_subtitle">完了したファイル操作を記録します。</string>
+    <string name="history_settings_max_history_label">最大履歴項目数</string>
+    <string name="history_settings_max_history_subtitle">この制限を超えると古いエントリが削除されます。</string>
+    <string name="history_settings_max_history_input_label">最大エントリ数</string>
+    <string name="history_settings_clear_history_title">履歴をクリア</string>
+    <string name="history_settings_clear_history_subtitle">保存されているすべてのエントリを削除(%1$d件)。</string>
+    <string name="history_clear_dialog_title">履歴をクリアしますか?</string>
+    <string name="history_clear_dialog_message">操作履歴データベースからすべてのエントリを削除します。この操作は元に戻せません。</string>
+    <string name="history_clear_confirm_action">クリア</string>
+    <string name="history_cleared_success">履歴がクリアされました</string>
+    <string name="history_workspace_title_kind_restore">履歴: 復元</string>
+    <string name="history_filter_kind_restore">復元</string>
+    <string name="history_workspace_title_kind_install">履歴: インストール</string>
+    <string name="history_filter_kind_install">インストール</string>
+    <string name="history_workspace_title_kind_enable">履歴: 有効化</string>
+    <string name="history_workspace_title_kind_disable">履歴: 無効化</string>
+    <string name="history_workspace_title_kind_force_stop">履歴: 強制停止</string>
+    <string name="history_workspace_title_kind_uninstall">履歴: アンインストール</string>
+    <string name="history_workspace_title_kind_clear_data">履歴: データ削除</string>
+    <string name="history_workspace_title_kind_components">履歴: コンポーネント</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">すべて選択</string>
+    <string name="history_action_deselect_all">すべて選択解除</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="other">%1$d件のエントリを削除</item>
+    </plurals>
+    <string name="history_delete_dialog_message">履歴レコードのみが削除され、ファイル自体には影響しません。</string>
+    <string name="history_pro_dialog_message">履歴エントリの共有と削除はアップグレードの一部です。履歴全体のクリアは履歴設定で無料で利用できます。</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">結果</string>
+    <string name="history_share_label_kind">種類</string>
+    <string name="history_share_label_origin">発信元</string>
+    <string name="history_share_label_summary">概要</string>
+    <string name="history_share_label_completed">完了</string>
+    <string name="history_share_label_duration">所要時間</string>
+    <string name="history_share_label_error">エラー</string>
+    <string name="history_share_label_failed_items">失敗した項目</string>
+    <string name="history_share_label_paths">影響を受けたパス(%1$d)</string>
+    <string name="history_share_label_packages">影響を受けたアプリ(%1$d)</string>
+    <string name="history_share_paths_more">…ほか%1$d件</string>
+    <string name="history_share_truncated">…ほか%1$d件のエントリは含まれていません</string>
+</resources>

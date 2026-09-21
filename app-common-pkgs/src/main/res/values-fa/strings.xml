@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">فهرست برنامه نامعتبر</string>
+    <string name="pkgrepo_invalid_inventory_error_description">سیستم فهرست نامعتبری از برنامه‌های نصب شده را برای Butler ارائه کرد.</string>
+</resources>

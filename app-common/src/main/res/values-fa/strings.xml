@@ -1,0 +1,315 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">کاوشگر فایل فوق‌العاده</string>
+    <!-- Upgraded app title. %1$s is the app name, %2$s the tier qualifier ("Pro" or "FOSS", depending on the build). Reorder or repunctuate for your language; both placeholders must appear exactly once. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">آیکون برنامهٔ Butler</string>
+    <string name="butler_mascot_description">نماد Butler</string>
+    <string name="butler_mascot_animation_random_description">نماد Butler در حال اجرای انیمیشن‌های گوناگون</string>
+    <string name="butler_mascot_animation_wink_description">نماد Butler در حال چشمک زدن</string>
+    <string name="butler_mascot_animation_greeting_description">نماد Butler در حال دست تکان دادن برای خوش‌آمدگویی</string>
+    <string name="butler_mascot_animation_hatoff_description">نماد Butler در حال برداشتن کلاه با احترام</string>
+    <string name="butler_mascot_animation_drink_description">نماد Butler در حال نوشیدن</string>
+    <string name="butler_mascot_animation_moustache_description">نماد Butler در حال نوازش سبیل</string>
+    <string name="butler_mascot_animation_sleep_closing_description">نماد Butler در حال بستن چشم‌ها برای خواب</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">نماد Butler در حال خروپف کردن</string>
+    <string name="butler_mascot_animation_sleep_waking_description">نماد Butler در حال بیدار شدن</string>
+    <string name="butler_mascot_animation_cameo_description">حضور مهمان ویژهٔ نماد SD Maid</string>
+
+    <string name="slogan_general_message_0">در خدمت شما.</string>
+    <string name="slogan_general_message_1">همه‌چیز سر جای خودش.</string>
+    <string name="slogan_general_message_2">نظم، نه بی‌نظمی.</string>
+    <string name="slogan_general_message_3">در حال آوردن فایل‌های شما.</string>
+    <string name="slogan_general_message_4">همهٔ فایل‌هایتان، مرتب و منظم.</string>
+    <string name="slogan_general_message_5">همیشه منظم.</string>
+    <string name="slogan_general_message_6">فایل‌ها، سریع پیدا می‌شوند!</string>
+    <string name="slogan_general_message_7">دسترسی آسان.</string>
+    <string name="slogan_general_message_8">هیچ‌وقت فایل‌هایتان را گم نمی‌کند.</string>
+    <string name="slogan_general_message_9">کلاه‌های زیادی بر سر دارد.</string>
+    <string name="slogan_newyear_message_0">مثل هر سال، همان روال همیشگی.</string>
+    <string name="slogan_xmas_message_0">فایل‌ها را دوبار بررسی می‌کند.</string>
+    <string name="slogan_xmas_message_1">توی فهرست بچه‌های خوب.</string>
+    <string name="slogan_halloween_message_0">روح Butler در خدمت شماست.</string>
+    <string name="slogan_halloween_message_1">بدون شیطنت، فقط فایل.</string>
+    <string name="slogan_stpatricks_message_0">احساس شانس می‌کنید؟</string>
+    <string name="slogan_stpatricks_message_1">دیگ طلای شما را پیدا می‌کند.</string>
+    <string name="slogan_aprilfools_message_0">بدون شوخی.</string>
+    <string name="slogan_aprilfools_message_1">واقعاً منظم.</string>
+    <string name="slogan_oktoberfest_message_0">به سلامتی فایل‌های شما!</string>
+    <string name="slogan_oktoberfest_message_1">فایل‌ها در دسترس.</string>
+
+    <string name="general_share_action">اشتراک‌گذاری</string>
+    <string name="general_share_single_title">اشتراک‌گذاری %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">اشتراک‌گذاری %d فایل</item>
+        <item quantity="other">اشتراک‌گذاری %d فایل</item>
+    </plurals>
+    <string name="general_done_action">تمام</string>
+    <string name="general_copy_action">کپی</string>
+    <string name="general_cut_action">برش</string>
+    <string name="general_move_action">انتقال</string>
+    <string name="general_paste_action">چسباندن</string>
+    <string name="general_apply_action">اعمال</string>
+    <string name="general_open_action">باز کردن</string>
+    <string name="general_cancel_action">لغو</string>
+    <string name="general_close_action">بستن</string>
+    <string name="general_confirm_action">تأیید</string>
+    <string name="general_reset_action">بازنشانی</string>
+    <string name="general_save_action">ذخیره</string>
+    <string name="general_edit_action">ویرایش</string>
+    <string name="general_na_label">نامشخص</string>
+    <!-- Announced by screen readers when a dialog opens -->
+    <string name="general_dialog_a11y_label">کادر گفتگو</string>
+    <string name="general_dismiss_action">نادیده گرفتن</string>
+    <string name="general_read_more_action">ادامهٔ مطلب</string>
+    <string name="general_mark_as_read_action">علامت‌گذاری به‌عنوان خوانده‌شده</string>
+    <string name="general_back_action">بازگشت</string>
+    <string name="general_navigate_up_action">رفتن به سطح بالا</string>
+    <string name="general_error_label">خطا</string>
+    <string name="general_error_unknown_label">خطای نامشخص</string>
+    <string name="general_error_invalid_input_label">ورودی نامعتبر</string>
+    <string name="general_share_error_action">اشتراک‌گذاری خطا</string>
+    <string name="general_error_report_subject">گزارش خطای %1$s (%2$s)</string>
+    <string name="general_error_report_consent_title">گزارش خطا اشتراک‌گذاری شود؟</string>
+    <string name="general_error_report_consent_message">این گزارش شامل خطا و ردّ پشتهٔ ایجادشده توسط آن، سابقهٔ اخیر لاگ برنامه، و جزئیاتی دربارهٔ وضعیت برنامه در آن زمان است: نام‌ها و مسیرهای فایل، عبارت‌های جستجو، نام بسته‌ها، URIها، نام میزبان‌های شبکه و SMB، اطلاعات دستگاه و نسخهٔ برنامهٔ شما، و یک شناسهٔ نصب ناشناس. این گزارش را فقط با افرادی که به آن‌ها اعتماد دارید به‌اشتراک بگذارید.</string>
+    <string name="general_error_report_consent_confirm">اشتراک‌گذاری گزارش</string>
+    <string name="general_privacy_policy_action">سیاست حریم خصوصی</string>
+    <string name="general_bug_report_subject">گزارش اشکال %1$s (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">گزارش اشکال %1$s: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(آنچه رخ داده را اینجا شرح دهید.)</string>
+    <string name="general_bug_report_body_expected_prompt">(آنچه را انتظار داشتید اینجا شرح دهید.)</string>
+    <string name="general_duration_input_label">مدت‌زمان</string>
+    <string name="general_size_input_label">اندازه</string>
+    <string name="general_upgrade_action">ارتقا</string>
+    <string name="general_refresh_action">تازه‌سازی</string>
+    <string name="general_clear_action">پاک کردن</string>
+    <string name="general_expand_action">گسترش</string>
+    <string name="general_collapse_action">جمع کردن</string>
+    <string name="general_completed_label">تکمیل‌شده</string>
+    <string name="general_cancelled_label">لغو شده</string>
+    <string name="general_searching_label">در حال جستجو</string>
+    <string name="general_searching_ellipsis">در حال جستجو…</string>
+    <string name="general_progress_loading">در حال بارگذاری</string>
+    <string name="general_progress_loading_egg_0">هنوز هم از آیفون سریع‌تر است</string>
+    <string name="general_progress_loading_egg_1">در حال دانلود رم بیشتر</string>
+    <string name="general_progress_loading_egg_2">زمان تقریبی: به‌زودی™</string>
+    <string name="general_progress_loading_egg_3">پردازنده در حال استراحت با قهوه است</string>
+    <string name="general_progress_loading_egg_4">در انتظار دریافت داده از پپ سیلویا</string>
+    <string name="general_progress_loading_egg_5">توربو انکابولاتور در حال راه‌اندازی است</string>
+    <string name="general_progress_loading_egg_6">در حال دادن کره</string>
+    <string name="general_progress_loading_egg_7">راستی، حالتان چطور است؟</string>
+    <string name="general_progress_loading_egg_8">بیپ بوب بوپ</string>
+    <string name="general_progress_loading_egg_9">در حال بافر کردن انتخاب‌های زندگی</string>
+    <string name="general_progress_loading_egg_10">در حال احضار کتولو</string>
+    <string name="general_progress_loading_egg_11">همه‌چیز روبه‌راه است</string>
+    <string name="general_progress_loading_egg_12">لطفاً منتظر بمانید</string>
+    <string name="general_progress_loading_egg_13">دست‌کم شما پشت خط معطل نیستید</string>
+    <string name="general_progress_loading_egg_14">مستقیم روی پیشانی بمالید</string>
+
+    <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%ds</item>
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%dm</item>
+        <item quantity="other">%dm</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dh</item>
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dd</item>
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d ثانیه</item>
+        <item quantity="other">%d ثانیه</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d دقیقه</item>
+        <item quantity="other">%d دقیقه</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d ساعت</item>
+        <item quantity="other">%d ساعت</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d روز</item>
+        <item quantity="other">%d روز</item>
+    </plurals>
+
+    <string name="general_view_action">نمایش</string>
+    <string name="general_delete_action">حذف</string>
+    <string name="general_show_details_action">نمایش جزئیات</string>
+    <string name="general_hide_details_action">پنهان کردن جزئیات</string>
+
+    <string name="general_delete_confirmation_title">تأیید حذف</string>
+    <string name="general_delete_confirmation_message_x">«%s» حذف شود؟</string>
+    <string name="general_delete_confirmation_message_selected_x_items">%d مورد انتخاب‌شده حذف شود؟</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">%d مورد حذف شد.</item>
+        <item quantity="other">%d مورد حذف شد.</item>
+    </plurals>
+
+    <string name="general_create_action">ایجاد</string>
+    <string name="general_rename_action">تغییر نام</string>
+    <string name="general_retry_action">تلاش مجدد</string>
+    <string name="general_open_setup_action">باز کردن راه‌اندازی</string>
+    <string name="general_grant_usage_stats_action">اعطای دسترسی آمار استفاده</string>
+    <string name="general_grant_storage_permission_action">اعطای مجوز حافظه</string>
+    <string name="general_grant_all_files_access_action">مجاز کردن دسترسی به همهٔ فایل‌ها</string>
+
+    <string name="general_result_user_cancel_msg">کاربر عملیات را لغو کرده است.</string>
+
+    <string name="general_path_label">مسیر</string>
+    <string name="general_filename_validation_error">نام شامل نویسه‌های نامعتبر است: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%3$s (%1$d از %2$d)</string>
+    <string name="common_x_of_y_label">%1$d از %2$d</string>
+
+    <string name="file_type_symbolic_link">پیوند</string>
+    <string name="file_type_directory">پوشه</string>
+    <string name="file_type_file">فایل</string>
+    <string name="file_type_unknown">نامشخص</string>
+
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">تصویر</string>
+    <string name="common_mimetype_video">ویدیو</string>
+    <string name="common_mimetype_audio">صوت</string>
+    <string name="common_mimetype_text_plain">متن ساده</string>
+    <string name="common_mimetype_text">سند متنی</string>
+    <string name="common_mimetype_pdf">سند PDF</string>
+    <string name="common_mimetype_document">سند</string>
+    <string name="common_mimetype_archive">بایگانی</string>
+    <string name="common_mimetype_apk">بستهٔ Android</string>
+    <string name="common_mimetype_json">فایل JSON</string>
+    <string name="common_mimetype_xml">فایل XML</string>
+    <string name="common_mimetype_unknown">نوع نامشخص</string>
+
+    <string name="general_rom_type_auto_label">خودکار (پیش‌فرض)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s مورد بر ثانیه</item>
+        <item quantity="other">%s مورد بر ثانیه</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/s</item>
+        <item quantity="other">%s/s</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">عدم تطابق نوع: %1$s مورد انتظار بود، اما %2$s دریافت شد.</string>
+    <string name="general_error_cant_access_msg">دسترسی به %s ممکن نیست.</string>
+    <string name="general_error_archive_not_seekable_msg">%s را نمی‌توان مستقیماً مرور کرد: حافظه‌ای که روی آن قرار دارد فقط از خواندن ترتیبی پشتیبانی می‌کند، اما این قالب بایگانی به دسترسی تصادفی نیاز دارد.</string>
+    <string name="general_error_root_unavailable">دسترسی root در دسترس نیست.</string>
+    <string name="general_error_elevated_access_required">این عملیات به دسترسی سطح‌بالا نیاز دارد. root یا Shizuku را در راه‌اندازی پیکربندی کنید.</string>
+    <string name="general_error_no_compatible_app_found_msg">برنامهٔ سازگاری برای انجام این درخواست یافت نشد.</string>
+    <string name="general_error_ipc_deadobject_title">اتصال سرویس قطع شد</string>
+    <string name="general_error_ipc_deadobject_description">اتصال به یک سرویس حیاتی (مانند Magisk، Shizuku یا سایر سرویس‌های سطح سیستم) به‌طور غیرمنتظره قطع شد. لطفاً دستگاه خود را دوباره راه‌اندازی کنید. اگر مشکل ادامه داشت، به‌روزرسانی‌ها را بررسی کنید یا این مشکل را گزارش دهید.</string>
+
+    <string name="ui_theme_mode_dark_label">تیره</string>
+    <string name="ui_theme_mode_light_label">روشن</string>
+    <string name="ui_theme_mode_system_label">سیستم</string>
+    <string name="ui_theme_style_default_label">پیش‌فرض</string>
+    <string name="ui_theme_style_medium_contrast_label">کنتراست متوسط</string>
+    <string name="ui_theme_style_high_contrast_label">کنتراست بالا</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">سبز</string>
+    <string name="ui_theme_color_blue_label">آبی</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">سفارشی</string>
+
+    <string name="ui_theme_palette_tonalspot_label">متعادل</string>
+    <string name="ui_theme_palette_neutral_label">خنثی</string>
+    <string name="ui_theme_palette_vibrant_label">پررنگ</string>
+    <string name="ui_theme_palette_expressive_label">متنوع</string>
+    <string name="ui_theme_palette_rainbow_label">رنگین‌کمانی</string>
+    <string name="ui_theme_palette_fruitsalad_label">رنگارنگ</string>
+    <string name="ui_theme_palette_monochrome_label">تک‌رنگ</string>
+    <string name="ui_theme_palette_fidelity_label">وفادار</string>
+    <string name="ui_theme_palette_content_label">محتوامحور</string>
+
+    <string name="ui_theme_custom_dialog_title">تم سفارشی</string>
+    <string name="ui_theme_custom_seed_label">رنگ پایه</string>
+    <string name="ui_theme_custom_palette_label">سبک پالت</string>
+    <string name="ui_theme_custom_default_action">پیش‌فرض</string>
+
+    <string name="ui_mascot_suit_dialog_title">کت‌وشلوار Butler</string>
+    <string name="ui_mascot_suit_default_action">پیش‌فرض</string>
+    <string name="ui_mascot_suit_hue_label">فام رنگ</string>
+    <string name="ui_mascot_suit_saturation_label">اشباع رنگ</string>
+    <string name="ui_mascot_suit_brightness_label">روشنایی</string>
+    <string name="ui_mascot_suit_value_description">رنگ کت‌وشلوار %s</string>
+
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">آمار استفاده</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">دسترسی اعلان‌ها</string>
+    <string name="setup_manage_storage_card_title">مدیریت حافظهٔ خارجی</string>
+    <string name="setup_inventory_card_title">فهرست برنامه‌ها</string>
+
+    <!-- Common permission strings -->
+    <string name="setup_required_card_title">نیاز به راه‌اندازی</string>
+    <string name="setup_required_card_body">برای انجام این عملیات، راه‌اندازی بیشتری لازم است.</string>
+    <string name="setup_required_card_setup_action">باز کردن راه‌اندازی</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">چند زبانه باز شود؟</string>
+    <string name="common_open_tabs_confirmation_message">این کار %1$d زبانه باز خواهد کرد.</string>
+    <string name="common_open_tabs_success">%1$d زبانه باز شد</string>
+    <string name="common_open_tabs_success_with_skipped">%1$d زبانه باز شد (%2$d مورد رد شد)</string>
+
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">زبانه بسته شود؟</string>
+    <string name="general_tab_close_confirmation_message">مطمئنید می‌خواهید «%1$s» را ببندید؟</string>
+    <string name="general_tab_close_unsaved_title">تغییرات ذخیره‌نشده</string>
+    <string name="general_tab_close_unsaved_message">«%1$s» تغییرات ذخیره‌نشده دارد. بسته و دور انداخته شود؟</string>
+    <string name="general_tab_close_unsaved_message_multiple">«%1$s» و %2$d زبانهٔ دیگر تغییرات ذخیره‌نشده دارند. بسته و دور انداخته شوند؟</string>
+    <string name="general_discard_action">دور انداختن</string>
+    <string name="general_tab_close_goto_action">رفتن به زبانه</string>
+
+    <!-- Exit app -->
+    <string name="general_press_back_again_to_exit">برای خروج دوباره دکمهٔ بازگشت را بزنید</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d مورد انتخاب‌شده</item>
+        <item quantity="other">%d مورد انتخاب‌شده</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d پوشه</item>
+        <item quantity="other">%1$d پوشه</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d فایل</item>
+        <item quantity="other">%1$d فایل</item>
+    </plurals>
+    <string name="common_select_all_folders_action">انتخاب همهٔ پوشه‌ها</string>
+    <string name="common_select_all_files_action">انتخاب همهٔ فایل‌ها</string>
+    <string name="general_undo_action">واگرد</string>
+
+    <!-- Guided tours -->
+    <string name="tour_action_next">بعدی</string>
+    <string name="tour_action_previous">قبلی</string>
+    <string name="tour_action_cancel">رد کردن</string>
+    <string name="tour_confirm_title">تور رد شود؟</string>
+    <string name="tour_confirm_message">می‌توانید هر زمان تورها را دوباره از تنظیمات فعال کنید.</string>
+    <string name="tour_confirm_continue">ادامهٔ تور</string>
+    <string name="tour_confirm_dont_show_this_tour">این تور نمایش داده نشود</string>
+    <string name="tour_confirm_disable_all">غیرفعال کردن همهٔ تورها</string>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">برای مقایسهٔ فایل‌ها در کنار هم، از چند قاب استفاده کنید.</string>
+    <string name="common_tip_different_folders">برای مدیریت آسان‌تر فایل‌ها، در هر قاب یک پوشهٔ متفاوت باز کنید.</string>
+    <string name="common_tip_switch_layouts">چیدمان قاب‌ها را از مدیریت تنظیمات زبانه تغییر دهید.</string>
+    <string name="common_tip_elevated_access">برای عملیات پیشرفتهٔ فایل، root یا Shizuku را در راه‌اندازی فعال کنید.</string>
+    <string name="common_tip_breadcrumb_home">برای تنظیم یک مسیر به‌عنوان پوشهٔ خانگی، آن را در نوار مسیر کاوشگر فشار دهید و نگه دارید.</string>
+</resources>

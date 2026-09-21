@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">進階裝置存取</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">裝置</string>
+    <string name="documents_connection_device_summary">本機裝置儲存空間</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">根檔案系統</string>
+    <string name="provider_documents_storage_internal_label">內部儲存空間</string>
+    <string name="provider_documents_storage_sd_card_label">SD 卡</string>
+    <string name="provider_documents_storage_saf_label">SAF 位置</string>
+    <string name="provider_documents_storage_free_suffix">可用</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">存取此位置需要根存取權限。在 Butler 應用程式設定中啟用根存取。</string>
+    <string name="provider_documents_error_requires_adb">存取此位置需要 ADB/Shizuku 存取權限。在 Butler 應用程式設定中啟用 Shizuku。</string>
+    <string name="provider_documents_error_requires_storage">存取此位置需要儲存空間權限。在 Butler 應用程式設定中授予儲存空間權限。</string>
+    <string name="provider_documents_error_requires_permissions">存取此位置需要額外權限。檢查 Butler 應用程式設定。</string>
+    <string name="provider_documents_error_generic">無法存取此位置。檢查 Butler 應用程式以取得存取選項。</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">文件供應商</string>
+    <string name="provider_documents_settings_subtitle">外部應用程式整合</string>
+    <string name="provider_documents_settings_category_integration_label">整合</string>
+    <string name="provider_documents_enabled_title">啟用文件供應商</string>
+    <string name="provider_documents_enabled_desc">允許其他應用程式透過 Butler 使用 Android 的檔案選擇器存取檔案</string>
+</resources>

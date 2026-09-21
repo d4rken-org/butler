@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">السجل</string>
+    <string name="history_workspace_subtitle">عمليات الملفات الأخيرة</string>
+    <string name="history_workspace_title_scoped">السجل: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">السجل: فشل</string>
+    <string name="history_workspace_title_outcome_partial">السجل: جزئي</string>
+    <string name="history_workspace_title_outcome_cancelled">السجل: ملغاة</string>
+    <string name="history_workspace_title_outcome_completed">السجل: مكتملة</string>
+    <string name="history_workspace_title_kind_copy">السجل: نسخ</string>
+    <string name="history_workspace_title_kind_move">السجل: نقل</string>
+    <string name="history_workspace_title_kind_delete">السجل: حذف</string>
+    <string name="history_workspace_title_kind_create_file">السجل: إنشاء ملف</string>
+    <string name="history_workspace_title_kind_create_folder">السجل: إنشاء مجلد</string>
+    <string name="history_workspace_title_kind_save">السجل: حفظ</string>
+    <string name="history_workspace_title_kind_compress">السجل: ضغط</string>
+    <string name="history_workspace_title_kind_extract">السجل: استخراج</string>
+    <string name="history_workspace_title_filtered">السجل (مُرشح)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="zero">السجل: 0 مسار</item>
+        <item quantity="one">السجل: %1$d مسار</item>
+        <item quantity="two">السجل: %1$d مساران</item>
+        <item quantity="few">السجل: %1$d مسارات</item>
+        <item quantity="many">السجل: %1$d مسارًا</item>
+        <item quantity="other">السجل: %1$d مسار</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">الكل</string>
+    <string name="history_filter_outcome_completed">مكتملة</string>
+    <string name="history_filter_outcome_partial">جزئي</string>
+    <string name="history_filter_outcome_failed">فشل</string>
+    <string name="history_filter_outcome_cancelled">ملغاة</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">نسخ</string>
+    <string name="history_filter_kind_move">نقل</string>
+    <string name="history_filter_kind_delete">حذف</string>
+    <string name="history_filter_kind_create_file">إنشاء ملف</string>
+    <string name="history_filter_kind_create_folder">إنشاء مجلد</string>
+    <string name="history_filter_kind_save">حفظ</string>
+    <string name="history_filter_kind_compress">ضغط</string>
+    <string name="history_filter_kind_extract">استخراج</string>
+    <string name="history_filter_kind_enable">تفعيل</string>
+    <string name="history_filter_kind_disable">تعطيل</string>
+    <string name="history_filter_kind_force_stop">إيقاف قسري</string>
+    <string name="history_filter_kind_uninstall">إزالة التثبيت</string>
+    <string name="history_filter_kind_clear_data">مسح البيانات</string>
+    <string name="history_filter_kind_components">المكونات</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">تعيين نطاق المسار…</string>
+    <string name="history_path_scope_clear_action">مسح نطاق المسار</string>
+    <string name="history_path_scope_dialog_title">تصفية حسب المسار</string>
+    <string name="history_path_scope_dialog_description">عرض العمليات التي تؤثر على هذا المسار أو مساراته الفرعية فقط.</string>
+    <string name="history_path_scope_dialog_input_label">المسار</string>
+    <string name="history_path_scope_dialog_pick_folder_action">اختيار مجلد…</string>
+    <string name="history_path_scope_dialog_apply_action">تطبيق</string>
+    <string name="history_path_scope_dialog_cancel_action">إلغاء</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">اليوم</string>
+    <string name="history_group_yesterday">أمس</string>
+    <string name="history_group_this_week">هذا الأسبوع</string>
+    <string name="history_group_this_month">هذا الشهر</string>
+    <string name="history_group_older">أقدم</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">تمت إعادة التسمية</string>
+    <string name="history_entry_intent_paste_copy">تم اللصق</string>
+    <string name="history_entry_intent_paste_move">تم اللصق (نقل)</string>
+    <string name="history_entry_intent_drop_copy">تم الإسقاط (نسخ)</string>
+    <string name="history_entry_intent_drop_move">تم الإسقاط (نقل)</string>
+    <string name="history_entry_intent_enable_components">تم تفعيل مكونات</string>
+    <string name="history_entry_intent_disable_components">تم تعطيل مكونات</string>
+    <string name="history_entry_kind_copy">تم النسخ</string>
+    <string name="history_entry_kind_move">تم النقل</string>
+    <string name="history_entry_kind_delete">تم الحذف</string>
+    <string name="history_entry_kind_create_file">تم إنشاء ملف</string>
+    <string name="history_entry_kind_create_folder">تم إنشاء مجلد</string>
+    <string name="history_entry_kind_save">تم الحفظ</string>
+    <string name="history_entry_kind_compress">تم الضغط</string>
+    <string name="history_entry_kind_extract">تم الاستخراج</string>
+    <string name="history_entry_kind_restore">تم الاستعادة</string>
+    <string name="history_entry_kind_install">تم التثبيت</string>
+    <string name="history_entry_kind_enable">تم التفعيل</string>
+    <string name="history_entry_kind_disable">تم التعطيل</string>
+    <string name="history_entry_kind_force_stop">تم الإيقاف القسري</string>
+    <string name="history_entry_kind_uninstall">تم إزالة التثبيت</string>
+    <string name="history_entry_kind_clear_data">تم مسح بيانات</string>
+    <string name="history_entry_kind_components">تم تغيير مكونات</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="zero">لا توجد مسارات</item>
+        <item quantity="one">%d مسار</item>
+        <item quantity="two">%d مساران</item>
+        <item quantity="few">%d مسارات</item>
+        <item quantity="many">%d مسارًا</item>
+        <item quantity="other">%d مسار</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">أول %1$d من %2$d مسار متأثر</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">بدأ</string>
+    <string name="history_detail_label_completed">انتهى</string>
+    <string name="history_detail_label_duration">المدة</string>
+    <string name="history_detail_label_outcome">النتيجة</string>
+    <string name="history_detail_label_origin">المصدر</string>
+    <string name="history_detail_label_error">الخطأ</string>
+    <string name="history_detail_label_paths">المسارات المتأثرة</string>
+    <string name="history_detail_label_partial_errors">الأخطاء لكل عنصر</string>
+    <string name="history_detail_copy_path_action">نسخ المسار</string>
+    <string name="history_detail_paths_empty">لم يتم تسجيل أي مسارات متأثرة.</string>
+    <string name="history_detail_label_attempted_paths">المسارات المحاولة</string>
+    <string name="history_detail_label_packages">التطبيقات المتأثرة</string>
+    <string name="history_detail_packages_empty">لم يتم تسجيل أي تطبيقات متأثرة.</string>
+    <string name="history_detail_paths_truncated_callout">عرض أول %1$d من %2$d مسار متأثر.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">عرض أول %1$d من %2$d مسار محاول.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="zero">لم يفشل أي عنصر في هذه العملية.</item>
+        <item quantity="one">فشل %1$d عنصر واحد في هذه العملية.</item>
+        <item quantity="two">فشل %1$d عنصرين في هذه العملية.</item>
+        <item quantity="few">فشلت %1$d عناصر في هذه العملية.</item>
+        <item quantity="many">فشل %1$d عنصرًا في هذه العملية.</item>
+        <item quantity="other">فشل %1$d عنصر في هذه العملية.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">المستكشف</string>
+    <string name="history_origin_searcher">البحث</string>
+    <string name="history_origin_saver">الحفظ باسم</string>
+    <string name="history_origin_developer">أدوات المطور</string>
+    <string name="history_origin_viewer">العارض</string>
+    <string name="history_origin_apps">التطبيقات</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d مللي ثانية</string>
+    <string name="history_duration_seconds">%1$.1f ثانية</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">لا يوجد سجل حتى الآن</string>
+    <string name="history_empty_subtitle">ستظهر عمليات الملفات هنا عند استخدام Butler.</string>
+    <string name="history_empty_filtered_title">لا توجد نتائج</string>
+    <string name="history_empty_filtered_subtitle">لا توجد إدخالات سجل تطابق المرشح الحالي.</string>
+    <string name="history_empty_filtered_reset_action">إعادة تعيين المرشح</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">إعادة تعيين المرشح</string>
+    <string name="history_toolbar_reset_filter_content_description">إعادة تعيين المرشحات</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">أول %1$d من %2$d مسار متأثر</string>
+    <string name="history_add_filter_action">إضافة مرشح</string>
+    <string name="history_add_filter_sheet_title">إضافة مرشح</string>
+    <string name="history_add_filter_section_outcome">النتيجة</string>
+    <string name="history_add_filter_section_kind">النوع</string>
+    <string name="history_add_filter_section_path_scope">نطاق المسار</string>
+    <string name="history_add_filter_add_path_action">إضافة مسار…</string>
+    <string name="history_path_scope_remove_action">إزالة</string>
+    <plurals name="history_summary_total">
+        <item quantity="zero">لا توجد إدخالات</item>
+        <item quantity="one">%1$d إدخال</item>
+        <item quantity="two">%1$d إدخالان</item>
+        <item quantity="few">%1$d إدخالات</item>
+        <item quantity="many">%1$d إدخالًا</item>
+        <item quantity="other">%1$d إدخال</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="zero">لا شيء معروض من %2$d</item>
+        <item quantity="one">%1$d من %2$d معروض</item>
+        <item quantity="two">%1$d من %2$d معروض</item>
+        <item quantity="few">%1$d من %2$d معروض</item>
+        <item quantity="many">%1$d من %2$d معروض</item>
+        <item quantity="other">%1$d من %2$d معروض</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="zero">(%1$d)</item>
+        <item quantity="one">(%1$d)</item>
+        <item quantity="two">(%1$d)</item>
+        <item quantity="few">(%1$d)</item>
+        <item quantity="many">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">السجل</string>
+    <string name="history_settings_save_history_title">حفظ السجل</string>
+    <string name="history_settings_save_history_subtitle">تسجيل عمليات الملفات المكتملة.</string>
+    <string name="history_settings_max_history_label">الحد الأقصى لإدخالات السجل</string>
+    <string name="history_settings_max_history_subtitle">سيتم إزالة الإدخالات الأقدم بمجرد تجاوز هذا الحد.</string>
+    <string name="history_settings_max_history_input_label">الحد الأقصى للإدخالات</string>
+    <string name="history_settings_clear_history_title">مسح السجل</string>
+    <string name="history_settings_clear_history_subtitle">إزالة جميع الإدخالات المخزنة (%1$d).</string>
+    <string name="history_clear_dialog_title">مسح السجل؟</string>
+    <string name="history_clear_dialog_message">سيتم إزالة جميع الإدخالات من قاعدة بيانات سجل العمليات. لا يمكن التراجع عن هذا.</string>
+    <string name="history_clear_confirm_action">مسح</string>
+    <string name="history_cleared_success">تم مسح السجل</string>
+    <string name="history_workspace_title_kind_restore">السجل: استعادة</string>
+    <string name="history_filter_kind_restore">استعادة</string>
+    <string name="history_workspace_title_kind_install">السجل: تثبيت</string>
+    <string name="history_filter_kind_install">تثبيت</string>
+    <string name="history_workspace_title_kind_enable">السجل: تفعيل</string>
+    <string name="history_workspace_title_kind_disable">السجل: تعطيل</string>
+    <string name="history_workspace_title_kind_force_stop">السجل: إيقاف قسري</string>
+    <string name="history_workspace_title_kind_uninstall">السجل: إزالة التثبيت</string>
+    <string name="history_workspace_title_kind_clear_data">السجل: مسح البيانات</string>
+    <string name="history_workspace_title_kind_components">السجل: المكونات</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">تحديد الكل</string>
+    <string name="history_action_deselect_all">إلغاء تحديد الكل</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="zero">حذف 0 إدخال</item>
+        <item quantity="one">حذف %1$d إدخال</item>
+        <item quantity="two">حذف %1$d إدخالين</item>
+        <item quantity="few">حذف %1$d إدخالات</item>
+        <item quantity="many">حذف %1$d إدخالًا</item>
+        <item quantity="other">حذف %1$d إدخال</item>
+    </plurals>
+    <string name="history_delete_dialog_message">سيتم إزالة سجلات السجل فقط، والملفات نفسها لن تتأثر.</string>
+    <string name="history_pro_dialog_message">مشاركة وحذف إدخالات السجل جزء من الترقية. مسح السجل بالكامل يبقى مجانيًا في إعدادات السجل.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">النتيجة</string>
+    <string name="history_share_label_kind">النوع</string>
+    <string name="history_share_label_origin">المصدر</string>
+    <string name="history_share_label_summary">الملخص</string>
+    <string name="history_share_label_completed">انتهى</string>
+    <string name="history_share_label_duration">المدة</string>
+    <string name="history_share_label_error">الخطأ</string>
+    <string name="history_share_label_failed_items">العناصر الفاشلة</string>
+    <string name="history_share_label_paths">المسارات المتأثرة (%1$d)</string>
+    <string name="history_share_label_packages">التطبيقات المتأثرة (%1$d)</string>
+    <string name="history_share_paths_more">… و%1$d آخر</string>
+    <string name="history_share_truncated">… و%1$d إدخالات أخرى لم تُرسل</string>
+</resources>

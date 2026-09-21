@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">Kho ứng dụng không hợp lệ</string>
+    <string name="pkgrepo_invalid_inventory_error_description">Hệ thống đã cung cấp cho Butler một danh sách các ứng dụng đã cài đặt không hợp lệ.</string>
+</resources>

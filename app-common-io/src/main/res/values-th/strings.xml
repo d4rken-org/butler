@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">กำลังลบรายการ</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">กำลังคัดลอกรายการ</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">กำลังย้ายรายการ</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">กำลังสแกน…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">ไฟล์นี้มีอยู่แล้ว</string>
+    <string name="path_action_folder_exists_title">โฟลเดอร์นี้มีอยู่แล้ว</string>
+    <string name="path_action_file_exists_description">ไฟล์ชื่อ \"%1$s\" มีอยู่แล้วที่ \"%2$s\"</string>
+    <string name="path_action_folder_exists_description">โฟลเดอร์ชื่อ \"%1$s\" มีอยู่แล้วที่ \"%2$s\"</string>
+
+    <string name="path_action_not_found_title">ไฟล์หายไป</string>
+    <string name="path_action_not_found_description">\"%1$s\" ถูกลบ เปลี่ยนชื่อ หรือย้ายไปที่อื่น</string>
+
+    <string name="path_action_permission_denied_title">ปฏิเสธการเข้าถึง</string>
+    <string name="path_action_permission_denied_description">ไม่สามารถเข้าถึง \"%1$s\" ที่ \"%2$s\" เนื่องจากสิทธิ์ไม่เพียงพอ</string>
+    <string name="path_action_permission_denied_no_mechanism_description">ไม่สามารถเข้าถึง \"%1$s\" ที่ \"%2$s\" ไม่มีวิธีการใดที่สามารถทำการดำเนินการนี้ได้</string>
+    <string name="path_action_permission_denied_readonly_description">ไม่สามารถเข้าถึง \"%1$s\" ที่ \"%2$s\" ระบบไฟล์อยู่ในโหมดอ่านอย่างเดียว</string>
+    <string name="path_action_permission_denied_not_permitted_description">ไม่สามารถเข้าถึง \"%1$s\" ที่ \"%2$s\" ระบบปฏิเสธการดำเนินการ</string>
+
+    <string name="path_action_insufficient_space_title">เนื้อที่ไม่เพียงพอ</string>
+    <string name="path_action_insufficient_space_description">ไม่มีเนื้อที่เก็บข้อมูลเพียงพอที่จะคัดลอก \"%1$s\" จาก \"%2$s\"</string>
+
+    <string name="path_action_unknown_error_title">การดำเนินการล้มเหลว</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">การแทนที่ยังไม่เสร็จสมบูรณ์</string>
+    <string name="path_action_data_kept_new_data_description">Butler ไม่สามารถเขียน \"%1$s\" เสร็จสิ้น ข้อมูลใหม่ของคุณเก็บไว้ในโฟลเดอร์เดียวกันกับ \"%2$s\" เปลี่ยนชื่อเพื่อกู้คืน หรือลบเพื่อยกเลิก</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler ไม่สามารถเขียน \"%1$s\" เสร็จสิ้น ไฟล์เดิมยังไม่มีการเปลี่ยนแปลง ข้อมูลใหม่ของคุณเก็บไว้ในโฟลเดอร์เดียวกันกับ \"%2$s\" เปลี่ยนชื่อเพื่อกู้คืน หรือลบเพื่อยกเลิก</string>
+    <string name="path_action_data_kept_both_description">Butler ไม่สามารถเขียน \"%1$s\" เสร็จสิ้น ไม่มีอะไรหายไป ไฟล์เดิมเก็บไว้ในโฟลเดอร์เดียวกันกับ \"%2$s\" และข้อมูลใหม่ของคุณเป็น \"%3$s\" เปลี่ยนชื่อแฟ้มที่คุณต้องการเก็บไว้</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler ไม่สามารถเขียน \"%1$s\" เสร็จสิ้น และไม่สามารถตรวจสอบว่า \"%2$s\" ยังอยู่หรือไม่ สำเนาที่ไม่สมบูรณ์อาจเก็บไว้ในโฟลเดอร์เดียวกันกับ \"%3$s\" เปรียบเทียบทั้งสองก่อนลบแฟ้มใดแฟ้มหนึ่ง</string>
+    <string name="path_action_data_kept_intermediate_description">Butler ไม่สามารถย้าย \"%1$s\" เสร็จสิ้น และไม่สามารถบอกได้ว่ามันออกจากโฟลเดอร์หรือไม่ ข้อมูลของคุณเก็บไว้ในโฟลเดอร์นั้นเป็น \"%2$s\" หรืออยู่ที่ \"%3$s\" แล้ว ตรวจสอบทั้งสองก่อนลบแฟ้มใดแฟ้มหนึ่ง</string>
+    <string name="path_action_data_kept_uncertain_description">Butler ไม่สามารถเขียน \"%1$s\" เสร็จสิ้น และไม่สามารถบอกได้ว่าไฟล์ของคุณอยู่ที่ไหน มันเป็นหนึ่งในสามไฟล์ในโฟลเดอร์นั้น \"%1$s\" เอง \"%2$s\" หรือ \"%3$s\" ตรวจสอบทั้งสามก่อนลบแฟ้มใดแฟ้มหนึ่ง</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler ไม่สามารถเขียน \"%1$s\" เสร็จสิ้น และไม่สามารถบอกได้ว่าไฟล์ของคุณอยู่ที่ไหน มันเป็นหนึ่งในสองไฟล์ในโฟลเดอร์นั้น \"%1$s\" เอง หรือ \"%2$s\" ตรวจสอบทั้งสองก่อนลบแฟ้มใดแฟ้มหนึ่ง</string>
+
+    <string name="path_action_trash_size_limit_title">รายการมีขนาดใหญ่เกินไปสำหรับถังขยะ</string>
+    <string name="path_action_trash_size_limit_description">%1$d รายการรวมกัน %2$s เกินขีดจำกัดขนาดถังขยะ (%3$s)</string>
+
+    <string name="path_action_trash_move_failed_title">ล้มเหลวในการย้ายไปถังขยะ</string>
+    <string name="path_action_trash_move_failed_description">%1$d รายการไม่สามารถย้ายไปถังขยะได้</string>
+
+    <string name="path_action_trash_not_supported_title">ถังขยะไม่รองรับ</string>
+    <string name="path_action_trash_not_supported_description">%1$d รายการอยู่ในที่เก็บข้อมูลที่ไม่รองรับถังขยะ</string>
+
+    <string name="path_action_archive_password_title">ต้องการรหัสผ่าน</string>
+    <string name="path_action_archive_password_description">\"%1$s\" เข้ารหัส ป้อนรหัสผ่านเพื่ออ่านเนื้อหา</string>
+    <string name="path_action_archive_password_wrong_description">รหัสผ่านของ \"%1$s\" ไม่ถูกต้อง ลองใหม่</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">เซิร์ฟเวอร์ไม่สามารถเข้าถึงได้</string>
+    <string name="smb_error_unreachable_description">Butler ไม่สามารถเข้าถึง \"%1$s\" ตรวจสอบว่าอุปกรณ์อยู่ในเครือข่ายเดียวกันและเซิร์ฟเวอร์เปิดอยู่</string>
+    <string name="smb_error_auth_title">ล้มเหลวในการเข้าสู่ระบบ</string>
+    <string name="smb_error_auth_description">\"%1$s\" ปฏิเสธชื่อผู้ใช้หรือรหัสผ่าน</string>
+    <string name="smb_error_share_access_denied_title">ไม่มีการเข้าถึงการแชร์นี้</string>
+    <string name="smb_error_share_access_denied_description">บัญชีนี้อาจไม่สามารถใช้ \"%1$s\" บน \"%2$s\" ได้ ตรวจสอบสิทธิ์การแชร์บนเซิร์ฟเวอร์</string>
+    <string name="smb_error_share_not_found_title">ไม่พบการแชร์</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" ไม่มีอยู่บน \"%2$s\"</string>
+    <string name="smb_error_dialect_title">เซิร์ฟเวอร์เก่าเกินไป</string>
+    <string name="smb_error_dialect_description">\"%1$s\" มี SMB1 เท่านั้น ซึ่งไม่ปลอดภัยและไม่รองรับ เปิดใช้ SMB2 หรือใหม่กว่าบนเซิร์ฟเวอร์</string>
+    <string name="smb_error_credential_unavailable_title">ต้องการเข้าสู่ระบบ</string>
+    <string name="smb_error_credential_unavailable_description">ไม่สามารถอ่านรหัสผ่านที่บันทึกไว้สำหรับที่เก็บข้อมูลเครือข่ายนี้ได้อีกต่อไป ป้อนอีกครั้งเพื่อเชื่อมต่ออีกครั้ง</string>
+    <string name="smb_error_pro_required_title">การแชร์เครือข่ายต้องใช้ Butler Pro</string>
+    <string name="smb_error_pro_required_description">การเชื่อมต่อกับการแชร์เครือข่ายเป็นส่วนหนึ่งของ Butler Pro ตำแหน่งที่บันทึกไว้ของคุณยังคงแสดงอยู่และสามารถลบได้โดยไม่ต้องใช้</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">แพคเกจแอปที่ป้องกัน</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" เข้ารหัสและสามารถติดตั้งได้โดยแอปที่สร้างเท่านั้น</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">ไม่รองรับรูปแบบชุด APK</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" เป็นชุด APK ของเครื่องมือแพคเกจ Butler ไม่สามารถบอกได้ว่าตัวแปรใดของมันเหมาะสมกับอุปกรณ์นี้</string>
+
+    <string name="app_install_error_unsupported_bundle_title">ไม่มีแอปให้ติดตั้ง</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" ไม่มี APK ที่สามารถติดตั้งได้</string>
+
+    <string name="app_install_error_session_title">ติดตั้งล้มเหลว</string>
+    <string name="app_install_error_session_description">ระบบปฏิเสธการติดตั้ง: %1$s</string>
+
+    <string name="app_install_error_busy_title">การติดตั้งอื่นกำลังดำเนินการอยู่</string>
+    <string name="app_install_error_busy_description">\"%1$s\" ยังคงถูกติดตั้งอยู่ ยืนยันหรือยกเลิกการติดตั้งนั้นก่อนเริ่มการติดตั้งอื่น</string>
+
+    <string name="app_install_error_no_elevation_title">ไม่มีการเข้าถึงแบบยกระดับ</string>
+    <string name="app_install_error_no_elevation_description">ปัจจุบันไม่มีการเข้าถึง root หรือ ADB</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">ต้องการยืนยัน</string>
+    <string name="app_install_confirm_pending_description">Android ต้องการให้คุณยืนยันการติดตั้ง \"%1$s\" ก่อนที่จะเสร็จสิ้น</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android ต้องการให้คุณยืนยันการติดตั้งนี้ก่อนที่จะเสร็จสิ้น</string>
+    <string name="app_install_confirm_pending_action">ยืนยันการติดตั้ง</string>
+    <string name="app_install_confirm_pending_reason">ตัวติดตั้งรอการยืนยันของคุณ</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">ต้องการยืนยัน</string>
+    <string name="app_uninstall_confirm_pending_description">Android ต้องการให้คุณยืนยันการลบ \"%1$s\" ก่อนที่จะเสร็จสิ้น</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android ต้องการให้คุณยืนยันการลบนี้ก่อนที่จะเสร็จสิ้น</string>
+    <string name="app_uninstall_confirm_pending_action">ยืนยันการลบ</string>
+    <string name="app_uninstall_confirm_pending_reason">Android รอการยืนยันของคุณ</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">การลบแอปนี้สำหรับผู้ใช้อื่นต้องใช้ root หรือ Shizuku</string>
+    <string name="app_uninstall_no_result">Android ไม่ได้รายงานผลลัพธ์</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">การดำเนินการไฟล์ถูกขัดจังหวะ</string>
+    <string name="service_connection_lost_error_message">บริการการดำเนินการไฟล์หยุดทำงานโดยไม่คาดคิด โปรดลองใหม่</string>
+</resources>

@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">항목 삭제 중</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">항목 복사 중</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">항목 이동 중</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">스캔 중…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">파일이 이미 존재합니다</string>
+    <string name="path_action_folder_exists_title">폴더가 이미 존재합니다</string>
+    <string name="path_action_file_exists_description">\"%1$s\"라는 파일이 \"%2$s\"에 이미 존재합니다.</string>
+    <string name="path_action_folder_exists_description">\"%1$s\"라는 폴더가 \"%2$s\"에 이미 존재합니다.</string>
+
+    <string name="path_action_not_found_title">파일을 찾을 수 없습니다</string>
+    <string name="path_action_not_found_description">\"%1$s\" 파일이 삭제되었거나 이름이 변경되었거나 다른 위치로 이동했습니다.</string>
+
+    <string name="path_action_permission_denied_title">권한 없음</string>
+    <string name="path_action_permission_denied_description">권한 부족으로 \"%2$s\"의 \"%1$s\"에 접근할 수 없습니다.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">\"%2$s\"의 \"%1$s\"에 접근할 수 없습니다. 이 작업을 수행할 방법이 없습니다.</string>
+    <string name="path_action_permission_denied_readonly_description">\"%2$s\"의 \"%1$s\"에 접근할 수 없습니다. 파일시스템이 읽기 전용입니다.</string>
+    <string name="path_action_permission_denied_not_permitted_description">\"%2$s\"의 \"%1$s\"에 접근할 수 없습니다. 시스템이 작업을 거부했습니다.</string>
+
+    <string name="path_action_insufficient_space_title">저장공간 부족</string>
+    <string name="path_action_insufficient_space_description">저장공간이 부족하여 \"%2$s\"에서 \"%1$s\" 파일을 복사할 수 없습니다.</string>
+
+    <string name="path_action_unknown_error_title">작업 실패</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">교체 미완료</string>
+    <string name="path_action_data_kept_new_data_description">Butler가 \"%1$s\" 쓰기를 완료하지 못했습니다. 새 데이터는 \"%2$s\"와 같은 폴더에 보존됩니다. 이름을 변경하여 복구하거나 삭제하십시오.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler가 \"%1$s\" 쓰기를 완료하지 못했으며, 이전 파일은 변경되지 않았습니다. 새 데이터는 \"%2$s\"와 같은 폴더에 보존됩니다. 이름을 변경하여 복구하거나 삭제하십시오.</string>
+    <string name="path_action_data_kept_both_description">Butler가 \"%1$s\" 쓰기를 완료하지 못했습니다. 데이터 손실은 없습니다: \"%2$s\"와 같은 폴더에 이전 파일은 보존되고 새 데이터는 \"%3$s\"로 보존됩니다. 보존할 파일을 선택하여 이름을 변경하십시오.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler가 \"%1$s\" 쓰기를 완료하지 못했으며, \"%2$s\" 파일이 여전히 있는지 확인할 수 없습니다. \"%3$s\"와 같은 폴더에 불완전한 복사본이 보존될 수 있습니다. 둘을 비교한 후 삭제하십시오.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler가 \"%1$s\" 이동을 완료하지 못했으며, 폴더를 떠났는지 확인할 수 없습니다. 데이터는 \"%2$s\"로 보존되어 있거나 이미 \"%3$s\"에 있습니다. 둘을 확인한 후 삭제하십시오.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler가 \"%1$s\" 쓰기를 완료하지 못했으며, 파일이 어디로 갔는지 확인할 수 없습니다. 폴더의 세 파일 중 하나입니다: \"%1$s\" 자체, \"%2$s\" 또는 \"%3$s\". 모두 확인한 후 삭제하십시오.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler가 \"%1$s\" 쓰기를 완료하지 못했으며, 파일이 어디로 갔는지 확인할 수 없습니다. 폴더의 두 파일 중 하나입니다: \"%1$s\" 자체 또는 \"%2$s\". 둘을 확인한 후 삭제하십시오.</string>
+
+    <string name="path_action_trash_size_limit_title">휴지통 크기 초과</string>
+    <string name="path_action_trash_size_limit_description">%1$d개 항목(총 %2$s)이 휴지통 크기 제한(%3$s)을 초과합니다.</string>
+
+    <string name="path_action_trash_move_failed_title">휴지통으로 이동 실패</string>
+    <string name="path_action_trash_move_failed_description">%1$d개 항목을 휴지통으로 이동할 수 없었습니다.</string>
+
+    <string name="path_action_trash_not_supported_title">휴지통 미지원</string>
+    <string name="path_action_trash_not_supported_description">%1$d개 항목이 휴지통을 지원하지 않는 저장공간에 있습니다.</string>
+
+    <string name="path_action_archive_password_title">암호 필요</string>
+    <string name="path_action_archive_password_description">\"%1$s\" 파일은 암호화되어 있습니다. 암호를 입력하여 내용을 읽으십시오.</string>
+    <string name="path_action_archive_password_wrong_description">\"%1$s\"의 암호가 잘못되었습니다. 다시 시도하십시오.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">서버에 연결할 수 없습니다</string>
+    <string name="smb_error_unreachable_description">Butler가 \"%1$s\"에 도달할 수 없습니다. 기기가 같은 네트워크에 있고 서버가 켜져 있는지 확인하십시오.</string>
+    <string name="smb_error_auth_title">로그인 실패</string>
+    <string name="smb_error_auth_description">\"%1$s\" 서버가 사용자 이름 또는 암호를 거부했습니다.</string>
+    <string name="smb_error_share_access_denied_title">이 공유에 접근할 수 없습니다</string>
+    <string name="smb_error_share_access_denied_description">이 계정은 \"%2$s\"의 공유 \"%1$s\"을 사용할 수 없습니다. 서버에서 공유 권한을 확인하십시오.</string>
+    <string name="smb_error_share_not_found_title">공유를 찾을 수 없습니다</string>
+    <string name="smb_error_share_not_found_description">공유 \"%1$s\"이 \"%2$s\"에 없습니다.</string>
+    <string name="smb_error_dialect_title">서버가 너무 오래되었습니다</string>
+    <string name="smb_error_dialect_description">\"%1$s\" 서버는 안전하지 않고 지원하지 않는 SMB1만 제공합니다. 서버에서 SMB2 이상을 활성화하십시오.</string>
+    <string name="smb_error_credential_unavailable_title">로그인 필요</string>
+    <string name="smb_error_credential_unavailable_description">이 네트워크 저장공간의 저장된 암호를 더 이상 읽을 수 없습니다. 다시 입력하여 재연결하십시오.</string>
+    <string name="smb_error_pro_required_title">네트워크 공유는 Butler Pro 필요</string>
+    <string name="smb_error_pro_required_description">네트워크 공유에 연결하는 것은 Butler Pro의 기능입니다. 저장된 위치는 목록에 유지되고 Pro 없이도 제거할 수 있습니다.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">보호된 앱 번들</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" 앱 번들은 암호화되어 있으며 이를 만든 앱에서만 설치할 수 있습니다.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">APK 세트 형식 미지원</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\"는 bundletool APK 세트입니다. Butler는 이 기기에 맞는 변형을 알 수 없습니다.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">설치할 앱 없음</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\"는 설치 가능한 APK를 포함하지 않습니다.</string>
+
+    <string name="app_install_error_session_title">설치 실패</string>
+    <string name="app_install_error_session_description">시스템이 설치를 거부했습니다: %1$s</string>
+
+    <string name="app_install_error_busy_title">다른 설치가 진행 중입니다</string>
+    <string name="app_install_error_busy_description">\"%1$s\" 앱은 아직 설치 중입니다. 다른 설치를 시작하기 전에 설치를 확인하거나 취소하십시오.</string>
+
+    <string name="app_install_error_no_elevation_title">관리자 권한 없음</string>
+    <string name="app_install_error_no_elevation_description">현재 root 또는 ADB 접근권한을 사용할 수 없습니다.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">확인 필요</string>
+    <string name="app_install_confirm_pending_description">Android가 \"%1$s\"의 설치를 완료하기 위해 확인이 필요합니다.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android가 이 설치를 완료하기 위해 확인이 필요합니다.</string>
+    <string name="app_install_confirm_pending_action">설치 확인</string>
+    <string name="app_install_confirm_pending_reason">설치 관리자가 확인을 대기 중입니다</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">확인 필요</string>
+    <string name="app_uninstall_confirm_pending_description">Android가 \"%1$s\"의 제거를 완료하기 위해 확인이 필요합니다.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android가 이 제거를 완료하기 위해 확인이 필요합니다.</string>
+    <string name="app_uninstall_confirm_pending_action">제거 확인</string>
+    <string name="app_uninstall_confirm_pending_reason">Android가 확인을 대기 중입니다</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">다른 사용자를 위해 이 앱을 제거하려면 root 또는 Shizuku가 필요합니다</string>
+    <string name="app_uninstall_no_result">Android가 결과를 보고하지 않았습니다</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">파일 작업 중단됨</string>
+    <string name="service_connection_lost_error_message">파일 작업 서비스가 예기치 않게 중지되었습니다. 다시 시도하십시오.</string>
+</resources>

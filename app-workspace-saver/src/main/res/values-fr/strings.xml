@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Enregistrer sous</string>
+    <string name="saver_preview_label">Aperçu</string>
+    <string name="saver_loading">Chargement…</string>
+    <string name="saver_shared_from">Partagé depuis %1$s</string>
+    <string name="saver_shared_generic">Partagé avec Butler</string>
+    <string name="saver_destination_label">Destination</string>
+    <string name="saver_select_destination_hint">Sélectionner le dossier de destination</string>
+    <string name="saver_filename_label">Nom du fichier</string>
+    <string name="saver_save_action">Enregistrer</string>
+    <string name="saver_saving_progress">Enregistrement…</string>
+    <string name="saver_success_message">Fichier enregistré avec succès</string>
+    <string name="saver_open_saved_action">Ouvrir le répertoire</string>
+    <string name="saver_retry_action">Réessayer</string>
+    <string name="saver_save_again_action">Enregistrer à un nouvel emplacement</string>
+    <string name="saver_close_tab_action">Fermer l’onglet</string>
+    <string name="saver_close_butler_action">Fermer l’onglet et revenir</string>
+    <string name="saver_done_action">Terminé</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Le fichier source n’est plus accessible. Veuillez le partager à nouveau.</item>
+        <item quantity="other">Les %1$d fichiers source ne sont plus accessibles. Veuillez les partager à nouveau.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Le fichier source n’est plus accessible</string>
+    <string name="saver_error_permission_denied">Permission refusée</string>
+    <string name="saver_error_write_failed">Impossible d’enregistrer le fichier</string>
+    <string name="saver_error_file_exists">Le fichier existe déjà</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Enregistrer les fichiers</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Enregistrement de %1$d fichier vers %2$s</item>
+        <item quantity="other">Enregistrement de %1$d fichiers vers %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Enregistrer %1$d fichier</item>
+        <item quantity="other">Enregistrer %1$d fichiers</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d fichier enregistré</item>
+        <item quantity="other">%1$d fichiers enregistrés</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d fichier non enregistré</item>
+        <item quantity="other">%1$d fichiers non enregistrés</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d fichier ignoré</item>
+        <item quantity="other">%1$d fichiers ignorés</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d sur %2$d fichiers enregistrés</string>
+</resources>

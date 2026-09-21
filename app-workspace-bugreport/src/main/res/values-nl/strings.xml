@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Foutrapporten</string>
+    <string name="bugreport_workspace_subtitle">Crash- en foutmeldingen</string>
+
+    <string name="bugreport_empty_title">Geen rapporten</string>
+    <string name="bugreport_empty_subtitle">Crash- en foutmeldingen verschijnen hier. Er wordt niets automatisch verzonden.</string>
+
+    <string name="bugreport_type_crash">Crash</string>
+    <string name="bugreport_type_report">Rapport</string>
+    <string name="bugreport_type_recording">Opname</string>
+
+    <string name="bugreport_record_action">Debug-log opnemen</string>
+    <string name="bugreport_record_short_action">Opnemen</string>
+    <string name="bugreport_stop_action">Opname stoppen</string>
+    <string name="bugreport_stop_short_action">Stoppen</string>
+    <string name="bugreport_recording_ongoing_label">Opname…</string>
+
+    <string name="bugreport_recording_short_title">Opname is erg kort</string>
+    <string name="bugreport_recording_short_message">Deze opname duurt slechts enkele seconden en bevat mogelijk geen bruikbare informatie. Toch stoppen?</string>
+    <string name="bugreport_recording_short_keep_action">Doorgaan met opnemen</string>
+
+    <string name="bugreport_rename_action">Hernoemen</string>
+    <string name="bugreport_rename_dialog_title">Dit rapport hernoemen</string>
+    <string name="bugreport_rename_name_label">Naam</string>
+    <string name="bugreport_rename_name_hint">Weergegeven in de lijst en in de gedeelde bestandsnaam</string>
+
+    <string name="bugreport_share_action">Delen</string>
+    <string name="bugreport_delete_action">Verwijderen</string>
+    <string name="bugreport_delete_all_action">Alles verwijderen</string>
+    <string name="bugreport_delete_all_confirm_title">Alle debug-logs verwijderen?</string>
+    <string name="bugreport_delete_all_confirm_message">Dit verwijdert permanent alle vastgelegde debug-logsessies. Actieve opnames worden niet beïnvloed.</string>
+    <string name="bugreport_delete_confirm_title">Dit rapport verwijderen?</string>
+    <string name="bugreport_delete_confirm_message">Dit verwijdert permanent dit rapport en het bijbehorende logboek.</string>
+    <string name="bugreport_cancel_action">Annuleren</string>
+
+    <string name="bugreport_share_chooser_title">Foutrapport delen</string>
+    <string name="bugreport_share_consent_title">Rapport delen?</string>
+    <string name="bugreport_share_consent_message">Dit rapport bevat app-logs die bestandsnamen, paden en app- en apparaatinformatie kunnen bevatten. Deel het alleen met vertrouwde personen.</string>
+
+    <string name="bugreport_detail_back_action">Terug</string>
+    <string name="bugreport_detail_section_error">Fout</string>
+    <string name="bugreport_detail_section_log">Recent logboek</string>
+    <string name="bugreport_detail_field_type">Type</string>
+    <string name="bugreport_detail_field_time">Tijd</string>
+    <string name="bugreport_detail_field_app_version">App-versie</string>
+    <string name="bugreport_detail_field_device">Apparaat</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">Fouttype</string>
+    <string name="bugreport_detail_field_thread">Thread</string>
+    <string name="bugreport_detail_log_truncated">laatste %1$d van %2$d regels</string>
+    <string name="bugreport_detail_log_count">%1$d regels</string>
+    <string name="bugreport_detail_log_empty">Geen logboek vastgelegd</string>
+    <string name="bugreport_detail_log_error">Het logboek kon niet worden geladen</string>
+</resources>

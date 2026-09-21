@@ -1,0 +1,523 @@
+<resources>
+    <string name="onboarding_welcome_title">Butlerへようこそ</string>
+    <string name="onboarding_welcome_message">ファイルのためのタブ。\n閲覧、検索、編集をすべて同時に。</string>
+    <string name="onboarding_welcome_subtitle">オープンソース。広告なし。トラッキングなし。\nあなたにふさわしいファイルエクスプローラー。</string>
+    <string name="onboarding_welcome_action">探索を始める</string>
+    <string name="onboarding_beta_title">未来をつくる</string>
+    <string name="onboarding_beta_message">これはベータ(テスト)版です。ユーモアを忘れず、バックアップも忘れずに進めてください。問題を見つけたら報告をお願いします。</string>
+    <string name="onboarding_beta_action">怖いものなし</string>
+    <string name="onboarding_beta_feature_early_access_title">早期アクセス</string>
+    <string name="onboarding_beta_feature_early_access_description">誰よりも早く最新機能を試せます。</string>
+    <string name="onboarding_beta_feature_influence_title">直接的な影響</string>
+    <string name="onboarding_beta_feature_influence_description">あなたのフィードバックがButlerの開発を形づくります。</string>
+    <string name="onboarding_beta_feature_feedback_title">コミュニティ主導</string>
+    <string name="onboarding_beta_feature_feedback_description">Butlerを改善するパワーユーザーのコミュニティに参加しましょう。</string>
+    <string name="onboarding_privacy_title">プライバシーとデータ</string>
+    <string name="onboarding_privacy_message">Butlerに広告はなく、ユーザーデータを販売することもありません。あなたのプライバシーを大切にしています。</string>
+    <string name="onboarding_privacy_read_action">プライバシーポリシーを読む</string>
+    <string name="onboarding_privacy_action">同意する</string>
+    <string name="onboarding_skip_action">スキップ</string>
+    <string name="onboarding_progress_step">%1$d / %2$d</string>
+
+    <string name="onboarding_workspaces_title">タブで作業</string>
+    <string name="onboarding_workspaces_message">ブラウザのタブのように、複数のタブを開いて切り替えられます。</string>
+    <string name="onboarding_workspaces_action">続ける</string>
+    <string name="onboarding_workspaces_hint">複数のタブを同時に開いたままにできます。</string>
+    <string name="onboarding_workspaces_explorer_title">エクスプローラー</string>
+    <string name="onboarding_workspaces_explorer_description">ファイルを閲覧します。</string>
+    <string name="onboarding_workspaces_searcher_title">検索</string>
+    <string name="onboarding_workspaces_searcher_description">探し物を見つけます。</string>
+    <string name="onboarding_workspaces_editor_title">エディター</string>
+    <string name="onboarding_workspaces_editor_description">ファイルを編集します。</string>
+    <string name="onboarding_workspaces_templates_title">テンプレート</string>
+    <string name="onboarding_workspaces_templates_description">設定を保存します。</string>
+    <string name="onboarding_workspaces_apps_description">アプリを管理します。</string>
+
+    <!-- エクスプローラーのショートカット -->
+    <string name="shortcut_explorer_new_short">新しいエクスプローラー</string>
+    <string name="shortcut_explorer_new_long">新規エクスプローラータブを作成</string>
+
+    <!-- ショートカット設定 -->
+    <string name="shortcuts_settings_title">ショートカット</string>
+    <string name="shortcuts_settings_subtitle">ランチャーショートカットを設定</string>
+    <string name="shortcuts_settings_enabled_title">ショートカットを有効化</string>
+    <string name="shortcuts_settings_enabled_subtitle">よく使う項目をランチャーに表示</string>
+    <string name="shortcuts_settings_auto_remember_title">訪問したパスを記憶</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">よく訪れるパスを自動的にショートカットとして追加</string>
+    <string name="shortcuts_settings_last_accessed_title">最終アクセス</string>
+    <string name="shortcuts_settings_max_count_title">最大ショートカット数</string>
+    <string name="shortcuts_settings_max_count_subtitle">現在%d件のショートカットを表示中</string>
+    <string name="shortcuts_settings_min_access_title">最小アクセス回数</string>
+    <string name="shortcuts_settings_min_access_subtitle">表示までに必要なアクセス回数: %d回</string>
+    <string name="shortcuts_settings_current_title">現在のショートカット</string>
+    <string name="shortcuts_settings_current_subtitle">%d件のショートカットを記録中</string>
+    <string name="shortcuts_settings_clear_title">ショートカット履歴を消去</string>
+    <string name="shortcuts_settings_clear_subtitle">記録されたショートカットをすべて削除</string>
+    <string name="shortcuts_settings_clear_confirm_title">ショートカット履歴を消去しますか。</string>
+    <string name="shortcuts_settings_clear_confirm_message">記録済みのショートカットがすべて削除されます。ブックマークは保持されます。</string>
+    <string name="shortcuts_settings_cleared_message">ショートカット履歴を消去しました</string>
+    <string name="shortcuts_settings_max_dialog_title">最大ショートカット数</string>
+    <string name="shortcuts_settings_max_dialog_message">ランチャーに表示するショートカット数(1〜4)</string>
+    <string name="shortcuts_settings_min_dialog_title">最小アクセス回数</string>
+    <string name="shortcuts_settings_min_dialog_message">ショートカットとして表示されるまでに必要なアクセス回数(1〜10)</string>
+
+    <string name="setup_usagestats_title">使用状況統計</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">通知アクセス</string>
+    <string name="setup_manage_storage_card_title">外部ストレージの管理</string>
+    <string name="setup_inventory_card_title">アプリ一覧</string>
+
+    <string name="setup_title">権限の設定</string>
+    <string name="setup_settings_description">アプリの権限と機能を設定します。</string>
+    <string name="setup_help_description">ヘルプ</string>
+
+    <string name="setup_root_description">システムファイルや保護されたディレクトリへのアクセスを可能にし、高度なファイル管理を実現します。アプリデータへのアクセスやシステム変更など、Butlerの全機能を利用できるようになります。デバイスがroot化されている必要があります。</string>
+    <string name="setup_shizuku_description">rootの代替として、安全なAPIを通じて特権的なファイル操作を提供します。従来のroot化なしに制限されたディレクトリへアクセスできます。Shizukuアプリのインストールと起動が必要です。</string>
+    <string name="setup_notification_description">ファイル操作、バックグラウンドタスク、転送の進捗状況を通知します。操作の完了やエラー発生時にお知らせします。</string>
+    <string name="setup_usagestats_description">アプリのストレージ使用状況を分析し、大きなファイルの特定と容量管理に役立てます。データはすべて端末内に留まり、外部へ送信されることはありません。</string>
+    <string name="setup_storage_description">端末内の全ストレージへの完全なアクセスにより、高速なファイル操作と一括処理を実現します。権限確認を繰り返すことなく、包括的なファイル管理が可能になります。</string>
+    <string name="setup_inventory_description">APK抽出やストレージ分析などの機能のために、インストール済みの全アプリを表示します。Android 11以降でアプリ一覧を完全に表示するために必要です。</string>
+
+    <string name="setup_grant_access_label">アクセスを許可</string>
+    <string name="setup_access_granted_label">アクセス許可済み</string>
+    <string name="setup_use_root_label">利用可能な場合はrootを使用</string>
+    <string name="setup_use_shizuku_label">利用可能な場合はShizukuを使用</string>
+
+    <string name="setup_status_checking">確認中…</string>
+    <string name="setup_status_completed">設定済み</string>
+    <string name="setup_status_required">必須</string>
+    <string name="setup_status_optional">任意</string>
+    <string name="setup_status_connected">接続済み</string>
+    <string name="setup_status_not_connected">未接続</string>
+    <string name="setup_status_not_installed">未インストール</string>
+    <string name="setup_status_connecting">接続中…</string>
+    <string name="setup_status_connection_failed">接続失敗</string>
+    <string name="setup_status_unavailable">利用不可</string>
+
+    <!-- デバッグログ -->
+    <string name="debug_notification_channel_label">デバッグ通知</string>
+    <string name="debug_log_consent_title">デバッグログ</string>
+    <string name="debug_log_consent_explanation">この機能はアプリの動作をすべて共有可能なファイルに記録します。生成されるファイルには機密情報(ファイル名やインストール済みのアプリなど)が含まれます。信頼できる相手(問題を調査する開発者など)とのみ共有してください。</string>
+    <string name="debug_log_recording_progress">デバッグログを記録中</string>
+    <string name="debug_log_record_action">記録</string>
+    <string name="debug_log_record_full_action">デバッグログを記録</string>
+    <string name="debug_log_stop_action">記録を停止</string>
+    <string name="debug_log_screen_title">デバッグログレコーダー</string>
+    <string name="debug_log_screen_sensitive_information_message">生成されるファイルには機密情報(ファイル名やインストール済みのアプリなど)が含まれます。信頼できる相手とのみ共有してください。</string>
+    <string name="debug_log_screen_session_path_label">デバッグセッションのパス</string>
+    <string name="debug_log_screen_log_files_label">ログファイル</string>
+    <string name="debug_log_screen_log_files_ready">ログファイルの準備ができました(ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">破棄</string>
+    <string name="debug_log_file_label">記録済みログファイル</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">ログファイルを記録中</string>
+    <string name="debug_banner_stop_action">停止</string>
+    <string name="debug_banner_view_action">表示</string>
+    <string name="debug_banner_explanation">アプリの動作を記録しています。完了したら停止し、バグ報告時にログを共有してください。</string>
+    <string name="debug_log_short_recording_title">記録時間が非常に短いです</string>
+    <string name="debug_log_short_recording_message">デバッグログは記録中に起きたことのみを記録します。記録を開始し、問題を再現してから停止してください。この記録には有用な情報が含まれていない可能性があります。</string>
+    <string name="debug_log_short_recording_keep_action">記録を保持</string>
+
+    <string name="debug_logview_screen_title">ログビューアー</string>
+    <string name="debug_logview_pause_action">一時停止(表示を固定)</string>
+    <string name="debug_logview_resume_action">再開</string>
+    <string name="debug_logview_copy_action">ログをコピー</string>
+    <string name="debug_logview_collapse_action">折りたたむ</string>
+    <string name="debug_logview_close_action">ログパネルを閉じる</string>
+    <string name="debug_logview_resize_action">サイズ変更</string>
+    <string name="debug_logview_more_action">その他のオプション</string>
+    <string name="debug_logview_level_action">ログレベル</string>
+    <string name="debug_logview_clear_action">バッファを消去</string>
+    <string name="debug_logview_search_action">検索</string>
+    <string name="debug_logview_search_clear_action">検索をクリア</string>
+    <string name="debug_logview_search_close_action">検索を閉じる</string>
+    <string name="debug_logview_search_prev_action">前の一致</string>
+    <string name="debug_logview_search_next_action">次の一致</string>
+    <string name="debug_logview_jump_to_bottom_action">最新へ移動</string>
+    <string name="debug_logview_paused_msg">一時停止中。表示は固定されています。</string>
+    <string name="debug_logview_paused_new_msg">一時停止後、新しい行が%1$d行あります</string>
+    <string name="debug_logview_copied_msg">ログをクリップボードにコピーしました</string>
+    <string name="debug_logview_copied_truncated_msg">直近の%1$d行をクリップボードにコピーしました</string>
+    <string name="debug_logview_share_label">ログを共有</string>
+
+    <string name="settings_label">設定</string>
+    <string name="settings_category_tools_label">ツール</string>
+    <string name="settings_category_other_label">その他</string>
+    <string name="settings_category_integration_label">連携</string>
+    <string name="general_settings_label">一般</string>
+    <string name="general_settings_desc">アプリ全体に影響する一般的な調整項目です。</string>
+    <string name="settings_category_ui_label">ユーザーインターフェース</string>
+    <string name="ui_mascot_suit_setting_label">Butlerのスーツ</string>
+    <string name="ui_mascot_suit_setting_explanation">Butlerの衣装を仕立てる色です。</string>
+    <string name="ui_theme_mode_setting_label">テーマモード</string>
+    <string name="ui_theme_mode_setting_explanation">アプリのテーマ設定に使用するモード(ダークまたはライトなど)です。</string>
+    <string name="ui_theme_style_setting_label">テーマスタイル</string>
+    <string name="ui_theme_style_setting_explanation">アプリのテーマ設定に使用するカラースタイルです。</string>
+    <string name="ui_theme_color_setting_label">テーマカラー</string>
+    <string name="ui_theme_color_setting_explanation">アプリのテーマ設定に使用するカラーパレットです。</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">色は、壁紙に基づくMaterial Youによって提供されます</string>
+    <string name="ui_theme_color_value_system">システムカラー</string>
+    <string name="ui_language_override_label">アプリの言語</string>
+    <string name="ui_language_override_desc">端末の既定言語とは別に、Butlerで使用する言語を選択します。</string>
+    <string name="ui_display_cutout_avoid_setting_title">ディスプレイカットアウトを避ける</string>
+    <string name="ui_display_cutout_avoid_setting_description">カメラのカットアウト部分にインターフェースが重ならないようにします。オフにすると画面をより広く使えますが、一部のインターフェースがカットアウトの裏に隠れることがあります。</string>
+
+    <string name="previews_settings_title">プレビュー</string>
+    <string name="previews_settings_subtitle">画像プレビューのキャッシュを管理します。</string>
+
+    <string name="tour_settings_reset_title">ガイドツアーをリセット</string>
+    <string name="tour_settings_reset_subtitle">スキップまたは無効化したものを含め、ガイドツアーを再度表示します。</string>
+    <string name="tour_settings_reset_done">ガイドツアーをリセットしました。</string>
+
+    <string name="storage_settings_title">ストレージ</string>
+    <string name="storage_settings_subtitle">Butlerのキャッシュ、ストレージ、ゴミ箱を管理します。</string>
+    <string name="storage_category_previews_label">プレビュー</string>
+    <string name="storage_previews_disk_cache_title">ディスクキャッシュ</string>
+    <string name="storage_previews_memory_cache_title">メモリキャッシュ</string>
+    <string name="storage_previews_max_size_title">最大キャッシュサイズ</string>
+    <string name="storage_clear_disk_confirm_title">ディスクキャッシュを消去しますか。</string>
+    <string name="storage_clear_disk_confirm_message">キャッシュされたすべてのプレビュー画像が削除されます。必要に応じて再生成されます。</string>
+    <string name="storage_clear_memory_confirm_title">メモリキャッシュを消去しますか。</string>
+    <string name="storage_clear_memory_confirm_message">メモリ内のキャッシュされたプレビュー画像が削除されます。必要に応じて再生成されます。</string>
+    <string name="storage_clear_all_confirm_title">すべてのキャッシュを消去しますか。</string>
+    <string name="storage_clear_all_confirm_message">プレビュー画像のディスクキャッシュとメモリキャッシュの両方が消去されます。</string>
+    <string name="storage_clear_all_previews_action">すべてのプレビューキャッシュを消去</string>
+    <string name="storage_clear_all_subtitle">すべてのプレビューキャッシュを削除</string>
+    <string name="storage_cache_cleared_message">キャッシュを消去しました</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">アップデートを確認</string>
+    <string name="updater_check_enabled_setting_description">Butlerが新しいバージョンをオンラインで確認することを許可します。</string>
+    <string name="motd_check_enabled_setting_title">お知らせを確認</string>
+    <string name="motd_check_enabled_setting_description">Butlerが開発者からの重要なメッセージを取得することを許可します。</string>
+    <string name="motd_card_header">お知らせ</string>
+
+    <string name="confirm_exit_setting_title">終了時に確認</string>
+    <string name="confirm_exit_setting_description">アプリ終了時に確認ダイアログを表示します。</string>
+    <string name="confirm_exit_dialog_title">Butlerを終了</string>
+    <string name="confirm_exit_dialog_message">アプリを閉じてホーム画面に戻ります。</string>
+    <string name="confirm_exit_dialog_exit">終了</string>
+    <string name="confirm_exit_dialog_cancel">キャンセル</string>
+    <string name="confirm_exit_dialog_dont_ask_again">次回から確認しない</string>
+
+    <string name="settings_support_category_help_label">ヘルプ</string>
+    <string name="settings_support_label">サポート</string>
+    <string name="settings_support_description">ドキュメントを読んだり、問題を報告したり、他のユーザーと会話したり、デバッグログを記録したりできます。</string>
+    <string name="settings_support_wiki_label">ドキュメント</string>
+    <string name="settings_support_wiki_description">Butlerを効果的に使う方法を学べます。</string>
+    <string name="settings_support_issue_tracker_description">バグ報告や機能リクエストのための公開イシュートラッカーです。</string>
+    <string name="settings_support_issue_tracker_label">イシュートラッカー</string>
+    <string name="settings_support_debuglog_label">デバッグログ</string>
+    <string name="settings_support_debuglog_desc">アプリの動作をすべてテキストファイルに記録し、共有できるようにします。</string>
+    <string name="settings_support_debuglog_recording_desc">現在デバッグ情報を記録中です。タップすると記録を停止します。</string>
+    <string name="settings_support_debuglog_path">ログのパス: %1$s</string>
+    <string name="settings_support_bugreports_label">バグ報告</string>
+    <string name="settings_support_bugreports_desc">クラッシュレポートを確認したり、デバッグログを記録して私と共有したりできます。</string>
+    <string name="support_contact_report_type_crash">クラッシュレポート</string>
+    <string name="support_contact_report_type_reported">バグ報告</string>
+    <string name="support_contact_report_type_recording">記録</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">交流したり質問したりできる場所です。</string>
+
+    <string name="settings_acknowledgements_label">謝辞</string>
+    <string name="settings_acknowledgements_description">クレジット、ライセンス、特別な感謝です。</string>
+    <string name="settings_acks_translation_header">翻訳</string>
+    <string name="settings_acks_translators_title">翻訳者</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Butlerを翻訳</string>
+    <string name="settings_acks_translate_desc">Butlerをあなたの言語に翻訳するのを手伝ってください。</string>
+
+    <string name="settings_acks_thanks_header">感謝</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">オープンソースプロジェクトの翻訳を支援してくれてありがとうございます。</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">アイコン、マスコットデザイン、アニメーションをありがとうございます。</string>
+    <string name="settings_licenses_label">ライセンス</string>
+
+    <!-- ワークスペースステータスカード -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="other">タブ%1$d個</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="other">操作%1$d件</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="other">要対応%1$d件</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="other">未保存%1$d件</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="other">一時停止%1$d件</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">すべてのタブを表示</string>
+    <string name="workspace_status_filter_operations_desc">操作のあるタブで絞り込み</string>
+    <string name="workspace_status_filter_attention_desc">対応が必要なタブで絞り込み</string>
+    <string name="workspace_status_filter_paused_desc">一時停止中のタブで絞り込み</string>
+    <string name="workspace_status_filter_unsaved_desc">未保存の変更があるタブで絞り込み</string>
+
+    <!-- 謝辞 -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project(APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Kotlinプログラミング言語。(APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">AndroidとJava向けの高速な依存性注入ライブラリ。(APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">JavaやKotlinのコードをrootとして実行!(APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">コルーチンを使ってroot化されたKotlin JVMコードを簡単に実行。(APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">app_processで起動したJavaプロセスを通じて、通常のアプリからadb/root権限でシステムAPIを直接使用。(APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com(SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Android向けAirbnbのLottie。(APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">AndroidロボットはGoogleが作成・共有した作品を複製または改変したものであり、Creative Commons 3.0 Attribution Licenseに記載された条件に従って使用されています。</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">ネイティブUIを構築するためのAndroidの最新ツールキット。(APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpackライブラリ</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room、WorkManager、DataStore、NavigationなどのAndroidXライブラリ。(APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin拡張機能</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">CoroutinesおよびSerializationライブラリ。(APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Kotlin Coroutinesを利用した画像読み込みライブラリ。(APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">SMB認証、署名、暗号化のための暗号プリミティブ。(MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Squareライブラリ</string>
+    <string name="acknowledgement_square_libraries_subtitle">Retrofit、OkHttp、OkIOのネットワークライブラリ。(APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Jetpack Compose向けユーティリティ。(APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Compose向けLazyColumnのドラッグ&amp;ドロップ。(APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Kotlin向けセマンティックバージョニングライブラリ。(MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Jetpack Compose向けのチャートとグラフ。(APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">プライバシーポリシー</string>
+    <string name="settings_privacy_policy_desc">データを責任を持って取り扱います。</string>
+
+
+    <string name="changelog_label">変更履歴</string>
+
+    <!-- アップグレード状況 -->
+    <string name="settings_upgrade_status_label">Butlerのアップグレード状況</string>
+    <string name="upgrade_status_free">ステータス: 無料版</string>
+    <string name="upgrade_status_pro">ステータス: Pro</string>
+    <string name="upgrade_status_foss">ステータス: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SDカード</string>
+    <string name="storage_area_public_label">公開ストレージ</string>
+    <string name="storage_area_public_app_data_label">公開アプリデータ</string>
+
+    <!-- ワークスペース -->
+    <!-- ワークスペース > マネージャー -->
+    <string name="workspace_manager_title">タブマネージャー</string>
+    <string name="workspace_manager_empty_title">タブがありません</string>
+    <string name="workspace_manager_empty_subtitle">最初のタブを作成して始めましょう</string>
+
+    <!-- ワークスペース > 空の状態 -->
+    <string name="workspace_empty_create_action">タブを作成</string>
+    <string name="workspace_empty_create_hint">並行作業: タブを作成し、好きなツールに変えましょう。</string>
+    <string name="workspace_empty_settings_action">設定を開く</string>
+    <string name="workspace_empty_settings_hint">Butlerを好みに合わせてカスタマイズ。ツールの動作を調整できます。</string>
+    <string name="workspace_classic_empty_tabs_closed">開いているタブはありません。いつでもどうぞ。</string>
+    <string name="workspace_classic_empty_tip">ヒント:「タブを作成」をタップして、エクスプローラー、検索、エディターなどのツールを選びましょう。</string>
+
+    <!-- ワークスペース > ガイドツアー -->
+    <string name="tour_first_tab_title">タブから始める</string>
+    <string name="tour_first_tab_body">Butlerはブラウザのようにタブで動作します。エクスプローラー、検索、エディターなど、タブごとに独立したツールです。最初のタブを作成しましょう。</string>
+    <string name="tour_manager_fab_title">クイックショートカット</string>
+    <string name="tour_manager_fab_body">よく使うツールへのショートカットや、すべてのタブを一度に閉じる操作はここから。</string>
+    <string name="tour_manager_reorder_title">タブの並べ替え</string>
+    <string name="tour_manager_reorder_body">タブのタイトルバーを長押ししてドラッグすると、好きな位置に移動できます。この順序が他の場所でも使われます。</string>
+    <string name="tour_manager_select_title">複数のタブをまとめて操作</string>
+    <string name="tour_manager_select_body">タブのプレビューを長押しすると選択モードになります。続けて他のタブをタップし、まとめて閉じたり一時停止したりできます。</string>
+    <string name="tour_manager_new_tab_title">新しいタブを開始</string>
+    <string name="tour_manager_new_tab_body">このカードをタップすると、新しいタブのツールを選べます。</string>
+    <string name="tour_swipe_switch_title">スワイプでタブを切り替え</string>
+    <string name="tour_swipe_switch_body">画面上を左右にスワイプすると、開いているタブを移動できます。</string>
+    <string name="tour_swipe_create_title">スワイプでタブを作成</string>
+    <string name="tour_swipe_create_body">最後のタブを越えてスワイプすると、Butlerが新しいタブを提案します。</string>
+    <string name="tour_swipe_panes_title">複数のタブを同時に表示</string>
+    <string name="tour_swipe_panes_body">大きな画面や横向きでは、Butlerは複数のタブを並べて表示します。「タブ」設定内のレイアウト設定がその条件を決めます。</string>
+    <string name="tour_panes_rail_title">すべてのタブ</string>
+    <string name="tour_panes_rail_body">開いているすべてのタブがここにあります。タップして表示先のペインを選べます。タブを長押ししてドラッグすると順序を変更できます。</string>
+    <string name="tour_panes_divider_title">ペインのサイズ変更</string>
+    <string name="tour_panes_divider_body">この境界線をドラッグすると、一方のペインを広げられます。</string>
+    <string name="tour_panes_layout_title">配置の変更</string>
+    <string name="tour_panes_layout_body">Butlerボタンをタップし、「レイアウト」を選ぶとペインを並べ替えられます。「タブ」設定では画面の向きごとにレイアウトを固定できます。</string>
+
+    <string name="workspace_creating_placeholder">タブを作成中…</string>
+    <string name="workspace_ondemand_swipe_title">スワイプして新しいタブを作成</string>
+
+    <!-- アダプティブワークスペース -->
+    <string name="workspace_adaptive_pane_ready">ペイン%1$dはコンテンツの準備ができています</string>
+    <string name="workspace_adaptive_add_action">タブを追加</string>
+
+    <string name="workspace_badge_tip_title">ヒント: タブボタンのインジケーター</string>
+    <string name="workspace_badge_open_workspaces">開いているタブの数</string>
+    <string name="workspace_badge_active_operations">実行中の操作(ファイルのコピー、検索など)</string>
+    <string name="workspace_badge_attention_items">対応が必要な項目(失敗または待機中の操作、アクセスできないファイル)</string>
+
+    <!-- ワークスペースマネージャーの操作 -->
+    <string name="workspace_manager_dismiss_content_desc">閉じる</string>
+    <string name="workspace_manager_selection_count">%1$d件選択中</string>
+    <string name="workspace_manager_selection_select_all">すべて選択</string>
+    <string name="workspace_manager_selection_pause_action">選択項目を一時停止</string>
+    <string name="workspace_manager_selection_close_action">選択項目を閉じる</string>
+    <string name="workspace_manager_selection_cancel_content_desc">選択モードを終了</string>
+    <string name="workspace_manager_selection_clear_content_desc">選択を解除</string>
+    <string name="workspace_manager_select_all_tabs_desc">すべてのタブを選択</string>
+    <string name="workspace_manager_new_tab_card_title">新しいタブ</string>
+    <string name="workspace_row_select_content_desc">タブを選択</string>
+    <string name="general_cancel_action">キャンセル</string>
+
+    <!-- ワークスペースマネージャーのFAB -->
+    <string name="workspace_fab_quick_shortcuts">クイックショートカット</string>
+    <string name="workspace_fab_close_shortcuts">ショートカットを閉じる</string>
+    <string name="workspace_fab_close_all">すべてのタブを閉じる</string>
+
+    <!-- ワークスペースナビゲーションレール -->
+    <string name="workspace_pane_assign_action">ペイン%1$dに割り当て</string>
+    <string name="workspace_pane_show_action">表示</string>
+    <string name="workspace_pane_close_action">閉じる</string>
+    <string name="workspace_pane_unassign_action">ペインから削除</string>
+    <string name="workspace_dragging_description">ドラッグ中</string>
+    <string name="workspace_pane_current_description">ペイン%1$dに配置中</string>
+
+    <!-- ワークスペースマネージャーの行 -->
+    <string name="workspace_row_close_content_desc">タブを閉じる</string>
+    <string name="workspace_row_more_options_content_desc">その他のオプション</string>
+    <string name="workspace_row_operations_running_content_desc">実行中</string>
+    <string name="workspace_row_operations_pending_content_desc">保留中の作業</string>
+    <string name="workspace_row_pause_action">一時停止</string>
+    <string name="workspace_row_resume_action">再開</string>
+    <string name="workspace_row_stacked_content_desc">このタブに重なっています</string>
+    <string name="workspace_row_unsaved_content_desc">未保存の変更</string>
+
+    <!-- 設定インデックス -->
+    <string name="workspace_settings_subtitle">タブの動作を設定します。</string>
+    <string name="explorer_settings_subtitle">ファイルエクスプローラーの動作を設定します。</string>
+    <string name="searcher_settings_subtitle">検索の動作を設定します。</string>
+    <string name="editor_settings_subtitle">テキストエディターの動作を設定します。</string>
+    <string name="history_settings_subtitle">操作履歴の保持期間と消去。</string>
+    <string name="clipboard_settings_subtitle">クリップボードの動作を設定します。</string>
+
+    <!-- 保存共有ターゲット -->
+    <string name="saver_share_label">名前を付けて保存…</string>
+
+    <!-- 単一ファイル共有ターゲット -->
+    <string name="share_receive_label">Butlerで開く</string>
+
+    <!-- エディター共有ターゲット -->
+    <string name="editor_share_label">テキストを編集</string>
+
+    <!-- 他のアプリから渡されたファイルを開く -->
+    <string name="external_open_unknown_file_title">名前のないファイル</string>
+    <string name="external_open_action_view">表示</string>
+    <string name="external_open_action_edit">テキストとして編集</string>
+    <string name="external_open_action_show_in_explorer">エクスプローラーで表示</string>
+    <string name="external_open_action_save">名前を付けて保存…</string>
+    <string name="external_open_failed_label">ファイルを開けませんでした</string>
+    <string name="external_open_failed_description">Butlerは\"%1$s\"を開けませんでした。</string>
+
+    <!-- 開発者モード -->
+    <string name="settings_developer_mode_unlock_title">開発者モードを有効にしますか。</string>
+    <string name="settings_developer_mode_unlock_message">トラブルシューティングとテスト用の高度な診断ツールが利用できるようになります。</string>
+    <string name="settings_developer_mode_unlock_action">有効にする</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="other">開発者モードまであと%d回</item>
+    </plurals>
+
+    <!-- サポート: お問い合わせフォーム -->
+    <string name="support_contact_label">開発者に連絡</string>
+    <string name="support_contact_description">フォームに入力すると、私宛てにメールが送信されます。</string>
+    <string name="support_contact_no_email_app">メールアプリが見つかりません</string>
+    <string name="support_contact_category_label">カテゴリー</string>
+    <string name="support_contact_category_question">質問</string>
+    <string name="support_contact_category_feature">機能リクエスト</string>
+    <string name="support_contact_category_bug">バグ報告</string>
+    <string name="support_contact_workspace_label">関連する分野</string>
+    <string name="support_contact_workspace_general">全般</string>
+    <string name="support_contact_workspace_explorer">エクスプローラー</string>
+    <string name="support_contact_workspace_searcher">検索</string>
+    <string name="support_contact_workspace_editor">エディター</string>
+    <string name="support_contact_description_label">説明</string>
+    <string name="support_contact_description_question_hint">質問内容を詳しく記入してください。できるだけ具体的にお願いします(20語以上)。</string>
+    <string name="support_contact_description_feature_hint">希望する機能を記入してください。できるだけ具体的にお願いします(20語以上)。</string>
+    <string name="support_contact_description_bug_hint">発生した内容と再現手順を記入してください。できるだけ具体的にお願いします(20語以上)。</string>
+    <string name="support_contact_expected_label">期待する動作</string>
+    <string name="support_contact_expected_hint">期待していた動作を記入してください(10語以上)。</string>
+    <string name="support_contact_word_count">%1$d語以上</string>
+    <string name="support_contact_debuglog_label">デバッグログ</string>
+    <string name="support_contact_debuglog_empty">デバッグログが見つかりません。先に記録してください。</string>
+    <string name="support_contact_debuglog_picker_hint">既存のデバッグログを添付するか、新しく記録してください。</string>
+    <string name="support_contact_send_action">メールアプリを開く</string>
+    <string name="support_contact_welcome">メッセージはすべて私自身が目を通し、できる限り返信するよう努めていますが、一人で開発しているため、多少お時間をいただくことがあります。ご了承ください。</string>
+    <string name="support_contact_footer">メッセージはメールで送信されます。端末情報とセットアップ情報は自動的に添付されます。スクリーンショットや動画をメールに添付することもできます。\n\nメールの一部は英語になります。内容を正しく理解するためです。</string>
+
+    <!-- サポート: デバッグログストレージ -->
+    <string name="support_debuglog_storage_label">デバッグログのストレージ</string>
+    <string name="support_debuglog_storage_description">%1$d件のログセッション、%2$s</string>
+    <string name="support_debuglog_storage_empty">保存されているデバッグログはありません</string>
+    <string name="support_debuglog_delete_action">すべてのデバッグログを削除</string>
+    <string name="support_debuglog_delete_description">記録されたデバッグログファイルをすべて削除します</string>
+    <string name="support_debuglog_delete_confirm_title">すべてのデバッグログを削除しますか。</string>
+    <string name="support_debuglog_delete_confirm_message">記録済みのデバッグログセッションがすべて完全に削除されます。実行中の記録には影響しません。</string>
+
+    <!-- サポート: デバッグログの操作 -->
+    <string name="settings_support_debuglog_stop_action">記録を停止</string>
+    <string name="settings_support_debuglog_record_action">デバッグログを記録</string>
+
+    <!-- サポート: デバッグセッションのボトムシート -->
+    <string name="support_debuglog_sessions_label">デバッグログセッション</string>
+    <string name="support_debuglog_sessions_desc">記録されたデバッグログセッションを管理します</string>
+    <string name="support_debuglog_sessions_empty">デバッグログセッションはありません</string>
+    <string name="support_debuglog_session_recording">記録中…</string>
+    <string name="support_debuglog_session_compressing">圧縮中…</string>
+    <string name="support_debuglog_session_failed_empty_log">失敗: ログが空です</string>
+    <string name="support_debuglog_session_failed_missing_log">失敗: ログが見つかりません</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">失敗: アーカイブが破損しています</string>
+    <string name="support_debuglog_session_failed_zip_failed">失敗: 圧縮エラー</string>
+    <string name="support_debuglog_session_delete_title">デバッグセッションを削除しますか。</string>
+    <string name="support_debuglog_session_delete_message">このデバッグログセッションを完全に削除します。</string>
+    <string name="support_debuglog_clear_action">すべて消去</string>
+    <string name="support_debuglog_clear_confirm_message">保存されているデバッグログセッションをすべて削除しますか。</string>
+
+    <!-- デバッグログ画面 -->
+    <string name="debug_log_share_subject">Butler デバッグログ - %1$s</string>
+    <string name="debug_log_screen_subtitle">トラブルシューティング用にデバッグ情報をエクスポート</string>
+    <string name="debug_log_screen_sensitive_information_title">機密情報</string>
+
+    <!-- サポート: お問い合わせフォーム -->
+    <string name="support_contact_sent_title">メッセージは送信されましたか。</string>
+    <string name="support_contact_sent_message">メッセージが送信された場合、添付されたデバッグログは容量節約のため削除されます。送信されていない場合は、保持して後で再試行できます。</string>
+    <string name="support_contact_debuglog_zip_error">デバッグログの添付ファイルの準備に失敗しました</string>
+
+    <!-- バックグラウンドファイル操作: 進捗・注意通知 -->
+    <string name="ops_notification_channel_progress_name">ファイル操作の進捗</string>
+    <string name="ops_notification_channel_progress_desc">コピー、移動、削除操作の進行中の状況</string>
+    <string name="ops_notification_channel_attention_name">ファイル操作の警告</string>
+    <string name="ops_notification_channel_attention_desc">対応が必要、または失敗した操作</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="other">%1$d件のファイル操作を実行中</item>
+    </plurals>
+    <string name="ops_notification_state_queued">待機中…</string>
+    <string name="ops_notification_state_cancelling">キャンセル中…</string>
+    <string name="ops_notification_state_attention_title">対応が必要です</string>
+    <string name="ops_notification_state_attention_text">競合が発生しています。タップして解決してください。</string>
+    <string name="ops_notification_result_failed_title">操作に失敗しました</string>
+
+    <!-- レビューのお願い -->
+    <string name="review_app_body">Butlerのレビューを書いていただけますか？❤️</string>
+    <string name="review_app_dismiss_action">後で</string>
+    <string name="review_app_review_action">レビューを書く</string>
+
+</resources>

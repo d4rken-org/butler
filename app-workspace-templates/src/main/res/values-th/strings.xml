@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">ใหม่</string>
+    <string name="workspace_templates_choose_title">แท็บใหม่</string>
+    <string name="workspace_templates_choose_subtitle">เลือกประเภทแท็บ ฉันสามารถช่วยอะไรได้บ้าง</string>
+    <string name="workspace_templates_name_tab_action">ตั้งชื่อแท็บนี้</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">เลือกเครื่องมือ</string>
+    <string name="tour_templates_picker_body">นี่คือตัวเลือกแท็บ เลือกว่าแท็บนี้ควรเป็นอะไร การเลือกหนึ่งรายการจะเปลี่ยนแท็บนี้เป็นเครื่องมือนั้น</string>
+    <string name="tour_templates_butler_button_title">แท็บของคุณอยู่ที่นี่</string>
+    <string name="tour_templates_butler_button_body">แตะปุ่ม Butler สำหรับเมนูแท็บ สร้างแท็บใหม่ ปิดแท็บปัจจุบัน หรือเปิดตัวจัดการแท็บแบบเต็ม กดค้างไว้เพื่อไปที่ตัวจัดการแท็บโดยตรง</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">جديد</string>
+    <string name="workspace_templates_choose_title">علامة تبويب جديدة</string>
+    <string name="workspace_templates_choose_subtitle">حدد نوع العلامة. كيف يمكنني المساعدة؟</string>
+    <string name="workspace_templates_name_tab_action">تسمية هذه العلامة</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">اختر أداة</string>
+    <string name="tour_templates_picker_body">هذا هو منتقي العلامات، اختر ما يجب أن تكون عليه هذه العلامة. سيؤدي اختيار واحد إلى تحويل هذه العلامة إلى تلك الأداة.</string>
+    <string name="tour_templates_butler_button_title">تعيش علاماتك هنا</string>
+    <string name="tour_templates_butler_button_body">اضغط على زر Butler لقائمة العلامات: أنشئ علامة جديدة، أغلق الحالية، أو افتح مدير العلامات الكامل. اضغط عليه مطولاً للانتقال مباشرة إلى مدير العلامات.</string>
+</resources>

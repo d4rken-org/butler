@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Đang xóa mục</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Đang sao chép mục</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Đang di chuyển mục</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Đang quét…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">Tệp đã tồn tại</string>
+    <string name="path_action_folder_exists_title">Thư mục đã tồn tại</string>
+    <string name="path_action_file_exists_description">Một tệp tên \"%1$s\" đã tồn tại tại \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">Một thư mục tên \"%1$s\" đã tồn tại tại \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">Tệp đã biến mất</string>
+    <string name="path_action_not_found_description">\"%1$s\" đã bị xóa, đổi tên hoặc di chuyển đến nơi khác.</string>
+
+    <string name="path_action_permission_denied_title">Không có quyền</string>
+    <string name="path_action_permission_denied_description">Không thể truy cập \"%1$s\" tại \"%2$s\" do quyền không đủ.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Không thể truy cập \"%1$s\" tại \"%2$s\". Không có phương pháp nào khả dụng để thực hiện thao tác này.</string>
+    <string name="path_action_permission_denied_readonly_description">Không thể truy cập \"%1$s\" tại \"%2$s\". Hệ thống tệp ở chế độ chỉ đọc.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Không thể truy cập \"%1$s\" tại \"%2$s\". Thao tác bị hệ thống từ chối.</string>
+
+    <string name="path_action_insufficient_space_title">Không đủ dung lượng</string>
+    <string name="path_action_insufficient_space_description">Không có đủ dung lượng bộ nhớ để sao chép \"%1$s\" từ \"%2$s\".</string>
+
+    <string name="path_action_unknown_error_title">Thao tác thất bại</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">Thay thế không hoàn tất</string>
+    <string name="path_action_data_kept_new_data_description">Butler không thể hoàn tất việc ghi \"%1$s\". Dữ liệu mới của bạn được giữ lại trong cùng thư mục với \"%2$s\". Hãy đổi tên để khôi phục nó hoặc xóa để loại bỏ nó.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler không thể hoàn tất việc ghi \"%1$s\", tệp trước đó không thay đổi. Dữ liệu mới của bạn được giữ lại trong cùng thư mục với \"%2$s\". Hãy đổi tên để khôi phục nó hoặc xóa để loại bỏ nó.</string>
+    <string name="path_action_data_kept_both_description">Butler không thể hoàn tất việc ghi \"%1$s\". Không có gì bị mất: tệp trước đó được giữ lại trong cùng thư mục với \"%2$s\" và dữ liệu mới của bạn là \"%3$s\". Hãy đổi tên cái bạn muốn giữ lại.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler không thể hoàn tất việc ghi \"%1$s\" và không thể kiểm tra xem \"%2$s\" còn ở đó hay không. Một bản sao không hoàn chỉnh có thể được giữ lại trong cùng thư mục với \"%3$s\". Hãy so sánh cả hai trước khi xóa bất kỳ bản nào.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler không thể hoàn tất việc di chuyển \"%1$s\" và không thể xác định xem nó có rời khỏi thư mục của nó hay không. Dữ liệu của bạn được giữ lại trong thư mục đó là \"%2$s\" hoặc đã ở tại \"%3$s\". Hãy kiểm tra cả hai trước khi xóa bất kỳ bản nào.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler không thể hoàn tất việc ghi \"%1$s\" và không thể xác định vị trí tệp của bạn. Nó là một trong ba tệp trong thư mục đó: \"%1$s\" chính nó, \"%2$s\" hoặc \"%3$s\". Hãy kiểm tra cả ba trước khi xóa bất kỳ bản nào.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler không thể hoàn tất việc ghi \"%1$s\" và không thể xác định vị trí tệp của bạn. Nó là một trong hai tệp trong thư mục đó: \"%1$s\" chính nó hoặc \"%2$s\". Hãy kiểm tra cả hai trước khi xóa bất kỳ bản nào.</string>
+
+    <string name="path_action_trash_size_limit_title">Mục quá lớn cho Thùng rác</string>
+    <string name="path_action_trash_size_limit_description">%1$d mục tổng cộng %2$s vượt quá giới hạn kích thước thùng rác (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">Không thể chuyển vào Thùng rác</string>
+    <string name="path_action_trash_move_failed_description">%1$d mục không thể được chuyển vào thùng rác.</string>
+
+    <string name="path_action_trash_not_supported_title">Thùng rác không được hỗ trợ</string>
+    <string name="path_action_trash_not_supported_description">%1$d mục nằm trên bộ nhớ không hỗ trợ thùng rác.</string>
+
+    <string name="path_action_archive_password_title">Cần mật khẩu</string>
+    <string name="path_action_archive_password_description">\"%1$s\" được mã hóa. Nhập mật khẩu để đọc nội dung của nó.</string>
+    <string name="path_action_archive_password_wrong_description">Mật khẩu cho \"%1$s\" không chính xác. Hãy thử lại.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Không thể kết nối với máy chủ</string>
+    <string name="smb_error_unreachable_description">Butler không thể kết nối với \"%1$s\". Kiểm tra rằng thiết bị ở trên cùng một mạng và máy chủ được bật.</string>
+    <string name="smb_error_auth_title">Đăng nhập thất bại</string>
+    <string name="smb_error_auth_description">\"%1$s\" từ chối tên người dùng hoặc mật khẩu.</string>
+    <string name="smb_error_share_access_denied_title">Không có quyền truy cập vào chia sẻ này</string>
+    <string name="smb_error_share_access_denied_description">Tài khoản này có thể không được phép sử dụng \"%1$s\" trên \"%2$s\". Kiểm tra quyền chia sẻ trên máy chủ.</string>
+    <string name="smb_error_share_not_found_title">Không tìm thấy chia sẻ</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" không tồn tại trên \"%2$s\".</string>
+    <string name="smb_error_dialect_title">Máy chủ quá cũ</string>
+    <string name="smb_error_dialect_description">\"%1$s\" chỉ cung cấp SMB1, cái này không an toàn và không được hỗ trợ. Bật SMB2 hoặc phiên bản mới hơn trên máy chủ.</string>
+    <string name="smb_error_credential_unavailable_title">Cần đăng nhập</string>
+    <string name="smb_error_credential_unavailable_description">Mật khẩu đã lưu cho bộ nhớ mạng này không thể được đọc nữa. Nhập lại để kết nối lại.</string>
+    <string name="smb_error_pro_required_title">Chia sẻ mạng yêu cầu Butler Pro</string>
+    <string name="smb_error_pro_required_description">Kết nối với chia sẻ mạng là một phần của Butler Pro. Các vị trí đã lưu của bạn vẫn hiển thị trong danh sách và có thể được xóa mà không cần nó.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Gói ứng dụng được bảo vệ</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" được mã hóa và chỉ có thể được cài đặt bởi ứng dụng đã tạo nó.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">Định dạng tập hợp APK không được hỗ trợ</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" là một tập hợp APK bundletool. Butler không thể xác định biến thể nào phù hợp với thiết bị này.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Không có ứng dụng để cài đặt</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" không chứa bất kỳ APK nào có thể cài đặt được.</string>
+
+    <string name="app_install_error_session_title">Cài đặt thất bại</string>
+    <string name="app_install_error_session_description">Hệ thống từ chối cài đặt: %1$s</string>
+
+    <string name="app_install_error_busy_title">Một cài đặt khác đang diễn ra</string>
+    <string name="app_install_error_busy_description">\"%1$s\" vẫn đang được cài đặt. Xác nhận hoặc hủy cài đặt đó trước khi bắt đầu cài đặt khác.</string>
+
+    <string name="app_install_error_no_elevation_title">Không có quyền truy cập được nâng cao</string>
+    <string name="app_install_error_no_elevation_description">Quyền truy cập root hoặc ADB hiện không khả dụng.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Cần xác nhận</string>
+    <string name="app_install_confirm_pending_description">Android cần bạn xác nhận cài đặt \"%1$s\" trước khi nó có thể hoàn tất.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android cần bạn xác nhận cài đặt này trước khi nó có thể hoàn tất.</string>
+    <string name="app_install_confirm_pending_action">Xác nhận cài đặt</string>
+    <string name="app_install_confirm_pending_reason">Trình cài đặt đang chờ xác nhận của bạn</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Cần xác nhận</string>
+    <string name="app_uninstall_confirm_pending_description">Android cần bạn xác nhận xóa \"%1$s\" trước khi nó có thể hoàn tất.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android cần bạn xác nhận xóa này trước khi nó có thể hoàn tất.</string>
+    <string name="app_uninstall_confirm_pending_action">Xác nhận xóa</string>
+    <string name="app_uninstall_confirm_pending_reason">Android đang chờ xác nhận của bạn</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Xóa ứng dụng này cho người dùng khác cần quyền root hoặc Shizuku</string>
+    <string name="app_uninstall_no_result">Android không báo cáo kết quả</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Thao tác tệp bị gián đoạn</string>
+    <string name="service_connection_lost_error_message">Dịch vụ thao tác tệp đã dừng bất ngờ. Vui lòng thử lại.</string>
+</resources>

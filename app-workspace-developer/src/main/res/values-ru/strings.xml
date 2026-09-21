@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Разработчик</string>
+    <string name="developer_title">Инструменты разработчика</string>
+    <string name="developer_subtitle">Утилиты разработки</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">Система</string>
+    <string name="developer_tab_options">Параметры</string>
+    <string name="developer_tab_workspaces">Рабочие пространства</string>
+    <string name="developer_tab_logs">Журналы</string>
+    <string name="developer_tab_testdata">Тестовые данные</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Параметры отладки</string>
+    <string name="developer_options_debug_mode">Режим отладки</string>
+    <string name="developer_options_debug_mode_desc">Включить подробное логирование</string>
+    <string name="developer_options_trace_mode">Режим трассировки</string>
+    <string name="developer_options_trace_mode_desc">Включить логирование уровня трассировки</string>
+    <string name="developer_options_floating_log">Плавающая панель журнала</string>
+    <string name="developer_options_floating_log_desc">Показывать перетаскиваемый оверлей журнала на всех экранах</string>
+    <string name="developer_options_services_header">Тесты служб</string>
+    <string name="developer_options_root_test_action">Тест Root</string>
+    <string name="developer_options_root_installed_label">Установлено</string>
+    <string name="developer_options_root_available_label">Доступно</string>
+    <string name="developer_options_root_base_check_label">Базовая проверка</string>
+    <string name="developer_options_shizuku_test_action">Тест Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">Установлено</string>
+    <string name="developer_options_shizuku_granted_label">Разрешение</string>
+    <string name="developer_options_shizuku_compatible_label">Совместимо</string>
+    <string name="developer_options_shizuku_service_label">Служба</string>
+    <string name="developer_options_test_running">Тестирование…</string>
+    <string name="developer_options_result_yes">Да</string>
+    <string name="developer_options_result_no">Нет</string>
+    <string name="developer_options_result_unknown">Неизвестно</string>
+    <string name="developer_options_visibility_header">Видимость</string>
+    <string name="developer_options_hide_mode">Скрыть режим разработчика</string>
+    <string name="developer_options_hide_mode_desc">Нажмите версию 7 раз в Параметрах, чтобы включить её снова.</string>
+    <string name="developer_options_hide_action">Скрыть</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Устройство</string>
+    <string name="developer_system_device_model">Модель</string>
+    <string name="developer_system_device_manufacturer">Производитель</string>
+    <string name="developer_system_device_api">Уровень API</string>
+    <string name="developer_system_build_header">Сборка</string>
+    <string name="developer_system_build_version">Версия</string>
+    <string name="developer_system_build_code">Код версии</string>
+    <string name="developer_system_build_flavor">Вариант</string>
+    <string name="developer_system_build_type">Тип сборки</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Память</string>
+    <string name="developer_system_memory_available">Доступно</string>
+    <string name="developer_system_memory_total">Всего</string>
+    <string name="developer_system_storage_header">Хранилище</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d рабочих пространств</string>
+    <string name="developer_workspaces_empty">Нет рабочих пространств</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Очистить</string>
+    <string name="developer_logs_pause">Пауза</string>
+    <string name="developer_logs_resume">Возобновить</string>
+    <string name="developer_logs_empty">Нет журналов</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Целевые пути</string>
+    <string name="developer_testdata_no_paths">Целевые пути не выбраны. Добавьте пути для создания тестовых данных.</string>
+    <string name="developer_testdata_add_path_action">Добавить путь</string>
+    <string name="developer_testdata_options_header">Параметры создания</string>
+    <string name="developer_testdata_large_files">Большие файлы</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Вложенная структура</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 папок, ~1100 файлов</string>
+    <string name="developer_testdata_text_files">Текстовые файлы для редактора</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Создать</string>
+    <string name="developer_testdata_generating">Создание…</string>
+    <string name="developer_testdata_history_header">Примеры записей истории</string>
+    <string name="developer_testdata_history_desc">Заполняет ~25 поддельных записей операций, охватывающих последние 30 дней, с различными типами, результатами, источниками и путями. Вставляет напрямую в базу данных истории; безопасно нажимать повторно.</string>
+    <string name="developer_testdata_history_generate_action">Создать примеры истории</string>
+    <string name="developer_testdata_progress">%1$s из %2$s</string>
+    <string name="developer_testdata_complete">Тестовые данные созданы в:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Создание больших файлов</string>
+    <string name="developer_operation_large_files_desc">Создание тестовых файлов в %1$s</string>
+    <string name="developer_operation_large_files_creating">Создание %1$s</string>
+
+    <string name="developer_operation_nested_title">Создание вложенной структуры</string>
+    <string name="developer_operation_nested_desc">Создание иерархии папок в %1$s</string>
+    <string name="developer_operation_nested_starting">Начало создания вложенной структуры…</string>
+    <string name="developer_operation_nested_creating">Создание %1$s</string>
+    <string name="developer_operation_nested_files_created">Создано %1$d файлов</string>
+
+    <string name="developer_operation_text_files_title">Создание текстовых файлов</string>
+    <string name="developer_operation_text_files_desc">Создание текстовых файлов в %1$s</string>
+    <string name="developer_operation_text_files_creating">Создание %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">Создан %d файл</item>
+        <item quantity="few">Созданы %d файла</item>
+        <item quantity="many">Создано %d файлов</item>
+        <item quantity="other">Созданы %d файла</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d директория</item>
+        <item quantity="few">%d директории</item>
+        <item quantity="many">%d директорий</item>
+        <item quantity="other">%d директории</item>
+    </plurals>
+</resources>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Laporan bug</string>
+    <string name="bugreport_workspace_subtitle">Laporan crash &amp; error</string>
+
+    <string name="bugreport_empty_title">Tidak ada laporan</string>
+    <string name="bugreport_empty_subtitle">Laporan crash dan error akan ditampilkan di sini. Tidak ada yang dikirim secara otomatis.</string>
+
+    <string name="bugreport_type_crash">Crash</string>
+    <string name="bugreport_type_report">Laporan</string>
+    <string name="bugreport_type_recording">Rekaman</string>
+
+    <string name="bugreport_record_action">Rekam debug log</string>
+    <string name="bugreport_record_short_action">Rekam</string>
+    <string name="bugreport_stop_action">Hentikan rekaman</string>
+    <string name="bugreport_stop_short_action">Hentikan</string>
+    <string name="bugreport_recording_ongoing_label">Merekam…</string>
+
+    <string name="bugreport_recording_short_title">Rekaman sangat pendek</string>
+    <string name="bugreport_recording_short_message">Rekaman ini hanya berdurasi beberapa detik dan mungkin tidak berisi informasi berguna. Hentikan tetap?</string>
+    <string name="bugreport_recording_short_keep_action">Lanjutkan rekaman</string>
+
+    <string name="bugreport_rename_action">Ubah nama</string>
+    <string name="bugreport_rename_dialog_title">Beri nama laporan ini</string>
+    <string name="bugreport_rename_name_label">Nama</string>
+    <string name="bugreport_rename_name_hint">Ditampilkan di daftar dan di nama berkas yang dibagikan</string>
+
+    <string name="bugreport_share_action">Bagikan</string>
+    <string name="bugreport_delete_action">Hapus</string>
+    <string name="bugreport_delete_all_action">Hapus semua</string>
+    <string name="bugreport_delete_all_confirm_title">Hapus semua debug log?</string>
+    <string name="bugreport_delete_all_confirm_message">Ini akan menghapus permanen semua sesi debug log yang tercatat. Rekaman aktif tidak akan terpengaruh.</string>
+    <string name="bugreport_delete_confirm_title">Hapus laporan ini?</string>
+    <string name="bugreport_delete_confirm_message">Ini akan menghapus permanen laporan ini dan lognya.</string>
+    <string name="bugreport_cancel_action">Batal</string>
+
+    <string name="bugreport_share_chooser_title">Bagikan laporan bug</string>
+    <string name="bugreport_share_consent_title">Bagikan laporan?</string>
+    <string name="bugreport_share_consent_message">Laporan ini mencakup log aplikasi yang dapat berisi nama berkas, jalur, dan informasi aplikasi serta perangkat. Hanya bagikan dengan orang yang Anda percayai.</string>
+
+    <string name="bugreport_detail_back_action">Kembali</string>
+    <string name="bugreport_detail_section_error">Error</string>
+    <string name="bugreport_detail_section_log">Log terbaru</string>
+    <string name="bugreport_detail_field_type">Tipe</string>
+    <string name="bugreport_detail_field_time">Waktu</string>
+    <string name="bugreport_detail_field_app_version">Versi aplikasi</string>
+    <string name="bugreport_detail_field_device">Perangkat</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">Tipe error</string>
+    <string name="bugreport_detail_field_thread">Thread</string>
+    <string name="bugreport_detail_log_truncated">%1$d dari %2$d baris terakhir</string>
+    <string name="bugreport_detail_log_count">%1$d baris</string>
+    <string name="bugreport_detail_log_empty">Tidak ada log yang ditangkap</string>
+    <string name="bugreport_detail_log_error">Tidak dapat memuat log</string>
+</resources>

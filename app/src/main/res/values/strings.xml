@@ -237,12 +237,26 @@
     <string name="settings_licenses_label">Licenses</string>
 
     <!-- Workspace Status Card -->
-    <string name="workspace_status_tab_singular">Tab</string>
-    <string name="workspace_status_tab_plural">Tabs</string>
-    <string name="workspace_status_operation_singular">Operation</string>
-    <string name="workspace_status_operation_plural">Operations</string>
-    <string name="workspace_status_attention_label">Attention</string>
-    <string name="workspace_status_unsaved_label">Unsaved</string>
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d Tab</item>
+        <item quantity="other">%1$d Tabs</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d Operation</item>
+        <item quantity="other">%1$d Operations</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Attention</item>
+        <item quantity="other">%1$d Attention</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Unsaved</item>
+        <item quantity="other">%1$d Unsaved</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d Paused</item>
+        <item quantity="other">%1$d Paused</item>
+    </plurals>
     <string name="workspace_status_filter_tabs_desc">Show all tabs</string>
     <string name="workspace_status_filter_operations_desc">Filter by tabs with operations</string>
     <string name="workspace_status_filter_attention_desc">Filter by tabs needing attention</string>
@@ -357,11 +371,6 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">Dismiss</string>
-    <string name="workspace_manager_close_all_title">Close all tabs?</string>
-    <string name="workspace_manager_close_all_message">This will close all %1$d open %2$s. This action cannot be undone.</string>
-    <string name="workspace_manager_close_all_message_singular">tab</string>
-    <string name="workspace_manager_close_all_message_plural">tabs</string>
-    <string name="workspace_manager_close_all_action">Close all</string>
     <string name="workspace_manager_selection_count">%1$d selected</string>
     <string name="workspace_manager_selection_select_all">Select all</string>
     <string name="workspace_manager_selection_pause_action">Pause selected</string>

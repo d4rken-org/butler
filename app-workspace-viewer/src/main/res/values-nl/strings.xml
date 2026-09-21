@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Openen met</string>
+    <string name="viewer_image_content_description">Afbeelding %1$s</string>
+    <string name="viewer_toolbar_folder_label">Map</string>
+    <string name="viewer_back_action">Terug</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">Vorig bestand</string>
+    <string name="viewer_next_file_action">Volgende bestand</string>
+    <string name="viewer_open_location_action">Locatie openen</string>
+    <string name="viewer_clipboard_copied">%1$s gekopieerd. Plak het in een Verkenner-tabblad.</string>
+    <string name="viewer_clipboard_cut">%1$s geknipt. Plak het in een Verkenner-tabblad om het te verplaatsen.</string>
+    <string name="viewer_share_failed_label">Kon dit bestand niet delen</string>
+    <string name="viewer_share_failed_description">%1$s kan niet aan een ander programma worden doorgegeven. Dit gebeurt met bestanden die root- of ADB-toegang nodig hebben, en met bestanden die niet meer daar zijn.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Grootte</string>
+    <string name="viewer_info_modified_label">Gewijzigd</string>
+    <string name="viewer_info_created_label">Gemaakt</string>
+    <string name="viewer_info_format_label">Formaat</string>
+    <string name="viewer_info_dimensions_label">Afmetingen</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Machtigingen</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Eigenaar</string>
+    <string name="viewer_info_caption_label">Gedeeld bericht</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Alle details weergeven</string>
+    <string name="viewer_info_collapse_action">Details verbergen</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">Voorbeeld · 1 pagina</string>
+    <string name="viewer_pdf_page_indicator">Pagina %1$d van %2$d</string>
+    <string name="viewer_pdf_page_previous">Vorige pagina</string>
+    <string name="viewer_pdf_page_next">Volgende pagina</string>
+    <string name="viewer_pdf_page_error">Pagina %1$d kon niet worden weergegeven.</string>
+    <string name="viewer_pdf_page_content_description">PDF-voorbeeld van %1$s, pagina %2$d van %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">Dit bestandstype wordt nog niet ondersteund</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">Dit is een archief</string>
+    <string name="viewer_browse_archive_action">Inhoud openen</string>
+    <string name="viewer_archive_needs_copy_msg">Sla een kopie op je apparaat op, dan kan Butler zien wat erin zit.</string>
+    <string name="viewer_archive_nested_msg">Dit archief zit in een ander archief. Pak het eerst uit om te zien wat erin zit.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">Versie</string>
+    <string name="viewer_apk_min_sdk_label">Minimale SDK</string>
+    <string name="viewer_apk_target_sdk_label">Doel-SDK</string>
+    <string name="viewer_apk_installed_label">Geïnstalleerd</string>
+    <string name="viewer_apk_not_installed_value">Niet geïnstalleerd</string>
+    <string name="viewer_apk_installed_unknown_value">Kon niet controleren</string>
+    <string name="viewer_apk_installed_older_hint">Ouder dan dit bestand</string>
+    <string name="viewer_apk_installed_newer_hint">Nieuwer dan dit bestand</string>
+    <string name="viewer_apk_permissions_header">Machtigingen (%1$d)</string>
+    <string name="viewer_apk_signing_header">Ondertekenende certificaten</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">Installeren</string>
+    <string name="viewer_bundle_format_label">Bundle-indeling</string>
+    <string name="viewer_bundle_splits_label">APK’s erin</string>
+    <string name="viewer_bundle_expansion_files_hint">Bevat uitbreidingsbestanden die na de installatie van de app worden geplaatst.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Het plaatsen van uitbreidingsbestanden vereist root- of ADB-toegang. Zonder dit wordt de app geïnstalleerd, maar blijven de uitbreidingsbestanden achter.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">App-pictogram van %1$s</string>
+    <string name="viewer_apk_icon_show_action">Pictogram weergeven</string>
+    <string name="viewer_apk_icon_save_action">Pictogram opslaan</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Pictogram opgeslagen als %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Bestand vervangen?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s bestaat al in deze map. Als je het pictogram opslaat, wordt het vervangen.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Vervangen</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">Bestand gewijzigd</string>
+    <string name="viewer_external_change_message">Dit bestand is op het apparaat gewijzigd. Vernieuw om het opnieuw te laden.</string>
+    <string name="viewer_external_change_gone_title">Bestand is weg</string>
+    <string name="viewer_external_change_gone_message">Dit bestand is verwijderd of kan niet meer worden bereikt.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Kan dit bestand niet weergeven</string>
+    <string name="viewer_error_not_a_file_label">Geen bestand</string>
+    <string name="viewer_error_not_a_file_description">%1$s is geen normaal bestand.</string>
+    <string name="viewer_error_broken_symlink_label">Verbroken snelkoppeling</string>
+    <string name="viewer_error_broken_symlink_description">%1$s wijst naar iets dat niet meer bestaat.</string>
+    <string name="viewer_error_undecodable_label">Beschadigde afbeelding</string>
+    <string name="viewer_error_undecodable_description">%1$s kon niet worden gedecodeerd. Het bestand is mogelijk onvolledig of beschadigd.</string>
+    <string name="viewer_error_file_gone_label">Bestand niet gevonden</string>
+    <string name="viewer_error_file_gone_description">%1$s bestaat niet meer. Het is mogelijk verplaatst, hernoemd of verwijderd.</string>
+    <string name="viewer_error_empty_file_label">Leeg bestand</string>
+    <string name="viewer_error_empty_file_description">%1$s is leeg en heeft niets om weer te geven.</string>
+    <string name="viewer_error_apk_unreadable_label">Onleesbare APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s kon niet worden geparsed als Android-app-pakket.</string>
+    <string name="viewer_error_icon_unavailable_label">Geen pictogram</string>
+    <string name="viewer_error_icon_unavailable_description">Het app-pictogram van %1$s kon niet worden gelezen.</string>
+    <string name="viewer_error_icon_target_notfile_label">Naam al in gebruik</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s bestaat al hier en is geen normaal bestand, dus het kan niet worden vervangen.</string>
+    <string name="viewer_error_icon_target_appeared_label">Bestand verscheen</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s is gemaakt terwijl je koos waar je wilt opslaan. Niets is overschreven, probeer het opnieuw.</string>
+    <string name="viewer_error_content_unreadable_label">Kan dit bestand niet lezen</string>
+    <string name="viewer_error_content_unreadable_description">De app die %1$s heeft gedeeld, laat Butler het niet meer lezen. Vraag die app om het opnieuw te delen.</string>
+    <string name="viewer_save_copy_action">Een kopie opslaan…</string>
+    <string name="viewer_open_in_editor_action">Openen in editor</string>
+    <string name="viewer_text_truncated_bytes">Voorbeeld beperkt tot de eerste %1$s van dit bestand.</string>
+    <string name="viewer_text_truncated_lines">Voorbeeld beperkt tot de eerste %1$s regels van dit bestand.</string>
+    <string name="viewer_text_truncated_width">Lange regels zijn in dit voorbeeld ingekort.</string>
+    <string name="viewer_text_unreadable_label">Dit bestand kon niet worden gelezen</string>
+</resources>

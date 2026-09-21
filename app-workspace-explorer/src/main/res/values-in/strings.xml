@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Explorer</string>
+    <string name="explorer_subtitle">Jelajahi berkas dan direktori</string>
+    <string name="explorer_settings_title">Pengaturan Explorer</string>
+    <string name="explorer_settings_file_display">Tampilan berkas</string>
+    <string name="explorer_settings_filter_regex_title">Pencocokan wildcard lanjutan</string>
+    <string name="explorer_settings_filter_regex_desc">Gunakan pola regex pada filter sertakan/kecualikan.</string>
+    <string name="explorer_settings_navigation">Navigasi</string>
+    <string name="explorer_settings_back_button_title">Navigasi tombol kembali</string>
+    <string name="explorer_settings_back_button_desc">Menjelajahi riwayat dengan tombol/gestur kembali.</string>
+    <string name="explorer_settings_trash_category">Sampah</string>
+    <string name="explorer_settings_trash_enabled_title">Aktifkan sampah</string>
+    <string name="explorer_settings_trash_enabled_desc">Pindahkan berkas yang dihapus ke sampah, bukan menghapusnya secara permanen</string>
+    <string name="explorer_settings_trash_auto_delete_title">Hapus otomatis setelah</string>
+    <string name="explorer_settings_trash_auto_delete_desc">Hapus otomatis item yang lebih lama dari %d hari</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d hari</string>
+    <string name="explorer_settings_trash_max_size_title">Ukuran maksimum per penyimpanan</string>
+    <string name="explorer_settings_trash_max_size_desc">Maksimum %d MB per lokasi penyimpanan</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Periode hapus otomatis</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Ukuran maksimum per penyimpanan</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Aktifkan sampah?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Berbeda dari sistem desktop, Android tidak memiliki sampah bawaan. Butler menyediakannya menggunakan folder cache-nya.\n\nPerhatikan:\n• Indikator penyimpanan perangkat Anda tidak akan menunjukkan ruang yang terbebaskan sampai item dihapus secara permanen\n• Jika penyimpanan perangkat Anda hampir penuh, Android dapat membersihkan cache aplikasi, sehingga menghapus berkas yang ada di sampah</string>
+    <string name="explorer_settings_trash_enable_action">Aktifkan</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">Berkas</string>
+    <string name="explorer_file_symlink_content_desc">Tautan simbolik</string>
+    <string name="explorer_file_folder_content_desc">Folder</string>
+    <string name="explorer_file_peek_content_desc">Memuat informasi berkas</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Pintasan</string>
+    <string name="explorer_file_storage_local_label">Lokal</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Akses baca saja</string>
+    <string name="explorer_file_storage_saf_write_only_label">Akses tulis saja</string>
+    <string name="explorer_file_storage_saf_no_access_label">Tidak ada akses</string>
+    <string name="explorer_file_storage_saf_uri_label">URI tree SAF</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s total • %3$s bebas</string>
+    <string name="explorer_file_broken_link_label">Tautan rusak</string>
+    <string name="explorer_file_items_count">%1$d item</string>
+    <string name="explorer_file_empty">Kosong</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · sebagian</string>
+    <string name="explorer_sizes_estimate_description">Diperkirakan dari total penyimpanan Android. Untuk berkas yang tidak dapat dibaca, ruang yang terpakai digunakan sebagai perkiraan ukuran berkas. Berkas tersembunyi yang dikelola Android juga mungkin termasuk. Lokasi lain yang tidak dapat dibaca tetap tidak diketahui.</string>
+    <string name="explorer_sizes_estimate_coverage">Android/data tidak dapat diperkirakan karena sebagian penyimpanan lain tidak dapat diukur sepenuhnya.</string>
+    <string name="explorer_sizes_estimate_unavailable">Statistik penyimpanan Android tidak tersedia. Ukuran yang telah diukur tetap ditampilkan.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Total penyimpanan Android tidak sesuai dengan hasil pemindaian. Ukuran yang telah diukur tetap ditampilkan.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Pilih folder</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="other">Pilih folder (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Pilih berkas</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="other">Pilih berkas (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="other">Pilih item (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Pilih folder ini</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="other">Pilih %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Simpan berkas</string>
+    <string name="explorer_picker_save_here_action">Simpan di sini</string>
+    <string name="explorer_picker_save_as_filename_label">Nama berkas</string>
+    <string name="explorer_picker_save_as_filename_hint">Masukkan nama berkas</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Segarkan</string>
+    <string name="explorer_action_calculate_sizes">Hitung ukuran</string>
+    <string name="explorer_action_sort">Urutkan</string>
+    <string name="explorer_action_filter">Filter</string>
+    <string name="explorer_action_view">Tata letak</string>
+    <string name="explorer_action_create">Buat</string>
+    <string name="explorer_action_rename">Ganti nama</string>
+    <string name="explorer_action_copy">Salin</string>
+    <string name="explorer_action_cut">Potong</string>
+    <string name="explorer_action_delete">Hapus</string>
+    <string name="explorer_action_select_all">Pilih semua</string>
+    <string name="explorer_action_deselect_all">Batalkan pilihan semua</string>
+    <string name="explorer_action_compress">Kompres</string>
+    <string name="explorer_action_extract">Ekstrak</string>
+    <string name="explorer_action_add_location">Tambahkan lokasi</string>
+    <string name="explorer_action_info">Info</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Informasi</string>
+    <string name="explorer_info_name_label">Nama</string>
+    <string name="explorer_info_path_label">Jalur</string>
+    <string name="explorer_info_type_label">Jenis</string>
+    <string name="explorer_info_type_file">Berkas</string>
+    <string name="explorer_info_type_directory">Direktori</string>
+    <string name="explorer_info_size_label">Ukuran</string>
+    <string name="explorer_info_modified_label">Diubah</string>
+    <string name="explorer_info_created_label">Dibuat</string>
+    <string name="explorer_info_permissions_label">Izin</string>
+    <string name="explorer_info_owner_label">Pemilik</string>
+    <string name="explorer_info_child_count_label">Item</string>
+    <string name="explorer_info_symlink_target_label">Target</string>
+    <string name="explorer_info_symlink_status_label">Status</string>
+    <string name="explorer_info_symlink_broken">Tautan rusak</string>
+    <string name="explorer_info_unknown">Tidak diketahui</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Dihapus</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Izin</string>
+    <string name="explorer_info_saf_granted_label">Diberikan</string>
+    <string name="explorer_info_saf_permission_read">Baca</string>
+    <string name="explorer_info_saf_permission_write">Tulis</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Server</string>
+    <string name="explorer_info_network_port_label">Port</string>
+    <string name="explorer_info_network_share_label">Share</string>
+    <string name="explorer_info_network_folder_label">Folder</string>
+    <string name="explorer_info_network_address_label">Alamat</string>
+    <string name="explorer_info_network_status_label">Status</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Masuk</string>
+    <string name="explorer_info_network_domain_label">Domain</string>
+    <string name="explorer_info_network_password_label">Kata sandi</string>
+    <string name="explorer_info_network_password_show_action">Tampilkan kata sandi</string>
+    <string name="explorer_info_network_password_hide_action">Sembunyikan kata sandi</string>
+    <string name="explorer_info_network_password_missing">Tidak ada, masuk lagi</string>
+    <string name="explorer_info_network_password_locked">Tersimpan, tetapi perangkat ini tidak dapat membukanya</string>
+    <string name="explorer_info_network_added_label">Ditambahkan</string>
+    <string name="explorer_info_network_updated_label">Diperbarui</string>
+    <string name="explorer_info_network_last_seen_label">Terakhir terlihat</string>
+    <string name="explorer_info_network_last_seen_never">Tidak pernah</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Dipilih</string>
+    <string name="explorer_info_files_label">Berkas</string>
+    <string name="explorer_info_directories_label">Direktori</string>
+    <string name="explorer_info_total_size_label">Ukuran total</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Lokasi</string>
+    <string name="explorer_info_shortcuts_label">Pintasan</string>
+    <string name="explorer_info_total_capacity_label">Kapasitas total</string>
+    <string name="explorer_info_used_space_label">Ruang terpakai</string>
+    <string name="explorer_info_free_space_label">Ruang bebas</string>
+    <string name="explorer_info_usage_label">Penggunaan</string>
+    <string name="explorer_info_device_storage_total_label">Penyimpanan perangkat</string>
+    <string name="explorer_info_device_storage_used_label">Terpakai</string>
+    <string name="explorer_info_device_storage_free_label">Bebas</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Beranda</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Jadikan beranda</string>
+    <string name="explorer_breadcrumb_copy_path_action">Salin jalur</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Jalur disalin ke papan klip</string>
+    <string name="explorer_navigation_device">Perangkat</string>
+    <string name="explorer_navigation_network">Jaringan</string>
+    <string name="explorer_navigation_recent">Terbaru</string>
+    <string name="explorer_navigation_recent_desc">Berkas yang baru muncul di perangkat ini</string>
+    <string name="explorer_navigation_trash">Sampah</string>
+    <string name="explorer_navigation_trash_desc">Pulihkan berkas yang dihapus</string>
+    <string name="explorer_navigation_trash_nested_desc">Di dalam folder yang dihapus</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Tidak ada item yang dihapus</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="other">%d item</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Pulihkan</string>
+    <string name="explorer_trash_restore_selected_action">Pulihkan Yang Dipilih</string>
+    <string name="explorer_trash_delete_permanently_action">Hapus Permanen</string>
+    <string name="explorer_trash_delete_selected_action">Hapus Yang Dipilih</string>
+    <string name="explorer_trash_empty_trash_action">Kosongkan Sampah</string>
+    <string name="explorer_trash_empty_confirm">Kosongkan sampah?</string>
+    <string name="explorer_trash_empty_message">Semua item di Sampah akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="explorer_trash_empty_confirm_action">Kosongkan Sampah</string>
+    <string name="explorer_trash_restore_desc">Pulihkan ke lokasi asal</string>
+    <string name="explorer_trash_item_unavailable">Item tidak tersedia</string>
+    <string name="explorer_trash_delete_warning">Tindakan ini tidak dapat dibatalkan</string>
+    <string name="explorer_trash_disabled_warning">Sampah dinonaktifkan</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Memuat isi folder yang dihapus…</string>
+    <string name="explorer_trash_nested_restore_action">Pulihkan ke lokasi asal</string>
+    <string name="explorer_trash_nested_delete_action">Hapus permanen</string>
+    <string name="explorer_trash_nested_restore_conflict">Berkas sudah ada di lokasi asal</string>
+    <string name="explorer_trash_nested_parent_missing">Item induk tidak lagi ada di sampah</string>
+    <string name="explorer_trash_nested_path_missing">Jalur tidak lagi ada</string>
+    <string name="explorer_trash_error_items_not_found">Item tidak ditemukan di sampah</string>
+    <string name="explorer_trash_error_restore_failed">Gagal memulihkan item</string>
+    <string name="explorer_trash_error_delete_failed">Gagal menghapus item</string>
+    <string name="explorer_trash_nested_error_restore_failed">Gagal memulihkan %1$s</string>
+    <string name="explorer_trash_nested_error_delete_failed">Gagal menghapus %1$s</string>
+
+    <string name="explorer_navigation_root">Direktori root</string>
+    <string name="explorer_navigation_rom">ROM sistem</string>
+    <string name="explorer_navigation_internal_storage">Penyimpanan internal publik</string>
+    <string name="explorer_navigation_external_storage">Penyimpanan eksternal publik</string>
+
+    <string name="explorer_loader_progress_directory_loading">Menjelajahi %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Memeriksa izin</string>
+    <string name="explorer_loader_progress_directory_filesystem">Mengambil info sistem berkas</string>
+    <string name="explorer_loader_progress_directory_content">Memuat isi folder</string>
+    <string name="explorer_loader_progress_directory_content_details">Memuat detail isi</string>
+    <string name="explorer_loader_progress_directory_content_extended">Memuat detail isi yang diperluas</string>
+
+    <string name="explorer_loader_progress_device_loading">Memuat perangkat</string>
+    <string name="explorer_loader_progress_device_locations">Memuat lokasi penyimpanan</string>
+
+    <string name="explorer_loader_progress_network_loading">Memuat penyimpanan jaringan</string>
+
+    <string name="explorer_loader_progress_home_loading">Memuat beranda</string>
+    <string name="explorer_loader_progress_trash_loading">Memuat sampah…</string>
+    <string name="explorer_loader_progress_recent_loading">Memuat berkas terbaru…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="other">%d pintasan</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="other">%d lokasi</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="other">%d tersembunyi</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s bebas</string>
+    <string name="explorer_infobar_loading">Memuat…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Buat item baru</string>
+    <string name="explorer_dialog_rename_title">Ganti nama</string>
+    <string name="explorer_dialog_name_label">Nama</string>
+    <string name="explorer_dialog_type_label">Jenis</string>
+    <string name="explorer_dialog_type_folder">Folder</string>
+    <string name="explorer_dialog_type_file">Berkas</string>
+    <string name="explorer_dialog_create_text_file_title">Buat berkas dari teks</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Pratinjau</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d karakter</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Tambahkan lokasi penyimpanan</string>
+    <string name="explorer_add_device_storage_desc">Gunakan Storage Access Framework (SAF) untuk memberi Butler akses ke lokasi penyimpanan tambahan seperti drive usb, folder aplikasi virtual, dan lainnya.</string>
+    <string name="explorer_add_device_storage_continue">Lanjutkan</string>
+    <string name="explorer_add_device_storage_cancel">Batal</string>
+    <string name="explorer_add_device_storage_suggestions_title">Aplikasi dengan penyimpanan</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Membuka folder aplikasi ini</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Hapus lokasi</string>
+    <string name="explorer_device_remove_confirmation_title">Hapus lokasi penyimpanan?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="other">Hapus %1$d lokasi penyimpanan?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Tindakan ini akan mencabut akses Butler ke lokasi ini. Berkas Anda tidak akan dihapus.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="other">%d lokasi jaringan</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Jaringan</string>
+    <string name="explorer_network_add_location_action">Tambahkan penyimpanan jaringan</string>
+    <string name="explorer_network_edit_location_action">Edit penyimpanan jaringan</string>
+    <string name="explorer_network_remove_location_action">Hapus penyimpanan jaringan</string>
+    <string name="explorer_network_sign_in_required_label">Perlu masuk</string>
+    <string name="explorer_network_status_checking_label">Memeriksa…</string>
+    <string name="explorer_network_status_available_label">Tersedia</string>
+    <string name="explorer_network_status_unavailable_label">Tidak tersedia</string>
+    <string name="explorer_network_status_unavailable_since_format">Tidak tersedia (%1$s)</string>
+    <string name="explorer_network_empty_title">Belum ada penyimpanan jaringan</string>
+    <string name="explorer_network_empty_caption">Tambahkan share Windows atau folder NAS untuk menjelajahinya di sini.</string>
+    <string name="explorer_network_remove_confirmation_title">Hapus penyimpanan jaringan?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="other">Hapus %1$d penyimpanan jaringan?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler melupakan detail server dan kata sandi yang tersimpan. Tidak ada yang dihapus di server.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Tambahkan penyimpanan jaringan</string>
+    <string name="explorer_network_form_edit_title">Edit penyimpanan jaringan</string>
+    <string name="explorer_network_form_label_label">Nama (opsional)</string>
+    <string name="explorer_network_form_host_label">Alamat server</string>
+    <string name="explorer_network_form_host_hint">nas.local atau 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Port</string>
+    <string name="explorer_network_form_share_label">Share</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Folder di dalam share (opsional)</string>
+    <string name="explorer_network_form_auth_guest">Tamu</string>
+    <string name="explorer_network_form_auth_password">Nama pengguna dan kata sandi</string>
+    <string name="explorer_network_form_username_label">Nama pengguna</string>
+    <string name="explorer_network_form_domain_label">Domain (opsional)</string>
+    <string name="explorer_network_form_password_label">Kata sandi</string>
+    <string name="explorer_network_form_password_kept_hint">Biarkan kosong untuk mempertahankan kata sandi yang tersimpan</string>
+    <string name="explorer_network_form_remember_label">Ingat kata sandi</string>
+    <string name="explorer_network_form_remember_hint">Disimpan terenkripsi hanya di perangkat ini</string>
+    <string name="explorer_network_form_test_and_save_action">Uji &amp; simpan</string>
+    <string name="explorer_network_form_testing">Menghubungkan…</string>
+    <string name="explorer_network_form_error_host_blank">Masukkan alamat server</string>
+    <string name="explorer_network_form_error_host_not_bare">Masukkan alamat server saja, tanpa skema atau jalur</string>
+    <string name="explorer_network_form_error_host_malformed">Ini bukan alamat server yang valid</string>
+    <string name="explorer_network_form_error_port">Masukkan port antara 1 dan 65535</string>
+    <string name="explorer_network_form_error_share_blank">Masukkan nama share</string>
+    <string name="explorer_network_form_error_share_not_single">Masukkan nama share saja, letakkan subfolder di bawahnya</string>
+    <string name="explorer_network_form_error_share_malformed">Ini bukan nama share yang valid</string>
+    <string name="explorer_network_form_error_base_path">Jalur folder ini tidak dapat digunakan</string>
+    <string name="explorer_network_form_error_username_blank">Masukkan nama pengguna</string>
+    <string name="explorer_network_form_error_password_required">Masukkan kembali kata sandi untuk mengubah nama pengguna atau domain</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Beri nama lokasi</string>
+    <string name="explorer_location_name_label">Nama lokasi</string>
+    <string name="explorer_location_name_hint">Biarkan kosong untuk menggunakan nama default</string>
+    <string name="explorer_location_rename_action">Ganti nama lokasi</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="other">Ditambahkan dalam %d hari terakhir</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Tidak ada yang baru di sini</string>
+    <string name="explorer_recent_empty_message">Berkas yang muncul di perangkat ini akan ditampilkan di sini</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Folder ini kosong</string>
+    <string name="explorer_empty_search_title">Tidak ada hasil pencarian</string>
+    <string name="explorer_empty_search_caption">Coba kata kunci pencarian lain</string>
+    <string name="explorer_empty_folder_label">Folder kosong</string>
+    <string name="explorer_empty_filtered_title">Tidak ada item yang cocok</string>
+    <string name="explorer_empty_filtered_caption">Coba sesuaikan filter Anda</string>
+    <string name="explorer_empty_hidden_title">Hanya ada item tersembunyi di sini</string>
+    <string name="explorer_empty_hidden_caption">Tab ini menyembunyikan item yang namanya diawali titik</string>
+    <string name="explorer_empty_show_hidden_action">Tampilkan item tersembunyi</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Tidak ada lagi yang bisa ditampilkan</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Item tersembunyi dan filter Anda masing-masing menyembunyikan sebagian folder ini</string>
+    <string name="explorer_empty_clear_filters_action">Hapus filter</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Item tersembunyi dan filter menyembunyikan semuanya di sini</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Menampilkan item tersembunyi dan menghapus filter tab ini akan memunculkannya kembali</string>
+    <string name="explorer_empty_show_all_action">Tampilkan semua item</string>
+    <string name="explorer_path_not_found_title">Folder ini sudah tidak ada</string>
+    <string name="explorer_path_not_found_caption">Folder ini dihapus, diganti nama, atau dipindahkan ke tempat lain.</string>
+    <string name="explorer_path_not_found_back_action">Kembali</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Memuat…</string>
+    <string name="explorer_file_peek_loading_text">Memuat…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Tidak ada apa-apa di sini… lanjutkan saja 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Folder ini sedang diet</string>
+    <string name="explorer_empty_folder_caption_3">Bahkan berkas-berkasnya sudah pulang lebih awal hari ini</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe berhenti bekerja</string>
+    <string name="explorer_empty_folder_caption_5">Berkas-berkas sedang bermain petak umpet</string>
+    <string name="explorer_empty_folder_caption_6">404: Berkas tidak ditemukan</string>
+    <string name="explorer_empty_folder_caption_7">Folder ini punya masalah kepercayaan</string>
+    <string name="explorer_empty_folder_caption_8">Berkas-berkas pergi berlibur tanpa pemberitahuan</string>
+    <string name="explorer_empty_folder_caption_9">Kosong seperti jiwaku… tapi lebih rapi</string>
+    <string name="explorer_empty_folder_caption_10">Setara digital dari semak gulung tanah</string>
+    <string name="explorer_empty_folder_caption_11">Berkas-berkas sedang menjaga jarak</string>
+    <string name="explorer_empty_folder_caption_12">Folder ini menganut minimalisme</string>
+    <string name="explorer_empty_folder_caption_13">Seseorang lupa memberi makan berkas-berkasnya</string>
+    <string name="explorer_empty_folder_caption_14">Berkas-berkasnya sudah meninggalkan gedung</string>
+    <string name="explorer_empty_folder_caption_15">Lebih kosong dari janji politisi</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Urutkan berdasarkan</string>
+    <string name="explorer_sort_mode_name_label">Nama</string>
+    <string name="explorer_sort_mode_size_label">Ukuran</string>
+    <string name="explorer_sort_mode_modified_label">Tanggal diubah</string>
+    <string name="explorer_sort_mode_created_label">Tanggal dibuat</string>
+    <string name="explorer_sort_descending_label">Urutan menurun</string>
+    <string name="explorer_sort_scope_label">Terapkan ke</string>
+    <string name="explorer_sort_scope_all_folders">Semua folder</string>
+    <string name="explorer_sort_scope_this_folder">Folder ini</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Folder ini dan subfoldernya</string>
+    <string name="explorer_sort_scope_use_default_here">Gunakan default di sini</string>
+    <string name="explorer_sort_only_this_tab_label">Hanya untuk tab ini</string>
+    <string name="explorer_sort_inherited_notice">Diurutkan berdasarkan aturan yang tersimpan untuk %1$s</string>
+    <string name="explorer_sort_suppressed_notice">Ini menggantikan aturan yang tersimpan untuk %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Tab ini menggunakan urutan default sendiri</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Hapus</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Ukuran folder</string>
+    <string name="explorer_sizes_sheet_label_calculated">Dihitung</string>
+    <string name="explorer_sizes_sheet_label_folders">Folder</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Lokasi yang tidak dapat dibaca</string>
+    <string name="explorer_sizes_sheet_problems_more">%1$d lainnya tidak ditampilkan</string>
+    <string name="explorer_sizes_sheet_recalculate">Hitung ulang</string>
+    <string name="explorer_sizes_sheet_discard">Buang ukuran</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Bagaimana item disusun dan seberapa banyak detail yang ditampilkan</string>
+    <string name="explorer_view_mode_list_label">Daftar</string>
+    <string name="explorer_view_mode_grid_label">Kisi</string>
+    <string name="explorer_view_density_compact_label">Ringkas</string>
+    <string name="explorer_view_density_comfortable_label">Nyaman</string>
+    <string name="explorer_view_density_detailed_label">Detail</string>
+    <string name="explorer_view_show_hidden_label">Tampilkan berkas tersembunyi</string>
+    <string name="explorer_view_set_default_action">Jadikan default</string>
+    <string name="explorer_view_detail_created_label">Dibuat</string>
+    <string name="explorer_view_detail_modified_label">Diubah</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Aturan urutan folder</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Pengaturan urutan yang Anda simpan untuk folder tertentu</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Hapus aturan urutan folder?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Semua folder kembali ke urutan default. Tab dengan urutan tersendiri tetap mempertahankannya. Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Hapus semua</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Jenis berkas</string>
+    <string name="explorer_filter_type_all">Semua</string>
+    <string name="explorer_filter_type_files">Hanya berkas</string>
+    <string name="explorer_filter_type_folders">Hanya folder</string>
+    <string name="explorer_filter_include_label">Pola sertakan</string>
+    <string name="explorer_filter_include_placeholder_simple">contoh: liburan, laporan, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">contoh: .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Pola kecualikan</string>
+    <string name="explorer_filter_exclude_placeholder_simple">contoh: tmp, cache, old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">contoh: ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Aktifkan pola regex di pengaturan</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Izin diperlukan</string>
+    <string name="explorer_permission_generic_description">Butler memerlukan izin tambahan untuk menjelajahi lokasi ini.</string>
+    <string name="explorer_permission_setup_action">Buka pengaturan</string>
+    <string name="explorer_grant_access_action">Berikan akses</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Tindakan</string>
+    <string name="explorer_file_info_type_label">Jenis</string>
+    <string name="explorer_file_info_size_label">Ukuran</string>
+    <string name="explorer_file_info_modified_label">Diubah</string>
+    <string name="explorer_file_action_install">Pasang</string>
+    <string name="explorer_file_action_install_subtitle">Pasang aplikasi ini di perangkat Anda</string>
+    <string name="explorer_file_action_open">Buka</string>
+    <string name="explorer_file_action_open_subtitle">Lihat di sini, tombol kembali menuju ke folder ini</string>
+    <string name="explorer_file_action_open_in_tab">Buka di tab baru</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Lihat di Butler sebagai tab tersendiri</string>
+    <string name="explorer_file_action_open_in_editor">Buka di editor</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Edit di tab baru</string>
+    <string name="explorer_file_action_open_with">Buka dengan</string>
+    <string name="explorer_file_action_open_with_subtitle">Pilih aplikasi eksternal untuk membuka</string>
+    <string name="explorer_file_action_share">Bagikan</string>
+    <string name="explorer_file_action_share_subtitle">Bagikan melalui aplikasi yang terpasang</string>
+    <string name="explorer_file_action_copy">Salin</string>
+    <string name="explorer_file_action_copy_subtitle">Salin ke papan klip untuk ditempel</string>
+    <string name="explorer_file_action_cut">Potong</string>
+    <string name="explorer_file_action_cut_subtitle">Pindahkan ke papan klip untuk ditempel</string>
+    <string name="explorer_file_action_rename">Ganti nama</string>
+    <string name="explorer_file_action_rename_subtitle">Ubah nama berkas</string>
+    <string name="explorer_file_action_delete">Hapus</string>
+    <string name="explorer_file_action_delete_subtitle">Hapus berkas ini secara permanen</string>
+    <string name="explorer_file_action_move_to_trash">Pindahkan ke Sampah</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Pindahkan berkas ke sampah</string>
+    <string name="explorer_file_action_properties">Properti</string>
+    <string name="explorer_file_action_properties_subtitle">Lihat informasi berkas secara terperinci</string>
+    <string name="explorer_file_action_extract">Ekstrak</string>
+    <string name="explorer_file_action_extract_subtitle">Ekstrak isi arsip ke sebuah folder</string>
+    <string name="explorer_file_action_show_in_folder">Tampilkan di folder</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Buka folder tempat berkas ini berada</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="other">%d berkas dibuat.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="other">%d direktori dibuat.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Operasi salin</string>
+    <string name="explorer_operation_copy_description_single">Salin \"%1$s\" dari \"%2$s\" ke \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="other">Salin %1$d item ke \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="other">%d berkas disalin.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="other">%d direktori disalin.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="other">%s disalin.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Operasi ekstrak</string>
+    <string name="explorer_operation_extract_description">Ekstrak \"%1$s\" ke \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Operasi salin lokal</string>
+    <string name="explorer_operation_download_copy_description">Salin \"%1$s\" ke \"%2$s\" untuk penjelajahan lokal.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="other">%d berkas diekstrak.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="other">%s diekstrak.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Operasi kompres</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="other">Kompres %1$d item ke dalam \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="other">%d berkas dikompres.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Buat arsip</string>
+    <string name="explorer_compress_dialog_name_label">Nama arsip</string>
+    <string name="explorer_compress_dialog_format_label">Format</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Terbuka di perangkat mana pun. Dapat dilindungi kata sandi.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Lebih kecil untuk banyak berkas. Tanpa perlindungan kata sandi.</string>
+    <string name="explorer_compress_dialog_create_action">Buat</string>
+    <string name="explorer_compress_dialog_level_label">Tingkat kompresi</string>
+    <string name="explorer_compress_dialog_level_fast">Cepat</string>
+    <string name="explorer_compress_dialog_level_normal">Normal</string>
+    <string name="explorer_compress_dialog_level_best">Terbaik</string>
+    <string name="explorer_compress_dialog_password_label">Kata sandi (opsional)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Konfirmasi kata sandi</string>
+    <string name="explorer_compress_dialog_password_mismatch">Kata sandi tidak cocok</string>
+    <string name="explorer_compress_dialog_password_weak">Kata sandi lemah</string>
+    <string name="explorer_compress_dialog_password_notice">Isi berkas dienkripsi, nama berkas tidak.</string>
+    <string name="explorer_compress_dialog_password_show">Tampilkan kata sandi</string>
+    <string name="explorer_compress_dialog_password_hide">Sembunyikan kata sandi</string>
+    <string name="explorer_compress_dialog_overwrite_title">Ganti arsip?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" sudah ada dan akan diganti.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Ganti</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="other">Lepaskan %1$d item?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="other">Salin atau pindahkan %1$d item ke \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="other">Salin %1$d item ke \"%2$s\"?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Pindahkan ke sampah?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="other">Pindahkan %1$d item ke sampah?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Operasi pindah</string>
+    <string name="explorer_operation_move_description_single">Pindahkan \"%1$s\" dari \"%2$s\" ke \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="other">Pindahkan %1$d item ke \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="other">%d berkas dipindahkan.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="other">%d direktori dipindahkan.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="other">%s dipindahkan.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Pembuatan folder</string>
+    <string name="explorer_operation_create_description_directory">Buat folder \"%1$s\" di \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Pembuatan berkas</string>
+    <string name="explorer_operation_create_description_file">Buat berkas \"%1$s\" di \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Pembuatan berkas teks</string>
+    <string name="explorer_operation_create_text_file_description">Buat \"%1$s\" dari cuplikan teks</string>
+    <string name="explorer_operation_calculate_sizes_title">Penghitungan ukuran</string>
+    <string name="explorer_operation_calculate_sizes_description">Hitung ukuran folder di \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="other">%1$d item dipindai</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Ukuran %1$d folder telah dihitung.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="other">Ukuran %1$d folder telah dihitung, %2$d lokasi tidak dapat dibaca.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Ukuran folder untuk \"%1$s\" dibuang karena berubah selama penghitungan.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Navigasi gagal</string>
+    <string name="explorer_aborted_dialog_title">Operasi dibatalkan</string>
+    <string name="explorer_aborted_dialog_message">Pemuatan dibatalkan sebelum ada yang dapat ditampilkan.</string>
+    <string name="explorer_archive_unbrowsable_title">Arsip tidak dapat dijelajahi di sini</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" berada di penyimpanan yang hanya mendukung pembacaan berurutan, tetapi menjelajahi arsip memerlukan akses acak. Ekstrak arsip di sini, atau unduh salinan lokal untuk menjelajahinya.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Ekstrak arsip</string>
+    <string name="explorer_archive_unbrowsable_download_action">Unduh salinan lokal</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (akses khusus)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (akses khusus)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android membatasi akses ke folder ini. Gunakan pemilih folder untuk memberikan akses.</string>
+    <string name="explorer_permission_multiple_options_description">Anda dapat memberikan akses menggunakan pemilih folder Android atau menyiapkan Root/Shizuku untuk akses lebih cepat ke semua folder yang dibatasi.</string>
+    <string name="explorer_permission_setup_both_description">Folder ini memerlukan akses tingkat lanjut. Pasang dan konfigurasikan Root atau Shizuku di pengaturan.</string>
+    <string name="explorer_permission_setup_shizuku_description">Folder ini memerlukan akses tingkat lanjut melalui Shizuku. Pasang Shizuku Manager dan konfigurasikan di pengaturan.</string>
+    <string name="explorer_permission_setup_root_description">Folder ini memerlukan akses Root. Konfigurasikan Root di pengaturan jika perangkat Anda sudah di-root.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Gunakan pemilih folder Android untuk memberikan akses ke folder ini.</string>
+    <string name="explorer_permission_option_picker_action">Buka pemilih SAF</string>
+
+    <string name="explorer_permission_option_setup_title">Akses penuh</string>
+    <string name="explorer_permission_option_setup_description">Konfigurasikan Root atau Shizuku untuk akses lebih cepat ke semua folder yang dibatasi.</string>
+    <string name="explorer_permission_option_setup_action">Konfigurasikan</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Akses penyimpanan</string>
+    <string name="explorer_permission_option_storage_description">Berikan izin kepada Butler untuk mengakses berkas di penyimpanan perangkat Anda.</string>
+    <string name="explorer_permission_option_storage_action">Berikan izin</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">Buka di tab baru</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Favorit</string>
+    <string name="explorer_action_add_to_favorites">Tambahkan ke favorit</string>
+    <string name="explorer_action_remove_from_favorites">Hapus dari favorit</string>
+    <string name="explorer_favorites_select_action">Pilih</string>
+    <string name="explorer_favorites_unavailable_subtitle">Tidak dapat diakses</string>
+    <string name="explorer_favorites_unavailable_toast">Favorit tidak dapat diakses</string>
+    <string name="explorer_favorites_added_message">%1$s ditambahkan ke favorit</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="other">%1$d item ditambahkan ke favorit</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">%1$s dihapus dari favorit</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="other">%1$d item dihapus dari favorit</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Ganti nama favorit</string>
+    <string name="explorer_favorites_rename_hint">Nama favorit</string>
+    <string name="explorer_favorites_rename_description">Hanya entri di favorit Anda yang diganti namanya, folder itu sendiri tetap menggunakan namanya.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="other">Tab ini menggantikan urutan di %1$d folder</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="other">%1$d folder</item>
+    </plurals>
+</resources>

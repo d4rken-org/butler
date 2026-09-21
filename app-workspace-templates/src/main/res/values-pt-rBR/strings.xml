@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Novo</string>
+    <string name="workspace_templates_choose_title">Nova aba</string>
+    <string name="workspace_templates_choose_subtitle">Selecione um tipo de aba. Como posso ajudar?</string>
+    <string name="workspace_templates_name_tab_action">Nomear esta aba</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Escolha uma ferramenta</string>
+    <string name="tour_templates_picker_body">Este é o seletor de abas, escolha o que essa aba deve ser. Escolhendo uma transforma esta aba naquela ferramenta.</string>
+    <string name="tour_templates_butler_button_title">Suas abas ficam aqui</string>
+    <string name="tour_templates_butler_button_body">Toque no botão Butler para o menu de abas: criar uma nova aba, fechar a atual ou abrir o gerenciador completo de abas. Pressione e segure para ir direto ao gerenciador.</string>
+</resources>

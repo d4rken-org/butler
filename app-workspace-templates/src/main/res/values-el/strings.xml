@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Νέα</string>
+    <string name="workspace_templates_choose_title">Νέα καρτέλα</string>
+    <string name="workspace_templates_choose_subtitle">Επιλέξτε έναν τύπο καρτέλας. Πώς μπορώ να βοηθήσω;</string>
+    <string name="workspace_templates_name_tab_action">Ονοματίστε αυτήν την καρτέλα</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Επιλέξτε ένα εργαλείο</string>
+    <string name="tour_templates_picker_body">Αυτός είναι ο διαλέκτης καρτέλας, επιλέξτε τι θα πρέπει να είναι αυτή η καρτέλα. Η επιλογή ενός μετατρέπει αυτήν την καρτέλα σε αυτό το εργαλείο.</string>
+    <string name="tour_templates_butler_button_title">Οι καρτέλες σας ζουν εδώ</string>
+    <string name="tour_templates_butler_button_body">Πατήστε το κουμπί Butler για το μενού καρτέλας: Δημιουργήστε μια νέα καρτέλα, κλείστε την τρέχουσα ή ανοίξτε τον πλήρη διαχειριστή καρτέλας. Κρατήστε πατημένο για να μεταβείτε απευθείας στον διαχειριστή καρτέλας.</string>
+</resources>

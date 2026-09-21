@@ -1,0 +1,530 @@
+<resources>
+    <string name="onboarding_welcome_title">به Butler خوش آمدید</string>
+    <string name="onboarding_welcome_message">زبانه‌هایی برای فایل‌ها.\nمرور، جستجو و ویرایش — همه با هم.</string>
+    <string name="onboarding_welcome_subtitle">متن‌باز. بدون تبلیغ. بدون ردیابی.\nکاوشگر فایلی که شایسته آن هستید.</string>
+    <string name="onboarding_welcome_action">شروع کاوش</string>
+    <string name="onboarding_beta_title">شکل‌دهی به آینده</string>
+    <string name="onboarding_beta_message">این یک نسخه بتا (آزمایشی) است. با کمی شوخ‌طبعی و یک برنامه پشتیبان پیش بروید. لطفاً مشکلاتی که با آنها مواجه می‌شوید را گزارش دهید.</string>
+    <string name="onboarding_beta_action">از چیزی نمی‌ترسم</string>
+    <string name="onboarding_beta_feature_early_access_title">دسترسی زودهنگام</string>
+    <string name="onboarding_beta_feature_early_access_description">ویژگی‌های پیشرفته را زودتر از همه امتحان کنید.</string>
+    <string name="onboarding_beta_feature_influence_title">تأثیر مستقیم</string>
+    <string name="onboarding_beta_feature_influence_description">بازخورد شما به توسعه Butler شکل می‌دهد.</string>
+    <string name="onboarding_beta_feature_feedback_title">انجمن‌محور</string>
+    <string name="onboarding_beta_feature_feedback_description">به انجمنی از کاربران حرفه‌ای بپیوندید که Butler را بهتر می‌کنند.</string>
+    <string name="onboarding_privacy_title">حریم خصوصی و داده‌ها</string>
+    <string name="onboarding_privacy_message">Butler هیچ تبلیغی ندارد و داده‌های کاربران را نمی‌فروشد. حریم خصوصی شما برای من مهم است.</string>
+    <string name="onboarding_privacy_read_action">مطالعه سیاست حریم خصوصی</string>
+    <string name="onboarding_privacy_action">پذیرفتن</string>
+    <string name="onboarding_skip_action">رد کردن</string>
+    <string name="onboarding_progress_step">%1$d از %2$d</string>
+
+    <string name="onboarding_workspaces_title">کار با زبانه‌ها</string>
+    <string name="onboarding_workspaces_message">چندین زبانه باز کنید و بین آنها جابه‌جا شوید — درست مثل مرورگر وب خود.</string>
+    <string name="onboarding_workspaces_action">ادامه</string>
+    <string name="onboarding_workspaces_hint">چندین زبانه را هم‌زمان باز نگه دارید.</string>
+    <string name="onboarding_workspaces_explorer_title">کاوشگر</string>
+    <string name="onboarding_workspaces_explorer_description">فایل‌های خود را مرور کنید.</string>
+    <string name="onboarding_workspaces_searcher_title">جستجو</string>
+    <string name="onboarding_workspaces_searcher_description">چیزها را پیدا کنید.</string>
+    <string name="onboarding_workspaces_editor_title">ویرایشگر</string>
+    <string name="onboarding_workspaces_editor_description">فایل‌ها را ویرایش کنید.</string>
+    <string name="onboarding_workspaces_templates_title">الگوها</string>
+    <string name="onboarding_workspaces_templates_description">پیکربندی خود را ذخیره کنید.</string>
+    <string name="onboarding_workspaces_apps_description">برنامه‌های خود را مدیریت کنید.</string>
+
+    <!-- میان‌برهای کاوشگر -->
+    <string name="shortcut_explorer_new_short">کاوشگر جدید</string>
+    <string name="shortcut_explorer_new_long">ایجاد زبانه کاوشگر جدید</string>
+
+    <!-- تنظیمات میان‌برها -->
+    <string name="shortcuts_settings_title">میان‌برها</string>
+    <string name="shortcuts_settings_subtitle">پیکربندی میان‌برهای لانچر</string>
+    <string name="shortcuts_settings_enabled_title">فعال‌سازی میان‌برها</string>
+    <string name="shortcuts_settings_enabled_subtitle">نمایش موارد پراستفاده در لانچر</string>
+    <string name="shortcuts_settings_auto_remember_title">به‌خاطرسپاری مسیرهای بازدیدشده</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">افزودن خودکار مسیرهای پربازدید به‌عنوان میان‌بر</string>
+    <string name="shortcuts_settings_last_accessed_title">آخرین دسترسی</string>
+    <string name="shortcuts_settings_max_count_title">حداکثر میان‌برها</string>
+    <string name="shortcuts_settings_max_count_subtitle">در حال حاضر %d میان‌بر نمایش داده می‌شود</string>
+    <string name="shortcuts_settings_min_access_title">حداقل تعداد دسترسی</string>
+    <string name="shortcuts_settings_min_access_subtitle">نیازمند %d بار دسترسی پیش از نمایش</string>
+    <string name="shortcuts_settings_current_title">میان‌برهای فعلی</string>
+    <string name="shortcuts_settings_current_subtitle">%d میان‌بر ردیابی شده</string>
+    <string name="shortcuts_settings_clear_title">پاک کردن تاریخچه میان‌برها</string>
+    <string name="shortcuts_settings_clear_subtitle">حذف همه میان‌برهای ردیابی‌شده</string>
+    <string name="shortcuts_settings_clear_confirm_title">تاریخچه میان‌برها پاک شود؟</string>
+    <string name="shortcuts_settings_clear_confirm_message">این کار همه میان‌برهای ردیابی‌شده را حذف می‌کند. نشان‌ها حفظ خواهند شد.</string>
+    <string name="shortcuts_settings_cleared_message">تاریخچه میان‌برها پاک شد</string>
+    <string name="shortcuts_settings_max_dialog_title">حداکثر میان‌برها</string>
+    <string name="shortcuts_settings_max_dialog_message">تعداد میان‌برهایی که در لانچر نمایش داده می‌شود (۱ تا ۴)</string>
+    <string name="shortcuts_settings_min_dialog_title">حداقل تعداد دسترسی</string>
+    <string name="shortcuts_settings_min_dialog_message">مسیر باید چند بار باز شود تا به‌عنوان میان‌بر نمایش داده شود (۱ تا ۱۰)</string>
+
+    <string name="setup_usagestats_title">آمار مصرف</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">دسترسی به اعلان‌ها</string>
+    <string name="setup_manage_storage_card_title">مدیریت حافظه خارجی</string>
+    <string name="setup_inventory_card_title">فهرست برنامه‌ها</string>
+
+    <string name="setup_title">تنظیم مجوزها</string>
+    <string name="setup_settings_description">پیکربندی مجوزها و ویژگی‌های برنامه.</string>
+    <string name="setup_help_description">راهنما</string>
+
+    <string name="setup_root_description">دسترسی به فایل‌های سیستمی و پوشه‌های محافظت‌شده را برای مدیریت پیشرفته فایل فراهم می‌کند. تمام قابلیت‌های Butler از جمله دسترسی به داده‌های برنامه‌ها و تغییرات سیستمی را باز می‌کند. دستگاه باید روت شده باشد.</string>
+    <string name="setup_shizuku_description">جایگزینی برای Root که عملیات فایلی ممتاز را از طریق یک API امن فراهم می‌کند. دسترسی به پوشه‌های محدودشده را بدون روت سنتی امکان‌پذیر می‌سازد. نیازمند نصب و اجرای برنامه Shizuku است.</string>
+    <string name="setup_notification_description">به‌روزرسانی‌های عملیات فایلی، وظایف پس‌زمینه و پیشرفت انتقال را نمایش می‌دهد. شما را از پایان عملیات یا بروز خطاها مطلع می‌کند.</string>
+    <string name="setup_usagestats_description">مصرف حافظه برنامه‌ها را تحلیل می‌کند تا فایل‌های بزرگ را شناسایی و مدیریت فضا را تسهیل کند. همه داده‌ها روی دستگاه شما باقی می‌مانند و هرگز ارسال نمی‌شوند.</string>
+    <string name="setup_storage_description">دسترسی کامل به کل حافظه دستگاه برای عملیات فایلی سریع و پردازش دسته‌ای. مدیریت کامل فایل را بدون درخواست مکرر مجوز امکان‌پذیر می‌سازد.</string>
+    <string name="setup_inventory_description">مشاهده همه برنامه‌های نصب‌شده برای ویژگی‌هایی مانند استخراج APK و تحلیل حافظه. در اندروید ۱۱ به بالا برای مشاهده فهرست کامل برنامه‌ها لازم است.</string>
+
+    <string name="setup_grant_access_label">اعطای دسترسی</string>
+    <string name="setup_access_granted_label">دسترسی اعطا شد</string>
+    <string name="setup_use_root_label">استفاده از Root در صورت وجود</string>
+    <string name="setup_use_shizuku_label">استفاده از Shizuku در صورت وجود</string>
+
+    <string name="setup_status_checking">در حال بررسی…</string>
+    <string name="setup_status_completed">پیکربندی شده</string>
+    <string name="setup_status_required">الزامی</string>
+    <string name="setup_status_optional">اختیاری</string>
+    <string name="setup_status_connected">متصل</string>
+    <string name="setup_status_not_connected">متصل نیست</string>
+    <string name="setup_status_not_installed">نصب نشده</string>
+    <string name="setup_status_connecting">در حال اتصال…</string>
+    <string name="setup_status_connection_failed">اتصال ناموفق بود</string>
+    <string name="setup_status_unavailable">در دسترس نیست</string>
+
+    <!-- گزارش اشکال‌زدایی -->
+    <string name="debug_notification_channel_label">اعلان‌های اشکال‌زدایی</string>
+    <string name="debug_log_consent_title">گزارش اشکال‌زدایی</string>
+    <string name="debug_log_consent_explanation">این ویژگی همه فعالیت‌های برنامه را در یک فایل قابل‌اشتراک‌گذاری ثبت می‌کند. فایل تولیدشده حاوی اطلاعات حساس است (مانند نام فایل‌ها و برنامه‌های نصب‌شده). آن را فقط با طرف‌های مورد اعتماد به اشتراک بگذارید (مانند توسعه‌دهنده‌ای که مشکلی را بررسی می‌کند).</string>
+    <string name="debug_log_recording_progress">در حال ضبط گزارش اشکال‌زدایی</string>
+    <string name="debug_log_record_action">ضبط</string>
+    <string name="debug_log_record_full_action">ضبط گزارش اشکال‌زدایی</string>
+    <string name="debug_log_stop_action">توقف ضبط</string>
+    <string name="debug_log_screen_title">ضبط‌کننده گزارش اشکال‌زدایی</string>
+    <string name="debug_log_screen_sensitive_information_message">فایل تولیدشده حاوی اطلاعات حساس است (مانند نام فایل‌ها و برنامه‌های نصب‌شده). آن را فقط با طرف‌های مورد اعتماد به اشتراک بگذارید.</string>
+    <string name="debug_log_screen_session_path_label">مسیر نشست اشکال‌زدایی</string>
+    <string name="debug_log_screen_log_files_label">فایل‌های گزارش</string>
+    <string name="debug_log_screen_log_files_ready">فایل‌های گزارش آماده است (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">دور انداختن</string>
+    <string name="debug_log_file_label">فایل گزارش ضبط‌شده</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">در حال ضبط فایل گزارش</string>
+    <string name="debug_banner_stop_action">توقف</string>
+    <string name="debug_banner_view_action">مشاهده</string>
+    <string name="debug_banner_explanation">فعالیت برنامه در حال ضبط است. پس از پایان کار متوقف کنید، سپس هنگام گزارش اشکال، گزارش را به اشتراک بگذارید.</string>
+    <string name="debug_log_short_recording_title">ضبط بسیار کوتاه است</string>
+    <string name="debug_log_short_recording_message">گزارش‌های اشکال‌زدایی رویدادهایی را ثبت می‌کنند که هنگام فعال بودن ضبط رخ می‌دهند. ضبط را شروع کنید، مشکل را دوباره ایجاد کنید، سپس متوقف کنید. ممکن است این ضبط اطلاعات مفیدی نداشته باشد.</string>
+    <string name="debug_log_short_recording_keep_action">ادامه ضبط</string>
+
+    <string name="debug_logview_screen_title">نمایشگر گزارش</string>
+    <string name="debug_logview_pause_action">مکث (متوقف کردن نمایش)</string>
+    <string name="debug_logview_resume_action">ادامه</string>
+    <string name="debug_logview_copy_action">کپی گزارش</string>
+    <string name="debug_logview_collapse_action">جمع کردن</string>
+    <string name="debug_logview_close_action">بستن پنل گزارش</string>
+    <string name="debug_logview_resize_action">تغییر اندازه</string>
+    <string name="debug_logview_more_action">گزینه‌های بیشتر</string>
+    <string name="debug_logview_level_action">سطح گزارش</string>
+    <string name="debug_logview_clear_action">پاک کردن بافر</string>
+    <string name="debug_logview_search_action">جستجو</string>
+    <string name="debug_logview_search_clear_action">پاک کردن جستجو</string>
+    <string name="debug_logview_search_close_action">بستن جستجو</string>
+    <string name="debug_logview_search_prev_action">مورد قبلی</string>
+    <string name="debug_logview_search_next_action">مورد بعدی</string>
+    <string name="debug_logview_jump_to_bottom_action">رفتن به آخرین مورد</string>
+    <string name="debug_logview_paused_msg">مکث شد — نمایش متوقف شد</string>
+    <string name="debug_logview_paused_new_msg">مکث شد — %1$d خط جدید از آن زمان</string>
+    <string name="debug_logview_copied_msg">گزارش در کلیپ‌بورد کپی شد</string>
+    <string name="debug_logview_copied_truncated_msg">آخرین %1$d خط در کلیپ‌بورد کپی شد</string>
+    <string name="debug_logview_share_label">اشتراک‌گذاری گزارش</string>
+
+    <string name="settings_label">تنظیمات</string>
+    <string name="settings_category_tools_label">ابزارها</string>
+    <string name="settings_category_other_label">سایر</string>
+    <string name="settings_category_integration_label">یکپارچه‌سازی</string>
+    <string name="general_settings_label">عمومی</string>
+    <string name="general_settings_desc">تنظیمات کلی که بر کل برنامه تأثیر می‌گذارند.</string>
+    <string name="settings_category_ui_label">رابط کاربری</string>
+    <string name="ui_mascot_suit_setting_label">لباس Butler</string>
+    <string name="ui_mascot_suit_setting_explanation">رنگی که لباس Butler از آن دوخته شده است.</string>
+    <string name="ui_theme_mode_setting_label">حالت تم</string>
+    <string name="ui_theme_mode_setting_explanation">حالتی که برای تم‌بندی برنامه استفاده می‌شود (مانند شب یا روز).</string>
+    <string name="ui_theme_style_setting_label">سبک تم</string>
+    <string name="ui_theme_style_setting_explanation">سبک رنگی که برای تم‌بندی برنامه استفاده می‌شود.</string>
+    <string name="ui_theme_color_setting_label">رنگ تم</string>
+    <string name="ui_theme_color_setting_explanation">پالت رنگی که برای تم‌بندی برنامه استفاده می‌شود.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">رنگ‌ها توسط Material You از روی تصویر زمینه شما تأمین می‌شوند</string>
+    <string name="ui_theme_color_value_system">رنگ‌های سیستم</string>
+    <string name="ui_language_override_label">زبان برنامه</string>
+    <string name="ui_language_override_desc">زبان دیگری برای Butler انتخاب کنید، مستقل از زبان پیش‌فرض سیستم شما.</string>
+    <string name="ui_display_cutout_avoid_setting_title">اجتناب از بریدگی نمایشگر</string>
+    <string name="ui_display_cutout_avoid_setting_description">رابط کاربری را از بریدگی دوربین دور نگه می‌دارد. برای استفاده از فضای بیشتر صفحه آن را خاموش کنید، اما ممکن است بخش‌هایی از رابط کاربری پشت بریدگی قرار بگیرند.</string>
+
+    <string name="previews_settings_title">پیش‌نمایش‌ها</string>
+    <string name="previews_settings_subtitle">مدیریت حافظه پنهان پیش‌نمایش تصاویر.</string>
+
+    <string name="tour_settings_reset_title">بازنشانی تورهای راهنما</string>
+    <string name="tour_settings_reset_subtitle">تورهای راهنما، از جمله مواردی که رد یا غیرفعال کرده‌اید، را دوباره نمایش می‌دهد.</string>
+    <string name="tour_settings_reset_done">تورهای راهنما بازنشانی شدند.</string>
+
+    <string name="storage_settings_title">حافظه</string>
+    <string name="storage_settings_subtitle">مدیریت حافظه پنهان، حافظه و سطل زباله Butler.</string>
+    <string name="storage_category_previews_label">پیش‌نمایش‌ها</string>
+    <string name="storage_previews_disk_cache_title">حافظه پنهان دیسک</string>
+    <string name="storage_previews_memory_cache_title">حافظه پنهان رم</string>
+    <string name="storage_previews_max_size_title">حداکثر اندازه حافظه پنهان</string>
+    <string name="storage_clear_disk_confirm_title">حافظه پنهان دیسک پاک شود؟</string>
+    <string name="storage_clear_disk_confirm_message">این کار همه تصاویر پیش‌نمایش ذخیره‌شده را حذف می‌کند. در صورت نیاز دوباره ساخته خواهند شد.</string>
+    <string name="storage_clear_memory_confirm_title">حافظه پنهان رم پاک شود؟</string>
+    <string name="storage_clear_memory_confirm_message">این کار تصاویر پیش‌نمایش ذخیره‌شده را از حافظه رم حذف می‌کند. در صورت نیاز دوباره ساخته خواهند شد.</string>
+    <string name="storage_clear_all_confirm_title">همه حافظه‌های پنهان پاک شوند؟</string>
+    <string name="storage_clear_all_confirm_message">این کار هر دو حافظه پنهان دیسک و رم را برای تصاویر پیش‌نمایش پاک می‌کند.</string>
+    <string name="storage_clear_all_previews_action">پاک کردن همه حافظه‌های پنهان پیش‌نمایش</string>
+    <string name="storage_clear_all_subtitle">حذف همه حافظه‌های پنهان پیش‌نمایش</string>
+    <string name="storage_cache_cleared_message">حافظه پنهان پاک شد</string>
+    <string name="storage_size_50mb">۵۰ مگابایت</string>
+    <string name="storage_size_250mb">۲۵۰ مگابایت</string>
+    <string name="storage_size_512mb">۵۱۲ مگابایت</string>
+    <string name="storage_size_1gb">۱ گیگابایت</string>
+
+    <string name="updater_check_enabled_setting_title">بررسی به‌روزرسانی‌ها</string>
+    <string name="updater_check_enabled_setting_description">به Butler اجازه بده به‌صورت آنلاین بررسی کند که آیا نسخه جدیدی موجود است.</string>
+    <string name="motd_check_enabled_setting_title">بررسی اعلامیه‌ها</string>
+    <string name="motd_check_enabled_setting_description">به Butler اجازه بده پیام‌های مهم توسعه‌دهنده را دریافت کند.</string>
+    <string name="motd_card_header">اعلامیه</string>
+
+    <string name="confirm_exit_setting_title">تأیید خروج</string>
+    <string name="confirm_exit_setting_description">هنگام خروج از برنامه یک پنجره تأیید نمایش بده.</string>
+    <string name="confirm_exit_dialog_title">خروج از Butler</string>
+    <string name="confirm_exit_dialog_message">این کار برنامه را می‌بندد و شما را به صفحه اصلی بازمی‌گرداند.</string>
+    <string name="confirm_exit_dialog_exit">خروج</string>
+    <string name="confirm_exit_dialog_cancel">لغو</string>
+    <string name="confirm_exit_dialog_dont_ask_again">دیگر نپرس</string>
+
+    <string name="settings_support_category_help_label">دریافت راهنمایی</string>
+    <string name="settings_support_label">پشتیبانی</string>
+    <string name="settings_support_description">مستندات را بخوانید، مشکلات را گزارش دهید، با دیگران گفتگو کنید یا گزارش اشکال‌زدایی ضبط کنید.</string>
+    <string name="settings_support_wiki_label">مستندات</string>
+    <string name="settings_support_wiki_description">یاد بگیرید چگونه از Butler به‌طور مؤثر استفاده کنید.</string>
+    <string name="settings_support_issue_tracker_description">یک ردیاب عمومی مشکلات برای گزارش اشکالات و درخواست ویژگی‌های جدید.</string>
+    <string name="settings_support_issue_tracker_label">ردیاب مشکلات</string>
+    <string name="settings_support_debuglog_label">گزارش اشکال‌زدایی</string>
+    <string name="settings_support_debuglog_desc">همه فعالیت‌های برنامه را در یک فایل متنی قابل‌اشتراک‌گذاری ضبط کنید.</string>
+    <string name="settings_support_debuglog_recording_desc">در حال حاضر اطلاعات اشکال‌زدایی در حال ضبط است. برای توقف ضبط ضربه بزنید.</string>
+    <string name="settings_support_debuglog_path">مسیر گزارش: %1$s</string>
+    <string name="settings_support_bugreports_label">گزارش‌های اشکال</string>
+    <string name="settings_support_bugreports_desc">گزارش‌های خرابی را مشاهده کنید، گزارش اشکال‌زدایی ضبط کنید و آنها را با من به اشتراک بگذارید.</string>
+    <string name="support_contact_report_type_crash">گزارش خرابی</string>
+    <string name="support_contact_report_type_reported">گزارش اشکال</string>
+    <string name="support_contact_report_type_recording">ضبط</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">مکانی برای گشت‌وگذار و پرسیدن سؤال.</string>
+
+    <string name="settings_acknowledgements_label">قدردانی‌ها</string>
+    <string name="settings_acknowledgements_description">اعتبارات، مجوزها و تشکرهای ویژه.</string>
+    <string name="settings_acks_translation_header">ترجمه</string>
+    <string name="settings_acks_translators_title">مترجمان</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">ترجمه Butler</string>
+    <string name="settings_acks_translate_desc">در ترجمه Butler به زبان خود کمک کنید.</string>
+
+    <string name="settings_acks_thanks_header">تشکر</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">برای حمایت از ترجمه پروژه‌های متن‌باز.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">برای طراحی نماد، شخصیت‌ها و انیمیشن‌ها متشکریم.</string>
+    <string name="settings_licenses_label">مجوزها</string>
+
+    <!-- کارت وضعیت زبانه -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d زبانه</item>
+        <item quantity="other">%1$d زبانه</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d عملیات</item>
+        <item quantity="other">%1$d عملیات</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d توجه</item>
+        <item quantity="other">%1$d توجه</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d ذخیره‌نشده</item>
+        <item quantity="other">%1$d ذخیره‌نشده</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d مکث‌شده</item>
+        <item quantity="other">%1$d مکث‌شده</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">نمایش همه زبانه‌ها</string>
+    <string name="workspace_status_filter_operations_desc">فیلتر بر اساس زبانه‌های دارای عملیات</string>
+    <string name="workspace_status_filter_attention_desc">فیلتر بر اساس زبانه‌های نیازمند توجه</string>
+    <string name="workspace_status_filter_paused_desc">فیلتر بر اساس زبانه‌های مکث‌شده</string>
+    <string name="workspace_status_filter_unsaved_desc">فیلتر بر اساس زبانه‌های دارای تغییرات ذخیره‌نشده</string>
+
+    <!-- قدردانی‌ها -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">پروژه متن‌باز Android (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">زبان برنامه‌نویسی Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">یک تزریق‌کننده وابستگی سریع برای Android و Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">اجرای کد Java (و Kotlin) با دسترسی Root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">اجرای کد Kotlin JVM روت‌شده را با کمک coroutines آسان می‌کند. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">استفاده مستقیم از APIهای سیستم با امتیازات adb/root از برنامه‌های عادی از طریق یک پردازه Java که با app_process اجرا شده است. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Lottie ساخته Airbnb برای Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">ربات Android بازتولید یا اصلاح‌شده از اثری است که توسط Google ایجاد و به اشتراک گذاشته شده و طبق شرایط مجوز Creative Commons 3.0 Attribution استفاده می‌شود.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">جعبه‌ابزار مدرن Android برای ساخت رابط کاربری بومی. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">کتابخانه‌های Jetpack</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room، WorkManager، DataStore، Navigation و سایر کتابخانه‌های AndroidX. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">افزونه‌های Kotlin</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">کتابخانه‌های Coroutines و Serialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">کتابخانه بارگذاری تصویر مبتنی بر Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">ابزارهای رمزنگاری برای احراز هویت، امضا و رمزگذاری SMB. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">کتابخانه‌های Square</string>
+    <string name="acknowledgement_square_libraries_subtitle">کتابخانه‌های شبکه Retrofit، OkHttp و OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">ابزارهای کمکی برای Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">کشیدن و رها کردن برای LazyColumn در Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">کتابخانه نسخه‌گذاری معنایی برای Kotlin. (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">نمودارها و گراف‌ها برای Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">سیاست حریم خصوصی</string>
+    <string name="settings_privacy_policy_desc">مدیریت مسئولانه داده‌ها.</string>
+
+
+    <string name="changelog_label">تغییرات</string>
+
+    <!-- وضعیت ارتقا -->
+    <string name="settings_upgrade_status_label">وضعیت ارتقای Butler</string>
+    <string name="upgrade_status_free">وضعیت: رایگان</string>
+    <string name="upgrade_status_pro">وضعیت: Pro</string>
+    <string name="upgrade_status_foss">وضعیت: FOSS</string>
+
+    <string name="storage_area_sdcard_label">کارت SD</string>
+    <string name="storage_area_public_label">حافظه عمومی</string>
+    <string name="storage_area_public_app_data_label">داده‌های عمومی برنامه</string>
+
+    <!-- زبانه‌ها -->
+    <!-- زبانه‌ها > مدیریت -->
+    <string name="workspace_manager_title">مدیریت زبانه‌ها</string>
+    <string name="workspace_manager_empty_title">بدون زبانه</string>
+    <string name="workspace_manager_empty_subtitle">برای شروع، اولین زبانه خود را ایجاد کنید</string>
+
+    <!-- زبانه‌ها > محتوای خالی-->
+    <string name="workspace_empty_create_action">ایجاد زبانه</string>
+    <string name="workspace_empty_create_hint">کار موازی: زبانه‌ای ایجاد کنید و آن را به ابزار دلخواه خود تبدیل کنید.</string>
+    <string name="workspace_empty_settings_action">باز کردن تنظیمات</string>
+    <string name="workspace_empty_settings_hint">Butler را مطابق سلیقه خود شخصی‌سازی کنید. رفتار ابزارها را تنظیم کنید.</string>
+    <string name="workspace_classic_empty_tabs_closed">زبانه بازی وجود ندارد. هر وقت آماده بودید، شروع کنید.</string>
+    <string name="workspace_classic_empty_tip">نکته: روی «ایجاد زبانه» ضربه بزنید و ابزاری انتخاب کنید — کاوشگر، جستجو، ویرایشگر و موارد دیگر.</string>
+
+    <!-- زبانه‌ها > تور راهنما -->
+    <string name="tour_first_tab_title">با یک زبانه شروع کنید</string>
+    <string name="tour_first_tab_body">Butler با زبانه‌ها کار می‌کند، مثل یک مرورگر: هرکدام ابزاری مستقل است — کاوشگر، جستجو، ویرایشگر و موارد دیگر. اولین زبانه خود را ایجاد کنید.</string>
+    <string name="tour_manager_fab_title">میان‌برهای سریع</string>
+    <string name="tour_manager_fab_body">برای میان‌بر به ابزارهایی که بیشتر استفاده می‌کنید، و برای بستن همه زبانه‌ها با هم، روی این ضربه بزنید.</string>
+    <string name="tour_manager_reorder_title">ترتیب زبانه‌ها را تغییر دهید</string>
+    <string name="tour_manager_reorder_body">نوار عنوان یک زبانه را لمس کرده و نگه دارید، سپس آن را به جای دلخواه بکشید. این همان ترتیبی است که زبانه‌های شما در همه‌جای دیگر نمایش داده می‌شوند.</string>
+    <string name="tour_manager_select_title">روی چند زبانه هم‌زمان کار کنید</string>
+    <string name="tour_manager_select_body">پیش‌نمایش یک زبانه را لمس کرده و نگه دارید تا انتخاب زبانه‌ها را شروع کنید. سپس روی بقیه ضربه بزنید و همه را یک‌جا ببندید یا مکث کنید.</string>
+    <string name="tour_manager_new_tab_title">یک زبانه جدید شروع کنید</string>
+    <string name="tour_manager_new_tab_body">برای انتخاب هر ابزاری برای یک زبانه جدید، روی این کارت ضربه بزنید.</string>
+    <string name="tour_swipe_switch_title">بین زبانه‌ها سوایپ کنید</string>
+    <string name="tour_swipe_switch_body">برای جابه‌جایی بین زبانه‌های باز، در هر نقطه از صفحه به چپ یا راست سوایپ کنید.</string>
+    <string name="tour_swipe_create_title">برای شروع یک زبانه سوایپ کنید</string>
+    <string name="tour_swipe_create_body">از آخرین زبانه خود عبور کنید و Butler یک زبانه جدید به شما پیشنهاد می‌دهد.</string>
+    <string name="tour_swipe_panes_title">بیش از یک زبانه در آنِ واحد</string>
+    <string name="tour_swipe_panes_body">در صفحه‌نمایش بزرگ‌تر یا در حالت افقی، Butler چند زبانه را کنار هم نمایش می‌دهد. تنظیمات چیدمان در بخش زبانه‌ها زمان این کار را تعیین می‌کند.</string>
+    <string name="tour_panes_rail_title">همه زبانه‌های شما</string>
+    <string name="tour_panes_rail_body">همه زبانه‌های باز اینجا قرار دارند. روی یکی ضربه بزنید و بخشی را که باید به آن برود انتخاب کنید. یک زبانه را لمس کرده و نگه دارید، سپس آن را بکشید تا ترتیبشان تغییر کند.</string>
+    <string name="tour_panes_divider_title">اندازه بخش‌ها را تغییر دهید</string>
+    <string name="tour_panes_divider_body">این جداکننده را بکشید تا فضای بیشتری به یک بخش بدهید.</string>
+    <string name="tour_panes_layout_title">چیدمان را تغییر دهید</string>
+    <string name="tour_panes_layout_body">روی دکمه Butler ضربه بزنید و «چیدمان» را برای مرتب‌سازی مجدد بخش‌ها انتخاب کنید. تنظیمات زبانه‌ها یک چیدمان برای هر جهت صفحه ثابت می‌کند.</string>
+
+    <string name="workspace_creating_placeholder">در حال ایجاد زبانه…</string>
+    <string name="workspace_ondemand_swipe_title">برای ایجاد زبانه جدید سوایپ کنید</string>
+
+    <!-- زبانه انطباقی -->
+    <string name="workspace_adaptive_pane_ready">بخش %1$d برای محتوا آماده است</string>
+    <string name="workspace_adaptive_add_action">افزودن زبانه</string>
+
+    <string name="workspace_badge_tip_title">نکته: نشانگرهای دکمه زبانه</string>
+    <string name="workspace_badge_open_workspaces">تعداد زبانه‌های باز</string>
+    <string name="workspace_badge_active_operations">عملیات فعال (کپی فایل، جستجو و غیره)</string>
+    <string name="workspace_badge_attention_items">مواردی که نیاز به توجه دارند (عملیات ناموفق یا در انتظار، فایل‌های غیرقابل‌دسترسی)</string>
+
+    <!-- عملیات مدیریت زبانه‌ها -->
+    <string name="workspace_manager_dismiss_content_desc">بستن</string>
+    <string name="workspace_manager_selection_count">%1$d انتخاب شده</string>
+    <string name="workspace_manager_selection_select_all">انتخاب همه</string>
+    <string name="workspace_manager_selection_pause_action">مکث موارد انتخاب‌شده</string>
+    <string name="workspace_manager_selection_close_action">بستن موارد انتخاب‌شده</string>
+    <string name="workspace_manager_selection_cancel_content_desc">خروج از حالت انتخاب</string>
+    <string name="workspace_manager_selection_clear_content_desc">پاک کردن انتخاب</string>
+    <string name="workspace_manager_select_all_tabs_desc">انتخاب همه زبانه‌ها</string>
+    <string name="workspace_manager_new_tab_card_title">زبانه جدید</string>
+    <string name="workspace_row_select_content_desc">انتخاب زبانه</string>
+    <string name="general_cancel_action">لغو</string>
+
+    <!-- دکمه شناور مدیریت زبانه‌ها -->
+    <string name="workspace_fab_quick_shortcuts">میان‌برهای سریع</string>
+    <string name="workspace_fab_close_shortcuts">بستن میان‌برها</string>
+    <string name="workspace_fab_close_all">بستن همه زبانه‌ها</string>
+
+    <!-- نوار ناوبری زبانه‌ها -->
+    <string name="workspace_pane_assign_action">انتساب به بخش %1$d</string>
+    <string name="workspace_pane_show_action">نمایش</string>
+    <string name="workspace_pane_close_action">بستن</string>
+    <string name="workspace_pane_unassign_action">حذف از بخش</string>
+    <string name="workspace_dragging_description">در حال کشیدن</string>
+    <string name="workspace_pane_current_description">در بخش %1$d</string>
+
+    <!-- ردیف مدیریت زبانه‌ها -->
+    <string name="workspace_row_close_content_desc">بستن زبانه</string>
+    <string name="workspace_row_more_options_content_desc">گزینه‌های بیشتر</string>
+    <string name="workspace_row_operations_running_content_desc">در حال کار</string>
+    <string name="workspace_row_operations_pending_content_desc">در انتظار کار</string>
+    <string name="workspace_row_pause_action">مکث</string>
+    <string name="workspace_row_resume_action">ادامه</string>
+    <string name="workspace_row_stacked_content_desc">روی این زبانه انباشته شده</string>
+    <string name="workspace_row_unsaved_content_desc">تغییرات ذخیره‌نشده</string>
+
+    <!-- فهرست تنظیمات -->
+    <string name="workspace_settings_subtitle">پیکربندی رفتار زبانه‌ها.</string>
+    <string name="explorer_settings_subtitle">پیکربندی رفتار کاوشگر فایل.</string>
+    <string name="searcher_settings_subtitle">پیکربندی رفتار جستجو.</string>
+    <string name="editor_settings_subtitle">پیکربندی رفتار ویرایشگر متن.</string>
+    <string name="history_settings_subtitle">نگهداری و پاک‌سازی تاریخچه عملیات.</string>
+    <string name="clipboard_settings_subtitle">پیکربندی رفتار کلیپ‌بورد.</string>
+
+    <!-- هدف اشتراک‌گذاری ذخیره‌کننده -->
+    <string name="saver_share_label">ذخیره به‌عنوان…</string>
+
+    <!-- هدف اشتراک‌گذاری تک‌فایل -->
+    <string name="share_receive_label">باز کردن در Butler</string>
+
+    <!-- هدف اشتراک‌گذاری ویرایشگر -->
+    <string name="editor_share_label">ویرایش متن</string>
+
+    <!-- باز کردن با: فایلی که برنامه دیگری به Butler سپرده -->
+    <string name="external_open_unknown_file_title">فایل بدون نام</string>
+    <string name="external_open_action_view">مشاهده</string>
+    <string name="external_open_action_edit">ویرایش به‌عنوان متن</string>
+    <string name="external_open_action_show_in_explorer">نمایش در کاوشگر</string>
+    <string name="external_open_action_save">ذخیره به‌عنوان…</string>
+    <string name="external_open_failed_label">باز کردن فایل ممکن نشد</string>
+    <string name="external_open_failed_description">Butler نتوانست \"%1$s\" را باز کند.</string>
+
+    <!-- حالت توسعه‌دهنده -->
+    <string name="settings_developer_mode_unlock_title">حالت توسعه‌دهنده فعال شود؟</string>
+    <string name="settings_developer_mode_unlock_message">این کار ابزارهای پیشرفته عیب‌یابی را برای رفع اشکال و آزمایش باز می‌کند.</string>
+    <string name="settings_developer_mode_unlock_action">فعال‌سازی</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">%d قدم تا حالت توسعه‌دهنده</item>
+        <item quantity="other">%d قدم تا حالت توسعه‌دهنده</item>
+    </plurals>
+
+    <!-- پشتیبانی: فرم تماس -->
+    <string name="support_contact_label">تماس با توسعه‌دهنده</string>
+    <string name="support_contact_description">فرم را پر کنید تا برایم ایمیلی ارسال شود.</string>
+    <string name="support_contact_no_email_app">برنامه ایمیلی پیدا نشد</string>
+    <string name="support_contact_category_label">دسته</string>
+    <string name="support_contact_category_question">سؤال</string>
+    <string name="support_contact_category_feature">درخواست ویژگی</string>
+    <string name="support_contact_category_bug">گزارش اشکال</string>
+    <string name="support_contact_workspace_label">بخش مرتبط</string>
+    <string name="support_contact_workspace_general">عمومی</string>
+    <string name="support_contact_workspace_explorer">کاوشگر</string>
+    <string name="support_contact_workspace_searcher">جستجو</string>
+    <string name="support_contact_workspace_editor">ویرایشگر</string>
+    <string name="support_contact_description_label">توضیحات</string>
+    <string name="support_contact_description_question_hint">سؤال خود را با جزئیات شرح دهید. لطفاً دقیق باشید (حداقل ۲۰ کلمه).</string>
+    <string name="support_contact_description_feature_hint">ویژگی‌ای که مایلید ببینید را شرح دهید. لطفاً دقیق باشید (حداقل ۲۰ کلمه).</string>
+    <string name="support_contact_description_bug_hint">آنچه رخ داده و نحوه بازتولید مشکل را شرح دهید. لطفاً دقیق باشید (حداقل ۲۰ کلمه).</string>
+    <string name="support_contact_expected_label">رفتار مورد انتظار</string>
+    <string name="support_contact_expected_hint">آنچه انتظار داشتید رخ دهد را شرح دهید (حداقل ۱۰ کلمه).</string>
+    <string name="support_contact_word_count">حداقل %1$d کلمه</string>
+    <string name="support_contact_debuglog_label">گزارش اشکال‌زدایی</string>
+    <string name="support_contact_debuglog_empty">هیچ گزارش اشکال‌زدایی‌ای یافت نشد. ابتدا یکی ضبط کنید.</string>
+    <string name="support_contact_debuglog_picker_hint">یک گزارش اشکال‌زدایی موجود را پیوست کنید یا یکی جدید ضبط کنید.</string>
+    <string name="support_contact_send_action">باز کردن برنامه ایمیل</string>
+    <string name="support_contact_welcome">من شخصاً همه پیام‌ها را می‌خوانم و تمام تلاشم را برای پاسخ‌گویی می‌کنم، اما چون به‌تنهایی روی این پروژه کار می‌کنم، ممکن است کمی زمان ببرد. از صبر شما سپاسگزارم.</string>
+    <string name="support_contact_footer">پیام شما از طریق ایمیل ارسال خواهد شد. اطلاعات دستگاه و پیکربندی به‌صورت خودکار پیوست می‌شود. می‌توانید تصاویر یا ویدیویی به ایمیل پیوست کنید.\n\nبخش‌هایی از ایمیل به زبان انگلیسی خواهد بود تا بتوانم آن را راحت‌تر بفهمم.</string>
+
+    <!-- پشتیبانی: فضای ذخیره‌سازی گزارش اشکال‌زدایی -->
+    <string name="support_debuglog_storage_label">فضای ذخیره‌سازی گزارش اشکال‌زدایی</string>
+    <string name="support_debuglog_storage_description">%1$d نشست گزارش، %2$s</string>
+    <string name="support_debuglog_storage_empty">هیچ گزارش اشکال‌زدایی‌ای ذخیره نشده</string>
+    <string name="support_debuglog_delete_action">حذف همه گزارش‌های اشکال‌زدایی</string>
+    <string name="support_debuglog_delete_description">حذف همه فایل‌های گزارش اشکال‌زدایی ضبط‌شده</string>
+    <string name="support_debuglog_delete_confirm_title">همه گزارش‌های اشکال‌زدایی حذف شوند؟</string>
+    <string name="support_debuglog_delete_confirm_message">این کار همه نشست‌های گزارش اشکال‌زدایی ضبط‌شده را برای همیشه حذف می‌کند. ضبط‌های فعال تحت تأثیر قرار نمی‌گیرند.</string>
+
+    <!-- پشتیبانی: عملیات گزارش اشکال‌زدایی -->
+    <string name="settings_support_debuglog_stop_action">توقف ضبط</string>
+    <string name="settings_support_debuglog_record_action">ضبط گزارش اشکال‌زدایی</string>
+
+    <!-- پشتیبانی: پنل نشست‌های اشکال‌زدایی -->
+    <string name="support_debuglog_sessions_label">نشست‌های گزارش اشکال‌زدایی</string>
+    <string name="support_debuglog_sessions_desc">مدیریت نشست‌های گزارش اشکال‌زدایی ضبط‌شده</string>
+    <string name="support_debuglog_sessions_empty">هیچ نشست گزارش اشکال‌زدایی‌ای وجود ندارد</string>
+    <string name="support_debuglog_session_recording">در حال ضبط…</string>
+    <string name="support_debuglog_session_compressing">در حال فشرده‌سازی…</string>
+    <string name="support_debuglog_session_failed_empty_log">ناموفق: گزارش خالی</string>
+    <string name="support_debuglog_session_failed_missing_log">ناموفق: گزارش موجود نیست</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">ناموفق: بایگانی خراب</string>
+    <string name="support_debuglog_session_failed_zip_failed">ناموفق: خطای فشرده‌سازی</string>
+    <string name="support_debuglog_session_delete_title">نشست اشکال‌زدایی حذف شود؟</string>
+    <string name="support_debuglog_session_delete_message">این کار این نشست گزارش اشکال‌زدایی را برای همیشه حذف می‌کند.</string>
+    <string name="support_debuglog_clear_action">پاک کردن همه</string>
+    <string name="support_debuglog_clear_confirm_message">همه نشست‌های ذخیره‌شده گزارش اشکال‌زدایی حذف شوند؟</string>
+
+    <!-- صفحه گزارش اشکال‌زدایی -->
+    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_screen_subtitle">صدور اطلاعات اشکال‌زدایی برای عیب‌یابی</string>
+    <string name="debug_log_screen_sensitive_information_title">اطلاعات حساس</string>
+
+    <!-- پشتیبانی: فرم تماس -->
+    <string name="support_contact_sent_title">آیا پیام را ارسال کردید؟</string>
+    <string name="support_contact_sent_message">اگر پیام ارسال شده باشد، گزارش اشکال‌زدایی پیوست‌شده برای صرفه‌جویی در فضا حذف خواهد شد. اگر نه، می‌توانید آن را نگه دارید و بعداً دوباره تلاش کنید.</string>
+    <string name="support_contact_debuglog_zip_error">آماده‌سازی پیوست گزارش اشکال‌زدایی ناموفق بود</string>
+
+    <!-- عملیات فایل در پس‌زمینه: اعلان‌های پیشرفت و توجه -->
+    <string name="ops_notification_channel_progress_name">پیشرفت عملیات فایل</string>
+    <string name="ops_notification_channel_progress_desc">پیشرفت در حال انجام برای عملیات کپی، انتقال و حذف</string>
+    <string name="ops_notification_channel_attention_name">هشدارهای عملیات فایل</string>
+    <string name="ops_notification_channel_attention_desc">عملیاتی که نیاز به توجه شما دارند یا ناموفق بوده‌اند</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d عملیات فایل در حال اجرا</item>
+        <item quantity="other">%1$d عملیات فایل در حال اجرا</item>
+    </plurals>
+    <string name="ops_notification_state_queued">در صف…</string>
+    <string name="ops_notification_state_cancelling">در حال لغو…</string>
+    <string name="ops_notification_state_attention_title">نیاز به اقدام</string>
+    <string name="ops_notification_state_attention_text">یک تعارض نیاز به توجه شما دارد — برای رفع آن ضربه بزنید</string>
+    <string name="ops_notification_result_failed_title">عملیات ناموفق بود</string>
+
+    <!-- درخواست نظر -->
+    <string name="review_app_body">آیا مایلید برای Butler نظر ثبت کنید؟ ❤️</string>
+    <string name="review_app_dismiss_action">شاید بعداً</string>
+    <string name="review_app_review_action">ثبت نظر</string>
+
+</resources>

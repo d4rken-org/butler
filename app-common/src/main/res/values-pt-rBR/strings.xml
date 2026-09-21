@@ -1,0 +1,315 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Explorador de arquivos extraordinário</string>
+    <!-- Upgraded app title. %1$s is the app name, %2$s the tier qualifier ("Pro" or "FOSS", depending on the build). Reorder or repunctuate for your language; both placeholders must appear exactly once. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Ícone do app Butler</string>
+    <string name="butler_mascot_description">Mascote do Butler</string>
+    <string name="butler_mascot_animation_random_description">Mascote do Butler realizando animações variadas</string>
+    <string name="butler_mascot_animation_wink_description">Mascote do Butler piscando</string>
+    <string name="butler_mascot_animation_greeting_description">Mascote do Butler acenando</string>
+    <string name="butler_mascot_animation_hatoff_description">Mascote do Butler tirando o chapéu respeitosamente</string>
+    <string name="butler_mascot_animation_drink_description">Mascote do Butler bebendo</string>
+    <string name="butler_mascot_animation_moustache_description">Mascote do Butler alisando o bigode</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Mascote do Butler fechando os olhos para dormir</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Mascote do Butler roncando</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Mascote do Butler acordando</string>
+    <string name="butler_mascot_animation_cameo_description">Mascote do SD Maid fazendo uma participação especial</string>
+
+    <string name="slogan_general_message_0">Ao seu dispor.</string>
+    <string name="slogan_general_message_1">Cada coisa em seu lugar.</string>
+    <string name="slogan_general_message_2">Ordem, não caos.</string>
+    <string name="slogan_general_message_3">Buscando seus arquivos.</string>
+    <string name="slogan_general_message_4">Todos os seus arquivos em ordem.</string>
+    <string name="slogan_general_message_5">Sempre organizado.</string>
+    <string name="slogan_general_message_6">Arquivos, encontrados rápido!</string>
+    <string name="slogan_general_message_7">Acesso facilitado.</string>
+    <string name="slogan_general_message_8">Seus arquivos nunca vão se perder.</string>
+    <string name="slogan_general_message_9">Vestindo muitos chapéus.</string>
+    <string name="slogan_newyear_message_0">O mesmo procedimento de todos os anos.</string>
+    <string name="slogan_xmas_message_0">Conferindo os arquivos duas vezes.</string>
+    <string name="slogan_xmas_message_1">Na lista dos bonzinhos.</string>
+    <string name="slogan_halloween_message_0">Bu-tler ao seu dispor.</string>
+    <string name="slogan_halloween_message_1">Nada de travessuras, só arquivos.</string>
+    <string name="slogan_stpatricks_message_0">Sentindo sorte?</string>
+    <string name="slogan_stpatricks_message_1">Encontrando seu pote de ouro.</string>
+    <string name="slogan_aprilfools_message_0">Nada de brincadeira.</string>
+    <string name="slogan_aprilfools_message_1">Seriamente organizado.</string>
+    <string name="slogan_oktoberfest_message_0">Prost aos seus arquivos!</string>
+    <string name="slogan_oktoberfest_message_1">Arquivos na torneira.</string>
+
+    <string name="general_share_action">Compartilhar</string>
+    <string name="general_share_single_title">Compartilhar %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Compartilhar %d arquivo</item>
+        <item quantity="other">Compartilhar %d arquivos</item>
+    </plurals>
+    <string name="general_done_action">Concluído</string>
+    <string name="general_copy_action">Copiar</string>
+    <string name="general_cut_action">Recortar</string>
+    <string name="general_move_action">Mover</string>
+    <string name="general_paste_action">Colar</string>
+    <string name="general_apply_action">Aplicar</string>
+    <string name="general_open_action">Abrir</string>
+    <string name="general_cancel_action">Cancelar</string>
+    <string name="general_close_action">Fechar</string>
+    <string name="general_confirm_action">Confirmar</string>
+    <string name="general_reset_action">Redefinir</string>
+    <string name="general_save_action">Salvar</string>
+    <string name="general_edit_action">Editar</string>
+    <string name="general_na_label">N/D</string>
+    <!-- Announced by screen readers when a dialog opens -->
+    <string name="general_dialog_a11y_label">Diálogo</string>
+    <string name="general_dismiss_action">Descartar</string>
+    <string name="general_read_more_action">Ler mais</string>
+    <string name="general_mark_as_read_action">Marcar como lido</string>
+    <string name="general_back_action">Voltar</string>
+    <string name="general_navigate_up_action">Navegar para cima</string>
+    <string name="general_error_label">Erro</string>
+    <string name="general_error_unknown_label">Erro desconhecido</string>
+    <string name="general_error_invalid_input_label">Entrada inválida</string>
+    <string name="general_share_error_action">Compartilhar erro</string>
+    <string name="general_error_report_subject">Relatório de erro do %1$s (%2$s)</string>
+    <string name="general_error_report_consent_title">Compartilhar relatório de erro?</string>
+    <string name="general_error_report_consent_message">O relatório contém o erro e o rastreamento de pilha que ele gerou, o histórico recente de logs do app e detalhes sobre o estado em que ele se encontrava: nomes e caminhos de arquivos, consultas de pesquisa, nomes de pacotes, URIs, nomes de hosts de rede e SMB, informações do seu dispositivo e da compilação, e um ID de instalação anônimo. Compartilhe apenas com pessoas de confiança.</string>
+    <string name="general_error_report_consent_confirm">Compartilhar relatório</string>
+    <string name="general_privacy_policy_action">Política de privacidade</string>
+    <string name="general_bug_report_subject">Relatório de bug do %1$s (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">Relatório de bug do %1$s: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Descreva o que aconteceu aqui.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Descreva o que você esperava que acontecesse.)</string>
+    <string name="general_duration_input_label">Duração</string>
+    <string name="general_size_input_label">Tamanho</string>
+    <string name="general_upgrade_action">Upgrade</string>
+    <string name="general_refresh_action">Atualizar</string>
+    <string name="general_clear_action">Limpar</string>
+    <string name="general_expand_action">Expandir</string>
+    <string name="general_collapse_action">Recolher</string>
+    <string name="general_completed_label">Concluído</string>
+    <string name="general_cancelled_label">Cancelado</string>
+    <string name="general_searching_label">Pesquisando</string>
+    <string name="general_searching_ellipsis">Pesquisando…</string>
+    <string name="general_progress_loading">Carregando</string>
+    <string name="general_progress_loading_egg_0">Ainda mais rápido que um iPhone</string>
+    <string name="general_progress_loading_egg_1">Baixando mais RAM</string>
+    <string name="general_progress_loading_egg_2">ETA: Em breve™</string>
+    <string name="general_progress_loading_egg_3">A CPU está na hora do café</string>
+    <string name="general_progress_loading_egg_4">Aguardando dados do Pepe Silvia</string>
+    <string name="general_progress_loading_egg_5">O turboencabulador está sendo inicializado</string>
+    <string name="general_progress_loading_egg_6">Passando a manteiga</string>
+    <string name="general_progress_loading_egg_7">Então. Como você está aguentando?</string>
+    <string name="general_progress_loading_egg_8">Bipe, boop, bop</string>
+    <string name="general_progress_loading_egg_9">Bufferizando escolhas de vida</string>
+    <string name="general_progress_loading_egg_10">Invocando Cthulhu</string>
+    <string name="general_progress_loading_egg_11">Está tudo bem</string>
+    <string name="general_progress_loading_egg_12">Aguarde, por favor</string>
+    <string name="general_progress_loading_egg_13">Pelo menos você não está em espera</string>
+    <string name="general_progress_loading_egg_14">Aplique diretamente na testa</string>
+
+    <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%ds</item>
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%dm</item>
+        <item quantity="other">%dm</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dh</item>
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dd</item>
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d segundo</item>
+        <item quantity="other">%d segundos</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d minuto</item>
+        <item quantity="other">%d minutos</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d hora</item>
+        <item quantity="other">%d horas</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d dia</item>
+        <item quantity="other">%d dias</item>
+    </plurals>
+
+    <string name="general_view_action">Visualizar</string>
+    <string name="general_delete_action">Excluir</string>
+    <string name="general_show_details_action">Mostrar detalhes</string>
+    <string name="general_hide_details_action">Ocultar detalhes</string>
+
+    <string name="general_delete_confirmation_title">Confirmar exclusão</string>
+    <string name="general_delete_confirmation_message_x">Excluir \"%s\"?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Excluir %d itens selecionados?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">%d item excluído.</item>
+        <item quantity="other">%d itens excluídos.</item>
+    </plurals>
+
+    <string name="general_create_action">Criar</string>
+    <string name="general_rename_action">Renomear</string>
+    <string name="general_retry_action">Tentar novamente</string>
+    <string name="general_open_setup_action">Abrir configuração</string>
+    <string name="general_grant_usage_stats_action">Conceder acesso de uso</string>
+    <string name="general_grant_storage_permission_action">Conceder permissão de armazenamento</string>
+    <string name="general_grant_all_files_access_action">Permitir acesso a todos os arquivos</string>
+
+    <string name="general_result_user_cancel_msg">O usuário cancelou a operação.</string>
+
+    <string name="general_path_label">Caminho</string>
+    <string name="general_filename_validation_error">O nome contém caracteres inválidos: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d de %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d de %2$d</string>
+
+    <string name="file_type_symbolic_link">Link</string>
+    <string name="file_type_directory">Diretório</string>
+    <string name="file_type_file">Arquivo</string>
+    <string name="file_type_unknown">Desconhecido</string>
+
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">Imagem</string>
+    <string name="common_mimetype_video">Vídeo</string>
+    <string name="common_mimetype_audio">Áudio</string>
+    <string name="common_mimetype_text_plain">Texto simples</string>
+    <string name="common_mimetype_text">Documento de texto</string>
+    <string name="common_mimetype_pdf">Documento PDF</string>
+    <string name="common_mimetype_document">Documento</string>
+    <string name="common_mimetype_archive">Arquivo compactado</string>
+    <string name="common_mimetype_apk">Pacote Android</string>
+    <string name="common_mimetype_json">Arquivo JSON</string>
+    <string name="common_mimetype_xml">Arquivo XML</string>
+    <string name="common_mimetype_unknown">Tipo desconhecido</string>
+
+    <string name="general_rom_type_auto_label">Automático (padrão)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s item/s</item>
+        <item quantity="other">%s itens/s</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/s</item>
+        <item quantity="other">%s/s</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Tipo incompatível: esperado %1$s, mas obtido %2$s.</string>
+    <string name="general_error_cant_access_msg">Não é possível acessar %s.</string>
+    <string name="general_error_archive_not_seekable_msg">%s não pode ser navegado diretamente: o armazenamento em que está só oferece suporte a leitura sequencial, mas esse formato de arquivo compactado exige acesso aleatório.</string>
+    <string name="general_error_root_unavailable">O acesso root não está disponível.</string>
+    <string name="general_error_elevated_access_required">Esta operação exige acesso elevado. Configure o Root ou o Shizuku em Configuração.</string>
+    <string name="general_error_no_compatible_app_found_msg">Nenhum app compatível encontrado para atender a essa solicitação.</string>
+    <string name="general_error_ipc_deadobject_title">Conexão com o serviço perdida</string>
+    <string name="general_error_ipc_deadobject_description">A conexão com um serviço essencial (por exemplo, Magisk, Shizuku ou outros serviços do sistema) foi perdida inesperadamente. Reinicie o dispositivo. Se o problema persistir, procure por atualizações ou entre em contato comigo para que eu possa corrigir.</string>
+
+    <string name="ui_theme_mode_dark_label">Escuro</string>
+    <string name="ui_theme_mode_light_label">Claro</string>
+    <string name="ui_theme_mode_system_label">Sistema</string>
+    <string name="ui_theme_style_default_label">Padrão</string>
+    <string name="ui_theme_style_medium_contrast_label">Contraste médio</string>
+    <string name="ui_theme_style_high_contrast_label">Contraste alto</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Verde</string>
+    <string name="ui_theme_color_blue_label">Azul</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Personalizado</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Toque tonal</string>
+    <string name="ui_theme_palette_neutral_label">Neutro</string>
+    <string name="ui_theme_palette_vibrant_label">Vibrante</string>
+    <string name="ui_theme_palette_expressive_label">Expressivo</string>
+    <string name="ui_theme_palette_rainbow_label">Arco-íris</string>
+    <string name="ui_theme_palette_fruitsalad_label">Salada de frutas</string>
+    <string name="ui_theme_palette_monochrome_label">Monocromático</string>
+    <string name="ui_theme_palette_fidelity_label">Fidelidade</string>
+    <string name="ui_theme_palette_content_label">Conteúdo</string>
+
+    <string name="ui_theme_custom_dialog_title">Tema personalizado</string>
+    <string name="ui_theme_custom_seed_label">Cor base</string>
+    <string name="ui_theme_custom_palette_label">Estilo de paleta</string>
+    <string name="ui_theme_custom_default_action">Padrão</string>
+
+    <string name="ui_mascot_suit_dialog_title">O terno do Butler</string>
+    <string name="ui_mascot_suit_default_action">Padrão</string>
+    <string name="ui_mascot_suit_hue_label">Matiz</string>
+    <string name="ui_mascot_suit_saturation_label">Saturação</string>
+    <string name="ui_mascot_suit_brightness_label">Brilho</string>
+    <string name="ui_mascot_suit_value_description">Cor do terno %s</string>
+
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">Estatísticas de uso</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Acesso a notificações</string>
+    <string name="setup_manage_storage_card_title">Gerenciar armazenamento externo</string>
+    <string name="setup_inventory_card_title">Inventário de apps</string>
+
+    <!-- Common permission strings -->
+    <string name="setup_required_card_title">Configuração necessária</string>
+    <string name="setup_required_card_body">É necessária configuração adicional para realizar essa operação.</string>
+    <string name="setup_required_card_setup_action">Abrir configuração</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">Abrir várias abas?</string>
+    <string name="common_open_tabs_confirmation_message">Isso abrirá %1$d abas.</string>
+    <string name="common_open_tabs_success">%1$d abas abertas</string>
+    <string name="common_open_tabs_success_with_skipped">%1$d abas abertas (%2$d itens ignorados)</string>
+
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">Fechar aba?</string>
+    <string name="general_tab_close_confirmation_message">Tem certeza de que deseja fechar \"%1$s\"?</string>
+    <string name="general_tab_close_unsaved_title">Alterações não salvas</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" tem alterações não salvas. Fechar e descartá-las?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" e mais %2$d têm alterações não salvas. Fechar e descartá-las?</string>
+    <string name="general_discard_action">Descartar</string>
+    <string name="general_tab_close_goto_action">Ir para a aba</string>
+
+    <!-- Exit app -->
+    <string name="general_press_back_again_to_exit">Toque em voltar novamente para sair</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d selecionado</item>
+        <item quantity="other">%d selecionados</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d pasta</item>
+        <item quantity="other">%1$d pastas</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d arquivo</item>
+        <item quantity="other">%1$d arquivos</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Selecionar todas as pastas</string>
+    <string name="common_select_all_files_action">Selecionar todos os arquivos</string>
+    <string name="general_undo_action">Desfazer</string>
+
+    <!-- Guided tours -->
+    <string name="tour_action_next">Próximo</string>
+    <string name="tour_action_previous">Anterior</string>
+    <string name="tour_action_cancel">Pular</string>
+    <string name="tour_confirm_title">Pular o tour?</string>
+    <string name="tour_confirm_message">Você pode reativar os tours a qualquer momento em Configurações.</string>
+    <string name="tour_confirm_continue">Continuar tour</string>
+    <string name="tour_confirm_dont_show_this_tour">Não mostrar este tour</string>
+    <string name="tour_confirm_disable_all">Desativar todos os tours</string>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">Use vários painéis para comparar arquivos lado a lado.</string>
+    <string name="common_tip_different_folders">Abra pastas diferentes em cada painel para facilitar o gerenciamento de arquivos.</string>
+    <string name="common_tip_switch_layouts">Alterne entre layouts de painel no gerenciador de configurações da aba.</string>
+    <string name="common_tip_elevated_access">Ative o root ou o Shizuku em Configuração para operações avançadas de arquivos.</string>
+    <string name="common_tip_breadcrumb_home">Toque e segure em um item da trilha de navegação do Explorador para defini-lo como seu diretório inicial.</string>
+</resources>

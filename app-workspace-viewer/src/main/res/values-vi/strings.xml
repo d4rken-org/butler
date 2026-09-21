@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Thanh công cụ và hình ảnh -->
+    <string name="viewer_open_with_action">Mở bằng</string>
+    <string name="viewer_image_content_description">Hình ảnh %1$s</string>
+    <string name="viewer_toolbar_folder_label">Thư mục</string>
+    <string name="viewer_back_action">Quay lại</string>
+
+    <!-- Thanh hành động -->
+    <string name="viewer_previous_file_action">Tệp trước</string>
+    <string name="viewer_next_file_action">Tệp tiếp theo</string>
+    <string name="viewer_open_location_action">Mở vị trí</string>
+    <string name="viewer_clipboard_copied">%1$s đã sao chép. Dán trong thẻ Trình duyệt tệp.</string>
+    <string name="viewer_clipboard_cut">%1$s đã cắt. Dán trong thẻ Trình duyệt tệp để di chuyển.</string>
+    <string name="viewer_share_failed_label">Không thể chia sẻ tệp này</string>
+    <string name="viewer_share_failed_description">%1$s không thể được chuyển đến ứng dụng khác. Điều này xảy ra với các tệp cần quyền root hoặc ADB, và với các tệp không còn ở đó.</string>
+
+    <!-- Thẻ thông tin tệp -->
+    <string name="viewer_info_size_label">Kích thước</string>
+    <string name="viewer_info_modified_label">Đã sửa đổi</string>
+    <string name="viewer_info_created_label">Đã tạo</string>
+    <string name="viewer_info_format_label">Định dạng</string>
+    <string name="viewer_info_dimensions_label">Kích thước</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Quyền</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Chủ sở hữu</string>
+    <string name="viewer_info_caption_label">Chú thích</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Hiển thị tất cả chi tiết</string>
+    <string name="viewer_info_collapse_action">Ẩn chi tiết</string>
+
+    <!-- Xem trước PDF -->
+    <string name="viewer_pdf_preview_hint_single">Xem trước · 1 trang</string>
+    <string name="viewer_pdf_page_indicator">Trang %1$d của %2$d</string>
+    <string name="viewer_pdf_page_previous">Trang trước</string>
+    <string name="viewer_pdf_page_next">Trang tiếp theo</string>
+    <string name="viewer_pdf_page_error">Trang %1$d không thể hiển thị.</string>
+    <string name="viewer_pdf_page_content_description">Xem trước PDF của %1$s, trang %2$d của %3$d</string>
+
+    <!-- Tệp không được hỗ trợ -->
+    <string name="viewer_unsupported_title">Loại tệp này chưa được hỗ trợ</string>
+
+    <!-- Lưu trữ -->
+    <string name="viewer_archive_title">Đây là một kho lưu trữ</string>
+    <string name="viewer_browse_archive_action">Duyệt nội dung</string>
+    <string name="viewer_archive_needs_copy_msg">Lưu một bản sao vào thiết bị của bạn, sau đó Butler có thể duyệt nội dung bên trong.</string>
+    <string name="viewer_archive_nested_msg">Kho lưu trữ này nằm trong một kho lưu trữ khác. Giải nén nó trước để duyệt nội dung bên trong.</string>
+
+    <!-- Tệp APK -->
+    <string name="viewer_apk_version_label">Phiên bản</string>
+    <string name="viewer_apk_min_sdk_label">SDK tối thiểu</string>
+    <string name="viewer_apk_target_sdk_label">SDK đích</string>
+    <string name="viewer_apk_installed_label">Đã cài đặt</string>
+    <string name="viewer_apk_not_installed_value">Chưa cài đặt</string>
+    <string name="viewer_apk_installed_unknown_value">Không thể kiểm tra</string>
+    <string name="viewer_apk_installed_older_hint">Cũ hơn tệp này</string>
+    <string name="viewer_apk_installed_newer_hint">Mới hơn tệp này</string>
+    <string name="viewer_apk_permissions_header">Quyền (%1$d)</string>
+    <string name="viewer_apk_signing_header">Chứng chỉ ký</string>
+
+    <!-- Cài đặt ứng dụng -->
+    <string name="viewer_install_action">Cài đặt</string>
+    <string name="viewer_bundle_format_label">Định dạng gói</string>
+    <string name="viewer_bundle_splits_label">APK bên trong</string>
+    <string name="viewer_bundle_expansion_files_hint">Chứa các tệp mở rộng được đặt sau khi ứng dụng được cài đặt.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Đặt các tệp mở rộng cần quyền root hoặc ADB. Nếu không, ứng dụng sẽ được cài đặt nhưng các tệp mở rộng sẽ bị bỏ lại.</string>
+
+    <!-- Biểu tượng APK -->
+    <string name="viewer_apk_icon_content_description">Biểu tượng ứng dụng của %1$s</string>
+    <string name="viewer_apk_icon_show_action">Hiển thị biểu tượng</string>
+    <string name="viewer_apk_icon_save_action">Lưu biểu tượng</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Biểu tượng đã lưu dưới dạng %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Thay thế tệp?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s đã tồn tại trong thư mục này. Lưu biểu tượng sẽ thay thế nó.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Thay thế</string>
+
+    <!-- Thông báo thay đổi bên ngoài -->
+    <string name="viewer_external_change_title">Tệp đã thay đổi</string>
+    <string name="viewer_external_change_message">Tệp này đã thay đổi trên thiết bị. Làm mới để tải lại nó.</string>
+    <string name="viewer_external_change_gone_title">Tệp đã biến mất</string>
+    <string name="viewer_external_change_gone_message">Tệp này đã bị xóa hoặc không còn có thể truy cập được.</string>
+
+    <!-- Lỗi -->
+    <string name="viewer_error_title">Không thể hiển thị tệp này</string>
+    <string name="viewer_error_not_a_file_label">Không phải tệp</string>
+    <string name="viewer_error_not_a_file_description">%1$s không phải là tệp thông thường.</string>
+    <string name="viewer_error_broken_symlink_label">Lối tắt bị hỏng</string>
+    <string name="viewer_error_broken_symlink_description">%1$s trỏ đến một cái gì đó không còn tồn tại.</string>
+    <string name="viewer_error_undecodable_label">Hình ảnh bị hỏng</string>
+    <string name="viewer_error_undecodable_description">%1$s không thể được giải mã. Tệp có thể bị không đầy đủ hoặc bị hỏng.</string>
+    <string name="viewer_error_file_gone_label">Tệp không tìm thấy</string>
+    <string name="viewer_error_file_gone_description">%1$s không còn tồn tại. Nó có thể đã được di chuyển, đổi tên hoặc xóa.</string>
+    <string name="viewer_error_empty_file_label">Tệp trống</string>
+    <string name="viewer_error_empty_file_description">%1$s trống và không có gì để hiển thị.</string>
+    <string name="viewer_error_apk_unreadable_label">APK không thể đọc được</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s không thể được phân tích cú pháp dưới dạng gói ứng dụng Android.</string>
+    <string name="viewer_error_icon_unavailable_label">Không có biểu tượng</string>
+    <string name="viewer_error_icon_unavailable_description">Biểu tượng ứng dụng của %1$s không thể đọc được.</string>
+    <string name="viewer_error_icon_target_notfile_label">Tên đã được sử dụng</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s đã tồn tại ở đây và không phải là tệp thông thường, vì vậy nó không thể được thay thế.</string>
+    <string name="viewer_error_icon_target_appeared_label">Tệp xuất hiện</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s được tạo trong khi bạn chọn nơi lưu. Không có gì bị ghi đè, hãy thử lại.</string>
+    <string name="viewer_error_content_unreadable_label">Không thể đọc tệp này</string>
+    <string name="viewer_error_content_unreadable_description">Ứng dụng đã chia sẻ %1$s không còn cho phép Butler đọc nó. Yêu cầu ứng dụng đó chia sẻ lại.</string>
+    <string name="viewer_save_copy_action">Lưu một bản sao…</string>
+    <string name="viewer_open_in_editor_action">Mở trong trình soạn thảo</string>
+    <string name="viewer_text_truncated_bytes">Xem trước giới hạn ở %1$s đầu tiên của tệp này.</string>
+    <string name="viewer_text_truncated_lines">Xem trước giới hạn ở %1$s dòng đầu tiên của tệp này.</string>
+    <string name="viewer_text_truncated_width">Các dòng dài được rút ngắn trong bản xem trước này.</string>
+    <string name="viewer_text_unreadable_label">Không thể đọc tệp này</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">새로 만들기</string>
+    <string name="workspace_templates_choose_title">새 탭</string>
+    <string name="workspace_templates_choose_subtitle">탭 종류를 선택하세요. 어떻게 도와드릴까요?</string>
+    <string name="workspace_templates_name_tab_action">이 탭 이름 지정</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">도구 선택</string>
+    <string name="tour_templates_picker_body">이것은 탭 선택기입니다. 이 탭이 어떤 도구여야 할지 선택하세요. 하나를 선택하면 이 탭이 그 도구로 변합니다.</string>
+    <string name="tour_templates_butler_button_title">탭이 여기에 있습니다</string>
+    <string name="tour_templates_butler_button_body">Butler 버튼을 눌러 탭 메뉴를 열어보세요. 새 탭을 만들거나 현재 탭을 닫거나 전체 탭 관리자를 열 수 있습니다. 길게 눌러 탭 관리자로 바로 이동하세요.</string>
+</resources>

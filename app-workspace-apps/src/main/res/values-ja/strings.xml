@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apps Workspace -->
+    <string name="apps_title">アプリ</string>
+    <string name="apps_subtitle">インストール済みのアプリを管理</string>
+
+    <!-- Filter Labels -->
+    <string name="apps_filter_app_type_label">アプリの種類</string>
+    <string name="apps_filter_type_all">すべて</string>
+    <string name="apps_filter_type_user">ユーザーアプリ</string>
+    <string name="apps_filter_type_system">システムアプリ</string>
+    <string name="apps_filter_status_label">ステータス</string>
+    <string name="apps_filter_status_all">すべて</string>
+    <string name="apps_filter_status_enabled">有効</string>
+    <string name="apps_filter_status_disabled">無効</string>
+
+
+    <!-- Sort Options -->
+    <string name="apps_sort_mode_label">並べ替え</string>
+    <string name="apps_sort_mode_name_label">名前</string>
+    <string name="apps_sort_mode_size_label">サイズ</string>
+    <string name="apps_sort_mode_install_date_label">インストール日</string>
+    <string name="apps_sort_mode_update_date_label">更新日</string>
+    <string name="apps_sort_mode_package_name_label">パッケージ名</string>
+    <string name="apps_sort_descending_label">降順</string>
+    <string name="apps_sort_mode_size_slowdown_hint">アプリサイズの計算により読み込みが遅くなります</string>
+
+    <!-- Actions -->
+    <string name="apps_action_launch">起動</string>
+    <string name="apps_action_open_info">アプリ情報</string>
+    <string name="apps_action_disable">無効化</string>
+    <string name="apps_action_enable">有効化</string>
+    <string name="apps_action_uninstall">アンインストール</string>
+    <string name="apps_action_clear_data">データを消去</string>
+    <string name="apps_action_export_apk">APKをエクスポート</string>
+    <string name="apps_action_browse_path">パスを参照</string>
+    <string name="apps_action_share">情報を共有</string>
+    <string name="apps_action_refresh">更新</string>
+    <string name="apps_action_sort">並べ替え</string>
+    <string name="apps_action_filter">フィルター</string>
+    <string name="apps_action_select_all">すべて選択</string>
+    <string name="apps_action_deselect_all">すべて選択解除</string>
+    <string name="apps_action_open_in_tab">タブで開く</string>
+    <string name="apps_action_force_stop">強制停止</string>
+    <string name="apps_action_view">レイアウト</string>
+
+    <!-- View options -->
+    <string name="apps_view_sheet_subtitle">項目の並び方と表示する情報量</string>
+    <string name="apps_view_mode_list_label">リスト</string>
+    <string name="apps_view_mode_grid_label">グリッド</string>
+    <string name="apps_view_density_compact_label">コンパクト</string>
+    <string name="apps_view_density_comfortable_label">ゆったり</string>
+    <string name="apps_view_density_detailed_label">詳細</string>
+    <string name="apps_view_set_default_action">デフォルトに設定</string>
+    <string name="apps_view_detail_dates_label">インストール: %1$s ・更新: %2$s</string>
+
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">アプリを起動します</string>
+    <string name="apps_action_open_info_desc">詳細なシステム情報を表示します</string>
+    <string name="apps_action_enable_desc">このアプリを有効にします</string>
+    <string name="apps_action_disable_desc">このアプリを無効にします</string>
+    <string name="apps_action_uninstall_desc">このアプリを削除します</string>
+    <string name="apps_action_export_apk_desc">APKファイルをストレージに保存します</string>
+    <string name="apps_action_share_desc">アプリの詳細をテキストとして共有します</string>
+    <string name="apps_action_force_stop_desc">アプリを直ちに停止します</string>
+    <string name="apps_action_clear_data_desc">アプリのすべてのデータと設定を削除します</string>
+
+    <!-- App Info Labels -->
+    <string name="apps_package_name_label">パッケージ</string>
+    <string name="apps_version_label">バージョン</string>
+    <string name="apps_size_label">サイズ</string>
+    <string name="apps_size_chip_desc">アプリサイズ: %1$s</string>
+    <string name="apps_size_permission_hint">アプリサイズには使用状況へのアクセスが必要です</string>
+    <string name="apps_size_permission_body">Androidは、使用状況へのアクセス権限を持つアプリにのみ、アプリ・データ・キャッシュのサイズを報告します。この権限を許可すると、アプリのストレージ内訳を確認できます。</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">保存場所</string>
+    <string name="apps_path_internal_data_label">内部データ</string>
+    <string name="apps_path_external_data_label">外部ストレージ</string>
+    <string name="apps_path_requires_root_label">rootが必要</string>
+    <string name="apps_path_requires_shizuku_label">Shizukuが必要</string>
+    <string name="apps_path_requires_root_or_shizuku_label">rootまたはShizukuが必要</string>
+    <string name="apps_path_requires_access_label">追加のアクセス権が必要</string>
+    <string name="apps_storage_breakdown_label">ストレージの内訳</string>
+    <string name="apps_storage_app_label">アプリ</string>
+
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">概要</string>
+    <string name="appdetails_tab_packageinfo_label">パッケージ情報</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">アプリ一覧に戻る</string>
+    <string name="appdetails_close_action">閉じる</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_title">パッケージ情報</string>
+    <string name="appdetails_packageinfo_view_action">パッケージの詳細を表示</string>
+    <string name="appdetails_packageinfo_unavailable_msg">アプリのパッケージ情報を読み取れませんでした。</string>
+    <string name="appdetails_packageinfo_permissions_header">権限 (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">署名証明書</string>
+    <string name="appdetails_packageinfo_package_label">パッケージ</string>
+    <string name="appdetails_packageinfo_version_label">バージョン</string>
+    <string name="appdetails_packageinfo_min_sdk_label">最小SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">ターゲットSDK</string>
+
+    <!-- Empty States -->
+    <string name="apps_empty_no_apps">アプリが見つかりません</string>
+    <string name="apps_empty_no_apps_desc">フィルターを調整してみてください</string>
+    <string name="apps_empty_loading">アプリを読み込み中…</string>
+
+    <!-- Search -->
+    <string name="apps_search_hint">アプリを検索</string>
+
+    <!-- Multi-select -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">アプリを選択</item>
+        <item quantity="other">%d個選択</item>
+    </plurals>
+
+    <!-- Info Bar -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="other">ユーザーアプリ %d個</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="other">システムアプリ %d個</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="other">%d個選択</item>
+    </plurals>
+
+    <!-- App Details Sections -->
+    <string name="apps_details_section_actions">操作</string>
+    <string name="apps_details_section_overview">概要</string>
+    <string name="apps_details_section_storage">ストレージ</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">その他のオプション</string>
+
+    <!-- App Details package data -->
+    <string name="apps_details_pkgdata_error_title">アプリデータを読み込めませんでした</string>
+    <string name="apps_details_gone_title">アプリが削除されました</string>
+    <string name="apps_details_gone_message">このアプリはこの端末にインストールされていません。</string>
+    <string name="apps_details_gone_close_action">閉じる</string>
+    <string name="apps_details_uninstalled_title">このユーザーではアンインストール済み</string>
+    <string name="apps_details_uninstalled_message">このユーザーではアプリがアンインストールされていますが、ファイルは端末に残っています。</string>
+
+    <!-- App Details confirmations -->
+    <string name="apps_details_confirm_clear_data_title">アプリデータを消去しますか。</string>
+    <string name="apps_details_confirm_clear_data_message">%1$sのすべてのデータと設定が削除されます。この操作は元に戻せません。</string>
+    <string name="apps_details_confirm_uninstall_title">アプリをアンインストールしますか。</string>
+    <string name="apps_details_confirm_uninstall_message">%1$sがこの端末から削除されます。</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">種類</string>
+    <string name="apps_type_system">システムアプリ</string>
+    <string name="apps_type_user">ユーザーアプリ</string>
+    <string name="apps_status_label">ステータス</string>
+    <string name="apps_status_enabled">有効</string>
+    <string name="apps_status_disabled">無効</string>
+    <string name="apps_installed_label">インストール日</string>
+    <string name="apps_updated_label">最終更新日</string>
+    <string name="apps_target_sdk_label">ターゲットSDK</string>
+    <string name="apps_min_sdk_label">最小SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">インストール元</string>
+    <string name="apps_permissions_label">権限</string>
+    <string name="apps_permissions_count">権限 %1$d件</string>
+    <string name="apps_data_size_label">データ</string>
+    <string name="apps_cache_size_label">キャッシュ</string>
+    <string name="apps_total_size_label">合計</string>
+
+    <!-- App Tags -->
+    <string name="apps_tag_system_label">システム</string>
+    <string name="apps_tag_disabled_label">無効</string>
+    <string name="apps_tag_updated_label">更新済み</string>
+    <string name="apps_tag_sideloaded_label">サイドロード</string>
+    <string name="apps_tag_split_label">分割APK</string>
+    <string name="apps_tag_debug_label">デバッグ</string>
+    <string name="apps_tag_user_label">ユーザー %1$d</string>
+
+    <!-- Filter Tags (virtual tags for filtering) -->
+    <string name="apps_filter_tag_enabled_label">有効</string>
+    <string name="apps_filter_tag_user_app_label">ユーザーアプリ</string>
+    <string name="apps_filter_include_label">含める条件（すべてに一致）</string>
+    <string name="apps_filter_exclude_label">除外する条件</string>
+    <string name="apps_filter_add_action">フィルター</string>
+    <string name="apps_filter_hint">タップで含める、もう一度タップで除外、さらにタップで削除</string>
+    <plurals name="apps_filter_count">
+        <item quantity="other">フィルター %d個</item>
+    </plurals>
+
+    <!-- Components Section -->
+    <string name="apps_details_section_components">コンポーネント</string>
+    <string name="apps_components_activities_label">アクティビティ</string>
+    <string name="apps_components_services_label">サービス</string>
+    <string name="apps_components_receivers_label">ブロードキャストレシーバー</string>
+    <string name="apps_components_providers_label">コンテンツプロバイダー</string>
+    <string name="apps_components_exported">エクスポート済み</string>
+    <string name="apps_components_disabled">無効</string>
+    <string name="apps_components_empty">コンポーネントが見つかりません</string>
+    <string name="apps_components_no_matches">「%1$s」に一致するコンポーネントがありません</string>
+    <string name="apps_components_and_more">…ほか%d個</string>
+    <string name="apps_components_view_all_action">すべてのコンポーネントを表示</string>
+    <string name="apps_components_loading">コンポーネントを読み込み中…</string>
+    <string name="apps_components_error">コンポーネントを読み込めませんでした</string>
+    <string name="apps_components_launch_failed">アクティビティを起動できませんでした</string>
+    <string name="apps_components_kind_activity">アクティビティ</string>
+    <string name="apps_components_kind_service">サービス</string>
+    <string name="apps_components_kind_receiver">ブロードキャストレシーバー</string>
+    <string name="apps_components_kind_provider">コンテンツプロバイダー</string>
+    <string name="apps_components_search_action">コンポーネントを検索</string>
+    <string name="apps_components_search_hint">名前またはパッケージで検索</string>
+    <string name="apps_components_state_label">状態</string>
+    <string name="apps_components_state_enabled">有効</string>
+    <string name="apps_components_state_disabled">無効</string>
+    <string name="apps_components_field_type">種類</string>
+    <string name="apps_components_field_package">パッケージ</string>
+    <string name="apps_components_field_permission">権限</string>
+    <string name="apps_components_field_write_permission">書き込み権限</string>
+    <string name="apps_components_field_authority">オーソリティ</string>
+    <string name="apps_components_field_process">プロセス</string>
+    <string name="apps_components_field_launch_mode">起動モード</string>
+    <string name="apps_components_launch_action">起動</string>
+    <string name="apps_components_copy_name_action">コンポーネント名をコピー</string>
+    <string name="apps_components_copy_package_action">パッケージ名をコピー</string>
+    <string name="apps_components_action_enable">コンポーネントを有効化</string>
+    <string name="apps_components_action_disable">コンポーネントを無効化</string>
+    <string name="apps_components_action_requires_elevated">rootまたはShizukuが必要 — タップして設定</string>
+    <string name="apps_components_confirm_enable_title">コンポーネントを有効にしますか。</string>
+    <string name="apps_components_confirm_disable_title">コンポーネントを無効にしますか。</string>
+    <string name="apps_components_confirm_enable_message">次のコンポーネントが有効になります:</string>
+    <string name="apps_components_confirm_disable_message">次のコンポーネントが無効になります。アプリが正常に動作しなくなる可能性があります。</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="other">%d個のコンポーネントを選択</item>
+    </plurals>
+
+    <!-- Package operations -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="other">%d個のアプリを有効化</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="other">%d個のアプリを無効化</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="other">%d個のアプリを強制停止</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="other">%d個のアプリをアンインストール</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="other">%d個のアプリのデータを消去</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="other">%d個のコンポーネントを有効化</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="other">%d個のコンポーネントを無効化</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="other">%d個のアプリ</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">%1$sを有効化しました</string>
+    <string name="apps_operation_disable_summary">%1$sを無効化しました</string>
+    <string name="apps_operation_force_stop_summary">%1$sを停止しました</string>
+    <string name="apps_operation_uninstall_summary">%1$sをアンインストールしました</string>
+    <string name="apps_operation_clear_data_summary">%1$sのデータを消去しました</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="other">%1$d個のコンポーネントを有効化しました</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="other">%1$d個のコンポーネントを無効化しました</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">%1$sの処理を完了できませんでした</string>
+    <string name="apps_operation_single_declined_summary">%1$sの削除が拒否されました</string>
+    <string name="apps_operation_batch_summary">%2$d件中%1$d件完了</string>
+    <!-- Quoted so the leading separator survives the resource parser -->
+    <string name="apps_operation_batch_summary_failed">"・%1$d件失敗"</string>
+    <string name="apps_operation_batch_summary_declined">"・%1$d件拒否"</string>
+
+    <!-- Generic navigation -->
+    <string name="appdetails_back_generic_action">戻る</string>
+
+</resources>

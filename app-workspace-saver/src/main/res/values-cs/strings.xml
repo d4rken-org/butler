@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Uložit jako</string>
+    <string name="saver_preview_label">Náhled</string>
+    <string name="saver_loading">Načítání…</string>
+    <string name="saver_shared_from">Sdíleno z %1$s</string>
+    <string name="saver_shared_generic">Sdíleno s Butlerem</string>
+    <string name="saver_destination_label">Cíl</string>
+    <string name="saver_select_destination_hint">Vybrat cílovou složku</string>
+    <string name="saver_filename_label">Název souboru</string>
+    <string name="saver_save_action">Uložit</string>
+    <string name="saver_saving_progress">Ukládání…</string>
+    <string name="saver_success_message">Soubor byl úspěšně uložen</string>
+    <string name="saver_open_saved_action">Otevřít složku</string>
+    <string name="saver_retry_action">Opakovat</string>
+    <string name="saver_save_again_action">Uložit na nové místo</string>
+    <string name="saver_close_tab_action">Zavřít kartu</string>
+    <string name="saver_close_butler_action">Zavřít kartu a vrátit se</string>
+    <string name="saver_done_action">Hotovo</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Zdrojový soubor už není dostupný. Prosím, sdílejte znovu.</item>
+        <item quantity="few">%1$d zdrojové soubory už nejsou dostupné. Prosím, sdílejte znovu.</item>
+        <item quantity="many">%1$d zdrojového souboru už není dostupné. Prosím, sdílejte znovu.</item>
+        <item quantity="other">%1$d zdrojových souborů už není dostupných. Prosím, sdílejte znovu.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Zdrojový soubor už není dostupný</string>
+    <string name="saver_error_permission_denied">Přístup zamítnut</string>
+    <string name="saver_error_write_failed">Nepodařilo se uložit soubor</string>
+    <string name="saver_error_file_exists">Soubor již existuje</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Uložit soubory</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Ukládání %1$d souboru do %2$s</item>
+        <item quantity="few">Ukládání %1$d souborů do %2$s</item>
+        <item quantity="many">Ukládání %1$d souboru do %2$s</item>
+        <item quantity="other">Ukládání %1$d souborů do %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Uložit %1$d soubor</item>
+        <item quantity="few">Uložit %1$d soubory</item>
+        <item quantity="many">Uložit %1$d souboru</item>
+        <item quantity="other">Uložit %1$d souborů</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d soubor uložen</item>
+        <item quantity="few">%1$d soubory uloženy</item>
+        <item quantity="many">%1$d souboru uloženo</item>
+        <item quantity="other">%1$d souborů uloženo</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d soubor selhal</item>
+        <item quantity="few">%1$d soubory selhaly</item>
+        <item quantity="many">%1$d souboru selhalo</item>
+        <item quantity="other">%1$d souborů selhalo</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d soubor přeskočen</item>
+        <item quantity="few">%1$d soubory přeskočeny</item>
+        <item quantity="many">%1$d souboru přeskočeno</item>
+        <item quantity="other">%1$d souborů přeskočeno</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d z %2$d souborů uloženo</string>
+</resources>

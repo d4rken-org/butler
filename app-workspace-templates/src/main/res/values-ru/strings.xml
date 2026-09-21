@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Новое</string>
+    <string name="workspace_templates_choose_title">Новая вкладка</string>
+    <string name="workspace_templates_choose_subtitle">Выберите тип вкладки. Чем я могу помочь?</string>
+    <string name="workspace_templates_name_tab_action">Назовите эту вкладку</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Выберите инструмент</string>
+    <string name="tour_templates_picker_body">Это средство выбора вкладки. Выберите, что должна быть эта вкладка. Выбор инструмента превращает эту вкладку в этот инструмент.</string>
+    <string name="tour_templates_butler_button_title">Ваши вкладки здесь</string>
+    <string name="tour_templates_butler_button_body">Нажмите кнопку Butler для меню вкладок: создайте новую вкладку, закройте текущую или откройте полный диспетчер вкладок. Долгое нажатие направит вас прямо в диспетчер вкладок.</string>
+</resources>

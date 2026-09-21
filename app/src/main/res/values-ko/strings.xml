@@ -1,0 +1,523 @@
+<resources>
+    <string name="onboarding_welcome_title">Butler에 오신 것을 환영합니다</string>
+    <string name="onboarding_welcome_message">파일을 위한 탭.\n탐색, 검색, 편집을 한 번에.</string>
+    <string name="onboarding_welcome_subtitle">오픈소스. 광고 없음. 추적 없음.\n당신을 위한 파일 탐색기.</string>
+    <string name="onboarding_welcome_action">탐색 시작</string>
+    <string name="onboarding_beta_title">미래를 함께 만듭니다</string>
+    <string name="onboarding_beta_message">이 버전은 베타(테스트) 빌드입니다. 유머 감각과 백업 계획을 갖고 진행해 주십시오. 발견한 문제는 알려주십시오.</string>
+    <string name="onboarding_beta_action">두렵지 않습니다</string>
+    <string name="onboarding_beta_feature_early_access_title">얼리 액세스</string>
+    <string name="onboarding_beta_feature_early_access_description">누구보다 먼저 최신 기능을 사용해 보십시오.</string>
+    <string name="onboarding_beta_feature_influence_title">직접적인 영향력</string>
+    <string name="onboarding_beta_feature_influence_description">여러분의 피드백이 Butler의 발전 방향을 만들어갑니다.</string>
+    <string name="onboarding_beta_feature_feedback_title">커뮤니티 중심</string>
+    <string name="onboarding_beta_feature_feedback_description">Butler를 함께 개선해나가는 파워 유저 커뮤니티에 참여하십시오.</string>
+    <string name="onboarding_privacy_title">개인정보 &amp; 데이터</string>
+    <string name="onboarding_privacy_message">Butler에는 광고가 없고, 사용자 데이터를 판매하지 않습니다. 여러분의 개인정보는 저에게 소중합니다.</string>
+    <string name="onboarding_privacy_read_action">개인정보처리방침 읽기</string>
+    <string name="onboarding_privacy_action">동의</string>
+    <string name="onboarding_skip_action">건너뛰기</string>
+    <string name="onboarding_progress_step">%2$d 중 %1$d</string>
+
+    <string name="onboarding_workspaces_title">탭으로 작업하기</string>
+    <string name="onboarding_workspaces_message">웹 브라우저처럼 여러 탭을 열고 자유롭게 전환하십시오.</string>
+    <string name="onboarding_workspaces_action">계속</string>
+    <string name="onboarding_workspaces_hint">여러 탭을 동시에 열어두십시오.</string>
+    <string name="onboarding_workspaces_explorer_title">탐색기</string>
+    <string name="onboarding_workspaces_explorer_description">파일을 둘러보십시오.</string>
+    <string name="onboarding_workspaces_searcher_title">검색</string>
+    <string name="onboarding_workspaces_searcher_description">원하는 것을 찾아보십시오.</string>
+    <string name="onboarding_workspaces_editor_title">편집기</string>
+    <string name="onboarding_workspaces_editor_description">파일을 편집하십시오.</string>
+    <string name="onboarding_workspaces_templates_title">템플릿</string>
+    <string name="onboarding_workspaces_templates_description">설정을 저장하십시오.</string>
+    <string name="onboarding_workspaces_apps_description">앱을 관리하십시오.</string>
+
+    <!-- 탐색기 바로가기 -->
+    <string name="shortcut_explorer_new_short">새 탐색기</string>
+    <string name="shortcut_explorer_new_long">새 탐색기 탭 만들기</string>
+
+    <!-- 바로가기 설정 -->
+    <string name="shortcuts_settings_title">바로가기</string>
+    <string name="shortcuts_settings_subtitle">런처 바로가기 설정</string>
+    <string name="shortcuts_settings_enabled_title">바로가기 사용</string>
+    <string name="shortcuts_settings_enabled_subtitle">런처에 자주 사용하는 항목 표시</string>
+    <string name="shortcuts_settings_auto_remember_title">방문한 경로 기억</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">자주 방문한 경로를 바로가기로 자동 추가</string>
+    <string name="shortcuts_settings_last_accessed_title">마지막 접근</string>
+    <string name="shortcuts_settings_max_count_title">최대 바로가기 수</string>
+    <string name="shortcuts_settings_max_count_subtitle">현재 바로가기 %d개 표시 중</string>
+    <string name="shortcuts_settings_min_access_title">최소 접근 횟수</string>
+    <string name="shortcuts_settings_min_access_subtitle">표시되려면 %d회 접근 필요</string>
+    <string name="shortcuts_settings_current_title">현재 바로가기</string>
+    <string name="shortcuts_settings_current_subtitle">바로가기 %d개 추적 중</string>
+    <string name="shortcuts_settings_clear_title">바로가기 기록 지우기</string>
+    <string name="shortcuts_settings_clear_subtitle">추적된 바로가기 모두 제거</string>
+    <string name="shortcuts_settings_clear_confirm_title">바로가기 기록을 지우시겠습니까?</string>
+    <string name="shortcuts_settings_clear_confirm_message">추적된 모든 바로가기가 제거됩니다. 즐겨찾기는 유지됩니다.</string>
+    <string name="shortcuts_settings_cleared_message">바로가기 기록이 지워졌습니다</string>
+    <string name="shortcuts_settings_max_dialog_title">최대 바로가기 수</string>
+    <string name="shortcuts_settings_max_dialog_message">런처에 표시할 바로가기 수 (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">최소 접근 횟수</string>
+    <string name="shortcuts_settings_min_dialog_message">경로가 바로가기로 표시되기까지 필요한 접근 횟수 (1–10)</string>
+
+    <string name="setup_usagestats_title">사용 통계</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">알림 접근 권한</string>
+    <string name="setup_manage_storage_card_title">외부 저장공간 관리</string>
+    <string name="setup_inventory_card_title">앱 목록</string>
+
+    <string name="setup_title">권한 설정</string>
+    <string name="setup_settings_description">앱 권한과 기능을 설정하십시오.</string>
+    <string name="setup_help_description">도움말</string>
+
+    <string name="setup_root_description">고급 파일 관리를 위해 시스템 파일과 보호된 디렉터리에 접근할 수 있게 해줍니다. 앱 데이터 접근과 시스템 수정을 포함해 Butler의 모든 기능을 사용할 수 있게 해줍니다. 기기가 root 상태여야 합니다.</string>
+    <string name="setup_shizuku_description">보안 API를 통해 권한이 필요한 파일 작업을 제공하는 root의 대안입니다. 기존 root 없이도 제한된 디렉터리에 접근할 수 있습니다. Shizuku 앱이 설치되어 실행 중이어야 합니다.</string>
+    <string name="setup_notification_description">파일 작업, 백그라운드 작업, 전송 진행 상황에 대한 업데이트를 보여줍니다. 작업이 완료되거나 오류가 발생하면 알려줍니다.</string>
+    <string name="setup_usagestats_description">앱 저장공간 사용량을 분석해 큰 파일을 찾고 공간을 효율적으로 관리하도록 도와줍니다. 모든 데이터는 기기에만 저장되며 외부로 전송되지 않습니다.</string>
+    <string name="setup_storage_description">빠른 파일 작업과 일괄 처리를 위해 기기의 모든 저장공간에 전체 접근할 수 있습니다. 반복되는 권한 요청 없이 파일을 폭넓게 관리할 수 있습니다.</string>
+    <string name="setup_inventory_description">APK 추출, 저장공간 분석 같은 기능을 위해 설치된 모든 앱을 확인할 수 있습니다. Android 11 이상에서 전체 앱 목록을 보려면 필요합니다.</string>
+
+    <string name="setup_grant_access_label">권한 부여</string>
+    <string name="setup_access_granted_label">권한 부여됨</string>
+    <string name="setup_use_root_label">가능하면 root 사용</string>
+    <string name="setup_use_shizuku_label">가능하면 Shizuku 사용</string>
+
+    <string name="setup_status_checking">확인 중…</string>
+    <string name="setup_status_completed">설정 완료</string>
+    <string name="setup_status_required">필수</string>
+    <string name="setup_status_optional">선택</string>
+    <string name="setup_status_connected">연결됨</string>
+    <string name="setup_status_not_connected">연결 안 됨</string>
+    <string name="setup_status_not_installed">설치 안 됨</string>
+    <string name="setup_status_connecting">연결 중…</string>
+    <string name="setup_status_connection_failed">연결 실패</string>
+    <string name="setup_status_unavailable">사용 불가</string>
+
+    <!-- 디버그 로그 -->
+    <string name="debug_notification_channel_label">디버그 알림</string>
+    <string name="debug_log_consent_title">디버그 로그</string>
+    <string name="debug_log_consent_explanation">이 기능은 앱이 수행하는 모든 작업을 공유 가능한 파일로 기록합니다. 생성된 파일에는 파일 이름, 설치된 앱 등 민감한 정보가 포함됩니다. 신뢰할 수 있는 사람(예: 문제를 해결하는 개발자)과만 공유하십시오.</string>
+    <string name="debug_log_recording_progress">디버그 로그 기록 중</string>
+    <string name="debug_log_record_action">기록</string>
+    <string name="debug_log_record_full_action">디버그 로그 기록</string>
+    <string name="debug_log_stop_action">기록 중지</string>
+    <string name="debug_log_screen_title">디버그 로그 기록기</string>
+    <string name="debug_log_screen_sensitive_information_message">생성된 파일에는 파일 이름, 설치된 앱 등 민감한 정보가 포함됩니다. 신뢰할 수 있는 사람과만 공유하십시오.</string>
+    <string name="debug_log_screen_session_path_label">디버그 세션 경로</string>
+    <string name="debug_log_screen_log_files_label">로그 파일</string>
+    <string name="debug_log_screen_log_files_ready">로그 파일 준비 완료 (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">삭제</string>
+    <string name="debug_log_file_label">기록된 로그 파일</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">로그 파일 기록 중</string>
+    <string name="debug_banner_stop_action">중지</string>
+    <string name="debug_banner_view_action">보기</string>
+    <string name="debug_banner_explanation">앱 활동을 기록하고 있습니다. 완료되면 중지한 뒤, 버그를 신고할 때 로그를 공유하십시오.</string>
+    <string name="debug_log_short_recording_title">기록 시간이 너무 짧습니다</string>
+    <string name="debug_log_short_recording_message">디버그 로그는 기록이 활성화된 동안 일어난 일을 담습니다. 기록을 시작하고 문제를 재현한 뒤 중지하십시오. 이 기록에는 유용한 정보가 없을 수 있습니다.</string>
+    <string name="debug_log_short_recording_keep_action">계속 기록</string>
+
+    <string name="debug_logview_screen_title">로그 뷰어</string>
+    <string name="debug_logview_pause_action">일시중지 (화면 고정)</string>
+    <string name="debug_logview_resume_action">계속</string>
+    <string name="debug_logview_copy_action">로그 복사</string>
+    <string name="debug_logview_collapse_action">접기</string>
+    <string name="debug_logview_close_action">로그 패널 닫기</string>
+    <string name="debug_logview_resize_action">크기 조절</string>
+    <string name="debug_logview_more_action">더 보기</string>
+    <string name="debug_logview_level_action">로그 수준</string>
+    <string name="debug_logview_clear_action">버퍼 지우기</string>
+    <string name="debug_logview_search_action">검색</string>
+    <string name="debug_logview_search_clear_action">검색 지우기</string>
+    <string name="debug_logview_search_close_action">검색 닫기</string>
+    <string name="debug_logview_search_prev_action">이전 항목</string>
+    <string name="debug_logview_search_next_action">다음 항목</string>
+    <string name="debug_logview_jump_to_bottom_action">최신으로 이동</string>
+    <string name="debug_logview_paused_msg">일시중지됨 — 화면 고정</string>
+    <string name="debug_logview_paused_new_msg">일시중지됨 — 이후 %1$d줄 추가됨</string>
+    <string name="debug_logview_copied_msg">로그가 클립보드에 복사되었습니다</string>
+    <string name="debug_logview_copied_truncated_msg">마지막 %1$d줄이 클립보드에 복사되었습니다</string>
+    <string name="debug_logview_share_label">로그 공유</string>
+
+    <string name="settings_label">설정</string>
+    <string name="settings_category_tools_label">도구</string>
+    <string name="settings_category_other_label">기타</string>
+    <string name="settings_category_integration_label">연동</string>
+    <string name="general_settings_label">일반</string>
+    <string name="general_settings_desc">앱 전체에 영향을 주는 일반 설정입니다.</string>
+    <string name="settings_category_ui_label">사용자 인터페이스</string>
+    <string name="ui_mascot_suit_setting_label">Butler의 옷</string>
+    <string name="ui_mascot_suit_setting_explanation">Butler의 옷을 만드는 데 사용되는 색상입니다.</string>
+    <string name="ui_theme_mode_setting_label">테마 모드</string>
+    <string name="ui_theme_mode_setting_explanation">앱 테마에 사용되는 모드입니다 (예: 야간 또는 주간).</string>
+    <string name="ui_theme_style_setting_label">테마 스타일</string>
+    <string name="ui_theme_style_setting_explanation">앱 테마에 사용되는 색상 스타일입니다.</string>
+    <string name="ui_theme_color_setting_label">테마 색상</string>
+    <string name="ui_theme_color_setting_explanation">앱 테마에 사용되는 색상 팔레트입니다.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">색상은 배경화면을 기반으로 Material You가 제공합니다</string>
+    <string name="ui_theme_color_value_system">시스템 색상</string>
+    <string name="ui_language_override_label">앱 언어</string>
+    <string name="ui_language_override_desc">시스템 기본 언어와 별개로 Butler에서 사용할 언어를 선택하십시오.</string>
+    <string name="ui_display_cutout_avoid_setting_title">디스플레이 컷아웃 피하기</string>
+    <string name="ui_display_cutout_avoid_setting_description">인터페이스가 카메라 컷아웃을 가리지 않도록 유지합니다. 끄면 화면을 더 넓게 사용할 수 있지만, 인터페이스 일부가 컷아웃 뒤에 가려질 수 있습니다.</string>
+
+    <string name="previews_settings_title">미리보기</string>
+    <string name="previews_settings_subtitle">이미지 미리보기 캐시를 관리하십시오.</string>
+
+    <string name="tour_settings_reset_title">가이드 투어 초기화</string>
+    <string name="tour_settings_reset_subtitle">건너뛰거나 비활성화한 투어를 포함해 가이드 투어를 다시 표시합니다.</string>
+    <string name="tour_settings_reset_done">가이드 투어가 초기화되었습니다.</string>
+
+    <string name="storage_settings_title">저장공간</string>
+    <string name="storage_settings_subtitle">Butler의 캐시, 저장공간, 휴지통을 관리하십시오.</string>
+    <string name="storage_category_previews_label">미리보기</string>
+    <string name="storage_previews_disk_cache_title">디스크 캐시</string>
+    <string name="storage_previews_memory_cache_title">메모리 캐시</string>
+    <string name="storage_previews_max_size_title">최대 캐시 크기</string>
+    <string name="storage_clear_disk_confirm_title">디스크 캐시를 지우시겠습니까?</string>
+    <string name="storage_clear_disk_confirm_message">캐시된 모든 미리보기 이미지가 제거됩니다. 필요할 때 다시 생성됩니다.</string>
+    <string name="storage_clear_memory_confirm_title">메모리 캐시를 지우시겠습니까?</string>
+    <string name="storage_clear_memory_confirm_message">메모리에 캐시된 미리보기 이미지가 제거됩니다. 필요할 때 다시 생성됩니다.</string>
+    <string name="storage_clear_all_confirm_title">모든 캐시를 지우시겠습니까?</string>
+    <string name="storage_clear_all_confirm_message">미리보기 이미지의 디스크 및 메모리 캐시가 모두 지워집니다.</string>
+    <string name="storage_clear_all_previews_action">모든 미리보기 캐시 지우기</string>
+    <string name="storage_clear_all_subtitle">모든 미리보기 캐시 제거</string>
+    <string name="storage_cache_cleared_message">캐시가 지워졌습니다</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">업데이트 확인</string>
+    <string name="updater_check_enabled_setting_description">Butler가 온라인에서 새 버전이 있는지 확인하도록 허용합니다.</string>
+    <string name="motd_check_enabled_setting_title">공지사항 확인</string>
+    <string name="motd_check_enabled_setting_description">Butler가 개발자의 중요한 메시지를 가져오도록 허용합니다.</string>
+    <string name="motd_card_header">공지사항</string>
+
+    <string name="confirm_exit_setting_title">종료 확인</string>
+    <string name="confirm_exit_setting_description">앱을 종료할 때 확인 대화상자를 표시합니다.</string>
+    <string name="confirm_exit_dialog_title">Butler 종료</string>
+    <string name="confirm_exit_dialog_message">앱이 종료되고 홈 화면으로 돌아갑니다.</string>
+    <string name="confirm_exit_dialog_exit">종료</string>
+    <string name="confirm_exit_dialog_cancel">취소</string>
+    <string name="confirm_exit_dialog_dont_ask_again">다시 묻지 않기</string>
+
+    <string name="settings_support_category_help_label">도움 받기</string>
+    <string name="settings_support_label">지원</string>
+    <string name="settings_support_description">문서를 읽거나, 문제를 신고하거나, 다른 사람들과 대화하거나, 디버그 로그를 기록할 수 있습니다.</string>
+    <string name="settings_support_wiki_label">문서</string>
+    <string name="settings_support_wiki_description">Butler를 효과적으로 사용하는 방법을 알아보십시오.</string>
+    <string name="settings_support_issue_tracker_description">버그 신고와 기능 요청을 위한 공개 이슈 트래커입니다.</string>
+    <string name="settings_support_issue_tracker_label">이슈 트래커</string>
+    <string name="settings_support_debuglog_label">디버그 로그</string>
+    <string name="settings_support_debuglog_desc">앱이 수행하는 모든 작업을 공유 가능한 텍스트 파일로 기록합니다.</string>
+    <string name="settings_support_debuglog_recording_desc">현재 디버그 정보를 기록하고 있습니다. 탭하면 기록이 중지됩니다.</string>
+    <string name="settings_support_debuglog_path">로그 경로: %1$s</string>
+    <string name="settings_support_bugreports_label">버그 신고</string>
+    <string name="settings_support_bugreports_desc">충돌 보고서를 확인하고, 디버그 로그를 기록해 저에게 공유하십시오.</string>
+    <string name="support_contact_report_type_crash">충돌 보고서</string>
+    <string name="support_contact_report_type_reported">버그 신고</string>
+    <string name="support_contact_report_type_recording">기록</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">어울리고 질문할 수 있는 공간입니다.</string>
+
+    <string name="settings_acknowledgements_label">감사의 말</string>
+    <string name="settings_acknowledgements_description">제작진, 라이선스, 특별 감사 인사입니다.</string>
+    <string name="settings_acks_translation_header">번역</string>
+    <string name="settings_acks_translators_title">번역자</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Butler 번역하기</string>
+    <string name="settings_acks_translate_desc">Butler를 여러분의 언어로 번역하는 데 도움을 주십시오.</string>
+
+    <string name="settings_acks_thanks_header">감사</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">오픈소스 프로젝트 번역을 지원해 줘서 감사합니다.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">아이콘, 마스코트 디자인, 애니메이션을 만들어 줘서 감사합니다.</string>
+    <string name="settings_licenses_label">라이선스</string>
+
+    <!-- 작업 영역 상태 카드 -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="other">탭 %1$d개</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="other">작업 %1$d건</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="other">주의 %1$d개</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="other">미저장 %1$d개</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="other">일시중지 %1$d개</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">모든 탭 표시</string>
+    <string name="workspace_status_filter_operations_desc">작업 중인 탭으로 필터링</string>
+    <string name="workspace_status_filter_attention_desc">주의가 필요한 탭으로 필터링</string>
+    <string name="workspace_status_filter_paused_desc">일시중지된 탭으로 필터링</string>
+    <string name="workspace_status_filter_unsaved_desc">저장되지 않은 변경사항이 있는 탭으로 필터링</string>
+
+    <!-- 감사의 말 -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Kotlin 프로그래밍 언어. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Android와 Java를 위한 빠른 의존성 주입 라이브러리. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Java(및 Kotlin) 코드를 root 권한으로 실행! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">코루틴으로 쉬워진, 루팅된 환경에서의 Kotlin JVM 코드 실행. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">app_process로 시작한 Java 프로세스를 통해 일반 앱에서 adb/root 권한으로 시스템 API를 직접 사용. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Airbnb의 Android용 Lottie. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Android 로봇은 Google이 제작하여 공유한 작업물을 복제하거나 수정한 것이며, Creative Commons 3.0 Attribution License에 명시된 조건에 따라 사용됩니다.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">네이티브 UI를 구축하기 위한 Android의 최신 툴킷. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpack 라이브러리</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation 등 AndroidX 라이브러리. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin 확장</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Coroutines 및 Serialization 라이브러리. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Kotlin Coroutines 기반 이미지 로딩 라이브러리. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">SMB 인증, 서명, 암호화를 위한 암호화 기본 요소. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Square 라이브러리</string>
+    <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp, OkIO 네트워킹 라이브러리. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Jetpack Compose용 유틸리티. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Compose의 LazyColumn을 위한 드래그 앤 드롭. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Kotlin을 위한 시맨틱 버저닝 라이브러리. (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Jetpack Compose용 차트와 그래프. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">개인정보처리방침</string>
+    <string name="settings_privacy_policy_desc">데이터를 책임감 있게 다룹니다.</string>
+
+
+    <string name="changelog_label">변경 내역</string>
+
+    <!-- 업그레이드 상태 -->
+    <string name="settings_upgrade_status_label">Butler 업그레이드 상태</string>
+    <string name="upgrade_status_free">상태: 무료</string>
+    <string name="upgrade_status_pro">상태: Pro</string>
+    <string name="upgrade_status_foss">상태: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD 카드</string>
+    <string name="storage_area_public_label">공용 저장공간</string>
+    <string name="storage_area_public_app_data_label">공용 앱 데이터</string>
+
+    <!-- 작업 영역 -->
+    <!-- 작업 영역 > 관리자 -->
+    <string name="workspace_manager_title">탭 관리자</string>
+    <string name="workspace_manager_empty_title">탭 없음</string>
+    <string name="workspace_manager_empty_subtitle">첫 탭을 만들어 시작해 보십시오</string>
+
+    <!-- 작업 영역 > 빈 콘텐츠 -->
+    <string name="workspace_empty_create_action">탭 만들기</string>
+    <string name="workspace_empty_create_hint">여러 작업을 동시에: 탭을 만들고 원하는 도구로 바꿔보십시오.</string>
+    <string name="workspace_empty_settings_action">설정 열기</string>
+    <string name="workspace_empty_settings_hint">Butler를 취향대로 맞춤 설정하십시오. 도구의 동작 방식을 조정할 수 있습니다.</string>
+    <string name="workspace_classic_empty_tabs_closed">열린 탭이 없습니다. 준비되면 시작하십시오.</string>
+    <string name="workspace_classic_empty_tip">팁: “탭 만들기”를 탭하고 도구를 선택하십시오 — 탐색기, 검색, 편집기 등.</string>
+
+    <!-- 작업 영역 > 가이드 투어 -->
+    <string name="tour_first_tab_title">탭으로 시작하기</string>
+    <string name="tour_first_tab_body">Butler는 브라우저처럼 탭으로 동작합니다. 각 탭은 탐색기, 검색, 편집기 등 하나의 독립된 도구입니다. 첫 탭을 만들어보십시오.</string>
+    <string name="tour_manager_fab_title">빠른 바로가기</string>
+    <string name="tour_manager_fab_body">자주 쓰는 도구의 바로가기를 보거나 모든 탭을 한 번에 닫으려면 이걸 탭하십시오.</string>
+    <string name="tour_manager_reorder_title">탭 순서 바꾸기</string>
+    <string name="tour_manager_reorder_body">탭의 제목 표시줄을 길게 눌러 원하는 위치로 드래그하십시오. 이 순서는 다른 곳에서도 그대로 적용됩니다.</string>
+    <string name="tour_manager_select_title">여러 탭 한꺼번에 다루기</string>
+    <string name="tour_manager_select_body">탭 미리보기를 길게 눌러 탭 선택을 시작하십시오. 나머지를 탭한 다음 한 번에 닫거나 일시중지할 수 있습니다.</string>
+    <string name="tour_manager_new_tab_title">새 탭 시작하기</string>
+    <string name="tour_manager_new_tab_body">이 카드를 탭해 새 탭에 사용할 도구를 선택하십시오.</string>
+    <string name="tour_swipe_switch_title">스와이프로 탭 전환</string>
+    <string name="tour_swipe_switch_body">화면 어디서든 좌우로 스와이프해 열린 탭 사이를 이동하십시오.</string>
+    <string name="tour_swipe_create_title">스와이프로 탭 시작하기</string>
+    <string name="tour_swipe_create_body">마지막 탭을 지나 스와이프하면 Butler가 새 탭을 제안합니다.</string>
+    <string name="tour_swipe_panes_title">한 번에 여러 탭 보기</string>
+    <string name="tour_swipe_panes_body">화면이 크거나 가로 모드일 때 Butler는 여러 탭을 나란히 보여줍니다. 이 동작 시점은 탭 설정의 레이아웃 항목에서 결정됩니다.</string>
+    <string name="tour_panes_rail_title">모든 탭 한눈에</string>
+    <string name="tour_panes_rail_body">열린 탭이 모두 여기에 있습니다. 탭을 선택하고 이동할 패널을 고르십시오. 탭을 길게 눌러 드래그하면 순서를 바꿀 수 있습니다.</string>
+    <string name="tour_panes_divider_title">패널 크기 조절</string>
+    <string name="tour_panes_divider_body">이 구분선을 드래그해 한 패널에 더 많은 공간을 주십시오.</string>
+    <string name="tour_panes_layout_title">배치 바꾸기</string>
+    <string name="tour_panes_layout_body">Butler 버튼을 탭하고 레이아웃을 선택해 패널 배치를 바꾸십시오. 탭 설정에서 화면 방향별로 레이아웃을 고정할 수 있습니다.</string>
+
+    <string name="workspace_creating_placeholder">탭 만드는 중…</string>
+    <string name="workspace_ondemand_swipe_title">스와이프해 새 탭 만들기</string>
+
+    <!-- 적응형 작업 영역 -->
+    <string name="workspace_adaptive_pane_ready">패널 %1$d 콘텐츠 준비 완료</string>
+    <string name="workspace_adaptive_add_action">탭 추가</string>
+
+    <string name="workspace_badge_tip_title">팁: 탭 버튼 표시기</string>
+    <string name="workspace_badge_open_workspaces">열린 탭 수</string>
+    <string name="workspace_badge_active_operations">진행 중인 작업 (파일 복사, 검색 등)</string>
+    <string name="workspace_badge_attention_items">주의가 필요한 항목 (실패하거나 대기 중인 작업, 접근할 수 없는 파일)</string>
+
+    <!-- 작업 영역 관리자 동작 -->
+    <string name="workspace_manager_dismiss_content_desc">닫기</string>
+    <string name="workspace_manager_selection_count">%1$d개 선택됨</string>
+    <string name="workspace_manager_selection_select_all">전체 선택</string>
+    <string name="workspace_manager_selection_pause_action">선택 항목 일시중지</string>
+    <string name="workspace_manager_selection_close_action">선택 항목 닫기</string>
+    <string name="workspace_manager_selection_cancel_content_desc">선택 모드 종료</string>
+    <string name="workspace_manager_selection_clear_content_desc">선택 해제</string>
+    <string name="workspace_manager_select_all_tabs_desc">모든 탭 선택</string>
+    <string name="workspace_manager_new_tab_card_title">새 탭</string>
+    <string name="workspace_row_select_content_desc">탭 선택</string>
+    <string name="general_cancel_action">취소</string>
+
+    <!-- 작업 영역 관리자 FAB -->
+    <string name="workspace_fab_quick_shortcuts">빠른 바로가기</string>
+    <string name="workspace_fab_close_shortcuts">바로가기 닫기</string>
+    <string name="workspace_fab_close_all">모든 탭 닫기</string>
+
+    <!-- 작업 영역 내비게이션 레일 -->
+    <string name="workspace_pane_assign_action">패널 %1$d에 배정</string>
+    <string name="workspace_pane_show_action">표시</string>
+    <string name="workspace_pane_close_action">닫기</string>
+    <string name="workspace_pane_unassign_action">패널에서 제거</string>
+    <string name="workspace_dragging_description">드래그 중</string>
+    <string name="workspace_pane_current_description">패널 %1$d에 있음</string>
+
+    <!-- 작업 영역 관리자 행 -->
+    <string name="workspace_row_close_content_desc">탭 닫기</string>
+    <string name="workspace_row_more_options_content_desc">더 보기</string>
+    <string name="workspace_row_operations_running_content_desc">작업 중</string>
+    <string name="workspace_row_operations_pending_content_desc">작업 대기 중</string>
+    <string name="workspace_row_pause_action">일시중지</string>
+    <string name="workspace_row_resume_action">계속</string>
+    <string name="workspace_row_stacked_content_desc">이 탭에 겹쳐짐</string>
+    <string name="workspace_row_unsaved_content_desc">저장되지 않은 변경사항</string>
+
+    <!-- 설정 색인 -->
+    <string name="workspace_settings_subtitle">탭 동작을 설정하십시오.</string>
+    <string name="explorer_settings_subtitle">파일 탐색기 동작을 설정하십시오.</string>
+    <string name="searcher_settings_subtitle">검색 동작을 설정하십시오.</string>
+    <string name="editor_settings_subtitle">텍스트 편집기 동작을 설정하십시오.</string>
+    <string name="history_settings_subtitle">작업 기록 보관 및 삭제 설정입니다.</string>
+    <string name="clipboard_settings_subtitle">클립보드 동작을 설정하십시오.</string>
+
+    <!-- 저장 공유 대상 -->
+    <string name="saver_share_label">다른 이름으로 저장…</string>
+
+    <!-- 단일 파일 공유 대상 -->
+    <string name="share_receive_label">Butler에서 열기</string>
+
+    <!-- 편집기 공유 대상 -->
+    <string name="editor_share_label">텍스트 편집</string>
+
+    <!-- 다른 앱에서 넘겨준 파일 열기 -->
+    <string name="external_open_unknown_file_title">이름 없는 파일</string>
+    <string name="external_open_action_view">보기</string>
+    <string name="external_open_action_edit">텍스트로 편집</string>
+    <string name="external_open_action_show_in_explorer">탐색기에서 보기</string>
+    <string name="external_open_action_save">다른 이름으로 저장…</string>
+    <string name="external_open_failed_label">파일을 열 수 없음</string>
+    <string name="external_open_failed_description">Butler에서 \"%1$s\" 파일을 열 수 없습니다.</string>
+
+    <!-- 개발자 모드 -->
+    <string name="settings_developer_mode_unlock_title">개발자 모드를 사용하시겠습니까?</string>
+    <string name="settings_developer_mode_unlock_message">문제 해결과 테스트를 위한 고급 진단 도구가 활성화됩니다.</string>
+    <string name="settings_developer_mode_unlock_action">사용</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="other">개발자 모드까지 %d단계 남음</item>
+    </plurals>
+
+    <!-- 지원: 문의 양식 -->
+    <string name="support_contact_label">개발자에게 문의</string>
+    <string name="support_contact_description">양식을 작성해 저에게 이메일을 보내십시오.</string>
+    <string name="support_contact_no_email_app">이메일 앱을 찾을 수 없음</string>
+    <string name="support_contact_category_label">분류</string>
+    <string name="support_contact_category_question">질문</string>
+    <string name="support_contact_category_feature">기능 요청</string>
+    <string name="support_contact_category_bug">버그 신고</string>
+    <string name="support_contact_workspace_label">관련 영역</string>
+    <string name="support_contact_workspace_general">일반</string>
+    <string name="support_contact_workspace_explorer">탐색기</string>
+    <string name="support_contact_workspace_searcher">검색</string>
+    <string name="support_contact_workspace_editor">편집기</string>
+    <string name="support_contact_description_label">설명</string>
+    <string name="support_contact_description_question_hint">질문을 자세히 설명해 주십시오. 구체적으로 작성해 주십시오 (최소 20단어).</string>
+    <string name="support_contact_description_feature_hint">원하는 기능을 설명해 주십시오. 구체적으로 작성해 주십시오 (최소 20단어).</string>
+    <string name="support_contact_description_bug_hint">무슨 일이 있었는지, 문제를 어떻게 재현하는지 설명해 주십시오. 구체적으로 작성해 주십시오 (최소 20단어).</string>
+    <string name="support_contact_expected_label">예상 동작</string>
+    <string name="support_contact_expected_hint">어떤 결과를 예상했는지 설명해 주십시오 (최소 10단어).</string>
+    <string name="support_contact_word_count">최소 %1$d단어</string>
+    <string name="support_contact_debuglog_label">디버그 로그</string>
+    <string name="support_contact_debuglog_empty">디버그 로그가 없습니다. 먼저 하나를 기록하십시오.</string>
+    <string name="support_contact_debuglog_picker_hint">기존 디버그 로그를 첨부하거나 새로 기록하십시오.</string>
+    <string name="support_contact_send_action">이메일 앱 열기</string>
+    <string name="support_contact_welcome">모든 메시지를 제가 직접 읽고 최선을 다해 답장하지만, 혼자 작업하다 보니 시간이 조금 걸릴 수 있습니다. 양해 부탁드립니다.</string>
+    <string name="support_contact_footer">메시지는 이메일로 전송됩니다. 기기 및 설정 정보가 자동으로 첨부됩니다. 스크린샷이나 동영상을 이메일에 첨부할 수 있습니다.\n\n제가 쉽게 이해할 수 있도록 이메일 일부는 영어로 작성됩니다.</string>
+
+    <!-- 지원: 디버그 로그 저장소 -->
+    <string name="support_debuglog_storage_label">디버그 로그 저장공간</string>
+    <string name="support_debuglog_storage_description">로그 세션 %1$d개, %2$s</string>
+    <string name="support_debuglog_storage_empty">저장된 디버그 로그 없음</string>
+    <string name="support_debuglog_delete_action">모든 디버그 로그 삭제</string>
+    <string name="support_debuglog_delete_description">기록된 모든 디버그 로그 파일 제거</string>
+    <string name="support_debuglog_delete_confirm_title">모든 디버그 로그를 삭제하시겠습니까?</string>
+    <string name="support_debuglog_delete_confirm_message">기록된 모든 디버그 로그 세션이 영구적으로 삭제됩니다. 진행 중인 기록에는 영향을 주지 않습니다.</string>
+
+    <!-- 지원: 디버그 로그 동작 -->
+    <string name="settings_support_debuglog_stop_action">기록 중지</string>
+    <string name="settings_support_debuglog_record_action">디버그 로그 기록</string>
+
+    <!-- 지원: 디버그 세션 바텀시트 -->
+    <string name="support_debuglog_sessions_label">디버그 로그 세션</string>
+    <string name="support_debuglog_sessions_desc">기록된 디버그 로그 세션 관리</string>
+    <string name="support_debuglog_sessions_empty">디버그 로그 세션 없음</string>
+    <string name="support_debuglog_session_recording">기록 중…</string>
+    <string name="support_debuglog_session_compressing">압축 중…</string>
+    <string name="support_debuglog_session_failed_empty_log">실패: 빈 로그</string>
+    <string name="support_debuglog_session_failed_missing_log">실패: 로그 없음</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">실패: 손상된 압축 파일</string>
+    <string name="support_debuglog_session_failed_zip_failed">실패: 압축 오류</string>
+    <string name="support_debuglog_session_delete_title">디버그 세션을 삭제하시겠습니까?</string>
+    <string name="support_debuglog_session_delete_message">이 디버그 로그 세션이 영구적으로 삭제됩니다.</string>
+    <string name="support_debuglog_clear_action">모두 지우기</string>
+    <string name="support_debuglog_clear_confirm_message">저장된 모든 디버그 로그 세션을 삭제하시겠습니까?</string>
+
+    <!-- 디버그 로그 화면 -->
+    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_screen_subtitle">문제 해결을 위한 디버그 정보 내보내기</string>
+    <string name="debug_log_screen_sensitive_information_title">민감한 정보</string>
+
+    <!-- 지원: 문의 양식 -->
+    <string name="support_contact_sent_title">메시지를 보내셨습니까?</string>
+    <string name="support_contact_sent_message">메시지를 보냈다면 공간 절약을 위해 첨부된 디버그 로그가 삭제됩니다. 보내지 않았다면 보관했다가 나중에 다시 시도할 수 있습니다.</string>
+    <string name="support_contact_debuglog_zip_error">디버그 로그 첨부 준비 실패</string>
+
+    <!-- 백그라운드 파일 작업: 진행 및 주의 알림 -->
+    <string name="ops_notification_channel_progress_name">파일 작업 진행 상황</string>
+    <string name="ops_notification_channel_progress_desc">복사, 이동, 삭제 작업의 진행 상황</string>
+    <string name="ops_notification_channel_attention_name">파일 작업 알림</string>
+    <string name="ops_notification_channel_attention_desc">주의가 필요하거나 실패한 작업</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="other">파일 작업 %1$d건 진행 중</item>
+    </plurals>
+    <string name="ops_notification_state_queued">대기 중…</string>
+    <string name="ops_notification_state_cancelling">취소 중…</string>
+    <string name="ops_notification_state_attention_title">조치 필요</string>
+    <string name="ops_notification_state_attention_text">충돌이 발생했습니다 — 탭해서 해결하십시오</string>
+    <string name="ops_notification_result_failed_title">작업 실패</string>
+
+    <!-- 리뷰 요청 -->
+    <string name="review_app_body">Butler에 리뷰를 남겨주시겠습니까? ❤️</string>
+    <string name="review_app_dismiss_action">나중에</string>
+    <string name="review_app_review_action">리뷰 남기기</string>
+
+</resources>

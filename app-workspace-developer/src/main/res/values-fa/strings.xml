@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">توسعه‌دهنده</string>
+    <string name="developer_title">ابزارهای توسعه‌دهنده</string>
+    <string name="developer_subtitle">ابزارهای توسعه</string>
+
+    <!-- زبانه‌ها -->
+    <string name="developer_tab_system">سیستم</string>
+    <string name="developer_tab_options">تنظیمات</string>
+    <string name="developer_tab_workspaces">فضاهای کاری</string>
+    <string name="developer_tab_logs">سیاهچه‌ها</string>
+    <string name="developer_tab_testdata">داده‌های تست</string>
+
+    <!-- بخش تنظیمات -->
+    <string name="developer_options_debug_header">گزینه‌های رفع عیب</string>
+    <string name="developer_options_debug_mode">حالت رفع عیب</string>
+    <string name="developer_options_debug_mode_desc">فعال‌سازی ثبت‌سازی جزئی</string>
+    <string name="developer_options_trace_mode">حالت ردیابی</string>
+    <string name="developer_options_trace_mode_desc">فعال‌سازی ثبت‌سازی سطح ردیابی</string>
+    <string name="developer_options_floating_log">پنل سیاهچه شناور</string>
+    <string name="developer_options_floating_log_desc">نمایش یک لایه سیاهچه قابل‌جابه‌جایی بر روی تمام صفحات</string>
+    <string name="developer_options_services_header">آزمون‌های سرویس</string>
+    <string name="developer_options_root_test_action">آزمون Root</string>
+    <string name="developer_options_root_installed_label">نصب‌شده</string>
+    <string name="developer_options_root_available_label">دستیاب</string>
+    <string name="developer_options_root_base_check_label">بررسی پایه‌ای</string>
+    <string name="developer_options_shizuku_test_action">آزمون Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">نصب‌شده</string>
+    <string name="developer_options_shizuku_granted_label">مجوز</string>
+    <string name="developer_options_shizuku_compatible_label">سازگار</string>
+    <string name="developer_options_shizuku_service_label">سرویس</string>
+    <string name="developer_options_test_running">در حال آزمون…</string>
+    <string name="developer_options_result_yes">بلی</string>
+    <string name="developer_options_result_no">خیر</string>
+    <string name="developer_options_result_unknown">نامعلوم</string>
+    <string name="developer_options_visibility_header">نمایش</string>
+    <string name="developer_options_hide_mode">پنهان‌کردن حالت توسعه‌دهنده</string>
+    <string name="developer_options_hide_mode_desc">در تنظیمات ۷ بار روی نسخه ضربه بزنید تا دوباره فعال شود.</string>
+    <string name="developer_options_hide_action">پنهان‌کردن</string>
+
+    <!-- بخش اطلاعات سیستم -->
+    <string name="developer_system_device_header">دستگاه</string>
+    <string name="developer_system_device_model">مدل</string>
+    <string name="developer_system_device_manufacturer">سازنده</string>
+    <string name="developer_system_device_api">سطح API</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">نسخه</string>
+    <string name="developer_system_build_code">کد نسخه</string>
+    <string name="developer_system_build_flavor">Flavor</string>
+    <string name="developer_system_build_type">نوع Build</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">حافظه</string>
+    <string name="developer_system_memory_available">دستیاب</string>
+    <string name="developer_system_memory_total">مجموع</string>
+    <string name="developer_system_storage_header">حافظه</string>
+
+    <!-- بخش فضاهای کاری -->
+    <string name="developer_workspaces_count">%d فضای کاری</string>
+    <string name="developer_workspaces_empty">فضای کاری وجود ندارد</string>
+
+    <!-- بخش سیاهچه‌ها -->
+    <string name="developer_logs_clear">پاک‌کردن</string>
+    <string name="developer_logs_pause">مکث</string>
+    <string name="developer_logs_resume">ادامه</string>
+    <string name="developer_logs_empty">سیاهچه‌ای وجود ندارد</string>
+
+    <!-- بخش داده‌های تست -->
+    <string name="developer_testdata_target_paths_label">مسیرهای هدف</string>
+    <string name="developer_testdata_no_paths">هیچ مسیر هدفی انتخاب نشده. مسیری را برای تولید داده‌های تست اضافه کنید.</string>
+    <string name="developer_testdata_add_path_action">افزودن مسیر</string>
+    <string name="developer_testdata_options_header">گزینه‌های تولید</string>
+    <string name="developer_testdata_large_files">فایل‌های بزرگ</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">ساختار تودرتو</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 پوشه، ~1100 فایل</string>
+    <string name="developer_testdata_text_files">فایل‌های متنی برای ویرایشگر</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">تولید</string>
+    <string name="developer_testdata_generating">در حال تولید…</string>
+    <string name="developer_testdata_history_header">نمونه‌های ورودی تاریخچه</string>
+    <string name="developer_testdata_history_desc">تولید ~۲۵ ورودی عملیات جعلی از امروز تا ۳۰ روز پیش با انواع، نتایج، منابع و مسیرهای مختلف. مستقیماً در پایگاه داده تاریخچه درج می‌شود؛ دوبار ضربه زدن ایمن است.</string>
+    <string name="developer_testdata_history_generate_action">تولید نمونه‌ی تاریخچه</string>
+    <string name="developer_testdata_progress">%1$s از %2$s</string>
+    <string name="developer_testdata_complete">داده‌های تست در این موقعیت تولید شدند:</string>
+
+    <!-- عملیات داده‌های تست -->
+    <string name="developer_operation_large_files_title">تولید فایل‌های بزرگ</string>
+    <string name="developer_operation_large_files_desc">ایجاد فایل‌های تست در %1$s</string>
+    <string name="developer_operation_large_files_creating">ایجاد %1$s</string>
+
+    <string name="developer_operation_nested_title">تولید ساختار تودرتو</string>
+    <string name="developer_operation_nested_desc">ایجاد سلسله‌مراتب پوشه در %1$s</string>
+    <string name="developer_operation_nested_starting">شروع ساختار تودرتو…</string>
+    <string name="developer_operation_nested_creating">ایجاد %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d فایل ایجاد شد</string>
+
+    <string name="developer_operation_text_files_title">تولید فایل‌های متنی</string>
+    <string name="developer_operation_text_files_desc">ایجاد فایل‌های متنی در %1$s</string>
+    <string name="developer_operation_text_files_creating">ایجاد %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d فایل ایجاد شد</item>
+        <item quantity="other">%d فایل ایجاد شدند</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d پوشه</item>
+        <item quantity="other">%d پوشه</item>
+    </plurals>
+</resources>

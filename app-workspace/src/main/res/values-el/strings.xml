@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Πρόχειρο -->
+    <string name="clipboard_header_title">Πρόχειρο</string>
+    <string name="clipboard_clear_all">Εκκαθάριση όλων</string>
+    <string name="clipboard_paste">Επικόλληση</string>
+    <string name="clipboard_open_in_explorer">Άνοιγμα στην Εξερεύνηση</string>
+    <string name="clipboard_copy">Αντιγραφή</string>
+    <string name="clipboard_cut">Αποκοπή</string>
+    <string name="clipboard_origin">Προέλευση: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Αντιγραφή %d στοιχείου</item>
+        <item quantity="other">Αντιγραφή %d στοιχείων</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d στοιχείο από %s</item>
+        <item quantity="other">%d στοιχεία από %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Αποκοπή %d στοιχείου</item>
+        <item quantity="other">Αποκοπή %d στοιχείων</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d στοιχείο από %s</item>
+        <item quantity="other">%d στοιχεία από %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d τοποθεσία</item>
+        <item quantity="other">%d τοποθεσίες</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d στοιχείο από %2$s</item>
+        <item quantity="other">%1$d στοιχεία από %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d στοιχείο από %2$s</item>
+        <item quantity="other">%1$d στοιχεία από %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Απόσπασμα κειμένου</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d χαρακτήρας</item>
+        <item quantity="other">%1$d χαρακτήρες</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Επικόλληση ως αρχείο</string>
+    <string name="clipboard_text_info_characters">Χαρακτήρες</string>
+    <string name="clipboard_text_info_lines">Γραμμές</string>
+    <string name="clipboard_text_info_content">Περιεχόμενο</string>
+
+    <!-- Παράθυρο πληροφοριών προχείρου -->
+    <string name="clipboard_info_overview">Επισκόπηση</string>
+    <string name="clipboard_info_operation">Λειτουργία</string>
+    <string name="clipboard_info_items">Στοιχεία</string>
+    <string name="clipboard_info_source">Πηγή</string>
+    <string name="clipboard_info_sources">Πηγές</string>
+    <string name="clipboard_info_workspace">Χώρος εργασίας</string>
+    <string name="clipboard_info_workspace_closed">Έκλεισε</string>
+    <string name="clipboard_info_time">Ώρα</string>
+    <string name="clipboard_info_items_with_count">Στοιχεία (%1$d)</string>
+    <string name="clipboard_info_actions">Ενέργειες</string>
+    <string name="clipboard_info_go_to_source">Μετάβαση στην πηγή</string>
+    <string name="clipboard_info_go_to_first_source">Μετάβαση στην πρώτη πηγή</string>
+    <string name="clipboard_info_remove">Αφαίρεση από το πρόχειρο</string>
+
+    <!-- Ρυθμίσεις προχείρου -->
+    <string name="clipboard_settings_title">Πρόχειρο</string>
+    <string name="clipboard_settings_remove_on_paste_title">Αφαίρεση κατά την επικόλληση</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Αφαίρεση των αντιγραμμένων στοιχείων από το πρόχειρο μετά την επικόλληση</string>
+    <string name="clipboard_settings_max_items_title">Μέγιστος αριθμός στοιχείων</string>
+    <string name="clipboard_settings_max_items_desc">Μέγιστος αριθμός στοιχείων στο πρόχειρο</string>
+
+    <string name="workspace_explorer_label">Εξερεύνηση</string>
+    <string name="workspace_searcher_label">Αναζήτηση</string>
+    <string name="workspace_editor_label">Επεξεργαστής</string>
+    <string name="workspace_templates_label">Πρότυπα</string>
+    <string name="workspace_apps_label">Εφαρμογές</string>
+    <string name="workspace_appdetails_label">Στοιχεία εφαρμογής</string>
+    <string name="workspace_saver_label">Αποθήκευση ως</string>
+    <string name="workspace_developer_label">Προγραμματιστής</string>
+    <string name="workspace_history_label">Ιστορικό</string>
+    <string name="workspace_bugreport_label">Αναφορές σφαλμάτων</string>
+    <string name="workspace_viewer_label">Προβολή</string>
+
+    <!-- Στόχοι αναζήτησης πολυμέσων -->
+    <string name="workspace_searcher_target_photos">Φωτογραφίες</string>
+    <string name="workspace_searcher_target_videos">Βίντεο</string>
+    <string name="workspace_searcher_target_music">Μουσική</string>
+    <string name="workspace_searcher_target_downloads">Λήψεις</string>
+
+    <!-- Ενέργειες UI χώρου εργασίας -->
+    <string name="workspace_expand_more_action">Περισσότερα</string>
+    <string name="workspace_expand_less_action">Λιγότερα</string>
+
+    <!-- Μενού κουμπιού χώρου εργασίας -->
+    <string name="workspace_button_description">Καρτέλες και χώροι εργασίας</string>
+    <string name="workspace_button_menu_new_workspace_format">Νέο: %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Νέα καρτέλα</string>
+    <string name="workspace_button_menu_category_recent">Πρόσφατα</string>
+    <string name="workspace_button_menu_category_other">Άλλα</string>
+    <string name="workspace_button_menu_category_current_tab">Αυτή η καρτέλα</string>
+    <string name="workspace_button_menu_manager_action">Διαχείριση καρτελών</string>
+    <string name="workspace_button_menu_layout_action">Διάταξη</string>
+    <string name="workspace_button_menu_close_current_action">Κλείσιμο τρέχουσας καρτέλας</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Κλείσιμο τρέχουσας καρτέλας (%d χώρος εργασίας)</item>
+        <item quantity="other">Κλείσιμο τρέχουσας καρτέλας (%d χώροι εργασίας)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Ρυθμίσεις</string>
+
+    <!-- Ενέργειες διαχείρισης χώρων εργασίας -->
+    <string name="workspace_manager_close_all_title">Κλείσιμο όλων των καρτελών;</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Αυτό θα κλείσει %1$d ανοιχτή καρτέλα. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</item>
+        <item quantity="other">Αυτό θα κλείσει και τις %1$d ανοιχτές καρτέλες. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Κλείσιμο όλων</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Ορισμένες καρτέλες έχουν μη αποθηκευμένες αλλαγές που θα χαθούν.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Απόρριψη όλων</string>
+    <string name="workspace_manager_close_selected_title">Κλείσιμο επιλεγμένων καρτελών;</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Αυτό θα κλείσει %1$d επιλεγμένη καρτέλα. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</item>
+        <item quantity="other">Αυτό θα κλείσει %1$d επιλεγμένες καρτέλες. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">Κλείσιμο επιλεγμένων</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Ορισμένες επιλεγμένες καρτέλες έχουν μη αποθηκευμένες αλλαγές που θα χαθούν.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Απόρριψη επιλεγμένων</string>
+    <string name="workspace_manager_pause_partial_title">Παύση καρτελών;</string>
+    <string name="workspace_manager_pause_partial_message">%1$d από τις %2$d επιλεγμένες καρτέλες μπορούν να τεθούν σε παύση. Οι υπόλοιπες χρησιμοποιούνται, έχουν μη αποθηκευμένες αλλαγές ή είναι αυτήν τη στιγμή ανοιχτές.</string>
+    <string name="workspace_manager_pause_partial_action">Παύση %1$d</string>
+    <string name="general_cancel_action">Ακύρωση</string>
+
+    <!-- Λειτουργίες -->
+    <string name="operations_header_title">Λειτουργίες</string>
+    <string name="operations_clear_completed">Εκκαθάριση ολοκληρωμένων</string>
+    <string name="operations_state_queued">Σε αναμονή</string>
+    <string name="operations_state_running">Σε εξέλιξη</string>
+    <string name="operations_state_waiting">Αναμονή εισόδου</string>
+    <string name="operations_state_successful">Επιτυχία</string>
+    <string name="operations_state_failed">Αποτυχία</string>
+    <string name="operations_state_cancelled">Ακυρώθηκε</string>
+    <string name="operations_state_cancelling">Ακύρωση…</string>
+    <string name="operations_cancel_operation">Ακύρωση λειτουργίας</string>
+    <string name="operations_cancel_dialog_title">Ακύρωση λειτουργίας;</string>
+    <string name="operations_cancel_dialog_message">Θέλετε σίγουρα να ακυρώσετε αυτήν τη λειτουργία;</string>
+    <string name="operations_cancel_dialog_warning">Η ακύρωση ενδέχεται να αφήσει αρχεία σε ασυνεπή κατάσταση.</string>
+    <string name="operations_details_started_at">Ξεκίνησε</string>
+    <string name="operations_details_completed_at">Ολοκληρώθηκε</string>
+    <string name="operations_details_duration">Διάρκεια</string>
+    <string name="operations_details_duration_not_started">Δεν έχει ξεκινήσει</string>
+    <string name="operations_details_progress">Πρόοδος</string>
+    <string name="operations_details_error">Λεπτομέρειες σφάλματος</string>
+    <string name="operations_details_actions">Ενέργειες</string>
+    <string name="operations_details_overview">Επισκόπηση</string>
+    <string name="operations_details_handle_issue">Διαχείριση ζητήματος</string>
+    <string name="operations_details_show_in_history_action">Εμφάνιση στο ιστορικό</string>
+    <string name="operations_details_status">Κατάσταση</string>
+    <string name="operations_details_result">Αποτέλεσμα</string>
+    <string name="operations_details_destination_folder">Φάκελος προορισμού</string>
+    <string name="operations_details_destination_path">Διαδρομή προορισμού</string>
+    <string name="operations_details_affected_paths_with_count">Επηρεαζόμενες διαδρομές (%d)</string>
+    <string name="operations_details_problems_with_count">Προβλήματα (%d)</string>
+    <string name="operations_details_problems_more">%d ακόμη μη εμφανιζόμενα</string>
+    <string name="workspace_operation_packages_section_title">Εφαρμογές</string>
+    <string name="workspace_operation_package_status_done">Ολοκληρώθηκε</string>
+    <string name="workspace_operation_package_status_failed">Απέτυχε</string>
+    <string name="workspace_operation_package_status_declined">Απορρίφθηκε</string>
+    <string name="operations_details_section_expand">Ανάπτυξη %1$s</string>
+    <string name="operations_details_section_collapse">Σύμπτυξη %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Γράφημα απόδοσης</string>
+
+    <!-- Παράθυρο επιβεβαίωσης διαγραφής -->
+    <string name="workspace_dialog_delete_title_single">Διαγραφή στοιχείου;</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Διαγραφή %1$d στοιχείου;</item>
+        <item quantity="other">Διαγραφή %1$d στοιχείων;</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Αυτό το στοιχείο θα διαγραφεί οριστικά:</string>
+    <string name="workspace_dialog_delete_message_multiple">Αυτά τα στοιχεία θα διαγραφούν οριστικά:</string>
+    <string name="workspace_dialog_delete_more_items">… και %1$d ακόμη</string>
+    <string name="workspace_dialog_delete_warning">Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</string>
+    <string name="workspace_dialog_delete_permanently_action">Οριστική διαγραφή</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Οριστική διαγραφή αντί μετακίνησης στον κάδο</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Ορισμένα στοιχεία δεν μπορούν να μετακινηθούν στον κάδο και θα αντιμετωπιστούν ξεχωριστά.</string>
+
+    <!-- Παράθυρο κάδου -->
+    <string name="workspace_dialog_trash_title_single">Μετακίνηση στον κάδο;</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Μετακίνηση %1$d στοιχείου στον κάδο;</item>
+        <item quantity="other">Μετακίνηση %1$d στοιχείων στον κάδο;</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Αυτό το στοιχείο θα μετακινηθεί στον κάδο:</string>
+    <string name="workspace_dialog_trash_message_multiple">Αυτά τα στοιχεία θα μετακινηθούν στον κάδο:</string>
+    <string name="workspace_dialog_trash_hint">Θα τα βρείτε στην τοποθεσία του κάδου</string>
+    <string name="workspace_dialog_move_to_trash_action">Μετακίνηση</string>
+
+    <!-- Γραμμή ενεργειών -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d επιλεγμένο</item>
+        <item quantity="other">%d επιλεγμένα</item>
+    </plurals>
+    <string name="workspace_action_more">Περισσότερες ενέργειες</string>
+
+    <!-- Λειτουργία διαγραφής (κοινή σε όλους τους χώρους εργασίας) -->
+    <string name="workspace_operation_delete_title">Διαγραφή αρχείων</string>
+    <string name="workspace_operation_delete_description_single">Διαγραφή \"%1$s\" από \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Διαγραφή %1$d στοιχείου από \"%2$s\".</item>
+        <item quantity="other">Διαγραφή %1$d στοιχείων από \"%2$s\".</item>
+    </plurals>
+
+    <!-- Λειτουργία εγκατάστασης εφαρμογής (κοινή σε όλους τους χώρους εργασίας) -->
+    <string name="workspace_operation_install_title">Εγκατάσταση εφαρμογής</string>
+    <string name="workspace_operation_install_description">Εγκατάσταση \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">Ανάγνωση πακέτου…</string>
+    <string name="workspace_operation_install_progress_extracting">Αποσυμπίεση…</string>
+    <string name="workspace_operation_install_progress_writing">Παράδοση αρχείων στο πρόγραμμα εγκατάστασης…</string>
+    <string name="workspace_operation_install_progress_committing">Ολοκλήρωση εγκατάστασης…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Τοποθέτηση αρχείων επέκτασης…</string>
+    <string name="workspace_operation_install_summary_success">%1$s εγκαταστάθηκε.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s εγκαταστάθηκε, αλλά δεν ήταν δυνατή η τοποθέτηση των αρχείων επέκτασης.</string>
+    <string name="workspace_install_unknown_sources_required">Το Butler χρειάζεται άδεια για την εγκατάσταση εφαρμογών. Παραχωρήστε τη στις ρυθμίσεις που μόλις άνοιξαν και δοκιμάστε ξανά.</string>
+    <string name="workspace_install_obb_failed">Η εφαρμογή εγκαταστάθηκε, αλλά δεν ήταν δυνατή η τοποθέτηση των αρχείων επέκτασης: %1$s</string>
+
+    <!-- Αναφορές λειτουργίας διαγραφής -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d αρχείο διαγράφηκε.</item>
+        <item quantity="other">%1$d αρχεία διαγράφηκαν.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d φάκελος διαγράφηκε.</item>
+        <item quantity="other">%1$d φάκελοι διαγράφηκαν.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d στοιχείο παραλείφθηκε.</item>
+        <item quantity="other">%1$d στοιχεία παραλείφθηκαν.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s ελευθερώθηκαν.</item>
+        <item quantity="other">%1$s ελευθερώθηκαν.</item>
+    </plurals>
+
+    <!-- Αναφορές λειτουργίας κάδου -->
+    <string name="workspace_operation_progress_moving_to_trash">Μετακίνηση στον κάδο…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d αρχείο μετακινήθηκε στον κάδο.</item>
+        <item quantity="other">%1$d αρχεία μετακινήθηκαν στον κάδο.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d φάκελος μετακινήθηκε στον κάδο.</item>
+        <item quantity="other">%1$d φάκελοι μετακινήθηκαν στον κάδο.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">Ελευθερώθηκαν %1$s/s.</string>
+    <string name="workspace_operation_progress_bytes_freed">Ελευθερώθηκαν %1$s.</string>
+    <string name="workspace_operation_progress_time_remaining">Απομένουν %1$s.</string>
+
+    <!-- Παράθυρο πληροφοριών αρχείου (κοινό σε όλους τους χώρους εργασίας) -->
+    <string name="workspace_file_info_title">Πληροφορίες</string>
+    <string name="workspace_file_info_name_label">Όνομα</string>
+    <string name="workspace_file_info_path_label">Διαδρομή</string>
+    <string name="workspace_file_info_type_label">Τύπος</string>
+    <string name="workspace_file_info_type_file">Αρχείο</string>
+    <string name="workspace_file_info_type_directory">Φάκελος</string>
+    <string name="workspace_file_info_type_symlink">Συμβολικός σύνδεσμος</string>
+    <string name="workspace_file_info_type_unknown">Άγνωστο</string>
+    <string name="workspace_file_info_size_label">Μέγεθος</string>
+    <string name="workspace_file_info_modified_label">Τροποποιήθηκε</string>
+    <string name="workspace_file_info_created_label">Δημιουργήθηκε</string>
+    <string name="workspace_file_info_permissions_label">Δικαιώματα</string>
+    <string name="workspace_file_info_owner_label">Κάτοχος</string>
+    <string name="workspace_file_info_child_count_label">Στοιχεία</string>
+    <string name="workspace_file_info_symlink_target_label">Προορισμός</string>
+    <string name="workspace_file_info_unknown">Άγνωστο</string>
+    <string name="workspace_file_info_copy_action">Αντιγραφή στο πρόχειρο</string>
+
+    <!-- Παράθυρο πληροφοριών πολλαπλών στοιχείων -->
+    <string name="workspace_file_info_selected_label">Επιλεγμένα</string>
+    <string name="workspace_file_info_files_label">Αρχεία</string>
+    <string name="workspace_file_info_directories_label">Φάκελοι</string>
+    <string name="workspace_file_info_total_size_label">Συνολικό μέγεθος</string>
+
+    <!-- Γράφημα απόδοσης -->
+    <string name="workspace_operation_performance_unavailable_not_started">Αυτή η λειτουργία δεν έχει ξεκινήσει ακόμη.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Συλλογή δεδομένων απόδοσης…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Δεν υπάρχουν αρκετά δεδομένα απόδοσης από αυτή τη λειτουργία για τη δημιουργία γραφήματος.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Δεν υπάρχουν διαθέσιμα δεδομένα απόδοσης για αυτή τη λειτουργία.</string>
+    <string name="workspace_operation_performance_window_seconds">Τελευταία %1$d δ</string>
+    <string name="workspace_operation_performance_window_minutes">Τελευταία %1$d λεπ</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">στοιχεία/s</string>
+
+    <!-- Εμφάνιση σφάλματος (κοινή σε όλους τους χώρους εργασίας) -->
+    <string name="workspace_error_show_details_action">Εμφάνιση τεχνικών λεπτομερειών</string>
+    <string name="workspace_error_hide_details_action">Απόκρυψη τεχνικών λεπτομερειών</string>
+
+    <!-- Στοιχεία κατάστασης χώρου εργασίας -->
+    <string name="workspace_initializing_title">Αρχικοποίηση καρτέλας</string>
+    <string name="workspace_error_subtitle">Παρουσιάστηκε ένα απρόσμενο σφάλμα</string>
+    <string name="workspace_close_tab_action">Κλείσιμο καρτέλας</string>
+    <string name="workspace_paused_body">Αυτή η καρτέλα βρίσκεται σε παύση για εξοικονόμηση μνήμης και μπαταρίας. Συνεχίστε την για να προχωρήσετε.</string>
+    <string name="workspace_paused_error_body">Αυτή η καρτέλα δεν ήταν δυνατό να συνεχιστεί.</string>
+    <string name="workspace_paused_resume_action">Συνέχιση</string>
+    <string name="workspace_paused_label">Σε παύση</string>
+    <string name="workspace_paused_content_label">Περιεχόμενο καρτέλας</string>
+
+    <!-- Επίλυση ζητημάτων (διαχείριση συγκρούσεων) -->
+    <string name="workspace_issue_collision_existing_file_label">Υπάρχον αρχείο</string>
+    <string name="workspace_issue_collision_existing_folder_label">Υπάρχων φάκελος</string>
+    <string name="workspace_issue_collision_new_file">Εισερχόμενο αρχείο</string>
+    <string name="workspace_issue_collision_new_folder">Εισερχόμενος φάκελος</string>
+    <string name="workspace_issue_collision_overwrite">Αντικατάσταση</string>
+    <string name="workspace_issue_collision_merge">Συγχώνευση</string>
+    <string name="workspace_issue_common_source_file">Αρχείο προέλευσης</string>
+    <string name="workspace_issue_common_destination_file">Προορισμός</string>
+    <string name="workspace_issue_common_skip">Παράλειψη</string>
+    <string name="workspace_issue_common_rename">Μετονομασία</string>
+    <string name="workspace_issue_common_rename_new">Μετονομασία νέου</string>
+    <string name="workspace_issue_common_rename_existing">Μετονομασία υπάρχοντος</string>
+    <string name="workspace_issue_common_cancel">Ακύρωση</string>
+    <string name="workspace_issue_common_delete_permanently">Οριστική διαγραφή</string>
+    <string name="workspace_issue_archive_password_label">Κωδικός πρόσβασης</string>
+    <string name="workspace_issue_archive_password_unlock">Ξεκλείδωμα</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Στοιχεία που απέτυχαν</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… και %1$d ακόμη στοιχεία</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Επηρεαζόμενα στοιχεία</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… και %1$d ακόμη στοιχεία</string>
+    <string name="workspace_issue_apply_all">Εφαρμογή σε όλα τα υπόλοιπα ζητήματα</string>
+    <string name="workspace_issue_rename_new_name">Νέο όνομα</string>
+    <string name="workspace_issue_rename_dialog_title_new">Μετονομασία εισερχόμενου αρχείου</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Μετονομασία υπάρχοντος αρχείου</string>
+    <string name="workspace_issue_type_folder">Φάκελος</string>
+
+    <!-- Παράθυρο επιβεβαίωσης ανοίγματος σε νέες καρτέλες -->
+    <string name="workspace_open_tabs_confirmation_title">Άνοιγμα πολλαπλών καρτελών;</string>
+    <string name="workspace_open_tabs_confirmation_message">Αυτό θα ανοίξει %1$d καρτέλες.</string>
+
+    <!-- Άνοιγμα με (παράδοση αρχείου σε άλλη εφαρμογή) -->
+    <string name="workspace_open_with_chooser_title">Άνοιγμα με</string>
+    <string name="workspace_open_with_no_app_label">Δεν βρέθηκε άλλη εφαρμογή</string>
+    <string name="workspace_open_with_no_app_description">Καμία άλλη εγκατεστημένη εφαρμογή δεν μπορεί να ανοίξει το %1$s.</string>
+
+    <!-- Ανατροφοδότηση banner χώρου εργασίας -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Άνοιξε %1$d καρτέλα</item>
+        <item quantity="other">Άνοιξαν %1$d καρτέλες</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Δεν είναι δυνατό το κλείσιμο: μια λειτουργία εξακολουθεί να εκτελείται σε %1$d καρτέλα</item>
+        <item quantity="other">Δεν είναι δυνατό το κλείσιμο: λειτουργίες εξακολουθούν να εκτελούνται σε %1$d καρτέλες</item>
+    </plurals>
+
+    <!-- Χώρος εργασίας > Ρυθμίσεις-->
+    <string name="workspace_settings_title">Καρτέλες</string>
+    <string name="workspace_settings_navigation">Πλοήγηση</string>
+    <string name="workspace_settings_swipe_gestures_title">Χειρονομίες σάρωσης</string>
+    <string name="workspace_settings_swipe_gestures_desc">Σαρώστε αριστερά ή δεξιά για εναλλαγή μεταξύ καρτελών.</string>
+    <string name="workspace_settings_ondemand_creation_title">Αυτόματη δημιουργία καρτελών</string>
+    <string name="workspace_settings_ondemand_creation_desc">Αυτόματη δημιουργία νέας καρτέλας κατά τη σάρωση πέρα από την τελευταία καρτέλα.</string>
+    <string name="workspace_settings_newtab_type_title">Τύπος νέας καρτέλας</string>
+    <string name="workspace_settings_newtab_type_desc">Ο χώρος εργασίας που ανοίγει κατά τη σάρωση πέρα από την τελευταία καρτέλα, την προσθήκη καρτέλας σε κενό τμήμα ή τη δημιουργία της πρώτης καρτέλας.</string>
+    <string name="workspace_settings_newtab_type_ask">Ερώτηση κάθε φορά</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Εμφάνιση του επιλογέα τύπου καρτέλας για κάθε νέα καρτέλα.</string>
+    <string name="workspace_settings_live_preview_title">Ζωντανές προεπισκοπήσεις</string>
+    <string name="workspace_settings_live_preview_desc">Εμφάνιση ζωντανού περιεχομένου καρτέλας στη διαχείριση καρτελών.</string>
+    <string name="workspace_settings_other">Άλλα</string>
+    <string name="workspace_settings_layout_title">Διάταξη</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Λειτουργία διάταξης κατακόρυφου προσανατολισμού</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Επιλογή διάταξης καρτελών σε κατακόρυφο προσανατολισμό.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Λειτουργία διάταξης οριζόντιου προσανατολισμού</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Επιλογή διάταξης καρτελών σε οριζόντιο προσανατολισμό.</string>
+    <string name="workspace_settings_layout_mode_auto">Αυτόματη</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Κλασική σε μικρές οθόνες, γραμμή καρτελών με τμήματα σε μεγάλες.</string>
+    <string name="workspace_settings_layout_mode_classic">Κλασική</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Ένα τμήμα τη φορά, χωρίς τη γραμμή καρτελών.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Προσαρμοστική</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Γραμμή καρτελών συν όσα τμήματα χωράει η οθόνη. Καρφιτσώστε μια διάταξη από το μενού Butler στη γραμμή.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Προσαρμοστική (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Μονή με γραμμή καρτελών</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Ένα τμήμα καρτέλας συν τη γραμμή καρτελών των διατάξεων πολλαπλών τμημάτων. Εναλλαγή καρτελών από τη γραμμή αντί με σάρωση· η γραμμή καταλαμβάνει μια λωρίδα της οθόνης.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Διπλή κατακόρυφη</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Δύο τμήματα δίπλα-δίπλα (αριστερά/δεξιά).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Διπλή οριζόντια</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Δύο τμήματα το ένα πάνω στο άλλο (πάνω/κάτω).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Τριπλή πλαϊνή αριστερά</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Ένα μεγάλο τμήμα αριστερά, δύο μικρότερα τμήματα το ένα πάνω στο άλλο δεξιά.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Τριπλή πλαϊνή δεξιά</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Δύο μικρότερα τμήματα το ένα πάνω στο άλλο αριστερά, ένα μεγάλο τμήμα δεξιά.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Τετραπλό πλέγμα</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Τέσσερα τμήματα σε πλέγμα 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Κλικ για εστίαση</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Το πρώτο κλικ σε ένα τμήμα χωρίς εστίαση απλώς το εστιάζει, και τα τμήματα χωρίς εστίαση δεν αντιδρούν στον δείκτη του ποντικιού. Απενεργοποιήστε το για άμεση αλληλεπίδραση με αυτά.</string>
+
+    <string name="workspace_settings_rail_button_title">Κουμπί Butler</string>
+    <string name="workspace_settings_rail_button_desc">Επιλέξτε πού βρίσκεται το κουμπί Butler στη γραμμή καρτελών.</string>
+    <string name="workspace_settings_rail_button_leading">Αρχή</string>
+    <string name="workspace_settings_rail_button_leading_desc">Πριν τις καρτέλες σε κατακόρυφο προσανατολισμό, πάνω τους σε οριζόντιο.</string>
+    <string name="workspace_settings_rail_button_trailing">Τέλος</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Μετά τις καρτέλες σε κατακόρυφο προσανατολισμό, κάτω τους σε οριζόντιο. Σε εμβέλεια αντίχειρα για χρήση με το ένα χέρι.</string>
+
+    <!-- Περίοδος λειτουργίας -->
+    <string name="workspace_settings_session_title">Περίοδος λειτουργίας</string>
+    <string name="workspace_settings_session_restore_title">Επαναφορά καρτελών κατά την εκκίνηση</string>
+    <string name="workspace_settings_session_restore_desc">Αυτόματη επαναφορά προηγουμένως ανοιχτών καρτελών κατά την εκκίνηση της εφαρμογής.</string>
+    <string name="workspace_settings_autopause_title">Παύση ανενεργών καρτελών</string>
+    <string name="workspace_settings_autopause_desc">Οι καρτέλες που δεν έχετε δει για κάποιο διάστημα τίθενται σε παύση για εξοικονόμηση μνήμης και μπαταρίας. Το άνοιγμά τους τις συνεχίζει.</string>
+    <string name="workspace_settings_autopause_delay_title">Παύση μετά από</string>
+    <string name="workspace_settings_autopause_delay_desc">Πόσο καιρό παραμένει μια καρτέλα εκτός προβολής πριν τεθεί σε παύση.</string>
+    <string name="workspace_settings_undoclose_title">Αναίρεση κλεισίματος καρτελών</string>
+    <string name="workspace_settings_undoclose_desc">Το κλείσιμο μιας καρτέλας προσφέρει επαναφορά της για λίγα δευτερόλεπτα.</string>
+    <string name="workspace_settings_session_data_title">Δεδομένα περιόδου λειτουργίας</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d καρτέλα • %2$s</item>
+        <item quantity="other">%1$d καρτέλες • %2$s</item>
+    </plurals>
+
+    <!-- Αναίρεση κλεισίματος -->
+    <string name="workspace_closed_undo_message">Έκλεισε \"%1$s\"</string>
+
+    <!-- Σφάλμα επαναφοράς περιόδου λειτουργίας -->
+    <string name="workspace_session_restoration_error_title">Η επαναφορά περιόδου λειτουργίας απέτυχε</string>
+    <string name="workspace_session_restoration_error_description">Η προηγούμενη περίοδος λειτουργίας των καρτελών σας δεν ήταν δυνατό να αποκατασταθεί. Αυτό ενδέχεται να οφείλεται σε σφάλμα που θα διορθωθεί σε μελλοντική ενημέρωση.\n\nΜπορείτε να διαγράψετε την αποθηκευμένη περίοδο λειτουργίας για να συνεχίσετε να χρησιμοποιείτε το Butler, ή να περιμένετε μια ενημέρωση.</string>
+    <string name="workspace_session_restoration_error_clear_action">Διαγραφή περιόδου λειτουργίας</string>
+    <string name="workspace_session_restoration_error_report_action">Αναφορά προβλήματος</string>
+    <string name="workspace_session_restoration_error_confirm_title">Διαγραφή περιόδου λειτουργίας;</string>
+    <string name="workspace_session_restoration_error_confirm_description">Αυτό θα διαγράψει οριστικά την αποθηκευμένη περίοδο λειτουργίας των καρτελών σας. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</string>
+
+    <!-- Μετονομασία καρτέλας -->
+    <string name="workspace_rename_dialog_title">Μετονομασία καρτέλας</string>
+    <string name="workspace_rename_name_label">Προσαρμοσμένο όνομα</string>
+    <string name="workspace_rename_name_hint">Αφήστε κενό για χρήση του αυτόματου ονόματος</string>
+
+    <!-- Όριο καρτελών -->
+    <string name="workspace_limit_reached_title">Το όριο καρτελών έχει συμπληρωθεί</string>
+    <string name="workspace_limit_reached_message">Οι δωρεάν χρήστες μπορούν να έχουν έως %1$d ανοιχτές καρτέλες τη φορά. Αναβαθμίστε σε Butler Pro για απεριόριστες καρτέλες!</string>
+    <string name="workspace_limit_pick_tabs_message">Το δωρεάν πλάνο σας επιτρέπει %1$d ανοιχτές καρτέλες. Επιλέξτε αυτές που δεν χρειάζεστε πια και κλείστε τις για να κάνετε χώρο.</string>
+    <string name="workspace_limit_no_slot_hint">Το κλείσιμο καρτελών δεν θα ελευθερώσει θέση αυτή τη στιγμή.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Κλείσιμο %d καρτέλας</item>
+        <item quantity="other">Κλείσιμο %d καρτελών</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Επιλέξτε τουλάχιστον %d καρτέλα για κλείσιμο.</item>
+        <item quantity="other">Επιλέξτε τουλάχιστον %d καρτέλες για κλείσιμο.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Άνοιξε %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Μη αποθηκευμένες αλλαγές</string>
+    <string name="workspace_limit_blocker_busy">Απασχολημένη αυτή τη στιγμή</string>
+    <string name="workspace_limit_blocker_attention">Περιμένει την προσοχή σας</string>
+    <string name="workspace_limit_blocker_loading">Φορτώνει ακόμη</string>
+    <string name="workspace_limit_blocker_awaiting_result">Ολοκληρώστε πρώτα τον ανοιχτό επιλογέα</string>
+    <string name="workspace_limit_blocker_unavailable">Δεν μπορεί να κλείσει αυτή τη στιγμή</string>
+    <string name="workspace_limit_stacked_content_desc">Το κλείσιμο αυτής της καρτέλας κλείνει επίσης ό,τι είναι στοιβαγμένο πάνω της</string>
+    <string name="workspace_limit_pro_description">Ανοίξτε όσες καρτέλες θέλετε.</string>
+
+    <!-- Μεταφορά και απόθεση -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d στοιχείο</item>
+        <item quantity="other">%1$d στοιχεία</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Λειτουργία επαναφοράς -->
+    <string name="workspace_operation_restore_title">Επαναφορά από κάδο</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Επαναφορά %d στοιχείου από τον κάδο.</item>
+        <item quantity="other">Επαναφορά %d στοιχείων από τον κάδο.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d στοιχείο επαναφέρθηκε</item>
+        <item quantity="other">%d στοιχεία επαναφέρθηκαν</item>
+    </plurals>
+</resources>

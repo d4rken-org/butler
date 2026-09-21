@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Editor</string>
+    <string name="editor_subtitle">Tekstbestanden bewerken</string>
+    <string name="editor_settings_title">Editor-instellingen</string>
+    <string name="editor_settings_show_line_numbers_title">Regelnummers weergeven</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Regelnummers in editor weergeven.</string>
+    <string name="editor_settings_word_wrap_title">Regelterugloop</string>
+    <string name="editor_settings_word_wrap_subtitle">Lange regels terugloopen zodat ze op het scherm passen.</string>
+    <string name="editor_settings_syntax_highlighting_title">Syntaxmarkering</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Kleurcode in ondersteunde bestanden (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Lettertypegrootte</string>
+    <string name="editor_settings_font_size_subtitle">Tekstgrootte in editor</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Tabruimte</string>
+    <string name="editor_settings_tab_size_subtitle">Aantal spaties voor tabulatieteken</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Openen</string>
+    <string name="editor_action_save">Opslaan</string>
+    <string name="editor_action_save_as">Opslaan als…</string>
+    <string name="editor_action_close">Sluiten</string>
+    <string name="editor_action_undo">Ongedaan maken</string>
+    <string name="editor_action_redo">Opnieuw</string>
+    <string name="editor_action_search">Zoeken</string>
+    <string name="editor_action_go_to_line">Naar regel gaan</string>
+    <string name="editor_action_dismiss">Sluiten</string>
+    <string name="editor_action_previous">Vorige</string>
+    <string name="editor_action_next">Volgende</string>
+    <string name="editor_action_copy">Kopiëren</string>
+    <string name="editor_action_cut">Knippen</string>
+    <string name="editor_action_copy_to_butler_clipboard">Kopiëren naar Butler-klembord</string>
+    <string name="editor_action_cut_to_butler_clipboard">Knippen naar Butler-klembord</string>
+    <string name="editor_action_paste">Plakken</string>
+    <string name="editor_action_select_all">Alles selecteren</string>
+    <string name="editor_action_delete">Verwijderen</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Bestand overschrijven?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s bestaat al. De huidige inhoud wordt vervangen.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Overschrijven</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Een back-up van een onderbroken opslag is gevonden:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Bewerken als tekst wordt niet ondersteund</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Zeer lange regels</string>
+    <string name="editor_long_lines_banner_message">Zeer lange regels worden ingekort voor weergave; de volledige inhoud wordt behouden en opgeslagen.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Volgende deel van regel weergeven</string>
+    <string name="editor_line_truncated_marker_previous_action">Vorige deel van regel weergeven</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Bestand niet meer beschikbaar</string>
+    <string name="editor_backing_lost_banner_message">Het is mogelijk verplaatst of verwijderd. Deze weergave is alleen-lezen; open het opnieuw of sluit het.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Bestand is weg, maar een back-up is beschikbaar</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" ontbreekt, maar een onderbroken opslag heeft dit achtergelaten: %2$s. Je inhoud is waarschijnlijk nog steeds erin.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Bestand gewijzigd op schijf</string>
+    <string name="editor_external_change_banner_message">Een ander app heeft dit bestand gewijzigd.</string>
+    <string name="editor_external_change_reload_action">Opnieuw laden</string>
+    <string name="editor_external_change_keep_action">Doorgaan met bewerken</string>
+    <string name="editor_error_external_change">Dit bestand is gewijzigd door een ander app. Laad het bestand opnieuw om door te gaan.</string>
+    <string name="editor_dialog_reload_confirm_title">Bestand opnieuw laden?</string>
+    <string name="editor_dialog_reload_confirm_message">Opnieuw laden verwijdert je niet-opgeslagen wijzigingen en toont de huidige inhoud van het bestand op schijf.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d regel</item>
+        <item quantity="other">%1$d regels</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d teken</item>
+        <item quantity="other">%1$d tekens</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Geselecteerd: %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Bestand laden…</string>
+    <string name="editor_saving">Opslaan…</string>
+    <string name="editor_action_cancel_loading">Annuleren</string>
+    <string name="editor_progress_opening">Bestand openen…</string>
+    <string name="editor_progress_saving">Bestand opslaan…</string>
+    <string name="editor_progress_building_index">Bestandsindex opbouwen…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Onbekende fout</string>
+    <string name="editor_error_read_only">Dit bestand is alleen-lezen en kan niet worden gewijzigd.</string>
+    <string name="editor_error_save_integrity_label">Opslag onderbroken</string>
+    <string name="editor_error_save_integrity">Opslag is onderbroken en het bestand op schijf kan onvolledig zijn. Laad het bestand opnieuw voordat je verder bewerkt.</string>
+    <string name="editor_error_clipboard_too_large_label">Selectie te groot</string>
+    <string name="editor_error_clipboard_too_large">De selectie is te groot om te kopiëren (limiet %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Bestand te groot</string>
+    <string name="editor_error_paste_too_large">Dit bestand is te groot om te plakken (max. %1$s).</string>
+    <string name="editor_error_paste_binary_label">Geen tekstbestand</string>
+    <string name="editor_error_paste_binary">De inhoud van dit bestand kan niet als tekst worden geplakt.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d van %2$d resultaat</item>
+        <item quantity="other">%1$d van %2$d resultaten</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d van %2$d+ resultaten</string>
+    <string name="editor_search_too_many_matches_label">Te veel overeenkomsten</string>
+    <string name="editor_search_too_many_matches">Meer dan %1$d overeenkomsten of te veel overeenkomstige tekst; beperk de zoekopdracht om alles te vervangen.</string>
+    <string name="editor_search_placeholder">Zoeken…</string>
+    <string name="editor_search_previous">Vorig resultaat</string>
+    <string name="editor_search_next">Volgende resultaat</string>
+    <string name="editor_search_case_sensitive_label">Hoofdlettergevoelig</string>
+    <string name="editor_search_regex_label">Reguliere expressie</string>
+    <string name="editor_search_whole_word_label">Heel woord</string>
+    <string name="editor_search_options_label">Zoekopties</string>
+    <string name="editor_search_replace_label">Vervangen</string>
+    <string name="editor_search_replace_toggle">Vervangen in-/uitschakelen</string>
+    <string name="editor_search_replace_placeholder">Vervangen door…</string>
+    <string name="editor_search_replace_one_action">Vervangen</string>
+    <string name="editor_search_replace_all_action">Alles</string>
+    <string name="editor_search_replaced_not_undoable">%1$d vervangen (te groot om ongedaan te maken)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d vervangen</item>
+        <item quantity="other">%1$d vervangen</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Naar regel gaan</string>
+    <string name="editor_dialog_go_to_line_label">Regelnummer (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Gaan</string>
+    <string name="editor_dialog_action_cancel">Annuleren</string>
+    <string name="editor_dialog_close_confirm_title">Niet-opgeslagen wijzigingen</string>
+    <string name="editor_dialog_close_confirm_message">Je hebt niet-opgeslagen wijzigingen. Deze verwijderen?</string>
+    <string name="editor_dialog_close_confirm_discard">Verwijderen</string>
+    <string name="editor_dialog_large_delete_confirm_title">Grote selectie bewerken?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Deze selectie is te groot om ongedaan te maken. Toch doorgaan?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Doorgaan</string>
+    <string name="editor_encoding_dialog_title">Codering</string>
+    <string name="editor_encoding_dialog_message">Het bestand opnieuw openen met een ander codering. Niet-opgeslagen wijzigingen worden verwijderd; ongewijzigde bytes blijven ongewijzigd bij het opslaan.</string>
+    <string name="editor_infobar_read_only">Alleen-lezen</string>
+    <string name="editor_line_ending_mixed">Gemengd</string>
+    <string name="editor_line_ending_dialog_title">Regeleindes</string>
+    <string name="editor_line_ending_dialog_message">Alle regeleindes converteren en het bestand opslaan, inclusief niet-opgeslagen wijzigingen. Geschiedenis van ongedaan maken wordt gewist.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Naamloos</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Automatisch opslaan</string>
+    <string name="editor_settings_autosave_enabled_title">Automatisch opslaan inschakelen</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Wijzigingen automatisch opslaan na een periode van inactiviteit.</string>
+    <string name="editor_settings_autosave_interval_title">Interval voor automatisch opslaan</string>
+    <string name="editor_settings_autosave_interval_subtitle">Wachttijd na laatste bewerking voordat opgeslagen wordt.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Interval voor automatisch opslaan</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Klembord</string>
+    <string name="editor_settings_clipboard_behavior_title">Butler-klembord</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Bepaal hoe tekstkopieën worden opgeslagen in het Butler-klembord.</string>
+    <string name="editor_settings_clipboard_system_only">Alleen systeemklembord</string>
+    <string name="editor_settings_clipboard_system_only_desc">Alleen kopiëren naar systeemklembord</string>
+    <string name="editor_settings_clipboard_butler_always">Altijd toevoegen aan Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Ook opslaan in het Butler-klembord voor plakken tussen werkruimten</string>
+    <string name="editor_settings_clipboard_ask">Elke keer vragen</string>
+    <string name="editor_settings_clipboard_ask_desc">Vragen voordat aan het Butler-klembord wordt toegevoegd</string>
+</resources>

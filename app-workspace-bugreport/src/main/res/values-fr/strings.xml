@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Rapports de bogue</string>
+    <string name="bugreport_workspace_subtitle">Rapports de crash et d’erreur</string>
+
+    <string name="bugreport_empty_title">Aucun rapport</string>
+    <string name="bugreport_empty_subtitle">Les rapports de crash et d’erreur apparaîtront ici. Rien n’est envoyé automatiquement.</string>
+
+    <string name="bugreport_type_crash">Crash</string>
+    <string name="bugreport_type_report">Rapport</string>
+    <string name="bugreport_type_recording">Enregistrement</string>
+
+    <string name="bugreport_record_action">Enregistrer le journal de débogage</string>
+    <string name="bugreport_record_short_action">Enregistrer</string>
+    <string name="bugreport_stop_action">Arrêter l’enregistrement</string>
+    <string name="bugreport_stop_short_action">Arrêter</string>
+    <string name="bugreport_recording_ongoing_label">Enregistrement…</string>
+
+    <string name="bugreport_recording_short_title">L’enregistrement est très court</string>
+    <string name="bugreport_recording_short_message">Cet enregistrement ne dure que quelques secondes et peut ne pas contenir d’informations utiles. L’arrêter quand même ?</string>
+    <string name="bugreport_recording_short_keep_action">Continuer l’enregistrement</string>
+
+    <string name="bugreport_rename_action">Renommer</string>
+    <string name="bugreport_rename_dialog_title">Nommer ce rapport</string>
+    <string name="bugreport_rename_name_label">Nom</string>
+    <string name="bugreport_rename_name_hint">Affiché dans la liste et dans le nom du fichier partagé</string>
+
+    <string name="bugreport_share_action">Partager</string>
+    <string name="bugreport_delete_action">Supprimer</string>
+    <string name="bugreport_delete_all_action">Tout supprimer</string>
+    <string name="bugreport_delete_all_confirm_title">Supprimer tous les journaux de débogage ?</string>
+    <string name="bugreport_delete_all_confirm_message">Cela supprimera définitivement toutes les sessions de journal de débogage enregistrées. Les enregistrements actifs ne seront pas affectés.</string>
+    <string name="bugreport_delete_confirm_title">Supprimer ce rapport ?</string>
+    <string name="bugreport_delete_confirm_message">Cela supprimera définitivement ce rapport et son journal.</string>
+    <string name="bugreport_cancel_action">Annuler</string>
+
+    <string name="bugreport_share_chooser_title">Partager le rapport de bogue</string>
+    <string name="bugreport_share_consent_title">Partager le rapport ?</string>
+    <string name="bugreport_share_consent_message">Ce rapport inclut des journaux d’application qui peuvent contenir des noms de fichiers, des chemins, et des informations sur l’application et l’appareil. Partagez-le uniquement avec des personnes de confiance.</string>
+
+    <string name="bugreport_detail_back_action">Retour</string>
+    <string name="bugreport_detail_section_error">Erreur</string>
+    <string name="bugreport_detail_section_log">Journal récent</string>
+    <string name="bugreport_detail_field_type">Type</string>
+    <string name="bugreport_detail_field_time">Heure</string>
+    <string name="bugreport_detail_field_app_version">Version de l’application</string>
+    <string name="bugreport_detail_field_device">Appareil</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">Type d’erreur</string>
+    <string name="bugreport_detail_field_thread">Thread</string>
+    <string name="bugreport_detail_log_truncated">dernières %1$d sur %2$d lignes</string>
+    <string name="bugreport_detail_log_count">%1$d lignes</string>
+    <string name="bugreport_detail_log_empty">Aucun journal capturé</string>
+    <string name="bugreport_detail_log_error">Impossible de charger le journal</string>
+</resources>

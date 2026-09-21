@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Αποθήκευση ως</string>
+    <string name="saver_preview_label">Προεπισκόπηση</string>
+    <string name="saver_loading">Φόρτωση…</string>
+    <string name="saver_shared_from">Κοινοποιήθηκε από %1$s</string>
+    <string name="saver_shared_generic">Κοινοποιήθηκε με το Butler</string>
+    <string name="saver_destination_label">Προορισμός</string>
+    <string name="saver_select_destination_hint">Επιλέξτε φάκελο προορισμού</string>
+    <string name="saver_filename_label">Όνομα αρχείου</string>
+    <string name="saver_save_action">Αποθήκευση</string>
+    <string name="saver_saving_progress">Αποθήκευση…</string>
+    <string name="saver_success_message">Το αρχείο αποθηκεύτηκε με επιτυχία</string>
+    <string name="saver_open_saved_action">Άνοιγμα φακέλου</string>
+    <string name="saver_retry_action">Επανάληψη</string>
+    <string name="saver_save_again_action">Αποθήκευση σε νέα θέση</string>
+    <string name="saver_close_tab_action">Κλείσιμο καρτέλας</string>
+    <string name="saver_close_butler_action">Κλείσιμο καρτέλας και επιστροφή</string>
+    <string name="saver_done_action">Ολοκληρώθηκε</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Το αρχείο προέλευσης δεν είναι πλέον προσβάσιμο. Κοινοποιήστε το ξανά.</item>
+        <item quantity="other">Τα αρχεία προέλευσης (%1$d) δεν είναι πλέον προσβάσιμα. Κοινοποιήστε τα ξανά.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Το αρχείο προέλευσης δεν είναι πλέον προσβάσιμο</string>
+    <string name="saver_error_permission_denied">Η άδεια απορρίφθηκε</string>
+    <string name="saver_error_write_failed">Η αποθήκευση του αρχείου απέτυχε</string>
+    <string name="saver_error_file_exists">Το αρχείο υπάρχει ήδη</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Αποθήκευση αρχείων</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Αποθήκευση %1$d αρχείου σε %2$s</item>
+        <item quantity="other">Αποθήκευση %1$d αρχείων σε %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Αποθήκευση %1$d αρχείου</item>
+        <item quantity="other">Αποθήκευση %1$d αρχείων</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d αρχείο αποθηκεύτηκε</item>
+        <item quantity="other">%1$d αρχεία αποθηκεύτηκαν</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d αρχείο απέτυχε</item>
+        <item quantity="other">%1$d αρχεία απέτυχαν</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d αρχείο παραλείφθηκε</item>
+        <item quantity="other">%1$d αρχεία παραλείφθηκαν</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d από %2$d αρχεία αποθηκεύτηκαν</string>
+</resources>

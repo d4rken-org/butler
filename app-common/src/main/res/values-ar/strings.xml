@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">مستكشف ملفات استثنائي</string>
+    <!-- Upgraded app title. %1$s is the app name, %2$s the tier qualifier ("Pro" or "FOSS", depending on the build). Reorder or repunctuate for your language; both placeholders must appear exactly once. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">أيقونة تطبيق Butler</string>
+    <string name="butler_mascot_description">تميمة Butler</string>
+    <string name="butler_mascot_animation_random_description">تميمة Butler تؤدي حركات متنوعة</string>
+    <string name="butler_mascot_animation_wink_description">تميمة Butler تغمز</string>
+    <string name="butler_mascot_animation_greeting_description">تميمة Butler تلوّح بالترحيب</string>
+    <string name="butler_mascot_animation_hatoff_description">تميمة Butler ترفع قبعتها احترامًا</string>
+    <string name="butler_mascot_animation_drink_description">تميمة Butler تشرب</string>
+    <string name="butler_mascot_animation_moustache_description">تميمة Butler تمسح شاربها</string>
+    <string name="butler_mascot_animation_sleep_closing_description">تميمة Butler تغمض عينيها للنوم</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">تميمة Butler تشخر</string>
+    <string name="butler_mascot_animation_sleep_waking_description">تميمة Butler تستيقظ</string>
+    <string name="butler_mascot_animation_cameo_description">تميمة SD Maid في ظهور خاص</string>
+
+    <string name="slogan_general_message_0">في خدمتك.</string>
+    <string name="slogan_general_message_1">كل شيء في مكانه.</string>
+    <string name="slogan_general_message_2">نظام لا فوضى.</string>
+    <string name="slogan_general_message_3">أجلب ملفاتك.</string>
+    <string name="slogan_general_message_4">جميع ملفاتك في صف واحد.</string>
+    <string name="slogan_general_message_5">منظم دائمًا.</string>
+    <string name="slogan_general_message_6">ملفات، تُوجد بسرعة!</string>
+    <string name="slogan_general_message_7">الوصول أصبح سهلًا.</string>
+    <string name="slogan_general_message_8">لن أفقد ملفاتك أبدًا.</string>
+    <string name="slogan_general_message_9">أرتدي قبعات كثيرة.</string>
+    <string name="slogan_newyear_message_0">نفس الإجراء كل عام.</string>
+    <string name="slogan_xmas_message_0">أتحقق من الملفات مرتين.</string>
+    <string name="slogan_xmas_message_1">على قائمة المهذبين.</string>
+    <string name="slogan_halloween_message_0">Boo-tler في خدمتك.</string>
+    <string name="slogan_halloween_message_1">لا حيل، فقط ملفات.</string>
+    <string name="slogan_stpatricks_message_0">هل تشعر بالحظ؟</string>
+    <string name="slogan_stpatricks_message_1">أبحث عن وعاء ذهبك.</string>
+    <string name="slogan_aprilfools_message_0">لا مجال للمزاح.</string>
+    <string name="slogan_aprilfools_message_1">منظم بجدية.</string>
+    <string name="slogan_oktoberfest_message_0">نخبًا لملفاتك!</string>
+    <string name="slogan_oktoberfest_message_1">ملفات جاهزة دومًا.</string>
+
+    <string name="general_share_action">مشاركة</string>
+    <string name="general_share_single_title">مشاركة %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="zero">مشاركة %d ملفات</item>
+        <item quantity="one">مشاركة ملف واحد</item>
+        <item quantity="two">مشاركة ملفين</item>
+        <item quantity="few">مشاركة %d ملفات</item>
+        <item quantity="many">مشاركة %d ملفًا</item>
+        <item quantity="other">مشاركة %d ملف</item>
+    </plurals>
+    <string name="general_done_action">تم</string>
+    <string name="general_copy_action">نسخ</string>
+    <string name="general_cut_action">قص</string>
+    <string name="general_move_action">نقل</string>
+    <string name="general_paste_action">لصق</string>
+    <string name="general_apply_action">تطبيق</string>
+    <string name="general_open_action">فتح</string>
+    <string name="general_cancel_action">إلغاء</string>
+    <string name="general_close_action">إغلاق</string>
+    <string name="general_confirm_action">تأكيد</string>
+    <string name="general_reset_action">إعادة تعيين</string>
+    <string name="general_save_action">حفظ</string>
+    <string name="general_edit_action">تعديل</string>
+    <string name="general_na_label">غير متاح</string>
+    <!-- Announced by screen readers when a dialog opens -->
+    <string name="general_dialog_a11y_label">مربع حوار</string>
+    <string name="general_dismiss_action">تجاهل</string>
+    <string name="general_read_more_action">قراءة المزيد</string>
+    <string name="general_mark_as_read_action">تحديد كمقروء</string>
+    <string name="general_back_action">رجوع</string>
+    <string name="general_navigate_up_action">الانتقال للأعلى</string>
+    <string name="general_error_label">خطأ</string>
+    <string name="general_error_unknown_label">خطأ غير معروف</string>
+    <string name="general_error_invalid_input_label">إدخال غير صالح</string>
+    <string name="general_share_error_action">مشاركة الخطأ</string>
+    <string name="general_error_report_subject">تقرير خطأ %1$s (%2$s)</string>
+    <string name="general_error_report_consent_title">مشاركة تقرير الخطأ؟</string>
+    <string name="general_error_report_consent_message">يحتوي التقرير على الخطأ وتتبع المكدس الذي أنتجه، وسجل الأحداث الأخير للتطبيق، وتفاصيل عن حالته: أسماء الملفات ومساراتها، واستعلامات البحث، وأسماء الحزم، وعناوين URI، وأسماء مضيفي الشبكة وSMB، ومعلومات جهازك وإصدار البناء، ومعرّف تثبيت مجهول. شارِكه فقط مع أشخاص تثق بهم.</string>
+    <string name="general_error_report_consent_confirm">مشاركة التقرير</string>
+    <string name="general_privacy_policy_action">سياسة الخصوصية</string>
+    <string name="general_bug_report_subject">تقرير مشكلة %1$s (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">تقرير مشكلة %1$s: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(صِف ما حدث هنا.)</string>
+    <string name="general_bug_report_body_expected_prompt">(صِف ما كنت تتوقعه بدلًا من ذلك.)</string>
+    <string name="general_duration_input_label">المدة</string>
+    <string name="general_size_input_label">الحجم</string>
+    <string name="general_upgrade_action">ترقية</string>
+    <string name="general_refresh_action">تحديث</string>
+    <string name="general_clear_action">مسح</string>
+    <string name="general_expand_action">توسيع</string>
+    <string name="general_collapse_action">طي</string>
+    <string name="general_completed_label">مكتمل</string>
+    <string name="general_cancelled_label">ملغى</string>
+    <string name="general_searching_label">جارٍ البحث</string>
+    <string name="general_searching_ellipsis">جارٍ البحث…</string>
+    <string name="general_progress_loading">جارٍ التحميل</string>
+    <string name="general_progress_loading_egg_0">لا يزال أسرع من iPhone</string>
+    <string name="general_progress_loading_egg_1">جارٍ تنزيل المزيد من ذاكرة RAM</string>
+    <string name="general_progress_loading_egg_2">الوقت المتبقي: قريبًا™</string>
+    <string name="general_progress_loading_egg_3">المعالج في استراحة قهوة</string>
+    <string name="general_progress_loading_egg_4">بانتظار بيانات من Pepe Silvia</string>
+    <string name="general_progress_loading_egg_5">جارٍ تشغيل Turbo Encabulator</string>
+    <string name="general_progress_loading_egg_6">تمرير الزبدة</string>
+    <string name="general_progress_loading_egg_7">إذن، كيف حالك؟</string>
+    <string name="general_progress_loading_egg_8">بيب بوب بوب</string>
+    <string name="general_progress_loading_egg_9">تخزين قرارات الحياة مؤقتًا</string>
+    <string name="general_progress_loading_egg_10">استحضار كثولو</string>
+    <string name="general_progress_loading_egg_11">كل شيء بخير</string>
+    <string name="general_progress_loading_egg_12">يرجى الانتظار</string>
+    <string name="general_progress_loading_egg_13">على الأقل أنت لست قيد الانتظار</string>
+    <string name="general_progress_loading_egg_14">ضعه مباشرة على الجبهة</string>
+
+    <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="zero">%dms</item>
+        <item quantity="one">%dms</item>
+        <item quantity="two">%dms</item>
+        <item quantity="few">%dms</item>
+        <item quantity="many">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="zero">%ds</item>
+        <item quantity="one">%ds</item>
+        <item quantity="two">%ds</item>
+        <item quantity="few">%ds</item>
+        <item quantity="many">%ds</item>
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="zero">%dm</item>
+        <item quantity="one">%dm</item>
+        <item quantity="two">%dm</item>
+        <item quantity="few">%dm</item>
+        <item quantity="many">%dm</item>
+        <item quantity="other">%dm</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="zero">%dh</item>
+        <item quantity="one">%dh</item>
+        <item quantity="two">%dh</item>
+        <item quantity="few">%dh</item>
+        <item quantity="many">%dh</item>
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="zero">%dd</item>
+        <item quantity="one">%dd</item>
+        <item quantity="two">%dd</item>
+        <item quantity="few">%dd</item>
+        <item quantity="many">%dd</item>
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="zero">%d ثوانٍ</item>
+        <item quantity="one">ثانية واحدة</item>
+        <item quantity="two">ثانيتان</item>
+        <item quantity="few">%d ثوانٍ</item>
+        <item quantity="many">%d ثانيةً</item>
+        <item quantity="other">%d ثانية</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="zero">%d دقائق</item>
+        <item quantity="one">دقيقة واحدة</item>
+        <item quantity="two">دقيقتان</item>
+        <item quantity="few">%d دقائق</item>
+        <item quantity="many">%d دقيقةً</item>
+        <item quantity="other">%d دقيقة</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="zero">%d ساعات</item>
+        <item quantity="one">ساعة واحدة</item>
+        <item quantity="two">ساعتان</item>
+        <item quantity="few">%d ساعات</item>
+        <item quantity="many">%d ساعةً</item>
+        <item quantity="other">%d ساعة</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="zero">%d أيام</item>
+        <item quantity="one">يوم واحد</item>
+        <item quantity="two">يومان</item>
+        <item quantity="few">%d أيام</item>
+        <item quantity="many">%d يومًا</item>
+        <item quantity="other">%d يوم</item>
+    </plurals>
+
+    <string name="general_view_action">عرض</string>
+    <string name="general_delete_action">حذف</string>
+    <string name="general_show_details_action">إظهار التفاصيل</string>
+    <string name="general_hide_details_action">إخفاء التفاصيل</string>
+
+    <string name="general_delete_confirmation_title">تأكيد الحذف</string>
+    <string name="general_delete_confirmation_message_x">حذف \"%s\"؟</string>
+    <string name="general_delete_confirmation_message_selected_x_items">حذف العناصر المحددة (%d)؟</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="zero">تم حذف %d عناصر.</item>
+        <item quantity="one">تم حذف عنصر واحد.</item>
+        <item quantity="two">تم حذف عنصرين.</item>
+        <item quantity="few">تم حذف %d عناصر.</item>
+        <item quantity="many">تم حذف %d عنصرًا.</item>
+        <item quantity="other">تم حذف %d عنصر.</item>
+    </plurals>
+
+    <string name="general_create_action">إنشاء</string>
+    <string name="general_rename_action">إعادة تسمية</string>
+    <string name="general_retry_action">إعادة المحاولة</string>
+    <string name="general_open_setup_action">فتح الإعداد</string>
+    <string name="general_grant_usage_stats_action">منح إذن الوصول إلى الاستخدام</string>
+    <string name="general_grant_storage_permission_action">منح إذن التخزين</string>
+    <string name="general_grant_all_files_access_action">السماح بالوصول إلى جميع الملفات</string>
+
+    <string name="general_result_user_cancel_msg">ألغى المستخدم العملية.</string>
+
+    <string name="general_path_label">المسار</string>
+    <string name="general_filename_validation_error">يحتوي الاسم على أحرف غير صالحة: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d من %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d من %2$d</string>
+
+    <string name="file_type_symbolic_link">رابط</string>
+    <string name="file_type_directory">دليل</string>
+    <string name="file_type_file">ملف</string>
+    <string name="file_type_unknown">غير معروف</string>
+
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">صورة</string>
+    <string name="common_mimetype_video">فيديو</string>
+    <string name="common_mimetype_audio">صوت</string>
+    <string name="common_mimetype_text_plain">نص عادي</string>
+    <string name="common_mimetype_text">مستند نصي</string>
+    <string name="common_mimetype_pdf">مستند PDF</string>
+    <string name="common_mimetype_document">مستند</string>
+    <string name="common_mimetype_archive">أرشيف</string>
+    <string name="common_mimetype_apk">حزمة Android</string>
+    <string name="common_mimetype_json">ملف JSON</string>
+    <string name="common_mimetype_xml">ملف XML</string>
+    <string name="common_mimetype_unknown">نوع غير معروف</string>
+
+    <string name="general_rom_type_auto_label">تلقائي (افتراضي)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="zero">%s عناصر/ث</item>
+        <item quantity="one">%s عنصر/ث</item>
+        <item quantity="two">%s عنصران/ث</item>
+        <item quantity="few">%s عناصر/ث</item>
+        <item quantity="many">%s عنصرًا/ث</item>
+        <item quantity="other">%s عنصر/ث</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="zero">%s/ث</item>
+        <item quantity="one">%s/ث</item>
+        <item quantity="two">%s/ث</item>
+        <item quantity="few">%s/ث</item>
+        <item quantity="many">%s/ث</item>
+        <item quantity="other">%s/ث</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">عدم تطابق النوع: المتوقع %1$s، لكن تم الحصول على %2$s.</string>
+    <string name="general_error_cant_access_msg">تعذر الوصول إلى %s.</string>
+    <string name="general_error_archive_not_seekable_msg">يتعذّر تصفح %s مباشرة: التخزين الذي يوجد عليه يدعم القراءة المتسلسلة فقط، بينما يتطلب تنسيق الأرشيف هذا وصولًا عشوائيًا.</string>
+    <string name="general_error_root_unavailable">الوصول بصلاحيات Root غير متاح.</string>
+    <string name="general_error_elevated_access_required">تتطلب هذه العملية وصولًا مرتفع الصلاحيات. اضبط Root أو Shizuku في الإعداد.</string>
+    <string name="general_error_no_compatible_app_found_msg">لم يتم العثور على تطبيق متوافق للتعامل مع هذا الطلب.</string>
+    <string name="general_error_ipc_deadobject_title">انقطع الاتصال بالخدمة</string>
+    <string name="general_error_ipc_deadobject_description">انقطع الاتصال بخدمة أساسية (مثل Magisk أو Shizuku أو خدمات أخرى على مستوى النظام) بشكل غير متوقع. يُرجى إعادة تشغيل جهازك. إذا استمرت المشكلة، تحقق من وجود تحديثات أو تواصل معي لأتمكن من إصلاحها.</string>
+
+    <string name="ui_theme_mode_dark_label">داكن</string>
+    <string name="ui_theme_mode_light_label">فاتح</string>
+    <string name="ui_theme_mode_system_label">النظام</string>
+    <string name="ui_theme_style_default_label">افتراضي</string>
+    <string name="ui_theme_style_medium_contrast_label">تباين متوسط</string>
+    <string name="ui_theme_style_high_contrast_label">تباين عالٍ</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">أخضر</string>
+    <string name="ui_theme_color_blue_label">أزرق</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">مخصص</string>
+
+    <string name="ui_theme_palette_tonalspot_label">لمسة لونية</string>
+    <string name="ui_theme_palette_neutral_label">محايد</string>
+    <string name="ui_theme_palette_vibrant_label">زاهٍ</string>
+    <string name="ui_theme_palette_expressive_label">تعبيري</string>
+    <string name="ui_theme_palette_rainbow_label">قوس قزح</string>
+    <string name="ui_theme_palette_fruitsalad_label">سلطة الفواكه</string>
+    <string name="ui_theme_palette_monochrome_label">أحادي اللون</string>
+    <string name="ui_theme_palette_fidelity_label">الدقة اللونية</string>
+    <string name="ui_theme_palette_content_label">متوافق مع المحتوى</string>
+
+    <string name="ui_theme_custom_dialog_title">سمة مخصصة</string>
+    <string name="ui_theme_custom_seed_label">اللون الأساسي</string>
+    <string name="ui_theme_custom_palette_label">نمط لوحة الألوان</string>
+    <string name="ui_theme_custom_default_action">افتراضي</string>
+
+    <string name="ui_mascot_suit_dialog_title">بدلة Butler</string>
+    <string name="ui_mascot_suit_default_action">افتراضي</string>
+    <string name="ui_mascot_suit_hue_label">درجة اللون</string>
+    <string name="ui_mascot_suit_saturation_label">التشبع</string>
+    <string name="ui_mascot_suit_brightness_label">السطوع</string>
+    <string name="ui_mascot_suit_value_description">لون البدلة %s</string>
+
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">إحصاءات الاستخدام</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">إذن الوصول إلى الإشعارات</string>
+    <string name="setup_manage_storage_card_title">إدارة التخزين الخارجي</string>
+    <string name="setup_inventory_card_title">قائمة التطبيقات</string>
+
+    <!-- Common permission strings -->
+    <string name="setup_required_card_title">الإعداد مطلوب</string>
+    <string name="setup_required_card_body">يلزم إجراء إعداد إضافي لتنفيذ هذه العملية.</string>
+    <string name="setup_required_card_setup_action">فتح الإعداد</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">فتح عدة علامات تبويب؟</string>
+    <string name="common_open_tabs_confirmation_message">سيؤدي هذا إلى فتح %1$d علامة تبويب.</string>
+    <string name="common_open_tabs_success">تم فتح %1$d علامة تبويب</string>
+    <string name="common_open_tabs_success_with_skipped">تم فتح %1$d علامة تبويب (تم تخطي %2$d عنصر)</string>
+
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">إغلاق علامة التبويب؟</string>
+    <string name="general_tab_close_confirmation_message">هل أنت متأكد أنك تريد إغلاق \"%1$s\"؟</string>
+    <string name="general_tab_close_unsaved_title">تغييرات غير محفوظة</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" يحتوي على تغييرات غير محفوظة. هل تريد إغلاقه وتجاهلها؟</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" و%2$d أخرى تحتوي على تغييرات غير محفوظة. هل تريد إغلاقها وتجاهلها؟</string>
+    <string name="general_discard_action">تجاهل</string>
+    <string name="general_tab_close_goto_action">الانتقال إلى علامة التبويب</string>
+
+    <!-- Exit app -->
+    <string name="general_press_back_again_to_exit">اضغط رجوع مرة أخرى للخروج</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="zero">%d محدد</item>
+        <item quantity="one">%d محدد</item>
+        <item quantity="two">%d محدد</item>
+        <item quantity="few">%d محدد</item>
+        <item quantity="many">%d محدد</item>
+        <item quantity="other">%d محدد</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="zero">%1$d مجلدات</item>
+        <item quantity="one">مجلد واحد</item>
+        <item quantity="two">مجلدان</item>
+        <item quantity="few">%1$d مجلدات</item>
+        <item quantity="many">%1$d مجلدًا</item>
+        <item quantity="other">%1$d مجلد</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="zero">%1$d ملفات</item>
+        <item quantity="one">ملف واحد</item>
+        <item quantity="two">ملفان</item>
+        <item quantity="few">%1$d ملفات</item>
+        <item quantity="many">%1$d ملفًا</item>
+        <item quantity="other">%1$d ملف</item>
+    </plurals>
+    <string name="common_select_all_folders_action">تحديد جميع المجلدات</string>
+    <string name="common_select_all_files_action">تحديد جميع الملفات</string>
+    <string name="general_undo_action">تراجع</string>
+
+    <!-- Guided tours -->
+    <string name="tour_action_next">التالي</string>
+    <string name="tour_action_previous">السابق</string>
+    <string name="tour_action_cancel">تخطي</string>
+    <string name="tour_confirm_title">تخطي الجولة؟</string>
+    <string name="tour_confirm_message">يمكنك إعادة تفعيل الجولات في أي وقت من الإعدادات.</string>
+    <string name="tour_confirm_continue">متابعة الجولة</string>
+    <string name="tour_confirm_dont_show_this_tour">عدم إظهار هذه الجولة</string>
+    <string name="tour_confirm_disable_all">تعطيل جميع الجولات</string>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">استخدم عدة أجزاء لمقارنة الملفات جنبًا إلى جنب.</string>
+    <string name="common_tip_different_folders">افتح مجلدات مختلفة في كل جزء لإدارة الملفات بسهولة.</string>
+    <string name="common_tip_switch_layouts">بدّل بين تخطيطات الأجزاء في مدير إعدادات علامة التبويب.</string>
+    <string name="common_tip_elevated_access">فعّل Root أو Shizuku في الإعداد لإجراء عمليات ملفات متقدمة.</string>
+    <string name="common_tip_breadcrumb_home">اضغط مطولًا على عنصر مسار التنقل في المستكشف لتعيينه كمجلدك الرئيسي.</string>
+</resources>

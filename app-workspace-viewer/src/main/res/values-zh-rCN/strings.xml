@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">打开方式</string>
+    <string name="viewer_image_content_description">图像 %1$s</string>
+    <string name="viewer_toolbar_folder_label">文件夹</string>
+    <string name="viewer_back_action">返回</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">上一个文件</string>
+    <string name="viewer_next_file_action">下一个文件</string>
+    <string name="viewer_open_location_action">打开位置</string>
+    <string name="viewer_clipboard_copied">%1$s 已复制。在 Explorer 标签页中粘贴。</string>
+    <string name="viewer_clipboard_cut">%1$s 已剪切。在 Explorer 标签页中粘贴以移动。</string>
+    <string name="viewer_share_failed_label">无法共享此文件</string>
+    <string name="viewer_share_failed_description">%1$s 无法交付给其他应用。这会发生在需要 root 或 ADB 访问的文件，以及不再存在的文件。</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">大小</string>
+    <string name="viewer_info_modified_label">修改时间</string>
+    <string name="viewer_info_created_label">创建时间</string>
+    <string name="viewer_info_format_label">格式</string>
+    <string name="viewer_info_dimensions_label">尺寸</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">权限</string>
+    <string name="viewer_info_permissions_value">%1$s（%2$s）</string>
+    <string name="viewer_info_owner_label">所有者</string>
+    <string name="viewer_info_caption_label">共享消息</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">显示全部详情</string>
+    <string name="viewer_info_collapse_action">隐藏详情</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">预览 · 1 页</string>
+    <string name="viewer_pdf_page_indicator">第 %1$d 页，共 %2$d 页</string>
+    <string name="viewer_pdf_page_previous">上一页</string>
+    <string name="viewer_pdf_page_next">下一页</string>
+    <string name="viewer_pdf_page_error">无法显示第 %1$d 页。</string>
+    <string name="viewer_pdf_page_content_description">%1$s 的 PDF 预览，第 %2$d 页，共 %3$d 页</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">目前不支持此文件类型</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">这是一个存档</string>
+    <string name="viewer_browse_archive_action">浏览内容</string>
+    <string name="viewer_archive_needs_copy_msg">将副本保存到设备，然后 Butler 可以浏览其中的内容。</string>
+    <string name="viewer_archive_nested_msg">此存档位于另一个存档内。先提取它以浏览其中的内容。</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">版本</string>
+    <string name="viewer_apk_min_sdk_label">最低 SDK</string>
+    <string name="viewer_apk_target_sdk_label">目标 SDK</string>
+    <string name="viewer_apk_installed_label">已安装</string>
+    <string name="viewer_apk_not_installed_value">未安装</string>
+    <string name="viewer_apk_installed_unknown_value">无法检查</string>
+    <string name="viewer_apk_installed_older_hint">比此文件更旧</string>
+    <string name="viewer_apk_installed_newer_hint">比此文件更新</string>
+    <string name="viewer_apk_permissions_header">权限（%1$d）</string>
+    <string name="viewer_apk_signing_header">签名证书</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">安装</string>
+    <string name="viewer_bundle_format_label">Bundle 格式</string>
+    <string name="viewer_bundle_splits_label">内部 APK</string>
+    <string name="viewer_bundle_expansion_files_hint">包含安装应用后放置的扩展文件。</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">放置扩展文件需要 root 或 ADB 访问。没有它，应用会安装，但其扩展文件会遗留下来。</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">%1$s 的应用图标</string>
+    <string name="viewer_apk_icon_show_action">显示图标</string>
+    <string name="viewer_apk_icon_save_action">保存图标</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">图标已保存为 %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">替换文件？</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s 已存在于此文件夹。保存图标将替换它。</string>
+    <string name="viewer_apk_icon_overwrite_confirm">替换</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">文件已更改</string>
+    <string name="viewer_external_change_message">此文件已在设备上更改。刷新以重新加载。</string>
+    <string name="viewer_external_change_gone_title">文件已消失</string>
+    <string name="viewer_external_change_gone_message">此文件已删除或无法再访问。</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">无法显示此文件</string>
+    <string name="viewer_error_not_a_file_label">不是文件</string>
+    <string name="viewer_error_not_a_file_description">%1$s 不是常规文件。</string>
+    <string name="viewer_error_broken_symlink_label">损坏的快捷方式</string>
+    <string name="viewer_error_broken_symlink_description">%1$s 指向不再存在的内容。</string>
+    <string name="viewer_error_undecodable_label">图像损坏</string>
+    <string name="viewer_error_undecodable_description">%1$s 无法解码。文件可能不完整或损坏。</string>
+    <string name="viewer_error_file_gone_label">未找到文件</string>
+    <string name="viewer_error_file_gone_description">%1$s 不再存在。它可能已被移动、重命名或删除。</string>
+    <string name="viewer_error_empty_file_label">空文件</string>
+    <string name="viewer_error_empty_file_description">%1$s 为空，没有任何内容可显示。</string>
+    <string name="viewer_error_apk_unreadable_label">无法读取的 APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s 无法解析为 Android 应用包。</string>
+    <string name="viewer_error_icon_unavailable_label">无图标</string>
+    <string name="viewer_error_icon_unavailable_description">无法读取 %1$s 的应用图标。</string>
+    <string name="viewer_error_icon_target_notfile_label">名称已占用</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s 已存在于此处且不是常规文件，无法替换。</string>
+    <string name="viewer_error_icon_target_appeared_label">文件已出现</string>
+    <string name="viewer_error_icon_target_appeared_description">选择保存位置时 %1$s 已创建。未覆盖任何内容，请重试。</string>
+    <string name="viewer_error_content_unreadable_label">无法读取此文件</string>
+    <string name="viewer_error_content_unreadable_description">共享 %1$s 的应用不再允许 Butler 读取它。请求该应用重新共享。</string>
+    <string name="viewer_save_copy_action">保存副本…</string>
+    <string name="viewer_open_in_editor_action">在编辑器中打开</string>
+    <string name="viewer_text_truncated_bytes">预览限制为此文件的前 %1$s。</string>
+    <string name="viewer_text_truncated_lines">预览限制为此文件的前 %1$s 行。</string>
+    <string name="viewer_text_truncated_width">在此预览中，长行会被缩短。</string>
+    <string name="viewer_text_unreadable_label">无法读取此文件</string>
+</resources>

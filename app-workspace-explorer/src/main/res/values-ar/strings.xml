@@ -1,0 +1,823 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">المستكشف</string>
+    <string name="explorer_subtitle">تصفح الملفات والأدلة</string>
+    <string name="explorer_settings_title">إعدادات المستكشف</string>
+    <string name="explorer_settings_file_display">عرض الملفات</string>
+    <string name="explorer_settings_filter_regex_title">مطابقة متقدمة بأحرف البدل</string>
+    <string name="explorer_settings_filter_regex_desc">استخدم التعابير النمطية في مرشحات التضمين والاستبعاد.</string>
+    <string name="explorer_settings_navigation">التنقل</string>
+    <string name="explorer_settings_back_button_title">التنقل بزر الرجوع</string>
+    <string name="explorer_settings_back_button_desc">التنقل عبر السجل باستخدام زر أو إيماءة الرجوع.</string>
+    <string name="explorer_settings_trash_category">سلة المهملات</string>
+    <string name="explorer_settings_trash_enabled_title">تفعيل سلة المهملات</string>
+    <string name="explorer_settings_trash_enabled_desc">نقل الملفات المحذوفة إلى سلة المهملات بدلاً من حذفها نهائيًا</string>
+    <string name="explorer_settings_trash_auto_delete_title">الحذف التلقائي بعد</string>
+    <string name="explorer_settings_trash_auto_delete_desc">حذف العناصر الأقدم من %d يوم تلقائيًا</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d يوم</string>
+    <string name="explorer_settings_trash_max_size_title">الحجم الأقصى لكل تخزين</string>
+    <string name="explorer_settings_trash_max_size_desc">%d ميغابايت كحد أقصى لكل موقع تخزين</string>
+    <string name="explorer_settings_trash_max_size_value">%d ميغابايت</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">فترة الحذف التلقائي</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">الحجم الأقصى لكل تخزين</string>
+    <string name="explorer_settings_trash_enable_dialog_title">تفعيل سلة المهملات؟</string>
+    <string name="explorer_settings_trash_enable_dialog_message">خلافًا لأنظمة سطح المكتب، لا يحتوي Android على سلة مهملات مدمجة. يوفر Butler واحدة باستخدام مجلد ذاكرة التخزين المؤقت الخاص به.\n\nضع في اعتبارك:\n• لن يعكس مؤشر تخزين جهازك المساحة المحررة حتى يتم حذف العناصر نهائيًا\n• إذا انخفضت مساحة التخزين في جهازك، فقد يقوم Android بمسح ذاكرات التخزين المؤقت للتطبيقات، مما يؤدي إلى إزالة الملفات المحذوفة</string>
+    <string name="explorer_settings_trash_enable_action">تفعيل</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">ملف</string>
+    <string name="explorer_file_symlink_content_desc">رابط رمزي</string>
+    <string name="explorer_file_folder_content_desc">مجلد</string>
+    <string name="explorer_file_peek_content_desc">جارٍ تحميل معلومات الملف</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">اختصار</string>
+    <string name="explorer_file_storage_local_label">محلي</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">وصول للقراءة فقط</string>
+    <string name="explorer_file_storage_saf_write_only_label">وصول للكتابة فقط</string>
+    <string name="explorer_file_storage_saf_no_access_label">لا يوجد وصول</string>
+    <string name="explorer_file_storage_saf_uri_label">URI شجرة SAF</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s إجمالي • %3$s متاح</string>
+    <string name="explorer_file_broken_link_label">رابط معطل</string>
+    <string name="explorer_file_items_count">%1$d عنصر</string>
+    <string name="explorer_file_empty">فارغ</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · جزئي</string>
+    <string name="explorer_sizes_estimate_description">مقدّر استنادًا إلى إجماليات تخزين Android. بالنسبة للملفات التي يتعذر قراءتها، تُستخدم المساحة المشغولة كتقدير لحجم الملف. قد تُدرج أيضًا الملفات المخفية التي يديرها Android. تبقى المواقع الأخرى التي يتعذر قراءتها غير معروفة.</string>
+    <string name="explorer_sizes_estimate_coverage">تعذّر تقدير Android/data لأن أجزاء أخرى من التخزين تعذّر قياسها بالكامل.</string>
+    <string name="explorer_sizes_estimate_unavailable">لم تكن إحصاءات تخزين Android متاحة. لا تزال الأحجام المقاسة تُعرض.</string>
+    <string name="explorer_sizes_estimate_inconsistent">لم تتوافق إجماليات تخزين Android مع الفحص. لا تزال الأحجام المقاسة تُعرض.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">تحديد مجلد</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">تحديد مجلدات</item>
+        <item quantity="one">تحديد مجلد واحد</item>
+        <item quantity="two">تحديد مجلدين</item>
+        <item quantity="few">تحديد %d مجلدات</item>
+        <item quantity="many">تحديد %d مجلدًا</item>
+        <item quantity="other">تحديد %d مجلد</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">تحديد ملف</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">تحديد ملفات</item>
+        <item quantity="one">تحديد ملف واحد</item>
+        <item quantity="two">تحديد ملفين</item>
+        <item quantity="few">تحديد %d ملفات</item>
+        <item quantity="many">تحديد %d ملفًا</item>
+        <item quantity="other">تحديد %d ملف</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">تحديد عناصر</item>
+        <item quantity="one">تحديد عنصر واحد</item>
+        <item quantity="two">تحديد عنصرين</item>
+        <item quantity="few">تحديد %d عناصر</item>
+        <item quantity="many">تحديد %d عنصرًا</item>
+        <item quantity="other">تحديد %d عنصر</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">تحديد هذا المجلد</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="zero">تحديد %d</item>
+        <item quantity="one">تحديد %d</item>
+        <item quantity="two">تحديد %d</item>
+        <item quantity="few">تحديد %d</item>
+        <item quantity="many">تحديد %d</item>
+        <item quantity="other">تحديد %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">حفظ الملف</string>
+    <string name="explorer_picker_save_here_action">حفظ هنا</string>
+    <string name="explorer_picker_save_as_filename_label">اسم الملف</string>
+    <string name="explorer_picker_save_as_filename_hint">أدخل اسم الملف</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">تحديث</string>
+    <string name="explorer_action_calculate_sizes">حساب الأحجام</string>
+    <string name="explorer_action_sort">ترتيب</string>
+    <string name="explorer_action_filter">تصفية</string>
+    <string name="explorer_action_view">التخطيط</string>
+    <string name="explorer_action_create">إنشاء</string>
+    <string name="explorer_action_rename">إعادة تسمية</string>
+    <string name="explorer_action_copy">نسخ</string>
+    <string name="explorer_action_cut">قص</string>
+    <string name="explorer_action_delete">حذف</string>
+    <string name="explorer_action_select_all">تحديد الكل</string>
+    <string name="explorer_action_deselect_all">إلغاء تحديد الكل</string>
+    <string name="explorer_action_compress">ضغط</string>
+    <string name="explorer_action_extract">استخراج</string>
+    <string name="explorer_action_add_location">إضافة موقع</string>
+    <string name="explorer_action_info">معلومات</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">معلومات</string>
+    <string name="explorer_info_name_label">الاسم</string>
+    <string name="explorer_info_path_label">المسار</string>
+    <string name="explorer_info_type_label">النوع</string>
+    <string name="explorer_info_type_file">ملف</string>
+    <string name="explorer_info_type_directory">دليل</string>
+    <string name="explorer_info_size_label">الحجم</string>
+    <string name="explorer_info_modified_label">تاريخ التعديل</string>
+    <string name="explorer_info_created_label">تاريخ الإنشاء</string>
+    <string name="explorer_info_permissions_label">الأذونات</string>
+    <string name="explorer_info_owner_label">المالك</string>
+    <string name="explorer_info_child_count_label">العناصر</string>
+    <string name="explorer_info_symlink_target_label">الهدف</string>
+    <string name="explorer_info_symlink_status_label">الحالة</string>
+    <string name="explorer_info_symlink_broken">رابط معطل</string>
+    <string name="explorer_info_unknown">غير معروف</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">تاريخ الحذف</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">الأذونات</string>
+    <string name="explorer_info_saf_granted_label">ممنوح</string>
+    <string name="explorer_info_saf_permission_read">قراءة</string>
+    <string name="explorer_info_saf_permission_write">كتابة</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">الخادم</string>
+    <string name="explorer_info_network_port_label">المنفذ</string>
+    <string name="explorer_info_network_share_label">المشاركة</string>
+    <string name="explorer_info_network_folder_label">المجلد</string>
+    <string name="explorer_info_network_address_label">العنوان</string>
+    <string name="explorer_info_network_status_label">الحالة</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">تسجيل الدخول</string>
+    <string name="explorer_info_network_domain_label">النطاق</string>
+    <string name="explorer_info_network_password_label">كلمة المرور</string>
+    <string name="explorer_info_network_password_show_action">إظهار كلمة المرور</string>
+    <string name="explorer_info_network_password_hide_action">إخفاء كلمة المرور</string>
+    <string name="explorer_info_network_password_missing">مفقودة، يرجى تسجيل الدخول مرة أخرى</string>
+    <string name="explorer_info_network_password_locked">مخزنة، لكن هذا الجهاز لا يستطيع فك تشفيرها</string>
+    <string name="explorer_info_network_added_label">تمت الإضافة</string>
+    <string name="explorer_info_network_updated_label">تاريخ التحديث</string>
+    <string name="explorer_info_network_last_seen_label">آخر ظهور</string>
+    <string name="explorer_info_network_last_seen_never">أبدًا</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">المحدد</string>
+    <string name="explorer_info_files_label">الملفات</string>
+    <string name="explorer_info_directories_label">الأدلة</string>
+    <string name="explorer_info_total_size_label">الحجم الإجمالي</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">المواقع</string>
+    <string name="explorer_info_shortcuts_label">الاختصارات</string>
+    <string name="explorer_info_total_capacity_label">السعة الإجمالية</string>
+    <string name="explorer_info_used_space_label">المساحة المستخدمة</string>
+    <string name="explorer_info_free_space_label">المساحة الحرة</string>
+    <string name="explorer_info_usage_label">الاستخدام</string>
+    <string name="explorer_info_device_storage_total_label">تخزين الجهاز</string>
+    <string name="explorer_info_device_storage_used_label">مستخدم</string>
+    <string name="explorer_info_device_storage_free_label">حر</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">الرئيسية</string>
+    <string name="explorer_breadcrumb_set_as_home_action">تعيين كصفحة رئيسية</string>
+    <string name="explorer_breadcrumb_copy_path_action">نسخ المسار</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">تم نسخ المسار إلى الحافظة</string>
+    <string name="explorer_navigation_device">الجهاز</string>
+    <string name="explorer_navigation_network">الشبكة</string>
+    <string name="explorer_navigation_recent">الأخيرة</string>
+    <string name="explorer_navigation_recent_desc">الملفات التي ظهرت مؤخرًا على هذا الجهاز</string>
+    <string name="explorer_navigation_trash">سلة المهملات</string>
+    <string name="explorer_navigation_trash_desc">استعادة الملفات المحذوفة</string>
+    <string name="explorer_navigation_trash_nested_desc">داخل مجلد محذوف</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">لا توجد عناصر محذوفة</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="zero">لا توجد عناصر</item>
+        <item quantity="one">عنصر واحد</item>
+        <item quantity="two">عنصران</item>
+        <item quantity="few">%d عناصر</item>
+        <item quantity="many">%d عنصرًا</item>
+        <item quantity="other">%d عنصر</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">استعادة</string>
+    <string name="explorer_trash_restore_selected_action">استعادة المحدد</string>
+    <string name="explorer_trash_delete_permanently_action">حذف نهائي</string>
+    <string name="explorer_trash_delete_selected_action">حذف المحدد</string>
+    <string name="explorer_trash_empty_trash_action">إفراغ سلة المهملات</string>
+    <string name="explorer_trash_empty_confirm">إفراغ سلة المهملات؟</string>
+    <string name="explorer_trash_empty_message">سيتم حذف جميع العناصر الموجودة في سلة المهملات نهائيًا. لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="explorer_trash_empty_confirm_action">إفراغ سلة المهملات</string>
+    <string name="explorer_trash_restore_desc">استعادة إلى الموقع الأصلي</string>
+    <string name="explorer_trash_item_unavailable">العنصر غير متاح</string>
+    <string name="explorer_trash_delete_warning">لا يمكن التراجع عن هذا الإجراء</string>
+    <string name="explorer_trash_disabled_warning">سلة المهملات معطلة</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">جارٍ تحميل محتوى المجلد المحذوف…</string>
+    <string name="explorer_trash_nested_restore_action">استعادة إلى الموقع الأصلي</string>
+    <string name="explorer_trash_nested_delete_action">حذف نهائي</string>
+    <string name="explorer_trash_nested_restore_conflict">يوجد ملف بنفس الاسم في الموقع الأصلي بالفعل</string>
+    <string name="explorer_trash_nested_parent_missing">لم يعد العنصر الأصلي موجودًا في سلة المهملات</string>
+    <string name="explorer_trash_nested_path_missing">لم يعد المسار موجودًا</string>
+    <string name="explorer_trash_error_items_not_found">العناصر غير موجودة في سلة المهملات</string>
+    <string name="explorer_trash_error_restore_failed">فشلت استعادة العناصر</string>
+    <string name="explorer_trash_error_delete_failed">فشل حذف العناصر</string>
+    <string name="explorer_trash_nested_error_restore_failed">فشلت استعادة %1$s</string>
+    <string name="explorer_trash_nested_error_delete_failed">فشل حذف %1$s</string>
+
+    <string name="explorer_navigation_root">الدليل الجذر</string>
+    <string name="explorer_navigation_rom">نظام ROM</string>
+    <string name="explorer_navigation_internal_storage">التخزين الداخلي العام</string>
+    <string name="explorer_navigation_external_storage">التخزين الخارجي العام</string>
+
+    <string name="explorer_loader_progress_directory_loading">جارٍ تصفح %s</string>
+    <string name="explorer_loader_progress_directory_permissions">جارٍ التحقق من الأذونات</string>
+    <string name="explorer_loader_progress_directory_filesystem">جارٍ استرداد معلومات نظام الملفات</string>
+    <string name="explorer_loader_progress_directory_content">جارٍ تحميل محتوى المجلد</string>
+    <string name="explorer_loader_progress_directory_content_details">جارٍ تحميل تفاصيل المحتوى</string>
+    <string name="explorer_loader_progress_directory_content_extended">جارٍ تحميل تفاصيل المحتوى الموسعة</string>
+
+    <string name="explorer_loader_progress_device_loading">جارٍ تحميل الجهاز</string>
+    <string name="explorer_loader_progress_device_locations">جارٍ تحميل مواقع التخزين</string>
+
+    <string name="explorer_loader_progress_network_loading">جارٍ تحميل تخزين الشبكة</string>
+
+    <string name="explorer_loader_progress_home_loading">جارٍ تحميل الصفحة الرئيسية</string>
+    <string name="explorer_loader_progress_trash_loading">جارٍ تحميل سلة المهملات…</string>
+    <string name="explorer_loader_progress_recent_loading">جارٍ تحميل الملفات الأخيرة…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="zero">لا اختصارات</item>
+        <item quantity="one">اختصار واحد</item>
+        <item quantity="two">اختصاران</item>
+        <item quantity="few">%d اختصارات</item>
+        <item quantity="many">%d اختصارًا</item>
+        <item quantity="other">%d اختصار</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="zero">لا مواقع</item>
+        <item quantity="one">موقع واحد</item>
+        <item quantity="two">موقعان</item>
+        <item quantity="few">%d مواقع</item>
+        <item quantity="many">%d موقعًا</item>
+        <item quantity="other">%d موقع</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="zero">لا عناصر مخفية</item>
+        <item quantity="one">عنصر مخفي واحد</item>
+        <item quantity="two">عنصران مخفيان</item>
+        <item quantity="few">%d عناصر مخفية</item>
+        <item quantity="many">%d عنصرًا مخفيًا</item>
+        <item quantity="other">%d عنصر مخفي</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s متاح</string>
+    <string name="explorer_infobar_loading">جارٍ التحميل…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">إنشاء عنصر جديد</string>
+    <string name="explorer_dialog_rename_title">إعادة تسمية</string>
+    <string name="explorer_dialog_name_label">الاسم</string>
+    <string name="explorer_dialog_type_label">النوع</string>
+    <string name="explorer_dialog_type_folder">مجلد</string>
+    <string name="explorer_dialog_type_file">ملف</string>
+    <string name="explorer_dialog_create_text_file_title">إنشاء ملف من نص</string>
+    <string name="explorer_dialog_create_text_file_preview_label">معاينة</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d حرف</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">إضافة موقع تخزين</string>
+    <string name="explorer_add_device_storage_desc">استخدم Storage Access Framework (SAF) لمنح Butler الوصول إلى مواقع تخزين إضافية مثل محركات USB والمجلدات الافتراضية للتطبيقات وغيرها.</string>
+    <string name="explorer_add_device_storage_continue">متابعة</string>
+    <string name="explorer_add_device_storage_cancel">إلغاء</string>
+    <string name="explorer_add_device_storage_suggestions_title">تطبيقات لها تخزين</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">يفتح مجلد هذا التطبيق</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">إزالة الموقع</string>
+    <string name="explorer_device_remove_confirmation_title">إزالة موقع التخزين؟</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="zero">إزالة مواقع التخزين؟</item>
+        <item quantity="one">إزالة موقع تخزين واحد؟</item>
+        <item quantity="two">إزالة موقعي تخزين؟</item>
+        <item quantity="few">إزالة %1$d مواقع تخزين؟</item>
+        <item quantity="many">إزالة %1$d موقع تخزين؟</item>
+        <item quantity="other">إزالة %1$d موقع تخزين؟</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">سيؤدي هذا إلى إلغاء وصول Butler إلى هذا الموقع. لن تُحذف ملفاتك.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="zero">لا مواقع شبكة</item>
+        <item quantity="one">موقع شبكة واحد</item>
+        <item quantity="two">موقعا شبكة</item>
+        <item quantity="few">%d مواقع شبكة</item>
+        <item quantity="many">%d موقع شبكة</item>
+        <item quantity="other">%d موقع شبكة</item>
+    </plurals>
+    <string name="explorer_network_storage_label">الشبكة</string>
+    <string name="explorer_network_add_location_action">إضافة تخزين شبكة</string>
+    <string name="explorer_network_edit_location_action">تعديل تخزين الشبكة</string>
+    <string name="explorer_network_remove_location_action">إزالة تخزين الشبكة</string>
+    <string name="explorer_network_sign_in_required_label">تسجيل الدخول مطلوب</string>
+    <string name="explorer_network_status_checking_label">جارٍ التحقق…</string>
+    <string name="explorer_network_status_available_label">متاح</string>
+    <string name="explorer_network_status_unavailable_label">غير متاح</string>
+    <string name="explorer_network_status_unavailable_since_format">غير متاح (%1$s)</string>
+    <string name="explorer_network_empty_title">لا يوجد تخزين شبكة بعد</string>
+    <string name="explorer_network_empty_caption">أضف مشاركة Windows أو مجلد NAS لتصفحه هنا.</string>
+    <string name="explorer_network_remove_confirmation_title">إزالة تخزين الشبكة؟</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="zero">إزالة تخزين الشبكة؟</item>
+        <item quantity="one">إزالة تخزين شبكة واحد؟</item>
+        <item quantity="two">إزالة تخزيني شبكة؟</item>
+        <item quantity="few">إزالة %1$d تخزينات شبكة؟</item>
+        <item quantity="many">إزالة %1$d تخزين شبكة؟</item>
+        <item quantity="other">إزالة %1$d تخزين شبكة؟</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">سينسى Butler تفاصيل الخادم وكلمة المرور المحفوظة. لن يُحذف أي شيء على الخادم.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">إضافة تخزين شبكة</string>
+    <string name="explorer_network_form_edit_title">تعديل تخزين الشبكة</string>
+    <string name="explorer_network_form_label_label">الاسم (اختياري)</string>
+    <string name="explorer_network_form_host_label">عنوان الخادم</string>
+    <string name="explorer_network_form_host_hint">nas.local أو 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">المنفذ</string>
+    <string name="explorer_network_form_share_label">المشاركة</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">المجلد داخل المشاركة (اختياري)</string>
+    <string name="explorer_network_form_auth_guest">ضيف</string>
+    <string name="explorer_network_form_auth_password">اسم المستخدم وكلمة المرور</string>
+    <string name="explorer_network_form_username_label">اسم المستخدم</string>
+    <string name="explorer_network_form_domain_label">النطاق (اختياري)</string>
+    <string name="explorer_network_form_password_label">كلمة المرور</string>
+    <string name="explorer_network_form_password_kept_hint">اتركه فارغًا للاحتفاظ بكلمة المرور المحفوظة</string>
+    <string name="explorer_network_form_remember_label">تذكر كلمة المرور</string>
+    <string name="explorer_network_form_remember_hint">مخزنة بشكل مشفر على هذا الجهاز فقط</string>
+    <string name="explorer_network_form_test_and_save_action">اختبار وحفظ</string>
+    <string name="explorer_network_form_testing">جارٍ الاتصال…</string>
+    <string name="explorer_network_form_error_host_blank">أدخل عنوان الخادم</string>
+    <string name="explorer_network_form_error_host_not_bare">أدخل عنوان الخادم فقط، دون مخطط أو مسار</string>
+    <string name="explorer_network_form_error_host_malformed">هذا ليس عنوان خادم صالحًا</string>
+    <string name="explorer_network_form_error_port">أدخل منفذًا بين 1 و65535</string>
+    <string name="explorer_network_form_error_share_blank">أدخل اسم المشاركة</string>
+    <string name="explorer_network_form_error_share_not_single">أدخل اسم المشاركة فقط، وضع المجلدات الفرعية أدناه</string>
+    <string name="explorer_network_form_error_share_malformed">هذا ليس اسم مشاركة صالحًا</string>
+    <string name="explorer_network_form_error_base_path">لا يمكن استخدام مسار هذا المجلد</string>
+    <string name="explorer_network_form_error_username_blank">أدخل اسم المستخدم</string>
+    <string name="explorer_network_form_error_password_required">أدخل كلمة المرور مرة أخرى لتغيير اسم المستخدم أو النطاق</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">تسمية الموقع</string>
+    <string name="explorer_location_name_label">اسم الموقع</string>
+    <string name="explorer_location_name_hint">اتركه فارغًا لاستخدام الاسم الافتراضي</string>
+    <string name="explorer_location_rename_action">إعادة تسمية الموقع</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="zero">أُضيف خلال الفترة الأخيرة</item>
+        <item quantity="one">أُضيف خلال اليوم الماضي</item>
+        <item quantity="two">أُضيف خلال آخر يومين</item>
+        <item quantity="few">أُضيف خلال آخر %d أيام</item>
+        <item quantity="many">أُضيف خلال آخر %d يومًا</item>
+        <item quantity="other">أُضيف خلال آخر %d يوم</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">لا جديد هنا</string>
+    <string name="explorer_recent_empty_message">تظهر هنا الملفات التي تظهر على هذا الجهاز</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">هذا المجلد فارغ</string>
+    <string name="explorer_empty_search_title">لا نتائج بحث</string>
+    <string name="explorer_empty_search_caption">جرّب مصطلح بحث مختلفًا</string>
+    <string name="explorer_empty_folder_label">مجلد فارغ</string>
+    <string name="explorer_empty_filtered_title">لا عناصر مطابقة</string>
+    <string name="explorer_empty_filtered_caption">جرّب تعديل المرشحات</string>
+    <string name="explorer_empty_hidden_title">توجد عناصر مخفية فقط هنا</string>
+    <string name="explorer_empty_hidden_caption">يخفي هذا التبويب العناصر التي يبدأ اسمها بنقطة</string>
+    <string name="explorer_empty_show_hidden_action">إظهار العناصر المخفية</string>
+    <string name="explorer_empty_hidden_or_filtered_title">لا شيء لعرضه</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">تستبعد العناصر المخفية والمرشحات كل جزء من هذا المجلد</string>
+    <string name="explorer_empty_clear_filters_action">مسح المرشحات</string>
+    <string name="explorer_empty_hidden_and_filtered_title">العناصر المخفية والمرشحات تستبعد كل شيء هنا</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">إظهار العناصر المخفية ومسح مرشحات هذا التبويب يعيدها</string>
+    <string name="explorer_empty_show_all_action">إظهار كل العناصر</string>
+    <string name="explorer_path_not_found_title">هذا المجلد لم يعد موجودًا</string>
+    <string name="explorer_path_not_found_caption">تم حذفه أو إعادة تسميته أو نقله إلى مكان آخر.</string>
+    <string name="explorer_path_not_found_back_action">رجوع</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">جارٍ التحميل…</string>
+    <string name="explorer_file_peek_loading_text">جارٍ التحميل…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">لا شيء لرؤيته هنا… تابع طريقك 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">هذا المجلد في حمية غذائية</string>
+    <string name="explorer_empty_folder_caption_3">حتى الملفات عادت إلى بيوتها باكرًا اليوم</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe توقف عن العمل</string>
+    <string name="explorer_empty_folder_caption_5">الملفات تلعب الغميضة</string>
+    <string name="explorer_empty_folder_caption_6">404: الملفات غير موجودة</string>
+    <string name="explorer_empty_folder_caption_7">هذا المجلد لديه مشاكل ثقة</string>
+    <string name="explorer_empty_folder_caption_8">ذهبت الملفات في إجازة دون إشعار</string>
+    <string name="explorer_empty_folder_caption_9">فارغ مثل روحي… لكن أكثر تنظيمًا</string>
+    <string name="explorer_empty_folder_caption_10">المكافئ الرقمي لعشب الصحراء المتطاير</string>
+    <string name="explorer_empty_folder_caption_11">الملفات تمارس التباعد الاجتماعي</string>
+    <string name="explorer_empty_folder_caption_12">هذا المجلد يمارس البساطة</string>
+    <string name="explorer_empty_folder_caption_13">نسي أحدهم إطعام الملفات</string>
+    <string name="explorer_empty_folder_caption_14">غادرت الملفات المبنى</string>
+    <string name="explorer_empty_folder_caption_15">أفرغ من وعد سياسي</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">الترتيب حسب</string>
+    <string name="explorer_sort_mode_name_label">الاسم</string>
+    <string name="explorer_sort_mode_size_label">الحجم</string>
+    <string name="explorer_sort_mode_modified_label">تاريخ التعديل</string>
+    <string name="explorer_sort_mode_created_label">تاريخ الإنشاء</string>
+    <string name="explorer_sort_descending_label">ترتيب تنازلي</string>
+    <string name="explorer_sort_scope_label">تطبيق على</string>
+    <string name="explorer_sort_scope_all_folders">كل المجلدات</string>
+    <string name="explorer_sort_scope_this_folder">هذا المجلد</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">هذا المجلد والمجلدات الفرعية</string>
+    <string name="explorer_sort_scope_use_default_here">استخدام الافتراضي هنا</string>
+    <string name="explorer_sort_only_this_tab_label">لهذا التبويب فقط</string>
+    <string name="explorer_sort_inherited_notice">مرتب بقاعدة محفوظة لـ %1$s</string>
+    <string name="explorer_sort_suppressed_notice">هذا يتجاوز القاعدة المحفوظة لـ %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">يستخدم هذا التبويب ترتيب الفرز الافتراضي الخاص به</string>
+    <string name="explorer_sort_tab_overrides_clear_action">مسح</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">أحجام المجلدات</string>
+    <string name="explorer_sizes_sheet_label_calculated">تم الحساب</string>
+    <string name="explorer_sizes_sheet_label_folders">المجلدات</string>
+    <string name="explorer_sizes_sheet_label_unreadable">مواقع يتعذر قراءتها</string>
+    <string name="explorer_sizes_sheet_problems_more">%1$d أخرى غير مدرجة</string>
+    <string name="explorer_sizes_sheet_recalculate">إعادة الحساب</string>
+    <string name="explorer_sizes_sheet_discard">تجاهل الأحجام</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">كيفية ترتيب العناصر ومقدار التفاصيل التي تعرضها</string>
+    <string name="explorer_view_mode_list_label">قائمة</string>
+    <string name="explorer_view_mode_grid_label">شبكة</string>
+    <string name="explorer_view_density_compact_label">مضغوط</string>
+    <string name="explorer_view_density_comfortable_label">مريح</string>
+    <string name="explorer_view_density_detailed_label">مفصّل</string>
+    <string name="explorer_view_show_hidden_label">إظهار الملفات المخفية</string>
+    <string name="explorer_view_set_default_action">تعيين كافتراضي</string>
+    <string name="explorer_view_detail_created_label">تاريخ الإنشاء</string>
+    <string name="explorer_view_detail_modified_label">تاريخ التعديل</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">قواعد فرز المجلدات</string>
+    <string name="explorer_settings_folder_sort_rules_desc">إعدادات الفرز التي حفظتها لمجلدات معينة</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">مسح قواعد فرز المجلدات؟</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">ستعود جميع المجلدات إلى ترتيب الفرز الافتراضي. تحتفظ التبويبات ذات تجاوز الفرز الخاص بها به. لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">مسح الكل</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">نوع الملف</string>
+    <string name="explorer_filter_type_all">الكل</string>
+    <string name="explorer_filter_type_files">الملفات فقط</string>
+    <string name="explorer_filter_type_folders">المجلدات فقط</string>
+    <string name="explorer_filter_include_label">نمط التضمين</string>
+    <string name="explorer_filter_include_placeholder_simple">مثال: vacation، report، IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">مثال: .*\\.txt$، ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">نمط الاستبعاد</string>
+    <string name="explorer_filter_exclude_placeholder_simple">مثال: tmp، cache، old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">مثال: ^\\.، .*\\.tmp$، .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 فعّل التعابير النمطية في الإعدادات</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">الإذن مطلوب</string>
+    <string name="explorer_permission_generic_description">يحتاج Butler إلى إذن إضافي لتصفح هذا الموقع.</string>
+    <string name="explorer_permission_setup_action">فتح الإعداد</string>
+    <string name="explorer_grant_access_action">منح الوصول</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">الإجراءات</string>
+    <string name="explorer_file_info_type_label">النوع</string>
+    <string name="explorer_file_info_size_label">الحجم</string>
+    <string name="explorer_file_info_modified_label">تاريخ التعديل</string>
+    <string name="explorer_file_action_install">تثبيت</string>
+    <string name="explorer_file_action_install_subtitle">تثبيت هذا التطبيق على جهازك</string>
+    <string name="explorer_file_action_open">فتح</string>
+    <string name="explorer_file_action_open_subtitle">عرض هنا، يعيدك الرجوع إلى هذا المجلد</string>
+    <string name="explorer_file_action_open_in_tab">فتح في تبويب جديد</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">عرض في Butler كتبويب مستقل</string>
+    <string name="explorer_file_action_open_in_editor">فتح في المحرر</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">تحرير في تبويب جديد</string>
+    <string name="explorer_file_action_open_with">فتح باستخدام</string>
+    <string name="explorer_file_action_open_with_subtitle">اختر تطبيقًا خارجيًا للفتح</string>
+    <string name="explorer_file_action_share">مشاركة</string>
+    <string name="explorer_file_action_share_subtitle">مشاركة عبر التطبيقات المثبتة</string>
+    <string name="explorer_file_action_copy">نسخ</string>
+    <string name="explorer_file_action_copy_subtitle">نسخ إلى الحافظة للصقه لاحقًا</string>
+    <string name="explorer_file_action_cut">قص</string>
+    <string name="explorer_file_action_cut_subtitle">نقل إلى الحافظة للصقه لاحقًا</string>
+    <string name="explorer_file_action_rename">إعادة تسمية</string>
+    <string name="explorer_file_action_rename_subtitle">تغيير اسم الملف</string>
+    <string name="explorer_file_action_delete">حذف</string>
+    <string name="explorer_file_action_delete_subtitle">إزالة هذا الملف نهائيًا</string>
+    <string name="explorer_file_action_move_to_trash">نقل إلى سلة المهملات</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">نقل الملف إلى سلة المهملات</string>
+    <string name="explorer_file_action_properties">الخصائص</string>
+    <string name="explorer_file_action_properties_subtitle">عرض معلومات مفصلة عن الملف</string>
+    <string name="explorer_file_action_extract">استخراج</string>
+    <string name="explorer_file_action_extract_subtitle">استخراج محتويات الأرشيف إلى مجلد</string>
+    <string name="explorer_file_action_show_in_folder">إظهار في المجلد</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">فتح المجلد الذي يحتوي هذا الملف</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="zero">لم يُنشأ أي ملف.</item>
+        <item quantity="one">تم إنشاء ملف واحد.</item>
+        <item quantity="two">تم إنشاء ملفين.</item>
+        <item quantity="few">تم إنشاء %d ملفات.</item>
+        <item quantity="many">تم إنشاء %d ملفًا.</item>
+        <item quantity="other">تم إنشاء %d ملف.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="zero">لم يُنشأ أي مجلد.</item>
+        <item quantity="one">تم إنشاء مجلد واحد.</item>
+        <item quantity="two">تم إنشاء مجلدين.</item>
+        <item quantity="few">تم إنشاء %d مجلدات.</item>
+        <item quantity="many">تم إنشاء %d مجلدًا.</item>
+        <item quantity="other">تم إنشاء %d مجلد.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">عملية نسخ</string>
+    <string name="explorer_operation_copy_description_single">نسخ \"%1$s\" من \"%2$s\" إلى \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="zero">نسخ عناصر إلى \"%2$s\".</item>
+        <item quantity="one">نسخ عنصر واحد إلى \"%2$s\".</item>
+        <item quantity="two">نسخ عنصرين إلى \"%2$s\".</item>
+        <item quantity="few">نسخ %1$d عناصر إلى \"%2$s\".</item>
+        <item quantity="many">نسخ %1$d عنصرًا إلى \"%2$s\".</item>
+        <item quantity="other">نسخ %1$d عنصر إلى \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="zero">لم يُنسخ أي ملف.</item>
+        <item quantity="one">تم نسخ ملف واحد.</item>
+        <item quantity="two">تم نسخ ملفين.</item>
+        <item quantity="few">تم نسخ %d ملفات.</item>
+        <item quantity="many">تم نسخ %d ملفًا.</item>
+        <item quantity="other">تم نسخ %d ملف.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="zero">لم يُنسخ أي مجلد.</item>
+        <item quantity="one">تم نسخ مجلد واحد.</item>
+        <item quantity="two">تم نسخ مجلدين.</item>
+        <item quantity="few">تم نسخ %d مجلدات.</item>
+        <item quantity="many">تم نسخ %d مجلدًا.</item>
+        <item quantity="other">تم نسخ %d مجلد.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="zero">لم يُنسخ شيء.</item>
+        <item quantity="one">تم نسخ %s.</item>
+        <item quantity="two">تم نسخ %s.</item>
+        <item quantity="few">تم نسخ %s.</item>
+        <item quantity="many">تم نسخ %s.</item>
+        <item quantity="other">تم نسخ %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">عملية استخراج</string>
+    <string name="explorer_operation_extract_description">استخراج \"%1$s\" إلى \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">عملية نسخ محلي</string>
+    <string name="explorer_operation_download_copy_description">نسخ \"%1$s\" إلى \"%2$s\" للتصفح المحلي.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="zero">لم يُستخرج أي ملف.</item>
+        <item quantity="one">تم استخراج ملف واحد.</item>
+        <item quantity="two">تم استخراج ملفين.</item>
+        <item quantity="few">تم استخراج %d ملفات.</item>
+        <item quantity="many">تم استخراج %d ملفًا.</item>
+        <item quantity="other">تم استخراج %d ملف.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="zero">لم يُستخرج شيء.</item>
+        <item quantity="one">تم استخراج %s.</item>
+        <item quantity="two">تم استخراج %s.</item>
+        <item quantity="few">تم استخراج %s.</item>
+        <item quantity="many">تم استخراج %s.</item>
+        <item quantity="other">تم استخراج %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">عملية ضغط</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="zero">ضغط عناصر في \"%2$s\".</item>
+        <item quantity="one">ضغط عنصر واحد في \"%2$s\".</item>
+        <item quantity="two">ضغط عنصرين في \"%2$s\".</item>
+        <item quantity="few">ضغط %1$d عناصر في \"%2$s\".</item>
+        <item quantity="many">ضغط %1$d عنصرًا في \"%2$s\".</item>
+        <item quantity="other">ضغط %1$d عنصر في \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="zero">لم يُضغط أي ملف.</item>
+        <item quantity="one">تم ضغط ملف واحد.</item>
+        <item quantity="two">تم ضغط ملفين.</item>
+        <item quantity="few">تم ضغط %d ملفات.</item>
+        <item quantity="many">تم ضغط %d ملفًا.</item>
+        <item quantity="other">تم ضغط %d ملف.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">إنشاء أرشيف</string>
+    <string name="explorer_compress_dialog_name_label">اسم الأرشيف</string>
+    <string name="explorer_compress_dialog_format_label">الصيغة</string>
+    <string name="explorer_compress_dialog_format_zip_hint">يفتح على أي جهاز. يمكن حمايته بكلمة مرور.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">أصغر حجمًا للملفات الكثيرة. بلا حماية بكلمة مرور.</string>
+    <string name="explorer_compress_dialog_create_action">إنشاء</string>
+    <string name="explorer_compress_dialog_level_label">مستوى الضغط</string>
+    <string name="explorer_compress_dialog_level_fast">سريع</string>
+    <string name="explorer_compress_dialog_level_normal">عادي</string>
+    <string name="explorer_compress_dialog_level_best">أفضل</string>
+    <string name="explorer_compress_dialog_password_label">كلمة المرور (اختياري)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">تأكيد كلمة المرور</string>
+    <string name="explorer_compress_dialog_password_mismatch">كلمتا المرور غير متطابقتين</string>
+    <string name="explorer_compress_dialog_password_weak">كلمة مرور ضعيفة</string>
+    <string name="explorer_compress_dialog_password_notice">محتويات الملف مشفرة، أسماء الملفات ليست كذلك.</string>
+    <string name="explorer_compress_dialog_password_show">إظهار كلمة المرور</string>
+    <string name="explorer_compress_dialog_password_hide">إخفاء كلمة المرور</string>
+    <string name="explorer_compress_dialog_overwrite_title">استبدال الأرشيف؟</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" موجود بالفعل وسيتم استبداله.</string>
+    <string name="explorer_compress_dialog_overwrite_action">استبدال</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="zero">إفلات عناصر؟</item>
+        <item quantity="one">إفلات عنصر واحد؟</item>
+        <item quantity="two">إفلات عنصرين؟</item>
+        <item quantity="few">إفلات %1$d عناصر؟</item>
+        <item quantity="many">إفلات %1$d عنصرًا؟</item>
+        <item quantity="other">إفلات %1$d عنصر؟</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="zero">نسخ أو نقل عناصر إلى \"%2$s\"؟</item>
+        <item quantity="one">نسخ أو نقل عنصر واحد إلى \"%2$s\"؟</item>
+        <item quantity="two">نسخ أو نقل عنصرين إلى \"%2$s\"؟</item>
+        <item quantity="few">نسخ أو نقل %1$d عناصر إلى \"%2$s\"؟</item>
+        <item quantity="many">نسخ أو نقل %1$d عنصرًا إلى \"%2$s\"؟</item>
+        <item quantity="other">نسخ أو نقل %1$d عنصر إلى \"%2$s\"؟</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="zero">نسخ عناصر إلى \"%2$s\"؟</item>
+        <item quantity="one">نسخ عنصر واحد إلى \"%2$s\"؟</item>
+        <item quantity="two">نسخ عنصرين إلى \"%2$s\"؟</item>
+        <item quantity="few">نسخ %1$d عناصر إلى \"%2$s\"؟</item>
+        <item quantity="many">نسخ %1$d عنصرًا إلى \"%2$s\"؟</item>
+        <item quantity="other">نسخ %1$d عنصر إلى \"%2$s\"؟</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">نقل إلى سلة المهملات؟</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="zero">نقل عناصر إلى سلة المهملات؟</item>
+        <item quantity="one">نقل عنصر واحد إلى سلة المهملات؟</item>
+        <item quantity="two">نقل عنصرين إلى سلة المهملات؟</item>
+        <item quantity="few">نقل %1$d عناصر إلى سلة المهملات؟</item>
+        <item quantity="many">نقل %1$d عنصرًا إلى سلة المهملات؟</item>
+        <item quantity="other">نقل %1$d عنصر إلى سلة المهملات؟</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">عملية نقل</string>
+    <string name="explorer_operation_move_description_single">نقل \"%1$s\" من \"%2$s\" إلى \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="zero">نقل عناصر إلى \"%2$s\".</item>
+        <item quantity="one">نقل عنصر واحد إلى \"%2$s\".</item>
+        <item quantity="two">نقل عنصرين إلى \"%2$s\".</item>
+        <item quantity="few">نقل %1$d عناصر إلى \"%2$s\".</item>
+        <item quantity="many">نقل %1$d عنصرًا إلى \"%2$s\".</item>
+        <item quantity="other">نقل %1$d عنصر إلى \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="zero">لم يُنقل أي ملف.</item>
+        <item quantity="one">تم نقل ملف واحد.</item>
+        <item quantity="two">تم نقل ملفين.</item>
+        <item quantity="few">تم نقل %d ملفات.</item>
+        <item quantity="many">تم نقل %d ملفًا.</item>
+        <item quantity="other">تم نقل %d ملف.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="zero">لم يُنقل أي مجلد.</item>
+        <item quantity="one">تم نقل مجلد واحد.</item>
+        <item quantity="two">تم نقل مجلدين.</item>
+        <item quantity="few">تم نقل %d مجلدات.</item>
+        <item quantity="many">تم نقل %d مجلدًا.</item>
+        <item quantity="other">تم نقل %d مجلد.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="zero">لم يُنقل شيء.</item>
+        <item quantity="one">تم نقل %s.</item>
+        <item quantity="two">تم نقل %s.</item>
+        <item quantity="few">تم نقل %s.</item>
+        <item quantity="many">تم نقل %s.</item>
+        <item quantity="other">تم نقل %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">إنشاء مجلد</string>
+    <string name="explorer_operation_create_description_directory">إنشاء مجلد \"%1$s\" في \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">إنشاء ملف</string>
+    <string name="explorer_operation_create_description_file">إنشاء ملف \"%1$s\" في \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">إنشاء ملف نصي</string>
+    <string name="explorer_operation_create_text_file_description">إنشاء \"%1$s\" من مقتطف نصي</string>
+    <string name="explorer_operation_calculate_sizes_title">حساب الحجم</string>
+    <string name="explorer_operation_calculate_sizes_description">حساب أحجام المجلدات في \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="zero">لم يُفحص أي عنصر</item>
+        <item quantity="one">تم فحص عنصر واحد</item>
+        <item quantity="two">تم فحص عنصرين</item>
+        <item quantity="few">تم فحص %1$d عناصر</item>
+        <item quantity="many">تم فحص %1$d عنصرًا</item>
+        <item quantity="other">تم فحص %1$d عنصر</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">تم حساب أحجام %1$d مجلد.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="zero">تم حساب أحجام %1$d مجلد، ولم يتعذر قراءة أي موقع.</item>
+        <item quantity="one">تم حساب أحجام %1$d مجلد، تعذّرت قراءة موقع واحد.</item>
+        <item quantity="two">تم حساب أحجام %1$d مجلد، تعذّرت قراءة موقعين.</item>
+        <item quantity="few">تم حساب أحجام %1$d مجلد، تعذّرت قراءة %2$d مواقع.</item>
+        <item quantity="many">تم حساب أحجام %1$d مجلد، تعذّرت قراءة %2$d موقعًا.</item>
+        <item quantity="other">تم حساب أحجام %1$d مجلد، تعذّرت قراءة %2$d موقع.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">تم تجاهل أحجام المجلدات لـ \"%1$s\" لأنها تغيرت أثناء الحساب.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">فشل التنقل</string>
+    <string name="explorer_aborted_dialog_title">تم إلغاء العملية</string>
+    <string name="explorer_aborted_dialog_message">تم إلغاء التحميل قبل أن يظهر أي شيء.</string>
+    <string name="explorer_archive_unbrowsable_title">لا يمكن تصفح الأرشيف هنا</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" موجود على تخزين يدعم القراءة التسلسلية فقط، لكن تصفح أرشيف يتطلب وصولًا عشوائيًا. استخرج الأرشيف هنا، أو نزّل نسخة محلية لتصفحه.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">استخراج الأرشيف</string>
+    <string name="explorer_archive_unbrowsable_download_action">تنزيل نسخة محلية</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (وصول خاص)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (وصول خاص)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">يقيّد Android الوصول إلى هذا المجلد. استخدم أداة اختيار المجلدات لمنح الوصول.</string>
+    <string name="explorer_permission_multiple_options_description">يمكنك منح الوصول باستخدام أداة اختيار المجلدات في Android أو إعداد Root/Shizuku للوصول الأسرع إلى جميع المجلدات المقيدة.</string>
+    <string name="explorer_permission_setup_both_description">يتطلب هذا المجلد وصولًا مرتفعًا. ثبّت وأعدّ Root أو Shizuku في الإعداد.</string>
+    <string name="explorer_permission_setup_shizuku_description">يتطلب هذا المجلد وصولًا مرتفعًا عبر Shizuku. ثبّت Shizuku Manager وأعدّه في الإعداد.</string>
+    <string name="explorer_permission_setup_root_description">يتطلب هذا المجلد وصول Root. أعدّ Root في الإعداد إذا كان جهازك يتمتع بصلاحيات Root.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">استخدم أداة اختيار المجلدات في Android لمنح الوصول إلى هذا المجلد.</string>
+    <string name="explorer_permission_option_picker_action">فتح أداة اختيار SAF</string>
+
+    <string name="explorer_permission_option_setup_title">وصول كامل</string>
+    <string name="explorer_permission_option_setup_description">أعدّ Root أو Shizuku للوصول الأسرع إلى جميع المجلدات المقيدة.</string>
+    <string name="explorer_permission_option_setup_action">إعداد</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">الوصول إلى التخزين</string>
+    <string name="explorer_permission_option_storage_description">امنح Butler إذن الوصول إلى الملفات على تخزين جهازك.</string>
+    <string name="explorer_permission_option_storage_action">منح الإذن</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">فتح في علامات تبويب جديدة</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">المفضلة</string>
+    <string name="explorer_action_add_to_favorites">إضافة إلى المفضلة</string>
+    <string name="explorer_action_remove_from_favorites">إزالة من المفضلة</string>
+    <string name="explorer_favorites_select_action">تحديد</string>
+    <string name="explorer_favorites_unavailable_subtitle">غير متاح</string>
+    <string name="explorer_favorites_unavailable_toast">المفضلة غير متاحة</string>
+    <string name="explorer_favorites_added_message">تمت إضافة %1$s إلى المفضلة</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="zero">لم تتم إضافة أي عنصر إلى المفضلة</item>
+        <item quantity="one">تمت إضافة عنصر واحد إلى المفضلة</item>
+        <item quantity="two">تمت إضافة عنصرين إلى المفضلة</item>
+        <item quantity="few">تمت إضافة %1$d عناصر إلى المفضلة</item>
+        <item quantity="many">تمت إضافة %1$d عنصرًا إلى المفضلة</item>
+        <item quantity="other">تمت إضافة %1$d عنصر إلى المفضلة</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">تمت إزالة %1$s من المفضلة</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="zero">لم تتم إزالة أي عنصر من المفضلة</item>
+        <item quantity="one">تمت إزالة عنصر واحد من المفضلة</item>
+        <item quantity="two">تمت إزالة عنصرين من المفضلة</item>
+        <item quantity="few">تمت إزالة %1$d عناصر من المفضلة</item>
+        <item quantity="many">تمت إزالة %1$d عنصرًا من المفضلة</item>
+        <item quantity="other">تمت إزالة %1$d عنصر من المفضلة</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">إعادة تسمية المفضلة</string>
+    <string name="explorer_favorites_rename_hint">اسم المفضلة</string>
+    <string name="explorer_favorites_rename_description">يُعاد تسمية الإدخال في مفضلتك فقط، ويحتفظ المجلد نفسه باسمه.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="zero">لا يتجاوز هذا التبويب ترتيب الفرز في أي مجلد</item>
+        <item quantity="one">يتجاوز هذا التبويب ترتيب الفرز في مجلد واحد</item>
+        <item quantity="two">يتجاوز هذا التبويب ترتيب الفرز في مجلدين</item>
+        <item quantity="few">يتجاوز هذا التبويب ترتيب الفرز في %1$d مجلدات</item>
+        <item quantity="many">يتجاوز هذا التبويب ترتيب الفرز في %1$d مجلدًا</item>
+        <item quantity="other">يتجاوز هذا التبويب ترتيب الفرز في %1$d مجلد</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="zero">لا مجلدات</item>
+        <item quantity="one">مجلد واحد</item>
+        <item quantity="two">مجلدان</item>
+        <item quantity="few">%1$d مجلدات</item>
+        <item quantity="many">%1$d مجلدًا</item>
+        <item quantity="other">%1$d مجلد</item>
+    </plurals>
+</resources>
