@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Mới</string>
+    <string name="workspace_templates_choose_title">Thẻ mới</string>
+    <string name="workspace_templates_choose_subtitle">Chọn một loại thẻ. Tôi có thể giúp gì?</string>
+    <string name="workspace_templates_name_tab_action">Đặt tên cho thẻ này</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Chọn một công cụ</string>
+    <string name="tour_templates_picker_body">Đây là bộ chọn thẻ, hãy chọn công cụ cho thẻ này. Chọn một công cụ sẽ biến thẻ này thành công cụ đó.</string>
+    <string name="tour_templates_butler_button_title">Các thẻ của bạn nằm ở đây</string>
+    <string name="tour_templates_butler_button_body">Nhấn nút Butler để mở menu thẻ: Tạo thẻ mới, đóng thẻ hiện tại hoặc mở trình quản lý thẻ đầy đủ. Nhấn lâu để nhảy trực tiếp đến trình quản lý thẻ.</string>
+</resources>

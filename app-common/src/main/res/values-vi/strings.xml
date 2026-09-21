@@ -1,0 +1,299 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Trình duyệt tệp thượng hạng</string>
+    <!-- Upgraded app title. %1$s is the app name, %2$s the tier qualifier ("Pro" or "FOSS", depending on the build). Reorder or repunctuate for your language; both placeholders must appear exactly once. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Biểu tượng ứng dụng Butler</string>
+    <string name="butler_mascot_description">Linh vật Butler</string>
+    <string name="butler_mascot_animation_random_description">Linh vật Butler đang thực hiện nhiều hoạt ảnh khác nhau</string>
+    <string name="butler_mascot_animation_wink_description">Linh vật Butler đang nháy mắt</string>
+    <string name="butler_mascot_animation_greeting_description">Linh vật Butler đang vẫy tay chào</string>
+    <string name="butler_mascot_animation_hatoff_description">Linh vật Butler đang ngả mũ chào</string>
+    <string name="butler_mascot_animation_drink_description">Linh vật Butler đang uống nước</string>
+    <string name="butler_mascot_animation_moustache_description">Linh vật Butler đang vuốt ria mép</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Linh vật Butler đang nhắm mắt để ngủ</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Linh vật Butler đang ngáy</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Linh vật Butler đang thức dậy</string>
+    <string name="butler_mascot_animation_cameo_description">Linh vật SD Maid xuất hiện khách mời</string>
+
+    <string name="slogan_general_message_0">Sẵn sàng phục vụ bạn.</string>
+    <string name="slogan_general_message_1">Mọi thứ đâu vào đấy.</string>
+    <string name="slogan_general_message_2">Trật tự, không hỗn loạn.</string>
+    <string name="slogan_general_message_3">Đang lấy tệp của bạn.</string>
+    <string name="slogan_general_message_4">Mọi tệp đều ngay hàng thẳng lối.</string>
+    <string name="slogan_general_message_5">Luôn ngăn nắp.</string>
+    <string name="slogan_general_message_6">Tìm tệp, nhanh như chớp!</string>
+    <string name="slogan_general_message_7">Truy cập dễ dàng.</string>
+    <string name="slogan_general_message_8">Sẽ không bao giờ để bạn mất tệp.</string>
+    <string name="slogan_general_message_9">Đảm nhận nhiều vai trò.</string>
+    <string name="slogan_newyear_message_0">Vẫn thủ tục như mọi năm.</string>
+    <string name="slogan_xmas_message_0">Kiểm tra tệp hai lần.</string>
+    <string name="slogan_xmas_message_1">Nằm trong danh sách ngoan.</string>
+    <string name="slogan_halloween_message_0">Butler ma quái, sẵn sàng phục vụ bạn.</string>
+    <string name="slogan_halloween_message_1">Không trò lừa, chỉ có tệp thôi.</string>
+    <string name="slogan_stpatricks_message_0">Cảm thấy may mắn chứ?</string>
+    <string name="slogan_stpatricks_message_1">Tìm nồi vàng của bạn.</string>
+    <string name="slogan_aprilfools_message_0">Không đùa giỡn đâu.</string>
+    <string name="slogan_aprilfools_message_1">Ngăn nắp một cách nghiêm túc.</string>
+    <string name="slogan_oktoberfest_message_0">Cạn ly vì tệp của bạn!</string>
+    <string name="slogan_oktoberfest_message_1">Tệp lúc nào cũng sẵn có.</string>
+
+    <string name="general_share_action">Chia sẻ</string>
+    <string name="general_share_single_title">Chia sẻ %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="other">Chia sẻ %d tệp</item>
+    </plurals>
+    <string name="general_done_action">Xong</string>
+    <string name="general_copy_action">Sao chép</string>
+    <string name="general_cut_action">Cắt</string>
+    <string name="general_move_action">Di chuyển</string>
+    <string name="general_paste_action">Dán</string>
+    <string name="general_apply_action">Áp dụng</string>
+    <string name="general_open_action">Mở</string>
+    <string name="general_cancel_action">Hủy</string>
+    <string name="general_close_action">Đóng</string>
+    <string name="general_confirm_action">Xác nhận</string>
+    <string name="general_reset_action">Đặt lại</string>
+    <string name="general_save_action">Lưu</string>
+    <string name="general_edit_action">Chỉnh sửa</string>
+    <string name="general_na_label">N/A</string>
+    <!-- Announced by screen readers when a dialog opens -->
+    <string name="general_dialog_a11y_label">Hộp thoại</string>
+    <string name="general_dismiss_action">Bỏ qua</string>
+    <string name="general_read_more_action">Xem thêm</string>
+    <string name="general_mark_as_read_action">Đánh dấu đã đọc</string>
+    <string name="general_back_action">Quay lại</string>
+    <string name="general_navigate_up_action">Đi lên</string>
+    <string name="general_error_label">Lỗi</string>
+    <string name="general_error_unknown_label">Lỗi không xác định</string>
+    <string name="general_error_invalid_input_label">Dữ liệu nhập không hợp lệ</string>
+    <string name="general_share_error_action">Chia sẻ lỗi</string>
+    <string name="general_error_report_subject">Báo cáo lỗi %1$s (%2$s)</string>
+    <string name="general_error_report_consent_title">Chia sẻ báo cáo lỗi?</string>
+    <string name="general_error_report_consent_message">Báo cáo bao gồm lỗi và dấu vết ngăn xếp (stack trace) mà lỗi đó tạo ra, nhật ký hoạt động gần đây của ứng dụng, và thông tin về trạng thái của ứng dụng lúc đó: tên và đường dẫn tệp, truy vấn tìm kiếm, tên gói ứng dụng, URI, tên máy chủ mạng và SMB, thông tin thiết bị và bản dựng của bạn, cùng một mã cài đặt ẩn danh. Chỉ chia sẻ báo cáo này với người bạn tin tưởng.</string>
+    <string name="general_error_report_consent_confirm">Chia sẻ báo cáo</string>
+    <string name="general_privacy_policy_action">Chính sách bảo mật</string>
+    <string name="general_bug_report_subject">Báo cáo sự cố %1$s (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">Báo cáo sự cố %1$s: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Mô tả sự việc đã xảy ra ở đây.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Mô tả điều bạn mong đợi thay vào đó.)</string>
+    <string name="general_duration_input_label">Thời lượng</string>
+    <string name="general_size_input_label">Kích thước</string>
+    <string name="general_upgrade_action">Nâng cấp</string>
+    <string name="general_refresh_action">Làm mới</string>
+    <string name="general_clear_action">Xóa sạch</string>
+    <string name="general_expand_action">Mở rộng</string>
+    <string name="general_collapse_action">Thu gọn</string>
+    <string name="general_completed_label">Đã hoàn tất</string>
+    <string name="general_cancelled_label">Đã hủy</string>
+    <string name="general_searching_label">Đang tìm kiếm</string>
+    <string name="general_searching_ellipsis">Đang tìm kiếm…</string>
+    <string name="general_progress_loading">Đang tải</string>
+    <string name="general_progress_loading_egg_0">Vẫn nhanh hơn iPhone</string>
+    <string name="general_progress_loading_egg_1">Đang tải thêm RAM</string>
+    <string name="general_progress_loading_egg_2">ETA: Sắp xong™</string>
+    <string name="general_progress_loading_egg_3">CPU đang nghỉ giải lao uống cà phê</string>
+    <string name="general_progress_loading_egg_4">Đang chờ dữ liệu từ Pepe Silvia</string>
+    <string name="general_progress_loading_egg_5">Turbo encabulator đang khởi động</string>
+    <string name="general_progress_loading_egg_6">Đang chuyền bơ</string>
+    <string name="general_progress_loading_egg_7">Này. Dạo này bạn thế nào?</string>
+    <string name="general_progress_loading_egg_8">Bíp bo bíp bo</string>
+    <string name="general_progress_loading_egg_9">Đang đệm các lựa chọn cuộc đời</string>
+    <string name="general_progress_loading_egg_10">Đang triệu hồi Cthulhu</string>
+    <string name="general_progress_loading_egg_11">Không sao đâu</string>
+    <string name="general_progress_loading_egg_12">Vui lòng chờ</string>
+    <string name="general_progress_loading_egg_13">Ít nhất bạn cũng không phải chờ máy</string>
+    <string name="general_progress_loading_egg_14">Thoa trực tiếp lên trán</string>
+
+    <!-- Định dạng thời lượng -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="other">%dm</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="other">%d giây</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="other">%d phút</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="other">%d giờ</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="other">%d ngày</item>
+    </plurals>
+
+    <string name="general_view_action">Xem</string>
+    <string name="general_delete_action">Xóa</string>
+    <string name="general_show_details_action">Xem chi tiết</string>
+    <string name="general_hide_details_action">Ẩn chi tiết</string>
+
+    <string name="general_delete_confirmation_title">Xác nhận xóa</string>
+    <string name="general_delete_confirmation_message_x">Xóa \"%s\"?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Xóa %d mục đã chọn?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="other">Đã xóa %d mục.</item>
+    </plurals>
+
+    <string name="general_create_action">Tạo</string>
+    <string name="general_rename_action">Đổi tên</string>
+    <string name="general_retry_action">Thử lại</string>
+    <string name="general_open_setup_action">Mở thiết lập</string>
+    <string name="general_grant_usage_stats_action">Cấp quyền truy cập dữ liệu sử dụng</string>
+    <string name="general_grant_storage_permission_action">Cấp quyền truy cập bộ nhớ</string>
+    <string name="general_grant_all_files_access_action">Cho phép truy cập tất cả tệp</string>
+
+    <string name="general_result_user_cancel_msg">Người dùng đã hủy thao tác.</string>
+
+    <string name="general_path_label">Đường dẫn</string>
+    <string name="general_filename_validation_error">Tên chứa ký tự không hợp lệ: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d trên %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d trên %2$d</string>
+
+    <string name="file_type_symbolic_link">Liên kết</string>
+    <string name="file_type_directory">Thư mục</string>
+    <string name="file_type_file">Tệp</string>
+    <string name="file_type_unknown">Không xác định</string>
+
+    <!-- Tên thân thiện của loại MIME -->
+    <string name="common_mimetype_image">Hình ảnh</string>
+    <string name="common_mimetype_video">Video</string>
+    <string name="common_mimetype_audio">Âm thanh</string>
+    <string name="common_mimetype_text_plain">Văn bản thuần</string>
+    <string name="common_mimetype_text">Tài liệu văn bản</string>
+    <string name="common_mimetype_pdf">Tài liệu PDF</string>
+    <string name="common_mimetype_document">Tài liệu</string>
+    <string name="common_mimetype_archive">Tệp nén</string>
+    <string name="common_mimetype_apk">Gói cài đặt Android</string>
+    <string name="common_mimetype_json">Tệp JSON</string>
+    <string name="common_mimetype_xml">Tệp XML</string>
+    <string name="common_mimetype_unknown">Loại không xác định</string>
+
+    <string name="general_rom_type_auto_label">Tự động (mặc định)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="other">%s mục/giây</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="other">%s/giây</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Sai kiểu dữ liệu: Cần %1$s nhưng nhận được %2$s.</string>
+    <string name="general_error_cant_access_msg">Không thể truy cập %s.</string>
+    <string name="general_error_archive_not_seekable_msg">Không thể duyệt trực tiếp %s: bộ nhớ chứa tệp này chỉ hỗ trợ đọc tuần tự, nhưng định dạng tệp nén này yêu cầu truy cập ngẫu nhiên.</string>
+    <string name="general_error_root_unavailable">Không có quyền truy cập root.</string>
+    <string name="general_error_elevated_access_required">Thao tác này yêu cầu quyền truy cập nâng cao. Hãy thiết lập Root hoặc Shizuku trong phần Thiết lập.</string>
+    <string name="general_error_no_compatible_app_found_msg">Không tìm thấy ứng dụng phù hợp để xử lý yêu cầu này.</string>
+    <string name="general_error_ipc_deadobject_title">Mất kết nối dịch vụ</string>
+    <string name="general_error_ipc_deadobject_description">Kết nối đến một dịch vụ quan trọng (ví dụ: Magisk, Shizuku hoặc các dịch vụ cấp hệ thống khác) đã bị mất đột ngột. Hãy khởi động lại thiết bị. Nếu sự cố vẫn tiếp diễn, hãy kiểm tra bản cập nhật hoặc báo cáo lỗi để được khắc phục.</string>
+
+    <string name="ui_theme_mode_dark_label">Tối</string>
+    <string name="ui_theme_mode_light_label">Sáng</string>
+    <string name="ui_theme_mode_system_label">Hệ thống</string>
+    <string name="ui_theme_style_default_label">Mặc định</string>
+    <string name="ui_theme_style_medium_contrast_label">Tương phản trung bình</string>
+    <string name="ui_theme_style_high_contrast_label">Tương phản cao</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Xanh lá</string>
+    <string name="ui_theme_color_blue_label">Xanh dương</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Tùy chỉnh</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Điểm tông màu</string>
+    <string name="ui_theme_palette_neutral_label">Trung tính</string>
+    <string name="ui_theme_palette_vibrant_label">Rực rỡ</string>
+    <string name="ui_theme_palette_expressive_label">Biểu cảm</string>
+    <string name="ui_theme_palette_rainbow_label">Cầu vồng</string>
+    <string name="ui_theme_palette_fruitsalad_label">Đa sắc</string>
+    <string name="ui_theme_palette_monochrome_label">Đơn sắc</string>
+    <string name="ui_theme_palette_fidelity_label">Trung thực</string>
+    <string name="ui_theme_palette_content_label">Theo nội dung</string>
+
+    <string name="ui_theme_custom_dialog_title">Chủ đề tùy chỉnh</string>
+    <string name="ui_theme_custom_seed_label">Màu gốc</string>
+    <string name="ui_theme_custom_palette_label">Kiểu bảng màu</string>
+    <string name="ui_theme_custom_default_action">Mặc định</string>
+
+    <string name="ui_mascot_suit_dialog_title">Trang phục của Butler</string>
+    <string name="ui_mascot_suit_default_action">Mặc định</string>
+    <string name="ui_mascot_suit_hue_label">Tông màu</string>
+    <string name="ui_mascot_suit_saturation_label">Độ bão hòa</string>
+    <string name="ui_mascot_suit_brightness_label">Độ sáng</string>
+    <string name="ui_mascot_suit_value_description">Màu trang phục %s</string>
+
+    <!-- Các loại mô-đun thiết lập -->
+    <string name="setup_usagestats_title">Dữ liệu sử dụng</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Quyền truy cập thông báo</string>
+    <string name="setup_manage_storage_card_title">Quản lý bộ nhớ ngoài</string>
+    <string name="setup_inventory_card_title">Danh sách ứng dụng</string>
+
+    <!-- Chuỗi quyền dùng chung -->
+    <string name="setup_required_card_title">Cần thiết lập</string>
+    <string name="setup_required_card_body">Cần thiết lập thêm để thực hiện thao tác này.</string>
+    <string name="setup_required_card_setup_action">Mở thiết lập</string>
+
+    <!-- Tính năng mở nhiều thẻ mới -->
+    <string name="common_open_tabs_confirmation_title">Mở nhiều thẻ?</string>
+    <string name="common_open_tabs_confirmation_message">Thao tác này sẽ mở %1$d thẻ.</string>
+    <string name="common_open_tabs_success">Đã mở %1$d thẻ</string>
+    <string name="common_open_tabs_success_with_skipped">Đã mở %1$d thẻ (bỏ qua %2$d mục)</string>
+
+    <!-- Xác nhận đóng thẻ -->
+    <string name="general_tab_close_confirmation_title">Đóng thẻ?</string>
+    <string name="general_tab_close_confirmation_message">Bạn có chắc muốn đóng \"%1$s\" không?</string>
+    <string name="general_tab_close_unsaved_title">Thay đổi chưa lưu</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" có thay đổi chưa lưu. Đóng và loại bỏ các thay đổi này?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" và %2$d thẻ khác có thay đổi chưa lưu. Đóng và loại bỏ các thay đổi này?</string>
+    <string name="general_discard_action">Loại bỏ</string>
+    <string name="general_tab_close_goto_action">Đến thẻ đó</string>
+
+    <!-- Thoát ứng dụng -->
+    <string name="general_press_back_again_to_exit">Nhấn quay lại lần nữa để thoát</string>
+
+    <!-- Thanh thông tin -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="other">Đã chọn %d mục</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="other">%1$d thư mục</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="other">%1$d tệp</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Chọn tất cả thư mục</string>
+    <string name="common_select_all_files_action">Chọn tất cả tệp</string>
+    <string name="general_undo_action">Hoàn tác</string>
+
+    <!-- Hướng dẫn sử dụng -->
+    <string name="tour_action_next">Tiếp theo</string>
+    <string name="tour_action_previous">Trước</string>
+    <string name="tour_action_cancel">Bỏ qua</string>
+    <string name="tour_confirm_title">Bỏ qua hướng dẫn?</string>
+    <string name="tour_confirm_message">Bạn có thể bật lại hướng dẫn bất cứ lúc nào trong phần Cài đặt.</string>
+    <string name="tour_confirm_continue">Tiếp tục hướng dẫn</string>
+    <string name="tour_confirm_dont_show_this_tour">Không hiển thị hướng dẫn này</string>
+    <string name="tour_confirm_disable_all">Tắt tất cả hướng dẫn</string>
+
+    <!-- Mẹo từ Butler -->
+    <string name="common_tip_multiple_panes">Dùng nhiều khung để so sánh tệp cạnh nhau.</string>
+    <string name="common_tip_different_folders">Mở các thư mục khác nhau ở mỗi khung để quản lý tệp dễ dàng hơn.</string>
+    <string name="common_tip_switch_layouts">Chuyển đổi bố cục khung trong trình quản lý cài đặt thẻ.</string>
+    <string name="common_tip_elevated_access">Bật root hoặc Shizuku trong phần Thiết lập để thực hiện các thao tác tệp nâng cao.</string>
+    <string name="common_tip_breadcrumb_home">Nhấn giữ vào một mục trên thanh đường dẫn của Trình duyệt tệp để đặt làm thư mục chính.</string>
+</resources>

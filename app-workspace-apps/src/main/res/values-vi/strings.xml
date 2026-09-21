@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Không gian làm việc Ứng dụng -->
+    <string name="apps_title">Ứng dụng</string>
+    <string name="apps_subtitle">Quản lý các ứng dụng đã cài đặt</string>
+
+    <!-- Nhãn bộ lọc -->
+    <string name="apps_filter_app_type_label">Loại ứng dụng</string>
+    <string name="apps_filter_type_all">Tất cả</string>
+    <string name="apps_filter_type_user">Ứng dụng người dùng</string>
+    <string name="apps_filter_type_system">Ứng dụng hệ thống</string>
+    <string name="apps_filter_status_label">Trạng thái</string>
+    <string name="apps_filter_status_all">Tất cả</string>
+    <string name="apps_filter_status_enabled">Đã bật</string>
+    <string name="apps_filter_status_disabled">Đã tắt</string>
+
+
+    <!-- Tùy chọn sắp xếp -->
+    <string name="apps_sort_mode_label">Sắp xếp theo</string>
+    <string name="apps_sort_mode_name_label">Tên</string>
+    <string name="apps_sort_mode_size_label">Kích thước</string>
+    <string name="apps_sort_mode_install_date_label">Ngày cài đặt</string>
+    <string name="apps_sort_mode_update_date_label">Ngày cập nhật</string>
+    <string name="apps_sort_mode_package_name_label">Tên gói</string>
+    <string name="apps_sort_descending_label">Thứ tự giảm dần</string>
+    <string name="apps_sort_mode_size_slowdown_hint">Tính kích thước ứng dụng khiến việc tải chậm hơn</string>
+
+    <!-- Hành động -->
+    <string name="apps_action_launch">Khởi chạy</string>
+    <string name="apps_action_open_info">Thông tin ứng dụng</string>
+    <string name="apps_action_disable">Tắt</string>
+    <string name="apps_action_enable">Bật</string>
+    <string name="apps_action_uninstall">Gỡ cài đặt</string>
+    <string name="apps_action_clear_data">Xóa dữ liệu</string>
+    <string name="apps_action_export_apk">Xuất APK</string>
+    <string name="apps_action_browse_path">Duyệt đường dẫn</string>
+    <string name="apps_action_share">Chia sẻ thông tin</string>
+    <string name="apps_action_refresh">Làm mới</string>
+    <string name="apps_action_sort">Sắp xếp</string>
+    <string name="apps_action_filter">Lọc</string>
+    <string name="apps_action_select_all">Chọn tất cả</string>
+    <string name="apps_action_deselect_all">Bỏ chọn tất cả</string>
+    <string name="apps_action_open_in_tab">Mở trong thẻ</string>
+    <string name="apps_action_force_stop">Buộc dừng</string>
+    <string name="apps_action_view">Bố cục</string>
+
+    <!-- Tùy chọn xem -->
+    <string name="apps_view_sheet_subtitle">Cách sắp xếp mục và mức độ chi tiết hiển thị</string>
+    <string name="apps_view_mode_list_label">Danh sách</string>
+    <string name="apps_view_mode_grid_label">Lưới</string>
+    <string name="apps_view_density_compact_label">Thu gọn</string>
+    <string name="apps_view_density_comfortable_label">Vừa phải</string>
+    <string name="apps_view_density_detailed_label">Chi tiết</string>
+    <string name="apps_view_set_default_action">Đặt làm mặc định</string>
+    <string name="apps_view_detail_dates_label">Đã cài %1$s · Đã cập nhật %2$s</string>
+
+    <!-- Mô tả hành động -->
+    <string name="apps_action_launch_desc">Khởi động ứng dụng</string>
+    <string name="apps_action_open_info_desc">Xem thông tin hệ thống chi tiết</string>
+    <string name="apps_action_enable_desc">Bật ứng dụng này</string>
+    <string name="apps_action_disable_desc">Tắt ứng dụng này</string>
+    <string name="apps_action_uninstall_desc">Gỡ ứng dụng này</string>
+    <string name="apps_action_export_apk_desc">Lưu tệp APK vào bộ nhớ</string>
+    <string name="apps_action_share_desc">Chia sẻ chi tiết ứng dụng dưới dạng văn bản</string>
+    <string name="apps_action_force_stop_desc">Dừng ứng dụng ngay lập tức</string>
+    <string name="apps_action_clear_data_desc">Xóa toàn bộ dữ liệu và cài đặt của ứng dụng</string>
+
+    <!-- Nhãn thông tin ứng dụng -->
+    <string name="apps_package_name_label">Gói</string>
+    <string name="apps_version_label">Phiên bản</string>
+    <string name="apps_size_label">Kích thước</string>
+    <string name="apps_size_chip_desc">Kích thước ứng dụng: %1$s</string>
+    <string name="apps_size_permission_hint">Kích thước ứng dụng cần quyền truy cập dữ liệu sử dụng</string>
+    <string name="apps_size_permission_body">Android chỉ báo cáo kích thước ứng dụng, dữ liệu và bộ nhớ đệm cho các ứng dụng có quyền Truy cập dữ liệu sử dụng. Cấp quyền này để xem chi tiết bộ nhớ của ứng dụng.</string>
+
+    <!-- Chi tiết ứng dụng -->
+    <string name="apps_details_storage_locations_label">Vị trí lưu trữ</string>
+    <string name="apps_path_internal_data_label">Dữ liệu nội bộ</string>
+    <string name="apps_path_external_data_label">Bộ nhớ ngoài</string>
+    <string name="apps_path_requires_root_label">Yêu cầu root</string>
+    <string name="apps_path_requires_shizuku_label">Yêu cầu Shizuku</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Yêu cầu root hoặc Shizuku</string>
+    <string name="apps_path_requires_access_label">Yêu cầu quyền truy cập bổ sung</string>
+    <string name="apps_storage_breakdown_label">Chi tiết bộ nhớ</string>
+    <string name="apps_storage_app_label">Ứng dụng</string>
+
+    <!-- Thẻ chi tiết ứng dụng -->
+    <string name="appdetails_tab_overview_label">Tổng quan</string>
+    <string name="appdetails_tab_packageinfo_label">Thông tin gói</string>
+
+    <!-- Hành động chi tiết ứng dụng -->
+    <string name="appdetails_back_action">Quay lại danh sách ứng dụng</string>
+    <string name="appdetails_close_action">Đóng</string>
+
+    <!-- Thông tin gói trong chi tiết ứng dụng -->
+    <string name="appdetails_packageinfo_title">Thông tin gói</string>
+    <string name="appdetails_packageinfo_view_action">Xem chi tiết gói</string>
+    <string name="appdetails_packageinfo_unavailable_msg">Không thể đọc chi tiết gói của ứng dụng.</string>
+    <string name="appdetails_packageinfo_permissions_header">Quyền (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">Chứng chỉ ký</string>
+    <string name="appdetails_packageinfo_package_label">Gói</string>
+    <string name="appdetails_packageinfo_version_label">Phiên bản</string>
+    <string name="appdetails_packageinfo_min_sdk_label">SDK tối thiểu</string>
+    <string name="appdetails_packageinfo_target_sdk_label">SDK mục tiêu</string>
+
+    <!-- Trạng thái trống -->
+    <string name="apps_empty_no_apps">Không tìm thấy ứng dụng nào</string>
+    <string name="apps_empty_no_apps_desc">Hãy thử điều chỉnh bộ lọc</string>
+    <string name="apps_empty_loading">Đang tải ứng dụng…</string>
+
+    <!-- Tìm kiếm -->
+    <string name="apps_search_hint">Tìm kiếm ứng dụng</string>
+
+    <!-- Chọn nhiều -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">Chọn ứng dụng</item>
+        <item quantity="other">Đã chọn %d ứng dụng</item>
+    </plurals>
+
+    <!-- Thanh thông tin -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="other">%d ứng dụng người dùng</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="other">%d ứng dụng hệ thống</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="other">Đã chọn %d ứng dụng</item>
+    </plurals>
+
+    <!-- Phần chi tiết ứng dụng -->
+    <string name="apps_details_section_actions">Hành động</string>
+    <string name="apps_details_section_overview">Tổng quan</string>
+    <string name="apps_details_section_storage">Bộ nhớ</string>
+
+    <!-- Thanh hành động chi tiết ứng dụng -->
+    <string name="apps_details_more_options">Tùy chọn khác</string>
+
+    <!-- Dữ liệu gói trong chi tiết ứng dụng -->
+    <string name="apps_details_pkgdata_error_title">Không thể tải dữ liệu ứng dụng</string>
+    <string name="apps_details_gone_title">Ứng dụng đã bị gỡ</string>
+    <string name="apps_details_gone_message">Ứng dụng này không còn được cài đặt trên thiết bị này.</string>
+    <string name="apps_details_gone_close_action">Đóng</string>
+    <string name="apps_details_uninstalled_title">Đã gỡ cài đặt cho người dùng này</string>
+    <string name="apps_details_uninstalled_message">Ứng dụng không còn được cài đặt cho người dùng này, nhưng các tệp của nó vẫn còn trên thiết bị.</string>
+
+    <!-- Xác nhận chi tiết ứng dụng -->
+    <string name="apps_details_confirm_clear_data_title">Xóa dữ liệu ứng dụng?</string>
+    <string name="apps_details_confirm_clear_data_message">Toàn bộ dữ liệu và cài đặt của %1$s sẽ bị xóa. Không thể hoàn tác thao tác này.</string>
+    <string name="apps_details_confirm_uninstall_title">Gỡ cài đặt ứng dụng?</string>
+    <string name="apps_details_confirm_uninstall_message">%1$s sẽ bị gỡ khỏi thiết bị này.</string>
+
+    <!-- Thông tin ứng dụng -->
+    <string name="apps_type_label">Loại</string>
+    <string name="apps_type_system">Ứng dụng hệ thống</string>
+    <string name="apps_type_user">Ứng dụng người dùng</string>
+    <string name="apps_status_label">Trạng thái</string>
+    <string name="apps_status_enabled">Đã bật</string>
+    <string name="apps_status_disabled">Đã tắt</string>
+    <string name="apps_installed_label">Đã cài đặt</string>
+    <string name="apps_updated_label">Cập nhật lần cuối</string>
+    <string name="apps_target_sdk_label">SDK mục tiêu</string>
+    <string name="apps_min_sdk_label">SDK tối thiểu</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">Cài đặt bởi</string>
+    <string name="apps_permissions_label">Quyền</string>
+    <string name="apps_permissions_count">%1$d quyền</string>
+    <string name="apps_data_size_label">Dữ liệu</string>
+    <string name="apps_cache_size_label">Bộ nhớ đệm</string>
+    <string name="apps_total_size_label">Tổng</string>
+
+    <!-- Nhãn ứng dụng -->
+    <string name="apps_tag_system_label">Hệ thống</string>
+    <string name="apps_tag_disabled_label">Đã tắt</string>
+    <string name="apps_tag_updated_label">Đã cập nhật</string>
+    <string name="apps_tag_sideloaded_label">Cài đặt thủ công</string>
+    <string name="apps_tag_split_label">APK phân tách</string>
+    <string name="apps_tag_debug_label">Gỡ lỗi</string>
+    <string name="apps_tag_user_label">Người dùng %1$d</string>
+
+    <!-- Nhãn lọc (nhãn ảo dùng để lọc) -->
+    <string name="apps_filter_tag_enabled_label">Đã bật</string>
+    <string name="apps_filter_tag_user_app_label">Ứng dụng người dùng</string>
+    <string name="apps_filter_include_label">Phải khớp (tất cả mục đã chọn)</string>
+    <string name="apps_filter_exclude_label">Không được khớp</string>
+    <string name="apps_filter_add_action">Lọc</string>
+    <string name="apps_filter_hint">Nhấn để bao gồm, nhấn lại để loại trừ, nhấn thêm lần nữa để xóa</string>
+    <plurals name="apps_filter_count">
+        <item quantity="other">%d bộ lọc</item>
+    </plurals>
+
+    <!-- Phần thành phần -->
+    <string name="apps_details_section_components">Thành phần</string>
+    <string name="apps_components_activities_label">Activity</string>
+    <string name="apps_components_services_label">Service</string>
+    <string name="apps_components_receivers_label">Broadcast Receiver</string>
+    <string name="apps_components_providers_label">Content Provider</string>
+    <string name="apps_components_exported">Được xuất</string>
+    <string name="apps_components_disabled">Đã tắt</string>
+    <string name="apps_components_empty">Không tìm thấy thành phần nào</string>
+    <string name="apps_components_no_matches">Không có thành phần nào khớp với “%1$s”</string>
+    <string name="apps_components_and_more">…và %d nữa</string>
+    <string name="apps_components_view_all_action">Xem tất cả thành phần</string>
+    <string name="apps_components_loading">Đang tải thành phần…</string>
+    <string name="apps_components_error">Không thể tải thành phần</string>
+    <string name="apps_components_launch_failed">Không thể khởi chạy activity</string>
+    <string name="apps_components_kind_activity">Activity</string>
+    <string name="apps_components_kind_service">Service</string>
+    <string name="apps_components_kind_receiver">Broadcast receiver</string>
+    <string name="apps_components_kind_provider">Content provider</string>
+    <string name="apps_components_search_action">Tìm kiếm thành phần</string>
+    <string name="apps_components_search_hint">Tìm theo tên hoặc gói</string>
+    <string name="apps_components_state_label">Trạng thái</string>
+    <string name="apps_components_state_enabled">Đã bật</string>
+    <string name="apps_components_state_disabled">Đã tắt</string>
+    <string name="apps_components_field_type">Loại</string>
+    <string name="apps_components_field_package">Gói</string>
+    <string name="apps_components_field_permission">Quyền</string>
+    <string name="apps_components_field_write_permission">Quyền ghi</string>
+    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_process">Tiến trình</string>
+    <string name="apps_components_field_launch_mode">Chế độ khởi chạy</string>
+    <string name="apps_components_launch_action">Khởi chạy</string>
+    <string name="apps_components_copy_name_action">Sao chép tên thành phần</string>
+    <string name="apps_components_copy_package_action">Sao chép tên gói</string>
+    <string name="apps_components_action_enable">Bật thành phần</string>
+    <string name="apps_components_action_disable">Tắt thành phần</string>
+    <string name="apps_components_action_requires_elevated">Yêu cầu root hoặc Shizuku — nhấn để thiết lập</string>
+    <string name="apps_components_confirm_enable_title">Bật thành phần?</string>
+    <string name="apps_components_confirm_disable_title">Tắt thành phần?</string>
+    <string name="apps_components_confirm_enable_message">Các thành phần sau sẽ được bật:</string>
+    <string name="apps_components_confirm_disable_message">Các thành phần sau sẽ bị tắt. Điều này có thể làm hỏng ứng dụng.</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="other">Đã chọn %d thành phần</item>
+    </plurals>
+
+    <!-- Thao tác trên gói -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="other">Bật %d ứng dụng</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="other">Tắt %d ứng dụng</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="other">Buộc dừng %d ứng dụng</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="other">Gỡ cài đặt %d ứng dụng</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="other">Xóa dữ liệu của %d ứng dụng</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="other">Bật %d thành phần</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="other">Tắt %d thành phần</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="other">%d ứng dụng</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">%1$s đã được bật</string>
+    <string name="apps_operation_disable_summary">%1$s đã được tắt</string>
+    <string name="apps_operation_force_stop_summary">%1$s đã dừng</string>
+    <string name="apps_operation_uninstall_summary">%1$s đã được gỡ cài đặt</string>
+    <string name="apps_operation_clear_data_summary">Đã xóa dữ liệu của %1$s</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="other">%1$d thành phần đã được bật</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="other">%1$d thành phần đã được tắt</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">Không thể hoàn tất cho %1$s</string>
+    <string name="apps_operation_single_declined_summary">Đã từ chối gỡ %1$s</string>
+    <string name="apps_operation_batch_summary">%1$d/%2$d hoàn tất</string>
+    <!-- Đặt trong dấu ngoặc kép để dấu phân cách đầu dòng không bị trình phân tích tài nguyên loại bỏ -->
+    <string name="apps_operation_batch_summary_failed">" · %1$d thất bại"</string>
+    <string name="apps_operation_batch_summary_declined">" · %1$d bị từ chối"</string>
+
+    <!-- Điều hướng chung -->
+    <string name="appdetails_back_generic_action">Quay lại</string>
+
+</resources>

@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Trình duyệt tệp -->
+    <string name="explorer_title">Trình duyệt tệp</string>
+    <string name="explorer_subtitle">Duyệt tệp và thư mục</string>
+    <string name="explorer_settings_title">Cài đặt Trình duyệt tệp</string>
+    <string name="explorer_settings_file_display">Hiển thị tệp</string>
+    <string name="explorer_settings_filter_regex_title">Khớp ký tự đại diện nâng cao</string>
+    <string name="explorer_settings_filter_regex_desc">Sử dụng biểu thức chính quy (regex) trong bộ lọc bao gồm/loại trừ.</string>
+    <string name="explorer_settings_navigation">Điều hướng</string>
+    <string name="explorer_settings_back_button_title">Điều hướng bằng nút quay lại</string>
+    <string name="explorer_settings_back_button_desc">Di chuyển qua lịch sử bằng nút quay lại/cử chỉ quay lại.</string>
+    <string name="explorer_settings_trash_category">Thùng rác</string>
+    <string name="explorer_settings_trash_enabled_title">Bật thùng rác</string>
+    <string name="explorer_settings_trash_enabled_desc">Chuyển tệp đã xóa vào thùng rác thay vì xóa vĩnh viễn</string>
+    <string name="explorer_settings_trash_auto_delete_title">Tự động xóa sau</string>
+    <string name="explorer_settings_trash_auto_delete_desc">Tự động xóa các mục cũ hơn %d ngày</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d ngày</string>
+    <string name="explorer_settings_trash_max_size_title">Dung lượng tối đa mỗi bộ nhớ</string>
+    <string name="explorer_settings_trash_max_size_desc">Tối đa %d MB cho mỗi vị trí lưu trữ</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Thời gian tự động xóa</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Dung lượng tối đa mỗi bộ nhớ</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Bật thùng rác?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Không giống hệ thống máy tính để bàn, Android không có thùng rác tích hợp sẵn. Butler tạo ra thùng rác bằng thư mục bộ nhớ đệm của nó.\n\nLưu ý:\n• Chỉ báo dung lượng lưu trữ của thiết bị sẽ không phản ánh dung lượng đã giải phóng cho đến khi các mục bị xóa vĩnh viễn\n• Nếu thiết bị sắp hết dung lượng, Android có thể xóa bộ nhớ đệm ứng dụng, làm mất các tệp trong thùng rác</string>
+    <string name="explorer_settings_trash_enable_action">Bật</string>
+
+    <!-- Mô tả nội dung dòng tệp -->
+    <string name="explorer_file_regular_content_desc">Tệp</string>
+    <string name="explorer_file_symlink_content_desc">Liên kết tượng trưng</string>
+    <string name="explorer_file_folder_content_desc">Thư mục</string>
+    <string name="explorer_file_peek_content_desc">Đang tải thông tin tệp</string>
+
+    <!-- Chuỗi giao diện dòng tệp -->
+    <string name="explorer_file_shortcut_label">Lối tắt</string>
+    <string name="explorer_file_storage_local_label">Cục bộ</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Chỉ đọc</string>
+    <string name="explorer_file_storage_saf_write_only_label">Chỉ ghi</string>
+    <string name="explorer_file_storage_saf_no_access_label">Không có quyền truy cập</string>
+    <string name="explorer_file_storage_saf_uri_label">URI cây SAF</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s tổng • %3$s trống</string>
+    <string name="explorer_file_broken_link_label">Liên kết hỏng</string>
+    <string name="explorer_file_items_count">%1$d mục</string>
+    <string name="explorer_file_empty">Trống</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · một phần</string>
+    <string name="explorer_sizes_estimate_description">Ước tính từ tổng dung lượng lưu trữ của Android. Đối với các tệp không đọc được, dung lượng chiếm dụng được dùng làm ước tính kích thước tệp. Các tệp ẩn do Android quản lý cũng có thể được tính vào. Các vị trí không đọc được khác vẫn chưa xác định.</string>
+    <string name="explorer_sizes_estimate_coverage">Không thể ước tính Android/data vì các phần khác của bộ nhớ không thể đo đầy đủ.</string>
+    <string name="explorer_sizes_estimate_unavailable">Không có số liệu thống kê bộ nhớ của Android. Các kích thước đã đo vẫn được hiển thị.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Tổng dung lượng của Android không khớp với kết quả quét. Các kích thước đã đo vẫn được hiển thị.</string>
+
+    <!-- Chế độ chọn -->
+    <string name="explorer_picker_select_directory_title">Chọn thư mục</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">Chọn thư mục</item>
+        <item quantity="other">Chọn thư mục (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Chọn tệp</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">Chọn tệp</item>
+        <item quantity="other">Chọn tệp (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">Chọn mục</item>
+        <item quantity="other">Chọn mục (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Chọn thư mục này</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="other">Chọn %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Lưu tệp</string>
+    <string name="explorer_picker_save_here_action">Lưu vào đây</string>
+    <string name="explorer_picker_save_as_filename_label">Tên tệp</string>
+    <string name="explorer_picker_save_as_filename_hint">Nhập tên tệp</string>
+
+    <!-- Hành động của Trình duyệt tệp -->
+    <string name="explorer_action_refresh">Làm mới</string>
+    <string name="explorer_action_calculate_sizes">Tính kích thước</string>
+    <string name="explorer_action_sort">Sắp xếp</string>
+    <string name="explorer_action_filter">Lọc</string>
+    <string name="explorer_action_view">Chế độ xem</string>
+    <string name="explorer_action_create">Tạo</string>
+    <string name="explorer_action_rename">Đổi tên</string>
+    <string name="explorer_action_copy">Sao chép</string>
+    <string name="explorer_action_cut">Cắt</string>
+    <string name="explorer_action_delete">Xóa</string>
+    <string name="explorer_action_select_all">Chọn tất cả</string>
+    <string name="explorer_action_deselect_all">Bỏ chọn tất cả</string>
+    <string name="explorer_action_compress">Nén</string>
+    <string name="explorer_action_extract">Giải nén</string>
+    <string name="explorer_action_add_location">Thêm vị trí</string>
+    <string name="explorer_action_info">Thông tin</string>
+
+    <!-- Thông tin mục -->
+    <string name="explorer_info_title">Thông tin</string>
+    <string name="explorer_info_name_label">Tên</string>
+    <string name="explorer_info_path_label">Đường dẫn</string>
+    <string name="explorer_info_type_label">Loại</string>
+    <string name="explorer_info_type_file">Tệp</string>
+    <string name="explorer_info_type_directory">Thư mục</string>
+    <string name="explorer_info_size_label">Kích thước</string>
+    <string name="explorer_info_modified_label">Đã sửa đổi</string>
+    <string name="explorer_info_created_label">Đã tạo</string>
+    <string name="explorer_info_permissions_label">Quyền</string>
+    <string name="explorer_info_owner_label">Chủ sở hữu</string>
+    <string name="explorer_info_child_count_label">Số mục</string>
+    <string name="explorer_info_symlink_target_label">Đích</string>
+    <string name="explorer_info_symlink_status_label">Trạng thái</string>
+    <string name="explorer_info_symlink_broken">Liên kết hỏng</string>
+    <string name="explorer_info_unknown">Không xác định</string>
+
+    <!-- Thông tin mục trong thùng rác -->
+    <string name="explorer_trash_info_deleted_label">Đã xóa</string>
+
+    <!-- Thông tin SAF -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Quyền</string>
+    <string name="explorer_info_saf_granted_label">Đã cấp</string>
+    <string name="explorer_info_saf_permission_read">Đọc</string>
+    <string name="explorer_info_saf_permission_write">Ghi</string>
+
+    <!-- Thông tin mạng -->
+    <string name="explorer_info_network_server_label">Máy chủ</string>
+    <string name="explorer_info_network_port_label">Cổng</string>
+    <string name="explorer_info_network_share_label">Chia sẻ</string>
+    <string name="explorer_info_network_folder_label">Thư mục</string>
+    <string name="explorer_info_network_address_label">Địa chỉ</string>
+    <string name="explorer_info_network_status_label">Trạng thái</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Đăng nhập</string>
+    <string name="explorer_info_network_domain_label">Miền</string>
+    <string name="explorer_info_network_password_label">Mật khẩu</string>
+    <string name="explorer_info_network_password_show_action">Hiện mật khẩu</string>
+    <string name="explorer_info_network_password_hide_action">Ẩn mật khẩu</string>
+    <string name="explorer_info_network_password_missing">Thiếu, hãy đăng nhập lại</string>
+    <string name="explorer_info_network_password_locked">Đã lưu, nhưng thiết bị này không thể mở khóa</string>
+    <string name="explorer_info_network_added_label">Đã thêm</string>
+    <string name="explorer_info_network_updated_label">Đã cập nhật</string>
+    <string name="explorer_info_network_last_seen_label">Lần cuối thấy</string>
+    <string name="explorer_info_network_last_seen_never">Chưa bao giờ</string>
+
+    <!-- Thông tin nhiều mục -->
+    <string name="explorer_info_selected_label">Đã chọn</string>
+    <string name="explorer_info_files_label">Tệp</string>
+    <string name="explorer_info_directories_label">Thư mục</string>
+    <string name="explorer_info_total_size_label">Tổng kích thước</string>
+
+    <!-- Thông tin xem Thiết bị/Trang chủ -->
+    <string name="explorer_info_locations_label">Vị trí</string>
+    <string name="explorer_info_shortcuts_label">Lối tắt</string>
+    <string name="explorer_info_total_capacity_label">Tổng dung lượng</string>
+    <string name="explorer_info_used_space_label">Dung lượng đã dùng</string>
+    <string name="explorer_info_free_space_label">Dung lượng trống</string>
+    <string name="explorer_info_usage_label">Mức sử dụng</string>
+    <string name="explorer_info_device_storage_total_label">Bộ nhớ thiết bị</string>
+    <string name="explorer_info_device_storage_used_label">Đã dùng</string>
+    <string name="explorer_info_device_storage_free_label">Còn trống</string>
+
+    <!-- Điều hướng -->
+    <string name="explorer_navigation_home">Trang chủ</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Đặt làm trang chủ</string>
+    <string name="explorer_breadcrumb_copy_path_action">Sao chép đường dẫn</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Đã sao chép đường dẫn vào bộ nhớ tạm</string>
+    <string name="explorer_navigation_device">Thiết bị</string>
+    <string name="explorer_navigation_network">Mạng</string>
+    <string name="explorer_navigation_recent">Gần đây</string>
+    <string name="explorer_navigation_recent_desc">Các tệp vừa xuất hiện trên thiết bị này</string>
+    <string name="explorer_navigation_trash">Thùng rác</string>
+    <string name="explorer_navigation_trash_desc">Khôi phục tệp đã xóa</string>
+    <string name="explorer_navigation_trash_nested_desc">Bên trong thư mục đã xóa</string>
+
+    <!-- Thùng rác -->
+    <string name="explorer_trash_empty_state">Không có mục nào đã xóa</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="other">%d mục</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Khôi phục</string>
+    <string name="explorer_trash_restore_selected_action">Khôi phục mục đã chọn</string>
+    <string name="explorer_trash_delete_permanently_action">Xóa vĩnh viễn</string>
+    <string name="explorer_trash_delete_selected_action">Xóa mục đã chọn</string>
+    <string name="explorer_trash_empty_trash_action">Đổ thùng rác</string>
+    <string name="explorer_trash_empty_confirm">Đổ thùng rác?</string>
+    <string name="explorer_trash_empty_message">Tất cả các mục trong Thùng rác sẽ bị xóa vĩnh viễn. Không thể hoàn tác.</string>
+    <string name="explorer_trash_empty_confirm_action">Đổ thùng rác</string>
+    <string name="explorer_trash_restore_desc">Khôi phục về vị trí ban đầu</string>
+    <string name="explorer_trash_item_unavailable">Mục không khả dụng</string>
+    <string name="explorer_trash_delete_warning">Không thể hoàn tác</string>
+    <string name="explorer_trash_disabled_warning">Thùng rác đã tắt</string>
+
+    <!-- Thùng rác lồng nhau -->
+    <string name="explorer_trash_nested_loading">Đang tải nội dung thư mục đã xóa…</string>
+    <string name="explorer_trash_nested_restore_action">Khôi phục về vị trí ban đầu</string>
+    <string name="explorer_trash_nested_delete_action">Xóa vĩnh viễn</string>
+    <string name="explorer_trash_nested_restore_conflict">Đã tồn tại tệp tại vị trí ban đầu</string>
+    <string name="explorer_trash_nested_parent_missing">Mục cha không còn tồn tại trong thùng rác</string>
+    <string name="explorer_trash_nested_path_missing">Đường dẫn không còn tồn tại</string>
+    <string name="explorer_trash_error_items_not_found">Không tìm thấy mục trong thùng rác</string>
+    <string name="explorer_trash_error_restore_failed">Khôi phục mục thất bại</string>
+    <string name="explorer_trash_error_delete_failed">Xóa mục thất bại</string>
+    <string name="explorer_trash_nested_error_restore_failed">Khôi phục %1$s thất bại</string>
+    <string name="explorer_trash_nested_error_delete_failed">Xóa %1$s thất bại</string>
+
+    <string name="explorer_navigation_root">Thư mục gốc</string>
+    <string name="explorer_navigation_rom">ROM hệ thống</string>
+    <string name="explorer_navigation_internal_storage">Bộ nhớ trong công khai</string>
+    <string name="explorer_navigation_external_storage">Bộ nhớ ngoài công khai</string>
+
+    <string name="explorer_loader_progress_directory_loading">Đang duyệt %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Đang kiểm tra quyền</string>
+    <string name="explorer_loader_progress_directory_filesystem">Đang lấy thông tin hệ thống tệp</string>
+    <string name="explorer_loader_progress_directory_content">Đang tải nội dung thư mục</string>
+    <string name="explorer_loader_progress_directory_content_details">Đang tải chi tiết nội dung</string>
+    <string name="explorer_loader_progress_directory_content_extended">Đang tải chi tiết nội dung mở rộng</string>
+
+    <string name="explorer_loader_progress_device_loading">Đang tải thiết bị</string>
+    <string name="explorer_loader_progress_device_locations">Đang tải các vị trí lưu trữ</string>
+
+    <string name="explorer_loader_progress_network_loading">Đang tải bộ nhớ mạng</string>
+
+    <string name="explorer_loader_progress_home_loading">Đang tải trang chủ</string>
+    <string name="explorer_loader_progress_trash_loading">Đang tải thùng rác…</string>
+    <string name="explorer_loader_progress_recent_loading">Đang tải tệp gần đây…</string>
+
+    <!-- Thanh thông tin -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="other">%d lối tắt</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="other">%d vị trí</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="other">%d mục ẩn</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s trống</string>
+    <string name="explorer_infobar_loading">Đang tải…</string>
+
+    <!-- Hộp thoại -->
+    <string name="explorer_dialog_create_title">Tạo mục mới</string>
+    <string name="explorer_dialog_rename_title">Đổi tên</string>
+    <string name="explorer_dialog_name_label">Tên</string>
+    <string name="explorer_dialog_type_label">Loại</string>
+    <string name="explorer_dialog_type_folder">Thư mục</string>
+    <string name="explorer_dialog_type_file">Tệp</string>
+    <string name="explorer_dialog_create_text_file_title">Tạo tệp từ văn bản</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Xem trước</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d ký tự</string>
+
+    <!-- Hộp thoại thêm bộ nhớ thiết bị -->
+    <string name="explorer_add_device_storage_title">Thêm vị trí lưu trữ</string>
+    <string name="explorer_add_device_storage_desc">Sử dụng Storage Access Framework (SAF) để cấp cho Butler quyền truy cập vào các vị trí lưu trữ khác như ổ USB, thư mục ứng dụng ảo và nhiều hơn nữa.</string>
+    <string name="explorer_add_device_storage_continue">Tiếp tục</string>
+    <string name="explorer_add_device_storage_cancel">Hủy</string>
+    <string name="explorer_add_device_storage_suggestions_title">Ứng dụng có bộ nhớ</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Mở thư mục của ứng dụng này</string>
+
+    <!-- Hành động bộ nhớ thiết bị -->
+    <string name="explorer_device_action_remove_location">Xóa vị trí</string>
+    <string name="explorer_device_remove_confirmation_title">Xóa vị trí lưu trữ này?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="other">Xóa %1$d vị trí lưu trữ?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Thao tác này sẽ thu hồi quyền truy cập của Butler vào vị trí này. Tệp của bạn sẽ không bị xóa.</string>
+
+    <!-- Bộ nhớ mạng -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="other">%d vị trí mạng</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Mạng</string>
+    <string name="explorer_network_add_location_action">Thêm bộ nhớ mạng</string>
+    <string name="explorer_network_edit_location_action">Sửa bộ nhớ mạng</string>
+    <string name="explorer_network_remove_location_action">Xóa bộ nhớ mạng</string>
+    <string name="explorer_network_sign_in_required_label">Cần đăng nhập</string>
+    <string name="explorer_network_status_checking_label">Đang kiểm tra…</string>
+    <string name="explorer_network_status_available_label">Khả dụng</string>
+    <string name="explorer_network_status_unavailable_label">Không khả dụng</string>
+    <string name="explorer_network_status_unavailable_since_format">Không khả dụng (%1$s)</string>
+    <string name="explorer_network_empty_title">Chưa có bộ nhớ mạng</string>
+    <string name="explorer_network_empty_caption">Thêm một thư mục chia sẻ Windows hoặc NAS để duyệt tại đây.</string>
+    <string name="explorer_network_remove_confirmation_title">Xóa bộ nhớ mạng này?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="other">Xóa %1$d bộ nhớ mạng?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler sẽ quên thông tin máy chủ và mật khẩu đã lưu. Không có gì trên máy chủ bị xóa.</string>
+
+    <!-- Biểu mẫu bộ nhớ mạng -->
+    <string name="explorer_network_form_add_title">Thêm bộ nhớ mạng</string>
+    <string name="explorer_network_form_edit_title">Sửa bộ nhớ mạng</string>
+    <string name="explorer_network_form_label_label">Tên (tùy chọn)</string>
+    <string name="explorer_network_form_host_label">Địa chỉ máy chủ</string>
+    <string name="explorer_network_form_host_hint">nas.local hoặc 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Cổng</string>
+    <string name="explorer_network_form_share_label">Chia sẻ</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Thư mục bên trong phần chia sẻ (tùy chọn)</string>
+    <string name="explorer_network_form_auth_guest">Khách</string>
+    <string name="explorer_network_form_auth_password">Tên đăng nhập và mật khẩu</string>
+    <string name="explorer_network_form_username_label">Tên đăng nhập</string>
+    <string name="explorer_network_form_domain_label">Miền (tùy chọn)</string>
+    <string name="explorer_network_form_password_label">Mật khẩu</string>
+    <string name="explorer_network_form_password_kept_hint">Để trống để giữ mật khẩu đã lưu</string>
+    <string name="explorer_network_form_remember_label">Ghi nhớ mật khẩu</string>
+    <string name="explorer_network_form_remember_hint">Được mã hóa và lưu trữ chỉ trên thiết bị này</string>
+    <string name="explorer_network_form_test_and_save_action">Kiểm tra &amp; lưu</string>
+    <string name="explorer_network_form_testing">Đang kết nối…</string>
+    <string name="explorer_network_form_error_host_blank">Nhập địa chỉ máy chủ</string>
+    <string name="explorer_network_form_error_host_not_bare">Chỉ nhập địa chỉ máy chủ, không kèm giao thức hoặc đường dẫn</string>
+    <string name="explorer_network_form_error_host_malformed">Đây không phải là địa chỉ máy chủ hợp lệ</string>
+    <string name="explorer_network_form_error_port">Nhập cổng từ 1 đến 65535</string>
+    <string name="explorer_network_form_error_share_blank">Nhập tên phần chia sẻ</string>
+    <string name="explorer_network_form_error_share_not_single">Chỉ nhập tên phần chia sẻ, đặt thư mục con bên dưới</string>
+    <string name="explorer_network_form_error_share_malformed">Đây không phải là tên phần chia sẻ hợp lệ</string>
+    <string name="explorer_network_form_error_base_path">Không thể sử dụng đường dẫn thư mục này</string>
+    <string name="explorer_network_form_error_username_blank">Nhập tên đăng nhập</string>
+    <string name="explorer_network_form_error_password_required">Nhập lại mật khẩu để thay đổi tên đăng nhập hoặc miền</string>
+
+    <!-- Đặt tên vị trí -->
+    <string name="explorer_location_name_title">Đặt tên vị trí</string>
+    <string name="explorer_location_name_label">Tên vị trí</string>
+    <string name="explorer_location_name_hint">Để trống để dùng tên mặc định</string>
+    <string name="explorer_location_rename_action">Đổi tên vị trí</string>
+
+    <!-- Gần đây -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="other">Đã thêm trong %d ngày qua</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Chưa có gì mới ở đây</string>
+    <string name="explorer_recent_empty_message">Các tệp xuất hiện trên thiết bị này sẽ hiện ở đây</string>
+
+    <!-- Trạng thái trống -->
+    <string name="explorer_empty_folder_title">Thư mục này trống</string>
+    <string name="explorer_empty_search_title">Không có kết quả tìm kiếm</string>
+    <string name="explorer_empty_search_caption">Hãy thử một từ khóa tìm kiếm khác</string>
+    <string name="explorer_empty_folder_label">Thư mục trống</string>
+    <string name="explorer_empty_filtered_title">Không có mục nào khớp</string>
+    <string name="explorer_empty_filtered_caption">Hãy thử điều chỉnh bộ lọc của bạn</string>
+    <string name="explorer_empty_hidden_title">Chỉ có mục ẩn ở đây</string>
+    <string name="explorer_empty_hidden_caption">Thẻ này ẩn các mục có tên bắt đầu bằng dấu chấm</string>
+    <string name="explorer_empty_show_hidden_action">Hiện mục ẩn</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Không còn gì để hiển thị</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Mục ẩn và các bộ lọc của bạn đều loại trừ một phần của thư mục này</string>
+    <string name="explorer_empty_clear_filters_action">Xóa bộ lọc</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Mục ẩn và bộ lọc loại trừ tất cả ở đây</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Hiện mục ẩn và xóa bộ lọc của thẻ này sẽ đưa chúng trở lại</string>
+    <string name="explorer_empty_show_all_action">Hiện tất cả mục</string>
+    <string name="explorer_path_not_found_title">Thư mục này không còn tồn tại</string>
+    <string name="explorer_path_not_found_caption">Nó đã bị xóa, đổi tên hoặc di chuyển sang nơi khác.</string>
+    <string name="explorer_path_not_found_back_action">Quay lại</string>
+
+    <!-- Thông báo trạng thái -->
+    <string name="explorer_loading">Đang tải…</string>
+    <string name="explorer_file_peek_loading_text">Đang tải…</string>
+
+    <!-- Chú thích thư mục trống -->
+    <string name="explorer_empty_folder_caption_1">Chẳng có gì để xem ở đây… đi tiếp thôi 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Thư mục này đang ăn kiêng</string>
+    <string name="explorer_empty_folder_caption_3">Ngay cả các tệp cũng về sớm hôm nay</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe đã ngừng hoạt động</string>
+    <string name="explorer_empty_folder_caption_5">Các tệp đang chơi trốn tìm</string>
+    <string name="explorer_empty_folder_caption_6">404: Không tìm thấy tệp nào</string>
+    <string name="explorer_empty_folder_caption_7">Thư mục này chẳng tin ai nên chẳng chứa gì</string>
+    <string name="explorer_empty_folder_caption_8">Các tệp đã đi nghỉ mát mà không báo trước</string>
+    <string name="explorer_empty_folder_caption_9">Trống rỗng như tâm hồn tôi… nhưng gọn gàng hơn</string>
+    <string name="explorer_empty_folder_caption_10">Vắng như chùa Bà Đanh, phiên bản kỹ thuật số</string>
+    <string name="explorer_empty_folder_caption_11">Các tệp đang giữ khoảng cách xã hội</string>
+    <string name="explorer_empty_folder_caption_12">Thư mục này theo chủ nghĩa tối giản</string>
+    <string name="explorer_empty_folder_caption_13">Có ai đó quên cho các tệp ăn rồi</string>
+    <string name="explorer_empty_folder_caption_14">Các tệp đã rời đi mất rồi</string>
+    <string name="explorer_empty_folder_caption_15">Trống rỗng hơn cả lời hứa của chính trị gia</string>
+
+    <!-- Tùy chọn sắp xếp -->
+    <string name="explorer_sort_mode_label">Sắp xếp theo</string>
+    <string name="explorer_sort_mode_name_label">Tên</string>
+    <string name="explorer_sort_mode_size_label">Kích thước</string>
+    <string name="explorer_sort_mode_modified_label">Ngày sửa đổi</string>
+    <string name="explorer_sort_mode_created_label">Ngày tạo</string>
+    <string name="explorer_sort_descending_label">Thứ tự giảm dần</string>
+    <string name="explorer_sort_scope_label">Áp dụng cho</string>
+    <string name="explorer_sort_scope_all_folders">Tất cả thư mục</string>
+    <string name="explorer_sort_scope_this_folder">Thư mục này</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Thư mục này và thư mục con</string>
+    <string name="explorer_sort_scope_use_default_here">Dùng mặc định tại đây</string>
+    <string name="explorer_sort_only_this_tab_label">Chỉ cho thẻ này</string>
+    <string name="explorer_sort_inherited_notice">Được sắp xếp theo quy tắc đã lưu cho %1$s</string>
+    <string name="explorer_sort_suppressed_notice">Ghi đè quy tắc đã lưu cho %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Thẻ này dùng thứ tự sắp xếp mặc định riêng</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Xóa</string>
+
+    <!-- Kích thước thư mục -->
+    <string name="explorer_sizes_sheet_title">Kích thước thư mục</string>
+    <string name="explorer_sizes_sheet_label_calculated">Đã tính</string>
+    <string name="explorer_sizes_sheet_label_folders">Thư mục</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Vị trí không đọc được</string>
+    <string name="explorer_sizes_sheet_problems_more">%1$d mục khác không được liệt kê</string>
+    <string name="explorer_sizes_sheet_recalculate">Tính lại</string>
+    <string name="explorer_sizes_sheet_discard">Bỏ kích thước</string>
+
+    <!-- Tùy chọn hiển thị -->
+    <string name="explorer_view_sheet_subtitle">Cách sắp xếp các mục và mức độ chi tiết hiển thị</string>
+    <string name="explorer_view_mode_list_label">Danh sách</string>
+    <string name="explorer_view_mode_grid_label">Lưới</string>
+    <string name="explorer_view_density_compact_label">Gọn</string>
+    <string name="explorer_view_density_comfortable_label">Vừa phải</string>
+    <string name="explorer_view_density_detailed_label">Chi tiết</string>
+    <string name="explorer_view_show_hidden_label">Hiện tệp ẩn</string>
+    <string name="explorer_view_set_default_action">Đặt làm mặc định</string>
+    <string name="explorer_view_detail_created_label">Đã tạo</string>
+    <string name="explorer_view_detail_modified_label">Đã sửa đổi</string>
+
+    <!-- Quy tắc sắp xếp thư mục -->
+    <string name="explorer_settings_folder_sort_rules_title">Quy tắc sắp xếp thư mục</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Cài đặt sắp xếp bạn đã lưu cho từng thư mục</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Xóa quy tắc sắp xếp thư mục?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Tất cả thư mục sẽ quay về thứ tự sắp xếp mặc định. Các thẻ có ghi đè sắp xếp riêng vẫn giữ nguyên. Không thể hoàn tác.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Xóa tất cả</string>
+
+    <!-- Tùy chọn lọc -->
+    <string name="explorer_filter_file_type_label">Loại tệp</string>
+    <string name="explorer_filter_type_all">Tất cả</string>
+    <string name="explorer_filter_type_files">Chỉ tệp</string>
+    <string name="explorer_filter_type_folders">Chỉ thư mục</string>
+    <string name="explorer_filter_include_label">Mẫu bao gồm</string>
+    <string name="explorer_filter_include_placeholder_simple">ví dụ: vacation, report, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">ví dụ: .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Mẫu loại trừ</string>
+    <string name="explorer_filter_exclude_placeholder_simple">ví dụ: tmp, cache, old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">ví dụ: ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Bật khớp regex trong cài đặt</string>
+
+    <!-- Thông báo quyền -->
+    <string name="explorer_permission_required_title">Cần quyền truy cập</string>
+    <string name="explorer_permission_generic_description">Butler cần thêm quyền để duyệt vị trí này.</string>
+    <string name="explorer_permission_setup_action">Mở thiết lập</string>
+    <string name="explorer_grant_access_action">Cấp quyền truy cập</string>
+
+    <!-- Tùy chọn tệp -->
+    <string name="explorer_file_options_actions">Hành động</string>
+    <string name="explorer_file_info_type_label">Loại</string>
+    <string name="explorer_file_info_size_label">Kích thước</string>
+    <string name="explorer_file_info_modified_label">Đã sửa đổi</string>
+    <string name="explorer_file_action_install">Cài đặt</string>
+    <string name="explorer_file_action_install_subtitle">Cài đặt ứng dụng này lên thiết bị của bạn</string>
+    <string name="explorer_file_action_open">Mở</string>
+    <string name="explorer_file_action_open_subtitle">Xem tại đây, quay lại sẽ về thư mục này</string>
+    <string name="explorer_file_action_open_in_tab">Mở trong thẻ mới</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Xem trong Butler dưới dạng thẻ riêng</string>
+    <string name="explorer_file_action_open_in_editor">Mở trong trình soạn thảo</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Sửa trong thẻ mới</string>
+    <string name="explorer_file_action_open_with">Mở bằng</string>
+    <string name="explorer_file_action_open_with_subtitle">Chọn ứng dụng khác để mở</string>
+    <string name="explorer_file_action_share">Chia sẻ</string>
+    <string name="explorer_file_action_share_subtitle">Chia sẻ qua các ứng dụng đã cài đặt</string>
+    <string name="explorer_file_action_copy">Sao chép</string>
+    <string name="explorer_file_action_copy_subtitle">Sao chép vào bộ nhớ tạm để dán</string>
+    <string name="explorer_file_action_cut">Cắt</string>
+    <string name="explorer_file_action_cut_subtitle">Chuyển vào bộ nhớ tạm để dán</string>
+    <string name="explorer_file_action_rename">Đổi tên</string>
+    <string name="explorer_file_action_rename_subtitle">Thay đổi tên tệp</string>
+    <string name="explorer_file_action_delete">Xóa</string>
+    <string name="explorer_file_action_delete_subtitle">Xóa vĩnh viễn tệp này</string>
+    <string name="explorer_file_action_move_to_trash">Chuyển vào thùng rác</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Chuyển tệp vào thùng rác</string>
+    <string name="explorer_file_action_properties">Thuộc tính</string>
+    <string name="explorer_file_action_properties_subtitle">Xem thông tin chi tiết về tệp</string>
+    <string name="explorer_file_action_extract">Giải nén</string>
+    <string name="explorer_file_action_extract_subtitle">Giải nén nội dung tệp nén vào một thư mục</string>
+    <string name="explorer_file_action_show_in_folder">Hiện trong thư mục</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Mở thư mục chứa tệp này</string>
+
+    <!-- Thao tác -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="other">%d tệp đã tạo.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="other">%d thư mục đã tạo.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Thao tác sao chép</string>
+    <string name="explorer_operation_copy_description_single">Sao chép \"%1$s\" từ \"%2$s\" đến \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="other">Sao chép %1$d mục đến \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="other">%d tệp đã sao chép.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="other">%d thư mục đã sao chép.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="other">%s đã sao chép.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Thao tác giải nén</string>
+    <string name="explorer_operation_extract_description">Giải nén \"%1$s\" vào \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Thao tác sao chép cục bộ</string>
+    <string name="explorer_operation_download_copy_description">Sao chép \"%1$s\" đến \"%2$s\" để duyệt cục bộ.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="other">%d tệp đã giải nén.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="other">%s đã giải nén.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Thao tác nén</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="other">Nén %1$d mục vào \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="other">%d tệp đã nén.</item>
+    </plurals>
+
+    <!-- Hộp thoại nén -->
+    <string name="explorer_compress_dialog_title">Tạo tệp nén</string>
+    <string name="explorer_compress_dialog_name_label">Tên tệp nén</string>
+    <string name="explorer_compress_dialog_format_label">Định dạng</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Mở được trên mọi thiết bị. Có thể đặt mật khẩu bảo vệ.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Nhỏ hơn khi có nhiều tệp. Không hỗ trợ mật khẩu bảo vệ.</string>
+    <string name="explorer_compress_dialog_create_action">Tạo</string>
+    <string name="explorer_compress_dialog_level_label">Mức độ nén</string>
+    <string name="explorer_compress_dialog_level_fast">Nhanh</string>
+    <string name="explorer_compress_dialog_level_normal">Bình thường</string>
+    <string name="explorer_compress_dialog_level_best">Tốt nhất</string>
+    <string name="explorer_compress_dialog_password_label">Mật khẩu (tùy chọn)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Xác nhận mật khẩu</string>
+    <string name="explorer_compress_dialog_password_mismatch">Mật khẩu không khớp</string>
+    <string name="explorer_compress_dialog_password_weak">Mật khẩu yếu</string>
+    <string name="explorer_compress_dialog_password_notice">Nội dung tệp được mã hóa, tên tệp thì không.</string>
+    <string name="explorer_compress_dialog_password_show">Hiện mật khẩu</string>
+    <string name="explorer_compress_dialog_password_hide">Ẩn mật khẩu</string>
+    <string name="explorer_compress_dialog_overwrite_title">Thay thế tệp nén?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" đã tồn tại và sẽ bị thay thế.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Thay thế</string>
+
+    <!-- Hộp thoại thả (mục kéo từ khung khác vào) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="other">Thả %1$d mục?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="other">Sao chép hoặc di chuyển %1$d mục đến \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="other">Sao chép %1$d mục đến \"%2$s\"?</item>
+    </plurals>
+
+    <!-- Hộp thoại thả vào thùng rác (mục kéo vào khung xem Thùng rác) -->
+    <string name="explorer_trash_drop_confirmation_title">Chuyển vào thùng rác?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="other">Chuyển %1$d mục vào thùng rác?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Thao tác di chuyển</string>
+    <string name="explorer_operation_move_description_single">Di chuyển \"%1$s\" từ \"%2$s\" đến \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="other">Di chuyển %1$d mục đến \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="other">%d tệp đã di chuyển.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="other">%d thư mục đã di chuyển.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="other">%s đã di chuyển.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Tạo thư mục</string>
+    <string name="explorer_operation_create_description_directory">Tạo thư mục \"%1$s\" tại \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Tạo tệp</string>
+    <string name="explorer_operation_create_description_file">Tạo tệp \"%1$s\" tại \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Tạo tệp văn bản</string>
+    <string name="explorer_operation_create_text_file_description">Tạo \"%1$s\" từ đoạn văn bản</string>
+    <string name="explorer_operation_calculate_sizes_title">Tính kích thước</string>
+    <string name="explorer_operation_calculate_sizes_description">Tính kích thước thư mục trong \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="other">Đã quét %1$d mục</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Đã tính kích thước của %1$d thư mục.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="other">Đã tính kích thước của %1$d thư mục, %2$d vị trí không đọc được.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Kích thước thư mục của \"%1$s\" đã bị bỏ vì nó thay đổi trong lúc tính toán.</string>
+
+    <!-- Thông báo lỗi điều hướng -->
+    <string name="explorer_navigation_error_title">Điều hướng thất bại</string>
+    <string name="explorer_aborted_dialog_title">Thao tác đã hủy</string>
+    <string name="explorer_aborted_dialog_message">Quá trình tải đã bị hủy trước khi có thể hiển thị bất kỳ nội dung nào.</string>
+    <string name="explorer_archive_unbrowsable_title">Không thể duyệt tệp nén này ở đây</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" nằm trên bộ nhớ chỉ hỗ trợ đọc tuần tự, nhưng duyệt tệp nén cần truy cập ngẫu nhiên. Hãy giải nén tại đây, hoặc tải một bản sao cục bộ để duyệt.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Giải nén</string>
+    <string name="explorer_archive_unbrowsable_download_action">Tải bản sao cục bộ</string>
+
+    <!-- Nhãn tự động cho vị trí SAF -->
+    <string name="explorer_saf_location_android_data_label">Android/data (quyền truy cập đặc biệt)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (quyền truy cập đặc biệt)</string>
+
+    <!-- Giải thích thẻ yêu cầu quyền -->
+    <string name="explorer_permission_saf_workaround_description">Android hạn chế quyền truy cập vào thư mục này. Hãy dùng trình chọn thư mục để cấp quyền truy cập.</string>
+    <string name="explorer_permission_multiple_options_description">Bạn có thể cấp quyền truy cập bằng trình chọn thư mục của Android hoặc thiết lập Root/Shizuku để truy cập nhanh hơn vào tất cả thư mục bị hạn chế.</string>
+    <string name="explorer_permission_setup_both_description">Thư mục này cần quyền truy cập nâng cao. Hãy cài đặt và cấu hình Root hoặc Shizuku trong phần thiết lập.</string>
+    <string name="explorer_permission_setup_shizuku_description">Thư mục này cần quyền truy cập nâng cao qua Shizuku. Hãy cài đặt Shizuku Manager và cấu hình trong phần thiết lập.</string>
+    <string name="explorer_permission_setup_root_description">Thư mục này cần quyền truy cập Root. Hãy cấu hình Root trong phần thiết lập nếu thiết bị của bạn đã root.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Dùng trình chọn thư mục của Android để cấp quyền truy cập vào thư mục này.</string>
+    <string name="explorer_permission_option_picker_action">Mở trình chọn SAF</string>
+
+    <string name="explorer_permission_option_setup_title">Toàn quyền truy cập</string>
+    <string name="explorer_permission_option_setup_description">Cấu hình Root hoặc Shizuku để truy cập nhanh hơn vào tất cả thư mục bị hạn chế.</string>
+    <string name="explorer_permission_option_setup_action">Cấu hình</string>
+
+    <!-- Thẻ yêu cầu quyền - Tùy chọn truy cập bộ nhớ -->
+    <string name="explorer_permission_option_storage_title">Quyền truy cập bộ nhớ</string>
+    <string name="explorer_permission_option_storage_description">Cấp cho Butler quyền truy cập tệp trên bộ nhớ thiết bị của bạn.</string>
+    <string name="explorer_permission_option_storage_action">Cấp quyền</string>
+
+    <!-- Hành động mở trong thẻ mới -->
+    <string name="explorer_action_open_in_new_tabs">Mở trong thẻ mới</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Thư mục và tệp yêu thích -->
+    <string name="explorer_favorites_section_title">Yêu thích</string>
+    <string name="explorer_action_add_to_favorites">Thêm vào mục yêu thích</string>
+    <string name="explorer_action_remove_from_favorites">Xóa khỏi mục yêu thích</string>
+    <string name="explorer_favorites_select_action">Chọn</string>
+    <string name="explorer_favorites_unavailable_subtitle">Không thể truy cập</string>
+    <string name="explorer_favorites_unavailable_toast">Không thể truy cập mục yêu thích</string>
+    <string name="explorer_favorites_added_message">Đã thêm %1$s vào mục yêu thích</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="other">Đã thêm %1$d mục vào mục yêu thích</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">Đã xóa %1$s khỏi mục yêu thích</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="other">Đã xóa %1$d mục khỏi mục yêu thích</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Đổi tên mục yêu thích</string>
+    <string name="explorer_favorites_rename_hint">Tên mục yêu thích</string>
+    <string name="explorer_favorites_rename_description">Chỉ mục trong danh sách yêu thích được đổi tên, bản thân thư mục vẫn giữ nguyên tên.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="other">Thẻ này ghi đè thứ tự sắp xếp trong %1$d thư mục</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="other">%1$d thư mục</item>
+    </plurals>
+</resources>
