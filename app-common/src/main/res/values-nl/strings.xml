@@ -1,0 +1,315 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Bestandsverkenner extraordinaire</string>
+    <!-- Titel voor upgraded app. %1$s is de appnaam, %2$s de tier-aanduiding ("Pro" of "FOSS", afhankelijk van de build). Herorden of interpunctie aanpassen naar wens; beide placeholders moeten precies één keer voorkomen. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Butler-appicon</string>
+    <string name="butler_mascot_description">Butler-mascotte</string>
+    <string name="butler_mascot_animation_random_description">Butler-mascotte voert verschillende animaties uit</string>
+    <string name="butler_mascot_animation_wink_description">Butler-mascotte knipoogt</string>
+    <string name="butler_mascot_animation_greeting_description">Butler-mascotte zwaait ter begroeting</string>
+    <string name="butler_mascot_animation_hatoff_description">Butler-mascotte neemt respectvol de hoed af</string>
+    <string name="butler_mascot_animation_drink_description">Butler-mascotte drinkt</string>
+    <string name="butler_mascot_animation_moustache_description">Butler-mascotte streelt zijn snor</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Butler-mascotte sluit de ogen om te slapen</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Butler-mascotte snurkt</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Butler-mascotte wordt wakker</string>
+    <string name="butler_mascot_animation_cameo_description">SD Maid-mascotte doet een gastoptreden</string>
+
+    <string name="slogan_general_message_0">Tot je dienst.</string>
+    <string name="slogan_general_message_1">Alles op zijn plek.</string>
+    <string name="slogan_general_message_2">Orde, geen chaos.</string>
+    <string name="slogan_general_message_3">Haalt je bestanden op.</string>
+    <string name="slogan_general_message_4">Al je bestanden op een rij.</string>
+    <string name="slogan_general_message_5">Altijd georganiseerd.</string>
+    <string name="slogan_general_message_6">Bestanden, snel gevonden!</string>
+    <string name="slogan_general_message_7">Toegang gemakkelijk gemaakt.</string>
+    <string name="slogan_general_message_8">Je bestanden raak je nooit kwijt.</string>
+    <string name="slogan_general_message_9">Van alle markten thuis.</string>
+    <string name="slogan_newyear_message_0">Dezelfde procedure als elk jaar.</string>
+    <string name="slogan_xmas_message_0">Controleert bestanden twee keer.</string>
+    <string name="slogan_xmas_message_1">Op het zoete lijstje.</string>
+    <string name="slogan_halloween_message_0">Boe-tler tot je dienst.</string>
+    <string name="slogan_halloween_message_1">Geen trucjes, alleen bestanden.</string>
+    <string name="slogan_stpatricks_message_0">Voel je je gelukkig?</string>
+    <string name="slogan_stpatricks_message_1">Vindt jouw pot met goud.</string>
+    <string name="slogan_aprilfools_message_0">Geen geintjes.</string>
+    <string name="slogan_aprilfools_message_1">Serieus georganiseerd.</string>
+    <string name="slogan_oktoberfest_message_0">Proost op je bestanden!</string>
+    <string name="slogan_oktoberfest_message_1">Bestanden van de tap.</string>
+
+    <string name="general_share_action">Delen</string>
+    <string name="general_share_single_title">%s delen</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">%d bestand delen</item>
+        <item quantity="other">%d bestanden delen</item>
+    </plurals>
+    <string name="general_done_action">Klaar</string>
+    <string name="general_copy_action">Kopiëren</string>
+    <string name="general_cut_action">Knippen</string>
+    <string name="general_move_action">Verplaatsen</string>
+    <string name="general_paste_action">Plakken</string>
+    <string name="general_apply_action">Toepassen</string>
+    <string name="general_open_action">Openen</string>
+    <string name="general_cancel_action">Annuleren</string>
+    <string name="general_close_action">Sluiten</string>
+    <string name="general_confirm_action">Bevestigen</string>
+    <string name="general_reset_action">Resetten</string>
+    <string name="general_save_action">Opslaan</string>
+    <string name="general_edit_action">Bewerken</string>
+    <string name="general_na_label">N.v.t.</string>
+    <!-- Wordt aangekondigd door schermlezers wanneer een dialoogvenster opent -->
+    <string name="general_dialog_a11y_label">Dialoogvenster</string>
+    <string name="general_dismiss_action">Negeren</string>
+    <string name="general_read_more_action">Meer lezen</string>
+    <string name="general_mark_as_read_action">Als gelezen markeren</string>
+    <string name="general_back_action">Terug</string>
+    <string name="general_navigate_up_action">Omhoog navigeren</string>
+    <string name="general_error_label">Fout</string>
+    <string name="general_error_unknown_label">Onbekende fout</string>
+    <string name="general_error_invalid_input_label">Ongeldige invoer</string>
+    <string name="general_share_error_action">Fout delen</string>
+    <string name="general_error_report_subject">%1$s foutrapport (%2$s)</string>
+    <string name="general_error_report_consent_title">Foutrapport delen?</string>
+    <string name="general_error_report_consent_message">Het rapport bevat de fout en de bijbehorende stacktrace, het recente logboek van de app, en details over de status op dat moment: bestandsnamen en paden, zoekopdrachten, pakketnamen, URI’s, netwerk- en SMB-hostnamen, informatie over je apparaat en build, en een anoniem installatie-ID. Deel het alleen met mensen die je vertrouwt.</string>
+    <string name="general_error_report_consent_confirm">Rapport delen</string>
+    <string name="general_privacy_policy_action">Privacybeleid</string>
+    <string name="general_bug_report_subject">%1$s bugrapport (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">%1$s bugrapport: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Beschrijf hier wat er is gebeurd.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Beschrijf wat je in plaats daarvan had verwacht.)</string>
+    <string name="general_duration_input_label">Duur</string>
+    <string name="general_size_input_label">Grootte</string>
+    <string name="general_upgrade_action">Upgraden</string>
+    <string name="general_refresh_action">Vernieuwen</string>
+    <string name="general_clear_action">Wissen</string>
+    <string name="general_expand_action">Uitvouwen</string>
+    <string name="general_collapse_action">Invouwen</string>
+    <string name="general_completed_label">Voltooid</string>
+    <string name="general_cancelled_label">Geannuleerd</string>
+    <string name="general_searching_label">Zoeken</string>
+    <string name="general_searching_ellipsis">Zoeken…</string>
+    <string name="general_progress_loading">Laden</string>
+    <string name="general_progress_loading_egg_0">Nog steeds sneller dan een iPhone</string>
+    <string name="general_progress_loading_egg_1">Meer RAM downloaden</string>
+    <string name="general_progress_loading_egg_2">ETA: Binnenkort™</string>
+    <string name="general_progress_loading_egg_3">De cpu neemt een koffiepauze</string>
+    <string name="general_progress_loading_egg_4">Wacht op data van Pepe Silvia</string>
+    <string name="general_progress_loading_egg_5">Turbo-encabulator wordt geïnitialiseerd</string>
+    <string name="general_progress_loading_egg_6">Geeft de boter door</string>
+    <string name="general_progress_loading_egg_7">Zo. Hoe hou je het vol?</string>
+    <string name="general_progress_loading_egg_8">Piep boep bop</string>
+    <string name="general_progress_loading_egg_9">Levenskeuzes worden gebufferd</string>
+    <string name="general_progress_loading_egg_10">Cthulhu wordt opgeroepen</string>
+    <string name="general_progress_loading_egg_11">Dit is prima</string>
+    <string name="general_progress_loading_egg_12">Een ogenblik geduld</string>
+    <string name="general_progress_loading_egg_13">Gelukkig, je staat niet in de wacht</string>
+    <string name="general_progress_loading_egg_14">Direct op het voorhoofd aanbrengen</string>
+
+    <!-- Duurweergave -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%ds</item>
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%dm</item>
+        <item quantity="other">%dm</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dh</item>
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dd</item>
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d seconde</item>
+        <item quantity="other">%d seconden</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d minuut</item>
+        <item quantity="other">%d minuten</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d uur</item>
+        <item quantity="other">%d uur</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d dag</item>
+        <item quantity="other">%d dagen</item>
+    </plurals>
+
+    <string name="general_view_action">Bekijken</string>
+    <string name="general_delete_action">Verwijderen</string>
+    <string name="general_show_details_action">Details tonen</string>
+    <string name="general_hide_details_action">Details verbergen</string>
+
+    <string name="general_delete_confirmation_title">Verwijdering bevestigen</string>
+    <string name="general_delete_confirmation_message_x">\"%s\" verwijderen?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">%d geselecteerde items verwijderen?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">%d item verwijderd.</item>
+        <item quantity="other">%d items verwijderd.</item>
+    </plurals>
+
+    <string name="general_create_action">Maken</string>
+    <string name="general_rename_action">Hernoemen</string>
+    <string name="general_retry_action">Opnieuw proberen</string>
+    <string name="general_open_setup_action">Setup openen</string>
+    <string name="general_grant_usage_stats_action">Toegang tot gebruiksgegevens verlenen</string>
+    <string name="general_grant_storage_permission_action">Opslagmachtiging verlenen</string>
+    <string name="general_grant_all_files_access_action">Toegang tot alle bestanden toestaan</string>
+
+    <string name="general_result_user_cancel_msg">De gebruiker heeft de bewerking geannuleerd.</string>
+
+    <string name="general_path_label">Pad</string>
+    <string name="general_filename_validation_error">Naam bevat ongeldige tekens: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d van %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d van %2$d</string>
+
+    <string name="file_type_symbolic_link">Koppeling</string>
+    <string name="file_type_directory">Map</string>
+    <string name="file_type_file">Bestand</string>
+    <string name="file_type_unknown">Onbekend</string>
+
+    <!-- Vriendelijke namen voor MIME-typen -->
+    <string name="common_mimetype_image">Afbeelding</string>
+    <string name="common_mimetype_video">Video</string>
+    <string name="common_mimetype_audio">Audio</string>
+    <string name="common_mimetype_text_plain">Platte tekst</string>
+    <string name="common_mimetype_text">Tekstdocument</string>
+    <string name="common_mimetype_pdf">PDF-document</string>
+    <string name="common_mimetype_document">Document</string>
+    <string name="common_mimetype_archive">Archief</string>
+    <string name="common_mimetype_apk">Android-pakket</string>
+    <string name="common_mimetype_json">JSON-bestand</string>
+    <string name="common_mimetype_xml">XML-bestand</string>
+    <string name="common_mimetype_unknown">Onbekend type</string>
+
+    <string name="general_rom_type_auto_label">Automatisch (standaard)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s item/s</item>
+        <item quantity="other">%s items/s</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/s</item>
+        <item quantity="other">%s/s</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Type komt niet overeen: %1$s verwacht, maar %2$s ontvangen.</string>
+    <string name="general_error_cant_access_msg">Geen toegang tot %s.</string>
+    <string name="general_error_archive_not_seekable_msg">%s kan niet direct worden doorbladerd: de opslag waarop het bestand zich bevindt ondersteunt alleen sequentieel lezen, maar dit archiefformaat vereist willekeurige toegang.</string>
+    <string name="general_error_root_unavailable">Root-toegang is niet beschikbaar.</string>
+    <string name="general_error_elevated_access_required">Deze bewerking vereist verhoogde toegang. Configureer Root of Shizuku in Setup.</string>
+    <string name="general_error_no_compatible_app_found_msg">Geen geschikte app gevonden om dit verzoek af te handelen.</string>
+    <string name="general_error_ipc_deadobject_title">Verbinding met service verbroken</string>
+    <string name="general_error_ipc_deadobject_description">De verbinding met een essentiële service (bijvoorbeeld Magisk, Shizuku of een andere systeemservice) is onverwacht verbroken. Start je apparaat opnieuw op. Blijft het probleem bestaan, controleer dan op updates of meld het probleem.</string>
+
+    <string name="ui_theme_mode_dark_label">Donker</string>
+    <string name="ui_theme_mode_light_label">Licht</string>
+    <string name="ui_theme_mode_system_label">Systeem</string>
+    <string name="ui_theme_style_default_label">Standaard</string>
+    <string name="ui_theme_style_medium_contrast_label">Gemiddeld contrast</string>
+    <string name="ui_theme_style_high_contrast_label">Hoog contrast</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Groen</string>
+    <string name="ui_theme_color_blue_label">Blauw</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Aangepast</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Kleuraccent</string>
+    <string name="ui_theme_palette_neutral_label">Neutraal</string>
+    <string name="ui_theme_palette_vibrant_label">Levendig</string>
+    <string name="ui_theme_palette_expressive_label">Expressief</string>
+    <string name="ui_theme_palette_rainbow_label">Regenboog</string>
+    <string name="ui_theme_palette_fruitsalad_label">Fruitsalade</string>
+    <string name="ui_theme_palette_monochrome_label">Monochroom</string>
+    <string name="ui_theme_palette_fidelity_label">Getrouw</string>
+    <string name="ui_theme_palette_content_label">Inhoud</string>
+
+    <string name="ui_theme_custom_dialog_title">Aangepast thema</string>
+    <string name="ui_theme_custom_seed_label">Basiskleur</string>
+    <string name="ui_theme_custom_palette_label">Paletstijl</string>
+    <string name="ui_theme_custom_default_action">Standaard</string>
+
+    <string name="ui_mascot_suit_dialog_title">Butler’s pak</string>
+    <string name="ui_mascot_suit_default_action">Standaard</string>
+    <string name="ui_mascot_suit_hue_label">Tint</string>
+    <string name="ui_mascot_suit_saturation_label">Verzadiging</string>
+    <string name="ui_mascot_suit_brightness_label">Helderheid</string>
+    <string name="ui_mascot_suit_value_description">Pakkleur %s</string>
+
+    <!-- Setup-moduletypen -->
+    <string name="setup_usagestats_title">Gebruiksstatistieken</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Toegang tot meldingen</string>
+    <string name="setup_manage_storage_card_title">Externe opslag beheren</string>
+    <string name="setup_inventory_card_title">App-inventaris</string>
+
+    <!-- Algemene machtigingsteksten -->
+    <string name="setup_required_card_title">Setup vereist</string>
+    <string name="setup_required_card_body">Er is extra setup nodig om deze bewerking uit te voeren.</string>
+    <string name="setup_required_card_setup_action">Setup openen</string>
+
+    <!-- Functie: openen in nieuwe tabbladen -->
+    <string name="common_open_tabs_confirmation_title">Meerdere tabbladen openen?</string>
+    <string name="common_open_tabs_confirmation_message">Dit opent %1$d tabbladen.</string>
+    <string name="common_open_tabs_success">%1$d tabbladen geopend</string>
+    <string name="common_open_tabs_success_with_skipped">%1$d tabbladen geopend (%2$d items overgeslagen)</string>
+
+    <!-- Bevestiging tabblad sluiten -->
+    <string name="general_tab_close_confirmation_title">Tabblad sluiten?</string>
+    <string name="general_tab_close_confirmation_message">Weet je zeker dat je \"%1$s\" wilt sluiten?</string>
+    <string name="general_tab_close_unsaved_title">Niet-opgeslagen wijzigingen</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" heeft niet-opgeslagen wijzigingen. Sluiten en verwerpen?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" en %2$d andere hebben niet-opgeslagen wijzigingen. Sluiten en verwerpen?</string>
+    <string name="general_discard_action">Verwerpen</string>
+    <string name="general_tab_close_goto_action">Naar tabblad gaan</string>
+
+    <!-- App afsluiten -->
+    <string name="general_press_back_again_to_exit">Druk nogmaals op terug om af te sluiten</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d geselecteerd</item>
+        <item quantity="other">%d geselecteerd</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d map</item>
+        <item quantity="other">%1$d mappen</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d bestand</item>
+        <item quantity="other">%1$d bestanden</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Alle mappen selecteren</string>
+    <string name="common_select_all_files_action">Alle bestanden selecteren</string>
+    <string name="general_undo_action">Ongedaan maken</string>
+
+    <!-- Rondleidingen -->
+    <string name="tour_action_next">Volgende</string>
+    <string name="tour_action_previous">Vorige</string>
+    <string name="tour_action_cancel">Overslaan</string>
+    <string name="tour_confirm_title">Rondleiding overslaan?</string>
+    <string name="tour_confirm_message">Je kunt rondleidingen op elk moment weer inschakelen via Instellingen.</string>
+    <string name="tour_confirm_continue">Rondleiding voortzetten</string>
+    <string name="tour_confirm_dont_show_this_tour">Deze rondleiding niet meer tonen</string>
+    <string name="tour_confirm_disable_all">Alle rondleidingen uitschakelen</string>
+
+    <!-- Butler-tips -->
+    <string name="common_tip_multiple_panes">Gebruik meerdere deelvensters om bestanden naast elkaar te vergelijken.</string>
+    <string name="common_tip_different_folders">Open verschillende mappen in elk deelvenster voor eenvoudig bestandsbeheer.</string>
+    <string name="common_tip_switch_layouts">Wissel tussen indelingen van deelvensters via het tabbladbeheer.</string>
+    <string name="common_tip_elevated_access">Schakel Root of Shizuku in via Setup voor geavanceerde bestandsbewerkingen.</string>
+    <string name="common_tip_breadcrumb_home">Houd een item in het kruimelpad van Verkenner ingedrukt om het als startmap in te stellen.</string>
+</resources>

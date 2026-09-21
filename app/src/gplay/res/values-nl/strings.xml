@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Vereist Butler Pro</string>
+
+    <string name="upgrade_prompt_title">Butler upgraden</string>
+    <string name="upgrade_prompt_body">Butler Pro biedt betere resultaten, meer functies en opties voor gevorderde gebruikers.</string>
+    <string name="upgrade_prompt_upgrade_action">Upgraden</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">Haal %1$s</string>
+    <string name="upgrade_screen_preamble">Butler heeft geen advertenties en verkoopt geen gebruikersgegevens. Mijn werk wordt gefinancierd door jou ❤️.</string>
+
+    <string name="upgrade_screen_how_title">Opties</string>
+    <string name="upgrade_screen_subscription_trial_action">Gratis 14-daagse proefversie starten</string>
+    <string name="upgrade_screen_subscription_action">Abonneren</string>
+    <string name="upgrade_screen_iap_action">Eenmalige aankoop</string>
+    <string name="upgrade_screen_restore_purchase_action">Aankoop herstellen</string>
+    <string name="upgrade_screen_restore_banner_title">Butler Pro al gekocht?</string>
+    <string name="upgrade_screen_restore_banner_body">Het lijkt erop dat je Butler Pro eerder op dit apparaat hebt gekocht. Herstel je aankoop om het opnieuw in te schakelen.</string>
+    <string name="upgrade_screen_restore_checked_message">Butler heeft zojuist met Google Play gecontroleerd, maar er kon geen Butler Pro-aankoop worden bevestigd voor het account dat Google Play voor deze app gebruikt.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">De controle met Google Play is niet op tijd voltooid, dus je aankoopstatus is nog steeds onbekend. Niets is gewijzigd op je account.</string>
+    <string name="upgrade_screen_restore_contact_hint">Nog steeds vast? Neem contact op vanaf het e-mailadres dat de aankoop heeft gedaan en voeg je Google Play-ordernummer toe.</string>
+    <string name="upgrade_screen_contact_support_action">Contact opnemen met ondersteuning</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Play Store-synchronisatie kan enige tijd duren. Probeer het apparaat opnieuw op te starten, de Google Play-cache te wissen of wacht gewoon even.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">Meerdere accounts kunnen Google Play verwarren. Meld je af bij andere accounts of installeer via de Google Play-website, waardoor je aan een specifiek account wordt gekoppeld.</string>
+    <string name="upgrade_screen_restore_success_message">Je aankoop is hersteld ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Ziet de status er verkeerd uit?</string>
+    <string name="upgrade_screen_restore_status_body">Controleer je aankoop opnieuw met Google Play. Dit kan helpen na een apparaatwissel of als je van Google-account bent gewisseld.</string>
+
+    <string name="upgrade_screen_offers_or">of</string>
+
+    <string name="upgrade_screen_offers_title">Upgrademogelijkheden</string>
+    <string name="upgrade_screen_offers_body">Beide opties ontgrendelen exact dezelfde Butler Pro-functies — kies de prijsstelling die jou het beste uitkomt.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Prijzen niet beschikbaar</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler kon de upgrademogelijkheden niet laden vanuit Google Play. Dit is vaak tijdelijk — probeer over een moment opnieuw.</string>
+    <string name="upgrade_screen_subscription_offer_title">Jaarlijks abonnement</string>
+    <string name="upgrade_screen_subscription_offer_body">Begint met een gratis 14-daagse proefversie, daarna eenmaal per jaar gefactureerd. Je kunt op elk moment opzeggen.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Eenmaal per jaar gefactureerd. Je kunt op elk moment opzeggen.</string>
+    <string name="upgrade_screen_iap_offer_title">Eenmalig kopen</string>
+    <string name="upgrade_screen_iap_offer_body">Betaal eenmaal, van jou voor altijd. Geen abonnement.</string>
+    <string name="upgrade_screen_restore_body">Met Herstellen vraag je Google Play om de aankopen van deze app voor het huidige account opnieuw te controleren.</string>
+
+    <string name="upgrade_screen_owned_hero_title">Je hebt Butler Pro!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Bedankt voor de eenmalige aankoop — je bent voorgoed ingesteld ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Bedankt voor je abonnement ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">Eenmalige aankoop</string>
+    <string name="upgrade_screen_owned_iap_body">Je bent eigenaar van de permanente Butler Pro-upgrade.</string>
+    <string name="upgrade_screen_owned_sub_title">Abonnement</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Je abonnement is actief en wordt automatisch verlengd.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Je abonnement is actief maar ingesteld om niet te verlengen. Butler Pro blijft actief tot het huidige abonnementsjaar afloopt.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">Je bent eigenaar van de eenmalige aankoop maar je abonnement wordt nog steeds verlengd. Zeg het op in Google Play om dubbele betalingen te vermijden.</string>
+    <string name="upgrade_screen_manage_subscription_action">Abonnement beheren</string>
+
+    <string name="upgrade_screen_switch_locked_note">Zeg eerst de vernieuwing op via "Abonnement beheren", anders word je voor beide in rekening gebracht.</string>
+    <string name="upgrade_screen_switch_purchase_note">Je abonnement wordt niet verlengd — je kunt nu veilig de eenmalige aankoop doen.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Abonnement nog steeds actief</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Je abonnement is nog steeds ingesteld om te verlengen. Zeg eerst de vernieuwing op in Google Play op, zodat je niet voor beide in rekening wordt gebracht, en koop daarna de eenmalige versie.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">Kon niet verifiëren</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler kon je aankoopstatus niet bevestigen met Google Play, dus de aankoop is gestopt om dubbele facturering te voorkomen. Probeer over een moment opnieuw.</string>
+
+    <string name="upgrade_screen_pending_card_title">Betaling in behandeling</string>
+    <string name="upgrade_screen_pending_card_body">Google Play verwerkt je betaling nog. Butler Pro wordt automatisch ontgrendeld zodra de betaling is verwerkt. Sommige betaalmethoden kunnen enige tijd duren. Je hoeft niets anders te doen.</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play heeft een aankoop met een openstaande betaling gevonden en verwerkt deze nog. Butler Pro wordt automatisch ontgrendeld zodra de betaling is verwerkt.</string>
+
+    <string name="upgrade_screen_grace_title">Je aankoop wordt bevestigd</string>
+    <string name="upgrade_screen_grace_body_short">Google Play doet er even over om je Butler Pro-status te bevestigen. Je hebt nog volledige toegang.</string>
+    <string name="upgrade_screen_grace_body">Google Play heeft je Butler Pro-status nog niet opnieuw bevestigd. Je hebt nog toegang. Als dit er verkeerd uitziet, probeer je aankoop te herstellen.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">Al gekocht?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play meldt dat je deze upgrade al bezit, maar deze kon niet automatisch worden hersteld. Zorg ervoor dat je bent aangemeld met het Google-account dat voor de originele aankoop is gebruikt, en probeer dan "Aankoop herstellen".</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play is niet beschikbaar</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler kan niet verbinding maken met Google Play. Is Google Play geïnstalleerd en up-to-date? Is je Google-account aangemeld? Probeer de cache van de Google Play-app te wissen en je apparaat opnieuw op te starten.</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can’t open Google Play’s app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Kon Google Play niet openen. Het kan zijn dat het ontbreekt, is uitgeschakeld of beperkt is op dit apparaat.</string>
+    <string name="upgrades_gplay_billing_error_label">Google Play-probleem</string>
+    <string name="upgrades_gplay_billing_error_description">Er is iets foutgegaan bij de communicatie met Google Play. Probeer het later opnieuw of start je apparaat opnieuw op.\n\nDetails: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Google Play-fout</string>
+    <string name="upgrades_gplay_internal_error_description">Google Play is een interne fout tegengekomen. Probeer het volgende:\n\n• Start je apparaat opnieuw op\n• Wis de Google Play Store-cache\n• Probeer het later opnieuw</string>
+    <string name="upgrades_gplay_network_error_title">Verbindingsfout</string>
+    <string name="upgrades_gplay_network_error_description">Butler kon Google Play niet bereiken. Controleer je internetverbinding en probeer opnieuw.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Aanbieding niet beschikbaar</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play biedt deze upgrade-optie momenteel niet aan voor je account. Probeer het later opnieuw of controleer de Google Play Store.</string>
+    <string name="upgrades_no_purchases_found_check_account">Geen aankopen gevonden. Gebruik je het juiste account?</string>
+
+    <string name="upgrade_benefits_title">Voordelen van upgraden</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Onbeperkt tabbladen en bewerkingen\n• Pas design, uiterlijk en sfeer aan\n• Extra opties en functies voor elk hulpmiddel\n• Vroeg toegang tot nieuwe functies\n• Een gemotiveerde ontwikkelaar 🧙\nen meer…</string>
+</resources>
