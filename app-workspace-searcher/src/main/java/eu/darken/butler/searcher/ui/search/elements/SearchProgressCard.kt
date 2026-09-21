@@ -19,9 +19,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.NavigateNext
 import androidx.compose.material.icons.twotone.Cancel
 import androidx.compose.material.icons.twotone.CheckCircle
-import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
@@ -399,7 +399,7 @@ private fun SearchProgressWarningRow(
 
         if (onClick != null) {
             Icon(
-                imageVector = Icons.TwoTone.ChevronRight,
+                imageVector = Icons.AutoMirrored.TwoTone.NavigateNext,
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
                 tint = contentColor,
@@ -518,7 +518,7 @@ private fun SearchPathProgressRow(
         // Rows that open the error details say so — without it the row is silently tappable
         if (isInteractive) {
             Icon(
-                imageVector = Icons.TwoTone.ChevronRight,
+                imageVector = Icons.AutoMirrored.TwoTone.NavigateNext,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
                 tint = MaterialTheme.colorScheme.error,

@@ -20,9 +20,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.NavigateNext
 import androidx.compose.material.icons.twotone.Bookmark
 import androidx.compose.material.icons.twotone.BookmarkBorder
-import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.FolderZip
 import androidx.compose.material.icons.twotone.Lan
@@ -57,6 +57,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -442,8 +443,11 @@ private fun BreadcrumbEditRow(
                         false
                     }
                 },
+            // A path is always LTR. Under an RTL locale the caret and the scroll offset otherwise
+            // resolve from opposite paragraph ends, and typing past the field width scrolls nothing.
             textStyle = MaterialTheme.typography.labelLarge.copy(
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                textDirection = TextDirection.Ltr,
             ),
             singleLine = true,
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
@@ -587,7 +591,7 @@ private fun BreadcrumbDisplayRow(
 
                 if (!isLast) {
                     Icon(
-                        imageVector = Icons.TwoTone.ChevronRight,
+                        imageVector = Icons.AutoMirrored.TwoTone.NavigateNext,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         modifier = Modifier.size(16.dp)
