@@ -108,21 +108,24 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_close_all_title">¿Cerrar todas las pestañas?</string>
-    <string name="workspace_manager_close_all_message">Esto cerrará las %1$d %2$s abiertas. Esta acción no se puede deshacer.</string>
-    <string name="workspace_manager_close_all_message_singular">pestaña</string>
-    <string name="workspace_manager_close_all_message_plural">pestañas</string>
-    <string name="workspace_manager_close_all_action">Cerrar todo</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Esto cerrará %1$d pestaña abierta. Esta acción no se puede deshacer.</item>
+        <item quantity="other">Esto cerrará las %1$d pestañas abiertas. Esta acción no se puede deshacer.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Cerrar todas</string>
     <string name="workspace_manager_close_all_unsaved_warning">Algunas pestañas tienen cambios sin guardar que se perderán.</string>
     <string name="workspace_manager_close_all_unsaved_action">Descartar todo</string>
     <string name="workspace_manager_close_selected_title">¿Cerrar las pestañas seleccionadas?</string>
-    <string name="workspace_manager_close_selected_message">Esto cerrará %1$d %2$s seleccionadas. Esta acción no se puede deshacer.</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Esto cerrará %1$d pestaña seleccionada. Esta acción no se puede deshacer.</item>
+        <item quantity="other">Esto cerrará %1$d pestañas seleccionadas. Esta acción no se puede deshacer.</item>
+    </plurals>
     <string name="workspace_manager_close_selected_action">Cerrar seleccionadas</string>
     <string name="workspace_manager_close_selected_unsaved_warning">Algunas de las pestañas seleccionadas tienen cambios sin guardar que se perderán.</string>
     <string name="workspace_manager_close_selected_unsaved_action">Descartar seleccionadas</string>
     <string name="workspace_manager_pause_partial_title">¿Pausar pestañas?</string>
     <string name="workspace_manager_pause_partial_message">%1$d de %2$d pestañas seleccionadas se pueden pausar. El resto están en uso, tienen cambios sin guardar o están abiertas actualmente.</string>
     <string name="workspace_manager_pause_partial_action">Pausar %1$d</string>
-    <string name="workspace_fab_close_all">Cerrar todas las pestañas</string>
     <string name="general_cancel_action">Cancelar</string>
 
     <!-- Operations -->

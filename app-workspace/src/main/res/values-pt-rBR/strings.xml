@@ -108,21 +108,24 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_close_all_title">Fechar todas as abas?</string>
-    <string name="workspace_manager_close_all_message">Isso fechará todas as %1$d %2$s abertas. Essa ação não pode ser desfeita.</string>
-    <string name="workspace_manager_close_all_message_singular">aba</string>
-    <string name="workspace_manager_close_all_message_plural">abas</string>
-    <string name="workspace_manager_close_all_action">Fechar tudo</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Isso fechará %1$d aba aberta. Essa ação não pode ser desfeita.</item>
+        <item quantity="other">Isso fechará todas as %1$d abas abertas. Essa ação não pode ser desfeita.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Fechar todas</string>
     <string name="workspace_manager_close_all_unsaved_warning">Algumas abas têm alterações não salvas que serão perdidas.</string>
     <string name="workspace_manager_close_all_unsaved_action">Descartar tudo</string>
     <string name="workspace_manager_close_selected_title">Fechar abas selecionadas?</string>
-    <string name="workspace_manager_close_selected_message">Isso fechará %1$d %2$s selecionadas. Essa ação não pode ser desfeita.</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Isso fechará %1$d aba selecionada. Essa ação não pode ser desfeita.</item>
+        <item quantity="other">Isso fechará %1$d abas selecionadas. Essa ação não pode ser desfeita.</item>
+    </plurals>
     <string name="workspace_manager_close_selected_action">Fechar selecionadas</string>
     <string name="workspace_manager_close_selected_unsaved_warning">Algumas abas selecionadas têm alterações não salvas que serão perdidas.</string>
     <string name="workspace_manager_close_selected_unsaved_action">Descartar selecionadas</string>
     <string name="workspace_manager_pause_partial_title">Pausar abas?</string>
     <string name="workspace_manager_pause_partial_message">%1$d de %2$d abas selecionadas podem ser pausadas. As demais estão em uso, têm alterações não salvas ou estão abertas no momento.</string>
     <string name="workspace_manager_pause_partial_action">Pausar %1$d</string>
-    <string name="workspace_fab_close_all">Fechar todas as abas</string>
     <string name="general_cancel_action">Cancelar</string>
 
     <!-- Operations -->

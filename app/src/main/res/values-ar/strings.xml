@@ -240,12 +240,46 @@
     <string name="settings_licenses_label">التراخيص</string>
 
     <!-- Workspace Status Card -->
-    <string name="workspace_status_tab_singular">علامة تبويب</string>
-    <string name="workspace_status_tab_plural">علامات تبويب</string>
-    <string name="workspace_status_operation_singular">عملية</string>
-    <string name="workspace_status_operation_plural">عمليات</string>
-    <string name="workspace_status_attention_label">انتباه</string>
-    <string name="workspace_status_unsaved_label">غير محفوظ</string>
+    <plurals name="workspace_status_tab_count">
+        <item quantity="zero">%1$d علامة تبويب</item>
+        <item quantity="one">علامة تبويب واحدة</item>
+        <item quantity="two">علامتا تبويب</item>
+        <item quantity="few">%1$d علامات تبويب</item>
+        <item quantity="many">%1$d علامة تبويب</item>
+        <item quantity="other">%1$d علامة تبويب</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="zero">%1$d عملية</item>
+        <item quantity="one">عملية واحدة</item>
+        <item quantity="two">عمليتان</item>
+        <item quantity="few">%1$d عمليات</item>
+        <item quantity="many">%1$d عملية</item>
+        <item quantity="other">%1$d عملية</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="zero">%1$d انتباه</item>
+        <item quantity="one">%1$d انتباه</item>
+        <item quantity="two">%1$d انتباه</item>
+        <item quantity="few">%1$d انتباه</item>
+        <item quantity="many">%1$d انتباه</item>
+        <item quantity="other">%1$d انتباه</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="zero">%1$d غير محفوظة</item>
+        <item quantity="one">%1$d غير محفوظة</item>
+        <item quantity="two">%1$d غير محفوظة</item>
+        <item quantity="few">%1$d غير محفوظة</item>
+        <item quantity="many">%1$d غير محفوظة</item>
+        <item quantity="other">%1$d غير محفوظة</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="zero">%1$d متوقفة مؤقتًا</item>
+        <item quantity="one">%1$d متوقفة مؤقتًا</item>
+        <item quantity="two">%1$d متوقفة مؤقتًا</item>
+        <item quantity="few">%1$d متوقفة مؤقتًا</item>
+        <item quantity="many">%1$d متوقفة مؤقتًا</item>
+        <item quantity="other">%1$d متوقفة مؤقتًا</item>
+    </plurals>
     <string name="workspace_status_filter_tabs_desc">إظهار جميع علامات التبويب</string>
     <string name="workspace_status_filter_operations_desc">التصفية حسب علامات التبويب التي بها عمليات</string>
     <string name="workspace_status_filter_attention_desc">التصفية حسب علامات التبويب التي تتطلب انتباهًا</string>
@@ -360,11 +394,6 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">إغلاق</string>
-    <string name="workspace_manager_close_all_title">إغلاق جميع علامات التبويب؟</string>
-    <string name="workspace_manager_close_all_message">سيؤدي هذا إلى إغلاق جميع %1$d %2$s المفتوحة. لا يمكن التراجع عن هذا الإجراء.</string>
-    <string name="workspace_manager_close_all_message_singular">علامة تبويب</string>
-    <string name="workspace_manager_close_all_message_plural">علامات تبويب</string>
-    <string name="workspace_manager_close_all_action">إغلاق الكل</string>
     <string name="workspace_manager_selection_count">تم تحديد %1$d</string>
     <string name="workspace_manager_selection_select_all">تحديد الكل</string>
     <string name="workspace_manager_selection_pause_action">إيقاف المحدد مؤقتًا</string>

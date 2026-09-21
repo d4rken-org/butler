@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.workspace.R
@@ -44,20 +45,15 @@ fun CloseWorkspacesDialog(
         },
         text = {
             Column {
-                val workspaceString = if (workspaceCount == 1) {
-                    stringResource(R.string.workspace_manager_close_all_message_singular)
-                } else {
-                    stringResource(R.string.workspace_manager_close_all_message_plural)
-                }
                 Text(
-                    stringResource(
+                    pluralStringResource(
                         if (isSelection) {
-                            R.string.workspace_manager_close_selected_message
+                            R.plurals.workspace_manager_close_selected_message
                         } else {
-                            R.string.workspace_manager_close_all_message
+                            R.plurals.workspace_manager_close_all_message
                         },
                         workspaceCount,
-                        workspaceString
+                        workspaceCount,
                     )
                 )
                 if (hasUnsavedChanges) {

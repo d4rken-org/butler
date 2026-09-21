@@ -240,12 +240,36 @@
     <string name="settings_licenses_label">Licencje</string>
 
     <!-- Workspace Status Card -->
-    <string name="workspace_status_tab_singular">Karta</string>
-    <string name="workspace_status_tab_plural">Karty</string>
-    <string name="workspace_status_operation_singular">Operacja</string>
-    <string name="workspace_status_operation_plural">Operacje</string>
-    <string name="workspace_status_attention_label">Uwaga</string>
-    <string name="workspace_status_unsaved_label">Niezapisane</string>
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d Karta</item>
+        <item quantity="few">%1$d Karty</item>
+        <item quantity="many">%1$d Kart</item>
+        <item quantity="other">%1$d Karty</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d Operacja</item>
+        <item quantity="few">%1$d Operacje</item>
+        <item quantity="many">%1$d Operacji</item>
+        <item quantity="other">%1$d Operacji</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Uwaga</item>
+        <item quantity="few">%1$d Uwagi</item>
+        <item quantity="many">%1$d Uwag</item>
+        <item quantity="other">%1$d Uwagi</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Niezapisana</item>
+        <item quantity="few">%1$d Niezapisane</item>
+        <item quantity="many">%1$d Niezapisanych</item>
+        <item quantity="other">%1$d Niezapisane</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d Wstrzymana</item>
+        <item quantity="few">%1$d Wstrzymane</item>
+        <item quantity="many">%1$d Wstrzymanych</item>
+        <item quantity="other">%1$d Wstrzymane</item>
+    </plurals>
     <string name="workspace_status_filter_tabs_desc">Pokaż wszystkie karty</string>
     <string name="workspace_status_filter_operations_desc">Filtruj karty z operacjami</string>
     <string name="workspace_status_filter_attention_desc">Filtruj karty wymagające uwagi</string>
@@ -360,11 +384,6 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">Odrzuć</string>
-    <string name="workspace_manager_close_all_title">Zamknąć wszystkie karty?</string>
-    <string name="workspace_manager_close_all_message">Spowoduje to zamknięcie wszystkich %1$d otwartych %2$s. Tej czynności nie można cofnąć.</string>
-    <string name="workspace_manager_close_all_message_singular">karta</string>
-    <string name="workspace_manager_close_all_message_plural">karty</string>
-    <string name="workspace_manager_close_all_action">Zamknij wszystkie</string>
     <string name="workspace_manager_selection_count">Wybrano: %1$d</string>
     <string name="workspace_manager_selection_select_all">Zaznacz wszystkie</string>
     <string name="workspace_manager_selection_pause_action">Wstrzymaj zaznaczone</string>

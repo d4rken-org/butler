@@ -99,21 +99,22 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_close_all_title">关闭所有标签页？</string>
-    <string name="workspace_manager_close_all_message">这将关闭全部 %1$d 个已打开的%2$s。此操作无法撤消。</string>
-    <string name="workspace_manager_close_all_message_singular">标签页</string>
-    <string name="workspace_manager_close_all_message_plural">标签页</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="other">这将关闭全部 %1$d 个已打开的标签页。此操作无法撤消。</item>
+    </plurals>
     <string name="workspace_manager_close_all_action">全部关闭</string>
     <string name="workspace_manager_close_all_unsaved_warning">部分标签页有未保存的更改，这些更改将丢失。</string>
     <string name="workspace_manager_close_all_unsaved_action">全部放弃</string>
     <string name="workspace_manager_close_selected_title">关闭所选标签页？</string>
-    <string name="workspace_manager_close_selected_message">这将关闭 %1$d 个已选中的%2$s。此操作无法撤消。</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="other">这将关闭 %1$d 个已选中的标签页。此操作无法撤消。</item>
+    </plurals>
     <string name="workspace_manager_close_selected_action">关闭所选</string>
     <string name="workspace_manager_close_selected_unsaved_warning">部分所选标签页有未保存的更改，这些更改将丢失。</string>
     <string name="workspace_manager_close_selected_unsaved_action">放弃所选</string>
     <string name="workspace_manager_pause_partial_title">暂停标签页？</string>
     <string name="workspace_manager_pause_partial_message">在已选中的 %2$d 个标签页中，有 %1$d 个可以暂停。其余标签页正在使用中、含有未保存的更改，或当前处于打开状态。</string>
     <string name="workspace_manager_pause_partial_action">暂停 %1$d 个</string>
-    <string name="workspace_fab_close_all">关闭所有标签页</string>
     <string name="general_cancel_action">取消</string>
 
     <!-- Operations -->

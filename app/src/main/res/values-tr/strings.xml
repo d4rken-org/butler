@@ -240,12 +240,26 @@
     <string name="settings_licenses_label">Lisanslar</string>
 
     <!-- Workspace Status Card -->
-    <string name="workspace_status_tab_singular">Sekme</string>
-    <string name="workspace_status_tab_plural">Sekmeler</string>
-    <string name="workspace_status_operation_singular">İşlem</string>
-    <string name="workspace_status_operation_plural">İşlemler</string>
-    <string name="workspace_status_attention_label">Dikkat</string>
-    <string name="workspace_status_unsaved_label">Kaydedilmedi</string>
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d Sekme</item>
+        <item quantity="other">%1$d Sekme</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d İşlem</item>
+        <item quantity="other">%1$d İşlem</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Dikkat</item>
+        <item quantity="other">%1$d Dikkat</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Kaydedilmemiş</item>
+        <item quantity="other">%1$d Kaydedilmemiş</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d Duraklatılmış</item>
+        <item quantity="other">%1$d Duraklatılmış</item>
+    </plurals>
     <string name="workspace_status_filter_tabs_desc">Tüm sekmeleri göster</string>
     <string name="workspace_status_filter_operations_desc">İşlemi olan sekmelere göre filtrele</string>
     <string name="workspace_status_filter_attention_desc">Dikkat gerektiren sekmelere göre filtrele</string>
@@ -360,11 +374,6 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">Kapat</string>
-    <string name="workspace_manager_close_all_title">Tüm sekmeler kapatılsın mı?</string>
-    <string name="workspace_manager_close_all_message">Bu işlem açık olan %1$d %2$s kapatır. Bu işlem geri alınamaz.</string>
-    <string name="workspace_manager_close_all_message_singular">sekmeyi</string>
-    <string name="workspace_manager_close_all_message_plural">sekmeyi</string>
-    <string name="workspace_manager_close_all_action">Tümünü kapat</string>
     <string name="workspace_manager_selection_count">%1$d seçildi</string>
     <string name="workspace_manager_selection_select_all">Tümünü seç</string>
     <string name="workspace_manager_selection_pause_action">Seçilenleri duraklat</string>

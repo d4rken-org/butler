@@ -240,12 +240,26 @@
     <string name="settings_licenses_label">Licencias</string>
 
     <!-- Workspace Status Card -->
-    <string name="workspace_status_tab_singular">Pestaña</string>
-    <string name="workspace_status_tab_plural">Pestañas</string>
-    <string name="workspace_status_operation_singular">Operación</string>
-    <string name="workspace_status_operation_plural">Operaciones</string>
-    <string name="workspace_status_attention_label">Atención</string>
-    <string name="workspace_status_unsaved_label">Sin guardar</string>
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d Pestaña</item>
+        <item quantity="other">%1$d Pestañas</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d Operación</item>
+        <item quantity="other">%1$d Operaciones</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Atención</item>
+        <item quantity="other">%1$d Atención</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Sin guardar</item>
+        <item quantity="other">%1$d Sin guardar</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d Pausada</item>
+        <item quantity="other">%1$d Pausadas</item>
+    </plurals>
     <string name="workspace_status_filter_tabs_desc">Mostrar todas las pestañas</string>
     <string name="workspace_status_filter_operations_desc">Filtrar por pestañas con operaciones</string>
     <string name="workspace_status_filter_attention_desc">Filtrar por pestañas que necesitan atención</string>
@@ -360,11 +374,6 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">Descartar</string>
-    <string name="workspace_manager_close_all_title">¿Cerrar todas las pestañas?</string>
-    <string name="workspace_manager_close_all_message">Esto cerrará las %1$d %2$s abiertas. Esta acción no se puede deshacer.</string>
-    <string name="workspace_manager_close_all_message_singular">pestaña</string>
-    <string name="workspace_manager_close_all_message_plural">pestañas</string>
-    <string name="workspace_manager_close_all_action">Cerrar todas</string>
     <string name="workspace_manager_selection_count">%1$d seleccionadas</string>
     <string name="workspace_manager_selection_select_all">Seleccionar todas</string>
     <string name="workspace_manager_selection_pause_action">Pausar seleccionadas</string>

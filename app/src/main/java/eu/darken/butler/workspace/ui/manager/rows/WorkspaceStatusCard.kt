@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -31,7 +32,6 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerFilter
-import eu.darken.butler.workspace.R as WorkspaceR
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -49,11 +49,7 @@ fun WorkspaceStatusCard(
     onFilterClick: (WorkspaceManagerFilter) -> Unit = {},
 ) {
     val isSelecting = selectedCount != null
-    val tabsLabel = if (workspaceCount == 1) {
-        stringResource(R.string.workspace_status_tab_singular)
-    } else {
-        stringResource(R.string.workspace_status_tab_plural)
-    }
+    val tabsLabel = pluralStringResource(R.plurals.workspace_status_tab_count, workspaceCount, workspaceCount)
     val tabsDesc = stringResource(R.string.workspace_manager_select_all_tabs_desc)
     val selectionDesc = stringResource(R.string.workspace_manager_selection_clear_content_desc)
 
@@ -80,7 +76,7 @@ fun WorkspaceStatusCard(
         } else {
             ButlerChip(
                 modifier = Modifier.semantics { contentDescription = tabsDesc },
-                label = "$workspaceCount $tabsLabel",
+                label = tabsLabel,
                 leadingIcon = Icons.TwoTone.Tab,
                 size = ButlerChipSize.Large,
                 enabled = workspaceCount > 0,
@@ -107,7 +103,7 @@ fun WorkspaceStatusCard(
                 val filterDesc = filter.filterDescription()
                 ButlerChip(
                     modifier = Modifier.semantics { contentDescription = filterDesc },
-                    label = "$count ${filter.label(count)}",
+                    label = filter.countLabel(count),
                     leadingIcon = filter.icon,
                     size = ButlerChipSize.Default,
                     enabled = !isSelecting,
@@ -129,17 +125,15 @@ private val WorkspaceManagerFilter.icon: ImageVector
         WorkspaceManagerFilter.UNSAVED -> Icons.TwoTone.Edit
     }
 
+// The count lives inside the resource, not prefixed by the caller: "%d Tabs" is one phrase in
+// English but takes four forms in Polish, six in Arabic, and the bare singular after a numeral in
+// Turkish.
 @Composable
-private fun WorkspaceManagerFilter.label(count: Int): String = when (this) {
-    WorkspaceManagerFilter.OPERATIONS -> if (count == 1) {
-        stringResource(R.string.workspace_status_operation_singular)
-    } else {
-        stringResource(R.string.workspace_status_operation_plural)
-    }
-    WorkspaceManagerFilter.ATTENTION -> stringResource(R.string.workspace_status_attention_label)
-    // Same word the card's own paused overlay uses, so both come from one translation.
-    WorkspaceManagerFilter.PAUSED -> stringResource(WorkspaceR.string.workspace_paused_label)
-    WorkspaceManagerFilter.UNSAVED -> stringResource(R.string.workspace_status_unsaved_label)
+private fun WorkspaceManagerFilter.countLabel(count: Int): String = when (this) {
+    WorkspaceManagerFilter.OPERATIONS -> pluralStringResource(R.plurals.workspace_status_operation_count, count, count)
+    WorkspaceManagerFilter.ATTENTION -> pluralStringResource(R.plurals.workspace_status_attention_count, count, count)
+    WorkspaceManagerFilter.PAUSED -> pluralStringResource(R.plurals.workspace_status_paused_count, count, count)
+    WorkspaceManagerFilter.UNSAVED -> pluralStringResource(R.plurals.workspace_status_unsaved_count, count, count)
 }
 
 @Composable

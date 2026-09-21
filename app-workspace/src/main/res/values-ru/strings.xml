@@ -126,21 +126,28 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_close_all_title">Закрыть все вкладки?</string>
-    <string name="workspace_manager_close_all_message">Это закроет все открытые вкладки (%1$d %2$s). Это действие нельзя отменить.</string>
-    <string name="workspace_manager_close_all_message_singular">вкладка</string>
-    <string name="workspace_manager_close_all_message_plural">вкладок</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Это закроет %1$d открытую вкладку. Это действие нельзя отменить.</item>
+        <item quantity="few">Это закроет все %1$d открытые вкладки. Это действие нельзя отменить.</item>
+        <item quantity="many">Это закроет все %1$d открытых вкладок. Это действие нельзя отменить.</item>
+        <item quantity="other">Это закроет все %1$d открытых вкладок. Это действие нельзя отменить.</item>
+    </plurals>
     <string name="workspace_manager_close_all_action">Закрыть все</string>
     <string name="workspace_manager_close_all_unsaved_warning">В некоторых вкладках есть несохранённые изменения, которые будут потеряны.</string>
     <string name="workspace_manager_close_all_unsaved_action">Отклонить всё</string>
     <string name="workspace_manager_close_selected_title">Закрыть выбранные вкладки?</string>
-    <string name="workspace_manager_close_selected_message">Это закроет выбранные вкладки (%1$d %2$s). Это действие нельзя отменить.</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Это закроет %1$d выбранную вкладку. Это действие нельзя отменить.</item>
+        <item quantity="few">Это закроет %1$d выбранные вкладки. Это действие нельзя отменить.</item>
+        <item quantity="many">Это закроет %1$d выбранных вкладок. Это действие нельзя отменить.</item>
+        <item quantity="other">Это закроет %1$d выбранных вкладок. Это действие нельзя отменить.</item>
+    </plurals>
     <string name="workspace_manager_close_selected_action">Закрыть выбранные</string>
     <string name="workspace_manager_close_selected_unsaved_warning">В некоторых выбранных вкладках есть несохранённые изменения, которые будут потеряны.</string>
     <string name="workspace_manager_close_selected_unsaved_action">Отклонить выбранные</string>
     <string name="workspace_manager_pause_partial_title">Приостановить вкладки?</string>
     <string name="workspace_manager_pause_partial_message">Можно приостановить %1$d из %2$d выбранных вкладок. Остальные используются, содержат несохранённые изменения или сейчас открыты.</string>
     <string name="workspace_manager_pause_partial_action">Приостановить %1$d</string>
-    <string name="workspace_fab_close_all">Закрыть все вкладки</string>
     <string name="general_cancel_action">Отмена</string>
 
     <!-- Operations -->

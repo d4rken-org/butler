@@ -240,12 +240,21 @@
     <string name="settings_licenses_label">许可证</string>
 
     <!-- Workspace Status Card -->
-    <string name="workspace_status_tab_singular">标签页</string>
-    <string name="workspace_status_tab_plural">标签页</string>
-    <string name="workspace_status_operation_singular">操作</string>
-    <string name="workspace_status_operation_plural">操作</string>
-    <string name="workspace_status_attention_label">需要关注</string>
-    <string name="workspace_status_unsaved_label">未保存</string>
+    <plurals name="workspace_status_tab_count">
+        <item quantity="other">%1$d 个标签页</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="other">%1$d 项操作</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="other">%1$d 项需要关注</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="other">%1$d 项未保存</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="other">%1$d 项已暂停</item>
+    </plurals>
     <string name="workspace_status_filter_tabs_desc">显示所有标签页</string>
     <string name="workspace_status_filter_operations_desc">按有操作的标签页筛选</string>
     <string name="workspace_status_filter_attention_desc">按需要关注的标签页筛选</string>
@@ -360,11 +369,6 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">关闭</string>
-    <string name="workspace_manager_close_all_title">关闭所有标签页？</string>
-    <string name="workspace_manager_close_all_message">这将关闭全部 %1$d 个已打开的%2$s。此操作无法撤销。</string>
-    <string name="workspace_manager_close_all_message_singular">标签页</string>
-    <string name="workspace_manager_close_all_message_plural">标签页</string>
-    <string name="workspace_manager_close_all_action">全部关闭</string>
     <string name="workspace_manager_selection_count">已选择 %1$d 个</string>
     <string name="workspace_manager_selection_select_all">全选</string>
     <string name="workspace_manager_selection_pause_action">暂停所选</string>

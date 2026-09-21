@@ -240,12 +240,36 @@
     <string name="settings_licenses_label">Лицензии</string>
 
     <!-- Workspace Status Card -->
-    <string name="workspace_status_tab_singular">Вкладка</string>
-    <string name="workspace_status_tab_plural">Вкладки</string>
-    <string name="workspace_status_operation_singular">Операция</string>
-    <string name="workspace_status_operation_plural">Операции</string>
-    <string name="workspace_status_attention_label">Внимание</string>
-    <string name="workspace_status_unsaved_label">Несохранённое</string>
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d Вкладка</item>
+        <item quantity="few">%1$d Вкладки</item>
+        <item quantity="many">%1$d Вкладок</item>
+        <item quantity="other">%1$d Вкладок</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d Операция</item>
+        <item quantity="few">%1$d Операции</item>
+        <item quantity="many">%1$d Операций</item>
+        <item quantity="other">%1$d Операций</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Внимание</item>
+        <item quantity="few">%1$d Внимание</item>
+        <item quantity="many">%1$d Внимание</item>
+        <item quantity="other">%1$d Внимание</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Несохранённая</item>
+        <item quantity="few">%1$d Несохранённые</item>
+        <item quantity="many">%1$d Несохранённых</item>
+        <item quantity="other">%1$d Несохранённых</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d Приостановленная</item>
+        <item quantity="few">%1$d Приостановленные</item>
+        <item quantity="many">%1$d Приостановленных</item>
+        <item quantity="other">%1$d Приостановленных</item>
+    </plurals>
     <string name="workspace_status_filter_tabs_desc">Показать все вкладки</string>
     <string name="workspace_status_filter_operations_desc">Фильтр по вкладкам с операциями</string>
     <string name="workspace_status_filter_attention_desc">Фильтр по вкладкам, требующим внимания</string>
@@ -360,11 +384,6 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">Отклонить</string>
-    <string name="workspace_manager_close_all_title">Закрыть все вкладки?</string>
-    <string name="workspace_manager_close_all_message">Это закроет все %1$d открытые %2$s. Это действие невозможно отменить.</string>
-    <string name="workspace_manager_close_all_message_singular">вкладку</string>
-    <string name="workspace_manager_close_all_message_plural">вкладок</string>
-    <string name="workspace_manager_close_all_action">Закрыть все</string>
     <string name="workspace_manager_selection_count">%1$d выбрано</string>
     <string name="workspace_manager_selection_select_all">Выбрать все</string>
     <string name="workspace_manager_selection_pause_action">Приостановить выбранные</string>

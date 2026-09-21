@@ -108,21 +108,24 @@
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_close_all_title">Tüm sekmeler kapatılsın mı?</string>
-    <string name="workspace_manager_close_all_message">Açık olan %1$d %2$s kapatılacak. Bu işlem geri alınamaz.</string>
-    <string name="workspace_manager_close_all_message_singular">sekme</string>
-    <string name="workspace_manager_close_all_message_plural">sekme</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Açık olan %1$d sekme kapatılacak. Bu işlem geri alınamaz.</item>
+        <item quantity="other">Açık olan %1$d sekme kapatılacak. Bu işlem geri alınamaz.</item>
+    </plurals>
     <string name="workspace_manager_close_all_action">Tümünü kapat</string>
     <string name="workspace_manager_close_all_unsaved_warning">Bazı sekmelerde kaydedilmemiş değişiklikler var, bunlar kaybolacak.</string>
     <string name="workspace_manager_close_all_unsaved_action">Tümünü yok say</string>
     <string name="workspace_manager_close_selected_title">Seçili sekmeler kapatılsın mı?</string>
-    <string name="workspace_manager_close_selected_message">Seçili olan %1$d %2$s kapatılacak. Bu işlem geri alınamaz.</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Seçili olan %1$d sekme kapatılacak. Bu işlem geri alınamaz.</item>
+        <item quantity="other">Seçili olan %1$d sekme kapatılacak. Bu işlem geri alınamaz.</item>
+    </plurals>
     <string name="workspace_manager_close_selected_action">Seçilenleri kapat</string>
     <string name="workspace_manager_close_selected_unsaved_warning">Seçili sekmelerin bazılarında kaydedilmemiş değişiklikler var, bunlar kaybolacak.</string>
     <string name="workspace_manager_close_selected_unsaved_action">Seçilenleri yok say</string>
     <string name="workspace_manager_pause_partial_title">Sekmeler duraklatılsın mı?</string>
     <string name="workspace_manager_pause_partial_message">Seçili %2$d sekmeden %1$d tanesi duraklatılabilir. Diğerleri kullanımda, kaydedilmemiş değişiklikler içeriyor veya şu anda açık.</string>
     <string name="workspace_manager_pause_partial_action">%1$d tanesini duraklat</string>
-    <string name="workspace_fab_close_all">Tüm sekmeleri kapat</string>
     <string name="general_cancel_action">İptal</string>
 
     <!-- Operations -->
