@@ -6,7 +6,7 @@ Butler works on internal storage, SD cards and USB OTG drives, and on network sh
 
 <b>Tabs and workspaces</b>
 - Browse files in tabs and run any of Butler's tools in parallel.
-- Organize tabs with the workspace manager and reuse tab setups with workspace templates.
+- Organize tabs with the tab manager and start new ones from the tab picker.
 - Multi-pane layouts on phones and tablets, with drag and drop between panes.
 - Pin favorites and add extra storage locations.
 

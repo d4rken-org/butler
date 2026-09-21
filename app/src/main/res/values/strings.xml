@@ -29,8 +29,6 @@
     <string name="onboarding_workspaces_searcher_description">Find stuff.</string>
     <string name="onboarding_workspaces_editor_title">Editor</string>
     <string name="onboarding_workspaces_editor_description">Edit files.</string>
-    <string name="onboarding_workspaces_templates_title">Templates</string>
-    <string name="onboarding_workspaces_templates_description">Save your setup.</string>
     <string name="onboarding_workspaces_apps_description">Manage your apps.</string>
 
     <!-- Explorer Shortcuts -->

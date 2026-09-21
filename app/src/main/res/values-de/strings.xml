@@ -29,8 +29,6 @@
     <string name="onboarding_workspaces_searcher_description">Dinge finden.</string>
     <string name="onboarding_workspaces_editor_title">Editor</string>
     <string name="onboarding_workspaces_editor_description">Dateien bearbeiten.</string>
-    <string name="onboarding_workspaces_templates_title">Vorlagen</string>
-    <string name="onboarding_workspaces_templates_description">Deine Einrichtung speichern.</string>
     <string name="onboarding_workspaces_apps_description">Deine Apps verwalten.</string>
 
     <!-- Explorer Shortcuts -->
