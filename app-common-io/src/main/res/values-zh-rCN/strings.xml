@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">正在删除项目</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">正在复制项目</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">正在移动项目</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">正在扫描…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">文件已存在</string>
+    <string name="path_action_folder_exists_title">文件夹已存在</string>
+    <string name="path_action_file_exists_description">名为 \"%1$s\" 的文件已存在于 \"%2$s\"。</string>
+    <string name="path_action_folder_exists_description">名为 \"%1$s\" 的文件夹已存在于 \"%2$s\"。</string>
+
+    <string name="path_action_not_found_title">文件已丢失</string>
+    <string name="path_action_not_found_description">\"%1$s\" 已被删除、重命名或移动到其他位置。</string>
+
+    <string name="path_action_permission_denied_title">权限被拒绝</string>
+    <string name="path_action_permission_denied_description">由于权限不足，无法访问 \"%2$s\" 中的 \"%1$s\"。</string>
+    <string name="path_action_permission_denied_no_mechanism_description">无法访问 \"%2$s\" 中的 \"%1$s\"。没有可用的方法来执行此操作。</string>
+    <string name="path_action_permission_denied_readonly_description">无法访问 \"%2$s\" 中的 \"%1$s\"。文件系统为只读。</string>
+    <string name="path_action_permission_denied_not_permitted_description">无法访问 \"%2$s\" 中的 \"%1$s\"。系统拒绝了此操作。</string>
+
+    <string name="path_action_insufficient_space_title">空间不足</string>
+    <string name="path_action_insufficient_space_description">存储空间不足，无法从 \"%2$s\" 复制 \"%1$s\"。</string>
+
+    <string name="path_action_unknown_error_title">操作失败</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">替换未完成</string>
+    <string name="path_action_data_kept_new_data_description">Butler 无法完成对 \"%1$s\" 的写入。新数据保留在 \"%2$s\" 的同一文件夹中。重命名该文件来恢复它，或删除它来丢弃它。</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler 无法完成对 \"%1$s\" 的写入，原文件保持不变。新数据保留在 \"%2$s\" 的同一文件夹中。重命名该文件来恢复它，或删除它来丢弃它。</string>
+    <string name="path_action_data_kept_both_description">Butler 无法完成对 \"%1$s\" 的写入。没有数据丢失：原文件保留在 \"%2$s\" 同一文件夹中，新数据保留为 \"%3$s\"。重命名要保留的那个文件。</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler 无法完成对 \"%1$s\" 的写入，且无法检查 \"%2$s\" 是否仍存在。可能在 \"%3$s\" 同一文件夹中保留了不完整的副本。删除任何文件前，请比较两者。</string>
+    <string name="path_action_data_kept_intermediate_description">Butler 无法完成对 \"%1$s\" 的移动，且无法确定它是否已离开其原文件夹。数据要么保留在该文件夹中（名为 \"%2$s\"），要么已在 \"%3$s\"。删除任何文件前，请检查两处。</string>
+    <string name="path_action_data_kept_uncertain_description">Butler 无法完成对 \"%1$s\" 的写入，且无法确定文件的最终位置。它是该文件夹中的三个文件之一：\"%1$s\" 本身、\"%2$s\" 或 \"%3$s\"。删除任何文件前，请检查这三个文件。</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler 无法完成对 \"%1$s\" 的写入，且无法确定文件的最终位置。它是该文件夹中的两个文件之一：\"%1$s\" 本身或 \"%2$s\"。删除任何文件前，请检查两者。</string>
+
+    <string name="path_action_trash_size_limit_title">项目过大，无法放入回收站</string>
+    <string name="path_action_trash_size_limit_description">%1$d 项总计 %2$s 超过回收站大小限制（%3$s）。</string>
+
+    <string name="path_action_trash_move_failed_title">无法移动到回收站</string>
+    <string name="path_action_trash_move_failed_description">%1$d 项无法移动到回收站。</string>
+
+    <string name="path_action_trash_not_supported_title">不支持回收站</string>
+    <string name="path_action_trash_not_supported_description">%1$d 项位于不支持回收站的存储设备上。</string>
+
+    <string name="path_action_archive_password_title">需要密码</string>
+    <string name="path_action_archive_password_description">\"%1$s\" 已加密。输入密码以读取其内容。</string>
+    <string name="path_action_archive_password_wrong_description">\"%1$s\" 的密码不正确。请重试。</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">服务器无法访问</string>
+    <string name="smb_error_unreachable_description">Butler 无法访问 \"%1$s\"。请确认设备在同一网络上，且服务器已开启。</string>
+    <string name="smb_error_auth_title">登录失败</string>
+    <string name="smb_error_auth_description">\"%1$s\" 拒绝了用户名或密码。</string>
+    <string name="smb_error_share_access_denied_title">无权访问此共享</string>
+    <string name="smb_error_share_access_denied_description">此账户可能无权使用 \"%2$s\" 上的 \"%1$s\"。请检查服务器上的共享权限。</string>
+    <string name="smb_error_share_not_found_title">未找到共享</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" 不存在于 \"%2$s\" 上。</string>
+    <string name="smb_error_dialect_title">服务器过旧</string>
+    <string name="smb_error_dialect_description">\"%1$s\" 仅提供 SMB1，这是不安全的且不被支持。在服务器上启用 SMB2 或更新的版本。</string>
+    <string name="smb_error_credential_unavailable_title">需要登录</string>
+    <string name="smb_error_credential_unavailable_description">此网络存储的已保存密码无法再读取。再次输入以重新连接。</string>
+    <string name="smb_error_pro_required_title">网络共享需要 Butler Pro</string>
+    <string name="smb_error_pro_required_description">连接到网络共享是 Butler Pro 的一部分。已保存的位置将保持列出，不需要 Pro 即可删除。</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">受保护的应用包</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" 已加密，只能由创建它的应用安装。</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">不支持的 APK 集格式</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" 是 bundletool APK 集。Butler 无法确定其哪个变体适合此设备。</string>
+
+    <string name="app_install_error_unsupported_bundle_title">无可安装的应用</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" 不包含任何可安装的 APK。</string>
+
+    <string name="app_install_error_session_title">安装失败</string>
+    <string name="app_install_error_session_description">系统拒绝了安装：%1$s</string>
+
+    <string name="app_install_error_busy_title">另一个安装正在进行中</string>
+    <string name="app_install_error_busy_description">\"%1$s\" 仍在安装中。在开始另一个安装前，请确认或取消该安装。</string>
+
+    <string name="app_install_error_no_elevation_title">没有提升的访问权限</string>
+    <string name="app_install_error_no_elevation_description">Root 或 ADB 访问当前不可用。</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">需要确认</string>
+    <string name="app_install_confirm_pending_description">Android 需要您确认安装 \"%1$s\" 后才能完成。</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android 需要您确认此安装后才能完成。</string>
+    <string name="app_install_confirm_pending_action">确认安装</string>
+    <string name="app_install_confirm_pending_reason">安装程序正在等待您的确认</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">需要确认</string>
+    <string name="app_uninstall_confirm_pending_description">Android 需要您确认删除 \"%1$s\" 后才能完成。</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android 需要您确认此删除后才能完成。</string>
+    <string name="app_uninstall_confirm_pending_action">确认删除</string>
+    <string name="app_uninstall_confirm_pending_reason">Android 正在等待您的确认</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">为另一个用户删除此应用需要 root 或 Shizuku</string>
+    <string name="app_uninstall_no_result">Android 没有报告结果</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">文件操作中断</string>
+    <string name="service_connection_lost_error_message">文件操作服务意外停止。请重试。</string>
+</resources>

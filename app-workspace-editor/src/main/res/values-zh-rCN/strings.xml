@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">编辑器</string>
+    <string name="editor_subtitle">编辑文本文件</string>
+    <string name="editor_settings_title">编辑器设置</string>
+    <string name="editor_settings_show_line_numbers_title">显示行号</string>
+    <string name="editor_settings_show_line_numbers_subtitle">在编辑器中显示行号。</string>
+    <string name="editor_settings_word_wrap_title">自动换行</string>
+    <string name="editor_settings_word_wrap_subtitle">将长行换行以适应屏幕宽度。</string>
+    <string name="editor_settings_syntax_highlighting_title">语法高亮</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">在支持的文件中进行语法着色（JavaScript、Bash、Markdown、JSON）。</string>
+    <string name="editor_settings_font_size_title">字体大小</string>
+    <string name="editor_settings_font_size_subtitle">编辑器中的文本大小</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">制表符宽度</string>
+    <string name="editor_settings_tab_size_subtitle">制表符占用的空格数</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">打开</string>
+    <string name="editor_action_save">保存</string>
+    <string name="editor_action_save_as">另存为…</string>
+    <string name="editor_action_close">关闭</string>
+    <string name="editor_action_undo">撤销</string>
+    <string name="editor_action_redo">重做</string>
+    <string name="editor_action_search">搜索</string>
+    <string name="editor_action_go_to_line">转到行</string>
+    <string name="editor_action_dismiss">关闭</string>
+    <string name="editor_action_previous">上一个</string>
+    <string name="editor_action_next">下一个</string>
+    <string name="editor_action_copy">复制</string>
+    <string name="editor_action_cut">剪切</string>
+    <string name="editor_action_copy_to_butler_clipboard">复制到 Butler 剪贴板</string>
+    <string name="editor_action_cut_to_butler_clipboard">剪切到 Butler 剪贴板</string>
+    <string name="editor_action_paste">粘贴</string>
+    <string name="editor_action_select_all">全选</string>
+    <string name="editor_action_delete">删除</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">覆盖文件？</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s 已存在。其当前内容将被替换。</string>
+    <string name="editor_dialog_save_as_overwrite_action">覆盖</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">找到来自中断的保存的备份：\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">不支持作为文本编辑</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">超长行</string>
+    <string name="editor_long_lines_banner_message">超长行在显示时被缩短；完整内容被保留并保存。</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">显示该行的下一部分</string>
+    <string name="editor_line_truncated_marker_previous_action">显示该行的上一部分</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">文件不再可用</string>
+    <string name="editor_backing_lost_banner_message">它可能已被移动或删除。此视图为只读—重新打开或关闭它。</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">文件已消失，但备份仍然存在</string>
+    <string name="editor_error_save_artifacts_description">"%1$s"缺失，但中断的保存留下了这个：%2$s。您的内容很可能仍在其中。</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">文件已在磁盘上更改</string>
+    <string name="editor_external_change_banner_message">另一个应用修改了此文件。</string>
+    <string name="editor_external_change_reload_action">重新加载</string>
+    <string name="editor_external_change_keep_action">继续编辑</string>
+    <string name="editor_error_external_change">此文件被另一个应用修改。重新加载该文件以继续。</string>
+    <string name="editor_dialog_reload_confirm_title">重新加载文件？</string>
+    <string name="editor_dialog_reload_confirm_message">重新加载将丢弃您未保存的更改并显示磁盘上的文件当前内容。</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="other">%1$d 行</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="other">%1$d 个字符</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">已选择 %1$s、%2$s</string>
+    <string name="editor_infobar_lines_size">%1$d 行 · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">正在加载文件…</string>
+    <string name="editor_saving">正在保存…</string>
+    <string name="editor_action_cancel_loading">取消</string>
+    <string name="editor_progress_opening">正在打开文件…</string>
+    <string name="editor_progress_saving">正在保存文件…</string>
+    <string name="editor_progress_building_index">正在构建文件索引…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">未知错误</string>
+    <string name="editor_error_read_only">此文件为只读，无法更改。</string>
+    <string name="editor_error_save_integrity_label">保存被中断</string>
+    <string name="editor_error_save_integrity">保存被中断，磁盘上的文件可能不完整。继续编辑前请重新加载该文件。</string>
+    <string name="editor_error_clipboard_too_large_label">选择内容过大</string>
+    <string name="editor_error_clipboard_too_large">选择内容过大，无法复制（限制 %1$s）。</string>
+    <string name="editor_error_paste_too_large_label">文件过大</string>
+    <string name="editor_error_paste_too_large">此文件过大，无法粘贴（最大 %1$s）。</string>
+    <string name="editor_error_paste_binary_label">不是文本文件</string>
+    <string name="editor_error_paste_binary">无法将此文件的内容作为文本粘贴。</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="other">%1$d/%2$d 个结果</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d/%2$d+ 个结果</string>
+    <string name="editor_search_too_many_matches_label">匹配项过多</string>
+    <string name="editor_search_too_many_matches">超过 %1$d 个匹配项或匹配文本过多—缩小搜索范围以替换全部。</string>
+    <string name="editor_search_placeholder">搜索…</string>
+    <string name="editor_search_previous">上一个结果</string>
+    <string name="editor_search_next">下一个结果</string>
+    <string name="editor_search_case_sensitive_label">区分大小写</string>
+    <string name="editor_search_regex_label">正则表达式</string>
+    <string name="editor_search_whole_word_label">整个单词</string>
+    <string name="editor_search_options_label">搜索选项</string>
+    <string name="editor_search_replace_label">替换</string>
+    <string name="editor_search_replace_toggle">切换替换</string>
+    <string name="editor_search_replace_placeholder">替换为…</string>
+    <string name="editor_search_replace_one_action">替换</string>
+    <string name="editor_search_replace_all_action">全部</string>
+    <string name="editor_search_replaced_not_undoable">已替换 %1$d 个（过大，无法撤销）</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="other">已替换 %1$d 个</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">转到行</string>
+    <string name="editor_dialog_go_to_line_label">行号（1-%1$d）</string>
+    <string name="editor_dialog_action_go">转到</string>
+    <string name="editor_dialog_action_cancel">取消</string>
+    <string name="editor_dialog_close_confirm_title">未保存的更改</string>
+    <string name="editor_dialog_close_confirm_message">您有未保存的更改。要丢弃它们吗？</string>
+    <string name="editor_dialog_close_confirm_discard">丢弃</string>
+    <string name="editor_dialog_large_delete_confirm_title">编辑大型选择内容？</string>
+    <string name="editor_dialog_large_delete_confirm_message">此选择内容过大，无法撤销。仍要继续吗？</string>
+    <string name="editor_dialog_large_delete_confirm_action">继续</string>
+    <string name="editor_encoding_dialog_title">编码</string>
+    <string name="editor_encoding_dialog_message">用不同的编码重新打开文件。未保存的更改将被丢弃；未编辑的字节在保存时保持不变。</string>
+    <string name="editor_infobar_read_only">只读</string>
+    <string name="editor_line_ending_mixed">混合</string>
+    <string name="editor_line_ending_dialog_title">行尾</string>
+    <string name="editor_line_ending_dialog_message">转换所有换行符并保存文件，包括未保存的更改。撤销历史将被清除。</string>
+    <string name="editor_line_ending_lf_label">LF — Unix、Android、macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">无标题</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">自动保存</string>
+    <string name="editor_settings_autosave_enabled_title">启用自动保存</string>
+    <string name="editor_settings_autosave_enabled_subtitle">不活动一段时间后自动保存更改。</string>
+    <string name="editor_settings_autosave_interval_title">自动保存间隔</string>
+    <string name="editor_settings_autosave_interval_subtitle">最后编辑后等待保存的时间。</string>
+    <string name="editor_settings_autosave_interval_dialog_title">自动保存间隔</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">剪贴板</string>
+    <string name="editor_settings_clipboard_behavior_title">Butler 剪贴板</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">控制文本复制如何保存到 Butler 的剪贴板。</string>
+    <string name="editor_settings_clipboard_system_only">仅系统</string>
+    <string name="editor_settings_clipboard_system_only_desc">仅复制到系统剪贴板</string>
+    <string name="editor_settings_clipboard_butler_always">始终添加到 Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">也保存到 Butler 的剪贴板以实现跨工作区粘贴</string>
+    <string name="editor_settings_clipboard_ask">每次都问</string>
+    <string name="editor_settings_clipboard_ask_desc">在添加到 Butler 的剪贴板前提示</string>
+</resources>

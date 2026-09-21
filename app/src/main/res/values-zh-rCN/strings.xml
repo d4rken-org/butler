@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_welcome_title">欢迎使用 Butler</string>
+    <string name="onboarding_welcome_message">为文件而生的标签页。\n浏览、搜索、编辑，一应俱全。</string>
+    <string name="onboarding_welcome_subtitle">开源。无广告。无跟踪。\n您应得的文件管理器。</string>
+    <string name="onboarding_welcome_action">开始探索</string>
+    <string name="onboarding_beta_title">共同塑造未来</string>
+    <string name="onboarding_beta_message">这是一个测试版本。请以幽默的心态使用，并做好备份。遇到问题请及时反馈。</string>
+    <string name="onboarding_beta_action">无所畏惧</string>
+    <string name="onboarding_beta_feature_early_access_title">抢先体验</string>
+    <string name="onboarding_beta_feature_early_access_description">率先试用前沿功能。</string>
+    <string name="onboarding_beta_feature_influence_title">直接影响</string>
+    <string name="onboarding_beta_feature_influence_description">您的反馈会塑造 Butler 的发展方向。</string>
+    <string name="onboarding_beta_feature_feedback_title">社区驱动</string>
+    <string name="onboarding_beta_feature_feedback_description">加入不断改进 Butler 的资深用户社区。</string>
+    <string name="onboarding_privacy_title">隐私和数据</string>
+    <string name="onboarding_privacy_message">Butler 没有广告，也不出售用户数据。您的隐私对我很重要。</string>
+    <string name="onboarding_privacy_read_action">阅读隐私政策</string>
+    <string name="onboarding_privacy_action">接受</string>
+    <string name="onboarding_skip_action">跳过</string>
+    <string name="onboarding_progress_step">%1$d / %2$d</string>
+
+    <string name="onboarding_workspaces_title">在标签页中工作</string>
+    <string name="onboarding_workspaces_message">打开多个标签页并在它们之间切换，就像您的网页浏览器一样。</string>
+    <string name="onboarding_workspaces_action">继续</string>
+    <string name="onboarding_workspaces_hint">同时保持多个标签页打开。</string>
+    <string name="onboarding_workspaces_explorer_title">文件管理</string>
+    <string name="onboarding_workspaces_explorer_description">浏览您的文件。</string>
+    <string name="onboarding_workspaces_searcher_title">搜索</string>
+    <string name="onboarding_workspaces_searcher_description">查找内容。</string>
+    <string name="onboarding_workspaces_editor_title">编辑器</string>
+    <string name="onboarding_workspaces_editor_description">编辑文件。</string>
+    <string name="onboarding_workspaces_templates_title">模板</string>
+    <string name="onboarding_workspaces_templates_description">保存您的配置。</string>
+    <string name="onboarding_workspaces_apps_description">管理您的应用。</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">新建文件管理</string>
+    <string name="shortcut_explorer_new_long">创建新的文件管理标签页</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">快捷方式</string>
+    <string name="shortcuts_settings_subtitle">配置启动器快捷方式</string>
+    <string name="shortcuts_settings_enabled_title">启用快捷方式</string>
+    <string name="shortcuts_settings_enabled_subtitle">在启动器中显示常用项目</string>
+    <string name="shortcuts_settings_auto_remember_title">记住访问过的路径</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">自动将常访问的路径添加为快捷方式</string>
+    <string name="shortcuts_settings_last_accessed_title">最近访问</string>
+    <string name="shortcuts_settings_max_count_title">最大快捷方式数量</string>
+    <string name="shortcuts_settings_max_count_subtitle">当前显示 %d 个快捷方式</string>
+    <string name="shortcuts_settings_min_access_title">最小访问次数</string>
+    <string name="shortcuts_settings_min_access_subtitle">需要访问 %d 次后才会显示</string>
+    <string name="shortcuts_settings_current_title">当前快捷方式</string>
+    <string name="shortcuts_settings_current_subtitle">已跟踪 %d 个快捷方式</string>
+    <string name="shortcuts_settings_clear_title">清除快捷方式历史</string>
+    <string name="shortcuts_settings_clear_subtitle">移除所有已跟踪的快捷方式</string>
+    <string name="shortcuts_settings_clear_confirm_title">清除快捷方式历史？</string>
+    <string name="shortcuts_settings_clear_confirm_message">这将移除所有已跟踪的快捷方式。书签将会保留。</string>
+    <string name="shortcuts_settings_cleared_message">快捷方式历史已清除</string>
+    <string name="shortcuts_settings_max_dialog_title">最大快捷方式数量</string>
+    <string name="shortcuts_settings_max_dialog_message">启动器中显示的快捷方式数量（1–4）</string>
+    <string name="shortcuts_settings_min_dialog_title">最小访问次数</string>
+    <string name="shortcuts_settings_min_dialog_message">路径需被访问多少次才会显示为快捷方式（1–10）</string>
+
+    <string name="setup_usagestats_title">使用情况统计</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">通知访问权限</string>
+    <string name="setup_manage_storage_card_title">管理所有文件的权限</string>
+    <string name="setup_inventory_card_title">应用清单</string>
+
+    <string name="setup_title">权限设置</string>
+    <string name="setup_settings_description">配置应用权限和功能。</string>
+    <string name="setup_help_description">帮助</string>
+
+    <string name="setup_root_description">启用对系统文件和受保护目录的访问，以进行高级文件管理。解锁 Butler 的全部潜力，包括应用数据访问和系统修改。设备需要已获取 root 权限。</string>
+    <string name="setup_shizuku_description">root 的替代方案，通过安全 API 提供特权文件操作。无需传统 root 即可访问受限目录。需要安装并运行 Shizuku 应用。</string>
+    <string name="setup_notification_description">显示文件操作、后台任务和传输进度的更新。让您在操作完成或发生错误时及时知晓。</string>
+    <string name="setup_usagestats_description">分析应用存储占用，帮助识别大文件并有效管理空间。所有数据均保留在您的设备上，绝不会被传输。</string>
+    <string name="setup_storage_description">完全访问设备所有存储，实现快速文件操作和批量处理。无需反复弹出权限提示即可进行全面的文件管理。</string>
+    <string name="setup_inventory_description">查看所有已安装的应用，以支持 APK 提取和存储分析等功能。在 Android 11 及以上系统需要此权限才能查看完整应用列表。</string>
+
+    <string name="setup_grant_access_label">授予访问权限</string>
+    <string name="setup_access_granted_label">已授予访问权限</string>
+    <string name="setup_use_root_label">如果可用则使用 root</string>
+    <string name="setup_use_shizuku_label">如果可用则使用 Shizuku</string>
+
+    <string name="setup_status_checking">检查中…</string>
+    <string name="setup_status_completed">已配置</string>
+    <string name="setup_status_required">必需</string>
+    <string name="setup_status_optional">可选</string>
+    <string name="setup_status_connected">已连接</string>
+    <string name="setup_status_not_connected">未连接</string>
+    <string name="setup_status_not_installed">未安装</string>
+    <string name="setup_status_connecting">连接中…</string>
+    <string name="setup_status_connection_failed">连接失败</string>
+    <string name="setup_status_unavailable">不可用</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">调试通知</string>
+    <string name="debug_log_consent_title">调试日志</string>
+    <string name="debug_log_consent_explanation">此功能会将应用的所有活动记录到一个可分享的文件中。生成的文件包含敏感信息（例如文件名和已安装的应用）。请仅与可信方分享（例如协助排查问题的开发者）。</string>
+    <string name="debug_log_recording_progress">正在录制调试日志</string>
+    <string name="debug_log_record_action">录制</string>
+    <string name="debug_log_record_full_action">录制调试日志</string>
+    <string name="debug_log_stop_action">停止录制</string>
+    <string name="debug_log_screen_title">调试日志记录器</string>
+    <string name="debug_log_screen_sensitive_information_message">生成的文件包含敏感信息（例如文件名和已安装的应用）。请仅与可信方分享。</string>
+    <string name="debug_log_screen_session_path_label">调试会话路径</string>
+    <string name="debug_log_screen_log_files_label">日志文件</string>
+    <string name="debug_log_screen_log_files_ready">日志文件已就绪（ZIP：%1$s）</string>
+    <string name="debug_log_screen_discard_action">丢弃</string>
+    <string name="debug_log_file_label">已录制的日志文件</string>
+    <string name="debug_banner_label">录制中</string>
+    <string name="debug_banner_label_expanded">正在录制日志文件</string>
+    <string name="debug_banner_stop_action">停止</string>
+    <string name="debug_banner_view_action">查看</string>
+    <string name="debug_banner_explanation">正在录制应用活动。完成后请停止，并在报告问题时附上日志。</string>
+    <string name="debug_log_short_recording_title">录制时间过短</string>
+    <string name="debug_log_short_recording_message">调试日志只会记录录制期间发生的内容。请先开始录制，重现问题，然后停止。此次录制可能不包含有用信息。</string>
+    <string name="debug_log_short_recording_keep_action">继续录制</string>
+
+    <string name="debug_logview_screen_title">日志查看器</string>
+    <string name="debug_logview_pause_action">暂停（冻结显示）</string>
+    <string name="debug_logview_resume_action">恢复</string>
+    <string name="debug_logview_copy_action">复制日志</string>
+    <string name="debug_logview_collapse_action">折叠</string>
+    <string name="debug_logview_close_action">关闭日志面板</string>
+    <string name="debug_logview_resize_action">调整大小</string>
+    <string name="debug_logview_more_action">更多选项</string>
+    <string name="debug_logview_level_action">日志级别</string>
+    <string name="debug_logview_clear_action">清空缓冲区</string>
+    <string name="debug_logview_search_action">搜索</string>
+    <string name="debug_logview_search_clear_action">清除搜索</string>
+    <string name="debug_logview_search_close_action">关闭搜索</string>
+    <string name="debug_logview_search_prev_action">上一个匹配项</string>
+    <string name="debug_logview_search_next_action">下一个匹配项</string>
+    <string name="debug_logview_jump_to_bottom_action">跳转到最新</string>
+    <string name="debug_logview_paused_msg">已暂停 — 显示已冻结</string>
+    <string name="debug_logview_paused_new_msg">已暂停 — 此后有 %1$d 条新记录</string>
+    <string name="debug_logview_copied_msg">日志已复制到剪贴板</string>
+    <string name="debug_logview_copied_truncated_msg">已将最后 %1$d 行复制到剪贴板</string>
+    <string name="debug_logview_share_label">分享日志</string>
+
+    <string name="settings_label">设置</string>
+    <string name="settings_category_tools_label">工具</string>
+    <string name="settings_category_other_label">其他</string>
+    <string name="settings_category_integration_label">集成</string>
+    <string name="general_settings_label">通用</string>
+    <string name="general_settings_desc">影响整个应用的通用调整。</string>
+    <string name="settings_category_ui_label">用户界面</string>
+    <string name="ui_mascot_suit_setting_label">Butler 的西装</string>
+    <string name="ui_mascot_suit_setting_explanation">Butler 服装所使用的颜色。</string>
+    <string name="ui_theme_mode_setting_label">主题模式</string>
+    <string name="ui_theme_mode_setting_explanation">应用主题所使用的模式（例如夜间或日间）。</string>
+    <string name="ui_theme_style_setting_label">主题样式</string>
+    <string name="ui_theme_style_setting_explanation">应用主题所使用的配色样式。</string>
+    <string name="ui_theme_color_setting_label">主题颜色</string>
+    <string name="ui_theme_color_setting_explanation">应用主题所使用的调色板。</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">颜色由 Material You 根据您的壁纸提供</string>
+    <string name="ui_theme_color_value_system">系统颜色</string>
+    <string name="ui_language_override_label">应用语言</string>
+    <string name="ui_language_override_desc">为 Butler 选择不同的语言，与系统默认语言无关。</string>
+    <string name="ui_display_cutout_avoid_setting_title">避开屏幕挖孔</string>
+    <string name="ui_display_cutout_avoid_setting_description">使界面避开摄像头挖孔区域。关闭后可使用更多屏幕空间，但部分界面可能会显示在挖孔区域下方。</string>
+
+    <string name="previews_settings_title">预览</string>
+    <string name="previews_settings_subtitle">管理图片预览缓存。</string>
+
+    <string name="tour_settings_reset_title">重置引导教程</string>
+    <string name="tour_settings_reset_subtitle">重新显示所有引导教程，包括已跳过或已禁用的教程。</string>
+    <string name="tour_settings_reset_done">引导教程已重置。</string>
+
+    <string name="storage_settings_title">存储</string>
+    <string name="storage_settings_subtitle">管理 Butler 的缓存、存储和回收站。</string>
+    <string name="storage_category_previews_label">预览</string>
+    <string name="storage_previews_disk_cache_title">磁盘缓存</string>
+    <string name="storage_previews_memory_cache_title">内存缓存</string>
+    <string name="storage_previews_max_size_title">最大缓存大小</string>
+    <string name="storage_clear_disk_confirm_title">清除磁盘缓存？</string>
+    <string name="storage_clear_disk_confirm_message">这将移除所有已缓存的预览图片。它们会在需要时重新生成。</string>
+    <string name="storage_clear_memory_confirm_title">清除内存缓存？</string>
+    <string name="storage_clear_memory_confirm_message">这将从内存中移除已缓存的预览图片。它们会在需要时重新生成。</string>
+    <string name="storage_clear_all_confirm_title">清除所有缓存？</string>
+    <string name="storage_clear_all_confirm_message">这将同时清除预览图片的磁盘和内存缓存。</string>
+    <string name="storage_clear_all_previews_action">清除所有预览缓存</string>
+    <string name="storage_clear_all_subtitle">移除所有预览缓存</string>
+    <string name="storage_cache_cleared_message">缓存已清除</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">检查更新</string>
+    <string name="updater_check_enabled_setting_description">允许 Butler 在线检查是否有新版本。</string>
+    <string name="motd_check_enabled_setting_title">检查公告</string>
+    <string name="motd_check_enabled_setting_description">允许 Butler 获取来自开发者的重要消息。</string>
+    <string name="motd_card_header">公告</string>
+
+    <string name="confirm_exit_setting_title">确认退出</string>
+    <string name="confirm_exit_setting_description">退出应用时显示确认对话框。</string>
+    <string name="confirm_exit_dialog_title">退出 Butler</string>
+    <string name="confirm_exit_dialog_message">这将关闭应用并返回主屏幕。</string>
+    <string name="confirm_exit_dialog_exit">退出</string>
+    <string name="confirm_exit_dialog_cancel">取消</string>
+    <string name="confirm_exit_dialog_dont_ask_again">不再询问</string>
+
+    <string name="settings_support_category_help_label">获取帮助</string>
+    <string name="settings_support_label">支持</string>
+    <string name="settings_support_description">阅读文档、报告问题、与他人交流或录制调试日志。</string>
+    <string name="settings_support_wiki_label">文档</string>
+    <string name="settings_support_wiki_description">了解如何有效使用 Butler。</string>
+    <string name="settings_support_issue_tracker_description">用于错误报告和功能请求的公开议题追踪器。</string>
+    <string name="settings_support_issue_tracker_label">议题追踪器</string>
+    <string name="settings_support_debuglog_label">调试日志</string>
+    <string name="settings_support_debuglog_desc">将应用的所有活动记录到一个可分享的文本文件中。</string>
+    <string name="settings_support_debuglog_recording_desc">当前正在录制调试信息。点按以停止录制。</string>
+    <string name="settings_support_debuglog_path">日志路径：%1$s</string>
+    <string name="settings_support_bugreports_label">错误报告</string>
+    <string name="settings_support_bugreports_desc">查看崩溃报告、录制调试日志，并与我分享它们。</string>
+    <string name="support_contact_report_type_crash">崩溃报告</string>
+    <string name="support_contact_report_type_reported">错误报告</string>
+    <string name="support_contact_report_type_recording">录制</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">一个用于交流和提问的地方。</string>
+
+    <string name="settings_acknowledgements_label">致谢</string>
+    <string name="settings_acknowledgements_description">制作人员、许可证和特别鸣谢。</string>
+    <string name="settings_acks_translation_header">翻译</string>
+    <string name="settings_acks_translators_title">译者</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">翻译 Butler</string>
+    <string name="settings_acks_translate_desc">帮助将 Butler 翻译成您的语言。</string>
+
+    <string name="settings_acks_thanks_header">鸣谢</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">感谢支持开源项目的翻译工作。</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">感谢提供图标、吉祥物设计和动画。</string>
+    <string name="settings_licenses_label">许可证</string>
+
+    <!-- Workspace Status Card -->
+    <string name="workspace_status_tab_singular">标签页</string>
+    <string name="workspace_status_tab_plural">标签页</string>
+    <string name="workspace_status_operation_singular">操作</string>
+    <string name="workspace_status_operation_plural">操作</string>
+    <string name="workspace_status_attention_label">需要关注</string>
+    <string name="workspace_status_unsaved_label">未保存</string>
+    <string name="workspace_status_filter_tabs_desc">显示所有标签页</string>
+    <string name="workspace_status_filter_operations_desc">按有操作的标签页筛选</string>
+    <string name="workspace_status_filter_attention_desc">按需要关注的标签页筛选</string>
+    <string name="workspace_status_filter_paused_desc">按已暂停的标签页筛选</string>
+    <string name="workspace_status_filter_unsaved_desc">按有未保存更改的标签页筛选</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Kotlin 编程语言。(APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">面向 Android 和 Java 的快速依赖注入器。(APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">以 root 身份运行 Java（和 Kotlin）代码！(APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">借助协程轻松运行获取 root 权限的 Kotlin JVM 代码。(APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">通过由 app_process 启动的 Java 进程，让普通应用可直接以 adb/root 权限使用系统 API。(APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Airbnb 面向 Android 的 Lottie。(APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Android 机器人图案复制或修改自 Google 创作并分享的作品，依据知识共享 3.0 署名许可协议使用。</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Android 用于构建原生界面的现代工具包。(APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpack 库</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room、WorkManager、DataStore、Navigation 以及其他 AndroidX 库。(APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin 扩展</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">协程和序列化库。(APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">基于 Kotlin 协程的图片加载库。(APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">用于 SMB 身份验证、签名和加密的加密算法库。(MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Square 库</string>
+    <string name="acknowledgement_square_libraries_subtitle">Retrofit、OkHttp 和 OkIO 网络库。(APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Jetpack Compose 实用工具集。(APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">用于 Compose 中 LazyColumn 的拖放功能。(APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Kotlin 的语义化版本控制库。(MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">用于 Jetpack Compose 的图表库。(APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">隐私政策</string>
+    <string name="settings_privacy_policy_desc">负责任地处理数据。</string>
+
+
+    <string name="changelog_label">更新日志</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Butler 升级状态</string>
+    <string name="upgrade_status_free">状态：免费版</string>
+    <string name="upgrade_status_pro">状态：专业版</string>
+    <string name="upgrade_status_foss">状态：FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD 卡</string>
+    <string name="storage_area_public_label">公共存储</string>
+    <string name="storage_area_public_app_data_label">公共应用数据</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">标签页管理器</string>
+    <string name="workspace_manager_empty_title">没有标签页</string>
+    <string name="workspace_manager_empty_subtitle">创建您的第一个标签页以开始使用</string>
+
+    <!-- Workspace > Empty Content-->
+    <string name="workspace_empty_create_action">创建标签页</string>
+    <string name="workspace_empty_create_hint">并行工作：创建一个标签页，并将其变为您选择的工具。</string>
+    <string name="workspace_empty_settings_action">打开设置</string>
+    <string name="workspace_empty_settings_hint">按您的喜好自定义 Butler，调整各工具的行为方式。</string>
+    <string name="workspace_classic_empty_tabs_closed">没有打开的标签页。随时准备就绪。</string>
+    <string name="workspace_classic_empty_tip">提示：点按“创建标签页”并选择一个工具 — 文件管理、搜索、编辑器等等。</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">从一个标签页开始</string>
+    <string name="tour_first_tab_body">Butler 以标签页的形式运作，就像浏览器一样：每个标签页都是一个独立的工具 — 文件管理、搜索、编辑器等等。创建您的第一个标签页。</string>
+    <string name="tour_manager_fab_title">快捷方式</string>
+    <string name="tour_manager_fab_body">点按此处即可快速访问常用工具，也可一次性关闭所有标签页。</string>
+    <string name="tour_manager_reorder_title">重新排列标签页</string>
+    <string name="tour_manager_reorder_body">按住某个标签页的标题栏，然后拖动到您想要的位置。这就是标签页在其他地方出现的顺序。</string>
+    <string name="tour_manager_select_title">同时处理多个标签页</string>
+    <string name="tour_manager_select_body">按住某个标签页的预览图以开始选择标签页，然后点按其余标签页，一次性关闭或暂停它们。</string>
+    <string name="tour_manager_new_tab_title">开始一个新标签页</string>
+    <string name="tour_manager_new_tab_body">点按此卡片，为新标签页选择任意工具。</string>
+    <string name="tour_swipe_switch_title">滑动切换标签页</string>
+    <string name="tour_swipe_switch_body">在页面任意位置向左或向右滑动，即可在已打开的标签页之间切换。</string>
+    <string name="tour_swipe_create_title">滑动新建标签页</string>
+    <string name="tour_swipe_create_body">滑过最后一个标签页，Butler 会为您提供一个新标签页。</string>
+    <string name="tour_swipe_panes_title">同时显示多个标签页</string>
+    <string name="tour_swipe_panes_body">在更大的屏幕上，或在横屏模式下，Butler 会并排显示多个标签页。“标签页”设置下的布局设置决定何时启用此功能。</string>
+    <string name="tour_panes_rail_title">您的所有标签页</string>
+    <string name="tour_panes_rail_body">所有打开的标签页都在这里。点按一个标签页并选择它应处于的窗格。按住某个标签页并拖动，可更改它们的顺序。</string>
+    <string name="tour_panes_divider_title">调整窗格大小</string>
+    <string name="tour_panes_divider_body">拖动此分隔线，为某个窗格分配更多空间。</string>
+    <string name="tour_panes_layout_title">更改排列方式</string>
+    <string name="tour_panes_layout_body">点按 Butler 按钮并选择“布局”以重新排列窗格。“标签页”设置会为每个屏幕方向固定一种布局。</string>
+
+    <string name="workspace_creating_placeholder">正在创建标签页…</string>
+    <string name="workspace_ondemand_swipe_title">滑动以创建新标签页</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">窗格 %1$d 已准备好加载内容</string>
+    <string name="workspace_adaptive_add_action">添加标签页</string>
+
+    <string name="workspace_badge_tip_title">提示：标签页按钮指示器</string>
+    <string name="workspace_badge_open_workspaces">已打开的标签页数量</string>
+    <string name="workspace_badge_active_operations">正在进行的操作（文件复制、搜索等）</string>
+    <string name="workspace_badge_attention_items">需要关注的项目（失败或等待中的操作、无法访问的文件）</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">关闭</string>
+    <string name="workspace_manager_close_all_title">关闭所有标签页？</string>
+    <string name="workspace_manager_close_all_message">这将关闭全部 %1$d 个已打开的%2$s。此操作无法撤销。</string>
+    <string name="workspace_manager_close_all_message_singular">标签页</string>
+    <string name="workspace_manager_close_all_message_plural">标签页</string>
+    <string name="workspace_manager_close_all_action">全部关闭</string>
+    <string name="workspace_manager_selection_count">已选择 %1$d 个</string>
+    <string name="workspace_manager_selection_select_all">全选</string>
+    <string name="workspace_manager_selection_pause_action">暂停所选</string>
+    <string name="workspace_manager_selection_close_action">关闭所选</string>
+    <string name="workspace_manager_selection_cancel_content_desc">退出选择模式</string>
+    <string name="workspace_manager_selection_clear_content_desc">清除选择</string>
+    <string name="workspace_manager_select_all_tabs_desc">选择所有标签页</string>
+    <string name="workspace_manager_new_tab_card_title">新建标签页</string>
+    <string name="workspace_row_select_content_desc">选择标签页</string>
+    <string name="general_cancel_action">取消</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">快捷方式</string>
+    <string name="workspace_fab_close_shortcuts">关闭快捷方式</string>
+    <string name="workspace_fab_close_all">关闭所有标签页</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">分配到窗格 %1$d</string>
+    <string name="workspace_pane_show_action">显示</string>
+    <string name="workspace_pane_close_action">关闭</string>
+    <string name="workspace_pane_unassign_action">从窗格中移除</string>
+    <string name="workspace_dragging_description">正在拖动</string>
+    <string name="workspace_pane_current_description">位于窗格 %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">关闭标签页</string>
+    <string name="workspace_row_more_options_content_desc">更多选项</string>
+    <string name="workspace_row_operations_running_content_desc">正在处理</string>
+    <string name="workspace_row_operations_pending_content_desc">有待处理的操作</string>
+    <string name="workspace_row_pause_action">暂停</string>
+    <string name="workspace_row_resume_action">恢复</string>
+    <string name="workspace_row_stacked_content_desc">已堆叠在此标签页上</string>
+    <string name="workspace_row_unsaved_content_desc">有未保存的更改</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">配置标签页行为。</string>
+    <string name="explorer_settings_subtitle">配置文件管理行为。</string>
+    <string name="searcher_settings_subtitle">配置搜索行为。</string>
+    <string name="editor_settings_subtitle">配置文本编辑器行为。</string>
+    <string name="history_settings_subtitle">操作历史的保留和清除。</string>
+    <string name="clipboard_settings_subtitle">配置剪贴板行为。</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">另存为…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">在 Butler 中打开</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">编辑文本</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">未命名文件</string>
+    <string name="external_open_action_view">查看</string>
+    <string name="external_open_action_edit">以文本方式编辑</string>
+    <string name="external_open_action_show_in_explorer">在文件管理中显示</string>
+    <string name="external_open_action_save">另存为…</string>
+    <string name="external_open_failed_label">无法打开文件</string>
+    <string name="external_open_failed_description">Butler 无法打开“%1$s”。</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">启用开发者模式？</string>
+    <string name="settings_developer_mode_unlock_message">这将解锁用于故障排查和测试的高级诊断工具。</string>
+    <string name="settings_developer_mode_unlock_action">启用</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="other">还差 %d 步进入开发者模式</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">联系开发者</string>
+    <string name="support_contact_description">填写表单以给我发送邮件。</string>
+    <string name="support_contact_no_email_app">未找到邮件应用</string>
+    <string name="support_contact_category_label">类别</string>
+    <string name="support_contact_category_question">问题咨询</string>
+    <string name="support_contact_category_feature">功能请求</string>
+    <string name="support_contact_category_bug">错误报告</string>
+    <string name="support_contact_workspace_label">相关区域</string>
+    <string name="support_contact_workspace_general">通用</string>
+    <string name="support_contact_workspace_explorer">文件管理</string>
+    <string name="support_contact_workspace_searcher">搜索</string>
+    <string name="support_contact_workspace_editor">编辑器</string>
+    <string name="support_contact_description_label">描述</string>
+    <string name="support_contact_description_question_hint">详细描述您的问题，请尽量具体（至少 20 个词）。</string>
+    <string name="support_contact_description_feature_hint">描述您希望看到的功能，请尽量具体（至少 20 个词）。</string>
+    <string name="support_contact_description_bug_hint">描述发生了什么以及如何重现该问题，请尽量具体（至少 20 个词）。</string>
+    <string name="support_contact_expected_label">预期行为</string>
+    <string name="support_contact_expected_hint">描述您期望发生的情况（至少 10 个词）。</string>
+    <string name="support_contact_word_count">至少 %1$d 个词</string>
+    <string name="support_contact_debuglog_label">调试日志</string>
+    <string name="support_contact_debuglog_empty">未找到调试日志。请先录制一个。</string>
+    <string name="support_contact_debuglog_picker_hint">附加现有的调试日志，或录制一个新的。</string>
+    <string name="support_contact_send_action">打开邮件应用</string>
+    <string name="support_contact_welcome">我会亲自阅读每一条消息并尽力回复，但由于是我一人在维护，可能需要一些时间。感谢您的耐心等待。</string>
+    <string name="support_contact_footer">您的消息将通过电子邮件发送。设备和配置信息会自动附加。您可以在邮件中附上截图或视频。\n\n邮件的部分内容会以英文呈现，以便我能轻松理解。</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">调试日志存储</string>
+    <string name="support_debuglog_storage_description">%1$d 个日志会话，%2$s</string>
+    <string name="support_debuglog_storage_empty">未存储调试日志</string>
+    <string name="support_debuglog_delete_action">删除所有调试日志</string>
+    <string name="support_debuglog_delete_description">移除所有已录制的调试日志文件</string>
+    <string name="support_debuglog_delete_confirm_title">删除所有调试日志？</string>
+    <string name="support_debuglog_delete_confirm_message">这将永久删除所有已录制的调试日志会话。正在进行的录制不受影响。</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">停止录制</string>
+    <string name="settings_support_debuglog_record_action">录制调试日志</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">调试日志会话</string>
+    <string name="support_debuglog_sessions_desc">管理已录制的调试日志会话</string>
+    <string name="support_debuglog_sessions_empty">没有调试日志会话</string>
+    <string name="support_debuglog_session_recording">录制中…</string>
+    <string name="support_debuglog_session_compressing">压缩中…</string>
+    <string name="support_debuglog_session_failed_empty_log">失败：日志为空</string>
+    <string name="support_debuglog_session_failed_missing_log">失败：日志缺失</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">失败：压缩包损坏</string>
+    <string name="support_debuglog_session_failed_zip_failed">失败：压缩出错</string>
+    <string name="support_debuglog_session_delete_title">删除调试会话？</string>
+    <string name="support_debuglog_session_delete_message">这将永久删除此调试日志会话。</string>
+    <string name="support_debuglog_clear_action">全部清除</string>
+    <string name="support_debuglog_clear_confirm_message">删除所有已存储的调试日志会话？</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butler 调试日志 - %1$s</string>
+    <string name="debug_log_screen_subtitle">导出用于故障排查的调试信息</string>
+    <string name="debug_log_screen_sensitive_information_title">敏感信息</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">您发送消息了吗？</string>
+    <string name="support_contact_sent_message">如果消息已发送，附加的调试日志将被删除以节省空间。如果尚未发送，您可以保留它稍后再试。</string>
+    <string name="support_contact_debuglog_zip_error">准备调试日志附件失败</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">文件操作进度</string>
+    <string name="ops_notification_channel_progress_desc">复制、移动和删除操作的进行中进度</string>
+    <string name="ops_notification_channel_attention_name">文件操作提醒</string>
+    <string name="ops_notification_channel_attention_desc">需要您关注或已失败的操作</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="other">%1$d 个文件操作正在进行</item>
+    </plurals>
+    <string name="ops_notification_state_queued">排队中…</string>
+    <string name="ops_notification_state_cancelling">正在取消…</string>
+    <string name="ops_notification_state_attention_title">需要操作</string>
+    <string name="ops_notification_state_attention_text">有一个冲突需要您的关注 — 点按以解决</string>
+    <string name="ops_notification_result_failed_title">操作失败</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">您愿意给 Butler 留下评价吗？❤️</string>
+    <string name="review_app_dismiss_action">以后再说</string>
+    <string name="review_app_review_action">评价</string>
+
+</resources>

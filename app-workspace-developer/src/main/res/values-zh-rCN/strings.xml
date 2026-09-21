@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">开发者</string>
+    <string name="developer_title">开发者工具</string>
+    <string name="developer_subtitle">开发实用程序</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">系统</string>
+    <string name="developer_tab_options">选项</string>
+    <string name="developer_tab_workspaces">工作区</string>
+    <string name="developer_tab_logs">日志</string>
+    <string name="developer_tab_testdata">测试数据</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">调试选项</string>
+    <string name="developer_options_debug_mode">调试模式</string>
+    <string name="developer_options_debug_mode_desc">启用详细日志记录</string>
+    <string name="developer_options_trace_mode">跟踪模式</string>
+    <string name="developer_options_trace_mode_desc">启用跟踪级日志记录</string>
+    <string name="developer_options_floating_log">浮动日志面板</string>
+    <string name="developer_options_floating_log_desc">在所有屏幕上显示可拖动的日志覆盖层</string>
+    <string name="developer_options_services_header">服务测试</string>
+    <string name="developer_options_root_test_action">测试 Root</string>
+    <string name="developer_options_root_installed_label">已安装</string>
+    <string name="developer_options_root_available_label">可用</string>
+    <string name="developer_options_root_base_check_label">基础检查</string>
+    <string name="developer_options_shizuku_test_action">测试 Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">已安装</string>
+    <string name="developer_options_shizuku_granted_label">权限</string>
+    <string name="developer_options_shizuku_compatible_label">兼容</string>
+    <string name="developer_options_shizuku_service_label">服务</string>
+    <string name="developer_options_test_running">正在测试…</string>
+    <string name="developer_options_result_yes">是</string>
+    <string name="developer_options_result_no">否</string>
+    <string name="developer_options_result_unknown">未知</string>
+    <string name="developer_options_visibility_header">可见性</string>
+    <string name="developer_options_hide_mode">隐藏开发者模式</string>
+    <string name="developer_options_hide_mode_desc">在设置中点击版本 7 次以重新启用。</string>
+    <string name="developer_options_hide_action">隐藏</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">设备</string>
+    <string name="developer_system_device_model">型号</string>
+    <string name="developer_system_device_manufacturer">制造商</string>
+    <string name="developer_system_device_api">API 级别</string>
+    <string name="developer_system_build_header">构建</string>
+    <string name="developer_system_build_version">版本</string>
+    <string name="developer_system_build_code">版本代码</string>
+    <string name="developer_system_build_flavor">变体</string>
+    <string name="developer_system_build_type">构建类型</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">内存</string>
+    <string name="developer_system_memory_available">可用</string>
+    <string name="developer_system_memory_total">总计</string>
+    <string name="developer_system_storage_header">存储</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d 个工作区</string>
+    <string name="developer_workspaces_empty">无工作区</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">清除</string>
+    <string name="developer_logs_pause">暂停</string>
+    <string name="developer_logs_resume">继续</string>
+    <string name="developer_logs_empty">无日志</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">目标路径</string>
+    <string name="developer_testdata_no_paths">未选择目标路径。添加路径以生成测试数据。</string>
+    <string name="developer_testdata_add_path_action">添加路径</string>
+    <string name="developer_testdata_options_header">生成选项</string>
+    <string name="developer_testdata_large_files">大文件</string>
+    <string name="developer_testdata_large_files_desc">1 MB、10 MB、100 MB、1 GB、2 GB、4 GB、8 GB</string>
+    <string name="developer_testdata_nested_structure">嵌套结构</string>
+    <string name="developer_testdata_nested_structure_desc">约 1100 个文件夹、约 1100 个文件</string>
+    <string name="developer_testdata_text_files">编辑器文本文件</string>
+    <string name="developer_testdata_text_files_desc">10 KB、100 KB、1 MB、10 MB、100 MB</string>
+    <string name="developer_testdata_generate_action">生成</string>
+    <string name="developer_testdata_generating">正在生成…</string>
+    <string name="developer_testdata_history_header">示例历史条目</string>
+    <string name="developer_testdata_history_desc">填充约 25 个虚假操作条目，跨越今天至 30 天前，包含混合的类型/结果/来源/路径。直接插入历史数据库；可安全重复点击。</string>
+    <string name="developer_testdata_history_generate_action">生成示例历史</string>
+    <string name="developer_testdata_progress">%1$s / %2$s</string>
+    <string name="developer_testdata_complete">测试数据生成于：</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">生成大文件</string>
+    <string name="developer_operation_large_files_desc">在 %1$s 中创建测试文件</string>
+    <string name="developer_operation_large_files_creating">正在创建 %1$s</string>
+
+    <string name="developer_operation_nested_title">生成嵌套结构</string>
+    <string name="developer_operation_nested_desc">在 %1$s 中创建文件夹层次结构</string>
+    <string name="developer_operation_nested_starting">正在启动嵌套结构…</string>
+    <string name="developer_operation_nested_creating">正在创建 %1$s</string>
+    <string name="developer_operation_nested_files_created">已创建 %1$d 个文件</string>
+
+    <string name="developer_operation_text_files_title">生成文本文件</string>
+    <string name="developer_operation_text_files_desc">在 %1$s 中创建文本文件</string>
+    <string name="developer_operation_text_files_creating">正在创建 %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="other">已创建 %d 个文件</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="other">已创建 %d 个目录</item>
+    </plurals>
+</resources>

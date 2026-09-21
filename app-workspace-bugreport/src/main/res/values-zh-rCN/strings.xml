@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">错误报告</string>
+    <string name="bugreport_workspace_subtitle">崩溃和错误报告</string>
+
+    <string name="bugreport_empty_title">无报告</string>
+    <string name="bugreport_empty_subtitle">崩溃和错误报告将显示在此处。不会自动发送任何内容。</string>
+
+    <string name="bugreport_type_crash">崩溃</string>
+    <string name="bugreport_type_report">报告</string>
+    <string name="bugreport_type_recording">记录</string>
+
+    <string name="bugreport_record_action">记录调试日志</string>
+    <string name="bugreport_record_short_action">记录</string>
+    <string name="bugreport_stop_action">停止记录</string>
+    <string name="bugreport_stop_short_action">停止</string>
+    <string name="bugreport_recording_ongoing_label">正在记录…</string>
+
+    <string name="bugreport_recording_short_title">记录时间太短</string>
+    <string name="bugreport_recording_short_message">此记录仅有几秒长，可能不包含有用信息。仍要停止吗？</string>
+    <string name="bugreport_recording_short_keep_action">继续记录</string>
+
+    <string name="bugreport_rename_action">重命名</string>
+    <string name="bugreport_rename_dialog_title">为此报告命名</string>
+    <string name="bugreport_rename_name_label">名称</string>
+    <string name="bugreport_rename_name_hint">在列表和共享文件名中显示</string>
+
+    <string name="bugreport_share_action">分享</string>
+    <string name="bugreport_delete_action">删除</string>
+    <string name="bugreport_delete_all_action">全部删除</string>
+    <string name="bugreport_delete_all_confirm_title">删除所有调试日志？</string>
+    <string name="bugreport_delete_all_confirm_message">这将永久删除所有已记录的调试日志会话。活跃的记录不会受影响。</string>
+    <string name="bugreport_delete_confirm_title">删除此报告？</string>
+    <string name="bugreport_delete_confirm_message">这将永久删除此报告及其日志。</string>
+    <string name="bugreport_cancel_action">取消</string>
+
+    <string name="bugreport_share_chooser_title">分享错误报告</string>
+    <string name="bugreport_share_consent_title">分享报告？</string>
+    <string name="bugreport_share_consent_message">此报告包含应用日志，其中可能包含文件名、路径和应用及设备信息。仅与您信任的人分享。</string>
+
+    <string name="bugreport_detail_back_action">返回</string>
+    <string name="bugreport_detail_section_error">错误</string>
+    <string name="bugreport_detail_section_log">最近的日志</string>
+    <string name="bugreport_detail_field_type">类型</string>
+    <string name="bugreport_detail_field_time">时间</string>
+    <string name="bugreport_detail_field_app_version">应用版本</string>
+    <string name="bugreport_detail_field_device">设备</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">构建</string>
+    <string name="bugreport_detail_field_error_class">错误类型</string>
+    <string name="bugreport_detail_field_thread">线程</string>
+    <string name="bugreport_detail_log_truncated">最后 %1$d 行（共 %2$d 行）</string>
+    <string name="bugreport_detail_log_count">%1$d 行</string>
+    <string name="bugreport_detail_log_empty">未捕获日志</string>
+    <string name="bugreport_detail_log_error">无法加载日志</string>
+</resources>
