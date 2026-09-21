@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Menghapus item</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Menyalin item</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Memindahkan item</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Memindai…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">File sudah ada</string>
+    <string name="path_action_folder_exists_title">Folder sudah ada</string>
+    <string name="path_action_file_exists_description">File bernama \"%1$s\" sudah ada di \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">Folder bernama \"%1$s\" sudah ada di \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">File hilang</string>
+    <string name="path_action_not_found_description">\"%1$s\" dihapus, diubah nama, atau dipindahkan ke tempat lain.</string>
+
+    <string name="path_action_permission_denied_title">Izin ditolak</string>
+    <string name="path_action_permission_denied_description">Tidak dapat mengakses \"%1$s\" di \"%2$s\" karena izin tidak mencukupi.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Tidak dapat mengakses \"%1$s\" di \"%2$s\". Tidak ada metode yang tersedia untuk melakukan operasi ini.</string>
+    <string name="path_action_permission_denied_readonly_description">Tidak dapat mengakses \"%1$s\" di \"%2$s\". Sistem file bersifat baca saja.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Tidak dapat mengakses \"%1$s\" di \"%2$s\". Sistem menolak operasi ini.</string>
+
+    <string name="path_action_insufficient_space_title">Ruang tidak cukup</string>
+    <string name="path_action_insufficient_space_description">Tidak cukup ruang penyimpanan untuk menyalin \"%1$s\" dari \"%2$s\".</string>
+
+    <string name="path_action_unknown_error_title">Operasi gagal</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">Penggantian tidak selesai</string>
+    <string name="path_action_data_kept_new_data_description">Butler tidak dapat menyelesaikan penulisan \"%1$s\". Data baru Anda disimpan di folder yang sama dengan \"%2$s\". Ubah nama untuk memulihkannya, atau hapus untuk menghapusnya.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler tidak dapat menyelesaikan penulisan \"%1$s\", file sebelumnya tidak berubah. Data baru Anda disimpan di folder yang sama dengan \"%2$s\". Ubah nama untuk memulihkannya, atau hapus untuk menghapusnya.</string>
+    <string name="path_action_data_kept_both_description">Butler tidak dapat menyelesaikan penulisan \"%1$s\". Tidak ada yang hilang: file sebelumnya tersimpan di folder yang sama dengan \"%2$s\" dan data baru Anda sebagai \"%3$s\". Ubah nama yang ingin Anda simpan.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler tidak dapat menyelesaikan penulisan \"%1$s\" dan tidak dapat memeriksa apakah \"%2$s\" masih ada. Salinan yang tidak lengkap mungkin tersimpan di folder yang sama dengan \"%3$s\". Bandingkan keduanya sebelum menghapus salah satu.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler tidak dapat menyelesaikan pemindahan \"%1$s\" dan tidak dapat menentukan apakah itu sudah meninggalkan foldernya. Data Anda dapat tersimpan di folder itu sebagai \"%2$s\", atau sudah ada di \"%3$s\". Periksa keduanya sebelum menghapus salah satu.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler tidak dapat menyelesaikan penulisan \"%1$s\" dan tidak dapat menentukan di mana file Anda berakhir. Ini adalah salah satu dari tiga file di folder itu: \"%1$s\" itu sendiri, \"%2$s\", atau \"%3$s\". Periksa ketiganya sebelum menghapus salah satu.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler tidak dapat menyelesaikan penulisan \"%1$s\" dan tidak dapat menentukan di mana file Anda berakhir. Ini adalah salah satu dari dua file di folder itu: \"%1$s\" itu sendiri atau \"%2$s\". Periksa keduanya sebelum menghapus salah satu.</string>
+
+    <string name="path_action_trash_size_limit_title">Item terlalu besar untuk Sampah</string>
+    <string name="path_action_trash_size_limit_description">%1$d item berjumlah %2$s melebihi batas ukuran sampah (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">Gagal memindahkan ke Sampah</string>
+    <string name="path_action_trash_move_failed_description">%1$d item tidak dapat dipindahkan ke sampah.</string>
+
+    <string name="path_action_trash_not_supported_title">Sampah tidak didukung</string>
+    <string name="path_action_trash_not_supported_description">%1$d item berada di penyimpanan yang tidak mendukung sampah.</string>
+
+    <string name="path_action_archive_password_title">Kata sandi diperlukan</string>
+    <string name="path_action_archive_password_description">\"%1$s\" dienkripsi. Masukkan kata sandi untuk membaca isinya.</string>
+    <string name="path_action_archive_password_wrong_description">Kata sandi untuk \"%1$s\" salah. Coba lagi.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Server tidak terjangkau</string>
+    <string name="smb_error_unreachable_description">Butler tidak dapat menjangkau \"%1$s\". Periksa bahwa perangkat berada di jaringan yang sama dan server sudah menyala.</string>
+    <string name="smb_error_auth_title">Masuk gagal</string>
+    <string name="smb_error_auth_description">\"%1$s\" menolak nama pengguna atau kata sandi.</string>
+    <string name="smb_error_share_access_denied_title">Tidak ada akses ke share ini</string>
+    <string name="smb_error_share_access_denied_description">Akun ini mungkin tidak dapat menggunakan \"%1$s\" di \"%2$s\". Periksa izin share di server.</string>
+    <string name="smb_error_share_not_found_title">Share tidak ditemukan</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" tidak ada di \"%2$s\".</string>
+    <string name="smb_error_dialect_title">Server terlalu lama</string>
+    <string name="smb_error_dialect_description">\"%1$s\" hanya menawarkan SMB1, yang tidak aman dan tidak didukung. Aktifkan SMB2 atau lebih baru di server.</string>
+    <string name="smb_error_credential_unavailable_title">Masuk diperlukan</string>
+    <string name="smb_error_credential_unavailable_description">Kata sandi yang disimpan untuk penyimpanan jaringan ini tidak dapat dibaca lagi. Masukkan lagi untuk terhubung kembali.</string>
+    <string name="smb_error_pro_required_title">Share jaringan memerlukan Butler Pro</string>
+    <string name="smb_error_pro_required_description">Terhubung ke share jaringan adalah bagian dari Butler Pro. Lokasi tersimpan Anda tetap terdaftar dan dapat dihapus tanpa itu.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Bundle aplikasi terlindungi</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" dienkripsi dan hanya dapat diinstal oleh aplikasi yang membuatnya.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">Format APK set tidak didukung</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" adalah bundletool APK set. Butler tidak dapat menentukan varian mana yang cocok untuk perangkat ini.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Tidak ada aplikasi untuk diinstal</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" tidak berisi APK yang dapat diinstal.</string>
+
+    <string name="app_install_error_session_title">Instalasi gagal</string>
+    <string name="app_install_error_session_description">Sistem menolak instalasi: %1$s</string>
+
+    <string name="app_install_error_busy_title">Instalasi lain sedang berjalan</string>
+    <string name="app_install_error_busy_description">\"%1$s\" masih diinstal. Konfirmasi atau batalkan instalasi itu sebelum memulai yang lain.</string>
+
+    <string name="app_install_error_no_elevation_title">Tidak ada akses yang ditingkatkan</string>
+    <string name="app_install_error_no_elevation_description">Akses root atau ADB saat ini tidak tersedia.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Konfirmasi diperlukan</string>
+    <string name="app_install_confirm_pending_description">Android perlu Anda mengkonfirmasi instalasi \"%1$s\" sebelum dapat menyelesaikannya.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android perlu Anda mengkonfirmasi instalasi ini sebelum dapat menyelesaikannya.</string>
+    <string name="app_install_confirm_pending_action">Konfirmasi instalasi</string>
+    <string name="app_install_confirm_pending_reason">Installer menunggu konfirmasi Anda</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Konfirmasi diperlukan</string>
+    <string name="app_uninstall_confirm_pending_description">Android perlu Anda mengkonfirmasi penghapusan \"%1$s\" sebelum dapat menyelesaikannya.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android perlu Anda mengkonfirmasi penghapusan ini sebelum dapat menyelesaikannya.</string>
+    <string name="app_uninstall_confirm_pending_action">Konfirmasi penghapusan</string>
+    <string name="app_uninstall_confirm_pending_reason">Android menunggu konfirmasi Anda</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Menghapus aplikasi ini untuk pengguna lain memerlukan root atau Shizuku</string>
+    <string name="app_uninstall_no_result">Android tidak melaporkan hasil</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Operasi file terganggu</string>
+    <string name="service_connection_lost_error_message">Layanan operasi file berhenti dengan tidak terduga. Coba lagi.</string>
+</resources>

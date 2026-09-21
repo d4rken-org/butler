@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Pencarian</string>
+    <string name="searcher_subtitle">Cari berkas dan konten</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Pengaturan pencarian</string>
+    <string name="searcher_settings_search_category">Pencarian</string>
+    <string name="searcher_settings_history">Riwayat pencarian</string>
+    <string name="searcher_settings_save_history_title">Simpan riwayat pencarian</string>
+    <string name="searcher_settings_save_history_subtitle">Ingat pencarian sebelumnya</string>
+    <string name="searcher_settings_max_history_label">Maksimal entri riwayat</string>
+    <string name="searcher_settings_max_history_subtitle">Jumlah maksimal pencarian yang disimpan</string>
+    <string name="searcher_settings_max_history_input_label">Jumlah entri (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Hapus riwayat pencarian</string>
+    <string name="searcher_settings_clear_history_subtitle">Hapus semua pencarian yang disimpan (%1$d)</string>
+    <string name="searcher_settings_search_performance">Performa</string>
+    <string name="searcher_settings_max_results_title">Maksimal hasil pencarian</string>
+    <string name="searcher_settings_max_results_subtitle">Batasi jumlah hasil yang dikembalikan per pencarian.</string>
+    <string name="searcher_settings_content_search_category">Pencarian Konten</string>
+    <string name="searcher_settings_include_binaries_title">Sertakan berkas biner</string>
+    <string name="searcher_settings_include_binaries_subtitle">Cari konten berkas biner (mungkin lambat dan menghasilkan hasil yang tidak relevan)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Pencarian terbaru</string>
+    <string name="searcher_placeholder_search">Cari berkas dan folder</string>
+    <string name="searcher_placeholder_filename">Nama berkas</string>
+    <string name="searcher_placeholder_content">Konten</string>
+    <string name="searcher_search_error">Kesalahan pencarian</string>
+    <string name="searcher_no_paths_hint">Ketuk + untuk menambahkan lokasi pencarian</string>
+    <string name="searcher_add_path_action">Tambah lokasi</string>
+    <string name="searcher_add_folder_action">Folder…</string>
+    <string name="searcher_multipath_show_fewer_action">Tampilkan lebih sedikit</string>
+    <string name="searcher_empty_state_title">Tidak ada jalur pencarian yang dikonfigurasi</string>
+    <string name="searcher_empty_state_description">Tambahkan lokasi penyimpanan untuk mencari berkas Anda</string>
+    <string name="searcher_add_default_paths_action">Tambah jalur pencarian default</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Opsi</string>
+    <string name="searcher_option_case_sensitive_label">Peka huruf besar-kecil</string>
+    <string name="searcher_option_case_sensitive_desc">Pencarian peka huruf besar-kecil</string>
+    <string name="searcher_option_whole_word_label">Kata utuh</string>
+    <string name="searcher_option_whole_word_desc">Pencarian kata utuh</string>
+    <string name="searcher_option_regex_label">Ekspresi reguler</string>
+    <string name="searcher_option_regex_desc">Pencarian ekspresi reguler</string>
+    <string name="searcher_option_search_content_label">Cari konten</string>
+    <string name="searcher_option_search_content_desc">Cari konten berkas</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Template</string>
+    <string name="searcher_templates_card_title">Template pencarian cepat</string>
+    <string name="searcher_template_large_files">Berkas besar</string>
+    <string name="searcher_template_large_files_desc">Berkas lebih dari 100 MB</string>
+    <string name="searcher_template_recent_files">Berkas terbaru</string>
+    <string name="searcher_template_recent_files_desc">Diubah dalam 7 hari terakhir</string>
+    <string name="searcher_template_old_files">Berkas lama</string>
+    <string name="searcher_template_old_files_desc">Tidak diubah lebih dari setahun</string>
+    <string name="searcher_template_images">Gambar</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Video</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Audio</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Dokumen</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Arsip</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APK</string>
+    <string name="searcher_template_apks_desc">Paket aplikasi Android</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="other">%d template</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Filter</string>
+    <string name="searcher_filter_add_action">Tambah filter</string>
+    <string name="searcher_filter_title">Filter Pencarian</string>
+    <string name="searcher_filter_size_section">Ukuran Berkas</string>
+    <string name="searcher_filter_size_min">Ukuran minimum</string>
+    <string name="searcher_filter_size_max">Ukuran maksimal</string>
+    <string name="searcher_filter_date_section">Tanggal Modifikasi</string>
+    <string name="searcher_filter_date_after">Dimodifikasi setelah</string>
+    <string name="searcher_filter_date_before">Dimodifikasi sebelum</string>
+    <string name="searcher_filter_date_any">Kapan saja</string>
+    <string name="searcher_filter_date_24h">24 jam terakhir</string>
+    <string name="searcher_filter_date_7d">7 hari terakhir</string>
+    <string name="searcher_filter_date_30d">30 hari terakhir</string>
+    <string name="searcher_filter_date_90d">90 hari terakhir</string>
+    <string name="searcher_filter_date_1y">Tahun terakhir</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">lebih besar dari</string>
+    <string name="searcher_filter_comparator_greater_or_equal">lebih besar atau sama dengan</string>
+    <string name="searcher_filter_comparator_less_than">lebih kecil dari</string>
+    <string name="searcher_filter_comparator_less_or_equal">lebih kecil atau sama dengan</string>
+    <string name="searcher_filter_comparator_equal">sama dengan</string>
+    <string name="searcher_filter_size_value_label">Ukuran</string>
+    <string name="searcher_filter_size_at_least">Minimal</string>
+    <string name="searcher_filter_size_at_most">Maksimal</string>
+    <string name="searcher_filter_size_value_hint">mis. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Masukkan angka dengan satuan (KB, MB, GB). Angka saja dianggap sebagai MB.</string>
+    <string name="searcher_filter_size_format_error">Ukuran tidak valid — gunakan angka dan satuan, mis. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Tanggal</string>
+    <string name="searcher_filter_date_direction_after">Setelah</string>
+    <string name="searcher_filter_date_direction_before">Sebelum</string>
+    <string name="searcher_filter_type_label">Jenis</string>
+    <string name="searcher_filter_type_files">Berkas</string>
+    <string name="searcher_filter_type_directories">Folder</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Hapus dari riwayat</string>
+    <string name="searcher_history_clear_all_action">Hapus semua</string>
+    <string name="searcher_history_clear_dialog_title">Hapus riwayat pencarian</string>
+    <string name="searcher_history_clear_dialog_message">Ini akan menghapus semua riwayat pencarian yang disimpan. Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="searcher_history_clear_confirm_action">Hapus</string>
+    <string name="searcher_history_cleared_success">Riwayat pencarian dihapus</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="other">%d hasil</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="other">Tampilkan %d lagi</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Sedang mencari</string>
+    <string name="searcher_progress_action_searched">Dicari</string>
+    <string name="searcher_progress_status_completed_with_errors">Selesai dengan kesalahan</string>
+    <string name="searcher_result_limit_reached">Batas hasil tercapai</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Beberapa item tidak dapat dicari sepenuhnya</string>
+    <string name="searcher_progress_clear_action">Hapus</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="other">%d gagal</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="other">%d item tidak dapat diakses</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="other">…dan %d lagi</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android melindungi lokasi ini. Akses tambahan memungkinkan Butler mencarinya.</string>
+    <string name="searcher_access_sheet_body_protected">Android melindungi lokasi ini. Tidak ada cara untuk memberikan akses di perangkat ini.</string>
+    <string name="searcher_access_sheet_unlock_action">Buka akses</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="other">%d lokasi</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="other">%d dipindai</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="other">%d ditemukan</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Konteks Kecocokan</string>
+    <string name="searcher_match_line_label">Baris %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Buka</string>
+    <string name="searcher_action_open_in_tab">Buka di tab baru</string>
+    <string name="searcher_action_open_with">Buka dengan</string>
+    <string name="searcher_action_open_in_editor">Buka di editor</string>
+    <string name="searcher_action_open_in_explorer">Buka di penjelajah</string>
+    <string name="searcher_action_install">Pasang</string>
+    <string name="searcher_action_copy">Salin</string>
+    <string name="searcher_action_cut">Potong</string>
+    <string name="searcher_action_delete">Hapus</string>
+    <string name="searcher_action_copy_path">Salin jalur</string>
+    <string name="searcher_action_properties">Properti</string>
+    <string name="searcher_action_select_all">Pilih semua</string>
+    <string name="searcher_action_deselect_all">Batalkan pilihan semua</string>
+    <string name="searcher_action_open_in_new_tabs">Buka di tab baru</string>
+    <string name="searcher_action_sort">Urutkan</string>
+    <string name="searcher_action_view">Tata letak</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Urutkan berdasarkan</string>
+    <string name="searcher_sort_mode_name_label">Nama</string>
+    <string name="searcher_sort_mode_size_label">Ukuran</string>
+    <string name="searcher_sort_mode_modified_label">Tanggal diubah</string>
+    <string name="searcher_sort_mode_created_label">Tanggal dibuat</string>
+    <string name="searcher_sort_mode_path_label">Jalur</string>
+    <string name="searcher_sort_descending_label">Urutan menurun</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Bagaimana item disusun dan seberapa banyak detail yang ditampilkan</string>
+    <string name="searcher_view_mode_list_label">Daftar</string>
+    <string name="searcher_view_mode_grid_label">Kisi</string>
+    <string name="searcher_view_density_compact_label">Ringkas</string>
+    <string name="searcher_view_density_comfortable_label">Nyaman</string>
+    <string name="searcher_view_density_detailed_label">Detail</string>
+    <string name="searcher_view_detail_modified_label">Diubah</string>
+    <string name="searcher_view_set_default_action">Jadikan default</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Pengaturan tambahan diperlukan untuk mencari beberapa lokasi.</string>
+</resources>

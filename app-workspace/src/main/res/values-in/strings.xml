@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Papan klip</string>
+    <string name="clipboard_clear_all">Hapus semua</string>
+    <string name="clipboard_paste">Tempel</string>
+    <string name="clipboard_open_in_explorer">Buka di explorer</string>
+    <string name="clipboard_copy">Salin</string>
+    <string name="clipboard_cut">Potong</string>
+    <string name="clipboard_origin">Asal: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="other">Salin %d item</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="other">%d item dari %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="other">Potong %d item</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="other">%d item dari %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="other">%d lokasi</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="other">%1$d item dari %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="other">%1$d item dari %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Cuplikan teks</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="other">%1$d karakter</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Tempel sebagai berkas</string>
+    <string name="clipboard_text_info_characters">Karakter</string>
+    <string name="clipboard_text_info_lines">Baris</string>
+    <string name="clipboard_text_info_content">Konten</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Ringkasan</string>
+    <string name="clipboard_info_operation">Operasi</string>
+    <string name="clipboard_info_items">Item</string>
+    <string name="clipboard_info_source">Sumber</string>
+    <string name="clipboard_info_sources">Sumber</string>
+    <string name="clipboard_info_workspace">Ruang kerja</string>
+    <string name="clipboard_info_workspace_closed">Ditutup</string>
+    <string name="clipboard_info_time">Waktu</string>
+    <string name="clipboard_info_items_with_count">Item (%1$d)</string>
+    <string name="clipboard_info_actions">Tindakan</string>
+    <string name="clipboard_info_go_to_source">Buka sumber</string>
+    <string name="clipboard_info_go_to_first_source">Buka sumber pertama</string>
+    <string name="clipboard_info_remove">Hapus dari papan klip</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Papan klip</string>
+    <string name="clipboard_settings_remove_on_paste_title">Hapus setelah ditempel</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Hapus item yang disalin dari papan klip setelah ditempel</string>
+    <string name="clipboard_settings_max_items_title">Jumlah maksimum item</string>
+    <string name="clipboard_settings_max_items_desc">Jumlah maksimum item di papan klip</string>
+
+    <string name="workspace_explorer_label">Explorer</string>
+    <string name="workspace_searcher_label">Pencarian</string>
+    <string name="workspace_editor_label">Editor</string>
+    <string name="workspace_templates_label">Templat</string>
+    <string name="workspace_apps_label">Aplikasi</string>
+    <string name="workspace_appdetails_label">Detail aplikasi</string>
+    <string name="workspace_saver_label">Simpan sebagai</string>
+    <string name="workspace_developer_label">Pengembang</string>
+    <string name="workspace_history_label">Riwayat</string>
+    <string name="workspace_bugreport_label">Laporan bug</string>
+    <string name="workspace_viewer_label">Penampil</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Foto</string>
+    <string name="workspace_searcher_target_videos">Video</string>
+    <string name="workspace_searcher_target_music">Musik</string>
+    <string name="workspace_searcher_target_downloads">Unduhan</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Lainnya</string>
+    <string name="workspace_expand_less_action">Lebih sedikit</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Tab dan ruang kerja</string>
+    <string name="workspace_button_menu_new_workspace_format">%1$s baru</string>
+    <string name="workspace_button_menu_new_tab_action">Tab baru</string>
+    <string name="workspace_button_menu_category_recent">Baru-baru ini</string>
+    <string name="workspace_button_menu_category_other">Lainnya</string>
+    <string name="workspace_button_menu_category_current_tab">Tab ini</string>
+    <string name="workspace_button_menu_manager_action">Pengelola tab</string>
+    <string name="workspace_button_menu_layout_action">Tata letak</string>
+    <string name="workspace_button_menu_close_current_action">Tutup tab saat ini</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="other">Tutup tab saat ini (%d ruang kerja)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Pengaturan</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Tutup semua tab?</string>
+    <string name="workspace_manager_close_all_message">Ini akan menutup semua %1$d %2$s yang terbuka. Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="workspace_manager_close_all_message_singular">tab</string>
+    <string name="workspace_manager_close_all_message_plural">tab</string>
+    <string name="workspace_manager_close_all_action">Tutup semua</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Beberapa tab memiliki perubahan yang belum disimpan dan akan hilang.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Buang semua</string>
+    <string name="workspace_manager_close_selected_title">Tutup tab yang dipilih?</string>
+    <string name="workspace_manager_close_selected_message">Ini akan menutup %1$d %2$s yang dipilih. Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="workspace_manager_close_selected_action">Tutup yang dipilih</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Beberapa tab yang dipilih memiliki perubahan yang belum disimpan dan akan hilang.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Buang yang dipilih</string>
+    <string name="workspace_manager_pause_partial_title">Jeda tab?</string>
+    <string name="workspace_manager_pause_partial_message">%1$d dari %2$d tab yang dipilih dapat dijeda. Sisanya sedang digunakan, memiliki perubahan yang belum disimpan, atau sedang terbuka.</string>
+    <string name="workspace_manager_pause_partial_action">Jeda %1$d</string>
+    <string name="workspace_fab_close_all">Tutup semua tab</string>
+    <string name="general_cancel_action">Batal</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Operasi</string>
+    <string name="operations_clear_completed">Hapus yang selesai</string>
+    <string name="operations_state_queued">Dalam antrean</string>
+    <string name="operations_state_running">Berjalan</string>
+    <string name="operations_state_waiting">Menunggu masukan</string>
+    <string name="operations_state_successful">Berhasil</string>
+    <string name="operations_state_failed">Gagal</string>
+    <string name="operations_state_cancelled">Dibatalkan</string>
+    <string name="operations_state_cancelling">Membatalkan…</string>
+    <string name="operations_cancel_operation">Batalkan operasi</string>
+    <string name="operations_cancel_dialog_title">Batalkan operasi?</string>
+    <string name="operations_cancel_dialog_message">Anda yakin ingin membatalkan operasi ini?</string>
+    <string name="operations_cancel_dialog_warning">Membatalkan dapat meninggalkan berkas dalam keadaan tidak konsisten.</string>
+    <string name="operations_details_started_at">Dimulai</string>
+    <string name="operations_details_completed_at">Selesai</string>
+    <string name="operations_details_duration">Durasi</string>
+    <string name="operations_details_duration_not_started">Belum dimulai</string>
+    <string name="operations_details_progress">Progres</string>
+    <string name="operations_details_error">Detail kesalahan</string>
+    <string name="operations_details_actions">Tindakan</string>
+    <string name="operations_details_overview">Ringkasan</string>
+    <string name="operations_details_handle_issue">Tangani masalah</string>
+    <string name="operations_details_show_in_history_action">Tampilkan di riwayat</string>
+    <string name="operations_details_status">Status</string>
+    <string name="operations_details_result">Hasil</string>
+    <string name="operations_details_destination_folder">Folder tujuan</string>
+    <string name="operations_details_destination_path">Jalur tujuan</string>
+    <string name="operations_details_affected_paths_with_count">Jalur yang terpengaruh (%d)</string>
+    <string name="operations_details_problems_with_count">Masalah (%d)</string>
+    <string name="operations_details_problems_more">%d lainnya tidak ditampilkan</string>
+    <string name="workspace_operation_packages_section_title">Aplikasi</string>
+    <string name="workspace_operation_package_status_done">Selesai</string>
+    <string name="workspace_operation_package_status_failed">Gagal</string>
+    <string name="workspace_operation_package_status_declined">Ditolak</string>
+    <string name="operations_details_section_expand">Perluas %1$s</string>
+    <string name="operations_details_section_collapse">Ciutkan %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Grafik performa</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Hapus item?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="other">Hapus %1$d item?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Item ini akan dihapus secara permanen:</string>
+    <string name="workspace_dialog_delete_message_multiple">Item ini akan dihapus secara permanen:</string>
+    <string name="workspace_dialog_delete_more_items">… dan %1$d lainnya</string>
+    <string name="workspace_dialog_delete_warning">Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="workspace_dialog_delete_permanently_action">Hapus Secara Permanen</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Hapus secara permanen sebagai gantinya</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Beberapa item tidak dapat dipindahkan ke sampah dan akan ditangani secara terpisah.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Pindahkan ke Sampah?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="other">Pindahkan %1$d item ke Sampah?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Item ini akan dipindahkan ke sampah:</string>
+    <string name="workspace_dialog_trash_message_multiple">Item ini akan dipindahkan ke sampah:</string>
+    <string name="workspace_dialog_trash_hint">Temukan di lokasi Sampah</string>
+    <string name="workspace_dialog_move_to_trash_action">Pindahkan</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="other">%d dipilih</item>
+    </plurals>
+    <string name="workspace_action_more">Tindakan lainnya</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Penghapusan berkas</string>
+    <string name="workspace_operation_delete_description_single">Hapus \"%1$s\" dari \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="other">Hapus %1$d item dari \"%2$s\".</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Instalasi aplikasi</string>
+    <string name="workspace_operation_install_description">Instal \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">Membaca paket…</string>
+    <string name="workspace_operation_install_progress_extracting">Mengekstrak…</string>
+    <string name="workspace_operation_install_progress_writing">Menyerahkan berkas ke pemasang…</string>
+    <string name="workspace_operation_install_progress_committing">Menyelesaikan instalasi…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Menempatkan berkas ekspansi…</string>
+    <string name="workspace_operation_install_summary_success">%1$s telah dipasang.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s telah dipasang, tetapi berkas ekspansinya tidak dapat ditempatkan.</string>
+    <string name="workspace_install_unknown_sources_required">Butler memerlukan izin untuk memasang aplikasi. Berikan izin di pengaturan yang baru saja terbuka, lalu coba lagi.</string>
+    <string name="workspace_install_obb_failed">Aplikasi telah dipasang, tetapi berkas ekspansinya tidak dapat ditempatkan: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="other">%1$d berkas dihapus.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="other">%1$d direktori dihapus.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="other">%1$d item dilewati.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="other">%1$s dibebaskan.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Memindahkan ke sampah…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="other">%1$d berkas dipindahkan ke sampah.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="other">%1$d direktori dipindahkan ke sampah.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s dibebaskan.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s dibebaskan.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s tersisa.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Informasi</string>
+    <string name="workspace_file_info_name_label">Nama</string>
+    <string name="workspace_file_info_path_label">Jalur</string>
+    <string name="workspace_file_info_type_label">Jenis</string>
+    <string name="workspace_file_info_type_file">Berkas</string>
+    <string name="workspace_file_info_type_directory">Direktori</string>
+    <string name="workspace_file_info_type_symlink">Tautan simbolik</string>
+    <string name="workspace_file_info_type_unknown">Tidak diketahui</string>
+    <string name="workspace_file_info_size_label">Ukuran</string>
+    <string name="workspace_file_info_modified_label">Diubah</string>
+    <string name="workspace_file_info_created_label">Dibuat</string>
+    <string name="workspace_file_info_permissions_label">Izin</string>
+    <string name="workspace_file_info_owner_label">Pemilik</string>
+    <string name="workspace_file_info_child_count_label">Item</string>
+    <string name="workspace_file_info_symlink_target_label">Target</string>
+    <string name="workspace_file_info_unknown">Tidak diketahui</string>
+    <string name="workspace_file_info_copy_action">Salin ke papan klip</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Dipilih</string>
+    <string name="workspace_file_info_files_label">Berkas</string>
+    <string name="workspace_file_info_directories_label">Direktori</string>
+    <string name="workspace_file_info_total_size_label">Ukuran total</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Operasi ini belum dimulai.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Mengumpulkan data performa…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Data performa dari operasi ini tidak cukup untuk membuat grafik.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Data performa tidak tersedia untuk operasi ini.</string>
+    <string name="workspace_operation_performance_window_seconds">%1$d s terakhir</string>
+    <string name="workspace_operation_performance_window_minutes">%1$d min terakhir</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">item/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Tampilkan detail teknis</string>
+    <string name="workspace_error_hide_details_action">Sembunyikan detail teknis</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Menginisialisasi tab</string>
+    <string name="workspace_error_subtitle">Terjadi kesalahan yang tidak terduga</string>
+    <string name="workspace_close_tab_action">Tutup tab</string>
+    <string name="workspace_paused_body">Tab ini dijeda untuk menghemat memori dan baterai. Lanjutkan untuk melanjutkannya.</string>
+    <string name="workspace_paused_error_body">Tab ini tidak dapat dilanjutkan.</string>
+    <string name="workspace_paused_resume_action">Lanjutkan</string>
+    <string name="workspace_paused_label">Dijeda</string>
+    <string name="workspace_paused_content_label">Konten tab</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Berkas yang ada</string>
+    <string name="workspace_issue_collision_existing_folder_label">Folder yang ada</string>
+    <string name="workspace_issue_collision_new_file">Berkas masuk</string>
+    <string name="workspace_issue_collision_new_folder">Folder masuk</string>
+    <string name="workspace_issue_collision_overwrite">Ganti</string>
+    <string name="workspace_issue_collision_merge">Gabungkan</string>
+    <string name="workspace_issue_common_source_file">Berkas sumber</string>
+    <string name="workspace_issue_common_destination_file">Tujuan</string>
+    <string name="workspace_issue_common_skip">Lewati</string>
+    <string name="workspace_issue_common_rename">Ganti nama</string>
+    <string name="workspace_issue_common_rename_new">Ganti nama baru</string>
+    <string name="workspace_issue_common_rename_existing">Ganti nama yang ada</string>
+    <string name="workspace_issue_common_cancel">Batal</string>
+    <string name="workspace_issue_common_delete_permanently">Hapus secara permanen</string>
+    <string name="workspace_issue_archive_password_label">Kata sandi</string>
+    <string name="workspace_issue_archive_password_unlock">Buka kunci</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Item yang gagal</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… dan %1$d item lainnya</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Item yang terpengaruh</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… dan %1$d item lainnya</string>
+    <string name="workspace_issue_apply_all">Terapkan ke semua masalah yang tersisa</string>
+    <string name="workspace_issue_rename_new_name">Nama baru</string>
+    <string name="workspace_issue_rename_dialog_title_new">Ganti nama berkas masuk</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Ganti nama berkas yang ada</string>
+    <string name="workspace_issue_type_folder">Folder</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Buka beberapa tab?</string>
+    <string name="workspace_open_tabs_confirmation_message">Ini akan membuka %1$d tab.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Buka dengan</string>
+    <string name="workspace_open_with_no_app_label">Tidak ada aplikasi lain yang ditemukan</string>
+    <string name="workspace_open_with_no_app_description">Tidak ada aplikasi lain yang terpasang yang dapat membuka %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="other">Membuka %1$d tab</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="other">Tidak dapat menutup: operasi masih berjalan di %1$d tab</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">Tab</string>
+    <string name="workspace_settings_navigation">Navigasi</string>
+    <string name="workspace_settings_swipe_gestures_title">Gestur geser</string>
+    <string name="workspace_settings_swipe_gestures_desc">Geser ke kiri atau kanan untuk beralih antar-tab.</string>
+    <string name="workspace_settings_ondemand_creation_title">Buat tab otomatis</string>
+    <string name="workspace_settings_ondemand_creation_desc">Buat tab baru secara otomatis saat menggeser melewati tab terakhir.</string>
+    <string name="workspace_settings_newtab_type_title">Tipe tab baru</string>
+    <string name="workspace_settings_newtab_type_desc">Ruang kerja yang dibuka saat menggeser melewati tab terakhir, menambahkan tab ke panel kosong, atau membuat tab pertama.</string>
+    <string name="workspace_settings_newtab_type_ask">Tanyakan setiap kali</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Tampilkan pemilih tipe tab untuk setiap tab baru.</string>
+    <string name="workspace_settings_live_preview_title">Pratinjau langsung</string>
+    <string name="workspace_settings_live_preview_desc">Tampilkan konten tab langsung di pengelola tab.</string>
+    <string name="workspace_settings_other">Lainnya</string>
+    <string name="workspace_settings_layout_title">Tata letak</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Mode tata letak potret</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Pilih tata letak tab dalam orientasi potret.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Mode tata letak lanskap</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Pilih tata letak tab dalam orientasi lanskap.</string>
+    <string name="workspace_settings_layout_mode_auto">Otomatis</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Klasik pada layar kecil, rel tab dengan panel pada layar besar.</string>
+    <string name="workspace_settings_layout_mode_classic">Klasik</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Satu panel dalam satu waktu, tanpa rel tab.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Adaptif</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Rel tab ditambah sebanyak mungkin panel yang muat di layar. Sematkan tata letak dari menu Butler di rel.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptif (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Tunggal dengan rel tab</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Satu panel tab ditambah rel tab dari tata letak multi-panel. Beralih tab dari rel, bukan dengan menggeser; rel mengambil sebagian kecil layar.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Ganda vertikal</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Dua panel berdampingan (kiri/kanan).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Ganda horizontal</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Dua panel bertumpuk (atas/bawah).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Tiga panel, bilah samping kiri</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Satu panel besar di kiri, dua panel lebih kecil bertumpuk di kanan.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Tiga panel, bilah samping kanan</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Dua panel lebih kecil bertumpuk di kiri, satu panel besar di kanan.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Kisi 4 panel</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Empat panel dalam kisi 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Klik untuk fokus</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Klik pertama pada panel yang tidak fokus hanya akan memfokuskannya, dan panel yang tidak fokus tidak bereaksi terhadap penunjuk mouse. Matikan untuk berinteraksi dengannya secara langsung.</string>
+
+    <string name="workspace_settings_rail_button_title">Tombol Butler</string>
+    <string name="workspace_settings_rail_button_desc">Pilih posisi tombol Butler pada rel tab.</string>
+    <string name="workspace_settings_rail_button_leading">Awal</string>
+    <string name="workspace_settings_rail_button_leading_desc">Sebelum tab dalam mode potret, di atas tab dalam mode lanskap.</string>
+    <string name="workspace_settings_rail_button_trailing">Akhir</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Setelah tab dalam mode potret, di bawah tab dalam mode lanskap. Berada dalam jangkauan ibu jari untuk penggunaan satu tangan.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Sesi</string>
+    <string name="workspace_settings_session_restore_title">Pulihkan tab saat memulai</string>
+    <string name="workspace_settings_session_restore_desc">Pulihkan tab yang sebelumnya terbuka secara otomatis saat aplikasi dimulai.</string>
+    <string name="workspace_settings_autopause_title">Jeda tab yang tidak aktif</string>
+    <string name="workspace_settings_autopause_desc">Tab yang belum Anda lihat untuk sementara waktu dijeda untuk menghemat memori dan baterai. Membuka salah satunya akan melanjutkannya.</string>
+    <string name="workspace_settings_autopause_delay_title">Jeda setelah</string>
+    <string name="workspace_settings_autopause_delay_desc">Berapa lama tab tidak terlihat sebelum dijeda.</string>
+    <string name="workspace_settings_undoclose_title">Urungkan penutupan tab</string>
+    <string name="workspace_settings_undoclose_desc">Menutup tab menawarkan opsi untuk mengembalikannya selama beberapa detik.</string>
+    <string name="workspace_settings_session_data_title">Data sesi</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="other">%1$d tab • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">Menutup \"%1$s\"</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Pemulihan Sesi Gagal</string>
+    <string name="workspace_session_restoration_error_description">Sesi tab Anda sebelumnya tidak dapat dipulihkan. Ini mungkin disebabkan oleh bug yang akan diperbaiki pada pembaruan mendatang.\n\nAnda dapat menghapus sesi yang tersimpan untuk terus menggunakan Butler, atau menunggu pembaruan.</string>
+    <string name="workspace_session_restoration_error_clear_action">Hapus Sesi</string>
+    <string name="workspace_session_restoration_error_report_action">Laporkan Masalah</string>
+    <string name="workspace_session_restoration_error_confirm_title">Hapus Sesi?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Ini akan menghapus sesi tab tersimpan Anda secara permanen. Tindakan ini tidak dapat dibatalkan.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Ganti nama tab</string>
+    <string name="workspace_rename_name_label">Nama khusus</string>
+    <string name="workspace_rename_name_hint">Biarkan kosong untuk menggunakan nama otomatis</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Batas Tab Tercapai</string>
+    <string name="workspace_limit_reached_message">Pengguna gratis dapat membuka hingga %1$d tab sekaligus. Tingkatkan ke Butler Pro untuk tab tanpa batas!</string>
+    <string name="workspace_limit_pick_tabs_message">Paket gratis Anda mengizinkan %1$d tab terbuka. Pilih tab yang tidak lagi Anda butuhkan dan tutup untuk memberi ruang.</string>
+    <string name="workspace_limit_no_slot_hint">Menutup tab tidak akan membebaskan slot saat ini.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="other">Tutup %d tab</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="other">Pilih setidaknya %d tab untuk ditutup.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">%1$s dibuka</string>
+    <string name="workspace_limit_blocker_unsaved">Perubahan belum disimpan</string>
+    <string name="workspace_limit_blocker_busy">Sedang sibuk</string>
+    <string name="workspace_limit_blocker_attention">Menunggu Anda</string>
+    <string name="workspace_limit_blocker_loading">Masih memuat</string>
+    <string name="workspace_limit_blocker_awaiting_result">Selesaikan pemilih yang terbuka terlebih dahulu</string>
+    <string name="workspace_limit_blocker_unavailable">Tidak dapat ditutup saat ini</string>
+    <string name="workspace_limit_stacked_content_desc">Menutup tab ini juga menutup apa yang bertumpuk di atasnya</string>
+    <string name="workspace_limit_pro_description">Buka tab sebanyak yang Anda inginkan.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="other">%1$d item</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Pemulihan sampah</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="other">Pulihkan %d item dari sampah.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="other">%d item dipulihkan</item>
+    </plurals>
+</resources>

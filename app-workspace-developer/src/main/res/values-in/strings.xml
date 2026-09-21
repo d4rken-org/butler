@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Pengembang</string>
+    <string name="developer_title">Alat Pengembang</string>
+    <string name="developer_subtitle">Utilitas pengembangan</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">Sistem</string>
+    <string name="developer_tab_options">Opsi</string>
+    <string name="developer_tab_workspaces">Ruang kerja</string>
+    <string name="developer_tab_logs">Log</string>
+    <string name="developer_tab_testdata">Data Uji</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Opsi Debug</string>
+    <string name="developer_options_debug_mode">Mode debug</string>
+    <string name="developer_options_debug_mode_desc">Aktifkan pencatatan rinci</string>
+    <string name="developer_options_trace_mode">Mode trace</string>
+    <string name="developer_options_trace_mode_desc">Aktifkan pencatatan tingkat trace</string>
+    <string name="developer_options_floating_log">Panel log mengambang</string>
+    <string name="developer_options_floating_log_desc">Tampilkan overlay log yang dapat diseret di semua layar</string>
+    <string name="developer_options_services_header">Tes Layanan</string>
+    <string name="developer_options_root_test_action">Tes Root</string>
+    <string name="developer_options_root_installed_label">Terinstal</string>
+    <string name="developer_options_root_available_label">Tersedia</string>
+    <string name="developer_options_root_base_check_label">Pemeriksaan dasar</string>
+    <string name="developer_options_shizuku_test_action">Tes Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">Terinstal</string>
+    <string name="developer_options_shizuku_granted_label">Izin</string>
+    <string name="developer_options_shizuku_compatible_label">Kompatibel</string>
+    <string name="developer_options_shizuku_service_label">Layanan</string>
+    <string name="developer_options_test_running">Pengujian…</string>
+    <string name="developer_options_result_yes">Ya</string>
+    <string name="developer_options_result_no">Tidak</string>
+    <string name="developer_options_result_unknown">Tidak diketahui</string>
+    <string name="developer_options_visibility_header">Visibilitas</string>
+    <string name="developer_options_hide_mode">Sembunyikan Mode Pengembang</string>
+    <string name="developer_options_hide_mode_desc">Ketuk versi 7 kali di Pengaturan untuk mengaktifkan kembali.</string>
+    <string name="developer_options_hide_action">Sembunyikan</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Perangkat</string>
+    <string name="developer_system_device_model">Model</string>
+    <string name="developer_system_device_manufacturer">Pembuat</string>
+    <string name="developer_system_device_api">Level API</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">Versi</string>
+    <string name="developer_system_build_code">Kode Versi</string>
+    <string name="developer_system_build_flavor">Varian</string>
+    <string name="developer_system_build_type">Tipe Build</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Memori</string>
+    <string name="developer_system_memory_available">Tersedia</string>
+    <string name="developer_system_memory_total">Total</string>
+    <string name="developer_system_storage_header">Penyimpanan</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d ruang kerja</string>
+    <string name="developer_workspaces_empty">Tidak ada ruang kerja</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Hapus</string>
+    <string name="developer_logs_pause">Jeda</string>
+    <string name="developer_logs_resume">Lanjutkan</string>
+    <string name="developer_logs_empty">Tidak ada log</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Jalur Target</string>
+    <string name="developer_testdata_no_paths">Tidak ada jalur target yang dipilih. Tambahkan jalur untuk menghasilkan data uji.</string>
+    <string name="developer_testdata_add_path_action">Tambah jalur</string>
+    <string name="developer_testdata_options_header">Opsi Pembuatan</string>
+    <string name="developer_testdata_large_files">File besar</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Struktur bersarang</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 folder, ~1100 file</string>
+    <string name="developer_testdata_text_files">File teks untuk Editor</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Buat</string>
+    <string name="developer_testdata_generating">Membuat…</string>
+    <string name="developer_testdata_history_header">Entri contoh riwayat</string>
+    <string name="developer_testdata_history_desc">Mengisi ~25 entri operasi palsu dalam 30 hari terakhir dengan jenis, hasil, asal, dan jalur yang beragam. Menyisipkan langsung ke basis data riwayat; aman untuk diketuk kembali.</string>
+    <string name="developer_testdata_history_generate_action">Buat contoh riwayat</string>
+    <string name="developer_testdata_progress">%1$s dari %2$s</string>
+    <string name="developer_testdata_complete">Data uji dibuat di:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Buat File Besar</string>
+    <string name="developer_operation_large_files_desc">Membuat file uji di %1$s</string>
+    <string name="developer_operation_large_files_creating">Membuat %1$s</string>
+
+    <string name="developer_operation_nested_title">Buat Struktur Bersarang</string>
+    <string name="developer_operation_nested_desc">Membuat hierarki folder di %1$s</string>
+    <string name="developer_operation_nested_starting">Memulai struktur bersarang…</string>
+    <string name="developer_operation_nested_creating">Membuat %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d file dibuat</string>
+
+    <string name="developer_operation_text_files_title">Buat File Teks</string>
+    <string name="developer_operation_text_files_desc">Membuat file teks di %1$s</string>
+    <string name="developer_operation_text_files_creating">Membuat %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="other">%d file dibuat</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="other">%d direktori dibuat</item>
+    </plurals>
+</resources>

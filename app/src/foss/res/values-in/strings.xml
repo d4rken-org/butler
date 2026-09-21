@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Memerlukan Butler FOSS</string>
+
+    <string name="upgrade_prompt_title">Upgrade Butler</string>
+    <string name="upgrade_prompt_body">Buka fitur tambahan dan jadilah pendukung untuk membantu pengembangan berkelanjutan!</string>
+    <string name="upgrade_prompt_upgrade_action">Upgrade</string>
+
+    <string name="upgrade_screen_title">Upgrade Butler</string>
+    <string name="upgrade_screen_preamble">Butler tidak memiliki iklan dan tidak menjual data pengguna. Pengembangan berkelanjutan hanya dimungkinkan berkat Anda.</string>
+    <string name="upgrade_screen_how_title">Cara membantu</string>
+    <string name="upgrade_screen_how_body">Jadilah pendukung dan sponsori pengembangan! Tekan tombol di bawah untuk mengaktifkan semua fitur tambahan dan buka profil GitHub Sponsors saya.</string>
+
+    <string name="upgrade_screen_sponsor_action">Sponsori pengembangan</string>
+    <string name="upgrade_screen_sponsor_action_hint">Alternatifnya adalah iklan, analitik dan Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Terima kasih telah mendukung pengembangan open-source ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Sudah kembali? Dukungan Anda membuat Butler tetap hidup — mohon luangkan waktu untuk melihat halaman sponsor.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Tidak dapat membuka halaman sponsor. Coba buka di browser sebagai gantinya.</string>
+
+    <string name="upgrade_screen_status_free_title">Anda menggunakan versi gratis</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS sepenuhnya bersifat open source. Buka fitur tambahan dengan mendukung pengembangan.</string>
+    <string name="upgrade_screen_status_free_action">Lihat opsi upgrade</string>
+    <string name="upgrade_screen_status_upgraded_title">Anda adalah pendukung</string>
+    <string name="upgrade_screen_status_upgraded_body">Terima kasih telah mendukung pengembangan open-source ❤️ Semua fitur tambahan sudah dibuka.</string>
+    <string name="upgrade_screen_supporter_since">Pendukung sejak %s</string>
+    <string name="upgrade_screen_recurring_title">Lanjutkan</string>
+    <string name="upgrade_screen_recurring_body">Butler dikembangkan di waktu luang saya. Donasi berkala membantu menjaganya tetap hidup.</string>
+    <string name="upgrade_screen_recurring_action">Jadilah pendukung berkala</string>
+
+    <string name="upgrade_benefits_title">Manfaat upgrade</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Tab dan operasi tanpa batas\n• Sesuaikan desain, nuansa dan tampilan\n• Opsi dan fitur ekstra untuk setiap alat\n• Akses awal ke fitur baru\n• Pengembang yang termotivasi 🧙\ndan lainnya…</string>
+</resources>
