@@ -18,7 +18,7 @@
     <string name="saver_close_butler_action">Закрыть вкладку и вернуться</string>
     <string name="saver_done_action">Готово</string>
     <plurals name="saver_source_expired_warning">
-        <item quantity="one">Исходный файл больше недоступен. Поделитесь снова.</item>
+        <item quantity="one">%1$d исходный файл больше недоступен. Поделитесь снова.</item>
         <item quantity="few">%1$d исходных файла больше недоступны. Поделитесь снова.</item>
         <item quantity="many">%1$d исходных файлов больше недоступны. Поделитесь снова.</item>
         <item quantity="other">%1$d исходных файла больше недоступны. Поделитесь снова.</item>

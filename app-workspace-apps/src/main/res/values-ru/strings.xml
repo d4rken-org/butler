@@ -253,43 +253,43 @@
 
     <!-- Package operations -->
     <plurals name="apps_operation_enable_title">
-        <item quantity="one">Включить приложение</item>
+        <item quantity="one">Включить %d приложение</item>
         <item quantity="few">Включить %d приложения</item>
         <item quantity="many">Включить %d приложений</item>
         <item quantity="other">Включить %d приложения</item>
     </plurals>
     <plurals name="apps_operation_disable_title">
-        <item quantity="one">Отключить приложение</item>
+        <item quantity="one">Отключить %d приложение</item>
         <item quantity="few">Отключить %d приложения</item>
         <item quantity="many">Отключить %d приложений</item>
         <item quantity="other">Отключить %d приложения</item>
     </plurals>
     <plurals name="apps_operation_force_stop_title">
-        <item quantity="one">Принудительно остановить приложение</item>
+        <item quantity="one">Принудительно остановить %d приложение</item>
         <item quantity="few">Принудительно остановить %d приложения</item>
         <item quantity="many">Принудительно остановить %d приложений</item>
         <item quantity="other">Принудительно остановить %d приложения</item>
     </plurals>
     <plurals name="apps_operation_uninstall_title">
-        <item quantity="one">Удалить приложение</item>
+        <item quantity="one">Удалить %d приложение</item>
         <item quantity="few">Удалить %d приложения</item>
         <item quantity="many">Удалить %d приложений</item>
         <item quantity="other">Удалить %d приложения</item>
     </plurals>
     <plurals name="apps_operation_clear_data_title">
-        <item quantity="one">Очистить данные приложения</item>
+        <item quantity="one">Очистить данные %d приложения</item>
         <item quantity="few">Очистить данные %d приложений</item>
         <item quantity="many">Очистить данные %d приложений</item>
         <item quantity="other">Очистить данные %d приложений</item>
     </plurals>
     <plurals name="apps_operation_components_enable_title">
-        <item quantity="one">Включить компонент</item>
+        <item quantity="one">Включить %d компонент</item>
         <item quantity="few">Включить %d компонента</item>
         <item quantity="many">Включить %d компонентов</item>
         <item quantity="other">Включить %d компонента</item>
     </plurals>
     <plurals name="apps_operation_components_disable_title">
-        <item quantity="one">Отключить компонент</item>
+        <item quantity="one">Отключить %d компонент</item>
         <item quantity="few">Отключить %d компонента</item>
         <item quantity="many">Отключить %d компонентов</item>
         <item quantity="other">Отключить %d компонента</item>
