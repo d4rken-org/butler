@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">باز کردن با</string>
+    <string name="viewer_image_content_description">تصویر %1$s</string>
+    <string name="viewer_toolbar_folder_label">پوشه</string>
+    <string name="viewer_back_action">بازگشت</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">فایل قبلی</string>
+    <string name="viewer_next_file_action">فایل بعدی</string>
+    <string name="viewer_open_location_action">باز کردن مکان</string>
+    <string name="viewer_clipboard_copied">%1$s کپی شد. آن را در یک زبانه کاوشگر بچسبانید.</string>
+    <string name="viewer_clipboard_cut">%1$s برش خورد. آن را در یک زبانه کاوشگر بچسبانید تا منتقل شود.</string>
+    <string name="viewer_share_failed_label">نتوانست این فایل را اشتراک‌گذاری کند</string>
+    <string name="viewer_share_failed_description">نمی‌توان %1$s را به برنامه دیگری سپرد. این برای فایل‌هایی که نیاز به دسترسی root یا ADB دارند، و فایل‌هایی که دیگر وجود ندارند، اتفاق می‌افتد.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">اندازه</string>
+    <string name="viewer_info_modified_label">تغییر یافته</string>
+    <string name="viewer_info_created_label">ایجاد شده</string>
+    <string name="viewer_info_format_label">قالب</string>
+    <string name="viewer_info_dimensions_label">ابعاد</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">مجوزها</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">مالک</string>
+    <string name="viewer_info_caption_label">پیام اشتراک‌گذاری شده</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">نمایش همه جزئیات</string>
+    <string name="viewer_info_collapse_action">مخفی کردن جزئیات</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">پیش‌نمایش · ۱ صفحه</string>
+    <string name="viewer_pdf_page_indicator">صفحه %1$d از %2$d</string>
+    <string name="viewer_pdf_page_previous">صفحه قبلی</string>
+    <string name="viewer_pdf_page_next">صفحه بعدی</string>
+    <string name="viewer_pdf_page_error">صفحه %1$d نتوانست نمایش داده شود.</string>
+    <string name="viewer_pdf_page_content_description">پیش‌نمایش PDF از %1$s، صفحه %2$d از %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">این نوع فایل هنوز پشتیبانی نمی‌شود</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">این یک فایل فشرده است</string>
+    <string name="viewer_browse_archive_action">مرور محتوا</string>
+    <string name="viewer_archive_needs_copy_msg">یک کپی را در دستگاه ذخیره کنید، سپس Butler می‌تواند محتوای درونی را مرور کند.</string>
+    <string name="viewer_archive_nested_msg">این فایل فشرده درون فایل فشرده دیگری قرار دارد. ابتدا آن را استخراج کنید تا بتوانید محتوای درونی را مرور کنید.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">نسخه</string>
+    <string name="viewer_apk_min_sdk_label">حداقل SDK</string>
+    <string name="viewer_apk_target_sdk_label">SDK هدف</string>
+    <string name="viewer_apk_installed_label">نصب شده</string>
+    <string name="viewer_apk_not_installed_value">نصب نشده</string>
+    <string name="viewer_apk_installed_unknown_value">نتوانست بررسی شود</string>
+    <string name="viewer_apk_installed_older_hint">قدیمی‌تر از این فایل</string>
+    <string name="viewer_apk_installed_newer_hint">جدیدتر از این فایل</string>
+    <string name="viewer_apk_permissions_header">مجوزها (%1$d)</string>
+    <string name="viewer_apk_signing_header">گواهی‌های امضا</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">نصب</string>
+    <string name="viewer_bundle_format_label">قالب بسته</string>
+    <string name="viewer_bundle_splits_label">APK‌های درونی</string>
+    <string name="viewer_bundle_expansion_files_hint">حاوی فایل‌های بسط است که پس از نصب برنامه قرار داده می‌شوند.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">قرار دادن فایل‌های بسط نیاز به دسترسی root یا ADB دارد. بدون آن برنامه نصب می‌شود، اما فایل‌های بسط جا می‌مانند.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">نماد برنامه %1$s</string>
+    <string name="viewer_apk_icon_show_action">نمایش نماد</string>
+    <string name="viewer_apk_icon_save_action">ذخیره نماد</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">نماد به عنوان %1$s ذخیره شد</string>
+    <string name="viewer_apk_icon_overwrite_title">جایگزینی فایل؟</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s در این پوشه موجود است. ذخیره کردن نماد باعث جایگزینی آن می‌شود.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">جایگزینی</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">فایل تغییر کرد</string>
+    <string name="viewer_external_change_message">این فایل در دستگاه تغییر کرد. برای بارگذاری مجدد تازه‌سازی کنید.</string>
+    <string name="viewer_external_change_gone_title">فایل حذف شد</string>
+    <string name="viewer_external_change_gone_message">این فایل حذف شد یا دیگر قابل‌دسترسی نیست.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">نمی‌توان این فایل را نمایش داد</string>
+    <string name="viewer_error_not_a_file_label">فایل معمولی نیست</string>
+    <string name="viewer_error_not_a_file_description">%1$s یک فایل معمولی نیست.</string>
+    <string name="viewer_error_broken_symlink_label">میانبر خراب</string>
+    <string name="viewer_error_broken_symlink_description">%1$s به چیزی اشاره می‌کند که دیگر وجود ندارد.</string>
+    <string name="viewer_error_undecodable_label">تصویر آسیب‌دیده</string>
+    <string name="viewer_error_undecodable_description">%1$s نتوانست کد‌گشایی شود. فایل ممکن است ناقص یا آسیب‌دیده باشد.</string>
+    <string name="viewer_error_file_gone_label">فایل یافت نشد</string>
+    <string name="viewer_error_file_gone_description">%1$s دیگر وجود ندارد. ممکن است منتقل، تغییر نام یا حذف شده باشد.</string>
+    <string name="viewer_error_empty_file_label">فایل خالی</string>
+    <string name="viewer_error_empty_file_description">%1$s خالی است و چیزی برای نمایش ندارد.</string>
+    <string name="viewer_error_apk_unreadable_label">APK غیرقابل‌خواندن</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s نتوانست به عنوان یک بسته برنامه Android تجزیه شود.</string>
+    <string name="viewer_error_icon_unavailable_label">نماد موجود نیست</string>
+    <string name="viewer_error_icon_unavailable_description">نماد برنامه %1$s نتوانست خوانده شود.</string>
+    <string name="viewer_error_icon_target_notfile_label">نام از قبل استفاده شده است</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s قبلاً اینجا موجود است و یک فایل معمولی نیست، بنابراین نتوانست جایگزین شود.</string>
+    <string name="viewer_error_icon_target_appeared_label">فایل ایجاد شد</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s در حین انتخاب محل ذخیره ایجاد شد. هیچ چیز جایگزین نشد، دوباره سعی کنید.</string>
+    <string name="viewer_error_content_unreadable_label">نتوانست این فایل را بخواند</string>
+    <string name="viewer_error_content_unreadable_description">برنامه‌ای که %1$s را اشتراک‌گذاری کرد دیگر اجازه نمی‌دهد Butler آن را بخواند. از آن برنامه بخواهید آن را دوباره اشتراک‌گذاری کند.</string>
+    <string name="viewer_save_copy_action">ذخیره یک کپی…</string>
+    <string name="viewer_open_in_editor_action">باز کردن در ویرایشگر</string>
+    <string name="viewer_text_truncated_bytes">پیش‌نمایش محدود به %1$s اول این فایل است.</string>
+    <string name="viewer_text_truncated_lines">پیش‌نمایش محدود به %1$s خط اول این فایل است.</string>
+    <string name="viewer_text_truncated_width">خطوط بلند در این پیش‌نمایش کوتاه می‌شوند.</string>
+    <string name="viewer_text_unreadable_label">این فایل نتوانست خوانده شود</string>
+</resources>

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">تاریخچه</string>
+    <string name="history_workspace_subtitle">عملیات فایلی اخیر</string>
+    <string name="history_workspace_title_scoped">تاریخچه: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">تاریخچه: ناموفق</string>
+    <string name="history_workspace_title_outcome_partial">تاریخچه: جزئی</string>
+    <string name="history_workspace_title_outcome_cancelled">تاریخچه: لغو شده</string>
+    <string name="history_workspace_title_outcome_completed">تاریخچه: تکمیل شده</string>
+    <string name="history_workspace_title_kind_copy">تاریخچه: کپی</string>
+    <string name="history_workspace_title_kind_move">تاریخچه: انتقال</string>
+    <string name="history_workspace_title_kind_delete">تاریخچه: حذف</string>
+    <string name="history_workspace_title_kind_create_file">تاریخچه: ایجاد فایل</string>
+    <string name="history_workspace_title_kind_create_folder">تاریخچه: ایجاد پوشه</string>
+    <string name="history_workspace_title_kind_save">تاریخچه: ذخیره</string>
+    <string name="history_workspace_title_kind_compress">تاریخچه: فشرده‌سازی</string>
+    <string name="history_workspace_title_kind_extract">تاریخچه: استخراج</string>
+    <string name="history_workspace_title_filtered">تاریخچه (فیلتر شده)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">تاریخچه: %1$d مسیر</item>
+        <item quantity="other">تاریخچه: %1$d مسیر</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">همه</string>
+    <string name="history_filter_outcome_completed">تکمیل شده</string>
+    <string name="history_filter_outcome_partial">جزئی</string>
+    <string name="history_filter_outcome_failed">ناموفق</string>
+    <string name="history_filter_outcome_cancelled">لغو شده</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">کپی</string>
+    <string name="history_filter_kind_move">انتقال</string>
+    <string name="history_filter_kind_delete">حذف</string>
+    <string name="history_filter_kind_create_file">ایجاد فایل</string>
+    <string name="history_filter_kind_create_folder">ایجاد پوشه</string>
+    <string name="history_filter_kind_save">ذخیره</string>
+    <string name="history_filter_kind_compress">فشرده‌سازی</string>
+    <string name="history_filter_kind_extract">استخراج</string>
+    <string name="history_filter_kind_enable">فعال کردن</string>
+    <string name="history_filter_kind_disable">غیرفعال کردن</string>
+    <string name="history_filter_kind_force_stop">توقف اجباری</string>
+    <string name="history_filter_kind_uninstall">حذف برنامه</string>
+    <string name="history_filter_kind_clear_data">پاک کردن داده</string>
+    <string name="history_filter_kind_components">اجزا</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">تعیین محدوده مسیر…</string>
+    <string name="history_path_scope_clear_action">پاک کردن محدوده مسیر</string>
+    <string name="history_path_scope_dialog_title">فیلتر بر اساس مسیر</string>
+    <string name="history_path_scope_dialog_description">نمایش تنها عملیاتی که این مسیر یا فرزندان آن را تحت‌تأثیر قرار دادند.</string>
+    <string name="history_path_scope_dialog_input_label">مسیر</string>
+    <string name="history_path_scope_dialog_pick_folder_action">انتخاب پوشه…</string>
+    <string name="history_path_scope_dialog_apply_action">اعمال</string>
+    <string name="history_path_scope_dialog_cancel_action">لغو</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">امروز</string>
+    <string name="history_group_yesterday">دیروز</string>
+    <string name="history_group_this_week">این هفته</string>
+    <string name="history_group_this_month">این ماه</string>
+    <string name="history_group_older">قدیمی‌تر</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">تغییر نام داده شد</string>
+    <string name="history_entry_intent_paste_copy">چسبانده شد</string>
+    <string name="history_entry_intent_paste_move">چسبانده شد (انتقال)</string>
+    <string name="history_entry_intent_drop_copy">رها شد (کپی)</string>
+    <string name="history_entry_intent_drop_move">رها شد (انتقال)</string>
+    <string name="history_entry_intent_enable_components">اجزای آن فعال شدند</string>
+    <string name="history_entry_intent_disable_components">اجزای آن غیرفعال شدند</string>
+    <string name="history_entry_kind_copy">کپی شد</string>
+    <string name="history_entry_kind_move">منتقل شد</string>
+    <string name="history_entry_kind_delete">حذف شد</string>
+    <string name="history_entry_kind_create_file">فایل ایجاد شد</string>
+    <string name="history_entry_kind_create_folder">پوشه ایجاد شد</string>
+    <string name="history_entry_kind_save">ذخیره شد</string>
+    <string name="history_entry_kind_compress">فشرده شد</string>
+    <string name="history_entry_kind_extract">استخراج شد</string>
+    <string name="history_entry_kind_restore">بازیابی شد</string>
+    <string name="history_entry_kind_install">نصب شد</string>
+    <string name="history_entry_kind_enable">فعال شد</string>
+    <string name="history_entry_kind_disable">غیرفعال شد</string>
+    <string name="history_entry_kind_force_stop">به‌طور اجباری متوقف شد</string>
+    <string name="history_entry_kind_uninstall">حذف برنامه شد</string>
+    <string name="history_entry_kind_clear_data">داده‌های آن پاک شدند</string>
+    <string name="history_entry_kind_components">اجزای آن تغییر کردند</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d مسیر</item>
+        <item quantity="other">%d مسیر</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">اولین %1$d از %2$d مسیر تحت‌تأثیر</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">شروع شد</string>
+    <string name="history_detail_label_completed">تکمیل شد</string>
+    <string name="history_detail_label_duration">مدت زمان</string>
+    <string name="history_detail_label_outcome">نتیجه</string>
+    <string name="history_detail_label_origin">منبع</string>
+    <string name="history_detail_label_error">خطا</string>
+    <string name="history_detail_label_paths">مسیرهای تحت‌تأثیر</string>
+    <string name="history_detail_label_partial_errors">شکست‌های هر مورد</string>
+    <string name="history_detail_copy_path_action">کپی مسیر</string>
+    <string name="history_detail_paths_empty">هیچ مسیر تحت‌تأثیری ثبت نشده.</string>
+    <string name="history_detail_label_attempted_paths">مسیرهای سعی شده</string>
+    <string name="history_detail_label_packages">برنامه‌های تحت‌تأثیر</string>
+    <string name="history_detail_packages_empty">هیچ برنامه تحت‌تأثیری ثبت نشده.</string>
+    <string name="history_detail_paths_truncated_callout">نمایش اولین %1$d از %2$d مسیر تحت‌تأثیر.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">نمایش اولین %1$d از %2$d مسیر سعی شده.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">%1$d مورد در این عملیات ناموفق بود.</item>
+        <item quantity="other">%1$d مورد در این عملیات ناموفق بودند.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">کاوشگر</string>
+    <string name="history_origin_searcher">جستجو</string>
+    <string name="history_origin_saver">ذخیره‌کننده</string>
+    <string name="history_origin_developer">توسعه‌دهنده</string>
+    <string name="history_origin_viewer">نمایشگر</string>
+    <string name="history_origin_apps">برنامه‌ها</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d میلی‌ثانیه</string>
+    <string name="history_duration_seconds">%1$.1f ثانیه</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">هنوز تاریخچه‌ای وجود ندارد</string>
+    <string name="history_empty_subtitle">عملیات فایلی هنگام استفاده از Butler در اینجا ظاهر می‌شوند.</string>
+    <string name="history_empty_filtered_title">هیچ موردی پیدا نشد</string>
+    <string name="history_empty_filtered_subtitle">هیچ ورودی تاریخچه‌ای با فیلتر فعلی مطابقت ندارد.</string>
+    <string name="history_empty_filtered_reset_action">بازنشانی فیلتر</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">بازنشانی فیلتر</string>
+    <string name="history_toolbar_reset_filter_content_description">بازنشانی فیلتر‌ها</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">اولین %1$d از %2$d مسیر تحت‌تأثیر</string>
+    <string name="history_add_filter_action">افزودن فیلتر</string>
+    <string name="history_add_filter_sheet_title">افزودن فیلتر</string>
+    <string name="history_add_filter_section_outcome">نتیجه</string>
+    <string name="history_add_filter_section_kind">نوع</string>
+    <string name="history_add_filter_section_path_scope">محدوده مسیر</string>
+    <string name="history_add_filter_add_path_action">افزودن مسیر…</string>
+    <string name="history_path_scope_remove_action">حذف</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d ورودی</item>
+        <item quantity="other">%1$d ورودی</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%1$d از %2$d نمایش داده شد</item>
+        <item quantity="other">%1$d از %2$d نمایش داده شدند</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">تاریخچه</string>
+    <string name="history_settings_save_history_title">ذخیره تاریخچه</string>
+    <string name="history_settings_save_history_subtitle">ثبت عملیات فایلی تکمیل شده.</string>
+    <string name="history_settings_max_history_label">حداکثر موارد تاریخچه</string>
+    <string name="history_settings_max_history_subtitle">ورودی‌های قدیمی بعد از فراتر رفتن از این حد حذف می‌شوند.</string>
+    <string name="history_settings_max_history_input_label">حداکثر ورودی‌ها</string>
+    <string name="history_settings_clear_history_title">پاک کردن تاریخچه</string>
+    <string name="history_settings_clear_history_subtitle">حذف تمام ورودی‌های ذخیره شده (%1$d).</string>
+    <string name="history_clear_dialog_title">تاریخچه پاک شود؟</string>
+    <string name="history_clear_dialog_message">تمام ورودی‌ها را از پایگاه داده تاریخچه عملیات حذف می‌کند. این کار قابل برگشت نیست.</string>
+    <string name="history_clear_confirm_action">پاک کردن</string>
+    <string name="history_cleared_success">تاریخچه پاک شد</string>
+    <string name="history_workspace_title_kind_restore">تاریخچه: بازیابی</string>
+    <string name="history_filter_kind_restore">بازیابی</string>
+    <string name="history_workspace_title_kind_install">تاریخچه: نصب</string>
+    <string name="history_filter_kind_install">نصب</string>
+    <string name="history_workspace_title_kind_enable">تاریخچه: فعال کردن</string>
+    <string name="history_workspace_title_kind_disable">تاریخچه: غیرفعال کردن</string>
+    <string name="history_workspace_title_kind_force_stop">تاریخچه: توقف اجباری</string>
+    <string name="history_workspace_title_kind_uninstall">تاریخچه: حذف برنامه</string>
+    <string name="history_workspace_title_kind_clear_data">تاریخچه: پاک کردن داده</string>
+    <string name="history_workspace_title_kind_components">تاریخچه: اجزا</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">انتخاب همه</string>
+    <string name="history_action_deselect_all">لغو انتخاب همه</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">حذف %1$d ورودی</item>
+        <item quantity="other">حذف %1$d ورودی</item>
+    </plurals>
+    <string name="history_delete_dialog_message">فقط رکوردهای تاریخچه حذف می‌شوند، خود فایل‌ها تغییری نمی‌پذیرند.</string>
+    <string name="history_pro_dialog_message">اشتراک‌گذاری و حذف ورودی‌های تاریخچه بخشی از ارتقاء است. پاک کردن کل تاریخچه در تنظیمات تاریخچه رایگان می‌ماند.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">نتیجه</string>
+    <string name="history_share_label_kind">نوع</string>
+    <string name="history_share_label_origin">منبع</string>
+    <string name="history_share_label_summary">خلاصه</string>
+    <string name="history_share_label_completed">تکمیل شد</string>
+    <string name="history_share_label_duration">مدت زمان</string>
+    <string name="history_share_label_error">خطا</string>
+    <string name="history_share_label_failed_items">موارد ناموفق</string>
+    <string name="history_share_label_paths">مسیرهای تحت‌تأثیر (%1$d)</string>
+    <string name="history_share_label_packages">برنامه‌های تحت‌تأثیر (%1$d)</string>
+    <string name="history_share_paths_more">… و %1$d مورد دیگر</string>
+    <string name="history_share_truncated">… و %1$d ورودی دیگری شامل نشده</string>
+</resources>

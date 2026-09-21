@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- کلیپ‌بورد -->
+    <string name="clipboard_header_title">کلیپ‌بورد</string>
+    <string name="clipboard_clear_all">پاک کردن همه</string>
+    <string name="clipboard_paste">چسباندن</string>
+    <string name="clipboard_open_in_explorer">باز کردن در کاوشگر</string>
+    <string name="clipboard_copy">کپی</string>
+    <string name="clipboard_cut">برش</string>
+    <string name="clipboard_origin">مبدأ: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">کپی %d مورد</item>
+        <item quantity="other">کپی %d مورد</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d مورد از %s</item>
+        <item quantity="other">%d مورد از %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">برش %d مورد</item>
+        <item quantity="other">برش %d مورد</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d مورد از %s</item>
+        <item quantity="other">%d مورد از %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d مکان</item>
+        <item quantity="other">%d مکان</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d مورد از %2$s</item>
+        <item quantity="other">%1$d مورد از %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d مورد از %2$s</item>
+        <item quantity="other">%1$d مورد از %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">قطعه متنی</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d نویسه</item>
+        <item quantity="other">%1$d نویسه</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">چسباندن به‌عنوان فایل</string>
+    <string name="clipboard_text_info_characters">نویسه‌ها</string>
+    <string name="clipboard_text_info_lines">خط‌ها</string>
+    <string name="clipboard_text_info_content">محتوا</string>
+
+    <!-- کادر اطلاعات کلیپ‌بورد -->
+    <string name="clipboard_info_overview">بررسی اجمالی</string>
+    <string name="clipboard_info_operation">عملیات</string>
+    <string name="clipboard_info_items">موارد</string>
+    <string name="clipboard_info_source">مبدأ</string>
+    <string name="clipboard_info_sources">مبدأها</string>
+    <string name="clipboard_info_workspace">فضای کاری</string>
+    <string name="clipboard_info_workspace_closed">بسته شده</string>
+    <string name="clipboard_info_time">زمان</string>
+    <string name="clipboard_info_items_with_count">موارد (%1$d)</string>
+    <string name="clipboard_info_actions">اقدامات</string>
+    <string name="clipboard_info_go_to_source">رفتن به مبدأ</string>
+    <string name="clipboard_info_go_to_first_source">رفتن به اولین مبدأ</string>
+    <string name="clipboard_info_remove">حذف از کلیپ‌بورد</string>
+
+    <!-- تنظیمات کلیپ‌بورد -->
+    <string name="clipboard_settings_title">کلیپ‌بورد</string>
+    <string name="clipboard_settings_remove_on_paste_title">حذف هنگام چسباندن</string>
+    <string name="clipboard_settings_remove_on_paste_desc">حذف موارد کپی‌شده از کلیپ‌بورد پس از چسباندن</string>
+    <string name="clipboard_settings_max_items_title">حداکثر موارد</string>
+    <string name="clipboard_settings_max_items_desc">حداکثر تعداد موارد در کلیپ‌بورد</string>
+
+    <string name="workspace_explorer_label">کاوشگر</string>
+    <string name="workspace_searcher_label">جستجو</string>
+    <string name="workspace_editor_label">ویرایشگر</string>
+    <string name="workspace_templates_label">الگوها</string>
+    <string name="workspace_apps_label">برنامه‌ها</string>
+    <string name="workspace_appdetails_label">جزئیات برنامه</string>
+    <string name="workspace_saver_label">ذخیره به‌عنوان</string>
+    <string name="workspace_developer_label">توسعه‌دهنده</string>
+    <string name="workspace_history_label">تاریخچه</string>
+    <string name="workspace_bugreport_label">گزارش‌های اشکال</string>
+    <string name="workspace_viewer_label">نمایشگر</string>
+
+    <!-- اهداف جستجوی رسانه در جستجوگر -->
+    <string name="workspace_searcher_target_photos">عکس‌ها</string>
+    <string name="workspace_searcher_target_videos">ویدیوها</string>
+    <string name="workspace_searcher_target_music">موسیقی</string>
+    <string name="workspace_searcher_target_downloads">دانلودها</string>
+
+    <!-- کنش‌های رابط کاربری فضای کاری -->
+    <string name="workspace_expand_more_action">بیشتر</string>
+    <string name="workspace_expand_less_action">کمتر</string>
+
+    <!-- منوی دکمه فضای کاری -->
+    <string name="workspace_button_description">زبانه‌ها و فضاهای کاری</string>
+    <string name="workspace_button_menu_new_workspace_format">%1$s جدید</string>
+    <string name="workspace_button_menu_new_tab_action">زبانه جدید</string>
+    <string name="workspace_button_menu_category_recent">اخیر</string>
+    <string name="workspace_button_menu_category_other">سایر</string>
+    <string name="workspace_button_menu_category_current_tab">این زبانه</string>
+    <string name="workspace_button_menu_manager_action">مدیریت زبانه‌ها</string>
+    <string name="workspace_button_menu_layout_action">چیدمان</string>
+    <string name="workspace_button_menu_close_current_action">بستن زبانه فعلی</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">بستن زبانه فعلی (%d فضای کاری)</item>
+        <item quantity="other">بستن زبانه فعلی (%d فضای کاری)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">تنظیمات</string>
+
+    <!-- کنش‌های مدیریت فضای کاری -->
+    <string name="workspace_manager_close_all_title">همه زبانه‌ها بسته شوند؟</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">با این کار %1$d زبانه باز بسته می‌شود. این عملیات قابل واگرد نیست.</item>
+        <item quantity="other">با این کار هر %1$d زبانه باز بسته می‌شود. این عملیات قابل واگرد نیست.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">بستن همه</string>
+    <string name="workspace_manager_close_all_unsaved_warning">برخی زبانه‌ها تغییرات ذخیره‌نشده دارند که از بین خواهند رفت.</string>
+    <string name="workspace_manager_close_all_unsaved_action">دور ریختن همه</string>
+    <string name="workspace_manager_close_selected_title">زبانه‌های انتخاب‌شده بسته شوند؟</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">با این کار %1$d زبانه انتخاب‌شده بسته می‌شود. این عملیات قابل واگرد نیست.</item>
+        <item quantity="other">با این کار %1$d زبانه انتخاب‌شده بسته می‌شود. این عملیات قابل واگرد نیست.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">بستن انتخاب‌شده‌ها</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">برخی از زبانه‌های انتخاب‌شده تغییرات ذخیره‌نشده دارند که از بین خواهند رفت.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">دور ریختن انتخاب‌شده‌ها</string>
+    <string name="workspace_manager_pause_partial_title">زبانه‌ها مکث شوند؟</string>
+    <string name="workspace_manager_pause_partial_message">%1$d از %2$d زبانه انتخاب‌شده قابل مکث است. بقیه در حال استفاده هستند، تغییرات ذخیره‌نشده دارند یا هم‌اکنون باز هستند.</string>
+    <string name="workspace_manager_pause_partial_action">مکث %1$d</string>
+    <string name="general_cancel_action">لغو</string>
+
+    <!-- عملیات‌ها -->
+    <string name="operations_header_title">عملیات</string>
+    <string name="operations_clear_completed">پاک کردن تکمیل‌شده‌ها</string>
+    <string name="operations_state_queued">در صف</string>
+    <string name="operations_state_running">در حال اجرا</string>
+    <string name="operations_state_waiting">در انتظار ورودی</string>
+    <string name="operations_state_successful">موفق</string>
+    <string name="operations_state_failed">ناموفق</string>
+    <string name="operations_state_cancelled">لغو شده</string>
+    <string name="operations_state_cancelling">در حال لغو…</string>
+    <string name="operations_cancel_operation">لغو عملیات</string>
+    <string name="operations_cancel_dialog_title">عملیات لغو شود؟</string>
+    <string name="operations_cancel_dialog_message">آیا مطمئن هستید که می‌خواهید این عملیات را لغو کنید؟</string>
+    <string name="operations_cancel_dialog_warning">لغو کردن ممکن است فایل‌ها را در وضعیتی ناسازگار رها کند.</string>
+    <string name="operations_details_started_at">شروع</string>
+    <string name="operations_details_completed_at">تکمیل</string>
+    <string name="operations_details_duration">مدت</string>
+    <string name="operations_details_duration_not_started">شروع نشده</string>
+    <string name="operations_details_progress">پیشرفت</string>
+    <string name="operations_details_error">جزئیات خطا</string>
+    <string name="operations_details_actions">اقدامات</string>
+    <string name="operations_details_overview">بررسی اجمالی</string>
+    <string name="operations_details_handle_issue">رسیدگی به مشکل</string>
+    <string name="operations_details_show_in_history_action">نمایش در تاریخچه</string>
+    <string name="operations_details_status">وضعیت</string>
+    <string name="operations_details_result">نتیجه</string>
+    <string name="operations_details_destination_folder">پوشه مقصد</string>
+    <string name="operations_details_destination_path">مسیر مقصد</string>
+    <string name="operations_details_affected_paths_with_count">مسیرهای تحت‌تأثیر (%d)</string>
+    <string name="operations_details_problems_with_count">مشکلات (%d)</string>
+    <string name="operations_details_problems_more">%d مورد دیگر فهرست نشده است</string>
+    <string name="workspace_operation_packages_section_title">برنامه‌ها</string>
+    <string name="workspace_operation_package_status_done">انجام شد</string>
+    <string name="workspace_operation_package_status_failed">ناموفق</string>
+    <string name="workspace_operation_package_status_declined">رد شد</string>
+    <string name="operations_details_section_expand">گسترش %1$s</string>
+    <string name="operations_details_section_collapse">جمع کردن %1$s</string>
+    <string name="workspace_operations_performance_graph_label">نمودار عملکرد</string>
+
+    <!-- کادر تأیید حذف -->
+    <string name="workspace_dialog_delete_title_single">مورد حذف شود؟</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">%1$d مورد حذف شود؟</item>
+        <item quantity="other">%1$d مورد حذف شود؟</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">این مورد برای همیشه حذف خواهد شد:</string>
+    <string name="workspace_dialog_delete_message_multiple">این موارد برای همیشه حذف خواهند شد:</string>
+    <string name="workspace_dialog_delete_more_items">… و %1$d مورد دیگر</string>
+    <string name="workspace_dialog_delete_warning">این عملیات قابل واگرد نیست.</string>
+    <string name="workspace_dialog_delete_permanently_action">حذف دائمی</string>
+    <string name="workspace_dialog_delete_permanently_toggle">در عوض حذف دائمی</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">برخی موارد را نمی‌توان به سطل زباله منتقل کرد و جداگانه رسیدگی خواهند شد.</string>
+
+    <!-- کادر سطل زباله -->
+    <string name="workspace_dialog_trash_title_single">به سطل زباله منتقل شود؟</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">%1$d مورد به سطل زباله منتقل شود؟</item>
+        <item quantity="other">%1$d مورد به سطل زباله منتقل شود؟</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">این مورد به سطل زباله منتقل خواهد شد:</string>
+    <string name="workspace_dialog_trash_message_multiple">این موارد به سطل زباله منتقل خواهند شد:</string>
+    <string name="workspace_dialog_trash_hint">آن‌ها را در محل سطل زباله بیابید</string>
+    <string name="workspace_dialog_move_to_trash_action">انتقال</string>
+
+    <!-- نوار کنش -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d مورد انتخاب‌شده</item>
+        <item quantity="other">%d مورد انتخاب‌شده</item>
+    </plurals>
+    <string name="workspace_action_more">اقدامات بیشتر</string>
+
+    <!-- عملیات حذف (مشترک بین فضاهای کاری) -->
+    <string name="workspace_operation_delete_title">حذف فایل</string>
+    <string name="workspace_operation_delete_description_single">حذف \"%1$s\" از \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">حذف %1$d مورد از \"%2$s\".</item>
+        <item quantity="other">حذف %1$d مورد از \"%2$s\".</item>
+    </plurals>
+
+    <!-- عملیات نصب برنامه (مشترک بین فضاهای کاری) -->
+    <string name="workspace_operation_install_title">نصب برنامه</string>
+    <string name="workspace_operation_install_description">نصب \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">در حال خواندن بسته…</string>
+    <string name="workspace_operation_install_progress_extracting">در حال استخراج…</string>
+    <string name="workspace_operation_install_progress_writing">در حال تحویل فایل‌ها به نصب‌کننده…</string>
+    <string name="workspace_operation_install_progress_committing">در حال تکمیل نصب…</string>
+    <string name="workspace_operation_install_progress_placing_obb">در حال جای‌گذاری فایل‌های گسترش…</string>
+    <string name="workspace_operation_install_summary_success">%1$s نصب شد.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s نصب شد، اما فایل‌های گسترش آن قابل جای‌گذاری نبودند.</string>
+    <string name="workspace_install_unknown_sources_required">Butler برای نصب برنامه‌ها به مجوز نیاز دارد. آن را در تنظیماتی که هم‌اکنون باز شد اعطا کنید، سپس دوباره تلاش کنید.</string>
+    <string name="workspace_install_obb_failed">برنامه نصب شد، اما فایل‌های گسترش آن قابل جای‌گذاری نبودند: %1$s</string>
+
+    <!-- گزارش‌های عملیات حذف -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d فایل حذف شد.</item>
+        <item quantity="other">%1$d فایل حذف شد.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d پوشه حذف شد.</item>
+        <item quantity="other">%1$d پوشه حذف شد.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d مورد رد شد.</item>
+        <item quantity="other">%1$d مورد رد شد.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s آزاد شد.</item>
+        <item quantity="other">%1$s آزاد شد.</item>
+    </plurals>
+
+    <!-- گزارش‌های عملیات سطل زباله -->
+    <string name="workspace_operation_progress_moving_to_trash">در حال انتقال به سطل زباله…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d فایل به سطل زباله منتقل شد.</item>
+        <item quantity="other">%1$d فایل به سطل زباله منتقل شد.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d پوشه به سطل زباله منتقل شد.</item>
+        <item quantity="other">%1$d پوشه به سطل زباله منتقل شد.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s آزاد شد.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s آزاد شد.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s باقی‌مانده.</string>
+
+    <!-- کادر اطلاعات فایل (مشترک بین فضاهای کاری) -->
+    <string name="workspace_file_info_title">اطلاعات</string>
+    <string name="workspace_file_info_name_label">نام</string>
+    <string name="workspace_file_info_path_label">مسیر</string>
+    <string name="workspace_file_info_type_label">نوع</string>
+    <string name="workspace_file_info_type_file">فایل</string>
+    <string name="workspace_file_info_type_directory">پوشه</string>
+    <string name="workspace_file_info_type_symlink">پیوند نمادین</string>
+    <string name="workspace_file_info_type_unknown">ناشناخته</string>
+    <string name="workspace_file_info_size_label">اندازه</string>
+    <string name="workspace_file_info_modified_label">تغییر یافته</string>
+    <string name="workspace_file_info_created_label">ایجاد شده</string>
+    <string name="workspace_file_info_permissions_label">مجوزها</string>
+    <string name="workspace_file_info_owner_label">مالک</string>
+    <string name="workspace_file_info_child_count_label">موارد</string>
+    <string name="workspace_file_info_symlink_target_label">هدف</string>
+    <string name="workspace_file_info_unknown">ناشناخته</string>
+    <string name="workspace_file_info_copy_action">کپی در کلیپ‌بورد</string>
+
+    <!-- کادر اطلاعات چند مورد -->
+    <string name="workspace_file_info_selected_label">انتخاب‌شده</string>
+    <string name="workspace_file_info_files_label">فایل‌ها</string>
+    <string name="workspace_file_info_directories_label">پوشه‌ها</string>
+    <string name="workspace_file_info_total_size_label">مجموع اندازه</string>
+
+    <!-- نمودار عملکرد -->
+    <string name="workspace_operation_performance_unavailable_not_started">این عملیات هنوز شروع نشده است.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">در حال جمع‌آوری داده‌های عملکرد…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">داده‌های عملکرد این عملیات برای رسم نمودار کافی نیست.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">داده‌های عملکرد برای این عملیات در دسترس نیست.</string>
+    <string name="workspace_operation_performance_window_seconds">%1$d ثانیه اخیر</string>
+    <string name="workspace_operation_performance_window_minutes">%1$d دقیقه اخیر</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">مورد/ثانیه</string>
+
+    <!-- نمایش خطا (مشترک بین فضاهای کاری) -->
+    <string name="workspace_error_show_details_action">نمایش جزئیات فنی</string>
+    <string name="workspace_error_hide_details_action">پنهان کردن جزئیات فنی</string>
+
+    <!-- اجزای وضعیت فضای کاری -->
+    <string name="workspace_initializing_title">در حال آماده‌سازی زبانه</string>
+    <string name="workspace_error_subtitle">خطایی غیرمنتظره رخ داد</string>
+    <string name="workspace_close_tab_action">بستن زبانه</string>
+    <string name="workspace_paused_body">این زبانه برای صرفه‌جویی در حافظه و باتری مکث شده است. برای ادامه، آن را از سر بگیرید.</string>
+    <string name="workspace_paused_error_body">این زبانه را نمی‌توان از سر گرفت.</string>
+    <string name="workspace_paused_resume_action">ادامه</string>
+    <string name="workspace_paused_label">مکث‌شده</string>
+    <string name="workspace_paused_content_label">محتوای زبانه</string>
+
+    <!-- رفع مشکل (مدیریت تعارض) -->
+    <string name="workspace_issue_collision_existing_file_label">فایل موجود</string>
+    <string name="workspace_issue_collision_existing_folder_label">پوشه موجود</string>
+    <string name="workspace_issue_collision_new_file">فایل ورودی</string>
+    <string name="workspace_issue_collision_new_folder">پوشه ورودی</string>
+    <string name="workspace_issue_collision_overwrite">جایگزینی</string>
+    <string name="workspace_issue_collision_merge">ادغام</string>
+    <string name="workspace_issue_common_source_file">فایل مبدأ</string>
+    <string name="workspace_issue_common_destination_file">مقصد</string>
+    <string name="workspace_issue_common_skip">رد کردن</string>
+    <string name="workspace_issue_common_rename">تغییر نام</string>
+    <string name="workspace_issue_common_rename_new">تغییر نام جدید</string>
+    <string name="workspace_issue_common_rename_existing">تغییر نام موجود</string>
+    <string name="workspace_issue_common_cancel">لغو</string>
+    <string name="workspace_issue_common_delete_permanently">حذف دائمی</string>
+    <string name="workspace_issue_archive_password_label">گذرواژه</string>
+    <string name="workspace_issue_archive_password_unlock">باز کردن قفل</string>
+    <string name="workspace_issue_trash_move_failed_items_label">موارد ناموفق</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… و %1$d مورد دیگر</string>
+    <string name="workspace_issue_trash_not_supported_items_label">موارد تحت‌تأثیر</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… و %1$d مورد دیگر</string>
+    <string name="workspace_issue_apply_all">اعمال به همه مشکلات باقی‌مانده</string>
+    <string name="workspace_issue_rename_new_name">نام جدید</string>
+    <string name="workspace_issue_rename_dialog_title_new">تغییر نام فایل ورودی</string>
+    <string name="workspace_issue_rename_dialog_title_existing">تغییر نام فایل موجود</string>
+    <string name="workspace_issue_type_folder">پوشه</string>
+
+    <!-- کادر تأیید باز کردن در زبانه‌های جدید -->
+    <string name="workspace_open_tabs_confirmation_title">چند زبانه باز شوند؟</string>
+    <string name="workspace_open_tabs_confirmation_message">با این کار %1$d زبانه باز خواهد شد.</string>
+
+    <!-- باز کردن با (ارسال فایل به برنامه دیگر) -->
+    <string name="workspace_open_with_chooser_title">باز کردن با</string>
+    <string name="workspace_open_with_no_app_label">برنامه دیگری یافت نشد</string>
+    <string name="workspace_open_with_no_app_description">هیچ برنامه نصب‌شدهٔ دیگری نمی‌تواند %1$s را باز کند.</string>
+
+    <!-- بازخورد بنر فضای کاری -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">%1$d زبانه باز شد</item>
+        <item quantity="other">%1$d زبانه باز شد</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">نمی‌توان بست: عملیاتی در %1$d زبانه هنوز در حال اجراست</item>
+        <item quantity="other">نمی‌توان بست: عملیاتی در %1$d زبانه هنوز در حال اجراست</item>
+    </plurals>
+
+    <!-- فضای کاری > تنظیمات-->
+    <string name="workspace_settings_title">زبانه‌ها</string>
+    <string name="workspace_settings_navigation">پیمایش</string>
+    <string name="workspace_settings_swipe_gestures_title">ژست‌های سوایپ</string>
+    <string name="workspace_settings_swipe_gestures_desc">برای جابه‌جایی بین زبانه‌ها به چپ یا راست بکشید.</string>
+    <string name="workspace_settings_ondemand_creation_title">ایجاد خودکار زبانه</string>
+    <string name="workspace_settings_ondemand_creation_desc">هنگام سوایپ کردن پس از آخرین زبانه، به‌طور خودکار زبانه جدیدی ایجاد شود.</string>
+    <string name="workspace_settings_newtab_type_title">نوع زبانه جدید</string>
+    <string name="workspace_settings_newtab_type_desc">فضای کاری‌ای که هنگام سوایپ کردن پس از آخرین زبانه، افزودن زبانه به یک قاب خالی، یا ایجاد اولین زبانه باز می‌شود.</string>
+    <string name="workspace_settings_newtab_type_ask">هر بار پرسیده شود</string>
+    <string name="workspace_settings_newtab_type_ask_desc">برای هر زبانه جدید، انتخابگر نوع زبانه نمایش داده شود.</string>
+    <string name="workspace_settings_live_preview_title">پیش‌نمایش زنده</string>
+    <string name="workspace_settings_live_preview_desc">نمایش محتوای زنده زبانه در مدیریت زبانه‌ها.</string>
+    <string name="workspace_settings_other">سایر</string>
+    <string name="workspace_settings_layout_title">چیدمان</string>
+    <string name="workspace_settings_layout_mode_portrait_title">حالت چیدمان عمودی</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">چیدمان زبانه را در جهت عمودی انتخاب کنید.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">حالت چیدمان افقی</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">چیدمان زبانه را در جهت افقی انتخاب کنید.</string>
+    <string name="workspace_settings_layout_mode_auto">خودکار</string>
+    <string name="workspace_settings_layout_mode_auto_desc">در صفحه‌های کوچک، حالت کلاسیک؛ در صفحه‌های بزرگ، نوار زبانه همراه با قاب‌ها.</string>
+    <string name="workspace_settings_layout_mode_classic">کلاسیک</string>
+    <string name="workspace_settings_layout_mode_classic_desc">یک قاب در هر زمان، بدون نوار زبانه.</string>
+    <string name="workspace_settings_layout_mode_adaptive">تطبیقی</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">نوار زبانه به‌همراه هر تعداد قابی که صفحه جا می‌دهد. یک چیدمان را از منوی Butler در نوار سنجاق کنید.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">تطبیقی (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">تک‌قاب با نوار زبانه</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">یک قاب زبانه به‌همراه نوار زبانه چیدمان‌های چندقابی. به‌جای سوایپ کردن، زبانه‌ها را از نوار تغییر دهید؛ نوار بخش نواری از صفحه را اشغال می‌کند.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">دوتایی عمودی</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">دو قاب کنار هم (چپ/راست).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">دوتایی افقی</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">دو قاب روی هم (بالا/پایین).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">سه‌تایی با نوار کناری چپ</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">یک قاب بزرگ در چپ، دو قاب کوچک‌تر روی هم در راست.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">سه‌تایی با نوار کناری راست</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">دو قاب کوچک‌تر روی هم در چپ، یک قاب بزرگ در راست.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">شبکه چهارتایی</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">چهار قاب در شبکه‌ای 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">کلیک برای تمرکز</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">اولین کلیک روی قابی که تمرکز ندارد، فقط آن را متمرکز می‌کند و قاب‌های بدون تمرکز به نشانگر ماوس واکنش نشان نمی‌دهند. برای تعامل مستقیم با آن‌ها این گزینه را خاموش کنید.</string>
+
+    <string name="workspace_settings_rail_button_title">دکمه Butler</string>
+    <string name="workspace_settings_rail_button_desc">محل قرارگیری دکمه Butler روی نوار زبانه را انتخاب کنید.</string>
+    <string name="workspace_settings_rail_button_leading">ابتدا</string>
+    <string name="workspace_settings_rail_button_leading_desc">در حالت عمودی، پیش از زبانه‌ها؛ در حالت افقی، بالای آن‌ها.</string>
+    <string name="workspace_settings_rail_button_trailing">انتها</string>
+    <string name="workspace_settings_rail_button_trailing_desc">در حالت عمودی، پس از زبانه‌ها؛ در حالت افقی، پایین آن‌ها. در دسترس شست برای استفاده تک‌دستی.</string>
+
+    <!-- نشست -->
+    <string name="workspace_settings_session_title">نشست</string>
+    <string name="workspace_settings_session_restore_title">بازیابی زبانه‌ها هنگام شروع</string>
+    <string name="workspace_settings_session_restore_desc">زبانه‌های قبلاً بازشده هنگام شروع برنامه به‌طور خودکار بازیابی می‌شوند.</string>
+    <string name="workspace_settings_autopause_title">مکث زبانه‌های بی‌کار</string>
+    <string name="workspace_settings_autopause_desc">زبانه‌هایی که مدتی به آن‌ها سر نزده‌اید، برای صرفه‌جویی در حافظه و باتری مکث می‌شوند. باز کردن هرکدام آن را ادامه می‌دهد.</string>
+    <string name="workspace_settings_autopause_delay_title">مکث پس از</string>
+    <string name="workspace_settings_autopause_delay_desc">مدت‌زمانی که یک زبانه پیش از مکث شدن، از دید پنهان می‌ماند.</string>
+    <string name="workspace_settings_undoclose_title">واگرد بستن زبانه‌ها</string>
+    <string name="workspace_settings_undoclose_desc">بستن یک زبانه، برای چند ثانیه امکان بازگرداندن آن را فراهم می‌کند.</string>
+    <string name="workspace_settings_session_data_title">داده‌های نشست</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d زبانه • %2$s</item>
+        <item quantity="other">%1$d زبانه • %2$s</item>
+    </plurals>
+
+    <!-- واگرد بستن -->
+    <string name="workspace_closed_undo_message">\"%1$s\" بسته شد</string>
+
+    <!-- خطای بازیابی نشست -->
+    <string name="workspace_session_restoration_error_title">بازیابی نشست ناموفق بود</string>
+    <string name="workspace_session_restoration_error_description">نشست زبانه‌های قبلی شما قابل بازیابی نبود. این ممکن است به‌دلیل یک اشکال باشد که در به‌روزرسانی بعدی برطرف خواهد شد.\n\nمی‌توانید نشست ذخیره‌شده را پاک کنید تا به استفاده از Butler ادامه دهید، یا منتظر به‌روزرسانی بمانید.</string>
+    <string name="workspace_session_restoration_error_clear_action">پاک کردن نشست</string>
+    <string name="workspace_session_restoration_error_report_action">گزارش مشکل</string>
+    <string name="workspace_session_restoration_error_confirm_title">نشست پاک شود؟</string>
+    <string name="workspace_session_restoration_error_confirm_description">این کار نشست زبانه‌های ذخیره‌شده شما را برای همیشه حذف می‌کند. این عملیات قابل واگرد نیست.</string>
+
+    <!-- تغییر نام زبانه -->
+    <string name="workspace_rename_dialog_title">تغییر نام زبانه</string>
+    <string name="workspace_rename_name_label">نام دلخواه</string>
+    <string name="workspace_rename_name_hint">برای استفاده از نام خودکار، خالی بگذارید</string>
+
+    <!-- محدودیت فضای کاری -->
+    <string name="workspace_limit_reached_title">محدودیت تعداد زبانه</string>
+    <string name="workspace_limit_reached_message">کاربران نسخه رایگان می‌توانند حداکثر %1$d زبانه را هم‌زمان باز داشته باشند. برای زبانه‌های نامحدود به Butler Pro ارتقا دهید!</string>
+    <string name="workspace_limit_pick_tabs_message">طرح رایگان شما اجازه %1$d زبانه باز را می‌دهد. زبانه‌هایی را که دیگر نیاز ندارید انتخاب کرده و برای ایجاد فضا ببندید.</string>
+    <string name="workspace_limit_no_slot_hint">بستن زبانه‌ها در حال حاضر جایی را آزاد نمی‌کند.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">بستن %d زبانه</item>
+        <item quantity="other">بستن %d زبانه</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">برای بستن، حداقل %d زبانه انتخاب کنید.</item>
+        <item quantity="other">برای بستن، حداقل %d زبانه انتخاب کنید.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">%1$s باز شد</string>
+    <string name="workspace_limit_blocker_unsaved">تغییرات ذخیره‌نشده</string>
+    <string name="workspace_limit_blocker_busy">هم‌اکنون مشغول</string>
+    <string name="workspace_limit_blocker_attention">منتظر شماست</string>
+    <string name="workspace_limit_blocker_loading">هنوز در حال بارگذاری</string>
+    <string name="workspace_limit_blocker_awaiting_result">ابتدا انتخابگر باز را به پایان برسانید</string>
+    <string name="workspace_limit_blocker_unavailable">هم‌اکنون قابل بستن نیست</string>
+    <string name="workspace_limit_stacked_content_desc">بستن این زبانه، مواردی را هم که روی آن قرار دارند می‌بندد</string>
+    <string name="workspace_limit_pro_description">هر چند زبانه که می‌خواهید باز کنید.</string>
+
+    <!-- کشیدن و رها کردن -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d مورد</item>
+        <item quantity="other">%1$d مورد</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s، %2$s</string>
+
+    <!-- عملیات بازیابی -->
+    <string name="workspace_operation_restore_title">بازیابی از سطل زباله</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">بازیابی %d مورد از سطل زباله.</item>
+        <item quantity="other">بازیابی %d مورد از سطل زباله.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d مورد بازیابی شد</item>
+        <item quantity="other">%d مورد بازیابی شد</item>
+    </plurals>
+</resources>
