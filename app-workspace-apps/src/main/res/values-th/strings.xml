@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apps Workspace -->
+    <string name="apps_title">แอป</string>
+    <string name="apps_subtitle">จัดการแอปที่ติดตั้งไว้</string>
+
+    <!-- Filter Labels -->
+    <string name="apps_filter_app_type_label">ประเภทแอป</string>
+    <string name="apps_filter_type_all">ทั้งหมด</string>
+    <string name="apps_filter_type_user">แอปผู้ใช้</string>
+    <string name="apps_filter_type_system">แอประบบ</string>
+    <string name="apps_filter_status_label">สถานะ</string>
+    <string name="apps_filter_status_all">ทั้งหมด</string>
+    <string name="apps_filter_status_enabled">เปิดใช้งาน</string>
+    <string name="apps_filter_status_disabled">ปิดใช้งาน</string>
+
+
+    <!-- Sort Options -->
+    <string name="apps_sort_mode_label">เรียงลำดับตาม</string>
+    <string name="apps_sort_mode_name_label">ชื่อ</string>
+    <string name="apps_sort_mode_size_label">ขนาด</string>
+    <string name="apps_sort_mode_install_date_label">วันที่ติดตั้ง</string>
+    <string name="apps_sort_mode_update_date_label">วันที่อัปเดต</string>
+    <string name="apps_sort_mode_package_name_label">ชื่อแพ็กเกจ</string>
+    <string name="apps_sort_descending_label">เรียงจากมากไปน้อย</string>
+    <string name="apps_sort_mode_size_slowdown_hint">การคำนวณขนาดแอปทำให้โหลดช้าลง</string>
+
+    <!-- Actions -->
+    <string name="apps_action_launch">เปิด</string>
+    <string name="apps_action_open_info">ข้อมูลแอป</string>
+    <string name="apps_action_disable">ปิดใช้งาน</string>
+    <string name="apps_action_enable">เปิดใช้งาน</string>
+    <string name="apps_action_uninstall">ถอนการติดตั้ง</string>
+    <string name="apps_action_clear_data">ล้างข้อมูล</string>
+    <string name="apps_action_export_apk">ส่งออก APK</string>
+    <string name="apps_action_browse_path">เรียกดูเส้นทาง</string>
+    <string name="apps_action_share">แชร์ข้อมูล</string>
+    <string name="apps_action_refresh">รีเฟรช</string>
+    <string name="apps_action_sort">เรียงลำดับ</string>
+    <string name="apps_action_filter">กรอง</string>
+    <string name="apps_action_select_all">เลือกทั้งหมด</string>
+    <string name="apps_action_deselect_all">ยกเลิกการเลือกทั้งหมด</string>
+    <string name="apps_action_open_in_tab">เปิดในแท็บ</string>
+    <string name="apps_action_force_stop">บังคับหยุด</string>
+    <string name="apps_action_view">เค้าโครง</string>
+
+    <!-- View options -->
+    <string name="apps_view_sheet_subtitle">วิธีจัดเรียงรายการและรายละเอียดที่แสดง</string>
+    <string name="apps_view_mode_list_label">รายการ</string>
+    <string name="apps_view_mode_grid_label">ตาราง</string>
+    <string name="apps_view_density_compact_label">กระชับ</string>
+    <string name="apps_view_density_comfortable_label">สบายตา</string>
+    <string name="apps_view_density_detailed_label">รายละเอียด</string>
+    <string name="apps_view_set_default_action">ตั้งเป็นค่าเริ่มต้น</string>
+    <string name="apps_view_detail_dates_label">ติดตั้งเมื่อ %1$s · อัปเดตเมื่อ %2$s</string>
+
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">เปิดแอปพลิเคชัน</string>
+    <string name="apps_action_open_info_desc">ดูข้อมูลระบบโดยละเอียด</string>
+    <string name="apps_action_enable_desc">เปิดใช้งานแอปพลิเคชันนี้</string>
+    <string name="apps_action_disable_desc">ปิดใช้งานแอปพลิเคชันนี้</string>
+    <string name="apps_action_uninstall_desc">ลบแอปพลิเคชันนี้</string>
+    <string name="apps_action_export_apk_desc">บันทึกไฟล์ APK ลงที่เก็บข้อมูล</string>
+    <string name="apps_action_share_desc">แชร์รายละเอียดแอปเป็นข้อความ</string>
+    <string name="apps_action_force_stop_desc">หยุดแอปพลิเคชันทันที</string>
+    <string name="apps_action_clear_data_desc">ลบข้อมูลและการตั้งค่าทั้งหมดของแอป</string>
+
+    <!-- App Info Labels -->
+    <string name="apps_package_name_label">แพ็กเกจ</string>
+    <string name="apps_version_label">เวอร์ชัน</string>
+    <string name="apps_size_label">ขนาด</string>
+    <string name="apps_size_chip_desc">ขนาดแอป: %1$s</string>
+    <string name="apps_size_permission_hint">ขนาดแอปต้องใช้สิทธิ์เข้าถึงข้อมูลการใช้งาน</string>
+    <string name="apps_size_permission_body">Android จะรายงานขนาดแอป ข้อมูล และแคชให้เฉพาะแอปที่มีสิทธิ์เข้าถึงข้อมูลการใช้งานเท่านั้น ให้สิทธิ์นี้เพื่อดูรายละเอียดพื้นที่เก็บข้อมูลของแอปนี้</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">ตำแหน่งที่เก็บข้อมูล</string>
+    <string name="apps_path_internal_data_label">ข้อมูลภายใน</string>
+    <string name="apps_path_external_data_label">ที่เก็บข้อมูลภายนอก</string>
+    <string name="apps_path_requires_root_label">ต้องใช้ root</string>
+    <string name="apps_path_requires_shizuku_label">ต้องใช้ Shizuku</string>
+    <string name="apps_path_requires_root_or_shizuku_label">ต้องใช้ root หรือ Shizuku</string>
+    <string name="apps_path_requires_access_label">ต้องมีสิทธิ์เข้าถึงเพิ่มเติม</string>
+    <string name="apps_storage_breakdown_label">รายละเอียดพื้นที่เก็บข้อมูล</string>
+    <string name="apps_storage_app_label">แอปพลิเคชัน</string>
+
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">ภาพรวม</string>
+    <string name="appdetails_tab_packageinfo_label">ข้อมูลแพ็กเกจ</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">กลับไปที่แอป</string>
+    <string name="appdetails_close_action">ปิด</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_title">ข้อมูลแพ็กเกจ</string>
+    <string name="appdetails_packageinfo_view_action">ดูรายละเอียดแพ็กเกจ</string>
+    <string name="appdetails_packageinfo_unavailable_msg">ไม่สามารถอ่านรายละเอียดแพ็กเกจของแอปได้</string>
+    <string name="appdetails_packageinfo_permissions_header">สิทธิ์ (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">ใบรับรองการลงนาม</string>
+    <string name="appdetails_packageinfo_package_label">แพ็กเกจ</string>
+    <string name="appdetails_packageinfo_version_label">เวอร์ชัน</string>
+    <string name="appdetails_packageinfo_min_sdk_label">SDK ขั้นต่ำ</string>
+    <string name="appdetails_packageinfo_target_sdk_label">SDK เป้าหมาย</string>
+
+    <!-- Empty States -->
+    <string name="apps_empty_no_apps">ไม่พบแอป</string>
+    <string name="apps_empty_no_apps_desc">ลองปรับตัวกรองดู</string>
+    <string name="apps_empty_loading">กำลังโหลดแอป…</string>
+
+    <!-- Search -->
+    <string name="apps_search_hint">ค้นหาแอป</string>
+
+    <!-- Multi-select -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">เลือกแอป</item>
+        <item quantity="other">เลือก %d แอป</item>
+    </plurals>
+
+    <!-- Info Bar -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="other">แอปผู้ใช้ %d แอป</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="other">แอประบบ %d แอป</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="other">เลือก %d แอป</item>
+    </plurals>
+
+    <!-- App Details Sections -->
+    <string name="apps_details_section_actions">การดำเนินการ</string>
+    <string name="apps_details_section_overview">ภาพรวม</string>
+    <string name="apps_details_section_storage">พื้นที่เก็บข้อมูล</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">ตัวเลือกเพิ่มเติม</string>
+
+    <!-- App Details package data -->
+    <string name="apps_details_pkgdata_error_title">ไม่สามารถโหลดข้อมูลแอปได้</string>
+    <string name="apps_details_gone_title">ลบแอปแล้ว</string>
+    <string name="apps_details_gone_message">แอปนี้ไม่ได้ติดตั้งอยู่บนอุปกรณ์นี้แล้ว</string>
+    <string name="apps_details_gone_close_action">ปิด</string>
+    <string name="apps_details_uninstalled_title">ถอนการติดตั้งสำหรับผู้ใช้นี้แล้ว</string>
+    <string name="apps_details_uninstalled_message">แอปนี้ไม่ได้ติดตั้งสำหรับผู้ใช้นี้แล้ว แต่ไฟล์ของแอปยังอยู่บนอุปกรณ์</string>
+
+    <!-- App Details confirmations -->
+    <string name="apps_details_confirm_clear_data_title">ล้างข้อมูลแอปหรือไม่</string>
+    <string name="apps_details_confirm_clear_data_message">ข้อมูลและการตั้งค่าทั้งหมดของ %1$s จะถูกลบ การกระทำนี้ไม่สามารถย้อนกลับได้</string>
+    <string name="apps_details_confirm_uninstall_title">ถอนการติดตั้งแอปหรือไม่</string>
+    <string name="apps_details_confirm_uninstall_message">%1$s จะถูกลบออกจากอุปกรณ์นี้</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">ประเภท</string>
+    <string name="apps_type_system">แอประบบ</string>
+    <string name="apps_type_user">แอปผู้ใช้</string>
+    <string name="apps_status_label">สถานะ</string>
+    <string name="apps_status_enabled">เปิดใช้งาน</string>
+    <string name="apps_status_disabled">ปิดใช้งาน</string>
+    <string name="apps_installed_label">ติดตั้งเมื่อ</string>
+    <string name="apps_updated_label">อัปเดตล่าสุด</string>
+    <string name="apps_target_sdk_label">SDK เป้าหมาย</string>
+    <string name="apps_min_sdk_label">SDK ขั้นต่ำ</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">ติดตั้งโดย</string>
+    <string name="apps_permissions_label">สิทธิ์</string>
+    <string name="apps_permissions_count">สิทธิ์ %1$d รายการ</string>
+    <string name="apps_data_size_label">ข้อมูล</string>
+    <string name="apps_cache_size_label">แคช</string>
+    <string name="apps_total_size_label">ทั้งหมด</string>
+
+    <!-- App Tags -->
+    <string name="apps_tag_system_label">ระบบ</string>
+    <string name="apps_tag_disabled_label">ปิดใช้งาน</string>
+    <string name="apps_tag_updated_label">อัปเดตแล้ว</string>
+    <string name="apps_tag_sideloaded_label">ติดตั้งนอกสโตร์</string>
+    <string name="apps_tag_split_label">APK แบบแยกส่วน</string>
+    <string name="apps_tag_debug_label">ดีบัก</string>
+    <string name="apps_tag_user_label">ผู้ใช้ %1$d</string>
+
+    <!-- Filter Tags (virtual tags for filtering) -->
+    <string name="apps_filter_tag_enabled_label">เปิดใช้งาน</string>
+    <string name="apps_filter_tag_user_app_label">แอปผู้ใช้</string>
+    <string name="apps_filter_include_label">ต้องตรงกับ (ที่เลือกทั้งหมด)</string>
+    <string name="apps_filter_exclude_label">ต้องไม่ตรงกับ</string>
+    <string name="apps_filter_add_action">กรอง</string>
+    <string name="apps_filter_hint">แตะเพื่อรวม แตะอีกครั้งเพื่อยกเว้น แตะอีกครั้งเพื่อลบ</string>
+    <plurals name="apps_filter_count">
+        <item quantity="other">ตัวกรอง %d รายการ</item>
+    </plurals>
+
+    <!-- Components Section -->
+    <string name="apps_details_section_components">คอมโพเนนต์</string>
+    <string name="apps_components_activities_label">Activity</string>
+    <string name="apps_components_services_label">Service</string>
+    <string name="apps_components_receivers_label">Broadcast Receiver</string>
+    <string name="apps_components_providers_label">Content Provider</string>
+    <string name="apps_components_exported">ส่งออก</string>
+    <string name="apps_components_disabled">ปิดใช้งาน</string>
+    <string name="apps_components_empty">ไม่พบคอมโพเนนต์</string>
+    <string name="apps_components_no_matches">ไม่พบคอมโพเนนต์ที่ตรงกับ “%1$s”</string>
+    <string name="apps_components_and_more">…และอีก %d รายการ</string>
+    <string name="apps_components_view_all_action">ดูคอมโพเนนต์ทั้งหมด</string>
+    <string name="apps_components_loading">กำลังโหลดคอมโพเนนต์…</string>
+    <string name="apps_components_error">ไม่สามารถโหลดคอมโพเนนต์ได้</string>
+    <string name="apps_components_launch_failed">ไม่สามารถเปิด Activity ได้</string>
+    <string name="apps_components_kind_activity">Activity</string>
+    <string name="apps_components_kind_service">Service</string>
+    <string name="apps_components_kind_receiver">Broadcast receiver</string>
+    <string name="apps_components_kind_provider">Content provider</string>
+    <string name="apps_components_search_action">ค้นหาคอมโพเนนต์</string>
+    <string name="apps_components_search_hint">ค้นหาชื่อหรือแพ็กเกจ</string>
+    <string name="apps_components_state_label">สถานะ</string>
+    <string name="apps_components_state_enabled">เปิดใช้งาน</string>
+    <string name="apps_components_state_disabled">ปิดใช้งาน</string>
+    <string name="apps_components_field_type">ประเภท</string>
+    <string name="apps_components_field_package">แพ็กเกจ</string>
+    <string name="apps_components_field_permission">สิทธิ์</string>
+    <string name="apps_components_field_write_permission">สิทธิ์เขียน</string>
+    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_process">โปรเซส</string>
+    <string name="apps_components_field_launch_mode">โหมดการเปิด</string>
+    <string name="apps_components_launch_action">เปิด</string>
+    <string name="apps_components_copy_name_action">คัดลอกชื่อคอมโพเนนต์</string>
+    <string name="apps_components_copy_package_action">คัดลอกชื่อแพ็กเกจ</string>
+    <string name="apps_components_action_enable">เปิดใช้งานคอมโพเนนต์</string>
+    <string name="apps_components_action_disable">ปิดใช้งานคอมโพเนนต์</string>
+    <string name="apps_components_action_requires_elevated">ต้องใช้ root หรือ Shizuku — แตะเพื่อตั้งค่า</string>
+    <string name="apps_components_confirm_enable_title">เปิดใช้งานคอมโพเนนต์หรือไม่</string>
+    <string name="apps_components_confirm_disable_title">ปิดใช้งานคอมโพเนนต์หรือไม่</string>
+    <string name="apps_components_confirm_enable_message">คอมโพเนนต์ต่อไปนี้จะถูกเปิดใช้งาน:</string>
+    <string name="apps_components_confirm_disable_message">คอมโพเนนต์ต่อไปนี้จะถูกปิดใช้งาน การกระทำนี้อาจทำให้แอปทำงานผิดพลาด</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="other">เลือกคอมโพเนนต์ %d รายการ</item>
+    </plurals>
+
+    <!-- Package operations -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="other">เปิดใช้งานแอป %d แอป</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="other">ปิดใช้งานแอป %d แอป</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="other">บังคับหยุดแอป %d แอป</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="other">ถอนการติดตั้งแอป %d แอป</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="other">ล้างข้อมูลแอป %d แอป</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="other">เปิดใช้งานคอมโพเนนต์ %d รายการ</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="other">ปิดใช้งานคอมโพเนนต์ %d รายการ</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="other">%d แอป</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">เปิดใช้งาน %1$s แล้ว</string>
+    <string name="apps_operation_disable_summary">ปิดใช้งาน %1$s แล้ว</string>
+    <string name="apps_operation_force_stop_summary">หยุด %1$s แล้ว</string>
+    <string name="apps_operation_uninstall_summary">ถอนการติดตั้ง %1$s แล้ว</string>
+    <string name="apps_operation_clear_data_summary">ล้างข้อมูลของ %1$s แล้ว</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="other">เปิดใช้งานคอมโพเนนต์แล้ว %1$d รายการ</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="other">ปิดใช้งานคอมโพเนนต์แล้ว %1$d รายการ</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">ไม่สามารถดำเนินการกับ %1$s ได้</string>
+    <string name="apps_operation_single_declined_summary">ปฏิเสธการลบ %1$s</string>
+    <string name="apps_operation_batch_summary">เสร็จแล้ว %1$d จาก %2$d</string>
+    <!-- Quoted so the leading separator survives the resource parser -->
+    <string name="apps_operation_batch_summary_failed">" · %1$d ล้มเหลว"</string>
+    <string name="apps_operation_batch_summary_declined">" · %1$d ถูกปฏิเสธ"</string>
+
+    <!-- Generic navigation -->
+    <string name="appdetails_back_generic_action">กลับ</string>
+
+</resources>

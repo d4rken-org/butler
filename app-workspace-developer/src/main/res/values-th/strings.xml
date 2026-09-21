@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">นักพัฒนา</string>
+    <string name="developer_title">เครื่องมือนักพัฒนา</string>
+    <string name="developer_subtitle">เครื่องมือพัฒนา</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">ระบบ</string>
+    <string name="developer_tab_options">ตัวเลือก</string>
+    <string name="developer_tab_workspaces">พื้นที่ทำงาน</string>
+    <string name="developer_tab_logs">บันทึก</string>
+    <string name="developer_tab_testdata">ข้อมูลทดสอบ</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">ตัวเลือกดีบัก</string>
+    <string name="developer_options_debug_mode">โหมดดีบัก</string>
+    <string name="developer_options_debug_mode_desc">เปิดใช้การบันทึกรายละเอียด</string>
+    <string name="developer_options_trace_mode">โหมดสืบย้อน</string>
+    <string name="developer_options_trace_mode_desc">เปิดใช้บันทึกระดับสืบย้อน</string>
+    <string name="developer_options_floating_log">แผงบันทึกลอยตัว</string>
+    <string name="developer_options_floating_log_desc">แสดงแผงบันทึกที่ลากได้บนหน้าจอทั้งหมด</string>
+    <string name="developer_options_services_header">ทดสอบบริการ</string>
+    <string name="developer_options_root_test_action">ทดสอบ Root</string>
+    <string name="developer_options_root_installed_label">ติดตั้งแล้ว</string>
+    <string name="developer_options_root_available_label">พร้อมใช้งาน</string>
+    <string name="developer_options_root_base_check_label">ตรวจสอบพื้นฐาน</string>
+    <string name="developer_options_shizuku_test_action">ทดสอบ Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">ติดตั้งแล้ว</string>
+    <string name="developer_options_shizuku_granted_label">สิทธิ์</string>
+    <string name="developer_options_shizuku_compatible_label">เข้ากันได้</string>
+    <string name="developer_options_shizuku_service_label">บริการ</string>
+    <string name="developer_options_test_running">กำลังทดสอบ…</string>
+    <string name="developer_options_result_yes">ใช่</string>
+    <string name="developer_options_result_no">ไม่ใช่</string>
+    <string name="developer_options_result_unknown">ไม่ทราบ</string>
+    <string name="developer_options_visibility_header">การแสดงผล</string>
+    <string name="developer_options_hide_mode">ซ่อนโหมดนักพัฒนา</string>
+    <string name="developer_options_hide_mode_desc">แตะเวอร์ชั่น 7 ครั้งในการตั้งค่าเพื่อเปิดใช้อีกครั้ง</string>
+    <string name="developer_options_hide_action">ซ่อน</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">อุปกรณ์</string>
+    <string name="developer_system_device_model">รุ่น</string>
+    <string name="developer_system_device_manufacturer">ผู้ผลิต</string>
+    <string name="developer_system_device_api">ระดับ API</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">เวอร์ชั่น</string>
+    <string name="developer_system_build_code">รหัสเวอร์ชั่น</string>
+    <string name="developer_system_build_flavor">Flavor</string>
+    <string name="developer_system_build_type">ประเภท Build</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">หน่วยความจำ</string>
+    <string name="developer_system_memory_available">พร้อมใช้งาน</string>
+    <string name="developer_system_memory_total">ทั้งหมด</string>
+    <string name="developer_system_storage_header">ที่เก็บข้อมูล</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d พื้นที่ทำงาน</string>
+    <string name="developer_workspaces_empty">ไม่มีพื้นที่ทำงาน</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">ล้าง</string>
+    <string name="developer_logs_pause">หยุดชั่วคราว</string>
+    <string name="developer_logs_resume">ดำเนินการต่อ</string>
+    <string name="developer_logs_empty">ไม่มีบันทึก</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">เส้นทางเป้าหมาย</string>
+    <string name="developer_testdata_no_paths">ไม่ได้เลือกเส้นทางเป้าหมาย เพิ่มเส้นทางเพื่อสร้างข้อมูลทดสอบ</string>
+    <string name="developer_testdata_add_path_action">เพิ่มเส้นทาง</string>
+    <string name="developer_testdata_options_header">ตัวเลือกการสร้าง</string>
+    <string name="developer_testdata_large_files">ไฟล์ขนาดใหญ่</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">โครงสร้างซ้อนกัน</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 โฟลเดอร์, ~1100 ไฟล์</string>
+    <string name="developer_testdata_text_files">ไฟล์ข้อความสำหรับตัวแก้ไข</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">สร้าง</string>
+    <string name="developer_testdata_generating">กำลังสร้าง…</string>
+    <string name="developer_testdata_history_header">ตัวอย่างรายการประวัติ</string>
+    <string name="developer_testdata_history_desc">สร้าง ~25 รายการการดำเนินการปลอมที่ขยายจากวันนี้ถึง 30 วันที่แล้ว มีประเภท ผลลัพธ์ แหล่งที่มา และเส้นทางที่ผสมกัน แทรกลงในฐานข้อมูลประวัติโดยตรง ปลอดภัยในการแตะซ้ำ</string>
+    <string name="developer_testdata_history_generate_action">สร้างประวัติตัวอย่าง</string>
+    <string name="developer_testdata_progress">%1$s จาก %2$s</string>
+    <string name="developer_testdata_complete">ข้อมูลทดสอบถูกสร้างที่:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">สร้างไฟล์ขนาดใหญ่</string>
+    <string name="developer_operation_large_files_desc">สร้างไฟล์ทดสอบใน %1$s</string>
+    <string name="developer_operation_large_files_creating">สร้าง %1$s</string>
+
+    <string name="developer_operation_nested_title">สร้างโครงสร้างซ้อนกัน</string>
+    <string name="developer_operation_nested_desc">สร้างลำดับชั้นโฟลเดอร์ใน %1$s</string>
+    <string name="developer_operation_nested_starting">เริ่มโครงสร้างซ้อนกัน…</string>
+    <string name="developer_operation_nested_creating">สร้าง %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d ไฟล์สร้างเสร็จ</string>
+
+    <string name="developer_operation_text_files_title">สร้างไฟล์ข้อความ</string>
+    <string name="developer_operation_text_files_desc">สร้างไฟล์ข้อความใน %1$s</string>
+    <string name="developer_operation_text_files_creating">สร้าง %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="other">%d ไฟล์สร้างเสร็จ</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="other">%d โฟลเดอร์</item>
+    </plurals>
+</resources>

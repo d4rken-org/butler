@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">ตัวจัดการไฟล์</string>
+    <string name="explorer_subtitle">เรียกดูไฟล์และโฟลเดอร์</string>
+    <string name="explorer_settings_title">การตั้งค่าตัวจัดการไฟล์</string>
+    <string name="explorer_settings_file_display">การแสดงไฟล์</string>
+    <string name="explorer_settings_filter_regex_title">การจับคู่ไวลด์การ์ดขั้นสูง</string>
+    <string name="explorer_settings_filter_regex_desc">ใช้รูปแบบ regex ในตัวกรองรวมและตัวกรองยกเว้น</string>
+    <string name="explorer_settings_navigation">การนำทาง</string>
+    <string name="explorer_settings_back_button_title">การนำทางด้วยปุ่มย้อนกลับ</string>
+    <string name="explorer_settings_back_button_desc">ย้อนกลับตามประวัติด้วยปุ่มหรือท่าทางย้อนกลับ</string>
+    <string name="explorer_settings_trash_category">ถังขยะ</string>
+    <string name="explorer_settings_trash_enabled_title">เปิดใช้ถังขยะ</string>
+    <string name="explorer_settings_trash_enabled_desc">ย้ายไฟล์ที่ลบไปยังถังขยะแทนการลบถาวร</string>
+    <string name="explorer_settings_trash_auto_delete_title">ลบอัตโนมัติหลังจาก</string>
+    <string name="explorer_settings_trash_auto_delete_desc">ลบรายการที่เก่ากว่า %d วันโดยอัตโนมัติ</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d วัน</string>
+    <string name="explorer_settings_trash_max_size_title">ขนาดสูงสุดต่อที่เก็บข้อมูล</string>
+    <string name="explorer_settings_trash_max_size_desc">สูงสุด %d MB ต่อตำแหน่งที่เก็บข้อมูล</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">ระยะเวลาลบอัตโนมัติ</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">ขนาดสูงสุดต่อที่เก็บข้อมูล</string>
+    <string name="explorer_settings_trash_enable_dialog_title">เปิดใช้ถังขยะ</string>
+    <string name="explorer_settings_trash_enable_dialog_message">ต่างจากระบบเดสก์ท็อป Android ไม่มีถังขยะในตัว Butler จึงสร้างถังขยะขึ้นโดยใช้โฟลเดอร์แคช\n\nข้อควรทราบ\n• ตัวแสดงพื้นที่เก็บข้อมูลของอุปกรณ์จะยังไม่แสดงพื้นที่ที่ว่างจนกว่าจะลบรายการถาวร\n• หากอุปกรณ์มีพื้นที่เก็บข้อมูลเหลือน้อย Android อาจล้างแคชของแอป ซึ่งจะลบไฟล์ที่อยู่ในถังขยะไปด้วย</string>
+    <string name="explorer_settings_trash_enable_action">เปิดใช้</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">ไฟล์</string>
+    <string name="explorer_file_symlink_content_desc">ลิงก์สัญลักษณ์</string>
+    <string name="explorer_file_folder_content_desc">โฟลเดอร์</string>
+    <string name="explorer_file_peek_content_desc">กำลังโหลดข้อมูลไฟล์</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">ทางลัด</string>
+    <string name="explorer_file_storage_local_label">ภายในเครื่อง</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">สิทธิ์อ่านอย่างเดียว</string>
+    <string name="explorer_file_storage_saf_write_only_label">สิทธิ์เขียนอย่างเดียว</string>
+    <string name="explorer_file_storage_saf_no_access_label">ไม่มีสิทธิ์เข้าถึง</string>
+    <string name="explorer_file_storage_saf_uri_label">URI ทรีของ SAF</string>
+    <string name="explorer_file_storage_size_format">%1$s • รวม %2$s • ว่าง %3$s</string>
+    <string name="explorer_file_broken_link_label">ลิงก์เสีย</string>
+    <string name="explorer_file_items_count">%1$d รายการ</string>
+    <string name="explorer_file_empty">ว่างเปล่า</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · บางส่วน</string>
+    <string name="explorer_sizes_estimate_description">ประมาณจากยอดรวมพื้นที่เก็บข้อมูลของ Android สำหรับไฟล์ที่อ่านไม่ได้ จะใช้พื้นที่ที่ถูกใช้งานเป็นค่าประมาณขนาดไฟล์ อาจรวมไฟล์ซ่อนที่ Android จัดการอยู่ด้วย ส่วนตำแหน่งอื่นที่อ่านไม่ได้จะยังไม่ทราบขนาด</string>
+    <string name="explorer_sizes_estimate_coverage">ไม่สามารถประมาณขนาด Android/data ได้ เนื่องจากส่วนอื่นของพื้นที่เก็บข้อมูลไม่สามารถวัดได้ครบถ้วน</string>
+    <string name="explorer_sizes_estimate_unavailable">ไม่มีสถิติพื้นที่เก็บข้อมูลของ Android แต่ยังแสดงขนาดที่วัดได้</string>
+    <string name="explorer_sizes_estimate_inconsistent">ยอดรวมพื้นที่เก็บข้อมูลของ Android ไม่ตรงกับผลสแกน แต่ยังแสดงขนาดที่วัดได้</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">เลือกโฟลเดอร์</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">เลือกโฟลเดอร์</item>
+        <item quantity="other">เลือกโฟลเดอร์ (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">เลือกไฟล์</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">เลือกไฟล์</item>
+        <item quantity="other">เลือกไฟล์ (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">เลือกรายการ</item>
+        <item quantity="other">เลือกรายการ (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">เลือกโฟลเดอร์นี้</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="other">เลือก %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">บันทึกไฟล์</string>
+    <string name="explorer_picker_save_here_action">บันทึกที่นี่</string>
+    <string name="explorer_picker_save_as_filename_label">ชื่อไฟล์</string>
+    <string name="explorer_picker_save_as_filename_hint">ป้อนชื่อไฟล์</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">รีเฟรช</string>
+    <string name="explorer_action_calculate_sizes">คำนวณขนาด</string>
+    <string name="explorer_action_sort">เรียงลำดับ</string>
+    <string name="explorer_action_filter">กรอง</string>
+    <string name="explorer_action_view">เค้าโครง</string>
+    <string name="explorer_action_create">สร้าง</string>
+    <string name="explorer_action_rename">เปลี่ยนชื่อ</string>
+    <string name="explorer_action_copy">คัดลอก</string>
+    <string name="explorer_action_cut">ตัด</string>
+    <string name="explorer_action_delete">ลบ</string>
+    <string name="explorer_action_select_all">เลือกทั้งหมด</string>
+    <string name="explorer_action_deselect_all">ยกเลิกการเลือกทั้งหมด</string>
+    <string name="explorer_action_compress">บีบอัด</string>
+    <string name="explorer_action_extract">แตกไฟล์</string>
+    <string name="explorer_action_add_location">เพิ่มตำแหน่ง</string>
+    <string name="explorer_action_info">ข้อมูล</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">ข้อมูล</string>
+    <string name="explorer_info_name_label">ชื่อ</string>
+    <string name="explorer_info_path_label">เส้นทาง</string>
+    <string name="explorer_info_type_label">ประเภท</string>
+    <string name="explorer_info_type_file">ไฟล์</string>
+    <string name="explorer_info_type_directory">โฟลเดอร์</string>
+    <string name="explorer_info_size_label">ขนาด</string>
+    <string name="explorer_info_modified_label">แก้ไขเมื่อ</string>
+    <string name="explorer_info_created_label">สร้างเมื่อ</string>
+    <string name="explorer_info_permissions_label">สิทธิ์</string>
+    <string name="explorer_info_owner_label">เจ้าของ</string>
+    <string name="explorer_info_child_count_label">รายการ</string>
+    <string name="explorer_info_symlink_target_label">เป้าหมาย</string>
+    <string name="explorer_info_symlink_status_label">สถานะ</string>
+    <string name="explorer_info_symlink_broken">ลิงก์เสีย</string>
+    <string name="explorer_info_unknown">ไม่ทราบ</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">ลบเมื่อ</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">สิทธิ์</string>
+    <string name="explorer_info_saf_granted_label">ได้รับสิทธิ์</string>
+    <string name="explorer_info_saf_permission_read">อ่าน</string>
+    <string name="explorer_info_saf_permission_write">เขียน</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">เซิร์ฟเวอร์</string>
+    <string name="explorer_info_network_port_label">พอร์ต</string>
+    <string name="explorer_info_network_share_label">แชร์</string>
+    <string name="explorer_info_network_folder_label">โฟลเดอร์</string>
+    <string name="explorer_info_network_address_label">ที่อยู่</string>
+    <string name="explorer_info_network_status_label">สถานะ</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">เข้าสู่ระบบ</string>
+    <string name="explorer_info_network_domain_label">โดเมน</string>
+    <string name="explorer_info_network_password_label">รหัสผ่าน</string>
+    <string name="explorer_info_network_password_show_action">แสดงรหัสผ่าน</string>
+    <string name="explorer_info_network_password_hide_action">ซ่อนรหัสผ่าน</string>
+    <string name="explorer_info_network_password_missing">ไม่มีรหัสผ่าน เข้าสู่ระบบอีกครั้ง</string>
+    <string name="explorer_info_network_password_locked">บันทึกไว้ แต่อุปกรณ์นี้ปลดล็อกไม่ได้</string>
+    <string name="explorer_info_network_added_label">เพิ่มเมื่อ</string>
+    <string name="explorer_info_network_updated_label">อัปเดตเมื่อ</string>
+    <string name="explorer_info_network_last_seen_label">พบล่าสุด</string>
+    <string name="explorer_info_network_last_seen_never">ไม่เคย</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">เลือกไว้</string>
+    <string name="explorer_info_files_label">ไฟล์</string>
+    <string name="explorer_info_directories_label">โฟลเดอร์</string>
+    <string name="explorer_info_total_size_label">ขนาดรวม</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">ตำแหน่ง</string>
+    <string name="explorer_info_shortcuts_label">ทางลัด</string>
+    <string name="explorer_info_total_capacity_label">ความจุทั้งหมด</string>
+    <string name="explorer_info_used_space_label">พื้นที่ที่ใช้ไป</string>
+    <string name="explorer_info_free_space_label">พื้นที่ว่าง</string>
+    <string name="explorer_info_usage_label">การใช้งาน</string>
+    <string name="explorer_info_device_storage_total_label">ที่เก็บข้อมูลอุปกรณ์</string>
+    <string name="explorer_info_device_storage_used_label">ใช้ไป</string>
+    <string name="explorer_info_device_storage_free_label">ว่าง</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">หน้าแรก</string>
+    <string name="explorer_breadcrumb_set_as_home_action">ตั้งเป็นหน้าแรก</string>
+    <string name="explorer_breadcrumb_copy_path_action">คัดลอกเส้นทาง</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">คัดลอกเส้นทางไปยังคลิปบอร์ดแล้ว</string>
+    <string name="explorer_navigation_device">อุปกรณ์</string>
+    <string name="explorer_navigation_network">เครือข่าย</string>
+    <string name="explorer_navigation_recent">ล่าสุด</string>
+    <string name="explorer_navigation_recent_desc">ไฟล์ที่เพิ่งปรากฏบนอุปกรณ์นี้</string>
+    <string name="explorer_navigation_trash">ถังขยะ</string>
+    <string name="explorer_navigation_trash_desc">กู้คืนไฟล์ที่ลบ</string>
+    <string name="explorer_navigation_trash_nested_desc">ภายในโฟลเดอร์ที่ถูกลบ</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">ไม่มีรายการที่ถูกลบ</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="other">%d รายการ</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">กู้คืน</string>
+    <string name="explorer_trash_restore_selected_action">กู้คืนรายการที่เลือก</string>
+    <string name="explorer_trash_delete_permanently_action">ลบถาวร</string>
+    <string name="explorer_trash_delete_selected_action">ลบรายการที่เลือก</string>
+    <string name="explorer_trash_empty_trash_action">ล้างถังขยะ</string>
+    <string name="explorer_trash_empty_confirm">ล้างถังขยะ</string>
+    <string name="explorer_trash_empty_message">รายการทั้งหมดในถังขยะจะถูกลบถาวร การกระทำนี้เลิกทำไม่ได้</string>
+    <string name="explorer_trash_empty_confirm_action">ล้างถังขยะ</string>
+    <string name="explorer_trash_restore_desc">กู้คืนไปยังตำแหน่งเดิม</string>
+    <string name="explorer_trash_item_unavailable">รายการนี้ใช้งานไม่ได้</string>
+    <string name="explorer_trash_delete_warning">การกระทำนี้เลิกทำไม่ได้</string>
+    <string name="explorer_trash_disabled_warning">ปิดใช้ถังขยะ</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">กำลังโหลดเนื้อหาโฟลเดอร์ที่ถูกลบ…</string>
+    <string name="explorer_trash_nested_restore_action">กู้คืนไปยังตำแหน่งเดิม</string>
+    <string name="explorer_trash_nested_delete_action">ลบถาวร</string>
+    <string name="explorer_trash_nested_restore_conflict">มีไฟล์อยู่ที่ตำแหน่งเดิมแล้ว</string>
+    <string name="explorer_trash_nested_parent_missing">รายการหลักไม่มีอยู่ในถังขยะแล้ว</string>
+    <string name="explorer_trash_nested_path_missing">ไม่มีเส้นทางนี้แล้ว</string>
+    <string name="explorer_trash_error_items_not_found">ไม่พบรายการในถังขยะ</string>
+    <string name="explorer_trash_error_restore_failed">กู้คืนรายการไม่สำเร็จ</string>
+    <string name="explorer_trash_error_delete_failed">ลบรายการไม่สำเร็จ</string>
+    <string name="explorer_trash_nested_error_restore_failed">กู้คืน %1$s ไม่สำเร็จ</string>
+    <string name="explorer_trash_nested_error_delete_failed">ลบ %1$s ไม่สำเร็จ</string>
+
+    <string name="explorer_navigation_root">โฟลเดอร์ราก</string>
+    <string name="explorer_navigation_rom">ROM ระบบ</string>
+    <string name="explorer_navigation_internal_storage">ที่เก็บข้อมูลภายในสาธารณะ</string>
+    <string name="explorer_navigation_external_storage">ที่เก็บข้อมูลภายนอกสาธารณะ</string>
+
+    <string name="explorer_loader_progress_directory_loading">กำลังเรียกดู %s</string>
+    <string name="explorer_loader_progress_directory_permissions">กำลังตรวจสอบสิทธิ์</string>
+    <string name="explorer_loader_progress_directory_filesystem">กำลังดึงข้อมูลระบบไฟล์</string>
+    <string name="explorer_loader_progress_directory_content">กำลังโหลดเนื้อหาโฟลเดอร์</string>
+    <string name="explorer_loader_progress_directory_content_details">กำลังโหลดรายละเอียดเนื้อหา</string>
+    <string name="explorer_loader_progress_directory_content_extended">กำลังโหลดรายละเอียดเนื้อหาเพิ่มเติม</string>
+
+    <string name="explorer_loader_progress_device_loading">กำลังโหลดอุปกรณ์</string>
+    <string name="explorer_loader_progress_device_locations">กำลังโหลดตำแหน่งที่เก็บข้อมูล</string>
+
+    <string name="explorer_loader_progress_network_loading">กำลังโหลดที่เก็บข้อมูลเครือข่าย</string>
+
+    <string name="explorer_loader_progress_home_loading">กำลังโหลดหน้าแรก</string>
+    <string name="explorer_loader_progress_trash_loading">กำลังโหลดถังขยะ…</string>
+    <string name="explorer_loader_progress_recent_loading">กำลังโหลดไฟล์ล่าสุด…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="other">%d ทางลัด</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="other">%d ตำแหน่ง</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="other">ซ่อนอยู่ %d รายการ</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">ว่าง %1$s</string>
+    <string name="explorer_infobar_loading">กำลังโหลด…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">สร้างรายการใหม่</string>
+    <string name="explorer_dialog_rename_title">เปลี่ยนชื่อ</string>
+    <string name="explorer_dialog_name_label">ชื่อ</string>
+    <string name="explorer_dialog_type_label">ประเภท</string>
+    <string name="explorer_dialog_type_folder">โฟลเดอร์</string>
+    <string name="explorer_dialog_type_file">ไฟล์</string>
+    <string name="explorer_dialog_create_text_file_title">สร้างไฟล์จากข้อความ</string>
+    <string name="explorer_dialog_create_text_file_preview_label">ดูตัวอย่าง</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d ตัวอักษร</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">เพิ่มตำแหน่งที่เก็บข้อมูล</string>
+    <string name="explorer_add_device_storage_desc">ใช้ Storage Access Framework (SAF) เพื่อให้สิทธิ์ Butler เข้าถึงตำแหน่งที่เก็บข้อมูลเพิ่มเติม เช่น ไดรฟ์ USB โฟลเดอร์เสมือนของแอป และอื่นๆ</string>
+    <string name="explorer_add_device_storage_continue">ดำเนินการต่อ</string>
+    <string name="explorer_add_device_storage_cancel">ยกเลิก</string>
+    <string name="explorer_add_device_storage_suggestions_title">แอปที่มีที่เก็บข้อมูล</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">เปิดโฟลเดอร์ของแอปนี้</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">ลบตำแหน่ง</string>
+    <string name="explorer_device_remove_confirmation_title">ลบตำแหน่งที่เก็บข้อมูลนี้</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="other">ลบตำแหน่งที่เก็บข้อมูล %1$d ตำแหน่ง</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">การดำเนินการนี้จะเพิกถอนสิทธิ์การเข้าถึงตำแหน่งนี้ของ Butler ไฟล์ของคุณจะไม่ถูกลบ</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="other">%d ตำแหน่งเครือข่าย</item>
+    </plurals>
+    <string name="explorer_network_storage_label">เครือข่าย</string>
+    <string name="explorer_network_add_location_action">เพิ่มที่เก็บข้อมูลเครือข่าย</string>
+    <string name="explorer_network_edit_location_action">แก้ไขที่เก็บข้อมูลเครือข่าย</string>
+    <string name="explorer_network_remove_location_action">ลบที่เก็บข้อมูลเครือข่าย</string>
+    <string name="explorer_network_sign_in_required_label">ต้องเข้าสู่ระบบ</string>
+    <string name="explorer_network_status_checking_label">กำลังตรวจสอบ…</string>
+    <string name="explorer_network_status_available_label">พร้อมใช้งาน</string>
+    <string name="explorer_network_status_unavailable_label">ไม่พร้อมใช้งาน</string>
+    <string name="explorer_network_status_unavailable_since_format">ไม่พร้อมใช้งาน (%1$s)</string>
+    <string name="explorer_network_empty_title">ยังไม่มีที่เก็บข้อมูลเครือข่าย</string>
+    <string name="explorer_network_empty_caption">เพิ่มแชร์ Windows หรือโฟลเดอร์ NAS เพื่อเรียกดูที่นี่</string>
+    <string name="explorer_network_remove_confirmation_title">ลบที่เก็บข้อมูลเครือข่ายนี้</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="other">ลบที่เก็บข้อมูลเครือข่าย %1$d รายการ</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler จะลืมรายละเอียดเซิร์ฟเวอร์และรหัสผ่านที่บันทึกไว้ ไม่มีสิ่งใดบนเซิร์ฟเวอร์ถูกลบ</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">เพิ่มที่เก็บข้อมูลเครือข่าย</string>
+    <string name="explorer_network_form_edit_title">แก้ไขที่เก็บข้อมูลเครือข่าย</string>
+    <string name="explorer_network_form_label_label">ชื่อ (ไม่บังคับ)</string>
+    <string name="explorer_network_form_host_label">ที่อยู่เซิร์ฟเวอร์</string>
+    <string name="explorer_network_form_host_hint">nas.local หรือ 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">พอร์ต</string>
+    <string name="explorer_network_form_share_label">แชร์</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">โฟลเดอร์ภายในแชร์ (ไม่บังคับ)</string>
+    <string name="explorer_network_form_auth_guest">เกสต์</string>
+    <string name="explorer_network_form_auth_password">ชื่อผู้ใช้และรหัสผ่าน</string>
+    <string name="explorer_network_form_username_label">ชื่อผู้ใช้</string>
+    <string name="explorer_network_form_domain_label">โดเมน (ไม่บังคับ)</string>
+    <string name="explorer_network_form_password_label">รหัสผ่าน</string>
+    <string name="explorer_network_form_password_kept_hint">เว้นว่างไว้เพื่อใช้รหัสผ่านที่บันทึกไว้</string>
+    <string name="explorer_network_form_remember_label">จดจำรหัสผ่าน</string>
+    <string name="explorer_network_form_remember_hint">จัดเก็บแบบเข้ารหัสบนอุปกรณ์นี้เท่านั้น</string>
+    <string name="explorer_network_form_test_and_save_action">ทดสอบและบันทึก</string>
+    <string name="explorer_network_form_testing">กำลังเชื่อมต่อ…</string>
+    <string name="explorer_network_form_error_host_blank">กรอกที่อยู่เซิร์ฟเวอร์</string>
+    <string name="explorer_network_form_error_host_not_bare">กรอกเฉพาะที่อยู่เซิร์ฟเวอร์ ไม่ต้องมีสคีมหรือเส้นทาง</string>
+    <string name="explorer_network_form_error_host_malformed">ที่อยู่เซิร์ฟเวอร์นี้ไม่ถูกต้อง</string>
+    <string name="explorer_network_form_error_port">กรอกพอร์ตระหว่าง 1 ถึง 65535</string>
+    <string name="explorer_network_form_error_share_blank">กรอกชื่อแชร์</string>
+    <string name="explorer_network_form_error_share_not_single">กรอกเฉพาะชื่อแชร์ ใส่โฟลเดอร์ย่อยไว้ด้านล่าง</string>
+    <string name="explorer_network_form_error_share_malformed">ชื่อแชร์นี้ไม่ถูกต้อง</string>
+    <string name="explorer_network_form_error_base_path">ใช้เส้นทางโฟลเดอร์นี้ไม่ได้</string>
+    <string name="explorer_network_form_error_username_blank">กรอกชื่อผู้ใช้</string>
+    <string name="explorer_network_form_error_password_required">กรอกรหัสผ่านอีกครั้งเพื่อเปลี่ยนชื่อผู้ใช้หรือโดเมน</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">ตั้งชื่อตำแหน่ง</string>
+    <string name="explorer_location_name_label">ชื่อตำแหน่ง</string>
+    <string name="explorer_location_name_hint">เว้นว่างไว้เพื่อใช้ชื่อเริ่มต้น</string>
+    <string name="explorer_location_rename_action">เปลี่ยนชื่อตำแหน่ง</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="other">เพิ่มในช่วง %d วันที่ผ่านมา</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">ไม่มีอะไรใหม่ที่นี่</string>
+    <string name="explorer_recent_empty_message">ไฟล์ที่ปรากฏบนอุปกรณ์นี้จะแสดงที่นี่</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">โฟลเดอร์นี้ว่างเปล่า</string>
+    <string name="explorer_empty_search_title">ไม่มีผลการค้นหา</string>
+    <string name="explorer_empty_search_caption">ลองใช้คำค้นหาอื่น</string>
+    <string name="explorer_empty_folder_label">โฟลเดอร์ว่างเปล่า</string>
+    <string name="explorer_empty_filtered_title">ไม่มีรายการที่ตรงกัน</string>
+    <string name="explorer_empty_filtered_caption">ลองปรับตัวกรองดู</string>
+    <string name="explorer_empty_hidden_title">มีเฉพาะรายการที่ซ่อนอยู่ที่นี่</string>
+    <string name="explorer_empty_hidden_caption">แท็บนี้ซ่อนรายการที่ชื่อขึ้นต้นด้วยจุด</string>
+    <string name="explorer_empty_show_hidden_action">แสดงรายการที่ซ่อนอยู่</string>
+    <string name="explorer_empty_hidden_or_filtered_title">ไม่มีอะไรให้แสดงแล้ว</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">รายการที่ซ่อนอยู่และตัวกรองต่างก็ซ่อนบางส่วนของโฟลเดอร์นี้</string>
+    <string name="explorer_empty_clear_filters_action">ล้างตัวกรอง</string>
+    <string name="explorer_empty_hidden_and_filtered_title">รายการที่ซ่อนอยู่และตัวกรองซ่อนทุกอย่างที่นี่</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">การแสดงรายการที่ซ่อนอยู่และล้างตัวกรองของแท็บนี้จะทำให้กลับมาแสดงอีกครั้ง</string>
+    <string name="explorer_empty_show_all_action">แสดงรายการทั้งหมด</string>
+    <string name="explorer_path_not_found_title">โฟลเดอร์นี้หายไปแล้ว</string>
+    <string name="explorer_path_not_found_caption">อาจถูกลบ เปลี่ยนชื่อ หรือย้ายไปที่อื่น</string>
+    <string name="explorer_path_not_found_back_action">ย้อนกลับ</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">กำลังโหลด…</string>
+    <string name="explorer_file_peek_loading_text">กำลังโหลด…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">ไม่มีอะไรให้ดูที่นี่… ไปที่อื่นเถอะ 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">โฟลเดอร์นี้กำลังลดน้ำหนัก</string>
+    <string name="explorer_empty_folder_caption_3">แม้แต่ไฟล์ยังกลับบ้านก่อนเวลาวันนี้</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe หยุดทำงาน</string>
+    <string name="explorer_empty_folder_caption_5">ไฟล์กำลังเล่นซ่อนหา</string>
+    <string name="explorer_empty_folder_caption_6">404: ไม่พบไฟล์</string>
+    <string name="explorer_empty_folder_caption_7">โฟลเดอร์นี้ไม่ค่อยไว้ใจใคร</string>
+    <string name="explorer_empty_folder_caption_8">ไฟล์ไปพักร้อนโดยไม่บอกกล่าว</string>
+    <string name="explorer_empty_folder_caption_9">ว่างเปล่าเหมือนจิตใจฉัน… แต่เป็นระเบียบกว่า</string>
+    <string name="explorer_empty_folder_caption_10">เงียบเหงาเหมือนทะเลทรายร้าง</string>
+    <string name="explorer_empty_folder_caption_11">ไฟล์กำลังเว้นระยะห่างทางสังคม</string>
+    <string name="explorer_empty_folder_caption_12">โฟลเดอร์นี้ยึดหลักมินิมอล</string>
+    <string name="explorer_empty_folder_caption_13">มีใครลืมให้อาหารไฟล์</string>
+    <string name="explorer_empty_folder_caption_14">ไฟล์ทั้งหมดออกจากตึกไปแล้ว</string>
+    <string name="explorer_empty_folder_caption_15">ว่างเปล่ายิ่งกว่าคำสัญญาของนักการเมือง</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">เรียงตาม</string>
+    <string name="explorer_sort_mode_name_label">ชื่อ</string>
+    <string name="explorer_sort_mode_size_label">ขนาด</string>
+    <string name="explorer_sort_mode_modified_label">วันที่แก้ไข</string>
+    <string name="explorer_sort_mode_created_label">วันที่สร้าง</string>
+    <string name="explorer_sort_descending_label">เรียงจากมากไปน้อย</string>
+    <string name="explorer_sort_scope_label">ใช้กับ</string>
+    <string name="explorer_sort_scope_all_folders">ทุกโฟลเดอร์</string>
+    <string name="explorer_sort_scope_this_folder">โฟลเดอร์นี้</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">โฟลเดอร์นี้และโฟลเดอร์ย่อย</string>
+    <string name="explorer_sort_scope_use_default_here">ใช้ค่าเริ่มต้นที่นี่</string>
+    <string name="explorer_sort_only_this_tab_label">เฉพาะแท็บนี้</string>
+    <string name="explorer_sort_inherited_notice">เรียงตามกฎที่บันทึกไว้สำหรับ %1$s</string>
+    <string name="explorer_sort_suppressed_notice">การตั้งค่านี้แทนที่กฎที่บันทึกไว้สำหรับ %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">แท็บนี้ใช้ลำดับการเรียงเริ่มต้นของตัวเอง</string>
+    <string name="explorer_sort_tab_overrides_clear_action">ล้าง</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">ขนาดโฟลเดอร์</string>
+    <string name="explorer_sizes_sheet_label_calculated">คำนวณแล้ว</string>
+    <string name="explorer_sizes_sheet_label_folders">โฟลเดอร์</string>
+    <string name="explorer_sizes_sheet_label_unreadable">ตำแหน่งที่อ่านไม่ได้</string>
+    <string name="explorer_sizes_sheet_problems_more">อีก %1$d รายการที่ไม่แสดง</string>
+    <string name="explorer_sizes_sheet_recalculate">คำนวณใหม่</string>
+    <string name="explorer_sizes_sheet_discard">ละทิ้งขนาด</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">วิธีจัดเรียงรายการและปริมาณรายละเอียดที่แสดง</string>
+    <string name="explorer_view_mode_list_label">แบบรายการ</string>
+    <string name="explorer_view_mode_grid_label">แบบตาราง</string>
+    <string name="explorer_view_density_compact_label">กระชับ</string>
+    <string name="explorer_view_density_comfortable_label">สบายตา</string>
+    <string name="explorer_view_density_detailed_label">ละเอียด</string>
+    <string name="explorer_view_show_hidden_label">แสดงไฟล์ที่ซ่อนอยู่</string>
+    <string name="explorer_view_set_default_action">ตั้งเป็นค่าเริ่มต้น</string>
+    <string name="explorer_view_detail_created_label">สร้างเมื่อ</string>
+    <string name="explorer_view_detail_modified_label">แก้ไขเมื่อ</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">กฎการเรียงลำดับโฟลเดอร์</string>
+    <string name="explorer_settings_folder_sort_rules_desc">การตั้งค่าการเรียงลำดับที่คุณบันทึกไว้สำหรับแต่ละโฟลเดอร์</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">ล้างกฎการเรียงลำดับโฟลเดอร์</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">โฟลเดอร์ทั้งหมดจะกลับไปใช้ลำดับการเรียงเริ่มต้น ส่วนแท็บที่ตั้งค่าการเรียงของตัวเองไว้จะยังคงใช้ค่านั้นอยู่ การกระทำนี้เลิกทำไม่ได้</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">ล้างทั้งหมด</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">ประเภทไฟล์</string>
+    <string name="explorer_filter_type_all">ทั้งหมด</string>
+    <string name="explorer_filter_type_files">เฉพาะไฟล์</string>
+    <string name="explorer_filter_type_folders">เฉพาะโฟลเดอร์</string>
+    <string name="explorer_filter_include_label">รูปแบบที่รวม</string>
+    <string name="explorer_filter_include_placeholder_simple">เช่น vacation, report, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">เช่น .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">รูปแบบที่ยกเว้น</string>
+    <string name="explorer_filter_exclude_placeholder_simple">เช่น tmp, cache, old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">เช่น ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 เปิดใช้รูปแบบ regex ในการตั้งค่า</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">ต้องการสิทธิ์</string>
+    <string name="explorer_permission_generic_description">Butler ต้องการสิทธิ์เพิ่มเติมเพื่อเรียกดูตำแหน่งนี้</string>
+    <string name="explorer_permission_setup_action">เปิดการตั้งค่า</string>
+    <string name="explorer_grant_access_action">ให้สิทธิ์เข้าถึง</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">การดำเนินการ</string>
+    <string name="explorer_file_info_type_label">ประเภท</string>
+    <string name="explorer_file_info_size_label">ขนาด</string>
+    <string name="explorer_file_info_modified_label">แก้ไขเมื่อ</string>
+    <string name="explorer_file_action_install">ติดตั้ง</string>
+    <string name="explorer_file_action_install_subtitle">ติดตั้งแอปนี้บนอุปกรณ์ของคุณ</string>
+    <string name="explorer_file_action_open">เปิด</string>
+    <string name="explorer_file_action_open_subtitle">ดูที่นี่ กดย้อนกลับเพื่อกลับมาที่โฟลเดอร์นี้</string>
+    <string name="explorer_file_action_open_in_tab">เปิดในแท็บใหม่</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">ดูใน Butler เป็นแท็บของตัวเอง</string>
+    <string name="explorer_file_action_open_in_editor">เปิดในตัวแก้ไข</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">แก้ไขในแท็บใหม่</string>
+    <string name="explorer_file_action_open_with">เปิดด้วย</string>
+    <string name="explorer_file_action_open_with_subtitle">เลือกแอปภายนอกเพื่อเปิด</string>
+    <string name="explorer_file_action_share">แชร์</string>
+    <string name="explorer_file_action_share_subtitle">แชร์ผ่านแอปที่ติดตั้งไว้</string>
+    <string name="explorer_file_action_copy">คัดลอก</string>
+    <string name="explorer_file_action_copy_subtitle">คัดลอกไปยังคลิปบอร์ดเพื่อวาง</string>
+    <string name="explorer_file_action_cut">ตัด</string>
+    <string name="explorer_file_action_cut_subtitle">ย้ายไปยังคลิปบอร์ดเพื่อวาง</string>
+    <string name="explorer_file_action_rename">เปลี่ยนชื่อ</string>
+    <string name="explorer_file_action_rename_subtitle">เปลี่ยนชื่อไฟล์</string>
+    <string name="explorer_file_action_delete">ลบ</string>
+    <string name="explorer_file_action_delete_subtitle">ลบไฟล์นี้ถาวร</string>
+    <string name="explorer_file_action_move_to_trash">ย้ายไปถังขยะ</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">ย้ายไฟล์ไปถังขยะ</string>
+    <string name="explorer_file_action_properties">คุณสมบัติ</string>
+    <string name="explorer_file_action_properties_subtitle">ดูข้อมูลไฟล์โดยละเอียด</string>
+    <string name="explorer_file_action_extract">แตกไฟล์</string>
+    <string name="explorer_file_action_extract_subtitle">แตกไฟล์เนื้อหาในไฟล์บีบอัดไปยังโฟลเดอร์</string>
+    <string name="explorer_file_action_show_in_folder">แสดงในโฟลเดอร์</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">เปิดโฟลเดอร์ที่มีไฟล์นี้อยู่</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="other">สร้างไฟล์ %d ไฟล์แล้ว</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="other">สร้างโฟลเดอร์ %d โฟลเดอร์แล้ว</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">การดำเนินการคัดลอก</string>
+    <string name="explorer_operation_copy_description_single">คัดลอก \"%1$s\" จาก \"%2$s\" ไปยัง \"%3$s\"</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="other">คัดลอก %1$d รายการไปยัง \"%2$s\"</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="other">คัดลอกไฟล์ %d ไฟล์แล้ว</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="other">คัดลอกโฟลเดอร์ %d โฟลเดอร์แล้ว</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="other">คัดลอก %s แล้ว</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">การดำเนินการแตกไฟล์</string>
+    <string name="explorer_operation_extract_description">แตกไฟล์ \"%1$s\" ไปยัง \"%2$s\"</string>
+    <string name="explorer_operation_download_copy_title">การดำเนินการคัดลอกในเครื่อง</string>
+    <string name="explorer_operation_download_copy_description">คัดลอก \"%1$s\" ไปยัง \"%2$s\" เพื่อเรียกดูในเครื่อง</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="other">แตกไฟล์ %d ไฟล์แล้ว</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="other">แตกไฟล์ %s แล้ว</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">การดำเนินการบีบอัด</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="other">บีบอัด %1$d รายการเป็น \"%2$s\"</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="other">บีบอัดไฟล์ %d ไฟล์แล้ว</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">สร้างไฟล์บีบอัด</string>
+    <string name="explorer_compress_dialog_name_label">ชื่อไฟล์บีบอัด</string>
+    <string name="explorer_compress_dialog_format_label">รูปแบบ</string>
+    <string name="explorer_compress_dialog_format_zip_hint">เปิดได้บนทุกอุปกรณ์ ตั้งรหัสผ่านป้องกันได้</string>
+    <string name="explorer_compress_dialog_format_targz_hint">ขนาดเล็กกว่าเมื่อมีไฟล์จำนวนมาก ไม่รองรับการป้องกันด้วยรหัสผ่าน</string>
+    <string name="explorer_compress_dialog_create_action">สร้าง</string>
+    <string name="explorer_compress_dialog_level_label">ระดับการบีบอัด</string>
+    <string name="explorer_compress_dialog_level_fast">เร็ว</string>
+    <string name="explorer_compress_dialog_level_normal">ปกติ</string>
+    <string name="explorer_compress_dialog_level_best">ดีที่สุด</string>
+    <string name="explorer_compress_dialog_password_label">รหัสผ่าน (ไม่บังคับ)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">ยืนยันรหัสผ่าน</string>
+    <string name="explorer_compress_dialog_password_mismatch">รหัสผ่านไม่ตรงกัน</string>
+    <string name="explorer_compress_dialog_password_weak">รหัสผ่านไม่รัดกุม</string>
+    <string name="explorer_compress_dialog_password_notice">เนื้อหาไฟล์ถูกเข้ารหัส แต่ชื่อไฟล์ไม่ถูกเข้ารหัส</string>
+    <string name="explorer_compress_dialog_password_show">แสดงรหัสผ่าน</string>
+    <string name="explorer_compress_dialog_password_hide">ซ่อนรหัสผ่าน</string>
+    <string name="explorer_compress_dialog_overwrite_title">แทนที่ไฟล์บีบอัด</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" มีอยู่แล้วและจะถูกแทนที่</string>
+    <string name="explorer_compress_dialog_overwrite_action">แทนที่</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="other">วาง %1$d รายการ</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="other">คัดลอกหรือย้าย %1$d รายการไปยัง \"%2$s\"</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="other">คัดลอก %1$d รายการไปยัง \"%2$s\"</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">ย้ายไปถังขยะ</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="other">ย้าย %1$d รายการไปถังขยะ</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">การดำเนินการย้าย</string>
+    <string name="explorer_operation_move_description_single">ย้าย \"%1$s\" จาก \"%2$s\" ไปยัง \"%3$s\"</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="other">ย้าย %1$d รายการไปยัง \"%2$s\"</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="other">ย้ายไฟล์ %d ไฟล์แล้ว</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="other">ย้ายโฟลเดอร์ %d โฟลเดอร์แล้ว</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="other">ย้าย %s แล้ว</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">การสร้างโฟลเดอร์</string>
+    <string name="explorer_operation_create_description_directory">สร้างโฟลเดอร์ \"%1$s\" ที่ \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">การสร้างไฟล์</string>
+    <string name="explorer_operation_create_description_file">สร้างไฟล์ \"%1$s\" ที่ \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">การสร้างไฟล์ข้อความ</string>
+    <string name="explorer_operation_create_text_file_description">สร้าง \"%1$s\" จากข้อความที่ป้อน</string>
+    <string name="explorer_operation_calculate_sizes_title">การคำนวณขนาด</string>
+    <string name="explorer_operation_calculate_sizes_description">คำนวณขนาดโฟลเดอร์ใน \"%1$s\"</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="other">สแกนแล้ว %1$d รายการ</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">คำนวณขนาดโฟลเดอร์ %1$d โฟลเดอร์แล้ว</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="other">คำนวณขนาดโฟลเดอร์ %1$d โฟลเดอร์แล้ว อ่านตำแหน่งไม่ได้ %2$d ตำแหน่ง</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">ยกเลิกขนาดโฟลเดอร์ของ \"%1$s\" เนื่องจากมีการเปลี่ยนแปลงระหว่างการคำนวณ</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">การนำทางล้มเหลว</string>
+    <string name="explorer_aborted_dialog_title">ยกเลิกการดำเนินการ</string>
+    <string name="explorer_aborted_dialog_message">การโหลดถูกยกเลิกก่อนที่จะแสดงผลใดๆ</string>
+    <string name="explorer_archive_unbrowsable_title">เรียกดูไฟล์บีบอัดนี้ที่นี่ไม่ได้</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" อยู่บนที่เก็บข้อมูลที่รองรับการอ่านแบบลำดับเท่านั้น แต่การเรียกดูไฟล์บีบอัดต้องเข้าถึงแบบสุ่ม ให้แตกไฟล์นี้ที่นี่ หรือดาวน์โหลดสำเนามาไว้ในเครื่องเพื่อเรียกดู</string>
+    <string name="explorer_archive_unbrowsable_extract_action">แตกไฟล์บีบอัด</string>
+    <string name="explorer_archive_unbrowsable_download_action">ดาวน์โหลดสำเนาในเครื่อง</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (การเข้าถึงพิเศษ)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (การเข้าถึงพิเศษ)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android จำกัดการเข้าถึงโฟลเดอร์นี้ ใช้ตัวเลือกโฟลเดอร์เพื่อให้สิทธิ์เข้าถึง</string>
+    <string name="explorer_permission_multiple_options_description">คุณสามารถให้สิทธิ์เข้าถึงผ่านตัวเลือกโฟลเดอร์ของ Android หรือตั้งค่า Root/Shizuku เพื่อเข้าถึงโฟลเดอร์ที่ถูกจำกัดทั้งหมดได้เร็วขึ้น</string>
+    <string name="explorer_permission_setup_both_description">โฟลเดอร์นี้ต้องการสิทธิ์ระดับสูง ติดตั้งและตั้งค่า Root หรือ Shizuku ในหน้าตั้งค่า</string>
+    <string name="explorer_permission_setup_shizuku_description">โฟลเดอร์นี้ต้องการสิทธิ์ระดับสูงผ่าน Shizuku ติดตั้ง Shizuku Manager และตั้งค่าในหน้าตั้งค่า</string>
+    <string name="explorer_permission_setup_root_description">โฟลเดอร์นี้ต้องการสิทธิ์ Root ตั้งค่า Root ในหน้าตั้งค่าหากอุปกรณ์ของคุณรูทแล้ว</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">ใช้ตัวเลือกโฟลเดอร์ของ Android เพื่อให้สิทธิ์เข้าถึงโฟลเดอร์นี้</string>
+    <string name="explorer_permission_option_picker_action">เปิดตัวเลือก SAF</string>
+
+    <string name="explorer_permission_option_setup_title">การเข้าถึงแบบเต็ม</string>
+    <string name="explorer_permission_option_setup_description">ตั้งค่า Root หรือ Shizuku เพื่อเข้าถึงโฟลเดอร์ที่ถูกจำกัดทั้งหมดได้เร็วขึ้น</string>
+    <string name="explorer_permission_option_setup_action">ตั้งค่า</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">การเข้าถึงที่เก็บข้อมูล</string>
+    <string name="explorer_permission_option_storage_description">ให้สิทธิ์ Butler เข้าถึงไฟล์ในที่เก็บข้อมูลของอุปกรณ์</string>
+    <string name="explorer_permission_option_storage_action">ให้สิทธิ์</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">เปิดในแท็บใหม่</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">รายการโปรด</string>
+    <string name="explorer_action_add_to_favorites">เพิ่มในรายการโปรด</string>
+    <string name="explorer_action_remove_from_favorites">นำออกจากรายการโปรด</string>
+    <string name="explorer_favorites_select_action">เลือก</string>
+    <string name="explorer_favorites_unavailable_subtitle">เข้าถึงไม่ได้</string>
+    <string name="explorer_favorites_unavailable_toast">รายการโปรดนี้เข้าถึงไม่ได้</string>
+    <string name="explorer_favorites_added_message">เพิ่ม %1$s ในรายการโปรดแล้ว</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="other">เพิ่ม %1$d รายการในรายการโปรดแล้ว</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">นำ %1$s ออกจากรายการโปรดแล้ว</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="other">นำ %1$d รายการออกจากรายการโปรดแล้ว</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">เปลี่ยนชื่อรายการโปรด</string>
+    <string name="explorer_favorites_rename_hint">ชื่อรายการโปรด</string>
+    <string name="explorer_favorites_rename_description">เปลี่ยนชื่อเฉพาะรายการในรายการโปรดเท่านั้น ส่วนโฟลเดอร์จริงยังคงใช้ชื่อเดิม</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="other">แท็บนี้แทนที่ลำดับการเรียงใน %1$d โฟลเดอร์</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="other">%1$d โฟลเดอร์</item>
+    </plurals>
+</resources>

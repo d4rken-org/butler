@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">รายการแอปไม่ถูกต้อง</string>
+    <string name="pkgrepo_invalid_inventory_error_description">ระบบให้รายการแอปที่ติดตั้งไม่ถูกต้องแก่ Butler</string>
+</resources>

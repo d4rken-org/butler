@@ -1,0 +1,523 @@
+<resources>
+    <string name="onboarding_welcome_title">ยินดีต้อนรับสู่ Butler</string>
+    <string name="onboarding_welcome_message">แท็บสำหรับไฟล์\nเรียกดู ค้นหา และแก้ไขได้ในที่เดียว</string>
+    <string name="onboarding_welcome_subtitle">โอเพนซอร์ส ไม่มีโฆษณา ไม่ติดตามข้อมูล\nตัวจัดการไฟล์ที่คุณควรได้ใช้</string>
+    <string name="onboarding_welcome_action">เริ่มสำรวจ</string>
+    <string name="onboarding_beta_title">ร่วมกำหนดอนาคต</string>
+    <string name="onboarding_beta_message">นี่คือรุ่นเบต้า (ทดสอบ) โปรดเตรียมใจแบบผ่อนคลายและมีแผนสำรองไว้ด้วย หากพบปัญหาโปรดแจ้งให้ทราบ</string>
+    <string name="onboarding_beta_action">ไม่กลัวอะไรทั้งนั้น</string>
+    <string name="onboarding_beta_feature_early_access_title">เข้าถึงก่อนใคร</string>
+    <string name="onboarding_beta_feature_early_access_description">ลองใช้ฟีเจอร์ล่าสุดก่อนใคร</string>
+    <string name="onboarding_beta_feature_influence_title">มีผลโดยตรง</string>
+    <string name="onboarding_beta_feature_influence_description">ความคิดเห็นของคุณช่วยกำหนดทิศทางการพัฒนา Butler</string>
+    <string name="onboarding_beta_feature_feedback_title">ขับเคลื่อนโดยชุมชน</string>
+    <string name="onboarding_beta_feature_feedback_description">ร่วมชุมชนผู้ใช้ตัวยงที่ช่วยกันพัฒนา Butler</string>
+    <string name="onboarding_privacy_title">ความเป็นส่วนตัวและข้อมูล</string>
+    <string name="onboarding_privacy_message">Butler ไม่มีโฆษณาและไม่ขายข้อมูลผู้ใช้ ความเป็นส่วนตัวของคุณสำคัญสำหรับฉัน</string>
+    <string name="onboarding_privacy_read_action">อ่านนโยบายความเป็นส่วนตัว</string>
+    <string name="onboarding_privacy_action">ยอมรับ</string>
+    <string name="onboarding_skip_action">ข้าม</string>
+    <string name="onboarding_progress_step">%1$d/%2$d</string>
+
+    <string name="onboarding_workspaces_title">ทำงานแบบแท็บ</string>
+    <string name="onboarding_workspaces_message">เปิดหลายแท็บและสลับไปมาได้ เหมือนเบราว์เซอร์ที่คุณใช้</string>
+    <string name="onboarding_workspaces_action">ดำเนินการต่อ</string>
+    <string name="onboarding_workspaces_hint">เปิดหลายแท็บพร้อมกันได้</string>
+    <string name="onboarding_workspaces_explorer_title">ตัวจัดการไฟล์</string>
+    <string name="onboarding_workspaces_explorer_description">เรียกดูไฟล์ของคุณ</string>
+    <string name="onboarding_workspaces_searcher_title">ค้นหา</string>
+    <string name="onboarding_workspaces_searcher_description">ค้นหาสิ่งที่ต้องการ</string>
+    <string name="onboarding_workspaces_editor_title">ตัวแก้ไข</string>
+    <string name="onboarding_workspaces_editor_description">แก้ไขไฟล์</string>
+    <string name="onboarding_workspaces_templates_title">เทมเพลต</string>
+    <string name="onboarding_workspaces_templates_description">บันทึกการตั้งค่าที่ใช้งาน</string>
+    <string name="onboarding_workspaces_apps_description">จัดการแอปของคุณ</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">ตัวจัดการไฟล์ใหม่</string>
+    <string name="shortcut_explorer_new_long">สร้างแท็บตัวจัดการไฟล์ใหม่</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">ทางลัด</string>
+    <string name="shortcuts_settings_subtitle">ตั้งค่าทางลัดบนหน้าจอหลัก</string>
+    <string name="shortcuts_settings_enabled_title">เปิดใช้งานทางลัด</string>
+    <string name="shortcuts_settings_enabled_subtitle">แสดงรายการที่ใช้บ่อยบนหน้าจอหลัก</string>
+    <string name="shortcuts_settings_auto_remember_title">จดจำเส้นทางที่เคยเข้า</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">เพิ่มเส้นทางที่เข้าบ่อยเป็นทางลัดโดยอัตโนมัติ</string>
+    <string name="shortcuts_settings_last_accessed_title">เข้าถึงล่าสุด</string>
+    <string name="shortcuts_settings_max_count_title">จำนวนทางลัดสูงสุด</string>
+    <string name="shortcuts_settings_max_count_subtitle">ขณะนี้แสดง %d ทางลัด</string>
+    <string name="shortcuts_settings_min_access_title">จำนวนการเข้าถึงขั้นต่ำ</string>
+    <string name="shortcuts_settings_min_access_subtitle">ต้องเข้าถึง %d ครั้งก่อนจึงจะแสดง</string>
+    <string name="shortcuts_settings_current_title">ทางลัดปัจจุบัน</string>
+    <string name="shortcuts_settings_current_subtitle">บันทึกทางลัดไว้ %d รายการ</string>
+    <string name="shortcuts_settings_clear_title">ล้างประวัติทางลัด</string>
+    <string name="shortcuts_settings_clear_subtitle">ลบทางลัดที่บันทึกไว้ทั้งหมด</string>
+    <string name="shortcuts_settings_clear_confirm_title">ล้างประวัติทางลัด?</string>
+    <string name="shortcuts_settings_clear_confirm_message">การดำเนินการนี้จะลบทางลัดที่บันทึกไว้ทั้งหมด แต่จะยังคงเก็บรายการโปรดไว้</string>
+    <string name="shortcuts_settings_cleared_message">ล้างประวัติทางลัดแล้ว</string>
+    <string name="shortcuts_settings_max_dialog_title">จำนวนทางลัดสูงสุด</string>
+    <string name="shortcuts_settings_max_dialog_message">จำนวนทางลัดที่จะแสดงบนหน้าจอหลัก (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">จำนวนการเข้าถึงขั้นต่ำ</string>
+    <string name="shortcuts_settings_min_dialog_message">จำนวนครั้งที่ต้องเข้าถึงเส้นทางก่อนจะปรากฏเป็นทางลัด (1–10)</string>
+
+    <string name="setup_usagestats_title">สถิติการใช้งาน</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">การเข้าถึงการแจ้งเตือน</string>
+    <string name="setup_manage_storage_card_title">จัดการที่เก็บข้อมูลภายนอก</string>
+    <string name="setup_inventory_card_title">รายการแอป</string>
+
+    <string name="setup_title">ตั้งค่าสิทธิ์</string>
+    <string name="setup_settings_description">ตั้งค่าสิทธิ์และฟีเจอร์ของแอป</string>
+    <string name="setup_help_description">ความช่วยเหลือ</string>
+
+    <string name="setup_root_description">เปิดให้เข้าถึงไฟล์ระบบและโฟลเดอร์ที่ได้รับการป้องกันเพื่อการจัดการไฟล์ขั้นสูง ปลดล็อกศักยภาพเต็มรูปแบบของ Butler รวมถึงการเข้าถึงข้อมูลแอปและการแก้ไขระบบ อุปกรณ์ต้องรูทแล้ว</string>
+    <string name="setup_shizuku_description">ทางเลือกแทน root ที่เปิดให้ดำเนินการไฟล์แบบมีสิทธิ์สูงผ่าน API ที่ปลอดภัย เข้าถึงโฟลเดอร์ที่ถูกจำกัดได้โดยไม่ต้องรูทเครื่อง ต้องติดตั้งและเปิดแอป Shizuku ไว้</string>
+    <string name="setup_notification_description">แสดงความคืบหน้าของการดำเนินการไฟล์ งานเบื้องหลัง และการโอนย้ายข้อมูล แจ้งให้ทราบเมื่อการดำเนินการเสร็จสิ้นหรือเกิดข้อผิดพลาด</string>
+    <string name="setup_usagestats_description">วิเคราะห์การใช้ที่เก็บข้อมูลของแอปเพื่อค้นหาไฟล์ขนาดใหญ่และช่วยจัดการพื้นที่อย่างมีประสิทธิภาพ ข้อมูลทั้งหมดอยู่บนอุปกรณ์ของคุณเท่านั้นและไม่ถูกส่งออกไปที่ใด</string>
+    <string name="setup_storage_description">เข้าถึงที่เก็บข้อมูลทั้งหมดของอุปกรณ์เพื่อดำเนินการไฟล์ได้รวดเร็วและประมวลผลเป็นชุด จัดการไฟล์ได้อย่างครบถ้วนโดยไม่ต้องขอสิทธิ์ซ้ำ</string>
+    <string name="setup_inventory_description">ดูแอปที่ติดตั้งทั้งหมดเพื่อใช้ฟีเจอร์อย่างการแยก APK และวิเคราะห์ที่เก็บข้อมูล จำเป็นบน Android 11 ขึ้นไปเพื่อดูรายการแอปแบบครบถ้วน</string>
+
+    <string name="setup_grant_access_label">ให้สิทธิ์เข้าถึง</string>
+    <string name="setup_access_granted_label">ได้รับสิทธิ์แล้ว</string>
+    <string name="setup_use_root_label">ใช้ root หากมี</string>
+    <string name="setup_use_shizuku_label">ใช้ Shizuku หากมี</string>
+
+    <string name="setup_status_checking">กำลังตรวจสอบ…</string>
+    <string name="setup_status_completed">ตั้งค่าแล้ว</string>
+    <string name="setup_status_required">จำเป็น</string>
+    <string name="setup_status_optional">ไม่บังคับ</string>
+    <string name="setup_status_connected">เชื่อมต่อแล้ว</string>
+    <string name="setup_status_not_connected">ยังไม่เชื่อมต่อ</string>
+    <string name="setup_status_not_installed">ยังไม่ได้ติดตั้ง</string>
+    <string name="setup_status_connecting">กำลังเชื่อมต่อ…</string>
+    <string name="setup_status_connection_failed">เชื่อมต่อไม่สำเร็จ</string>
+    <string name="setup_status_unavailable">ไม่พร้อมใช้งาน</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">การแจ้งเตือนดีบัก</string>
+    <string name="debug_log_consent_title">บันทึกดีบัก</string>
+    <string name="debug_log_consent_explanation">ฟีเจอร์นี้บันทึกทุกการทำงานของแอปลงในไฟล์ที่แชร์ได้ ไฟล์ที่สร้างขึ้นมีข้อมูลที่ละเอียดอ่อน (เช่น ชื่อไฟล์และแอปที่ติดตั้ง) โปรดแชร์ให้เฉพาะผู้ที่เชื่อถือได้เท่านั้น (เช่น นักพัฒนาที่กำลังแก้ปัญหาให้)</string>
+    <string name="debug_log_recording_progress">กำลังบันทึกดีบัก</string>
+    <string name="debug_log_record_action">บันทึก</string>
+    <string name="debug_log_record_full_action">บันทึกดีบัก</string>
+    <string name="debug_log_stop_action">หยุดบันทึก</string>
+    <string name="debug_log_screen_title">เครื่องมือบันทึกดีบัก</string>
+    <string name="debug_log_screen_sensitive_information_message">ไฟล์ที่สร้างขึ้นมีข้อมูลที่ละเอียดอ่อน (เช่น ชื่อไฟล์และแอปที่ติดตั้ง) โปรดแชร์ให้เฉพาะผู้ที่เชื่อถือได้เท่านั้น</string>
+    <string name="debug_log_screen_session_path_label">เส้นทางเซสชันดีบัก</string>
+    <string name="debug_log_screen_log_files_label">ไฟล์บันทึก</string>
+    <string name="debug_log_screen_log_files_ready">ไฟล์บันทึกพร้อมแล้ว (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">ละทิ้ง</string>
+    <string name="debug_log_file_label">ไฟล์บันทึกที่บันทึกไว้</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">กำลังบันทึกไฟล์บันทึก</string>
+    <string name="debug_banner_stop_action">หยุด</string>
+    <string name="debug_banner_view_action">ดู</string>
+    <string name="debug_banner_explanation">กำลังบันทึกการทำงานของแอป กดหยุดเมื่อเสร็จ แล้วแนบไฟล์บันทึกเมื่อแจ้งปัญหา</string>
+    <string name="debug_log_short_recording_title">การบันทึกสั้นเกินไป</string>
+    <string name="debug_log_short_recording_message">บันทึกดีบักจะเก็บเฉพาะสิ่งที่เกิดขึ้นระหว่างที่กำลังบันทึกอยู่ เริ่มบันทึก ทำให้ปัญหาเกิดซ้ำ แล้วจึงหยุด การบันทึกนี้อาจไม่มีข้อมูลที่เป็นประโยชน์</string>
+    <string name="debug_log_short_recording_keep_action">เก็บการบันทึกไว้</string>
+
+    <string name="debug_logview_screen_title">ตัวดูบันทึก</string>
+    <string name="debug_logview_pause_action">หยุดชั่วคราว (หยุดการแสดงผล)</string>
+    <string name="debug_logview_resume_action">ดำเนินการต่อ</string>
+    <string name="debug_logview_copy_action">คัดลอกบันทึก</string>
+    <string name="debug_logview_collapse_action">ย่อ</string>
+    <string name="debug_logview_close_action">ปิดแผงบันทึก</string>
+    <string name="debug_logview_resize_action">ปรับขนาด</string>
+    <string name="debug_logview_more_action">ตัวเลือกเพิ่มเติม</string>
+    <string name="debug_logview_level_action">ระดับบันทึก</string>
+    <string name="debug_logview_clear_action">ล้างบัฟเฟอร์</string>
+    <string name="debug_logview_search_action">ค้นหา</string>
+    <string name="debug_logview_search_clear_action">ล้างการค้นหา</string>
+    <string name="debug_logview_search_close_action">ปิดการค้นหา</string>
+    <string name="debug_logview_search_prev_action">รายการที่ตรงก่อนหน้า</string>
+    <string name="debug_logview_search_next_action">รายการที่ตรงถัดไป</string>
+    <string name="debug_logview_jump_to_bottom_action">ไปยังรายการล่าสุด</string>
+    <string name="debug_logview_paused_msg">หยุดชั่วคราว — หยุดการแสดงผล</string>
+    <string name="debug_logview_paused_new_msg">หยุดชั่วคราว — มี %1$d บรรทัดใหม่ตั้งแต่นั้น</string>
+    <string name="debug_logview_copied_msg">คัดลอกบันทึกไปยังคลิปบอร์ดแล้ว</string>
+    <string name="debug_logview_copied_truncated_msg">คัดลอก %1$d บรรทัดล่าสุดไปยังคลิปบอร์ดแล้ว</string>
+    <string name="debug_logview_share_label">แชร์บันทึก</string>
+
+    <string name="settings_label">การตั้งค่า</string>
+    <string name="settings_category_tools_label">เครื่องมือ</string>
+    <string name="settings_category_other_label">อื่นๆ</string>
+    <string name="settings_category_integration_label">การเชื่อมต่อ</string>
+    <string name="general_settings_label">ทั่วไป</string>
+    <string name="general_settings_desc">การปรับแต่งทั่วไปที่มีผลต่อทั้งแอป</string>
+    <string name="settings_category_ui_label">อินเทอร์เฟซผู้ใช้</string>
+    <string name="ui_mascot_suit_setting_label">ชุดของ Butler</string>
+    <string name="ui_mascot_suit_setting_explanation">สีที่ใช้ตัดชุดของ Butler</string>
+    <string name="ui_theme_mode_setting_label">โหมดธีม</string>
+    <string name="ui_theme_mode_setting_explanation">โหมดที่ใช้กำหนดธีมของแอป (เช่น กลางคืนหรือกลางวัน)</string>
+    <string name="ui_theme_style_setting_label">รูปแบบธีม</string>
+    <string name="ui_theme_style_setting_explanation">รูปแบบสีที่ใช้กำหนดธีมของแอป</string>
+    <string name="ui_theme_color_setting_label">สีธีม</string>
+    <string name="ui_theme_color_setting_explanation">ชุดสีที่ใช้กำหนดธีมของแอป</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">สีถูกกำหนดโดย Material You จากวอลเปเปอร์ของคุณ</string>
+    <string name="ui_theme_color_value_system">สีของระบบ</string>
+    <string name="ui_language_override_label">ภาษาของแอป</string>
+    <string name="ui_language_override_desc">เลือกภาษาอื่นสำหรับ Butler แยกจากภาษาเริ่มต้นของระบบ</string>
+    <string name="ui_display_cutout_avoid_setting_title">หลีกเลี่ยงรอยบากหน้าจอ</string>
+    <string name="ui_display_cutout_avoid_setting_description">เว้นพื้นที่ให้อินเทอร์เฟซไม่ทับรอยบากกล้อง ปิดเพื่อใช้พื้นที่หน้าจอได้มากขึ้น แต่บางส่วนของอินเทอร์เฟซอาจซ้อนอยู่หลังรอยบาก</string>
+
+    <string name="previews_settings_title">ตัวอย่าง</string>
+    <string name="previews_settings_subtitle">จัดการแคชตัวอย่างรูปภาพ</string>
+
+    <string name="tour_settings_reset_title">รีเซ็ตทัวร์แนะนำ</string>
+    <string name="tour_settings_reset_subtitle">แสดงทัวร์แนะนำอีกครั้ง รวมถึงทัวร์ที่เคยข้ามหรือปิดไว้</string>
+    <string name="tour_settings_reset_done">รีเซ็ตทัวร์แนะนำแล้ว</string>
+
+    <string name="storage_settings_title">ที่เก็บข้อมูล</string>
+    <string name="storage_settings_subtitle">จัดการแคช ที่เก็บข้อมูล และถังขยะของ Butler</string>
+    <string name="storage_category_previews_label">ตัวอย่าง</string>
+    <string name="storage_previews_disk_cache_title">แคชดิสก์</string>
+    <string name="storage_previews_memory_cache_title">แคชหน่วยความจำ</string>
+    <string name="storage_previews_max_size_title">ขนาดแคชสูงสุด</string>
+    <string name="storage_clear_disk_confirm_title">ล้างแคชดิสก์?</string>
+    <string name="storage_clear_disk_confirm_message">การดำเนินการนี้จะลบรูปตัวอย่างที่แคชไว้ทั้งหมด ระบบจะสร้างใหม่เมื่อจำเป็น</string>
+    <string name="storage_clear_memory_confirm_title">ล้างแคชหน่วยความจำ?</string>
+    <string name="storage_clear_memory_confirm_message">การดำเนินการนี้จะลบรูปตัวอย่างที่แคชไว้ในหน่วยความจำ ระบบจะสร้างใหม่เมื่อจำเป็น</string>
+    <string name="storage_clear_all_confirm_title">ล้างแคชทั้งหมด?</string>
+    <string name="storage_clear_all_confirm_message">การดำเนินการนี้จะล้างแคชรูปตัวอย่างทั้งในดิสก์และหน่วยความจำ</string>
+    <string name="storage_clear_all_previews_action">ล้างแคชตัวอย่างทั้งหมด</string>
+    <string name="storage_clear_all_subtitle">ลบแคชตัวอย่างทั้งหมด</string>
+    <string name="storage_cache_cleared_message">ล้างแคชแล้ว</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">ตรวจสอบการอัปเดต</string>
+    <string name="updater_check_enabled_setting_description">อนุญาตให้ Butler ตรวจสอบออนไลน์ว่ามีเวอร์ชันใหม่หรือไม่</string>
+    <string name="motd_check_enabled_setting_title">ตรวจสอบประกาศ</string>
+    <string name="motd_check_enabled_setting_description">อนุญาตให้ Butler ดึงข้อความสำคัญจากนักพัฒนา</string>
+    <string name="motd_card_header">ประกาศ</string>
+
+    <string name="confirm_exit_setting_title">ยืนยันก่อนออก</string>
+    <string name="confirm_exit_setting_description">แสดงกล่องยืนยันเมื่อออกจากแอป</string>
+    <string name="confirm_exit_dialog_title">ออกจาก Butler</string>
+    <string name="confirm_exit_dialog_message">การดำเนินการนี้จะปิดแอปและกลับไปยังหน้าจอหลัก</string>
+    <string name="confirm_exit_dialog_exit">ออก</string>
+    <string name="confirm_exit_dialog_cancel">ยกเลิก</string>
+    <string name="confirm_exit_dialog_dont_ask_again">ไม่ต้องถามอีก</string>
+
+    <string name="settings_support_category_help_label">ขอความช่วยเหลือ</string>
+    <string name="settings_support_label">การสนับสนุน</string>
+    <string name="settings_support_description">อ่านเอกสาร แจ้งปัญหา พูดคุยกับผู้อื่น หรือบันทึกดีบัก</string>
+    <string name="settings_support_wiki_label">เอกสาร</string>
+    <string name="settings_support_wiki_description">เรียนรู้วิธีใช้ Butler อย่างมีประสิทธิภาพ</string>
+    <string name="settings_support_issue_tracker_description">ตัวติดตามปัญหาสาธารณะสำหรับแจ้งบั๊กและขอฟีเจอร์ใหม่</string>
+    <string name="settings_support_issue_tracker_label">ตัวติดตามปัญหา</string>
+    <string name="settings_support_debuglog_label">บันทึกดีบัก</string>
+    <string name="settings_support_debuglog_desc">บันทึกทุกการทำงานของแอปลงในไฟล์ข้อความที่แชร์ได้</string>
+    <string name="settings_support_debuglog_recording_desc">กำลังบันทึกข้อมูลดีบักอยู่ แตะเพื่อหยุดบันทึก</string>
+    <string name="settings_support_debuglog_path">เส้นทางบันทึก: %1$s</string>
+    <string name="settings_support_bugreports_label">รายงานบั๊ก</string>
+    <string name="settings_support_bugreports_desc">ดูรายงานการขัดข้อง บันทึกดีบัก และส่งให้ฉัน</string>
+    <string name="support_contact_report_type_crash">รายงานการขัดข้อง</string>
+    <string name="support_contact_report_type_reported">รายงานบั๊ก</string>
+    <string name="support_contact_report_type_recording">การบันทึก</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">พื้นที่พูดคุยและถามคำถาม</string>
+
+    <string name="settings_acknowledgements_label">กิตติกรรมประกาศ</string>
+    <string name="settings_acknowledgements_description">เครดิต ใบอนุญาต และคำขอบคุณพิเศษ</string>
+    <string name="settings_acks_translation_header">การแปล</string>
+    <string name="settings_acks_translators_title">ผู้แปล</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">ร่วมแปล Butler</string>
+    <string name="settings_acks_translate_desc">ช่วยแปล Butler เป็นภาษาของคุณ</string>
+
+    <string name="settings_acks_thanks_header">ขอบคุณ</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">สำหรับการสนับสนุนการแปลโปรเจกต์โอเพนซอร์ส</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">ขอบคุณสำหรับไอคอน การออกแบบมาสคอต และแอนิเมชัน</string>
+    <string name="settings_licenses_label">ใบอนุญาต</string>
+
+    <!-- Workspace Status Card -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="other">%1$d แท็บ</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="other">%1$d งาน</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="other">%1$d แจ้งเตือน</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="other">%1$d ยังไม่บันทึก</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="other">%1$d หยุดไว้</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">แสดงแท็บทั้งหมด</string>
+    <string name="workspace_status_filter_operations_desc">กรองแท็บที่มีการดำเนินการ</string>
+    <string name="workspace_status_filter_attention_desc">กรองแท็บที่ต้องการความสนใจ</string>
+    <string name="workspace_status_filter_paused_desc">กรองแท็บที่หยุดชั่วคราว</string>
+    <string name="workspace_status_filter_unsaved_desc">กรองแท็บที่มีการเปลี่ยนแปลงยังไม่บันทึก</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">ภาษาโปรแกรม Kotlin (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">ตัวฉีดดีเพนเดนซีที่รวดเร็วสำหรับ Android และ Java (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">เรียกใช้โค้ด Java (และ Kotlin) แบบ root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">รันโค้ด Kotlin JVM แบบรูทได้ง่ายด้วย coroutines (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">ใช้ system API โดยตรงด้วยสิทธิ์ adb/root จากแอปทั่วไป ผ่านโปรเซส Java ที่เริ่มด้วย app_process (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Lottie สำหรับ Android จาก Airbnb (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">หุ่นยนต์ Android ถูกทำซ้ำหรือดัดแปลงจากผลงานที่ Google สร้างและเผยแพร่ และใช้ตามเงื่อนไขของ Creative Commons 3.0 Attribution License</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">เครื่องมือสมัยใหม่ของ Android สำหรับสร้าง UI แบบเนทีฟ (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpack libraries</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation และไลบรารี AndroidX อื่นๆ (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin extensions</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">ไลบรารี Coroutines และ Serialization (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">ไลบรารีโหลดรูปภาพที่ใช้ Kotlin Coroutines (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">ฟังก์ชันการเข้ารหัสสำหรับการยืนยันตัวตน การเซ็นชื่อ และการเข้ารหัสของ SMB (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Square libraries</string>
+    <string name="acknowledgement_square_libraries_subtitle">ไลบรารีเครือข่าย Retrofit, OkHttp และ OkIO (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">ยูทิลิตีสำหรับ Jetpack Compose (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">การลากวางสำหรับ LazyColumn ใน Compose (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">ไลบรารี Semantic Versioning สำหรับ Kotlin (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">กราฟและแผนภูมิสำหรับ Jetpack Compose (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">นโยบายความเป็นส่วนตัว</string>
+    <string name="settings_privacy_policy_desc">จัดการข้อมูลอย่างรับผิดชอบ</string>
+
+
+    <string name="changelog_label">บันทึกการเปลี่ยนแปลง</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">สถานะการอัปเกรด Butler</string>
+    <string name="upgrade_status_free">สถานะ: ฟรี</string>
+    <string name="upgrade_status_pro">สถานะ: Pro</string>
+    <string name="upgrade_status_foss">สถานะ: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD card</string>
+    <string name="storage_area_public_label">ที่เก็บข้อมูลสาธารณะ</string>
+    <string name="storage_area_public_app_data_label">ข้อมูลแอปสาธารณะ</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">ตัวจัดการแท็บ</string>
+    <string name="workspace_manager_empty_title">ไม่มีแท็บ</string>
+    <string name="workspace_manager_empty_subtitle">สร้างแท็บแรกเพื่อเริ่มต้น</string>
+
+    <!-- Workspace > Empty Content-->
+    <string name="workspace_empty_create_action">สร้างแท็บ</string>
+    <string name="workspace_empty_create_hint">ทำงานหลายอย่างพร้อมกัน สร้างแท็บแล้วเลือกเครื่องมือที่ต้องการ</string>
+    <string name="workspace_empty_settings_action">เปิดการตั้งค่า</string>
+    <string name="workspace_empty_settings_hint">ปรับแต่ง Butler ให้ถูกใจคุณ ปรับพฤติกรรมของเครื่องมือต่างๆ</string>
+    <string name="workspace_classic_empty_tabs_closed">ไม่มีแท็บที่เปิดอยู่ พร้อมเมื่อคุณพร้อม</string>
+    <string name="workspace_classic_empty_tip">เคล็ดลับ: แตะ “สร้างแท็บ” แล้วเลือกเครื่องมือ — ตัวจัดการไฟล์ ค้นหา ตัวแก้ไข และอื่นๆ</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">เริ่มต้นด้วยแท็บ</string>
+    <string name="tour_first_tab_body">Butler ทำงานแบบแท็บเหมือนเบราว์เซอร์ แต่ละแท็บเป็นเครื่องมือของตัวเอง — ตัวจัดการไฟล์ ค้นหา ตัวแก้ไข และอื่นๆ สร้างแท็บแรกของคุณ</string>
+    <string name="tour_manager_fab_title">ทางลัดด่วน</string>
+    <string name="tour_manager_fab_body">แตะที่นี่เพื่อดูทางลัดไปยังเครื่องมือที่ใช้บ่อย และปิดทุกแท็บพร้อมกัน</string>
+    <string name="tour_manager_reorder_title">จัดเรียงแท็บใหม่</string>
+    <string name="tour_manager_reorder_body">กดค้างที่แถบชื่อแท็บแล้วลากไปยังตำแหน่งที่ต้องการ ลำดับนี้จะใช้กับแท็บในทุกที่</string>
+    <string name="tour_manager_select_title">จัดการหลายแท็บพร้อมกัน</string>
+    <string name="tour_manager_select_body">กดค้างที่ตัวอย่างแท็บเพื่อเริ่มเลือกแท็บ จากนั้นแตะแท็บอื่นๆ แล้วปิดหรือหยุดชั่วคราวพร้อมกันได้ในคราวเดียว</string>
+    <string name="tour_manager_new_tab_title">เริ่มแท็บใหม่</string>
+    <string name="tour_manager_new_tab_body">แตะการ์ดนี้เพื่อเลือกเครื่องมือสำหรับแท็บใหม่</string>
+    <string name="tour_swipe_switch_title">ปัดสลับแท็บ</string>
+    <string name="tour_swipe_switch_body">ปัดซ้ายหรือขวาที่ใดก็ได้บนหน้าจอเพื่อสลับไปมาระหว่างแท็บที่เปิดอยู่</string>
+    <string name="tour_swipe_create_title">ปัดเพื่อสร้างแท็บ</string>
+    <string name="tour_swipe_create_body">ปัดเลยแท็บสุดท้าย Butler จะเสนอแท็บใหม่ให้ทันที</string>
+    <string name="tour_swipe_panes_title">แสดงได้มากกว่าหนึ่งแท็บพร้อมกัน</string>
+    <string name="tour_swipe_panes_body">บนหน้าจอที่ใหญ่ขึ้น หรือในแนวนอน Butler จะแสดงหลายแท็บเรียงข้างกัน การตั้งค่าเลย์เอาต์ในเมนูแท็บเป็นตัวกำหนดว่าจะแสดงเมื่อใด</string>
+    <string name="tour_panes_rail_title">แท็บทั้งหมดของคุณ</string>
+    <string name="tour_panes_rail_body">แท็บที่เปิดอยู่ทั้งหมดจะอยู่ที่นี่ แตะแท็บแล้วเลือกพาเนลที่ต้องการวาง กดค้างแท็บแล้วลากเพื่อเปลี่ยนลำดับ</string>
+    <string name="tour_panes_divider_title">ปรับขนาดพาเนล</string>
+    <string name="tour_panes_divider_body">ลากเส้นแบ่งนี้เพื่อขยายพื้นที่ให้พาเนลใดพาเนลหนึ่ง</string>
+    <string name="tour_panes_layout_title">เปลี่ยนการจัดวาง</string>
+    <string name="tour_panes_layout_body">แตะปุ่ม Butler แล้วเลือกเลย์เอาต์เพื่อจัดพาเนลใหม่ การตั้งค่าแท็บจะกำหนดเลย์เอาต์แยกตามแนวจอ</string>
+
+    <string name="workspace_creating_placeholder">กำลังสร้างแท็บ…</string>
+    <string name="workspace_ondemand_swipe_title">ปัดเพื่อสร้างแท็บใหม่</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">พาเนล %1$d พร้อมสำหรับเนื้อหา</string>
+    <string name="workspace_adaptive_add_action">เพิ่มแท็บ</string>
+
+    <string name="workspace_badge_tip_title">เคล็ดลับ: ตัวบ่งชี้บนปุ่มแท็บ</string>
+    <string name="workspace_badge_open_workspaces">จำนวนแท็บที่เปิดอยู่</string>
+    <string name="workspace_badge_active_operations">การดำเนินการที่กำลังทำงาน (การคัดลอกไฟล์ การค้นหา ฯลฯ)</string>
+    <string name="workspace_badge_attention_items">รายการที่ต้องการความสนใจ (การดำเนินการที่ล้มเหลวหรือรอดำเนินการ ไฟล์ที่เข้าถึงไม่ได้)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">ปิด</string>
+    <string name="workspace_manager_selection_count">เลือกไว้ %1$d รายการ</string>
+    <string name="workspace_manager_selection_select_all">เลือกทั้งหมด</string>
+    <string name="workspace_manager_selection_pause_action">หยุดรายการที่เลือก</string>
+    <string name="workspace_manager_selection_close_action">ปิดรายการที่เลือก</string>
+    <string name="workspace_manager_selection_cancel_content_desc">ออกจากโหมดเลือก</string>
+    <string name="workspace_manager_selection_clear_content_desc">ล้างการเลือก</string>
+    <string name="workspace_manager_select_all_tabs_desc">เลือกแท็บทั้งหมด</string>
+    <string name="workspace_manager_new_tab_card_title">แท็บใหม่</string>
+    <string name="workspace_row_select_content_desc">เลือกแท็บ</string>
+    <string name="general_cancel_action">ยกเลิก</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">ทางลัดด่วน</string>
+    <string name="workspace_fab_close_shortcuts">ปิดทางลัด</string>
+    <string name="workspace_fab_close_all">ปิดแท็บทั้งหมด</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">กำหนดไปยังพาเนล %1$d</string>
+    <string name="workspace_pane_show_action">แสดง</string>
+    <string name="workspace_pane_close_action">ปิด</string>
+    <string name="workspace_pane_unassign_action">ลบออกจากพาเนล</string>
+    <string name="workspace_dragging_description">กำลังลาก</string>
+    <string name="workspace_pane_current_description">อยู่ในพาเนล %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">ปิดแท็บ</string>
+    <string name="workspace_row_more_options_content_desc">ตัวเลือกเพิ่มเติม</string>
+    <string name="workspace_row_operations_running_content_desc">กำลังทำงาน</string>
+    <string name="workspace_row_operations_pending_content_desc">รอดำเนินการ</string>
+    <string name="workspace_row_pause_action">หยุดชั่วคราว</string>
+    <string name="workspace_row_resume_action">ดำเนินการต่อ</string>
+    <string name="workspace_row_stacked_content_desc">ซ้อนอยู่บนแท็บนี้</string>
+    <string name="workspace_row_unsaved_content_desc">มีการเปลี่ยนแปลงยังไม่บันทึก</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">ตั้งค่าพฤติกรรมของแท็บ</string>
+    <string name="explorer_settings_subtitle">ตั้งค่าพฤติกรรมของตัวจัดการไฟล์</string>
+    <string name="searcher_settings_subtitle">ตั้งค่าพฤติกรรมการค้นหา</string>
+    <string name="editor_settings_subtitle">ตั้งค่าพฤติกรรมของตัวแก้ไขข้อความ</string>
+    <string name="history_settings_subtitle">การเก็บรักษาและล้างประวัติการดำเนินการ</string>
+    <string name="clipboard_settings_subtitle">ตั้งค่าพฤติกรรมของคลิปบอร์ด</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">บันทึกเป็น…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">เปิดใน Butler</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">แก้ไขข้อความ</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">ไฟล์ไม่มีชื่อ</string>
+    <string name="external_open_action_view">ดู</string>
+    <string name="external_open_action_edit">แก้ไขเป็นข้อความ</string>
+    <string name="external_open_action_show_in_explorer">แสดงในตัวจัดการไฟล์</string>
+    <string name="external_open_action_save">บันทึกเป็น…</string>
+    <string name="external_open_failed_label">เปิดไฟล์ไม่ได้</string>
+    <string name="external_open_failed_description">Butler ไม่สามารถเปิด \"%1$s\" ได้</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">เปิดใช้งานโหมดนักพัฒนา?</string>
+    <string name="settings_developer_mode_unlock_message">การดำเนินการนี้จะปลดล็อกเครื่องมือวินิจฉัยขั้นสูงสำหรับแก้ปัญหาและทดสอบ</string>
+    <string name="settings_developer_mode_unlock_action">เปิดใช้งาน</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="other">อีก %d ขั้นตอนถึงโหมดนักพัฒนา</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">ติดต่อผู้พัฒนา</string>
+    <string name="support_contact_description">กรอกแบบฟอร์มเพื่อส่งอีเมลถึงฉัน</string>
+    <string name="support_contact_no_email_app">ไม่พบแอปอีเมล</string>
+    <string name="support_contact_category_label">หมวดหมู่</string>
+    <string name="support_contact_category_question">คำถาม</string>
+    <string name="support_contact_category_feature">ขอฟีเจอร์ใหม่</string>
+    <string name="support_contact_category_bug">รายงานบั๊ก</string>
+    <string name="support_contact_workspace_label">พื้นที่ที่เกี่ยวข้อง</string>
+    <string name="support_contact_workspace_general">ทั่วไป</string>
+    <string name="support_contact_workspace_explorer">ตัวจัดการไฟล์</string>
+    <string name="support_contact_workspace_searcher">ค้นหา</string>
+    <string name="support_contact_workspace_editor">ตัวแก้ไข</string>
+    <string name="support_contact_description_label">รายละเอียด</string>
+    <string name="support_contact_description_question_hint">อธิบายคำถามของคุณโดยละเอียด โปรดระบุให้ชัดเจน (อย่างน้อย 20 คำ)</string>
+    <string name="support_contact_description_feature_hint">อธิบายฟีเจอร์ที่ต้องการให้มี โปรดระบุให้ชัดเจน (อย่างน้อย 20 คำ)</string>
+    <string name="support_contact_description_bug_hint">อธิบายสิ่งที่เกิดขึ้นและวิธีทำให้ปัญหาเกิดซ้ำ โปรดระบุให้ชัดเจน (อย่างน้อย 20 คำ)</string>
+    <string name="support_contact_expected_label">พฤติกรรมที่คาดหวัง</string>
+    <string name="support_contact_expected_hint">อธิบายสิ่งที่คุณคาดว่าจะเกิดขึ้น (อย่างน้อย 10 คำ)</string>
+    <string name="support_contact_word_count">อย่างน้อย %1$d คำ</string>
+    <string name="support_contact_debuglog_label">บันทึกดีบัก</string>
+    <string name="support_contact_debuglog_empty">ไม่พบบันทึกดีบัก โปรดบันทึกก่อน</string>
+    <string name="support_contact_debuglog_picker_hint">แนบบันทึกดีบักที่มีอยู่ หรือบันทึกใหม่</string>
+    <string name="support_contact_send_action">เปิดแอปอีเมล</string>
+    <string name="support_contact_welcome">ฉันอ่านทุกข้อความด้วยตัวเองและพยายามตอบให้ดีที่สุด แต่เนื่องจากทำคนเดียว อาจต้องใช้เวลาสักหน่อย ขอบคุณที่อดทนรอ</string>
+    <string name="support_contact_footer">ข้อความของคุณจะถูกส่งผ่านอีเมล ข้อมูลอุปกรณ์และการตั้งค่าจะถูกแนบให้โดยอัตโนมัติ คุณสามารถแนบภาพหน้าจอหรือวิดีโอในอีเมลได้\n\nบางส่วนของอีเมลจะเป็นภาษาอังกฤษเพื่อให้ฉันเข้าใจได้ง่ายขึ้น</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">พื้นที่เก็บบันทึกดีบัก</string>
+    <string name="support_debuglog_storage_description">%1$d เซสชันบันทึก %2$s</string>
+    <string name="support_debuglog_storage_empty">ไม่มีบันทึกดีบักที่เก็บไว้</string>
+    <string name="support_debuglog_delete_action">ลบบันทึกดีบักทั้งหมด</string>
+    <string name="support_debuglog_delete_description">ลบไฟล์บันทึกดีบักที่บันทึกไว้ทั้งหมด</string>
+    <string name="support_debuglog_delete_confirm_title">ลบบันทึกดีบักทั้งหมด?</string>
+    <string name="support_debuglog_delete_confirm_message">การดำเนินการนี้จะลบเซสชันบันทึกดีบักที่บันทึกไว้ทั้งหมดอย่างถาวร การบันทึกที่กำลังทำงานอยู่จะไม่ได้รับผลกระทบ</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">หยุดบันทึก</string>
+    <string name="settings_support_debuglog_record_action">บันทึกดีบัก</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">เซสชันบันทึกดีบัก</string>
+    <string name="support_debuglog_sessions_desc">จัดการเซสชันบันทึกดีบักที่บันทึกไว้</string>
+    <string name="support_debuglog_sessions_empty">ไม่มีเซสชันบันทึกดีบัก</string>
+    <string name="support_debuglog_session_recording">กำลังบันทึก…</string>
+    <string name="support_debuglog_session_compressing">กำลังบีบอัด…</string>
+    <string name="support_debuglog_session_failed_empty_log">ล้มเหลว: บันทึกว่างเปล่า</string>
+    <string name="support_debuglog_session_failed_missing_log">ล้มเหลว: ไม่พบบันทึก</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">ล้มเหลว: ไฟล์บีบอัดเสียหาย</string>
+    <string name="support_debuglog_session_failed_zip_failed">ล้มเหลว: บีบอัดไม่สำเร็จ</string>
+    <string name="support_debuglog_session_delete_title">ลบเซสชันดีบัก?</string>
+    <string name="support_debuglog_session_delete_message">การดำเนินการนี้จะลบเซสชันบันทึกดีบักนี้อย่างถาวร</string>
+    <string name="support_debuglog_clear_action">ล้างทั้งหมด</string>
+    <string name="support_debuglog_clear_confirm_message">ลบเซสชันบันทึกดีบักที่เก็บไว้ทั้งหมด?</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_screen_subtitle">ส่งออกข้อมูลดีบักเพื่อแก้ปัญหา</string>
+    <string name="debug_log_screen_sensitive_information_title">ข้อมูลที่ละเอียดอ่อน</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">คุณส่งข้อความแล้วหรือยัง?</string>
+    <string name="support_contact_sent_message">หากส่งข้อความแล้ว บันทึกดีบักที่แนบไว้จะถูกลบเพื่อประหยัดพื้นที่ หากยังไม่ได้ส่ง คุณสามารถเก็บไว้แล้วลองใหม่ภายหลังได้</string>
+    <string name="support_contact_debuglog_zip_error">เตรียมไฟล์แนบบันทึกดีบักไม่สำเร็จ</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">ความคืบหน้าการดำเนินการไฟล์</string>
+    <string name="ops_notification_channel_progress_desc">ความคืบหน้าของการคัดลอก ย้าย และลบไฟล์</string>
+    <string name="ops_notification_channel_attention_name">การแจ้งเตือนการดำเนินการไฟล์</string>
+    <string name="ops_notification_channel_attention_desc">การดำเนินการที่ต้องการความสนใจหรือล้มเหลว</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="other">กำลังดำเนินการไฟล์ %1$d รายการ</item>
+    </plurals>
+    <string name="ops_notification_state_queued">อยู่ในคิว…</string>
+    <string name="ops_notification_state_cancelling">กำลังยกเลิก…</string>
+    <string name="ops_notification_state_attention_title">ต้องดำเนินการ</string>
+    <string name="ops_notification_state_attention_text">มีความขัดแย้งที่ต้องการการแก้ไข — แตะเพื่อจัดการ</string>
+    <string name="ops_notification_result_failed_title">การดำเนินการล้มเหลว</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">อยากให้คะแนน Butler ไหม? ❤️</string>
+    <string name="review_app_dismiss_action">ไว้ทีหลัง</string>
+    <string name="review_app_review_action">รีวิว</string>
+
+</resources>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">รายงานข้อบกพร่อง</string>
+    <string name="bugreport_workspace_subtitle">รายงานข้อบกพร่องการขัดข้องและข้อผิดพลาด</string>
+
+    <string name="bugreport_empty_title">ไม่มีรายงาน</string>
+    <string name="bugreport_empty_subtitle">รายงานข้อบกพร่องการขัดข้องและข้อผิดพลาดจะปรากฎที่นี่ ไม่มีอะไรถูกส่งโดยอัตโนมัติ</string>
+
+    <string name="bugreport_type_crash">ขัดข้อง</string>
+    <string name="bugreport_type_report">รายงาน</string>
+    <string name="bugreport_type_recording">การบันทึก</string>
+
+    <string name="bugreport_record_action">บันทึกบันทึกการแก้ไขข้อบกพร่อง</string>
+    <string name="bugreport_record_short_action">บันทึก</string>
+    <string name="bugreport_stop_action">หยุดการบันทึก</string>
+    <string name="bugreport_stop_short_action">หยุด</string>
+    <string name="bugreport_recording_ongoing_label">กำลังบันทึก…</string>
+
+    <string name="bugreport_recording_short_title">การบันทึกสั้นมาก</string>
+    <string name="bugreport_recording_short_message">การบันทึกนี้ยาวเพียงไม่กี่วินาทีและอาจไม่มีข้อมูลที่เป็นประโยชน์ ต้องการหยุดต่อไปหรือไม่</string>
+    <string name="bugreport_recording_short_keep_action">บันทึกต่อ</string>
+
+    <string name="bugreport_rename_action">เปลี่ยนชื่อ</string>
+    <string name="bugreport_rename_dialog_title">ตั้งชื่อรายงานนี้</string>
+    <string name="bugreport_rename_name_label">ชื่อ</string>
+    <string name="bugreport_rename_name_hint">แสดงในรายการและในชื่อไฟล์ที่แชร์</string>
+
+    <string name="bugreport_share_action">แชร์</string>
+    <string name="bugreport_delete_action">ลบ</string>
+    <string name="bugreport_delete_all_action">ลบทั้งหมด</string>
+    <string name="bugreport_delete_all_confirm_title">ลบบันทึกการแก้ไขข้อบกพร่องทั้งหมด</string>
+    <string name="bugreport_delete_all_confirm_message">นี้จะลบบันทึกการแก้ไขข้อบกพร่องทั้งหมดอย่างถาวร การบันทึกที่ใช้งานอยู่จะไม่ได้รับผลกระทบ</string>
+    <string name="bugreport_delete_confirm_title">ลบรายงานนี้</string>
+    <string name="bugreport_delete_confirm_message">นี้จะลบรายงานนี้และบันทึกของมันอย่างถาวร</string>
+    <string name="bugreport_cancel_action">ยกเลิก</string>
+
+    <string name="bugreport_share_chooser_title">แชร์รายงานข้อบกพร่อง</string>
+    <string name="bugreport_share_consent_title">แชร์รายงาน</string>
+    <string name="bugreport_share_consent_message">รายงานนี้มีบันทึกแอปที่อาจมีชื่อไฟล์เส้นทางข้อมูลแอปและข้อมูลอุปกรณ์ แชร์เฉพาะกับผู้ที่คุณเชื่อถือ</string>
+
+    <string name="bugreport_detail_back_action">กลับ</string>
+    <string name="bugreport_detail_section_error">ข้อผิดพลาด</string>
+    <string name="bugreport_detail_section_log">บันทึกล่าสุด</string>
+    <string name="bugreport_detail_field_type">ประเภท</string>
+    <string name="bugreport_detail_field_time">เวลา</string>
+    <string name="bugreport_detail_field_app_version">เวอร์ชันแอป</string>
+    <string name="bugreport_detail_field_device">อุปกรณ์</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">ประเภทข้อผิดพลาด</string>
+    <string name="bugreport_detail_field_thread">Thread</string>
+    <string name="bugreport_detail_log_truncated">%1$d บรรทัดสุดท้ายจาก %2$d บรรทัด</string>
+    <string name="bugreport_detail_log_count">%1$d บรรทัด</string>
+    <string name="bugreport_detail_log_empty">ไม่มีการบันทึก</string>
+    <string name="bugreport_detail_log_error">ไม่สามารถโหลดบันทึกได้</string>
+</resources>
