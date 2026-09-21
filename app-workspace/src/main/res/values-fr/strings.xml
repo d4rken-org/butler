@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Presse-papiers</string>
+    <string name="clipboard_clear_all">Tout effacer</string>
+    <string name="clipboard_paste">Coller</string>
+    <string name="clipboard_open_in_explorer">Ouvrir dans l’explorateur</string>
+    <string name="clipboard_copy">Copier</string>
+    <string name="clipboard_cut">Couper</string>
+    <string name="clipboard_origin">Origine : %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Copier %d élément</item>
+        <item quantity="other">Copier %d éléments</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d élément depuis %s</item>
+        <item quantity="other">%d éléments depuis %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Couper %d élément</item>
+        <item quantity="other">Couper %d éléments</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d élément depuis %s</item>
+        <item quantity="other">%d éléments depuis %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d emplacement</item>
+        <item quantity="other">%d emplacements</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d élément depuis %2$s</item>
+        <item quantity="other">%1$d éléments depuis %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d élément depuis %2$s</item>
+        <item quantity="other">%1$d éléments depuis %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Extrait de texte</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d caractère</item>
+        <item quantity="other">%1$d caractères</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Coller comme fichier</string>
+    <string name="clipboard_text_info_characters">Caractères</string>
+    <string name="clipboard_text_info_lines">Lignes</string>
+    <string name="clipboard_text_info_content">Contenu</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Aperçu</string>
+    <string name="clipboard_info_operation">Opération</string>
+    <string name="clipboard_info_items">Éléments</string>
+    <string name="clipboard_info_source">Source</string>
+    <string name="clipboard_info_sources">Sources</string>
+    <string name="clipboard_info_workspace">Espace de travail</string>
+    <string name="clipboard_info_workspace_closed">Fermé</string>
+    <string name="clipboard_info_time">Heure</string>
+    <string name="clipboard_info_items_with_count">Éléments (%1$d)</string>
+    <string name="clipboard_info_actions">Actions</string>
+    <string name="clipboard_info_go_to_source">Aller à la source</string>
+    <string name="clipboard_info_go_to_first_source">Aller à la première source</string>
+    <string name="clipboard_info_remove">Retirer du presse-papiers</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Presse-papiers</string>
+    <string name="clipboard_settings_remove_on_paste_title">Retirer après collage</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Retirer les éléments copiés du presse-papiers après collage</string>
+    <string name="clipboard_settings_max_items_title">Nombre maximal d’éléments</string>
+    <string name="clipboard_settings_max_items_desc">Nombre maximal d’éléments dans le presse-papiers</string>
+
+    <string name="workspace_explorer_label">Explorateur</string>
+    <string name="workspace_searcher_label">Recherche</string>
+    <string name="workspace_editor_label">Éditeur</string>
+    <string name="workspace_templates_label">Modèles</string>
+    <string name="workspace_apps_label">Applications</string>
+    <string name="workspace_appdetails_label">Détails de l’application</string>
+    <string name="workspace_saver_label">Enregistrer sous</string>
+    <string name="workspace_developer_label">Développeur</string>
+    <string name="workspace_history_label">Historique</string>
+    <string name="workspace_bugreport_label">Rapports de bug</string>
+    <string name="workspace_viewer_label">Visionneuse</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Photos</string>
+    <string name="workspace_searcher_target_videos">Vidéos</string>
+    <string name="workspace_searcher_target_music">Musique</string>
+    <string name="workspace_searcher_target_downloads">Téléchargements</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Plus</string>
+    <string name="workspace_expand_less_action">Moins</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Onglets et espaces de travail</string>
+    <string name="workspace_button_menu_new_workspace_format">Nouveau %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Nouvel onglet</string>
+    <string name="workspace_button_menu_category_recent">Récent</string>
+    <string name="workspace_button_menu_category_other">Autre</string>
+    <string name="workspace_button_menu_category_current_tab">Cet onglet</string>
+    <string name="workspace_button_menu_manager_action">Gestionnaire d’onglets</string>
+    <string name="workspace_button_menu_layout_action">Disposition</string>
+    <string name="workspace_button_menu_close_current_action">Fermer l’onglet actuel</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Fermer l’onglet actuel (%d espace de travail)</item>
+        <item quantity="other">Fermer l’onglet actuel (%d espaces de travail)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Paramètres</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Fermer tous les onglets ?</string>
+    <string name="workspace_manager_close_all_message">Cela fermera les %1$d %2$s ouverts. Cette action est irréversible.</string>
+    <string name="workspace_manager_close_all_message_singular">onglet</string>
+    <string name="workspace_manager_close_all_message_plural">onglets</string>
+    <string name="workspace_manager_close_all_action">Tout fermer</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Certains onglets ont des modifications non enregistrées qui seront perdues.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Tout ignorer</string>
+    <string name="workspace_manager_close_selected_title">Fermer les onglets sélectionnés ?</string>
+    <string name="workspace_manager_close_selected_message">Cela fermera les %1$d %2$s sélectionnés. Cette action est irréversible.</string>
+    <string name="workspace_manager_close_selected_action">Fermer la sélection</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Certains onglets sélectionnés ont des modifications non enregistrées qui seront perdues.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Ignorer la sélection</string>
+    <string name="workspace_manager_pause_partial_title">Mettre les onglets en pause ?</string>
+    <string name="workspace_manager_pause_partial_message">%1$d des %2$d onglets sélectionnés peuvent être mis en pause. Les autres sont en cours d’utilisation, ont des modifications non enregistrées ou sont actuellement ouverts.</string>
+    <string name="workspace_manager_pause_partial_action">Mettre %1$d en pause</string>
+    <string name="workspace_fab_close_all">Fermer tous les onglets</string>
+    <string name="general_cancel_action">Annuler</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Opérations</string>
+    <string name="operations_clear_completed">Effacer les terminées</string>
+    <string name="operations_state_queued">En attente</string>
+    <string name="operations_state_running">En cours</string>
+    <string name="operations_state_waiting">En attente d’une saisie</string>
+    <string name="operations_state_successful">Réussie</string>
+    <string name="operations_state_failed">Échec</string>
+    <string name="operations_state_cancelled">Annulée</string>
+    <string name="operations_state_cancelling">Annulation…</string>
+    <string name="operations_cancel_operation">Annuler l’opération</string>
+    <string name="operations_cancel_dialog_title">Annuler l’opération ?</string>
+    <string name="operations_cancel_dialog_message">Voulez-vous vraiment annuler cette opération ?</string>
+    <string name="operations_cancel_dialog_warning">L’annulation peut laisser des fichiers dans un état incohérent.</string>
+    <string name="operations_details_started_at">Démarrée</string>
+    <string name="operations_details_completed_at">Terminée</string>
+    <string name="operations_details_duration">Durée</string>
+    <string name="operations_details_duration_not_started">Pas encore démarrée</string>
+    <string name="operations_details_progress">Progression</string>
+    <string name="operations_details_error">Détails de l’erreur</string>
+    <string name="operations_details_actions">Actions</string>
+    <string name="operations_details_overview">Aperçu</string>
+    <string name="operations_details_handle_issue">Résoudre le problème</string>
+    <string name="operations_details_show_in_history_action">Afficher dans l’historique</string>
+    <string name="operations_details_status">État</string>
+    <string name="operations_details_result">Résultat</string>
+    <string name="operations_details_destination_folder">Dossier de destination</string>
+    <string name="operations_details_destination_path">Chemin de destination</string>
+    <string name="operations_details_affected_paths_with_count">Chemins concernés (%d)</string>
+    <string name="operations_details_problems_with_count">Problèmes (%d)</string>
+    <string name="operations_details_problems_more">%d de plus non listés</string>
+    <string name="workspace_operation_packages_section_title">Applications</string>
+    <string name="workspace_operation_package_status_done">Terminé</string>
+    <string name="workspace_operation_package_status_failed">Échec</string>
+    <string name="workspace_operation_package_status_declined">Refusé</string>
+    <string name="operations_details_section_expand">Développer %1$s</string>
+    <string name="operations_details_section_collapse">Réduire %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Graphique de performance</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Supprimer l’élément ?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Supprimer %1$d élément ?</item>
+        <item quantity="other">Supprimer %1$d éléments ?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Cet élément sera définitivement supprimé :</string>
+    <string name="workspace_dialog_delete_message_multiple">Ces éléments seront définitivement supprimés :</string>
+    <string name="workspace_dialog_delete_more_items">… et %1$d de plus</string>
+    <string name="workspace_dialog_delete_warning">Cette action est irréversible.</string>
+    <string name="workspace_dialog_delete_permanently_action">Supprimer définitivement</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Supprimer définitivement à la place</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Certains éléments ne peuvent pas être déplacés vers la corbeille et seront traités séparément.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Déplacer vers la corbeille ?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Déplacer %1$d élément vers la corbeille ?</item>
+        <item quantity="other">Déplacer %1$d éléments vers la corbeille ?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Cet élément sera déplacé vers la corbeille :</string>
+    <string name="workspace_dialog_trash_message_multiple">Ces éléments seront déplacés vers la corbeille :</string>
+    <string name="workspace_dialog_trash_hint">Retrouvez-les dans l’emplacement Corbeille</string>
+    <string name="workspace_dialog_move_to_trash_action">Déplacer</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d sélectionné</item>
+        <item quantity="other">%d sélectionnés</item>
+    </plurals>
+    <string name="workspace_action_more">Plus d’actions</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Suppression de fichiers</string>
+    <string name="workspace_operation_delete_description_single">Supprimer « %1$s » de « %2$s ».</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Supprimer %1$d élément de « %2$s ».</item>
+        <item quantity="other">Supprimer %1$d éléments de « %2$s ».</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Installation de l’application</string>
+    <string name="workspace_operation_install_description">Installer « %1$s ».</string>
+    <string name="workspace_operation_install_progress_inspecting">Lecture du paquet…</string>
+    <string name="workspace_operation_install_progress_extracting">Extraction…</string>
+    <string name="workspace_operation_install_progress_writing">Transmission des fichiers à l’installateur…</string>
+    <string name="workspace_operation_install_progress_committing">Finalisation de l’installation…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Placement des fichiers d’extension…</string>
+    <string name="workspace_operation_install_summary_success">%1$s a été installé.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s a été installé, mais ses fichiers d’extension n’ont pas pu être placés.</string>
+    <string name="workspace_install_unknown_sources_required">Butler a besoin de la permission d’installer des applications. Accordez-la dans les paramètres qui viennent de s’ouvrir, puis réessayez.</string>
+    <string name="workspace_install_obb_failed">L’application a été installée, mais ses fichiers d’extension n’ont pas pu être placés : %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d fichier supprimé.</item>
+        <item quantity="other">%1$d fichiers supprimés.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d dossier supprimé.</item>
+        <item quantity="other">%1$d dossiers supprimés.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d élément ignoré.</item>
+        <item quantity="other">%1$d éléments ignorés.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s libéré.</item>
+        <item quantity="other">%1$s libérés.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Déplacement vers la corbeille…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d fichier mis à la corbeille.</item>
+        <item quantity="other">%1$d fichiers mis à la corbeille.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d dossier mis à la corbeille.</item>
+        <item quantity="other">%1$d dossiers mis à la corbeille.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s libérés.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s libérés.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s restant.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Informations</string>
+    <string name="workspace_file_info_name_label">Nom</string>
+    <string name="workspace_file_info_path_label">Chemin</string>
+    <string name="workspace_file_info_type_label">Type</string>
+    <string name="workspace_file_info_type_file">Fichier</string>
+    <string name="workspace_file_info_type_directory">Dossier</string>
+    <string name="workspace_file_info_type_symlink">Lien symbolique</string>
+    <string name="workspace_file_info_type_unknown">Inconnu</string>
+    <string name="workspace_file_info_size_label">Taille</string>
+    <string name="workspace_file_info_modified_label">Modifié</string>
+    <string name="workspace_file_info_created_label">Créé</string>
+    <string name="workspace_file_info_permissions_label">Permissions</string>
+    <string name="workspace_file_info_owner_label">Propriétaire</string>
+    <string name="workspace_file_info_child_count_label">Éléments</string>
+    <string name="workspace_file_info_symlink_target_label">Cible</string>
+    <string name="workspace_file_info_unknown">Inconnu</string>
+    <string name="workspace_file_info_copy_action">Copier dans le presse-papiers</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Sélectionné</string>
+    <string name="workspace_file_info_files_label">Fichiers</string>
+    <string name="workspace_file_info_directories_label">Dossiers</string>
+    <string name="workspace_file_info_total_size_label">Taille totale</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Cette opération n’a pas encore commencé.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Collecte des données de performance…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Il n’y a pas assez de données de performance pour cette opération pour tracer un graphique.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Les données de performance ne sont pas disponibles pour cette opération.</string>
+    <string name="workspace_operation_performance_window_seconds">%1$d dernières s</string>
+    <string name="workspace_operation_performance_window_minutes">%1$d dernières min</string>
+    <string name="workspace_operation_performance_unit_bytes">o/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">ko/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">Mo/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">Go/s</string>
+    <string name="workspace_operation_performance_unit_items">éléments/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Afficher les détails techniques</string>
+    <string name="workspace_error_hide_details_action">Masquer les détails techniques</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Initialisation de l’onglet</string>
+    <string name="workspace_error_subtitle">Une erreur inattendue s’est produite</string>
+    <string name="workspace_close_tab_action">Fermer l’onglet</string>
+    <string name="workspace_paused_body">Cet onglet est en pause pour économiser la mémoire et la batterie. Reprenez-le pour continuer.</string>
+    <string name="workspace_paused_error_body">Cet onglet n’a pas pu être repris.</string>
+    <string name="workspace_paused_resume_action">Reprendre</string>
+    <string name="workspace_paused_label">En pause</string>
+    <string name="workspace_paused_content_label">Contenu de l’onglet</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Fichier existant</string>
+    <string name="workspace_issue_collision_existing_folder_label">Dossier existant</string>
+    <string name="workspace_issue_collision_new_file">Fichier entrant</string>
+    <string name="workspace_issue_collision_new_folder">Dossier entrant</string>
+    <string name="workspace_issue_collision_overwrite">Remplacer</string>
+    <string name="workspace_issue_collision_merge">Fusionner</string>
+    <string name="workspace_issue_common_source_file">Fichier source</string>
+    <string name="workspace_issue_common_destination_file">Destination</string>
+    <string name="workspace_issue_common_skip">Ignorer</string>
+    <string name="workspace_issue_common_rename">Renommer</string>
+    <string name="workspace_issue_common_rename_new">Renommer le nouveau</string>
+    <string name="workspace_issue_common_rename_existing">Renommer l’existant</string>
+    <string name="workspace_issue_common_cancel">Annuler</string>
+    <string name="workspace_issue_common_delete_permanently">Supprimer définitivement</string>
+    <string name="workspace_issue_archive_password_label">Mot de passe</string>
+    <string name="workspace_issue_archive_password_unlock">Déverrouiller</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Éléments en échec</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… et %1$d éléments de plus</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Éléments concernés</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… et %1$d éléments de plus</string>
+    <string name="workspace_issue_apply_all">Appliquer à tous les problèmes restants</string>
+    <string name="workspace_issue_rename_new_name">Nouveau nom</string>
+    <string name="workspace_issue_rename_dialog_title_new">Renommer le fichier entrant</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Renommer le fichier existant</string>
+    <string name="workspace_issue_type_folder">Dossier</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Ouvrir plusieurs onglets ?</string>
+    <string name="workspace_open_tabs_confirmation_message">Cela ouvrira %1$d onglets.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Ouvrir avec</string>
+    <string name="workspace_open_with_no_app_label">Aucune autre application trouvée</string>
+    <string name="workspace_open_with_no_app_description">Aucune autre application installée ne peut ouvrir %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">%1$d onglet ouvert</item>
+        <item quantity="other">%1$d onglets ouverts</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Fermeture impossible : une opération est encore en cours dans %1$d onglet</item>
+        <item quantity="other">Fermeture impossible : des opérations sont encore en cours dans %1$d onglets</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">Onglets</string>
+    <string name="workspace_settings_navigation">Navigation</string>
+    <string name="workspace_settings_swipe_gestures_title">Balayage</string>
+    <string name="workspace_settings_swipe_gestures_desc">Balayez vers la gauche ou la droite pour changer d’onglet.</string>
+    <string name="workspace_settings_ondemand_creation_title">Créer les onglets automatiquement</string>
+    <string name="workspace_settings_ondemand_creation_desc">Crée automatiquement un nouvel onglet en balayant après le dernier onglet.</string>
+    <string name="workspace_settings_newtab_type_title">Type du nouvel onglet</string>
+    <string name="workspace_settings_newtab_type_desc">Espace de travail ouvert en balayant après le dernier onglet, en ajoutant un onglet à un panneau vide, ou en créant le premier onglet.</string>
+    <string name="workspace_settings_newtab_type_ask">Toujours demander</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Afficher le sélecteur de type d’onglet pour chaque nouvel onglet.</string>
+    <string name="workspace_settings_live_preview_title">Aperçus en direct</string>
+    <string name="workspace_settings_live_preview_desc">Afficher le contenu des onglets en direct dans le gestionnaire d’onglets.</string>
+    <string name="workspace_settings_other">Autre</string>
+    <string name="workspace_settings_layout_title">Disposition</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Disposition en mode portrait</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Choisissez la disposition des onglets en orientation portrait.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Disposition en mode paysage</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Choisissez la disposition des onglets en orientation paysage.</string>
+    <string name="workspace_settings_layout_mode_auto">Automatique</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Classique sur les petits écrans, rail d’onglets avec panneaux sur les grands écrans.</string>
+    <string name="workspace_settings_layout_mode_classic">Classique</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Un panneau à la fois, sans rail d’onglets.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Adaptative</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Rail d’onglets et autant de panneaux que l’écran le permet. Épinglez une disposition depuis le menu Butler du rail.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptative (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Simple avec rail d’onglets</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Un panneau d’onglet plus le rail d’onglets des dispositions multi-panneaux. Changez d’onglet depuis le rail plutôt qu’en balayant ; le rail occupe une bande de l’écran.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Double verticale</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Deux panneaux côte à côte (gauche/droite).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Double horizontale</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Deux panneaux empilés (haut/bas).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Triple barre latérale gauche</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Un grand panneau à gauche, deux panneaux plus petits empilés à droite.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Triple barre latérale droite</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Deux panneaux plus petits empilés à gauche, un grand panneau à droite.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Grille quadruple</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Quatre panneaux en grille 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Cliquer pour donner le focus</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Le premier clic sur un panneau non focalisé ne fait que lui donner le focus, et les panneaux non focalisés ne réagissent pas au pointeur de la souris. Désactivez pour interagir directement avec eux.</string>
+
+    <string name="workspace_settings_rail_button_title">Bouton Butler</string>
+    <string name="workspace_settings_rail_button_desc">Choisissez où le bouton Butler se place sur le rail d’onglets.</string>
+    <string name="workspace_settings_rail_button_leading">Début</string>
+    <string name="workspace_settings_rail_button_leading_desc">Avant les onglets en portrait, au-dessus en paysage.</string>
+    <string name="workspace_settings_rail_button_trailing">Fin</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Après les onglets en portrait, en dessous en paysage. À portée du pouce pour une utilisation à une main.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Session</string>
+    <string name="workspace_settings_session_restore_title">Restaurer les onglets au démarrage</string>
+    <string name="workspace_settings_session_restore_desc">Restaure automatiquement les onglets précédemment ouverts au démarrage de l’application.</string>
+    <string name="workspace_settings_autopause_title">Mettre en pause les onglets inactifs</string>
+    <string name="workspace_settings_autopause_desc">Les onglets que vous n’avez pas consultés depuis un moment sont mis en pause pour économiser la mémoire et la batterie. Les ouvrir les reprend.</string>
+    <string name="workspace_settings_autopause_delay_title">Mettre en pause après</string>
+    <string name="workspace_settings_autopause_delay_desc">Durée pendant laquelle un onglet reste hors de vue avant d’être mis en pause.</string>
+    <string name="workspace_settings_undoclose_title">Annuler la fermeture d’onglets</string>
+    <string name="workspace_settings_undoclose_desc">Fermer un onglet propose de le rouvrir pendant quelques secondes.</string>
+    <string name="workspace_settings_session_data_title">Données de session</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d onglet • %2$s</item>
+        <item quantity="other">%1$d onglets • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">« %1$s » fermé</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Échec de la restauration de la session</string>
+    <string name="workspace_session_restoration_error_description">Votre session d’onglets précédente n’a pas pu être restaurée. Cela peut être dû à un bug qui sera corrigé dans une future mise à jour.\n\nVous pouvez effacer la session enregistrée pour continuer à utiliser Butler, ou attendre une mise à jour.</string>
+    <string name="workspace_session_restoration_error_clear_action">Effacer la session</string>
+    <string name="workspace_session_restoration_error_report_action">Signaler le problème</string>
+    <string name="workspace_session_restoration_error_confirm_title">Effacer la session ?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Cela supprimera définitivement votre session d’onglets enregistrée. Cette action est irréversible.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Renommer l’onglet</string>
+    <string name="workspace_rename_name_label">Nom personnalisé</string>
+    <string name="workspace_rename_name_hint">Laisser vide pour utiliser le nom automatique</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Limite d’onglets atteinte</string>
+    <string name="workspace_limit_reached_message">Les utilisateurs gratuits peuvent avoir jusqu’à %1$d onglets ouverts à la fois. Passez à Butler Pro pour des onglets illimités !</string>
+    <string name="workspace_limit_pick_tabs_message">Votre plan gratuit permet %1$d onglets ouverts. Choisissez ceux dont vous n’avez plus besoin et fermez-les pour faire de la place.</string>
+    <string name="workspace_limit_no_slot_hint">Fermer des onglets ne libérera pas de place pour le moment.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Fermer %d onglet</item>
+        <item quantity="other">Fermer %d onglets</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Choisissez au moins %d onglet à fermer.</item>
+        <item quantity="other">Choisissez au moins %d onglets à fermer.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">%1$s ouvert</string>
+    <string name="workspace_limit_blocker_unsaved">Modifications non enregistrées</string>
+    <string name="workspace_limit_blocker_busy">Occupé pour le moment</string>
+    <string name="workspace_limit_blocker_attention">En attente de votre action</string>
+    <string name="workspace_limit_blocker_loading">Chargement en cours</string>
+    <string name="workspace_limit_blocker_awaiting_result">Terminez d’abord le sélecteur ouvert</string>
+    <string name="workspace_limit_blocker_unavailable">Ne peut pas être fermé pour le moment</string>
+    <string name="workspace_limit_stacked_content_desc">Fermer cet onglet ferme aussi ce qui y est empilé</string>
+    <string name="workspace_limit_pro_description">Ouvrez autant d’onglets que vous le souhaitez.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d élément</item>
+        <item quantity="other">%1$d éléments</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Restauration depuis la corbeille</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Restaurer %d élément de la corbeille.</item>
+        <item quantity="other">Restaurer %d éléments de la corbeille.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d élément restauré</item>
+        <item quantity="other">%d éléments restaurés</item>
+    </plurals>
+</resources>
