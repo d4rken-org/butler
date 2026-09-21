@@ -1,0 +1,347 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Незрівнянний провідник файлів</string>
+    <!-- Назва програми після оновлення. %1$s — назва програми, %2$s — позначення рівня («Pro» або «FOSS», залежно від збірки). Порядок і пунктуацію можна змінювати відповідно до мови; обидва плейсхолдери мають з’явитися рівно один раз. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Значок програми Butler</string>
+    <string name="butler_mascot_description">Талісман Butler</string>
+    <string name="butler_mascot_animation_random_description">Талісман Butler виконує різні анімації</string>
+    <string name="butler_mascot_animation_wink_description">Талісман Butler підморгує</string>
+    <string name="butler_mascot_animation_greeting_description">Талісман Butler махає рукою на привітання</string>
+    <string name="butler_mascot_animation_hatoff_description">Талісман Butler шанобливо знімає капелюх</string>
+    <string name="butler_mascot_animation_drink_description">Талісман Butler п’є</string>
+    <string name="butler_mascot_animation_moustache_description">Талісман Butler погладжує вуса</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Талісман Butler заплющує очі, щоб заснути</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Талісман Butler хропе</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Талісман Butler прокидається</string>
+    <string name="butler_mascot_animation_cameo_description">Талісман SD Maid у гостях</string>
+
+    <string name="slogan_general_message_0">До ваших послуг.</string>
+    <string name="slogan_general_message_1">Усе на своєму місці.</string>
+    <string name="slogan_general_message_2">Порядок, а не хаос.</string>
+    <string name="slogan_general_message_3">Отримую ваші файли.</string>
+    <string name="slogan_general_message_4">Усі ваші файли за порядком.</string>
+    <string name="slogan_general_message_5">Завжди впорядковано.</string>
+    <string name="slogan_general_message_6">Файли — знайдено швидко!</string>
+    <string name="slogan_general_message_7">Простий доступ.</string>
+    <string name="slogan_general_message_8">Ваші файли ніколи не загубляться.</string>
+    <string name="slogan_general_message_9">Майстер на всі руки.</string>
+    <string name="slogan_newyear_message_0">Та сама процедура, що й щороку.</string>
+    <string name="slogan_xmas_message_0">Перевіряю файли двічі.</string>
+    <string name="slogan_xmas_message_1">У списку слухняних.</string>
+    <string name="slogan_halloween_message_0">Бу-тлер до ваших послуг.</string>
+    <string name="slogan_halloween_message_1">Ніяких трюків, лише файли.</string>
+    <string name="slogan_stpatricks_message_0">Сьогодні ваш щасливий день?</string>
+    <string name="slogan_stpatricks_message_1">Шукаю ваш горщик із золотом.</string>
+    <string name="slogan_aprilfools_message_0">Без жартів.</string>
+    <string name="slogan_aprilfools_message_1">Серйозно впорядковано.</string>
+    <string name="slogan_oktoberfest_message_0">Будьмо за ваші файли!</string>
+    <string name="slogan_oktoberfest_message_1">Файли на розлив.</string>
+
+    <string name="general_share_action">Поділитися</string>
+    <string name="general_share_single_title">Поділитися %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Поділитися %d файлом</item>
+        <item quantity="few">Поділитися %d файлами</item>
+        <item quantity="many">Поділитися %d файлами</item>
+        <item quantity="other">Поділитися %d файла</item>
+    </plurals>
+    <string name="general_done_action">Готово</string>
+    <string name="general_copy_action">Копіювати</string>
+    <string name="general_cut_action">Вирізати</string>
+    <string name="general_move_action">Перемістити</string>
+    <string name="general_paste_action">Вставити</string>
+    <string name="general_apply_action">Застосувати</string>
+    <string name="general_open_action">Відкрити</string>
+    <string name="general_cancel_action">Скасувати</string>
+    <string name="general_close_action">Закрити</string>
+    <string name="general_confirm_action">Підтвердити</string>
+    <string name="general_reset_action">Скинути</string>
+    <string name="general_save_action">Зберегти</string>
+    <string name="general_edit_action">Редагувати</string>
+    <string name="general_na_label">Н/Д</string>
+    <!-- Озвучується програмами читання з екрана під час відкриття діалогового вікна -->
+    <string name="general_dialog_a11y_label">Діалогове вікно</string>
+    <string name="general_dismiss_action">Закрити</string>
+    <string name="general_read_more_action">Читати далі</string>
+    <string name="general_mark_as_read_action">Позначити як прочитане</string>
+    <string name="general_back_action">Назад</string>
+    <string name="general_navigate_up_action">Перейти вгору</string>
+    <string name="general_error_label">Помилка</string>
+    <string name="general_error_unknown_label">Невідома помилка</string>
+    <string name="general_error_invalid_input_label">Некоректні дані</string>
+    <string name="general_share_error_action">Поділитися помилкою</string>
+    <string name="general_error_report_subject">Звіт про помилку %1$s (%2$s)</string>
+    <string name="general_error_report_consent_title">Поділитися звітом про помилку?</string>
+    <string name="general_error_report_consent_message">Звіт містить помилку та створений нею стек викликів, останні записи журналу програми, а також дані про його стан: назви й шляхи файлів, пошукові запити, назви пакетів, URI, мережеві та SMB-імена хостів, інформацію про пристрій і збірку, а також анонімний ідентифікатор встановлення. Діліться ним лише з тими, кому довіряєте.</string>
+    <string name="general_error_report_consent_confirm">Поділитися звітом</string>
+    <string name="general_privacy_policy_action">Політика конфіденційності</string>
+    <string name="general_bug_report_subject">Звіт про помилку %1$s (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">Звіт про помилку %1$s: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Опишіть тут, що сталося.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Опишіть, чого ви очікували натомість.)</string>
+    <string name="general_duration_input_label">Тривалість</string>
+    <string name="general_size_input_label">Розмір</string>
+    <string name="general_upgrade_action">Покращити</string>
+    <string name="general_refresh_action">Оновити</string>
+    <string name="general_clear_action">Очистити</string>
+    <string name="general_expand_action">Розгорнути</string>
+    <string name="general_collapse_action">Згорнути</string>
+    <string name="general_completed_label">Завершено</string>
+    <string name="general_cancelled_label">Скасовано</string>
+    <string name="general_searching_label">Пошук</string>
+    <string name="general_searching_ellipsis">Пошук…</string>
+    <string name="general_progress_loading">Завантаження</string>
+    <string name="general_progress_loading_egg_0">Все одно швидше, ніж на iPhone</string>
+    <string name="general_progress_loading_egg_1">Завантажуємо ще оперативної пам’яті</string>
+    <string name="general_progress_loading_egg_2">Орієнтовний час: незабаром™</string>
+    <string name="general_progress_loading_egg_3">Процесор на кавовій перерві</string>
+    <string name="general_progress_loading_egg_4">Очікування даних від Пепе Сільвії</string>
+    <string name="general_progress_loading_egg_5">Турбоенкабулятор ініціалізується</string>
+    <string name="general_progress_loading_egg_6">Передаємо масло</string>
+    <string name="general_progress_loading_egg_7">Отже. Як ви тримаєтесь?</string>
+    <string name="general_progress_loading_egg_8">Біп буп боп</string>
+    <string name="general_progress_loading_egg_9">Буферизація життєвих рішень</string>
+    <string name="general_progress_loading_egg_10">Викликаємо Ктулху</string>
+    <string name="general_progress_loading_egg_11">Усе добре</string>
+    <string name="general_progress_loading_egg_12">Будь ласка, зачекайте</string>
+    <string name="general_progress_loading_egg_13">Принаймні ви не в черзі очікування</string>
+    <string name="general_progress_loading_egg_14">Нанесіть прямо на лоб</string>
+
+    <!-- Формат тривалості -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%d мс</item>
+        <item quantity="few">%d мс</item>
+        <item quantity="many">%d мс</item>
+        <item quantity="other">%d мс</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%d с</item>
+        <item quantity="few">%d с</item>
+        <item quantity="many">%d с</item>
+        <item quantity="other">%d с</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%d хв</item>
+        <item quantity="few">%d хв</item>
+        <item quantity="many">%d хв</item>
+        <item quantity="other">%d хв</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%d год</item>
+        <item quantity="few">%d год</item>
+        <item quantity="many">%d год</item>
+        <item quantity="other">%d год</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%d дн</item>
+        <item quantity="few">%d дн</item>
+        <item quantity="many">%d дн</item>
+        <item quantity="other">%d дн</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d секунда</item>
+        <item quantity="few">%d секунди</item>
+        <item quantity="many">%d секунд</item>
+        <item quantity="other">%d секунди</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d хвилина</item>
+        <item quantity="few">%d хвилини</item>
+        <item quantity="many">%d хвилин</item>
+        <item quantity="other">%d хвилини</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d година</item>
+        <item quantity="few">%d години</item>
+        <item quantity="many">%d годин</item>
+        <item quantity="other">%d години</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дні</item>
+        <item quantity="many">%d днів</item>
+        <item quantity="other">%d дня</item>
+    </plurals>
+
+    <string name="general_view_action">Переглянути</string>
+    <string name="general_delete_action">Видалити</string>
+    <string name="general_show_details_action">Показати деталі</string>
+    <string name="general_hide_details_action">Приховати деталі</string>
+
+    <string name="general_delete_confirmation_title">Підтвердження видалення</string>
+    <string name="general_delete_confirmation_message_x">Видалити \"%s\"?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Видалити виділені елементи (%d)?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">Видалено %d елемент.</item>
+        <item quantity="few">Видалено %d елементи.</item>
+        <item quantity="many">Видалено %d елементів.</item>
+        <item quantity="other">Видалено %d елемента.</item>
+    </plurals>
+
+    <string name="general_create_action">Створити</string>
+    <string name="general_rename_action">Перейменувати</string>
+    <string name="general_retry_action">Повторити</string>
+    <string name="general_open_setup_action">Відкрити налаштування</string>
+    <string name="general_grant_usage_stats_action">Надати доступ до статистики використання</string>
+    <string name="general_grant_storage_permission_action">Надати дозвіл на доступ до сховища</string>
+    <string name="general_grant_all_files_access_action">Дозволити доступ до всіх файлів</string>
+
+    <string name="general_result_user_cancel_msg">Операцію скасовано користувачем.</string>
+
+    <string name="general_path_label">Шлях</string>
+    <string name="general_filename_validation_error">Назва містить неприпустимі символи: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d з %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d з %2$d</string>
+
+    <string name="file_type_symbolic_link">Посилання</string>
+    <string name="file_type_directory">Тека</string>
+    <string name="file_type_file">Файл</string>
+    <string name="file_type_unknown">Невідомо</string>
+
+    <!-- Зручні назви типів MIME -->
+    <string name="common_mimetype_image">Зображення</string>
+    <string name="common_mimetype_video">Відео</string>
+    <string name="common_mimetype_audio">Аудіо</string>
+    <string name="common_mimetype_text_plain">Звичайний текст</string>
+    <string name="common_mimetype_text">Текстовий документ</string>
+    <string name="common_mimetype_pdf">Документ PDF</string>
+    <string name="common_mimetype_document">Документ</string>
+    <string name="common_mimetype_archive">Архів</string>
+    <string name="common_mimetype_apk">Пакет Android</string>
+    <string name="common_mimetype_json">Файл JSON</string>
+    <string name="common_mimetype_xml">Файл XML</string>
+    <string name="common_mimetype_unknown">Невідомий тип</string>
+
+    <string name="general_rom_type_auto_label">Автоматично (типово)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s елемент/с</item>
+        <item quantity="few">%s елементи/с</item>
+        <item quantity="many">%s елементів/с</item>
+        <item quantity="other">%s елемента/с</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/с</item>
+        <item quantity="few">%s/с</item>
+        <item quantity="many">%s/с</item>
+        <item quantity="other">%s/с</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Невідповідність типу: очікувалося %1$s, а отримано %2$s.</string>
+    <string name="general_error_cant_access_msg">Не вдається отримати доступ до %s.</string>
+    <string name="general_error_archive_not_seekable_msg">%s не можна переглянути напряму: сховище, на якому розташовано цей файл, підтримує лише послідовне читання, а цей формат архіву потребує довільного доступу.</string>
+    <string name="general_error_root_unavailable">Доступ до root недоступний.</string>
+    <string name="general_error_elevated_access_required">Ця операція потребує розширеного доступу. Налаштуйте Root або Shizuku в налаштуваннях.</string>
+    <string name="general_error_no_compatible_app_found_msg">Не знайдено сумісного програми для обробки цього запиту.</string>
+    <string name="general_error_ipc_deadobject_title">З’єднання зі службою втрачено</string>
+    <string name="general_error_ipc_deadobject_description">З’єднання з критичною службою (наприклад, Magisk, Shizuku чи іншими системними службами) несподівано перервалося. Перезавантажте пристрій. Якщо проблема не зникає, перевірте оновлення або напишіть мені, і я це виправлю.</string>
+
+    <string name="ui_theme_mode_dark_label">Темна</string>
+    <string name="ui_theme_mode_light_label">Світла</string>
+    <string name="ui_theme_mode_system_label">Системна</string>
+    <string name="ui_theme_style_default_label">Типовий</string>
+    <string name="ui_theme_style_medium_contrast_label">Середня контрастність</string>
+    <string name="ui_theme_style_high_contrast_label">Висока контрастність</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Зелений</string>
+    <string name="ui_theme_color_blue_label">Синій</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Власний</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Тональний акцент</string>
+    <string name="ui_theme_palette_neutral_label">Нейтральна</string>
+    <string name="ui_theme_palette_vibrant_label">Яскрава</string>
+    <string name="ui_theme_palette_expressive_label">Виразна</string>
+    <string name="ui_theme_palette_rainbow_label">Веселка</string>
+    <string name="ui_theme_palette_fruitsalad_label">Фруктовий мікс</string>
+    <string name="ui_theme_palette_monochrome_label">Монохромна</string>
+    <string name="ui_theme_palette_fidelity_label">Точна</string>
+    <string name="ui_theme_palette_content_label">За вмістом</string>
+
+    <string name="ui_theme_custom_dialog_title">Власна тема</string>
+    <string name="ui_theme_custom_seed_label">Базовий колір</string>
+    <string name="ui_theme_custom_palette_label">Стиль палітри</string>
+    <string name="ui_theme_custom_default_action">Типовий</string>
+
+    <string name="ui_mascot_suit_dialog_title">Костюм Butler</string>
+    <string name="ui_mascot_suit_default_action">Типовий</string>
+    <string name="ui_mascot_suit_hue_label">Відтінок</string>
+    <string name="ui_mascot_suit_saturation_label">Насиченість</string>
+    <string name="ui_mascot_suit_brightness_label">Яскравість</string>
+    <string name="ui_mascot_suit_value_description">Колір костюма %s</string>
+
+    <!-- Типи модулів налаштування -->
+    <string name="setup_usagestats_title">Статистика використання</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Доступ до сповіщень</string>
+    <string name="setup_manage_storage_card_title">Керування зовнішнім сховищем</string>
+    <string name="setup_inventory_card_title">Перелік програм</string>
+
+    <!-- Загальні рядки дозволів -->
+    <string name="setup_required_card_title">Потрібне налаштування</string>
+    <string name="setup_required_card_body">Для виконання цієї операції потрібне додаткове налаштування.</string>
+    <string name="setup_required_card_setup_action">Відкрити налаштування</string>
+
+    <!-- Функція відкриття в нових вкладках -->
+    <string name="common_open_tabs_confirmation_title">Відкрити кілька вкладок?</string>
+    <string name="common_open_tabs_confirmation_message">Буде відкрито %1$d вкладок.</string>
+    <string name="common_open_tabs_success">Відкрито %1$d вкладок</string>
+    <string name="common_open_tabs_success_with_skipped">Відкрито %1$d вкладок (пропущено %2$d елементів)</string>
+
+    <!-- Підтвердження закриття вкладки -->
+    <string name="general_tab_close_confirmation_title">Закрити вкладку?</string>
+    <string name="general_tab_close_confirmation_message">Закрити \"%1$s\"?</string>
+    <string name="general_tab_close_unsaved_title">Незбережені зміни</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" містить незбережені зміни. Закрити та відхилити їх?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" та ще %2$d вкладок мають незбережені зміни. Закрити та відхилити їх?</string>
+    <string name="general_discard_action">Відхилити</string>
+    <string name="general_tab_close_goto_action">Перейти до вкладки</string>
+
+    <!-- Вихід із програми -->
+    <string name="general_press_back_again_to_exit">Натисніть «Назад» ще раз, щоб вийти</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d вибрано</item>
+        <item quantity="few">%d вибрано</item>
+        <item quantity="many">%d вибрано</item>
+        <item quantity="other">%d вибрано</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d тека</item>
+        <item quantity="few">%1$d теки</item>
+        <item quantity="many">%1$d тек</item>
+        <item quantity="other">%1$d теки</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d файл</item>
+        <item quantity="few">%1$d файли</item>
+        <item quantity="many">%1$d файлів</item>
+        <item quantity="other">%1$d файла</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Вибрати всі теки</string>
+    <string name="common_select_all_files_action">Вибрати всі файли</string>
+    <string name="general_undo_action">Відмінити</string>
+
+    <!-- Навчальні тури -->
+    <string name="tour_action_next">Далі</string>
+    <string name="tour_action_previous">Назад</string>
+    <string name="tour_action_cancel">Пропустити</string>
+    <string name="tour_confirm_title">Пропустити огляд?</string>
+    <string name="tour_confirm_message">Огляди можна ввімкнути знову будь-коли в налаштуваннях.</string>
+    <string name="tour_confirm_continue">Продовжити огляд</string>
+    <string name="tour_confirm_dont_show_this_tour">Не показувати цей огляд</string>
+    <string name="tour_confirm_disable_all">Вимкнути всі огляди</string>
+
+    <!-- Поради Butler -->
+    <string name="common_tip_multiple_panes">Використовуйте кілька панелей, щоб порівнювати файли поруч.</string>
+    <string name="common_tip_different_folders">Відкривайте різні теки в кожній панелі для зручнішого керування файлами.</string>
+    <string name="common_tip_switch_layouts">Перемикайте розташування панелей у менеджері налаштувань вкладки.</string>
+    <string name="common_tip_elevated_access">Увімкніть root або Shizuku в налаштуваннях для розширених файлових операцій.</string>
+    <string name="common_tip_breadcrumb_home">Довго натисніть елемент шляху в Провіднику, щоб зробити його домашньою текою.</string>
+</resources>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Відкрити за допомогою</string>
+    <string name="viewer_image_content_description">Зображення %1$s</string>
+    <string name="viewer_toolbar_folder_label">Тека</string>
+    <string name="viewer_back_action">Назад</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">Попередній файл</string>
+    <string name="viewer_next_file_action">Наступний файл</string>
+    <string name="viewer_open_location_action">Відкрити розташування</string>
+    <string name="viewer_clipboard_copied">%1$s скопійовано. Вставте його в вкладку Провідника.</string>
+    <string name="viewer_clipboard_cut">%1$s вирізано. Вставте його в вкладку Провідника, щоб перемістити його.</string>
+    <string name="viewer_share_failed_label">Не вдалося поділитися цим файлом</string>
+    <string name="viewer_share_failed_description">%1$s не можна передати іншому програми. Це трапляється з файлами, які потребують root-доступу або доступу ADB, і з файлами, яких більше немає.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Розмір</string>
+    <string name="viewer_info_modified_label">Змінено</string>
+    <string name="viewer_info_created_label">Створено</string>
+    <string name="viewer_info_format_label">Формат</string>
+    <string name="viewer_info_dimensions_label">Розміри</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Дозволи</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Власник</string>
+    <string name="viewer_info_caption_label">Спільне повідомлення</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Показати всі деталі</string>
+    <string name="viewer_info_collapse_action">Приховати деталі</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">Попередній перегляд · 1 сторінка</string>
+    <string name="viewer_pdf_page_indicator">Сторінка %1$d з %2$d</string>
+    <string name="viewer_pdf_page_previous">Попередня сторінка</string>
+    <string name="viewer_pdf_page_next">Наступна сторінка</string>
+    <string name="viewer_pdf_page_error">Сторінку %1$d не вдалося відобразити.</string>
+    <string name="viewer_pdf_page_content_description">Попередній перегляд PDF файла %1$s, сторінка %2$d з %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">Цей тип файла поки не підтримується</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">Це архів</string>
+    <string name="viewer_browse_archive_action">Переглянути вміст</string>
+    <string name="viewer_archive_needs_copy_msg">Збережіть копію на своєму пристрої, тоді Butler можна переглядати, що всередину.</string>
+    <string name="viewer_archive_nested_msg">Цей архів розташований всередину іншого архіву. Спочатку розпакуйте його, щоб переглянути вміст.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">Версія</string>
+    <string name="viewer_apk_min_sdk_label">Min SDK</string>
+    <string name="viewer_apk_target_sdk_label">Цільовий SDK</string>
+    <string name="viewer_apk_installed_label">Встановлено</string>
+    <string name="viewer_apk_not_installed_value">Не встановлено</string>
+    <string name="viewer_apk_installed_unknown_value">Не вдалося перевірити</string>
+    <string name="viewer_apk_installed_older_hint">Старіша за цей файл</string>
+    <string name="viewer_apk_installed_newer_hint">Новіша за цей файл</string>
+    <string name="viewer_apk_permissions_header">Дозволи (%1$d)</string>
+    <string name="viewer_apk_signing_header">Сертифікати підписання</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">Встановити</string>
+    <string name="viewer_bundle_format_label">Формат пакета</string>
+    <string name="viewer_bundle_splits_label">APK всередину</string>
+    <string name="viewer_bundle_expansion_files_hint">Містить файли розширення, які розміщуються після встановлення програми.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Розміщення файлів розширення потребує root-доступу або доступу ADB. Без нього додаток встановлюється, але його файли розширення залишаються.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">Значок програми %1$s</string>
+    <string name="viewer_apk_icon_show_action">Показати значок</string>
+    <string name="viewer_apk_icon_save_action">Зберегти значок</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Значок збережений як %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Замінити файл?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s уже існує в цій папці. Збереження значка замінить його.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Замінити</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">Файл змінився</string>
+    <string name="viewer_external_change_message">Цей файл змінився на пристрої. Оновіть, щоб завантажити його знову.</string>
+    <string name="viewer_external_change_gone_title">Файл пропав</string>
+    <string name="viewer_external_change_gone_message">Цей файл був видалений або більше не доступний.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Не можна показати цей файл</string>
+    <string name="viewer_error_not_a_file_label">Це не файл</string>
+    <string name="viewer_error_not_a_file_description">%1$s не є звичайним файлом.</string>
+    <string name="viewer_error_broken_symlink_label">Зламаний ярлик</string>
+    <string name="viewer_error_broken_symlink_description">%1$s вказує на щось, що більше не існує.</string>
+    <string name="viewer_error_undecodable_label">Пошкоджене зображення</string>
+    <string name="viewer_error_undecodable_description">%1$s не вдалося декодувати. Файл може бути неповним або пошкодженим.</string>
+    <string name="viewer_error_file_gone_label">Файл не знайдено</string>
+    <string name="viewer_error_file_gone_description">%1$s більше не існує. Вона могла бути переміщена, перейменована або видалена.</string>
+    <string name="viewer_error_empty_file_label">Порожній файл</string>
+    <string name="viewer_error_empty_file_description">%1$s порожній і нічого не показує.</string>
+    <string name="viewer_error_apk_unreadable_label">Нечитаний APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s не вдалося розпарсити як пакет Android програми.</string>
+    <string name="viewer_error_icon_unavailable_label">Немає значка</string>
+    <string name="viewer_error_icon_unavailable_description">Не вдалося прочитати значок програми %1$s.</string>
+    <string name="viewer_error_icon_target_notfile_label">Назва вже занята</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s уже існує тут і не є звичайним файлом, тому його не можна замінити.</string>
+    <string name="viewer_error_icon_target_appeared_label">З’явився файл</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s було створено, поки ви вибирали, де зберегти. Нічого не було перезаписано, спробуйте ще раз.</string>
+    <string name="viewer_error_content_unreadable_label">Не можна прочитати цей файл</string>
+    <string name="viewer_error_content_unreadable_description">Програма, який поділився %1$s, більше не дозволяє Butler прочитати його. Попросіть цей додаток поділитися ним знову.</string>
+    <string name="viewer_save_copy_action">Зберегти копію…</string>
+    <string name="viewer_open_in_editor_action">Відкрити в редакторі</string>
+    <string name="viewer_text_truncated_bytes">Попередній перегляд обмежений першими %1$s цього файла.</string>
+    <string name="viewer_text_truncated_lines">Попередній перегляд обмежений першими %1$s рядків цього файла.</string>
+    <string name="viewer_text_truncated_width">Довгі рядки скорочені в цьому попередньому перегляді.</string>
+    <string name="viewer_text_unreadable_label">Цей файл не вдалося прочитати</string>
+</resources>

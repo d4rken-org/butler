@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Звіти про помилки</string>
+    <string name="bugreport_workspace_subtitle">Звіти про падіння та помилки</string>
+
+    <string name="bugreport_empty_title">Немає звітів</string>
+    <string name="bugreport_empty_subtitle">Звіти про падіння та помилки з’являтимуться тут. Ніщо не відправляється автоматично.</string>
+
+    <string name="bugreport_type_crash">Падіння</string>
+    <string name="bugreport_type_report">Звіт</string>
+    <string name="bugreport_type_recording">Запис</string>
+
+    <string name="bugreport_record_action">Записати журнал налагодження</string>
+    <string name="bugreport_record_short_action">Записати</string>
+    <string name="bugreport_stop_action">Зупинити запис</string>
+    <string name="bugreport_stop_short_action">Зупинити</string>
+    <string name="bugreport_recording_ongoing_label">Запис…</string>
+
+    <string name="bugreport_recording_short_title">Запис дуже короткий</string>
+    <string name="bugreport_recording_short_message">Цей запис займає лише кілька секунд і може не містити корисної інформації. Зупинити його все одно?</string>
+    <string name="bugreport_recording_short_keep_action">Продовжити запис</string>
+
+    <string name="bugreport_rename_action">Перейменувати</string>
+    <string name="bugreport_rename_dialog_title">Назвіть цей звіт</string>
+    <string name="bugreport_rename_name_label">Назва</string>
+    <string name="bugreport_rename_name_hint">Показується у списку та у назві поділеного файлу</string>
+
+    <string name="bugreport_share_action">Поділитися</string>
+    <string name="bugreport_delete_action">Видалити</string>
+    <string name="bugreport_delete_all_action">Видалити все</string>
+    <string name="bugreport_delete_all_confirm_title">Видалити всі журнали налагодження?</string>
+    <string name="bugreport_delete_all_confirm_message">Це назавжди видалить усі записані сеанси журналу налагодження. Активні записи не будуть змінені.</string>
+    <string name="bugreport_delete_confirm_title">Видалити цей звіт?</string>
+    <string name="bugreport_delete_confirm_message">Це назавжди видалить цей звіт та його журнал.</string>
+    <string name="bugreport_cancel_action">Скасувати</string>
+
+    <string name="bugreport_share_chooser_title">Поділитися звітом про помилку</string>
+    <string name="bugreport_share_consent_title">Поділитися звітом?</string>
+    <string name="bugreport_share_consent_message">Цей звіт містить журнали програми, які можуть містити назви файлів, шляхи та інформацію про додаток і пристрій. Поділяйтеся ним лише з людьми, яким ви довіряєте.</string>
+
+    <string name="bugreport_detail_back_action">Назад</string>
+    <string name="bugreport_detail_section_error">Помилка</string>
+    <string name="bugreport_detail_section_log">Останній журнал</string>
+    <string name="bugreport_detail_field_type">Тип</string>
+    <string name="bugreport_detail_field_time">Час</string>
+    <string name="bugreport_detail_field_app_version">Версія програми</string>
+    <string name="bugreport_detail_field_device">Пристрій</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Збірка</string>
+    <string name="bugreport_detail_field_error_class">Тип помилки</string>
+    <string name="bugreport_detail_field_thread">Потік</string>
+    <string name="bugreport_detail_log_truncated">останні %1$d з %2$d рядків</string>
+    <string name="bugreport_detail_log_count">%1$d рядків</string>
+    <string name="bugreport_detail_log_empty">Журнал не записано</string>
+    <string name="bugreport_detail_log_error">Не вдалося завантажити журнал</string>
+</resources>

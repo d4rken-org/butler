@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Розробник</string>
+    <string name="developer_title">Інструменти розробника</string>
+    <string name="developer_subtitle">Утиліти для розробки</string>
+
+    <!-- Вкладки -->
+    <string name="developer_tab_system">Система</string>
+    <string name="developer_tab_options">Параметри</string>
+    <string name="developer_tab_workspaces">Робочі простори</string>
+    <string name="developer_tab_logs">Журнали</string>
+    <string name="developer_tab_testdata">Тестові дані</string>
+
+    <!-- Розділ параметрів -->
+    <string name="developer_options_debug_header">Параметри налагодження</string>
+    <string name="developer_options_debug_mode">Режим налагодження</string>
+    <string name="developer_options_debug_mode_desc">Увімкнути докладне логування</string>
+    <string name="developer_options_trace_mode">Режим трасування</string>
+    <string name="developer_options_trace_mode_desc">Увімкнути логування рівня трасування</string>
+    <string name="developer_options_floating_log">Плаваючу панель журналу</string>
+    <string name="developer_options_floating_log_desc">Показувати перетягуваний оверлей журналу на всіх екранах</string>
+    <string name="developer_options_services_header">Тести служб</string>
+    <string name="developer_options_root_test_action">Тестувати Root</string>
+    <string name="developer_options_root_installed_label">Встановлено</string>
+    <string name="developer_options_root_available_label">Доступно</string>
+    <string name="developer_options_root_base_check_label">Базова перевірка</string>
+    <string name="developer_options_shizuku_test_action">Тестувати Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">Встановлено</string>
+    <string name="developer_options_shizuku_granted_label">Дозвіл</string>
+    <string name="developer_options_shizuku_compatible_label">Сумісно</string>
+    <string name="developer_options_shizuku_service_label">Служба</string>
+    <string name="developer_options_test_running">Тестування…</string>
+    <string name="developer_options_result_yes">Так</string>
+    <string name="developer_options_result_no">Ні</string>
+    <string name="developer_options_result_unknown">Невідомо</string>
+    <string name="developer_options_visibility_header">Видимість</string>
+    <string name="developer_options_hide_mode">Приховати режим розробника</string>
+    <string name="developer_options_hide_mode_desc">Натисніть на версію 7 разів у параметрах, щоб повторно ввімкнути.</string>
+    <string name="developer_options_hide_action">Приховати</string>
+
+    <!-- Розділ інформації про систему -->
+    <string name="developer_system_device_header">Пристрій</string>
+    <string name="developer_system_device_model">Модель</string>
+    <string name="developer_system_device_manufacturer">Виробник</string>
+    <string name="developer_system_device_api">Рівень API</string>
+    <string name="developer_system_build_header">Збірка</string>
+    <string name="developer_system_build_version">Версія</string>
+    <string name="developer_system_build_code">Код версії</string>
+    <string name="developer_system_build_flavor">Різновид</string>
+    <string name="developer_system_build_type">Тип збірки</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Пам’ять</string>
+    <string name="developer_system_memory_available">Доступно</string>
+    <string name="developer_system_memory_total">Усього</string>
+    <string name="developer_system_storage_header">Сховище</string>
+
+    <!-- Розділ робочих просторів -->
+    <string name="developer_workspaces_count">%d робочих просторів</string>
+    <string name="developer_workspaces_empty">Немає робочих просторів</string>
+
+    <!-- Розділ журналів -->
+    <string name="developer_logs_clear">Очистити</string>
+    <string name="developer_logs_pause">Призупинити</string>
+    <string name="developer_logs_resume">Відновити</string>
+    <string name="developer_logs_empty">Немає журналів</string>
+
+    <!-- Розділ тестових даних -->
+    <string name="developer_testdata_target_paths_label">Цільові шляхи</string>
+    <string name="developer_testdata_no_paths">Не вибрано цільових шляхів. Додайте шляхи для генерування тестових даних.</string>
+    <string name="developer_testdata_add_path_action">Додати шлях</string>
+    <string name="developer_testdata_options_header">Параметри генерування</string>
+    <string name="developer_testdata_large_files">Великі файли</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Вкладена структура</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 тек, ~1100 файлів</string>
+    <string name="developer_testdata_text_files">Текстові файли для редактора</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Генерувати</string>
+    <string name="developer_testdata_generating">Генерування…</string>
+    <string name="developer_testdata_history_header">Приклади записів історії</string>
+    <string name="developer_testdata_history_desc">Заповнює приблизно 25 поддільних записів операцій на період від сьогодні до 30 днів тому, змішаних видів/результатів/джерел/шляхів. Вставляє безпосередньо в базу даних історії; безпечно повторно натискати.</string>
+    <string name="developer_testdata_history_generate_action">Генерувати приклади історії</string>
+    <string name="developer_testdata_progress">%1$s з %2$s</string>
+    <string name="developer_testdata_complete">Тестові дані генеровано в:</string>
+
+    <!-- Операції тестових даних -->
+    <string name="developer_operation_large_files_title">Генерувати великі файли</string>
+    <string name="developer_operation_large_files_desc">Створення тестових файлів у %1$s</string>
+    <string name="developer_operation_large_files_creating">Створення %1$s</string>
+
+    <string name="developer_operation_nested_title">Генерувати вкладену структуру</string>
+    <string name="developer_operation_nested_desc">Створення ієрархії тек у %1$s</string>
+    <string name="developer_operation_nested_starting">Запуск вкладеної структури…</string>
+    <string name="developer_operation_nested_creating">Створення %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d файлів створено</string>
+
+    <string name="developer_operation_text_files_title">Генерувати текстові файли</string>
+    <string name="developer_operation_text_files_desc">Створення текстових файлів у %1$s</string>
+    <string name="developer_operation_text_files_creating">Створення %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d файл створено</item>
+        <item quantity="few">%d файли створено</item>
+        <item quantity="many">%d файлів створено</item>
+        <item quantity="other">%d файла створено</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d тека</item>
+        <item quantity="few">%d теки</item>
+        <item quantity="many">%d тек</item>
+        <item quantity="other">%d тека</item>
+    </plurals>
+</resources>
