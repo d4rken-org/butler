@@ -26,7 +26,7 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material.icons.twotone.FolderOpen
-import androidx.compose.material.icons.twotone.TextSnippet
+import androidx.compose.material.icons.automirrored.twotone.TextSnippet
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -431,7 +431,7 @@ private fun ClipboardTextInfoHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            imageVector = Icons.TwoTone.TextSnippet,
+            imageVector = Icons.AutoMirrored.TwoTone.TextSnippet,
             contentDescription = null,
             modifier = Modifier.size(24.dp),
             tint = MaterialTheme.colorScheme.primary,

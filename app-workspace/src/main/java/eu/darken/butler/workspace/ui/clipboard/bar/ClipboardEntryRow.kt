@@ -11,12 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.NoteAdd
+import androidx.compose.material.icons.automirrored.twotone.TextSnippet
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.ContentPaste
 import androidx.compose.material.icons.twotone.FolderOpen
-import androidx.compose.material.icons.twotone.NoteAdd
-import androidx.compose.material.icons.twotone.TextSnippet
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,7 +57,7 @@ fun ClipboardEntryRow(
 ) {
     val (pasteIcon, pasteLabel) = when {
         workspaceType == Workspace.Type.SEARCHER -> Icons.TwoTone.FolderOpen to R.string.clipboard_open_in_explorer
-        workspaceType == Workspace.Type.EXPLORER && entry is ClipboardClip.Text -> Icons.TwoTone.NoteAdd to R.string.clipboard_text_paste_as_file
+        workspaceType == Workspace.Type.EXPLORER && entry is ClipboardClip.Text -> Icons.AutoMirrored.TwoTone.NoteAdd to R.string.clipboard_text_paste_as_file
         else -> Icons.TwoTone.ContentPaste to R.string.clipboard_paste
     }
 
@@ -237,7 +237,7 @@ fun ClipboardEntryRow(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
-                                imageVector = Icons.TwoTone.TextSnippet,
+                                imageVector = Icons.AutoMirrored.TwoTone.TextSnippet,
                                 contentDescription = null,
                                 modifier = Modifier.size(12.dp),
                                 tint = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -306,7 +306,7 @@ fun ClipboardEntryRow(
                 } else {
                     // COLLAPSED MODE: Simple design without individual icons
                     Icon(
-                        imageVector = Icons.TwoTone.TextSnippet,
+                        imageVector = Icons.AutoMirrored.TwoTone.TextSnippet,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                         tint = MaterialTheme.colorScheme.onTertiaryContainer,
