@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">Μη έγκυρο απόθεμα εφαρμογής</string>
+    <string name="pkgrepo_invalid_inventory_error_description">Το σύστημα παρείχε ένα μη έγκυρο κατάλογο εγκατεστημένων εφαρμογών στο Butler.</string>
+</resources>

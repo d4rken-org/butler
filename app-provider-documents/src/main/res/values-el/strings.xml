@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Προηγμένη πρόσβαση συσκευής</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Συσκευή</string>
+    <string name="documents_connection_device_summary">Τοπικός αποθηκευτικός χώρος συσκευής</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Σύστημα αρχείων ρίζας</string>
+    <string name="provider_documents_storage_internal_label">Εσωτερικός αποθηκευτικός χώρος</string>
+    <string name="provider_documents_storage_sd_card_label">Κάρτα SD</string>
+    <string name="provider_documents_storage_saf_label">Θέση SAF</string>
+    <string name="provider_documents_storage_free_suffix">ελεύθερο</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">Απαιτείται πρόσβαση ρίζας για περιήγηση σε αυτήν τη θέση. Ενεργοποιήστε την πρόσβαση ρίζας στις ρυθμίσεις της εφαρμογής Butler.</string>
+    <string name="provider_documents_error_requires_adb">Απαιτείται πρόσβαση ADB/Shizuku για περιήγηση σε αυτήν τη θέση. Ενεργοποιήστε το Shizuku στις ρυθμίσεις της εφαρμογής Butler.</string>
+    <string name="provider_documents_error_requires_storage">Απαιτείται άδεια αποθηκευτικού χώρου για περιήγηση σε αυτήν τη θέση. Χορηγήστε την άδεια αποθηκευτικού χώρου στις ρυθμίσεις της εφαρμογής Butler.</string>
+    <string name="provider_documents_error_requires_permissions">Απαιτούνται πρόσθετες άδειες για περιήγηση σε αυτήν τη θέση. Ελέγξτε τις ρυθμίσεις της εφαρμογής Butler.</string>
+    <string name="provider_documents_error_generic">Δεν είναι δυνατή η πρόσβαση σε αυτήν τη θέση. Ελέγξτε την εφαρμογή Butler για επιλογές πρόσβασης.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Πάροχος εγγράφων</string>
+    <string name="provider_documents_settings_subtitle">Ενσωμάτωση εξωτερικής εφαρμογής</string>
+    <string name="provider_documents_settings_category_integration_label">Ενσωμάτωση</string>
+    <string name="provider_documents_enabled_title">Ενεργοποίηση παρόχου εγγράφων</string>
+    <string name="provider_documents_enabled_desc">Επιτρέψτε σε άλλες εφαρμογές να έχουν πρόσβαση σε αρχεία μέσω του Butler χρησιμοποιώντας τον διαλέκτη αρχείων του Android</string>
+</resources>

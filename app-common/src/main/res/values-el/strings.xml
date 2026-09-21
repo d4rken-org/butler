@@ -1,0 +1,315 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Απαράμιλλος εξερευνητής αρχείων</string>
+    <!-- Upgraded app title. %1$s is the app name, %2$s the tier qualifier ("Pro" or "FOSS", depending on the build). Reorder or repunctuate for your language; both placeholders must appear exactly once. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Εικονίδιο εφαρμογής Butler</string>
+    <string name="butler_mascot_description">Μασκότ του Butler</string>
+    <string name="butler_mascot_animation_random_description">Η μασκότ του Butler εκτελεί διάφορες κινήσεις</string>
+    <string name="butler_mascot_animation_wink_description">Η μασκότ του Butler κλείνει το μάτι</string>
+    <string name="butler_mascot_animation_greeting_description">Η μασκότ του Butler χαιρετά κουνώντας το χέρι</string>
+    <string name="butler_mascot_animation_hatoff_description">Η μασκότ του Butler αγγίζει το καπέλο με σεβασμό</string>
+    <string name="butler_mascot_animation_drink_description">Η μασκότ του Butler πίνει</string>
+    <string name="butler_mascot_animation_moustache_description">Η μασκότ του Butler χαϊδεύει το μουστάκι της</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Η μασκότ του Butler κλείνει τα μάτια για ύπνο</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Η μασκότ του Butler ροχαλίζει</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Η μασκότ του Butler ξυπνά</string>
+    <string name="butler_mascot_animation_cameo_description">Η μασκότ του SD Maid κάνει μια ειδική εμφάνιση</string>
+
+    <string name="slogan_general_message_0">Στη διάθεσή σας.</string>
+    <string name="slogan_general_message_1">Το καθετί στη θέση του.</string>
+    <string name="slogan_general_message_2">Τάξη, όχι χάος.</string>
+    <string name="slogan_general_message_3">Φέρνει τα αρχεία σας.</string>
+    <string name="slogan_general_message_4">Όλα τα αρχεία σας στη σειρά.</string>
+    <string name="slogan_general_message_5">Οργάνωση, πάντα.</string>
+    <string name="slogan_general_message_6">Αρχεία, γρήγορα εντοπισμένα!</string>
+    <string name="slogan_general_message_7">Εύκολη πρόσβαση.</string>
+    <string name="slogan_general_message_8">Δεν πρόκειται να χάσετε ποτέ τα αρχεία σας.</string>
+    <string name="slogan_general_message_9">Με πολλούς ρόλους.</string>
+    <string name="slogan_newyear_message_0">Ίδια διαδικασία όπως κάθε χρόνο.</string>
+    <string name="slogan_xmas_message_0">Ελέγχει τα αρχεία δύο φορές.</string>
+    <string name="slogan_xmas_message_1">Στη λίστα των καλών.</string>
+    <string name="slogan_halloween_message_0">Boo-tler, στη διάθεσή σας.</string>
+    <string name="slogan_halloween_message_1">Χωρίς κόλπα, μόνο αρχεία.</string>
+    <string name="slogan_stpatricks_message_0">Νιώθετε τυχεροί;</string>
+    <string name="slogan_stpatricks_message_1">Βρίσκει το καζάνι με το χρυσάφι σας.</string>
+    <string name="slogan_aprilfools_message_0">Χωρίς κοροϊδίες.</string>
+    <string name="slogan_aprilfools_message_1">Σοβαρή οργάνωση.</string>
+    <string name="slogan_oktoberfest_message_0">Εις υγείαν των αρχείων σας!</string>
+    <string name="slogan_oktoberfest_message_1">Αρχεία από τη βρύση.</string>
+
+    <string name="general_share_action">Κοινοποίηση</string>
+    <string name="general_share_single_title">Κοινοποίηση %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Κοινοποίηση %d αρχείου</item>
+        <item quantity="other">Κοινοποίηση %d αρχείων</item>
+    </plurals>
+    <string name="general_done_action">Τέλος</string>
+    <string name="general_copy_action">Αντιγραφή</string>
+    <string name="general_cut_action">Αποκοπή</string>
+    <string name="general_move_action">Μετακίνηση</string>
+    <string name="general_paste_action">Επικόλληση</string>
+    <string name="general_apply_action">Εφαρμογή</string>
+    <string name="general_open_action">Άνοιγμα</string>
+    <string name="general_cancel_action">Ακύρωση</string>
+    <string name="general_close_action">Κλείσιμο</string>
+    <string name="general_confirm_action">Επιβεβαίωση</string>
+    <string name="general_reset_action">Επαναφορά</string>
+    <string name="general_save_action">Αποθήκευση</string>
+    <string name="general_edit_action">Επεξεργασία</string>
+    <string name="general_na_label">Μ/Δ</string>
+    <!-- Announced by screen readers when a dialog opens -->
+    <string name="general_dialog_a11y_label">Παράθυρο διαλόγου</string>
+    <string name="general_dismiss_action">Παράβλεψη</string>
+    <string name="general_read_more_action">Περισσότερα</string>
+    <string name="general_mark_as_read_action">Σήμανση ως αναγνωσμένο</string>
+    <string name="general_back_action">Πίσω</string>
+    <string name="general_navigate_up_action">Μετάβαση επάνω</string>
+    <string name="general_error_label">Σφάλμα</string>
+    <string name="general_error_unknown_label">Άγνωστο σφάλμα</string>
+    <string name="general_error_invalid_input_label">Μη έγκυρη καταχώριση</string>
+    <string name="general_share_error_action">Κοινοποίηση σφάλματος</string>
+    <string name="general_error_report_subject">Αναφορά σφάλματος %1$s (%2$s)</string>
+    <string name="general_error_report_consent_title">Κοινοποίηση αναφοράς σφάλματος;</string>
+    <string name="general_error_report_consent_message">Η αναφορά περιέχει το σφάλμα και το ίχνος στοίβας που προέκυψε, το πρόσφατο αρχείο καταγραφής της εφαρμογής, καθώς και λεπτομέρειες για την κατάσταση στην οποία βρισκόταν: ονόματα και διαδρομές αρχείων, ερωτήματα αναζήτησης, ονόματα πακέτων, URI, ονόματα κεντρικών υπολογιστών δικτύου και SMB, πληροφορίες συσκευής και έκδοσης, και ένα ανώνυμο αναγνωριστικό εγκατάστασης. Κοινοποιήστε τη μόνο σε άτομα που εμπιστεύεστε.</string>
+    <string name="general_error_report_consent_confirm">Κοινοποίηση αναφοράς</string>
+    <string name="general_privacy_policy_action">Πολιτική απορρήτου</string>
+    <string name="general_bug_report_subject">Αναφορά προβλήματος %1$s (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">Αναφορά προβλήματος %1$s: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Περιγράψτε τι συνέβη εδώ.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Περιγράψτε τι περιμένατε αντ’ αυτού.)</string>
+    <string name="general_duration_input_label">Διάρκεια</string>
+    <string name="general_size_input_label">Μέγεθος</string>
+    <string name="general_upgrade_action">Αναβάθμιση</string>
+    <string name="general_refresh_action">Ανανέωση</string>
+    <string name="general_clear_action">Εκκαθάριση</string>
+    <string name="general_expand_action">Ανάπτυξη</string>
+    <string name="general_collapse_action">Σύμπτυξη</string>
+    <string name="general_completed_label">Ολοκληρώθηκε</string>
+    <string name="general_cancelled_label">Ακυρώθηκε</string>
+    <string name="general_searching_label">Αναζήτηση</string>
+    <string name="general_searching_ellipsis">Αναζήτηση…</string>
+    <string name="general_progress_loading">Φόρτωση</string>
+    <string name="general_progress_loading_egg_0">Ακόμα πιο γρήγορο κι από ένα iPhone</string>
+    <string name="general_progress_loading_egg_1">Κατεβάζει περισσότερη RAM</string>
+    <string name="general_progress_loading_egg_2">Εκτιμώμενος χρόνος: Σύντομα™</string>
+    <string name="general_progress_loading_egg_3">Η CPU κάνει διάλειμμα για καφέ</string>
+    <string name="general_progress_loading_egg_4">Αναμονή δεδομένων από τον Pepe Silvia</string>
+    <string name="general_progress_loading_egg_5">Ο turbo encabulator εκκινείται</string>
+    <string name="general_progress_loading_egg_6">Περνάει το βούτυρο</string>
+    <string name="general_progress_loading_egg_7">Λοιπόν. Πώς τα πας;</string>
+    <string name="general_progress_loading_egg_8">Μπιπ μπουπ μποπ</string>
+    <string name="general_progress_loading_egg_9">Φόρτωση επιλογών ζωής</string>
+    <string name="general_progress_loading_egg_10">Επικαλείται τον Cthulhu</string>
+    <string name="general_progress_loading_egg_11">Όλα είναι μια χαρά</string>
+    <string name="general_progress_loading_egg_12">Παρακαλώ περιμένετε</string>
+    <string name="general_progress_loading_egg_13">Τουλάχιστον δεν είστε σε αναμονή</string>
+    <string name="general_progress_loading_egg_14">Εφαρμόστε απευθείας στο μέτωπο</string>
+
+    <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dχλσ</item>
+        <item quantity="other">%dχλσ</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%dδ</item>
+        <item quantity="other">%dδ</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%dλ</item>
+        <item quantity="other">%dλ</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dώ</item>
+        <item quantity="other">%dώ</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dημ</item>
+        <item quantity="other">%dημ</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d δευτερόλεπτο</item>
+        <item quantity="other">%d δευτερόλεπτα</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d λεπτό</item>
+        <item quantity="other">%d λεπτά</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d ώρα</item>
+        <item quantity="other">%d ώρες</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d ημέρα</item>
+        <item quantity="other">%d ημέρες</item>
+    </plurals>
+
+    <string name="general_view_action">Προβολή</string>
+    <string name="general_delete_action">Διαγραφή</string>
+    <string name="general_show_details_action">Εμφάνιση λεπτομερειών</string>
+    <string name="general_hide_details_action">Απόκρυψη λεπτομερειών</string>
+
+    <string name="general_delete_confirmation_title">Επιβεβαίωση διαγραφής</string>
+    <string name="general_delete_confirmation_message_x">Διαγραφή \"%s\";</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Διαγραφή %d επιλεγμένων στοιχείων;</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">Διαγράφηκε %d στοιχείο.</item>
+        <item quantity="other">Διαγράφηκαν %d στοιχεία.</item>
+    </plurals>
+
+    <string name="general_create_action">Δημιουργία</string>
+    <string name="general_rename_action">Μετονομασία</string>
+    <string name="general_retry_action">Επανάληψη</string>
+    <string name="general_open_setup_action">Άνοιγμα ρύθμισης</string>
+    <string name="general_grant_usage_stats_action">Παραχώρηση πρόσβασης χρήσης</string>
+    <string name="general_grant_storage_permission_action">Παραχώρηση άδειας αποθηκευτικού χώρου</string>
+    <string name="general_grant_all_files_access_action">Παραχώρηση πρόσβασης σε όλα τα αρχεία</string>
+
+    <string name="general_result_user_cancel_msg">Ο χρήστης ακύρωσε τη λειτουργία.</string>
+
+    <string name="general_path_label">Διαδρομή</string>
+    <string name="general_filename_validation_error">Το όνομα περιέχει μη έγκυρους χαρακτήρες: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d από %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d από %2$d</string>
+
+    <string name="file_type_symbolic_link">Σύνδεσμος</string>
+    <string name="file_type_directory">Κατάλογος</string>
+    <string name="file_type_file">Αρχείο</string>
+    <string name="file_type_unknown">Άγνωστο</string>
+
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">Εικόνα</string>
+    <string name="common_mimetype_video">Βίντεο</string>
+    <string name="common_mimetype_audio">Ήχος</string>
+    <string name="common_mimetype_text_plain">Απλό κείμενο</string>
+    <string name="common_mimetype_text">Έγγραφο κειμένου</string>
+    <string name="common_mimetype_pdf">Έγγραφο PDF</string>
+    <string name="common_mimetype_document">Έγγραφο</string>
+    <string name="common_mimetype_archive">Αρχείο συμπίεσης</string>
+    <string name="common_mimetype_apk">Πακέτο Android</string>
+    <string name="common_mimetype_json">Αρχείο JSON</string>
+    <string name="common_mimetype_xml">Αρχείο XML</string>
+    <string name="common_mimetype_unknown">Άγνωστος τύπος</string>
+
+    <string name="general_rom_type_auto_label">Αυτόματο (προεπιλογή)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s στοιχείο/δ</item>
+        <item quantity="other">%s στοιχεία/δ</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/δ</item>
+        <item quantity="other">%s/δ</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Ασυμφωνία τύπου: Αναμενόταν %1$s, αλλά βρέθηκε %2$s.</string>
+    <string name="general_error_cant_access_msg">Δεν είναι δυνατή η πρόσβαση σε %s.</string>
+    <string name="general_error_archive_not_seekable_msg">Δεν είναι δυνατή η άμεση περιήγηση στο %s: ο αποθηκευτικός χώρος στον οποίο βρίσκεται υποστηρίζει μόνο διαδοχική ανάγνωση, ενώ αυτή η μορφή αρχείου συμπίεσης απαιτεί τυχαία πρόσβαση.</string>
+    <string name="general_error_root_unavailable">Η πρόσβαση root δεν είναι διαθέσιμη.</string>
+    <string name="general_error_elevated_access_required">Αυτή η λειτουργία απαιτεί αυξημένα δικαιώματα πρόσβασης. Ρυθμίστε το Root ή το Shizuku στη Ρύθμιση.</string>
+    <string name="general_error_no_compatible_app_found_msg">Δεν βρέθηκε συμβατή εφαρμογή για τον χειρισμό αυτού του αιτήματος.</string>
+    <string name="general_error_ipc_deadobject_title">Απώλεια σύνδεσης υπηρεσίας</string>
+    <string name="general_error_ipc_deadobject_description">Η σύνδεση με μια κρίσιμη υπηρεσία (π.χ. Magisk, Shizuku ή άλλες υπηρεσίες συστήματος) χάθηκε απροσδόκητα. Κάντε επανεκκίνηση της συσκευής σας. Αν το πρόβλημα παραμένει, ελέγξτε για ενημερώσεις ή επικοινωνήστε ώστε να διορθωθεί.</string>
+
+    <string name="ui_theme_mode_dark_label">Σκούρο</string>
+    <string name="ui_theme_mode_light_label">Φωτεινό</string>
+    <string name="ui_theme_mode_system_label">Σύστημα</string>
+    <string name="ui_theme_style_default_label">Προεπιλογή</string>
+    <string name="ui_theme_style_medium_contrast_label">Μεσαία αντίθεση</string>
+    <string name="ui_theme_style_high_contrast_label">Υψηλή αντίθεση</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Πράσινο</string>
+    <string name="ui_theme_color_blue_label">Μπλε</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Προσαρμοσμένο</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Απόχρωση τόνου</string>
+    <string name="ui_theme_palette_neutral_label">Ουδέτερο</string>
+    <string name="ui_theme_palette_vibrant_label">Ζωντανό</string>
+    <string name="ui_theme_palette_expressive_label">Εκφραστικό</string>
+    <string name="ui_theme_palette_rainbow_label">Ουράνιο τόξο</string>
+    <string name="ui_theme_palette_fruitsalad_label">Φρουτοσαλάτα</string>
+    <string name="ui_theme_palette_monochrome_label">Μονόχρωμο</string>
+    <string name="ui_theme_palette_fidelity_label">Πιστότητα</string>
+    <string name="ui_theme_palette_content_label">Περιεχόμενο</string>
+
+    <string name="ui_theme_custom_dialog_title">Προσαρμοσμένο θέμα</string>
+    <string name="ui_theme_custom_seed_label">Βασικό χρώμα</string>
+    <string name="ui_theme_custom_palette_label">Στυλ παλέτας</string>
+    <string name="ui_theme_custom_default_action">Προεπιλογή</string>
+
+    <string name="ui_mascot_suit_dialog_title">Το κοστούμι του Butler</string>
+    <string name="ui_mascot_suit_default_action">Προεπιλογή</string>
+    <string name="ui_mascot_suit_hue_label">Απόχρωση</string>
+    <string name="ui_mascot_suit_saturation_label">Κορεσμός</string>
+    <string name="ui_mascot_suit_brightness_label">Φωτεινότητα</string>
+    <string name="ui_mascot_suit_value_description">Χρώμα κοστουμιού %s</string>
+
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">Στατιστικά χρήσης</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Πρόσβαση ειδοποιήσεων</string>
+    <string name="setup_manage_storage_card_title">Διαχείριση εξωτερικού αποθηκευτικού χώρου</string>
+    <string name="setup_inventory_card_title">Απογραφή εφαρμογών</string>
+
+    <!-- Common permission strings -->
+    <string name="setup_required_card_title">Απαιτείται ρύθμιση</string>
+    <string name="setup_required_card_body">Απαιτείται πρόσθετη ρύθμιση για την εκτέλεση αυτής της λειτουργίας.</string>
+    <string name="setup_required_card_setup_action">Άνοιγμα ρύθμισης</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">Άνοιγμα πολλαπλών καρτελών;</string>
+    <string name="common_open_tabs_confirmation_message">Αυτό θα ανοίξει %1$d καρτέλες.</string>
+    <string name="common_open_tabs_success">Άνοιξαν %1$d καρτέλες</string>
+    <string name="common_open_tabs_success_with_skipped">Άνοιξαν %1$d καρτέλες (%2$d στοιχεία παραλείφθηκαν)</string>
+
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">Κλείσιμο καρτέλας;</string>
+    <string name="general_tab_close_confirmation_message">Είστε βέβαιοι ότι θέλετε να κλείσετε το \"%1$s\";</string>
+    <string name="general_tab_close_unsaved_title">Μη αποθηκευμένες αλλαγές</string>
+    <string name="general_tab_close_unsaved_message">Το \"%1$s\" έχει μη αποθηκευμένες αλλαγές. Κλείσιμο και απόρριψή τους;</string>
+    <string name="general_tab_close_unsaved_message_multiple">Το \"%1$s\" και %2$d ακόμα έχουν μη αποθηκευμένες αλλαγές. Κλείσιμο και απόρριψή τους;</string>
+    <string name="general_discard_action">Απόρριψη</string>
+    <string name="general_tab_close_goto_action">Μετάβαση στην καρτέλα</string>
+
+    <!-- Exit app -->
+    <string name="general_press_back_again_to_exit">Πατήστε ξανά πίσω για έξοδο</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d επιλεγμένο</item>
+        <item quantity="other">%d επιλεγμένα</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d φάκελος</item>
+        <item quantity="other">%1$d φάκελοι</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d αρχείο</item>
+        <item quantity="other">%1$d αρχεία</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Επιλογή όλων των φακέλων</string>
+    <string name="common_select_all_files_action">Επιλογή όλων των αρχείων</string>
+    <string name="general_undo_action">Αναίρεση</string>
+
+    <!-- Guided tours -->
+    <string name="tour_action_next">Επόμενο</string>
+    <string name="tour_action_previous">Προηγούμενο</string>
+    <string name="tour_action_cancel">Παράλειψη</string>
+    <string name="tour_confirm_title">Παράλειψη της ξενάγησης;</string>
+    <string name="tour_confirm_message">Μπορείτε να ενεργοποιήσετε ξανά τις ξεναγήσεις οποτεδήποτε από τις Ρυθμίσεις.</string>
+    <string name="tour_confirm_continue">Συνέχεια ξενάγησης</string>
+    <string name="tour_confirm_dont_show_this_tour">Να μην εμφανιστεί ξανά αυτή η ξενάγηση</string>
+    <string name="tour_confirm_disable_all">Απενεργοποίηση όλων των ξεναγήσεων</string>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">Χρησιμοποιήστε πολλαπλά παράθυρα για να συγκρίνετε αρχεία δίπλα-δίπλα.</string>
+    <string name="common_tip_different_folders">Ανοίξτε διαφορετικούς φακέλους σε κάθε παράθυρο για εύκολη διαχείριση αρχείων.</string>
+    <string name="common_tip_switch_layouts">Εναλλάξτε τις διατάξεις παραθύρων από τη διαχείριση ρυθμίσεων καρτέλας.</string>
+    <string name="common_tip_elevated_access">Ενεργοποιήστε το root ή το Shizuku στη Ρύθμιση για προηγμένες λειτουργίες αρχείων.</string>
+    <string name="common_tip_breadcrumb_home">Πατήστε παρατεταμένα ένα στοιχείο διαδρομής στην Εξερεύνηση για να το ορίσετε ως αρχικό φάκελο.</string>
+</resources>
