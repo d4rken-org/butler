@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Vyžaduje Butler Pro</string>
+
+    <string name="upgrade_prompt_title">Upgradujte Butler</string>
+    <string name="upgrade_prompt_body">Butler Pro nabízí lepší výsledky, více funkcí a voleb pro pokročilé uživatele.</string>
+    <string name="upgrade_prompt_upgrade_action">Upgradovat</string>
+
+    <!-- %1$s je úplný název značky ("Butler Pro"), složený z názvu aplikace plus přípony upgradu.
+         Překlaďte větu kolem něj a ponechte zástupný symbol. -->
+    <string name="upgrade_screen_title_template">Získejte %1$s</string>
+    <string name="upgrade_screen_preamble">Butler nemá reklamy a neprodává vaše údaje. Moje práce je financována vámi ❤️.</string>
+
+    <string name="upgrade_screen_how_title">Možnosti</string>
+    <string name="upgrade_screen_subscription_trial_action">Spustit bezplatné 14denní vyzkoušení</string>
+    <string name="upgrade_screen_subscription_action">Přihlásit se k odběru</string>
+    <string name="upgrade_screen_iap_action">Jednorázový nákup</string>
+    <string name="upgrade_screen_restore_purchase_action">Obnovit nákup</string>
+    <string name="upgrade_screen_restore_banner_title">Již jste koupili Butler Pro?</string>
+    <string name="upgrade_screen_restore_banner_body">Vypadá to, že jste již dříve upgradovali na Butler Pro na tomto zařízení. Obnovte svůj nákup a odemkněte ho znovu.</string>
+    <string name="upgrade_screen_restore_checked_message">Butler právě zkontroloval Google Play, ale pro účet, který Google Play používá pro tuto aplikaci, se nepodařilo potvrdit nákup Butler Pro.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Kontrola pomocí Google Play se nezískala v čase, takže váš stav nákupu zůstává neznámý. Na vašem účtu se nic nezměnilo.</string>
+    <string name="upgrade_screen_restore_contact_hint">Stále uvízlý? Kontaktujte nás z e-mailu, který uskutečnil nákup, a uveďte číslo své objednávky Google Play.</string>
+    <string name="upgrade_screen_contact_support_action">Kontaktovat podporu</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Synchronizace Google Play Store může trvat déle. Zkuste restartovat, vymazat mezipaměť Google Play nebo jednoduše počkat.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">Více účtů může zmást Google Play. Odhlaste se z ostatních účtů nebo instalujte prostřednictvím webu Google Play, který vynucuje asociaci s konkrétním účtem.</string>
+    <string name="upgrade_screen_restore_success_message">Váš nákup byl obnoven ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Stav vypadá špatně?</string>
+    <string name="upgrade_screen_restore_status_body">Znovu zkontrolujte svůj nákup pomocí Google Play. To může pomoci po změně zařízení nebo pokud jste přepnuli účty Google.</string>
+
+    <string name="upgrade_screen_offers_or">nebo</string>
+
+    <string name="upgrade_screen_offers_title">Možnosti upgradu</string>
+    <string name="upgrade_screen_offers_body">Obě možnosti odemykají přesně stejné funkce Butler Pro — vyberte si tu, která se vám hodí.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Ceny nejsou dostupné</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler se nepodařilo načíst možnosti upgradu z Google Play. Toto je často dočasné — zkuste to prosím za chvíli znovu.</string>
+    <string name="upgrade_screen_subscription_offer_title">Roční předplatné</string>
+    <string name="upgrade_screen_subscription_offer_body">Začíná bezplatné 14denní vyzkoušením, poté se účtuje jednou za rok. Kdykoliv zrušit.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Účtováno jednou za rok. Kdykoliv zrušit.</string>
+    <string name="upgrade_screen_iap_offer_title">Koupit jednou</string>
+    <string name="upgrade_screen_iap_offer_body">Zaplaťte jednou, je vaše na věčnost. Žádné předplatné.</string>
+    <string name="upgrade_screen_restore_body">Obnovení požádá Google Play, aby znovu zkontroloval nákupy této aplikace pro aktuální účet.</string>
+
+    <string name="upgrade_screen_owned_hero_title">Máte Butler Pro!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Děkuji za jednorázový nákup — máte všechno ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Děkuji za předplatné ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">Jednorázový nákup</string>
+    <string name="upgrade_screen_owned_iap_body">Vlastníte trvalý upgrade Butler Pro.</string>
+    <string name="upgrade_screen_owned_sub_title">Předplatné</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Vaše předplatné je aktivní a obnovuje se automaticky.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Vaše předplatné je aktivní, ale je nastaveno na neobnovování. Butler Pro zůstane až do konce aktuálního období.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">Vlastníte jednorázový nákup, ale vaše předplatné se stále obnovuje. Zrušte ho v Google Play, abyste se vyhnuli dvojímu placení.</string>
+    <string name="upgrade_screen_manage_subscription_action">Spravovat předplatné</string>
+
+    <string name="upgrade_screen_switch_locked_note">Nejdříve zrušte obnovení přes \"Spravovat předplatné\", jinak vám budou účtovány obě možnosti.</string>
+    <string name="upgrade_screen_switch_purchase_note">Vaše předplatné se neobnoví — nyní si můžete bezpečně koupit jednorázový nákup.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Předplatné stále aktivní</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Vaše předplatné je stále nastaveno na obnovování. Nejdříve zrušte obnovení v Google Play, aby vám nebyla účtována obě možnosti, pak si koupiťte jednorázový nákup.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">Nelze ověřit</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler se nepodařilo potvrdit váš stav nákupu v Google Play, takže nákup byl zastavен, aby se zabránilo dvojímu účtování. Zkuste to prosím za chvíli znovu.</string>
+
+    <string name="upgrade_screen_pending_card_title">Platba čeká</string>
+    <string name="upgrade_screen_pending_card_body">Google Play stále zpracovává vaši platbu. Butler Pro se odemkne automaticky, jakmile platba projde. Některé způsoby platby mohou trvat déle. Nemusíte dělat nic dalšího.</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play zjistilo nákup s čekající platbou a stále ho zpracovává. Butler Pro se odemkne automaticky, jakmile platba projde.</string>
+
+    <string name="upgrade_screen_grace_title">Potvrzování vašeho nákupu</string>
+    <string name="upgrade_screen_grace_body_short">Google Play si vezme chvíli na potvrzení vašeho stavu Butler Pro. Stále máte úplný přístup.</string>
+    <string name="upgrade_screen_grace_body">Google Play stále znovu nepotvrdil váš stav Butler Pro. Stále máte přístup. Pokud to vypadá špatně, zkuste obnovit svůj nákup.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">Již koupili?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play hlásí, že tento upgrade už vlastníte, ale nepodařilo se ho obnovit automaticky. Ujistěte se, že jste přihlášeni s účtem Google použitým pro původní nákup, pak zkuste \"Obnovit nákup\".</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play není dostupný</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler se nemůže připojit k Google Play. Je Google Play nainstalován a aktualizován? Je váš účet Google přihlášen? Zkuste vymazat mezipaměť aplikace Google Play a restartovat zařízení.</string>
+    <!-- Google Play je název značky, ponechte ho nepřeložený. -->
+    <string name="upgrades_gplay_not_installed_message">Nelze otevřít Google Play. Může chybět, být zakázáno nebo omezeno na tomto zařízení.</string>
+    <string name="upgrades_gplay_billing_error_label">Problém s Google Play</string>
+    <string name="upgrades_gplay_billing_error_description">Něco se pokazilo při komunikaci s Google Play. Zkuste to prosím později nebo restartujte zařízení.\n\nPodrobnosti: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Chyba Google Play</string>
+    <string name="upgrades_gplay_internal_error_description">Google Play narazil na vnitřní chybu. Zkuste prosím následující:\n\n• Restartujte zařízení\n• Vymažte mezipaměť Google Play Store\n• Zkuste to později</string>
+    <string name="upgrades_gplay_network_error_title">Chyba připojení</string>
+    <string name="upgrades_gplay_network_error_description">Butler se nemohl připojit k Google Play. Zkontrolujte prosím vaše připojení k internetu a zkuste to znovu.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Nabídka není dostupná</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play momentálně pro váš účet nemá k dispozici tuto možnost upgradu. Zkuste to prosím později nebo zkontrolujte Google Play Store.</string>
+    <string name="upgrades_no_purchases_found_check_account">Nebyly nalezeny žádné nákupy. Používáte správný účet?</string>
+
+    <string name="upgrade_benefits_title">Výhody upgradu</string>
+    <!-- Řádky začínající „•" (nebo „-") se vykreslují jako řádky s označením funkcí; řádky bez značky
+         se vykreslují jako prostý text poznámky. Ponechte značky. -->
+    <string name="upgrade_screen_benefits_body">• Neomezené karty a operace\n• Přizpůsobte si vzhled a atmosféru\n• Další volby a funkce pro každý nástroj\n• Časný přístup k novým funkcím\n• Motivovaný vývojář 🧙\na další…</string>
+</resources>

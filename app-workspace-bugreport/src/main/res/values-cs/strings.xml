@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Hlášení chyb</string>
+    <string name="bugreport_workspace_subtitle">Hlášení havárií &amp; chyb</string>
+
+    <string name="bugreport_empty_title">Žádná hlášení</string>
+    <string name="bugreport_empty_subtitle">Hlášení havárií a chyb se zde budou zobrazovat. Nic se automaticky neodesílá.</string>
+
+    <string name="bugreport_type_crash">Havárie</string>
+    <string name="bugreport_type_report">Hlášení</string>
+    <string name="bugreport_type_recording">Záznam</string>
+
+    <string name="bugreport_record_action">Nahrávat log ladění</string>
+    <string name="bugreport_record_short_action">Nahrávat</string>
+    <string name="bugreport_stop_action">Zastavit nahrávání</string>
+    <string name="bugreport_stop_short_action">Zastavit</string>
+    <string name="bugreport_recording_ongoing_label">Probíhá nahrávání…</string>
+
+    <string name="bugreport_recording_short_title">Záznam je velmi krátký</string>
+    <string name="bugreport_recording_short_message">Tento záznam trvá pouze několik sekund a nemusí obsahovat užitečné informace. Zastavit jej přesto?</string>
+    <string name="bugreport_recording_short_keep_action">Pokračovat v nahrávání</string>
+
+    <string name="bugreport_rename_action">Přejmenovat</string>
+    <string name="bugreport_rename_dialog_title">Pojmenovat toto hlášení</string>
+    <string name="bugreport_rename_name_label">Název</string>
+    <string name="bugreport_rename_name_hint">Zobrazeno v seznamu a v názvu sdíleného souboru</string>
+
+    <string name="bugreport_share_action">Sdílet</string>
+    <string name="bugreport_delete_action">Smazat</string>
+    <string name="bugreport_delete_all_action">Smazat vše</string>
+    <string name="bugreport_delete_all_confirm_title">Smazat všechny logy ladění?</string>
+    <string name="bugreport_delete_all_confirm_message">Tímto se trvale smažou všechny zaznamenané relace logů ladění. Aktivní nahrávání nebude ovlivněno.</string>
+    <string name="bugreport_delete_confirm_title">Smazat toto hlášení?</string>
+    <string name="bugreport_delete_confirm_message">Tímto se trvale smaže toto hlášení a jeho log.</string>
+    <string name="bugreport_cancel_action">Zrušit</string>
+
+    <string name="bugreport_share_chooser_title">Sdílet hlášení chyb</string>
+    <string name="bugreport_share_consent_title">Sdílet hlášení?</string>
+    <string name="bugreport_share_consent_message">Toto hlášení obsahuje logy aplikace, které mohou obsahovat názvy souborů, cesty a informace o aplikaci a zařízení. Sdílejte jej pouze s lidmi, kterým důvěřujete.</string>
+
+    <string name="bugreport_detail_back_action">Zpět</string>
+    <string name="bugreport_detail_section_error">Chyba</string>
+    <string name="bugreport_detail_section_log">Nedávný log</string>
+    <string name="bugreport_detail_field_type">Typ</string>
+    <string name="bugreport_detail_field_time">Čas</string>
+    <string name="bugreport_detail_field_app_version">Verze aplikace</string>
+    <string name="bugreport_detail_field_device">Zařízení</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Sestavení</string>
+    <string name="bugreport_detail_field_error_class">Typ chyby</string>
+    <string name="bugreport_detail_field_thread">Vlákno</string>
+    <string name="bugreport_detail_log_truncated">poslední %1$d z %2$d řádků</string>
+    <string name="bugreport_detail_log_count">%1$d řádků</string>
+    <string name="bugreport_detail_log_empty">Žádný log zaznamenán</string>
+    <string name="bugreport_detail_log_error">Nepodařilo se načíst log</string>
+</resources>

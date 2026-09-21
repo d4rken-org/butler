@@ -1,0 +1,347 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Prvotřídní průzkumník souborů</string>
+    <!-- Titulek pro upgradovanou verzi aplikace. %1$s je název aplikace, %2$s označení úrovně ("Pro" nebo "FOSS" podle sestavení). Pro váš jazyk lze pořadí i interpunkci upravit; oba zástupné znaky se musí objevit právě jednou. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Ikona aplikace Butler</string>
+    <string name="butler_mascot_description">Maskot Butlera</string>
+    <string name="butler_mascot_animation_random_description">Maskot Butlera provádí různé animace</string>
+    <string name="butler_mascot_animation_wink_description">Maskot Butlera mrká</string>
+    <string name="butler_mascot_animation_greeting_description">Maskot Butlera mává na pozdrav</string>
+    <string name="butler_mascot_animation_hatoff_description">Maskot Butlera uctivě smeká klobouk</string>
+    <string name="butler_mascot_animation_drink_description">Maskot Butlera pije</string>
+    <string name="butler_mascot_animation_moustache_description">Maskot Butlera si hladí knír</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Maskot Butlera zavírá oči a usíná</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Maskot Butlera chrápe</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Maskot Butlera se probouzí</string>
+    <string name="butler_mascot_animation_cameo_description">Maskot SD Maid v hostující roli</string>
+
+    <string name="slogan_general_message_0">K vašim službám.</string>
+    <string name="slogan_general_message_1">Všechno na svém místě.</string>
+    <string name="slogan_general_message_2">Pořádek, ne chaos.</string>
+    <string name="slogan_general_message_3">Přináším vaše soubory.</string>
+    <string name="slogan_general_message_4">Všechny soubory pěkně v řadě.</string>
+    <string name="slogan_general_message_5">Vždy uspořádáno.</string>
+    <string name="slogan_general_message_6">Soubory, rychle nalezené!</string>
+    <string name="slogan_general_message_7">Přístup snadno a rychle.</string>
+    <string name="slogan_general_message_8">Vaše soubory nikdy neztratíte.</string>
+    <string name="slogan_general_message_9">Zvládne leccos.</string>
+    <string name="slogan_newyear_message_0">Stejný postup jako každý rok.</string>
+    <string name="slogan_xmas_message_0">Soubory kontroluji dvakrát.</string>
+    <string name="slogan_xmas_message_1">Na seznamu hodných.</string>
+    <string name="slogan_halloween_message_0">Bú-tler k vašim službám.</string>
+    <string name="slogan_halloween_message_1">Žádné strašení, jen soubory.</string>
+    <string name="slogan_stpatricks_message_0">Cítíte se šťastně?</string>
+    <string name="slogan_stpatricks_message_1">Hledám váš hrnec zlata.</string>
+    <string name="slogan_aprilfools_message_0">Bez legrácek.</string>
+    <string name="slogan_aprilfools_message_1">Vážně uspořádáno.</string>
+    <string name="slogan_oktoberfest_message_0">Prost na vaše soubory!</string>
+    <string name="slogan_oktoberfest_message_1">Soubory čepované.</string>
+
+    <string name="general_share_action">Sdílet</string>
+    <string name="general_share_single_title">Sdílet %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Sdílet %d soubor</item>
+        <item quantity="few">Sdílet %d soubory</item>
+        <item quantity="many">Sdílet %d souboru</item>
+        <item quantity="other">Sdílet %d souborů</item>
+    </plurals>
+    <string name="general_done_action">Hotovo</string>
+    <string name="general_copy_action">Kopírovat</string>
+    <string name="general_cut_action">Vyjmout</string>
+    <string name="general_move_action">Přesunout</string>
+    <string name="general_paste_action">Vložit</string>
+    <string name="general_apply_action">Použít</string>
+    <string name="general_open_action">Otevřít</string>
+    <string name="general_cancel_action">Zrušit</string>
+    <string name="general_close_action">Zavřít</string>
+    <string name="general_confirm_action">Potvrdit</string>
+    <string name="general_reset_action">Resetovat</string>
+    <string name="general_save_action">Uložit</string>
+    <string name="general_edit_action">Upravit</string>
+    <string name="general_na_label">N/A</string>
+    <!-- Oznamováno čtečkami obrazovky při otevření dialogu -->
+    <string name="general_dialog_a11y_label">Dialog</string>
+    <string name="general_dismiss_action">Skrýt</string>
+    <string name="general_read_more_action">Zobrazit více</string>
+    <string name="general_mark_as_read_action">Označit jako přečtené</string>
+    <string name="general_back_action">Zpět</string>
+    <string name="general_navigate_up_action">Přejít nahoru</string>
+    <string name="general_error_label">Chyba</string>
+    <string name="general_error_unknown_label">Neznámá chyba</string>
+    <string name="general_error_invalid_input_label">Neplatný vstup</string>
+    <string name="general_share_error_action">Sdílet chybu</string>
+    <string name="general_error_report_subject">Hlášení chyby aplikace %1$s (%2$s)</string>
+    <string name="general_error_report_consent_title">Sdílet hlášení o chybě?</string>
+    <string name="general_error_report_consent_message">Hlášení obsahuje chybu a trasování zásobníku, které vyvolala, nedávný protokol aplikace a podrobnosti o jejím stavu: názvy a cesty souborů, vyhledávací dotazy, názvy balíčků, adresy URI, názvy síťových a SMB hostitelů, informace o vašem zařízení a sestavení a anonymní ID instalace. Sdílejte ho pouze s lidmi, kterým důvěřujete.</string>
+    <string name="general_error_report_consent_confirm">Sdílet hlášení</string>
+    <string name="general_privacy_policy_action">Zásady ochrany osobních údajů</string>
+    <string name="general_bug_report_subject">Hlášení o chybě v aplikaci %1$s (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">Hlášení o chybě v aplikaci %1$s: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Popište, co se stalo.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Popište, co jste očekávali.)</string>
+    <string name="general_duration_input_label">Doba trvání</string>
+    <string name="general_size_input_label">Velikost</string>
+    <string name="general_upgrade_action">Upgradovat</string>
+    <string name="general_refresh_action">Obnovit</string>
+    <string name="general_clear_action">Vymazat</string>
+    <string name="general_expand_action">Rozbalit</string>
+    <string name="general_collapse_action">Sbalit</string>
+    <string name="general_completed_label">Dokončeno</string>
+    <string name="general_cancelled_label">Zrušeno</string>
+    <string name="general_searching_label">Hledání</string>
+    <string name="general_searching_ellipsis">Hledání…</string>
+    <string name="general_progress_loading">Načítání</string>
+    <string name="general_progress_loading_egg_0">Pořád rychlejší než iPhone</string>
+    <string name="general_progress_loading_egg_1">Stahuji více RAM</string>
+    <string name="general_progress_loading_egg_2">Odhad: Brzy™</string>
+    <string name="general_progress_loading_egg_3">Procesor má pauzu na kávu</string>
+    <string name="general_progress_loading_egg_4">Čeká se na data od Pepe Silvia</string>
+    <string name="general_progress_loading_egg_5">Turbo encabulator se spouští</string>
+    <string name="general_progress_loading_egg_6">Podávám máslo</string>
+    <string name="general_progress_loading_egg_7">Tak. Jak to zvládáte?</string>
+    <string name="general_progress_loading_egg_8">Pípy pípy bůp</string>
+    <string name="general_progress_loading_egg_9">Bufferuji životní rozhodnutí</string>
+    <string name="general_progress_loading_egg_10">Vyvolávám Cthulhu</string>
+    <string name="general_progress_loading_egg_11">To je v pořádku</string>
+    <string name="general_progress_loading_egg_12">Prosím, vydržte</string>
+    <string name="general_progress_loading_egg_13">Aspoň nečekáte na lince</string>
+    <string name="general_progress_loading_egg_14">Naneste přímo na čelo</string>
+
+    <!-- Formátování doby trvání -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dms</item>
+        <item quantity="few">%dms</item>
+        <item quantity="many">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%ds</item>
+        <item quantity="few">%ds</item>
+        <item quantity="many">%ds</item>
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%dm</item>
+        <item quantity="few">%dm</item>
+        <item quantity="many">%dm</item>
+        <item quantity="other">%dm</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dh</item>
+        <item quantity="few">%dh</item>
+        <item quantity="many">%dh</item>
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dd</item>
+        <item quantity="few">%dd</item>
+        <item quantity="many">%dd</item>
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d sekunda</item>
+        <item quantity="few">%d sekundy</item>
+        <item quantity="many">%d sekundy</item>
+        <item quantity="other">%d sekund</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d minuta</item>
+        <item quantity="few">%d minuty</item>
+        <item quantity="many">%d minuty</item>
+        <item quantity="other">%d minut</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d hodina</item>
+        <item quantity="few">%d hodiny</item>
+        <item quantity="many">%d hodiny</item>
+        <item quantity="other">%d hodin</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d den</item>
+        <item quantity="few">%d dny</item>
+        <item quantity="many">%d dne</item>
+        <item quantity="other">%d dní</item>
+    </plurals>
+
+    <string name="general_view_action">Zobrazit</string>
+    <string name="general_delete_action">Smazat</string>
+    <string name="general_show_details_action">Zobrazit podrobnosti</string>
+    <string name="general_hide_details_action">Skrýt podrobnosti</string>
+
+    <string name="general_delete_confirmation_title">Potvrdit smazání</string>
+    <string name="general_delete_confirmation_message_x">Smazat \"%s\"?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Smazat %d vybraných položek?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">Smazána %d položka.</item>
+        <item quantity="few">Smazány %d položky.</item>
+        <item quantity="many">Smazáno %d položky.</item>
+        <item quantity="other">Smazáno %d položek.</item>
+    </plurals>
+
+    <string name="general_create_action">Vytvořit</string>
+    <string name="general_rename_action">Přejmenovat</string>
+    <string name="general_retry_action">Opakovat</string>
+    <string name="general_open_setup_action">Otevřít nastavení</string>
+    <string name="general_grant_usage_stats_action">Udělit přístup k datům o používání</string>
+    <string name="general_grant_storage_permission_action">Udělit oprávnění k úložišti</string>
+    <string name="general_grant_all_files_access_action">Povolit přístup ke všem souborům</string>
+
+    <string name="general_result_user_cancel_msg">Uživatel operaci zrušil.</string>
+
+    <string name="general_path_label">Cesta</string>
+    <string name="general_filename_validation_error">Název obsahuje neplatné znaky: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d z %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d z %2$d</string>
+
+    <string name="file_type_symbolic_link">Odkaz</string>
+    <string name="file_type_directory">Složka</string>
+    <string name="file_type_file">Soubor</string>
+    <string name="file_type_unknown">Neznámý</string>
+
+    <!-- Přívětivé názvy typů MIME -->
+    <string name="common_mimetype_image">Obrázek</string>
+    <string name="common_mimetype_video">Video</string>
+    <string name="common_mimetype_audio">Zvuk</string>
+    <string name="common_mimetype_text_plain">Prostý text</string>
+    <string name="common_mimetype_text">Textový dokument</string>
+    <string name="common_mimetype_pdf">Dokument PDF</string>
+    <string name="common_mimetype_document">Dokument</string>
+    <string name="common_mimetype_archive">Archiv</string>
+    <string name="common_mimetype_apk">Balíček Android</string>
+    <string name="common_mimetype_json">Soubor JSON</string>
+    <string name="common_mimetype_xml">Soubor XML</string>
+    <string name="common_mimetype_unknown">Neznámý typ</string>
+
+    <string name="general_rom_type_auto_label">Automaticky (výchozí)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s položka/s</item>
+        <item quantity="few">%s položky/s</item>
+        <item quantity="many">%s položky/s</item>
+        <item quantity="other">%s položek/s</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/s</item>
+        <item quantity="few">%s/s</item>
+        <item quantity="many">%s/s</item>
+        <item quantity="other">%s/s</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Neshoda typu: očekáváno %1$s, ale obdrženo %2$s.</string>
+    <string name="general_error_cant_access_msg">Nelze přistoupit k %s.</string>
+    <string name="general_error_archive_not_seekable_msg">%s nelze procházet přímo: úložiště, na kterém se nachází, podporuje pouze sekvenční čtení, ale tento formát archivu vyžaduje náhodný přístup.</string>
+    <string name="general_error_root_unavailable">Přístup s právy root není k dispozici.</string>
+    <string name="general_error_elevated_access_required">Tato operace vyžaduje rozšířený přístup. Nastavte Root nebo Shizuku v Nastavení.</string>
+    <string name="general_error_no_compatible_app_found_msg">Nebyla nalezena žádná kompatibilní aplikace pro zpracování tohoto požadavku.</string>
+    <string name="general_error_ipc_deadobject_title">Spojení se službou přerušeno</string>
+    <string name="general_error_ipc_deadobject_description">Spojení s kritickou službou (např. Magisk, Shizuku nebo jinou službou na úrovni systému) bylo neočekávaně přerušeno. Restartujte prosím své zařízení. Pokud problém přetrvává, zkontrolujte aktualizace nebo mě kontaktujte, aby bylo možné problém vyřešit.</string>
+
+    <string name="ui_theme_mode_dark_label">Tmavý</string>
+    <string name="ui_theme_mode_light_label">Světlý</string>
+    <string name="ui_theme_mode_system_label">Systém</string>
+    <string name="ui_theme_style_default_label">Výchozí</string>
+    <string name="ui_theme_style_medium_contrast_label">Střední kontrast</string>
+    <string name="ui_theme_style_high_contrast_label">Vysoký kontrast</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Zelená</string>
+    <string name="ui_theme_color_blue_label">Modrá</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Vlastní</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Tónová skvrna</string>
+    <string name="ui_theme_palette_neutral_label">Neutrální</string>
+    <string name="ui_theme_palette_vibrant_label">Sytá</string>
+    <string name="ui_theme_palette_expressive_label">Expresivní</string>
+    <string name="ui_theme_palette_rainbow_label">Duha</string>
+    <string name="ui_theme_palette_fruitsalad_label">Ovocný salát</string>
+    <string name="ui_theme_palette_monochrome_label">Monochromatická</string>
+    <string name="ui_theme_palette_fidelity_label">Věrnost</string>
+    <string name="ui_theme_palette_content_label">Obsah</string>
+
+    <string name="ui_theme_custom_dialog_title">Vlastní motiv</string>
+    <string name="ui_theme_custom_seed_label">Základní barva</string>
+    <string name="ui_theme_custom_palette_label">Styl palety</string>
+    <string name="ui_theme_custom_default_action">Výchozí</string>
+
+    <string name="ui_mascot_suit_dialog_title">Butlerův oblek</string>
+    <string name="ui_mascot_suit_default_action">Výchozí</string>
+    <string name="ui_mascot_suit_hue_label">Odstín</string>
+    <string name="ui_mascot_suit_saturation_label">Sytost</string>
+    <string name="ui_mascot_suit_brightness_label">Jas</string>
+    <string name="ui_mascot_suit_value_description">Barva obleku %s</string>
+
+    <!-- Typy modulů nastavení -->
+    <string name="setup_usagestats_title">Statistiky používání</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Přístup k oznámením</string>
+    <string name="setup_manage_storage_card_title">Správa externího úložiště</string>
+    <string name="setup_inventory_card_title">Seznam aplikací</string>
+
+    <!-- Společné řetězce pro oprávnění -->
+    <string name="setup_required_card_title">Vyžadováno nastavení</string>
+    <string name="setup_required_card_body">K provedení této operace je nutné další nastavení.</string>
+    <string name="setup_required_card_setup_action">Otevřít nastavení</string>
+
+    <!-- Funkce otevírání v nových kartách -->
+    <string name="common_open_tabs_confirmation_title">Otevřít více karet?</string>
+    <string name="common_open_tabs_confirmation_message">Tímto se otevře %1$d karet.</string>
+    <string name="common_open_tabs_success">Otevřeno %1$d karet</string>
+    <string name="common_open_tabs_success_with_skipped">Otevřeno %1$d karet (%2$d položek přeskočeno)</string>
+
+    <!-- Potvrzení zavření karty -->
+    <string name="general_tab_close_confirmation_title">Zavřít kartu?</string>
+    <string name="general_tab_close_confirmation_message">Opravdu chcete zavřít \"%1$s\"?</string>
+    <string name="general_tab_close_unsaved_title">Neuložené změny</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" obsahuje neuložené změny. Zavřít a zahodit je?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" a dalších %2$d karet obsahuje neuložené změny. Zavřít a zahodit je?</string>
+    <string name="general_discard_action">Zahodit</string>
+    <string name="general_tab_close_goto_action">Přejít na kartu</string>
+
+    <!-- Ukončení aplikace -->
+    <string name="general_press_back_again_to_exit">Stisknutím tlačítka zpět znovu aplikaci ukončíte</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">Vybráno: %d</item>
+        <item quantity="few">Vybráno: %d</item>
+        <item quantity="many">Vybráno: %d</item>
+        <item quantity="other">Vybráno: %d</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d složka</item>
+        <item quantity="few">%1$d složky</item>
+        <item quantity="many">%1$d složky</item>
+        <item quantity="other">%1$d složek</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d soubor</item>
+        <item quantity="few">%1$d soubory</item>
+        <item quantity="many">%1$d souboru</item>
+        <item quantity="other">%1$d souborů</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Vybrat všechny složky</string>
+    <string name="common_select_all_files_action">Vybrat všechny soubory</string>
+    <string name="general_undo_action">Vrátit zpět</string>
+
+    <!-- Řízené prohlídky -->
+    <string name="tour_action_next">Další</string>
+    <string name="tour_action_previous">Předchozí</string>
+    <string name="tour_action_cancel">Přeskočit</string>
+    <string name="tour_confirm_title">Přeskočit prohlídku?</string>
+    <string name="tour_confirm_message">Prohlídky můžete kdykoli znovu zapnout v Nastavení.</string>
+    <string name="tour_confirm_continue">Pokračovat v prohlídce</string>
+    <string name="tour_confirm_dont_show_this_tour">Tuto prohlídku již nezobrazovat</string>
+    <string name="tour_confirm_disable_all">Vypnout všechny prohlídky</string>
+
+    <!-- Tipy Butlera -->
+    <string name="common_tip_multiple_panes">Pomocí více panelů můžete soubory porovnávat vedle sebe.</string>
+    <string name="common_tip_different_folders">Otevřete různé složky v jednotlivých panelech pro snadnou správu souborů.</string>
+    <string name="common_tip_switch_layouts">Rozložení panelů můžete přepínat ve správci nastavení karet.</string>
+    <string name="common_tip_elevated_access">Pro pokročilé operace se soubory povolte v Nastavení root nebo Shizuku.</string>
+    <string name="common_tip_breadcrumb_home">Dlouhým stisknutím položky v drobečkové navigaci Průzkumníka ji nastavíte jako domovskou složku.</string>
+</resources>

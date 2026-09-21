@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Editor</string>
+    <string name="editor_subtitle">Úprava textových souborů</string>
+    <string name="editor_settings_title">Nastavení editoru</string>
+    <string name="editor_settings_show_line_numbers_title">Zobrazit čísla řádků</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Zobrazit čísla řádků v editoru.</string>
+    <string name="editor_settings_word_wrap_title">Zalomení řádku</string>
+    <string name="editor_settings_word_wrap_subtitle">Zalomit dlouhé řádky tak, aby se vešly na šířku obrazovky.</string>
+    <string name="editor_settings_syntax_highlighting_title">Zvýraznění syntaxe</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Barevné zvýraznění kódu v podporovaných souborech (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Velikost písma</string>
+    <string name="editor_settings_font_size_subtitle">Velikost textu v editoru</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Šířka tabulátoru</string>
+    <string name="editor_settings_tab_size_subtitle">Počet mezer, které obsadí tabulátor</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Otevřít</string>
+    <string name="editor_action_save">Uložit</string>
+    <string name="editor_action_save_as">Uložit jako…</string>
+    <string name="editor_action_close">Zavřít</string>
+    <string name="editor_action_undo">Vrátit zpět</string>
+    <string name="editor_action_redo">Zopakovat</string>
+    <string name="editor_action_search">Hledat</string>
+    <string name="editor_action_go_to_line">Jít na řádek</string>
+    <string name="editor_action_dismiss">Zavřít</string>
+    <string name="editor_action_previous">Předchozí</string>
+    <string name="editor_action_next">Následující</string>
+    <string name="editor_action_copy">Kopírovat</string>
+    <string name="editor_action_cut">Vyjmout</string>
+    <string name="editor_action_copy_to_butler_clipboard">Kopírovat do schránky Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">Vyjmout do schránky Butler</string>
+    <string name="editor_action_paste">Vložit</string>
+    <string name="editor_action_select_all">Vybrat vše</string>
+    <string name="editor_action_delete">Smazat</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Přepsat soubor?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s již existuje. Jej obsah bude nahrazen.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Přepsat</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Nalezena záloha z přerušeného ukládání:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Úprava jako text není podporována</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Velmi dlouhé řádky</string>
+    <string name="editor_long_lines_banner_message">Velmi dlouhé řádky jsou zkráceny pro zobrazení; plný obsah je zachován a uložen.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Zobrazit další část řádku</string>
+    <string name="editor_line_truncated_marker_previous_action">Zobrazit předchozí část řádku</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Soubor není k dispozici</string>
+    <string name="editor_backing_lost_banner_message">Byl pravděpodobně přesunut nebo smazán. Toto zobrazení je pouze pro čtení — znovu jej otevřete nebo jej zavřete.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Soubor je pryč, ale záloha zbývá</string>
+    <string name="editor_error_save_artifacts_description">„%1$s" chybí, ale přerušené ukládání v něm zanechalo: %2$s. Váš obsah v něm nejspíše zůstal.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Soubor změněn na disku</string>
+    <string name="editor_external_change_banner_message">Jiná aplikace tento soubor upravila.</string>
+    <string name="editor_external_change_reload_action">Znovu načíst</string>
+    <string name="editor_external_change_keep_action">Pokračovat v úpravě</string>
+    <string name="editor_error_external_change">Tento soubor byl změněn jinou aplikací. Znovu jej načtěte a pokračujte.</string>
+    <string name="editor_dialog_reload_confirm_title">Znovu načíst soubor?</string>
+    <string name="editor_dialog_reload_confirm_message">Znovu načtení zahodí vaše neuložené změny a zobrazí aktuální obsah souboru na disku.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d řádek</item>
+        <item quantity="few">%1$d řádky</item>
+        <item quantity="many">%1$d řádku</item>
+        <item quantity="other">%1$d řádků</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d znak</item>
+        <item quantity="few">%1$d znaky</item>
+        <item quantity="many">%1$d znaku</item>
+        <item quantity="other">%1$d znaků</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Vybráno %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Načítání souboru…</string>
+    <string name="editor_saving">Ukládání…</string>
+    <string name="editor_action_cancel_loading">Zrušit</string>
+    <string name="editor_progress_opening">Otevírání souboru…</string>
+    <string name="editor_progress_saving">Ukládání souboru…</string>
+    <string name="editor_progress_building_index">Vytváření rejstříku souboru…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Neznámá chyba</string>
+    <string name="editor_error_read_only">Tento soubor je určen pouze pro čtení a nelze jej měnit.</string>
+    <string name="editor_error_save_integrity_label">Ukládání přerušeno</string>
+    <string name="editor_error_save_integrity">Ukládání bylo přerušeno a soubor na disku může být neúplný. Znovu jej načtěte, než budete pokračovat v úpravách.</string>
+    <string name="editor_error_clipboard_too_large_label">Výběr příliš velký</string>
+    <string name="editor_error_clipboard_too_large">Výběr je příliš velký na kopírování (limit %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Soubor příliš velký</string>
+    <string name="editor_error_paste_too_large">Tento soubor je příliš velký na vložení (max %1$s).</string>
+    <string name="editor_error_paste_binary_label">Není textový soubor</string>
+    <string name="editor_error_paste_binary">Obsah tohoto souboru nelze vložit jako text.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d z %2$d výsledku</item>
+        <item quantity="few">%1$d z %2$d výsledky</item>
+        <item quantity="many">%1$d z %2$d výsledku</item>
+        <item quantity="other">%1$d z %2$d výsledků</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d z %2$d+ výsledků</string>
+    <string name="editor_search_too_many_matches_label">Příliš mnoho shod</string>
+    <string name="editor_search_too_many_matches">Více než %1$d shod nebo příliš mnoho shodného textu — zúžete hledání, abyste mohli nahradit vše.</string>
+    <string name="editor_search_placeholder">Hledat…</string>
+    <string name="editor_search_previous">Předchozí výsledek</string>
+    <string name="editor_search_next">Následující výsledek</string>
+    <string name="editor_search_case_sensitive_label">Rozlišovat velikost písmen</string>
+    <string name="editor_search_regex_label">Regulární výraz</string>
+    <string name="editor_search_whole_word_label">Slovo celé</string>
+    <string name="editor_search_options_label">Možnosti hledání</string>
+    <string name="editor_search_replace_label">Nahradit</string>
+    <string name="editor_search_replace_toggle">Přepnout nahrazování</string>
+    <string name="editor_search_replace_placeholder">Nahradit za…</string>
+    <string name="editor_search_replace_one_action">Nahradit</string>
+    <string name="editor_search_replace_all_action">Vše</string>
+    <string name="editor_search_replaced_not_undoable">%1$d nahrazeno (příliš velké na vrácení zpět)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d nahrazeno</item>
+        <item quantity="few">%1$d nahrazeno</item>
+        <item quantity="many">%1$d nahrazeno</item>
+        <item quantity="other">%1$d nahrazeno</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Jít na řádek</string>
+    <string name="editor_dialog_go_to_line_label">Číslo řádku (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Jít</string>
+    <string name="editor_dialog_action_cancel">Zrušit</string>
+    <string name="editor_dialog_close_confirm_title">Neuložené změny</string>
+    <string name="editor_dialog_close_confirm_message">Máte neuložené změny. Zahodíte je?</string>
+    <string name="editor_dialog_close_confirm_discard">Zahodit</string>
+    <string name="editor_dialog_large_delete_confirm_title">Upravit velký výběr?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Tento výběr je příliš velký na vrácení zpět. Pokračovat i přesto?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Pokračovat</string>
+    <string name="editor_encoding_dialog_title">Kódování</string>
+    <string name="editor_encoding_dialog_message">Znovu otevřete soubor s jiným kódováním. Neuložené změny budou zahozeny; beze změny zůstanou nezměněné bajty.</string>
+    <string name="editor_infobar_read_only">Pouze pro čtení</string>
+    <string name="editor_line_ending_mixed">Smíšené</string>
+    <string name="editor_line_ending_dialog_title">Konce řádků</string>
+    <string name="editor_line_ending_dialog_message">Převeďte všechny konce řádků a uložte soubor, včetně neuložených změn. Historie vrácení zpět bude vymazána.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Bez názvu</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Automatické ukládání</string>
+    <string name="editor_settings_autosave_enabled_title">Povolit automatické ukládání</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Automaticky ukládat změny po období nečinnosti.</string>
+    <string name="editor_settings_autosave_interval_title">Interval automatického ukládání</string>
+    <string name="editor_settings_autosave_interval_subtitle">Doba čekání po poslední úpravě před uložením.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Interval automatického ukládání</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Schránka</string>
+    <string name="editor_settings_clipboard_behavior_title">Schránka Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Kontrola způsobu, jak se textové kopie ukládají do schránky Butler.</string>
+    <string name="editor_settings_clipboard_system_only">Jen systém</string>
+    <string name="editor_settings_clipboard_system_only_desc">Kopírovat pouze do systémové schránky</string>
+    <string name="editor_settings_clipboard_butler_always">Vždy přidat do Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Také uložit do schránky Butler pro vkládání mezi pracovními prostředky</string>
+    <string name="editor_settings_clipboard_ask">Vždy se ptát</string>
+    <string name="editor_settings_clipboard_ask_desc">Výzva před přidáním do schránky Butler</string>
+</resources>

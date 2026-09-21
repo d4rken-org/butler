@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Pokročilý přístup k zařízení</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Zařízení</string>
+    <string name="documents_connection_device_summary">Místní úložiště zařízení</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Kořenový systém souborů</string>
+    <string name="provider_documents_storage_internal_label">Vnitřní úložiště</string>
+    <string name="provider_documents_storage_sd_card_label">SD karta</string>
+    <string name="provider_documents_storage_saf_label">Umístění SAF</string>
+    <string name="provider_documents_storage_free_suffix">volné</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">Pro procházení tohoto umístění je vyžadován přístup root. Povolte přístup root v nastavení aplikace Butler.</string>
+    <string name="provider_documents_error_requires_adb">Pro procházení tohoto umístění je vyžadován přístup ADB/Shizuku. Povolte Shizuku v nastavení aplikace Butler.</string>
+    <string name="provider_documents_error_requires_storage">Pro procházení tohoto umístění je vyžadováno oprávnění úložiště. Udělte oprávnění úložiště v nastavení aplikace Butler.</string>
+    <string name="provider_documents_error_requires_permissions">Pro procházení tohoto umístění jsou vyžadována další oprávnění. Zkontrolujte nastavení aplikace Butler.</string>
+    <string name="provider_documents_error_generic">Nelze získat přístup k tomuto umístění. Zkontrolujte aplikaci Butler pro možnosti přístupu.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Poskytovatel dokumentů</string>
+    <string name="provider_documents_settings_subtitle">Integrace externí aplikace</string>
+    <string name="provider_documents_settings_category_integration_label">Integrace</string>
+    <string name="provider_documents_enabled_title">Povolit poskytovatele dokumentů</string>
+    <string name="provider_documents_enabled_desc">Povolit ostatním aplikacím přístup k souborům prostřednictvím Butlera pomocí nástroje pro výběr souborů v Androidu</string>
+</resources>
