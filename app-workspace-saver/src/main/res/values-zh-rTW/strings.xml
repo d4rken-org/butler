@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">另存為</string>
+    <string name="saver_preview_label">預覽</string>
+    <string name="saver_loading">載入中…</string>
+    <string name="saver_shared_from">來自 %1$s 的分享</string>
+    <string name="saver_shared_generic">與 Butler 分享</string>
+    <string name="saver_destination_label">目的地</string>
+    <string name="saver_select_destination_hint">選擇目的地資料夾</string>
+    <string name="saver_filename_label">檔案名稱</string>
+    <string name="saver_save_action">儲存</string>
+    <string name="saver_saving_progress">正在儲存…</string>
+    <string name="saver_success_message">檔案已成功儲存</string>
+    <string name="saver_open_saved_action">開啟資料夾</string>
+    <string name="saver_retry_action">重試</string>
+    <string name="saver_save_again_action">儲存到新位置</string>
+    <string name="saver_close_tab_action">關閉分頁</string>
+    <string name="saver_close_butler_action">關閉分頁並返回</string>
+    <string name="saver_done_action">完成</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="other">%1$d 個來源檔案無法存取。請重新分享。</item>
+    </plurals>
+    <string name="saver_error_source_expired">來源檔案無法存取</string>
+    <string name="saver_error_permission_denied">權限被拒</string>
+    <string name="saver_error_write_failed">儲存檔案失敗</string>
+    <string name="saver_error_file_exists">檔案已存在</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">儲存檔案</string>
+    <plurals name="saver_operation_description">
+        <item quantity="other">正在將 %1$d 個檔案儲存至 %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="other">儲存 %1$d 個檔案</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="other">%1$d 個檔案已儲存</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="other">%1$d 個檔案失敗</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="other">%1$d 個檔案已略過</item>
+    </plurals>
+    <string name="saver_partial_success">已儲存 %1$d 個檔案（共 %2$d 個）</string>
+</resources>

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">搜尋</string>
+    <string name="searcher_subtitle">查詢檔案和內容</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">搜尋設定</string>
+    <string name="searcher_settings_search_category">搜尋</string>
+    <string name="searcher_settings_history">搜尋紀錄</string>
+    <string name="searcher_settings_save_history_title">保存搜尋紀錄</string>
+    <string name="searcher_settings_save_history_subtitle">記住之前搜尋過的內容</string>
+    <string name="searcher_settings_max_history_label">歷史紀錄上限</string>
+    <string name="searcher_settings_max_history_subtitle">最多保存的搜尋數量</string>
+    <string name="searcher_settings_max_history_input_label">項目數量（1–500）</string>
+    <string name="searcher_settings_clear_history_title">清除搜尋紀錄</string>
+    <string name="searcher_settings_clear_history_subtitle">移除全部已保存搜尋（%1$d）</string>
+    <string name="searcher_settings_search_performance">效能</string>
+    <string name="searcher_settings_max_results_title">搜尋結果上限</string>
+    <string name="searcher_settings_max_results_subtitle">限制每次搜尋傳回的結果數量。</string>
+    <string name="searcher_settings_content_search_category">內容搜尋</string>
+    <string name="searcher_settings_include_binaries_title">包含二進位檔案</string>
+    <string name="searcher_settings_include_binaries_subtitle">搜尋二進位檔案中的內容（可能速度較慢，可能產生無關結果）</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">最近搜尋</string>
+    <string name="searcher_placeholder_search">搜尋檔案和資料夾</string>
+    <string name="searcher_placeholder_filename">檔名</string>
+    <string name="searcher_placeholder_content">內容</string>
+    <string name="searcher_search_error">搜尋錯誤</string>
+    <string name="searcher_no_paths_hint">輕觸 + 來新增搜尋位置</string>
+    <string name="searcher_add_path_action">新增位置</string>
+    <string name="searcher_add_folder_action">資料夾…</string>
+    <string name="searcher_multipath_show_fewer_action">顯示較少</string>
+    <string name="searcher_empty_state_title">未設定搜尋路徑</string>
+    <string name="searcher_empty_state_description">新增儲存空間位置以搜尋您的檔案</string>
+    <string name="searcher_add_default_paths_action">新增預設搜尋路徑</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">選項</string>
+    <string name="searcher_option_case_sensitive_label">區分大小寫</string>
+    <string name="searcher_option_case_sensitive_desc">區分大小寫搜尋</string>
+    <string name="searcher_option_whole_word_label">整字</string>
+    <string name="searcher_option_whole_word_desc">整字搜尋</string>
+    <string name="searcher_option_regex_label">規則運算式</string>
+    <string name="searcher_option_regex_desc">規則運算式搜尋</string>
+    <string name="searcher_option_search_content_label">搜尋內容</string>
+    <string name="searcher_option_search_content_desc">搜尋檔案內容</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">範本</string>
+    <string name="searcher_templates_card_title">快速搜尋範本</string>
+    <string name="searcher_template_large_files">大型檔案</string>
+    <string name="searcher_template_large_files_desc">超過 100 MB 的檔案</string>
+    <string name="searcher_template_recent_files">最近的檔案</string>
+    <string name="searcher_template_recent_files_desc">過去 7 天內修改</string>
+    <string name="searcher_template_old_files">舊檔案</string>
+    <string name="searcher_template_old_files_desc">超過一年未修改</string>
+    <string name="searcher_template_images">圖片</string>
+    <string name="searcher_template_images_desc">JPG、PNG、GIF、WebP、HEIC</string>
+    <string name="searcher_template_videos">影片</string>
+    <string name="searcher_template_videos_desc">MP4、MKV、AVI、MOV、WebM</string>
+    <string name="searcher_template_audio">音訊</string>
+    <string name="searcher_template_audio_desc">MP3、WAV、FLAC、OGG、M4A</string>
+    <string name="searcher_template_documents">文件</string>
+    <string name="searcher_template_documents_desc">PDF、Word、Excel、PowerPoint、TXT</string>
+    <string name="searcher_template_archives">壓縮檔</string>
+    <string name="searcher_template_archives_desc">ZIP、RAR、7z、TAR、GZ</string>
+    <string name="searcher_template_apks">APK</string>
+    <string name="searcher_template_apks_desc">Android 應用程式套件</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="other">%d 個範本</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">篩選</string>
+    <string name="searcher_filter_add_action">新增篩選</string>
+    <string name="searcher_filter_title">搜尋篩選</string>
+    <string name="searcher_filter_size_section">檔案大小</string>
+    <string name="searcher_filter_size_min">最小大小</string>
+    <string name="searcher_filter_size_max">最大大小</string>
+    <string name="searcher_filter_date_section">修改日期</string>
+    <string name="searcher_filter_date_after">修改於此之後</string>
+    <string name="searcher_filter_date_before">修改於此之前</string>
+    <string name="searcher_filter_date_any">任何時間</string>
+    <string name="searcher_filter_date_24h">過去 24 小時</string>
+    <string name="searcher_filter_date_7d">過去 7 天</string>
+    <string name="searcher_filter_date_30d">過去 30 天</string>
+    <string name="searcher_filter_date_90d">過去 90 天</string>
+    <string name="searcher_filter_date_1y">過去一年</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">大於</string>
+    <string name="searcher_filter_comparator_greater_or_equal">大於或等於</string>
+    <string name="searcher_filter_comparator_less_than">小於</string>
+    <string name="searcher_filter_comparator_less_or_equal">小於或等於</string>
+    <string name="searcher_filter_comparator_equal">等於</string>
+    <string name="searcher_filter_size_value_label">大小</string>
+    <string name="searcher_filter_size_at_least">至少</string>
+    <string name="searcher_filter_size_at_most">最多</string>
+    <string name="searcher_filter_size_value_hint">例如 10 MB</string>
+    <string name="searcher_filter_size_format_help">輸入數字和單位（KB、MB、GB）。沒有單位的數字視為 MB。</string>
+    <string name="searcher_filter_size_format_error">無效的大小 — 使用數字和單位，例如 10 MB。</string>
+    <string name="searcher_filter_date_value_label">日期</string>
+    <string name="searcher_filter_date_direction_after">之後</string>
+    <string name="searcher_filter_date_direction_before">之前</string>
+    <string name="searcher_filter_type_label">類型</string>
+    <string name="searcher_filter_type_files">檔案</string>
+    <string name="searcher_filter_type_directories">資料夾</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">從紀錄中移除</string>
+    <string name="searcher_history_clear_all_action">全部清除</string>
+    <string name="searcher_history_clear_dialog_title">清除搜尋紀錄</string>
+    <string name="searcher_history_clear_dialog_message">這將移除所有已保存的搜尋紀錄。此操作無法復原。</string>
+    <string name="searcher_history_clear_confirm_action">清除</string>
+    <string name="searcher_history_cleared_success">搜尋紀錄已清除</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">沒有結果</item>
+        <item quantity="other">%d 個結果</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="other">顯示 %d 個以上</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">搜尋中</string>
+    <string name="searcher_progress_action_searched">已搜尋</string>
+    <string name="searcher_progress_status_completed_with_errors">完成，但有錯誤</string>
+    <string name="searcher_result_limit_reached">已達到結果限制</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">部分項目無法完全搜尋</string>
+    <string name="searcher_progress_clear_action">清除</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="other">%d 個失敗</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="other">%d 個項目無法存取</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="other">…及其他 %d 個</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android 保護這些位置。提供額外存取權可讓 Butler 搜尋這些位置。</string>
+    <string name="searcher_access_sheet_body_protected">Android 保護這些位置。此裝置無法授予存取權。</string>
+    <string name="searcher_access_sheet_unlock_action">解除存取</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="other">%d 個位置</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="other">%d 個已掃描</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="other">%d 個找到</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">比對內容</string>
+    <string name="searcher_match_line_label">第 %1$d 行：%2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">開啟</string>
+    <string name="searcher_action_open_in_tab">在新分頁中開啟</string>
+    <string name="searcher_action_open_with">使用…開啟</string>
+    <string name="searcher_action_open_in_editor">在編輯器中開啟</string>
+    <string name="searcher_action_open_in_explorer">在檔案總管中開啟</string>
+    <string name="searcher_action_install">安裝</string>
+    <string name="searcher_action_copy">複製</string>
+    <string name="searcher_action_cut">剪下</string>
+    <string name="searcher_action_delete">刪除</string>
+    <string name="searcher_action_copy_path">複製路徑</string>
+    <string name="searcher_action_properties">內容</string>
+    <string name="searcher_action_select_all">全選</string>
+    <string name="searcher_action_deselect_all">取消全選</string>
+    <string name="searcher_action_open_in_new_tabs">在新分頁中開啟</string>
+    <string name="searcher_action_sort">排序</string>
+    <string name="searcher_action_view">配置</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">排序方式</string>
+    <string name="searcher_sort_mode_name_label">名稱</string>
+    <string name="searcher_sort_mode_size_label">大小</string>
+    <string name="searcher_sort_mode_modified_label">修改日期</string>
+    <string name="searcher_sort_mode_created_label">建立日期</string>
+    <string name="searcher_sort_mode_path_label">路徑</string>
+    <string name="searcher_sort_descending_label">遞減排序</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">項目排列方式和顯示的詳細程度</string>
+    <string name="searcher_view_mode_list_label">清單</string>
+    <string name="searcher_view_mode_grid_label">網格</string>
+    <string name="searcher_view_density_compact_label">精簡</string>
+    <string name="searcher_view_density_comfortable_label">舒適</string>
+    <string name="searcher_view_density_detailed_label">詳細</string>
+    <string name="searcher_view_detail_modified_label">已修改</string>
+    <string name="searcher_view_set_default_action">設為預設</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">需要額外設定才能搜尋某些位置。</string>
+</resources>

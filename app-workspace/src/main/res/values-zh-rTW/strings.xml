@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 剪貼簿 -->
+    <string name="clipboard_header_title">剪貼簿</string>
+    <string name="clipboard_clear_all">全部清除</string>
+    <string name="clipboard_paste">貼上</string>
+    <string name="clipboard_open_in_explorer">在檔案總管中開啟</string>
+    <string name="clipboard_copy">複製</string>
+    <string name="clipboard_cut">剪下</string>
+    <string name="clipboard_origin">來源：%s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="other">複製 %d 個項目</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="other">%d 個項目，來自 %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="other">剪下 %d 個項目</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="other">%d 個項目，來自 %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="other">%d 個位置</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="other">來自 %2$s 的 %1$d 個項目</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="other">來自 %2$s 的 %1$d 個項目</item>
+    </plurals>
+    <string name="clipboard_text_title">文字片段</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="other">%1$d 個字元</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">貼上為檔案</string>
+    <string name="clipboard_text_info_characters">字元</string>
+    <string name="clipboard_text_info_lines">行數</string>
+    <string name="clipboard_text_info_content">內容</string>
+
+    <!-- 剪貼簿資訊對話方塊 -->
+    <string name="clipboard_info_overview">總覽</string>
+    <string name="clipboard_info_operation">操作</string>
+    <string name="clipboard_info_items">項目</string>
+    <string name="clipboard_info_source">來源</string>
+    <string name="clipboard_info_sources">來源</string>
+    <string name="clipboard_info_workspace">工作區</string>
+    <string name="clipboard_info_workspace_closed">已關閉</string>
+    <string name="clipboard_info_time">時間</string>
+    <string name="clipboard_info_items_with_count">項目（%1$d）</string>
+    <string name="clipboard_info_actions">動作</string>
+    <string name="clipboard_info_go_to_source">前往來源</string>
+    <string name="clipboard_info_go_to_first_source">前往第一個來源</string>
+    <string name="clipboard_info_remove">從剪貼簿移除</string>
+
+    <!-- 剪貼簿設定 -->
+    <string name="clipboard_settings_title">剪貼簿</string>
+    <string name="clipboard_settings_remove_on_paste_title">貼上後移除</string>
+    <string name="clipboard_settings_remove_on_paste_desc">貼上後，從剪貼簿中移除已複製的項目</string>
+    <string name="clipboard_settings_max_items_title">項目數量上限</string>
+    <string name="clipboard_settings_max_items_desc">剪貼簿中可保留的項目數量上限</string>
+
+    <string name="workspace_explorer_label">檔案總管</string>
+    <string name="workspace_searcher_label">搜尋</string>
+    <string name="workspace_editor_label">編輯器</string>
+    <string name="workspace_templates_label">範本</string>
+    <string name="workspace_apps_label">應用程式</string>
+    <string name="workspace_appdetails_label">應用程式詳細資訊</string>
+    <string name="workspace_saver_label">另存為</string>
+    <string name="workspace_developer_label">開發者</string>
+    <string name="workspace_history_label">紀錄</string>
+    <string name="workspace_bugreport_label">錯誤回報</string>
+    <string name="workspace_viewer_label">檢視器</string>
+
+    <!-- 搜尋的媒體搜尋目標 -->
+    <string name="workspace_searcher_target_photos">相片</string>
+    <string name="workspace_searcher_target_videos">影片</string>
+    <string name="workspace_searcher_target_music">音樂</string>
+    <string name="workspace_searcher_target_downloads">下載項目</string>
+
+    <!-- 工作區 UI 動作 -->
+    <string name="workspace_expand_more_action">更多</string>
+    <string name="workspace_expand_less_action">較少</string>
+
+    <!-- 工作區按鈕選單 -->
+    <string name="workspace_button_description">分頁與工作區</string>
+    <string name="workspace_button_menu_new_workspace_format">新增 %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">新增分頁</string>
+    <string name="workspace_button_menu_category_recent">最近</string>
+    <string name="workspace_button_menu_category_other">其他</string>
+    <string name="workspace_button_menu_category_current_tab">此分頁</string>
+    <string name="workspace_button_menu_manager_action">分頁管理員</string>
+    <string name="workspace_button_menu_layout_action">版面配置</string>
+    <string name="workspace_button_menu_close_current_action">關閉目前分頁</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="other">關閉目前分頁（%d 個工作區）</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">設定</string>
+
+    <!-- 工作區管理員動作 -->
+    <string name="workspace_manager_close_all_title">要關閉所有分頁嗎？</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="other">這會關閉所有 %1$d 個開啟的分頁，此動作無法復原。</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">全部關閉</string>
+    <string name="workspace_manager_close_all_unsaved_warning">部分分頁有尚未儲存的變更，這些變更將會遺失。</string>
+    <string name="workspace_manager_close_all_unsaved_action">全部捨棄</string>
+    <string name="workspace_manager_close_selected_title">要關閉已選取的分頁嗎？</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="other">這會關閉 %1$d 個已選取的分頁，此動作無法復原。</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">關閉已選取項目</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">部分已選取的分頁有尚未儲存的變更，這些變更將會遺失。</string>
+    <string name="workspace_manager_close_selected_unsaved_action">捨棄已選取項目</string>
+    <string name="workspace_manager_pause_partial_title">要暫停分頁嗎？</string>
+    <string name="workspace_manager_pause_partial_message">已選取的 %2$d 個分頁中，有 %1$d 個可以暫停。其餘的分頁正在使用中、含有尚未儲存的變更，或目前已開啟。</string>
+    <string name="workspace_manager_pause_partial_action">暫停 %1$d 個</string>
+    <string name="general_cancel_action">取消</string>
+
+    <!-- 操作 -->
+    <string name="operations_header_title">操作</string>
+    <string name="operations_clear_completed">清除已完成項目</string>
+    <string name="operations_state_queued">排隊中</string>
+    <string name="operations_state_running">執行中</string>
+    <string name="operations_state_waiting">等待輸入</string>
+    <string name="operations_state_successful">成功</string>
+    <string name="operations_state_failed">失敗</string>
+    <string name="operations_state_cancelled">已取消</string>
+    <string name="operations_state_cancelling">正在取消…</string>
+    <string name="operations_cancel_operation">取消操作</string>
+    <string name="operations_cancel_dialog_title">要取消操作嗎？</string>
+    <string name="operations_cancel_dialog_message">確定要取消這項操作嗎？</string>
+    <string name="operations_cancel_dialog_warning">取消可能會讓檔案處於不一致的狀態。</string>
+    <string name="operations_details_started_at">開始時間</string>
+    <string name="operations_details_completed_at">完成時間</string>
+    <string name="operations_details_duration">持續時間</string>
+    <string name="operations_details_duration_not_started">尚未開始</string>
+    <string name="operations_details_progress">進度</string>
+    <string name="operations_details_error">錯誤詳細資訊</string>
+    <string name="operations_details_actions">動作</string>
+    <string name="operations_details_overview">總覽</string>
+    <string name="operations_details_handle_issue">處理問題</string>
+    <string name="operations_details_show_in_history_action">在紀錄中顯示</string>
+    <string name="operations_details_status">狀態</string>
+    <string name="operations_details_result">結果</string>
+    <string name="operations_details_destination_folder">目的地資料夾</string>
+    <string name="operations_details_destination_path">目的地路徑</string>
+    <string name="operations_details_affected_paths_with_count">受影響的路徑（%d）</string>
+    <string name="operations_details_problems_with_count">問題（%d）</string>
+    <string name="operations_details_problems_more">另有 %d 項未列出</string>
+    <string name="workspace_operation_packages_section_title">應用程式</string>
+    <string name="workspace_operation_package_status_done">完成</string>
+    <string name="workspace_operation_package_status_failed">失敗</string>
+    <string name="workspace_operation_package_status_declined">已拒絕</string>
+    <string name="operations_details_section_expand">展開 %1$s</string>
+    <string name="operations_details_section_collapse">收合 %1$s</string>
+    <string name="workspace_operations_performance_graph_label">效能圖表</string>
+
+    <!-- 刪除確認對話方塊 -->
+    <string name="workspace_dialog_delete_title_single">要刪除項目嗎？</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="other">要刪除 %1$d 個項目嗎？</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">這個項目將會被永久刪除：</string>
+    <string name="workspace_dialog_delete_message_multiple">這些項目將會被永久刪除：</string>
+    <string name="workspace_dialog_delete_more_items">…還有 %1$d 個項目</string>
+    <string name="workspace_dialog_delete_warning">此動作無法復原。</string>
+    <string name="workspace_dialog_delete_permanently_action">永久刪除</string>
+    <string name="workspace_dialog_delete_permanently_toggle">改為永久刪除</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">部分項目無法移至回收桶，將個別處理。</string>
+
+    <!-- 回收桶對話方塊 -->
+    <string name="workspace_dialog_trash_title_single">要移至回收桶嗎？</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="other">要將 %1$d 個項目移至回收桶嗎？</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">這個項目將會移至回收桶：</string>
+    <string name="workspace_dialog_trash_message_multiple">這些項目將會移至回收桶：</string>
+    <string name="workspace_dialog_trash_hint">可在回收桶位置找到這些項目</string>
+    <string name="workspace_dialog_move_to_trash_action">移動</string>
+
+    <!-- 動作列 -->
+    <plurals name="workspace_selection_count">
+        <item quantity="other">已選取 %d 個項目</item>
+    </plurals>
+    <string name="workspace_action_more">更多動作</string>
+
+    <!-- 刪除操作（跨工作區共用） -->
+    <string name="workspace_operation_delete_title">檔案刪除</string>
+    <string name="workspace_operation_delete_description_single">從 \"%2$s\" 刪除 \"%1$s\"。</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="other">從 \"%2$s\" 刪除 %1$d 個項目。</item>
+    </plurals>
+
+    <!-- 應用程式安裝操作（跨工作區共用） -->
+    <string name="workspace_operation_install_title">應用程式安裝</string>
+    <string name="workspace_operation_install_description">安裝 \"%1$s\"。</string>
+    <string name="workspace_operation_install_progress_inspecting">讀取套件中…</string>
+    <string name="workspace_operation_install_progress_extracting">解壓縮中…</string>
+    <string name="workspace_operation_install_progress_writing">將檔案交給安裝程式中…</string>
+    <string name="workspace_operation_install_progress_committing">完成安裝中…</string>
+    <string name="workspace_operation_install_progress_placing_obb">放置擴充檔案中…</string>
+    <string name="workspace_operation_install_summary_success">已安裝 %1$s。</string>
+    <string name="workspace_operation_install_summary_success_partial">已安裝 %1$s，但其擴充檔案無法放置。</string>
+    <string name="workspace_install_unknown_sources_required">Butler 需要安裝應用程式的權限，請在剛開啟的設定中授予權限，然後再試一次。</string>
+    <string name="workspace_install_obb_failed">應用程式已安裝，但其擴充檔案無法放置：%1$s</string>
+
+    <!-- 刪除操作報告 -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="other">已刪除 %1$d 個檔案。</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="other">已刪除 %1$d 個資料夾。</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="other">已略過 %1$d 個項目。</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="other">已釋放 %1$s。</item>
+    </plurals>
+
+    <!-- 回收桶操作報告 -->
+    <string name="workspace_operation_progress_moving_to_trash">移至回收桶中…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="other">已將 %1$d 個檔案移至回收桶。</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="other">已將 %1$d 個資料夾移至回收桶。</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">已釋放 %1$s/s。</string>
+    <string name="workspace_operation_progress_bytes_freed">已釋放 %1$s。</string>
+    <string name="workspace_operation_progress_time_remaining">剩餘 %1$s。</string>
+
+    <!-- 檔案資訊對話方塊（跨工作區共用） -->
+    <string name="workspace_file_info_title">資訊</string>
+    <string name="workspace_file_info_name_label">名稱</string>
+    <string name="workspace_file_info_path_label">路徑</string>
+    <string name="workspace_file_info_type_label">類型</string>
+    <string name="workspace_file_info_type_file">檔案</string>
+    <string name="workspace_file_info_type_directory">資料夾</string>
+    <string name="workspace_file_info_type_symlink">符號連結</string>
+    <string name="workspace_file_info_type_unknown">未知</string>
+    <string name="workspace_file_info_size_label">大小</string>
+    <string name="workspace_file_info_modified_label">修改時間</string>
+    <string name="workspace_file_info_created_label">建立時間</string>
+    <string name="workspace_file_info_permissions_label">權限</string>
+    <string name="workspace_file_info_owner_label">擁有者</string>
+    <string name="workspace_file_info_child_count_label">項目</string>
+    <string name="workspace_file_info_symlink_target_label">目標</string>
+    <string name="workspace_file_info_unknown">未知</string>
+    <string name="workspace_file_info_copy_action">複製到剪貼簿</string>
+
+    <!-- 多項目資訊對話方塊 -->
+    <string name="workspace_file_info_selected_label">已選取</string>
+    <string name="workspace_file_info_files_label">檔案</string>
+    <string name="workspace_file_info_directories_label">資料夾</string>
+    <string name="workspace_file_info_total_size_label">總大小</string>
+
+    <!-- 效能圖表 -->
+    <string name="workspace_operation_performance_unavailable_not_started">這項操作尚未開始。</string>
+    <string name="workspace_operation_performance_unavailable_collecting">收集效能資料中…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">這項操作的效能資料不足，無法繪製圖表。</string>
+    <string name="workspace_operation_performance_unavailable_not_available">這項操作沒有可用的效能資料。</string>
+    <string name="workspace_operation_performance_window_seconds">最近 %1$d 秒</string>
+    <string name="workspace_operation_performance_window_minutes">最近 %1$d 分鐘</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">項目/秒</string>
+
+    <!-- 錯誤顯示（跨工作區共用） -->
+    <string name="workspace_error_show_details_action">顯示技術詳細資訊</string>
+    <string name="workspace_error_hide_details_action">隱藏技術詳細資訊</string>
+
+    <!-- 工作區狀態元件 -->
+    <string name="workspace_initializing_title">正在初始化分頁</string>
+    <string name="workspace_error_subtitle">發生未預期的錯誤</string>
+    <string name="workspace_close_tab_action">關閉分頁</string>
+    <string name="workspace_paused_body">這個分頁已暫停，以節省記憶體和電池；繼續即可恢復使用。</string>
+    <string name="workspace_paused_error_body">無法繼續這個分頁。</string>
+    <string name="workspace_paused_resume_action">繼續</string>
+    <string name="workspace_paused_label">已暫停</string>
+    <string name="workspace_paused_content_label">分頁內容</string>
+
+    <!-- 問題處理（衝突處理） -->
+    <string name="workspace_issue_collision_existing_file_label">現有檔案</string>
+    <string name="workspace_issue_collision_existing_folder_label">現有資料夾</string>
+    <string name="workspace_issue_collision_new_file">傳入的檔案</string>
+    <string name="workspace_issue_collision_new_folder">傳入的資料夾</string>
+    <string name="workspace_issue_collision_overwrite">取代</string>
+    <string name="workspace_issue_collision_merge">合併</string>
+    <string name="workspace_issue_common_source_file">來源檔案</string>
+    <string name="workspace_issue_common_destination_file">目的地</string>
+    <string name="workspace_issue_common_skip">略過</string>
+    <string name="workspace_issue_common_rename">重新命名</string>
+    <string name="workspace_issue_common_rename_new">重新命名新項目</string>
+    <string name="workspace_issue_common_rename_existing">重新命名現有項目</string>
+    <string name="workspace_issue_common_cancel">取消</string>
+    <string name="workspace_issue_common_delete_permanently">永久刪除</string>
+    <string name="workspace_issue_archive_password_label">密碼</string>
+    <string name="workspace_issue_archive_password_unlock">解鎖</string>
+    <string name="workspace_issue_trash_move_failed_items_label">失敗的項目</string>
+    <string name="workspace_issue_trash_move_failed_more_items">…還有 %1$d 個項目</string>
+    <string name="workspace_issue_trash_not_supported_items_label">受影響的項目</string>
+    <string name="workspace_issue_trash_not_supported_more_items">…還有 %1$d 個項目</string>
+    <string name="workspace_issue_apply_all">套用到所有剩餘的問題</string>
+    <string name="workspace_issue_rename_new_name">新名稱</string>
+    <string name="workspace_issue_rename_dialog_title_new">重新命名傳入的檔案</string>
+    <string name="workspace_issue_rename_dialog_title_existing">重新命名現有檔案</string>
+    <string name="workspace_issue_type_folder">資料夾</string>
+
+    <!-- 在新分頁中開啟確認對話方塊 -->
+    <string name="workspace_open_tabs_confirmation_title">要開啟多個分頁嗎？</string>
+    <string name="workspace_open_tabs_confirmation_message">這會開啟 %1$d 個分頁。</string>
+
+    <!-- 開啟方式（將檔案交給其他應用程式） -->
+    <string name="workspace_open_with_chooser_title">開啟方式</string>
+    <string name="workspace_open_with_no_app_label">找不到其他應用程式</string>
+    <string name="workspace_open_with_no_app_description">沒有其他已安裝的應用程式可以開啟 %1$s。</string>
+
+    <!-- 工作區橫幅回饋 -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="other">已開啟 %1$d 個分頁</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="other">無法關閉：%1$d 個分頁中仍有操作正在執行</item>
+    </plurals>
+
+    <!-- 工作區 > 設定-->
+    <string name="workspace_settings_title">分頁</string>
+    <string name="workspace_settings_navigation">導覽</string>
+    <string name="workspace_settings_swipe_gestures_title">滑動手勢</string>
+    <string name="workspace_settings_swipe_gestures_desc">向左或向右滑動以切換分頁。</string>
+    <string name="workspace_settings_ondemand_creation_title">自動建立分頁</string>
+    <string name="workspace_settings_ondemand_creation_desc">滑過最後一個分頁時自動建立新分頁。</string>
+    <string name="workspace_settings_newtab_type_title">新分頁類型</string>
+    <string name="workspace_settings_newtab_type_desc">滑過最後一個分頁、在空白窗格中新增分頁，或建立第一個分頁時所開啟的工作區。</string>
+    <string name="workspace_settings_newtab_type_ask">每次都詢問</string>
+    <string name="workspace_settings_newtab_type_ask_desc">每個新分頁都顯示分頁類型選擇器。</string>
+    <string name="workspace_settings_live_preview_title">即時預覽</string>
+    <string name="workspace_settings_live_preview_desc">在分頁管理員中顯示即時分頁內容。</string>
+    <string name="workspace_settings_other">其他</string>
+    <string name="workspace_settings_layout_title">版面配置</string>
+    <string name="workspace_settings_layout_mode_portrait_title">直向版面配置模式</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">選擇直向時的分頁版面配置。</string>
+    <string name="workspace_settings_layout_mode_landscape_title">橫向版面配置模式</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">選擇橫向時的分頁版面配置。</string>
+    <string name="workspace_settings_layout_mode_auto">自動</string>
+    <string name="workspace_settings_layout_mode_auto_desc">小螢幕使用經典模式，大螢幕使用含窗格的分頁軌。</string>
+    <string name="workspace_settings_layout_mode_classic">經典</string>
+    <string name="workspace_settings_layout_mode_classic_desc">一次一個窗格，不含分頁軌。</string>
+    <string name="workspace_settings_layout_mode_adaptive">自適應</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">分頁軌加上螢幕可容納的窗格數量。可從分頁軌中的 Butler 選單釘選版面配置。</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">自適應（%1$s）</string>
+    <string name="workspace_settings_layout_mode_single_rail">單一窗格含分頁軌</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">一個分頁窗格，加上多窗格版面配置的分頁軌。從分頁軌切換分頁，而不是用滑動的方式；分頁軌會佔用螢幕的一小條區域。</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">雙欄直向</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">兩個並排的窗格（左／右）。</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">雙欄橫向</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">兩個上下堆疊的窗格（上／下）。</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">三欄側邊欄（左）</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">左側一個大窗格，右側兩個堆疊的小窗格。</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">三欄側邊欄（右）</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">左側兩個堆疊的小窗格，右側一個大窗格。</string>
+    <string name="workspace_settings_layout_mode_quad_grid">四宮格</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">四個窗格排成 2×2 網格。</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">點按以聚焦</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">點按未聚焦的窗格時，第一次點按只會將其聚焦，未聚焦的窗格不會回應滑鼠指標。關閉這個選項即可直接與其互動。</string>
+
+    <string name="workspace_settings_rail_button_title">Butler 按鈕</string>
+    <string name="workspace_settings_rail_button_desc">選擇 Butler 按鈕在分頁軌上的位置。</string>
+    <string name="workspace_settings_rail_button_leading">開頭</string>
+    <string name="workspace_settings_rail_button_leading_desc">直向時位於分頁之前，橫向時位於分頁上方。</string>
+    <string name="workspace_settings_rail_button_trailing">結尾</string>
+    <string name="workspace_settings_rail_button_trailing_desc">直向時位於分頁之後，橫向時位於分頁下方，方便單手操作時用拇指觸及。</string>
+
+    <!-- 工作階段 -->
+    <string name="workspace_settings_session_title">工作階段</string>
+    <string name="workspace_settings_session_restore_title">啟動時還原分頁</string>
+    <string name="workspace_settings_session_restore_desc">應用程式啟動時，自動還原先前開啟的分頁。</string>
+    <string name="workspace_settings_autopause_title">暫停閒置的分頁</string>
+    <string name="workspace_settings_autopause_desc">一段時間未檢視的分頁會暫停，以節省記憶體和電池。開啟該分頁即可繼續使用。</string>
+    <string name="workspace_settings_autopause_delay_title">暫停等待時間</string>
+    <string name="workspace_settings_autopause_delay_desc">分頁離開畫面多久後才會暫停。</string>
+    <string name="workspace_settings_undoclose_title">復原關閉分頁</string>
+    <string name="workspace_settings_undoclose_desc">關閉分頁後，會有幾秒鐘的時間可以將其復原。</string>
+    <string name="workspace_settings_session_data_title">工作階段資料</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="other">%1$d 個分頁 • %2$s</item>
+    </plurals>
+
+    <!-- 復原關閉 -->
+    <string name="workspace_closed_undo_message">已關閉 \"%1$s\"</string>
+
+    <!-- 工作階段還原錯誤 -->
+    <string name="workspace_session_restoration_error_title">工作階段還原失敗</string>
+    <string name="workspace_session_restoration_error_description">無法還原先前的分頁工作階段，這可能是因為一個錯誤，未來的更新會修正這個問題。\n\n可以清除已儲存的工作階段以繼續使用 Butler，或是等待更新。</string>
+    <string name="workspace_session_restoration_error_clear_action">清除工作階段</string>
+    <string name="workspace_session_restoration_error_report_action">回報問題</string>
+    <string name="workspace_session_restoration_error_confirm_title">要清除工作階段嗎？</string>
+    <string name="workspace_session_restoration_error_confirm_description">這會永久刪除已儲存的分頁工作階段，此動作無法復原。</string>
+
+    <!-- 重新命名分頁 -->
+    <string name="workspace_rename_dialog_title">重新命名分頁</string>
+    <string name="workspace_rename_name_label">自訂名稱</string>
+    <string name="workspace_rename_name_hint">留空以使用自動產生的名稱</string>
+
+    <!-- 分頁數量上限 -->
+    <string name="workspace_limit_reached_title">已達分頁數量上限</string>
+    <string name="workspace_limit_reached_message">免費使用者最多可同時開啟 %1$d 個分頁。升級至 Butler Pro 即可享有無限分頁！</string>
+    <string name="workspace_limit_pick_tabs_message">免費方案最多允許開啟 %1$d 個分頁，選擇不再需要的分頁並關閉，以騰出空間。</string>
+    <string name="workspace_limit_no_slot_hint">目前關閉分頁並不會騰出空位。</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="other">關閉 %d 個分頁</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="other">請至少選擇 %d 個分頁以關閉。</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">已開啟 %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">尚未儲存的變更</string>
+    <string name="workspace_limit_blocker_busy">目前忙碌中</string>
+    <string name="workspace_limit_blocker_attention">等待您回應</string>
+    <string name="workspace_limit_blocker_loading">仍在載入中</string>
+    <string name="workspace_limit_blocker_awaiting_result">請先完成開啟中的選擇器</string>
+    <string name="workspace_limit_blocker_unavailable">目前無法關閉</string>
+    <string name="workspace_limit_stacked_content_desc">關閉這個分頁，也會一併關閉堆疊在其上的內容</string>
+    <string name="workspace_limit_pro_description">開啟任意數量的分頁。</string>
+
+    <!-- 拖放 -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="other">%1$d 個項目</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s，%2$s</string>
+
+    <!-- 還原操作 -->
+    <string name="workspace_operation_restore_title">回收桶還原</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="other">從回收桶還原 %d 個項目。</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="other">已還原 %d 個項目</item>
+    </plurals>
+</resources>

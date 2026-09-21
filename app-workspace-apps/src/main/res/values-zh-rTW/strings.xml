@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 應用程式工作區 -->
+    <string name="apps_title">應用程式</string>
+    <string name="apps_subtitle">管理已安裝的應用程式</string>
+
+    <!-- 篩選標籤 -->
+    <string name="apps_filter_app_type_label">應用程式類型</string>
+    <string name="apps_filter_type_all">全部</string>
+    <string name="apps_filter_type_user">使用者應用程式</string>
+    <string name="apps_filter_type_system">系統應用程式</string>
+    <string name="apps_filter_status_label">狀態</string>
+    <string name="apps_filter_status_all">全部</string>
+    <string name="apps_filter_status_enabled">已啟用</string>
+    <string name="apps_filter_status_disabled">已停用</string>
+
+
+    <!-- 排序選項 -->
+    <string name="apps_sort_mode_label">排序方式</string>
+    <string name="apps_sort_mode_name_label">名稱</string>
+    <string name="apps_sort_mode_size_label">大小</string>
+    <string name="apps_sort_mode_install_date_label">安裝日期</string>
+    <string name="apps_sort_mode_update_date_label">更新日期</string>
+    <string name="apps_sort_mode_package_name_label">套件名稱</string>
+    <string name="apps_sort_descending_label">遞減排序</string>
+    <string name="apps_sort_mode_size_slowdown_hint">計算應用程式大小會使載入速度變慢</string>
+
+    <!-- 操作 -->
+    <string name="apps_action_launch">啟動</string>
+    <string name="apps_action_open_info">應用程式資訊</string>
+    <string name="apps_action_disable">停用</string>
+    <string name="apps_action_enable">啟用</string>
+    <string name="apps_action_uninstall">解除安裝</string>
+    <string name="apps_action_clear_data">清除資料</string>
+    <string name="apps_action_export_apk">匯出 APK</string>
+    <string name="apps_action_browse_path">瀏覽路徑</string>
+    <string name="apps_action_share">分享資訊</string>
+    <string name="apps_action_refresh">重新整理</string>
+    <string name="apps_action_sort">排序</string>
+    <string name="apps_action_filter">篩選</string>
+    <string name="apps_action_select_all">全選</string>
+    <string name="apps_action_deselect_all">取消全選</string>
+    <string name="apps_action_open_in_tab">在分頁中開啟</string>
+    <string name="apps_action_force_stop">強制停止</string>
+    <string name="apps_action_view">版面配置</string>
+
+    <!-- 檢視選項 -->
+    <string name="apps_view_sheet_subtitle">項目的排列方式與顯示的詳細程度</string>
+    <string name="apps_view_mode_list_label">清單</string>
+    <string name="apps_view_mode_grid_label">格狀</string>
+    <string name="apps_view_density_compact_label">精簡</string>
+    <string name="apps_view_density_comfortable_label">適中</string>
+    <string name="apps_view_density_detailed_label">詳細</string>
+    <string name="apps_view_set_default_action">設為預設</string>
+    <string name="apps_view_detail_dates_label">安裝於 %1$s · 更新於 %2$s</string>
+
+    <!-- 操作說明 -->
+    <string name="apps_action_launch_desc">啟動應用程式</string>
+    <string name="apps_action_open_info_desc">檢視詳細的系統資訊</string>
+    <string name="apps_action_enable_desc">啟用此應用程式</string>
+    <string name="apps_action_disable_desc">停用此應用程式</string>
+    <string name="apps_action_uninstall_desc">移除此應用程式</string>
+    <string name="apps_action_export_apk_desc">將 APK 檔案儲存至儲存空間</string>
+    <string name="apps_action_share_desc">以文字形式分享應用程式詳細資訊</string>
+    <string name="apps_action_force_stop_desc">立即停止應用程式</string>
+    <string name="apps_action_clear_data_desc">刪除所有應用程式資料與設定</string>
+
+    <!-- 應用程式資訊標籤 -->
+    <string name="apps_package_name_label">套件</string>
+    <string name="apps_version_label">版本</string>
+    <string name="apps_size_label">大小</string>
+    <string name="apps_size_chip_desc">應用程式大小：%1$s</string>
+    <string name="apps_size_permission_hint">應用程式大小需要使用狀況存取權限</string>
+    <string name="apps_size_permission_body">Android 只會向擁有「使用狀況存取」權限的應用程式回報應用程式、資料與快取大小。授予此權限即可檢視這個應用程式的儲存空間明細。</string>
+
+    <!-- 應用程式詳細資訊 -->
+    <string name="apps_details_storage_locations_label">儲存位置</string>
+    <string name="apps_path_internal_data_label">內部資料</string>
+    <string name="apps_path_external_data_label">外部儲存空間</string>
+    <string name="apps_path_requires_root_label">需要 root</string>
+    <string name="apps_path_requires_shizuku_label">需要 Shizuku</string>
+    <string name="apps_path_requires_root_or_shizuku_label">需要 root 或 Shizuku</string>
+    <string name="apps_path_requires_access_label">需要額外存取權限</string>
+    <string name="apps_storage_breakdown_label">儲存空間明細</string>
+    <string name="apps_storage_app_label">應用程式</string>
+
+    <!-- 應用程式詳細資訊分頁 -->
+    <string name="appdetails_tab_overview_label">概覽</string>
+    <string name="appdetails_tab_packageinfo_label">套件資訊</string>
+
+    <!-- 應用程式詳細資訊操作 -->
+    <string name="appdetails_back_action">返回應用程式</string>
+    <string name="appdetails_close_action">關閉</string>
+
+    <!-- 應用程式詳細資訊：套件資訊 -->
+    <string name="appdetails_packageinfo_title">套件資訊</string>
+    <string name="appdetails_packageinfo_view_action">檢視套件詳細資訊</string>
+    <string name="appdetails_packageinfo_unavailable_msg">無法讀取這個應用程式的套件詳細資訊。</string>
+    <string name="appdetails_packageinfo_permissions_header">權限（%1$d）</string>
+    <string name="appdetails_packageinfo_signing_header">簽署憑證</string>
+    <string name="appdetails_packageinfo_package_label">套件</string>
+    <string name="appdetails_packageinfo_version_label">版本</string>
+    <string name="appdetails_packageinfo_min_sdk_label">最低 SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">目標 SDK</string>
+
+    <!-- 空白狀態 -->
+    <string name="apps_empty_no_apps">找不到應用程式</string>
+    <string name="apps_empty_no_apps_desc">請試著調整篩選條件</string>
+    <string name="apps_empty_loading">正在載入應用程式…</string>
+
+    <!-- 搜尋 -->
+    <string name="apps_search_hint">搜尋應用程式</string>
+
+    <!-- 多選 -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">選取應用程式</item>
+        <item quantity="other">已選取 %d 個</item>
+    </plurals>
+
+    <!-- 資訊列 -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="other">%d 個使用者應用程式</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="other">%d 個系統應用程式</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="other">已選取 %d 個</item>
+    </plurals>
+
+    <!-- 應用程式詳細資訊：區塊 -->
+    <string name="apps_details_section_actions">操作</string>
+    <string name="apps_details_section_overview">概覽</string>
+    <string name="apps_details_section_storage">儲存空間</string>
+
+    <!-- 應用程式詳細資訊操作列 -->
+    <string name="apps_details_more_options">更多選項</string>
+
+    <!-- 應用程式詳細資訊：套件資料 -->
+    <string name="apps_details_pkgdata_error_title">無法載入應用程式資料</string>
+    <string name="apps_details_gone_title">應用程式已移除</string>
+    <string name="apps_details_gone_message">這個應用程式已不再安裝於此裝置上。</string>
+    <string name="apps_details_gone_close_action">關閉</string>
+    <string name="apps_details_uninstalled_title">已為此使用者解除安裝</string>
+    <string name="apps_details_uninstalled_message">這個應用程式已為此使用者解除安裝，但其檔案仍留在裝置上。</string>
+
+    <!-- 應用程式詳細資訊確認訊息 -->
+    <string name="apps_details_confirm_clear_data_title">要清除應用程式資料嗎？</string>
+    <string name="apps_details_confirm_clear_data_message">%1$s 的所有資料與設定都會被刪除，此操作無法復原。</string>
+    <string name="apps_details_confirm_uninstall_title">要解除安裝應用程式嗎？</string>
+    <string name="apps_details_confirm_uninstall_message">%1$s 將從此裝置移除。</string>
+
+    <!-- 應用程式資訊 -->
+    <string name="apps_type_label">類型</string>
+    <string name="apps_type_system">系統應用程式</string>
+    <string name="apps_type_user">使用者應用程式</string>
+    <string name="apps_status_label">狀態</string>
+    <string name="apps_status_enabled">已啟用</string>
+    <string name="apps_status_disabled">已停用</string>
+    <string name="apps_installed_label">安裝時間</string>
+    <string name="apps_updated_label">上次更新時間</string>
+    <string name="apps_target_sdk_label">目標 SDK</string>
+    <string name="apps_min_sdk_label">最低 SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">安裝來源</string>
+    <string name="apps_permissions_label">權限</string>
+    <string name="apps_permissions_count">%1$d 項權限</string>
+    <string name="apps_data_size_label">資料</string>
+    <string name="apps_cache_size_label">快取</string>
+    <string name="apps_total_size_label">總計</string>
+
+    <!-- 應用程式標籤 -->
+    <string name="apps_tag_system_label">系統</string>
+    <string name="apps_tag_disabled_label">已停用</string>
+    <string name="apps_tag_updated_label">已更新</string>
+    <string name="apps_tag_sideloaded_label">側載</string>
+    <string name="apps_tag_split_label">分割 APK</string>
+    <string name="apps_tag_debug_label">偵錯</string>
+    <string name="apps_tag_user_label">使用者 %1$d</string>
+
+    <!-- 篩選標籤（用於篩選的虛擬標籤） -->
+    <string name="apps_filter_tag_enabled_label">已啟用</string>
+    <string name="apps_filter_tag_user_app_label">使用者應用程式</string>
+    <string name="apps_filter_include_label">必須符合（所有已選取項目）</string>
+    <string name="apps_filter_exclude_label">不得符合</string>
+    <string name="apps_filter_add_action">篩選</string>
+    <string name="apps_filter_hint">點按一次以納入，再點按一次以排除，再點按一次以移除</string>
+    <plurals name="apps_filter_count">
+        <item quantity="other">%d 個篩選條件</item>
+    </plurals>
+
+    <!-- 元件區塊 -->
+    <string name="apps_details_section_components">元件</string>
+    <string name="apps_components_activities_label">Activity</string>
+    <string name="apps_components_services_label">Service</string>
+    <string name="apps_components_receivers_label">Broadcast Receiver</string>
+    <string name="apps_components_providers_label">Content Provider</string>
+    <string name="apps_components_exported">已匯出</string>
+    <string name="apps_components_disabled">已停用</string>
+    <string name="apps_components_empty">找不到元件</string>
+    <string name="apps_components_no_matches">沒有符合「%1$s」的元件</string>
+    <string name="apps_components_and_more">…還有 %d 個</string>
+    <string name="apps_components_view_all_action">檢視所有元件</string>
+    <string name="apps_components_loading">正在載入元件…</string>
+    <string name="apps_components_error">無法載入元件</string>
+    <string name="apps_components_launch_failed">無法啟動 Activity</string>
+    <string name="apps_components_kind_activity">Activity</string>
+    <string name="apps_components_kind_service">Service</string>
+    <string name="apps_components_kind_receiver">Broadcast Receiver</string>
+    <string name="apps_components_kind_provider">Content Provider</string>
+    <string name="apps_components_search_action">搜尋元件</string>
+    <string name="apps_components_search_hint">搜尋名稱或套件</string>
+    <string name="apps_components_state_label">狀態</string>
+    <string name="apps_components_state_enabled">已啟用</string>
+    <string name="apps_components_state_disabled">已停用</string>
+    <string name="apps_components_field_type">類型</string>
+    <string name="apps_components_field_package">套件</string>
+    <string name="apps_components_field_permission">權限</string>
+    <string name="apps_components_field_write_permission">寫入權限</string>
+    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_process">處理程序</string>
+    <string name="apps_components_field_launch_mode">啟動模式</string>
+    <string name="apps_components_launch_action">啟動</string>
+    <string name="apps_components_copy_name_action">複製元件名稱</string>
+    <string name="apps_components_copy_package_action">複製套件名稱</string>
+    <string name="apps_components_action_enable">啟用元件</string>
+    <string name="apps_components_action_disable">停用元件</string>
+    <string name="apps_components_action_requires_elevated">需要 root 或 Shizuku——點按以設定</string>
+    <string name="apps_components_confirm_enable_title">要啟用這些元件嗎？</string>
+    <string name="apps_components_confirm_disable_title">要停用這些元件嗎？</string>
+    <string name="apps_components_confirm_enable_message">以下元件將會被啟用：</string>
+    <string name="apps_components_confirm_disable_message">以下元件將會被停用，這可能導致應用程式異常。</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="other">已選取 %d 個元件</item>
+    </plurals>
+
+    <!-- 套件操作 -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="other">啟用 %d 個應用程式</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="other">停用 %d 個應用程式</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="other">強制停止 %d 個應用程式</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="other">解除安裝 %d 個應用程式</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="other">清除 %d 個應用程式的資料</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="other">啟用 %d 個元件</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="other">停用 %d 個元件</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="other">%d 個應用程式</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">%1$s 已啟用</string>
+    <string name="apps_operation_disable_summary">%1$s 已停用</string>
+    <string name="apps_operation_force_stop_summary">%1$s 已停止</string>
+    <string name="apps_operation_uninstall_summary">%1$s 已解除安裝</string>
+    <string name="apps_operation_clear_data_summary">%1$s 的資料已清除</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="other">%1$d 個元件已啟用</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="other">%1$d 個元件已停用</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">無法完成 %1$s 的操作</string>
+    <string name="apps_operation_single_declined_summary">已拒絕移除 %1$s</string>
+    <string name="apps_operation_batch_summary">已完成 %1$d/%2$d</string>
+    <!-- 加上引號以確保開頭的分隔符號能通過資源解析器 -->
+    <string name="apps_operation_batch_summary_failed">" · %1$d 個失敗"</string>
+    <string name="apps_operation_batch_summary_declined">" · %1$d 個已拒絕"</string>
+
+    <!-- 一般導覽 -->
+    <string name="appdetails_back_generic_action">返回</string>
+
+</resources>
