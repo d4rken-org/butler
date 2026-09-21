@@ -30,8 +30,6 @@
     <string name="onboarding_workspaces_searcher_description">Temukan sesuatu.</string>
     <string name="onboarding_workspaces_editor_title">Editor</string>
     <string name="onboarding_workspaces_editor_description">Edit berkas.</string>
-    <string name="onboarding_workspaces_templates_title">Templat</string>
-    <string name="onboarding_workspaces_templates_description">Simpan pengaturan Anda.</string>
     <string name="onboarding_workspaces_apps_description">Kelola aplikasi Anda.</string>
 
     <!-- Explorer Shortcuts -->

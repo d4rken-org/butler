@@ -29,8 +29,6 @@
     <string name="onboarding_workspaces_searcher_description">چیزها را پیدا کنید.</string>
     <string name="onboarding_workspaces_editor_title">ویرایشگر</string>
     <string name="onboarding_workspaces_editor_description">فایل‌ها را ویرایش کنید.</string>
-    <string name="onboarding_workspaces_templates_title">الگوها</string>
-    <string name="onboarding_workspaces_templates_description">پیکربندی خود را ذخیره کنید.</string>
     <string name="onboarding_workspaces_apps_description">برنامه‌های خود را مدیریت کنید.</string>
 
     <!-- میان‌برهای کاوشگر -->

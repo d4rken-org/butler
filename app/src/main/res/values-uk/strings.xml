@@ -29,8 +29,6 @@
     <string name="onboarding_workspaces_searcher_description">Знаходьте потрібне.</string>
     <string name="onboarding_workspaces_editor_title">Редактор</string>
     <string name="onboarding_workspaces_editor_description">Редагуйте файли.</string>
-    <string name="onboarding_workspaces_templates_title">Шаблони</string>
-    <string name="onboarding_workspaces_templates_description">Зберігайте власні налаштування.</string>
     <string name="onboarding_workspaces_apps_description">Керуйте своїми програмами.</string>
 
     <!-- Ярлики Провідника -->

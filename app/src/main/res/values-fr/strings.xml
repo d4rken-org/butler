@@ -30,8 +30,6 @@
     <string name="onboarding_workspaces_searcher_description">Trouvez des éléments.</string>
     <string name="onboarding_workspaces_editor_title">Éditeur</string>
     <string name="onboarding_workspaces_editor_description">Modifiez des fichiers.</string>
-    <string name="onboarding_workspaces_templates_title">Modèles</string>
-    <string name="onboarding_workspaces_templates_description">Enregistrez votre configuration.</string>
     <string name="onboarding_workspaces_apps_description">Gérez vos applications.</string>
 
     <!-- Explorer Shortcuts -->

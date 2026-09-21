@@ -29,8 +29,6 @@
     <string name="onboarding_workspaces_searcher_description">探し物を見つけます。</string>
     <string name="onboarding_workspaces_editor_title">エディター</string>
     <string name="onboarding_workspaces_editor_description">ファイルを編集します。</string>
-    <string name="onboarding_workspaces_templates_title">テンプレート</string>
-    <string name="onboarding_workspaces_templates_description">設定を保存します。</string>
     <string name="onboarding_workspaces_apps_description">アプリを管理します。</string>
 
     <!-- エクスプローラーのショートカット -->

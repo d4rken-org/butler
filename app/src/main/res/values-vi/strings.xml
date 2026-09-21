@@ -29,8 +29,6 @@
     <string name="onboarding_workspaces_searcher_description">Tìm mọi thứ.</string>
     <string name="onboarding_workspaces_editor_title">Trình soạn thảo</string>
     <string name="onboarding_workspaces_editor_description">Chỉnh sửa tệp.</string>
-    <string name="onboarding_workspaces_templates_title">Mẫu</string>
-    <string name="onboarding_workspaces_templates_description">Lưu lại thiết lập của bạn.</string>
     <string name="onboarding_workspaces_apps_description">Quản lý ứng dụng của bạn.</string>
 
     <!-- Lối tắt Trình duyệt tệp -->

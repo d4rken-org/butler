@@ -30,8 +30,6 @@
     <string name="onboarding_workspaces_searcher_description">İstediğinizi bulun.</string>
     <string name="onboarding_workspaces_editor_title">Düzenleyici</string>
     <string name="onboarding_workspaces_editor_description">Dosyaları düzenleyin.</string>
-    <string name="onboarding_workspaces_templates_title">Şablonlar</string>
-    <string name="onboarding_workspaces_templates_description">Kurulumunuzu kaydedin.</string>
     <string name="onboarding_workspaces_apps_description">Uygulamalarınızı yönetin.</string>
 
     <!-- Explorer Shortcuts -->
