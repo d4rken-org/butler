@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">バグレポート</string>
+    <string name="bugreport_workspace_subtitle">クラッシュ・エラーレポート</string>
+
+    <string name="bugreport_empty_title">レポートなし</string>
+    <string name="bugreport_empty_subtitle">クラッシュとエラーレポートがここに表示されます。何も自動的に送信されません。</string>
+
+    <string name="bugreport_type_crash">クラッシュ</string>
+    <string name="bugreport_type_report">レポート</string>
+    <string name="bugreport_type_recording">記録</string>
+
+    <string name="bugreport_record_action">デバッグログを記録</string>
+    <string name="bugreport_record_short_action">記録</string>
+    <string name="bugreport_stop_action">記録を停止</string>
+    <string name="bugreport_stop_short_action">停止</string>
+    <string name="bugreport_recording_ongoing_label">記録中…</string>
+
+    <string name="bugreport_recording_short_title">記録が非常に短いです</string>
+    <string name="bugreport_recording_short_message">この記録は数秒間だけで、有用な情報が含まれていない可能性があります。それでも停止しますか。</string>
+    <string name="bugreport_recording_short_keep_action">記録を続ける</string>
+
+    <string name="bugreport_rename_action">名前を変更</string>
+    <string name="bugreport_rename_dialog_title">報告に名前を付ける</string>
+    <string name="bugreport_rename_name_label">名前</string>
+    <string name="bugreport_rename_name_hint">リストと共有ファイル名に表示されます</string>
+
+    <string name="bugreport_share_action">共有</string>
+    <string name="bugreport_delete_action">削除</string>
+    <string name="bugreport_delete_all_action">すべて削除</string>
+    <string name="bugreport_delete_all_confirm_title">すべてのデバッグログを削除しますか。</string>
+    <string name="bugreport_delete_all_confirm_message">これにより、記録されたすべてのデバッグログセッションが完全に削除されます。アクティブな記録は影響を受けません。</string>
+    <string name="bugreport_delete_confirm_title">この報告を削除しますか。</string>
+    <string name="bugreport_delete_confirm_message">これにより、この報告とそのログが完全に削除されます。</string>
+    <string name="bugreport_cancel_action">キャンセル</string>
+
+    <string name="bugreport_share_chooser_title">バグレポートを共有</string>
+    <string name="bugreport_share_consent_title">レポートを共有しますか。</string>
+    <string name="bugreport_share_consent_message">このレポートには、ファイル名、パス、アプリとデバイスの情報を含む可能性があるアプリログが含まれています。信頼できる人とのみ共有してください。</string>
+
+    <string name="bugreport_detail_back_action">戻る</string>
+    <string name="bugreport_detail_section_error">エラー</string>
+    <string name="bugreport_detail_section_log">最近のログ</string>
+    <string name="bugreport_detail_field_type">種類</string>
+    <string name="bugreport_detail_field_time">時刻</string>
+    <string name="bugreport_detail_field_app_version">アプリバージョン</string>
+    <string name="bugreport_detail_field_device">デバイス</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">ビルド</string>
+    <string name="bugreport_detail_field_error_class">エラーの種類</string>
+    <string name="bugreport_detail_field_thread">スレッド</string>
+    <string name="bugreport_detail_log_truncated">最後の%1$d行（全%2$d行）</string>
+    <string name="bugreport_detail_log_count">%1$d行</string>
+    <string name="bugreport_detail_log_empty">ログが取得されていません</string>
+    <string name="bugreport_detail_log_error">ログを読み込めませんでした</string>
+</resources>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Butler Proが必要です</string>
+
+    <string name="upgrade_prompt_title">Butler をアップグレード</string>
+    <string name="upgrade_prompt_body">Butler Pro では、より良い結果、豊富な機能、上級ユーザー向けのオプションを提供します。</string>
+    <string name="upgrade_prompt_upgrade_action">アップグレード</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">%1$s を入手</string>
+    <string name="upgrade_screen_preamble">Butler には広告がなく、ユーザーデータを販売しません。私の仕事はあなたの支援で成り立っています ❤️。</string>
+
+    <string name="upgrade_screen_how_title">オプション</string>
+    <string name="upgrade_screen_subscription_trial_action">無料14日間トライアルを開始</string>
+    <string name="upgrade_screen_subscription_action">定期購入</string>
+    <string name="upgrade_screen_iap_action">買い切り</string>
+    <string name="upgrade_screen_restore_purchase_action">購入を復元</string>
+    <string name="upgrade_screen_restore_banner_title">既に Pro を購入しましたか？</string>
+    <string name="upgrade_screen_restore_banner_body">このデバイスで以前 Pro にアップグレードした可能性があります。購入を復元して、再度ロックを解除してください。</string>
+    <string name="upgrade_screen_restore_checked_message">Butler は Google Play に確認しましたが、このアプリが使用している Google アカウントで Pro の購入を確認できませんでした。</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Google Play への確認が時間内に完了しませんでした。購入ステータスは不明なままです。アカウントには変更はありません。</string>
+    <string name="upgrade_screen_restore_contact_hint">それでもお困りですか？購入を行ったメール アドレスからお問い合わせいただき、Google Play の注文番号を記載してください。</string>
+    <string name="upgrade_screen_contact_support_action">サポートに連絡</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Google Play の同期には時間がかかる場合があります。再起動したり、Google Play のキャッシュをクリアしたり、単に待つことをお試しください。</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">複数のアカウントは Google Play を混乱させる可能性があります。その他のアカウントからログアウトするか、Google Play ウェブサイトからインストールして、特定のアカウントとの関連付けを強制してください。</string>
+    <string name="upgrade_screen_restore_success_message">購入が復元されました ❤️</string>
+    <string name="upgrade_screen_restore_status_title">ステータスがおかしいですか？</string>
+    <string name="upgrade_screen_restore_status_body">Google Play で購入を再度確認します。これはデバイス変更後や Google アカウントを切り替えた場合に役立ちます。</string>
+
+    <string name="upgrade_screen_offers_or">または</string>
+
+    <string name="upgrade_screen_offers_title">アップグレード オプション</string>
+    <string name="upgrade_screen_offers_body">どちらのオプションも同じ Pro 機能を提供しています。どちらの価格設定があなたに合っているか選んでください。</string>
+    <string name="upgrade_screen_offers_unavailable_title">価格情報が利用できません</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler は Google Play からアップグレード オプションを読み込めませんでした。これは一時的なことが多いので、しばらくしてからもう一度試してください。</string>
+    <string name="upgrade_screen_subscription_offer_title">年間定期購入</string>
+    <string name="upgrade_screen_subscription_offer_body">無料14日間のトライアルで始まり、その後は年1回請求されます。いつでもキャンセルできます。</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">年1回請求されます。いつでもキャンセルできます。</string>
+    <string name="upgrade_screen_iap_offer_title">一度だけ購入</string>
+    <string name="upgrade_screen_iap_offer_body">一度だけ支払えば、永遠にあなたのものです。定期購入はありません。</string>
+    <string name="upgrade_screen_restore_body">復元では、Google Play に対して、現在のアカウントのこのアプリの購入を再度確認するよう求めます。</string>
+
+    <string name="upgrade_screen_owned_hero_title">Butler Pro をお持ちです！</string>
+    <string name="upgrade_screen_owned_hero_iap_body">買い切りをご購入いただきありがとうございます。永遠にお使いいただけます ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">定期購入をご利用いただきありがとうございます ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">買い切り</string>
+    <string name="upgrade_screen_owned_iap_body">永続的な Pro アップグレードを所有しています。</string>
+    <string name="upgrade_screen_owned_sub_title">定期購入</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">定期購入は有効で、自動的に更新されます。</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">定期購入は有効ですが、更新しないように設定されています。現在の期間が終了するまで Pro をご利用いただけます。</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">買い切りを所有していますが、定期購入はまだ更新中です。Google Play でキャンセルして、二重請求を避けてください。</string>
+    <string name="upgrade_screen_manage_subscription_action">定期購入を管理</string>
+
+    <string name="upgrade_screen_switch_locked_note">まず「定期購入を管理」で更新をキャンセルしてください。そうしないと両方に請求されます。</string>
+    <string name="upgrade_screen_switch_purchase_note">定期購入は更新されません。買い切りを安全に購入できます。</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">定期購入はまだ有効です</string>
+    <string name="upgrade_screen_sub_still_renewing_message">定期購入はまだ更新するように設定されています。Google Play で更新をキャンセルして、両方に請求されないようにしてから、買い切りを購入してください。</string>
+    <string name="upgrade_screen_purchase_check_failed_title">確認できませんでした</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler は Google Play で購入ステータスを確認できなかったため、二重請求を避けるために購入を停止しました。しばらくしてからもう一度試してください。</string>
+
+    <string name="upgrade_screen_pending_card_title">支払い保留中</string>
+    <string name="upgrade_screen_pending_card_body">Google Play はまだ支払いを処理しています。支払いが完了すると、Pro は自動的にロック解除されます。一部の支払い方法は時間がかかる場合があります。他にすることはありません。</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play は保留中の支払いを伴う購入を検出し、まだ処理しています。支払いが完了すると、Pro は自動的にロック解除されます。</string>
+
+    <string name="upgrade_screen_grace_title">購入を確認中</string>
+    <string name="upgrade_screen_grace_body_short">Google Play は Pro ステータスを確認するのに少し時間がかかっています。フルアクセスは引き続き利用できます。</string>
+    <string name="upgrade_screen_grace_body">Google Play はまだ Pro ステータスを再度確認していません。今のところアクセスは引き続き利用できます。これがおかしいと思われる場合は、購入を復元してください。</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">既に購入済みですか？</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play によると、このアップグレードは既に購入されていますが、自動的に復元できませんでした。元の購入に使用した Google アカウントでログインしていることを確認してから、「購入を復元」をお試しください。</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play は利用できません</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler は Google Play に接続できません。Google Play がインストールされ、最新の状態ですか？Google アカウントはログインしていますか？Google Play アプリのキャッシュをクリアして、デバイスを再起動してください。</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can't open Google Play's app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Google Play を開けませんでした。このデバイスにインストールされていないか、無効になっているか、制限されている可能性があります。</string>
+    <string name="upgrades_gplay_billing_error_label">Google Play の問題</string>
+    <string name="upgrades_gplay_billing_error_description">Google Play との通信中にエラーが発生しました。しばらくしてからもう一度試すか、デバイスを再起動してください。\n\n詳細：%s</string>
+    <string name="upgrades_gplay_internal_error_title">Google Play エラー</string>
+    <string name="upgrades_gplay_internal_error_description">Google Play で内部エラーが発生しました。以下のことをお試しください。\n\n• デバイスを再起動\n• Google Play ストアのキャッシュをクリア\n• 後でもう一度試す</string>
+    <string name="upgrades_gplay_network_error_title">接続エラー</string>
+    <string name="upgrades_gplay_network_error_description">Butler は Google Play に到達できませんでした。インターネット接続を確認して、もう一度試してください。</string>
+    <string name="upgrades_gplay_offer_unavailable_title">オファーは利用できません</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play は現在、このアカウントのアップグレード オプションを提供していません。後でもう一度試すか、Google Play ストアで確認してください。</string>
+    <string name="upgrades_no_purchases_found_check_account">購入は見つかりません。正しいアカウントを使用していますか？</string>
+
+    <string name="upgrade_benefits_title">アップグレードのメリット</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• 無制限のタブと操作\n• デザイン、フィール、ルック をカスタマイズ\n• 各ツールの追加オプションと機能\n• 新機能への早期アクセス\n• やる気のある開発者 🧙\nその他…</string>
+</resources>

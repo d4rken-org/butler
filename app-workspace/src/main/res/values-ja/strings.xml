@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- クリップボード -->
+    <string name="clipboard_header_title">クリップボード</string>
+    <string name="clipboard_clear_all">すべて消去</string>
+    <string name="clipboard_paste">貼り付け</string>
+    <string name="clipboard_open_in_explorer">エクスプローラーで開く</string>
+    <string name="clipboard_copy">コピー</string>
+    <string name="clipboard_cut">切り取り</string>
+    <string name="clipboard_origin">取得元：%s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="other">%d個の項目をコピー</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="other">%d個の項目（%sから）</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="other">%d個の項目を切り取り</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="other">%d個の項目（%sから）</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="other">%d箇所</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="other">%2$sから%1$d個の項目</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="other">%2$sから%1$d個の項目</item>
+    </plurals>
+    <string name="clipboard_text_title">テキストスニペット</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="other">%1$d文字</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">ファイルとして貼り付け</string>
+    <string name="clipboard_text_info_characters">文字数</string>
+    <string name="clipboard_text_info_lines">行数</string>
+    <string name="clipboard_text_info_content">内容</string>
+
+    <!-- クリップボード情報ダイアログ -->
+    <string name="clipboard_info_overview">概要</string>
+    <string name="clipboard_info_operation">操作</string>
+    <string name="clipboard_info_items">項目</string>
+    <string name="clipboard_info_source">取得元</string>
+    <string name="clipboard_info_sources">取得元</string>
+    <string name="clipboard_info_workspace">ワークスペース</string>
+    <string name="clipboard_info_workspace_closed">終了済み</string>
+    <string name="clipboard_info_time">日時</string>
+    <string name="clipboard_info_items_with_count">項目（%1$d）</string>
+    <string name="clipboard_info_actions">アクション</string>
+    <string name="clipboard_info_go_to_source">取得元に移動</string>
+    <string name="clipboard_info_go_to_first_source">最初の取得元に移動</string>
+    <string name="clipboard_info_remove">クリップボードから削除</string>
+
+    <!-- クリップボード設定 -->
+    <string name="clipboard_settings_title">クリップボード</string>
+    <string name="clipboard_settings_remove_on_paste_title">貼り付け後に削除</string>
+    <string name="clipboard_settings_remove_on_paste_desc">貼り付け後、コピーした項目をクリップボードから削除します</string>
+    <string name="clipboard_settings_max_items_title">最大項目数</string>
+    <string name="clipboard_settings_max_items_desc">クリップボードに保持する項目の最大数</string>
+
+    <string name="workspace_explorer_label">エクスプローラー</string>
+    <string name="workspace_searcher_label">検索</string>
+    <string name="workspace_editor_label">エディター</string>
+    <string name="workspace_templates_label">テンプレート</string>
+    <string name="workspace_apps_label">アプリ</string>
+    <string name="workspace_appdetails_label">アプリの詳細</string>
+    <string name="workspace_saver_label">名前を付けて保存</string>
+    <string name="workspace_developer_label">開発者</string>
+    <string name="workspace_history_label">履歴</string>
+    <string name="workspace_bugreport_label">バグ報告</string>
+    <string name="workspace_viewer_label">ビューアー</string>
+
+    <!-- 検索の対象メディア -->
+    <string name="workspace_searcher_target_photos">写真</string>
+    <string name="workspace_searcher_target_videos">動画</string>
+    <string name="workspace_searcher_target_music">音楽</string>
+    <string name="workspace_searcher_target_downloads">ダウンロード</string>
+
+    <!-- ワークスペースUIアクション -->
+    <string name="workspace_expand_more_action">もっと見る</string>
+    <string name="workspace_expand_less_action">折りたたむ</string>
+
+    <!-- ワークスペースボタンメニュー -->
+    <string name="workspace_button_description">タブとワークスペース</string>
+    <string name="workspace_button_menu_new_workspace_format">新しい%1$s</string>
+    <string name="workspace_button_menu_new_tab_action">新しいタブ</string>
+    <string name="workspace_button_menu_category_recent">最近</string>
+    <string name="workspace_button_menu_category_other">その他</string>
+    <string name="workspace_button_menu_category_current_tab">このタブ</string>
+    <string name="workspace_button_menu_manager_action">タブマネージャー</string>
+    <string name="workspace_button_menu_layout_action">レイアウト</string>
+    <string name="workspace_button_menu_close_current_action">現在のタブを閉じる</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="other">現在のタブを閉じる（%d個のワークスペース）</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">設定</string>
+
+    <!-- ワークスペースマネージャーの操作 -->
+    <string name="workspace_manager_close_all_title">すべてのタブを閉じますか。</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="other">開いているタブを%1$d個すべて閉じます。この操作は元に戻せません。</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">すべて閉じる</string>
+    <string name="workspace_manager_close_all_unsaved_warning">未保存の変更があるタブがあります。閉じると変更は失われます。</string>
+    <string name="workspace_manager_close_all_unsaved_action">すべて破棄</string>
+    <string name="workspace_manager_close_selected_title">選択したタブを閉じますか。</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="other">選択した%1$d個のタブを閉じます。この操作は元に戻せません。</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">選択項目を閉じる</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">選択したタブの中に未保存の変更があるものがあります。閉じると変更は失われます。</string>
+    <string name="workspace_manager_close_selected_unsaved_action">選択項目を破棄</string>
+    <string name="workspace_manager_pause_partial_title">タブを一時停止しますか。</string>
+    <string name="workspace_manager_pause_partial_message">選択した%2$d個のタブのうち%1$d個を一時停止できます。残りは使用中か、未保存の変更があるか、現在開いています。</string>
+    <string name="workspace_manager_pause_partial_action">%1$d個を一時停止</string>
+    <string name="general_cancel_action">キャンセル</string>
+
+    <!-- 操作 -->
+    <string name="operations_header_title">操作</string>
+    <string name="operations_clear_completed">完了済みを消去</string>
+    <string name="operations_state_queued">待機中</string>
+    <string name="operations_state_running">実行中</string>
+    <string name="operations_state_waiting">入力待ち</string>
+    <string name="operations_state_successful">成功</string>
+    <string name="operations_state_failed">失敗</string>
+    <string name="operations_state_cancelled">キャンセル済み</string>
+    <string name="operations_state_cancelling">キャンセル中…</string>
+    <string name="operations_cancel_operation">操作をキャンセル</string>
+    <string name="operations_cancel_dialog_title">操作をキャンセルしますか。</string>
+    <string name="operations_cancel_dialog_message">この操作をキャンセルしてもよろしいですか。</string>
+    <string name="operations_cancel_dialog_warning">キャンセルすると、ファイルが不整合な状態のまま残ることがあります。</string>
+    <string name="operations_details_started_at">開始日時</string>
+    <string name="operations_details_completed_at">完了日時</string>
+    <string name="operations_details_duration">所要時間</string>
+    <string name="operations_details_duration_not_started">未開始</string>
+    <string name="operations_details_progress">進行状況</string>
+    <string name="operations_details_error">エラーの詳細</string>
+    <string name="operations_details_actions">アクション</string>
+    <string name="operations_details_overview">概要</string>
+    <string name="operations_details_handle_issue">問題に対応</string>
+    <string name="operations_details_show_in_history_action">履歴に表示</string>
+    <string name="operations_details_status">ステータス</string>
+    <string name="operations_details_result">結果</string>
+    <string name="operations_details_destination_folder">宛先フォルダ</string>
+    <string name="operations_details_destination_path">宛先パス</string>
+    <string name="operations_details_affected_paths_with_count">影響を受けたパス（%d）</string>
+    <string name="operations_details_problems_with_count">問題（%d）</string>
+    <string name="operations_details_problems_more">ほかに%d件（非表示）</string>
+    <string name="workspace_operation_packages_section_title">アプリ</string>
+    <string name="workspace_operation_package_status_done">完了</string>
+    <string name="workspace_operation_package_status_failed">失敗</string>
+    <string name="workspace_operation_package_status_declined">拒否</string>
+    <string name="operations_details_section_expand">%1$sを展開</string>
+    <string name="operations_details_section_collapse">%1$sを折りたたむ</string>
+    <string name="workspace_operations_performance_graph_label">パフォーマンスグラフ</string>
+
+    <!-- 削除確認ダイアログ -->
+    <string name="workspace_dialog_delete_title_single">項目を削除しますか。</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="other">%1$d個の項目を削除しますか。</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">この項目は完全に削除されます：</string>
+    <string name="workspace_dialog_delete_message_multiple">これらの項目は完全に削除されます：</string>
+    <string name="workspace_dialog_delete_more_items">…ほか%1$d個</string>
+    <string name="workspace_dialog_delete_warning">この操作は元に戻せません。</string>
+    <string name="workspace_dialog_delete_permanently_action">完全に削除</string>
+    <string name="workspace_dialog_delete_permanently_toggle">代わりに完全に削除</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">一部の項目はゴミ箱に移動できないため、別途処理されます。</string>
+
+    <!-- ゴミ箱ダイアログ -->
+    <string name="workspace_dialog_trash_title_single">ゴミ箱に移動しますか。</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="other">%1$d個の項目をゴミ箱に移動しますか。</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">この項目はゴミ箱に移動されます：</string>
+    <string name="workspace_dialog_trash_message_multiple">これらの項目はゴミ箱に移動されます：</string>
+    <string name="workspace_dialog_trash_hint">ゴミ箱で確認できます</string>
+    <string name="workspace_dialog_move_to_trash_action">移動</string>
+
+    <!-- アクションバー -->
+    <plurals name="workspace_selection_count">
+        <item quantity="other">%d個選択中</item>
+    </plurals>
+    <string name="workspace_action_more">その他の操作</string>
+
+    <!-- 削除操作（ワークスペース間で共有） -->
+    <string name="workspace_operation_delete_title">ファイルの削除</string>
+    <string name="workspace_operation_delete_description_single">\"%2$s\"から\"%1$s\"を削除します。</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="other">\"%2$s\"から%1$d個の項目を削除します。</item>
+    </plurals>
+
+    <!-- アプリインストール操作（ワークスペース間で共有） -->
+    <string name="workspace_operation_install_title">アプリのインストール</string>
+    <string name="workspace_operation_install_description">\"%1$s\"をインストールします。</string>
+    <string name="workspace_operation_install_progress_inspecting">パッケージを読み込み中…</string>
+    <string name="workspace_operation_install_progress_extracting">展開中…</string>
+    <string name="workspace_operation_install_progress_writing">ファイルをインストーラーに渡しています…</string>
+    <string name="workspace_operation_install_progress_committing">インストールを完了しています…</string>
+    <string name="workspace_operation_install_progress_placing_obb">拡張ファイルを配置しています…</string>
+    <string name="workspace_operation_install_summary_success">%1$sをインストールしました。</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$sをインストールしましたが、拡張ファイルを配置できませんでした。</string>
+    <string name="workspace_install_unknown_sources_required">Butlerにはアプリをインストールする権限が必要です。開いた設定画面で権限を許可してから、もう一度お試しください。</string>
+    <string name="workspace_install_obb_failed">アプリはインストールされましたが、拡張ファイルを配置できませんでした：%1$s</string>
+
+    <!-- 削除操作のレポート -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="other">%1$d個のファイルを削除しました。</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="other">%1$d個のフォルダを削除しました。</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="other">%1$d個の項目をスキップしました。</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="other">%1$s解放しました。</item>
+    </plurals>
+
+    <!-- ゴミ箱操作のレポート -->
+    <string name="workspace_operation_progress_moving_to_trash">ゴミ箱に移動しています…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="other">%1$d個のファイルをゴミ箱に移動しました。</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="other">%1$d個のフォルダをゴミ箱に移動しました。</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s解放しています。</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s解放しました。</string>
+    <string name="workspace_operation_progress_time_remaining">残り%1$s。</string>
+
+    <!-- ファイル情報ダイアログ（ワークスペース間で共有） -->
+    <string name="workspace_file_info_title">情報</string>
+    <string name="workspace_file_info_name_label">名前</string>
+    <string name="workspace_file_info_path_label">パス</string>
+    <string name="workspace_file_info_type_label">種類</string>
+    <string name="workspace_file_info_type_file">ファイル</string>
+    <string name="workspace_file_info_type_directory">フォルダ</string>
+    <string name="workspace_file_info_type_symlink">シンボリックリンク</string>
+    <string name="workspace_file_info_type_unknown">不明</string>
+    <string name="workspace_file_info_size_label">サイズ</string>
+    <string name="workspace_file_info_modified_label">更新日時</string>
+    <string name="workspace_file_info_created_label">作成日時</string>
+    <string name="workspace_file_info_permissions_label">権限</string>
+    <string name="workspace_file_info_owner_label">所有者</string>
+    <string name="workspace_file_info_child_count_label">項目数</string>
+    <string name="workspace_file_info_symlink_target_label">リンク先</string>
+    <string name="workspace_file_info_unknown">不明</string>
+    <string name="workspace_file_info_copy_action">クリップボードにコピー</string>
+
+    <!-- 複数項目の情報ダイアログ -->
+    <string name="workspace_file_info_selected_label">選択中</string>
+    <string name="workspace_file_info_files_label">ファイル</string>
+    <string name="workspace_file_info_directories_label">フォルダ</string>
+    <string name="workspace_file_info_total_size_label">合計サイズ</string>
+
+    <!-- パフォーマンスグラフ -->
+    <string name="workspace_operation_performance_unavailable_not_started">この操作はまだ開始されていません。</string>
+    <string name="workspace_operation_performance_unavailable_collecting">パフォーマンスデータを収集しています…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">この操作のパフォーマンスデータが不足しているため、グラフを表示できません。</string>
+    <string name="workspace_operation_performance_unavailable_not_available">この操作のパフォーマンスデータはありません。</string>
+    <string name="workspace_operation_performance_window_seconds">直近%1$d秒</string>
+    <string name="workspace_operation_performance_window_minutes">直近%1$d分</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">件/秒</string>
+
+    <!-- エラー表示（ワークスペース間で共有） -->
+    <string name="workspace_error_show_details_action">技術的な詳細を表示</string>
+    <string name="workspace_error_hide_details_action">技術的な詳細を非表示</string>
+
+    <!-- ワークスペースの状態コンポーネント -->
+    <string name="workspace_initializing_title">タブを初期化しています</string>
+    <string name="workspace_error_subtitle">予期しないエラーが発生しました</string>
+    <string name="workspace_close_tab_action">タブを閉じる</string>
+    <string name="workspace_paused_body">メモリとバッテリーを節約するため、このタブは一時停止されています。再開すると続行できます。</string>
+    <string name="workspace_paused_error_body">このタブを再開できませんでした。</string>
+    <string name="workspace_paused_resume_action">再開</string>
+    <string name="workspace_paused_label">一時停止中</string>
+    <string name="workspace_paused_content_label">タブの内容</string>
+
+    <!-- 問題解決（競合処理） -->
+    <string name="workspace_issue_collision_existing_file_label">既存のファイル</string>
+    <string name="workspace_issue_collision_existing_folder_label">既存のフォルダ</string>
+    <string name="workspace_issue_collision_new_file">新しいファイル</string>
+    <string name="workspace_issue_collision_new_folder">新しいフォルダ</string>
+    <string name="workspace_issue_collision_overwrite">置き換え</string>
+    <string name="workspace_issue_collision_merge">統合</string>
+    <string name="workspace_issue_common_source_file">元のファイル</string>
+    <string name="workspace_issue_common_destination_file">宛先</string>
+    <string name="workspace_issue_common_skip">スキップ</string>
+    <string name="workspace_issue_common_rename">名前を変更</string>
+    <string name="workspace_issue_common_rename_new">新規の名前を変更</string>
+    <string name="workspace_issue_common_rename_existing">既存の名前を変更</string>
+    <string name="workspace_issue_common_cancel">キャンセル</string>
+    <string name="workspace_issue_common_delete_permanently">完全に削除</string>
+    <string name="workspace_issue_archive_password_label">パスワード</string>
+    <string name="workspace_issue_archive_password_unlock">ロック解除</string>
+    <string name="workspace_issue_trash_move_failed_items_label">失敗した項目</string>
+    <string name="workspace_issue_trash_move_failed_more_items">…ほか%1$d個</string>
+    <string name="workspace_issue_trash_not_supported_items_label">対象の項目</string>
+    <string name="workspace_issue_trash_not_supported_more_items">…ほか%1$d個</string>
+    <string name="workspace_issue_apply_all">残りの問題すべてに適用</string>
+    <string name="workspace_issue_rename_new_name">新しい名前</string>
+    <string name="workspace_issue_rename_dialog_title_new">新しいファイルの名前を変更</string>
+    <string name="workspace_issue_rename_dialog_title_existing">既存のファイルの名前を変更</string>
+    <string name="workspace_issue_type_folder">フォルダ</string>
+
+    <!-- 新しいタブで開く確認ダイアログ -->
+    <string name="workspace_open_tabs_confirmation_title">複数のタブを開きますか。</string>
+    <string name="workspace_open_tabs_confirmation_message">%1$d個のタブを開きます。</string>
+
+    <!-- 他のアプリで開く -->
+    <string name="workspace_open_with_chooser_title">アプリで開く</string>
+    <string name="workspace_open_with_no_app_label">ほかのアプリが見つかりません</string>
+    <string name="workspace_open_with_no_app_description">%1$sを開けるほかのアプリがインストールされていません。</string>
+
+    <!-- ワークスペースバナーのフィードバック -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="other">%1$d個のタブを開きました</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="other">閉じられません：%1$d個のタブで操作が実行中です</item>
+    </plurals>
+
+    <!-- ワークスペース > 設定 -->
+    <string name="workspace_settings_title">タブ</string>
+    <string name="workspace_settings_navigation">ナビゲーション</string>
+    <string name="workspace_settings_swipe_gestures_title">スワイプ操作</string>
+    <string name="workspace_settings_swipe_gestures_desc">左右にスワイプしてタブを切り替えます。</string>
+    <string name="workspace_settings_ondemand_creation_title">タブを自動作成</string>
+    <string name="workspace_settings_ondemand_creation_desc">最後のタブを超えてスワイプすると、新しいタブを自動的に作成します。</string>
+    <string name="workspace_settings_newtab_type_title">新しいタブの種類</string>
+    <string name="workspace_settings_newtab_type_desc">最後のタブを超えてスワイプしたとき、空のペインにタブを追加したとき、または最初のタブを作成したときに開くワークスペースです。</string>
+    <string name="workspace_settings_newtab_type_ask">毎回確認</string>
+    <string name="workspace_settings_newtab_type_ask_desc">新しいタブを作成するたびに、タブの種類の選択画面を表示します。</string>
+    <string name="workspace_settings_live_preview_title">ライブプレビュー</string>
+    <string name="workspace_settings_live_preview_desc">タブマネージャーにタブの内容をライブ表示します。</string>
+    <string name="workspace_settings_other">その他</string>
+    <string name="workspace_settings_layout_title">レイアウト</string>
+    <string name="workspace_settings_layout_mode_portrait_title">縦向きのレイアウトモード</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">縦向きのときのタブレイアウトを選択します。</string>
+    <string name="workspace_settings_layout_mode_landscape_title">横向きのレイアウトモード</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">横向きのときのタブレイアウトを選択します。</string>
+    <string name="workspace_settings_layout_mode_auto">自動</string>
+    <string name="workspace_settings_layout_mode_auto_desc">小さい画面ではクラシック、大きい画面ではペイン付きのタブレールになります。</string>
+    <string name="workspace_settings_layout_mode_classic">クラシック</string>
+    <string name="workspace_settings_layout_mode_classic_desc">タブレールなしで、一度に1つのペインを表示します。</string>
+    <string name="workspace_settings_layout_mode_adaptive">アダプティブ</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">タブレールに加えて、画面に収まるだけのペインを表示します。レール内のButlerメニューからレイアウトを固定できます。</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">アダプティブ（%1$s）</string>
+    <string name="workspace_settings_layout_mode_single_rail">シングル＋タブレール</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">1つのタブペインと、マルチペインレイアウトのタブレールを組み合わせます。スワイプの代わりにレールからタブを切り替えます。レールは画面の一部を占めます。</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">デュアル縦</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">2つのペインを左右に並べて表示します。</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">デュアル横</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">2つのペインを上下に並べて表示します。</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">トリプル（左サイドバー）</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">左に大きいペインを1つ、右に小さいペインを2つ縦に並べて表示します。</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">トリプル（右サイドバー）</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">左に小さいペインを2つ縦に並べ、右に大きいペインを1つ表示します。</string>
+    <string name="workspace_settings_layout_mode_quad_grid">クアッドグリッド</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">4つのペインを2×2のグリッドで表示します。</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">クリックしてフォーカス</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">フォーカスされていないペインを最初にクリックすると、そのペインにフォーカスするだけになり、フォーカスされていないペインはマウスポインターに反応しません。直接操作するにはオフにしてください。</string>
+
+    <string name="workspace_settings_rail_button_title">Butlerボタン</string>
+    <string name="workspace_settings_rail_button_desc">タブレール上でのButlerボタンの位置を選択します。</string>
+    <string name="workspace_settings_rail_button_leading">先頭</string>
+    <string name="workspace_settings_rail_button_leading_desc">縦向きではタブの前、横向きではタブの上に配置します。</string>
+    <string name="workspace_settings_rail_button_trailing">末尾</string>
+    <string name="workspace_settings_rail_button_trailing_desc">縦向きではタブの後ろ、横向きではタブの下に配置します。片手操作でも親指が届く位置です。</string>
+
+    <!-- セッション -->
+    <string name="workspace_settings_session_title">セッション</string>
+    <string name="workspace_settings_session_restore_title">起動時にタブを復元</string>
+    <string name="workspace_settings_session_restore_desc">アプリ起動時に、以前開いていたタブを自動的に復元します。</string>
+    <string name="workspace_settings_autopause_title">アイドル状態のタブを一時停止</string>
+    <string name="workspace_settings_autopause_desc">しばらく表示していないタブは、メモリとバッテリーを節約するため一時停止されます。開くと再開します。</string>
+    <string name="workspace_settings_autopause_delay_title">一時停止までの時間</string>
+    <string name="workspace_settings_autopause_delay_desc">タブが一時停止されるまで、非表示のままにしておく時間です。</string>
+    <string name="workspace_settings_undoclose_title">タブを閉じる操作を元に戻す</string>
+    <string name="workspace_settings_undoclose_desc">タブを閉じると、数秒間だけ元に戻せるようになります。</string>
+    <string name="workspace_settings_session_data_title">セッションデータ</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="other">%1$d個のタブ • %2$s</item>
+    </plurals>
+
+    <!-- 閉じる操作の取り消し -->
+    <string name="workspace_closed_undo_message">\"%1$s\"を閉じました</string>
+
+    <!-- セッション復元エラー -->
+    <string name="workspace_session_restoration_error_title">セッションの復元に失敗しました</string>
+    <string name="workspace_session_restoration_error_description">前回のタブセッションを復元できませんでした。今後のアップデートで修正される可能性のある不具合が原因と考えられます。\n\nButlerを使い続けるには保存されたセッションを消去するか、アップデートをお待ちください。</string>
+    <string name="workspace_session_restoration_error_clear_action">セッションを消去</string>
+    <string name="workspace_session_restoration_error_report_action">問題を報告</string>
+    <string name="workspace_session_restoration_error_confirm_title">セッションを消去しますか。</string>
+    <string name="workspace_session_restoration_error_confirm_description">保存されたタブセッションが完全に削除されます。この操作は元に戻せません。</string>
+
+    <!-- タブの名前変更 -->
+    <string name="workspace_rename_dialog_title">タブの名前を変更</string>
+    <string name="workspace_rename_name_label">カスタム名</string>
+    <string name="workspace_rename_name_hint">空欄のままにすると自動的に名前が付けられます</string>
+
+    <!-- タブの上限 -->
+    <string name="workspace_limit_reached_title">タブの上限に達しました</string>
+    <string name="workspace_limit_reached_message">無料プランでは同時に開けるタブは%1$d個までです。Butler Proにアップグレードすると、タブ数が無制限になります!</string>
+    <string name="workspace_limit_pick_tabs_message">無料プランでは%1$d個のタブを開けます。不要なタブを選んで閉じ、空きを作ってください。</string>
+    <string name="workspace_limit_no_slot_hint">今はタブを閉じても、空き枠は増えません。</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="other">%d個のタブを閉じる</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="other">閉じるタブを%d個以上選んでください。</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">%1$sを開きました</string>
+    <string name="workspace_limit_blocker_unsaved">未保存の変更</string>
+    <string name="workspace_limit_blocker_busy">現在使用中</string>
+    <string name="workspace_limit_blocker_attention">対応待ち</string>
+    <string name="workspace_limit_blocker_loading">読み込み中</string>
+    <string name="workspace_limit_blocker_awaiting_result">先に開いている選択画面を完了してください</string>
+    <string name="workspace_limit_blocker_unavailable">今は閉じられません</string>
+    <string name="workspace_limit_stacked_content_desc">このタブを閉じると、上に重なっているワークスペースも閉じます</string>
+    <string name="workspace_limit_pro_description">好きなだけタブを開けます。</string>
+
+    <!-- ドラッグ＆ドロップ -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="other">%1$d個の項目</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s、%2$s</string>
+
+    <!-- 復元操作 -->
+    <string name="workspace_operation_restore_title">ゴミ箱からの復元</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="other">ゴミ箱から%d個の項目を復元します。</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="other">%d個の項目を復元しました</item>
+    </plurals>
+</resources>

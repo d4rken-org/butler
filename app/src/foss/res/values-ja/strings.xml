@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Butler FOSSが必要です</string>
+
+    <string name="upgrade_prompt_title">Butlerをアップグレード</string>
+    <string name="upgrade_prompt_body">追加機能を利用して、開発を応援してください！</string>
+    <string name="upgrade_prompt_upgrade_action">アップグレード</string>
+
+    <string name="upgrade_screen_title">Butlerをアップグレード</string>
+    <string name="upgrade_screen_preamble">Butlerは広告がなく、ユーザーデータを販売しません。開発の継続はあなたのサポートによってのみ実現できます。</string>
+    <string name="upgrade_screen_how_title">支援方法</string>
+    <string name="upgrade_screen_how_body">パトロンになって開発を応援してください。下のボタンをタップして、すべての追加機能を有効にしてGitHub Sponsorsのプロフィールを開きます。</string>
+
+    <string name="upgrade_screen_sponsor_action">開発を応援する</string>
+    <string name="upgrade_screen_sponsor_action_hint">代わりに広告、アナリティクス、Google Playが表示されます 🙁。</string>
+    <string name="upgrade_screen_thanks_toast">オープンソース開発の応援をありがとうございます ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">もう戻ってきたのですか？あなたのサポートがButlerを生かし続けています。スポンサーページをぜひご覧ください。</string>
+    <string name="upgrade_screen_sponsor_open_failed">スポンサーページを開けませんでした。ブラウザで開いてみてください。</string>
+
+    <string name="upgrade_screen_status_free_title">無料版を使用しています</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSSは完全にオープンソースです。開発を支援して、追加機能をご利用ください。</string>
+    <string name="upgrade_screen_status_free_action">アップグレード方法を確認</string>
+    <string name="upgrade_screen_status_upgraded_title">サポーターになりました</string>
+    <string name="upgrade_screen_status_upgraded_body">オープンソース開発の応援をありがとうございます ❤️ すべての追加機能が利用できます。</string>
+    <string name="upgrade_screen_supporter_since">%sからサポーターです</string>
+    <string name="upgrade_screen_recurring_title">継続的なサポート</string>
+    <string name="upgrade_screen_recurring_body">Butlerは限られた時間で開発されています。継続的なご寄付があればアプリを続けることができます。</string>
+    <string name="upgrade_screen_recurring_action">定期的にサポートする</string>
+
+    <string name="upgrade_benefits_title">アップグレートの利点</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• 無制限のタブと操作\n• デザイン、外観、操作感をカスタマイズ\n• 各ツールの追加オプションと機能\n• 新機能への早期アクセス\n• やる気のある開発者 🧙\nなど…</string>
+</resources>
