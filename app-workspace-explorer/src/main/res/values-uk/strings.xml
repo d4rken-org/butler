@@ -1,0 +1,754 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Провідник</string>
+    <string name="explorer_subtitle">Перегляд файлів і тек</string>
+    <string name="explorer_settings_title">Налаштування Провідника</string>
+    <string name="explorer_settings_file_display">Відображення файлів</string>
+    <string name="explorer_settings_filter_regex_title">Розширений пошук за шаблоном</string>
+    <string name="explorer_settings_filter_regex_desc">Використовувати регулярні вирази у фільтрах включення/виключення.</string>
+    <string name="explorer_settings_navigation">Навігація</string>
+    <string name="explorer_settings_back_button_title">Навігація кнопкою «Назад»</string>
+    <string name="explorer_settings_back_button_desc">Переміщення історією за допомогою кнопки або жесту «Назад».</string>
+    <string name="explorer_settings_trash_category">Кошик</string>
+    <string name="explorer_settings_trash_enabled_title">Увімкнути кошик</string>
+    <string name="explorer_settings_trash_enabled_desc">Переміщувати видалені файли до кошика замість остаточного видалення</string>
+    <string name="explorer_settings_trash_auto_delete_title">Автовидалення через</string>
+    <string name="explorer_settings_trash_auto_delete_desc">Автоматично видаляти елементи, старіші за %d днів</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d днів</string>
+    <string name="explorer_settings_trash_max_size_title">Максимальний розмір на сховище</string>
+    <string name="explorer_settings_trash_max_size_desc">Максимум %d МБ на одне сховище</string>
+    <string name="explorer_settings_trash_max_size_value">%d МБ</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Період автовидалення</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Максимальний розмір на сховище</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Увімкнути кошик?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">На відміну від настільних систем, у Android немає вбудованого кошика. Butler створює його в теці кешу.\n\nВрахуйте:\n• Індикатор сховища на пристрої не покаже звільнене місце, доки елементи не буде видалено остаточно\n• Якщо на пристрої мало вільного місця, Android може очистити кеш програм і видалити файли з кошика</string>
+    <string name="explorer_settings_trash_enable_action">Увімкнути</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">Файл</string>
+    <string name="explorer_file_symlink_content_desc">Символічне посилання</string>
+    <string name="explorer_file_folder_content_desc">Тека</string>
+    <string name="explorer_file_peek_content_desc">Завантаження інформації про файл</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Ярлик</string>
+    <string name="explorer_file_storage_local_label">Локальне</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Доступ лише для читання</string>
+    <string name="explorer_file_storage_saf_write_only_label">Доступ лише для запису</string>
+    <string name="explorer_file_storage_saf_no_access_label">Немає доступу</string>
+    <string name="explorer_file_storage_saf_uri_label">URI дерева SAF</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s усього • %3$s вільно</string>
+    <string name="explorer_file_broken_link_label">Пошкоджене посилання</string>
+    <string name="explorer_file_items_count">%1$d елементів</string>
+    <string name="explorer_file_empty">Порожньо</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · частково</string>
+    <string name="explorer_sizes_estimate_description">Оцінено на основі загальних даних сховища Android. Для файлів, які неможливо прочитати, як оцінку розміру використовується зайняте місце. Також можуть враховуватися приховані файли, якими керує Android. Інші недоступні для читання місця залишаються невідомими.</string>
+    <string name="explorer_sizes_estimate_coverage">Розмір Android/data не вдалося оцінити, оскільки інші частини сховища не вдалося виміряти повністю.</string>
+    <string name="explorer_sizes_estimate_unavailable">Статистика сховища Android недоступна. Виміряні розміри все одно показано.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Загальні дані сховища Android не збіглися з результатом сканування. Виміряні розміри все одно показано.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Вибрати теку</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">Виберіть теки</item>
+        <item quantity="one">Виберіть %d теку</item>
+        <item quantity="few">Виберіть %d теки</item>
+        <item quantity="many">Виберіть %d тек</item>
+        <item quantity="other">Виберіть %d теки</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Вибрати файл</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">Виберіть файли</item>
+        <item quantity="one">Виберіть %d файл</item>
+        <item quantity="few">Виберіть %d файли</item>
+        <item quantity="many">Виберіть %d файлів</item>
+        <item quantity="other">Виберіть %d файла</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">Виберіть елементи</item>
+        <item quantity="one">Виберіть %d елемент</item>
+        <item quantity="few">Виберіть %d елементи</item>
+        <item quantity="many">Виберіть %d елементів</item>
+        <item quantity="other">Виберіть %d елемента</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Вибрати цю теку</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">Вибрати %d елемент</item>
+        <item quantity="few">Вибрати %d елементи</item>
+        <item quantity="many">Вибрати %d елементів</item>
+        <item quantity="other">Вибрати %d елемента</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Зберегти файл</string>
+    <string name="explorer_picker_save_here_action">Зберегти тут</string>
+    <string name="explorer_picker_save_as_filename_label">Назва файлу</string>
+    <string name="explorer_picker_save_as_filename_hint">Введіть назву файлу</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Оновити</string>
+    <string name="explorer_action_calculate_sizes">Обчислити розміри</string>
+    <string name="explorer_action_sort">Сортування</string>
+    <string name="explorer_action_filter">Фільтр</string>
+    <string name="explorer_action_view">Вигляд</string>
+    <string name="explorer_action_create">Створити</string>
+    <string name="explorer_action_rename">Перейменувати</string>
+    <string name="explorer_action_copy">Копіювати</string>
+    <string name="explorer_action_cut">Вирізати</string>
+    <string name="explorer_action_delete">Видалити</string>
+    <string name="explorer_action_select_all">Вибрати все</string>
+    <string name="explorer_action_deselect_all">Зняти вибір</string>
+    <string name="explorer_action_compress">Стиснути</string>
+    <string name="explorer_action_extract">Розпакувати</string>
+    <string name="explorer_action_add_location">Додати розташування</string>
+    <string name="explorer_action_info">Інформація</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Інформація</string>
+    <string name="explorer_info_name_label">Назва</string>
+    <string name="explorer_info_path_label">Шлях</string>
+    <string name="explorer_info_type_label">Тип</string>
+    <string name="explorer_info_type_file">Файл</string>
+    <string name="explorer_info_type_directory">Тека</string>
+    <string name="explorer_info_size_label">Розмір</string>
+    <string name="explorer_info_modified_label">Змінено</string>
+    <string name="explorer_info_created_label">Створено</string>
+    <string name="explorer_info_permissions_label">Дозволи</string>
+    <string name="explorer_info_owner_label">Власник</string>
+    <string name="explorer_info_child_count_label">Елементів</string>
+    <string name="explorer_info_symlink_target_label">Ціль</string>
+    <string name="explorer_info_symlink_status_label">Стан</string>
+    <string name="explorer_info_symlink_broken">Пошкоджене посилання</string>
+    <string name="explorer_info_unknown">Невідомо</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Видалено</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Дозволи</string>
+    <string name="explorer_info_saf_granted_label">Надано</string>
+    <string name="explorer_info_saf_permission_read">Читання</string>
+    <string name="explorer_info_saf_permission_write">Запис</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Сервер</string>
+    <string name="explorer_info_network_port_label">Порт</string>
+    <string name="explorer_info_network_share_label">Спільний ресурс</string>
+    <string name="explorer_info_network_folder_label">Тека</string>
+    <string name="explorer_info_network_address_label">Адреса</string>
+    <string name="explorer_info_network_status_label">Стан</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Вхід</string>
+    <string name="explorer_info_network_domain_label">Домен</string>
+    <string name="explorer_info_network_password_label">Пароль</string>
+    <string name="explorer_info_network_password_show_action">Показати пароль</string>
+    <string name="explorer_info_network_password_hide_action">Приховати пароль</string>
+    <string name="explorer_info_network_password_missing">Відсутній, увійдіть знову</string>
+    <string name="explorer_info_network_password_locked">Збережено, але цей пристрій не може його розблокувати</string>
+    <string name="explorer_info_network_added_label">Додано</string>
+    <string name="explorer_info_network_updated_label">Оновлено</string>
+    <string name="explorer_info_network_last_seen_label">Востаннє в мережі</string>
+    <string name="explorer_info_network_last_seen_never">Ніколи</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Вибрано</string>
+    <string name="explorer_info_files_label">Файли</string>
+    <string name="explorer_info_directories_label">Теки</string>
+    <string name="explorer_info_total_size_label">Загальний розмір</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Сховища</string>
+    <string name="explorer_info_shortcuts_label">Ярлики</string>
+    <string name="explorer_info_total_capacity_label">Загальна ємність</string>
+    <string name="explorer_info_used_space_label">Використане місце</string>
+    <string name="explorer_info_free_space_label">Вільне місце</string>
+    <string name="explorer_info_usage_label">Використання</string>
+    <string name="explorer_info_device_storage_total_label">Сховище пристрою</string>
+    <string name="explorer_info_device_storage_used_label">Використано</string>
+    <string name="explorer_info_device_storage_free_label">Вільно</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Головна</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Зробити головною</string>
+    <string name="explorer_breadcrumb_copy_path_action">Копіювати шлях</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Шлях скопійовано в буфер обміну</string>
+    <string name="explorer_navigation_device">Пристрій</string>
+    <string name="explorer_navigation_network">Мережа</string>
+    <string name="explorer_navigation_recent">Нещодавні</string>
+    <string name="explorer_navigation_recent_desc">Файли, що нещодавно з’явилися на цьому пристрої</string>
+    <string name="explorer_navigation_trash">Кошик</string>
+    <string name="explorer_navigation_trash_desc">Відновлення видалених файлів</string>
+    <string name="explorer_navigation_trash_nested_desc">Усередині видаленої теки</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Немає видалених елементів</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d елемент</item>
+        <item quantity="few">%d елементи</item>
+        <item quantity="many">%d елементів</item>
+        <item quantity="other">%d елемента</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Відновити</string>
+    <string name="explorer_trash_restore_selected_action">Відновити вибране</string>
+    <string name="explorer_trash_delete_permanently_action">Видалити назавжди</string>
+    <string name="explorer_trash_delete_selected_action">Видалити вибране</string>
+    <string name="explorer_trash_empty_trash_action">Очистити кошик</string>
+    <string name="explorer_trash_empty_confirm">Очистити кошик?</string>
+    <string name="explorer_trash_empty_message">Усі елементи в кошику буде видалено назавжди. Це неможливо скасувати.</string>
+    <string name="explorer_trash_empty_confirm_action">Очистити кошик</string>
+    <string name="explorer_trash_restore_desc">Відновити в початкове розташування</string>
+    <string name="explorer_trash_item_unavailable">Елемент недоступний</string>
+    <string name="explorer_trash_delete_warning">Це неможливо скасувати</string>
+    <string name="explorer_trash_disabled_warning">Кошик вимкнено</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Завантаження вмісту видаленої теки…</string>
+    <string name="explorer_trash_nested_restore_action">Відновити в початкове розташування</string>
+    <string name="explorer_trash_nested_delete_action">Видалити назавжди</string>
+    <string name="explorer_trash_nested_restore_conflict">Файл уже існує в початковому розташуванні</string>
+    <string name="explorer_trash_nested_parent_missing">Батьківський елемент більше не існує в кошику</string>
+    <string name="explorer_trash_nested_path_missing">Шлях більше не існує</string>
+    <string name="explorer_trash_error_items_not_found">Елементи не знайдено в кошику</string>
+    <string name="explorer_trash_error_restore_failed">Не вдалося відновити елементи</string>
+    <string name="explorer_trash_error_delete_failed">Не вдалося видалити елементи</string>
+    <string name="explorer_trash_nested_error_restore_failed">Не вдалося відновити %1$s</string>
+    <string name="explorer_trash_nested_error_delete_failed">Не вдалося видалити %1$s</string>
+
+    <string name="explorer_navigation_root">Кореневий каталог</string>
+    <string name="explorer_navigation_rom">Системний ROM</string>
+    <string name="explorer_navigation_internal_storage">Внутрішнє загальнодоступне сховище</string>
+    <string name="explorer_navigation_external_storage">Зовнішнє загальнодоступне сховище</string>
+
+    <string name="explorer_loader_progress_directory_loading">Перегляд %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Перевірка дозволів</string>
+    <string name="explorer_loader_progress_directory_filesystem">Отримання інформації про файлову систему</string>
+    <string name="explorer_loader_progress_directory_content">Завантаження вмісту теки</string>
+    <string name="explorer_loader_progress_directory_content_details">Завантаження деталей вмісту</string>
+    <string name="explorer_loader_progress_directory_content_extended">Завантаження розширених деталей вмісту</string>
+
+    <string name="explorer_loader_progress_device_loading">Завантаження пристрою</string>
+    <string name="explorer_loader_progress_device_locations">Завантаження сховищ</string>
+
+    <string name="explorer_loader_progress_network_loading">Завантаження мережевого сховища</string>
+
+    <string name="explorer_loader_progress_home_loading">Завантаження головної</string>
+    <string name="explorer_loader_progress_trash_loading">Завантаження кошика…</string>
+    <string name="explorer_loader_progress_recent_loading">Завантаження нещодавніх файлів…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d ярлик</item>
+        <item quantity="few">%d ярлики</item>
+        <item quantity="many">%d ярликів</item>
+        <item quantity="other">%d ярлика</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d сховище</item>
+        <item quantity="few">%d сховища</item>
+        <item quantity="many">%d сховищ</item>
+        <item quantity="other">%d сховища</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d прихований елемент</item>
+        <item quantity="few">%d приховані елементи</item>
+        <item quantity="many">%d прихованих елементів</item>
+        <item quantity="other">%d прихованого елемента</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s вільно</string>
+    <string name="explorer_infobar_loading">Завантаження…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Створити елемент</string>
+    <string name="explorer_dialog_rename_title">Перейменувати</string>
+    <string name="explorer_dialog_name_label">Назва</string>
+    <string name="explorer_dialog_type_label">Тип</string>
+    <string name="explorer_dialog_type_folder">Тека</string>
+    <string name="explorer_dialog_type_file">Файл</string>
+    <string name="explorer_dialog_create_text_file_title">Створити файл із тексту</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Попередній перегляд</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d символів</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Додати сховище</string>
+    <string name="explorer_add_device_storage_desc">Скористайтеся Storage Access Framework (SAF), щоб надати Butler доступ до додаткових сховищ, як-от USB-накопичувачів, віртуальних тек програм тощо.</string>
+    <string name="explorer_add_device_storage_continue">Продовжити</string>
+    <string name="explorer_add_device_storage_cancel">Скасувати</string>
+    <string name="explorer_add_device_storage_suggestions_title">Програми зі сховищем</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Відкриває теку цієї програми</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Вилучити сховище</string>
+    <string name="explorer_device_remove_confirmation_title">Вилучити сховище?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">Вилучити %1$d сховище?</item>
+        <item quantity="few">Вилучити %1$d сховища?</item>
+        <item quantity="many">Вилучити %1$d сховищ?</item>
+        <item quantity="other">Вилучити %1$d сховища?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Це скасує доступ Butler до цього розташування. Ваші файли не буде видалено.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d мережеве сховище</item>
+        <item quantity="few">%d мережеві сховища</item>
+        <item quantity="many">%d мережевих сховищ</item>
+        <item quantity="other">%d мережевого сховища</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Мережа</string>
+    <string name="explorer_network_add_location_action">Додати мережеве сховище</string>
+    <string name="explorer_network_edit_location_action">Редагувати мережеве сховище</string>
+    <string name="explorer_network_remove_location_action">Вилучити мережеве сховище</string>
+    <string name="explorer_network_sign_in_required_label">Потрібен вхід</string>
+    <string name="explorer_network_status_checking_label">Перевірка…</string>
+    <string name="explorer_network_status_available_label">Доступно</string>
+    <string name="explorer_network_status_unavailable_label">Недоступно</string>
+    <string name="explorer_network_status_unavailable_since_format">Недоступно (%1$s)</string>
+    <string name="explorer_network_empty_title">Ще немає мережевих сховищ</string>
+    <string name="explorer_network_empty_caption">Додайте спільний ресурс Windows або теку NAS, щоб переглядати її тут.</string>
+    <string name="explorer_network_remove_confirmation_title">Вилучити мережеве сховище?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">Вилучити %1$d мережеве сховище?</item>
+        <item quantity="few">Вилучити %1$d мережеві сховища?</item>
+        <item quantity="many">Вилучити %1$d мережевих сховищ?</item>
+        <item quantity="other">Вилучити %1$d мережевого сховища?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler забуде дані сервера та збережений пароль. На сервері нічого не буде видалено.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Додати мережеве сховище</string>
+    <string name="explorer_network_form_edit_title">Редагувати мережеве сховище</string>
+    <string name="explorer_network_form_label_label">Назва (необов’язково)</string>
+    <string name="explorer_network_form_host_label">Адреса сервера</string>
+    <string name="explorer_network_form_host_hint">nas.local або 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Порт</string>
+    <string name="explorer_network_form_share_label">Спільний ресурс</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Тека всередині спільного ресурсу (необов’язково)</string>
+    <string name="explorer_network_form_auth_guest">Гість</string>
+    <string name="explorer_network_form_auth_password">Ім’я користувача та пароль</string>
+    <string name="explorer_network_form_username_label">Ім’я користувача</string>
+    <string name="explorer_network_form_domain_label">Домен (необов’язково)</string>
+    <string name="explorer_network_form_password_label">Пароль</string>
+    <string name="explorer_network_form_password_kept_hint">Залиште порожнім, щоб зберегти поточний пароль</string>
+    <string name="explorer_network_form_remember_label">Запам’ятати пароль</string>
+    <string name="explorer_network_form_remember_hint">Зберігається в зашифрованому вигляді лише на цьому пристрої</string>
+    <string name="explorer_network_form_test_and_save_action">Перевірити й зберегти</string>
+    <string name="explorer_network_form_testing">Підключення…</string>
+    <string name="explorer_network_form_error_host_blank">Введіть адресу сервера</string>
+    <string name="explorer_network_form_error_host_not_bare">Введіть лише адресу сервера, без схеми чи шляху</string>
+    <string name="explorer_network_form_error_host_malformed">Це недійсна адреса сервера</string>
+    <string name="explorer_network_form_error_port">Введіть порт від 1 до 65535</string>
+    <string name="explorer_network_form_error_share_blank">Введіть назву спільного ресурсу</string>
+    <string name="explorer_network_form_error_share_not_single">Введіть лише назву спільного ресурсу, підтеки вкажіть нижче</string>
+    <string name="explorer_network_form_error_share_malformed">Це недійсна назва спільного ресурсу</string>
+    <string name="explorer_network_form_error_base_path">Цей шлях до теки не можна використати</string>
+    <string name="explorer_network_form_error_username_blank">Введіть ім’я користувача</string>
+    <string name="explorer_network_form_error_password_required">Введіть пароль ще раз, щоб змінити ім’я користувача або домен</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Назва розташування</string>
+    <string name="explorer_location_name_label">Назва розташування</string>
+    <string name="explorer_location_name_hint">Залиште порожнім, щоб використати типову назву</string>
+    <string name="explorer_location_rename_action">Перейменувати розташування</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Додано за останній день</item>
+        <item quantity="few">Додано за останні %d дні</item>
+        <item quantity="many">Додано за останні %d днів</item>
+        <item quantity="other">Додано за останні %d дня</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Тут нічого нового</string>
+    <string name="explorer_recent_empty_message">Тут з’являються файли, які потрапляють на цей пристрій</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Ця тека порожня</string>
+    <string name="explorer_empty_search_title">Немає результатів пошуку</string>
+    <string name="explorer_empty_search_caption">Спробуйте інший пошуковий запит</string>
+    <string name="explorer_empty_folder_label">Порожня тека</string>
+    <string name="explorer_empty_filtered_title">Немає відповідних елементів</string>
+    <string name="explorer_empty_filtered_caption">Спробуйте змінити фільтри</string>
+    <string name="explorer_empty_hidden_title">Тут лише приховані елементи</string>
+    <string name="explorer_empty_hidden_caption">Ця вкладка приховує елементи, назва яких починається з крапки</string>
+    <string name="explorer_empty_show_hidden_action">Показати приховані елементи</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Більше нічого показувати</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Приховані елементи та фільтри окремо виключають частину цієї теки</string>
+    <string name="explorer_empty_clear_filters_action">Очистити фільтри</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Приховані елементи та фільтри виключають усе тут</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Увімкнення прихованих елементів і очищення фільтрів цієї вкладки поверне їх</string>
+    <string name="explorer_empty_show_all_action">Показати всі елементи</string>
+    <string name="explorer_path_not_found_title">Цієї теки більше немає</string>
+    <string name="explorer_path_not_found_caption">Її видалили, перейменували або перемістили в інше місце.</string>
+    <string name="explorer_path_not_found_back_action">Повернутися</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Завантаження…</string>
+    <string name="explorer_file_peek_loading_text">Завантаження…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Тут нічого немає… проходьте повз 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Ця тека на дієті</string>
+    <string name="explorer_empty_folder_caption_3">Навіть файли сьогодні пішли додому раніше</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe припинила роботу</string>
+    <string name="explorer_empty_folder_caption_5">Файли грають у хованки</string>
+    <string name="explorer_empty_folder_caption_6">404: файлів не знайдено</string>
+    <string name="explorer_empty_folder_caption_7">У цієї теки проблеми з довірою</string>
+    <string name="explorer_empty_folder_caption_8">Файли пішли у відпустку без попередження</string>
+    <string name="explorer_empty_folder_caption_9">Порожньо, як у моїй душі… але більш організовано</string>
+    <string name="explorer_empty_folder_caption_10">Цифровий еквівалент перекотиполя</string>
+    <string name="explorer_empty_folder_caption_11">Файли дотримуються соціальної дистанції</string>
+    <string name="explorer_empty_folder_caption_12">Ця тека практикує мінімалізм</string>
+    <string name="explorer_empty_folder_caption_13">Хтось забув нагодувати файли</string>
+    <string name="explorer_empty_folder_caption_14">Файли покинули будівлю</string>
+    <string name="explorer_empty_folder_caption_15">Порожніше за обіцянку політика</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Сортувати за</string>
+    <string name="explorer_sort_mode_name_label">Назвою</string>
+    <string name="explorer_sort_mode_size_label">Розміром</string>
+    <string name="explorer_sort_mode_modified_label">Датою зміни</string>
+    <string name="explorer_sort_mode_created_label">Датою створення</string>
+    <string name="explorer_sort_descending_label">За спаданням</string>
+    <string name="explorer_sort_scope_label">Застосувати до</string>
+    <string name="explorer_sort_scope_all_folders">Усіх тек</string>
+    <string name="explorer_sort_scope_this_folder">Цієї теки</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Цієї теки та підтек</string>
+    <string name="explorer_sort_scope_use_default_here">Типового сортування тут</string>
+    <string name="explorer_sort_only_this_tab_label">Лише для цієї вкладки</string>
+    <string name="explorer_sort_inherited_notice">Відсортовано за правилом, збереженим для %1$s</string>
+    <string name="explorer_sort_suppressed_notice">Це замінює правило, збережене для %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Ця вкладка використовує власний порядок сортування за замовчуванням</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Очистити</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Розміри тек</string>
+    <string name="explorer_sizes_sheet_label_calculated">Обчислено</string>
+    <string name="explorer_sizes_sheet_label_folders">Теки</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Недоступні для читання розташування</string>
+    <string name="explorer_sizes_sheet_problems_more">Ще %1$d не показано</string>
+    <string name="explorer_sizes_sheet_recalculate">Обчислити знову</string>
+    <string name="explorer_sizes_sheet_discard">Відхилити розміри</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Розташування елементів і кількість деталей, які вони показують</string>
+    <string name="explorer_view_mode_list_label">Список</string>
+    <string name="explorer_view_mode_grid_label">Сітка</string>
+    <string name="explorer_view_density_compact_label">Компактний</string>
+    <string name="explorer_view_density_comfortable_label">Зручний</string>
+    <string name="explorer_view_density_detailed_label">Детальний</string>
+    <string name="explorer_view_show_hidden_label">Показувати приховані файли</string>
+    <string name="explorer_view_set_default_action">Зробити типовим</string>
+    <string name="explorer_view_detail_created_label">Створено</string>
+    <string name="explorer_view_detail_modified_label">Змінено</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Правила сортування тек</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Налаштування сортування, збережені для окремих тек</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Очистити правила сортування тек?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Усі теки повернуться до типового порядку сортування. Вкладки з власним перевизначенням сортування збережуть його. Це неможливо скасувати.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Очистити все</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Тип файлу</string>
+    <string name="explorer_filter_type_all">Усі</string>
+    <string name="explorer_filter_type_files">Лише файли</string>
+    <string name="explorer_filter_type_folders">Лише теки</string>
+    <string name="explorer_filter_include_label">Шаблон включення</string>
+    <string name="explorer_filter_include_placeholder_simple">наприклад, відпустка, звіт, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">наприклад, .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Шаблон виключення</string>
+    <string name="explorer_filter_exclude_placeholder_simple">наприклад, tmp, cache, old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">наприклад, ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Увімкніть регулярні вирази в налаштуваннях</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Потрібен дозвіл</string>
+    <string name="explorer_permission_generic_description">Butler потребує додаткового дозволу для перегляду цього розташування.</string>
+    <string name="explorer_permission_setup_action">Відкрити налаштування</string>
+    <string name="explorer_grant_access_action">Надати доступ</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Дії</string>
+    <string name="explorer_file_info_type_label">Тип</string>
+    <string name="explorer_file_info_size_label">Розмір</string>
+    <string name="explorer_file_info_modified_label">Змінено</string>
+    <string name="explorer_file_action_install">Установити</string>
+    <string name="explorer_file_action_install_subtitle">Установити цю програму на пристрій</string>
+    <string name="explorer_file_action_open">Відкрити</string>
+    <string name="explorer_file_action_open_subtitle">Перегляд тут, кнопка «Назад» поверне до цієї теки</string>
+    <string name="explorer_file_action_open_in_tab">Відкрити в новій вкладці</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Перегляд у Butler в окремій вкладці</string>
+    <string name="explorer_file_action_open_in_editor">Відкрити в редакторі</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Редагування в новій вкладці</string>
+    <string name="explorer_file_action_open_with">Відкрити за допомогою</string>
+    <string name="explorer_file_action_open_with_subtitle">Виберіть зовнішню програму для відкриття</string>
+    <string name="explorer_file_action_share">Поділитися</string>
+    <string name="explorer_file_action_share_subtitle">Поділитися через встановлені програми</string>
+    <string name="explorer_file_action_copy">Копіювати</string>
+    <string name="explorer_file_action_copy_subtitle">Копіювати в буфер обміну для вставлення</string>
+    <string name="explorer_file_action_cut">Вирізати</string>
+    <string name="explorer_file_action_cut_subtitle">Перемістити в буфер обміну для вставлення</string>
+    <string name="explorer_file_action_rename">Перейменувати</string>
+    <string name="explorer_file_action_rename_subtitle">Змінити назву файлу</string>
+    <string name="explorer_file_action_delete">Видалити</string>
+    <string name="explorer_file_action_delete_subtitle">Остаточно видалити цей файл</string>
+    <string name="explorer_file_action_move_to_trash">Перемістити до кошика</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Перемістити файл до кошика</string>
+    <string name="explorer_file_action_properties">Властивості</string>
+    <string name="explorer_file_action_properties_subtitle">Перегляд детальної інформації про файл</string>
+    <string name="explorer_file_action_extract">Розпакувати</string>
+    <string name="explorer_file_action_extract_subtitle">Розпакувати вміст архіву в теку</string>
+    <string name="explorer_file_action_show_in_folder">Показати в теці</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Відкрити теку, де міститься цей файл</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">%d файл створено.</item>
+        <item quantity="few">%d файли створено.</item>
+        <item quantity="many">%d файлів створено.</item>
+        <item quantity="other">%d файла створено.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">%d тека створено.</item>
+        <item quantity="few">%d теки створено.</item>
+        <item quantity="many">%d тек створено.</item>
+        <item quantity="other">%d теки створено.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Операція копіювання</string>
+    <string name="explorer_operation_copy_description_single">Копіювання \"%1$s\" з \"%2$s\" до \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">Копіювання %1$d елемент до \"%2$s\".</item>
+        <item quantity="few">Копіювання %1$d елементи до \"%2$s\".</item>
+        <item quantity="many">Копіювання %1$d елементів до \"%2$s\".</item>
+        <item quantity="other">Копіювання %1$d елемента до \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%d файл скопійовано.</item>
+        <item quantity="few">%d файли скопійовано.</item>
+        <item quantity="many">%d файлів скопійовано.</item>
+        <item quantity="other">%d файла скопійовано.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%d тека скопійовано.</item>
+        <item quantity="few">%d теки скопійовано.</item>
+        <item quantity="many">%d тек скопійовано.</item>
+        <item quantity="other">%d теки скопійовано.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">%s скопійовано.</item>
+        <item quantity="few">%s скопійовано.</item>
+        <item quantity="many">%s скопійовано.</item>
+        <item quantity="other">%s скопійовано.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Операція розпакування</string>
+    <string name="explorer_operation_extract_description">Розпакування \"%1$s\" до \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Операція локального копіювання</string>
+    <string name="explorer_operation_download_copy_description">Копіювання \"%1$s\" до \"%2$s\" для локального перегляду.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">%d файл розпаковано.</item>
+        <item quantity="few">%d файли розпаковано.</item>
+        <item quantity="many">%d файлів розпаковано.</item>
+        <item quantity="other">%d файла розпаковано.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">%s розпаковано.</item>
+        <item quantity="few">%s розпаковано.</item>
+        <item quantity="many">%s розпаковано.</item>
+        <item quantity="other">%s розпаковано.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Операція стискання</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">Стискання %1$d елемент у \"%2$s\".</item>
+        <item quantity="few">Стискання %1$d елементи у \"%2$s\".</item>
+        <item quantity="many">Стискання %1$d елементів у \"%2$s\".</item>
+        <item quantity="other">Стискання %1$d елемента у \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">%d файл стиснено.</item>
+        <item quantity="few">%d файли стиснено.</item>
+        <item quantity="many">%d файлів стиснено.</item>
+        <item quantity="other">%d файла стиснено.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Створити архів</string>
+    <string name="explorer_compress_dialog_name_label">Назва архіву</string>
+    <string name="explorer_compress_dialog_format_label">Формат</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Відкривається на будь-якому пристрої. Можна захистити паролем.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Менший розмір для великої кількості файлів. Без захисту паролем.</string>
+    <string name="explorer_compress_dialog_create_action">Створити</string>
+    <string name="explorer_compress_dialog_level_label">Рівень стискання</string>
+    <string name="explorer_compress_dialog_level_fast">Швидкий</string>
+    <string name="explorer_compress_dialog_level_normal">Звичайний</string>
+    <string name="explorer_compress_dialog_level_best">Найкращий</string>
+    <string name="explorer_compress_dialog_password_label">Пароль (необов’язково)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Підтвердження пароля</string>
+    <string name="explorer_compress_dialog_password_mismatch">Паролі не збігаються</string>
+    <string name="explorer_compress_dialog_password_weak">Слабкий пароль</string>
+    <string name="explorer_compress_dialog_password_notice">Вміст файлів шифрується, назви файлів — ні.</string>
+    <string name="explorer_compress_dialog_password_show">Показати пароль</string>
+    <string name="explorer_compress_dialog_password_hide">Приховати пароль</string>
+    <string name="explorer_compress_dialog_overwrite_title">Замінити архів?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" уже існує і буде замінено.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Замінити</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">Вставити %1$d елемент?</item>
+        <item quantity="few">Вставити %1$d елементи?</item>
+        <item quantity="many">Вставити %1$d елементів?</item>
+        <item quantity="other">Вставити %1$d елемента?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">Копіювати або перемістити %1$d елемент до \"%2$s\"?</item>
+        <item quantity="few">Копіювати або перемістити %1$d елементи до \"%2$s\"?</item>
+        <item quantity="many">Копіювати або перемістити %1$d елементів до \"%2$s\"?</item>
+        <item quantity="other">Копіювати або перемістити %1$d елемента до \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">Копіювати %1$d елемент до \"%2$s\"?</item>
+        <item quantity="few">Копіювати %1$d елементи до \"%2$s\"?</item>
+        <item quantity="many">Копіювати %1$d елементів до \"%2$s\"?</item>
+        <item quantity="other">Копіювати %1$d елемента до \"%2$s\"?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Перемістити до кошика?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">Перемістити %1$d елемент до кошика?</item>
+        <item quantity="few">Перемістити %1$d елементи до кошика?</item>
+        <item quantity="many">Перемістити %1$d елементів до кошика?</item>
+        <item quantity="other">Перемістити %1$d елемента до кошика?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Операція переміщення</string>
+    <string name="explorer_operation_move_description_single">Переміщення \"%1$s\" з \"%2$s\" до \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">Переміщення %1$d елемент до \"%2$s\".</item>
+        <item quantity="few">Переміщення %1$d елементи до \"%2$s\".</item>
+        <item quantity="many">Переміщення %1$d елементів до \"%2$s\".</item>
+        <item quantity="other">Переміщення %1$d елемента до \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%d файл переміщено.</item>
+        <item quantity="few">%d файли переміщено.</item>
+        <item quantity="many">%d файлів переміщено.</item>
+        <item quantity="other">%d файла переміщено.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%d тека переміщено.</item>
+        <item quantity="few">%d теки переміщено.</item>
+        <item quantity="many">%d тек переміщено.</item>
+        <item quantity="other">%d теки переміщено.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">%s переміщено.</item>
+        <item quantity="few">%s переміщено.</item>
+        <item quantity="many">%s переміщено.</item>
+        <item quantity="other">%s переміщено.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Створення теки</string>
+    <string name="explorer_operation_create_description_directory">Створення теки \"%1$s\" у \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Створення файлу</string>
+    <string name="explorer_operation_create_description_file">Створення файлу \"%1$s\" у \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Створення текстового файлу</string>
+    <string name="explorer_operation_create_text_file_description">Створення \"%1$s\" із фрагмента тексту</string>
+    <string name="explorer_operation_calculate_sizes_title">Обчислення розміру</string>
+    <string name="explorer_operation_calculate_sizes_description">Обчислення розмірів тек у \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$d елемент проскановано</item>
+        <item quantity="few">%1$d елементи проскановано</item>
+        <item quantity="many">%1$d елементів проскановано</item>
+        <item quantity="other">%1$d елемента проскановано</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Обчислено розміри %1$d тек.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">Обчислено розміри %1$d тек, %2$d сховище не вдалося прочитати.</item>
+        <item quantity="few">Обчислено розміри %1$d тек, %2$d сховища не вдалося прочитати.</item>
+        <item quantity="many">Обчислено розміри %1$d тек, %2$d сховищ не вдалося прочитати.</item>
+        <item quantity="other">Обчислено розміри %1$d тек, %2$d сховища не вдалося прочитати.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Розміри теки \"%1$s\" відхилено, оскільки вона змінилася під час обчислення.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Не вдалося перейти</string>
+    <string name="explorer_aborted_dialog_title">Операцію перервано</string>
+    <string name="explorer_aborted_dialog_message">Завантаження скасовано, перш ніж щось вдалося показати.</string>
+    <string name="explorer_archive_unbrowsable_title">Архів не можна переглянути тут</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" міститься в сховищі, що підтримує лише послідовне читання, а перегляд архіву потребує довільного доступу. Розпакуйте архів тут або завантажте локальну копію, щоб переглянути його.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Розпакувати архів</string>
+    <string name="explorer_archive_unbrowsable_download_action">Завантажити локальну копію</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (спеціальний доступ)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (спеціальний доступ)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android обмежує доступ до цієї теки. Скористайтеся вибором теки, щоб надати доступ.</string>
+    <string name="explorer_permission_multiple_options_description">Ви можете надати доступ за допомогою вибору теки в Android або налаштувати root/Shizuku для швидшого доступу до всіх обмежених тек.</string>
+    <string name="explorer_permission_setup_both_description">Ця тека потребує підвищеного доступу. Установіть і налаштуйте root або Shizuku в налаштуваннях.</string>
+    <string name="explorer_permission_setup_shizuku_description">Ця тека потребує підвищеного доступу через Shizuku. Установіть Shizuku Manager і налаштуйте його в налаштуваннях.</string>
+    <string name="explorer_permission_setup_root_description">Ця тека потребує root-доступу. Налаштуйте root, якщо на вашому пристрої є root-права.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Скористайтеся вибором теки в Android, щоб надати доступ до цієї теки.</string>
+    <string name="explorer_permission_option_picker_action">Відкрити вибір SAF</string>
+
+    <string name="explorer_permission_option_setup_title">Повний доступ</string>
+    <string name="explorer_permission_option_setup_description">Налаштуйте root або Shizuku для швидшого доступу до всіх обмежених тек.</string>
+    <string name="explorer_permission_option_setup_action">Налаштувати</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Доступ до сховища</string>
+    <string name="explorer_permission_option_storage_description">Надайте Butler дозвіл на доступ до файлів у сховищі пристрою.</string>
+    <string name="explorer_permission_option_storage_action">Надати дозвіл</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">Відкрити в нових вкладках</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Обране</string>
+    <string name="explorer_action_add_to_favorites">Додати до обраного</string>
+    <string name="explorer_action_remove_from_favorites">Вилучити з обраного</string>
+    <string name="explorer_favorites_select_action">Вибрати</string>
+    <string name="explorer_favorites_unavailable_subtitle">Недоступно</string>
+    <string name="explorer_favorites_unavailable_toast">Обране недоступне</string>
+    <string name="explorer_favorites_added_message">Додано %1$s до обраного</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">Додано %1$d елемент до обраного</item>
+        <item quantity="few">Додано %1$d елементи до обраного</item>
+        <item quantity="many">Додано %1$d елементів до обраного</item>
+        <item quantity="other">Додано %1$d елемента до обраного</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">Вилучено %1$s з обраного</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">Вилучено %1$d елемент з обраного</item>
+        <item quantity="few">Вилучено %1$d елементи з обраного</item>
+        <item quantity="many">Вилучено %1$d елементів з обраного</item>
+        <item quantity="other">Вилучено %1$d елемента з обраного</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Перейменувати обране</string>
+    <string name="explorer_favorites_rename_hint">Назва обраного</string>
+    <string name="explorer_favorites_rename_description">Перейменовується лише запис в обраному, сама тека зберігає свою назву.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">Ця вкладка перевизначає порядок сортування в %1$d теці</item>
+        <item quantity="few">Ця вкладка перевизначає порядок сортування в %1$d теках</item>
+        <item quantity="many">Ця вкладка перевизначає порядок сортування в %1$d теках</item>
+        <item quantity="other">Ця вкладка перевизначає порядок сортування в %1$d теці</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d тека</item>
+        <item quantity="few">%1$d теки</item>
+        <item quantity="many">%1$d тек</item>
+        <item quantity="other">%1$d теки</item>
+    </plurals>
+</resources>

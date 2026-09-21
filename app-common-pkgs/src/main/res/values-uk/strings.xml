@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">Невалідний перелік програм</string>
+    <string name="pkgrepo_invalid_inventory_error_description">Система надала недійсний список установлених програм для Butler.</string>
+</resources>

@@ -1,0 +1,544 @@
+<resources>
+    <string name="onboarding_welcome_title">Ласкаво просимо до Butler</string>
+    <string name="onboarding_welcome_message">Вкладки для файлів.\nПереглядайте, шукайте та редагуйте — все одночасно.</string>
+    <string name="onboarding_welcome_subtitle">Відкритий код. Без реклами. Без стеження.\nПровідник файлів, на який ви заслуговуєте.</string>
+    <string name="onboarding_welcome_action">Почати</string>
+    <string name="onboarding_beta_title">Формуйте майбутнє</string>
+    <string name="onboarding_beta_message">Це бета-версія (тестова збірка). Продовжуйте з почуттям гумору та планом на випадок збою. Будь ласка, повідомляйте про проблеми, які ви зустрінете.</string>
+    <string name="onboarding_beta_action">Мені нічого не страшно</string>
+    <string name="onboarding_beta_feature_early_access_title">Ранній доступ</string>
+    <string name="onboarding_beta_feature_early_access_description">Спробуйте найновіші функції раніше за всіх.</string>
+    <string name="onboarding_beta_feature_influence_title">Прямий вплив</string>
+    <string name="onboarding_beta_feature_influence_description">Ваші відгуки впливають на розвиток Butler.</string>
+    <string name="onboarding_beta_feature_feedback_title">Спільнота</string>
+    <string name="onboarding_beta_feature_feedback_description">Приєднуйтеся до спільноти досвідчених користувачів, які вдосконалюють Butler.</string>
+    <string name="onboarding_privacy_title">Приватність і дані</string>
+    <string name="onboarding_privacy_message">Butler не показує реклами та не продає дані користувачів. Ваша приватність важлива для мене.</string>
+    <string name="onboarding_privacy_read_action">Прочитати політику конфіденційності</string>
+    <string name="onboarding_privacy_action">Прийняти</string>
+    <string name="onboarding_skip_action">Пропустити</string>
+    <string name="onboarding_progress_step">%1$d з %2$d</string>
+
+    <string name="onboarding_workspaces_title">Працюйте у вкладках</string>
+    <string name="onboarding_workspaces_message">Відкривайте кілька вкладок і перемикайтеся між ними — як у браузері.</string>
+    <string name="onboarding_workspaces_action">Продовжити</string>
+    <string name="onboarding_workspaces_hint">Тримайте кілька вкладок відкритими одночасно.</string>
+    <string name="onboarding_workspaces_explorer_title">Провідник</string>
+    <string name="onboarding_workspaces_explorer_description">Переглядайте свої файли.</string>
+    <string name="onboarding_workspaces_searcher_title">Пошук</string>
+    <string name="onboarding_workspaces_searcher_description">Знаходьте потрібне.</string>
+    <string name="onboarding_workspaces_editor_title">Редактор</string>
+    <string name="onboarding_workspaces_editor_description">Редагуйте файли.</string>
+    <string name="onboarding_workspaces_templates_title">Шаблони</string>
+    <string name="onboarding_workspaces_templates_description">Зберігайте власні налаштування.</string>
+    <string name="onboarding_workspaces_apps_description">Керуйте своїми програмами.</string>
+
+    <!-- Ярлики Провідника -->
+    <string name="shortcut_explorer_new_short">Новий провідник</string>
+    <string name="shortcut_explorer_new_long">Створити нову вкладку провідника</string>
+
+    <!-- Налаштування ярликів -->
+    <string name="shortcuts_settings_title">Ярлики</string>
+    <string name="shortcuts_settings_subtitle">Налаштування ярликів запуску</string>
+    <string name="shortcuts_settings_enabled_title">Увімкнути ярлики</string>
+    <string name="shortcuts_settings_enabled_subtitle">Показувати часто використовувані елементи в лаунчері</string>
+    <string name="shortcuts_settings_auto_remember_title">Запам’ятовувати відвідані шляхи</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Автоматично додавати часто відвідувані шляхи як ярлики</string>
+    <string name="shortcuts_settings_last_accessed_title">Останній доступ</string>
+    <string name="shortcuts_settings_max_count_title">Максимум ярликів</string>
+    <string name="shortcuts_settings_max_count_subtitle">Зараз показано %d ярликів</string>
+    <string name="shortcuts_settings_min_access_title">Мінімум звернень</string>
+    <string name="shortcuts_settings_min_access_subtitle">Потрібно %d звернень перед показом</string>
+    <string name="shortcuts_settings_current_title">Поточні ярлики</string>
+    <string name="shortcuts_settings_current_subtitle">Відстежується %d ярликів</string>
+    <string name="shortcuts_settings_clear_title">Очистити історію ярликів</string>
+    <string name="shortcuts_settings_clear_subtitle">Видалити всі відстежувані ярлики</string>
+    <string name="shortcuts_settings_clear_confirm_title">Очистити історію ярликів?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Це видалить усі відстежувані ярлики. Обране буде збережено.</string>
+    <string name="shortcuts_settings_cleared_message">Історію ярликів очищено</string>
+    <string name="shortcuts_settings_max_dialog_title">Максимум ярликів</string>
+    <string name="shortcuts_settings_max_dialog_message">Кількість ярликів для показу в лаунчері (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Мінімальна кількість звернень</string>
+    <string name="shortcuts_settings_min_dialog_message">Скільки разів потрібно відкрити шлях, перш ніж він з’явиться як ярлик (1–10)</string>
+
+    <string name="setup_usagestats_title">Статистика використання</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Доступ до сповіщень</string>
+    <string name="setup_manage_storage_card_title">Керування зовнішнім сховищем</string>
+    <string name="setup_inventory_card_title">Список програм</string>
+
+    <string name="setup_title">Налаштування дозволів</string>
+    <string name="setup_settings_description">Налаштуйте дозволи та функції програми.</string>
+    <string name="setup_help_description">Довідка</string>
+
+    <string name="setup_root_description">Надає доступ до системних файлів і захищених каталогів для розширеного керування файлами. Розкриває весь потенціал Butler, зокрема доступ до даних програм і зміну системи. Пристрій має бути рутований.</string>
+    <string name="setup_shizuku_description">Альтернатива root, що надає привілейовані файлові операції через безпечний API. Дозволяє доступ до обмежених каталогів без традиційного root. Потребує встановленої та запущеної програми Shizuku.</string>
+    <string name="setup_notification_description">Показує оновлення про файлові операції, фонові завдання та хід перенесення. Тримає вас в курсі завершення операцій чи помилок.</string>
+    <string name="setup_usagestats_description">Аналізує використання сховища програмами, щоб знаходити великі файли та ефективно керувати простором. Усі дані залишаються на пристрої й ніколи не передаються.</string>
+    <string name="setup_storage_description">Повний доступ до всього сховища пристрою для швидких файлових операцій і пакетної обробки. Дозволяє повноцінне керування файлами без повторних запитів дозволу.</string>
+    <string name="setup_inventory_description">Показує всі встановлені програми для таких функцій, як видобування APK і аналіз сховища. Потрібно на Android 11+ для перегляду повного списку програм.</string>
+
+    <string name="setup_grant_access_label">Надати доступ</string>
+    <string name="setup_access_granted_label">Доступ надано</string>
+    <string name="setup_use_root_label">Використовувати root, якщо доступний</string>
+    <string name="setup_use_shizuku_label">Використовувати Shizuku, якщо доступний</string>
+
+    <string name="setup_status_checking">Перевірка…</string>
+    <string name="setup_status_completed">Налаштовано</string>
+    <string name="setup_status_required">Обов’язково</string>
+    <string name="setup_status_optional">Необов’язково</string>
+    <string name="setup_status_connected">Підключено</string>
+    <string name="setup_status_not_connected">Не підключено</string>
+    <string name="setup_status_not_installed">Не встановлено</string>
+    <string name="setup_status_connecting">Підключення…</string>
+    <string name="setup_status_connection_failed">Не вдалося підключитися</string>
+    <string name="setup_status_unavailable">Недоступно</string>
+
+    <!-- Журнал налагодження -->
+    <string name="debug_notification_channel_label">Сповіщення налагодження</string>
+    <string name="debug_log_consent_title">Журнал налагодження</string>
+    <string name="debug_log_consent_explanation">Ця функція записує все, що робить програма, у файл, яким можна поділитися. Створений файл містить конфіденційну інформацію (наприклад, назви файлів і встановлені програми). Діліться ним лише з довіреними особами (наприклад, розробником, який усуває проблему).</string>
+    <string name="debug_log_recording_progress">Запис журналу налагодження</string>
+    <string name="debug_log_record_action">Записати</string>
+    <string name="debug_log_record_full_action">Записати журнал налагодження</string>
+    <string name="debug_log_stop_action">Зупинити запис</string>
+    <string name="debug_log_screen_title">Реєстратор журналу налагодження</string>
+    <string name="debug_log_screen_sensitive_information_message">Створений файл містить конфіденційну інформацію (наприклад, назви файлів і встановлені програми). Діліться ним лише з довіреними особами.</string>
+    <string name="debug_log_screen_session_path_label">Шлях сеансу налагодження</string>
+    <string name="debug_log_screen_log_files_label">Файли журналу</string>
+    <string name="debug_log_screen_log_files_ready">Файли журналу готові (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Відхилити</string>
+    <string name="debug_log_file_label">Записаний файл журналу</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">Записується файл журналу</string>
+    <string name="debug_banner_stop_action">Зупинити</string>
+    <string name="debug_banner_view_action">Переглянути</string>
+    <string name="debug_banner_explanation">Записується активність програми. Зупиніть, коли завершите, а тоді поділіться журналом, повідомляючи про проблему.</string>
+    <string name="debug_log_short_recording_title">Запис дуже короткий</string>
+    <string name="debug_log_short_recording_message">Журнали налагодження фіксують те, що відбувається під час запису. Почніть запис, відтворіть проблему, а тоді зупиніть. Цей запис може не містити корисної інформації.</string>
+    <string name="debug_log_short_recording_keep_action">Продовжити запис</string>
+
+    <string name="debug_logview_screen_title">Перегляд журналу</string>
+    <string name="debug_logview_pause_action">Призупинити (заморозити відображення)</string>
+    <string name="debug_logview_resume_action">Відновити</string>
+    <string name="debug_logview_copy_action">Копіювати журнал</string>
+    <string name="debug_logview_collapse_action">Згорнути</string>
+    <string name="debug_logview_close_action">Закрити панель журналу</string>
+    <string name="debug_logview_resize_action">Змінити розмір</string>
+    <string name="debug_logview_more_action">Додаткові параметри</string>
+    <string name="debug_logview_level_action">Рівень журналювання</string>
+    <string name="debug_logview_clear_action">Очистити буфер</string>
+    <string name="debug_logview_search_action">Пошук</string>
+    <string name="debug_logview_search_clear_action">Очистити пошук</string>
+    <string name="debug_logview_search_close_action">Закрити пошук</string>
+    <string name="debug_logview_search_prev_action">Попередній збіг</string>
+    <string name="debug_logview_search_next_action">Наступний збіг</string>
+    <string name="debug_logview_jump_to_bottom_action">Перейти до останніх</string>
+    <string name="debug_logview_paused_msg">Призупинено — відображення заморожено</string>
+    <string name="debug_logview_paused_new_msg">Призупинено — %1$d нових рядків відтоді</string>
+    <string name="debug_logview_copied_msg">Журнал скопійовано в буфер обміну</string>
+    <string name="debug_logview_copied_truncated_msg">Останні %1$d рядків скопійовано в буфер обміну</string>
+    <string name="debug_logview_share_label">Поділитися журналом</string>
+
+    <string name="settings_label">Налаштування</string>
+    <string name="settings_category_tools_label">Інструменти</string>
+    <string name="settings_category_other_label">Інше</string>
+    <string name="settings_category_integration_label">Інтеграція</string>
+    <string name="general_settings_label">Загальні</string>
+    <string name="general_settings_desc">Загальні налаштування, що впливають на всю програму.</string>
+    <string name="settings_category_ui_label">Інтерфейс користувача</string>
+    <string name="ui_mascot_suit_setting_label">Костюм Butler</string>
+    <string name="ui_mascot_suit_setting_explanation">Колір, з якого пошито костюм Butler.</string>
+    <string name="ui_theme_mode_setting_label">Режим теми</string>
+    <string name="ui_theme_mode_setting_explanation">Режим, що застосовується для теми програми (наприклад, нічний чи денний).</string>
+    <string name="ui_theme_style_setting_label">Стиль теми</string>
+    <string name="ui_theme_style_setting_explanation">Стиль кольорів, що застосовується для теми програми.</string>
+    <string name="ui_theme_color_setting_label">Колір теми</string>
+    <string name="ui_theme_color_setting_explanation">Колірна палітра, що застосовується для теми програми.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Кольори надаються Material You з ваших шпалер</string>
+    <string name="ui_theme_color_value_system">Системні кольори</string>
+    <string name="ui_language_override_label">Мова програми</string>
+    <string name="ui_language_override_desc">Виберіть іншу мову для Butler, незалежно від мови системи за замовчуванням.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Уникати вирізу дисплея</string>
+    <string name="ui_display_cutout_avoid_setting_description">Тримає інтерфейс подалі від вирізу камери. Вимкніть, щоб використати більше екрана, але тоді частини інтерфейсу можуть опинитися за вирізом.</string>
+
+    <string name="previews_settings_title">Попередній перегляд</string>
+    <string name="previews_settings_subtitle">Керування кешем попереднього перегляду зображень.</string>
+
+    <string name="tour_settings_reset_title">Скинути навчальні тури</string>
+    <string name="tour_settings_reset_subtitle">Показати навчальні тури знову, зокрема ті, які ви пропустили чи вимкнули.</string>
+    <string name="tour_settings_reset_done">Навчальні тури скинуто.</string>
+
+    <string name="storage_settings_title">Сховище</string>
+    <string name="storage_settings_subtitle">Керування кешем, сховищем і кошиком Butler.</string>
+    <string name="storage_category_previews_label">Попередній перегляд</string>
+    <string name="storage_previews_disk_cache_title">Кеш на диску</string>
+    <string name="storage_previews_memory_cache_title">Кеш у пам’яті</string>
+    <string name="storage_previews_max_size_title">Максимальний розмір кешу</string>
+    <string name="storage_clear_disk_confirm_title">Очистити дисковий кеш?</string>
+    <string name="storage_clear_disk_confirm_message">Це видалить усі кешовані зображення попереднього перегляду. Вони будуть створені знову за потреби.</string>
+    <string name="storage_clear_memory_confirm_title">Очистити кеш у пам’яті?</string>
+    <string name="storage_clear_memory_confirm_message">Це видалить кешовані зображення попереднього перегляду з пам’яті. Вони будуть створені знову за потреби.</string>
+    <string name="storage_clear_all_confirm_title">Очистити весь кеш?</string>
+    <string name="storage_clear_all_confirm_message">Це очистить кеш на диску та в пам’яті для зображень попереднього перегляду.</string>
+    <string name="storage_clear_all_previews_action">Очистити весь кеш попереднього перегляду</string>
+    <string name="storage_clear_all_subtitle">Видалити весь кеш попереднього перегляду</string>
+    <string name="storage_cache_cleared_message">Кеш очищено</string>
+    <string name="storage_size_50mb">50 МБ</string>
+    <string name="storage_size_250mb">250 МБ</string>
+    <string name="storage_size_512mb">512 МБ</string>
+    <string name="storage_size_1gb">1 ГБ</string>
+
+    <string name="updater_check_enabled_setting_title">Перевіряти оновлення</string>
+    <string name="updater_check_enabled_setting_description">Дозволити Butler перевіряти онлайн наявність нової версії.</string>
+    <string name="motd_check_enabled_setting_title">Перевіряти оголошення</string>
+    <string name="motd_check_enabled_setting_description">Дозволити Butler отримувати важливі повідомлення від розробника.</string>
+    <string name="motd_card_header">Оголошення</string>
+
+    <string name="confirm_exit_setting_title">Підтвердження виходу</string>
+    <string name="confirm_exit_setting_description">Показувати діалог підтвердження під час виходу з програми.</string>
+    <string name="confirm_exit_dialog_title">Вийти з Butler</string>
+    <string name="confirm_exit_dialog_message">Це закриє програму та поверне вас на головний екран.</string>
+    <string name="confirm_exit_dialog_exit">Вийти</string>
+    <string name="confirm_exit_dialog_cancel">Скасувати</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Більше не питати</string>
+
+    <string name="settings_support_category_help_label">Отримати допомогу</string>
+    <string name="settings_support_label">Підтримка</string>
+    <string name="settings_support_description">Читайте документацію, повідомляйте про проблеми, спілкуйтеся з іншими або записуйте журнали налагодження.</string>
+    <string name="settings_support_wiki_label">Документація</string>
+    <string name="settings_support_wiki_description">Дізнайтеся, як ефективно користуватися Butler.</string>
+    <string name="settings_support_issue_tracker_description">Публічний трекер для звітів про помилки та пропозицій функцій.</string>
+    <string name="settings_support_issue_tracker_label">Трекер проблем</string>
+    <string name="settings_support_debuglog_label">Журнал налагодження</string>
+    <string name="settings_support_debuglog_desc">Записуйте все, що робить програма, у текстовий файл, яким можна поділитися.</string>
+    <string name="settings_support_debuglog_recording_desc">Зараз триває запис даних налагодження. Торкніться, щоб зупинити запис.</string>
+    <string name="settings_support_debuglog_path">Шлях журналу: %1$s</string>
+    <string name="settings_support_bugreports_label">Звіти про помилки</string>
+    <string name="settings_support_bugreports_desc">Переглядайте звіти про збої, записуйте журнали налагодження та діліться ними зі мною.</string>
+    <string name="support_contact_report_type_crash">Звіт про збій</string>
+    <string name="support_contact_report_type_reported">Звіт про помилку</string>
+    <string name="support_contact_report_type_recording">Запис</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Місце для спілкування та запитань.</string>
+
+    <string name="settings_acknowledgements_label">Подяки</string>
+    <string name="settings_acknowledgements_description">Автори, ліцензії та особливі подяки.</string>
+    <string name="settings_acks_translation_header">Переклад</string>
+    <string name="settings_acks_translators_title">Перекладачі</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Перекласти Butler</string>
+    <string name="settings_acks_translate_desc">Допоможіть перекласти Butler своєю мовою.</string>
+
+    <string name="settings_acks_thanks_header">Подяки</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">За підтримку перекладу проєктів із відкритим кодом.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Дякуємо за іконку, дизайн маскота та анімації.</string>
+    <string name="settings_licenses_label">Ліцензії</string>
+
+    <!-- Картка статусу вкладок -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d Вкладка</item>
+        <item quantity="few">%1$d Вкладки</item>
+        <item quantity="many">%1$d Вкладок</item>
+        <item quantity="other">%1$d Вкладки</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d Операція</item>
+        <item quantity="few">%1$d Операції</item>
+        <item quantity="many">%1$d Операцій</item>
+        <item quantity="other">%1$d Операції</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Увага</item>
+        <item quantity="few">%1$d Увага</item>
+        <item quantity="many">%1$d Увага</item>
+        <item quantity="other">%1$d Увага</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Незбережено</item>
+        <item quantity="few">%1$d Незбережено</item>
+        <item quantity="many">%1$d Незбережено</item>
+        <item quantity="other">%1$d Незбережено</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d Призупинено</item>
+        <item quantity="few">%1$d Призупинено</item>
+        <item quantity="many">%1$d Призупинено</item>
+        <item quantity="other">%1$d Призупинено</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">Показати всі вкладки</string>
+    <string name="workspace_status_filter_operations_desc">Фільтрувати за вкладками з операціями</string>
+    <string name="workspace_status_filter_attention_desc">Фільтрувати за вкладками, що потребують уваги</string>
+    <string name="workspace_status_filter_paused_desc">Фільтрувати за призупиненими вкладками</string>
+    <string name="workspace_status_filter_unsaved_desc">Фільтрувати за вкладками з незбереженими змінами</string>
+
+    <!-- Подяки -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Мова програмування Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Швидкий інжектор залежностей для Android і Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Запускайте код Java (і Kotlin) від імені root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Запуск рутованого коду Kotlin JVM зі спрощеними корутинами. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Використання системних API напряму з правами adb/root у звичайних програмах через процес Java, запущений за допомогою app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Lottie для Android від Airbnb. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Робот Android відтворений або змінений з роботи, створеної та поширюваної Google, і використовується згідно з умовами ліцензії Creative Commons 3.0 Attribution.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Сучасний інструментарій Android для створення нативного інтерфейсу. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Бібліотеки Jetpack</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation та інші бібліотеки AndroidX. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Розширення Kotlin</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Бібліотеки Coroutines і Serialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Бібліотека завантаження зображень на основі Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Криптографічні примітиви для автентифікації, підписування та шифрування SMB. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Бібліотеки Square</string>
+    <string name="acknowledgement_square_libraries_subtitle">Мережеві бібліотеки Retrofit, OkHttp і OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Допоміжні засоби для Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Перетягування для LazyColumn у Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Бібліотека семантичного версіонування для Kotlin. (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Графіки та діаграми для Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Політика конфіденційності</string>
+    <string name="settings_privacy_policy_desc">Відповідальне поводження з даними.</string>
+
+
+    <string name="changelog_label">Журнал змін</string>
+
+    <!-- Статус оновлення -->
+    <string name="settings_upgrade_status_label">Статус оновлення Butler</string>
+    <string name="upgrade_status_free">Статус: Безкоштовна</string>
+    <string name="upgrade_status_pro">Статус: Pro</string>
+    <string name="upgrade_status_foss">Статус: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD-картка</string>
+    <string name="storage_area_public_label">Загальне сховище</string>
+    <string name="storage_area_public_app_data_label">Загальнодоступні дані програм</string>
+
+    <!-- Робочий простір -->
+    <!-- Робочий простір > Менеджер -->
+    <string name="workspace_manager_title">Менеджер вкладок</string>
+    <string name="workspace_manager_empty_title">Немає вкладок</string>
+    <string name="workspace_manager_empty_subtitle">Створіть першу вкладку, щоб почати</string>
+
+    <!-- Робочий простір > Порожній вміст-->
+    <string name="workspace_empty_create_action">Створити вкладку</string>
+    <string name="workspace_empty_create_hint">Працюйте паралельно: створіть вкладку та перетворіть її на потрібний інструмент.</string>
+    <string name="workspace_empty_settings_action">Відкрити налаштування</string>
+    <string name="workspace_empty_settings_hint">Налаштуйте Butler під себе. Змініть поведінку інструментів.</string>
+    <string name="workspace_classic_empty_tabs_closed">Немає відкритих вкладок. Готово, коли будете готові.</string>
+    <string name="workspace_classic_empty_tip">Порада: торкніться «Створити вкладку» і виберіть інструмент — Провідник, Пошук, Редактор та інше.</string>
+
+    <!-- Робочий простір > Навчальний тур -->
+    <string name="tour_first_tab_title">Почніть із вкладки</string>
+    <string name="tour_first_tab_body">Butler працює у вкладках, як браузер: кожна з них — окремий інструмент: Провідник, Пошук, Редактор та інше. Створіть свою першу вкладку.</string>
+    <string name="tour_manager_fab_title">Швидкі ярлики</string>
+    <string name="tour_manager_fab_body">Торкніться цього, щоб отримати ярлики до інструментів, якими ви користуєтеся найчастіше, і закрити всі вкладки одразу.</string>
+    <string name="tour_manager_reorder_title">Змініть порядок вкладок</string>
+    <string name="tour_manager_reorder_body">Натисніть і утримуйте заголовок вкладки, а тоді перетягніть її туди, де хочете. Це порядок, у якому вкладки відображаються всюди.</string>
+    <string name="tour_manager_select_title">Працюйте з кількома вкладками</string>
+    <string name="tour_manager_select_body">Натисніть і утримуйте попередній перегляд вкладки, щоб почати вибір вкладок. Потім торкніться решти та закрийте чи призупиніть їх усі одразу.</string>
+    <string name="tour_manager_new_tab_title">Почніть нову вкладку</string>
+    <string name="tour_manager_new_tab_body">Торкніться цієї картки, щоб вибрати будь-який інструмент для нової вкладки.</string>
+    <string name="tour_swipe_switch_title">Гортайте між вкладками</string>
+    <string name="tour_swipe_switch_body">Проведіть пальцем ліворуч або праворуч у будь-якому місці сторінки, щоб перейти між відкритими вкладками.</string>
+    <string name="tour_swipe_create_title">Гортання, щоб почати вкладку</string>
+    <string name="tour_swipe_create_body">Проведіть пальцем за межі останньої вкладки, і Butler запропонує нову.</string>
+    <string name="tour_swipe_panes_title">Кілька вкладок одночасно</string>
+    <string name="tour_swipe_panes_body">На великому екрані або в альбомній орієнтації Butler показує кілька вкладок поруч. Налаштування розташування в розділі «Вкладки» визначають, коли це відбувається.</string>
+    <string name="tour_panes_rail_title">Усі ваші вкладки</string>
+    <string name="tour_panes_rail_body">Тут містяться всі відкриті вкладки. Торкніться однієї та виберіть панель, куди її помістити. Натисніть і утримуйте вкладку, а тоді перетягніть її, щоб змінити порядок.</string>
+    <string name="tour_panes_divider_title">Змініть розмір панелей</string>
+    <string name="tour_panes_divider_body">Перетягніть цей розділювач, щоб дати одній панелі більше місця.</string>
+    <string name="tour_panes_layout_title">Змініть розташування</string>
+    <string name="tour_panes_layout_body">Торкніться кнопки Butler і виберіть «Розташування», щоб переставити панелі. Налаштування «Вкладки» закріплюють розташування для кожної орієнтації.</string>
+
+    <string name="workspace_creating_placeholder">Створення вкладки…</string>
+    <string name="workspace_ondemand_swipe_title">Проведіть пальцем, щоб створити нову вкладку</string>
+
+    <!-- Адаптивний робочий простір -->
+    <string name="workspace_adaptive_pane_ready">Панель %1$d готова до вмісту</string>
+    <string name="workspace_adaptive_add_action">Додати вкладку</string>
+
+    <string name="workspace_badge_tip_title">Порада: індикатори кнопки вкладок</string>
+    <string name="workspace_badge_open_workspaces">Кількість відкритих вкладок</string>
+    <string name="workspace_badge_active_operations">Активні операції (копіювання файлів, пошук тощо)</string>
+    <string name="workspace_badge_attention_items">Елементи, що потребують уваги (невдалі чи очікувальні операції, недоступні файли)</string>
+
+    <!-- Дії менеджера вкладок -->
+    <string name="workspace_manager_dismiss_content_desc">Закрити</string>
+    <string name="workspace_manager_selection_count">Вибрано: %1$d</string>
+    <string name="workspace_manager_selection_select_all">Вибрати все</string>
+    <string name="workspace_manager_selection_pause_action">Призупинити вибрані</string>
+    <string name="workspace_manager_selection_close_action">Закрити вибрані</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Вийти з режиму вибору</string>
+    <string name="workspace_manager_selection_clear_content_desc">Зняти вибір</string>
+    <string name="workspace_manager_select_all_tabs_desc">Вибрати всі вкладки</string>
+    <string name="workspace_manager_new_tab_card_title">Нова вкладка</string>
+    <string name="workspace_row_select_content_desc">Вибрати вкладку</string>
+    <string name="general_cancel_action">Скасувати</string>
+
+    <!-- FAB менеджера вкладок -->
+    <string name="workspace_fab_quick_shortcuts">Швидкі ярлики</string>
+    <string name="workspace_fab_close_shortcuts">Закрити ярлики</string>
+    <string name="workspace_fab_close_all">Закрити всі вкладки</string>
+
+    <!-- Бічна панель вкладок -->
+    <string name="workspace_pane_assign_action">Призначити до панелі %1$d</string>
+    <string name="workspace_pane_show_action">Показати</string>
+    <string name="workspace_pane_close_action">Закрити</string>
+    <string name="workspace_pane_unassign_action">Прибрати з панелі</string>
+    <string name="workspace_dragging_description">Перетягування</string>
+    <string name="workspace_pane_current_description">На панелі %1$d</string>
+
+    <!-- Рядок менеджера вкладок -->
+    <string name="workspace_row_close_content_desc">Закрити вкладку</string>
+    <string name="workspace_row_more_options_content_desc">Додаткові параметри</string>
+    <string name="workspace_row_operations_running_content_desc">Виконується</string>
+    <string name="workspace_row_operations_pending_content_desc">Очікує виконання</string>
+    <string name="workspace_row_pause_action">Призупинити</string>
+    <string name="workspace_row_resume_action">Відновити</string>
+    <string name="workspace_row_stacked_content_desc">Об’єднано з цією вкладкою</string>
+    <string name="workspace_row_unsaved_content_desc">Незбережені зміни</string>
+
+    <!-- Список налаштувань -->
+    <string name="workspace_settings_subtitle">Налаштування поведінки вкладок.</string>
+    <string name="explorer_settings_subtitle">Налаштування поведінки провідника файлів.</string>
+    <string name="searcher_settings_subtitle">Налаштування поведінки пошуку.</string>
+    <string name="editor_settings_subtitle">Налаштування поведінки текстового редактора.</string>
+    <string name="history_settings_subtitle">Зберігання та очищення історії операцій.</string>
+    <string name="clipboard_settings_subtitle">Налаштування поведінки буфера обміну.</string>
+
+    <!-- Ціль надсилання: Saver -->
+    <string name="saver_share_label">Зберегти як…</string>
+
+    <!-- Ціль надсилання одного файлу -->
+    <string name="share_receive_label">Відкрити в Butler</string>
+
+    <!-- Ціль надсилання: Редактор -->
+    <string name="editor_share_label">Редагувати текст</string>
+
+    <!-- Відкрити за допомогою: файл, переданий Butler іншою програмою -->
+    <string name="external_open_unknown_file_title">Файл без назви</string>
+    <string name="external_open_action_view">Переглянути</string>
+    <string name="external_open_action_edit">Редагувати як текст</string>
+    <string name="external_open_action_show_in_explorer">Показати в Провіднику</string>
+    <string name="external_open_action_save">Зберегти як…</string>
+    <string name="external_open_failed_label">Не вдалося відкрити файл</string>
+    <string name="external_open_failed_description">Butler не зміг відкрити \"%1$s\".</string>
+
+    <!-- Режим розробника -->
+    <string name="settings_developer_mode_unlock_title">Увімкнути режим розробника?</string>
+    <string name="settings_developer_mode_unlock_message">Це розблокує розширені діагностичні інструменти для усунення несправностей і тестування.</string>
+    <string name="settings_developer_mode_unlock_action">Увімкнути</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">%d крок до режиму розробника</item>
+        <item quantity="few">%d кроки до режиму розробника</item>
+        <item quantity="many">%d кроків до режиму розробника</item>
+        <item quantity="other">%d кроку до режиму розробника</item>
+    </plurals>
+
+    <!-- Підтримка: контактна форма -->
+    <string name="support_contact_label">Зв’язатися з розробником</string>
+    <string name="support_contact_description">Заповніть форму, щоб надіслати мені лист.</string>
+    <string name="support_contact_no_email_app">Не знайдено поштової програми</string>
+    <string name="support_contact_category_label">Категорія</string>
+    <string name="support_contact_category_question">Питання</string>
+    <string name="support_contact_category_feature">Пропозиція функції</string>
+    <string name="support_contact_category_bug">Звіт про помилку</string>
+    <string name="support_contact_workspace_label">Пов’язана область</string>
+    <string name="support_contact_workspace_general">Загальне</string>
+    <string name="support_contact_workspace_explorer">Провідник</string>
+    <string name="support_contact_workspace_searcher">Пошук</string>
+    <string name="support_contact_workspace_editor">Редактор</string>
+    <string name="support_contact_description_label">Опис</string>
+    <string name="support_contact_description_question_hint">Детально опишіть своє питання. Будь ласка, будьте конкретними (мінімум 20 слів).</string>
+    <string name="support_contact_description_feature_hint">Опишіть функцію, яку ви хотіли б побачити. Будь ласка, будьте конкретними (мінімум 20 слів).</string>
+    <string name="support_contact_description_bug_hint">Опишіть, що сталося і як відтворити проблему. Будь ласка, будьте конкретними (мінімум 20 слів).</string>
+    <string name="support_contact_expected_label">Очікувана поведінка</string>
+    <string name="support_contact_expected_hint">Опишіть, чого ви очікували (мінімум 10 слів).</string>
+    <string name="support_contact_word_count">Щонайменше %1$d слів</string>
+    <string name="support_contact_debuglog_label">Журнал налагодження</string>
+    <string name="support_contact_debuglog_empty">Журналів налагодження не знайдено. Спершу запишіть один.</string>
+    <string name="support_contact_debuglog_picker_hint">Додайте наявний журнал налагодження або запишіть новий.</string>
+    <string name="support_contact_send_action">Відкрити поштову програму</string>
+    <string name="support_contact_welcome">Я особисто читаю кожне повідомлення і намагаюся відповісти, але оскільки працюю над цим сам, це може зайняти трохи часу. Дякую за терпіння.</string>
+    <string name="support_contact_footer">Ваше повідомлення буде надіслано електронною поштою. Інформація про пристрій і налаштування додається автоматично. До листа можна долучити скриншоти або відео.\n\nДеякі частини листа будуть англійською мовою, щоб мені було легше їх зрозуміти.</string>
+
+    <!-- Підтримка: сховище журналів налагодження -->
+    <string name="support_debuglog_storage_label">Сховище журналів налагодження</string>
+    <string name="support_debuglog_storage_description">%1$d сеансів журналу, %2$s</string>
+    <string name="support_debuglog_storage_empty">Журнали налагодження не збережено</string>
+    <string name="support_debuglog_delete_action">Видалити всі журнали налагодження</string>
+    <string name="support_debuglog_delete_description">Видалити всі записані файли журналу налагодження</string>
+    <string name="support_debuglog_delete_confirm_title">Видалити всі журнали налагодження?</string>
+    <string name="support_debuglog_delete_confirm_message">Це назавжди видалить усі записані сеанси журналу налагодження. Активні записи це не торкнеться.</string>
+
+    <!-- Підтримка: дії з журналом налагодження -->
+    <string name="settings_support_debuglog_stop_action">Зупинити запис</string>
+    <string name="settings_support_debuglog_record_action">Записати журнал налагодження</string>
+
+    <!-- Підтримка: нижня панель сеансів налагодження -->
+    <string name="support_debuglog_sessions_label">Сеанси журналу налагодження</string>
+    <string name="support_debuglog_sessions_desc">Керування записаними сеансами журналу налагодження</string>
+    <string name="support_debuglog_sessions_empty">Немає сеансів журналу налагодження</string>
+    <string name="support_debuglog_session_recording">Запис…</string>
+    <string name="support_debuglog_session_compressing">Стиснення…</string>
+    <string name="support_debuglog_session_failed_empty_log">Помилка: порожній журнал</string>
+    <string name="support_debuglog_session_failed_missing_log">Помилка: журнал відсутній</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Помилка: пошкоджений архів</string>
+    <string name="support_debuglog_session_failed_zip_failed">Помилка: помилка стиснення</string>
+    <string name="support_debuglog_session_delete_title">Видалити сеанс налагодження?</string>
+    <string name="support_debuglog_session_delete_message">Це назавжди видалить цей сеанс журналу налагодження.</string>
+    <string name="support_debuglog_clear_action">Очистити все</string>
+    <string name="support_debuglog_clear_confirm_message">Видалити всі збережені сеанси журналу налагодження?</string>
+
+    <!-- Екран журналу налагодження -->
+    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_screen_subtitle">Експортуйте діагностичну інформацію для усунення несправностей</string>
+    <string name="debug_log_screen_sensitive_information_title">Конфіденційна інформація</string>
+
+    <!-- Підтримка: контактна форма -->
+    <string name="support_contact_sent_title">Ви надіслали повідомлення?</string>
+    <string name="support_contact_sent_message">Якщо повідомлення надіслано, доданий журнал налагодження буде видалено для економії місця. Якщо ні, ви можете зберегти його і спробувати пізніше.</string>
+    <string name="support_contact_debuglog_zip_error">Не вдалося підготувати вкладення журналу налагодження</string>
+
+    <!-- Фонові файлові операції: сповіщення про хід та про потребу уваги -->
+    <string name="ops_notification_channel_progress_name">Хід файлових операцій</string>
+    <string name="ops_notification_channel_progress_desc">Поточний хід операцій копіювання, переміщення та видалення</string>
+    <string name="ops_notification_channel_attention_name">Сповіщення про файлові операції</string>
+    <string name="ops_notification_channel_attention_desc">Операції, що потребують вашої уваги або завершилися невдало</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d файлова операція виконується</item>
+        <item quantity="few">%1$d файлові операції виконуються</item>
+        <item quantity="many">%1$d файлових операцій виконується</item>
+        <item quantity="other">%1$d файлової операції виконується</item>
+    </plurals>
+    <string name="ops_notification_state_queued">У черзі…</string>
+    <string name="ops_notification_state_cancelling">Скасування…</string>
+    <string name="ops_notification_state_attention_title">Потрібна дія</string>
+    <string name="ops_notification_state_attention_text">Конфлікт потребує вашої уваги — торкніться, щоб вирішити</string>
+    <string name="ops_notification_result_failed_title">Операція не вдалася</string>
+
+    <!-- Запит на відгук -->
+    <string name="review_app_body">Бажаєте залишити відгук про Butler? ❤️</string>
+    <string name="review_app_dismiss_action">Можливо пізніше</string>
+    <string name="review_app_review_action">Залишити відгук</string>
+
+</resources>

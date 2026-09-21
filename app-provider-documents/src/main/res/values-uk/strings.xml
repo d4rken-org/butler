@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Розширений доступ до пристрою</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Пристрій</string>
+    <string name="documents_connection_device_summary">Локальне сховище пристрою</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Коренева файлова система</string>
+    <string name="provider_documents_storage_internal_label">Внутрішнє сховище</string>
+    <string name="provider_documents_storage_sd_card_label">Карта SD</string>
+    <string name="provider_documents_storage_saf_label">Розташування SAF</string>
+    <string name="provider_documents_storage_free_suffix">вільно</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">Потрібен доступ root для перегляду цього розташування. Увімкніть доступ root у налаштуваннях програми Butler.</string>
+    <string name="provider_documents_error_requires_adb">Потрібен доступ ADB/Shizuku для перегляду цього розташування. Увімкніть Shizuku у налаштуваннях програми Butler.</string>
+    <string name="provider_documents_error_requires_storage">Потрібен дозвіл на доступ до сховища для перегляду цього розташування. Надайте дозвіл на доступ до сховища у налаштуваннях програми Butler.</string>
+    <string name="provider_documents_error_requires_permissions">Потрібні додаткові дозволи для перегляду цього розташування. Перевірте налаштування програми Butler.</string>
+    <string name="provider_documents_error_generic">Не вдалося отримати доступ до цього розташування. Перевірте додаток Butler для параметрів доступу.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Поставщик документів</string>
+    <string name="provider_documents_settings_subtitle">Інтеграція зовнішніх програм</string>
+    <string name="provider_documents_settings_category_integration_label">Інтеграція</string>
+    <string name="provider_documents_enabled_title">Увімкнути поставщика документів</string>
+    <string name="provider_documents_enabled_desc">Дозволити іншим програмам отримати доступ до файлів через Butler, використовуючи засіб вибору файлів Android</string>
+</resources>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Редактор</string>
+    <string name="editor_subtitle">Редагування текстових файлів</string>
+    <string name="editor_settings_title">Налаштування редактора</string>
+    <string name="editor_settings_show_line_numbers_title">Показувати номери рядків</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Відображати номери рядків у редакторі.</string>
+    <string name="editor_settings_word_wrap_title">Перенесення рядків</string>
+    <string name="editor_settings_word_wrap_subtitle">Переносити довгі рядки на ширину екрана.</string>
+    <string name="editor_settings_syntax_highlighting_title">Підсвічування синтаксису</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Кольорування коду у підтримуваних файлах (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Розмір шрифту</string>
+    <string name="editor_settings_font_size_subtitle">Розмір тексту у редакторі</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Ширина табуляції</string>
+    <string name="editor_settings_tab_size_subtitle">Кількість пропусків на символ табуляції</string>
+
+    <!-- Сторінка вкладки редактора -->
+    <string name="editor_action_open">Відкрити</string>
+    <string name="editor_action_save">Зберегти</string>
+    <string name="editor_action_save_as">Зберегти як…</string>
+    <string name="editor_action_close">Закрити</string>
+    <string name="editor_action_undo">Відмінити</string>
+    <string name="editor_action_redo">Повторити</string>
+    <string name="editor_action_search">Пошук</string>
+    <string name="editor_action_go_to_line">Перейти на рядок</string>
+    <string name="editor_action_dismiss">Закрити</string>
+    <string name="editor_action_previous">Попередній</string>
+    <string name="editor_action_next">Наступний</string>
+    <string name="editor_action_copy">Копіювати</string>
+    <string name="editor_action_cut">Вирізати</string>
+    <string name="editor_action_copy_to_butler_clipboard">Копіювати у буфер обміну Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">Вирізати у буфер обміну Butler</string>
+    <string name="editor_action_paste">Вставити</string>
+    <string name="editor_action_select_all">Вибрати все</string>
+    <string name="editor_action_delete">Видалити</string>
+
+    <!-- Підтвердження перезапису при збереженні як -->
+    <string name="editor_dialog_save_as_overwrite_title">Перезаписати файл?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s уже існує. Його поточний вміст буде замінено.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Перезаписати</string>
+
+    <!-- Повідомлення про застарілу резервну копію збереження -->
+    <string name="editor_backup_banner_message">Знайдено резервну копію від перервваного збереження:\n%1$s</string>
+
+    <!-- Повідомлення про двійковий файл -->
+    <string name="editor_binary_banner_message">Редагування як текст не підтримується</string>
+
+    <!-- Повідомлення про довгі рядки -->
+    <string name="editor_long_lines_banner_title">Дуже довгі рядки</string>
+    <string name="editor_long_lines_banner_message">Дуже довгі рядки скорочуються для відображення; повний вміст зберігається на диску.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Показати наступну частину рядка</string>
+    <string name="editor_line_truncated_marker_previous_action">Показати попередню частину рядка</string>
+
+    <!-- Повідомлення про втрату вихідного файлу -->
+    <string name="editor_backing_lost_banner_title">Файл більше недоступний</string>
+    <string name="editor_backing_lost_banner_message">Він міг бути переміщений або видалений. Цей вид лише для читання — закрийте його або відкрийте заново.</string>
+
+    <!-- Повідомлення про відновлення після переривання збереження -->
+    <string name="editor_error_save_artifacts_label">Файл відсутній, але резервна копія залишилась</string>
+    <string name="editor_error_save_artifacts_description">Файл \"%1$s\" відсутній, але незавершене збереження залишило резервну копію: %2$s. Ваш вміст, ймовірно, все ще в ній.</string>
+
+    <!-- Повідомлення про зовнішню зміну -->
+    <string name="editor_external_change_banner_title">Файл змінився на диску</string>
+    <string name="editor_external_change_banner_message">Інша програма змінила цей файл.</string>
+    <string name="editor_external_change_reload_action">Перезавантажити</string>
+    <string name="editor_external_change_keep_action">Продовжити редагування</string>
+    <string name="editor_error_external_change">Цей файл змінила інша програма. Перезавантажте файл, щоб продовжити.</string>
+    <string name="editor_dialog_reload_confirm_title">Перезавантажити файл?</string>
+    <string name="editor_dialog_reload_confirm_message">Перезавантаження відкине ваші незбережені зміни і покаже поточний вміст цього файлу на диску.</string>
+
+    <!-- Інформаційна панель редактора -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d рядок</item>
+        <item quantity="few">%1$d рядки</item>
+        <item quantity="many">%1$d рядків</item>
+        <item quantity="other">%1$d рядка</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d символ</item>
+        <item quantity="few">%1$d символи</item>
+        <item quantity="many">%1$d символів</item>
+        <item quantity="other">%1$d символа</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Вибрано %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Стани завантаження редактора -->
+    <string name="editor_loading_file">Завантаження файлу…</string>
+    <string name="editor_saving">Збереження…</string>
+    <string name="editor_action_cancel_loading">Скасувати</string>
+    <string name="editor_progress_opening">Відкриття файлу…</string>
+    <string name="editor_progress_saving">Збереження файлу…</string>
+    <string name="editor_progress_building_index">Створення індексу файлу…</string>
+
+    <!-- Елементи UI редактора -->
+    <string name="editor_error_unknown">Невідома помилка</string>
+    <string name="editor_error_read_only">Цей файл лише для читання і його неможливо змінити.</string>
+    <string name="editor_error_save_integrity_label">Збереження перервано</string>
+    <string name="editor_error_save_integrity">Збереження було перервано, і файл на диску може бути неповним. Перезавантажте файл перед подальшим редагуванням.</string>
+    <string name="editor_error_clipboard_too_large_label">Вибір занадто великий</string>
+    <string name="editor_error_clipboard_too_large">Вибір занадто великий для копіювання (обмеження %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Файл занадто великий</string>
+    <string name="editor_error_paste_too_large">Цей файл занадто великий для вставлення (максимум %1$s).</string>
+    <string name="editor_error_paste_binary_label">Це не текстовий файл</string>
+    <string name="editor_error_paste_binary">Вміст цього файлу не може бути вставлений як текст.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d з %2$d результату</item>
+        <item quantity="few">%1$d з %2$d результатів</item>
+        <item quantity="many">%1$d з %2$d результатів</item>
+        <item quantity="other">%1$d з %2$d результата</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d з %2$d+ результатів</string>
+    <string name="editor_search_too_many_matches_label">Занадто багато збігів</string>
+    <string name="editor_search_too_many_matches">Більше ніж %1$d збігів або занадто багато відповідного тексту — звузьте пошук, щоб замінити все.</string>
+    <string name="editor_search_placeholder">Пошук…</string>
+    <string name="editor_search_previous">Попередній результат</string>
+    <string name="editor_search_next">Наступний результат</string>
+    <string name="editor_search_case_sensitive_label">З урахуванням регістру</string>
+    <string name="editor_search_regex_label">Регулярний вираз</string>
+    <string name="editor_search_whole_word_label">Ціле слово</string>
+    <string name="editor_search_options_label">Параметри пошуку</string>
+    <string name="editor_search_replace_label">Заміна</string>
+    <string name="editor_search_replace_toggle">Включити/вимкнути заміну</string>
+    <string name="editor_search_replace_placeholder">Замінити на…</string>
+    <string name="editor_search_replace_one_action">Замінити</string>
+    <string name="editor_search_replace_all_action">Все</string>
+    <string name="editor_search_replaced_not_undoable">%1$d замінено (занадто велико для скасування)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d замінено</item>
+        <item quantity="few">%1$d замінено</item>
+        <item quantity="many">%1$d замінено</item>
+        <item quantity="other">%1$d замінено</item>
+    </plurals>
+
+    <!-- Діалоги редактора -->
+    <string name="editor_dialog_go_to_line_title">Перейти на рядок</string>
+    <string name="editor_dialog_go_to_line_label">Номер рядка (1–%1$d)</string>
+    <string name="editor_dialog_action_go">Перейти</string>
+    <string name="editor_dialog_action_cancel">Скасувати</string>
+    <string name="editor_dialog_close_confirm_title">Незбережені зміни</string>
+    <string name="editor_dialog_close_confirm_message">У вас є незбережені зміни. Відкинути їх?</string>
+    <string name="editor_dialog_close_confirm_discard">Відкинути</string>
+    <string name="editor_dialog_large_delete_confirm_title">Редагувати великий вибір?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Цей вибір занадто великий для скасування. Продовжити все одно?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Продовжити</string>
+    <string name="editor_encoding_dialog_title">Кодування</string>
+    <string name="editor_encoding_dialog_message">Перевідкрити файл з іншим кодуванням. Незбережені зміни будуть відкинуті; вміст файлу залишиться без змін при збереженні.</string>
+    <string name="editor_infobar_read_only">Лише для читання</string>
+    <string name="editor_line_ending_mixed">Змішані</string>
+    <string name="editor_line_ending_dialog_title">Закінчення рядків</string>
+    <string name="editor_line_ending_dialog_message">Конвертувати всі розриви рядків і зберегти файл, включаючи незбережені зміни. Історія скасувань буде очищена.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Імена файлів редактора -->
+    <string name="editor_file_untitled">Без назви</string>
+
+    <!-- Налаштування редактора - Автоматичне збереження -->
+    <string name="editor_settings_autosave_category">Автоматичне збереження</string>
+    <string name="editor_settings_autosave_enabled_title">Включити автоматичне збереження</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Автоматично зберігати зміни після періоду неактивності.</string>
+    <string name="editor_settings_autosave_interval_title">Інтервал автоматичного збереження</string>
+    <string name="editor_settings_autosave_interval_subtitle">Час очікування після останнього редагування перед збереженням.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Інтервал автоматичного збереження</string>
+
+    <!-- Налаштування редактора - Буфер обміну -->
+    <string name="editor_settings_clipboard_category">Буфер обміну</string>
+    <string name="editor_settings_clipboard_behavior_title">Буфер обміну Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Контролювати, як текстові копії зберігаються у буфері обміну Butler.</string>
+    <string name="editor_settings_clipboard_system_only">Тільки система</string>
+    <string name="editor_settings_clipboard_system_only_desc">Копіювати тільки в системний буфер обміну</string>
+    <string name="editor_settings_clipboard_butler_always">Завжди додавати до Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Також зберігати у буфері обміну Butler для вставлення між робочими просторами</string>
+    <string name="editor_settings_clipboard_ask">Питати кожного разу</string>
+    <string name="editor_settings_clipboard_ask_desc">Запитати перед додаванням до буфера обміну Butler</string>
+</resources>
