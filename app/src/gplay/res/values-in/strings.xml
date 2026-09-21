@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Memerlukan Butler Pro</string>
+
+    <string name="upgrade_prompt_title">Upgrade Butler</string>
+    <string name="upgrade_prompt_body">Butler Pro menawarkan hasil yang lebih baik, fitur lebih banyak, dan opsi untuk pengguna power.</string>
+    <string name="upgrade_prompt_upgrade_action">Upgrade</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">Dapatkan %1$s</string>
+    <string name="upgrade_screen_preamble">Butler tidak memiliki iklan dan tidak menjual data pengguna. Pekerjaan saya dibiayai oleh Anda ❤️.</string>
+
+    <string name="upgrade_screen_how_title">Opsi</string>
+    <string name="upgrade_screen_subscription_trial_action">Mulai uji coba gratis 14 hari</string>
+    <string name="upgrade_screen_subscription_action">Berlangganan</string>
+    <string name="upgrade_screen_iap_action">Pembelian satu kali</string>
+    <string name="upgrade_screen_restore_purchase_action">Pulihkan pembelian</string>
+    <string name="upgrade_screen_restore_banner_title">Sudah membeli Pro?</string>
+    <string name="upgrade_screen_restore_banner_body">Terlihat seperti Anda sudah upgrade ke Pro di perangkat ini sebelumnya. Pulihkan pembelian Anda untuk membukanya kembali.</string>
+    <string name="upgrade_screen_restore_checked_message">Butler baru saja memeriksa dengan Google Play, tetapi tidak ada pembelian Butler Pro yang dapat dikonfirmasi untuk akun yang digunakan Google Play untuk aplikasi ini.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Pemeriksaan dengan Google Play tidak selesai tepat waktu, jadi status pembelian Anda masih tidak diketahui. Tidak ada yang berubah di akun Anda.</string>
+    <string name="upgrade_screen_restore_contact_hint">Masih terjebak? Hubungi dari email yang membuat pembelian dan sertakan nomor pesanan Google Play Anda.</string>
+    <string name="upgrade_screen_contact_support_action">Hubungi dukungan</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Sinkronisasi Play Store dapat memakan waktu. Coba boot ulang, hapus cache Google Play, atau tunggu saja.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">Beberapa akun dapat membingungkan Google Play. Keluar dari akun lain atau instal melalui situs web Google Play, yang memaksa asosiasi dengan akun tertentu.</string>
+    <string name="upgrade_screen_restore_success_message">Pembelian Anda dipulihkan ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Status terlihat salah?</string>
+    <string name="upgrade_screen_restore_status_body">Periksa ulang pembelian Anda dengan Google Play. Ini dapat membantu setelah perubahan perangkat atau jika Anda beralih akun Google.</string>
+
+    <string name="upgrade_screen_offers_or">atau</string>
+
+    <string name="upgrade_screen_offers_title">Opsi upgrade</string>
+    <string name="upgrade_screen_offers_body">Kedua opsi membuka fitur Pro yang sama persis — pilih mana pun yang sesuai dengan harga Anda.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Harga tidak tersedia</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler tidak dapat memuat opsi upgrade dari Google Play. Ini sering kali bersifat sementara — coba lagi sebentar.</string>
+    <string name="upgrade_screen_subscription_offer_title">Langganan tahunan</string>
+    <string name="upgrade_screen_subscription_offer_body">Dimulai dengan uji coba gratis 14 hari, kemudian ditagih sekali per tahun. Batalkan kapan saja.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Ditagih sekali per tahun. Batalkan kapan saja.</string>
+    <string name="upgrade_screen_iap_offer_title">Beli sekali</string>
+    <string name="upgrade_screen_iap_offer_body">Bayar sekali, milik Anda selamanya. Tidak ada langganan.</string>
+    <string name="upgrade_screen_restore_body">Memulihkan meminta Google Play untuk memeriksa ulang pembelian aplikasi ini untuk akun saat ini.</string>
+
+    <string name="upgrade_screen_owned_hero_title">Anda memiliki Butler Pro!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Terima kasih untuk pembelian satu kali — Anda sudah siap selamanya ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Terima kasih sudah berlangganan ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">Pembelian satu kali</string>
+    <string name="upgrade_screen_owned_iap_body">Anda memiliki upgrade Pro permanen.</string>
+    <string name="upgrade_screen_owned_sub_title">Langganan</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Langganan Anda aktif dan diperbaharui secara otomatis.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Langganan Anda aktif tetapi disetel untuk tidak diperbaharui. Pro tetap ada hingga periode saat ini berakhir.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">Anda memiliki pembelian satu kali tetapi langganan Anda masih diperbaharui. Batalkan di Google Play untuk menghindari pembayaran dua kali.</string>
+    <string name="upgrade_screen_manage_subscription_action">Kelola langganan</string>
+
+    <string name="upgrade_screen_switch_locked_note">Pertama batalkan pembaharuan melalui \"Kelola langganan\", jika tidak Anda akan ditagih untuk keduanya.</string>
+    <string name="upgrade_screen_switch_purchase_note">Langganan Anda tidak akan diperbaharui — Anda dapat dengan aman membeli pembelian satu kali sekarang.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Langganan masih aktif</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Langganan Anda masih disetel untuk diperbaharui. Batalkan pembaharuan di Google Play terlebih dahulu agar Anda tidak ditagih untuk keduanya, lalu beli pembelian satu kali.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">Tidak dapat memverifikasi</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler tidak dapat mengkonfirmasi status pembelian Anda dengan Google Play, jadi pembelian dihentikan untuk menghindari penagihan dua kali kepada Anda. Coba lagi sebentar.</string>
+
+    <string name="upgrade_screen_pending_card_title">Pembayaran tertunda</string>
+    <string name="upgrade_screen_pending_card_body">Google Play masih memproses pembayaran Anda. Pro membuka kunci secara otomatis setelah pembayaran berhasil. Beberapa metode pembayaran dapat memakan waktu. Tidak ada yang perlu Anda lakukan.</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play menemukan pembelian dengan pembayaran yang tertunda dan masih memrosesnya. Pro membuka kunci secara otomatis setelah pembayaran berhasil.</string>
+
+    <string name="upgrade_screen_grace_title">Mengonfirmasi pembelian Anda</string>
+    <string name="upgrade_screen_grace_body_short">Google Play membutuhkan sesaat untuk mengonfirmasi status Pro Anda. Anda masih memiliki akses penuh.</string>
+    <string name="upgrade_screen_grace_body">Google Play belum mengkonfirmasi ulang status Pro Anda. Anda masih memiliki akses untuk saat ini. Jika ini terlihat salah, coba pulihkan pembelian Anda.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">Sudah dibeli?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play melaporkan bahwa Anda sudah memiliki upgrade ini, tetapi tidak dapat dipulihkan secara otomatis. Pastikan Anda masuk dengan akun Google yang digunakan untuk pembelian asli, lalu coba \"Pulihkan pembelian\".</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play tidak tersedia</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler tidak dapat terhubung ke Google Play. Apakah Google Play terinstal dan terbaru? Apakah akun Google Anda masuk? Coba hapus cache aplikasi Google Play dan boot ulang perangkat Anda.</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can't open Google Play's app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Tidak dapat membuka Google Play. Mungkin hilang, dinonaktifkan, atau dibatasi di perangkat ini.</string>
+    <string name="upgrades_gplay_billing_error_label">Masalah Google Play</string>
+    <string name="upgrades_gplay_billing_error_description">Terjadi kesalahan saat berbicara dengan Google Play. Coba lagi nanti atau boot ulang perangkat Anda.\n\nRincian: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Kesalahan Google Play</string>
+    <string name="upgrades_gplay_internal_error_description">Google Play mengalami kesalahan internal. Coba lakukan hal berikut:\n\n• Boot ulang perangkat Anda\n• Hapus cache Google Play Store\n• Coba lagi nanti</string>
+    <string name="upgrades_gplay_network_error_title">Kesalahan koneksi</string>
+    <string name="upgrades_gplay_network_error_description">Butler tidak dapat menjangkau Google Play. Periksa koneksi internet Anda dan coba lagi.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Penawaran tidak tersedia</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play saat ini tidak menawarkan opsi upgrade ini untuk akun Anda. Coba lagi nanti atau periksa Google Play Store.</string>
+    <string name="upgrades_no_purchases_found_check_account">Tidak ada pembelian yang ditemukan. Apakah Anda menggunakan akun yang benar?</string>
+
+    <string name="upgrade_benefits_title">Manfaat upgrade</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Tab dan operasi tanpa batas\n• Sesuaikan desain, nuansa, dan tampilan\n• Opsi dan fitur ekstra untuk setiap alat\n• Akses awal ke fitur baru\n• Pengembang yang termotivasi 🧙\ndan lainnya…</string>
+</resources>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Editor</string>
+    <string name="editor_subtitle">Mengedit file teks</string>
+    <string name="editor_settings_title">Setelan Editor</string>
+    <string name="editor_settings_show_line_numbers_title">Tampilkan nomor baris</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Menampilkan nomor baris di editor.</string>
+    <string name="editor_settings_word_wrap_title">Bungkus baris</string>
+    <string name="editor_settings_word_wrap_subtitle">Bungkus baris panjang agar sesuai lebar layar.</string>
+    <string name="editor_settings_syntax_highlighting_title">Penyorotan sintaks</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Kode warna dalam file yang didukung (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Ukuran font</string>
+    <string name="editor_settings_font_size_subtitle">Ukuran teks di editor</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Lebar tab</string>
+    <string name="editor_settings_tab_size_subtitle">Spasi yang direntang karakter tab</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Buka</string>
+    <string name="editor_action_save">Simpan</string>
+    <string name="editor_action_save_as">Simpan sebagai…</string>
+    <string name="editor_action_close">Tutup</string>
+    <string name="editor_action_undo">Urungkan</string>
+    <string name="editor_action_redo">Lakukan lagi</string>
+    <string name="editor_action_search">Cari</string>
+    <string name="editor_action_go_to_line">Pergi ke baris</string>
+    <string name="editor_action_dismiss">Tutup</string>
+    <string name="editor_action_previous">Sebelumnya</string>
+    <string name="editor_action_next">Berikutnya</string>
+    <string name="editor_action_copy">Salin</string>
+    <string name="editor_action_cut">Potong</string>
+    <string name="editor_action_copy_to_butler_clipboard">Salin ke papan klip Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">Potong ke papan klip Butler</string>
+    <string name="editor_action_paste">Tempel</string>
+    <string name="editor_action_select_all">Pilih semua</string>
+    <string name="editor_action_delete">Hapus</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Timpa file?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s sudah ada. Kontennya saat ini akan diganti.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Timpa</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Ditemukan cadangan dari penyimpanan yang terputus:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Mengedit sebagai teks tidak didukung</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Baris sangat panjang</string>
+    <string name="editor_long_lines_banner_message">Baris sangat panjang diperpendek untuk ditampilkan; konten penuh dipertahankan dan disimpan.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Tampilkan bagian berikutnya dari baris</string>
+    <string name="editor_line_truncated_marker_previous_action">Tampilkan bagian sebelumnya dari baris</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">File tidak lagi tersedia</string>
+    <string name="editor_backing_lost_banner_message">File mungkin telah dipindahkan atau dihapus. Tampilan ini bersifat read-only — buka kembali atau tutupnya.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">File hilang, tetapi cadangan tetap ada</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" hilang, tetapi penyimpanan yang terputus meninggalkan ini: %2$s. Konten Anda kemungkinan besar masih ada di dalamnya.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">File berubah di disk</string>
+    <string name="editor_external_change_banner_message">Aplikasi lain mengubah file ini.</string>
+    <string name="editor_external_change_reload_action">Muat ulang</string>
+    <string name="editor_external_change_keep_action">Lanjutkan penyuntingan</string>
+    <string name="editor_error_external_change">File ini diubah oleh aplikasi lain. Muat ulang file untuk melanjutkan.</string>
+    <string name="editor_dialog_reload_confirm_title">Muat ulang file?</string>
+    <string name="editor_dialog_reload_confirm_message">Memuat ulang membuang perubahan yang belum disimpan dan menampilkan konten file saat ini di disk.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="other">%1$d baris</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="other">%1$d karakter</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Dipilih %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Memuat file…</string>
+    <string name="editor_saving">Menyimpan…</string>
+    <string name="editor_action_cancel_loading">Batal</string>
+    <string name="editor_progress_opening">Membuka file…</string>
+    <string name="editor_progress_saving">Menyimpan file…</string>
+    <string name="editor_progress_building_index">Membangun indeks file…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Kesalahan tidak diketahui</string>
+    <string name="editor_error_read_only">File ini bersifat read-only dan tidak dapat diubah.</string>
+    <string name="editor_error_save_integrity_label">Penyimpanan terputus</string>
+    <string name="editor_error_save_integrity">Penyimpanan terputus dan file di disk mungkin tidak lengkap. Muat ulang file sebelum melakukan penyuntingan lebih lanjut.</string>
+    <string name="editor_error_clipboard_too_large_label">Pilihan terlalu besar</string>
+    <string name="editor_error_clipboard_too_large">Pilihan terlalu besar untuk disalin (batas %1$s).</string>
+    <string name="editor_error_paste_too_large_label">File terlalu besar</string>
+    <string name="editor_error_paste_too_large">File ini terlalu besar untuk ditempel (maks %1$s).</string>
+    <string name="editor_error_paste_binary_label">Bukan file teks</string>
+    <string name="editor_error_paste_binary">Konten file ini tidak dapat ditempel sebagai teks.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="other">%1$d dari %2$d hasil</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d dari %2$d+ hasil</string>
+    <string name="editor_search_too_many_matches_label">Terlalu banyak kecocokan</string>
+    <string name="editor_search_too_many_matches">Lebih dari %1$d kecocokan atau terlalu banyak teks yang cocok — persempit pencarian untuk mengganti semua.</string>
+    <string name="editor_search_placeholder">Cari…</string>
+    <string name="editor_search_previous">Hasil sebelumnya</string>
+    <string name="editor_search_next">Hasil berikutnya</string>
+    <string name="editor_search_case_sensitive_label">Peka huruf besar-kecil</string>
+    <string name="editor_search_regex_label">Ekspresi reguler</string>
+    <string name="editor_search_whole_word_label">Seluruh kata</string>
+    <string name="editor_search_options_label">Opsi pencarian</string>
+    <string name="editor_search_replace_label">Ganti</string>
+    <string name="editor_search_replace_toggle">Alihkan ganti</string>
+    <string name="editor_search_replace_placeholder">Ganti dengan…</string>
+    <string name="editor_search_replace_one_action">Ganti</string>
+    <string name="editor_search_replace_all_action">Semua</string>
+    <string name="editor_search_replaced_not_undoable">%1$d diganti (terlalu besar untuk urungkan)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="other">%1$d diganti</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Pergi ke baris</string>
+    <string name="editor_dialog_go_to_line_label">Nomor baris (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Pergi</string>
+    <string name="editor_dialog_action_cancel">Batal</string>
+    <string name="editor_dialog_close_confirm_title">Perubahan Tidak Disimpan</string>
+    <string name="editor_dialog_close_confirm_message">Anda memiliki perubahan yang tidak disimpan. Buang perubahan ini?</string>
+    <string name="editor_dialog_close_confirm_discard">Buang</string>
+    <string name="editor_dialog_large_delete_confirm_title">Edit pilihan besar?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Pilihan ini terlalu besar untuk urungkan. Lanjutkan saja?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Lanjutkan</string>
+    <string name="editor_encoding_dialog_title">Pengkodean</string>
+    <string name="editor_encoding_dialog_message">Buka kembali file dengan pengkodean berbeda. Perubahan yang tidak disimpan dibuang; byte yang tidak diedit tetap tidak berubah saat disimpan.</string>
+    <string name="editor_infobar_read_only">Read-only</string>
+    <string name="editor_line_ending_mixed">Campur</string>
+    <string name="editor_line_ending_dialog_title">Akhir baris</string>
+    <string name="editor_line_ending_dialog_message">Konversi semua jeda baris dan simpan file, termasuk perubahan yang tidak disimpan. Riwayat urungkan dihapus.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Tanpa judul</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Simpan otomatis</string>
+    <string name="editor_settings_autosave_enabled_title">Aktifkan simpan otomatis</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Simpan perubahan secara otomatis setelah periode tidak aktif.</string>
+    <string name="editor_settings_autosave_interval_title">Interval simpan otomatis</string>
+    <string name="editor_settings_autosave_interval_subtitle">Waktu tunggu setelah pengeditan terakhir sebelum menyimpan.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Interval simpan otomatis</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Papan klip</string>
+    <string name="editor_settings_clipboard_behavior_title">Papan klip Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Kontrol cara salinan teks disimpan ke papan klip Butler.</string>
+    <string name="editor_settings_clipboard_system_only">Sistem saja</string>
+    <string name="editor_settings_clipboard_system_only_desc">Hanya salin ke papan klip sistem</string>
+    <string name="editor_settings_clipboard_butler_always">Selalu tambahkan ke Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Juga simpan ke papan klip Butler untuk menempel di seluruh ruang kerja</string>
+    <string name="editor_settings_clipboard_ask">Tanya setiap kali</string>
+    <string name="editor_settings_clipboard_ask_desc">Minta persetujuan sebelum menambahkan ke papan klip Butler</string>
+</resources>

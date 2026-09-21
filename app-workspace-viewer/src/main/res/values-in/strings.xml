@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Buka dengan</string>
+    <string name="viewer_image_content_description">Gambar %1$s</string>
+    <string name="viewer_toolbar_folder_label">Map</string>
+    <string name="viewer_back_action">Kembali</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">File sebelumnya</string>
+    <string name="viewer_next_file_action">File berikutnya</string>
+    <string name="viewer_open_location_action">Buka lokasi</string>
+    <string name="viewer_clipboard_copied">%1$s disalin. Tempel di tab Explorer.</string>
+    <string name="viewer_clipboard_cut">%1$s dipotong. Tempel di tab Explorer untuk memindahkannya.</string>
+    <string name="viewer_share_failed_label">Tidak dapat membagikan file ini</string>
+    <string name="viewer_share_failed_description">%1$s tidak dapat diberikan ke aplikasi lain. Ini terjadi pada file yang memerlukan akses root atau ADB, dan pada file yang tidak lagi tersedia.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Ukuran</string>
+    <string name="viewer_info_modified_label">Diubah</string>
+    <string name="viewer_info_created_label">Dibuat</string>
+    <string name="viewer_info_format_label">Format</string>
+    <string name="viewer_info_dimensions_label">Dimensi</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Izin</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Pemilik</string>
+    <string name="viewer_info_caption_label">Pesan berbagi</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Tampilkan semua detail</string>
+    <string name="viewer_info_collapse_action">Sembunyikan detail</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">Pratinjau · 1 halaman</string>
+    <string name="viewer_pdf_page_indicator">Halaman %1$d dari %2$d</string>
+    <string name="viewer_pdf_page_previous">Halaman sebelumnya</string>
+    <string name="viewer_pdf_page_next">Halaman berikutnya</string>
+    <string name="viewer_pdf_page_error">Halaman %1$d tidak dapat ditampilkan.</string>
+    <string name="viewer_pdf_page_content_description">Pratinjau PDF dari %1$s, halaman %2$d dari %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">Tipe file ini belum didukung</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">Ini adalah arsip</string>
+    <string name="viewer_browse_archive_action">Telusuri konten</string>
+    <string name="viewer_archive_needs_copy_msg">Simpan salinan ke perangkat Anda, maka Butler dapat menelusuri isinya.</string>
+    <string name="viewer_archive_nested_msg">Arsip ini berada di dalam arsip lain. Ekstrak terlebih dahulu untuk menelusuri isinya.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">Versi</string>
+    <string name="viewer_apk_min_sdk_label">SDK Min</string>
+    <string name="viewer_apk_target_sdk_label">Target SDK</string>
+    <string name="viewer_apk_installed_label">Terinstal</string>
+    <string name="viewer_apk_not_installed_value">Tidak terinstal</string>
+    <string name="viewer_apk_installed_unknown_value">Tidak dapat diperiksa</string>
+    <string name="viewer_apk_installed_older_hint">Lebih lama dari file ini</string>
+    <string name="viewer_apk_installed_newer_hint">Lebih baru dari file ini</string>
+    <string name="viewer_apk_permissions_header">Izin (%1$d)</string>
+    <string name="viewer_apk_signing_header">Sertifikat penandatanganan</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">Instal</string>
+    <string name="viewer_bundle_format_label">Format bundle</string>
+    <string name="viewer_bundle_splits_label">APK di dalamnya</string>
+    <string name="viewer_bundle_expansion_files_hint">Berisi file ekspansi yang ditempatkan setelah aplikasi diinstal.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Menempatkan file ekspansi memerlukan akses root atau ADB. Tanpanya aplikasi terinstal, tetapi file ekspansinya tetap tertinggal.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">Ikon aplikasi %1$s</string>
+    <string name="viewer_apk_icon_show_action">Tampilkan ikon</string>
+    <string name="viewer_apk_icon_save_action">Simpan ikon</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Ikon disimpan sebagai %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Ganti file?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s sudah ada di folder ini. Menyimpan ikon akan menggantinya.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Ganti</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">File berubah</string>
+    <string name="viewer_external_change_message">File ini berubah di perangkat. Segarkan untuk memuatnya lagi.</string>
+    <string name="viewer_external_change_gone_title">File hilang</string>
+    <string name="viewer_external_change_gone_message">File ini dihapus atau tidak lagi dapat diakses.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Tidak dapat menampilkan file ini</string>
+    <string name="viewer_error_not_a_file_label">Bukan file</string>
+    <string name="viewer_error_not_a_file_description">%1$s bukan file reguler.</string>
+    <string name="viewer_error_broken_symlink_label">Pintasan rusak</string>
+    <string name="viewer_error_broken_symlink_description">%1$s menunjuk ke sesuatu yang tidak lagi ada.</string>
+    <string name="viewer_error_undecodable_label">Gambar rusak</string>
+    <string name="viewer_error_undecodable_description">%1$s tidak dapat didekodekan. File mungkin tidak lengkap atau rusak.</string>
+    <string name="viewer_error_file_gone_label">File tidak ditemukan</string>
+    <string name="viewer_error_file_gone_description">%1$s tidak lagi ada. File mungkin telah dipindahkan, diganti nama, atau dihapus.</string>
+    <string name="viewer_error_empty_file_label">File kosong</string>
+    <string name="viewer_error_empty_file_description">%1$s kosong dan tidak ada yang ditampilkan.</string>
+    <string name="viewer_error_apk_unreadable_label">APK tidak dapat dibaca</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s tidak dapat diurai sebagai paket aplikasi Android.</string>
+    <string name="viewer_error_icon_unavailable_label">Tidak ada ikon</string>
+    <string name="viewer_error_icon_unavailable_description">Ikon aplikasi %1$s tidak dapat dibaca.</string>
+    <string name="viewer_error_icon_target_notfile_label">Nama sudah digunakan</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s sudah ada di sini dan bukan file reguler, jadi tidak dapat diganti.</string>
+    <string name="viewer_error_icon_target_appeared_label">File muncul</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s dibuat saat Anda memilih tempat penyimpanan. Tidak ada yang ditimpa, coba lagi.</string>
+    <string name="viewer_error_content_unreadable_label">Tidak dapat membaca file ini</string>
+    <string name="viewer_error_content_unreadable_description">Aplikasi yang membagikan %1$s tidak lagi membiarkan Butler membacanya. Minta aplikasi itu untuk membagikannya lagi.</string>
+    <string name="viewer_save_copy_action">Simpan salinan…</string>
+    <string name="viewer_open_in_editor_action">Buka di editor</string>
+    <string name="viewer_text_truncated_bytes">Pratinjau terbatas pada %1$s pertama dari file ini.</string>
+    <string name="viewer_text_truncated_lines">Pratinjau terbatas pada %1$s baris pertama dari file ini.</string>
+    <string name="viewer_text_truncated_width">Baris panjang diperpendek dalam pratinjau ini.</string>
+    <string name="viewer_text_unreadable_label">File ini tidak dapat dibaca</string>
+</resources>

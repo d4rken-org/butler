@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Simpan sebagai</string>
+    <string name="saver_preview_label">Pratinjau</string>
+    <string name="saver_loading">Memuat…</string>
+    <string name="saver_shared_from">Dibagikan dari %1$s</string>
+    <string name="saver_shared_generic">Dibagikan dengan Butler</string>
+    <string name="saver_destination_label">Tujuan</string>
+    <string name="saver_select_destination_hint">Pilih folder tujuan</string>
+    <string name="saver_filename_label">Nama berkas</string>
+    <string name="saver_save_action">Simpan</string>
+    <string name="saver_saving_progress">Menyimpan…</string>
+    <string name="saver_success_message">Berkas berhasil disimpan</string>
+    <string name="saver_open_saved_action">Buka direktori</string>
+    <string name="saver_retry_action">Coba lagi</string>
+    <string name="saver_save_again_action">Simpan ke lokasi baru</string>
+    <string name="saver_close_tab_action">Tutup tab</string>
+    <string name="saver_close_butler_action">Tutup tab dan kembali</string>
+    <string name="saver_done_action">Selesai</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="other">%1$d berkas sumber tidak lagi dapat diakses. Mohon bagikan lagi.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Berkas sumber tidak lagi dapat diakses</string>
+    <string name="saver_error_permission_denied">Izin ditolak</string>
+    <string name="saver_error_write_failed">Gagal menyimpan berkas</string>
+    <string name="saver_error_file_exists">Berkas sudah ada</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Simpan berkas</string>
+    <plurals name="saver_operation_description">
+        <item quantity="other">Menyimpan %1$d berkas ke %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="other">Simpan %1$d berkas</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="other">%1$d berkas berhasil disimpan</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="other">%1$d berkas gagal</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="other">%1$d berkas dilewati</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d dari %2$d berkas disimpan</string>
+</resources>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Akses perangkat lanjutan</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Perangkat</string>
+    <string name="documents_connection_device_summary">Penyimpanan perangkat lokal</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Sistem berkas root</string>
+    <string name="provider_documents_storage_internal_label">Penyimpanan internal</string>
+    <string name="provider_documents_storage_sd_card_label">Kartu SD</string>
+    <string name="provider_documents_storage_saf_label">Lokasi SAF</string>
+    <string name="provider_documents_storage_free_suffix">bebas</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">Akses root diperlukan untuk menjelajahi lokasi ini. Aktifkan akses root di pengaturan aplikasi Butler.</string>
+    <string name="provider_documents_error_requires_adb">Akses ADB/Shizuku diperlukan untuk menjelajahi lokasi ini. Aktifkan Shizuku di pengaturan aplikasi Butler.</string>
+    <string name="provider_documents_error_requires_storage">Izin penyimpanan diperlukan untuk menjelajahi lokasi ini. Berikan izin di pengaturan aplikasi Butler.</string>
+    <string name="provider_documents_error_requires_permissions">Izin tambahan diperlukan untuk menjelajahi lokasi ini. Periksa pengaturan aplikasi Butler.</string>
+    <string name="provider_documents_error_generic">Tidak dapat mengakses lokasi ini. Periksa opsi akses di Butler.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Penyedia Dokumen</string>
+    <string name="provider_documents_settings_subtitle">Integrasi aplikasi eksternal</string>
+    <string name="provider_documents_settings_category_integration_label">Integrasi</string>
+    <string name="provider_documents_enabled_title">Aktifkan Penyedia Dokumen</string>
+    <string name="provider_documents_enabled_desc">Izinkan aplikasi lain mengakses berkas melalui Butler menggunakan pemilih berkas Android</string>
+</resources>
