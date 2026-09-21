@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Geavanceerde apparaattoegang</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Apparaat</string>
+    <string name="documents_connection_device_summary">Lokale apparaatopslag</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Root-bestandssysteem</string>
+    <string name="provider_documents_storage_internal_label">Interne opslag</string>
+    <string name="provider_documents_storage_sd_card_label">SD-kaart</string>
+    <string name="provider_documents_storage_saf_label">SAF-locatie</string>
+    <string name="provider_documents_storage_free_suffix">vrij</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">Rootacces vereist om deze locatie in te zien. Schakel rootacces in in de Butler-app-instellingen.</string>
+    <string name="provider_documents_error_requires_adb">ADB/Shizuku-acces vereist om deze locatie in te zien. Schakel Shizuku in in de Butler-app-instellingen.</string>
+    <string name="provider_documents_error_requires_storage">Opslagmachtiging vereist om deze locatie in te zien. Verleen opslagmachtiging in de Butler-app-instellingen.</string>
+    <string name="provider_documents_error_requires_permissions">Aanvullende machtigingen vereist om deze locatie in te zien. Controleer de Butler-app-instellingen.</string>
+    <string name="provider_documents_error_generic">Kan deze locatie niet benaderen. Controleer de Butler-app voor toegangsopties.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Documentenprovider</string>
+    <string name="provider_documents_settings_subtitle">Integratie met externe app</string>
+    <string name="provider_documents_settings_category_integration_label">Integratie</string>
+    <string name="provider_documents_enabled_title">Schakel Documentenprovider in</string>
+    <string name="provider_documents_enabled_desc">Sta andere apps toe bestanden via Butler te benaderen met de bestandskiezer van Android</string>
+</resources>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Opslaan als</string>
+    <string name="saver_preview_label">Voorbeeld</string>
+    <string name="saver_loading">Bezig met laden…</string>
+    <string name="saver_shared_from">Gedeeld van %1$s</string>
+    <string name="saver_shared_generic">Gedeeld met Butler</string>
+    <string name="saver_destination_label">Bestemming</string>
+    <string name="saver_select_destination_hint">Selecteer doelmap</string>
+    <string name="saver_filename_label">Bestandsnaam</string>
+    <string name="saver_save_action">Opslaan</string>
+    <string name="saver_saving_progress">Bezig met opslaan…</string>
+    <string name="saver_success_message">Bestand is opgeslagen</string>
+    <string name="saver_open_saved_action">Map openen</string>
+    <string name="saver_retry_action">Opnieuw proberen</string>
+    <string name="saver_save_again_action">Opslaan op nieuwe locatie</string>
+    <string name="saver_close_tab_action">Tabblad sluiten</string>
+    <string name="saver_close_butler_action">Tabblad sluiten en teruggaan</string>
+    <string name="saver_done_action">Klaar</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Bronbestand is niet meer toegankelijk. Deel het opnieuw.</item>
+        <item quantity="other">%1$d bronbestanden zijn niet meer toegankelijk. Deel ze opnieuw.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Bronbestand is niet meer toegankelijk</string>
+    <string name="saver_error_permission_denied">Toestemming geweigerd</string>
+    <string name="saver_error_write_failed">Kan bestand niet opslaan</string>
+    <string name="saver_error_file_exists">Bestand bestaat al</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Bestanden opslaan</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">%1$d bestand opslaan naar %2$s</item>
+        <item quantity="other">%1$d bestanden opslaan naar %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">%1$d bestand opslaan</item>
+        <item quantity="other">%1$d bestanden opslaan</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d bestand opgeslagen</item>
+        <item quantity="other">%1$d bestanden opgeslagen</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d bestand mislukt</item>
+        <item quantity="other">%1$d bestanden mislukt</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d bestand overgeslagen</item>
+        <item quantity="other">%1$d bestanden overgeslagen</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d van %2$d bestanden opgeslagen</string>
+</resources>

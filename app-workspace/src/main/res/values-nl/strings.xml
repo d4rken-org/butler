@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Klembord -->
+    <string name="clipboard_header_title">Klembord</string>
+    <string name="clipboard_clear_all">Alles wissen</string>
+    <string name="clipboard_paste">Plakken</string>
+    <string name="clipboard_open_in_explorer">Openen in Verkenner</string>
+    <string name="clipboard_copy">Kopiëren</string>
+    <string name="clipboard_cut">Knippen</string>
+    <string name="clipboard_origin">Bron: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">%d item kopiëren</item>
+        <item quantity="other">%d items kopiëren</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d item van %s</item>
+        <item quantity="other">%d items van %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">%d item knippen</item>
+        <item quantity="other">%d items knippen</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d item van %s</item>
+        <item quantity="other">%d items van %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d locatie</item>
+        <item quantity="other">%d locaties</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d item van %2$s</item>
+        <item quantity="other">%1$d items van %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d item van %2$s</item>
+        <item quantity="other">%1$d items van %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Tekstfragment</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d teken</item>
+        <item quantity="other">%1$d tekens</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Plakken als bestand</string>
+    <string name="clipboard_text_info_characters">Tekens</string>
+    <string name="clipboard_text_info_lines">Regels</string>
+    <string name="clipboard_text_info_content">Inhoud</string>
+
+    <!-- Klembord-informatiedialoog -->
+    <string name="clipboard_info_overview">Overzicht</string>
+    <string name="clipboard_info_operation">Bewerking</string>
+    <string name="clipboard_info_items">Items</string>
+    <string name="clipboard_info_source">Bron</string>
+    <string name="clipboard_info_sources">Bronnen</string>
+    <string name="clipboard_info_workspace">Werkruimte</string>
+    <string name="clipboard_info_workspace_closed">Gesloten</string>
+    <string name="clipboard_info_time">Tijd</string>
+    <string name="clipboard_info_items_with_count">Items (%1$d)</string>
+    <string name="clipboard_info_actions">Acties</string>
+    <string name="clipboard_info_go_to_source">Naar bron gaan</string>
+    <string name="clipboard_info_go_to_first_source">Naar eerste bron gaan</string>
+    <string name="clipboard_info_remove">Verwijderen uit klembord</string>
+
+    <!-- Klembordinstellingen -->
+    <string name="clipboard_settings_title">Klembord</string>
+    <string name="clipboard_settings_remove_on_paste_title">Verwijderen na plakken</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Verwijdert gekopieerde items uit het klembord na het plakken</string>
+    <string name="clipboard_settings_max_items_title">Maximaal aantal items</string>
+    <string name="clipboard_settings_max_items_desc">Maximaal aantal items in het klembord</string>
+
+    <string name="workspace_explorer_label">Verkenner</string>
+    <string name="workspace_searcher_label">Zoeken</string>
+    <string name="workspace_editor_label">Editor</string>
+    <string name="workspace_templates_label">Sjablonen</string>
+    <string name="workspace_apps_label">Apps</string>
+    <string name="workspace_appdetails_label">App-details</string>
+    <string name="workspace_saver_label">Opslaan als</string>
+    <string name="workspace_developer_label">Ontwikkelaar</string>
+    <string name="workspace_history_label">Geschiedenis</string>
+    <string name="workspace_bugreport_label">Bugrapporten</string>
+    <string name="workspace_viewer_label">Weergave</string>
+
+    <!-- Zoekdoelen voor media (Zoeken) -->
+    <string name="workspace_searcher_target_photos">Foto’s</string>
+    <string name="workspace_searcher_target_videos">Video’s</string>
+    <string name="workspace_searcher_target_music">Muziek</string>
+    <string name="workspace_searcher_target_downloads">Downloads</string>
+
+    <!-- Werkruimte-UI-acties -->
+    <string name="workspace_expand_more_action">Meer</string>
+    <string name="workspace_expand_less_action">Minder</string>
+
+    <!-- Werkruimteknopmenu -->
+    <string name="workspace_button_description">Tabbladen en werkruimtes</string>
+    <string name="workspace_button_menu_new_workspace_format">%1$s toevoegen</string>
+    <string name="workspace_button_menu_new_tab_action">Nieuw tabblad</string>
+    <string name="workspace_button_menu_category_recent">Recent</string>
+    <string name="workspace_button_menu_category_other">Overig</string>
+    <string name="workspace_button_menu_category_current_tab">Dit tabblad</string>
+    <string name="workspace_button_menu_manager_action">Tabbeheer</string>
+    <string name="workspace_button_menu_layout_action">Indeling</string>
+    <string name="workspace_button_menu_close_current_action">Huidig tabblad sluiten</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Huidig tabblad sluiten (%d werkruimte)</item>
+        <item quantity="other">Huidig tabblad sluiten (%d werkruimtes)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Instellingen</string>
+
+    <!-- Tabbeheeracties -->
+    <string name="workspace_manager_close_all_title">Alle tabbladen sluiten?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Dit sluit %1$d openstaand tabblad. Deze actie kan niet ongedaan worden gemaakt.</item>
+        <item quantity="other">Dit sluit alle %1$d openstaande tabbladen. Deze actie kan niet ongedaan worden gemaakt.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Alles sluiten</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Sommige tabbladen hebben niet-opgeslagen wijzigingen die verloren gaan.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Alles verwerpen</string>
+    <string name="workspace_manager_close_selected_title">Geselecteerde tabbladen sluiten?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Dit sluit %1$d geselecteerd tabblad. Deze actie kan niet ongedaan worden gemaakt.</item>
+        <item quantity="other">Dit sluit %1$d geselecteerde tabbladen. Deze actie kan niet ongedaan worden gemaakt.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">Geselecteerde sluiten</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Sommige geselecteerde tabbladen hebben niet-opgeslagen wijzigingen die verloren gaan.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Geselecteerde verwerpen</string>
+    <string name="workspace_manager_pause_partial_title">Tabbladen pauzeren?</string>
+    <string name="workspace_manager_pause_partial_message">%1$d van %2$d geselecteerde tabbladen kunnen worden gepauzeerd. De rest is in gebruik, heeft niet-opgeslagen wijzigingen of staat momenteel open.</string>
+    <string name="workspace_manager_pause_partial_action">%1$d pauzeren</string>
+    <string name="general_cancel_action">Annuleren</string>
+
+    <!-- Bewerkingen -->
+    <string name="operations_header_title">Bewerkingen</string>
+    <string name="operations_clear_completed">Voltooide wissen</string>
+    <string name="operations_state_queued">In wachtrij</string>
+    <string name="operations_state_running">Actief</string>
+    <string name="operations_state_waiting">Wacht op invoer</string>
+    <string name="operations_state_successful">Geslaagd</string>
+    <string name="operations_state_failed">Mislukt</string>
+    <string name="operations_state_cancelled">Geannuleerd</string>
+    <string name="operations_state_cancelling">Annuleren…</string>
+    <string name="operations_cancel_operation">Bewerking annuleren</string>
+    <string name="operations_cancel_dialog_title">Bewerking annuleren?</string>
+    <string name="operations_cancel_dialog_message">Weet je zeker dat je deze bewerking wilt annuleren?</string>
+    <string name="operations_cancel_dialog_warning">Annuleren kan bestanden in een inconsistente staat achterlaten.</string>
+    <string name="operations_details_started_at">Gestart</string>
+    <string name="operations_details_completed_at">Voltooid</string>
+    <string name="operations_details_duration">Duur</string>
+    <string name="operations_details_duration_not_started">Niet gestart</string>
+    <string name="operations_details_progress">Voortgang</string>
+    <string name="operations_details_error">Foutdetails</string>
+    <string name="operations_details_actions">Acties</string>
+    <string name="operations_details_overview">Overzicht</string>
+    <string name="operations_details_handle_issue">Probleem afhandelen</string>
+    <string name="operations_details_show_in_history_action">Tonen in geschiedenis</string>
+    <string name="operations_details_status">Status</string>
+    <string name="operations_details_result">Resultaat</string>
+    <string name="operations_details_destination_folder">Doelmap</string>
+    <string name="operations_details_destination_path">Doelpad</string>
+    <string name="operations_details_affected_paths_with_count">Betrokken paden (%d)</string>
+    <string name="operations_details_problems_with_count">Problemen (%d)</string>
+    <string name="operations_details_problems_more">Nog %d niet vermeld</string>
+    <string name="workspace_operation_packages_section_title">Apps</string>
+    <string name="workspace_operation_package_status_done">Voltooid</string>
+    <string name="workspace_operation_package_status_failed">Mislukt</string>
+    <string name="workspace_operation_package_status_declined">Geweigerd</string>
+    <string name="operations_details_section_expand">%1$s uitklappen</string>
+    <string name="operations_details_section_collapse">%1$s inklappen</string>
+    <string name="workspace_operations_performance_graph_label">Prestatiegrafiek</string>
+
+    <!-- Bevestigingsdialoog verwijderen -->
+    <string name="workspace_dialog_delete_title_single">Item verwijderen?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">%1$d item verwijderen?</item>
+        <item quantity="other">%1$d items verwijderen?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Dit item wordt permanent verwijderd:</string>
+    <string name="workspace_dialog_delete_message_multiple">Deze items worden permanent verwijderd:</string>
+    <string name="workspace_dialog_delete_more_items">… en nog %1$d</string>
+    <string name="workspace_dialog_delete_warning">Deze actie kan niet ongedaan worden gemaakt.</string>
+    <string name="workspace_dialog_delete_permanently_action">Permanent verwijderen</string>
+    <string name="workspace_dialog_delete_permanently_toggle">In plaats daarvan permanent verwijderen</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Sommige items kunnen niet naar de prullenbak worden verplaatst en worden apart afgehandeld.</string>
+
+    <!-- Prullenbakdialoog -->
+    <string name="workspace_dialog_trash_title_single">Naar prullenbak verplaatsen?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">%1$d item naar prullenbak verplaatsen?</item>
+        <item quantity="other">%1$d items naar prullenbak verplaatsen?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Dit item wordt naar de prullenbak verplaatst:</string>
+    <string name="workspace_dialog_trash_message_multiple">Deze items worden naar de prullenbak verplaatst:</string>
+    <string name="workspace_dialog_trash_hint">Te vinden onder de locatie Prullenbak</string>
+    <string name="workspace_dialog_move_to_trash_action">Verplaatsen</string>
+
+    <!-- Actiebalk -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d geselecteerd</item>
+        <item quantity="other">%d geselecteerd</item>
+    </plurals>
+    <string name="workspace_action_more">Meer acties</string>
+
+    <!-- Verwijderbewerking (gedeeld door werkruimtes) -->
+    <string name="workspace_operation_delete_title">Bestandsverwijdering</string>
+    <string name="workspace_operation_delete_description_single">\"%1$s\" verwijderen uit \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">%1$d item verwijderen uit \"%2$s\".</item>
+        <item quantity="other">%1$d items verwijderen uit \"%2$s\".</item>
+    </plurals>
+
+    <!-- App-installatiebewerking (gedeeld door werkruimtes) -->
+    <string name="workspace_operation_install_title">App-installatie</string>
+    <string name="workspace_operation_install_description">\"%1$s\" installeren.</string>
+    <string name="workspace_operation_install_progress_inspecting">Pakket lezen…</string>
+    <string name="workspace_operation_install_progress_extracting">Uitpakken…</string>
+    <string name="workspace_operation_install_progress_writing">Bestanden overdragen aan het installatieprogramma…</string>
+    <string name="workspace_operation_install_progress_committing">Installatie afronden…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Uitbreidingsbestanden plaatsen…</string>
+    <string name="workspace_operation_install_summary_success">%1$s is geïnstalleerd.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s is geïnstalleerd, maar de uitbreidingsbestanden konden niet worden geplaatst.</string>
+    <string name="workspace_install_unknown_sources_required">Butler heeft toestemming nodig om apps te installeren. Verleen deze in de zojuist geopende instellingen en probeer het opnieuw.</string>
+    <string name="workspace_install_obb_failed">De app is geïnstalleerd, maar de uitbreidingsbestanden konden niet worden geplaatst: %1$s</string>
+
+    <!-- Rapportages verwijderbewerking -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d bestand verwijderd.</item>
+        <item quantity="other">%1$d bestanden verwijderd.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d map verwijderd.</item>
+        <item quantity="other">%1$d mappen verwijderd.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d item overgeslagen.</item>
+        <item quantity="other">%1$d items overgeslagen.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s vrijgemaakt.</item>
+        <item quantity="other">%1$s vrijgemaakt.</item>
+    </plurals>
+
+    <!-- Rapportages prullenbakbewerking -->
+    <string name="workspace_operation_progress_moving_to_trash">Naar prullenbak verplaatsen…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d bestand naar de prullenbak verplaatst.</item>
+        <item quantity="other">%1$d bestanden naar de prullenbak verplaatst.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d map naar de prullenbak verplaatst.</item>
+        <item quantity="other">%1$d mappen naar de prullenbak verplaatst.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s vrijgemaakt.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s vrijgemaakt.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s resterend.</string>
+
+    <!-- Bestandsinfodialoog (gedeeld door werkruimtes) -->
+    <string name="workspace_file_info_title">Informatie</string>
+    <string name="workspace_file_info_name_label">Naam</string>
+    <string name="workspace_file_info_path_label">Pad</string>
+    <string name="workspace_file_info_type_label">Type</string>
+    <string name="workspace_file_info_type_file">Bestand</string>
+    <string name="workspace_file_info_type_directory">Map</string>
+    <string name="workspace_file_info_type_symlink">Symbolische link</string>
+    <string name="workspace_file_info_type_unknown">Onbekend</string>
+    <string name="workspace_file_info_size_label">Grootte</string>
+    <string name="workspace_file_info_modified_label">Gewijzigd</string>
+    <string name="workspace_file_info_created_label">Gemaakt</string>
+    <string name="workspace_file_info_permissions_label">Machtigingen</string>
+    <string name="workspace_file_info_owner_label">Eigenaar</string>
+    <string name="workspace_file_info_child_count_label">Items</string>
+    <string name="workspace_file_info_symlink_target_label">Doel</string>
+    <string name="workspace_file_info_unknown">Onbekend</string>
+    <string name="workspace_file_info_copy_action">Kopiëren naar klembord</string>
+
+    <!-- Infodialoog meerdere items -->
+    <string name="workspace_file_info_selected_label">Geselecteerd</string>
+    <string name="workspace_file_info_files_label">Bestanden</string>
+    <string name="workspace_file_info_directories_label">Mappen</string>
+    <string name="workspace_file_info_total_size_label">Totale grootte</string>
+
+    <!-- Prestatiegrafiek -->
+    <string name="workspace_operation_performance_unavailable_not_started">Deze bewerking is nog niet gestart.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Prestatiegegevens verzamelen…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Er zijn niet genoeg prestatiegegevens van deze bewerking om een grafiek te tekenen.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Prestatiegegevens zijn niet beschikbaar voor deze bewerking.</string>
+    <string name="workspace_operation_performance_window_seconds">Laatste %1$d s</string>
+    <string name="workspace_operation_performance_window_minutes">Laatste %1$d min</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">items/s</string>
+
+    <!-- Foutweergave (gedeeld door werkruimtes) -->
+    <string name="workspace_error_show_details_action">Technische details tonen</string>
+    <string name="workspace_error_hide_details_action">Technische details verbergen</string>
+
+    <!-- Werkruimtestatuscomponenten -->
+    <string name="workspace_initializing_title">Tabblad initialiseren</string>
+    <string name="workspace_error_subtitle">Er is een onverwachte fout opgetreden</string>
+    <string name="workspace_close_tab_action">Tabblad sluiten</string>
+    <string name="workspace_paused_body">Dit tabblad is gepauzeerd om geheugen en batterij te sparen. Hervat het om verder te gaan.</string>
+    <string name="workspace_paused_error_body">Dit tabblad kon niet worden hervat.</string>
+    <string name="workspace_paused_resume_action">Hervatten</string>
+    <string name="workspace_paused_label">Gepauzeerd</string>
+    <string name="workspace_paused_content_label">Tabbladinhoud</string>
+
+    <!-- Probleemoplossing (conflictafhandeling) -->
+    <string name="workspace_issue_collision_existing_file_label">Bestaand bestand</string>
+    <string name="workspace_issue_collision_existing_folder_label">Bestaande map</string>
+    <string name="workspace_issue_collision_new_file">Inkomend bestand</string>
+    <string name="workspace_issue_collision_new_folder">Inkomende map</string>
+    <string name="workspace_issue_collision_overwrite">Vervangen</string>
+    <string name="workspace_issue_collision_merge">Samenvoegen</string>
+    <string name="workspace_issue_common_source_file">Bronbestand</string>
+    <string name="workspace_issue_common_destination_file">Bestemming</string>
+    <string name="workspace_issue_common_skip">Overslaan</string>
+    <string name="workspace_issue_common_rename">Hernoemen</string>
+    <string name="workspace_issue_common_rename_new">Nieuwe hernoemen</string>
+    <string name="workspace_issue_common_rename_existing">Bestaande hernoemen</string>
+    <string name="workspace_issue_common_cancel">Annuleren</string>
+    <string name="workspace_issue_common_delete_permanently">Permanent verwijderen</string>
+    <string name="workspace_issue_archive_password_label">Wachtwoord</string>
+    <string name="workspace_issue_archive_password_unlock">Ontgrendelen</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Mislukte items</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… en nog %1$d items</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Betrokken items</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… en nog %1$d items</string>
+    <string name="workspace_issue_apply_all">Toepassen op alle resterende problemen</string>
+    <string name="workspace_issue_rename_new_name">Nieuwe naam</string>
+    <string name="workspace_issue_rename_dialog_title_new">Inkomend bestand hernoemen</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Bestaand bestand hernoemen</string>
+    <string name="workspace_issue_type_folder">Map</string>
+
+    <!-- Bevestigingsdialoog openen in nieuwe tabbladen -->
+    <string name="workspace_open_tabs_confirmation_title">Meerdere tabbladen openen?</string>
+    <string name="workspace_open_tabs_confirmation_message">Dit opent %1$d tabbladen.</string>
+
+    <!-- Openen met (bestand doorgeven aan andere app) -->
+    <string name="workspace_open_with_chooser_title">Openen met</string>
+    <string name="workspace_open_with_no_app_label">Geen andere app gevonden</string>
+    <string name="workspace_open_with_no_app_description">Geen andere geïnstalleerde app kan %1$s openen.</string>
+
+    <!-- Werkruimtebannerfeedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">%1$d tabblad geopend</item>
+        <item quantity="other">%1$d tabbladen geopend</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Kan niet sluiten: er wordt nog een bewerking uitgevoerd in %1$d tabblad</item>
+        <item quantity="other">Kan niet sluiten: er worden nog bewerkingen uitgevoerd in %1$d tabbladen</item>
+    </plurals>
+
+    <!-- Werkruimte > Instellingen-->
+    <string name="workspace_settings_title">Tabbladen</string>
+    <string name="workspace_settings_navigation">Navigatie</string>
+    <string name="workspace_settings_swipe_gestures_title">Swipegebaren</string>
+    <string name="workspace_settings_swipe_gestures_desc">Swipe naar links of rechts om tussen tabbladen te wisselen.</string>
+    <string name="workspace_settings_ondemand_creation_title">Automatisch tabbladen aanmaken</string>
+    <string name="workspace_settings_ondemand_creation_desc">Maakt automatisch een nieuw tabblad aan wanneer je voorbij het laatste tabblad swipet.</string>
+    <string name="workspace_settings_newtab_type_title">Type nieuw tabblad</string>
+    <string name="workspace_settings_newtab_type_desc">Werkruimte die wordt geopend wanneer je voorbij het laatste tabblad swipet, een tabblad toevoegt aan een leeg deelvenster, of het eerste tabblad aanmaakt.</string>
+    <string name="workspace_settings_newtab_type_ask">Elke keer vragen</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Toont voor elk nieuw tabblad de kiezer voor het tabbladtype.</string>
+    <string name="workspace_settings_live_preview_title">Live-voorbeelden</string>
+    <string name="workspace_settings_live_preview_desc">Toont live tabbladinhoud in tabbeheer.</string>
+    <string name="workspace_settings_other">Overig</string>
+    <string name="workspace_settings_layout_title">Indeling</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Indelingsmodus staand</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Kies de tabbladindeling in staande oriëntatie.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Indelingsmodus liggend</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Kies de tabbladindeling in liggende oriëntatie.</string>
+    <string name="workspace_settings_layout_mode_auto">Automatisch</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Klassiek op kleine schermen, tabbladbalk met deelvensters op grote schermen.</string>
+    <string name="workspace_settings_layout_mode_classic">Klassiek</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Eén deelvenster tegelijk, zonder tabbladbalk.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Adaptief</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Tabbladbalk plus zoveel deelvensters als op het scherm passen. Zet een indeling vast via het Butler-menu in de balk.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptief (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Enkel met tabbladbalk</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Eén tabbladdeelvenster plus de tabbladbalk van de indelingen met meerdere deelvensters. Wissel van tabblad via de balk in plaats van door te swipen; de balk neemt een strook van het scherm in beslag.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Dubbel verticaal</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Twee deelvensters naast elkaar (links/rechts).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Dubbel horizontaal</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Twee deelvensters gestapeld (boven/onder).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Drievoudige zijbalk links</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Eén groot deelvenster links, twee kleinere deelvensters gestapeld rechts.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Drievoudige zijbalk rechts</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Twee kleinere deelvensters gestapeld links, één groot deelvenster rechts.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Viervoudig rooster</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Vier deelvensters in een 2×2-rooster.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Klikken om te focussen</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">De eerste klik op een niet-gefocust deelvenster focust dit alleen, en niet-gefocuste deelvensters reageren niet op een muisaanwijzer. Zet uit om er direct mee te kunnen werken.</string>
+
+    <string name="workspace_settings_rail_button_title">Butler-knop</string>
+    <string name="workspace_settings_rail_button_desc">Kies waar de Butler-knop op de tabbladbalk staat.</string>
+    <string name="workspace_settings_rail_button_leading">Begin</string>
+    <string name="workspace_settings_rail_button_leading_desc">Vóór de tabbladen in staande stand, erboven in liggende stand.</string>
+    <string name="workspace_settings_rail_button_trailing">Einde</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Na de tabbladen in staande stand, eronder in liggende stand. Binnen duimbereik voor eenhandig gebruik.</string>
+
+    <!-- Sessie -->
+    <string name="workspace_settings_session_title">Sessie</string>
+    <string name="workspace_settings_session_restore_title">Tabbladen herstellen bij opstarten</string>
+    <string name="workspace_settings_session_restore_desc">Herstelt automatisch eerder geopende tabbladen wanneer de app wordt gestart.</string>
+    <string name="workspace_settings_autopause_title">Inactieve tabbladen pauzeren</string>
+    <string name="workspace_settings_autopause_desc">Tabbladen die je een tijdje niet hebt bekeken, worden gepauzeerd om geheugen en batterij te sparen. Als je er een opent, wordt het hervat.</string>
+    <string name="workspace_settings_autopause_delay_title">Pauzeren na</string>
+    <string name="workspace_settings_autopause_delay_desc">Hoe lang een tabblad uit beeld blijft voordat het wordt gepauzeerd.</string>
+    <string name="workspace_settings_undoclose_title">Sluiten van tabbladen ongedaan maken</string>
+    <string name="workspace_settings_undoclose_desc">Na het sluiten van een tabblad kun je het een paar seconden lang terughalen.</string>
+    <string name="workspace_settings_session_data_title">Sessiegegevens</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d tabblad • %2$s</item>
+        <item quantity="other">%1$d tabbladen • %2$s</item>
+    </plurals>
+
+    <!-- Sluiten ongedaan maken -->
+    <string name="workspace_closed_undo_message">\"%1$s\" gesloten</string>
+
+    <!-- Fout bij sessieherstel -->
+    <string name="workspace_session_restoration_error_title">Sessie herstellen mislukt</string>
+    <string name="workspace_session_restoration_error_description">Je vorige tabbladsessie kon niet worden hersteld. Dit kan komen door een bug die in een toekomstige update wordt opgelost.\n\nJe kunt de opgeslagen sessie wissen om Butler te blijven gebruiken, of wachten op een update.</string>
+    <string name="workspace_session_restoration_error_clear_action">Sessie wissen</string>
+    <string name="workspace_session_restoration_error_report_action">Probleem melden</string>
+    <string name="workspace_session_restoration_error_confirm_title">Sessie wissen?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Dit verwijdert je opgeslagen tabbladsessie permanent. Deze actie kan niet ongedaan worden gemaakt.</string>
+
+    <!-- Tabblad hernoemen -->
+    <string name="workspace_rename_dialog_title">Tabblad hernoemen</string>
+    <string name="workspace_rename_name_label">Aangepaste naam</string>
+    <string name="workspace_rename_name_hint">Laat leeg om de automatische naam te gebruiken</string>
+
+    <!-- Tabbladlimiet -->
+    <string name="workspace_limit_reached_title">Tabbladlimiet bereikt</string>
+    <string name="workspace_limit_reached_message">Gratis gebruikers kunnen maximaal %1$d tabbladen tegelijk open hebben staan. Upgrade naar Butler Pro voor onbeperkte tabbladen!</string>
+    <string name="workspace_limit_pick_tabs_message">Je gratis abonnement staat %1$d open tabbladen toe. Kies de tabbladen die je niet meer nodig hebt en sluit ze om ruimte te maken.</string>
+    <string name="workspace_limit_no_slot_hint">Tabbladen sluiten maakt op dit moment geen plek vrij.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">%d tabblad sluiten</item>
+        <item quantity="other">%d tabbladen sluiten</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Kies minstens %d tabblad om te sluiten.</item>
+        <item quantity="other">Kies minstens %d tabbladen om te sluiten.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">%1$s geopend</string>
+    <string name="workspace_limit_blocker_unsaved">Niet-opgeslagen wijzigingen</string>
+    <string name="workspace_limit_blocker_busy">Nu bezig</string>
+    <string name="workspace_limit_blocker_attention">Wacht op jou</string>
+    <string name="workspace_limit_blocker_loading">Wordt nog geladen</string>
+    <string name="workspace_limit_blocker_awaiting_result">Maak eerst de open kiezer af</string>
+    <string name="workspace_limit_blocker_unavailable">Kan nu niet worden gesloten</string>
+    <string name="workspace_limit_stacked_content_desc">Dit tabblad sluiten sluit ook wat erop gestapeld is</string>
+    <string name="workspace_limit_pro_description">Open zoveel tabbladen als je wilt.</string>
+
+    <!-- Slepen en neerzetten -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Herstelbewerking -->
+    <string name="workspace_operation_restore_title">Herstel uit prullenbak</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">%d item herstellen uit de prullenbak.</item>
+        <item quantity="other">%d items herstellen uit de prullenbak.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d item hersteld</item>
+        <item quantity="other">%d items hersteld</item>
+    </plurals>
+</resources>

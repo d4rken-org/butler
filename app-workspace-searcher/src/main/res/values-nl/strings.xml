@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Zoeken</string>
+    <string name="searcher_subtitle">Bestanden en inhoud zoeken</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Zoekinstellingen</string>
+    <string name="searcher_settings_search_category">Zoeken</string>
+    <string name="searcher_settings_history">Zoekgeschiedenis</string>
+    <string name="searcher_settings_save_history_title">Zoekgeschiedenis opslaan</string>
+    <string name="searcher_settings_save_history_subtitle">Onthoud eerdere zoekopdrachten</string>
+    <string name="searcher_settings_max_history_label">Maximaal aantal vermeldingen</string>
+    <string name="searcher_settings_max_history_subtitle">Maximaal aantal opgeslagen zoekopdrachten</string>
+    <string name="searcher_settings_max_history_input_label">Aantal vermeldingen (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Zoekgeschiedenis wissen</string>
+    <string name="searcher_settings_clear_history_subtitle">Verwijder alle opgeslagen zoekopdrachten (%1$d)</string>
+    <string name="searcher_settings_search_performance">Prestaties</string>
+    <string name="searcher_settings_max_results_title">Maximale zoekresultaten</string>
+    <string name="searcher_settings_max_results_subtitle">Beperk het aantal resultaten per zoekopdracht.</string>
+    <string name="searcher_settings_content_search_category">Inhoudzoeken</string>
+    <string name="searcher_settings_include_binaries_title">Binaire bestanden opnemen</string>
+    <string name="searcher_settings_include_binaries_subtitle">Zoek in inhoud van binaire bestanden (kan traag zijn en irrelevante resultaten opleveren)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Recente zoekopdrachten</string>
+    <string name="searcher_placeholder_search">Bestanden en mappen zoeken</string>
+    <string name="searcher_placeholder_filename">Bestandsnaam</string>
+    <string name="searcher_placeholder_content">Inhoud</string>
+    <string name="searcher_search_error">Zoekfout</string>
+    <string name="searcher_no_paths_hint">Tik + om zoekopdracht locaties toe te voegen</string>
+    <string name="searcher_add_path_action">Locatie toevoegen</string>
+    <string name="searcher_add_folder_action">Map…</string>
+    <string name="searcher_multipath_show_fewer_action">Minder weergeven</string>
+    <string name="searcher_empty_state_title">Geen zoekpaden geconfigureerd</string>
+    <string name="searcher_empty_state_description">Voeg opslaglocaties toe om je bestanden te doorzoeken</string>
+    <string name="searcher_add_default_paths_action">Standaardzoekopdracht paden toevoegen</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Opties</string>
+    <string name="searcher_option_case_sensitive_label">Hoofdlettergevoelig</string>
+    <string name="searcher_option_case_sensitive_desc">Hoofdlettergevoelig zoeken</string>
+    <string name="searcher_option_whole_word_label">Heel woord</string>
+    <string name="searcher_option_whole_word_desc">Zoeken naar heel woord</string>
+    <string name="searcher_option_regex_label">Reguliere expressie</string>
+    <string name="searcher_option_regex_desc">Zoeken met reguliere expressie</string>
+    <string name="searcher_option_search_content_label">Inhoud zoeken</string>
+    <string name="searcher_option_search_content_desc">Zoeken in bestandsinhoud</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Sjablonen</string>
+    <string name="searcher_templates_card_title">Sjablonen voor snelle zoekopdracht</string>
+    <string name="searcher_template_large_files">Grote bestanden</string>
+    <string name="searcher_template_large_files_desc">Bestanden groter dan 100 MB</string>
+    <string name="searcher_template_recent_files">Recente bestanden</string>
+    <string name="searcher_template_recent_files_desc">Gewijzigd in de afgelopen 7 dagen</string>
+    <string name="searcher_template_old_files">Oude bestanden</string>
+    <string name="searcher_template_old_files_desc">Niet gewijzigd in meer dan een jaar</string>
+    <string name="searcher_template_images">Afbeeldingen</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Video’s</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Audio</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Documenten</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Archieven</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APK’s</string>
+    <string name="searcher_template_apks_desc">Android-toepassingspakketten</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d sjabloon</item>
+        <item quantity="other">%d sjablonen</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Filter</string>
+    <string name="searcher_filter_add_action">Filter toevoegen</string>
+    <string name="searcher_filter_title">Zoekfilters</string>
+    <string name="searcher_filter_size_section">Bestandsgrootte</string>
+    <string name="searcher_filter_size_min">Minimale grootte</string>
+    <string name="searcher_filter_size_max">Maximale grootte</string>
+    <string name="searcher_filter_date_section">Wijzigingsdatum</string>
+    <string name="searcher_filter_date_after">Gewijzigd na</string>
+    <string name="searcher_filter_date_before">Gewijzigd voor</string>
+    <string name="searcher_filter_date_any">Op elk moment</string>
+    <string name="searcher_filter_date_24h">Afgelopen 24 uur</string>
+    <string name="searcher_filter_date_7d">Afgelopen 7 dagen</string>
+    <string name="searcher_filter_date_30d">Afgelopen 30 dagen</string>
+    <string name="searcher_filter_date_90d">Afgelopen 90 dagen</string>
+    <string name="searcher_filter_date_1y">Afgelopen jaar</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">groter dan</string>
+    <string name="searcher_filter_comparator_greater_or_equal">groter dan of gelijk aan</string>
+    <string name="searcher_filter_comparator_less_than">minder dan</string>
+    <string name="searcher_filter_comparator_less_or_equal">minder dan of gelijk aan</string>
+    <string name="searcher_filter_comparator_equal">gelijk aan</string>
+    <string name="searcher_filter_size_value_label">Grootte</string>
+    <string name="searcher_filter_size_at_least">Minstens</string>
+    <string name="searcher_filter_size_at_most">Hooguit</string>
+    <string name="searcher_filter_size_value_hint">bijv. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Voer een getal met een eenheid in (KB, MB, GB). Een enkel getal wordt als MB behandeld.</string>
+    <string name="searcher_filter_size_format_error">Ongeldige grootte — gebruik een getal en eenheid, bijv. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Datum</string>
+    <string name="searcher_filter_date_direction_after">Na</string>
+    <string name="searcher_filter_date_direction_before">Voor</string>
+    <string name="searcher_filter_type_label">Type</string>
+    <string name="searcher_filter_type_files">Bestanden</string>
+    <string name="searcher_filter_type_directories">Mappen</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Verwijder uit geschiedenis</string>
+    <string name="searcher_history_clear_all_action">Alles wissen</string>
+    <string name="searcher_history_clear_dialog_title">Zoekgeschiedenis wissen</string>
+    <string name="searcher_history_clear_dialog_message">Dit zal alle opgeslagen zoekgeschiedenis verwijderen. Deze actie kan niet ongedaan gemaakt worden.</string>
+    <string name="searcher_history_clear_confirm_action">Wissen</string>
+    <string name="searcher_history_cleared_success">Zoekgeschiedenis gewist</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">Geen resultaten</item>
+        <item quantity="one">%d resultaat</item>
+        <item quantity="other">%d resultaten</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">Nog %d weergeven</item>
+        <item quantity="other">Nog %d weergeven</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Zoeken</string>
+    <string name="searcher_progress_action_searched">Gezocht</string>
+    <string name="searcher_progress_status_completed_with_errors">Voltooid met fouten</string>
+    <string name="searcher_result_limit_reached">Resultaatlimiet bereikt</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Sommige items konden niet volledig gezocht worden</string>
+    <string name="searcher_progress_clear_action">Wissen</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d mislukt</item>
+        <item quantity="other">%d mislukt</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">%d item kon niet geraadpleegd worden</item>
+        <item quantity="other">%d items konden niet geraadpleegd worden</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…en nog %d</item>
+        <item quantity="other">…en nog %d</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn’t be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android beschermt deze locaties. Extra toegang stelt Butler in staat om deze te doorzoeken.</string>
+    <string name="searcher_access_sheet_body_protected">Android beschermt deze locaties. Er is geen manier om toegang op dit apparaat toe te kennen.</string>
+    <string name="searcher_access_sheet_unlock_action">Toegang ontgrendelen</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d locatie</item>
+        <item quantity="other">%d locaties</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d gescand</item>
+        <item quantity="other">%d gescand</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d gevonden</item>
+        <item quantity="other">%d gevonden</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Overeenkomstcontext</string>
+    <string name="searcher_match_line_label">Regel %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Openen</string>
+    <string name="searcher_action_open_in_tab">Openen in nieuw tabblad</string>
+    <string name="searcher_action_open_with">Openen met</string>
+    <string name="searcher_action_open_in_editor">Openen in Editor</string>
+    <string name="searcher_action_open_in_explorer">Openen in Verkenner</string>
+    <string name="searcher_action_install">Installeren</string>
+    <string name="searcher_action_copy">Kopiëren</string>
+    <string name="searcher_action_cut">Knippen</string>
+    <string name="searcher_action_delete">Verwijderen</string>
+    <string name="searcher_action_copy_path">Pad kopiëren</string>
+    <string name="searcher_action_properties">Eigenschappen</string>
+    <string name="searcher_action_select_all">Alles selecteren</string>
+    <string name="searcher_action_deselect_all">Selectie opheffen</string>
+    <string name="searcher_action_open_in_new_tabs">Openen in nieuwe tabladen</string>
+    <string name="searcher_action_sort">Sorteren</string>
+    <string name="searcher_action_view">Weergave</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Sorteren op</string>
+    <string name="searcher_sort_mode_name_label">Naam</string>
+    <string name="searcher_sort_mode_size_label">Grootte</string>
+    <string name="searcher_sort_mode_modified_label">Wijzigingsdatum</string>
+    <string name="searcher_sort_mode_created_label">Aanmaakdatum</string>
+    <string name="searcher_sort_mode_path_label">Pad</string>
+    <string name="searcher_sort_descending_label">Aflopende volgorde</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Hoe items zijn gerangschikt en hoeveel detail wordt weergegeven</string>
+    <string name="searcher_view_mode_list_label">Lijst</string>
+    <string name="searcher_view_mode_grid_label">Raster</string>
+    <string name="searcher_view_density_compact_label">Compact</string>
+    <string name="searcher_view_density_comfortable_label">Comfortabel</string>
+    <string name="searcher_view_density_detailed_label">Gedetailleerd</string>
+    <string name="searcher_view_detail_modified_label">Gewijzigd</string>
+    <string name="searcher_view_set_default_action">Instellen als standaard</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Aanvullende installatie is vereist om bepaalde locaties te doorzoeken.</string>
+</resources>

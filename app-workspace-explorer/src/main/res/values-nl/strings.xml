@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Verkenner</string>
+    <string name="explorer_subtitle">Blader door bestanden en mappen</string>
+    <string name="explorer_settings_title">Verkenner-instellingen</string>
+    <string name="explorer_settings_file_display">Bestandsweergave</string>
+    <string name="explorer_settings_filter_regex_title">Geavanceerde jokertekens</string>
+    <string name="explorer_settings_filter_regex_desc">Gebruik regex-patronen in insluit- en uitsluitfilters.</string>
+    <string name="explorer_settings_navigation">Navigatie</string>
+    <string name="explorer_settings_back_button_title">Navigeren met terugknop</string>
+    <string name="explorer_settings_back_button_desc">Navigeer door de geschiedenis met de terugknop of het terugveeggebaar.</string>
+    <string name="explorer_settings_trash_category">Prullenbak</string>
+    <string name="explorer_settings_trash_enabled_title">Prullenbak inschakelen</string>
+    <string name="explorer_settings_trash_enabled_desc">Verplaats verwijderde bestanden naar de prullenbak in plaats van ze permanent te verwijderen</string>
+    <string name="explorer_settings_trash_auto_delete_title">Automatisch verwijderen na</string>
+    <string name="explorer_settings_trash_auto_delete_desc">Verwijder items automatisch die ouder zijn dan %d dagen</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d dagen</string>
+    <string name="explorer_settings_trash_max_size_title">Maximale grootte per opslag</string>
+    <string name="explorer_settings_trash_max_size_desc">Maximaal %d MB per opslaglocatie</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Periode voor automatisch verwijderen</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Maximale grootte per opslag</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Prullenbak inschakelen?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">In tegenstelling tot desktopsystemen heeft Android geen ingebouwde prullenbak. Butler biedt er een via zijn cachemap.\n\nHoud er rekening mee:\n• De opslagindicator van je apparaat toont pas vrijgekomen ruimte nadat items permanent zijn verwijderd\n• Als de opslag van je apparaat bijna vol raakt, kan Android app-caches wissen, waardoor bestanden in de prullenbak verloren gaan</string>
+    <string name="explorer_settings_trash_enable_action">Inschakelen</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">Bestand</string>
+    <string name="explorer_file_symlink_content_desc">Symbolische koppeling</string>
+    <string name="explorer_file_folder_content_desc">Map</string>
+    <string name="explorer_file_peek_content_desc">Bestandsinformatie laden</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Snelkoppeling</string>
+    <string name="explorer_file_storage_local_label">Lokaal</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Alleen-lezen toegang</string>
+    <string name="explorer_file_storage_saf_write_only_label">Alleen-schrijven toegang</string>
+    <string name="explorer_file_storage_saf_no_access_label">Geen toegang</string>
+    <string name="explorer_file_storage_saf_uri_label">SAF-boom-URI</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s totaal • %3$s vrij</string>
+    <string name="explorer_file_broken_link_label">Verbroken koppeling</string>
+    <string name="explorer_file_items_count">%1$d items</string>
+    <string name="explorer_file_empty">Leeg</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · gedeeltelijk</string>
+    <string name="explorer_sizes_estimate_description">Geschat op basis van de opslagtotalen van Android. Voor onleesbare bestanden wordt de gebruikte opslagruimte als schatting van de bestandsgrootte gebruikt. Verborgen bestanden die door Android worden beheerd, kunnen ook zijn inbegrepen. Andere onleesbare locaties blijven onbekend.</string>
+    <string name="explorer_sizes_estimate_coverage">Android/data kon niet worden geschat omdat andere delen van de opslag niet volledig konden worden gemeten.</string>
+    <string name="explorer_sizes_estimate_unavailable">Opslagstatistieken van Android waren niet beschikbaar. Gemeten groottes worden nog steeds getoond.</string>
+    <string name="explorer_sizes_estimate_inconsistent">De opslagtotalen van Android kwamen niet overeen met de scan. Gemeten groottes worden nog steeds getoond.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Map selecteren</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">Mappen selecteren</item>
+        <item quantity="one">Map selecteren (%d)</item>
+        <item quantity="other">Mappen selecteren (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Bestand selecteren</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">Bestanden selecteren</item>
+        <item quantity="one">Bestand selecteren (%d)</item>
+        <item quantity="other">Bestanden selecteren (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">Items selecteren</item>
+        <item quantity="one">Item selecteren (%d)</item>
+        <item quantity="other">Items selecteren (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Deze map selecteren</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">%d selecteren</item>
+        <item quantity="other">%d selecteren</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Bestand opslaan</string>
+    <string name="explorer_picker_save_here_action">Hier opslaan</string>
+    <string name="explorer_picker_save_as_filename_label">Bestandsnaam</string>
+    <string name="explorer_picker_save_as_filename_hint">Voer een bestandsnaam in</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Vernieuwen</string>
+    <string name="explorer_action_calculate_sizes">Groottes berekenen</string>
+    <string name="explorer_action_sort">Sorteren</string>
+    <string name="explorer_action_filter">Filteren</string>
+    <string name="explorer_action_view">Indeling</string>
+    <string name="explorer_action_create">Maken</string>
+    <string name="explorer_action_rename">Hernoemen</string>
+    <string name="explorer_action_copy">Kopiëren</string>
+    <string name="explorer_action_cut">Knippen</string>
+    <string name="explorer_action_delete">Verwijderen</string>
+    <string name="explorer_action_select_all">Alles selecteren</string>
+    <string name="explorer_action_deselect_all">Alles deselecteren</string>
+    <string name="explorer_action_compress">Comprimeren</string>
+    <string name="explorer_action_extract">Uitpakken</string>
+    <string name="explorer_action_add_location">Locatie toevoegen</string>
+    <string name="explorer_action_info">Info</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Informatie</string>
+    <string name="explorer_info_name_label">Naam</string>
+    <string name="explorer_info_path_label">Pad</string>
+    <string name="explorer_info_type_label">Type</string>
+    <string name="explorer_info_type_file">Bestand</string>
+    <string name="explorer_info_type_directory">Map</string>
+    <string name="explorer_info_size_label">Grootte</string>
+    <string name="explorer_info_modified_label">Gewijzigd</string>
+    <string name="explorer_info_created_label">Gemaakt</string>
+    <string name="explorer_info_permissions_label">Machtigingen</string>
+    <string name="explorer_info_owner_label">Eigenaar</string>
+    <string name="explorer_info_child_count_label">Items</string>
+    <string name="explorer_info_symlink_target_label">Doel</string>
+    <string name="explorer_info_symlink_status_label">Status</string>
+    <string name="explorer_info_symlink_broken">Verbroken koppeling</string>
+    <string name="explorer_info_unknown">Onbekend</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Verwijderd</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Machtigingen</string>
+    <string name="explorer_info_saf_granted_label">Verleend</string>
+    <string name="explorer_info_saf_permission_read">Lezen</string>
+    <string name="explorer_info_saf_permission_write">Schrijven</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Server</string>
+    <string name="explorer_info_network_port_label">Poort</string>
+    <string name="explorer_info_network_share_label">Share</string>
+    <string name="explorer_info_network_folder_label">Map</string>
+    <string name="explorer_info_network_address_label">Adres</string>
+    <string name="explorer_info_network_status_label">Status</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Aanmelden</string>
+    <string name="explorer_info_network_domain_label">Domein</string>
+    <string name="explorer_info_network_password_label">Wachtwoord</string>
+    <string name="explorer_info_network_password_show_action">Wachtwoord tonen</string>
+    <string name="explorer_info_network_password_hide_action">Wachtwoord verbergen</string>
+    <string name="explorer_info_network_password_missing">Ontbreekt, meld je opnieuw aan</string>
+    <string name="explorer_info_network_password_locked">Opgeslagen, maar dit apparaat kan het niet ontgrendelen</string>
+    <string name="explorer_info_network_added_label">Toegevoegd</string>
+    <string name="explorer_info_network_updated_label">Bijgewerkt</string>
+    <string name="explorer_info_network_last_seen_label">Laatst gezien</string>
+    <string name="explorer_info_network_last_seen_never">Nooit</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Geselecteerd</string>
+    <string name="explorer_info_files_label">Bestanden</string>
+    <string name="explorer_info_directories_label">Mappen</string>
+    <string name="explorer_info_total_size_label">Totale grootte</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Locaties</string>
+    <string name="explorer_info_shortcuts_label">Snelkoppelingen</string>
+    <string name="explorer_info_total_capacity_label">Totale capaciteit</string>
+    <string name="explorer_info_used_space_label">Gebruikte ruimte</string>
+    <string name="explorer_info_free_space_label">Vrije ruimte</string>
+    <string name="explorer_info_usage_label">Gebruik</string>
+    <string name="explorer_info_device_storage_total_label">Apparaatopslag</string>
+    <string name="explorer_info_device_storage_used_label">Gebruikt</string>
+    <string name="explorer_info_device_storage_free_label">Vrij</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Start</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Als start instellen</string>
+    <string name="explorer_breadcrumb_copy_path_action">Pad kopiëren</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Pad gekopieerd naar klembord</string>
+    <string name="explorer_navigation_device">Apparaat</string>
+    <string name="explorer_navigation_network">Netwerk</string>
+    <string name="explorer_navigation_recent">Recent</string>
+    <string name="explorer_navigation_recent_desc">Bestanden die onlangs op dit apparaat zijn verschenen</string>
+    <string name="explorer_navigation_trash">Prullenbak</string>
+    <string name="explorer_navigation_trash_desc">Verwijderde bestanden herstellen</string>
+    <string name="explorer_navigation_trash_nested_desc">In een map uit de prullenbak</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Geen verwijderde items</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Herstellen</string>
+    <string name="explorer_trash_restore_selected_action">Selectie herstellen</string>
+    <string name="explorer_trash_delete_permanently_action">Permanent verwijderen</string>
+    <string name="explorer_trash_delete_selected_action">Selectie verwijderen</string>
+    <string name="explorer_trash_empty_trash_action">Prullenbak legen</string>
+    <string name="explorer_trash_empty_confirm">Prullenbak legen?</string>
+    <string name="explorer_trash_empty_message">Alle items in de prullenbak worden permanent verwijderd. Dit kan niet ongedaan worden gemaakt.</string>
+    <string name="explorer_trash_empty_confirm_action">Prullenbak legen</string>
+    <string name="explorer_trash_restore_desc">Herstellen naar oorspronkelijke locatie</string>
+    <string name="explorer_trash_item_unavailable">Item niet beschikbaar</string>
+    <string name="explorer_trash_delete_warning">Dit kan niet ongedaan worden gemaakt</string>
+    <string name="explorer_trash_disabled_warning">Prullenbak uitgeschakeld</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Inhoud van map in prullenbak laden…</string>
+    <string name="explorer_trash_nested_restore_action">Herstellen naar oorspronkelijke locatie</string>
+    <string name="explorer_trash_nested_delete_action">Permanent verwijderen</string>
+    <string name="explorer_trash_nested_restore_conflict">Bestand bestaat al op de oorspronkelijke locatie</string>
+    <string name="explorer_trash_nested_parent_missing">Bovenliggend item bestaat niet meer in de prullenbak</string>
+    <string name="explorer_trash_nested_path_missing">Pad bestaat niet meer</string>
+    <string name="explorer_trash_error_items_not_found">Items niet gevonden in de prullenbak</string>
+    <string name="explorer_trash_error_restore_failed">Herstellen van items mislukt</string>
+    <string name="explorer_trash_error_delete_failed">Verwijderen van items mislukt</string>
+    <string name="explorer_trash_nested_error_restore_failed">Herstellen van %1$s mislukt</string>
+    <string name="explorer_trash_nested_error_delete_failed">Verwijderen van %1$s mislukt</string>
+
+    <string name="explorer_navigation_root">Hoofdmap</string>
+    <string name="explorer_navigation_rom">Systeem-ROM</string>
+    <string name="explorer_navigation_internal_storage">Interne publieke opslag</string>
+    <string name="explorer_navigation_external_storage">Externe publieke opslag</string>
+
+    <string name="explorer_loader_progress_directory_loading">Bladeren door %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Machtigingen controleren</string>
+    <string name="explorer_loader_progress_directory_filesystem">Bestandssysteeminformatie ophalen</string>
+    <string name="explorer_loader_progress_directory_content">Mapinhoud laden</string>
+    <string name="explorer_loader_progress_directory_content_details">Inhoudsdetails laden</string>
+    <string name="explorer_loader_progress_directory_content_extended">Uitgebreide inhoudsdetails laden</string>
+
+    <string name="explorer_loader_progress_device_loading">Apparaat laden</string>
+    <string name="explorer_loader_progress_device_locations">Opslaglocaties laden</string>
+
+    <string name="explorer_loader_progress_network_loading">Netwerkopslag laden</string>
+
+    <string name="explorer_loader_progress_home_loading">Start laden</string>
+    <string name="explorer_loader_progress_trash_loading">Prullenbak laden…</string>
+    <string name="explorer_loader_progress_recent_loading">Recente bestanden laden…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d snelkoppeling</item>
+        <item quantity="other">%d snelkoppelingen</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d locatie</item>
+        <item quantity="other">%d locaties</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d verborgen</item>
+        <item quantity="other">%d verborgen</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s vrij</string>
+    <string name="explorer_infobar_loading">Laden…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Nieuw item maken</string>
+    <string name="explorer_dialog_rename_title">Hernoemen</string>
+    <string name="explorer_dialog_name_label">Naam</string>
+    <string name="explorer_dialog_type_label">Type</string>
+    <string name="explorer_dialog_type_folder">Map</string>
+    <string name="explorer_dialog_type_file">Bestand</string>
+    <string name="explorer_dialog_create_text_file_title">Bestand maken van tekst</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Voorbeeld</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d tekens</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Opslaglocatie toevoegen</string>
+    <string name="explorer_add_device_storage_desc">Gebruik het Storage Access Framework (SAF) om Butler toegang te geven tot extra opslaglocaties, zoals usb-drives, virtuele app-mappen en meer.</string>
+    <string name="explorer_add_device_storage_continue">Doorgaan</string>
+    <string name="explorer_add_device_storage_cancel">Annuleren</string>
+    <string name="explorer_add_device_storage_suggestions_title">Apps met opslag</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Opent de map van deze app</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Locatie verwijderen</string>
+    <string name="explorer_device_remove_confirmation_title">Opslaglocatie verwijderen?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">%1$d opslaglocatie verwijderen?</item>
+        <item quantity="other">%1$d opslaglocaties verwijderen?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Hierdoor wordt Butlers toegang tot deze locatie ingetrokken. Je bestanden worden niet verwijderd.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d netwerklocatie</item>
+        <item quantity="other">%d netwerklocaties</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Netwerk</string>
+    <string name="explorer_network_add_location_action">Netwerkopslag toevoegen</string>
+    <string name="explorer_network_edit_location_action">Netwerkopslag bewerken</string>
+    <string name="explorer_network_remove_location_action">Netwerkopslag verwijderen</string>
+    <string name="explorer_network_sign_in_required_label">Aanmelden vereist</string>
+    <string name="explorer_network_status_checking_label">Controleren…</string>
+    <string name="explorer_network_status_available_label">Beschikbaar</string>
+    <string name="explorer_network_status_unavailable_label">Niet beschikbaar</string>
+    <string name="explorer_network_status_unavailable_since_format">Niet beschikbaar (%1$s)</string>
+    <string name="explorer_network_empty_title">Nog geen netwerkopslag</string>
+    <string name="explorer_network_empty_caption">Voeg een Windows-share of NAS-map toe om die hier te doorbladeren.</string>
+    <string name="explorer_network_remove_confirmation_title">Netwerkopslag verwijderen?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">%1$d netwerkopslag verwijderen?</item>
+        <item quantity="other">%1$d netwerkopslagen verwijderen?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler vergeet de servergegevens en het opgeslagen wachtwoord. Er wordt niets op de server verwijderd.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Netwerkopslag toevoegen</string>
+    <string name="explorer_network_form_edit_title">Netwerkopslag bewerken</string>
+    <string name="explorer_network_form_label_label">Naam (optioneel)</string>
+    <string name="explorer_network_form_host_label">Serveradres</string>
+    <string name="explorer_network_form_host_hint">nas.local of 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Poort</string>
+    <string name="explorer_network_form_share_label">Share</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Map binnen de share (optioneel)</string>
+    <string name="explorer_network_form_auth_guest">Gast</string>
+    <string name="explorer_network_form_auth_password">Gebruikersnaam en wachtwoord</string>
+    <string name="explorer_network_form_username_label">Gebruikersnaam</string>
+    <string name="explorer_network_form_domain_label">Domein (optioneel)</string>
+    <string name="explorer_network_form_password_label">Wachtwoord</string>
+    <string name="explorer_network_form_password_kept_hint">Laat leeg om het opgeslagen wachtwoord te behouden</string>
+    <string name="explorer_network_form_remember_label">Wachtwoord onthouden</string>
+    <string name="explorer_network_form_remember_hint">Alleen versleuteld opgeslagen op dit apparaat</string>
+    <string name="explorer_network_form_test_and_save_action">Testen &amp; opslaan</string>
+    <string name="explorer_network_form_testing">Verbinden…</string>
+    <string name="explorer_network_form_error_host_blank">Voer een serveradres in</string>
+    <string name="explorer_network_form_error_host_not_bare">Voer alleen het serveradres in, zonder schema of pad</string>
+    <string name="explorer_network_form_error_host_malformed">Dit is geen geldig serveradres</string>
+    <string name="explorer_network_form_error_port">Voer een poort tussen 1 en 65535 in</string>
+    <string name="explorer_network_form_error_share_blank">Voer een sharenaam in</string>
+    <string name="explorer_network_form_error_share_not_single">Voer alleen de sharenaam in, plaats submappen hieronder</string>
+    <string name="explorer_network_form_error_share_malformed">Dit is geen geldige sharenaam</string>
+    <string name="explorer_network_form_error_base_path">Dit mappad kan niet worden gebruikt</string>
+    <string name="explorer_network_form_error_username_blank">Voer een gebruikersnaam in</string>
+    <string name="explorer_network_form_error_password_required">Voer het wachtwoord opnieuw in om de gebruikersnaam of het domein te wijzigen</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Locatie benoemen</string>
+    <string name="explorer_location_name_label">Locatienaam</string>
+    <string name="explorer_location_name_hint">Laat leeg om de standaardnaam te gebruiken</string>
+    <string name="explorer_location_rename_action">Locatie hernoemen</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Toegevoegd in de afgelopen dag</item>
+        <item quantity="other">Toegevoegd in de afgelopen %d dagen</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Niets nieuws hier</string>
+    <string name="explorer_recent_empty_message">Bestanden die op dit apparaat verschijnen, komen hier terecht</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Deze map is leeg</string>
+    <string name="explorer_empty_search_title">Geen zoekresultaten</string>
+    <string name="explorer_empty_search_caption">Probeer een andere zoekterm</string>
+    <string name="explorer_empty_folder_label">Lege map</string>
+    <string name="explorer_empty_filtered_title">Geen overeenkomende items</string>
+    <string name="explorer_empty_filtered_caption">Probeer je filters aan te passen</string>
+    <string name="explorer_empty_hidden_title">Alleen verborgen items hier</string>
+    <string name="explorer_empty_hidden_caption">Dit tabblad verbergt items waarvan de naam met een punt begint</string>
+    <string name="explorer_empty_show_hidden_action">Verborgen items tonen</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Niets meer om te tonen</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Verborgen items en je filters sluiten elk een deel van deze map uit</string>
+    <string name="explorer_empty_clear_filters_action">Filters wissen</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Verborgen items en filters sluiten hier alles uit</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Verborgen items tonen en de filters van dit tabblad wissen, brengt ze terug</string>
+    <string name="explorer_empty_show_all_action">Alle items tonen</string>
+    <string name="explorer_path_not_found_title">Deze map bestaat niet meer</string>
+    <string name="explorer_path_not_found_caption">De map is verwijderd, hernoemd of ergens anders naartoe verplaatst.</string>
+    <string name="explorer_path_not_found_back_action">Terug</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Laden…</string>
+    <string name="explorer_file_peek_loading_text">Laden…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Niets te zien hier… loop door 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Deze map is op dieet</string>
+    <string name="explorer_empty_folder_caption_3">Zelfs de bestanden gingen vandaag vroeg naar huis</string>
+    <string name="explorer_empty_folder_caption_4">Map.exe is gestopt met werken</string>
+    <string name="explorer_empty_folder_caption_5">De bestanden spelen verstoppertje</string>
+    <string name="explorer_empty_folder_caption_6">404: Bestanden niet gevonden</string>
+    <string name="explorer_empty_folder_caption_7">Deze map heeft vertrouwensproblemen</string>
+    <string name="explorer_empty_folder_caption_8">De bestanden zijn zonder bericht met vakantie gegaan</string>
+    <string name="explorer_empty_folder_caption_9">Leeg als mijn ziel… maar beter georganiseerd</string>
+    <string name="explorer_empty_folder_caption_10">Het digitale equivalent van stuifbollen</string>
+    <string name="explorer_empty_folder_caption_11">Bestanden houden sociale afstand</string>
+    <string name="explorer_empty_folder_caption_12">Deze map doet aan minimalisme</string>
+    <string name="explorer_empty_folder_caption_13">Iemand vergat de bestanden te voeren</string>
+    <string name="explorer_empty_folder_caption_14">De bestanden hebben het pand verlaten</string>
+    <string name="explorer_empty_folder_caption_15">Leger dan een belofte van een politicus</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Sorteren op</string>
+    <string name="explorer_sort_mode_name_label">Naam</string>
+    <string name="explorer_sort_mode_size_label">Grootte</string>
+    <string name="explorer_sort_mode_modified_label">Wijzigingsdatum</string>
+    <string name="explorer_sort_mode_created_label">Aanmaakdatum</string>
+    <string name="explorer_sort_descending_label">Aflopende volgorde</string>
+    <string name="explorer_sort_scope_label">Toepassen op</string>
+    <string name="explorer_sort_scope_all_folders">Alle mappen</string>
+    <string name="explorer_sort_scope_this_folder">Deze map</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Deze map en submappen</string>
+    <string name="explorer_sort_scope_use_default_here">Standaardvolgorde hier gebruiken</string>
+    <string name="explorer_sort_only_this_tab_label">Alleen voor dit tabblad</string>
+    <string name="explorer_sort_inherited_notice">Gesorteerd volgens een regel die is opgeslagen voor %1$s</string>
+    <string name="explorer_sort_suppressed_notice">Dit overschrijft de regel die is opgeslagen voor %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Dit tabblad gebruikt zijn eigen standaardsorteervolgorde</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Wissen</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Mapgroottes</string>
+    <string name="explorer_sizes_sheet_label_calculated">Berekend</string>
+    <string name="explorer_sizes_sheet_label_folders">Mappen</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Onleesbare locaties</string>
+    <string name="explorer_sizes_sheet_problems_more">Nog %1$d niet weergegeven</string>
+    <string name="explorer_sizes_sheet_recalculate">Opnieuw berekenen</string>
+    <string name="explorer_sizes_sheet_discard">Groottes verwerpen</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Hoe items worden gerangschikt en hoeveel details ze tonen</string>
+    <string name="explorer_view_mode_list_label">Lijst</string>
+    <string name="explorer_view_mode_grid_label">Raster</string>
+    <string name="explorer_view_density_compact_label">Compact</string>
+    <string name="explorer_view_density_comfortable_label">Comfortabel</string>
+    <string name="explorer_view_density_detailed_label">Gedetailleerd</string>
+    <string name="explorer_view_show_hidden_label">Verborgen bestanden tonen</string>
+    <string name="explorer_view_set_default_action">Als standaard instellen</string>
+    <string name="explorer_view_detail_created_label">Gemaakt</string>
+    <string name="explorer_view_detail_modified_label">Gewijzigd</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Sorteerregels voor mappen</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Sorteerinstellingen die je hebt opgeslagen voor afzonderlijke mappen</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Sorteerregels voor mappen wissen?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Alle mappen gaan terug naar de standaardsorteervolgorde. Tabbladen met een eigen sorteeroverschrijving behouden die. Dit kan niet ongedaan worden gemaakt.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Alles wissen</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Bestandstype</string>
+    <string name="explorer_filter_type_all">Alle</string>
+    <string name="explorer_filter_type_files">Alleen bestanden</string>
+    <string name="explorer_filter_type_folders">Alleen mappen</string>
+    <string name="explorer_filter_include_label">Insluitpatroon</string>
+    <string name="explorer_filter_include_placeholder_simple">bijv. vakantie, rapport, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">bijv. .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Uitsluitpatroon</string>
+    <string name="explorer_filter_exclude_placeholder_simple">bijv. tmp, cache, oud</string>
+    <string name="explorer_filter_exclude_placeholder_regex">bijv. ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Schakel regex-patronen in bij de instellingen</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Machtiging nodig</string>
+    <string name="explorer_permission_generic_description">Butler heeft extra machtiging nodig om deze locatie te doorbladeren.</string>
+    <string name="explorer_permission_setup_action">Setup openen</string>
+    <string name="explorer_grant_access_action">Toegang verlenen</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Acties</string>
+    <string name="explorer_file_info_type_label">Type</string>
+    <string name="explorer_file_info_size_label">Grootte</string>
+    <string name="explorer_file_info_modified_label">Gewijzigd</string>
+    <string name="explorer_file_action_install">Installeren</string>
+    <string name="explorer_file_action_install_subtitle">Installeer deze app op je apparaat</string>
+    <string name="explorer_file_action_open">Openen</string>
+    <string name="explorer_file_action_open_subtitle">Bekijk hier, terug brengt je naar deze map</string>
+    <string name="explorer_file_action_open_in_tab">Openen in nieuw tabblad</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Bekijk in Butler als eigen tabblad</string>
+    <string name="explorer_file_action_open_in_editor">Openen in editor</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Bewerk in een nieuw tabblad</string>
+    <string name="explorer_file_action_open_with">Openen met</string>
+    <string name="explorer_file_action_open_with_subtitle">Kies een externe app om te openen</string>
+    <string name="explorer_file_action_share">Delen</string>
+    <string name="explorer_file_action_share_subtitle">Delen via geïnstalleerde apps</string>
+    <string name="explorer_file_action_copy">Kopiëren</string>
+    <string name="explorer_file_action_copy_subtitle">Kopiëren naar klembord om te plakken</string>
+    <string name="explorer_file_action_cut">Knippen</string>
+    <string name="explorer_file_action_cut_subtitle">Verplaatsen naar klembord om te plakken</string>
+    <string name="explorer_file_action_rename">Hernoemen</string>
+    <string name="explorer_file_action_rename_subtitle">Wijzig de bestandsnaam</string>
+    <string name="explorer_file_action_delete">Verwijderen</string>
+    <string name="explorer_file_action_delete_subtitle">Verwijder dit bestand permanent</string>
+    <string name="explorer_file_action_move_to_trash">Naar prullenbak verplaatsen</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Verplaats bestand naar prullenbak</string>
+    <string name="explorer_file_action_properties">Eigenschappen</string>
+    <string name="explorer_file_action_properties_subtitle">Bekijk gedetailleerde bestandsinformatie</string>
+    <string name="explorer_file_action_extract">Uitpakken</string>
+    <string name="explorer_file_action_extract_subtitle">Pak de inhoud van het archief uit naar een map</string>
+    <string name="explorer_file_action_show_in_folder">Tonen in map</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Open de map waarin dit bestand zich bevindt</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">%d bestand gemaakt.</item>
+        <item quantity="other">%d bestanden gemaakt.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">%d map gemaakt.</item>
+        <item quantity="other">%d mappen gemaakt.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Kopieerbewerking</string>
+    <string name="explorer_operation_copy_description_single">Kopieer \"%1$s\" van \"%2$s\" naar \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">Kopieer %1$d item naar \"%2$s\".</item>
+        <item quantity="other">Kopieer %1$d items naar \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%d bestand gekopieerd.</item>
+        <item quantity="other">%d bestanden gekopieerd.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%d map gekopieerd.</item>
+        <item quantity="other">%d mappen gekopieerd.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">%s gekopieerd.</item>
+        <item quantity="other">%s gekopieerd.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Uitpakbewerking</string>
+    <string name="explorer_operation_extract_description">Pak \"%1$s\" uit naar \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Lokale kopieerbewerking</string>
+    <string name="explorer_operation_download_copy_description">Kopieer \"%1$s\" naar \"%2$s\" om lokaal te doorbladeren.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">%d bestand uitgepakt.</item>
+        <item quantity="other">%d bestanden uitgepakt.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">%s uitgepakt.</item>
+        <item quantity="other">%s uitgepakt.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Comprimeerbewerking</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">Comprimeer %1$d item naar \"%2$s\".</item>
+        <item quantity="other">Comprimeer %1$d items naar \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">%d bestand gecomprimeerd.</item>
+        <item quantity="other">%d bestanden gecomprimeerd.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Archief maken</string>
+    <string name="explorer_compress_dialog_name_label">Archiefnaam</string>
+    <string name="explorer_compress_dialog_format_label">Formaat</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Opent op elk apparaat. Kan met een wachtwoord worden beveiligd.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Kleiner bij veel bestanden. Geen wachtwoordbeveiliging.</string>
+    <string name="explorer_compress_dialog_create_action">Maken</string>
+    <string name="explorer_compress_dialog_level_label">Compressieniveau</string>
+    <string name="explorer_compress_dialog_level_fast">Snel</string>
+    <string name="explorer_compress_dialog_level_normal">Normaal</string>
+    <string name="explorer_compress_dialog_level_best">Beste</string>
+    <string name="explorer_compress_dialog_password_label">Wachtwoord (optioneel)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Wachtwoord bevestigen</string>
+    <string name="explorer_compress_dialog_password_mismatch">Wachtwoorden komen niet overeen</string>
+    <string name="explorer_compress_dialog_password_weak">Zwak wachtwoord</string>
+    <string name="explorer_compress_dialog_password_notice">Bestandsinhoud is versleuteld, bestandsnamen niet.</string>
+    <string name="explorer_compress_dialog_password_show">Wachtwoord tonen</string>
+    <string name="explorer_compress_dialog_password_hide">Wachtwoord verbergen</string>
+    <string name="explorer_compress_dialog_overwrite_title">Archief vervangen?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" bestaat al en wordt vervangen.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Vervangen</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">%1$d item neerzetten?</item>
+        <item quantity="other">%1$d items neerzetten?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">%1$d item kopiëren of verplaatsen naar \"%2$s\"?</item>
+        <item quantity="other">%1$d items kopiëren of verplaatsen naar \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">%1$d item kopiëren naar \"%2$s\"?</item>
+        <item quantity="other">%1$d items kopiëren naar \"%2$s\"?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Naar prullenbak verplaatsen?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">%1$d item naar de prullenbak verplaatsen?</item>
+        <item quantity="other">%1$d items naar de prullenbak verplaatsen?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Verplaatsbewerking</string>
+    <string name="explorer_operation_move_description_single">Verplaats \"%1$s\" van \"%2$s\" naar \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">Verplaats %1$d item naar \"%2$s\".</item>
+        <item quantity="other">Verplaats %1$d items naar \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%d bestand verplaatst.</item>
+        <item quantity="other">%d bestanden verplaatst.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%d map verplaatst.</item>
+        <item quantity="other">%d mappen verplaatst.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">%s verplaatst.</item>
+        <item quantity="other">%s verplaatst.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Map maken</string>
+    <string name="explorer_operation_create_description_directory">Maak map \"%1$s\" aan op \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Bestand maken</string>
+    <string name="explorer_operation_create_description_file">Maak bestand \"%1$s\" aan op \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Tekstbestand maken</string>
+    <string name="explorer_operation_create_text_file_description">Maak \"%1$s\" van tekstfragment</string>
+    <string name="explorer_operation_calculate_sizes_title">Grootteberekening</string>
+    <string name="explorer_operation_calculate_sizes_description">Bereken mapgroottes in \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$d item gescand</item>
+        <item quantity="other">%1$d items gescand</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">De groottes van %1$d mappen zijn berekend.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">De groottes van %1$d mappen zijn berekend, %2$d locatie kon niet worden gelezen.</item>
+        <item quantity="other">De groottes van %1$d mappen zijn berekend, %2$d locaties konden niet worden gelezen.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">De mapgroottes voor \"%1$s\" zijn genegeerd omdat de map tijdens de berekening is gewijzigd.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Navigeren mislukt</string>
+    <string name="explorer_aborted_dialog_title">Bewerking afgebroken</string>
+    <string name="explorer_aborted_dialog_message">Het laden is geannuleerd voordat er iets kon worden getoond.</string>
+    <string name="explorer_archive_unbrowsable_title">Archief kan hier niet worden doorbladerd</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" staat op opslag die alleen opeenvolgend lezen ondersteunt, maar het doorbladeren van een archief vereist willekeurige toegang. Pak het archief hier uit, of download een lokale kopie om het te doorbladeren.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Archief uitpakken</string>
+    <string name="explorer_archive_unbrowsable_download_action">Lokale kopie downloaden</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (speciale toegang)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (speciale toegang)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android beperkt de toegang tot deze map. Gebruik de mapkiezer om toegang te verlenen.</string>
+    <string name="explorer_permission_multiple_options_description">Je kunt toegang verlenen via de mapkiezer van Android, of Root/Shizuku instellen voor snellere toegang tot alle beperkte mappen.</string>
+    <string name="explorer_permission_setup_both_description">Deze map vereist verhoogde toegang. Installeer en configureer Root of Shizuku in Setup.</string>
+    <string name="explorer_permission_setup_shizuku_description">Deze map vereist verhoogde toegang via Shizuku. Installeer Shizuku Manager en configureer deze in Setup.</string>
+    <string name="explorer_permission_setup_root_description">Deze map vereist Root-toegang. Configureer Root in Setup als je apparaat geroot is.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Gebruik de mapkiezer van Android om toegang tot deze map te verlenen.</string>
+    <string name="explorer_permission_option_picker_action">SAF-kiezer openen</string>
+
+    <string name="explorer_permission_option_setup_title">Volledige toegang</string>
+    <string name="explorer_permission_option_setup_description">Configureer Root of Shizuku voor snellere toegang tot alle beperkte mappen.</string>
+    <string name="explorer_permission_option_setup_action">Configureren</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Opslagtoegang</string>
+    <string name="explorer_permission_option_storage_description">Verleen Butler machtiging om bestanden op de opslag van je apparaat te openen.</string>
+    <string name="explorer_permission_option_storage_action">Machtiging verlenen</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_action_open_in_new_tabs">Openen in nieuwe tabbladen</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Favorieten</string>
+    <string name="explorer_action_add_to_favorites">Toevoegen aan favorieten</string>
+    <string name="explorer_action_remove_from_favorites">Verwijderen uit favorieten</string>
+    <string name="explorer_favorites_select_action">Selecteren</string>
+    <string name="explorer_favorites_unavailable_subtitle">Niet toegankelijk</string>
+    <string name="explorer_favorites_unavailable_toast">Favoriet is niet toegankelijk</string>
+    <string name="explorer_favorites_added_message">%1$s toegevoegd aan favorieten</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">%1$d item toegevoegd aan favorieten</item>
+        <item quantity="other">%1$d items toegevoegd aan favorieten</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">%1$s verwijderd uit favorieten</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">%1$d item verwijderd uit favorieten</item>
+        <item quantity="other">%1$d items verwijderd uit favorieten</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Favoriet hernoemen</string>
+    <string name="explorer_favorites_rename_hint">Naam van favoriet</string>
+    <string name="explorer_favorites_rename_description">Alleen de vermelding in je favorieten wordt hernoemd, de map zelf behoudt zijn naam.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">Dit tabblad overschrijft de sorteervolgorde in %1$d map</item>
+        <item quantity="other">Dit tabblad overschrijft de sorteervolgorde in %1$d mappen</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d map</item>
+        <item quantity="other">%1$d mappen</item>
+    </plurals>
+</resources>

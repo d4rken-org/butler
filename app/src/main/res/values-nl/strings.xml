@@ -1,0 +1,530 @@
+<resources>
+    <string name="onboarding_welcome_title">Welkom bij Butler</string>
+    <string name="onboarding_welcome_message">Tabbladen voor bestanden.\nBladeren, zoeken en bewerken — allemaal tegelijk.</string>
+    <string name="onboarding_welcome_subtitle">Open source. Zonder advertenties. Geen tracking.\nDe bestandsverkenner die je verdient.</string>
+    <string name="onboarding_welcome_action">Begin met verkennen</string>
+    <string name="onboarding_beta_title">Bepaal de toekomst mee</string>
+    <string name="onboarding_beta_message">Dit is een bèta (test)build. Ga verder met gevoel voor humor en een back-upplan. Meld eventuele problemen die je tegenkomt.</string>
+    <string name="onboarding_beta_action">Ik vrees niets</string>
+    <string name="onboarding_beta_feature_early_access_title">Vroege toegang</string>
+    <string name="onboarding_beta_feature_early_access_description">Probeer de nieuwste functies als eerste uit.</string>
+    <string name="onboarding_beta_feature_influence_title">Directe invloed</string>
+    <string name="onboarding_beta_feature_influence_description">Jouw feedback bepaalt Butlers ontwikkeling.</string>
+    <string name="onboarding_beta_feature_feedback_title">Vanuit de community</string>
+    <string name="onboarding_beta_feature_feedback_description">Sluit je aan bij een community van powerusers die Butler verbeteren.</string>
+    <string name="onboarding_privacy_title">Privacy &amp; gegevens</string>
+    <string name="onboarding_privacy_message">Butler bevat geen advertenties en verkoopt geen gebruikersgegevens. Jouw privacy is belangrijk voor mij.</string>
+    <string name="onboarding_privacy_read_action">Privacybeleid lezen</string>
+    <string name="onboarding_privacy_action">Accepteren</string>
+    <string name="onboarding_skip_action">Overslaan</string>
+    <string name="onboarding_progress_step">%1$d van %2$d</string>
+
+    <string name="onboarding_workspaces_title">Werken in tabbladen</string>
+    <string name="onboarding_workspaces_message">Open meerdere tabbladen en wissel ertussen — net als in je webbrowser.</string>
+    <string name="onboarding_workspaces_action">Doorgaan</string>
+    <string name="onboarding_workspaces_hint">Houd meerdere tabbladen tegelijk open.</string>
+    <string name="onboarding_workspaces_explorer_title">Verkenner</string>
+    <string name="onboarding_workspaces_explorer_description">Blader door je bestanden.</string>
+    <string name="onboarding_workspaces_searcher_title">Zoeken</string>
+    <string name="onboarding_workspaces_searcher_description">Vind spullen.</string>
+    <string name="onboarding_workspaces_editor_title">Editor</string>
+    <string name="onboarding_workspaces_editor_description">Bewerk bestanden.</string>
+    <string name="onboarding_workspaces_templates_title">Sjablonen</string>
+    <string name="onboarding_workspaces_templates_description">Sla je indeling op.</string>
+    <string name="onboarding_workspaces_apps_description">Beheer je apps.</string>
+
+    <!-- Verkenner-snelkoppelingen -->
+    <string name="shortcut_explorer_new_short">Nieuwe verkenner</string>
+    <string name="shortcut_explorer_new_long">Nieuw verkennertabblad maken</string>
+
+    <!-- Instellingen voor snelkoppelingen -->
+    <string name="shortcuts_settings_title">Snelkoppelingen</string>
+    <string name="shortcuts_settings_subtitle">Snelkoppelingen voor het startscherm instellen</string>
+    <string name="shortcuts_settings_enabled_title">Snelkoppelingen inschakelen</string>
+    <string name="shortcuts_settings_enabled_subtitle">Toon veelgebruikte items op het startscherm</string>
+    <string name="shortcuts_settings_auto_remember_title">Bezochte paden onthouden</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Voeg veelbezochte paden automatisch toe als snelkoppeling</string>
+    <string name="shortcuts_settings_last_accessed_title">Laatst geopend</string>
+    <string name="shortcuts_settings_max_count_title">Maximum aantal snelkoppelingen</string>
+    <string name="shortcuts_settings_max_count_subtitle">Toont momenteel %d snelkoppelingen</string>
+    <string name="shortcuts_settings_min_access_title">Minimum aantal keer geopend</string>
+    <string name="shortcuts_settings_min_access_subtitle">Vereist %d keer openen voordat het wordt getoond</string>
+    <string name="shortcuts_settings_current_title">Huidige snelkoppelingen</string>
+    <string name="shortcuts_settings_current_subtitle">%d snelkoppelingen bijgehouden</string>
+    <string name="shortcuts_settings_clear_title">Snelkoppelingsgeschiedenis wissen</string>
+    <string name="shortcuts_settings_clear_subtitle">Verwijder alle bijgehouden snelkoppelingen</string>
+    <string name="shortcuts_settings_clear_confirm_title">Snelkoppelingsgeschiedenis wissen?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Dit verwijdert alle bijgehouden snelkoppelingen. Bladwijzers blijven bewaard.</string>
+    <string name="shortcuts_settings_cleared_message">Snelkoppelingsgeschiedenis gewist</string>
+    <string name="shortcuts_settings_max_dialog_title">Maximum aantal snelkoppelingen</string>
+    <string name="shortcuts_settings_max_dialog_message">Aantal snelkoppelingen dat op het startscherm wordt getoond (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Minimum aantal keer openen</string>
+    <string name="shortcuts_settings_min_dialog_message">Hoe vaak een pad geopend moet zijn voordat het als snelkoppeling verschijnt (1–10)</string>
+
+    <string name="setup_usagestats_title">Gebruiksstatistieken</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Meldingstoegang</string>
+    <string name="setup_manage_storage_card_title">Externe opslag beheren</string>
+    <string name="setup_inventory_card_title">App-inventaris</string>
+
+    <string name="setup_title">Machtigingen instellen</string>
+    <string name="setup_settings_description">Stel app-machtigingen en functies in.</string>
+    <string name="setup_help_description">Help</string>
+
+    <string name="setup_root_description">Geeft toegang tot systeembestanden en beveiligde mappen voor geavanceerd bestandsbeheer. Ontgrendelt het volledige potentieel van Butler, inclusief toegang tot app-gegevens en systeemwijzigingen. Het toestel moet geroot zijn.</string>
+    <string name="setup_shizuku_description">Alternatief voor root dat bevoorrechte bestandsbewerkingen biedt via een beveiligde API. Geeft toegang tot beveiligde mappen zonder traditionele root. Vereist dat de Shizuku-app is geïnstalleerd en actief is.</string>
+    <string name="setup_notification_description">Toont updates voor bestandsbewerkingen, achtergrondtaken en overdrachtsvoortgang. Houdt je op de hoogte wanneer bewerkingen voltooid zijn of er fouten optreden.</string>
+    <string name="setup_usagestats_description">Analyseert het opslaggebruik van apps om grote bestanden te vinden en ruimte effectief te beheren. Alle gegevens blijven op je toestel en worden nooit verzonden.</string>
+    <string name="setup_storage_description">Volledige toegang tot alle opslag van het toestel voor snelle bestandsbewerkingen en batchverwerking. Maakt uitgebreid bestandsbeheer mogelijk zonder herhaalde machtigingsverzoeken.</string>
+    <string name="setup_inventory_description">Bekijk alle geïnstalleerde apps voor functies zoals APK-extractie en opslaganalyse. Vereist op Android 11+ om de volledige app-lijst te bekijken.</string>
+
+    <string name="setup_grant_access_label">Toegang verlenen</string>
+    <string name="setup_access_granted_label">Toegang verleend</string>
+    <string name="setup_use_root_label">Root gebruiken indien beschikbaar</string>
+    <string name="setup_use_shizuku_label">Shizuku gebruiken indien beschikbaar</string>
+
+    <string name="setup_status_checking">Controleren…</string>
+    <string name="setup_status_completed">Geconfigureerd</string>
+    <string name="setup_status_required">Vereist</string>
+    <string name="setup_status_optional">Optioneel</string>
+    <string name="setup_status_connected">Verbonden</string>
+    <string name="setup_status_not_connected">Niet verbonden</string>
+    <string name="setup_status_not_installed">Niet geïnstalleerd</string>
+    <string name="setup_status_connecting">Verbinden…</string>
+    <string name="setup_status_connection_failed">Verbinding mislukt</string>
+    <string name="setup_status_unavailable">Niet beschikbaar</string>
+
+    <!-- Foutopsporingslog -->
+    <string name="debug_notification_channel_label">Foutopsporingsmeldingen</string>
+    <string name="debug_log_consent_title">Foutopsporingslog</string>
+    <string name="debug_log_consent_explanation">Deze functie legt alles vast wat de app doet in een deelbaar bestand. Het gegenereerde bestand bevat gevoelige informatie (bijv. bestandsnamen en geïnstalleerde apps). Deel het alleen met vertrouwde partijen (bijv. een ontwikkelaar die een probleem oplost).</string>
+    <string name="debug_log_recording_progress">Foutopsporingslog opnemen</string>
+    <string name="debug_log_record_action">Opnemen</string>
+    <string name="debug_log_record_full_action">Foutopsporingslog opnemen</string>
+    <string name="debug_log_stop_action">Opname stoppen</string>
+    <string name="debug_log_screen_title">Foutopsporingslogrecorder</string>
+    <string name="debug_log_screen_sensitive_information_message">Het gegenereerde bestand bevat gevoelige informatie (bijv. bestandsnamen en geïnstalleerde apps). Deel het alleen met vertrouwde partijen.</string>
+    <string name="debug_log_screen_session_path_label">Pad van foutopsporingssessie</string>
+    <string name="debug_log_screen_log_files_label">Logbestanden</string>
+    <string name="debug_log_screen_log_files_ready">Logbestanden gereed (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Verwerpen</string>
+    <string name="debug_log_file_label">Opgenomen logbestand</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">Logbestand wordt opgenomen</string>
+    <string name="debug_banner_stop_action">Stoppen</string>
+    <string name="debug_banner_view_action">Bekijken</string>
+    <string name="debug_banner_explanation">App-activiteit wordt opgenomen. Stop wanneer je klaar bent en deel het log bij het melden van bugs.</string>
+    <string name="debug_log_short_recording_title">Opname is erg kort</string>
+    <string name="debug_log_short_recording_message">Foutopsporingslogs leggen vast wat er gebeurt terwijl de opname actief is. Start de opname, reproduceer het probleem en stop dan. Deze opname bevat mogelijk geen nuttige informatie.</string>
+    <string name="debug_log_short_recording_keep_action">Opname behouden</string>
+
+    <string name="debug_logview_screen_title">Logweergave</string>
+    <string name="debug_logview_pause_action">Pauzeren (scherm bevriezen)</string>
+    <string name="debug_logview_resume_action">Hervatten</string>
+    <string name="debug_logview_copy_action">Log kopiëren</string>
+    <string name="debug_logview_collapse_action">Inklappen</string>
+    <string name="debug_logview_close_action">Logpaneel sluiten</string>
+    <string name="debug_logview_resize_action">Grootte aanpassen</string>
+    <string name="debug_logview_more_action">Meer opties</string>
+    <string name="debug_logview_level_action">Logniveau</string>
+    <string name="debug_logview_clear_action">Buffer wissen</string>
+    <string name="debug_logview_search_action">Zoeken</string>
+    <string name="debug_logview_search_clear_action">Zoekopdracht wissen</string>
+    <string name="debug_logview_search_close_action">Zoeken sluiten</string>
+    <string name="debug_logview_search_prev_action">Vorige overeenkomst</string>
+    <string name="debug_logview_search_next_action">Volgende overeenkomst</string>
+    <string name="debug_logview_jump_to_bottom_action">Naar recentste springen</string>
+    <string name="debug_logview_paused_msg">Gepauzeerd — scherm bevroren</string>
+    <string name="debug_logview_paused_new_msg">Gepauzeerd — %1$d nieuwe regel(s) sindsdien</string>
+    <string name="debug_logview_copied_msg">Log gekopieerd naar klembord</string>
+    <string name="debug_logview_copied_truncated_msg">Laatste %1$d regels gekopieerd naar klembord</string>
+    <string name="debug_logview_share_label">Log delen</string>
+
+    <string name="settings_label">Instellingen</string>
+    <string name="settings_category_tools_label">Hulpmiddelen</string>
+    <string name="settings_category_other_label">Overig</string>
+    <string name="settings_category_integration_label">Integratie</string>
+    <string name="general_settings_label">Algemeen</string>
+    <string name="general_settings_desc">Algemene aanpassingen die de hele app beïnvloeden.</string>
+    <string name="settings_category_ui_label">Gebruikersinterface</string>
+    <string name="ui_mascot_suit_setting_label">Butlers pak</string>
+    <string name="ui_mascot_suit_setting_explanation">De kleur van Butlers outfit.</string>
+    <string name="ui_theme_mode_setting_label">Themamodus</string>
+    <string name="ui_theme_mode_setting_explanation">De modus die wordt gebruikt voor het thema van de app (bijv. nacht of dag).</string>
+    <string name="ui_theme_style_setting_label">Themastijl</string>
+    <string name="ui_theme_style_setting_explanation">De kleurstijl die wordt gebruikt voor het thema van de app.</string>
+    <string name="ui_theme_color_setting_label">Themakleur</string>
+    <string name="ui_theme_color_setting_explanation">Het kleurenpalet dat wordt gebruikt voor het thema van de app.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Kleuren worden geleverd door Material You op basis van je achtergrond</string>
+    <string name="ui_theme_color_value_system">Systeemkleuren</string>
+    <string name="ui_language_override_label">App-taal</string>
+    <string name="ui_language_override_desc">Kies een andere taal voor Butler, los van de standaardtaal van je systeem.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Camera-uitsparing vermijden</string>
+    <string name="ui_display_cutout_avoid_setting_description">Houdt de interface vrij van de camera-uitsparing. Schakel dit uit om meer van het scherm te gebruiken, maar delen van de interface kunnen dan achter de uitsparing komen te liggen.</string>
+
+    <string name="previews_settings_title">Voorbeelden</string>
+    <string name="previews_settings_subtitle">Beheer caches voor afbeeldingsvoorbeelden.</string>
+
+    <string name="tour_settings_reset_title">Rondleidingen resetten</string>
+    <string name="tour_settings_reset_subtitle">Toon de rondleidingen opnieuw, inclusief de rondleidingen die je hebt overgeslagen of uitgeschakeld.</string>
+    <string name="tour_settings_reset_done">Rondleidingen zijn gereset.</string>
+
+    <string name="storage_settings_title">Opslag</string>
+    <string name="storage_settings_subtitle">Beheer Butlers caches, opslag en prullenbak.</string>
+    <string name="storage_category_previews_label">Voorbeelden</string>
+    <string name="storage_previews_disk_cache_title">Schijfcache</string>
+    <string name="storage_previews_memory_cache_title">Geheugencache</string>
+    <string name="storage_previews_max_size_title">Maximale cachegrootte</string>
+    <string name="storage_clear_disk_confirm_title">Schijfcache wissen?</string>
+    <string name="storage_clear_disk_confirm_message">Dit verwijdert alle gecachte voorbeeldafbeeldingen. Ze worden opnieuw gegenereerd indien nodig.</string>
+    <string name="storage_clear_memory_confirm_title">Geheugencache wissen?</string>
+    <string name="storage_clear_memory_confirm_message">Dit verwijdert gecachte voorbeeldafbeeldingen uit het geheugen. Ze worden opnieuw gegenereerd indien nodig.</string>
+    <string name="storage_clear_all_confirm_title">Alle caches wissen?</string>
+    <string name="storage_clear_all_confirm_message">Dit wist zowel de schijf- als geheugencache voor voorbeeldafbeeldingen.</string>
+    <string name="storage_clear_all_previews_action">Alle voorbeeldcaches wissen</string>
+    <string name="storage_clear_all_subtitle">Verwijder alle voorbeeldcaches</string>
+    <string name="storage_cache_cleared_message">Cache gewist</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">Controleren op updates</string>
+    <string name="updater_check_enabled_setting_description">Sta Butler toe om online te controleren of er een nieuwe versie beschikbaar is.</string>
+    <string name="motd_check_enabled_setting_title">Controleren op mededelingen</string>
+    <string name="motd_check_enabled_setting_description">Sta Butler toe om belangrijke berichten van de ontwikkelaar op te halen.</string>
+    <string name="motd_card_header">Mededeling</string>
+
+    <string name="confirm_exit_setting_title">Afsluiten bevestigen</string>
+    <string name="confirm_exit_setting_description">Toon een bevestigingsvenster bij het afsluiten van de app.</string>
+    <string name="confirm_exit_dialog_title">Butler afsluiten</string>
+    <string name="confirm_exit_dialog_message">Dit sluit de app en brengt je terug naar het startscherm.</string>
+    <string name="confirm_exit_dialog_exit">Afsluiten</string>
+    <string name="confirm_exit_dialog_cancel">Annuleren</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Niet meer vragen</string>
+
+    <string name="settings_support_category_help_label">Hulp krijgen</string>
+    <string name="settings_support_label">Ondersteuning</string>
+    <string name="settings_support_description">Lees documentatie, meld problemen, chat met anderen of neem foutopsporingslogs op.</string>
+    <string name="settings_support_wiki_label">Documentatie</string>
+    <string name="settings_support_wiki_description">Leer hoe je Butler effectief gebruikt.</string>
+    <string name="settings_support_issue_tracker_description">Een openbare issue-tracker voor bugmeldingen en functieverzoeken.</string>
+    <string name="settings_support_issue_tracker_label">Issue-tracker</string>
+    <string name="settings_support_debuglog_label">Foutopsporingslog</string>
+    <string name="settings_support_debuglog_desc">Leg alles vast wat de app doet in een tekstbestand dat je kunt delen.</string>
+    <string name="settings_support_debuglog_recording_desc">Er wordt momenteel foutopsporingsinformatie opgenomen. Tik om de opname te stoppen.</string>
+    <string name="settings_support_debuglog_path">Logpad: %1$s</string>
+    <string name="settings_support_bugreports_label">Bugmeldingen</string>
+    <string name="settings_support_bugreports_desc">Bekijk crashrapporten, neem foutopsporingslogs op en deel ze met mij.</string>
+    <string name="support_contact_report_type_crash">Crashrapport</string>
+    <string name="support_contact_report_type_reported">Bugmelding</string>
+    <string name="support_contact_report_type_recording">Opname</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Een plek om rond te hangen en vragen te stellen.</string>
+
+    <string name="settings_acknowledgements_label">Dankbetuigingen</string>
+    <string name="settings_acknowledgements_description">Credits, licenties en speciale dank.</string>
+    <string name="settings_acks_translation_header">Vertaling</string>
+    <string name="settings_acks_translators_title">Vertalers</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Butler vertalen</string>
+    <string name="settings_acks_translate_desc">Help Butler naar jouw taal te vertalen.</string>
+
+    <string name="settings_acks_thanks_header">Dank</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">Voor het ondersteunen van vertalingen van opensourceprojecten.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Bedankt voor het icoon, de mascotteontwerpen en de animaties.</string>
+    <string name="settings_licenses_label">Licenties</string>
+
+    <!-- Statuskaart tabblad -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d tabblad</item>
+        <item quantity="other">%1$d tabbladen</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d bewerking</item>
+        <item quantity="other">%1$d bewerkingen</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d Aandacht</item>
+        <item quantity="other">%1$d Aandacht</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d Niet opgeslagen</item>
+        <item quantity="other">%1$d Niet opgeslagen</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d Gepauzeerd</item>
+        <item quantity="other">%1$d Gepauzeerd</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">Alle tabbladen tonen</string>
+    <string name="workspace_status_filter_operations_desc">Filteren op tabbladen met bewerkingen</string>
+    <string name="workspace_status_filter_attention_desc">Filteren op tabbladen die aandacht nodig hebben</string>
+    <string name="workspace_status_filter_paused_desc">Filteren op gepauzeerde tabbladen</string>
+    <string name="workspace_status_filter_unsaved_desc">Filteren op tabbladen met niet-opgeslagen wijzigingen</string>
+
+    <!-- Dankbetuigingen -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">De programmeertaal Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Een snelle dependency injector voor Android en Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Voer Java- (en Kotlin-)code uit als root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Geroote Kotlin JVM-code eenvoudig uitvoeren met coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Systeem-API’s direct gebruiken met adb/root-rechten vanuit gewone apps, via een Java-proces gestart met app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Airbnbs Lottie voor Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">De Android-robot is gereproduceerd of aangepast op basis van werk dat is gemaakt en gedeeld door Google, en wordt gebruikt volgens de voorwaarden beschreven in de Creative Commons 3.0 Attribution License.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Androids moderne toolkit voor het bouwen van native UI. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpack-bibliotheken</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation en andere AndroidX-bibliotheken. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin-extensies</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Coroutines- en Serialization-bibliotheken. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Bibliotheek voor het laden van afbeeldingen, gebaseerd op Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Cryptografische primitieven voor SMB-authenticatie, ondertekening en versleuteling. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Square-bibliotheken</string>
+    <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp en OkIO-netwerkbibliotheken. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Hulpprogramma’s voor Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Slepen en neerzetten voor LazyColumn in Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Bibliotheek voor semantische versienummering voor Kotlin. (MIT-licentie)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Grafieken en diagrammen voor Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Privacybeleid</string>
+    <string name="settings_privacy_policy_desc">Verantwoord omgaan met gegevens.</string>
+
+
+    <string name="changelog_label">Wijzigingslogboek</string>
+
+    <!-- Upgradestatus -->
+    <string name="settings_upgrade_status_label">Upgradestatus van Butler</string>
+    <string name="upgrade_status_free">Status: Gratis</string>
+    <string name="upgrade_status_pro">Status: Pro</string>
+    <string name="upgrade_status_foss">Status: FOSS</string>
+
+    <string name="storage_area_sdcard_label">Sd-kaart</string>
+    <string name="storage_area_public_label">Openbare opslag</string>
+    <string name="storage_area_public_app_data_label">Openbare app-gegevens</string>
+
+    <!-- Tabblad -->
+    <!-- Tabblad > Beheer -->
+    <string name="workspace_manager_title">Tabbladbeheer</string>
+    <string name="workspace_manager_empty_title">Geen tabbladen</string>
+    <string name="workspace_manager_empty_subtitle">Maak je eerste tabblad om te beginnen</string>
+
+    <!-- Tabblad > Lege inhoud-->
+    <string name="workspace_empty_create_action">Tabblad maken</string>
+    <string name="workspace_empty_create_hint">Werk parallel: maak een tabblad en maak er het hulpmiddel van dat je wilt.</string>
+    <string name="workspace_empty_settings_action">Instellingen openen</string>
+    <string name="workspace_empty_settings_hint">Pas Butler naar wens aan. Stel in hoe de hulpmiddelen zich gedragen.</string>
+    <string name="workspace_classic_empty_tabs_closed">Geen open tabbladen. Klaar wanneer jij dat bent.</string>
+    <string name="workspace_classic_empty_tip">Tip: tik op “Tabblad maken” en kies een hulpmiddel — Verkenner, Zoeken, Editor en meer.</string>
+
+    <!-- Tabblad > Rondleiding -->
+    <string name="tour_first_tab_title">Begin met een tabblad</string>
+    <string name="tour_first_tab_body">Butler werkt met tabbladen, net als een browser: elk tabblad is een eigen hulpmiddel — Verkenner, Zoeken, Editor en meer. Maak je eerste tabblad.</string>
+    <string name="tour_manager_fab_title">Snelkoppelingen</string>
+    <string name="tour_manager_fab_body">Tik hierop voor snelkoppelingen naar de hulpmiddelen die je het meest gebruikt, en om alle tabbladen in één keer te sluiten.</string>
+    <string name="tour_manager_reorder_title">Herschik je tabbladen</string>
+    <string name="tour_manager_reorder_body">Houd de titelbalk van een tabblad ingedrukt en sleep het naar de gewenste plek. Dit is de volgorde waarin je tabbladen overal elders verschijnen.</string>
+    <string name="tour_manager_select_title">Werk aan meerdere tabbladen</string>
+    <string name="tour_manager_select_body">Houd het voorbeeld van een tabblad ingedrukt om tabbladen te selecteren. Tik daarna op de rest en sluit of pauzeer ze allemaal in één keer.</string>
+    <string name="tour_manager_new_tab_title">Start een nieuw tabblad</string>
+    <string name="tour_manager_new_tab_body">Tik op deze kaart om een hulpmiddel te kiezen voor een nieuw tabblad.</string>
+    <string name="tour_swipe_switch_title">Swipe tussen tabbladen</string>
+    <string name="tour_swipe_switch_body">Swipe ergens op de pagina naar links of rechts om tussen je open tabbladen te wisselen.</string>
+    <string name="tour_swipe_create_title">Swipe om een tabblad te starten</string>
+    <string name="tour_swipe_create_body">Swipe voorbij je laatste tabblad en Butler biedt je een nieuwe aan.</string>
+    <string name="tour_swipe_panes_title">Meer dan één tabblad tegelijk</string>
+    <string name="tour_swipe_panes_body">Op een groter scherm, of in liggende stand, toont Butler meerdere tabbladen naast elkaar. De indelingsinstellingen onder Tabbladen bepalen wanneer dat gebeurt.</string>
+    <string name="tour_panes_rail_title">Al je tabbladen</string>
+    <string name="tour_panes_rail_body">Elk open tabblad staat hier. Tik op een tabblad en kies het deelvenster waar het naartoe moet. Houd een tabblad ingedrukt en sleep het om de volgorde te wijzigen.</string>
+    <string name="tour_panes_divider_title">Pas de grootte van de deelvensters aan</string>
+    <string name="tour_panes_divider_body">Sleep deze scheidingslijn om een deelvenster meer ruimte te geven.</string>
+    <string name="tour_panes_layout_title">Wijzig de indeling</string>
+    <string name="tour_panes_layout_body">Tik op de Butler-knop en kies Indeling om de deelvensters opnieuw te schikken. De instellingen onder Tabbladen leggen een indeling per oriëntatie vast.</string>
+
+    <string name="workspace_creating_placeholder">Tabblad wordt gemaakt…</string>
+    <string name="workspace_ondemand_swipe_title">Swipe om een nieuw tabblad te maken</string>
+
+    <!-- Adaptief tabblad -->
+    <string name="workspace_adaptive_pane_ready">Deelvenster %1$d is klaar voor inhoud</string>
+    <string name="workspace_adaptive_add_action">Tabblad toevoegen</string>
+
+    <string name="workspace_badge_tip_title">Tip: indicatoren op de tabbladknop</string>
+    <string name="workspace_badge_open_workspaces">Aantal open tabbladen</string>
+    <string name="workspace_badge_active_operations">Actieve bewerkingen (bestanden kopiëren, zoekopdrachten, enz.)</string>
+    <string name="workspace_badge_attention_items">Items die aandacht nodig hebben (mislukte of wachtende bewerkingen, onbereikbare bestanden)</string>
+
+    <!-- Tabbladbeheer-acties -->
+    <string name="workspace_manager_dismiss_content_desc">Sluiten</string>
+    <string name="workspace_manager_selection_count">%1$d geselecteerd</string>
+    <string name="workspace_manager_selection_select_all">Alles selecteren</string>
+    <string name="workspace_manager_selection_pause_action">Selectie pauzeren</string>
+    <string name="workspace_manager_selection_close_action">Selectie sluiten</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Selectiemodus verlaten</string>
+    <string name="workspace_manager_selection_clear_content_desc">Selectie wissen</string>
+    <string name="workspace_manager_select_all_tabs_desc">Alle tabbladen selecteren</string>
+    <string name="workspace_manager_new_tab_card_title">Nieuw tabblad</string>
+    <string name="workspace_row_select_content_desc">Tabblad selecteren</string>
+    <string name="general_cancel_action">Annuleren</string>
+
+    <!-- Tabbladbeheer-FAB -->
+    <string name="workspace_fab_quick_shortcuts">Snelkoppelingen</string>
+    <string name="workspace_fab_close_shortcuts">Snelkoppelingen sluiten</string>
+    <string name="workspace_fab_close_all">Alle tabbladen sluiten</string>
+
+    <!-- Tabblad-navigatiebalk -->
+    <string name="workspace_pane_assign_action">Toewijzen aan deelvenster %1$d</string>
+    <string name="workspace_pane_show_action">Tonen</string>
+    <string name="workspace_pane_close_action">Sluiten</string>
+    <string name="workspace_pane_unassign_action">Verwijderen uit deelvenster</string>
+    <string name="workspace_dragging_description">Wordt gesleept</string>
+    <string name="workspace_pane_current_description">In deelvenster %1$d</string>
+
+    <!-- Tabbladbeheer-rij -->
+    <string name="workspace_row_close_content_desc">Tabblad sluiten</string>
+    <string name="workspace_row_more_options_content_desc">Meer opties</string>
+    <string name="workspace_row_operations_running_content_desc">Bezig</string>
+    <string name="workspace_row_operations_pending_content_desc">Wachtend</string>
+    <string name="workspace_row_pause_action">Pauzeren</string>
+    <string name="workspace_row_resume_action">Hervatten</string>
+    <string name="workspace_row_stacked_content_desc">Gestapeld op dit tabblad</string>
+    <string name="workspace_row_unsaved_content_desc">Niet-opgeslagen wijzigingen</string>
+
+    <!-- Instellingenindex -->
+    <string name="workspace_settings_subtitle">Stel het gedrag van tabbladen in.</string>
+    <string name="explorer_settings_subtitle">Stel het gedrag van de bestandsverkenner in.</string>
+    <string name="searcher_settings_subtitle">Stel het zoekgedrag in.</string>
+    <string name="editor_settings_subtitle">Stel het gedrag van de teksteditor in.</string>
+    <string name="history_settings_subtitle">Bewaren en wissen van bewerkingsgeschiedenis.</string>
+    <string name="clipboard_settings_subtitle">Stel het gedrag van het klembord in.</string>
+
+    <!-- Opslagdoel voor delen -->
+    <string name="saver_share_label">Opslaan als…</string>
+
+    <!-- Deeldoel voor los bestand -->
+    <string name="share_receive_label">Openen in Butler</string>
+
+    <!-- Deeldoel voor editor -->
+    <string name="editor_share_label">Tekst bewerken</string>
+
+    <!-- Openen met: een bestand dat een andere app aan Butler heeft doorgegeven -->
+    <string name="external_open_unknown_file_title">Naamloos bestand</string>
+    <string name="external_open_action_view">Bekijken</string>
+    <string name="external_open_action_edit">Als tekst bewerken</string>
+    <string name="external_open_action_show_in_explorer">Tonen in Verkenner</string>
+    <string name="external_open_action_save">Opslaan als…</string>
+    <string name="external_open_failed_label">Kan bestand niet openen</string>
+    <string name="external_open_failed_description">Butler kon \"%1$s\" niet openen.</string>
+
+    <!-- Ontwikkelaarsmodus -->
+    <string name="settings_developer_mode_unlock_title">Ontwikkelaarsmodus inschakelen?</string>
+    <string name="settings_developer_mode_unlock_message">Dit ontgrendelt geavanceerde diagnostische hulpmiddelen voor probleemoplossing en testen.</string>
+    <string name="settings_developer_mode_unlock_action">Inschakelen</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">Nog %d stap tot Ontwikkelaarsmodus</item>
+        <item quantity="other">Nog %d stappen tot Ontwikkelaarsmodus</item>
+    </plurals>
+
+    <!-- Ondersteuning: contactformulier -->
+    <string name="support_contact_label">Contact opnemen met ontwikkelaar</string>
+    <string name="support_contact_description">Vul een formulier in om mij een e-mail te sturen.</string>
+    <string name="support_contact_no_email_app">Geen e-mailapp gevonden</string>
+    <string name="support_contact_category_label">Categorie</string>
+    <string name="support_contact_category_question">Vraag</string>
+    <string name="support_contact_category_feature">Functieverzoek</string>
+    <string name="support_contact_category_bug">Bugmelding</string>
+    <string name="support_contact_workspace_label">Betreffend onderdeel</string>
+    <string name="support_contact_workspace_general">Algemeen</string>
+    <string name="support_contact_workspace_explorer">Verkenner</string>
+    <string name="support_contact_workspace_searcher">Zoeken</string>
+    <string name="support_contact_workspace_editor">Editor</string>
+    <string name="support_contact_description_label">Beschrijving</string>
+    <string name="support_contact_description_question_hint">Beschrijf je vraag in detail. Wees specifiek (minimaal 20 woorden).</string>
+    <string name="support_contact_description_feature_hint">Beschrijf de functie die je graag zou willen zien. Wees specifiek (minimaal 20 woorden).</string>
+    <string name="support_contact_description_bug_hint">Beschrijf wat er is gebeurd en hoe je het probleem kunt reproduceren. Wees specifiek (minimaal 20 woorden).</string>
+    <string name="support_contact_expected_label">Verwacht gedrag</string>
+    <string name="support_contact_expected_hint">Beschrijf wat je had verwacht (minimaal 10 woorden).</string>
+    <string name="support_contact_word_count">Minimaal %1$d woorden</string>
+    <string name="support_contact_debuglog_label">Foutopsporingslog</string>
+    <string name="support_contact_debuglog_empty">Geen foutopsporingslogs gevonden. Neem er eerst een op.</string>
+    <string name="support_contact_debuglog_picker_hint">Voeg een bestaand foutopsporingslog toe of neem een nieuwe op.</string>
+    <string name="support_contact_send_action">E-mailapp openen</string>
+    <string name="support_contact_welcome">Ik lees elk bericht zelf en doe mijn best om te reageren, maar omdat ik hier alleen aan werk, kan het even duren. Bedankt voor je geduld.</string>
+    <string name="support_contact_footer">Je bericht wordt via e-mail verzonden. Toestel- en configuratie-informatie wordt automatisch bijgevoegd. Je kunt schermafbeeldingen of een video aan de e-mail toevoegen.\n\nSommige delen van de e-mail zijn in het Engels, zodat ik het gemakkelijk kan begrijpen.</string>
+
+    <!-- Ondersteuning: opslag foutopsporingslogs -->
+    <string name="support_debuglog_storage_label">Opslag van foutopsporingslogs</string>
+    <string name="support_debuglog_storage_description">%1$d logsessies, %2$s</string>
+    <string name="support_debuglog_storage_empty">Geen foutopsporingslogs opgeslagen</string>
+    <string name="support_debuglog_delete_action">Alle foutopsporingslogs verwijderen</string>
+    <string name="support_debuglog_delete_description">Verwijder alle opgenomen foutopsporingslogbestanden</string>
+    <string name="support_debuglog_delete_confirm_title">Alle foutopsporingslogs verwijderen?</string>
+    <string name="support_debuglog_delete_confirm_message">Dit verwijdert alle opgenomen foutopsporingslogsessies permanent. Actieve opnames worden niet beïnvloed.</string>
+
+    <!-- Ondersteuning: acties foutopsporingslog -->
+    <string name="settings_support_debuglog_stop_action">Opname stoppen</string>
+    <string name="settings_support_debuglog_record_action">Foutopsporingslog opnemen</string>
+
+    <!-- Ondersteuning: bottom sheet foutopsporingssessies -->
+    <string name="support_debuglog_sessions_label">Foutopsporingslogsessies</string>
+    <string name="support_debuglog_sessions_desc">Beheer opgenomen foutopsporingslogsessies</string>
+    <string name="support_debuglog_sessions_empty">Geen foutopsporingslogsessies</string>
+    <string name="support_debuglog_session_recording">Opnemen…</string>
+    <string name="support_debuglog_session_compressing">Comprimeren…</string>
+    <string name="support_debuglog_session_failed_empty_log">Mislukt: leeg log</string>
+    <string name="support_debuglog_session_failed_missing_log">Mislukt: ontbrekend log</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Mislukt: beschadigd archief</string>
+    <string name="support_debuglog_session_failed_zip_failed">Mislukt: compressiefout</string>
+    <string name="support_debuglog_session_delete_title">Foutopsporingssessie verwijderen?</string>
+    <string name="support_debuglog_session_delete_message">Dit verwijdert deze foutopsporingslogsessie permanent.</string>
+    <string name="support_debuglog_clear_action">Alles wissen</string>
+    <string name="support_debuglog_clear_confirm_message">Alle opgeslagen foutopsporingslogsessies verwijderen?</string>
+
+    <!-- Scherm foutopsporingslog -->
+    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_screen_subtitle">Foutopsporingsinformatie exporteren voor probleemoplossing</string>
+    <string name="debug_log_screen_sensitive_information_title">Gevoelige informatie</string>
+
+    <!-- Ondersteuning: contactformulier -->
+    <string name="support_contact_sent_title">Heb je het bericht verzonden?</string>
+    <string name="support_contact_sent_message">Als het bericht is verzonden, wordt het bijgevoegde foutopsporingslog verwijderd om ruimte te besparen. Zo niet, dan kun je het bewaren en het later opnieuw proberen.</string>
+    <string name="support_contact_debuglog_zip_error">Voorbereiden van foutopsporingslogbijlage mislukt</string>
+
+    <!-- Achtergrondbestandsbewerkingen: voortgangs- en aandachtsmeldingen -->
+    <string name="ops_notification_channel_progress_name">Voortgang van bestandsbewerkingen</string>
+    <string name="ops_notification_channel_progress_desc">Lopende voortgang voor kopieer-, verplaats- en verwijderbewerkingen</string>
+    <string name="ops_notification_channel_attention_name">Meldingen voor bestandsbewerkingen</string>
+    <string name="ops_notification_channel_attention_desc">Bewerkingen die je aandacht nodig hebben of zijn mislukt</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d bestandsbewerking actief</item>
+        <item quantity="other">%1$d bestandsbewerkingen actief</item>
+    </plurals>
+    <string name="ops_notification_state_queued">In wachtrij…</string>
+    <string name="ops_notification_state_cancelling">Annuleren…</string>
+    <string name="ops_notification_state_attention_title">Actie vereist</string>
+    <string name="ops_notification_state_attention_text">Er is een conflict dat aandacht nodig heeft — tik om op te lossen</string>
+    <string name="ops_notification_result_failed_title">Bewerking mislukt</string>
+
+    <!-- Beoordelingsprompt -->
+    <string name="review_app_body">Wil je een beoordeling voor Butler achterlaten? ❤️</string>
+    <string name="review_app_dismiss_action">Misschien later</string>
+    <string name="review_app_review_action">Beoordelen</string>
+
+</resources>
