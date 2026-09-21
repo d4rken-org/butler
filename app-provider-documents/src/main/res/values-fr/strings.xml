@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Accès avancé aux appareils</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Appareil</string>
+    <string name="documents_connection_device_summary">Stockage local de l’appareil</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Système de fichiers racine</string>
+    <string name="provider_documents_storage_internal_label">Stockage interne</string>
+    <string name="provider_documents_storage_sd_card_label">Carte SD</string>
+    <string name="provider_documents_storage_saf_label">Emplacement SAF</string>
+    <string name="provider_documents_storage_free_suffix">libre</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">L’accès root est nécessaire pour parcourir cet emplacement. Activez l’accès root dans les paramètres de l’application Butler.</string>
+    <string name="provider_documents_error_requires_adb">L’accès ADB/Shizuku est nécessaire pour parcourir cet emplacement. Activez Shizuku dans les paramètres de l’application Butler.</string>
+    <string name="provider_documents_error_requires_storage">L’autorisation de stockage est nécessaire pour parcourir cet emplacement. Accordez l’autorisation de stockage dans les paramètres de l’application Butler.</string>
+    <string name="provider_documents_error_requires_permissions">Des autorisations supplémentaires sont nécessaires pour parcourir cet emplacement. Vérifiez les paramètres de l’application Butler.</string>
+    <string name="provider_documents_error_generic">Impossible d’accéder à cet emplacement. Vérifiez l’application Butler pour les options d’accès.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Fournisseur de documents</string>
+    <string name="provider_documents_settings_subtitle">Intégration d’applications externes</string>
+    <string name="provider_documents_settings_category_integration_label">Intégration</string>
+    <string name="provider_documents_enabled_title">Activer le fournisseur de documents</string>
+    <string name="provider_documents_enabled_desc">Autoriser les autres applications à accéder aux fichiers via Butler en utilisant le sélecteur de fichiers Android</string>
+</resources>
