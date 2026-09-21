@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 앱 작업 영역 -->
+    <string name="apps_title">앱</string>
+    <string name="apps_subtitle">설치된 앱 관리</string>
+
+    <!-- 필터 라벨 -->
+    <string name="apps_filter_app_type_label">앱 유형</string>
+    <string name="apps_filter_type_all">전체</string>
+    <string name="apps_filter_type_user">사용자 앱</string>
+    <string name="apps_filter_type_system">시스템 앱</string>
+    <string name="apps_filter_status_label">상태</string>
+    <string name="apps_filter_status_all">전체</string>
+    <string name="apps_filter_status_enabled">사용 중</string>
+    <string name="apps_filter_status_disabled">사용 안 함</string>
+
+
+    <!-- 정렬 옵션 -->
+    <string name="apps_sort_mode_label">정렬 기준</string>
+    <string name="apps_sort_mode_name_label">이름</string>
+    <string name="apps_sort_mode_size_label">크기</string>
+    <string name="apps_sort_mode_install_date_label">설치일</string>
+    <string name="apps_sort_mode_update_date_label">업데이트일</string>
+    <string name="apps_sort_mode_package_name_label">패키지 이름</string>
+    <string name="apps_sort_descending_label">내림차순</string>
+    <string name="apps_sort_mode_size_slowdown_hint">앱 크기를 계산하면 로딩 속도가 느려집니다</string>
+
+    <!-- 작업 -->
+    <string name="apps_action_launch">실행</string>
+    <string name="apps_action_open_info">앱 정보</string>
+    <string name="apps_action_disable">사용 안 함</string>
+    <string name="apps_action_enable">사용</string>
+    <string name="apps_action_uninstall">제거</string>
+    <string name="apps_action_clear_data">데이터 삭제</string>
+    <string name="apps_action_export_apk">APK 내보내기</string>
+    <string name="apps_action_browse_path">경로 찾아보기</string>
+    <string name="apps_action_share">정보 공유</string>
+    <string name="apps_action_refresh">새로고침</string>
+    <string name="apps_action_sort">정렬</string>
+    <string name="apps_action_filter">필터</string>
+    <string name="apps_action_select_all">전체 선택</string>
+    <string name="apps_action_deselect_all">선택 해제</string>
+    <string name="apps_action_open_in_tab">탭에서 열기</string>
+    <string name="apps_action_force_stop">강제 종료</string>
+    <string name="apps_action_view">레이아웃</string>
+
+    <!-- 보기 옵션 -->
+    <string name="apps_view_sheet_subtitle">항목 배열 방식과 표시할 정보량</string>
+    <string name="apps_view_mode_list_label">목록</string>
+    <string name="apps_view_mode_grid_label">그리드</string>
+    <string name="apps_view_density_compact_label">간략히</string>
+    <string name="apps_view_density_comfortable_label">적당히</string>
+    <string name="apps_view_density_detailed_label">자세히</string>
+    <string name="apps_view_set_default_action">기본값으로 설정</string>
+    <string name="apps_view_detail_dates_label">설치: %1$s · 업데이트: %2$s</string>
+
+    <!-- 작업 설명 -->
+    <string name="apps_action_launch_desc">앱을 시작합니다</string>
+    <string name="apps_action_open_info_desc">자세한 시스템 정보를 확인합니다</string>
+    <string name="apps_action_enable_desc">이 앱을 사용하도록 설정합니다</string>
+    <string name="apps_action_disable_desc">이 앱을 사용하지 않도록 설정합니다</string>
+    <string name="apps_action_uninstall_desc">이 앱을 제거합니다</string>
+    <string name="apps_action_export_apk_desc">APK 파일을 저장공간에 저장합니다</string>
+    <string name="apps_action_share_desc">앱 정보를 텍스트로 공유합니다</string>
+    <string name="apps_action_force_stop_desc">앱을 즉시 중지합니다</string>
+    <string name="apps_action_clear_data_desc">모든 앱 데이터와 설정을 삭제합니다</string>
+
+    <!-- 앱 정보 라벨 -->
+    <string name="apps_package_name_label">패키지</string>
+    <string name="apps_version_label">버전</string>
+    <string name="apps_size_label">크기</string>
+    <string name="apps_size_chip_desc">앱 크기: %1$s</string>
+    <string name="apps_size_permission_hint">앱 크기를 확인하려면 사용량 액세스 권한이 필요합니다</string>
+    <string name="apps_size_permission_body">Android는 사용량 액세스 권한이 있는 앱에만 앱, 데이터, 캐시 크기를 보고합니다. 이 앱의 저장공간 사용 내역을 보려면 권한을 허용하세요.</string>
+
+    <!-- 앱 세부정보 -->
+    <string name="apps_details_storage_locations_label">저장 위치</string>
+    <string name="apps_path_internal_data_label">내부 데이터</string>
+    <string name="apps_path_external_data_label">외부 저장공간</string>
+    <string name="apps_path_requires_root_label">root 필요</string>
+    <string name="apps_path_requires_shizuku_label">Shizuku 필요</string>
+    <string name="apps_path_requires_root_or_shizuku_label">root 또는 Shizuku 필요</string>
+    <string name="apps_path_requires_access_label">추가 액세스 필요</string>
+    <string name="apps_storage_breakdown_label">저장공간 사용 내역</string>
+    <string name="apps_storage_app_label">앱</string>
+
+    <!-- 앱 세부정보 탭 -->
+    <string name="appdetails_tab_overview_label">개요</string>
+    <string name="appdetails_tab_packageinfo_label">패키지 정보</string>
+
+    <!-- 앱 세부정보 작업 -->
+    <string name="appdetails_back_action">앱으로 돌아가기</string>
+    <string name="appdetails_close_action">닫기</string>
+
+    <!-- 앱 세부정보 패키지 정보 -->
+    <string name="appdetails_packageinfo_title">패키지 정보</string>
+    <string name="appdetails_packageinfo_view_action">패키지 세부정보 보기</string>
+    <string name="appdetails_packageinfo_unavailable_msg">앱의 패키지 세부정보를 읽을 수 없습니다.</string>
+    <string name="appdetails_packageinfo_permissions_header">권한 (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">서명 인증서</string>
+    <string name="appdetails_packageinfo_package_label">패키지</string>
+    <string name="appdetails_packageinfo_version_label">버전</string>
+    <string name="appdetails_packageinfo_min_sdk_label">최소 SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">대상 SDK</string>
+
+    <!-- 빈 상태 -->
+    <string name="apps_empty_no_apps">앱을 찾을 수 없습니다</string>
+    <string name="apps_empty_no_apps_desc">필터를 조정해 보세요</string>
+    <string name="apps_empty_loading">앱 불러오는 중…</string>
+
+    <!-- 검색 -->
+    <string name="apps_search_hint">앱 검색</string>
+
+    <!-- 다중 선택 -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">앱 선택</item>
+        <item quantity="other">%d개 선택됨</item>
+    </plurals>
+
+    <!-- 정보 표시줄 -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="other">사용자 앱 %d개</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="other">시스템 앱 %d개</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="other">%d개 선택됨</item>
+    </plurals>
+
+    <!-- 앱 세부정보 섹션 -->
+    <string name="apps_details_section_actions">작업</string>
+    <string name="apps_details_section_overview">개요</string>
+    <string name="apps_details_section_storage">저장공간</string>
+
+    <!-- 앱 세부정보 작업 표시줄 -->
+    <string name="apps_details_more_options">더보기</string>
+
+    <!-- 앱 세부정보 패키지 데이터 -->
+    <string name="apps_details_pkgdata_error_title">앱 데이터를 불러올 수 없음</string>
+    <string name="apps_details_gone_title">앱 제거됨</string>
+    <string name="apps_details_gone_message">이 앱은 더 이상 이 기기에 설치되어 있지 않습니다.</string>
+    <string name="apps_details_gone_close_action">닫기</string>
+    <string name="apps_details_uninstalled_title">이 사용자에서 제거됨</string>
+    <string name="apps_details_uninstalled_message">이 사용자에게는 더 이상 앱이 설치되어 있지 않지만 파일은 기기에 남아 있습니다.</string>
+
+    <!-- 앱 세부정보 확인 -->
+    <string name="apps_details_confirm_clear_data_title">앱 데이터를 삭제할까요?</string>
+    <string name="apps_details_confirm_clear_data_message">%1$s의 모든 데이터와 설정이 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</string>
+    <string name="apps_details_confirm_uninstall_title">앱을 제거할까요?</string>
+    <string name="apps_details_confirm_uninstall_message">%1$s 앱이 이 기기에서 제거됩니다.</string>
+
+    <!-- 앱 정보 -->
+    <string name="apps_type_label">유형</string>
+    <string name="apps_type_system">시스템 앱</string>
+    <string name="apps_type_user">사용자 앱</string>
+    <string name="apps_status_label">상태</string>
+    <string name="apps_status_enabled">사용 중</string>
+    <string name="apps_status_disabled">사용 안 함</string>
+    <string name="apps_installed_label">설치일</string>
+    <string name="apps_updated_label">마지막 업데이트</string>
+    <string name="apps_target_sdk_label">대상 SDK</string>
+    <string name="apps_min_sdk_label">최소 SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">설치 출처</string>
+    <string name="apps_permissions_label">권한</string>
+    <string name="apps_permissions_count">권한 %1$d개</string>
+    <string name="apps_data_size_label">데이터</string>
+    <string name="apps_cache_size_label">캐시</string>
+    <string name="apps_total_size_label">전체</string>
+
+    <!-- 앱 태그 -->
+    <string name="apps_tag_system_label">시스템</string>
+    <string name="apps_tag_disabled_label">사용 안 함</string>
+    <string name="apps_tag_updated_label">업데이트됨</string>
+    <string name="apps_tag_sideloaded_label">사이드로드됨</string>
+    <string name="apps_tag_split_label">분할 APK</string>
+    <string name="apps_tag_debug_label">디버그</string>
+    <string name="apps_tag_user_label">사용자 %1$d</string>
+
+    <!-- 필터 태그 (필터링용 가상 태그) -->
+    <string name="apps_filter_tag_enabled_label">사용 중</string>
+    <string name="apps_filter_tag_user_app_label">사용자 앱</string>
+    <string name="apps_filter_include_label">일치해야 함 (선택한 항목 모두)</string>
+    <string name="apps_filter_exclude_label">일치하지 않아야 함</string>
+    <string name="apps_filter_add_action">필터</string>
+    <string name="apps_filter_hint">탭하여 포함, 다시 탭하여 제외, 한 번 더 탭하여 제거</string>
+    <plurals name="apps_filter_count">
+        <item quantity="other">필터 %d개</item>
+    </plurals>
+
+    <!-- 구성요소 섹션 -->
+    <string name="apps_details_section_components">구성요소</string>
+    <string name="apps_components_activities_label">액티비티</string>
+    <string name="apps_components_services_label">서비스</string>
+    <string name="apps_components_receivers_label">브로드캐스트 리시버</string>
+    <string name="apps_components_providers_label">콘텐츠 제공자</string>
+    <string name="apps_components_exported">내보내기됨</string>
+    <string name="apps_components_disabled">사용 안 함</string>
+    <string name="apps_components_empty">구성요소를 찾을 수 없음</string>
+    <string name="apps_components_no_matches">“%1$s”에 일치하는 구성요소가 없습니다</string>
+    <string name="apps_components_and_more">…외 %d개 더</string>
+    <string name="apps_components_view_all_action">모든 구성요소 보기</string>
+    <string name="apps_components_loading">구성요소 불러오는 중…</string>
+    <string name="apps_components_error">구성요소를 불러올 수 없음</string>
+    <string name="apps_components_launch_failed">액티비티를 실행할 수 없음</string>
+    <string name="apps_components_kind_activity">액티비티</string>
+    <string name="apps_components_kind_service">서비스</string>
+    <string name="apps_components_kind_receiver">브로드캐스트 리시버</string>
+    <string name="apps_components_kind_provider">콘텐츠 제공자</string>
+    <string name="apps_components_search_action">구성요소 검색</string>
+    <string name="apps_components_search_hint">이름 또는 패키지 검색</string>
+    <string name="apps_components_state_label">상태</string>
+    <string name="apps_components_state_enabled">사용 중</string>
+    <string name="apps_components_state_disabled">사용 안 함</string>
+    <string name="apps_components_field_type">유형</string>
+    <string name="apps_components_field_package">패키지</string>
+    <string name="apps_components_field_permission">권한</string>
+    <string name="apps_components_field_write_permission">쓰기 권한</string>
+    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_process">프로세스</string>
+    <string name="apps_components_field_launch_mode">실행 모드</string>
+    <string name="apps_components_launch_action">실행</string>
+    <string name="apps_components_copy_name_action">구성요소 이름 복사</string>
+    <string name="apps_components_copy_package_action">패키지 이름 복사</string>
+    <string name="apps_components_action_enable">구성요소 사용</string>
+    <string name="apps_components_action_disable">구성요소 사용 안 함</string>
+    <string name="apps_components_action_requires_elevated">root 또는 Shizuku 필요 — 탭하여 설정</string>
+    <string name="apps_components_confirm_enable_title">구성요소를 사용하도록 설정할까요?</string>
+    <string name="apps_components_confirm_disable_title">구성요소를 사용하지 않도록 설정할까요?</string>
+    <string name="apps_components_confirm_enable_message">다음 구성요소를 사용하도록 설정합니다:</string>
+    <string name="apps_components_confirm_disable_message">다음 구성요소를 사용하지 않도록 설정합니다. 앱이 제대로 작동하지 않을 수 있습니다.</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="other">구성요소 %d개 선택됨</item>
+    </plurals>
+
+    <!-- 패키지 작업 -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="other">앱 %d개 사용</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="other">앱 %d개 사용 안 함</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="other">앱 %d개 강제 종료</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="other">앱 %d개 제거</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="other">앱 %d개의 데이터 삭제</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="other">구성요소 %d개 사용</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="other">구성요소 %d개 사용 안 함</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="other">앱 %d개</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">%1$s 사용하도록 설정됨</string>
+    <string name="apps_operation_disable_summary">%1$s 사용하지 않도록 설정됨</string>
+    <string name="apps_operation_force_stop_summary">%1$s 강제 종료됨</string>
+    <string name="apps_operation_uninstall_summary">%1$s 제거됨</string>
+    <string name="apps_operation_clear_data_summary">%1$s 데이터 삭제됨</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="other">구성요소 %1$d개 사용하도록 설정됨</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="other">구성요소 %1$d개 사용하지 않도록 설정됨</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">%1$s에 대해 완료하지 못함</string>
+    <string name="apps_operation_single_declined_summary">%1$s 제거가 거부됨</string>
+    <string name="apps_operation_batch_summary">%2$d개 중 %1$d개 완료</string>
+    <!-- 리소스 파서가 앞쪽 구분자를 유지하도록 따옴표로 묶음 -->
+    <string name="apps_operation_batch_summary_failed">" · %1$d개 실패"</string>
+    <string name="apps_operation_batch_summary_declined">" · %1$d개 거부됨"</string>
+
+    <!-- 일반 탐색 -->
+    <string name="appdetails_back_generic_action">뒤로</string>
+
+</resources>

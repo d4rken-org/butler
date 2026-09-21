@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">클립보드</string>
+    <string name="clipboard_clear_all">전체 지우기</string>
+    <string name="clipboard_paste">붙여넣기</string>
+    <string name="clipboard_open_in_explorer">탐색기에서 열기</string>
+    <string name="clipboard_copy">복사</string>
+    <string name="clipboard_cut">잘라내기</string>
+    <string name="clipboard_origin">원본: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="other">항목 %d개 복사</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="other">항목 %d개 • %s에서</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="other">항목 %d개 잘라내기</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="other">항목 %d개 • %s에서</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="other">위치 %d개</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="other">항목 %1$d개 • %2$s에서</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="other">항목 %1$d개 • %2$s에서</item>
+    </plurals>
+    <string name="clipboard_text_title">텍스트 조각</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="other">%1$d자</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">파일로 붙여넣기</string>
+    <string name="clipboard_text_info_characters">문자 수</string>
+    <string name="clipboard_text_info_lines">줄 수</string>
+    <string name="clipboard_text_info_content">내용</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">개요</string>
+    <string name="clipboard_info_operation">작업</string>
+    <string name="clipboard_info_items">항목</string>
+    <string name="clipboard_info_source">출처</string>
+    <string name="clipboard_info_sources">출처</string>
+    <string name="clipboard_info_workspace">작업공간</string>
+    <string name="clipboard_info_workspace_closed">닫힘</string>
+    <string name="clipboard_info_time">시간</string>
+    <string name="clipboard_info_items_with_count">항목 (%1$d)</string>
+    <string name="clipboard_info_actions">동작</string>
+    <string name="clipboard_info_go_to_source">출처로 이동</string>
+    <string name="clipboard_info_go_to_first_source">첫 번째 출처로 이동</string>
+    <string name="clipboard_info_remove">클립보드에서 제거</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">클립보드</string>
+    <string name="clipboard_settings_remove_on_paste_title">붙여넣기 후 제거</string>
+    <string name="clipboard_settings_remove_on_paste_desc">붙여넣은 후 복사한 항목을 클립보드에서 제거합니다</string>
+    <string name="clipboard_settings_max_items_title">최대 항목 수</string>
+    <string name="clipboard_settings_max_items_desc">클립보드에 보관할 최대 항목 수입니다</string>
+
+    <string name="workspace_explorer_label">탐색기</string>
+    <string name="workspace_searcher_label">검색</string>
+    <string name="workspace_editor_label">편집기</string>
+    <string name="workspace_templates_label">템플릿</string>
+    <string name="workspace_apps_label">앱</string>
+    <string name="workspace_appdetails_label">앱 정보</string>
+    <string name="workspace_saver_label">다른 이름으로 저장</string>
+    <string name="workspace_developer_label">개발자</string>
+    <string name="workspace_history_label">기록</string>
+    <string name="workspace_bugreport_label">버그 신고</string>
+    <string name="workspace_viewer_label">뷰어</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">사진</string>
+    <string name="workspace_searcher_target_videos">동영상</string>
+    <string name="workspace_searcher_target_music">음악</string>
+    <string name="workspace_searcher_target_downloads">다운로드</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">더보기</string>
+    <string name="workspace_expand_less_action">간략히</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">탭 및 작업공간</string>
+    <string name="workspace_button_menu_new_workspace_format">새 %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">새 탭</string>
+    <string name="workspace_button_menu_category_recent">최근</string>
+    <string name="workspace_button_menu_category_other">기타</string>
+    <string name="workspace_button_menu_category_current_tab">현재 탭</string>
+    <string name="workspace_button_menu_manager_action">탭 관리자</string>
+    <string name="workspace_button_menu_layout_action">레이아웃</string>
+    <string name="workspace_button_menu_close_current_action">현재 탭 닫기</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="other">현재 탭 닫기 (작업공간 %d개)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">설정</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">모든 탭을 닫을까요?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="other">열려 있는 탭 %1$d개를 모두 닫습니다. 이 작업은 되돌릴 수 없습니다.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">모두 닫기</string>
+    <string name="workspace_manager_close_all_unsaved_warning">일부 탭에 저장하지 않은 변경 사항이 있으며, 닫으면 사라집니다.</string>
+    <string name="workspace_manager_close_all_unsaved_action">모두 버리기</string>
+    <string name="workspace_manager_close_selected_title">선택한 탭을 닫을까요?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="other">선택한 탭 %1$d개를 닫습니다. 이 작업은 되돌릴 수 없습니다.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">선택 항목 닫기</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">선택한 탭 중 일부에 저장하지 않은 변경 사항이 있으며, 닫으면 사라집니다.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">선택 항목 버리기</string>
+    <string name="workspace_manager_pause_partial_title">탭을 일시중지할까요?</string>
+    <string name="workspace_manager_pause_partial_message">선택한 탭 %2$d개 중 %1$d개를 일시중지할 수 있습니다. 나머지는 사용 중이거나, 저장하지 않은 변경 사항이 있거나, 현재 열려 있습니다.</string>
+    <string name="workspace_manager_pause_partial_action">%1$d개 일시중지</string>
+    <string name="general_cancel_action">취소</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">작업</string>
+    <string name="operations_clear_completed">완료된 항목 지우기</string>
+    <string name="operations_state_queued">대기 중</string>
+    <string name="operations_state_running">실행 중</string>
+    <string name="operations_state_waiting">입력 대기 중</string>
+    <string name="operations_state_successful">성공</string>
+    <string name="operations_state_failed">실패</string>
+    <string name="operations_state_cancelled">취소됨</string>
+    <string name="operations_state_cancelling">취소하는 중…</string>
+    <string name="operations_cancel_operation">작업 취소</string>
+    <string name="operations_cancel_dialog_title">작업을 취소할까요?</string>
+    <string name="operations_cancel_dialog_message">이 작업을 취소하시겠어요?</string>
+    <string name="operations_cancel_dialog_warning">취소하면 파일이 일관되지 않은 상태로 남을 수 있습니다.</string>
+    <string name="operations_details_started_at">시작</string>
+    <string name="operations_details_completed_at">완료</string>
+    <string name="operations_details_duration">소요 시간</string>
+    <string name="operations_details_duration_not_started">시작하지 않음</string>
+    <string name="operations_details_progress">진행률</string>
+    <string name="operations_details_error">오류 세부 정보</string>
+    <string name="operations_details_actions">동작</string>
+    <string name="operations_details_overview">개요</string>
+    <string name="operations_details_handle_issue">문제 처리</string>
+    <string name="operations_details_show_in_history_action">기록에서 보기</string>
+    <string name="operations_details_status">상태</string>
+    <string name="operations_details_result">결과</string>
+    <string name="operations_details_destination_folder">대상 폴더</string>
+    <string name="operations_details_destination_path">대상 경로</string>
+    <string name="operations_details_affected_paths_with_count">영향받은 경로 (%d)</string>
+    <string name="operations_details_problems_with_count">문제 (%d)</string>
+    <string name="operations_details_problems_more">표시되지 않은 항목 %d개 더</string>
+    <string name="workspace_operation_packages_section_title">앱</string>
+    <string name="workspace_operation_package_status_done">완료</string>
+    <string name="workspace_operation_package_status_failed">실패</string>
+    <string name="workspace_operation_package_status_declined">거부됨</string>
+    <string name="operations_details_section_expand">%1$s 펼치기</string>
+    <string name="operations_details_section_collapse">%1$s 접기</string>
+    <string name="workspace_operations_performance_graph_label">성능 그래프</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">항목을 삭제할까요?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="other">항목 %1$d개를 삭제할까요?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">이 항목이 영구적으로 삭제됩니다:</string>
+    <string name="workspace_dialog_delete_message_multiple">이 항목들이 영구적으로 삭제됩니다:</string>
+    <string name="workspace_dialog_delete_more_items">… 외 %1$d개 더</string>
+    <string name="workspace_dialog_delete_warning">이 작업은 되돌릴 수 없습니다.</string>
+    <string name="workspace_dialog_delete_permanently_action">영구 삭제</string>
+    <string name="workspace_dialog_delete_permanently_toggle">대신 영구 삭제</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">일부 항목은 휴지통으로 이동할 수 없어 별도로 처리됩니다.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">휴지통으로 이동할까요?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="other">항목 %1$d개를 휴지통으로 이동할까요?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">이 항목이 휴지통으로 이동됩니다:</string>
+    <string name="workspace_dialog_trash_message_multiple">이 항목들이 휴지통으로 이동됩니다:</string>
+    <string name="workspace_dialog_trash_hint">휴지통 위치에서 찾을 수 있습니다</string>
+    <string name="workspace_dialog_move_to_trash_action">이동</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="other">%d개 선택됨</item>
+    </plurals>
+    <string name="workspace_action_more">추가 동작</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">파일 삭제</string>
+    <string name="workspace_operation_delete_description_single">\"%2$s\"에서 \"%1$s\" 삭제.</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="other">\"%2$s\"에서 항목 %1$d개 삭제.</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">앱 설치</string>
+    <string name="workspace_operation_install_description">\"%1$s\" 설치.</string>
+    <string name="workspace_operation_install_progress_inspecting">패키지 읽는 중…</string>
+    <string name="workspace_operation_install_progress_extracting">압축 해제하는 중…</string>
+    <string name="workspace_operation_install_progress_writing">설치 관리자에 파일 전달하는 중…</string>
+    <string name="workspace_operation_install_progress_committing">설치 마무리하는 중…</string>
+    <string name="workspace_operation_install_progress_placing_obb">확장 파일 배치하는 중…</string>
+    <string name="workspace_operation_install_summary_success">%1$s 설치됨.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s 설치됨. 다만 확장 파일은 배치하지 못했습니다.</string>
+    <string name="workspace_install_unknown_sources_required">Butler에 앱을 설치할 권한이 필요합니다. 방금 열린 설정에서 권한을 허용한 다음 다시 시도하세요.</string>
+    <string name="workspace_install_obb_failed">앱은 설치되었지만 확장 파일을 배치하지 못했습니다: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="other">파일 %1$d개 삭제됨.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="other">폴더 %1$d개 삭제됨.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="other">항목 %1$d개 건너뜀.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="other">%1$s 확보됨.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">휴지통으로 이동하는 중…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="other">파일 %1$d개를 휴지통으로 이동함.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="other">폴더 %1$d개를 휴지통으로 이동함.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s 확보됨.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s 확보됨.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s 남음.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">정보</string>
+    <string name="workspace_file_info_name_label">이름</string>
+    <string name="workspace_file_info_path_label">경로</string>
+    <string name="workspace_file_info_type_label">유형</string>
+    <string name="workspace_file_info_type_file">파일</string>
+    <string name="workspace_file_info_type_directory">폴더</string>
+    <string name="workspace_file_info_type_symlink">심볼릭 링크</string>
+    <string name="workspace_file_info_type_unknown">알 수 없음</string>
+    <string name="workspace_file_info_size_label">크기</string>
+    <string name="workspace_file_info_modified_label">수정됨</string>
+    <string name="workspace_file_info_created_label">생성됨</string>
+    <string name="workspace_file_info_permissions_label">권한</string>
+    <string name="workspace_file_info_owner_label">소유자</string>
+    <string name="workspace_file_info_child_count_label">항목 수</string>
+    <string name="workspace_file_info_symlink_target_label">대상</string>
+    <string name="workspace_file_info_unknown">알 수 없음</string>
+    <string name="workspace_file_info_copy_action">클립보드에 복사</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">선택됨</string>
+    <string name="workspace_file_info_files_label">파일</string>
+    <string name="workspace_file_info_directories_label">폴더</string>
+    <string name="workspace_file_info_total_size_label">전체 크기</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">이 작업은 아직 시작되지 않았습니다.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">성능 데이터를 수집하는 중…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">그래프를 그리기에 이 작업의 성능 데이터가 충분하지 않습니다.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">이 작업에는 성능 데이터를 사용할 수 없습니다.</string>
+    <string name="workspace_operation_performance_window_seconds">최근 %1$d초</string>
+    <string name="workspace_operation_performance_window_minutes">최근 %1$d분</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">항목/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">기술적 세부 정보 표시</string>
+    <string name="workspace_error_hide_details_action">기술적 세부 정보 숨기기</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">탭 초기화하는 중</string>
+    <string name="workspace_error_subtitle">예기치 않은 오류가 발생했습니다</string>
+    <string name="workspace_close_tab_action">탭 닫기</string>
+    <string name="workspace_paused_body">메모리와 배터리를 절약하기 위해 이 탭이 일시중지되었습니다. 다시 열면 계속 사용할 수 있습니다.</string>
+    <string name="workspace_paused_error_body">이 탭을 다시 열 수 없습니다.</string>
+    <string name="workspace_paused_resume_action">계속</string>
+    <string name="workspace_paused_label">일시중지됨</string>
+    <string name="workspace_paused_content_label">탭 콘텐츠</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">기존 파일</string>
+    <string name="workspace_issue_collision_existing_folder_label">기존 폴더</string>
+    <string name="workspace_issue_collision_new_file">새 파일</string>
+    <string name="workspace_issue_collision_new_folder">새 폴더</string>
+    <string name="workspace_issue_collision_overwrite">덮어쓰기</string>
+    <string name="workspace_issue_collision_merge">병합</string>
+    <string name="workspace_issue_common_source_file">원본 파일</string>
+    <string name="workspace_issue_common_destination_file">대상</string>
+    <string name="workspace_issue_common_skip">건너뛰기</string>
+    <string name="workspace_issue_common_rename">이름 변경</string>
+    <string name="workspace_issue_common_rename_new">새 항목 이름 변경</string>
+    <string name="workspace_issue_common_rename_existing">기존 항목 이름 변경</string>
+    <string name="workspace_issue_common_cancel">취소</string>
+    <string name="workspace_issue_common_delete_permanently">영구 삭제</string>
+    <string name="workspace_issue_archive_password_label">비밀번호</string>
+    <string name="workspace_issue_archive_password_unlock">잠금 해제</string>
+    <string name="workspace_issue_trash_move_failed_items_label">실패한 항목</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… 외 항목 %1$d개 더</string>
+    <string name="workspace_issue_trash_not_supported_items_label">영향받은 항목</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… 외 항목 %1$d개 더</string>
+    <string name="workspace_issue_apply_all">남은 모든 문제에 적용</string>
+    <string name="workspace_issue_rename_new_name">새 이름</string>
+    <string name="workspace_issue_rename_dialog_title_new">새 파일 이름 변경</string>
+    <string name="workspace_issue_rename_dialog_title_existing">기존 파일 이름 변경</string>
+    <string name="workspace_issue_type_folder">폴더</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">여러 탭을 열까요?</string>
+    <string name="workspace_open_tabs_confirmation_message">탭 %1$d개를 엽니다.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">다음으로 열기</string>
+    <string name="workspace_open_with_no_app_label">다른 앱을 찾을 수 없음</string>
+    <string name="workspace_open_with_no_app_description">%1$s 파일을 열 수 있는 다른 앱이 설치되어 있지 않습니다.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="other">탭 %1$d개를 열었습니다</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="other">닫을 수 없음: 탭 %1$d개에서 작업이 실행 중입니다</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">탭</string>
+    <string name="workspace_settings_navigation">탐색</string>
+    <string name="workspace_settings_swipe_gestures_title">스와이프 동작</string>
+    <string name="workspace_settings_swipe_gestures_desc">좌우로 스와이프하여 탭을 전환합니다.</string>
+    <string name="workspace_settings_ondemand_creation_title">탭 자동 생성</string>
+    <string name="workspace_settings_ondemand_creation_desc">마지막 탭을 지나 스와이프하면 새 탭을 자동으로 생성합니다.</string>
+    <string name="workspace_settings_newtab_type_title">새 탭 유형</string>
+    <string name="workspace_settings_newtab_type_desc">마지막 탭을 지나 스와이프하거나, 빈 패널에 탭을 추가하거나, 첫 탭을 만들 때 열리는 작업공간입니다.</string>
+    <string name="workspace_settings_newtab_type_ask">매번 묻기</string>
+    <string name="workspace_settings_newtab_type_ask_desc">새 탭마다 탭 유형 선택 화면을 표시합니다.</string>
+    <string name="workspace_settings_live_preview_title">실시간 미리보기</string>
+    <string name="workspace_settings_live_preview_desc">탭 관리자에 실시간 탭 콘텐츠를 표시합니다.</string>
+    <string name="workspace_settings_other">기타</string>
+    <string name="workspace_settings_layout_title">레이아웃</string>
+    <string name="workspace_settings_layout_mode_portrait_title">세로 레이아웃 모드</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">세로 방향에서 사용할 탭 레이아웃을 선택합니다.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">가로 레이아웃 모드</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">가로 방향에서 사용할 탭 레이아웃을 선택합니다.</string>
+    <string name="workspace_settings_layout_mode_auto">자동</string>
+    <string name="workspace_settings_layout_mode_auto_desc">작은 화면에서는 클래식, 큰 화면에서는 패널이 있는 탭 레일을 사용합니다.</string>
+    <string name="workspace_settings_layout_mode_classic">클래식</string>
+    <string name="workspace_settings_layout_mode_classic_desc">탭 레일 없이 한 번에 하나의 패널만 표시합니다.</string>
+    <string name="workspace_settings_layout_mode_adaptive">적응형</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">탭 레일과 화면에 맞는 만큼의 패널을 표시합니다. 레일의 Butler 메뉴에서 레이아웃을 고정할 수 있습니다.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">적응형 (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">탭 레일이 있는 단일 패널</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">탭 패널 하나와 다중 패널 레이아웃의 탭 레일을 함께 표시합니다. 스와이프 대신 레일에서 탭을 전환하며, 레일이 화면의 일부를 차지합니다.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">세로 2분할</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">패널 2개를 좌우로 나란히 표시합니다.</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">가로 2분할</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">패널 2개를 위아래로 쌓아 표시합니다.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">3분할 사이드바 왼쪽</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">왼쪽에 큰 패널 하나, 오른쪽에 작은 패널 2개를 위아래로 표시합니다.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">3분할 사이드바 오른쪽</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">왼쪽에 작은 패널 2개를 위아래로, 오른쪽에 큰 패널 하나를 표시합니다.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">4분할 그리드</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">패널 4개를 2×2 격자로 표시합니다.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">클릭하여 포커스</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">포커스되지 않은 패널을 처음 클릭하면 포커스만 이동하며, 포커스되지 않은 패널은 마우스 포인터에 반응하지 않습니다. 바로 조작하려면 꺼두세요.</string>
+
+    <string name="workspace_settings_rail_button_title">Butler 버튼</string>
+    <string name="workspace_settings_rail_button_desc">탭 레일에서 Butler 버튼의 위치를 선택합니다.</string>
+    <string name="workspace_settings_rail_button_leading">시작 부분</string>
+    <string name="workspace_settings_rail_button_leading_desc">세로 모드에서는 탭 앞, 가로 모드에서는 탭 위에 배치합니다.</string>
+    <string name="workspace_settings_rail_button_trailing">끝 부분</string>
+    <string name="workspace_settings_rail_button_trailing_desc">세로 모드에서는 탭 뒤, 가로 모드에서는 탭 아래에 배치합니다. 한 손 사용 시 엄지손가락이 닿는 범위입니다.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">세션</string>
+    <string name="workspace_settings_session_restore_title">시작 시 탭 복원</string>
+    <string name="workspace_settings_session_restore_desc">앱을 시작할 때 이전에 열려 있던 탭을 자동으로 복원합니다.</string>
+    <string name="workspace_settings_autopause_title">유휴 탭 일시중지</string>
+    <string name="workspace_settings_autopause_desc">한동안 보지 않은 탭은 메모리와 배터리를 절약하기 위해 일시중지됩니다. 탭을 열면 다시 시작됩니다.</string>
+    <string name="workspace_settings_autopause_delay_title">일시중지 시점</string>
+    <string name="workspace_settings_autopause_delay_desc">탭이 화면에서 사라진 후 일시중지되기까지 걸리는 시간입니다.</string>
+    <string name="workspace_settings_undoclose_title">탭 닫기 실행 취소</string>
+    <string name="workspace_settings_undoclose_desc">탭을 닫으면 몇 초 동안 다시 열 수 있는 옵션이 나타납니다.</string>
+    <string name="workspace_settings_session_data_title">세션 데이터</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="other">탭 %1$d개 • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">\"%1$s\" 닫음</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">세션 복원 실패</string>
+    <string name="workspace_session_restoration_error_description">이전 탭 세션을 복원할 수 없습니다. 이후 업데이트에서 수정될 버그 때문일 수 있습니다.\n\n저장된 세션을 지우고 Butler를 계속 사용하거나, 업데이트를 기다릴 수 있습니다.</string>
+    <string name="workspace_session_restoration_error_clear_action">세션 지우기</string>
+    <string name="workspace_session_restoration_error_report_action">문제 신고</string>
+    <string name="workspace_session_restoration_error_confirm_title">세션을 지울까요?</string>
+    <string name="workspace_session_restoration_error_confirm_description">저장된 탭 세션이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">탭 이름 변경</string>
+    <string name="workspace_rename_name_label">사용자 지정 이름</string>
+    <string name="workspace_rename_name_hint">비워두면 자동 이름을 사용합니다</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">탭 제한에 도달함</string>
+    <string name="workspace_limit_reached_message">무료 사용자는 한 번에 최대 %1$d개의 탭을 열 수 있습니다. 탭 개수 제한을 없애려면 Butler Pro로 업그레이드하세요!</string>
+    <string name="workspace_limit_pick_tabs_message">무료 요금제에서는 탭을 %1$d개까지 열 수 있습니다. 더 이상 필요하지 않은 탭을 선택해 닫아 공간을 확보하세요.</string>
+    <string name="workspace_limit_no_slot_hint">지금은 탭을 닫아도 자리가 확보되지 않습니다.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="other">탭 %d개 닫기</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="other">닫으려면 탭을 %d개 이상 선택하세요.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">%1$s 열림</string>
+    <string name="workspace_limit_blocker_unsaved">저장하지 않은 변경 사항</string>
+    <string name="workspace_limit_blocker_busy">현재 사용 중</string>
+    <string name="workspace_limit_blocker_attention">확인 대기 중</string>
+    <string name="workspace_limit_blocker_loading">로딩 중</string>
+    <string name="workspace_limit_blocker_awaiting_result">열려 있는 선택 화면을 먼저 완료하세요</string>
+    <string name="workspace_limit_blocker_unavailable">지금은 닫을 수 없음</string>
+    <string name="workspace_limit_stacked_content_desc">이 탭을 닫으면 그 위에 쌓인 항목도 함께 닫힙니다</string>
+    <string name="workspace_limit_pro_description">원하는 만큼 탭을 여세요.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="other">항목 %1$d개</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">휴지통 복원</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="other">휴지통에서 항목 %d개 복원.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="other">항목 %d개 복원됨</item>
+    </plurals>
+</resources>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">다른 이름으로 저장</string>
+    <string name="saver_preview_label">미리보기</string>
+    <string name="saver_loading">로드 중…</string>
+    <string name="saver_shared_from">%1$s에서 공유됨</string>
+    <string name="saver_shared_generic">Butler와 공유됨</string>
+    <string name="saver_destination_label">저장 위치</string>
+    <string name="saver_select_destination_hint">저장 위치 폴더 선택</string>
+    <string name="saver_filename_label">파일명</string>
+    <string name="saver_save_action">저장</string>
+    <string name="saver_saving_progress">저장 중…</string>
+    <string name="saver_success_message">파일이 저장되었습니다</string>
+    <string name="saver_open_saved_action">폴더 열기</string>
+    <string name="saver_retry_action">다시 시도</string>
+    <string name="saver_save_again_action">다른 위치에 저장</string>
+    <string name="saver_close_tab_action">탭 닫기</string>
+    <string name="saver_close_butler_action">탭 닫고 돌아가기</string>
+    <string name="saver_done_action">완료</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="other">원본 파일을 더 이상 사용할 수 없습니다. 다시 공유해 주세요.</item>
+    </plurals>
+    <string name="saver_error_source_expired">원본 파일을 더 이상 사용할 수 없습니다</string>
+    <string name="saver_error_permission_denied">권한이 거부되었습니다</string>
+    <string name="saver_error_write_failed">파일 저장 실패</string>
+    <string name="saver_error_file_exists">파일이 이미 존재합니다</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">파일 저장</string>
+    <plurals name="saver_operation_description">
+        <item quantity="other">파일 %1$d개를 %2$s에 저장 중</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="other">파일 %1$d개 저장</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="other">파일 %1$d개 저장됨</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="other">파일 %1$d개 실패</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="other">파일 %1$d개 건너뜀</item>
+    </plurals>
+    <string name="saver_partial_success">%2$d개 중 %1$d개 파일 저장됨</string>
+</resources>

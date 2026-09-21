@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">다음을 사용하여 열기</string>
+    <string name="viewer_image_content_description">이미지 %1$s</string>
+    <string name="viewer_toolbar_folder_label">폴더</string>
+    <string name="viewer_back_action">뒤로</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">이전 파일</string>
+    <string name="viewer_next_file_action">다음 파일</string>
+    <string name="viewer_open_location_action">위치 열기</string>
+    <string name="viewer_clipboard_copied">%1$s 복사되었습니다. 탐색기 탭에 붙여넣으세요.</string>
+    <string name="viewer_clipboard_cut">%1$s 잘라냈습니다. 탐색기 탭에 붙여넣어 이동하세요.</string>
+    <string name="viewer_share_failed_label">이 파일을 공유할 수 없습니다</string>
+    <string name="viewer_share_failed_description">%1$s는 다른 앱에 전달할 수 없습니다. root 또는 ADB 액세스가 필요한 파일이거나 더 이상 없는 파일일 수 있습니다.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">크기</string>
+    <string name="viewer_info_modified_label">수정됨</string>
+    <string name="viewer_info_created_label">생성됨</string>
+    <string name="viewer_info_format_label">형식</string>
+    <string name="viewer_info_dimensions_label">크기</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">권한</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">소유자</string>
+    <string name="viewer_info_caption_label">공유 메시지</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">모든 세부정보 표시</string>
+    <string name="viewer_info_collapse_action">세부정보 숨기기</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">미리보기 · 1페이지</string>
+    <string name="viewer_pdf_page_indicator">%1$d/%2$d 페이지</string>
+    <string name="viewer_pdf_page_previous">이전 페이지</string>
+    <string name="viewer_pdf_page_next">다음 페이지</string>
+    <string name="viewer_pdf_page_error">%1$d 페이지를 표시할 수 없습니다.</string>
+    <string name="viewer_pdf_page_content_description">%1$s의 PDF 미리보기, %2$d/%3$d 페이지</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">이 파일 형식은 아직 지원되지 않습니다</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">이것은 압축 파일입니다</string>
+    <string name="viewer_browse_archive_action">내용 보기</string>
+    <string name="viewer_archive_needs_copy_msg">장치에 복사본을 저장한 후 Butler에서 내용을 볼 수 있습니다.</string>
+    <string name="viewer_archive_nested_msg">이 압축 파일이 다른 압축 파일 안에 있습니다. 내용을 보려면 먼저 압축을 풀어야 합니다.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">버전</string>
+    <string name="viewer_apk_min_sdk_label">최소 SDK</string>
+    <string name="viewer_apk_target_sdk_label">대상 SDK</string>
+    <string name="viewer_apk_installed_label">설치됨</string>
+    <string name="viewer_apk_not_installed_value">설치되지 않음</string>
+    <string name="viewer_apk_installed_unknown_value">확인할 수 없습니다</string>
+    <string name="viewer_apk_installed_older_hint">이 파일보다 오래됨</string>
+    <string name="viewer_apk_installed_newer_hint">이 파일보다 최신임</string>
+    <string name="viewer_apk_permissions_header">권한 (%1$d)</string>
+    <string name="viewer_apk_signing_header">서명 인증서</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">설치</string>
+    <string name="viewer_bundle_format_label">번들 형식</string>
+    <string name="viewer_bundle_splits_label">내부 APK</string>
+    <string name="viewer_bundle_expansion_files_hint">앱이 설치된 후에 배치되는 확장 파일을 포함합니다.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">확장 파일을 배치하려면 root 또는 ADB 액세스가 필요합니다. 없으면 앱이 설치되지만 확장 파일은 남아 있습니다.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">%1$s의 앱 아이콘</string>
+    <string name="viewer_apk_icon_show_action">아이콘 표시</string>
+    <string name="viewer_apk_icon_save_action">아이콘 저장</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">아이콘이 %1$s로 저장되었습니다</string>
+    <string name="viewer_apk_icon_overwrite_title">파일을 바꾸시겠습니까?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s이 이 폴더에 이미 있습니다. 아이콘을 저장하면 바뀝니다.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">바꾸기</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">파일 변경됨</string>
+    <string name="viewer_external_change_message">이 파일이 장치에서 변경되었습니다. 새로고침하여 다시 로드하세요.</string>
+    <string name="viewer_external_change_gone_title">파일이 없음</string>
+    <string name="viewer_external_change_gone_message">이 파일이 삭제되었거나 더 이상 접근할 수 없습니다.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">이 파일을 표시할 수 없습니다</string>
+    <string name="viewer_error_not_a_file_label">파일이 아님</string>
+    <string name="viewer_error_not_a_file_description">%1$s는 일반 파일이 아닙니다.</string>
+    <string name="viewer_error_broken_symlink_label">손상된 바로가기</string>
+    <string name="viewer_error_broken_symlink_description">%1$s는 더 이상 존재하지 않는 것을 가리킵니다.</string>
+    <string name="viewer_error_undecodable_label">손상된 이미지</string>
+    <string name="viewer_error_undecodable_description">%1$s를 디코딩할 수 없습니다. 파일이 불완전하거나 손상되었을 수 있습니다.</string>
+    <string name="viewer_error_file_gone_label">파일을 찾을 수 없음</string>
+    <string name="viewer_error_file_gone_description">%1$s는 더 이상 존재하지 않습니다. 이동, 이름 변경 또는 삭제되었을 수 있습니다.</string>
+    <string name="viewer_error_empty_file_label">빈 파일</string>
+    <string name="viewer_error_empty_file_description">%1$s는 비어 있고 표시할 것이 없습니다.</string>
+    <string name="viewer_error_apk_unreadable_label">읽을 수 없는 APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s는 Android 앱 패키지로 분석할 수 없습니다.</string>
+    <string name="viewer_error_icon_unavailable_label">아이콘 없음</string>
+    <string name="viewer_error_icon_unavailable_description">%1$s의 앱 아이콘을 읽을 수 없습니다.</string>
+    <string name="viewer_error_icon_target_notfile_label">이름이 이미 사용됨</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s이 이미 여기에 있고 일반 파일이 아니므로 바뀔 수 없습니다.</string>
+    <string name="viewer_error_icon_target_appeared_label">파일이 나타남</string>
+    <string name="viewer_error_icon_target_appeared_description">저장할 위치를 선택하는 동안 %1$s이 생성되었습니다. 아무것도 덮어쓰지 않았으므로 다시 시도하세요.</string>
+    <string name="viewer_error_content_unreadable_label">이 파일을 읽을 수 없습니다</string>
+    <string name="viewer_error_content_unreadable_description">%1$s를 공유한 앱이 더 이상 Butler에서 읽을 수 없습니다. 해당 앱에 다시 공유해 달라고 요청하세요.</string>
+    <string name="viewer_save_copy_action">복사본 저장…</string>
+    <string name="viewer_open_in_editor_action">편집기에서 열기</string>
+    <string name="viewer_text_truncated_bytes">미리보기는 이 파일의 처음 %1$s으로 제한됩니다.</string>
+    <string name="viewer_text_truncated_lines">미리보기는 이 파일의 처음 %1$s 줄로 제한됩니다.</string>
+    <string name="viewer_text_truncated_width">이 미리보기에서는 긴 줄이 단축됩니다.</string>
+    <string name="viewer_text_unreadable_label">이 파일을 읽을 수 없습니다</string>
+</resources>

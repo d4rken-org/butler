@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">버그 보고서</string>
+    <string name="bugreport_workspace_subtitle">충돌 및 오류 보고서</string>
+
+    <string name="bugreport_empty_title">보고서 없음</string>
+    <string name="bugreport_empty_subtitle">충돌 및 오류 보고가 여기에 표시됩니다. 아무것도 자동으로 전송되지 않습니다.</string>
+
+    <string name="bugreport_type_crash">충돌</string>
+    <string name="bugreport_type_report">보고</string>
+    <string name="bugreport_type_recording">기록</string>
+
+    <string name="bugreport_record_action">디버그 로그 기록</string>
+    <string name="bugreport_record_short_action">기록</string>
+    <string name="bugreport_stop_action">기록 중지</string>
+    <string name="bugreport_stop_short_action">중지</string>
+    <string name="bugreport_recording_ongoing_label">기록 중…</string>
+
+    <string name="bugreport_recording_short_title">기록이 매우 짧습니다</string>
+    <string name="bugreport_recording_short_message">이 기록은 단 몇 초 길이이며 유용한 정보가 포함되지 않을 수 있습니다. 그래도 중지할까요?</string>
+    <string name="bugreport_recording_short_keep_action">기록 유지</string>
+
+    <string name="bugreport_rename_action">이름 변경</string>
+    <string name="bugreport_rename_dialog_title">이 보고서의 이름을 지정하세요</string>
+    <string name="bugreport_rename_name_label">이름</string>
+    <string name="bugreport_rename_name_hint">목록과 공유 파일명에 표시됨</string>
+
+    <string name="bugreport_share_action">공유</string>
+    <string name="bugreport_delete_action">삭제</string>
+    <string name="bugreport_delete_all_action">모두 삭제</string>
+    <string name="bugreport_delete_all_confirm_title">모든 디버그 로그를 삭제할까요?</string>
+    <string name="bugreport_delete_all_confirm_message">기록된 모든 디버그 로그 세션이 영구적으로 삭제됩니다. 진행 중인 기록은 영향을 받지 않습니다.</string>
+    <string name="bugreport_delete_confirm_title">이 보고서를 삭제할까요?</string>
+    <string name="bugreport_delete_confirm_message">이 보고서와 해당 로그가 영구적으로 삭제됩니다.</string>
+    <string name="bugreport_cancel_action">취소</string>
+
+    <string name="bugreport_share_chooser_title">버그 보고서 공유</string>
+    <string name="bugreport_share_consent_title">보고서를 공유할까요?</string>
+    <string name="bugreport_share_consent_message">이 보고서에는 파일명, 경로, 앱 및 기기 정보를 포함할 수 있는 앱 로그가 포함됩니다. 신뢰하는 사람들과만 공유하세요.</string>
+
+    <string name="bugreport_detail_back_action">뒤로</string>
+    <string name="bugreport_detail_section_error">오류</string>
+    <string name="bugreport_detail_section_log">최근 로그</string>
+    <string name="bugreport_detail_field_type">유형</string>
+    <string name="bugreport_detail_field_time">시간</string>
+    <string name="bugreport_detail_field_app_version">앱 버전</string>
+    <string name="bugreport_detail_field_device">기기</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">빌드</string>
+    <string name="bugreport_detail_field_error_class">오류 유형</string>
+    <string name="bugreport_detail_field_thread">스레드</string>
+    <string name="bugreport_detail_log_truncated">마지막 %1$d행(%2$d행 중)</string>
+    <string name="bugreport_detail_log_count">%1$d행</string>
+    <string name="bugreport_detail_log_empty">캡처된 로그 없음</string>
+    <string name="bugreport_detail_log_error">로그를 로드할 수 없음</string>
+</resources>

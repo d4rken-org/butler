@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 탐색기 -->
+    <string name="explorer_title">탐색기</string>
+    <string name="explorer_subtitle">파일과 폴더 찾아보기</string>
+    <string name="explorer_settings_title">탐색기 설정</string>
+    <string name="explorer_settings_file_display">파일 표시</string>
+    <string name="explorer_settings_filter_regex_title">고급 와일드카드 매칭</string>
+    <string name="explorer_settings_filter_regex_desc">포함/제외 필터에서 정규식 패턴을 사용합니다.</string>
+    <string name="explorer_settings_navigation">탐색</string>
+    <string name="explorer_settings_back_button_title">뒤로 가기 버튼 탐색</string>
+    <string name="explorer_settings_back_button_desc">뒤로 가기 버튼/제스처로 기록을 따라 이동합니다.</string>
+    <string name="explorer_settings_trash_category">휴지통</string>
+    <string name="explorer_settings_trash_enabled_title">휴지통 사용</string>
+    <string name="explorer_settings_trash_enabled_desc">삭제한 파일을 영구 삭제하는 대신 휴지통으로 이동합니다</string>
+    <string name="explorer_settings_trash_auto_delete_title">자동 삭제 기간</string>
+    <string name="explorer_settings_trash_auto_delete_desc">%d일이 지난 항목을 자동으로 삭제합니다</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d일</string>
+    <string name="explorer_settings_trash_max_size_title">저장공간별 최대 용량</string>
+    <string name="explorer_settings_trash_max_size_desc">저장공간별 최대 %d MB</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">자동 삭제 기간</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">저장공간별 최대 용량</string>
+    <string name="explorer_settings_trash_enable_dialog_title">휴지통을 사용할까요?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">데스크톱 시스템과 달리 Android에는 기본 휴지통 기능이 없습니다. Butler는 캐시 폴더를 이용해 휴지통을 제공합니다.\n\n참고하세요:\n• 항목을 영구 삭제하기 전까지는 기기 저장공간 표시에 확보된 공간이 반영되지 않습니다\n• 기기 저장공간이 부족해지면 Android가 앱 캐시를 정리하면서 휴지통의 파일이 삭제될 수 있습니다</string>
+    <string name="explorer_settings_trash_enable_action">사용</string>
+
+    <!-- 파일 행 설명 -->
+    <string name="explorer_file_regular_content_desc">파일</string>
+    <string name="explorer_file_symlink_content_desc">심볼릭 링크</string>
+    <string name="explorer_file_folder_content_desc">폴더</string>
+    <string name="explorer_file_peek_content_desc">파일 정보 불러오는 중</string>
+
+    <!-- 파일 행 UI 문자열 -->
+    <string name="explorer_file_shortcut_label">바로가기</string>
+    <string name="explorer_file_storage_local_label">로컬</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">읽기 전용 접근</string>
+    <string name="explorer_file_storage_saf_write_only_label">쓰기 전용 접근</string>
+    <string name="explorer_file_storage_saf_no_access_label">접근 불가</string>
+    <string name="explorer_file_storage_saf_uri_label">SAF 트리 URI</string>
+    <string name="explorer_file_storage_size_format">%1$s • 전체 %2$s • 여유 %3$s</string>
+    <string name="explorer_file_broken_link_label">깨진 링크</string>
+    <string name="explorer_file_items_count">항목 %1$d개</string>
+    <string name="explorer_file_empty">비어 있음</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · 부분</string>
+    <string name="explorer_sizes_estimate_description">Android 저장공간 총계를 기반으로 추정한 값입니다. 읽을 수 없는 파일은 차지하는 저장공간을 크기 추정값으로 사용합니다. Android가 관리하는 숨김 파일이 포함될 수도 있습니다. 그 외의 읽을 수 없는 위치는 알 수 없습니다.</string>
+    <string name="explorer_sizes_estimate_coverage">저장공간의 다른 부분을 완전히 측정할 수 없어 Android/data 크기를 추정할 수 없습니다.</string>
+    <string name="explorer_sizes_estimate_unavailable">Android 저장공간 통계를 사용할 수 없었습니다. 측정된 크기는 그대로 표시됩니다.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Android 저장공간 총계가 스캔 결과와 일치하지 않았습니다. 측정된 크기는 그대로 표시됩니다.</string>
+
+    <!-- 선택기 모드 -->
+    <string name="explorer_picker_select_directory_title">폴더 선택</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">폴더 선택</item>
+        <item quantity="other">폴더 선택(%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">파일 선택</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">파일 선택</item>
+        <item quantity="other">파일 선택(%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">항목 선택</item>
+        <item quantity="other">항목 선택(%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">이 폴더 선택</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="other">%d개 선택</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">파일 저장</string>
+    <string name="explorer_picker_save_here_action">여기에 저장</string>
+    <string name="explorer_picker_save_as_filename_label">파일명</string>
+    <string name="explorer_picker_save_as_filename_hint">파일명 입력</string>
+
+    <!-- 탐색기 작업 -->
+    <string name="explorer_action_refresh">새로고침</string>
+    <string name="explorer_action_calculate_sizes">크기 계산</string>
+    <string name="explorer_action_sort">정렬</string>
+    <string name="explorer_action_filter">필터</string>
+    <string name="explorer_action_view">레이아웃</string>
+    <string name="explorer_action_create">만들기</string>
+    <string name="explorer_action_rename">이름 변경</string>
+    <string name="explorer_action_copy">복사</string>
+    <string name="explorer_action_cut">잘라내기</string>
+    <string name="explorer_action_delete">삭제</string>
+    <string name="explorer_action_select_all">전체 선택</string>
+    <string name="explorer_action_deselect_all">전체 선택 해제</string>
+    <string name="explorer_action_compress">압축</string>
+    <string name="explorer_action_extract">압축 해제</string>
+    <string name="explorer_action_add_location">위치 추가</string>
+    <string name="explorer_action_info">정보</string>
+
+    <!-- 항목 정보 -->
+    <string name="explorer_info_title">정보</string>
+    <string name="explorer_info_name_label">이름</string>
+    <string name="explorer_info_path_label">경로</string>
+    <string name="explorer_info_type_label">유형</string>
+    <string name="explorer_info_type_file">파일</string>
+    <string name="explorer_info_type_directory">디렉터리</string>
+    <string name="explorer_info_size_label">크기</string>
+    <string name="explorer_info_modified_label">수정됨</string>
+    <string name="explorer_info_created_label">생성됨</string>
+    <string name="explorer_info_permissions_label">권한</string>
+    <string name="explorer_info_owner_label">소유자</string>
+    <string name="explorer_info_child_count_label">항목</string>
+    <string name="explorer_info_symlink_target_label">대상</string>
+    <string name="explorer_info_symlink_status_label">상태</string>
+    <string name="explorer_info_symlink_broken">깨진 링크</string>
+    <string name="explorer_info_unknown">알 수 없음</string>
+
+    <!-- 휴지통 항목 정보 -->
+    <string name="explorer_trash_info_deleted_label">삭제됨</string>
+
+    <!-- SAF 정보 -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">권한</string>
+    <string name="explorer_info_saf_granted_label">허용됨</string>
+    <string name="explorer_info_saf_permission_read">읽기</string>
+    <string name="explorer_info_saf_permission_write">쓰기</string>
+
+    <!-- 네트워크 정보 -->
+    <string name="explorer_info_network_server_label">서버</string>
+    <string name="explorer_info_network_port_label">포트</string>
+    <string name="explorer_info_network_share_label">공유</string>
+    <string name="explorer_info_network_folder_label">폴더</string>
+    <string name="explorer_info_network_address_label">주소</string>
+    <string name="explorer_info_network_status_label">상태</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">로그인</string>
+    <string name="explorer_info_network_domain_label">도메인</string>
+    <string name="explorer_info_network_password_label">비밀번호</string>
+    <string name="explorer_info_network_password_show_action">비밀번호 표시</string>
+    <string name="explorer_info_network_password_hide_action">비밀번호 숨기기</string>
+    <string name="explorer_info_network_password_missing">없음, 다시 로그인하세요</string>
+    <string name="explorer_info_network_password_locked">저장되어 있지만 이 기기에서 잠금을 해제할 수 없습니다</string>
+    <string name="explorer_info_network_added_label">추가됨</string>
+    <string name="explorer_info_network_updated_label">업데이트됨</string>
+    <string name="explorer_info_network_last_seen_label">마지막 확인</string>
+    <string name="explorer_info_network_last_seen_never">없음</string>
+
+    <!-- 다중 항목 정보 -->
+    <string name="explorer_info_selected_label">선택됨</string>
+    <string name="explorer_info_files_label">파일</string>
+    <string name="explorer_info_directories_label">디렉터리</string>
+    <string name="explorer_info_total_size_label">전체 크기</string>
+
+    <!-- 기기/홈 화면 정보 -->
+    <string name="explorer_info_locations_label">위치</string>
+    <string name="explorer_info_shortcuts_label">바로가기</string>
+    <string name="explorer_info_total_capacity_label">전체 용량</string>
+    <string name="explorer_info_used_space_label">사용 공간</string>
+    <string name="explorer_info_free_space_label">여유 공간</string>
+    <string name="explorer_info_usage_label">사용량</string>
+    <string name="explorer_info_device_storage_total_label">기기 저장공간</string>
+    <string name="explorer_info_device_storage_used_label">사용됨</string>
+    <string name="explorer_info_device_storage_free_label">여유</string>
+
+    <!-- 탐색 -->
+    <string name="explorer_navigation_home">홈</string>
+    <string name="explorer_breadcrumb_set_as_home_action">홈으로 설정</string>
+    <string name="explorer_breadcrumb_copy_path_action">경로 복사</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">경로를 클립보드에 복사했습니다</string>
+    <string name="explorer_navigation_device">기기</string>
+    <string name="explorer_navigation_network">네트워크</string>
+    <string name="explorer_navigation_recent">최근</string>
+    <string name="explorer_navigation_recent_desc">이 기기에 최근 나타난 파일</string>
+    <string name="explorer_navigation_trash">휴지통</string>
+    <string name="explorer_navigation_trash_desc">삭제한 파일 복구</string>
+    <string name="explorer_navigation_trash_nested_desc">휴지통으로 이동된 폴더 내부</string>
+
+    <!-- 휴지통 -->
+    <string name="explorer_trash_empty_state">삭제한 항목 없음</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="other">항목 %d개</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">복원</string>
+    <string name="explorer_trash_restore_selected_action">선택 항목 복원</string>
+    <string name="explorer_trash_delete_permanently_action">영구 삭제</string>
+    <string name="explorer_trash_delete_selected_action">선택 항목 삭제</string>
+    <string name="explorer_trash_empty_trash_action">휴지통 비우기</string>
+    <string name="explorer_trash_empty_confirm">휴지통을 비울까요?</string>
+    <string name="explorer_trash_empty_message">휴지통의 모든 항목이 영구 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</string>
+    <string name="explorer_trash_empty_confirm_action">휴지통 비우기</string>
+    <string name="explorer_trash_restore_desc">원래 위치로 복원</string>
+    <string name="explorer_trash_item_unavailable">항목을 사용할 수 없음</string>
+    <string name="explorer_trash_delete_warning">이 작업은 되돌릴 수 없습니다</string>
+    <string name="explorer_trash_disabled_warning">휴지통 사용 안 함</string>
+
+    <!-- 중첩 휴지통 -->
+    <string name="explorer_trash_nested_loading">휴지통 폴더 내용 불러오는 중…</string>
+    <string name="explorer_trash_nested_restore_action">원래 위치로 복원</string>
+    <string name="explorer_trash_nested_delete_action">영구 삭제</string>
+    <string name="explorer_trash_nested_restore_conflict">원래 위치에 같은 파일이 이미 있습니다</string>
+    <string name="explorer_trash_nested_parent_missing">휴지통에 상위 항목이 더 이상 없습니다</string>
+    <string name="explorer_trash_nested_path_missing">경로가 더 이상 존재하지 않습니다</string>
+    <string name="explorer_trash_error_items_not_found">휴지통에서 항목을 찾을 수 없습니다</string>
+    <string name="explorer_trash_error_restore_failed">항목 복원에 실패했습니다</string>
+    <string name="explorer_trash_error_delete_failed">항목 삭제에 실패했습니다</string>
+    <string name="explorer_trash_nested_error_restore_failed">%1$s 복원 실패</string>
+    <string name="explorer_trash_nested_error_delete_failed">%1$s 삭제 실패</string>
+
+    <string name="explorer_navigation_root">루트 디렉터리</string>
+    <string name="explorer_navigation_rom">시스템 ROM</string>
+    <string name="explorer_navigation_internal_storage">내장 공용 저장공간</string>
+    <string name="explorer_navigation_external_storage">외장 공용 저장공간</string>
+
+    <string name="explorer_loader_progress_directory_loading">%s 찾아보는 중</string>
+    <string name="explorer_loader_progress_directory_permissions">권한 확인 중</string>
+    <string name="explorer_loader_progress_directory_filesystem">파일 시스템 정보 가져오는 중</string>
+    <string name="explorer_loader_progress_directory_content">폴더 내용 불러오는 중</string>
+    <string name="explorer_loader_progress_directory_content_details">내용 세부 정보 불러오는 중</string>
+    <string name="explorer_loader_progress_directory_content_extended">확장 내용 세부 정보 불러오는 중</string>
+
+    <string name="explorer_loader_progress_device_loading">기기 불러오는 중</string>
+    <string name="explorer_loader_progress_device_locations">저장공간 위치 불러오는 중</string>
+
+    <string name="explorer_loader_progress_network_loading">네트워크 저장공간 불러오는 중</string>
+
+    <string name="explorer_loader_progress_home_loading">홈 불러오는 중</string>
+    <string name="explorer_loader_progress_trash_loading">휴지통 불러오는 중…</string>
+    <string name="explorer_loader_progress_recent_loading">최근 파일 불러오는 중…</string>
+
+    <!-- 정보 표시줄 -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="other">바로가기 %d개</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="other">위치 %d개</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="other">숨김 %d개</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s 여유</string>
+    <string name="explorer_infobar_loading">불러오는 중…</string>
+
+    <!-- 대화상자 -->
+    <string name="explorer_dialog_create_title">새 항목 만들기</string>
+    <string name="explorer_dialog_rename_title">이름 변경</string>
+    <string name="explorer_dialog_name_label">이름</string>
+    <string name="explorer_dialog_type_label">유형</string>
+    <string name="explorer_dialog_type_folder">폴더</string>
+    <string name="explorer_dialog_type_file">파일</string>
+    <string name="explorer_dialog_create_text_file_title">텍스트로 파일 만들기</string>
+    <string name="explorer_dialog_create_text_file_preview_label">미리보기</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d자</string>
+
+    <!-- 기기 저장공간 추가 대화상자 -->
+    <string name="explorer_add_device_storage_title">저장공간 위치 추가</string>
+    <string name="explorer_add_device_storage_desc">스토리지 액세스 프레임워크(SAF)를 사용해 USB 드라이브, 가상 앱 폴더 등 추가 저장공간 위치에 대한 접근 권한을 Butler에 부여하세요.</string>
+    <string name="explorer_add_device_storage_continue">계속</string>
+    <string name="explorer_add_device_storage_cancel">취소</string>
+    <string name="explorer_add_device_storage_suggestions_title">저장공간을 사용하는 앱</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">이 앱의 폴더 열기</string>
+
+    <!-- 기기 저장공간 작업 -->
+    <string name="explorer_device_action_remove_location">위치 제거</string>
+    <string name="explorer_device_remove_confirmation_title">저장공간 위치를 제거할까요?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="other">저장공간 위치 %1$d개를 제거할까요?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">이 위치에 대한 Butler의 접근 권한이 취소됩니다. 파일은 삭제되지 않습니다.</string>
+
+    <!-- 네트워크 저장공간 -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="other">네트워크 위치 %d개</item>
+    </plurals>
+    <string name="explorer_network_storage_label">네트워크</string>
+    <string name="explorer_network_add_location_action">네트워크 저장공간 추가</string>
+    <string name="explorer_network_edit_location_action">네트워크 저장공간 편집</string>
+    <string name="explorer_network_remove_location_action">네트워크 저장공간 제거</string>
+    <string name="explorer_network_sign_in_required_label">로그인 필요</string>
+    <string name="explorer_network_status_checking_label">확인 중…</string>
+    <string name="explorer_network_status_available_label">사용 가능</string>
+    <string name="explorer_network_status_unavailable_label">사용 불가</string>
+    <string name="explorer_network_status_unavailable_since_format">사용 불가(%1$s)</string>
+    <string name="explorer_network_empty_title">아직 네트워크 저장공간이 없습니다</string>
+    <string name="explorer_network_empty_caption">여기서 찾아보려면 Windows 공유 폴더나 NAS 폴더를 추가하세요.</string>
+    <string name="explorer_network_remove_confirmation_title">네트워크 저장공간을 제거할까요?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="other">네트워크 저장공간 %1$d개를 제거할까요?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler가 서버 정보와 저장된 비밀번호를 잊습니다. 서버의 데이터는 삭제되지 않습니다.</string>
+
+    <!-- 네트워크 저장공간 양식 -->
+    <string name="explorer_network_form_add_title">네트워크 저장공간 추가</string>
+    <string name="explorer_network_form_edit_title">네트워크 저장공간 편집</string>
+    <string name="explorer_network_form_label_label">이름(선택)</string>
+    <string name="explorer_network_form_host_label">서버 주소</string>
+    <string name="explorer_network_form_host_hint">nas.local 또는 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">포트</string>
+    <string name="explorer_network_form_share_label">공유</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">공유 내 폴더(선택)</string>
+    <string name="explorer_network_form_auth_guest">게스트</string>
+    <string name="explorer_network_form_auth_password">사용자 이름과 비밀번호</string>
+    <string name="explorer_network_form_username_label">사용자 이름</string>
+    <string name="explorer_network_form_domain_label">도메인(선택)</string>
+    <string name="explorer_network_form_password_label">비밀번호</string>
+    <string name="explorer_network_form_password_kept_hint">저장된 비밀번호를 유지하려면 비워 두세요</string>
+    <string name="explorer_network_form_remember_label">비밀번호 기억</string>
+    <string name="explorer_network_form_remember_hint">이 기기에만 암호화되어 저장됩니다</string>
+    <string name="explorer_network_form_test_and_save_action">테스트 및 저장</string>
+    <string name="explorer_network_form_testing">연결 중…</string>
+    <string name="explorer_network_form_error_host_blank">서버 주소를 입력하세요</string>
+    <string name="explorer_network_form_error_host_not_bare">스킴이나 경로 없이 서버 주소만 입력하세요</string>
+    <string name="explorer_network_form_error_host_malformed">올바른 서버 주소가 아닙니다</string>
+    <string name="explorer_network_form_error_port">1에서 65535 사이의 포트를 입력하세요</string>
+    <string name="explorer_network_form_error_share_blank">공유 이름을 입력하세요</string>
+    <string name="explorer_network_form_error_share_not_single">공유 이름만 입력하고, 하위 폴더는 아래에 입력하세요</string>
+    <string name="explorer_network_form_error_share_malformed">올바른 공유 이름이 아닙니다</string>
+    <string name="explorer_network_form_error_base_path">이 폴더 경로는 사용할 수 없습니다</string>
+    <string name="explorer_network_form_error_username_blank">사용자 이름을 입력하세요</string>
+    <string name="explorer_network_form_error_password_required">사용자 이름이나 도메인을 변경하려면 비밀번호를 다시 입력하세요</string>
+
+    <!-- 위치 이름 지정 -->
+    <string name="explorer_location_name_title">위치 이름 지정</string>
+    <string name="explorer_location_name_label">위치 이름</string>
+    <string name="explorer_location_name_hint">기본 이름을 사용하려면 비워 두세요</string>
+    <string name="explorer_location_rename_action">위치 이름 변경</string>
+
+    <!-- 최근 -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="other">최근 %d일 동안 추가됨</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">새로운 항목이 없습니다</string>
+    <string name="explorer_recent_empty_message">이 기기에 나타나는 파일이 여기에 표시됩니다</string>
+
+    <!-- 빈 화면 -->
+    <string name="explorer_empty_folder_title">이 폴더는 비어 있습니다</string>
+    <string name="explorer_empty_search_title">검색 결과 없음</string>
+    <string name="explorer_empty_search_caption">다른 검색어를 사용해 보세요</string>
+    <string name="explorer_empty_folder_label">빈 폴더</string>
+    <string name="explorer_empty_filtered_title">일치하는 항목 없음</string>
+    <string name="explorer_empty_filtered_caption">필터를 조정해 보세요</string>
+    <string name="explorer_empty_hidden_title">숨김 항목만 있습니다</string>
+    <string name="explorer_empty_hidden_caption">이 탭은 이름이 점으로 시작하는 항목을 숨깁니다</string>
+    <string name="explorer_empty_show_hidden_action">숨김 항목 표시</string>
+    <string name="explorer_empty_hidden_or_filtered_title">표시할 항목이 없습니다</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">숨김 항목과 필터가 각각 이 폴더의 일부를 제외합니다</string>
+    <string name="explorer_empty_clear_filters_action">필터 지우기</string>
+    <string name="explorer_empty_hidden_and_filtered_title">숨김 항목과 필터가 여기 모든 것을 제외합니다</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">숨김 항목을 표시하고 이 탭의 필터를 지우면 다시 나타납니다</string>
+    <string name="explorer_empty_show_all_action">모든 항목 표시</string>
+    <string name="explorer_path_not_found_title">이 폴더가 사라졌습니다</string>
+    <string name="explorer_path_not_found_caption">삭제되었거나, 이름이 변경되었거나, 다른 곳으로 이동되었습니다.</string>
+    <string name="explorer_path_not_found_back_action">뒤로 가기</string>
+
+    <!-- 상태 메시지 -->
+    <string name="explorer_loading">불러오는 중…</string>
+    <string name="explorer_file_peek_loading_text">불러오는 중…</string>
+
+    <!-- 빈 폴더 문구 -->
+    <string name="explorer_empty_folder_caption_1">여기엔 아무것도 없어요… 그냥 지나가세요 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">이 폴더는 다이어트 중이에요</string>
+    <string name="explorer_empty_folder_caption_3">파일들도 오늘은 일찍 퇴근했어요</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe가 작동을 멈췄어요</string>
+    <string name="explorer_empty_folder_caption_5">파일들이 숨바꼭질 중이에요</string>
+    <string name="explorer_empty_folder_caption_6">404: 파일을 찾을 수 없음</string>
+    <string name="explorer_empty_folder_caption_7">이 폴더는 아무도 믿지 못하나 봐요</string>
+    <string name="explorer_empty_folder_caption_8">파일들이 예고 없이 휴가를 떠났어요</string>
+    <string name="explorer_empty_folder_caption_9">제 영혼처럼 텅 비었어요… 근데 이쪽이 더 정돈됐네요</string>
+    <string name="explorer_empty_folder_caption_10">디지털 세계의 회전초 같은 풍경이에요</string>
+    <string name="explorer_empty_folder_caption_11">파일들이 거리 두기 중이에요</string>
+    <string name="explorer_empty_folder_caption_12">이 폴더는 미니멀리즘을 실천 중이에요</string>
+    <string name="explorer_empty_folder_caption_13">누군가 파일 밥 주는 걸 깜빡했나 봐요</string>
+    <string name="explorer_empty_folder_caption_14">파일들이 건물을 떠났어요</string>
+    <string name="explorer_empty_folder_caption_15">정치인의 공약보다 더 텅 비었어요</string>
+
+    <!-- 정렬 옵션 -->
+    <string name="explorer_sort_mode_label">정렬 기준</string>
+    <string name="explorer_sort_mode_name_label">이름</string>
+    <string name="explorer_sort_mode_size_label">크기</string>
+    <string name="explorer_sort_mode_modified_label">수정 날짜</string>
+    <string name="explorer_sort_mode_created_label">생성 날짜</string>
+    <string name="explorer_sort_descending_label">내림차순</string>
+    <string name="explorer_sort_scope_label">적용 대상</string>
+    <string name="explorer_sort_scope_all_folders">모든 폴더</string>
+    <string name="explorer_sort_scope_this_folder">이 폴더</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">이 폴더와 하위 폴더</string>
+    <string name="explorer_sort_scope_use_default_here">여기서 기본값 사용</string>
+    <string name="explorer_sort_only_this_tab_label">이 탭에만 적용</string>
+    <string name="explorer_sort_inherited_notice">%1$s에 저장된 규칙으로 정렬됨</string>
+    <string name="explorer_sort_suppressed_notice">%1$s에 저장된 규칙을 재정의합니다</string>
+    <string name="explorer_sort_tab_overrides_default_notice">이 탭은 자체 기본 정렬 순서를 사용합니다</string>
+    <string name="explorer_sort_tab_overrides_clear_action">지우기</string>
+
+    <!-- 폴더 크기 -->
+    <string name="explorer_sizes_sheet_title">폴더 크기</string>
+    <string name="explorer_sizes_sheet_label_calculated">계산됨</string>
+    <string name="explorer_sizes_sheet_label_folders">폴더</string>
+    <string name="explorer_sizes_sheet_label_unreadable">읽을 수 없는 위치</string>
+    <string name="explorer_sizes_sheet_problems_more">표시되지 않은 항목 %1$d개 더 있음</string>
+    <string name="explorer_sizes_sheet_recalculate">다시 계산</string>
+    <string name="explorer_sizes_sheet_discard">크기 정보 삭제</string>
+
+    <!-- 보기 옵션 -->
+    <string name="explorer_view_sheet_subtitle">항목 배열 방식과 표시할 세부 정보 수준</string>
+    <string name="explorer_view_mode_list_label">목록</string>
+    <string name="explorer_view_mode_grid_label">그리드</string>
+    <string name="explorer_view_density_compact_label">간략히</string>
+    <string name="explorer_view_density_comfortable_label">여유롭게</string>
+    <string name="explorer_view_density_detailed_label">자세히</string>
+    <string name="explorer_view_show_hidden_label">숨김 파일 표시</string>
+    <string name="explorer_view_set_default_action">기본값으로 설정</string>
+    <string name="explorer_view_detail_created_label">생성됨</string>
+    <string name="explorer_view_detail_modified_label">수정됨</string>
+
+    <!-- 폴더 정렬 규칙 -->
+    <string name="explorer_settings_folder_sort_rules_title">폴더 정렬 규칙</string>
+    <string name="explorer_settings_folder_sort_rules_desc">개별 폴더에 저장한 정렬 설정</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">폴더 정렬 규칙을 지울까요?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">모든 폴더가 기본 정렬 순서로 돌아갑니다. 자체 정렬 설정이 있는 탭은 그대로 유지됩니다. 이 작업은 되돌릴 수 없습니다.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">모두 지우기</string>
+
+    <!-- 필터 옵션 -->
+    <string name="explorer_filter_file_type_label">파일 유형</string>
+    <string name="explorer_filter_type_all">전체</string>
+    <string name="explorer_filter_type_files">파일만</string>
+    <string name="explorer_filter_type_folders">폴더만</string>
+    <string name="explorer_filter_include_label">포함 패턴</string>
+    <string name="explorer_filter_include_placeholder_simple">예: vacation, report, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">예: .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">제외 패턴</string>
+    <string name="explorer_filter_exclude_placeholder_simple">예: tmp, cache, old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">예: ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 설정에서 정규식 패턴을 사용하세요</string>
+
+    <!-- 권한 메시지 -->
+    <string name="explorer_permission_required_title">권한 필요</string>
+    <string name="explorer_permission_generic_description">이 위치를 찾아보려면 Butler에 추가 권한이 필요합니다.</string>
+    <string name="explorer_permission_setup_action">설정 열기</string>
+    <string name="explorer_grant_access_action">접근 허용</string>
+
+    <!-- 파일 옵션 -->
+    <string name="explorer_file_options_actions">작업</string>
+    <string name="explorer_file_info_type_label">유형</string>
+    <string name="explorer_file_info_size_label">크기</string>
+    <string name="explorer_file_info_modified_label">수정됨</string>
+    <string name="explorer_file_action_install">설치</string>
+    <string name="explorer_file_action_install_subtitle">이 앱을 기기에 설치합니다</string>
+    <string name="explorer_file_action_open">열기</string>
+    <string name="explorer_file_action_open_subtitle">여기서 보고, 뒤로 가면 이 폴더로 돌아옵니다</string>
+    <string name="explorer_file_action_open_in_tab">새 탭에서 열기</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Butler에서 별도 탭으로 봅니다</string>
+    <string name="explorer_file_action_open_in_editor">편집기에서 열기</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">새 탭에서 편집합니다</string>
+    <string name="explorer_file_action_open_with">다른 앱으로 열기</string>
+    <string name="explorer_file_action_open_with_subtitle">열 외부 앱을 선택합니다</string>
+    <string name="explorer_file_action_share">공유</string>
+    <string name="explorer_file_action_share_subtitle">설치된 앱으로 공유합니다</string>
+    <string name="explorer_file_action_copy">복사</string>
+    <string name="explorer_file_action_copy_subtitle">붙여넣기 위해 클립보드에 복사합니다</string>
+    <string name="explorer_file_action_cut">잘라내기</string>
+    <string name="explorer_file_action_cut_subtitle">붙여넣기 위해 클립보드로 이동합니다</string>
+    <string name="explorer_file_action_rename">이름 변경</string>
+    <string name="explorer_file_action_rename_subtitle">파일 이름을 변경합니다</string>
+    <string name="explorer_file_action_delete">삭제</string>
+    <string name="explorer_file_action_delete_subtitle">이 파일을 영구 삭제합니다</string>
+    <string name="explorer_file_action_move_to_trash">휴지통으로 이동</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">파일을 휴지통으로 이동합니다</string>
+    <string name="explorer_file_action_properties">속성</string>
+    <string name="explorer_file_action_properties_subtitle">파일의 자세한 정보를 봅니다</string>
+    <string name="explorer_file_action_extract">압축 해제</string>
+    <string name="explorer_file_action_extract_subtitle">압축 파일 내용을 폴더에 압축 해제합니다</string>
+    <string name="explorer_file_action_show_in_folder">폴더에서 보기</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">이 파일이 있는 폴더를 엽니다</string>
+
+    <!-- 작업 -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="other">파일 %d개 생성됨.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="other">폴더 %d개 생성됨.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">복사 작업</string>
+    <string name="explorer_operation_copy_description_single">"%2$s"에서 "%1$s" 파일을 "%3$s" 위치로 복사합니다.</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="other">항목 %1$d개를 "%2$s" 위치로 복사합니다.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="other">파일 %d개 복사됨.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="other">폴더 %d개 복사됨.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="other">%s 복사됨.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">압축 해제 작업</string>
+    <string name="explorer_operation_extract_description">"%1$s" 파일을 "%2$s" 위치로 압축 해제합니다.</string>
+    <string name="explorer_operation_download_copy_title">로컬 복사 작업</string>
+    <string name="explorer_operation_download_copy_description">로컬에서 찾아보기 위해 "%1$s" 파일을 "%2$s" 위치로 복사합니다.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="other">파일 %d개 압축 해제됨.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="other">%s 압축 해제됨.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">압축 작업</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="other">항목 %1$d개를 "%2$s" 위치로 압축합니다.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="other">파일 %d개 압축됨.</item>
+    </plurals>
+
+    <!-- 압축 대화상자 -->
+    <string name="explorer_compress_dialog_title">압축 파일 만들기</string>
+    <string name="explorer_compress_dialog_name_label">압축 파일 이름</string>
+    <string name="explorer_compress_dialog_format_label">형식</string>
+    <string name="explorer_compress_dialog_format_zip_hint">모든 기기에서 열 수 있습니다. 비밀번호로 보호할 수 있습니다.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">파일이 많을 때 용량이 더 작습니다. 비밀번호 보호는 지원하지 않습니다.</string>
+    <string name="explorer_compress_dialog_create_action">만들기</string>
+    <string name="explorer_compress_dialog_level_label">압축 수준</string>
+    <string name="explorer_compress_dialog_level_fast">빠름</string>
+    <string name="explorer_compress_dialog_level_normal">보통</string>
+    <string name="explorer_compress_dialog_level_best">최고</string>
+    <string name="explorer_compress_dialog_password_label">비밀번호(선택)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">비밀번호 확인</string>
+    <string name="explorer_compress_dialog_password_mismatch">비밀번호가 일치하지 않습니다</string>
+    <string name="explorer_compress_dialog_password_weak">취약한 비밀번호</string>
+    <string name="explorer_compress_dialog_password_notice">파일 내용은 암호화되지만 파일 이름은 암호화되지 않습니다.</string>
+    <string name="explorer_compress_dialog_password_show">비밀번호 표시</string>
+    <string name="explorer_compress_dialog_password_hide">비밀번호 숨기기</string>
+    <string name="explorer_compress_dialog_overwrite_title">압축 파일을 바꿀까요?</string>
+    <string name="explorer_compress_dialog_overwrite_message">"%1$s" 파일이 이미 있어 바꿉니다.</string>
+    <string name="explorer_compress_dialog_overwrite_action">바꾸기</string>
+
+    <!-- 드롭 대화상자 (다른 창에서 끌어온 항목) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="other">항목 %1$d개를 놓을까요?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="other">항목 %1$d개를 "%2$s" 위치로 복사하거나 이동할까요?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="other">항목 %1$d개를 "%2$s" 위치로 복사할까요?</item>
+    </plurals>
+
+    <!-- 휴지통 드롭 대화상자 (휴지통 화면에 끌어놓은 항목) -->
+    <string name="explorer_trash_drop_confirmation_title">휴지통으로 이동할까요?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="other">항목 %1$d개를 휴지통으로 이동할까요?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">이동 작업</string>
+    <string name="explorer_operation_move_description_single">"%2$s"에서 "%1$s" 파일을 "%3$s" 위치로 이동합니다.</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="other">항목 %1$d개를 "%2$s" 위치로 이동합니다.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="other">파일 %d개 이동됨.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="other">폴더 %d개 이동됨.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="other">%s 이동됨.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">폴더 생성</string>
+    <string name="explorer_operation_create_description_directory">"%2$s" 위치에 "%1$s" 폴더 생성</string>
+    <string name="explorer_operation_create_title_file">파일 생성</string>
+    <string name="explorer_operation_create_description_file">"%2$s" 위치에 "%1$s" 파일 생성</string>
+    <string name="explorer_operation_create_text_file_title">텍스트 파일 생성</string>
+    <string name="explorer_operation_create_text_file_description">텍스트 조각으로 "%1$s" 생성</string>
+    <string name="explorer_operation_calculate_sizes_title">크기 계산</string>
+    <string name="explorer_operation_calculate_sizes_description">"%1$s" 안의 폴더 크기를 계산합니다.</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="other">항목 %1$d개 검사됨</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">폴더 %1$d개의 크기를 계산했습니다.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="other">폴더 %1$d개의 크기를 계산했습니다. 위치 %2$d개를 읽을 수 없었습니다.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">계산 중 변경되어 "%1$s"의 폴더 크기 정보를 삭제했습니다.</string>
+
+    <!-- 탐색 오류 메시지 -->
+    <string name="explorer_navigation_error_title">탐색 실패</string>
+    <string name="explorer_aborted_dialog_title">작업 중단됨</string>
+    <string name="explorer_aborted_dialog_message">화면에 표시되기 전에 불러오기가 취소되었습니다.</string>
+    <string name="explorer_archive_unbrowsable_title">여기서는 압축 파일을 찾아볼 수 없습니다</string>
+    <string name="explorer_archive_unbrowsable_msg">"%1$s" 파일은 순차 읽기만 지원하는 저장공간에 있지만, 압축 파일을 찾아보려면 임의 접근이 필요합니다. 여기서 압축을 풀거나 로컬 사본을 다운로드해 찾아보세요.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">압축 풀기</string>
+    <string name="explorer_archive_unbrowsable_download_action">로컬 사본 다운로드</string>
+
+    <!-- SAF 위치 자동 라벨 -->
+    <string name="explorer_saf_location_android_data_label">Android/data(특수 접근)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb(특수 접근)</string>
+
+    <!-- 권한 요청 카드 설명 -->
+    <string name="explorer_permission_saf_workaround_description">Android가 이 폴더에 대한 접근을 제한합니다. 폴더 선택기로 접근을 허용하세요.</string>
+    <string name="explorer_permission_multiple_options_description">Android 폴더 선택기로 접근을 허용하거나, Root/Shizuku를 설정해 제한된 모든 폴더에 더 빠르게 접근할 수 있습니다.</string>
+    <string name="explorer_permission_setup_both_description">이 폴더는 상위 권한 접근이 필요합니다. 설정에서 Root 또는 Shizuku를 설치하고 구성하세요.</string>
+    <string name="explorer_permission_setup_shizuku_description">이 폴더는 Shizuku를 통한 상위 권한 접근이 필요합니다. Shizuku Manager를 설치하고 설정에서 구성하세요.</string>
+    <string name="explorer_permission_setup_root_description">이 폴더는 Root 접근이 필요합니다. 기기가 루팅되어 있다면 설정에서 Root를 구성하세요.</string>
+
+    <string name="explorer_permission_option_picker_title">스토리지 액세스 프레임워크</string>
+    <string name="explorer_permission_option_picker_description">Android 폴더 선택기로 이 폴더에 대한 접근을 허용하세요.</string>
+    <string name="explorer_permission_option_picker_action">SAF 선택기 열기</string>
+
+    <string name="explorer_permission_option_setup_title">전체 접근</string>
+    <string name="explorer_permission_option_setup_description">제한된 모든 폴더에 더 빠르게 접근하려면 Root 또는 Shizuku를 구성하세요.</string>
+    <string name="explorer_permission_option_setup_action">구성</string>
+
+    <!-- 권한 요청 카드 - 저장공간 접근 옵션 -->
+    <string name="explorer_permission_option_storage_title">저장공간 접근</string>
+    <string name="explorer_permission_option_storage_description">기기 저장공간의 파일에 접근하도록 Butler에 권한을 부여하세요.</string>
+    <string name="explorer_permission_option_storage_action">권한 허용</string>
+
+    <!-- 새 탭에서 열기 작업 -->
+    <string name="explorer_action_open_in_new_tabs">새 탭에서 열기</string>
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- 즐겨찾기 폴더 및 파일 -->
+    <string name="explorer_favorites_section_title">즐겨찾기</string>
+    <string name="explorer_action_add_to_favorites">즐겨찾기에 추가</string>
+    <string name="explorer_action_remove_from_favorites">즐겨찾기에서 제거</string>
+    <string name="explorer_favorites_select_action">선택</string>
+    <string name="explorer_favorites_unavailable_subtitle">접근할 수 없음</string>
+    <string name="explorer_favorites_unavailable_toast">즐겨찾기에 접근할 수 없습니다</string>
+    <string name="explorer_favorites_added_message">%1$s 항목을 즐겨찾기에 추가했습니다</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="other">즐겨찾기에 항목 %1$d개를 추가했습니다</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">%1$s 항목을 즐겨찾기에서 제거했습니다</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="other">즐겨찾기에서 항목 %1$d개를 제거했습니다</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">즐겨찾기 이름 변경</string>
+    <string name="explorer_favorites_rename_hint">즐겨찾기 이름</string>
+    <string name="explorer_favorites_rename_description">즐겨찾기 항목의 이름만 바뀌며, 폴더 자체의 이름은 그대로 유지됩니다.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="other">이 탭은 폴더 %1$d개의 정렬 순서를 재정의합니다</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="other">폴더 %1$d개</item>
+    </plurals>
+</resources>

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">기록</string>
+    <string name="history_workspace_subtitle">최근 파일 작업</string>
+    <string name="history_workspace_title_scoped">기록: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">기록: 실패</string>
+    <string name="history_workspace_title_outcome_partial">기록: 부분 완료</string>
+    <string name="history_workspace_title_outcome_cancelled">기록: 취소됨</string>
+    <string name="history_workspace_title_outcome_completed">기록: 완료</string>
+    <string name="history_workspace_title_kind_copy">기록: 복사</string>
+    <string name="history_workspace_title_kind_move">기록: 이동</string>
+    <string name="history_workspace_title_kind_delete">기록: 삭제</string>
+    <string name="history_workspace_title_kind_create_file">기록: 파일 생성</string>
+    <string name="history_workspace_title_kind_create_folder">기록: 폴더 생성</string>
+    <string name="history_workspace_title_kind_save">기록: 저장</string>
+    <string name="history_workspace_title_kind_compress">기록: 압축</string>
+    <string name="history_workspace_title_kind_extract">기록: 압축 해제</string>
+    <string name="history_workspace_title_filtered">기록 (필터링됨)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="other">기록: 경로 %1$d개</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">전체</string>
+    <string name="history_filter_outcome_completed">완료</string>
+    <string name="history_filter_outcome_partial">부분 완료</string>
+    <string name="history_filter_outcome_failed">실패</string>
+    <string name="history_filter_outcome_cancelled">취소됨</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">복사</string>
+    <string name="history_filter_kind_move">이동</string>
+    <string name="history_filter_kind_delete">삭제</string>
+    <string name="history_filter_kind_create_file">파일 생성</string>
+    <string name="history_filter_kind_create_folder">폴더 생성</string>
+    <string name="history_filter_kind_save">저장</string>
+    <string name="history_filter_kind_compress">압축</string>
+    <string name="history_filter_kind_extract">압축 해제</string>
+    <string name="history_filter_kind_enable">활성화</string>
+    <string name="history_filter_kind_disable">비활성화</string>
+    <string name="history_filter_kind_force_stop">강제 종료</string>
+    <string name="history_filter_kind_uninstall">제거</string>
+    <string name="history_filter_kind_clear_data">데이터 삭제</string>
+    <string name="history_filter_kind_components">구성 요소</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">경로 범위 설정…</string>
+    <string name="history_path_scope_clear_action">경로 범위 지우기</string>
+    <string name="history_path_scope_dialog_title">경로로 필터링</string>
+    <string name="history_path_scope_dialog_description">이 경로 또는 하위 항목에 영향을 주는 작업만 표시합니다.</string>
+    <string name="history_path_scope_dialog_input_label">경로</string>
+    <string name="history_path_scope_dialog_pick_folder_action">폴더 선택…</string>
+    <string name="history_path_scope_dialog_apply_action">적용</string>
+    <string name="history_path_scope_dialog_cancel_action">취소</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">오늘</string>
+    <string name="history_group_yesterday">어제</string>
+    <string name="history_group_this_week">이번 주</string>
+    <string name="history_group_this_month">이번 달</string>
+    <string name="history_group_older">더 오래된 항목</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">이름 변경됨</string>
+    <string name="history_entry_intent_paste_copy">붙여넣음</string>
+    <string name="history_entry_intent_paste_move">붙여넣음 (이동)</string>
+    <string name="history_entry_intent_drop_copy">드롭됨 (복사)</string>
+    <string name="history_entry_intent_drop_move">드롭됨 (이동)</string>
+    <string name="history_entry_intent_enable_components">구성 요소 활성화함</string>
+    <string name="history_entry_intent_disable_components">구성 요소 비활성화함</string>
+    <string name="history_entry_kind_copy">복사됨</string>
+    <string name="history_entry_kind_move">이동됨</string>
+    <string name="history_entry_kind_delete">삭제됨</string>
+    <string name="history_entry_kind_create_file">파일 생성됨</string>
+    <string name="history_entry_kind_create_folder">폴더 생성됨</string>
+    <string name="history_entry_kind_save">저장됨</string>
+    <string name="history_entry_kind_compress">압축됨</string>
+    <string name="history_entry_kind_extract">압축 해제됨</string>
+    <string name="history_entry_kind_restore">복원됨</string>
+    <string name="history_entry_kind_install">설치됨</string>
+    <string name="history_entry_kind_enable">활성화됨</string>
+    <string name="history_entry_kind_disable">비활성화됨</string>
+    <string name="history_entry_kind_force_stop">강제 종료됨</string>
+    <string name="history_entry_kind_uninstall">제거됨</string>
+    <string name="history_entry_kind_clear_data">데이터 삭제됨</string>
+    <string name="history_entry_kind_components">구성 요소 변경됨</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="other">경로 %d개</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">영향을 받은 경로 %2$d개 중 처음 %1$d개</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">시작됨</string>
+    <string name="history_detail_label_completed">완료됨</string>
+    <string name="history_detail_label_duration">소요 시간</string>
+    <string name="history_detail_label_outcome">결과</string>
+    <string name="history_detail_label_origin">출처</string>
+    <string name="history_detail_label_error">오류</string>
+    <string name="history_detail_label_paths">영향을 받은 경로</string>
+    <string name="history_detail_label_partial_errors">항목별 실패</string>
+    <string name="history_detail_copy_path_action">경로 복사</string>
+    <string name="history_detail_paths_empty">기록된 영향을 받은 경로가 없습니다.</string>
+    <string name="history_detail_label_attempted_paths">시도된 경로</string>
+    <string name="history_detail_label_packages">영향을 받은 앱</string>
+    <string name="history_detail_packages_empty">기록된 영향을 받은 앱이 없습니다.</string>
+    <string name="history_detail_paths_truncated_callout">영향을 받은 경로 %2$d개 중 처음 %1$d개를 표시합니다.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">시도된 경로 %2$d개 중 처음 %1$d개를 표시합니다.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="other">이 작업 중 항목 %1$d개가 실패했습니다.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">탐색기</string>
+    <string name="history_origin_searcher">검색</string>
+    <string name="history_origin_saver">저장</string>
+    <string name="history_origin_developer">개발자</string>
+    <string name="history_origin_viewer">뷰어</string>
+    <string name="history_origin_apps">앱</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f초</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">기록이 없습니다</string>
+    <string name="history_empty_subtitle">Butler를 사용하면서 파일 작업이 여기에 나타납니다.</string>
+    <string name="history_empty_filtered_title">일치하는 항목이 없습니다</string>
+    <string name="history_empty_filtered_subtitle">현재 필터와 일치하는 기록이 없습니다.</string>
+    <string name="history_empty_filtered_reset_action">필터 재설정</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">필터 재설정</string>
+    <string name="history_toolbar_reset_filter_content_description">필터 재설정</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">영향을 받은 경로 %2$d개 중 처음 %1$d개</string>
+    <string name="history_add_filter_action">필터 추가</string>
+    <string name="history_add_filter_sheet_title">필터 추가</string>
+    <string name="history_add_filter_section_outcome">결과</string>
+    <string name="history_add_filter_section_kind">종류</string>
+    <string name="history_add_filter_section_path_scope">경로 범위</string>
+    <string name="history_add_filter_add_path_action">경로 추가…</string>
+    <string name="history_path_scope_remove_action">제거</string>
+    <plurals name="history_summary_total">
+        <item quantity="other">항목 %1$d건</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="other">%2$d건 중 %1$d건 표시</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">기록</string>
+    <string name="history_settings_save_history_title">기록 저장</string>
+    <string name="history_settings_save_history_subtitle">완료된 파일 작업을 기록합니다.</string>
+    <string name="history_settings_max_history_label">최대 기록 항목</string>
+    <string name="history_settings_max_history_subtitle">이 한도를 초과하면 더 오래된 항목이 제거됩니다.</string>
+    <string name="history_settings_max_history_input_label">최대 항목 수</string>
+    <string name="history_settings_clear_history_title">기록 삭제</string>
+    <string name="history_settings_clear_history_subtitle">저장된 모든 항목 제거(%1$d).</string>
+    <string name="history_clear_dialog_title">기록을 삭제하시겠습니까?</string>
+    <string name="history_clear_dialog_message">작업 기록 데이터베이스에서 모든 항목을 제거합니다. 실행 취소할 수 없습니다.</string>
+    <string name="history_clear_confirm_action">삭제</string>
+    <string name="history_cleared_success">기록이 삭제되었습니다</string>
+    <string name="history_workspace_title_kind_restore">기록: 복원</string>
+    <string name="history_filter_kind_restore">복원</string>
+    <string name="history_workspace_title_kind_install">기록: 설치</string>
+    <string name="history_filter_kind_install">설치</string>
+    <string name="history_workspace_title_kind_enable">기록: 활성화</string>
+    <string name="history_workspace_title_kind_disable">기록: 비활성화</string>
+    <string name="history_workspace_title_kind_force_stop">기록: 강제 종료</string>
+    <string name="history_workspace_title_kind_uninstall">기록: 제거</string>
+    <string name="history_workspace_title_kind_clear_data">기록: 데이터 삭제</string>
+    <string name="history_workspace_title_kind_components">기록: 구성 요소</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">전체 선택</string>
+    <string name="history_action_deselect_all">선택 해제</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="other">항목 %1$d건 삭제하시겠습니까?</item>
+    </plurals>
+    <string name="history_delete_dialog_message">기록만 제거되며 파일 자체는 삭제되지 않습니다.</string>
+    <string name="history_pro_dialog_message">기록 공유 및 삭제는 업그레이드의 일부입니다. 전체 기록 지우기는 기록 설정에서 무료로 제공됩니다.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">결과</string>
+    <string name="history_share_label_kind">종류</string>
+    <string name="history_share_label_origin">출처</string>
+    <string name="history_share_label_summary">요약</string>
+    <string name="history_share_label_completed">완료됨</string>
+    <string name="history_share_label_duration">소요 시간</string>
+    <string name="history_share_label_error">오류</string>
+    <string name="history_share_label_failed_items">실패한 항목</string>
+    <string name="history_share_label_paths">영향을 받은 경로(%1$d)</string>
+    <string name="history_share_label_packages">영향을 받은 앱(%1$d)</string>
+    <string name="history_share_paths_more">… 외 %1$d개</string>
+    <string name="history_share_truncated">… 포함되지 않은 항목 %1$d개</string>
+</resources>

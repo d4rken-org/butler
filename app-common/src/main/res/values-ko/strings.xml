@@ -1,0 +1,299 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">탁월한 파일 탐색기</string>
+    <!-- 업그레이드된 앱 제목입니다. %1$s는 앱 이름, %2$s는 등급 표시자("Pro" 또는 "FOSS", 빌드에 따라 다름)입니다. 언어에 맞게 순서나 구두점을 바꿔도 되며, 두 자리표시자는 각각 정확히 한 번씩 나와야 합니다. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Butler 앱 아이콘</string>
+    <string name="butler_mascot_description">Butler 마스코트</string>
+    <string name="butler_mascot_animation_random_description">다양한 동작을 하는 Butler 마스코트</string>
+    <string name="butler_mascot_animation_wink_description">윙크하는 Butler 마스코트</string>
+    <string name="butler_mascot_animation_greeting_description">손을 흔들며 인사하는 Butler 마스코트</string>
+    <string name="butler_mascot_animation_hatoff_description">정중하게 모자를 벗는 Butler 마스코트</string>
+    <string name="butler_mascot_animation_drink_description">음료를 마시는 Butler 마스코트</string>
+    <string name="butler_mascot_animation_moustache_description">콧수염을 쓰다듬는 Butler 마스코트</string>
+    <string name="butler_mascot_animation_sleep_closing_description">잠들기 위해 눈을 감는 Butler 마스코트</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">코를 고는 Butler 마스코트</string>
+    <string name="butler_mascot_animation_sleep_waking_description">잠에서 깨어나는 Butler 마스코트</string>
+    <string name="butler_mascot_animation_cameo_description">깜짝 등장한 SD Maid 마스코트</string>
+
+    <string name="slogan_general_message_0">언제든 대령합니다.</string>
+    <string name="slogan_general_message_1">모든 것이 제자리에.</string>
+    <string name="slogan_general_message_2">혼돈이 아닌 질서.</string>
+    <string name="slogan_general_message_3">파일을 가져오는 중.</string>
+    <string name="slogan_general_message_4">모든 파일을 한 줄로.</string>
+    <string name="slogan_general_message_5">언제나 정돈되어 있어요.</string>
+    <string name="slogan_general_message_6">파일을 빠르게 찾아드려요!</string>
+    <string name="slogan_general_message_7">쉬워진 접근.</string>
+    <string name="slogan_general_message_8">파일을 잃어버리는 일은 없을 거예요.</string>
+    <string name="slogan_general_message_9">팔방미인이죠.</string>
+    <string name="slogan_newyear_message_0">매년 똑같은 절차죠.</string>
+    <string name="slogan_xmas_message_0">파일을 두 번 확인하는 중.</string>
+    <string name="slogan_xmas_message_1">착한 이 명단에 있어요.</string>
+    <string name="slogan_halloween_message_0">유령 집사가 대령했습니다.</string>
+    <string name="slogan_halloween_message_1">트릭은 없어요, 파일뿐이죠.</string>
+    <string name="slogan_stpatricks_message_0">오늘 운이 좋은가요?</string>
+    <string name="slogan_stpatricks_message_1">황금 항아리를 찾아드릴게요.</string>
+    <string name="slogan_aprilfools_message_0">장난은 없어요.</string>
+    <string name="slogan_aprilfools_message_1">진지하게 정리정돈.</string>
+    <string name="slogan_oktoberfest_message_0">파일을 위해 건배!</string>
+    <string name="slogan_oktoberfest_message_1">파일도 언제든 술술 나와요.</string>
+
+    <string name="general_share_action">공유</string>
+    <string name="general_share_single_title">%s 공유</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="other">파일 %d개 공유</item>
+    </plurals>
+    <string name="general_done_action">완료</string>
+    <string name="general_copy_action">복사</string>
+    <string name="general_cut_action">잘라내기</string>
+    <string name="general_move_action">이동</string>
+    <string name="general_paste_action">붙여넣기</string>
+    <string name="general_apply_action">적용</string>
+    <string name="general_open_action">열기</string>
+    <string name="general_cancel_action">취소</string>
+    <string name="general_close_action">닫기</string>
+    <string name="general_confirm_action">확인</string>
+    <string name="general_reset_action">초기화</string>
+    <string name="general_save_action">저장</string>
+    <string name="general_edit_action">편집</string>
+    <string name="general_na_label">해당 없음</string>
+    <!-- 대화상자가 열릴 때 스크린 리더가 안내하는 문구 -->
+    <string name="general_dialog_a11y_label">대화상자</string>
+    <string name="general_dismiss_action">무시</string>
+    <string name="general_read_more_action">더 보기</string>
+    <string name="general_mark_as_read_action">읽음으로 표시</string>
+    <string name="general_back_action">뒤로</string>
+    <string name="general_navigate_up_action">위로 이동</string>
+    <string name="general_error_label">오류</string>
+    <string name="general_error_unknown_label">알 수 없는 오류</string>
+    <string name="general_error_invalid_input_label">잘못된 입력</string>
+    <string name="general_share_error_action">오류 공유</string>
+    <string name="general_error_report_subject">%1$s 오류 보고서 (%2$s)</string>
+    <string name="general_error_report_consent_title">오류 보고서를 공유할까요?</string>
+    <string name="general_error_report_consent_message">보고서에는 오류와 그로 인해 발생한 스택 트레이스, 앱의 최근 로그 기록, 그리고 작업 당시 상태에 대한 세부 정보(파일명과 경로, 검색어, 패키지 이름, URI, 네트워크 및 SMB 호스트 이름, 기기 및 빌드 정보, 익명 설치 ID)가 포함됩니다. 신뢰할 수 있는 사람에게만 공유하세요.</string>
+    <string name="general_error_report_consent_confirm">보고서 공유</string>
+    <string name="general_privacy_policy_action">개인정보 처리방침</string>
+    <string name="general_bug_report_subject">%1$s 버그 보고서 (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">%1$s 버그 보고서: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(무슨 일이 있었는지 여기에 설명해 주세요.)</string>
+    <string name="general_bug_report_body_expected_prompt">(대신 어떤 결과를 기대했는지 설명해 주세요.)</string>
+    <string name="general_duration_input_label">기간</string>
+    <string name="general_size_input_label">크기</string>
+    <string name="general_upgrade_action">업그레이드</string>
+    <string name="general_refresh_action">새로고침</string>
+    <string name="general_clear_action">지우기</string>
+    <string name="general_expand_action">펼치기</string>
+    <string name="general_collapse_action">접기</string>
+    <string name="general_completed_label">완료됨</string>
+    <string name="general_cancelled_label">취소됨</string>
+    <string name="general_searching_label">검색 중</string>
+    <string name="general_searching_ellipsis">검색 중…</string>
+    <string name="general_progress_loading">로딩 중</string>
+    <string name="general_progress_loading_egg_0">그래도 아이폰보다는 빠르죠</string>
+    <string name="general_progress_loading_egg_1">램 다운로드 중</string>
+    <string name="general_progress_loading_egg_2">도착 예정: 곧™</string>
+    <string name="general_progress_loading_egg_3">CPU가 커피 마시러 갔어요</string>
+    <string name="general_progress_loading_egg_4">Pepe Silvia의 데이터를 기다리는 중</string>
+    <string name="general_progress_loading_egg_5">터보 인캐뷸레이터 초기화 중</string>
+    <string name="general_progress_loading_egg_6">버터를 건네는 중</string>
+    <string name="general_progress_loading_egg_7">그나저나, 잘 버티고 계신가요?</string>
+    <string name="general_progress_loading_egg_8">삐빅삐빅 붑붑</string>
+    <string name="general_progress_loading_egg_9">인생 선택을 버퍼링하는 중</string>
+    <string name="general_progress_loading_egg_10">크툴루를 소환하는 중</string>
+    <string name="general_progress_loading_egg_11">이 정도면 괜찮아요</string>
+    <string name="general_progress_loading_egg_12">잠시만 기다려 주세요</string>
+    <string name="general_progress_loading_egg_13">그래도 대기 중은 아니잖아요</string>
+    <string name="general_progress_loading_egg_14">이마에 바로 붙이세요</string>
+
+    <!-- 시간 표시 형식 -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="other">%dm</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="other">%d초</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="other">%d분</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="other">%d시간</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="other">%d일</item>
+    </plurals>
+
+    <string name="general_view_action">보기</string>
+    <string name="general_delete_action">삭제</string>
+    <string name="general_show_details_action">세부정보 보기</string>
+    <string name="general_hide_details_action">세부정보 숨기기</string>
+
+    <string name="general_delete_confirmation_title">삭제 확인</string>
+    <string name="general_delete_confirmation_message_x">\"%s\" 삭제할까요?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">선택한 항목 %d개를 삭제할까요?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="other">항목 %d개를 삭제했습니다.</item>
+    </plurals>
+
+    <string name="general_create_action">만들기</string>
+    <string name="general_rename_action">이름 변경</string>
+    <string name="general_retry_action">다시 시도</string>
+    <string name="general_open_setup_action">설정 열기</string>
+    <string name="general_grant_usage_stats_action">사용 정보 접근 허용</string>
+    <string name="general_grant_storage_permission_action">저장공간 권한 허용</string>
+    <string name="general_grant_all_files_access_action">모든 파일 접근 허용</string>
+
+    <string name="general_result_user_cancel_msg">사용자가 작업을 취소했습니다.</string>
+
+    <string name="general_path_label">경로</string>
+    <string name="general_filename_validation_error">이름에 사용할 수 없는 문자가 있습니다: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%3$s (%1$d/%2$d)</string>
+    <string name="common_x_of_y_label">%1$d/%2$d</string>
+
+    <string name="file_type_symbolic_link">링크</string>
+    <string name="file_type_directory">폴더</string>
+    <string name="file_type_file">파일</string>
+    <string name="file_type_unknown">알 수 없음</string>
+
+    <!-- MIME 유형 표시 이름 -->
+    <string name="common_mimetype_image">이미지</string>
+    <string name="common_mimetype_video">동영상</string>
+    <string name="common_mimetype_audio">오디오</string>
+    <string name="common_mimetype_text_plain">일반 텍스트</string>
+    <string name="common_mimetype_text">텍스트 문서</string>
+    <string name="common_mimetype_pdf">PDF 문서</string>
+    <string name="common_mimetype_document">문서</string>
+    <string name="common_mimetype_archive">압축 파일</string>
+    <string name="common_mimetype_apk">Android 패키지</string>
+    <string name="common_mimetype_json">JSON 파일</string>
+    <string name="common_mimetype_xml">XML 파일</string>
+    <string name="common_mimetype_unknown">알 수 없는 형식</string>
+
+    <string name="general_rom_type_auto_label">자동 (기본값)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="other">초당 %s개</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="other">%s/s</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">형식이 일치하지 않습니다. 예상 형식: %1$s, 실제 형식: %2$s</string>
+    <string name="general_error_cant_access_msg">%s에 접근할 수 없습니다.</string>
+    <string name="general_error_archive_not_seekable_msg">%s 파일은 직접 탐색할 수 없습니다. 저장 위치가 순차 읽기만 지원하는데, 이 압축 형식은 임의 접근이 필요합니다.</string>
+    <string name="general_error_root_unavailable">Root 접근을 사용할 수 없습니다.</string>
+    <string name="general_error_elevated_access_required">이 작업에는 상위 권한이 필요합니다. 설정에서 Root 또는 Shizuku를 구성하세요.</string>
+    <string name="general_error_no_compatible_app_found_msg">이 요청을 처리할 수 있는 앱을 찾을 수 없습니다.</string>
+    <string name="general_error_ipc_deadobject_title">서비스 연결 끊김</string>
+    <string name="general_error_ipc_deadobject_description">중요한 서비스(Magisk, Shizuku 등 시스템 수준 서비스)와의 연결이 예기치 않게 끊어졌습니다. 기기를 재부팅해 주세요. 문제가 계속되면 업데이트를 확인하거나 문의해 주세요.</string>
+
+    <string name="ui_theme_mode_dark_label">다크</string>
+    <string name="ui_theme_mode_light_label">라이트</string>
+    <string name="ui_theme_mode_system_label">시스템</string>
+    <string name="ui_theme_style_default_label">기본</string>
+    <string name="ui_theme_style_medium_contrast_label">중간 대비</string>
+    <string name="ui_theme_style_high_contrast_label">높은 대비</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">초록</string>
+    <string name="ui_theme_color_blue_label">파랑</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">사용자 지정</string>
+
+    <string name="ui_theme_palette_tonalspot_label">은은한 색상</string>
+    <string name="ui_theme_palette_neutral_label">중립 색상</string>
+    <string name="ui_theme_palette_vibrant_label">화사한 색상</string>
+    <string name="ui_theme_palette_expressive_label">개성 있는 색상</string>
+    <string name="ui_theme_palette_rainbow_label">무지개 색상</string>
+    <string name="ui_theme_palette_fruitsalad_label">다채로운 색상</string>
+    <string name="ui_theme_palette_monochrome_label">단색</string>
+    <string name="ui_theme_palette_fidelity_label">충실한 색상</string>
+    <string name="ui_theme_palette_content_label">콘텐츠 기반 색상</string>
+
+    <string name="ui_theme_custom_dialog_title">사용자 지정 테마</string>
+    <string name="ui_theme_custom_seed_label">기본 색상</string>
+    <string name="ui_theme_custom_palette_label">팔레트 스타일</string>
+    <string name="ui_theme_custom_default_action">기본값</string>
+
+    <string name="ui_mascot_suit_dialog_title">Butler 정장</string>
+    <string name="ui_mascot_suit_default_action">기본값</string>
+    <string name="ui_mascot_suit_hue_label">색상</string>
+    <string name="ui_mascot_suit_saturation_label">채도</string>
+    <string name="ui_mascot_suit_brightness_label">명도</string>
+    <string name="ui_mascot_suit_value_description">정장 색상 %s</string>
+
+    <!-- 설정 모듈 유형 -->
+    <string name="setup_usagestats_title">사용 통계</string>
+    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">알림 접근</string>
+    <string name="setup_manage_storage_card_title">외부 저장공간 관리</string>
+    <string name="setup_inventory_card_title">앱 목록</string>
+
+    <!-- 공통 권한 문자열 -->
+    <string name="setup_required_card_title">설정 필요</string>
+    <string name="setup_required_card_body">이 작업을 수행하려면 추가 설정이 필요합니다.</string>
+    <string name="setup_required_card_setup_action">설정 열기</string>
+
+    <!-- 새 탭으로 열기 기능 -->
+    <string name="common_open_tabs_confirmation_title">탭을 여러 개 열까요?</string>
+    <string name="common_open_tabs_confirmation_message">탭 %1$d개를 엽니다.</string>
+    <string name="common_open_tabs_success">탭 %1$d개를 열었습니다.</string>
+    <string name="common_open_tabs_success_with_skipped">탭 %1$d개를 열었습니다 (%2$d개 항목 건너뜀)</string>
+
+    <!-- 탭 닫기 확인 -->
+    <string name="general_tab_close_confirmation_title">탭을 닫을까요?</string>
+    <string name="general_tab_close_confirmation_message">\"%1$s\" 탭을 닫을까요?</string>
+    <string name="general_tab_close_unsaved_title">저장되지 않은 변경 사항</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\"에 저장되지 않은 변경 사항이 있습니다. 닫고 버릴까요?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" 외 %2$d개에 저장되지 않은 변경 사항이 있습니다. 모두 닫고 버릴까요?</string>
+    <string name="general_discard_action">버리기</string>
+    <string name="general_tab_close_goto_action">탭으로 이동</string>
+
+    <!-- 앱 종료 -->
+    <string name="general_press_back_again_to_exit">뒤로 버튼을 한 번 더 누르면 종료됩니다</string>
+
+    <!-- 정보 표시줄 -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="other">%d개 선택됨</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="other">폴더 %1$d개</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="other">파일 %1$d개</item>
+    </plurals>
+    <string name="common_select_all_folders_action">모든 폴더 선택</string>
+    <string name="common_select_all_files_action">모든 파일 선택</string>
+    <string name="general_undo_action">실행 취소</string>
+
+    <!-- 둘러보기 -->
+    <string name="tour_action_next">다음</string>
+    <string name="tour_action_previous">이전</string>
+    <string name="tour_action_cancel">건너뛰기</string>
+    <string name="tour_confirm_title">둘러보기를 건너뛸까요?</string>
+    <string name="tour_confirm_message">설정에서 언제든지 둘러보기를 다시 켤 수 있습니다.</string>
+    <string name="tour_confirm_continue">둘러보기 계속하기</string>
+    <string name="tour_confirm_dont_show_this_tour">이 둘러보기 다시 보지 않기</string>
+    <string name="tour_confirm_disable_all">모든 둘러보기 끄기</string>
+
+    <!-- Butler 팁 -->
+    <string name="common_tip_multiple_panes">여러 창을 사용해 파일을 나란히 비교해 보세요.</string>
+    <string name="common_tip_different_folders">각 창에 다른 폴더를 열어 파일을 쉽게 관리하세요.</string>
+    <string name="common_tip_switch_layouts">탭 설정 관리자에서 창 레이아웃을 전환할 수 있습니다.</string>
+    <string name="common_tip_elevated_access">고급 파일 작업을 위해 설정에서 Root 또는 Shizuku를 활성화하세요.</string>
+    <string name="common_tip_breadcrumb_home">탐색기 경로 표시줄을 길게 눌러 홈 폴더로 설정하세요.</string>
+</resources>
