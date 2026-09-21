@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Geliştirici</string>
+    <string name="developer_title">Geliştirici Araçları</string>
+    <string name="developer_subtitle">Geliştirme yardımcıları</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">Sistem</string>
+    <string name="developer_tab_options">Seçenekler</string>
+    <string name="developer_tab_workspaces">Çalışma Alanları</string>
+    <string name="developer_tab_logs">Günlükler</string>
+    <string name="developer_tab_testdata">Test Verileri</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Hata Ayıklama Seçenekleri</string>
+    <string name="developer_options_debug_mode">Hata ayıklama modu</string>
+    <string name="developer_options_debug_mode_desc">Ayrıntılı günlüğe kaydetmeyi etkinleştir</string>
+    <string name="developer_options_trace_mode">İzleme modu</string>
+    <string name="developer_options_trace_mode_desc">İzleme seviyesi günlüğe kaydı etkinleştir</string>
+    <string name="developer_options_floating_log">Kayan günlük paneli</string>
+    <string name="developer_options_floating_log_desc">Tüm ekranlarda sürüklenebilir günlük yer paylaşımı göster</string>
+    <string name="developer_options_services_header">Hizmet Testleri</string>
+    <string name="developer_options_root_test_action">Root\'u test et</string>
+    <string name="developer_options_root_installed_label">Yüklü</string>
+    <string name="developer_options_root_available_label">Kullanılabilir</string>
+    <string name="developer_options_root_base_check_label">Temel kontrol</string>
+    <string name="developer_options_shizuku_test_action">Shizuku\'yu test et</string>
+    <string name="developer_options_shizuku_installed_label">Yüklü</string>
+    <string name="developer_options_shizuku_granted_label">İzin</string>
+    <string name="developer_options_shizuku_compatible_label">Uyumlu</string>
+    <string name="developer_options_shizuku_service_label">Hizmet</string>
+    <string name="developer_options_test_running">Test yapılıyor…</string>
+    <string name="developer_options_result_yes">Evet</string>
+    <string name="developer_options_result_no">Hayır</string>
+    <string name="developer_options_result_unknown">Bilinmiyor</string>
+    <string name="developer_options_visibility_header">Görünürlük</string>
+    <string name="developer_options_hide_mode">Geliştirici Modunu Gizle</string>
+    <string name="developer_options_hide_mode_desc">Yeniden etkinleştirmek için Ayarlarda sürüm\'e 7 kez dokunun.</string>
+    <string name="developer_options_hide_action">Gizle</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Cihaz</string>
+    <string name="developer_system_device_model">Model</string>
+    <string name="developer_system_device_manufacturer">Üretici</string>
+    <string name="developer_system_device_api">API Seviyesi</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">Sürüm</string>
+    <string name="developer_system_build_code">Sürüm Kodu</string>
+    <string name="developer_system_build_flavor">Varyant</string>
+    <string name="developer_system_build_type">Build Türü</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Bellek</string>
+    <string name="developer_system_memory_available">Kullanılabilir</string>
+    <string name="developer_system_memory_total">Toplam</string>
+    <string name="developer_system_storage_header">Depolama</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d çalışma alanı</string>
+    <string name="developer_workspaces_empty">Çalışma alanı yok</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Temizle</string>
+    <string name="developer_logs_pause">Duraklat</string>
+    <string name="developer_logs_resume">Devam Et</string>
+    <string name="developer_logs_empty">Günlük yok</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Hedef Yolları</string>
+    <string name="developer_testdata_no_paths">Hiçbir hedef yol seçilmedi. Test verileri oluşturmak için yollar ekleyin.</string>
+    <string name="developer_testdata_add_path_action">Yol ekle</string>
+    <string name="developer_testdata_options_header">Oluşturma Seçenekleri</string>
+    <string name="developer_testdata_large_files">Büyük dosyalar</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">İç içe yapı</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 klasör, ~1100 dosya</string>
+    <string name="developer_testdata_text_files">Düzenleyici için metin dosyaları</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Oluştur</string>
+    <string name="developer_testdata_generating">Oluşturuluyor…</string>
+    <string name="developer_testdata_history_header">Örnek geçmiş girdileri</string>
+    <string name="developer_testdata_history_desc">~25 sahte işlem girişi ekler, bugün → 30 gün önce, karışık tür/sonuç/kaynak/yol. Doğrudan geçmiş veritabanına ekler; yeniden dokunmak güvenlidir.</string>
+    <string name="developer_testdata_history_generate_action">Örnek geçmiş oluştur</string>
+    <string name="developer_testdata_progress">%1$s / %2$s</string>
+    <string name="developer_testdata_complete">Test verileri şurada oluşturuldu:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Büyük Dosyalar Oluştur</string>
+    <string name="developer_operation_large_files_desc">Test dosyaları %1$s konumunda oluşturuluyor</string>
+    <string name="developer_operation_large_files_creating">%1$s oluşturuluyor</string>
+
+    <string name="developer_operation_nested_title">İç İçe Yapı Oluştur</string>
+    <string name="developer_operation_nested_desc">Klasör hiyerarşisi %1$s konumunda oluşturuluyor</string>
+    <string name="developer_operation_nested_starting">İç içe yapı başlatılıyor…</string>
+    <string name="developer_operation_nested_creating">%1$s oluşturuluyor</string>
+    <string name="developer_operation_nested_files_created">%1$d dosya oluşturuldu</string>
+
+    <string name="developer_operation_text_files_title">Metin Dosyaları Oluştur</string>
+    <string name="developer_operation_text_files_desc">Metin dosyaları %1$s konumunda oluşturuluyor</string>
+    <string name="developer_operation_text_files_creating">%1$s oluşturuluyor</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d dosya oluşturuldu</item>
+        <item quantity="other">%d dosya oluşturuldu</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d klasör</item>
+        <item quantity="other">%d klasör</item>
+    </plurals>
+</resources>

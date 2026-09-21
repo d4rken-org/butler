@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Gelişmiş cihaz erişimi</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Cihaz</string>
+    <string name="documents_connection_device_summary">Yerel cihaz depolaması</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Root dosya sistemi</string>
+    <string name="provider_documents_storage_internal_label">İç depolama</string>
+    <string name="provider_documents_storage_sd_card_label">SD kart</string>
+    <string name="provider_documents_storage_saf_label">SAF konumu</string>
+    <string name="provider_documents_storage_free_suffix">boş</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">Bu konuma göz atmak için root erişimi gerekiyor. Butler uygulaması ayarlarında root erişimini etkinleştirin.</string>
+    <string name="provider_documents_error_requires_adb">Bu konuma göz atmak için ADB/Shizuku erişimi gerekiyor. Butler uygulaması ayarlarında Shizuku\'yu etkinleştirin.</string>
+    <string name="provider_documents_error_requires_storage">Bu konuma göz atmak için depolama izni gerekiyor. Butler uygulaması ayarlarında depolama izni verin.</string>
+    <string name="provider_documents_error_requires_permissions">Bu konuma göz atmak için ek izinler gerekiyor. Butler uygulaması ayarlarını kontrol edin.</string>
+    <string name="provider_documents_error_generic">Bu konuma erişilemiyor. Erişim seçenekleri için Butler uygulamasını kontrol edin.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Belgeler Sağlayıcısı</string>
+    <string name="provider_documents_settings_subtitle">Dış uygulama entegrasyonu</string>
+    <string name="provider_documents_settings_category_integration_label">Entegrasyon</string>
+    <string name="provider_documents_enabled_title">Belgeler Sağlayıcısını Etkinleştir</string>
+    <string name="provider_documents_enabled_desc">Diğer uygulamaların Android dosya seçiciyi kullanarak Butler aracılığıyla dosyalara erişmesine izin ver</string>
+</resources>

@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Ara</string>
+    <string name="searcher_subtitle">Dosyaları ve içeriği bulun</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Arama ayarları</string>
+    <string name="searcher_settings_search_category">Arama</string>
+    <string name="searcher_settings_history">Arama geçmişi</string>
+    <string name="searcher_settings_save_history_title">Arama geçmişini kaydet</string>
+    <string name="searcher_settings_save_history_subtitle">Önceki aramaları hatırla</string>
+    <string name="searcher_settings_max_history_label">Maksimum geçmiş girdisi</string>
+    <string name="searcher_settings_max_history_subtitle">Kaydedilen aramaların maksimum sayısı</string>
+    <string name="searcher_settings_max_history_input_label">Girdi sayısı (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Arama geçmişini temizle</string>
+    <string name="searcher_settings_clear_history_subtitle">Tüm kaydedilen aramaları kaldır (%1$d)</string>
+    <string name="searcher_settings_search_performance">Performans</string>
+    <string name="searcher_settings_max_results_title">Maksimum arama sonuçları</string>
+    <string name="searcher_settings_max_results_subtitle">Arama başına döndürülen sonuçların sayısını sınırla.</string>
+    <string name="searcher_settings_content_search_category">İçerik Arama</string>
+    <string name="searcher_settings_include_binaries_title">İkili dosyaları dahil et</string>
+    <string name="searcher_settings_include_binaries_subtitle">İkili dosyaların içeriğini ara (yavaş olabilir ve ilgisiz sonuçlar verebilir)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Son aramalar</string>
+    <string name="searcher_placeholder_search">Dosyaları ve klasörleri ara</string>
+    <string name="searcher_placeholder_filename">Dosya adı</string>
+    <string name="searcher_placeholder_content">İçerik</string>
+    <string name="searcher_search_error">Arama hatası</string>
+    <string name="searcher_no_paths_hint">Arama konumları eklemek için + üzerine dokunun</string>
+    <string name="searcher_add_path_action">Konum ekle</string>
+    <string name="searcher_add_folder_action">Klasör…</string>
+    <string name="searcher_multipath_show_fewer_action">Daha azını göster</string>
+    <string name="searcher_empty_state_title">Arama yolu yapılandırılmadı</string>
+    <string name="searcher_empty_state_description">Dosyalarınızda arama yapmak için depolama konumları ekleyin</string>
+    <string name="searcher_add_default_paths_action">Varsayılan arama yollarını ekle</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Seçenekler</string>
+    <string name="searcher_option_case_sensitive_label">Büyük/küçük harfe duyarlı</string>
+    <string name="searcher_option_case_sensitive_desc">Büyük/küçük harfe duyarlı arama</string>
+    <string name="searcher_option_whole_word_label">Tam sözcük</string>
+    <string name="searcher_option_whole_word_desc">Tam sözcük araması</string>
+    <string name="searcher_option_regex_label">Düzenli ifade</string>
+    <string name="searcher_option_regex_desc">Düzenli ifade araması</string>
+    <string name="searcher_option_search_content_label">İçeriği ara</string>
+    <string name="searcher_option_search_content_desc">Dosya içeriğini ara</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Şablonlar</string>
+    <string name="searcher_templates_card_title">Hızlı arama şablonları</string>
+    <string name="searcher_template_large_files">Büyük dosyalar</string>
+    <string name="searcher_template_large_files_desc">100 MB üzerindeki dosyalar</string>
+    <string name="searcher_template_recent_files">Son dosyalar</string>
+    <string name="searcher_template_recent_files_desc">Son 7 gün içinde değiştirildi</string>
+    <string name="searcher_template_old_files">Eski dosyalar</string>
+    <string name="searcher_template_old_files_desc">Bir yıldır değiştirilmedi</string>
+    <string name="searcher_template_images">Resimler</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Videolar</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Ses</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Belgeler</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Arşivler</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APKs</string>
+    <string name="searcher_template_apks_desc">Android uygulama paketleri</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d şablon</item>
+        <item quantity="other">%d şablon</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Filtre</string>
+    <string name="searcher_filter_add_action">Filtre ekle</string>
+    <string name="searcher_filter_title">Arama Filtreleri</string>
+    <string name="searcher_filter_size_section">Dosya Boyutu</string>
+    <string name="searcher_filter_size_min">Minimum boyut</string>
+    <string name="searcher_filter_size_max">Maksimum boyut</string>
+    <string name="searcher_filter_date_section">Değiştirilme Tarihi</string>
+    <string name="searcher_filter_date_after">Şu tarihten sonra değiştirildi</string>
+    <string name="searcher_filter_date_before">Şu tarihten önce değiştirildi</string>
+    <string name="searcher_filter_date_any">Herhangi bir zaman</string>
+    <string name="searcher_filter_date_24h">Son 24 saat</string>
+    <string name="searcher_filter_date_7d">Son 7 gün</string>
+    <string name="searcher_filter_date_30d">Son 30 gün</string>
+    <string name="searcher_filter_date_90d">Son 90 gün</string>
+    <string name="searcher_filter_date_1y">Geçen yıl</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">büyüktür</string>
+    <string name="searcher_filter_comparator_greater_or_equal">büyük veya eşit</string>
+    <string name="searcher_filter_comparator_less_than">küçüktür</string>
+    <string name="searcher_filter_comparator_less_or_equal">küçük veya eşit</string>
+    <string name="searcher_filter_comparator_equal">eşittir</string>
+    <string name="searcher_filter_size_value_label">Boyut</string>
+    <string name="searcher_filter_size_at_least">En az</string>
+    <string name="searcher_filter_size_at_most">En fazla</string>
+    <string name="searcher_filter_size_value_hint">örn. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Sayı ve birim ile girin (KB, MB, GB). Düz bir sayı MB olarak kabul edilir.</string>
+    <string name="searcher_filter_size_format_error">Geçersiz boyut — sayı ve birim kullanın, örn. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Tarih</string>
+    <string name="searcher_filter_date_direction_after">Sonra</string>
+    <string name="searcher_filter_date_direction_before">Önce</string>
+    <string name="searcher_filter_type_label">Tür</string>
+    <string name="searcher_filter_type_files">Dosyalar</string>
+    <string name="searcher_filter_type_directories">Klasörler</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Geçmişten kaldır</string>
+    <string name="searcher_history_clear_all_action">Tümünü temizle</string>
+    <string name="searcher_history_clear_dialog_title">Arama geçmişini temizle</string>
+    <string name="searcher_history_clear_dialog_message">Bu, kaydedilen tüm arama geçmişini kaldıracaktır. Bu eylem geri alınamaz.</string>
+    <string name="searcher_history_clear_confirm_action">Temizle</string>
+    <string name="searcher_history_cleared_success">Arama geçmişi temizlendi</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="one">%d sonuç</item>
+        <item quantity="other">%d sonuç</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">%d tanesini daha göster</item>
+        <item quantity="other">%d tanesini daha göster</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Aranıyor</string>
+    <string name="searcher_progress_action_searched">Arandı</string>
+    <string name="searcher_progress_status_completed_with_errors">Hatalarla tamamlandı</string>
+    <string name="searcher_result_limit_reached">Sonuç sınırına ulaşıldı</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Bazı öğeler tamamen taranamadı</string>
+    <string name="searcher_progress_clear_action">Temizle</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d başarısız</item>
+        <item quantity="other">%d başarısız</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">%d öğeye erişilemedi</item>
+        <item quantity="other">%d öğeye erişilemedi</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…ve %d tane daha</item>
+        <item quantity="other">…ve %d tane daha</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn\'t be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android bu konumları koruyor. Ek erişim Butler\'ün bunları aramasını sağlar.</string>
+    <string name="searcher_access_sheet_body_protected">Android bu konumları koruyor. Bu cihazda erişim vermek için hiçbir yol yok.</string>
+    <string name="searcher_access_sheet_unlock_action">Erişimi aç</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d konum</item>
+        <item quantity="other">%d konum</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d tarandı</item>
+        <item quantity="other">%d tarandı</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d bulundu</item>
+        <item quantity="other">%d bulundu</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Eşleşme Bağlamı</string>
+    <string name="searcher_match_line_label">Satır %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Aç</string>
+    <string name="searcher_action_open_in_tab">Yeni sekmede aç</string>
+    <string name="searcher_action_open_with">İle aç</string>
+    <string name="searcher_action_open_in_editor">Düzenleyicide aç</string>
+    <string name="searcher_action_open_in_explorer">Explorer\'da aç</string>
+    <string name="searcher_action_install">Yükle</string>
+    <string name="searcher_action_copy">Kopyala</string>
+    <string name="searcher_action_cut">Kes</string>
+    <string name="searcher_action_delete">Sil</string>
+    <string name="searcher_action_copy_path">Yolu kopyala</string>
+    <string name="searcher_action_properties">Özellikler</string>
+    <string name="searcher_action_select_all">Tümünü seç</string>
+    <string name="searcher_action_deselect_all">Seçimi kaldır</string>
+    <string name="searcher_action_open_in_new_tabs">Yeni sekmelerde aç</string>
+    <string name="searcher_action_sort">Sırala</string>
+    <string name="searcher_action_view">Düzen</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Sıralama ölçütü</string>
+    <string name="searcher_sort_mode_name_label">Ad</string>
+    <string name="searcher_sort_mode_size_label">Boyut</string>
+    <string name="searcher_sort_mode_modified_label">Değiştirilme tarihi</string>
+    <string name="searcher_sort_mode_created_label">Oluşturulma tarihi</string>
+    <string name="searcher_sort_mode_path_label">Yol</string>
+    <string name="searcher_sort_descending_label">Azalan sıra</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Öğelerin nasıl düzenlendiği ve ne kadar ayrıntı gösterdiği</string>
+    <string name="searcher_view_mode_list_label">Liste</string>
+    <string name="searcher_view_mode_grid_label">Izgara</string>
+    <string name="searcher_view_density_compact_label">Kompakt</string>
+    <string name="searcher_view_density_comfortable_label">Rahat</string>
+    <string name="searcher_view_density_detailed_label">Ayrıntılı</string>
+    <string name="searcher_view_detail_modified_label">Değiştirilme</string>
+    <string name="searcher_view_set_default_action">Varsayılan olarak ayarla</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Bazı konumları aramak için ek kurulum gereklidir.</string>
+</resources>

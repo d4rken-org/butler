@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Yeni</string>
+    <string name="workspace_templates_choose_title">Yeni sekme</string>
+    <string name="workspace_templates_choose_subtitle">Bir sekme türü seçin. Nasıl yardımcı olabilirim?</string>
+    <string name="workspace_templates_name_tab_action">Bu sekmesine ad verin</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Bir araç seçin</string>
+    <string name="tour_templates_picker_body">Bu sekme seçicidir, bu sekmesinin ne olacağını seçin. Birini seçmek bu sekmesini o araca dönüştürür.</string>
+    <string name="tour_templates_butler_button_title">Sekmeleriniz burada yaşıyor</string>
+    <string name="tour_templates_butler_button_body">Sekme menüsü için Butler düğmesine dokunun: Yeni sekme oluşturun, geçerli olanı kapatın veya tam sekme yöneticisini açın. Doğrudan sekme yöneticisine gitmek için uzun basın.</string>
+</resources>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Butler FOSS Gerekli</string>
+
+    <string name="upgrade_prompt_title">Butler\'ı yükselt</string>
+    <string name="upgrade_prompt_body">Ek özellikleri açın ve geliştirmeyi desteklemek için patron olun!</string>
+    <string name="upgrade_prompt_upgrade_action">Yükselt</string>
+
+    <string name="upgrade_screen_title">Butler\'ı yükselt</string>
+    <string name="upgrade_screen_preamble">Butler\'ın reklamı yoktur ve kullanıcı verilerini satmaz. Devam eden geliştirme sadece sizin sayenizde mümkün olabilir.</string>
+    <string name="upgrade_screen_how_title">Nasıl yardımcı olabilirsin</string>
+    <string name="upgrade_screen_how_body">Patron ol ve geliştirmeyi sponsorla! Tüm ek özellikleri etkinleştirmek ve GitHub Sponsors profilimi açmak için aşağıdaki düğmeye dokunun.</string>
+
+    <string name="upgrade_screen_sponsor_action">Geliştirmeyi sponsorla</string>
+    <string name="upgrade_screen_sponsor_action_hint">Alternatif seçenekler reklamlar, analitikler ve Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Açık kaynak geliştirmesini desteklediğin için teşekkürler ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Zaten geri dönüş mü? Desteğin Butler\'ı hayatta tutuyor — sponsorlar sayfasını kontrol etmek için zaman ayır.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Sponsorlar sayfası açılamadı. Bunun yerine tarayıcıda açmayı dene.</string>
+
+    <string name="upgrade_screen_status_free_title">Ücretsiz sürümdüğüsün</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS tamamen açık kaynak. Geliştirmeyi destekleyerek ek özellikleri açın.</string>
+    <string name="upgrade_screen_status_free_action">Yükseltme seçeneklerini gör</string>
+    <string name="upgrade_screen_status_upgraded_title">Bir destekçisin</string>
+    <string name="upgrade_screen_status_upgraded_body">Açık kaynak geliştirmesini desteklediğin için teşekkürler ❤️ Tüm ek özellikler açılmıştır.</string>
+    <string name="upgrade_screen_supporter_since">%s\'den beri destekçi</string>
+    <string name="upgrade_screen_recurring_title">Devam ettir</string>
+    <string name="upgrade_screen_recurring_body">Butler boş zamanlarımda geliştirilir. Yinelenen bir bağış bunu hayatta tutmaya yardımcı olur.</string>
+    <string name="upgrade_screen_recurring_action">Yinelenen sponsor ol</string>
+
+    <string name="upgrade_benefits_title">Yükseltme faydaları</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Sınırsız sekmeler ve işlemler\n• Tasarımı, hissiyatı ve görünüşü özelleştir\n• Her araç için ek seçenekler ve özellikler\n• Yeni özelliklere erken erişim\n• Motive eden bir geliştirici 🧙\nve daha fazlası…</string>
+</resources>

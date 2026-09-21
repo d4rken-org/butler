@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Butler Pro gerekli</string>
+
+    <string name="upgrade_prompt_title">Butler\'ı Yükselt</string>
+    <string name="upgrade_prompt_body">Butler Pro, güç kullanıcılar için daha iyi sonuçlar, daha fazla özellik ve seçenekler sunar.</string>
+    <string name="upgrade_prompt_upgrade_action">Yükselt</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">%1$s Al</string>
+    <string name="upgrade_screen_preamble">Butler\'da hiç reklam yok ve kullanıcı verileri satılmaz. Çalışmam sana finanse ediliyor ❤️.</string>
+
+    <string name="upgrade_screen_how_title">Seçenekler</string>
+    <string name="upgrade_screen_subscription_trial_action">Ücretsiz 14 günlük deneme başlat</string>
+    <string name="upgrade_screen_subscription_action">Abone ol</string>
+    <string name="upgrade_screen_iap_action">Tek seferlik satın al</string>
+    <string name="upgrade_screen_restore_purchase_action">Satın almayı geri yükle</string>
+    <string name="upgrade_screen_restore_banner_title">Zaten Pro satın aldın mı?</string>
+    <string name="upgrade_screen_restore_banner_body">Görünüşe göre bu cihazda daha önce Pro\'ya yükselttiniz. Satın almayı geri yükleyerek kilidi tekrar açın.</string>
+    <string name="upgrade_screen_restore_checked_message">Butler az önce Google Play\'e kontrol ettirdi, ama bu uygulama için Google Play\'in kullandığı hesap için Pro satın alması doğrulanamadı.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Google Play ile yapılan kontrol zamanında bitmedi, bu nedenle satın alma durumunuz hala belirsiz. Hesabınızda hiçbir şey değişmedi.</string>
+    <string name="upgrade_screen_restore_contact_hint">Hala sıkışırsan? Satın almayı yapan e-postadan iletişime geç ve Google Play sipariş numaranı ekle.</string>
+    <string name="upgrade_screen_contact_support_action">Destek ile iletişime geç</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Play Store senkronizasyonu zaman alabilir. Cihazı yeniden başlat, Google Play önbelleğini temizle ya da bekle.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">Birden fazla hesap Google Play\'i karıştırabilir. Diğer hesaplardan çıkış yap veya Google Play web sitesinden yükle, bu da belirli bir hesapla ilişki kurmayı zorla.</string>
+    <string name="upgrade_screen_restore_success_message">Satın almayı geri yükledin ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Durum yanlış görünüyor mu?</string>
+    <string name="upgrade_screen_restore_status_body">Satın almayı Google Play ile yeniden kontrol et. Bu, cihaz değişikliği sonrasında veya Google hesaplarını değiştirdiysen yardımcı olabilir.</string>
+
+    <string name="upgrade_screen_offers_or">veya</string>
+
+    <string name="upgrade_screen_offers_title">Yükseltme seçenekleri</string>
+    <string name="upgrade_screen_offers_body">Her iki seçenek de aynı Pro özelliklerin kilidini açar — hangi fiyatlandırma seni uygunarsa o seç.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Fiyatlar kullanılmıyor</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler, yükseltme seçeneklerini Google Play\'den yükledi. Bu genellikle geçicidir — biraz sonra tekrar dene.</string>
+    <string name="upgrade_screen_subscription_offer_title">Yıllık abonelik</string>
+    <string name="upgrade_screen_subscription_offer_body">Ücretsiz 14 günlük deneme ile başla, sonra yılda bir kez faturalandırıl. İstediğin zaman iptal et.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Yılda bir kez faturalandırıl. İstediğin zaman iptal et.</string>
+    <string name="upgrade_screen_iap_offer_title">Bir kez satın al</string>
+    <string name="upgrade_screen_iap_offer_body">Bir kez ödeme yap, sonsuza kadar senindir. Abonelik yok.</string>
+    <string name="upgrade_screen_restore_body">Geri yükleme, Google Play\'e bu uygulamanın geçerli hesap için satın almalarını yeniden kontrol ettirmeyi ister.</string>
+
+    <string name="upgrade_screen_owned_hero_title">Butler Pro\'ya sahipsin!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Tek seferlik satın almayı yaptığın için teşekkür ederiz — sonsuza kadar sahibsin ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Abone olduğun için teşekkür ederiz ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">Tek seferlik satın alma</string>
+    <string name="upgrade_screen_owned_iap_body">Kalıcı Pro yükseltmesinin sahibisin.</string>
+    <string name="upgrade_screen_owned_sub_title">Abonelik</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Aboneliğin etkin ve otomatik olarak yenileniyor.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Aboneliğin etkin fakat yenilenmeyecek şekilde ayarlandı. Pro mevcut dönem bitene kadar kalır.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">Tek seferlik satın almaya sahipsin ama aboneliğin hala yenileniyor. İki kez ücret almaktan kaçınmak için Google Play\'den iptal et.</string>
+    <string name="upgrade_screen_manage_subscription_action">Aboneliği yönet</string>
+
+    <string name="upgrade_screen_switch_locked_note">Önce \"Aboneliği yönet\" aracılığıyla yenilemeyi iptal et, aksi takdirde her ikisi için de faturalandırılırsın.</string>
+    <string name="upgrade_screen_switch_purchase_note">Aboneliğin yenilenmeyecek — şimdi güvenle tek seferlik satın almayı satın alabilirsin.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Abonelik hala etkin</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Aboneliğin hala yenilenmek üzere ayarlandı. Önce Google Play\'den yenilemeyi iptal et ve böylece her ikisi için de faturalandırılmayacaksın, sonra tek seferlik satın almayı satın al.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">Doğrulanamadı</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler, satın alma durumunu Google Play ile doğrulayamadı, bu nedenle iki kez faturalandırılmaktan kaçınmak için satın alma durduruldu. Lütfen biraz sonra tekrar dene.</string>
+
+    <string name="upgrade_screen_pending_card_title">Ödeme bekleniyor</string>
+    <string name="upgrade_screen_pending_card_body">Google Play, ödemenizi hala işliyor. Pro, ödeme yapıldığında otomatik olarak kilit açılır. Bazı ödeme yöntemleri biraz zaman alabilir. Başka hiçbir şey yapman gerekmez.</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play, beklemede olan bir ödeme ile satın alma buldu ve hala işliyor. Pro, ödeme yapıldığında otomatik olarak kilit açılır.</string>
+
+    <string name="upgrade_screen_grace_title">Satın almayı doğrulanıyor</string>
+    <string name="upgrade_screen_grace_body_short">Google Play Pro durumunu doğrulamak için bir an alıyor. Yine de tam erişime sahipsin.</string>
+    <string name="upgrade_screen_grace_body">Google Play hala Pro durumunu doğrulayamadı. İçin için erişime sahipsin. Bu yanlış görünüyorsa, satın almayı geri yüklemeyi dene.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">Zaten satın aldı mı?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play, bu yükseltmeyi zaten satın aldığını söylüyor, ama otomatik olarak geri yüklenemedi. Orijinal satın alma için kullanılan Google hesabında oturum açtığından emin ol, sonra \"Satın almayı geri yükle\" deneyin.</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play kullanılmıyor</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler Google Play\'e bağlanamıyor. Google Play yüklü ve güncel mi? Google Hesabın oturum açmış mı? Google Play uygulamasının önbelleğini temizle ve cihazını yeniden başlat.</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can\'t open Google Play\'s app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Google Play açılamadı. Bu cihazda eksik, devre dışı veya kısıtlanmış olabilir.</string>
+    <string name="upgrades_gplay_billing_error_label">Google Play sorunu</string>
+    <string name="upgrades_gplay_billing_error_description">Google Play ile konuşulurken bir şeyler ters gitti. Lütfen daha sonra tekrar dene veya cihazını yeniden başlat.\n\nAyrıntılar: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Google Play hatası</string>
+    <string name="upgrades_gplay_internal_error_description">Google Play dahili bir hataya girdi. Lütfen aşağıdakini deneyin:\n\n• Cihazını yeniden başlat\n• Google Play Store önbelleğini temizle\n• Daha sonra tekrar dene</string>
+    <string name="upgrades_gplay_network_error_title">Bağlantı hatası</string>
+    <string name="upgrades_gplay_network_error_description">Butler Google Play\'e ulaşamadı. Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Teklif kullanılmıyor</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play şu anda hesabınız için bu yükseltme seçeneğini sunmuyor. Lütfen daha sonra tekrar dene veya Google Play Store\'u kontrol et.</string>
+    <string name="upgrades_no_purchases_found_check_account">Hiçbir satın alma bulunamadı. Doğru hesabı kullanıyor musun?</string>
+
+    <string name="upgrade_benefits_title">Yükseltme avantajları</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Sınırsız sekmeler ve işlemler\n• Tasarımı ve görünümü özelleştir\n• Her araç için ekstra seçenekler ve özellikler\n• Yeni özelliklere erken erişim\n• Motive olmuş bir geliştirici 🧙\nve daha fazlası…</string>
+</resources>

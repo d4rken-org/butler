@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Öğeler siliniyor</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Öğeler kopyalanıyor</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Öğeler taşınıyor</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Taranıyor…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">Dosya zaten var</string>
+    <string name="path_action_folder_exists_title">Klasör zaten var</string>
+    <string name="path_action_file_exists_description">\"%1$s\" adlı bir dosya, \"%2$s\" konumunda zaten var.</string>
+    <string name="path_action_folder_exists_description">\"%1$s\" adlı bir klasör, \"%2$s\" konumunda zaten var.</string>
+
+    <string name="path_action_not_found_title">Dosya kaybetti</string>
+    <string name="path_action_not_found_description">\"%1$s\" silinmiş, yeniden adlandırılmış veya başka bir yere taşınmış.</string>
+
+    <string name="path_action_permission_denied_title">İzin reddedildi</string>
+    <string name="path_action_permission_denied_description">\"%1$s\" dosyasına \"%2$s\" konumunda erişilemiyor, yetersiz izin var.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">\"%1$s\" dosyasına \"%2$s\" konumunda erişilemiyor. Bu işlemi gerçekleştirmek için kullanılabilir bir yöntem yok.</string>
+    <string name="path_action_permission_denied_readonly_description">\"%1$s\" dosyasına \"%2$s\" konumunda erişilemiyor. Dosya sistemi salt okunur durumda.</string>
+    <string name="path_action_permission_denied_not_permitted_description">\"%1$s\" dosyasına \"%2$s\" konumunda erişilemiyor. Sistem bu işlemi reddetti.</string>
+
+    <string name="path_action_insufficient_space_title">Yeterli alan yok</string>
+    <string name="path_action_insufficient_space_description">\"%1$s\" dosyasını \"%2$s\" konumundan kopyalamak için yeterli depolama alanı yok.</string>
+
+    <string name="path_action_unknown_error_title">İşlem başarısız</string>
+
+    <!-- Failed replacement: where the user\'s data ended up -->
+    <string name="path_action_data_kept_title">Değiştirme tamamlanmadı</string>
+    <string name="path_action_data_kept_new_data_description">Butler \"%1$s\" dosyasını yazamadı. Yeni verileriniz, \"%2$s\" dosyasıyla aynı klasörde korunmuş. İşe yaramadıysa sil, kurtarmak için yeniden adlandır.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler \"%1$s\" dosyasını yazamadı, önceki dosya değişmedi. Yeni verileriniz, \"%2$s\" dosyasıyla aynı klasörde korunmuş. İşe yaramadıysa sil, kurtarmak için yeniden adlandır.</string>
+    <string name="path_action_data_kept_both_description">Butler \"%1$s\" dosyasını yazamadı. Hiçbir şey kaybolmadı: Önceki dosya \"%2$s\" olarak aynı klasörde korunmuş ve yeni verileriniz \"%3$s\" olarak. Tutmak istediğiniz dosyayı yeniden adlandırın.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler \"%1$s\" dosyasını yazamadı ve \"%2$s\" dosyasının hala var olup olmadığını kontrol edemedi. Eksik bir kopyası \"%3$s\" olarak aynı klasörde korunmuş olabilir. Birini silmeden önce ikisini de karşılaştırın.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler \"%1$s\" dosyasını taşıyamadı ve dosyanın klasörünü terk edip etmediğini bilemedi. Verileriniz bu klasörde \"%2$s\" olarak korunmuş ya da zaten \"%3$s\" konumundadır. Birini silmeden önce ikisini de kontrol edin.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler \"%1$s\" dosyasını yazamadı ve dosyanızın nereye gittiğini bilemedi. Bu klasördeki üç dosyadan biri: \"%1$s\" kendisi, \"%2$s\" ya da \"%3$s\". Birini silmeden önce üçünü de kontrol edin.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler \"%1$s\" dosyasını yazamadı ve dosyanızın nereye gittiğini bilemedi. Bu klasördeki iki dosyadan biri: \"%1$s\" kendisi ya da \"%2$s\". Birini silmeden önce ikisini de kontrol edin.</string>
+
+    <string name="path_action_trash_size_limit_title">Öğeler Çöp Kutusu için çok büyük</string>
+    <string name="path_action_trash_size_limit_description">%1$d öğe, toplam %2$s, Çöp Kutusu büyüklük sınırını (%3$s) aşıyor.</string>
+
+    <string name="path_action_trash_move_failed_title">Çöp Kutusuna taşıma başarısız</string>
+    <string name="path_action_trash_move_failed_description">%1$d öğe Çöp Kutusuna taşınamadı.</string>
+
+    <string name="path_action_trash_not_supported_title">Çöp Kutusu desteklenmiyor</string>
+    <string name="path_action_trash_not_supported_description">%1$d öğe, Çöp Kutusunu desteklemeyen depolamada.</string>
+
+    <string name="path_action_archive_password_title">Parola gerekli</string>
+    <string name="path_action_archive_password_description">\"%1$s\" şifrelenmiş. İçeriğini okumak için parolayı girin.</string>
+    <string name="path_action_archive_password_wrong_description">\"%1$s\" için parola yanlış. Tekrar deneyin.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Sunucu erişilemez</string>
+    <string name="smb_error_unreachable_description">Butler \"%1$s\" sunucusuna ulaşamadı. Cihazın aynı ağda olduğunu ve sunucunun açık olduğunu kontrol edin.</string>
+    <string name="smb_error_auth_title">Oturum açma başarısız</string>
+    <string name="smb_error_auth_description">\"%1$s\" kullanıcı adını veya parolayı reddetti.</string>
+    <string name="smb_error_share_access_denied_title">Bu paylaşıma erişim yok</string>
+    <string name="smb_error_share_access_denied_description">Bu hesap \"%2$s\" üzerinde \"%1$s\" kullanımına izin vermiyor. Sunucudaki paylaşım izinlerini kontrol edin.</string>
+    <string name="smb_error_share_not_found_title">Paylaşım bulunamadı</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" \"%2$s\" üzerinde yok.</string>
+    <string name="smb_error_dialect_title">Sunucu çok eski</string>
+    <string name="smb_error_dialect_description">\"%1$s\" yalnızca SMB1 sunarken, bu güvensiz ve desteklenmiyor. Sunucuda SMB2 veya daha yenisini etkinleştirin.</string>
+    <string name="smb_error_credential_unavailable_title">Oturum açma gerekli</string>
+    <string name="smb_error_credential_unavailable_description">Bu ağ depolama için kaydedilen parola artık okunamıyor. Yeniden bağlanmak için parolayı tekrar girin.</string>
+    <string name="smb_error_pro_required_title">Ağ paylaşımları Butler Pro gerekli</string>
+    <string name="smb_error_pro_required_description">Ağ paylaşımlarına bağlanmak Butler Pro\'nun parçasıdır. Kaydedilen konumlarınız listede kalır ve bunu olmadan kaldırılabilir.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Korunan uygulama paketi</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" şifrelenmiş ve yalnızca onu oluşturan uygulama tarafından yüklenebilir.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">APK seti biçimi desteklenmiyor</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" bir bundletool APK setidir. Butler bu cihaza hangi varyanının uygun olduğunu bilemez.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Yüklenecek uygulama yok</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" yüklenebilir APK içermiyor.</string>
+
+    <string name="app_install_error_session_title">Yükleme başarısız</string>
+    <string name="app_install_error_session_description">Sistem yüklemeyi reddetti: %1$s</string>
+
+    <string name="app_install_error_busy_title">Başka yükleme devam ediyor</string>
+    <string name="app_install_error_busy_description">\"%1$s\" hala yükleniyor. Başka birini başlatmadan önce bu yüklemeyi onayla ya da iptal et.</string>
+
+    <string name="app_install_error_no_elevation_title">Yükseltilmiş erişim yok</string>
+    <string name="app_install_error_no_elevation_description">Root veya ADB erişimi şu anda kullanılmıyor.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Onay gerekli</string>
+    <string name="app_install_confirm_pending_description">Android, \"%1$s\" yüklemesini bitirmek için onayınızı gerekli.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android, bu yüklemeyi bitirmek için onayınızı gerekli.</string>
+    <string name="app_install_confirm_pending_action">Yüklemeyi onayla</string>
+    <string name="app_install_confirm_pending_reason">Yükleyici onayınızı bekliyor</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Onay gerekli</string>
+    <string name="app_uninstall_confirm_pending_description">Android, \"%1$s\" kaldırmasını bitirmek için onayınızı gerekli.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android, bu kaldırmayı bitirmek için onayınızı gerekli.</string>
+    <string name="app_uninstall_confirm_pending_action">Kaldırmayı onayla</string>
+    <string name="app_uninstall_confirm_pending_reason">Android onayınızı bekliyor</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Bu uygulamayı başka bir kullanıcı için kaldırabilmek root veya Shizuku gerekli</string>
+    <string name="app_uninstall_no_result">Android sonuç bildirmedi</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Dosya işlemi kesildi</string>
+    <string name="service_connection_lost_error_message">Dosya işlemi hizmeti beklenmedik şekilde durdu. Lütfen tekrar deneyin.</string>
+</resources>
