@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">جدید</string>
+    <string name="workspace_templates_choose_title">زبانه جدید</string>
+    <string name="workspace_templates_choose_subtitle">نوع زبانه را انتخاب کنید. چگونه می‌توانم کمک کنم؟</string>
+    <string name="workspace_templates_name_tab_action">نام این زبانه</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">یک ابزار انتخاب کنید</string>
+    <string name="tour_templates_picker_body">این انتخاب‌کننده زبانه است، انتخاب کنید این زبانه چه باید باشد. انتخاب یکی این زبانه را به آن ابزار تبدیل می‌کند.</string>
+    <string name="tour_templates_butler_button_title">زبانه‌های شما اینجا هستند</string>
+    <string name="tour_templates_butler_button_body">برای منوی زبانه روی دکمه Butler ضربه بزنید: یک زبانه جدید ایجاد کنید، یکی فعلی را ببندید، یا مدیر کامل زبانه را باز کنید. برای رفتن مستقیم به مدیر زبانه، آن را مدت‌طولانی فشار دهید.</string>
+</resources>

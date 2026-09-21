@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">جستجو</string>
+    <string name="searcher_subtitle">یافتن فایل‌ها و محتوا</string>
+    <!-- نوار برگه‌ای که مکان‌های جستجو را فهرست می‌کند، به‌عنوان مثال "دانلود، عکس‌ها +۳" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">تنظیمات جستجو</string>
+    <string name="searcher_settings_search_category">جستجو</string>
+    <string name="searcher_settings_history">تاریخچه جستجو</string>
+    <string name="searcher_settings_save_history_title">ذخیره‌سازی تاریخچه جستجو</string>
+    <string name="searcher_settings_save_history_subtitle">یادآوری جستجوهای قبلی</string>
+    <string name="searcher_settings_max_history_label">حداکثر ورودی‌های تاریخچه</string>
+    <string name="searcher_settings_max_history_subtitle">حداکثر تعداد جستجوهای ذخیره‌شده</string>
+    <string name="searcher_settings_max_history_input_label">تعداد ورودی‌ها (۱–۵۰۰)</string>
+    <string name="searcher_settings_clear_history_title">حذف تاریخچه جستجو</string>
+    <string name="searcher_settings_clear_history_subtitle">حذف تمام جستجوهای ذخیره‌شده (%1$d)</string>
+    <string name="searcher_settings_search_performance">کارایی</string>
+    <string name="searcher_settings_max_results_title">حداکثر نتایج جستجو</string>
+    <string name="searcher_settings_max_results_subtitle">محدود کردن تعداد نتایج بازگشتی در هر جستجو.</string>
+    <string name="searcher_settings_content_search_category">جستجوی محتوا</string>
+    <string name="searcher_settings_include_binaries_title">شامل فایل‌های باینری</string>
+    <string name="searcher_settings_include_binaries_subtitle">جستجو در محتوای فایل‌های باینری (ممکن است کند باشد و نتایج نامرتبط تولید کند)</string>
+
+    <!-- رابط کاربری جستجو -->
+    <string name="searcher_recent_searches">جستجوهای اخیر</string>
+    <string name="searcher_placeholder_search">جستجو فایل‌ها و پوشه‌ها</string>
+    <string name="searcher_placeholder_filename">نام فایل</string>
+    <string name="searcher_placeholder_content">محتوا</string>
+    <string name="searcher_search_error">خطای جستجو</string>
+    <string name="searcher_no_paths_hint">برای افزودن مکان‌های جستجو، + را لمس کنید</string>
+    <string name="searcher_add_path_action">افزودن مکان</string>
+    <string name="searcher_add_folder_action">پوشه…</string>
+    <string name="searcher_multipath_show_fewer_action">نمایش کمتر</string>
+    <string name="searcher_empty_state_title">هیچ مسیر جستجو تنظیم نشده‌است</string>
+    <string name="searcher_empty_state_description">مکان‌های حافظه را برای جستجو فایل‌های خود اضافه کنید</string>
+    <string name="searcher_add_default_paths_action">افزودن مسیرهای جستجوی پیش‌فرض</string>
+
+    <!-- گزینه‌های جستجو -->
+    <string name="searcher_options_action">گزینه‌ها</string>
+    <string name="searcher_option_case_sensitive_label">حساس به بزرگی اختلاف حروف</string>
+    <string name="searcher_option_case_sensitive_desc">جستجوی حساس به بزرگی اختلاف حروف</string>
+    <string name="searcher_option_whole_word_label">کلمه کامل</string>
+    <string name="searcher_option_whole_word_desc">جستجوی کلمه کامل</string>
+    <string name="searcher_option_regex_label">عبارت منظم</string>
+    <string name="searcher_option_regex_desc">جستجوی عبارت منظم</string>
+    <string name="searcher_option_search_content_label">جستجوی محتوا</string>
+    <string name="searcher_option_search_content_desc">جستجو در محتوای فایل‌ها</string>
+
+    <!-- الگوهای جستجو -->
+    <string name="searcher_templates_action">الگوها</string>
+    <string name="searcher_templates_card_title">الگوهای جستجوی سریع</string>
+    <string name="searcher_template_large_files">فایل‌های بزرگ</string>
+    <string name="searcher_template_large_files_desc">فایل‌های بزرگ‌تر از ۱۰۰ مگابایت</string>
+    <string name="searcher_template_recent_files">فایل‌های اخیر</string>
+    <string name="searcher_template_recent_files_desc">تغییر یافته در ۷ روز گذشته</string>
+    <string name="searcher_template_old_files">فایل‌های قدیمی</string>
+    <string name="searcher_template_old_files_desc">تغییر نیافته برای بیش از یک سال</string>
+    <string name="searcher_template_images">تصاویر</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">ویدیوها</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">صدا</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">اسناد</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">بایگانی‌ها</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APK‌ها</string>
+    <string name="searcher_template_apks_desc">بسته‌های نرم‌افزار Android</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d الگو</item>
+        <item quantity="other">%d الگو</item>
+    </plurals>
+
+    <!-- فیلترهای جستجو -->
+    <string name="searcher_filter_action">فیلتر</string>
+    <string name="searcher_filter_add_action">افزودن فیلتر</string>
+    <string name="searcher_filter_title">فیلترهای جستجو</string>
+    <string name="searcher_filter_size_section">اندازه فایل</string>
+    <string name="searcher_filter_size_min">حداقل اندازه</string>
+    <string name="searcher_filter_size_max">حداکثر اندازه</string>
+    <string name="searcher_filter_date_section">تاریخ تغییر</string>
+    <string name="searcher_filter_date_after">تغییر یافته بعد از</string>
+    <string name="searcher_filter_date_before">تغییر یافته قبل از</string>
+    <string name="searcher_filter_date_any">هر زمان</string>
+    <string name="searcher_filter_date_24h">۲۴ ساعت گذشته</string>
+    <string name="searcher_filter_date_7d">۷ روز گذشته</string>
+    <string name="searcher_filter_date_30d">۳۰ روز گذشته</string>
+    <string name="searcher_filter_date_90d">۹۰ روز گذشته</string>
+    <string name="searcher_filter_date_1y">سال گذشته</string>
+
+    <!-- برچسب‌های مقایسه‌کننده -->
+    <string name="searcher_filter_comparator_greater_than">بیش‌تر از</string>
+    <string name="searcher_filter_comparator_greater_or_equal">بیش‌تر یا برابر</string>
+    <string name="searcher_filter_comparator_less_than">کمتر از</string>
+    <string name="searcher_filter_comparator_less_or_equal">کمتر یا برابر</string>
+    <string name="searcher_filter_comparator_equal">برابر</string>
+    <string name="searcher_filter_size_value_label">اندازه</string>
+    <string name="searcher_filter_size_at_least">حداقل</string>
+    <string name="searcher_filter_size_at_most">حداکثر</string>
+    <string name="searcher_filter_size_value_hint">برای مثال ۱۰ مگابایت</string>
+    <string name="searcher_filter_size_format_help">یک عدد را با واحد (KB، MB، GB) وارد کنید. یک عدد تنهایی به‌عنوان MB تفسیر می‌شود.</string>
+    <string name="searcher_filter_size_format_error">اندازه نامعتبر — یک عدد و واحد استفاده کنید، برای مثال ۱۰ MB.</string>
+    <string name="searcher_filter_date_value_label">تاریخ</string>
+    <string name="searcher_filter_date_direction_after">بعد از</string>
+    <string name="searcher_filter_date_direction_before">قبل از</string>
+    <string name="searcher_filter_type_label">نوع</string>
+    <string name="searcher_filter_type_files">فایل‌ها</string>
+    <string name="searcher_filter_type_directories">پوشه‌ها</string>
+
+    <!-- اقدام‌های تاریخچه جستجو -->
+    <string name="searcher_history_remove_action">حذف از تاریخچه</string>
+    <string name="searcher_history_clear_all_action">حذف همه</string>
+    <string name="searcher_history_clear_dialog_title">حذف تاریخچه جستجو</string>
+    <string name="searcher_history_clear_dialog_message">این کار تمام تاریخچه جستجو ذخیره‌شده را حذف می‌کند. این عملیات قابل واگرد نیست.</string>
+    <string name="searcher_history_clear_confirm_action">حذف</string>
+    <string name="searcher_history_cleared_success">تاریخچه جستجو حذف شد</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">بدون نتیجه</item>
+        <item quantity="one">%d نتیجه</item>
+        <item quantity="other">%d نتیجه</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">نمایش %d مورد بیش‌تر</item>
+        <item quantity="other">نمایش %d مورد بیش‌تر</item>
+    </plurals>
+
+    <!-- پیشرفت جستجو -->
+    <string name="searcher_progress_action_searching">در حال جستجو</string>
+    <string name="searcher_progress_action_searched">جستجو شد</string>
+    <string name="searcher_progress_status_completed_with_errors">تکمیل شد با خطاهایی</string>
+    <string name="searcher_result_limit_reached">حداکثر نتایج رسیده‌است</string>
+    <!-- بنر: برخی از موارد داخل مکان‌های جستجو شده نتوانستند مطالعه شوند (مثلا اجازه رد شده) -->
+    <string name="searcher_progress_items_partial">برخی از موارد نتوانستند به‌طور کامل جستجو شوند</string>
+    <string name="searcher_progress_clear_action">حذف</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d ناموفق</item>
+        <item quantity="other">%d ناموفق</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">%d مورد نتوانست دسترسی پیدا کند</item>
+        <item quantity="other">%d مورد نتوانست دسترسی پیدا کند</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">… و %d مورد بیش‌تر</item>
+        <item quantity="other">… و %d مورد بیش‌تر</item>
+    </plurals>
+
+    <!-- برگه جزئیات خطاهای دسترسی (باز شده از خط "N مورد نتوانست دسترسی پیدا کند") -->
+    <string name="searcher_access_sheet_body_unlockable">Android از این مکان‌ها محافظت می‌کند. دسترسی اضافی اجازه می‌دهد Butler آنها را جستجو کند.</string>
+    <string name="searcher_access_sheet_body_protected">Android از این مکان‌ها محافظت می‌کند. هیچ راهی برای اعطای دسترسی در این دستگاه وجود ندارد.</string>
+    <string name="searcher_access_sheet_unlock_action">بازکردن دسترسی</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d مکان</item>
+        <item quantity="other">%d مکان</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d اسکن شد</item>
+        <item quantity="other">%d اسکن شد</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d یافت شد</item>
+        <item quantity="other">%d یافت شد</item>
+    </plurals>
+
+    <!-- متن منطبق -->
+    <string name="searcher_match_context_label">متن منطبق</string>
+    <string name="searcher_match_line_label">خط %1$d: %2$s</string>
+
+    <!-- رشته‌های عملی -->
+    <string name="searcher_action_open">باز کردن</string>
+    <string name="searcher_action_open_in_tab">باز کردن در زبانه جدید</string>
+    <string name="searcher_action_open_with">باز کردن با</string>
+    <string name="searcher_action_open_in_editor">باز کردن در ویرایشگر</string>
+    <string name="searcher_action_open_in_explorer">باز کردن در کاوشگر</string>
+    <string name="searcher_action_install">نصب</string>
+    <string name="searcher_action_copy">کپی</string>
+    <string name="searcher_action_cut">برش</string>
+    <string name="searcher_action_delete">حذف</string>
+    <string name="searcher_action_copy_path">کپی مسیر</string>
+    <string name="searcher_action_properties">خصوصیات</string>
+    <string name="searcher_action_select_all">انتخاب همه</string>
+    <string name="searcher_action_deselect_all">لغو انتخاب همه</string>
+    <string name="searcher_action_open_in_new_tabs">باز کردن در زبانه‌های جدید</string>
+    <string name="searcher_action_sort">مرتب‌سازی</string>
+    <string name="searcher_action_view">طرح‌بندی</string>
+
+    <!-- گزینه‌های مرتب‌سازی -->
+    <string name="searcher_sort_mode_label">مرتب‌سازی بر اساس</string>
+    <string name="searcher_sort_mode_name_label">نام</string>
+    <string name="searcher_sort_mode_size_label">اندازه</string>
+    <string name="searcher_sort_mode_modified_label">تاریخ تغییر</string>
+    <string name="searcher_sort_mode_created_label">تاریخ ایجاد</string>
+    <string name="searcher_sort_mode_path_label">مسیر</string>
+    <string name="searcher_sort_descending_label">ترتیب نزولی</string>
+
+    <!-- گزینه‌های نمایش -->
+    <string name="searcher_view_sheet_subtitle">نحوه ترتیب موارد و میزان جزئیات نمایش‌شده</string>
+    <string name="searcher_view_mode_list_label">فهرست</string>
+    <string name="searcher_view_mode_grid_label">شبکه</string>
+    <string name="searcher_view_density_compact_label">فشرده</string>
+    <string name="searcher_view_density_comfortable_label">معمولی</string>
+    <string name="searcher_view_density_detailed_label">تفصیلی</string>
+    <string name="searcher_view_detail_modified_label">تغییر یافته</string>
+    <string name="searcher_view_set_default_action">تنظیم به‌عنوان پیش‌فرض</string>
+
+    <!-- راه‌اندازی مجوزها -->
+    <string name="searcher_setup_required_body">تنظیم اضافی برای جستجو در برخی مکان‌ها لازم است.</string>
+</resources>

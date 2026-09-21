@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">ویرایشگر</string>
+    <string name="editor_subtitle">ویرایش فایل‌های متنی</string>
+    <string name="editor_settings_title">تنظیمات ویرایشگر</string>
+    <string name="editor_settings_show_line_numbers_title">نمایش شماره خطوط</string>
+    <string name="editor_settings_show_line_numbers_subtitle">نمایش شماره خطوط در ویرایشگر</string>
+    <string name="editor_settings_word_wrap_title">خط‌شکنی</string>
+    <string name="editor_settings_word_wrap_subtitle">شکستن خطوط بلند برای تناسب با عرض صفحه</string>
+    <string name="editor_settings_syntax_highlighting_title">برجسته‌سازی نحو</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">رنگ‌بندی کد در فایل‌های پشتیبانی‌شده (JavaScript، Bash، Markdown، JSON)</string>
+    <string name="editor_settings_font_size_title">اندازه قلم</string>
+    <string name="editor_settings_font_size_subtitle">اندازه متن در ویرایشگر</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">عرض تب</string>
+    <string name="editor_settings_tab_size_subtitle">فاصله‌ای که یک کاراکتر تب اشغال می‌کند</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">باز کردن</string>
+    <string name="editor_action_save">ذخیره</string>
+    <string name="editor_action_save_as">ذخیره با نام دیگر…</string>
+    <string name="editor_action_close">بستن</string>
+    <string name="editor_action_undo">واگرد</string>
+    <string name="editor_action_redo">تکرار</string>
+    <string name="editor_action_search">جستجو</string>
+    <string name="editor_action_go_to_line">برو به خط</string>
+    <string name="editor_action_dismiss">بستن</string>
+    <string name="editor_action_previous">قبلی</string>
+    <string name="editor_action_next">بعدی</string>
+    <string name="editor_action_copy">کپی</string>
+    <string name="editor_action_cut">برش</string>
+    <string name="editor_action_copy_to_butler_clipboard">کپی به کلیپ‌بورد Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">برش به کلیپ‌بورد Butler</string>
+    <string name="editor_action_paste">چسباندن</string>
+    <string name="editor_action_select_all">انتخاب همه</string>
+    <string name="editor_action_delete">حذف</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">آیا فایل بازنویسی شود؟</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s از قبل وجود دارد. محتوای فعلی آن جایگزین می‌شود.</string>
+    <string name="editor_dialog_save_as_overwrite_action">بازنویسی</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">یک نسخه پشتیبان از ذخیره وقطع‌شده پیدا شد:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">ویرایش به‌عنوان متن پشتیبانی نشده است</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">خطوط بسیار بلند</string>
+    <string name="editor_long_lines_banner_message">خطوط بسیار بلند برای نمایش کوتاه‌شده‌اند؛ محتوای کامل حفظ و ذخیره می‌شود.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">نمایش قسمت بعدی خط</string>
+    <string name="editor_line_truncated_marker_previous_action">نمایش قسمت قبلی خط</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">فایل دیگر در دسترس نیست</string>
+    <string name="editor_backing_lost_banner_message">ممکن است منتقل یا حذف شده باشد. این نمایش فقط خواندنی است — دوباره باز کنید یا ببندید.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">فایل حذف‌شده است، اما یک نسخه پشتیبان باقی مانده</string>
+    <string name="editor_error_save_artifacts_description">«%1$s» گمشده است، اما یک ذخیره که قطع‌شده بود این را به جا گذاشت: %2$s. محتوای شما احتمالاً هنوز در آن است.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">فایل روی دیسک تغییر یافته</string>
+    <string name="editor_external_change_banner_message">یک برنامه دیگر این فایل را تغییر داده است.</string>
+    <string name="editor_external_change_reload_action">بارگذاری مجدد</string>
+    <string name="editor_external_change_keep_action">ادامه ویرایش</string>
+    <string name="editor_error_external_change">این فایل توسط یک برنامه دیگر تغییر یافته است. برای ادامه، فایل را بارگذاری مجدد کنید.</string>
+    <string name="editor_dialog_reload_confirm_title">آیا فایل بارگذاری مجدد شود؟</string>
+    <string name="editor_dialog_reload_confirm_message">بارگذاری مجدد، تغییرات ذخیره‌نشده را لغو می‌کند و محتوای فعلی فایل روی دیسک را نمایش می‌دهد.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d خط</item>
+        <item quantity="other">%1$d خط</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d کاراکتر</item>
+        <item quantity="other">%1$d کاراکتر</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">%1$s انتخاب‌شده، %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">در حال بارگذاری فایل…</string>
+    <string name="editor_saving">در حال ذخیره…</string>
+    <string name="editor_action_cancel_loading">لغو</string>
+    <string name="editor_progress_opening">در حال باز کردن فایل…</string>
+    <string name="editor_progress_saving">در حال ذخیره فایل…</string>
+    <string name="editor_progress_building_index">در حال ساخت شاخص فایل…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">خطای نامشخص</string>
+    <string name="editor_error_read_only">این فایل فقط خواندنی است و قابل تغییر نیست.</string>
+    <string name="editor_error_save_integrity_label">ذخیره قطع‌شده</string>
+    <string name="editor_error_save_integrity">ذخیره قطع‌شده و فایل روی دیسک ممکن است ناقص باشد. قبل از ویرایش بیشتر، فایل را بارگذاری مجدد کنید.</string>
+    <string name="editor_error_clipboard_too_large_label">انتخاب بیش‌ازحد بزرگ</string>
+    <string name="editor_error_clipboard_too_large">انتخاب برای کپی بیش‌ازحد بزرگ است (حد %1$s).</string>
+    <string name="editor_error_paste_too_large_label">فایل بیش‌ازحد بزرگ</string>
+    <string name="editor_error_paste_too_large">این فایل برای چسباندن بیش‌ازحد بزرگ است (حداکثر %1$s).</string>
+    <string name="editor_error_paste_binary_label">فایل متنی نیست</string>
+    <string name="editor_error_paste_binary">محتوای این فایل را نمی‌توان به‌عنوان متن چسباند.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d از %2$d نتیجه</item>
+        <item quantity="other">%1$d از %2$d نتیجه</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d از %2$d+ نتیجه</string>
+    <string name="editor_search_too_many_matches_label">بیش‌ازحد تطابق</string>
+    <string name="editor_search_too_many_matches">بیش از %1$d تطابق یا بیش‌ازحد متن تطابق‌یافته — جستجو را محدود کنید تا همه را جایگزین کنید.</string>
+    <string name="editor_search_placeholder">جستجو…</string>
+    <string name="editor_search_previous">نتیجه قبلی</string>
+    <string name="editor_search_next">نتیجه بعدی</string>
+    <string name="editor_search_case_sensitive_label">حساس به بزرگ و کوچک</string>
+    <string name="editor_search_regex_label">عبارت منظم</string>
+    <string name="editor_search_whole_word_label">کلمه کامل</string>
+    <string name="editor_search_options_label">گزینه‌های جستجو</string>
+    <string name="editor_search_replace_label">جایگزینی</string>
+    <string name="editor_search_replace_toggle">تبدیل جایگزینی</string>
+    <string name="editor_search_replace_placeholder">جایگزین کردن با…</string>
+    <string name="editor_search_replace_one_action">جایگزینی</string>
+    <string name="editor_search_replace_all_action">همه</string>
+    <string name="editor_search_replaced_not_undoable">%1$d جایگزین‌شده (بیش‌ازحد برای واگرد)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d جایگزین‌شده</item>
+        <item quantity="other">%1$d جایگزین‌شده</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">برو به خط</string>
+    <string name="editor_dialog_go_to_line_label">شماره خط (۱-%1$d)</string>
+    <string name="editor_dialog_action_go">برو</string>
+    <string name="editor_dialog_action_cancel">لغو</string>
+    <string name="editor_dialog_close_confirm_title">تغییرات ذخیره‌نشده</string>
+    <string name="editor_dialog_close_confirm_message">تغییرات ذخیره‌نشده دارید. آیا آن‌ها را رها کنید؟</string>
+    <string name="editor_dialog_close_confirm_discard">رها کردن</string>
+    <string name="editor_dialog_large_delete_confirm_title">ویرایش انتخاب بزرگ؟</string>
+    <string name="editor_dialog_large_delete_confirm_message">این انتخاب برای واگرد بیش‌ازحد بزرگ است. آیا برای ادامه؟</string>
+    <string name="editor_dialog_large_delete_confirm_action">ادامه</string>
+    <string name="editor_encoding_dialog_title">رمزگذاری</string>
+    <string name="editor_encoding_dialog_message">دوباره باز کردن فایل با رمزگذاری متفاوت. تغییرات ذخیره‌نشده لغو می‌شوند؛ بایت‌های ویرایش‌نشده در ذخیره بدون تغییر ماند.</string>
+    <string name="editor_infobar_read_only">فقط خواندنی</string>
+    <string name="editor_line_ending_mixed">مختلط</string>
+    <string name="editor_line_ending_dialog_title">پایان خطوط</string>
+    <string name="editor_line_ending_dialog_message">تبدیل تمام خط‌شکنی‌ها و ذخیره فایل، شامل تغییرات ذخیره‌نشده. تاریخچه واگرد پاک می‌شود.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix، Android، macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">بدون عنوان</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">ذخیره خودکار</string>
+    <string name="editor_settings_autosave_enabled_title">فعال‌کردن ذخیره خودکار</string>
+    <string name="editor_settings_autosave_enabled_subtitle">ذخیره خودکار تغییرات پس از دوره بی‌تفاوتی.</string>
+    <string name="editor_settings_autosave_interval_title">بازه ذخیره خودکار</string>
+    <string name="editor_settings_autosave_interval_subtitle">زمان انتظار بعد از آخرین ویرایش پیش از ذخیره.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">بازه ذخیره خودکار</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">کلیپ‌بورد</string>
+    <string name="editor_settings_clipboard_behavior_title">کلیپ‌بورد Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">نحوه ذخیره‌ی کپی‌های متنی در کلیپ‌بورد Butler را کنترل کنید.</string>
+    <string name="editor_settings_clipboard_system_only">فقط سیستم</string>
+    <string name="editor_settings_clipboard_system_only_desc">فقط کپی به کلیپ‌بورد سیستم</string>
+    <string name="editor_settings_clipboard_butler_always">همیشه به Butler اضافه کن</string>
+    <string name="editor_settings_clipboard_butler_always_desc">همچنین ذخیره در کلیپ‌بورد Butler برای چسباندن در فضای کاری‌های دیگر</string>
+    <string name="editor_settings_clipboard_ask">هر بار بپرس</string>
+    <string name="editor_settings_clipboard_ask_desc">قبل از اضافه کردن به کلیپ‌بورد Butler، اخطار نشان بده</string>
+</resources>

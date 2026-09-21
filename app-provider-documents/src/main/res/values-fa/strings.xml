@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">دسترسی پیشرفته دستگاه</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">دستگاه</string>
+    <string name="documents_connection_device_summary">حافظه محلی دستگاه</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">سیستم‌فایل ریشه</string>
+    <string name="provider_documents_storage_internal_label">حافظه داخلی</string>
+    <string name="provider_documents_storage_sd_card_label">کارت SD</string>
+    <string name="provider_documents_storage_saf_label">مکان SAF</string>
+    <string name="provider_documents_storage_free_suffix">رایگان</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">دسترسی ریشه برای مرور این مکان لازم است. دسترسی ریشه را در تنظیمات برنامه Butler فعال کنید.</string>
+    <string name="provider_documents_error_requires_adb">دسترسی ADB/Shizuku برای مرور این مکان لازم است. Shizuku را در تنظیمات برنامه Butler فعال کنید.</string>
+    <string name="provider_documents_error_requires_storage">اجازه حافظه برای مرور این مکان لازم است. اجازه حافظه را در تنظیمات برنامه Butler بدهید.</string>
+    <string name="provider_documents_error_requires_permissions">مجوزهای اضافی برای مرور این مکان لازم هستند. تنظیمات برنامه Butler را بررسی کنید.</string>
+    <string name="provider_documents_error_generic">نتوانست این مکان را دسترسی دهد. برنامه Butler را برای گزینه‌های دسترسی بررسی کنید.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">ارائه‌دهنده اسناد</string>
+    <string name="provider_documents_settings_subtitle">ادغام برنامه خارجی</string>
+    <string name="provider_documents_settings_category_integration_label">ادغام</string>
+    <string name="provider_documents_enabled_title">فعال‌سازی ارائه‌دهنده اسناد</string>
+    <string name="provider_documents_enabled_desc">اجازه دهید برنامه‌های دیگر از طریق Butler با استفاده از انتخاب‌کننده فایل Android به فایل‌ها دسترسی پیدا کنند</string>
+</resources>

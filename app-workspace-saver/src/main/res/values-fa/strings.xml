@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">ذخیره به‌عنوان</string>
+    <string name="saver_preview_label">پیش‌نمایش</string>
+    <string name="saver_loading">درحال بارگذاری…</string>
+    <string name="saver_shared_from">اشتراک‌گذاری شده از %1$s</string>
+    <string name="saver_shared_generic">اشتراک‌گذاری شده با Butler</string>
+    <string name="saver_destination_label">مقصد</string>
+    <string name="saver_select_destination_hint">پوشه مقصد را انتخاب کنید</string>
+    <string name="saver_filename_label">نام فایل</string>
+    <string name="saver_save_action">ذخیره</string>
+    <string name="saver_saving_progress">درحال ذخیره‌کردن…</string>
+    <string name="saver_success_message">فایل با موفقیت ذخیره شد</string>
+    <string name="saver_open_saved_action">باز کردن پوشه</string>
+    <string name="saver_retry_action">تلاش مجدد</string>
+    <string name="saver_save_again_action">ذخیره در مکان جدید</string>
+    <string name="saver_close_tab_action">بستن زبانه</string>
+    <string name="saver_close_butler_action">بستن زبانه و بازگشت</string>
+    <string name="saver_done_action">انجام شد</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">فایل منبع دیگر دسترسی‌پذیر نیست. لطفاً دوباره اشتراک‌گذاری کنید.</item>
+        <item quantity="other">%1$d فایل منبع دیگر دسترسی‌پذیر نیستند. لطفاً دوباره اشتراک‌گذاری کنید.</item>
+    </plurals>
+    <string name="saver_error_source_expired">فایل منبع دیگر دسترسی‌پذیر نیست</string>
+    <string name="saver_error_permission_denied">دسترسی رد شد</string>
+    <string name="saver_error_write_failed">ذخیره فایل ناموفق بود</string>
+    <string name="saver_error_file_exists">فایل قبلاً وجود دارد</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">ذخیره فایل‌ها</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">ذخیره %1$d فایل در %2$s</item>
+        <item quantity="other">ذخیره %1$d فایل در %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">ذخیره %1$d فایل</item>
+        <item quantity="other">ذخیره %1$d فایل</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d فایل ذخیره شد</item>
+        <item quantity="other">%1$d فایل ذخیره شد</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d فایل ناموفق</item>
+        <item quantity="other">%1$d فایل ناموفق</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d فایل رد شد</item>
+        <item quantity="other">%1$d فایل رد شد</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d از %2$d فایل ذخیره شد</string>
+</resources>
