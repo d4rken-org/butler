@@ -53,7 +53,7 @@ dependencies {
     implementation(libs.androidx.test.core.ktx.ct)
     implementation(libs.room.testing)
 
-    implementation(libs.mockk.ct)
+    implementation(libs.mockk)
 
     runtimeOnly(libs.jupiter.engine.ct)
     implementation(libs.jupiter.api.ct)
