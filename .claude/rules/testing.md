@@ -81,6 +81,16 @@ device.
 ANDROID_SERIAL=emulator-5554 ./gradlew :app-common-io:connectedFossDebugAndroidTest
 ```
 
+The golden path (fresh install, onboarding, first screen) lives in `:app-e2e`, a `com.android.test`
+module that drives the installed FOSS debug app with UiAutomator. It is self-instrumenting: the tests
+run in their own process, so they can `pm clear`, force-stop and relaunch the app. Its sources are in
+`src/main`, and its selectors look up the app's string resources by name rather than matching
+English text.
+
+```bash
+ANDROID_SERIAL=emulator-5554 ./gradlew :app-e2e:connectedFossDebugAndroidTest
+```
+
 Reports land in `<module>/build/reports/androidTests/connected/`. In CI, the `Emulator tests`
 workflow (`.github/workflows/emulator.yml`) runs them on API 30 and API 36 and uploads the
 `device-tests-api-<level>` artifact even when they fail. The workflow names each module's task

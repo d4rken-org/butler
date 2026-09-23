@@ -41,5 +41,6 @@ include ':app-workspace-bugreport'
 include ':app-workspace-viewer'
 include ':app-provider-documents'
 include ':saf-test-provider'
+include ':app-e2e'
 
 include ':lib-smb'
