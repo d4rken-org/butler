@@ -28,7 +28,7 @@ jobs:
         uses: ./.github/actions/common-setup
 
       - name: Build device test APK
-        run: ./gradlew :app-common-io:assembleFossDebugAndroidTest
+        run: ./gradlew :app-common-io:assembleFossDebugAndroidTest :app-common-pkgs:assembleFossDebugAndroidTest
 
       - name: Enable KVM
         run: |
@@ -47,7 +47,7 @@ jobs:
           # GitHub runners have no GPU.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew :app-common-io:connectedFossDebugAndroidTest
+          script: ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest
 
       - name: Upload device test results
         if: always()
@@ -55,7 +55,7 @@ jobs:
         with:
           name: device-tests-api-${{ matrix.api }}
           path: |
-            app-common-io/build/outputs/androidTest-results/**
-            app-common-io/build/reports/androidTests/**
+            */build/outputs/androidTest-results/**
+            */build/reports/androidTests/**
           if-no-files-found: warn
           retention-days: 14
