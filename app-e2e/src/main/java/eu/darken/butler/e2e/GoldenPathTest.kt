@@ -46,26 +46,28 @@ class GoldenPathTest {
         await(createTabAction())
 
         device.executeShellCommand("am force-stop $APP_PKG")
+        awaitGone(By.pkg(APP_PKG))
         launchApp()
-        await(createTabAction())
-        // The tour starts a moment after the screen appears, so its absence needs a grace period.
+        // A returning tour has to fail as such, not as a missing "Create tab".
+        await(anyText("tour_first_tab_title", "workspace_empty_create_action", "workspace_adaptive_add_action"))
         if (device.wait(Until.hasObject(tourTitle), TOUR_GRACE_MS)) {
             throw AssertionError("The first-tab tour came back after a relaunch")
         }
+        await(createTabAction())
     }
 
     private fun launchApp() {
-        val component = instrumentation.context.packageManager.getLaunchIntentForPackage(APP_PKG)!!.component!!
-        device.executeShellCommand("am start -W -n ${component.flattenToShortString()}")
+        val component = instrumentation.context.packageManager.getLaunchIntentForPackage(APP_PKG)?.component
+            ?: throw AssertionError("$APP_PKG has no launcher activity")
+        val result = device.executeShellCommand("am start -W -n ${component.flattenToShortString()}")
+        if (result.contains("Error")) throw AssertionError("Launching $APP_PKG failed: $result")
     }
 
-    // The classic single-pane layout says "Create tab", the adaptive one "Add tab".
-    private fun createTabAction(): BySelector = By.text(
-        Pattern.compile(
-            listOf("workspace_empty_create_action", "workspace_adaptive_add_action")
-                .joinToString("|") { Pattern.quote(string(it)) }
-        )
-    )
+    private fun createTabAction(): BySelector =
+        anyText("workspace_empty_create_action", "workspace_adaptive_add_action")
+
+    private fun anyText(vararg names: String): BySelector =
+        By.text(Pattern.compile(names.joinToString("|") { Pattern.quote(string(it)) }))
 
     private fun string(name: String): String {
         val id = appResources.getIdentifier(name, "string", APP_PKG)
