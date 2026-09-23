@@ -9,8 +9,12 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
 import org.junit.runner.RunWith
+import java.io.File
 import java.util.regex.Pattern
 
 /**
@@ -23,6 +27,16 @@ class GoldenPathTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val device = UiDevice.getInstance(instrumentation)
     private val appResources = instrumentation.context.packageManager.getResourcesForApplication(APP_PKG)
+
+    // A failed step leaves the screen and its accessibility tree behind for diagnosis.
+    @get:Rule
+    val failureCapture = object : TestWatcher() {
+        override fun failed(e: Throwable, description: Description) {
+            val dir = InstrumentationRegistry.getArguments().getString("additionalTestOutputDir") ?: return
+            device.takeScreenshot(File(dir, "${description.methodName}.png"))
+            device.dumpWindowHierarchy(File(dir, "${description.methodName}.xml"))
+        }
+    }
 
     @Before
     fun resetToFirstRunState() {
