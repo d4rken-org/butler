@@ -6,7 +6,7 @@ paths: ["**/src/test*/**", "**/src/androidTest/**", "**/*Test.kt", "app-common-t
 
 ## Test Commands
 
-Standard Gradle invocations (`testFossDebugUnitTest`, `--tests "<fqcn>"`, `connectedAndroidTest`). Every module carries the `version` flavor dimension, so unit test tasks always include the flavor — there is no flavor-free `testDebugUnitTest`.
+Standard Gradle invocations (`testFossDebugUnitTest`, `--tests "<fqcn>"`; device tests: see Device Tests below). Every module carries the `version` flavor dimension, so unit test tasks always include the flavor — there is no flavor-free `testDebugUnitTest`.
 
 ## What to Test
 
@@ -63,14 +63,16 @@ class MyComponentTest : ComposeTest() {
 
 ## Device Tests
 
-Device tests live in `app-common-io/src/androidTest` and run as JUnit4 tests
-(`@RunWith(AndroidJUnit4::class)`). Robolectric runs on the build machine's filesystem, so behaviour
-that only exists on Android storage (case-insensitive names, refused symlinks, cross-filesystem moves
-between app storage and shared storage) needs a real device or emulator.
+Robolectric runs on the build machine's filesystem and fakes system services, so anything that
+depends on real Android behaviour needs a device test under `<module>/src/androidTest` (JUnit4,
+`@RunWith(AndroidJUnit4::class)`): storage semantics (case-insensitive names on `/storage/emulated`,
+refused symlinks, cross-filesystem moves between app storage and shared storage), the errno a
+real kernel or FUSE returns, `ParcelFileDescriptor`s crossing a provider, and system providers
+such as MediaStore. Everything else stays a host test.
 
-`DeviceStorageRule` gives each test a fresh shared-storage root under `Download` (a FUSE mount on
-API 30+) and a private root under `filesDir`, grants all-files access through `appops`, skips the
-test below API 30, and deletes both roots afterwards.
+`DeviceStorageRule` (`app-common-io`) gives each test a fresh shared-storage root under `Download`
+(a FUSE mount on API 30+) and a private root under `filesDir`, grants all-files access through
+`appops`, skips the test below API 30, and deletes both roots afterwards.
 
 `ANDROID_SERIAL` is mandatory: without it `connectedAndroidTest` installs and runs on every attached
 device.
@@ -79,9 +81,11 @@ device.
 ANDROID_SERIAL=emulator-5554 ./gradlew :app-common-io:connectedFossDebugAndroidTest
 ```
 
-Reports land in `app-common-io/build/reports/androidTests/connected/`. In CI, the `Emulator tests`
+Reports land in `<module>/build/reports/androidTests/connected/`. In CI, the `Emulator tests`
 workflow (`.github/workflows/emulator.yml`) runs them on API 30 and API 36 and uploads the
-`device-tests-api-<level>` artifact even when they fail.
+`device-tests-api-<level>` artifact even when they fail. The workflow names each module's task
+explicitly: a module that gains an `androidTest` source set must be added to both its build and
+its run step, or its tests never run in CI.
 
 Mocking on a device uses `mockk-android`, which needs a mockk release that ships its native agent
 (1.14.9 does, 1.12.4 did not).
