@@ -91,11 +91,14 @@ English text.
 ANDROID_SERIAL=emulator-5554 ./gradlew :app-e2e:connectedFossDebugAndroidTest
 ```
 
+The test wipes the app under test: it starts with `pm clear eu.darken.butler`, and debug builds share
+the release application id. Point `ANDROID_SERIAL` only at an emulator started for the run.
+
 Reports land in `<module>/build/reports/androidTests/connected/`. In CI, the `Emulator tests`
 workflow (`.github/workflows/emulator.yml`) runs them on API 30 and API 36 and uploads the
 `device-tests-api-<level>` artifact even when they fail. The workflow names each module's task
-explicitly: a module that gains an `androidTest` source set must be added to both its build and
-its run step, or its tests never run in CI.
+explicitly: a module that gains device tests (an `androidTest` source set, or a `com.android.test`
+module like `:app-e2e`) must be added to both its build and its run step, or its tests never run in CI.
 
 Mocking on a device uses `mockk-android`, which needs a mockk release that ships its native agent
 (1.14.9 does, 1.12.4 did not).
