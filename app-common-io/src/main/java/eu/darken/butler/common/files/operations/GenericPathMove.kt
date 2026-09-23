@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -40,6 +41,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import eu.darken.butler.common.files.MoveOutcome
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 /**
  * Generic move operation that works with any path type.
@@ -260,6 +262,108 @@ internal class GenericPathMove<
         }
     }
 
+    /**
+     * `a.txt` to `A.txt` on a case-insensitive mount such as shared storage: the destination lookup
+     * finds the source itself, so a file would conflict with itself and a folder would be moved into
+     * itself. Only for local paths, where a listing that holds the source's spelling but not the
+     * requested one shows that the lookup matched the source.
+     *
+     * Goes through a hidden sibling, a direct rename is not guaranteed to change the case.
+     */
+    private suspend fun renameCaseOnly(destLookup: DPL): Boolean {
+        val source = sources.singleOrNull() ?: return false
+        if (source !is LocalPath || destination !is LocalPath) return false
+        if (destLookup.fileType == FileType.UNKNOWN) return false
+        if (source.name == destination.name || !source.name.equals(destination.name, ignoreCase = true)) return false
+        val parent = destination.parent?.takeIf { it == source.parent } ?: return false
+
+        val siblings = try {
+            destOps.listFiles(parent).map { it.name }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, WARN) { "renameCaseOnly(): Could not list $parent: ${e.asLog()}" }
+            return false
+        }
+        if (source.name !in siblings || destination.name in siblings) return false
+
+        @Suppress("UNCHECKED_CAST")
+        val target = destination as SP
+        val sourceLookup = sourceOps.lookup(source, LookupOptions.BASE)
+        val aside = caseRenameSiblingFor(parent)
+        val message = "Could not rename ${source.name} to ${target.name}"
+
+        withContext(NonCancellable) {
+            val outcome = try {
+                sourceOps.move(source, aside)
+            } catch (e: Exception) {
+                when (sourceOps.existsStrict(aside)) {
+                    Existence.PRESENT -> MoveOutcome.Moved
+                    Existence.ABSENT -> throw e
+                    Existence.UNKNOWN -> throw DataKeptException(
+                        "$message, it is either still ${source.name} or ${aside.name}",
+                        source,
+                        DataKeptException.Recovery.Uncertain(original = null, newData = aside.name),
+                        e,
+                    )
+                }
+            }
+            // The regular flow would take the source for an existing destination and move a folder into itself
+            if (outcome is MoveOutcome.NotSupported) throw WriteException("$message: ${outcome.reason}", source)
+            completeCaseOnlyRename(source, aside, target, message)
+        }
+
+        moved.add(sourceLookup to destOps.lookup(destination, LookupOptions.BASE))
+        if (sourceLookup.fileType != FileType.DIRECTORY) totalBytesTransferred += sourceLookup.size ?: 0L
+        log(TAG, INFO) { "renameCaseOnly(): $source -> $destination" }
+        return true
+    }
+
+    /**
+     * Second half of [renameCaseOnly]: [aside] holds the source. On failure it goes back to [source]
+     * when that is known to be safe, otherwise the error names [aside] as a possible location.
+     */
+    private suspend fun completeCaseOnlyRename(source: SP, aside: SP, target: SP, message: String) {
+        val failure = try {
+            when (val outcome = sourceOps.move(aside, target)) {
+                MoveOutcome.Moved -> return
+                is MoveOutcome.NotSupported -> WriteException(outcome.reason, target)
+            }
+        } catch (e: Exception) {
+            val asideGone = sourceOps.existsStrict(aside) == Existence.ABSENT
+            if (asideGone && sourceOps.existsStrict(target) == Existence.PRESENT) return
+            e
+        }
+
+        val restored = sourceOps.existsStrict(aside) == Existence.PRESENT &&
+            try {
+                sourceOps.move(aside, source) is MoveOutcome.Moved
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "completeCaseOnlyRename(): Restoring $source failed: ${e.asLog()}" }
+                false
+            }
+        if (restored) throw WriteException(message, source, failure)
+        throw DataKeptException(
+            "$message, it is either ${aside.name} or already renamed",
+            source,
+            DataKeptException.Recovery.Intermediate(
+                original = source.name,
+                intermediate = aside.name,
+                destination = target,
+            ),
+            failure,
+        )
+    }
+
+    private suspend fun caseRenameSiblingFor(parent: DP): SP {
+        repeat(CASE_RENAME_NAME_ATTEMPTS) {
+            val candidate = parent.child(".${Uuid.random().toString().take(8)}.rename")
+            @Suppress("UNCHECKED_CAST")
+            if (!destOps.exists(candidate)) return candidate as SP
+        }
+        throw WriteException("Could not find a free name to rename through", parent)
+    }
+
     // Use channelFlow to support emissions after IPC callbacks (which use runBlocking on client side)
     fun execute(): Flow<MoveAction.State<SP, SPL, DP, DPL>> = channelFlow {
         log(TAG, DEBUG) { "execute(): Moving ${sources.size} sources to $destination" }
@@ -267,6 +371,11 @@ internal class GenericPathMove<
         // Check if destination exists and is a directory (for path calculation logic)
         val destLookup = destOps.lookupForIntent(destination, AccessIntent.Write, LookupOptions(fallbackToUnknown = true))
         destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
+
+        if (renameCaseOnly(destLookup)) {
+            send(MoveAction.State.Completed(movedFiles = moved, skippedFiles = skipped, bytesMoved = totalBytesTransferred))
+            return@channelFlow
+        }
 
         // Initialize work queue with scan items for all sources
         scanItemsRemaining = sources.size
@@ -1352,6 +1461,7 @@ internal class GenericPathMove<
 
     companion object {
         private val TAG = logTag("PathOperation", "GenericMove")
+        private const val CASE_RENAME_NAME_ATTEMPTS = 8
     }
 }
 

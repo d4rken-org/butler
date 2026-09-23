@@ -3,9 +3,11 @@ package eu.darken.butler.common.files.local
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.MoveAction
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.flow.collect
@@ -84,5 +86,81 @@ class LocalPathMoveDeviceTest {
 
         Files.isSymbolicLink(link.toPath()) shouldBe true
         Files.exists(File(storage.sharedRoot, "link").toPath(), LinkOption.NOFOLLOW_LINKS) shouldBe false
+    }
+
+    private fun skippingIssueHandler(
+        issues: MutableList<PathActionIssue>,
+    ): suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
+        issues.add(issue)
+        when (issue) {
+            is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Skip()
+            is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
+            is PathActionIssue.InsufficientSpace -> PathActionIssue.InsufficientSpace.Resolution.Cancel()
+            is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
+            is PathActionIssue.ArchivePasswordRequired -> PathActionIssue.ArchivePasswordRequired.Resolution.Skip()
+            is PathActionIssue.TrashSizeLimitExceeded -> PathActionIssue.TrashSizeLimitExceeded.Resolution.Cancel()
+            is PathActionIssue.TrashNotSupported -> PathActionIssue.TrashNotSupported.Resolution.Skip
+            is PathActionIssue.TrashMoveFailed -> PathActionIssue.TrashMoveFailed.Resolution.Skip
+        }
+    }
+
+    private fun evidence(error: Throwable?, issues: List<PathActionIssue>) = buildString {
+        appendLine("error=${error?.stackTraceToString()?.lineSequence()?.take(10)?.joinToString("\n")}")
+        appendLine("issues=$issues")
+        append("sharedTree=${storage.sharedRoot.walkTopDown().map { it.relativeTo(storage.sharedRoot).path }.toList()}")
+    }
+
+    @Test
+    fun caseOnlyFileRenameOnSharedStorage() = runTest {
+        val content = deterministicBytes(4 * 1024, seed = 4)
+        val source = File(storage.sharedRoot, "a.txt").apply { writeBytes(content) }
+        val issues = mutableListOf<PathActionIssue>()
+
+        val error = runCatching {
+            LocalPath.build(source)
+                .move(
+                    ops,
+                    LocalPath.build(storage.sharedRoot, "A.txt"),
+                    options = MoveAction.Options(attemptAtomicMove = false),
+                    onIssue = skippingIssueHandler(issues),
+                )
+                .collect()
+        }.exceptionOrNull()
+
+        withClue(evidence(error, issues)) {
+            error shouldBe null
+            issues shouldBe emptyList()
+            storage.sharedRoot.list()!!.toList() shouldBe listOf("A.txt")
+            File(storage.sharedRoot, "A.txt").readBytes().contentEquals(content) shouldBe true
+        }
+    }
+
+    @Test
+    fun caseOnlyFolderRenameOnSharedStorage() = runTest {
+        val folder = File(storage.sharedRoot, "photos")
+        folder.mkdirs() shouldBe true
+        val content = deterministicBytes(4 * 1024, seed = 5)
+        File(folder, "file.txt").writeBytes(content)
+        val issues = mutableListOf<PathActionIssue>()
+
+        val error = runCatching {
+            LocalPath.build(folder)
+                .move(
+                    ops,
+                    LocalPath.build(storage.sharedRoot, "Photos"),
+                    options = MoveAction.Options(attemptAtomicMove = false),
+                    onIssue = skippingIssueHandler(issues),
+                )
+                .collect()
+        }.exceptionOrNull()
+
+        withClue(evidence(error, issues)) {
+            error shouldBe null
+            issues shouldBe emptyList()
+            storage.sharedRoot.list()!!.toList() shouldBe listOf("Photos")
+            val renamed = File(storage.sharedRoot, "Photos")
+            renamed.list()!!.toList() shouldBe listOf("file.txt")
+            File(renamed, "file.txt").readBytes().contentEquals(content) shouldBe true
+        }
     }
 }
