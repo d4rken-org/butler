@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.DataKeptException
@@ -50,6 +51,9 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
     private inner class CaseInsensitiveOps : MockFileSystemOps<LocalPath, LocalPathLookup>(lookupFactory) {
         var existenceUnknown: (String) -> Boolean = { false }
 
+        /** Names that still resolve although no entry is listed, like a stale entry in the FUSE cache. */
+        var staleAlias: (String) -> Boolean = { false }
+
         private fun resolve(path: LocalPath): LocalPath =
             files.keys.firstOrNull { it.equals(path.path, ignoreCase = true) }?.let { LocalPath.build(it) } ?: path
 
@@ -58,8 +62,17 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
 
         override suspend fun exists(path: LocalPath): Boolean = super.exists(resolve(path))
 
+        override suspend fun move(source: LocalPath, destination: LocalPath): MoveOutcome {
+            val existing = resolve(destination)
+            if (existing != source && files.containsKey(existing.path)) {
+                return MoveOutcome.NotSupported("Destination already exists: ${destination.path}")
+            }
+            return super.move(source, destination)
+        }
+
         override suspend fun existsStrict(path: LocalPath): Existence = when {
             existenceUnknown(path.path) -> Existence.UNKNOWN
+            staleAlias(path.path) -> Existence.PRESENT
             files.keys.any { it.equals(path.path, ignoreCase = true) } -> Existence.PRESENT
             else -> Existence.ABSENT
         }
@@ -208,14 +221,95 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
 
     @Test
     fun `second step refused puts the source back`() = runTest {
+        var attempts = 0
         val ops = CaseInsensitiveOps().apply {
             addMockFile("/dir/a.txt", "content".toByteArray())
-            setMoveNotSupported { source, destination -> source.endsWith(".rename") && destination == "/dir/A.txt" }
+            setMoveNotSupported { source, destination ->
+                (source.endsWith(".rename") && destination == "/dir/A.txt").also { if (it) attempts++ }
+            }
         }
 
         val error = shouldThrow<WriteException> { ops.rename("/dir/a.txt", "/dir/A.txt").collect() }
 
         error.shouldNotBeInstanceOf<DataKeptException>()
+        attempts shouldBe 1
+        ops.files["/dir/a.txt"]!!.content.decodeToString() shouldBe "content"
+        ops.asideKeys().shouldBeEmpty()
+    }
+
+    @Test
+    fun `second step refused over a stale alias retries until it goes through`() = runTest {
+        var attempts = 0
+        val ops = CaseInsensitiveOps().apply {
+            addMockFile("/dir/a.txt", "content".toByteArray())
+            staleAlias = { it == "/dir/A.txt" }
+            setMoveNotSupported(reason = "Destination already exists: /dir/A.txt") { source, destination ->
+                source.endsWith(".rename") && destination == "/dir/A.txt" && ++attempts <= 2
+            }
+        }
+
+        ops.rename("/dir/a.txt", "/dir/A.txt").last()
+            .shouldBeInstanceOf<MoveAction.State.Completed<*, *, *, *>>().movedFiles shouldHaveSize 1
+
+        attempts shouldBe 3
+        ops.files.keys.filter { it.startsWith("/dir/") } shouldBe listOf("/dir/A.txt")
+        ops.files["/dir/A.txt"]!!.content.decodeToString() shouldBe "content"
+    }
+
+    @Test
+    fun `stale alias that outlasts the retries puts the source back`() = runTest {
+        var attempts = 0
+        val ops = CaseInsensitiveOps().apply {
+            addMockFile("/dir/a.txt", "content".toByteArray())
+            staleAlias = { it == "/dir/A.txt" }
+            setMoveNotSupported(reason = "Destination already exists: /dir/A.txt") { source, destination ->
+                (source.endsWith(".rename") && destination == "/dir/A.txt").also { if (it) attempts++ }
+            }
+        }
+
+        val error = shouldThrow<WriteException> { ops.rename("/dir/a.txt", "/dir/A.txt").collect() }
+
+        error.shouldNotBeInstanceOf<DataKeptException>()
+        attempts shouldBe 7
+        ops.files["/dir/a.txt"]!!.content.decodeToString() shouldBe "content"
+        ops.asideKeys().shouldBeEmpty()
+    }
+
+    @Test
+    fun `destination created by someone else during the rename is not retried`() = runTest {
+        var attempts = 0
+        val ops = CaseInsensitiveOps()
+        ops.addMockFile("/dir/a.txt", "content".toByteArray())
+        ops.setMoveNotSupported(reason = "Destination already exists: /dir/A.txt") { source, destination ->
+            (source.endsWith(".rename") && destination == "/dir/A.txt").also {
+                if (it && attempts++ == 0) ops.addMockFile("/dir/A.txt", "other".toByteArray())
+            }
+        }
+
+        val error = shouldThrow<DataKeptException> { ops.rename("/dir/a.txt", "/dir/A.txt").collect() }
+
+        error.recovery.shouldBeInstanceOf<DataKeptException.Recovery.Intermediate>()
+        attempts shouldBe 1
+        ops.files["/dir/A.txt"]!!.content.decodeToString() shouldBe "other"
+        ops.files[ops.asideKeys().single()]!!.content.decodeToString() shouldBe "content"
+    }
+
+    @Test
+    fun `stale alias the listing cannot confirm is not retried`() = runTest {
+        var attempts = 0
+        val ops = CaseInsensitiveOps()
+        ops.addMockFile("/dir/a.txt", "content".toByteArray())
+        ops.staleAlias = { it == "/dir/A.txt" }
+        ops.setMoveNotSupported(reason = "Destination already exists: /dir/A.txt") { source, destination ->
+            (source.endsWith(".rename") && destination == "/dir/A.txt").also {
+                if (it && attempts++ == 0) ops.setFailListFiles(1)
+            }
+        }
+
+        val error = shouldThrow<WriteException> { ops.rename("/dir/a.txt", "/dir/A.txt").collect() }
+
+        error.shouldNotBeInstanceOf<DataKeptException>()
+        attempts shouldBe 1
         ops.files["/dir/a.txt"]!!.content.decodeToString() shouldBe "content"
         ops.asideKeys().shouldBeEmpty()
     }

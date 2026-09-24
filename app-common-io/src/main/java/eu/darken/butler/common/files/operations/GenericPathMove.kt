@@ -35,12 +35,14 @@ import eu.darken.butler.common.io.R
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import eu.darken.butler.common.files.MoveOutcome
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.uuid.Uuid
 
 /**
@@ -310,7 +312,7 @@ internal class GenericPathMove<
             }
             // The regular flow would take the source for an existing destination and move a folder into itself
             if (outcome is MoveOutcome.NotSupported) throw WriteException("$message: ${outcome.reason}", source)
-            completeCaseOnlyRename(source, aside, target, message)
+            completeCaseOnlyRename(source, aside, target, parent, message)
         }
 
         moved.add(sourceLookup to destOps.lookup(destination, LookupOptions.BASE))
@@ -323,9 +325,9 @@ internal class GenericPathMove<
      * Second half of [renameCaseOnly]: [aside] holds the source. On failure it goes back to [source]
      * when that is known to be safe, otherwise the error names [aside] as a possible location.
      */
-    private suspend fun completeCaseOnlyRename(source: SP, aside: SP, target: SP, message: String) {
+    private suspend fun completeCaseOnlyRename(source: SP, aside: SP, target: SP, parent: DP, message: String) {
         val failure = try {
-            when (val outcome = sourceOps.move(aside, target)) {
+            when (val outcome = moveOutOfAside(aside, target, parent)) {
                 MoveOutcome.Moved -> return
                 is MoveOutcome.NotSupported -> WriteException(outcome.reason, target)
             }
@@ -353,6 +355,36 @@ internal class GenericPathMove<
             ),
             failure,
         )
+    }
+
+    /**
+     * Right after the first step, a case-insensitive mount can still resolve [target] to [aside] for a few
+     * milliseconds, and the move refuses it as an existing destination. A listing that holds [aside] but not
+     * [target] tells that apart from a real conflict.
+     */
+    private suspend fun moveOutOfAside(aside: SP, target: SP, parent: DP): MoveOutcome {
+        var retryDelay = CASE_RENAME_ALIAS_RETRY_START
+        while (true) {
+            val outcome = sourceOps.move(aside, target)
+            if (outcome !is MoveOutcome.NotSupported) return outcome
+            if (retryDelay > CASE_RENAME_ALIAS_RETRY_MAX || !isStaleCaseAlias(aside, target, parent)) return outcome
+            log(TAG, DEBUG) { "moveOutOfAside(): $target still resolves to $aside, retrying in $retryDelay" }
+            delay(retryDelay)
+            retryDelay *= 2
+        }
+    }
+
+    private suspend fun isStaleCaseAlias(aside: SP, target: SP, parent: DP): Boolean {
+        if (sourceOps.existsStrict(target) != Existence.PRESENT) return false
+        val siblings = try {
+            destOps.listFiles(parent).map { it.name }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, WARN) { "isStaleCaseAlias(): Could not list $parent: ${e.asLog()}" }
+            return false
+        }
+        return aside.name in siblings && siblings.none { it.equals(target.name, ignoreCase = true) }
     }
 
     private suspend fun caseRenameSiblingFor(parent: DP): SP {
@@ -1462,6 +1494,8 @@ internal class GenericPathMove<
     companion object {
         private val TAG = logTag("PathOperation", "GenericMove")
         private const val CASE_RENAME_NAME_ATTEMPTS = 8
+        private val CASE_RENAME_ALIAS_RETRY_START = 10.milliseconds
+        private val CASE_RENAME_ALIAS_RETRY_MAX = 320.milliseconds
     }
 }
 

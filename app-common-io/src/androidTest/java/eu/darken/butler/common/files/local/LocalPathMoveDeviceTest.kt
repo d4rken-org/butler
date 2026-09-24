@@ -12,7 +12,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.last
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,6 +20,7 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
 
+/** `runBlocking`, not `runTest`: virtual time would skip the waits the code under test needs on a real FUSE mount. */
 @RunWith(AndroidJUnit4::class)
 class LocalPathMoveDeviceTest {
 
@@ -34,7 +35,7 @@ class LocalPathMoveDeviceTest {
         .associate { it.relativeTo(this).path to it.readBytes().toList() }
 
     @Test
-    fun crossFilesystemFileMove() = runTest {
+    fun crossFilesystemFileMove() = runBlocking<Unit> {
         val content = deterministicBytes(300 * 1024)
         val source = File(storage.privateRoot, "data.bin").apply { writeBytes(content) }
 
@@ -50,7 +51,7 @@ class LocalPathMoveDeviceTest {
     }
 
     @Test
-    fun crossFilesystemFolderMove() = runTest {
+    fun crossFilesystemFolderMove() = runBlocking<Unit> {
         val tree = File(storage.privateRoot, "tree")
         File(tree, "sub/deeper").mkdirs() shouldBe true
         File(tree, "a.txt").writeBytes(deterministicBytes(4 * 1024, seed = 1))
@@ -68,7 +69,7 @@ class LocalPathMoveDeviceTest {
     }
 
     @Test
-    fun symlinkMoveOntoSharedStorageKeepsSource() = runTest {
+    fun symlinkMoveOntoSharedStorageKeepsSource() = runBlocking<Unit> {
         val target = File(storage.privateRoot, "target.txt").apply { writeText("target") }
         val link = File(storage.privateRoot, "link")
         Files.createSymbolicLink(link.toPath(), target.toPath())
@@ -105,13 +106,13 @@ class LocalPathMoveDeviceTest {
     }
 
     private fun evidence(error: Throwable?, issues: List<PathActionIssue>) = buildString {
-        appendLine("error=${error?.stackTraceToString()?.lineSequence()?.take(10)?.joinToString("\n")}")
+        appendLine("error=${error?.stackTraceToString()}")
         appendLine("issues=$issues")
         append("sharedTree=${storage.sharedRoot.walkTopDown().map { it.relativeTo(storage.sharedRoot).path }.toList()}")
     }
 
     @Test
-    fun caseOnlyFileRenameOnSharedStorage() = runTest {
+    fun caseOnlyFileRenameOnSharedStorage() = runBlocking<Unit> {
         val content = deterministicBytes(4 * 1024, seed = 4)
         val source = File(storage.sharedRoot, "a.txt").apply { writeBytes(content) }
         val issues = mutableListOf<PathActionIssue>()
@@ -136,7 +137,7 @@ class LocalPathMoveDeviceTest {
     }
 
     @Test
-    fun caseOnlyFolderRenameOnSharedStorage() = runTest {
+    fun caseOnlyFolderRenameOnSharedStorage() = runBlocking<Unit> {
         val folder = File(storage.sharedRoot, "photos")
         folder.mkdirs() shouldBe true
         val content = deterministicBytes(4 * 1024, seed = 5)
