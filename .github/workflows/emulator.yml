@@ -39,8 +39,10 @@ jobs:
           base=$(git describe --tags --abbrev=0 --match 'v*' HEAD^)
           echo "Upgrade test starts from $base"
           git worktree add --detach "$RUNNER_TEMP/upgrade-base" "$base"
+          sha256sum ~/.android/debug.keystore || true
           cd "$RUNNER_TEMP/upgrade-base"
           ./gradlew :app:assembleFossDebug
+          sha256sum ~/.android/debug.keystore || true
 
       - name: Enable KVM
         run: |
