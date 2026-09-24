@@ -98,7 +98,11 @@ the release application id. Point `ANDROID_SERIAL` only at an emulator started f
 opens an Explorer tab in an older build, and `afterUpgrade` expects that tab back after the current
 build is installed over it. The Gradle task skips it, because only `tools/upgrade-test.sh` swaps the
 APK between the phases. The script re-signs both app APKs with `~/.android/debug.keystore`, since an
-in-place install needs matching keys. CI runs it on API 36, starting from the latest `v*` tag.
+in-place install needs matching keys, and refuses to run without `ANDROID_SERIAL`. An optional fourth
+argument is the older build's own `:app-e2e` APK, so `beforeUpgrade` runs the steps written for that
+release; without it (tags older than `UpgradeTest`), the current test APK drives the older build. CI
+runs it on API 36, starting from the nearest `v*` tag before `HEAD`. Results land in
+`app-e2e/build/outputs/upgrade-test`.
 
 ```bash
 git worktree add --detach /tmp/upgrade-base "$(git describe --tags --abbrev=0 --match 'v*' HEAD^)"
