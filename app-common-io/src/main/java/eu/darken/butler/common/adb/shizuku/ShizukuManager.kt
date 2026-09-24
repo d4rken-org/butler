@@ -44,33 +44,38 @@ class ShizukuManager @Inject constructor(
     val serviceClient: AdbServiceClient,
 ) {
 
-    val shizukuBinder: Flow<ShizukuBaseServiceBinder?> = settings.useShizuku.flow
-        // Only touch the Shizuku binder if the user opted in AND Shizuku is actually installed.
-        // Otherwise (e.g. useShizuku left enabled after uninstalling Shizuku) every subscription would
-        // probe the absent service and spam "binder haven't been received" on each resume.
-        .flatMapLatest { if (it == true && isInstalled()) shizukuWrapper.baseServiceBinder else flowOf(null) }
+    /** The connected ADB access server while the user opted in, null otherwise. */
+    val shizukuBinder: Flow<AdbServer?> = settings.useShizuku.flow
+        // Only the setting gates this: the connection flow itself is passive, and a manager installed
+        // or started while Butler runs has to reach it without a restart.
+        .flatMapLatest { if (it == true) shizukuWrapper.connection else flowOf(null) }
         .catch { e ->
-            log(TAG, WARN) { "Shizuku binder access failed: ${e.asLog()}" }
+            log(TAG, WARN) { "ADB server connection access failed: ${e.asLog()}" }
             emit(null)
         }
         .setupCommonEventHandlers(TAG) { "binder" }
         .onEach {
-            log(TAG, VERBOSE) { "Shizuku binder changed (${it != null}), invalidating caches" }
-            cacheLock.withLock {
-                isShizukudCache = null
-            }
+            log(TAG, VERBOSE) { "ADB server connection changed (${it != null}), invalidating caches" }
+            invalidateShizukudCache()
         }
         .replayingShare(appScope)
 
-    // The reference package plus every installed app that declares a Shizuku manager permission.
+    // The reference package plus every installed app that declares an ADB access manager permission.
     suspend fun managerIds(): Set<Pkg.Id> = setOf(PKG_ID) + shizukuWrapper.getManagerPackages().map { it.toPkgId() }
 
-    val permissionGrantEvents: Flow<ShizukuWrapper.ShizukuPermissionRequest> = shizukuWrapper.permissionGrantEvents
-        .setupCommonEventHandlers(TAG) { "grantEvents" }
+    /** The current connection's permission state, [AdbPermissionState.Unknown] while there is none. */
+    val permissionState: Flow<AdbPermissionState> = shizukuWrapper.permissionState
+        .setupCommonEventHandlers(TAG) { "permission" }
+        .onEach {
+            log(TAG, VERBOSE) { "Permission state changed ($it), invalidating caches" }
+            invalidateShizukudCache()
+        }
         .replayingShare(appScope)
 
     private val cacheLock = Mutex()
     private var isShizukudCache: Boolean? = null
+
+    private suspend fun invalidateShizukudCache() = cacheLock.withLock { isShizukudCache = null }
 
     @Volatile private var lastShizukudResultInternal: Boolean? = null
 
@@ -93,19 +98,20 @@ class ShizukuManager @Inject constructor(
             return@withLock it
         }
 
-        if (!isInstalled()) {
-            log(TAG) { "isShizukud(): Shizuku is not installed" }
+        val availability = shizukuWrapper.availability()
+        if (!availability.countsAsInstalled()) {
+            log(TAG) { "isShizukud(): No ADB access manager is installed ($availability)" }
             lastShizukudResultInternal = false
             return@withLock false
         }
-        log(TAG, VERBOSE) { "isShizukud(): Shizuku is installed" }
+        log(TAG, VERBOSE) { "isShizukud(): ADB access manager is installed" }
 
-        if (!isCompatible()) {
-            log(TAG) { "isShizukud(): Shizuku version is too old" }
+        if (!availability.countsAsCompatible()) {
+            log(TAG) { "isShizukud(): ADB access server is incompatible ($availability)" }
             lastShizukudResultInternal = false
             return@withLock false
         }
-        log(TAG, VERBOSE) { "isShizukud(): Shizuku is recent enough" }
+        log(TAG, VERBOSE) { "isShizukud(): ADB access server is compatible" }
 
         val granted = isGranted()
         if (granted == false) {
@@ -140,34 +146,29 @@ class ShizukuManager @Inject constructor(
         get() = PKG_ID
 
     /**
-     * The installed Shizuku manager's package, resolved via its permission so forks and hidden-mode
-     * installs are handled, or null if Shizuku isn't installed.
+     * The app providing ADB access, found by the permission it declares so forks and hidden-mode
+     * installs are handled. Null if none is installed, or none declares it any more while its server
+     * keeps running.
      */
-    suspend fun getManagerId(): Pkg.Id? = shizukuWrapper.getManagerPackage()?.toPkgId()
+    suspend fun getManagerId(): Pkg.Id? = shizukuWrapper.availability()?.packageName?.toPkgId()
 
-    // Not cached: a stale "not installed" result would keep the binder gate (see shizukuBinder) closed
-    // even after Shizuku gets installed, until the next process restart. The lookup is cheap.
-    suspend fun isInstalled(): Boolean {
-        val installed = getManagerId() != null
-        log(TAG) { "isInstalled(): $installed" }
-        return installed
-    }
+    // Not cached: a stale "not installed" result would outlive a manager installed while Butler runs.
+    suspend fun isInstalled(): Boolean = shizukuWrapper.availability().countsAsInstalled()
+        .also { log(TAG) { "isInstalled(): $it" } }
 
     suspend fun isGranted(): Boolean? = shizukuWrapper.isGranted()
 
-    private var isCompatibleCache: Boolean? = null
-    private val isCompatibleLock = Mutex()
+    // Not cached: a manager updated while Butler runs becomes compatible on its next connection.
+    suspend fun isCompatible(): Boolean = shizukuWrapper.availability().countsAsCompatible()
+        .also { log(TAG) { "isCompatible(): $it" } }
 
-    suspend fun isCompatible(): Boolean = isCompatibleLock.withLock {
-        isCompatibleCache?.let { return@withLock it }
+    /** An availability that could not be read is not proof of an installed manager. */
+    private fun AdbAvailability?.countsAsInstalled(): Boolean = this != null && this !is AdbAvailability.NotInstalled
 
-        shizukuWrapper.isCompatible().also {
-            log(TAG) { "isCompatible(): $it" }
-            isCompatibleCache = it
-        }
-    }
+    /** An availability that could not be read is not proof of an incompatible server either. */
+    private fun AdbAvailability?.countsAsCompatible(): Boolean = this !is AdbAvailability.Incompatible
 
-    suspend fun requestPermission() = shizukuWrapper.requestPermission()
+    suspend fun requestPermission(): AdbPermissionState = shizukuWrapper.requestPermission()
 
     suspend fun isOurServiceAvailable(): Boolean = getServiceState() is ShizukuServiceState.Available
 
@@ -225,7 +226,7 @@ class ShizukuManager @Inject constructor(
 
             combine(
                 shizukuBinder.map { }.onStart { emit(Unit) },
-                permissionGrantEvents.map { }.onStart { emit(Unit) },
+                permissionState.map { }.onStart { emit(Unit) },
             ) { _, _ -> isShizukud() }
         }
         .stateIn(

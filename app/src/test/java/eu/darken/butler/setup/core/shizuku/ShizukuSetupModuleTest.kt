@@ -1,10 +1,10 @@
 package eu.darken.butler.setup.core.shizuku
 
 import eu.darken.butler.common.adb.AdbSettings
-import eu.darken.butler.common.adb.shizuku.ShizukuBaseServiceBinder
+import eu.darken.butler.common.adb.shizuku.AdbPermissionState
+import eu.darken.butler.common.adb.shizuku.AdbServer
 import eu.darken.butler.common.adb.shizuku.ShizukuManager
 import eu.darken.butler.common.adb.shizuku.ShizukuServiceState
-import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.root.RootManager
@@ -14,24 +14,19 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
-import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.flow.awaitSharingStopped
 import testhelpers.flow.test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class ShizukuSetupModuleTest : BaseTest() {
 
@@ -55,7 +50,7 @@ class ShizukuSetupModuleTest : BaseTest() {
 
         every { shizukuManager.shizukuPkgId } returns "moe.shizuku.privileged.api".toPkgId()
         every { shizukuManager.shizukuBinder } returns flowOf(null)
-        every { shizukuManager.permissionGrantEvents } returns emptyFlow()
+        every { shizukuManager.permissionState } returns flowOf(AdbPermissionState.Granted)
         coEvery { shizukuManager.getManagerId() } returns "moe.shizuku.privileged.api".toPkgId()
         coEvery { shizukuManager.isCompatible() } returns true
         coEvery { shizukuManager.isGranted() } returns true
@@ -69,9 +64,7 @@ class ShizukuSetupModuleTest : BaseTest() {
         scope.cancel()
     }
 
-    private fun module(
-        dispatchers: DispatcherProvider = TestDispatcherProvider(),
-    ) = ShizukuSetupModule(scope, dispatchers, adbSettings, shizukuManager, rootManager)
+    private fun module() = ShizukuSetupModule(scope, adbSettings, shizukuManager, rootManager)
 
     @Test fun `first subscription emits Loading then Result`() {
         val mod = module()
@@ -156,42 +149,20 @@ class ShizukuSetupModuleTest : BaseTest() {
         runBlocking { collector.cancelAndJoin() }
     }
 
-    @Test fun `a wedged pingBinder does not stall the state flow`() {
-        // pingBinder() is a synchronous PING_TRANSACTION; a Shizuku server that is alive but not
-        // servicing requests never answers it. Unbounded, that stalls the state combine and the setup
-        // card is stuck on whatever it last showed. Real dispatcher: the wedge blocks a thread,
-        // Unconfined would block ours.
-        val pingEntered = CompletableDeferred<Unit>()
-        val wedge = CountDownLatch(1)
-        val binder = mockk<ShizukuBaseServiceBinder>()
-        every { binder.pingBinder() } answers {
-            pingEntered.complete(Unit)
-            wedge.await(30, TimeUnit.SECONDS)
-            true
+    @Test fun `basicService follows the server connection`() {
+        val server = MutableStateFlow<AdbServer?>(null)
+        every { shizukuManager.shizukuBinder } returns server
+        val mod = module()
+
+        val collector = mod.state.test(tag = "basic", scope = scope)
+        collector.await { values, _ -> values.any { it is ShizukuSetupModule.Result } }
+        collector.latestValues.last().shouldBeInstanceOf<ShizukuSetupModule.Result>().basicService shouldBe false
+
+        server.value = mockk()
+        collector.await { values, _ ->
+            (values.lastOrNull() as? ShizukuSetupModule.Result)?.basicService == true
         }
-        every { shizukuManager.shizukuBinder } returns flowOf(binder)
 
-        val mod = module(TestDispatcherProvider(Dispatchers.IO)).apply { pingTimeoutMs = 250L }
-
-        try {
-            val collector = mod.state.test(tag = "wedge", scope = scope)
-
-            // The binder flow starts with onStart { emit(null) }, which yields a Result before any
-            // ping happens. Waiting for "a Result" would therefore pass even while wedged - the state
-            // that matters is the one produced for the non-null binder, so wait for the wedge to be
-            // real first and then require a FURTHER emission.
-            runBlocking { pingEntered.await() }
-            val before = collector.latestValues.count { it is ShizukuSetupModule.Result }
-
-            val result = collector.await(timeout = 10_000) { values, _ ->
-                values.count { it is ShizukuSetupModule.Result } > before
-            }
-
-            result.shouldBeInstanceOf<ShizukuSetupModule.Result>().basicService shouldBe false
-
-            runBlocking { collector.cancelAndJoin() }
-        } finally {
-            wedge.countDown()
-        }
+        runBlocking { collector.cancelAndJoin() }
     }
 }

@@ -47,8 +47,8 @@ dependencies {
     addSerialization()
     addIO()
 
-    implementation(libs.shizuku.api)
-    implementation(libs.shizuku.provider)
+    implementation(libs.porter.sdk)
+    implementation(libs.porter.shizuku.compat)
 
     addTesting()
     testImplementation(project(":app-common-test"))
