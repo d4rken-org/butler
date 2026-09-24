@@ -30,7 +30,8 @@ jobs:
         uses: ./.github/actions/common-setup
 
       - name: Build device test APKs
-        run: ./gradlew :app-common-io:assembleFossDebugAndroidTest :app-common-pkgs:assembleFossDebugAndroidTest :app:assembleFossDebug :app-e2e:assembleFossDebug
+        # With four workers, the parallel dex merges of these APKs can run the daemon out of heap.
+        run: ./gradlew --max-workers=2 :app-common-io:assembleFossDebugAndroidTest :app-common-pkgs:assembleFossDebugAndroidTest :app:assembleFossDebug :app-e2e:assembleFossDebug
 
       - name: Build the previous release for the upgrade test
         if: matrix.api == 36
