@@ -32,17 +32,14 @@ jobs:
       - name: Build device test APKs
         run: ./gradlew :app-common-io:assembleFossDebugAndroidTest :app-common-pkgs:assembleFossDebugAndroidTest :app:assembleFossDebug :app-e2e:assembleFossDebug
 
-      # Same runner, same debug key: the current build can install over it.
       - name: Build the previous release for the upgrade test
         if: matrix.api == 36
         run: |
           base=$(git describe --tags --abbrev=0 --match 'v*' HEAD^)
           echo "Upgrade test starts from $base"
           git worktree add --detach "$RUNNER_TEMP/upgrade-base" "$base"
-          sha256sum ~/.android/debug.keystore || true
           cd "$RUNNER_TEMP/upgrade-base"
           ./gradlew :app:assembleFossDebug
-          sha256sum ~/.android/debug.keystore || true
 
       - name: Enable KVM
         run: |
@@ -65,7 +62,6 @@ jobs:
           # failure is only recorded until the upgrade test has run too.
           script: |
             ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest || touch "$RUNNER_TEMP/device-tests-failed"
-            sha256sum ~/.android/debug.keystore || true
             if [ "${{ matrix.api }}" = 36 ]; then tools/upgrade-test.sh "$RUNNER_TEMP/upgrade-base/app/build/outputs/apk/foss/debug/app-foss-debug.apk" app/build/outputs/apk/foss/debug/app-foss-debug.apk app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk; fi
             test ! -e "$RUNNER_TEMP/device-tests-failed"
 

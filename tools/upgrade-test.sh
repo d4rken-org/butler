@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Installs an older Butler build, sets up a user's state through the UI, upgrades that install in
 # place to the current build, and checks the state survived (UpgradeTest in :app-e2e).
-# Both app APKs must be signed with the same key, so build the older one from its tag on the same
-# machine. Wipes eu.darken.butler on the target device; set ANDROID_SERIAL to an emulator.
+# Both app APKs are re-signed with this machine's debug key first, because an in-place install needs
+# matching keys. Wipes eu.darken.butler on the target device; set ANDROID_SERIAL to an emulator.
 #
 # Usage: tools/upgrade-test.sh <old-app.apk> <new-app.apk> <app-e2e.apk>
 # Results (instrumentation output, failure screenshots) land in app-e2e/build/outputs/upgrade-test.
@@ -30,34 +30,39 @@ run_phase() {
     grep -q '^OK (1 test)' "$RESULTS/$1.txt"
 }
 
-signer() {
-    local sdk=${ANDROID_HOME:-${ANDROID_SDK_ROOT:?set ANDROID_HOME}}
-    local apksigner
-    apksigner=$(find "$sdk/build-tools" -name apksigner -type f | sort -V | tail -1)
-    "$apksigner" verify --print-certs "$1" | grep 'SHA-256 digest'
+BUILD_TOOLS=$(ls -d "${ANDROID_HOME:-${ANDROID_SDK_ROOT:?set ANDROID_HOME}}"/build-tools/*/ | sort -V | tail -1)
+DEBUG_KEYSTORE=${DEBUG_KEYSTORE:-$HOME/.android/debug.keystore}
+WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"' EXIT
+
+certificate() {
+    "$BUILD_TOOLS/apksigner" verify --print-certs "$1" | grep -m1 'SHA-256 digest' | sed 's/.*: //'
 }
 
-old_signer=$(signer "$OLD_APK")
-new_signer=$(signer "$NEW_APK")
-if [ "$old_signer" != "$new_signer" ]; then
-    echo "The APKs are signed with different keys, an in-place install would be refused:" >&2
-    echo "  old: $old_signer" >&2
-    echo "  new: $new_signer" >&2
-    exit 1
-fi
+# Prints the key each APK was built with, so a build that signs unexpectedly shows up in the log.
+resign() {
+    echo "$2 APK built with key $(certificate "$1")"
+    cp "$1" "$WORK/$2.apk"
+    "$BUILD_TOOLS/apksigner" sign --ks "$DEBUG_KEYSTORE" --ks-pass pass:android \
+        --ks-key-alias androiddebugkey --key-pass pass:android "$WORK/$2.apk"
+}
+
+resign "$OLD_APK" old
+resign "$NEW_APK" new
+echo "Both re-signed with key $(certificate "$WORK/new.apk")"
 
 rm -rf "$RESULTS"
 mkdir -p "$RESULTS"
 
 adb uninstall "$APP" >/dev/null 2>&1 || true
-adb install "$OLD_APK"
+adb install "$WORK/old.apk"
 adb install -r -t "$TEST_APK"
 adb shell rm -rf "$DEVICE_OUT"
 adb shell mkdir -p "$DEVICE_OUT"
 
 result=0
 if run_phase beforeUpgrade; then
-    adb install -r "$NEW_APK"
+    adb install -r "$WORK/new.apk"
     run_phase afterUpgrade || result=1
 else
     result=1
