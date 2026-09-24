@@ -61,9 +61,13 @@ jobs:
           # GitHub runners have no GPU.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -camera-back none
           disable-animations: true
+          # Each line runs on its own and the first failing one ends the step, so a device test
+          # failure is only recorded until the upgrade test has run too.
           script: |
-            ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest
+            ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest || touch "$RUNNER_TEMP/device-tests-failed"
+            sha256sum ~/.android/debug.keystore || true
             if [ "${{ matrix.api }}" = 36 ]; then tools/upgrade-test.sh "$RUNNER_TEMP/upgrade-base/app/build/outputs/apk/foss/debug/app-foss-debug.apk" app/build/outputs/apk/foss/debug/app-foss-debug.apk app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk; fi
+            test ! -e "$RUNNER_TEMP/device-tests-failed"
 
       - name: Upload device test results
         if: always()
