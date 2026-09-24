@@ -156,6 +156,15 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_porter_title),
+                    subtitle = stringResource(R.string.acknowledgement_porter_subtitle),
+                    onClick = { onOpenUrl("https://github.com/d4rken-org/porter") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
                     title = stringResource(R.string.acknowledgement_shizuku_title),
                     subtitle = stringResource(R.string.acknowledgement_shizuku_subtitle),
                     onClick = { onOpenUrl("https://github.com/RikkaApps/Shizuku") }
