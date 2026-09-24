@@ -30,6 +30,22 @@ run_phase() {
     grep -q '^OK (1 test)' "$RESULTS/$1.txt"
 }
 
+signer() {
+    local sdk=${ANDROID_HOME:-${ANDROID_SDK_ROOT:?set ANDROID_HOME}}
+    local apksigner
+    apksigner=$(find "$sdk/build-tools" -name apksigner -type f | sort -V | tail -1)
+    "$apksigner" verify --print-certs "$1" | grep 'SHA-256 digest'
+}
+
+old_signer=$(signer "$OLD_APK")
+new_signer=$(signer "$NEW_APK")
+if [ "$old_signer" != "$new_signer" ]; then
+    echo "The APKs are signed with different keys, an in-place install would be refused:" >&2
+    echo "  old: $old_signer" >&2
+    echo "  new: $new_signer" >&2
+    exit 1
+fi
+
 rm -rf "$RESULTS"
 mkdir -p "$RESULTS"
 
