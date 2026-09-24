@@ -97,8 +97,8 @@ the release application id. Point `ANDROID_SERIAL` only at an emulator started f
 `UpgradeTest` in the same module checks the upgrade path: its `beforeUpgrade` phase onboards and
 opens an Explorer tab in an older build, and `afterUpgrade` expects that tab back after the current
 build is installed over it. The Gradle task skips it, because only `tools/upgrade-test.sh` swaps the
-APK between the phases. The older APK has to be built from its tag on the same machine, since an
-in-place install needs the same signing key. CI does this on API 36 from the latest `v*` tag.
+APK between the phases. The script re-signs both app APKs with `~/.android/debug.keystore`, since an
+in-place install needs matching keys. CI runs it on API 36, starting from the latest `v*` tag.
 
 ```bash
 git worktree add --detach /tmp/upgrade-base "$(git describe --tags --abbrev=0 --match 'v*' HEAD^)"
