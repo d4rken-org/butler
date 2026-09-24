@@ -1,5 +1,6 @@
 package eu.darken.butler.setup.ui
 
+import android.content.ActivityNotFoundException
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,6 +40,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import eu.darken.butler.R
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -45,6 +48,7 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import androidx.compose.runtime.collectAsState
 import eu.darken.butler.setup.core.SetupAction
 import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.setup.ui.items.LocalAdbManagerInstallGuide
 import eu.darken.butler.setup.ui.items.SetupCard
 
 @Composable
@@ -148,7 +152,19 @@ fun SetupScreenHost(
         vm.permissionRequestEvents.collect { intent ->
             log(TAG) { "Launching permission settings intent" }
             isPermissionSettingsLaunched = true
-            context.startActivity(intent)
+            try {
+                context.startActivity(intent)
+            } catch (e: ActivityNotFoundException) {
+                // e.g. a web URL on a device without an enabled browser
+                log(TAG, ERROR) { "No activity to handle $intent" }
+                isPermissionSettingsLaunched = false
+                vm.onPermissionIntentFailed(e)
+            } catch (e: SecurityException) {
+                // A handler that matched the intent can still refuse to be started by us.
+                log(TAG, ERROR) { "Failed to launch $intent due to $e" }
+                isPermissionSettingsLaunched = false
+                vm.onPermissionIntentFailed(e)
+            }
         }
     }
 
@@ -190,13 +206,15 @@ fun SetupScreenHost(
     }
 
     state?.let { vmState ->
-        SetupScreen(
-            state = vmState,
-            onNavigateUp = { vm.navUp() },
-            onRefresh = { vm.refresh() },
-            onExecuteAction = { type, action -> vm.executeAction(type, action) },
-            onOpenHelp = { type -> vm.openHelp(type) }
-        )
+        CompositionLocalProvider(LocalAdbManagerInstallGuide provides vm.adbManagerInstallGuide) {
+            SetupScreen(
+                state = vmState,
+                onNavigateUp = { vm.navUp() },
+                onRefresh = { vm.refresh() },
+                onExecuteAction = { type, action -> vm.executeAction(type, action) },
+                onOpenHelp = { type -> vm.openHelp(type) }
+            )
+        }
     }
 }
 

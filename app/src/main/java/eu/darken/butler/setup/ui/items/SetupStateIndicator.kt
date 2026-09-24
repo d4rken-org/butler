@@ -53,27 +53,25 @@ fun SetupStateIndicator(
                     }
                 }
                 SetupModule.Type.SHIZUKU -> {
-                    val shizukuState = state as? ShizukuSetupModule.Result
-                    when {
-                        shizukuState?.useShizuku != true -> {
+                    when ((state as? ShizukuSetupModule.Result).toCardStatus()) {
+                        AdbCardStatus.DISABLED -> {
                             Icons.TwoTone.PauseCircle to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                         }
-                        !shizukuState.isInstalled || !shizukuState.isCompatible -> {
-                            Icons.TwoTone.Error to MaterialTheme.colorScheme.error
-                        }
-                        shizukuState.ourService -> {
+                        AdbCardStatus.CONNECTED -> {
                             Icons.TwoTone.CheckCircle to MaterialTheme.colorScheme.primary
                         }
-                        // Ahead of basicService: the pending-looking indicator must not outlive a
-                        // probe that already concluded our service will not come up.
-                        shizukuState.serviceState.isTerminalFailure -> {
-                            Icons.TwoTone.Error to MaterialTheme.colorScheme.error
-                        }
-                        shizukuState.basicService -> {
+                        AdbCardStatus.CONNECTING -> {
                             Icons.TwoTone.RadioButtonUnchecked to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         }
-                        else -> {
+                        AdbCardStatus.NOT_CONNECTED -> {
                             Icons.TwoTone.Error to MaterialTheme.colorScheme.tertiary
+                        }
+                        AdbCardStatus.NOT_INSTALLED,
+                        AdbCardStatus.BUTLER_UPDATE_REQUIRED,
+                        AdbCardStatus.MANAGER_UPDATE_REQUIRED,
+                        AdbCardStatus.PERMISSION_DENIED,
+                        AdbCardStatus.CONNECTION_FAILED -> {
+                            Icons.TwoTone.Error to MaterialTheme.colorScheme.error
                         }
                     }
                 }

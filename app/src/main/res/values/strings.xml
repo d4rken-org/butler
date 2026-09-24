@@ -92,6 +92,15 @@
     <string name="setup_status_connecting">Connecting…</string>
     <string name="setup_status_connection_failed">Connection failed</string>
     <string name="setup_status_unavailable">Unavailable</string>
+    <string name="setup_status_permission_denied">Permission denied</string>
+    <string name="setup_adb_status_manager_update_required">Update required</string>
+    <string name="setup_adb_status_butler_update_required">Butler update required</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_connected_via">Connected via %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_open_manager_action">Open %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_install_manager_action">Install %1$s</string>
 
     <!-- Debug Log -->
     <string name="debug_notification_channel_label">Debug notifications</string>
