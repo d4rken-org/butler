@@ -94,6 +94,22 @@ ANDROID_SERIAL=emulator-5554 ./gradlew :app-e2e:connectedFossDebugAndroidTest
 The test wipes the app under test: it starts with `pm clear eu.darken.butler`, and debug builds share
 the release application id. Point `ANDROID_SERIAL` only at an emulator started for the run.
 
+`UpgradeTest` in the same module checks the upgrade path: its `beforeUpgrade` phase onboards and
+opens an Explorer tab in an older build, and `afterUpgrade` expects that tab back after the current
+build is installed over it. The Gradle task skips it, because only `tools/upgrade-test.sh` swaps the
+APK between the phases. The older APK has to be built from its tag on the same machine, since an
+in-place install needs the same signing key. CI does this on API 36 from the latest `v*` tag.
+
+```bash
+git worktree add --detach /tmp/upgrade-base "$(git describe --tags --abbrev=0 --match 'v*' HEAD^)"
+(cd /tmp/upgrade-base && ./gradlew :app:assembleFossDebug)
+./gradlew :app:assembleFossDebug :app-e2e:assembleFossDebug
+ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh \
+    /tmp/upgrade-base/app/build/outputs/apk/foss/debug/app-foss-debug.apk \
+    app/build/outputs/apk/foss/debug/app-foss-debug.apk \
+    app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk
+```
+
 Reports land in `<module>/build/reports/androidTests/connected/`. In CI, the `Emulator tests`
 workflow (`.github/workflows/emulator.yml`) runs them on API 30 and API 36 and uploads the
 `device-tests-api-<level>` artifact even when they fail. The workflow names each module's task

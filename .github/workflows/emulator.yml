@@ -24,11 +24,23 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
         with:
           persist-credentials: false
+          # The upgrade test builds the previous release tag.
+          fetch-depth: 0
       - name: Setup project and build environment
         uses: ./.github/actions/common-setup
 
       - name: Build device test APKs
         run: ./gradlew :app-common-io:assembleFossDebugAndroidTest :app-common-pkgs:assembleFossDebugAndroidTest :app:assembleFossDebug :app-e2e:assembleFossDebug
+
+      # Same runner, same debug key: the current build can install over it.
+      - name: Build the previous release for the upgrade test
+        if: matrix.api == 36
+        run: |
+          base=$(git describe --tags --abbrev=0 --match 'v*' HEAD^)
+          echo "Upgrade test starts from $base"
+          git worktree add --detach "$RUNNER_TEMP/upgrade-base" "$base"
+          cd "$RUNNER_TEMP/upgrade-base"
+          ./gradlew :app:assembleFossDebug
 
       - name: Enable KVM
         run: |
@@ -47,7 +59,9 @@ jobs:
           # GitHub runners have no GPU.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest
+          script: |
+            ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest
+            if [ "${{ matrix.api }}" = 36 ]; then tools/upgrade-test.sh "$RUNNER_TEMP/upgrade-base/app/build/outputs/apk/foss/debug/app-foss-debug.apk" app/build/outputs/apk/foss/debug/app-foss-debug.apk app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk; fi
 
       - name: Upload device test results
         if: always()
@@ -58,5 +72,6 @@ jobs:
             */build/outputs/androidTest-results/**
             */build/reports/androidTests/**
             */build/outputs/connected_android_test_additional_output/**
+            app-e2e/build/outputs/upgrade-test/**
           if-no-files-found: warn
           retention-days: 14
