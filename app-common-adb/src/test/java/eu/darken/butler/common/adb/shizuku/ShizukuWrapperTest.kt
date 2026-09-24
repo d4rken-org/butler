@@ -175,6 +175,27 @@ class ShizukuWrapperTest {
     }
 
     @Test
+    fun `the Shizuku family lists stock Shizuku, then Shizuku+, never Porter`() = runTest {
+        definePermission(porterPermission, "eu.darken.porter")
+        definePermission(stockPermission, "moe.shizuku.privileged.api")
+        definePermission(plusPermission, "af.shizuku.plus.api")
+
+        wrapper().getManagerPackages(AdbBackend.SHIZUKU) shouldBe listOf(
+            "moe.shizuku.privileged.api",
+            "af.shizuku.plus.api",
+        )
+    }
+
+    @Test
+    fun `the Porter family lists only Porter`() = runTest {
+        definePermission(porterPermission, "eu.darken.porter")
+        definePermission(stockPermission, "moe.shizuku.privileged.api")
+        definePermission(plusPermission, "af.shizuku.plus.api")
+
+        wrapper().getManagerPackages(AdbBackend.PORTER) shouldBe listOf("eu.darken.porter")
+    }
+
+    @Test
     fun `connection follows the SDK's connection, one handle per connection`() = runTest {
         val wrapper = wrapper()
         wrapper.connection.first() shouldBe null

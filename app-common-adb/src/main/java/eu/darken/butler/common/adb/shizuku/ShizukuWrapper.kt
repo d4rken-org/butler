@@ -46,7 +46,12 @@ class ShizukuWrapper internal constructor(
      * and just requests the stock one.
      */
     suspend fun getManagerPackages(): List<String> = withContext(dispatcherProvider.IO) {
-        MANAGER_PERMISSIONS.mapNotNull { resolvePermissionOwner(it) }.distinct()
+        MANAGER_PERMISSIONS.values.flatten().mapNotNull { resolvePermissionOwner(it) }.distinct()
+    }
+
+    /** Like [getManagerPackages], limited to the managers of [backend]. */
+    suspend fun getManagerPackages(backend: AdbBackend): List<String> = withContext(dispatcherProvider.IO) {
+        MANAGER_PERMISSIONS.getValue(backend).mapNotNull { resolvePermissionOwner(it) }.distinct()
     }
 
     private fun resolvePermissionOwner(permission: String): String? = try {
@@ -152,10 +157,12 @@ class ShizukuWrapper internal constructor(
 
         // Porter first, as the SDK selects it whenever it is installed; then the stock Shizuku
         // permission, preferred over Shizuku+'s when both are declared.
-        private val MANAGER_PERMISSIONS = listOf(
-            "eu.darken.porter.permission.API",
-            "moe.shizuku.manager.permission.API_V23",
-            "af.shizuku.plus.permission.API_V23",
+        private val MANAGER_PERMISSIONS = linkedMapOf(
+            AdbBackend.PORTER to listOf("eu.darken.porter.permission.API"),
+            AdbBackend.SHIZUKU to listOf(
+                "moe.shizuku.manager.permission.API_V23",
+                "af.shizuku.plus.permission.API_V23",
+            ),
         )
 
         /**

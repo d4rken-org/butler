@@ -26,6 +26,9 @@ class AdbSettings @Inject constructor(
 
     val useAdb = useShizuku
 
+    /** ADB access was switched on while no server was reachable, so ask for permission once one is. */
+    val permissionPromptPending = dataStore.createValue("core.shizuku.permission.prompt_pending", false)
+
     override val mapper = PreferenceStoreMapper(
         useShizuku
     )

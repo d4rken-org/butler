@@ -152,6 +152,13 @@ class ShizukuManager @Inject constructor(
      */
     suspend fun getManagerId(): Pkg.Id? = shizukuWrapper.availability()?.packageName?.toPkgId()
 
+    /** Null when it could not be read, which says nothing about what is installed. */
+    suspend fun availability(): AdbAvailability? = shizukuWrapper.availability()
+
+    /** Installed apps declaring a manager permission of [backend], preferred one first. */
+    suspend fun getManagerIds(backend: AdbBackend): List<Pkg.Id> =
+        shizukuWrapper.getManagerPackages(backend).map { it.toPkgId() }
+
     // Not cached: a stale "not installed" result would outlive a manager installed while Butler runs.
     suspend fun isInstalled(): Boolean = shizukuWrapper.availability().countsAsInstalled()
         .also { log(TAG) { "isInstalled(): $it" } }
