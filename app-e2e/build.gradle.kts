@@ -11,7 +11,7 @@ android {
         minSdk = projectConfig.minSdk
         targetSdk = projectConfig.targetSdk
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Its phases need an APK swap in between, which only tools/upgrade-test.sh does.
+        // Its phases need an APK swap in between, so they run outside Gradle.
         testInstrumentationRunnerArguments["notClass"] = "eu.darken.butler.e2e.UpgradeTest"
     }
 

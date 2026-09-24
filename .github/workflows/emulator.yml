@@ -39,7 +39,10 @@ jobs:
           echo "Upgrade test starts from $base"
           git worktree add --detach "$RUNNER_TEMP/upgrade-base" "$base"
           cd "$RUNNER_TEMP/upgrade-base"
-          ./gradlew :app:assembleFossDebug
+          tasks=":app:assembleFossDebug"
+          # A release that has UpgradeTest drives its own app with the steps written for it.
+          if [ -f app-e2e/src/main/java/eu/darken/butler/e2e/UpgradeTest.kt ]; then tasks="$tasks :app-e2e:assembleFossDebug"; fi
+          ./gradlew --no-daemon $tasks
 
       - name: Enable KVM
         run: |
@@ -62,7 +65,7 @@ jobs:
           # failure is only recorded until the upgrade test has run too.
           script: |
             ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest || touch "$RUNNER_TEMP/device-tests-failed"
-            if [ "${{ matrix.api }}" = 36 ]; then tools/upgrade-test.sh "$RUNNER_TEMP/upgrade-base/app/build/outputs/apk/foss/debug/app-foss-debug.apk" app/build/outputs/apk/foss/debug/app-foss-debug.apk app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk; fi
+            if [ "${{ matrix.api }}" = 36 ]; then old_e2e="$RUNNER_TEMP/upgrade-base/app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP/upgrade-base/app/build/outputs/apk/foss/debug/app-foss-debug.apk" app/build/outputs/apk/foss/debug/app-foss-debug.apk app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk $old_e2e; fi
             test ! -e "$RUNNER_TEMP/device-tests-failed"
 
       - name: Upload device test results

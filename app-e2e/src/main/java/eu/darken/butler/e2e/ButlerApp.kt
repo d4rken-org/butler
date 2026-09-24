@@ -48,13 +48,16 @@ class ButlerApp {
         await(text(titleName))
         val done = string("general_done_action")
         val controls = anyDesc("tour_action_next", "general_done_action")
-        while (true) {
+        repeat(MAX_TOUR_STEPS) {
             val node = await(controls)
             val isLast = node.contentDescription == done
             click(node)
-            if (isLast) break
+            if (isLast) {
+                awaitGone(controls)
+                return
+            }
         }
-        awaitGone(controls)
+        throw AssertionError("The '$titleName' tour did not reach Done within $MAX_TOUR_STEPS steps")
     }
 
     fun text(name: String): BySelector = By.text(string(name))
@@ -104,5 +107,6 @@ class ButlerApp {
         const val PKG = "eu.darken.butler"
         private const val TIMEOUT_MS = 30_000L
         private const val SETTLE_POLL_MS = 150L
+        private const val MAX_TOUR_STEPS = 10
     }
 }
