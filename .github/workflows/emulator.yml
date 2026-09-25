@@ -24,6 +24,54 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
         with:
           persist-credentials: false
+      - name: Setup project and build environment
+        uses: ./.github/actions/common-setup
+
+      - name: Build device test APKs
+        # With four workers, the parallel dex merges of these APKs can run the daemon out of heap.
+        run: ./gradlew --max-workers=2 :app-common-io:assembleFossDebugAndroidTest :app-common-pkgs:assembleFossDebugAndroidTest :app:assembleFossDebug :app-e2e:assembleFossDebug
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run device tests
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d #v2.38.0
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          avd-name: butler-ci
+          # GitHub runners have no GPU.
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest
+
+      - name: Upload device test results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        with:
+          name: device-tests-api-${{ matrix.api }}
+          path: |
+            */build/outputs/androidTest-results/**
+            */build/reports/androidTests/**
+            */build/outputs/connected_android_test_additional_output/**
+          if-no-files-found: warn
+          retention-days: 14
+
+  # Its two R8 builds take about 25 minutes, so it runs next to the debug legs instead of in one.
+  minified-tests:
+    name: Minified app tests (Android 36)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
+        with:
+          persist-credentials: false
           # The upgrade test builds the previous release tag.
           fetch-depth: 0
       - name: Setup project and build environment
@@ -46,17 +94,11 @@ jobs:
             echo "KEY_PASSWORD=android"
           } >> "$GITHUB_ENV"
 
-      - name: Build device test APKs
-        # With four workers, the parallel dex merges of these APKs can run the daemon out of heap.
-        run: ./gradlew --max-workers=2 :app-common-io:assembleFossDebugAndroidTest :app-common-pkgs:assembleFossDebugAndroidTest :app:assembleFossDebug :app-e2e:assembleFossDebug
-
       - name: Build minified APKs
-        # Its own invocation, so R8 does not run alongside the dex merges above.
-        if: matrix.api == 36
+        # With four workers, R8 and the dex merges can run the daemon out of heap.
         run: ./gradlew --max-workers=2 :app:assembleGplayBeta :app-e2e:assembleGplayBeta
 
       - name: Build the previous release for the upgrade test
-        if: matrix.api == 36
         run: |
           base=$(git describe --tags --abbrev=0 --match 'v*' HEAD^)
           echo "Upgrade test starts from $base"
@@ -73,10 +115,10 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run device tests
+      - name: Run minified app tests
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d #v2.38.0
         with:
-          api-level: ${{ matrix.api }}
+          api-level: 36
           target: google_apis
           arch: x86_64
           profile: pixel_6
@@ -84,22 +126,22 @@ jobs:
           # GitHub runners have no GPU.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -camera-back none
           disable-animations: true
-          # Each line runs on its own and the first failing one ends the step, so a device test
+          # Each line runs on its own and the first failing one ends the step, so a golden-path
           # failure is only recorded until the upgrade test has run too.
           script: |
-            ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest ${{ matrix.api == 36 && ':app-e2e:connectedGplayBetaAndroidTest' || '' }} || touch "$RUNNER_TEMP/device-tests-failed"
-            if [ "${{ matrix.api }}" = 36 ]; then old_e2e="$RUNNER_TEMP/upgrade-base/app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP"/upgrade-base/app/build/outputs/apk/gplay/beta/*.apk app/build/outputs/apk/gplay/beta/*.apk app-e2e/build/outputs/apk/gplay/beta/app-e2e-gplay-beta.apk $old_e2e; fi
+            ./gradlew :app-e2e:connectedGplayBetaAndroidTest || touch "$RUNNER_TEMP/device-tests-failed"
+            old_e2e="$RUNNER_TEMP/upgrade-base/app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP"/upgrade-base/app/build/outputs/apk/gplay/beta/*.apk app/build/outputs/apk/gplay/beta/*.apk app-e2e/build/outputs/apk/gplay/beta/app-e2e-gplay-beta.apk $old_e2e
             test ! -e "$RUNNER_TEMP/device-tests-failed"
 
       - name: Upload device test results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
         with:
-          name: device-tests-api-${{ matrix.api }}
+          name: minified-tests-api-36
           path: |
-            */build/outputs/androidTest-results/**
-            */build/reports/androidTests/**
-            */build/outputs/connected_android_test_additional_output/**
+            app-e2e/build/outputs/androidTest-results/**
+            app-e2e/build/reports/androidTests/**
+            app-e2e/build/outputs/connected_android_test_additional_output/**
             app-e2e/build/outputs/upgrade-test/**
           if-no-files-found: warn
           retention-days: 14
