@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">فعال‌سازی سطل زباله</string>
     <string name="explorer_settings_trash_enabled_desc">فایل‌های حذف‌شده را به‌جای حذف دائمی، به سطل زباله منتقل کنید</string>
     <string name="explorer_settings_trash_auto_delete_title">حذف خودکار پس از</string>
-    <string name="explorer_settings_trash_auto_delete_desc">موارد قدیمی‌تر از %d روز به‌طور خودکار حذف می‌شوند</string>
     <string name="explorer_settings_trash_auto_delete_value">%d روز</string>
     <string name="explorer_settings_trash_max_size_title">حداکثر اندازه برای هر حافظه</string>
-    <string name="explorer_settings_trash_max_size_desc">حداکثر %d مگابایت برای هر مکان حافظه</string>
     <string name="explorer_settings_trash_max_size_value">%d مگابایت</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">بازه حذف خودکار</string>
     <string name="explorer_settings_trash_max_size_dialog_title">حداکثر اندازه برای هر حافظه</string>

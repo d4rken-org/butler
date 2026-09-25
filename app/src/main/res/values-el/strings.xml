@@ -44,9 +44,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Αυτόματη προσθήκη συχνά επισκεπτόμενων διαδρομών ως συντομεύσεις</string>
     <string name="shortcuts_settings_last_accessed_title">Τελευταία πρόσβαση</string>
     <string name="shortcuts_settings_max_count_title">Μέγιστος αριθμός συντομεύσεων</string>
-    <string name="shortcuts_settings_max_count_subtitle">Εμφανίζονται αυτή τη στιγμή %d συντομεύσεις</string>
     <string name="shortcuts_settings_min_access_title">Ελάχιστες προσβάσεις</string>
-    <string name="shortcuts_settings_min_access_subtitle">Απαιτούνται %d προσβάσεις πριν την εμφάνιση</string>
     <string name="shortcuts_settings_current_title">Τρέχουσες συντομεύσεις</string>
     <string name="shortcuts_settings_current_subtitle">%d συντομεύσεις παρακολουθούνται</string>
     <string name="shortcuts_settings_clear_title">Εκκαθάριση ιστορικού συντομεύσεων</string>

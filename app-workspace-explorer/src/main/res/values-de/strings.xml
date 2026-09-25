@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Papierkorb aktivieren</string>
     <string name="explorer_settings_trash_enabled_desc">Gelöschte Dateien in den Papierkorb verschieben, statt sie endgültig zu löschen</string>
     <string name="explorer_settings_trash_auto_delete_title">Automatisch löschen nach</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Elemente, die älter als %d Tage sind, automatisch löschen</string>
     <string name="explorer_settings_trash_auto_delete_value">%d Tage</string>
     <string name="explorer_settings_trash_max_size_title">Maximale Größe pro Speicher</string>
-    <string name="explorer_settings_trash_max_size_desc">Maximal %d MB pro Speicherort</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Zeitraum für automatisches Löschen</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maximale Größe pro Speicher</string>

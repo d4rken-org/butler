@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Ativar lixeira</string>
     <string name="explorer_settings_trash_enabled_desc">Mover arquivos excluídos para a lixeira em vez de excluí-los permanentemente</string>
     <string name="explorer_settings_trash_auto_delete_title">Excluir automaticamente após</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Excluir automaticamente itens com mais de %d dias</string>
     <string name="explorer_settings_trash_auto_delete_value">%d dias</string>
     <string name="explorer_settings_trash_max_size_title">Tamanho máximo por armazenamento</string>
-    <string name="explorer_settings_trash_max_size_desc">%d MB no máximo por local de armazenamento</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Período de exclusão automática</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Tamanho máximo por armazenamento</string>

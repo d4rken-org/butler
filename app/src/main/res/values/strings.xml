@@ -44,9 +44,9 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Automatically add frequently visited paths as shortcuts</string>
     <string name="shortcuts_settings_last_accessed_title">Last accessed</string>
     <string name="shortcuts_settings_max_count_title">Maximum shortcuts</string>
-    <string name="shortcuts_settings_max_count_subtitle">Currently showing %d shortcuts</string>
+    <string name="shortcuts_settings_max_count_summary">Maximum number of shortcuts shown in the launcher</string>
     <string name="shortcuts_settings_min_access_title">Minimum accesses</string>
-    <string name="shortcuts_settings_min_access_subtitle">Require %d accesses before showing</string>
+    <string name="shortcuts_settings_min_access_summary">Number of times a path must be opened before it becomes a shortcut</string>
     <string name="shortcuts_settings_current_title">Current shortcuts</string>
     <string name="shortcuts_settings_current_subtitle">%d shortcuts tracked</string>
     <string name="shortcuts_settings_clear_title">Clear shortcut history</string>

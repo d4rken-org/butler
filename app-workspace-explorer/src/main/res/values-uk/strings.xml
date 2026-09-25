@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Увімкнути кошик</string>
     <string name="explorer_settings_trash_enabled_desc">Переміщувати видалені файли до кошика замість остаточного видалення</string>
     <string name="explorer_settings_trash_auto_delete_title">Автовидалення через</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Автоматично видаляти елементи, старіші за %d днів</string>
     <string name="explorer_settings_trash_auto_delete_value">%d днів</string>
     <string name="explorer_settings_trash_max_size_title">Максимальний розмір на сховище</string>
-    <string name="explorer_settings_trash_max_size_desc">Максимум %d МБ на одне сховище</string>
     <string name="explorer_settings_trash_max_size_value">%d МБ</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Період автовидалення</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Максимальний розмір на сховище</string>

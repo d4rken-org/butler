@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Çöp kutusunu etkinleştir</string>
     <string name="explorer_settings_trash_enabled_desc">Silinen dosyaları kalıcı olarak silmek yerine çöp kutusuna taşıyın</string>
     <string name="explorer_settings_trash_auto_delete_title">Şu süre sonra otomatik sil</string>
-    <string name="explorer_settings_trash_auto_delete_desc">%d günden eski öğeleri otomatik olarak sil</string>
     <string name="explorer_settings_trash_auto_delete_value">%d gün</string>
     <string name="explorer_settings_trash_max_size_title">Depolama başına maksimum boyut</string>
-    <string name="explorer_settings_trash_max_size_desc">Depolama konumu başına en fazla %d MB</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Otomatik silme süresi</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Depolama başına maksimum boyut</string>

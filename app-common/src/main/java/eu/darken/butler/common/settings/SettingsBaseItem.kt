@@ -41,6 +41,7 @@ fun SettingsBaseItem(
     iconTinted: Boolean = true,
     iconSize: Dp = 24.dp,
     subtitle: String? = null,
+    value: String? = null,
     enabled: Boolean = true,
     requiresUpgrade: Boolean = false,
     onLongClick: (() -> Unit)? = null,
@@ -111,6 +112,14 @@ fun SettingsBaseItem(
                     modifier = Modifier.padding(top = 2.dp)
                 )
             }
+            if (value != null) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = contentAlpha),
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
         }
 
         trailingContent?.invoke()
@@ -126,6 +135,13 @@ private fun SettingsBaseItemPreview() {
             title = "Simple Item",
             subtitle = "This is a simple item without icon",
             onClick = {}
+        )
+        SettingsBaseItem(
+            title = "Item with value",
+            subtitle = "The selected value sits below the subtitle",
+            value = "Adaptive (Single with tab rail)",
+            onClick = {},
+            icon = Icons.TwoTone.Settings,
         )
         SettingsBaseItem(
             title = "Base Item",

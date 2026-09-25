@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">启用回收站</string>
     <string name="explorer_settings_trash_enabled_desc">将删除的文件移至回收站，而不是永久删除</string>
     <string name="explorer_settings_trash_auto_delete_title">自动删除时限</string>
-    <string name="explorer_settings_trash_auto_delete_desc">自动删除超过 %d 天的项目</string>
     <string name="explorer_settings_trash_auto_delete_value">%d 天</string>
     <string name="explorer_settings_trash_max_size_title">每个存储位置的最大容量</string>
-    <string name="explorer_settings_trash_max_size_desc">每个存储位置最多 %d MB</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">自动删除周期</string>
     <string name="explorer_settings_trash_max_size_dialog_title">每个存储位置的最大容量</string>

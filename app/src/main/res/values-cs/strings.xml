@@ -44,9 +44,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Automaticky přidávat často navštěvované cesty jako zástupce</string>
     <string name="shortcuts_settings_last_accessed_title">Naposledy použito</string>
     <string name="shortcuts_settings_max_count_title">Maximální počet zástupců</string>
-    <string name="shortcuts_settings_max_count_subtitle">Aktuálně se zobrazuje %d zástupců</string>
     <string name="shortcuts_settings_min_access_title">Minimální počet použití</string>
-    <string name="shortcuts_settings_min_access_subtitle">Vyžaduje %d použití před zobrazením</string>
     <string name="shortcuts_settings_current_title">Aktuální zástupci</string>
     <string name="shortcuts_settings_current_subtitle">Sledovaných zástupců: %d</string>
     <string name="shortcuts_settings_clear_title">Vymazat historii zástupců</string>

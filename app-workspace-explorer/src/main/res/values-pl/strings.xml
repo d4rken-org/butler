@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Włącz kosz</string>
     <string name="explorer_settings_trash_enabled_desc">Przenoś usunięte pliki do kosza zamiast trwale je usuwać</string>
     <string name="explorer_settings_trash_auto_delete_title">Automatyczne usuwanie po</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Automatycznie usuwaj elementy starsze niż %d dni</string>
     <string name="explorer_settings_trash_auto_delete_value">%d dni</string>
     <string name="explorer_settings_trash_max_size_title">Maksymalny rozmiar na magazyn</string>
-    <string name="explorer_settings_trash_max_size_desc">Maksymalnie %d MB na lokalizację magazynu</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Okres automatycznego usuwania</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maksymalny rozmiar na magazyn</string>

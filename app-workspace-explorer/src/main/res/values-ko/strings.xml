@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">휴지통 사용</string>
     <string name="explorer_settings_trash_enabled_desc">삭제한 파일을 영구 삭제하는 대신 휴지통으로 이동합니다</string>
     <string name="explorer_settings_trash_auto_delete_title">자동 삭제 기간</string>
-    <string name="explorer_settings_trash_auto_delete_desc">%d일이 지난 항목을 자동으로 삭제합니다</string>
     <string name="explorer_settings_trash_auto_delete_value">%d일</string>
     <string name="explorer_settings_trash_max_size_title">저장공간별 최대 용량</string>
-    <string name="explorer_settings_trash_max_size_desc">저장공간별 최대 %d MB</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">자동 삭제 기간</string>
     <string name="explorer_settings_trash_max_size_dialog_title">저장공간별 최대 용량</string>

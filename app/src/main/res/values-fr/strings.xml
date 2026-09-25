@@ -45,9 +45,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Ajouter automatiquement les chemins fréquemment visités comme raccourcis</string>
     <string name="shortcuts_settings_last_accessed_title">Dernier accès</string>
     <string name="shortcuts_settings_max_count_title">Nombre maximal de raccourcis</string>
-    <string name="shortcuts_settings_max_count_subtitle">%d raccourcis actuellement affichés</string>
     <string name="shortcuts_settings_min_access_title">Accès minimum</string>
-    <string name="shortcuts_settings_min_access_subtitle">%d accès requis avant l’affichage</string>
     <string name="shortcuts_settings_current_title">Raccourcis actuels</string>
     <string name="shortcuts_settings_current_subtitle">%d raccourcis suivis</string>
     <string name="shortcuts_settings_clear_title">Effacer l’historique des raccourcis</string>

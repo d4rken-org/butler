@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Attiva cestino</string>
     <string name="explorer_settings_trash_enabled_desc">Sposta i file eliminati nel cestino invece di eliminarli definitivamente</string>
     <string name="explorer_settings_trash_auto_delete_title">Eliminazione automatica dopo</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Elimina automaticamente gli elementi più vecchi di %d giorni</string>
     <string name="explorer_settings_trash_auto_delete_value">%d giorni</string>
     <string name="explorer_settings_trash_max_size_title">Dimensione massima per archiviazione</string>
-    <string name="explorer_settings_trash_max_size_desc">Massimo %d MB per posizione di archiviazione</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Periodo di eliminazione automatica</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Dimensione massima per archiviazione</string>

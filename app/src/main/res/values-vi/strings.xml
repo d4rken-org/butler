@@ -44,9 +44,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Tự động thêm các đường dẫn thường truy cập làm lối tắt</string>
     <string name="shortcuts_settings_last_accessed_title">Truy cập gần nhất</string>
     <string name="shortcuts_settings_max_count_title">Số lối tắt tối đa</string>
-    <string name="shortcuts_settings_max_count_subtitle">Hiện đang hiển thị %d lối tắt</string>
     <string name="shortcuts_settings_min_access_title">Số lần truy cập tối thiểu</string>
-    <string name="shortcuts_settings_min_access_subtitle">Yêu cầu %d lần truy cập trước khi hiển thị</string>
     <string name="shortcuts_settings_current_title">Lối tắt hiện tại</string>
     <string name="shortcuts_settings_current_subtitle">%d lối tắt đang được theo dõi</string>
     <string name="shortcuts_settings_clear_title">Xóa lịch sử lối tắt</string>

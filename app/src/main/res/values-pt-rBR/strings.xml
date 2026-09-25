@@ -45,9 +45,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Adicionar automaticamente caminhos visitados com frequência como atalhos</string>
     <string name="shortcuts_settings_last_accessed_title">Acessado por último</string>
     <string name="shortcuts_settings_max_count_title">Máximo de atalhos</string>
-    <string name="shortcuts_settings_max_count_subtitle">Mostrando atualmente %d atalhos</string>
     <string name="shortcuts_settings_min_access_title">Acessos mínimos</string>
-    <string name="shortcuts_settings_min_access_subtitle">Exigir %d acessos antes de mostrar</string>
     <string name="shortcuts_settings_current_title">Atalhos atuais</string>
     <string name="shortcuts_settings_current_subtitle">%d atalhos monitorados</string>
     <string name="shortcuts_settings_clear_title">Limpar histórico de atalhos</string>

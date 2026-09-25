@@ -45,9 +45,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Añade automáticamente las rutas visitadas con frecuencia como accesos directos</string>
     <string name="shortcuts_settings_last_accessed_title">Último acceso</string>
     <string name="shortcuts_settings_max_count_title">Máximo de accesos directos</string>
-    <string name="shortcuts_settings_max_count_subtitle">Mostrando actualmente %d accesos directos</string>
     <string name="shortcuts_settings_min_access_title">Accesos mínimos</string>
-    <string name="shortcuts_settings_min_access_subtitle">Requiere %d accesos antes de mostrarse</string>
     <string name="shortcuts_settings_current_title">Accesos directos actuales</string>
     <string name="shortcuts_settings_current_subtitle">%d accesos directos registrados</string>
     <string name="shortcuts_settings_clear_title">Borrar historial de accesos directos</string>

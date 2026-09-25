@@ -44,9 +44,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">افزودن خودکار مسیرهای پربازدید به‌عنوان میان‌بر</string>
     <string name="shortcuts_settings_last_accessed_title">آخرین دسترسی</string>
     <string name="shortcuts_settings_max_count_title">حداکثر میان‌برها</string>
-    <string name="shortcuts_settings_max_count_subtitle">در حال حاضر %d میان‌بر نمایش داده می‌شود</string>
     <string name="shortcuts_settings_min_access_title">حداقل تعداد دسترسی</string>
-    <string name="shortcuts_settings_min_access_subtitle">نیازمند %d بار دسترسی پیش از نمایش</string>
     <string name="shortcuts_settings_current_title">میان‌برهای فعلی</string>
     <string name="shortcuts_settings_current_subtitle">%d میان‌بر ردیابی شده</string>
     <string name="shortcuts_settings_clear_title">پاک کردن تاریخچه میان‌برها</string>
