@@ -536,6 +536,40 @@ class ShizukuSetupModuleTest : BaseTest() {
         runBlocking { collector.cancelAndJoin() }
     }
 
+    @Test fun `a switch-on prompt cut off by a replaced server is asked again on the new server`() {
+        useShizukuFlow.value = null
+        serverFlow.value = server
+        coEvery { shizukuManager.isGranted() } returns false
+        val firstAnswer = CompletableDeferred<AdbPermissionState>()
+        val requests = AtomicInteger(0)
+        coEvery { shizukuManager.requestPermission() } coAnswers {
+            if (requests.incrementAndGet() == 1) firstAnswer.await() else AdbPermissionState.Granted
+        }
+        val mod = module()
+        val collector = mod.state.test(tag = "switch-on", scope = scope)
+        collector.awaitResult { it.useShizuku == null }
+
+        // The switch-on prompt is shown for connection 1 and waits for the user's answer.
+        val toggle = scope.launch { mod.toggleUseShizuku(true) }
+        eventually { requests.get() == 1 }
+
+        // Server restart before the user answered: connection 2 replaces connection 1.
+        val replacement = mockk<AdbServer>().also { every { it.backend } returns AdbBackend.SHIZUKU }
+        serverFlow.value = replacement
+
+        // Connection 1's request ends without an answer because its connection went away.
+        firstAnswer.complete(AdbPermissionState.Unknown)
+        eventually { toggle.isCompleted }
+        runBlocking { withTimeoutOrNull(3_000) { while (requests.get() < 2) delay(5) } }
+
+        withClue("requestPermission() calls after the switch-on prompt ended with Unknown while a new server is live") {
+            requests.get() shouldBe 2
+        }
+        useShizukuFlow.value shouldBe true
+
+        runBlocking { collector.cancelAndJoin() }
+    }
+
     companion object {
         private val PORTER = "eu.darken.porter".toPkgId()
         private val SHIZUKU = "moe.shizuku.privileged.api".toPkgId()

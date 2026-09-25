@@ -260,14 +260,18 @@ class ShizukuSetupModule @Inject constructor(
 
             false -> {
                 adbSettings.permissionPromptPending.value(false)
+                var grantResult: AdbPermissionState? = null
                 try {
                     log(TAG) { "Requesting permission" }
                     // Unbounded on purpose: the answer arrives only once the user decided, and one that
                     // arrives after we stopped waiting would be dropped.
-                    val grantResult = shizukuManager.requestPermission()
+                    grantResult = shizukuManager.requestPermission()
                     log(TAG) { "Permission grant result was $grantResult" }
                 } finally {
-                    withContext(NonCancellable) { adbSettings.useShizuku.value(true) }
+                    withContext(NonCancellable) {
+                        if (grantResult == AdbPermissionState.Unknown) adbSettings.permissionPromptPending.value(true)
+                        adbSettings.useShizuku.value(true)
+                    }
                 }
             }
 
