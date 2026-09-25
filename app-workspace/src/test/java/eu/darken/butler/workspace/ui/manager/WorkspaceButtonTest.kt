@@ -248,7 +248,6 @@ class WorkspaceButtonTest : ComposeTest() {
     private fun setContent(
         provider: RecordingButtonProvider,
         currentWorkspaceId: Workspace.Id? = null,
-        showLayoutEntry: Boolean = false,
         isPro: Boolean = true,
     ) {
         composeTestRule.setContent {
@@ -257,7 +256,6 @@ class WorkspaceButtonTest : ComposeTest() {
                     WorkspaceButton(
                         mascotVariant = testMascotVariant,
                         currentWorkspaceId = currentWorkspaceId,
-                        showLayoutEntry = showLayoutEntry,
                         isPro = isPro,
                     )
                 }
@@ -465,19 +463,19 @@ class WorkspaceButtonTest : ComposeTest() {
     }
 
     private fun openLayoutDialog(provider: RecordingButtonProvider, isPro: Boolean = true) {
-        setContent(provider, showLayoutEntry = true, isPro = isPro)
+        setContent(provider, isPro = isPro)
         openMenu()
         composeTestRule.onNodeWithText("Layout").performClick()
     }
 
     @Test
-    fun `the layout entry is absent unless the button sits in the rail`() {
+    fun `a button outside the rail shows the layout entry too`() {
         val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
         setContent(provider)
 
         openMenu()
 
-        composeTestRule.onNodeWithText("Layout").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Layout").assertIsDisplayed()
     }
 
     @Test
@@ -486,7 +484,6 @@ class WorkspaceButtonTest : ComposeTest() {
             RecordingButtonProvider(
                 WorkspaceButtonViewModel.State(portraitPanelMode = WorkspacePanelMode.DUAL_HORIZONTAL)
             ),
-            showLayoutEntry = true,
         )
 
         openMenu()
@@ -497,20 +494,53 @@ class WorkspaceButtonTest : ComposeTest() {
 
     @Test
     @Config(qualifiers = "w1200dp-h900dp")
-    fun `the layout entry opens a dialog listing Automatic and the six geometries`() {
+    fun `the layout entry opens a dialog listing the three surfaces and the six geometries`() {
         openLayoutDialog(RecordingButtonProvider(WorkspaceButtonViewModel.State()))
 
         composeTestRule.onNodeWithText("Automatic").assertExists()
+        composeTestRule.onNodeWithText("Classic").assertExists()
+        composeTestRule.onNodeWithText("Adaptive").assertExists()
         composeTestRule.onNodeWithText("Single with tab rail").assertExists()
         composeTestRule.onNodeWithText("Dual vertical").assertExists()
         composeTestRule.onNodeWithText("Dual horizontal").assertExists()
         composeTestRule.onNodeWithText("Triple sidebar left").assertExists()
         composeTestRule.onNodeWithText("Triple sidebar right").assertExists()
         composeTestRule.onNodeWithText("Quad grid").assertExists()
+    }
 
-        // The surfaces Settings offers are not geometries, so they have no row here
-        composeTestRule.onNodeWithText("Classic").assertDoesNotExist()
-        composeTestRule.onNodeWithText("Adaptive").assertDoesNotExist()
+    @Test
+    @Config(qualifiers = "w412dp-h915dp-port")
+    fun `picking classic writes the single mode`() {
+        val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
+        openLayoutDialog(provider)
+
+        composeTestRule.onNodeWithText("Classic").performScrollTo().performClick()
+
+        provider.panelModes shouldBe listOf(false to WorkspacePanelMode.SINGLE)
+    }
+
+    @Test
+    fun `a stored adaptive mode marks the adaptive row`() {
+        openLayoutDialog(
+            RecordingButtonProvider(
+                WorkspaceButtonViewModel.State(portraitPanelMode = WorkspacePanelMode.ADAPTIVE)
+            )
+        )
+
+        composeTestRule.onNodeWithText("Adaptive").assertIsSelected()
+        composeTestRule.onNodeWithText("Automatic").assertIsNotSelected()
+    }
+
+    @Test
+    fun `a stored single mode marks the classic row`() {
+        openLayoutDialog(
+            RecordingButtonProvider(
+                WorkspaceButtonViewModel.State(portraitPanelMode = WorkspacePanelMode.SINGLE)
+            )
+        )
+
+        composeTestRule.onNodeWithText("Classic").assertIsSelected()
+        composeTestRule.onNodeWithText("Automatic").assertIsNotSelected()
     }
 
     @Test
@@ -519,7 +549,7 @@ class WorkspaceButtonTest : ComposeTest() {
         val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
         openLayoutDialog(provider)
 
-        composeTestRule.onNodeWithText("Dual horizontal").performClick()
+        composeTestRule.onNodeWithText("Dual horizontal").performScrollTo().performClick()
 
         provider.panelModes shouldBe listOf(false to WorkspacePanelMode.DUAL_HORIZONTAL)
         composeTestRule.onNodeWithText("Dual horizontal").assertDoesNotExist()
@@ -555,6 +585,8 @@ class WorkspaceButtonTest : ComposeTest() {
         openLayoutDialog(RecordingButtonProvider(WorkspaceButtonViewModel.State()))
 
         composeTestRule.onNodeWithText("Automatic").assertExists()
+        composeTestRule.onNodeWithText("Classic").assertExists()
+        composeTestRule.onNodeWithText("Adaptive").assertExists()
         composeTestRule.onNodeWithText("Single with tab rail").assertExists()
         composeTestRule.onNodeWithText("Dual horizontal").assertExists()
 
@@ -588,7 +620,7 @@ class WorkspaceButtonTest : ComposeTest() {
         openLayoutDialog(RecordingButtonProvider(WorkspaceButtonViewModel.State()), isPro = false)
 
         composeTestRule.onNodeWithText("Dual horizontal").assertExists()
-        composeTestRule.onNodeWithText(badgeLabel).assertIsDisplayed()
+        composeTestRule.onNodeWithText(badgeLabel).performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -597,7 +629,7 @@ class WorkspaceButtonTest : ComposeTest() {
         val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
         openLayoutDialog(provider, isPro = false)
 
-        composeTestRule.onNodeWithText("Dual horizontal").performClick()
+        composeTestRule.onNodeWithText("Dual horizontal").performScrollTo().performClick()
 
         provider.panelModes shouldBe emptyList()
         provider.upgradeNavigations shouldBe 1
@@ -609,9 +641,22 @@ class WorkspaceButtonTest : ComposeTest() {
         val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
         openLayoutDialog(provider, isPro = false)
 
-        composeTestRule.onNodeWithText("Single with tab rail").performClick()
+        composeTestRule.onNodeWithText("Single with tab rail").performScrollTo().performClick()
 
         provider.panelModes shouldBe listOf(false to WorkspacePanelMode.SINGLE_RAIL)
+        provider.upgradeNavigations shouldBe 0
+    }
+
+    /** Neither surface is a pinned geometry, so neither is gated. */
+    @Test
+    @Config(qualifiers = "w412dp-h915dp-port")
+    fun `a free user picking adaptive persists it`() {
+        val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
+        openLayoutDialog(provider, isPro = false)
+
+        composeTestRule.onNodeWithText("Adaptive").performScrollTo().performClick()
+
+        provider.panelModes shouldBe listOf(false to WorkspacePanelMode.ADAPTIVE)
         provider.upgradeNavigations shouldBe 0
     }
 

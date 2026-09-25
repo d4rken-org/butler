@@ -213,7 +213,7 @@ fun MenuCategoryHeader(
 }
 
 @Composable
-private fun MenuItemText(
+fun MenuItemText(
     modifier: Modifier = Modifier,
     title: String,
     subtitle: String,
@@ -233,6 +233,13 @@ private fun MenuItemText(
 @Composable
 private fun MenuCategoryHeaderPreview() {
     MenuCategoryHeader(text = "Recently")
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun MenuItemTextPreview() {
+    MenuItemText(title = "Layout", subtitle = "Automatic")
 }
 
 private fun previewItem(type: Workspace.Type, title: String) = QuickCreateItem(
