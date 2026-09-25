@@ -49,7 +49,7 @@ import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
-private val TAG = logTag("Workspace", "Classic", "Container")
+private val TAG = logTag("Workspace", "Pager", "Container")
 
 // Stable key for the on-demand-creation placeholder page (last index when enabled).
 // Distinct from any Workspace.Id so the pager preserves identity across list churn.
@@ -71,7 +71,7 @@ internal fun WorkspaceStacks.creationAllowedFor(rootId: Workspace.Id?): Boolean 
 }
 
 @Composable
-internal fun ClassicWorkspaceContainer(
+internal fun WorkspacePagerContainer(
     design: WorkspaceDesign = WorkspaceDesign(),
     state: WorkspacesViewModel.State,
     managerDialogs: List<ManagerDialog> = emptyList(),

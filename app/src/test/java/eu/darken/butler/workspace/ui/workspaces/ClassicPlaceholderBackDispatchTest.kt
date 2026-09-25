@@ -28,7 +28,7 @@ import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
-import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
+import eu.darken.butler.workspace.ui.workspaces.classic.WorkspacePagerContainer
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
@@ -141,7 +141,7 @@ class ClassicPlaceholderBackDispatchTest : ComposeTest() {
                         onDismiss = { outcome.overlayDismissed = true },
                     )
 
-                    ClassicWorkspaceContainer(
+                    WorkspacePagerContainer(
                         state = state,
                         managerDialogs = managerDialogs,
                         isOverlayVisible = overlayVisible,

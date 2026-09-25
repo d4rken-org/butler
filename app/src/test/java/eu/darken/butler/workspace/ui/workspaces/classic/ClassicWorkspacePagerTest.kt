@@ -162,7 +162,7 @@ class ClassicWorkspacePagerTest : ComposeTest() {
                 // position is the whole point.
                 BackHandler(enabled = true) { onReachedAppRoot() }
 
-                ClassicWorkspaceContainer(
+                WorkspacePagerContainer(
                     state = state,
                     onWorkspaceScreenAction = onAction,
                     managerDialogStates = emptyMap(),

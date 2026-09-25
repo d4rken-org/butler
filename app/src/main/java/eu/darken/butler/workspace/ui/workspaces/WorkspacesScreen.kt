@@ -81,7 +81,7 @@ import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRailDefaults
-import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
+import eu.darken.butler.workspace.ui.workspaces.classic.WorkspacePagerContainer
 import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
 import eu.darken.butler.workspace.ui.workspaces.tour.WorkspacePanesTour
 import eu.darken.butler.workspace.ui.workspaces.tour.WorkspaceSwipeTour
@@ -258,7 +258,7 @@ fun WorkspaceScreen(
                 onShareError = onShareError,
             )
         } else {
-            ClassicWorkspaceContainer(
+            WorkspacePagerContainer(
                 state = state,
                 managerDialogs = managerDialogs,
                 isOverlayVisible = isOverlayVisible,

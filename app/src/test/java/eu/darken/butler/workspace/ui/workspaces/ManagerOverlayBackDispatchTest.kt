@@ -13,7 +13,7 @@ import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
-import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
+import eu.darken.butler.workspace.ui.workspaces.classic.WorkspacePagerContainer
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
@@ -96,7 +96,7 @@ class ManagerOverlayBackDispatchTest : ComposeTest() {
                     )
 
                     when (container) {
-                        Container.CLASSIC -> ClassicWorkspaceContainer(
+                        Container.CLASSIC -> WorkspacePagerContainer(
                             state = state,
                             isOverlayVisible = overlayVisible,
                             onWorkspaceScreenAction = {},

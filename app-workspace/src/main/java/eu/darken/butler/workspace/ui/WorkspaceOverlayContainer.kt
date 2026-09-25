@@ -22,7 +22,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
  * Manager-controlled dialogs are NOT rendered here — they are their own layer, composed by the
  * pane layer host above this container.
  *
- * The container is used consistently across both single-pane (ClassicWorkspaceContainer)
+ * The container is used consistently across both single-pane (WorkspacePagerContainer)
  * and multi-pane (AdaptiveWorkspaceLayout) layouts.
  *
  * @param workspaceId The ID of the workspace being wrapped
