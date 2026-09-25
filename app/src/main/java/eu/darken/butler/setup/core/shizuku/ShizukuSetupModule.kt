@@ -93,11 +93,17 @@ class ShizukuSetupModule @Inject constructor(
     }
 
     private suspend fun recordAnswer(manager: String?, answer: AdbPermissionState) {
+        if (manager == null) return
         when (answer) {
-            is AdbPermissionState.Denied -> adbSettings.permissionDeniedBy.value(manager)
-            AdbPermissionState.Granted -> adbSettings.permissionDeniedBy.value(null)
+            is AdbPermissionState.Denied -> adbSettings.permissionDeniedByManagers.update { it + manager }
+            AdbPermissionState.Granted -> clearDenial(manager)
             AdbPermissionState.Unknown -> {}
         }
+    }
+
+    private suspend fun clearDenial(manager: String?) {
+        if (manager == null) return
+        adbSettings.permissionDeniedByManagers.update { it - manager }
     }
 
     private suspend fun promptIfNeeded() {
@@ -109,6 +115,7 @@ class ShizukuSetupModule @Inject constructor(
                 true -> {
                     log(TAG) { "Permission already granted, nothing to prompt for" }
                     adbSettings.permissionPromptPending.value(false)
+                    clearDenial(currentManager())
                     return
                 }
 
@@ -120,9 +127,15 @@ class ShizukuSetupModule @Inject constructor(
                 false -> {}
             }
             val manager = currentManager()
-            if (!pending && manager != null && manager == adbSettings.permissionDeniedBy.value()) {
-                log(TAG) { "$manager denied Butler before, not asking it again on its own" }
-                return
+            if (!pending) {
+                if (manager == null) {
+                    log(TAG) { "Newly connected manager could not be identified, not asking it on its own" }
+                    return
+                }
+                if (manager in adbSettings.permissionDeniedByManagers.value()) {
+                    log(TAG) { "$manager denied Butler before, not asking it again on its own" }
+                    return
+                }
             }
             log(TAG) {
                 if (pending) {
@@ -306,6 +319,7 @@ class ShizukuSetupModule @Inject constructor(
 
             true -> {
                 adbSettings.permissionPromptPending.value(false)
+                clearDenial(currentManager())
                 adbSettings.useShizuku.value(true)
             }
         }

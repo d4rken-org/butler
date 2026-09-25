@@ -58,7 +58,7 @@ class ShizukuSetupModuleTest : BaseTest() {
 
     private lateinit var useShizukuFlow: MutableStateFlow<Boolean?>
     private lateinit var promptPendingFlow: MutableStateFlow<Boolean>
-    private lateinit var deniedByFlow: MutableStateFlow<String?>
+    private lateinit var deniedByFlow: MutableStateFlow<Set<String>>
     private lateinit var serverFlow: MutableStateFlow<AdbServer?>
     private lateinit var scope: CoroutineScope
     private var probeCount = 0
@@ -87,7 +87,7 @@ class ShizukuSetupModuleTest : BaseTest() {
         probeCount = 0
         useShizukuFlow = MutableStateFlow(true)
         promptPendingFlow = MutableStateFlow(false)
-        deniedByFlow = MutableStateFlow(null)
+        deniedByFlow = MutableStateFlow(emptySet())
         serverFlow = MutableStateFlow(null)
         scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 
@@ -97,7 +97,7 @@ class ShizukuSetupModuleTest : BaseTest() {
         val deniedByValue = deniedByFlow.asDataStoreValue()
         every { adbSettings.useShizuku } returns useShizukuValue
         every { adbSettings.permissionPromptPending } returns promptPendingValue
-        every { adbSettings.permissionDeniedBy } returns deniedByValue
+        every { adbSettings.permissionDeniedByManagers } returns deniedByValue
 
         every { shizukuManager.shizukuBinder } returns serverFlow
         every { shizukuManager.permissionState } returns flowOf(AdbPermissionState.Granted)
@@ -439,12 +439,12 @@ class ShizukuSetupModuleTest : BaseTest() {
         coVerify(exactly = 1) { shizukuManager.requestPermission() }
         useShizukuFlow.value shouldBe true
         promptPendingFlow.value shouldBe false
-        deniedByFlow.value shouldBe SHIZUKU_MANAGER
+        deniedByFlow.value shouldBe setOf(SHIZUKU_MANAGER)
     }
 
     @Test fun `a granted prompt on enable clears a recorded denial`() {
         useShizukuFlow.value = null
-        deniedByFlow.value = SHIZUKU_MANAGER
+        deniedByFlow.value = setOf(SHIZUKU_MANAGER, "PORTER:${PORTER.name}")
         serverFlow.value = server
         coEvery { shizukuManager.isGranted() } returns false
         coEvery { shizukuManager.requestPermission() } returns AdbPermissionState.Granted
@@ -453,7 +453,7 @@ class ShizukuSetupModuleTest : BaseTest() {
 
         coVerify(exactly = 1) { shizukuManager.requestPermission() }
         useShizukuFlow.value shouldBe true
-        deniedByFlow.value shouldBe null
+        deniedByFlow.value shouldBe setOf("PORTER:${PORTER.name}")
     }
 
     @Test fun `a permanent denial on enable keeps the switch on`() {
@@ -509,7 +509,7 @@ class ShizukuSetupModuleTest : BaseTest() {
     }
 
     @Test fun `a connection to a manager that denied Butler does not prompt`() {
-        deniedByFlow.value = SHIZUKU_MANAGER
+        deniedByFlow.value = setOf(SHIZUKU_MANAGER)
         coEvery { shizukuManager.isGranted() } returns false
         val collector = module().state.test(tag = "denied-before", scope = scope)
         collector.awaitResult { !it.basicService }
@@ -524,7 +524,7 @@ class ShizukuSetupModuleTest : BaseTest() {
     }
 
     @Test fun `a different manager is asked despite a recorded denial`() {
-        deniedByFlow.value = SHIZUKU_MANAGER
+        deniedByFlow.value = setOf(SHIZUKU_MANAGER)
         coEvery { shizukuManager.availability() } returns AdbAvailability.Connected(AdbBackend.PORTER, PORTER.name)
         coEvery { shizukuManager.isGranted() } returns false
         val requests = AtomicInteger(0)
@@ -540,7 +540,7 @@ class ShizukuSetupModuleTest : BaseTest() {
         runBlocking { withTimeoutOrNull(3_000) { while (requests.get() < 1) delay(5) } }
 
         requests.get() shouldBe 1
-        eventually { deniedByFlow.value == "PORTER:${PORTER.name}" }
+        eventually { deniedByFlow.value == setOf(SHIZUKU_MANAGER, "PORTER:${PORTER.name}") }
 
         runBlocking { collector.cancelAndJoin() }
     }
@@ -638,6 +638,112 @@ class ShizukuSetupModuleTest : BaseTest() {
 
         withClue("no second prompt after the manager answered Deny") {
             requests.get() shouldBe 1
+        }
+
+        runBlocking { collector.cancelAndJoin() }
+    }
+
+    /** Answers the n-th request with the n-th answer, and any request past the script with Deny. */
+    private fun scriptRequests(vararg answers: AdbPermissionState): AtomicInteger {
+        val requests = AtomicInteger(0)
+        coEvery { shizukuManager.requestPermission() } coAnswers {
+            answers.getOrElse(requests.incrementAndGet() - 1) { AdbPermissionState.Denied(permanentlyDenied = false) }
+        }
+        return requests
+    }
+
+    @Test fun `a deny on one manager survives an answer from another manager`() {
+        useShizukuFlow.value = null
+        serverFlow.value = server
+        coEvery { shizukuManager.isGranted() } returns false
+        val requests = scriptRequests(AdbPermissionState.Denied(permanentlyDenied = false), AdbPermissionState.Granted)
+        val mod = module()
+
+        runBlocking { mod.toggleUseShizuku(true) }
+        val collector = mod.state.test(tag = "two-managers", scope = scope)
+        collector.awaitResult { it.basicService }
+        runBlocking { delay(300) }
+
+        coEvery { shizukuManager.availability() } returns AdbAvailability.Connected(AdbBackend.PORTER, PORTER.name)
+        serverFlow.value = mockk<AdbServer>().also { every { it.backend } returns AdbBackend.PORTER }
+        collector.awaitResult { it.basicService && it.backend == AdbBackend.PORTER }
+        runBlocking { withTimeoutOrNull(3_000) { while (requests.get() < 2) delay(5) } }
+
+        withClue("Porter was not asked when it connected") {
+            requests.get() shouldBe 2
+        }
+
+        coEvery { shizukuManager.availability() } returns AdbAvailability.Connected(AdbBackend.SHIZUKU, SHIZUKU.name)
+        serverFlow.value = mockk<AdbServer>().also { every { it.backend } returns AdbBackend.SHIZUKU }
+        collector.awaitResult { it.basicService && it.backend == AdbBackend.SHIZUKU }
+        runBlocking { delay(300) }
+
+        withClue("Shizuku was asked again after its Deny") {
+            requests.get() shouldBe 2
+        }
+
+        runBlocking { collector.cancelAndJoin() }
+    }
+
+    @Test fun `an unidentified manager is not prompted over a saved deny`() {
+        useShizukuFlow.value = null
+        serverFlow.value = server
+        coEvery { shizukuManager.isGranted() } returns false
+        val requests = scriptRequests(AdbPermissionState.Denied(permanentlyDenied = false))
+        val mod = module()
+
+        runBlocking { mod.toggleUseShizuku(true) }
+        val collector = mod.state.test(tag = "unidentified", scope = scope)
+        collector.awaitResult { it.basicService }
+        runBlocking { delay(300) }
+
+        coEvery { shizukuManager.availability() } returns null
+        serverFlow.value = mockk<AdbServer>().also { every { it.backend } returns AdbBackend.SHIZUKU }
+        collector.awaitResult { it.basicService }
+        runBlocking { delay(300) }
+
+        withClue("prompted while the manager could not be identified") {
+            requests.get() shouldBe 1
+        }
+
+        coEvery { shizukuManager.availability() } returns AdbAvailability.Connected(AdbBackend.SHIZUKU, SHIZUKU.name)
+        serverFlow.value = mockk<AdbServer>().also { every { it.backend } returns AdbBackend.SHIZUKU }
+        collector.awaitResult { it.basicService }
+        runBlocking { delay(300) }
+
+        withClue("Deny was lost after the unidentified connection") {
+            requests.get() shouldBe 1
+        }
+
+        runBlocking { collector.cancelAndJoin() }
+    }
+
+    @Test fun `a grant seen without asking clears that manager's deny`() {
+        useShizukuFlow.value = null
+        serverFlow.value = server
+        coEvery { shizukuManager.isGranted() } returns false
+        val requests = scriptRequests(AdbPermissionState.Denied(permanentlyDenied = false), AdbPermissionState.Granted)
+        val mod = module()
+
+        runBlocking { mod.toggleUseShizuku(true) }
+        val collector = mod.state.test(tag = "outside-grant", scope = scope)
+        collector.awaitResult { it.basicService }
+        runBlocking { delay(300) }
+
+        // Granted inside the manager app.
+        coEvery { shizukuManager.isGranted() } returns true
+        serverFlow.value = mockk<AdbServer>().also { every { it.backend } returns AdbBackend.SHIZUKU }
+        collector.awaitResult { it.basicService }
+        runBlocking { delay(300) }
+
+        // The grant is lost again.
+        coEvery { shizukuManager.isGranted() } returns false
+        serverFlow.value = mockk<AdbServer>().also { every { it.backend } returns AdbBackend.SHIZUKU }
+        collector.awaitResult { it.basicService }
+        runBlocking { withTimeoutOrNull(3_000) { while (requests.get() < 2) delay(5) } }
+
+        withClue("not asked after the grant was lost") {
+            requests.get() shouldBe 2
         }
 
         runBlocking { collector.cancelAndJoin() }
