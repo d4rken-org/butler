@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Ενεργοποίηση κάδου</string>
     <string name="explorer_settings_trash_enabled_desc">Μετακίνηση διαγραμμένων αρχείων στον κάδο αντί για οριστική διαγραφή</string>
     <string name="explorer_settings_trash_auto_delete_title">Αυτόματη διαγραφή μετά από</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Αυτόματη διαγραφή στοιχείων παλαιότερων από %d ημέρες</string>
     <string name="explorer_settings_trash_auto_delete_value">%d ημέρες</string>
     <string name="explorer_settings_trash_max_size_title">Μέγιστο μέγεθος ανά αποθηκευτικό χώρο</string>
-    <string name="explorer_settings_trash_max_size_desc">%d MB το μέγιστο ανά αποθηκευτική θέση</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Περίοδος αυτόματης διαγραφής</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Μέγιστο μέγεθος ανά αποθηκευτικό χώρο</string>

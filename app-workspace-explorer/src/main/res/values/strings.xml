@@ -14,10 +14,10 @@
     <string name="explorer_settings_trash_enabled_title">Enable trash</string>
     <string name="explorer_settings_trash_enabled_desc">Move deleted files to trash instead of permanently deleting them</string>
     <string name="explorer_settings_trash_auto_delete_title">Auto-delete after</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Automatically delete items older than %d days</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Automatically delete items after this much time in trash</string>
     <string name="explorer_settings_trash_auto_delete_value">%d days</string>
     <string name="explorer_settings_trash_max_size_title">Maximum size per storage</string>
-    <string name="explorer_settings_trash_max_size_desc">%d MB maximum per storage location</string>
+    <string name="explorer_settings_trash_max_size_summary">How much space the trash may use on each storage location</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Auto-delete period</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maximum size per storage</string>

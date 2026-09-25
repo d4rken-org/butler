@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Bật thùng rác</string>
     <string name="explorer_settings_trash_enabled_desc">Chuyển tệp đã xóa vào thùng rác thay vì xóa vĩnh viễn</string>
     <string name="explorer_settings_trash_auto_delete_title">Tự động xóa sau</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Tự động xóa các mục cũ hơn %d ngày</string>
     <string name="explorer_settings_trash_auto_delete_value">%d ngày</string>
     <string name="explorer_settings_trash_max_size_title">Dung lượng tối đa mỗi bộ nhớ</string>
-    <string name="explorer_settings_trash_max_size_desc">Tối đa %d MB cho mỗi vị trí lưu trữ</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Thời gian tự động xóa</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Dung lượng tối đa mỗi bộ nhớ</string>

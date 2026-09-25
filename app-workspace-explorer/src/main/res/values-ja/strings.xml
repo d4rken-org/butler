@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">ゴミ箱を有効にする</string>
     <string name="explorer_settings_trash_enabled_desc">削除したファイルを完全に削除する代わりにゴミ箱に移動します</string>
     <string name="explorer_settings_trash_auto_delete_title">自動削除までの期間</string>
-    <string name="explorer_settings_trash_auto_delete_desc">%d 日以上経過した項目を自動的に削除します</string>
     <string name="explorer_settings_trash_auto_delete_value">%d 日</string>
     <string name="explorer_settings_trash_max_size_title">ストレージごとの最大サイズ</string>
-    <string name="explorer_settings_trash_max_size_desc">ストレージごとの最大 %d MB</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">自動削除の期間</string>
     <string name="explorer_settings_trash_max_size_dialog_title">ストレージごとの最大サイズ</string>

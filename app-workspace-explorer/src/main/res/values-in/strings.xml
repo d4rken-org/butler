@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Aktifkan sampah</string>
     <string name="explorer_settings_trash_enabled_desc">Pindahkan berkas yang dihapus ke sampah, bukan menghapusnya secara permanen</string>
     <string name="explorer_settings_trash_auto_delete_title">Hapus otomatis setelah</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Hapus otomatis item yang lebih lama dari %d hari</string>
     <string name="explorer_settings_trash_auto_delete_value">%d hari</string>
     <string name="explorer_settings_trash_max_size_title">Ukuran maksimum per penyimpanan</string>
-    <string name="explorer_settings_trash_max_size_desc">Maksimum %d MB per lokasi penyimpanan</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Periode hapus otomatis</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Ukuran maksimum per penyimpanan</string>

@@ -44,9 +44,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">자주 방문한 경로를 바로가기로 자동 추가</string>
     <string name="shortcuts_settings_last_accessed_title">마지막 접근</string>
     <string name="shortcuts_settings_max_count_title">최대 바로가기 수</string>
-    <string name="shortcuts_settings_max_count_subtitle">현재 바로가기 %d개 표시 중</string>
     <string name="shortcuts_settings_min_access_title">최소 접근 횟수</string>
-    <string name="shortcuts_settings_min_access_subtitle">표시되려면 %d회 접근 필요</string>
     <string name="shortcuts_settings_current_title">현재 바로가기</string>
     <string name="shortcuts_settings_current_subtitle">바로가기 %d개 추적 중</string>
     <string name="shortcuts_settings_clear_title">바로가기 기록 지우기</string>

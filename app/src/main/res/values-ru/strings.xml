@@ -45,9 +45,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Автоматически добавлять часто посещаемые пути как ярлыки</string>
     <string name="shortcuts_settings_last_accessed_title">Последний доступ</string>
     <string name="shortcuts_settings_max_count_title">Максимум ярлыков</string>
-    <string name="shortcuts_settings_max_count_subtitle">Сейчас отображается %d ярлыков</string>
     <string name="shortcuts_settings_min_access_title">Минимум доступов</string>
-    <string name="shortcuts_settings_min_access_subtitle">Требуется %d доступов перед отображением</string>
     <string name="shortcuts_settings_current_title">Текущие ярлыки</string>
     <string name="shortcuts_settings_current_subtitle">%d ярлыков отслеживается</string>
     <string name="shortcuts_settings_clear_title">Очистить историю ярлыков</string>

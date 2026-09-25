@@ -44,9 +44,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Häufig besuchte Pfade automatisch als Verknüpfungen hinzufügen</string>
     <string name="shortcuts_settings_last_accessed_title">Zuletzt aufgerufen</string>
     <string name="shortcuts_settings_max_count_title">Maximale Anzahl Verknüpfungen</string>
-    <string name="shortcuts_settings_max_count_subtitle">Derzeit werden %d Verknüpfungen angezeigt</string>
     <string name="shortcuts_settings_min_access_title">Mindestanzahl der Zugriffe</string>
-    <string name="shortcuts_settings_min_access_subtitle">Vor dem Anzeigen sind %d Zugriffe erforderlich</string>
     <string name="shortcuts_settings_current_title">Aktuelle Verknüpfungen</string>
     <string name="shortcuts_settings_current_subtitle">%d Verknüpfungen erfasst</string>
     <string name="shortcuts_settings_clear_title">Verknüpfungsverlauf leeren</string>

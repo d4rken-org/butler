@@ -44,9 +44,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">เพิ่มเส้นทางที่เข้าบ่อยเป็นทางลัดโดยอัตโนมัติ</string>
     <string name="shortcuts_settings_last_accessed_title">เข้าถึงล่าสุด</string>
     <string name="shortcuts_settings_max_count_title">จำนวนทางลัดสูงสุด</string>
-    <string name="shortcuts_settings_max_count_subtitle">ขณะนี้แสดง %d ทางลัด</string>
     <string name="shortcuts_settings_min_access_title">จำนวนการเข้าถึงขั้นต่ำ</string>
-    <string name="shortcuts_settings_min_access_subtitle">ต้องเข้าถึง %d ครั้งก่อนจึงจะแสดง</string>
     <string name="shortcuts_settings_current_title">ทางลัดปัจจุบัน</string>
     <string name="shortcuts_settings_current_subtitle">บันทึกทางลัดไว้ %d รายการ</string>
     <string name="shortcuts_settings_clear_title">ล้างประวัติทางลัด</string>

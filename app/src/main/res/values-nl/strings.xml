@@ -44,9 +44,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Voeg veelbezochte paden automatisch toe als snelkoppeling</string>
     <string name="shortcuts_settings_last_accessed_title">Laatst geopend</string>
     <string name="shortcuts_settings_max_count_title">Maximum aantal snelkoppelingen</string>
-    <string name="shortcuts_settings_max_count_subtitle">Toont momenteel %d snelkoppelingen</string>
     <string name="shortcuts_settings_min_access_title">Minimum aantal keer geopend</string>
-    <string name="shortcuts_settings_min_access_subtitle">Vereist %d keer openen voordat het wordt getoond</string>
     <string name="shortcuts_settings_current_title">Huidige snelkoppelingen</string>
     <string name="shortcuts_settings_current_subtitle">%d snelkoppelingen bijgehouden</string>
     <string name="shortcuts_settings_clear_title">Snelkoppelingsgeschiedenis wissen</string>

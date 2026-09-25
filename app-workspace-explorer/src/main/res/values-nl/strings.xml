@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Prullenbak inschakelen</string>
     <string name="explorer_settings_trash_enabled_desc">Verplaats verwijderde bestanden naar de prullenbak in plaats van ze permanent te verwijderen</string>
     <string name="explorer_settings_trash_auto_delete_title">Automatisch verwijderen na</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Verwijder items automatisch die ouder zijn dan %d dagen</string>
     <string name="explorer_settings_trash_auto_delete_value">%d dagen</string>
     <string name="explorer_settings_trash_max_size_title">Maximale grootte per opslag</string>
-    <string name="explorer_settings_trash_max_size_desc">Maximaal %d MB per opslaglocatie</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Periode voor automatisch verwijderen</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maximale grootte per opslag</string>

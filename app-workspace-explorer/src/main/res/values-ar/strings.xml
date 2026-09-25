@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">تفعيل سلة المهملات</string>
     <string name="explorer_settings_trash_enabled_desc">نقل الملفات المحذوفة إلى سلة المهملات بدلاً من حذفها نهائيًا</string>
     <string name="explorer_settings_trash_auto_delete_title">الحذف التلقائي بعد</string>
-    <string name="explorer_settings_trash_auto_delete_desc">حذف العناصر الأقدم من %d يوم تلقائيًا</string>
     <string name="explorer_settings_trash_auto_delete_value">%d يوم</string>
     <string name="explorer_settings_trash_max_size_title">الحجم الأقصى لكل تخزين</string>
-    <string name="explorer_settings_trash_max_size_desc">%d ميغابايت كحد أقصى لكل موقع تخزين</string>
     <string name="explorer_settings_trash_max_size_value">%d ميغابايت</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">فترة الحذف التلقائي</string>
     <string name="explorer_settings_trash_max_size_dialog_title">الحجم الأقصى لكل تخزين</string>

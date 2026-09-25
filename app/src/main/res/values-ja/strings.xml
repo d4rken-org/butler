@@ -44,9 +44,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">よく訪れるパスを自動的にショートカットとして追加</string>
     <string name="shortcuts_settings_last_accessed_title">最終アクセス</string>
     <string name="shortcuts_settings_max_count_title">最大ショートカット数</string>
-    <string name="shortcuts_settings_max_count_subtitle">現在%d件のショートカットを表示中</string>
     <string name="shortcuts_settings_min_access_title">最小アクセス回数</string>
-    <string name="shortcuts_settings_min_access_subtitle">表示までに必要なアクセス回数: %d回</string>
     <string name="shortcuts_settings_current_title">現在のショートカット</string>
     <string name="shortcuts_settings_current_subtitle">%d件のショートカットを記録中</string>
     <string name="shortcuts_settings_clear_title">ショートカット履歴を消去</string>

@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">เปิดใช้ถังขยะ</string>
     <string name="explorer_settings_trash_enabled_desc">ย้ายไฟล์ที่ลบไปยังถังขยะแทนการลบถาวร</string>
     <string name="explorer_settings_trash_auto_delete_title">ลบอัตโนมัติหลังจาก</string>
-    <string name="explorer_settings_trash_auto_delete_desc">ลบรายการที่เก่ากว่า %d วันโดยอัตโนมัติ</string>
     <string name="explorer_settings_trash_auto_delete_value">%d วัน</string>
     <string name="explorer_settings_trash_max_size_title">ขนาดสูงสุดต่อที่เก็บข้อมูล</string>
-    <string name="explorer_settings_trash_max_size_desc">สูงสุด %d MB ต่อตำแหน่งที่เก็บข้อมูล</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">ระยะเวลาลบอัตโนมัติ</string>
     <string name="explorer_settings_trash_max_size_dialog_title">ขนาดสูงสุดต่อที่เก็บข้อมูล</string>

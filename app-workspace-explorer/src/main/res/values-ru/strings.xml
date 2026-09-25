@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Включить корзину</string>
     <string name="explorer_settings_trash_enabled_desc">Перемещать удалённые файлы в корзину вместо немедленного удаления</string>
     <string name="explorer_settings_trash_auto_delete_title">Автоудаление через</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Автоматически удалять объекты старше %d дней</string>
     <string name="explorer_settings_trash_auto_delete_value">%d дней</string>
     <string name="explorer_settings_trash_max_size_title">Максимальный размер на хранилище</string>
-    <string name="explorer_settings_trash_max_size_desc">Максимум %d МБ на место хранения</string>
     <string name="explorer_settings_trash_max_size_value">%d МБ</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Период автоудаления</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Максимальный размер на хранилище</string>
