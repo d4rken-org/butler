@@ -139,11 +139,13 @@ Results land in `app-e2e/build/outputs/upgrade-test`.
 ```
 
 Reports land in `<module>/build/reports/androidTests/connected/`. In CI, the `Emulator tests`
-workflow (`.github/workflows/emulator.yml`) runs the debug tests on API 30 and API 36, and the gplay
-beta golden path and the upgrade test in a separate API 36 job. It uploads the `device-tests-api-<level>` and `minified-tests-api-36` artifacts
-even when the tests fail. The workflow names each module's task
-explicitly: a module that gains device tests (an `androidTest` source set, or a `com.android.test`
-module like `:app-e2e`) must be added to both its build and its run step, or its tests never run in CI.
+workflow (`.github/workflows/emulator.yml`) runs the debug tests on API 30 and API 36. The gplay beta
+golden path and the upgrade test run in a separate API 36 job, on APKs that two parallel jobs build,
+through `tools/e2e-test.sh` and `tools/upgrade-test.sh` instead of Gradle. The previous release's
+APKs are cached per tag commit. The workflow uploads the `device-tests-api-<level>` and
+`minified-tests-api-36` artifacts even when the tests fail. It names each module's task explicitly:
+a module that gains device tests (an `androidTest` source set, or a `com.android.test` module like
+`:app-e2e`) must be added to both its build and its run step, or its tests never run in CI.
 
 Mocking on a device uses `mockk-android`, which needs a mockk release that ships its native agent
 (1.14.9 does, 1.12.4 did not).
