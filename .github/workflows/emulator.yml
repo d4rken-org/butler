@@ -29,9 +29,31 @@ jobs:
       - name: Setup project and build environment
         uses: ./.github/actions/common-setup
 
+      - name: Sign release-type builds with the debug key
+        # Beta builds sign with this keystore instead of the release secrets. It has to exist before
+        # the first Gradle invocation, which is when these variables are read.
+        run: |
+          keystore="$HOME/.android/debug.keystore"
+          if [ ! -f "$keystore" ]; then
+            mkdir -p "$(dirname "$keystore")"
+            keytool -genkeypair -keystore "$keystore" -storepass android -alias androiddebugkey -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          {
+            echo "STORE_PATH=$keystore"
+            echo "STORE_PASSWORD=android"
+            echo "KEY_ALIAS=androiddebugkey"
+            echo "KEY_PASSWORD=android"
+          } >> "$GITHUB_ENV"
+
       - name: Build device test APKs
         # With four workers, the parallel dex merges of these APKs can run the daemon out of heap.
         run: ./gradlew --max-workers=2 :app-common-io:assembleFossDebugAndroidTest :app-common-pkgs:assembleFossDebugAndroidTest :app:assembleFossDebug :app-e2e:assembleFossDebug
+
+      - name: Build minified APKs
+        # Its own invocation, so R8 does not run alongside the dex merges above.
+        if: matrix.api == 36
+        run: ./gradlew --max-workers=2 :app:assembleGplayBeta :app-e2e:assembleGplayBeta
 
       - name: Build the previous release for the upgrade test
         if: matrix.api == 36
@@ -40,10 +62,10 @@ jobs:
           echo "Upgrade test starts from $base"
           git worktree add --detach "$RUNNER_TEMP/upgrade-base" "$base"
           cd "$RUNNER_TEMP/upgrade-base"
-          tasks=":app:assembleFossDebug"
+          tasks=":app:assembleGplayBeta"
           # A release that has UpgradeTest drives its own app with the steps written for it.
           if [ -f app-e2e/src/main/java/eu/darken/butler/e2e/UpgradeTest.kt ]; then tasks="$tasks :app-e2e:assembleFossDebug"; fi
-          ./gradlew --no-daemon $tasks
+          ./gradlew --no-daemon --max-workers=2 $tasks
 
       - name: Enable KVM
         run: |
@@ -65,8 +87,8 @@ jobs:
           # Each line runs on its own and the first failing one ends the step, so a device test
           # failure is only recorded until the upgrade test has run too.
           script: |
-            ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest || touch "$RUNNER_TEMP/device-tests-failed"
-            if [ "${{ matrix.api }}" = 36 ]; then old_e2e="$RUNNER_TEMP/upgrade-base/app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP/upgrade-base/app/build/outputs/apk/foss/debug/app-foss-debug.apk" app/build/outputs/apk/foss/debug/app-foss-debug.apk app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk $old_e2e; fi
+            ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest ${{ matrix.api == 36 && ':app-e2e:connectedGplayBetaAndroidTest' || '' }} || touch "$RUNNER_TEMP/device-tests-failed"
+            if [ "${{ matrix.api }}" = 36 ]; then old_e2e="$RUNNER_TEMP/upgrade-base/app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP"/upgrade-base/app/build/outputs/apk/gplay/beta/*.apk app/build/outputs/apk/gplay/beta/*.apk app-e2e/build/outputs/apk/gplay/beta/app-e2e-gplay-beta.apk $old_e2e; fi
             test ! -e "$RUNNER_TEMP/device-tests-failed"
 
       - name: Upload device test results

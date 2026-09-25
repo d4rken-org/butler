@@ -82,7 +82,7 @@ ANDROID_SERIAL=emulator-5554 ./gradlew :app-common-io:connectedFossDebugAndroidT
 ```
 
 The golden path (fresh install, onboarding, first screen) lives in `:app-e2e`, a `com.android.test`
-module that drives the installed FOSS debug app with UiAutomator. It is self-instrumenting: the tests
+module that drives the installed app with UiAutomator. It is self-instrumenting: the tests
 run in their own process, so they can `pm clear`, force-stop and relaunch the app. Its sources are in
 `src/main`, and its selectors look up the app's string resources by name rather than matching
 English text.
@@ -91,8 +91,23 @@ English text.
 ANDROID_SERIAL=emulator-5554 ./gradlew :app-e2e:connectedFossDebugAndroidTest
 ```
 
-The test wipes the app under test: it starts with `pm clear eu.darken.butler`, and debug builds share
-the release application id. Point `ANDROID_SERIAL` only at an emulator started for the run.
+The same tests also drive the R8-minified gplay beta build. Only the gplay flavor's beta and release
+builds are obfuscated, so this run can catch a missing keep rule on the paths it exercises, which the
+unminified debug build hides. `setupCredentials` signs beta builds with the keystore the `STORE_*`
+variables name, but only if that file exists; otherwise it falls back to the release signing
+properties under `~/.config/projects/eu.darken.butler/`, if present. Check for the debug keystore
+(any debug build creates it) and scope the variables to the command, so later release builds in the
+same shell keep their own keys:
+
+```bash
+test -f ~/.android/debug.keystore &&
+    STORE_PATH=$HOME/.android/debug.keystore STORE_PASSWORD=android \
+    KEY_ALIAS=androiddebugkey KEY_PASSWORD=android \
+    ANDROID_SERIAL=emulator-5554 ./gradlew :app-e2e:connectedGplayBetaAndroidTest
+```
+
+The test wipes the app under test: it starts with `pm clear eu.darken.butler`, and debug and beta builds
+share the release application id. Point `ANDROID_SERIAL` only at an emulator started for the run.
 
 `UpgradeTest` in the same module checks the upgrade path: its `beforeUpgrade` phase onboards and
 opens an Explorer tab in an older build, and `afterUpgrade` expects that tab back after the current
@@ -101,22 +116,32 @@ APK between the phases. The script re-signs both app APKs with `~/.android/debug
 in-place install needs matching keys, and refuses to run without `ANDROID_SERIAL`. An optional fourth
 argument is the older build's own `:app-e2e` APK, so `beforeUpgrade` runs the steps written for that
 release; without it (tags older than `UpgradeTest`), the current test APK drives the older build. CI
-runs it on API 36, starting from the nearest `v*` tag before `HEAD`. Results land in
-`app-e2e/build/outputs/upgrade-test`.
+runs it on API 36 with gplay beta builds on both sides, starting from the nearest `v*` tag before
+`HEAD`, so the saved Explorer tab must survive an upgrade between independently minified app builds.
+Results land in `app-e2e/build/outputs/upgrade-test`.
 
 ```bash
-git worktree add --detach /tmp/upgrade-base "$(git describe --tags --abbrev=0 --match 'v*' HEAD^)"
-(cd /tmp/upgrade-base && ./gradlew :app:assembleFossDebug)
-./gradlew :app:assembleFossDebug :app-e2e:assembleFossDebug
-ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh \
-    /tmp/upgrade-base/app/build/outputs/apk/foss/debug/app-foss-debug.apk \
-    app/build/outputs/apk/foss/debug/app-foss-debug.apk \
-    app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk
+(
+    set -e
+    test -f "$HOME/.android/debug.keystore"
+    export STORE_PATH="$HOME/.android/debug.keystore" STORE_PASSWORD=android \
+        KEY_ALIAS=androiddebugkey KEY_PASSWORD=android
+    git worktree add --detach /tmp/upgrade-base "$(git describe --tags --abbrev=0 --match 'v*' HEAD^)"
+    (cd /tmp/upgrade-base && ./gradlew :app:assembleGplayBeta)
+    # Remove stale APKs before using the glob below.
+    rm -rf app/build/outputs/apk/gplay/beta
+    ./gradlew :app:assembleGplayBeta :app-e2e:assembleGplayBeta
+    ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh \
+        /tmp/upgrade-base/app/build/outputs/apk/gplay/beta/*.apk \
+        app/build/outputs/apk/gplay/beta/*.apk \
+        app-e2e/build/outputs/apk/gplay/beta/app-e2e-gplay-beta.apk
+)
 ```
 
 Reports land in `<module>/build/reports/androidTests/connected/`. In CI, the `Emulator tests`
-workflow (`.github/workflows/emulator.yml`) runs them on API 30 and API 36 and uploads the
-`device-tests-api-<level>` artifact even when they fail. The workflow names each module's task
+workflow (`.github/workflows/emulator.yml`) runs them on API 30 and API 36 (the gplay beta golden
+path and the upgrade test on API 36 only) and uploads the `device-tests-api-<level>` artifact even
+when they fail. The workflow names each module's task
 explicitly: a module that gains device tests (an `androidTest` source set, or a `com.android.test`
 module like `:app-e2e`) must be added to both its build and its run step, or its tests never run in CI.
 
