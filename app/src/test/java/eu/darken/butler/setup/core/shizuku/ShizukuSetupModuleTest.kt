@@ -16,6 +16,7 @@ import eu.darken.butler.common.pkgs.getLabel2
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.setup.core.SetupModule
+import io.kotest.assertions.withClue
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -25,6 +26,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -35,6 +37,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -43,6 +46,7 @@ import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.flow.TestCollector
 import testhelpers.flow.awaitSharingStopped
 import testhelpers.flow.test
+import java.util.concurrent.atomic.AtomicInteger
 
 class ShizukuSetupModuleTest : BaseTest() {
 
@@ -494,6 +498,40 @@ class ShizukuSetupModuleTest : BaseTest() {
         collector.awaitResult { it.basicService }
 
         coVerify(exactly = 0) { shizukuManager.requestPermission() }
+
+        runBlocking { collector.cancelAndJoin() }
+    }
+
+    @Test fun `a replacement server during a pending prompt is prompted once the first request ends`() {
+        promptPendingFlow.value = true
+        coEvery { shizukuManager.isGranted() } returns false
+        val firstAnswer = CompletableDeferred<AdbPermissionState>()
+        val requests = AtomicInteger(0)
+        coEvery { shizukuManager.requestPermission() } coAnswers {
+            if (requests.incrementAndGet() == 1) firstAnswer.await() else AdbPermissionState.Granted
+        }
+        val collector = module().state.test(tag = "replacement", scope = scope)
+        collector.awaitResult { !it.basicService }
+
+        // Connection 1 shows up: the pending prompt starts and waits for the user's answer.
+        serverFlow.value = server
+        eventually { requests.get() == 1 }
+
+        // Server restart before the user answered: connection 2 replaces connection 1.
+        val before = probeCount
+        val replacement = mockk<AdbServer>().also { every { it.backend } returns AdbBackend.SHIZUKU }
+        serverFlow.value = replacement
+        eventually { probeCount > before }
+        runBlocking { delay(200) } // let the trigger's launch for connection 2 run
+
+        // Connection 1's request ends without an answer because its connection went away.
+        firstAnswer.complete(AdbPermissionState.Unknown)
+        runBlocking { withTimeoutOrNull(3_000) { while (requests.get() < 2) delay(5) } }
+
+        withClue("requestPermission() calls after connection 1 ended with Unknown while connection 2 is live") {
+            requests.get() shouldBe 2
+        }
+        eventually { !promptPendingFlow.value }
 
         runBlocking { collector.cancelAndJoin() }
     }

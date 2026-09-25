@@ -76,6 +76,7 @@ class ShizukuSetupModule @Inject constructor(
 
     // Emits per connection that shows up while a prompt is pending. The prompt itself runs in appScope:
     // a refresh re-subscribes this flow, and cancelling the wait would drop the user's answer.
+    // A connection that shows up during a prompt queues behind it and asks if that one ended unanswered.
     private val pendingPromptTrigger = combine(
         adbSettings.permissionPromptPending.flow,
         shizukuManager.shizukuBinder.onStart { emit(null) },
@@ -86,7 +87,7 @@ class ShizukuSetupModule @Inject constructor(
         .onStart { emit(Unit) }
 
     private suspend fun promptIfPending() {
-        if (!pendingPromptLock.tryLock()) return
+        pendingPromptLock.lock()
         try {
             if (!adbSettings.permissionPromptPending.value()) return
             if (adbSettings.useShizuku.value() != true) return
