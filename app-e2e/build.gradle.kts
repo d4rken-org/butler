@@ -19,6 +19,13 @@ android {
     // The tests run in their own process, so they can clear, stop and relaunch the app under test.
     experimentalProperties["android.experimental.self-instrumenting"] = true
 
+    buildTypes {
+        create("beta") {
+            isDebuggable = true
+            signingConfig = signingConfigs["debug"]
+        }
+    }
+
     flavorDimensions.add("version")
     productFlavors {
         create("foss") { dimension = "version" }

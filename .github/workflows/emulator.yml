@@ -24,26 +24,12 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
         with:
           persist-credentials: false
-          # The upgrade test builds the previous release tag.
-          fetch-depth: 0
       - name: Setup project and build environment
         uses: ./.github/actions/common-setup
 
       - name: Build device test APKs
         # With four workers, the parallel dex merges of these APKs can run the daemon out of heap.
         run: ./gradlew --max-workers=2 :app-common-io:assembleFossDebugAndroidTest :app-common-pkgs:assembleFossDebugAndroidTest :app:assembleFossDebug :app-e2e:assembleFossDebug
-
-      - name: Build the previous release for the upgrade test
-        if: matrix.api == 36
-        run: |
-          base=$(git describe --tags --abbrev=0 --match 'v*' HEAD^)
-          echo "Upgrade test starts from $base"
-          git worktree add --detach "$RUNNER_TEMP/upgrade-base" "$base"
-          cd "$RUNNER_TEMP/upgrade-base"
-          tasks=":app:assembleFossDebug"
-          # A release that has UpgradeTest drives its own app with the steps written for it.
-          if [ -f app-e2e/src/main/java/eu/darken/butler/e2e/UpgradeTest.kt ]; then tasks="$tasks :app-e2e:assembleFossDebug"; fi
-          ./gradlew --no-daemon $tasks
 
       - name: Enable KVM
         run: |
@@ -62,12 +48,7 @@ jobs:
           # GitHub runners have no GPU.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -camera-back none
           disable-animations: true
-          # Each line runs on its own and the first failing one ends the step, so a device test
-          # failure is only recorded until the upgrade test has run too.
-          script: |
-            ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest || touch "$RUNNER_TEMP/device-tests-failed"
-            if [ "${{ matrix.api }}" = 36 ]; then old_e2e="$RUNNER_TEMP/upgrade-base/app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP/upgrade-base/app/build/outputs/apk/foss/debug/app-foss-debug.apk" app/build/outputs/apk/foss/debug/app-foss-debug.apk app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk $old_e2e; fi
-            test ! -e "$RUNNER_TEMP/device-tests-failed"
+          script: ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest
 
       - name: Upload device test results
         if: always()
@@ -78,6 +59,160 @@ jobs:
             */build/outputs/androidTest-results/**
             */build/reports/androidTests/**
             */build/outputs/connected_android_test_additional_output/**
+          if-no-files-found: warn
+          retention-days: 14
+
+  # The two R8 builds take about 12 minutes each, so they run as parallel jobs next to the debug
+  # legs, and minified-tests installs their APKs without Gradle.
+  minified-build:
+    name: Build the minified app
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
+        with:
+          persist-credentials: false
+      - name: Setup project and build environment
+        uses: ./.github/actions/common-setup
+      - name: Sign release-type builds with the debug key
+        uses: ./.github/actions/debug-signing
+
+      - name: Build minified APKs
+        # With four workers, R8 and the dex merges can run the daemon out of heap.
+        run: |
+          ./gradlew --max-workers=2 :app:assembleGplayBeta :app-e2e:assembleGplayBeta
+          out="$RUNNER_TEMP/minified"
+          mkdir -p "$out"
+          cp app/build/outputs/apk/gplay/beta/*.apk "$out/app.apk"
+          cp app-e2e/build/outputs/apk/gplay/beta/app-e2e-gplay-beta.apk "$out/app-e2e.apk"
+
+      - name: Upload minified APKs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        with:
+          name: minified-apks
+          path: ${{ runner.temp }}/minified
+          if-no-files-found: error
+          retention-days: 1
+
+  previous-release-build:
+    name: Build the previous release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
+        with:
+          persist-credentials: false
+          # The upgrade test starts from the nearest release tag before HEAD.
+          fetch-depth: 0
+      - name: Find the previous release
+        id: base
+        run: |
+          tag=$(git describe --tags --abbrev=0 --match 'v*' HEAD^)
+          echo "Upgrade test starts from $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-list -n 1 "$tag")" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the previous release's APKs
+        id: cache
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 #v5.0.3
+        with:
+          path: ${{ runner.temp }}/previous-release
+          key: previous-release-gplay-beta-${{ steps.base.outputs.sha }}
+
+      - name: Setup project and build environment
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/common-setup
+      - name: Sign release-type builds with the debug key
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/debug-signing
+      - name: Build the previous release
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          BASE_TAG: ${{ steps.base.outputs.tag }}
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/upgrade-base" "$BASE_TAG"
+          cd "$RUNNER_TEMP/upgrade-base"
+          tasks=":app:assembleGplayBeta"
+          # A release that has UpgradeTest drives its own app with the steps written for it.
+          if [ -f app-e2e/src/main/java/eu/darken/butler/e2e/UpgradeTest.kt ]; then tasks="$tasks :app-e2e:assembleFossDebug"; fi
+          ./gradlew --no-daemon --max-workers=2 $tasks
+          out="$RUNNER_TEMP/previous-release"
+          mkdir -p "$out"
+          cp app/build/outputs/apk/gplay/beta/*.apk "$out/app.apk"
+          old_e2e=app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk
+          if [ -f "$old_e2e" ]; then cp "$old_e2e" "$out/app-e2e.apk"; fi
+
+      - name: Upload the previous release's APKs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        with:
+          name: previous-release-apks
+          path: ${{ runner.temp }}/previous-release
+          if-no-files-found: error
+          retention-days: 1
+
+  minified-tests:
+    name: Minified app tests (Android 36)
+    needs: [ minified-build, previous-release-build ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
+        with:
+          persist-credentials: false
+      - name: Set up JDK 21
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 #v5.2.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Create the debug keystore
+        # upgrade-test.sh re-signs both app APKs with it.
+        uses: ./.github/actions/debug-signing
+
+      - name: Download minified APKs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c #v8.0.1
+        with:
+          name: minified-apks
+          path: ${{ runner.temp }}/minified
+      - name: Download the previous release's APKs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c #v8.0.1
+        with:
+          name: previous-release-apks
+          path: ${{ runner.temp }}/previous-release
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run minified app tests
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d #v2.38.0
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          avd-name: butler-ci
+          # GitHub runners have no GPU.
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -camera-back none
+          disable-animations: true
+          # Each line runs on its own and the first failing one ends the step, so a golden-path
+          # failure is only recorded until the upgrade test has run too.
+          script: |
+            ANDROID_SERIAL=emulator-5554 tools/e2e-test.sh "$RUNNER_TEMP/minified/app.apk" "$RUNNER_TEMP/minified/app-e2e.apk" || touch "$RUNNER_TEMP/device-tests-failed"
+            old_e2e="$RUNNER_TEMP/previous-release/app-e2e.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP/previous-release/app.apk" "$RUNNER_TEMP/minified/app.apk" "$RUNNER_TEMP/minified/app-e2e.apk" $old_e2e
+            test ! -e "$RUNNER_TEMP/device-tests-failed"
+
+      - name: Upload device test results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        with:
+          name: minified-tests-api-36
+          path: |
+            app-e2e/build/outputs/e2e-test/**
             app-e2e/build/outputs/upgrade-test/**
           if-no-files-found: warn
           retention-days: 14
