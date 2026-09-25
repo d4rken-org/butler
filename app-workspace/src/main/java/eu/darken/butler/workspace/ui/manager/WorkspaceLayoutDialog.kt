@@ -37,7 +37,7 @@ fun WorkspaceLayoutDialog(
     LayoutPickerDialog(
         modifier = modifier,
         title = stringResource(R.string.workspace_settings_layout_title),
-        options = (listOf(WorkspacePanelMode.AUTO) + geometries).map { mode ->
+        options = (SURFACE_MODES + geometries).map { mode ->
             val gated = !isPro && mode.requiresPro(recommendedPaneCount)
             LayoutPickerOption(
                 icon = mode.icon(landscape = isLandscape),
@@ -51,6 +51,13 @@ fun WorkspaceLayoutDialog(
         onDismiss = onDismiss,
     )
 }
+
+/** The surfaces, listed ahead of the geometries so every stored value has a row to mark. */
+private val SURFACE_MODES = listOf(
+    WorkspacePanelMode.AUTO,
+    WorkspacePanelMode.SINGLE,
+    WorkspacePanelMode.ADAPTIVE,
+)
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)

@@ -9,7 +9,7 @@ import testhelpers.BaseTest
 
 /**
  * The three surfaces Settings offers, mapped onto the stored panel mode. Everything that is not
- * AUTO or SINGLE is an adaptive surface, so a geometry pinned from the rail still reads as Adaptive.
+ * AUTO or SINGLE is an adaptive surface, so a pinned geometry still reads as Adaptive.
  */
 class WorkspaceLayoutSurfaceTest : BaseTest() {
 

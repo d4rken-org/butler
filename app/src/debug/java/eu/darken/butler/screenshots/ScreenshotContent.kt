@@ -58,13 +58,17 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.defaultArguments
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.label
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
 import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.floatingbar.LocalWorkspaceBarCollapseStates
 import eu.darken.butler.workspace.ui.floatingbar.WorkspaceBarCollapseStates
+import eu.darken.butler.workspace.ui.layout.icon
+import eu.darken.butler.workspace.ui.layout.label
 import eu.darken.butler.workspace.ui.manager.MenuCategoryHeader
+import eu.darken.butler.workspace.ui.manager.MenuItemText
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
@@ -557,8 +561,19 @@ private fun quickCreateItem(type: Workspace.Type) = QuickCreateItem(
 )
 
 @Composable
-private fun MenuEntry(text: String, icon: ImageVector, contentColor: Color? = null) = DropdownMenuItem(
-    text = { Text(text) },
+private fun MenuEntry(
+    text: String,
+    icon: ImageVector,
+    subtitle: String? = null,
+    contentColor: Color? = null,
+) = DropdownMenuItem(
+    text = {
+        if (subtitle != null) {
+            MenuItemText(title = text, subtitle = subtitle)
+        } else {
+            Text(text)
+        }
+    },
     onClick = {},
     leadingIcon = { Icon(imageVector = icon, contentDescription = null) },
     colors = if (contentColor != null) {
@@ -614,6 +629,11 @@ private fun ExpandedWorkspaceButtonMenu(modifier: Modifier = Modifier) {
             MenuEntry(
                 text = stringResource(WorkspaceR.string.workspace_button_menu_manager_action),
                 icon = Icons.TwoTone.Workspaces,
+            )
+            MenuEntry(
+                text = stringResource(WorkspaceR.string.workspace_button_menu_layout_action),
+                subtitle = WorkspacePanelMode.AUTO.label(),
+                icon = WorkspacePanelMode.AUTO.icon(),
             )
             MenuEntry(
                 text = stringResource(WorkspaceR.string.workspace_button_menu_settings_action),

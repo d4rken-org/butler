@@ -203,9 +203,9 @@ fun WorkspaceScreen(
 
     // A rotation or a panel-mode change mid-tour leaves the copy describing a surface that is no
     // longer there, and neither tour ends on its own: the swipe tour's steps are centerless, which
-    // never grace-skips, and the panes tour's Butler-button anchor survives into the classic layout,
-    // where that button's menu has no Layout row. skipForNow rather than dismissForever - the skip
-    // is in-memory, so the tour returns after an app restart instead of being burned for a rotation.
+    // never grace-skips, and the panes tour's Butler-button anchor survives into the classic layout.
+    // skipForNow rather than dismissForever - the skip is in-memory, so the tour returns after an
+    // app restart instead of being burned for a rotation.
     // Each branch mirrors its own start gate: the swipe tour needs the classic pager, which is what
     // !hasNavigationRail selects, while the panes tour needs two panes - a rail stays composed over
     // one pane, so pane count is the only thing that sees an ADAPTIVE window being narrowed.
@@ -403,9 +403,8 @@ fun rememberWorkspaceDesign(
             WorkspaceDesign.RailPlacement.BOTTOM
         },
         railButtonPlacement = state.railButtonPlacement,
-        // Read off the stored mode rather than the resolved layout: a downgraded pinned geometry
-        // still composes the rail, and the rail's Butler button is the only route to the Layout
-        // dialog - the one place the gated rows and their offer are visible.
+        // Read off the stored mode rather than the resolved layout: a pinned geometry is a choice of
+        // the adaptive surface, so a downgraded one keeps its rail and only loses panes.
         hasNavigationRail = effectivePaneLayout != WorkspaceDesign.Layout.SINGLE ||
             effectivePanelMode.isPinnedGeometry ||
             effectivePanelMode == WorkspacePanelMode.ADAPTIVE,
