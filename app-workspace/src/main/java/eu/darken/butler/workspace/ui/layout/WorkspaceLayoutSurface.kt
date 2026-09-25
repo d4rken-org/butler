@@ -48,7 +48,7 @@ fun WorkspaceLayoutSurface.icon(): ImageVector = when (this) {
     WorkspaceLayoutSurface.ADAPTIVE -> WorkspacePanelIcons.Adaptive
 }
 
-/** The geometries a rail user can pin; every one of them composes the rail. */
+/** The geometries a user can pin; every one of them composes the rail. */
 val ADAPTIVE_GEOMETRIES: List<WorkspacePanelMode> = listOf(
     WorkspacePanelMode.SINGLE_RAIL,
     WorkspacePanelMode.DUAL_VERTICAL,
