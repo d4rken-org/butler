@@ -17,12 +17,15 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.atomic.AtomicBoolean
@@ -56,9 +59,6 @@ class AdbHostLauncher(
         connectTimeoutMs: Long = CONNECT_TIMEOUT_MS,
         unbindTimeoutMs: Long = UNBIND_TIMEOUT_MS,
     ): Flow<ConnectionWrapper<Service, Host>> = callbackFlow {
-        val service = serviceFactory.create(hostClass = hostClass, options = options)
-            ?: throw AdbException("No ADB access server is connected")
-
         // Completed only once a connection was actually handed downstream, this is what the
         // connect-watchdog below waits for.
         val ready = CompletableDeferred<Unit>()
@@ -76,8 +76,8 @@ class AdbHostLauncher(
         // Set when the bind itself failed, which leaves no service of ours to stop.
         val bindFailed = AtomicBoolean(false)
 
-        // Started before the collection: a bind that never connects must still release everyone
-        // waiting on this flow.
+        // Started first, so it also covers waiting for the previous generation's teardown: a bind that
+        // never connects, or never gets to start, must still release everyone waiting on this flow.
         launch {
             if (withTimeoutOrNull(connectTimeoutMs) { ready.await() } == null) {
                 log(TAG, WARN) { "User service did not connect within ${connectTimeoutMs}ms, closing" }
@@ -88,51 +88,69 @@ class AdbHostLauncher(
             }
         }
 
-        // Runs OUTSIDE the producer scope, so it outlives the producer's cancellation: teardown below
-        // sends the stop while this collection is still active, and its completion is how we see the
-        // service actually end. Cancelling it only drops the binding, it does not stop the service.
-        val collection = appScope.launch(dispatcherProvider.IO) {
-            try {
-                service.binders().collect { binder ->
-                    log(TAG) { "User service connected (binder=$binder)" }
-                    // Off the collector: the handshake does binder transactions, and the collection
-                    // has to stay free to notice the service ending meanwhile.
-                    this@callbackFlow.launch {
-                        try {
-                            log(TAG) { "Handshaking with the user service, options=$options" }
-                            val (userConnection, baseConnection) = serviceFactory.handshake<Service, Host>(
-                                binder = binder,
-                                serviceClass = serviceClass,
-                                options = options,
-                            )
-                            log(TAG) { "User service handshake done -> $userConnection" }
-                            send(ConnectionWrapper(userConnection, baseConnection, disconnectConfirmed))
-                            ready.complete(Unit)
-                        } catch (e: CancellationException) {
-                            throw e
-                        } catch (e: Exception) {
-                            log(TAG, WARN) { "User service handshake failed: ${e.asLog()}" }
-                            close(AdbException("ADB user service handshake failed", e))
-                        }
-                    }
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                log(TAG, WARN) { "User service bind failed: ${e.asLog()}" }
-                bindFailed.set(true)
-                serviceEnded.complete(Unit)
-                close(e)
+        // Written by bindJob, read by the teardown only after bindJob was joined.
+        var holdsGenerationLock = false
+        var service: AdbUserService? = null
+        var collection: Job? = null
+
+        // Launched, so waiting for the lock stays cancellable and this body still reaches awaitClose.
+        val bindJob = launch {
+            GENERATION_LOCK.lock()
+            holdsGenerationLock = true
+
+            val created = serviceFactory.create(hostClass = hostClass, options = options)
+            if (created == null) {
+                close(AdbException("No ADB access server is connected"))
                 return@launch
             }
-            serviceEnded.complete(Unit)
-            // The collection ending while the flow is live is an UNEXPECTED disconnect (service died,
-            // server replaced or gone). Close the flow so the SharedResource generation tears down and
-            // the next get() re-binds, instead of handing out a dead connection during the keep-alive
-            // window. On intentional teardown the channel is already closed, so this is a no-op.
-            if (!isClosedForSend) {
-                log(TAG, WARN) { "ADB user service disconnected unexpectedly, closing connection" }
-                close(AdbException("ADB user service disconnected"))
+            service = created
+
+            // Runs OUTSIDE the producer scope, so it outlives the producer's cancellation: teardown below
+            // sends the stop while this collection is still active, and its completion is how we see the
+            // service actually end. Cancelling it only drops the binding, it does not stop the service.
+            collection = appScope.launch(dispatcherProvider.IO) {
+                try {
+                    created.binders().collect { binder ->
+                        log(TAG) { "User service connected (binder=$binder)" }
+                        // Off the collector: the handshake does binder transactions, and the collection
+                        // has to stay free to notice the service ending meanwhile.
+                        this@callbackFlow.launch {
+                            try {
+                                log(TAG) { "Handshaking with the user service, options=$options" }
+                                val (userConnection, baseConnection) = serviceFactory.handshake<Service, Host>(
+                                    binder = binder,
+                                    serviceClass = serviceClass,
+                                    options = options,
+                                )
+                                log(TAG) { "User service handshake done -> $userConnection" }
+                                send(ConnectionWrapper(userConnection, baseConnection, disconnectConfirmed))
+                                ready.complete(Unit)
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
+                                log(TAG, WARN) { "User service handshake failed: ${e.asLog()}" }
+                                close(AdbException("ADB user service handshake failed", e))
+                            }
+                        }
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    log(TAG, WARN) { "User service bind failed: ${e.asLog()}" }
+                    bindFailed.set(true)
+                    serviceEnded.complete(Unit)
+                    close(e)
+                    return@launch
+                }
+                serviceEnded.complete(Unit)
+                // The collection ending while the flow is live is an UNEXPECTED disconnect (service died,
+                // server replaced or gone). Close the flow so the SharedResource generation tears down and
+                // the next get() re-binds, instead of handing out a dead connection during the keep-alive
+                // window. On intentional teardown the channel is already closed, so this is a no-op.
+                if (!isClosedForSend) {
+                    log(TAG, WARN) { "ADB user service disconnected unexpectedly, closing connection" }
+                    close(AdbException("ADB user service disconnected"))
+                }
             }
         }
 
@@ -143,17 +161,21 @@ class AdbHostLauncher(
             // Runs on cancellation too. Cleanup lives in the finally (not only in awaitClose) so a throw
             // before awaitClose can't leak the service.
             withContext(NonCancellable) {
+                bindJob.cancelAndJoin()
                 // Stays false unless this teardown can prove the host is gone. A stop we stopped
                 // waiting for can still land later, and since the server keys it on the service args,
                 // what it hits then can be a replacement bound meanwhile. Completed in the finally, so
                 // nobody awaiting it can hang.
                 var confirmed = false
                 try {
-                    if (bindFailed.get()) {
+                    val bound = service
+                    if (bound == null) {
+                        log(TAG) { "No user service was created, nothing to stop" }
+                    } else if (bindFailed.get()) {
                         log(TAG) { "Bind failed, nothing to stop" }
                     } else {
                         log(TAG) { "Stopping ADB user service…" }
-                        val stopReturned = stopBounded(service, unbindTimeoutMs)
+                        val stopReturned = stopBounded(bound, unbindTimeoutMs)
                         // Still worth waiting after a timed-out stop: the server may have carried it out
                         // while its reply was still on the way.
                         val ended = withTimeoutOrNull(DISCONNECT_TIMEOUT_MS) { serviceEnded.await() } != null
@@ -165,8 +187,12 @@ class AdbHostLauncher(
                         log(TAG) { "ADB user service teardown finished (confirmed=$confirmed)" }
                     }
                 } finally {
-                    collection.cancel()
-                    disconnectConfirmed.complete(confirmed)
+                    try {
+                        collection?.cancel()
+                        disconnectConfirmed.complete(confirmed)
+                    } finally {
+                        if (holdsGenerationLock) GENERATION_LOCK.unlock()
+                    }
                 }
             }
         }
@@ -218,6 +244,11 @@ class AdbHostLauncher(
 
     companion object {
         private val TAG = logTag("ADB", "Host", "Launcher")
+
+        // Every generation binds the same service args, so an older generation's stop would destroy a
+        // newer generation's helper. A new generation binds only once the previous one's stop returned
+        // or gave up. Process-wide, because the launcher itself is not a singleton.
+        private val GENERATION_LOCK = Mutex()
 
         // How long to wait for the user service to actually end after the stop before giving up,
         // bounded so teardown can't hang.

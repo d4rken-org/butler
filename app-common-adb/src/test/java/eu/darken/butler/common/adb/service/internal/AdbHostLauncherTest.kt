@@ -537,6 +537,154 @@ class AdbHostLauncherTest {
         job.cancelAndJoin()
     }
 
+    // The generation lock is process-wide: every test below ends with all of its flows cancelled and
+    // joined, so none of them can leave it held for the next test.
+
+    @Test fun `a new generation binds only once the previous generation's stop returned`() = runTest {
+        val stopReturn = CompletableDeferred<Unit>()
+        val first = FakeService(onStop = {
+            stopReturn.await()
+            end()
+        })
+        val second = FakeService()
+
+        val generation1 = launch { launcher(FakeFactory(first)).connect().collect { } }
+        runCurrent()
+        // SharedResource detaches the old generation without waiting for its teardown.
+        generation1.cancel()
+        runCurrent()
+        events shouldBe listOf("bind", "stop")
+
+        val generation2 = launch { launcher(FakeFactory(second)).connect().collect { } }
+        advanceTimeBy(1000L) // within both the stop timeout and the connect timeout
+        runCurrent()
+        events shouldBe listOf("bind", "stop") // the new generation has not bound
+        second.collecting shouldBe false
+
+        stopReturn.complete(Unit)
+        runCurrent()
+        events shouldBe listOf("bind", "stop", "ended", "bind")
+        second.collecting shouldBe true
+
+        generation1.join()
+        generation2.cancelAndJoin()
+    }
+
+    @Test fun `a new generation binds once the previous generation's stop timed out`() = runTest {
+        val first = FakeService(onStop = { awaitCancellation() })
+        val second = FakeService()
+
+        val generation1 = launch { launcher(FakeFactory(first)).connect(unbindTimeoutMs = 100L).collect { } }
+        runCurrent()
+        generation1.cancel()
+        runCurrent()
+
+        val generation2 = launch { launcher(FakeFactory(second)).connect().collect { } }
+        advanceTimeBy(50L)
+        runCurrent()
+        events shouldBe listOf("bind", "stop") // the stop is still in flight
+        second.collecting shouldBe false
+
+        // Past the stop timeout and the bounded wait for the end that follows it.
+        advanceTimeBy(1000L)
+        runCurrent()
+        events shouldBe listOf("bind", "stop", "bind")
+        first.collecting shouldBe false
+        second.collecting shouldBe true
+
+        generation1.join()
+        generation2.cancelAndJoin()
+    }
+
+    @Test fun `waiting for the previous generation counts against the connect timeout`() = runTest {
+        val first = FakeService(onStop = { awaitCancellation() })
+        val second = FakeService()
+
+        val generation1 = launch { launcher(FakeFactory(first)).connect().collect { } }
+        runCurrent()
+        generation1.cancel()
+        runCurrent()
+
+        val caught = CompletableDeferred<Throwable>()
+        val generation2 = launch {
+            try {
+                // Shorter than the first generation's stop timeout, which its hanging stop runs into.
+                launcher(FakeFactory(second)).connect(connectTimeoutMs = 500L).collect { }
+            } catch (e: Throwable) {
+                caught.complete(e)
+            }
+        }
+        advanceTimeBy(600L)
+        runCurrent()
+
+        caught.isCompleted shouldBe true // well before the first generation's stop times out
+        val error = caught.await()
+        error.shouldBeInstanceOf<AdbConnectTimeoutException>()
+        error.message!! shouldContain "did not connect"
+        events shouldBe listOf("bind", "stop") // the second generation never bound, so nothing to stop
+
+        generation2.join()
+        advanceUntilIdle()
+        generation1.join()
+        events shouldBe listOf("bind", "stop")
+    }
+
+    @Test fun `a failing bind releases the generation lock`() = runTest {
+        val failing = launcher(FakeFactory(FakeService(bindError = IllegalStateException("bind boom"))))
+        shouldThrow<IllegalStateException> { failing.connect().collect { } }
+
+        val next = FakeService()
+        val job = launch { launcher(FakeFactory(next)).connect().collect { } }
+        runCurrent()
+
+        events shouldBe listOf("bind", "bind")
+        next.collecting shouldBe true
+        job.cancelAndJoin()
+    }
+
+    @Test fun `no server connection releases the generation lock`() = runTest {
+        shouldThrow<AdbException> { launcher(FakeFactory(service = null)).connect().collect { } }
+
+        val next = FakeService()
+        val job = launch { launcher(FakeFactory(next)).connect().collect { } }
+        runCurrent()
+
+        events shouldBe listOf("bind")
+        next.collecting shouldBe true
+        job.cancelAndJoin()
+    }
+
+    @Test fun `cancellation while waiting for the previous generation releases the generation lock`() = runTest {
+        val stopReturn = CompletableDeferred<Unit>()
+        val first = FakeService(onStop = {
+            stopReturn.await()
+            end()
+        })
+        val waiting = FakeService()
+        val third = FakeService()
+
+        val generation1 = launch { launcher(FakeFactory(first)).connect().collect { } }
+        runCurrent()
+        generation1.cancel()
+        runCurrent()
+
+        val generation2 = launch { launcher(FakeFactory(waiting)).connect().collect { } }
+        runCurrent()
+        generation2.cancelAndJoin() // gives up while the first generation still holds the lock
+        waiting.collecting shouldBe false
+
+        stopReturn.complete(Unit)
+        runCurrent()
+        generation1.join()
+
+        val generation3 = launch { launcher(FakeFactory(third)).connect().collect { } }
+        runCurrent()
+
+        events shouldBe listOf("bind", "stop", "ended", "bind") // the cancelled waiter never bound
+        third.collecting shouldBe true
+        generation3.cancelAndJoin()
+    }
+
     /**
      * The production factory over a fake connection, with the handshake faked: the real one needs a
      * live AIDL binder.
