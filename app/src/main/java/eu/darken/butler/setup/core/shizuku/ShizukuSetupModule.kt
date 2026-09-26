@@ -31,20 +31,18 @@ import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
@@ -72,86 +70,33 @@ class ShizukuSetupModule @Inject constructor(
     @Volatile
     private var lastResult: Result? = null
 
-    private val pendingPromptLock = Mutex()
+    private val permissionRequestLock = Any()
+    private var permissionRequest: Deferred<AdbPermissionState?>? = null
 
-    // Emits per server connection. With ADB access on, a manager that has not granted Butler is asked
-    // once, unless that manager's last answer was Deny. The prompt itself runs in appScope:
-    // a refresh re-subscribes this flow, and cancelling the wait would drop the user's answer.
-    // A connection that shows up during a prompt queues behind it and asks if that one ended unanswered.
-    private val pendingPromptTrigger = shizukuManager.shizukuBinder
-        .onStart { emit(null) }
-        .distinctUntilChanged()
-        .onEach { if (it != null) appScope.launch { promptIfNeeded() } }
-        .map { }
-        .onStart { emit(Unit) }
+    /** Overridden in tests to keep the timeout case fast, never in production. */
+    internal var permissionRequestTimeoutMs: Long = PERMISSION_REQUEST_TIMEOUT_MS
 
-    /** "BACKEND:package" of the current manager, e.g. "SHIZUKU:moe.shizuku.privileged.api". */
-    private suspend fun currentManager(): String? {
-        val availability = shizukuManager.availability() ?: return null
-        val backend = availability.backend ?: return null
-        return availability.packageName?.let { "${backend.name}:$it" } ?: backend.name
-    }
-
-    private suspend fun recordAnswer(manager: String?, answer: AdbPermissionState) {
-        if (manager == null) return
-        when (answer) {
-            is AdbPermissionState.Denied -> adbSettings.permissionDeniedByManagers.update { it + manager }
-            AdbPermissionState.Granted -> clearDenial(manager)
-            AdbPermissionState.Unknown -> {}
-        }
-    }
-
-    private suspend fun clearDenial(manager: String?) {
-        if (manager == null) return
-        adbSettings.permissionDeniedByManagers.update { it - manager }
-    }
-
-    private suspend fun promptIfNeeded() {
-        pendingPromptLock.lock()
-        try {
-            if (adbSettings.useShizuku.value() != true) return
-            val pending = adbSettings.permissionPromptPending.value()
-            when (shizukuManager.isGranted()) {
-                true -> {
-                    log(TAG) { "Permission already granted, nothing to prompt for" }
-                    adbSettings.permissionPromptPending.value(false)
-                    clearDenial(currentManager())
-                    return
-                }
-
-                null -> {
-                    log(TAG) { "Grant state unreadable, keeping the permission prompt pending" }
-                    return
-                }
-
-                false -> {}
+    // Shared, so a switch-on and a Grant tap join one prompt instead of stacking two. Bounded, so an
+    // unanswered or dismissed prompt does not block the next attempt; a late Allow still reaches the
+    // card through the manager's permission state.
+    private fun sharedPermissionRequest(): Deferred<AdbPermissionState?> = synchronized(permissionRequestLock) {
+        permissionRequest?.takeIf { it.isActive } ?: appScope
+            .async {
+                log(TAG) { "Requesting ADB permission" }
+                val timeout = permissionRequestTimeoutMs
+                val result = withTimeoutOrNull(timeout) { shizukuManager.requestPermission() }
+                if (result == null) log(TAG, WARN) { "No answer within ${timeout}ms, next attempt asks anew" }
+                log(TAG) { "ADB permission request result: $result" }
+                result
             }
-            val manager = currentManager()
-            if (!pending) {
-                if (manager == null) {
-                    log(TAG) { "Newly connected manager could not be identified, not asking it on its own" }
-                    return
-                }
-                if (manager in adbSettings.permissionDeniedByManagers.value()) {
-                    log(TAG) { "$manager denied Butler before, not asking it again on its own" }
-                    return
+            .also { request ->
+                permissionRequest = request
+                request.invokeOnCompletion {
+                    synchronized(permissionRequestLock) {
+                        if (permissionRequest === request) permissionRequest = null
+                    }
                 }
             }
-            log(TAG) {
-                if (pending) {
-                    "Requesting the permission that was pending since ADB access was switched on"
-                } else {
-                    "Requesting permission from newly connected manager $manager"
-                }
-            }
-            val answer = shizukuManager.requestPermission()
-            log(TAG) { "Permission request from $manager answered with $answer" }
-            recordAnswer(manager, answer)
-            // Unknown means the connection went away before an answer, so ask the next one.
-            if (answer != AdbPermissionState.Unknown) adbSettings.permissionPromptPending.value(false)
-        } finally {
-            pendingPromptLock.unlock()
-        }
     }
 
     override val state: Flow<SetupModule.State> = combine(
@@ -174,11 +119,9 @@ class ShizukuSetupModule @Inject constructor(
         }
 
         combine(
-            // Just tie the lifecycle of the permission prompt trigger to the state's subscribers
-            pendingPromptTrigger,
             shizukuManager.permissionState.onStart { emit(AdbPermissionState.Unknown) },
             shizukuManager.shizukuBinder.onStart { emit(null) },
-        ) { _, permission, server ->
+        ) { permission, server ->
             probe(
                 useShizuku = useShizuku,
                 useRoot = useRoot,
@@ -275,8 +218,9 @@ class ShizukuSetupModule @Inject constructor(
     }
 
     /**
-     * Switching on keeps the switch on whatever the permission answer is: a denial is shown on the card
-     * instead of silently flipping the switch back. Without a reachable server the prompt waits for one.
+     * Switching on asks for permission once when a server is reachable and Butler is not granted. The
+     * switch stays on whatever the answer is: a denial is shown on the card instead of flipping the
+     * switch back. Later asks happen only through [grantAccess].
      */
     suspend fun toggleUseShizuku(useShizuku: Boolean?) {
         log(TAG) { "toggleUseShizuku(useShizuku=$useShizuku)" }
@@ -284,44 +228,20 @@ class ShizukuSetupModule @Inject constructor(
         lastResult = null
 
         if (useShizuku != true) {
-            adbSettings.permissionPromptPending.value(false)
             adbSettings.useShizuku.value(useShizuku)
             return
         }
 
         val couldUseShizuku = shizukuManager.useShizuku.first()
-        when (shizukuManager.isGranted()) {
-            null -> {
-                log(TAG) { "No reachable ADB server, asking for permission once one connects" }
-                adbSettings.permissionPromptPending.value(true)
-                adbSettings.useShizuku.value(true)
+        try {
+            if (shizukuManager.isGranted() == false) {
+                val grantResult = sharedPermissionRequest().await()
+                log(TAG) { "Permission grant result was $grantResult" }
+            } else {
+                log(TAG) { "Not asking for permission: already granted or no reachable ADB server" }
             }
-
-            false -> {
-                adbSettings.permissionPromptPending.value(false)
-                // Resolved up front: the connection may be gone once the answer arrives.
-                val manager = currentManager()
-                var grantResult: AdbPermissionState? = null
-                try {
-                    log(TAG) { "Requesting permission" }
-                    // Unbounded on purpose: the answer arrives only once the user decided, and one that
-                    // arrives after we stopped waiting would be dropped.
-                    grantResult = shizukuManager.requestPermission()
-                    log(TAG) { "Permission grant result was $grantResult" }
-                } finally {
-                    withContext(NonCancellable) {
-                        grantResult?.let { recordAnswer(manager, it) }
-                        if (grantResult == AdbPermissionState.Unknown) adbSettings.permissionPromptPending.value(true)
-                        adbSettings.useShizuku.value(true)
-                    }
-                }
-            }
-
-            true -> {
-                adbSettings.permissionPromptPending.value(false)
-                clearDenial(currentManager())
-                adbSettings.useShizuku.value(true)
-            }
+        } finally {
+            withContext(NonCancellable) { adbSettings.useShizuku.value(true) }
         }
 
         if (!couldUseShizuku) {
@@ -330,6 +250,14 @@ class ShizukuSetupModule @Inject constructor(
                 shizukuManager.shizukuBinder.filter { it != null }.first()
             } ?: log(TAG, WARN) { "ADB server did not connect within ${SERVICE_BIND_TIMEOUT_MS}ms" }
         }
+    }
+
+    suspend fun grantAccess() {
+        log(TAG) { "grantAccess()" }
+        val result = sharedPermissionRequest().await()
+        log(TAG) { "grantAccess(): Permission request result was $result" }
+        // Neither an Allow nor a Deny is guaranteed to change a watched flow, so re-probe to show it.
+        refresh()
     }
 
     data class Loading(
@@ -386,5 +314,6 @@ class ShizukuSetupModule @Inject constructor(
     companion object {
         private val TAG = logTag("Setup", "ADB", "Shizuku", "Module")
         private const val SERVICE_BIND_TIMEOUT_MS = 5_000L
+        internal const val PERMISSION_REQUEST_TIMEOUT_MS = 30_000L
     }
 }

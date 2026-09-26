@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Download
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +33,7 @@ import eu.darken.butler.common.adb.shizuku.AdbPermissionState
 import eu.darken.butler.common.adb.shizuku.ShizukuServiceState
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.container.toStub
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.setup.core.SetupAction
@@ -197,23 +199,76 @@ private fun AdbManagerAction(
             }
         }
 
-        openTarget != null && managerName != null -> {
+        // The manager still shows its prompt, so asking again is the direct way forward.
+        status == AdbCardStatus.PERMISSION_DENIED && !state.isPermanentlyDenied -> {
             Spacer(modifier = Modifier.height(12.dp))
-            OutlinedButton(
-                modifier = modifier,
-                onClick = { onExecuteAction(SetupAction.OpenAdbManager(openTarget)) },
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                AsyncImage(
-                    // Through Coil rather than a PackageManager call in composition, which runs on the UI thread.
-                    model = remember(openTarget) { openTarget.toStub() },
-                    contentDescription = null,
-                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                )
-                Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
-                Text(text = stringResource(R.string.setup_adb_open_manager_action, managerName))
+                if (openTarget != null && managerName != null) {
+                    OpenManagerButton(
+                        modifier = Modifier.weight(1f),
+                        pkg = openTarget,
+                        managerName = managerName,
+                        onExecuteAction = onExecuteAction,
+                    )
+                }
+                Button(
+                    modifier = Modifier.weight(1f),
+                    onClick = { onExecuteAction(SetupAction.RequestPermission) },
+                ) {
+                    Text(text = stringResource(R.string.setup_grant_access_label))
+                }
             }
         }
+
+        openTarget != null && managerName != null -> {
+            Spacer(modifier = Modifier.height(12.dp))
+            OpenManagerButton(
+                modifier = modifier,
+                pkg = openTarget,
+                managerName = managerName,
+                onExecuteAction = onExecuteAction,
+            )
+        }
     }
+}
+
+private val ShizukuSetupModule.Result.isPermanentlyDenied: Boolean
+    get() = (permissionState as? AdbPermissionState.Denied)?.permanentlyDenied == true
+
+@Composable
+private fun OpenManagerButton(
+    modifier: Modifier = Modifier,
+    pkg: Pkg.Id,
+    managerName: String,
+    onExecuteAction: (SetupAction) -> Unit,
+) {
+    OutlinedButton(
+        modifier = modifier,
+        onClick = { onExecuteAction(SetupAction.OpenAdbManager(pkg)) },
+    ) {
+        AsyncImage(
+            // Through Coil rather than a PackageManager call in composition, which runs on the UI thread.
+            model = remember(pkg) { pkg.toStub() },
+            contentDescription = null,
+            modifier = Modifier.size(ButtonDefaults.IconSize),
+        )
+        Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
+        Text(text = stringResource(R.string.setup_adb_open_manager_action, managerName))
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OpenManagerButtonPreview() {
+    OpenManagerButton(
+        pkg = "eu.darken.porter".toPkgId(),
+        managerName = "Porter",
+        onExecuteAction = {},
+    )
 }
 
 @Preview2
@@ -384,6 +439,17 @@ private fun ShizukuActionsConnectedWithoutManagerPreview() = ShizukuActionsPrevi
 private fun ShizukuActionsPermissionDeniedPreview() = ShizukuActionsPreview(
     PREVIEW_PORTER.copy(
         permissionState = AdbPermissionState.Denied(permanentlyDenied = false),
+        basicService = true,
+        serviceState = ShizukuServiceState.PermissionDenied,
+    ),
+)
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ShizukuActionsPermissionDeniedPermanentlyPreview() = ShizukuActionsPreview(
+    PREVIEW_PORTER.copy(
+        permissionState = AdbPermissionState.Denied(permanentlyDenied = true),
         basicService = true,
         serviceState = ShizukuServiceState.PermissionDenied,
     ),

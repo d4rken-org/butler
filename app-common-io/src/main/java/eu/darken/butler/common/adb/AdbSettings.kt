@@ -3,7 +3,6 @@ package eu.darken.butler.common.adb
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.datastore.PreferenceScreenData
@@ -26,23 +25,6 @@ class AdbSettings @Inject constructor(
     val useShizuku = dataStore.createValue("core.shizuku.enabled", null as Boolean?)
 
     val useAdb = useShizuku
-
-    /** ADB access was switched on while no server was reachable, so ask for permission once one is. */
-    val permissionPromptPending = dataStore.createValue("core.shizuku.permission.prompt_pending", false)
-
-    /** Managers whose last answer to Butler was Deny, so they are not asked again on their own. */
-    val permissionDeniedByManagers = dataStore.createValue<Set<String>>(
-        key = stringPreferencesKey("core.shizuku.permission.denied_by"),
-        reader = { raw ->
-            (raw as String?)
-                ?.takeIf { it.isNotBlank() }
-                ?.split('\n')
-                ?.filter { it.isNotEmpty() }
-                ?.toSet()
-                ?: emptySet<String>()
-        },
-        writer = { set -> set.takeIf { it.isNotEmpty() }?.sorted()?.joinToString("\n") },
-    )
 
     override val mapper = PreferenceStoreMapper(
         useShizuku

@@ -128,7 +128,8 @@ class SetupManager @Inject constructor(
                             log(TAG, WARN) { "No permission intent available for $type" }
                         }
                     }
-                    SetupModule.Type.SHIZUKU -> log(TAG, WARN) { "RequestPermission not applicable for $type" }
+                    SetupModule.Type.SHIZUKU -> (module as? ShizukuSetupModule)?.grantAccess()
+                        ?: log(TAG, WARN) { "Module for $type is not a ShizukuSetupModule" }
                     SetupModule.Type.ROOT -> log(TAG, WARN) { "RequestPermission not applicable for $type" }
                     SetupModule.Type.INVENTORY -> log(TAG, WARN) { "RequestPermission not applicable for $type" }
                 }

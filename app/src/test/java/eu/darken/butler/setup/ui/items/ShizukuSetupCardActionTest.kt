@@ -64,6 +64,8 @@ class ShizukuSetupCardActionTest : ComposeTest() {
 
     private fun installLabel(name: String) = context.getString(R.string.setup_adb_install_manager_action, name)
 
+    private val grantLabel get() = context.getString(R.string.setup_grant_access_label)
+
     private fun assertNoManagerAction() {
         composeTestRule.onAllNodes(hasText(openLabel(""), substring = true)).assertCountEquals(0)
         composeTestRule.onAllNodes(hasText(installLabel(""), substring = true)).assertCountEquals(0)
@@ -146,6 +148,24 @@ class ShizukuSetupCardActionTest : ComposeTest() {
     }
 
     @Test
+    fun `a denied permission offers to ask again next to opening the manager`() {
+        render(
+            NOT_CONNECTED.copy(
+                permissionState = AdbPermissionState.Denied(permanentlyDenied = false),
+                basicService = true,
+                serviceState = ShizukuServiceState.PermissionDenied,
+            )
+        )
+
+        composeTestRule.onNode(hasClickAction() and hasText(openLabel("Porter"))).assertIsDisplayed()
+        composeTestRule.onNode(hasClickAction() and hasText(grantLabel)).assertIsDisplayed()
+
+        composeTestRule.onNodeWithText(grantLabel).performClick()
+
+        actions shouldBe listOf(SetupAction.RequestPermission)
+    }
+
+    @Test
     fun `a permanently denied permission opens the manager`() {
         render(
             NOT_CONNECTED.copy(
@@ -156,6 +176,19 @@ class ShizukuSetupCardActionTest : ComposeTest() {
         )
 
         composeTestRule.onNode(hasClickAction() and hasText(openLabel("Porter"))).assertIsDisplayed()
+    }
+
+    @Test
+    fun `a permanently denied permission offers no grant`() {
+        render(
+            NOT_CONNECTED.copy(
+                permissionState = AdbPermissionState.Denied(permanentlyDenied = true),
+                basicService = true,
+                serviceState = ShizukuServiceState.PermissionDenied,
+            )
+        )
+
+        composeTestRule.onAllNodes(hasText(grantLabel)).assertCountEquals(0)
     }
 
     @Test
