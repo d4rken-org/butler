@@ -1,14 +1,13 @@
 package eu.darken.butler.common.adb.service.internal
 
-import android.os.IBinder
 import android.os.IInterface
 import dagger.Reusable
 import eu.darken.butler.common.adb.AdbConnectTimeoutException
 import eu.darken.butler.common.adb.AdbException
 import eu.darken.butler.common.adb.service.AdbHostOptions
+import eu.darken.butler.common.adb.shizuku.ShizukuWrapper
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.coroutine.runDetachedWithTimeout
 import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -18,34 +17,39 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlin.reflect.KClass
 
 /**
- * The Shizuku touchpoints (version check, bind/unbind, ServiceConnection) are behind an injectable
- * seam ([ShizukuUserServiceFactory]) so this orchestration — especially the finally-block teardown —
- * is unit-testable. See AdbHostLauncherSeam.kt.
+ * The SDK touchpoints (user service collection and stop) are behind an injectable seam
+ * ([AdbUserServiceFactory]) so this orchestration, especially the finally-block teardown, is
+ * unit-testable. See AdbHostLauncherSeam.kt.
  */
 @Reusable
 class AdbHostLauncher(
-    private val serviceFactory: ShizukuUserServiceFactory,
+    private val serviceFactory: AdbUserServiceFactory,
     private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
 ) {
 
-    // DI uses the real Shizuku-backed seam; the primary constructor lets tests inject a fake.
+    // DI uses the real SDK-backed seam; the primary constructor lets tests inject a fake.
     @Inject constructor(
         @AppScope appScope: CoroutineScope,
         dispatcherProvider: DispatcherProvider,
-    ) : this(DefaultShizukuUserServiceFactory(), appScope, dispatcherProvider)
+        shizukuWrapper: ShizukuWrapper,
+    ) : this(DefaultAdbUserServiceFactory(shizukuWrapper::currentServer), appScope, dispatcherProvider)
 
     @OptIn(DelicateCoroutinesApi::class) // isClosedForSend, to skip the close() on intentional teardown
     fun <Service : IInterface, Host : AdbConnection> createConnection(
@@ -53,105 +57,100 @@ class AdbHostLauncher(
         hostClass: KClass<Host>,
         options: AdbHostOptions,
         connectTimeoutMs: Long = CONNECT_TIMEOUT_MS,
-        apiVersionTimeoutMs: Long = API_VERSION_TIMEOUT_MS,
         unbindTimeoutMs: Long = UNBIND_TIMEOUT_MS,
     ): Flow<ConnectionWrapper<Service, Host>> = callbackFlow {
-        // Shizuku.getVersion() only returns a cached field once the server has pushed its version via
-        // bindApplication(); until then it is a synchronous binder transaction that wedges against an
-        // unresponsive server. This runs before the connect watchdog below is armed, so it needs its
-        // own bound. Detached: a wedged binder thread leaks rather than pinning every collector.
-        val apiVersion = appScope.runDetachedWithTimeout(dispatcherProvider.IO, apiVersionTimeoutMs) {
-            serviceFactory.apiVersion()
-        } ?: throw AdbConnectTimeoutException("Shizuku getVersion() did not respond within ${apiVersionTimeoutMs}ms")
-        if (apiVersion < 10) throw IllegalStateException("Shizuku API10+ required")
-
         // Completed only once a connection was actually handed downstream, this is what the
         // connect-watchdog below waits for.
         val ready = CompletableDeferred<Unit>()
 
         // Attempt-scoped answer to "is this generation's host actually gone?", handed to whoever
-        // wants to bind a replacement. The teardown below is bounded and partly detached, so a
-        // finished producer coroutine says nothing about the server having processed the removal.
-        // Always completed by that teardown (see its finally), so awaiting it can't hang a caller.
+        // wants to bind a replacement. The teardown below is bounded, so a finished producer coroutine
+        // says nothing about the server having stopped the service. Always completed by that teardown
+        // (see its finally), so awaiting it can't hang a caller.
         val disconnectConfirmed = CompletableDeferred<Boolean>()
 
-        val service = serviceFactory.create(
-            hostClass = hostClass,
-            options = options,
-            onConnected = fun(binder: IBinder?) {
-                log(TAG) { "onServiceConnected(binder=$binder)" }
-                // Hop off Shizuku's callback thread (main): the handshake below does binder
-                // transactions, a wedged one would ANR and a DeadObjectException would crash the app
-                // uncaught. The producer scope runs on IO (see AdbServiceClient's resource scope).
-                this@callbackFlow.launch {
-                    try {
-                        log(TAG) { "Handshaking with the user service, options=$options" }
-                        val (userConnection, baseConnection) = serviceFactory.handshake<Service, Host>(
-                            binder = binder,
-                            serviceClass = serviceClass,
-                            options = options,
-                        )
-                        log(TAG) { "onServiceConnected(...) -> $userConnection" }
-                        send(ConnectionWrapper(userConnection, baseConnection, disconnectConfirmed))
-                        ready.complete(Unit)
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        log(TAG, WARN) { "User service handshake failed: ${e.asLog()}" }
-                        close(AdbException("Shizuku user service handshake failed", e))
-                    }
-                }
-            },
-            onDisconnected = {
-                // Fires on an UNEXPECTED disconnect (Shizuku/host died outside our own unbind). Close the
-                // flow so the SharedResource generation tears down and the next get() re-binds, instead of
-                // handing out a dead connection during the keep-alive window. On intentional teardown the
-                // channel is already closed (isClosedForSend), so this is a no-op.
-                if (!isClosedForSend) {
-                    log(TAG, WARN) { "Shizuku user service disconnected unexpectedly, closing connection" }
-                    close(AdbException("Shizuku user service disconnected"))
-                }
-            },
-        )
+        // Completed when the binder collection ends by itself: the service died, or the server
+        // connection it runs on was replaced or lost. Never by our own cancellation of it.
+        val serviceEnded = CompletableDeferred<Unit>()
 
-        // Started BEFORE bind(): bindUserService() is itself a synchronous binder transaction that can
-        // wedge, and we can't interrupt that binder thread — but the watchdog still releases everyone
-        // waiting on this flow instead of leaving them hanging forever.
+        // Set when the bind itself failed, which leaves no service of ours to stop.
+        val bindFailed = AtomicBoolean(false)
+
+        // Started first, so it also covers waiting for the previous generation's teardown: a bind that
+        // never connects, or never gets to start, must still release everyone waiting on this flow.
         launch {
             if (withTimeoutOrNull(connectTimeoutMs) { ready.await() } == null) {
                 log(TAG, WARN) { "User service did not connect within ${connectTimeoutMs}ms, closing" }
                 // Residual epsilon race: a send() completing concurrently with the deadline can tear
                 // down a connection that just came up. CompletableDeferred + withTimeoutOrNull narrows
                 // that window but can't close it; the next acquire re-binds.
-                close(AdbConnectTimeoutException("Shizuku user service did not connect within ${connectTimeoutMs}ms"))
+                close(AdbConnectTimeoutException("ADB user service did not connect within ${connectTimeoutMs}ms"))
             }
         }
 
-        // bindUserService() is a synchronous binder transaction that can wedge indefinitely
-        // (same upstream Shizuku defect family as the never-firing callback). It must run OUTSIDE
-        // the producer scope: channelFlow collection awaits all producer children, so a wedged
-        // bind launched in this scope would keep the watchdog's close() from ever releasing
-        // waiting collectors - exactly the eternal setup spinner this launcher guards against.
-        //
-        // Unbind ownership is handed over via CAS so no interleaving of (bind returns) and
-        // (teardown gives up waiting) can leak the binding or unbind twice: whoever loses the
-        // race for the state transition owns the cleanup.
-        val bindState = AtomicReference(BindState.BINDING)
-        val bindJob = appScope.launch(dispatcherProvider.IO) {
-            try {
-                service.bind()
-            } catch (e: Exception) {
-                // Synchronous bind failures keep propagating to collectors, like they did when
-                // bind() ran in the producer. State stays BINDING: there is nothing to unbind.
-                close(e)
+        // Written by bindJob, read by the teardown only after bindJob was joined.
+        var holdsGenerationLock = false
+        var service: AdbUserService? = null
+        var collection: Job? = null
+
+        // Launched, so waiting for the lock stays cancellable and this body still reaches awaitClose.
+        val bindJob = launch {
+            GENERATION_LOCK.lock()
+            holdsGenerationLock = true
+
+            val created = serviceFactory.create(hostClass = hostClass, options = options)
+            if (created == null) {
+                close(AdbException("No ADB access server is connected"))
                 return@launch
             }
-            if (!bindState.compareAndSet(BindState.BINDING, BindState.BOUND)) {
-                // Teardown already claimed TEARDOWN while bind() was underway and skipped the
-                // unbind; without this late unbind the binding would leak.
-                log(TAG, WARN) { "bind() returned after teardown gave up waiting, unbinding late" }
-                runCatching { service.unbind() }
-                    .onFailure { log(TAG, WARN) { "Late unbindUserService() failed: ${it.asLog()}" } }
+            service = created
+
+            // Runs OUTSIDE the producer scope, so it outlives the producer's cancellation: teardown below
+            // sends the stop while this collection is still active, and its completion is how we see the
+            // service actually end. Cancelling it only drops the binding, it does not stop the service.
+            collection = appScope.launch(dispatcherProvider.IO) {
+                try {
+                    created.binders().collect { binder ->
+                        log(TAG) { "User service connected (binder=$binder)" }
+                        // Off the collector: the handshake does binder transactions, and the collection
+                        // has to stay free to notice the service ending meanwhile.
+                        this@callbackFlow.launch {
+                            try {
+                                log(TAG) { "Handshaking with the user service, options=$options" }
+                                val (userConnection, baseConnection) = serviceFactory.handshake<Service, Host>(
+                                    binder = binder,
+                                    serviceClass = serviceClass,
+                                    options = options,
+                                )
+                                log(TAG) { "User service handshake done -> $userConnection" }
+                                send(ConnectionWrapper(userConnection, baseConnection, disconnectConfirmed))
+                                ready.complete(Unit)
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
+                                log(TAG, WARN) { "User service handshake failed: ${e.asLog()}" }
+                                close(AdbException("ADB user service handshake failed", e))
+                            }
+                        }
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    log(TAG, WARN) { "User service bind failed: ${e.asLog()}" }
+                    bindFailed.set(true)
+                    serviceEnded.complete(Unit)
+                    close(e)
+                    return@launch
+                }
+                serviceEnded.complete(Unit)
+                // The collection ending while the flow is live is an UNEXPECTED disconnect (service died,
+                // server replaced or gone). Close the flow so the SharedResource generation tears down and
+                // the next get() re-binds, instead of handing out a dead connection during the keep-alive
+                // window. On intentional teardown the channel is already closed, so this is a no-op.
+                if (!isClosedForSend) {
+                    log(TAG, WARN) { "ADB user service disconnected unexpectedly, closing connection" }
+                    close(AdbException("ADB user service disconnected"))
+                }
             }
         }
 
@@ -159,91 +158,75 @@ class AdbHostLauncher(
             log(TAG) { "Waiting for flow to close" }
             awaitClose { log(TAG) { "awaitClose() reached, flow is closing…" } }
         } finally {
-            // Runs on cancellation too. Mirrors RootHostLauncher: cleanup lives in the finally (not
-            // only in awaitClose) so a throw before awaitClose can't leak the Shizuku binding, and
-            // unbind is best-effort so a DeadObjectException can't mask the cancellation.
+            // Runs on cancellation too. Cleanup lives in the finally (not only in awaitClose) so a throw
+            // before awaitClose can't leak the service.
             withContext(NonCancellable) {
-                // Stays false unless this teardown can prove the host is gone. An unbind we stopped
-                // waiting for, an unbind we never got to start and the late-unbind path above all
-                // leave a removal in flight, and a replacement bound while it is in flight can be
-                // what that removal hits. Completed in the finally, so nobody awaiting it can hang.
+                bindJob.cancelAndJoin()
+                // Stays false unless this teardown can prove the host is gone. A stop we stopped
+                // waiting for can still land later, and since the server keys it on the service args,
+                // what it hits then can be a replacement bound meanwhile. Completed in the finally, so
+                // nobody awaiting it can hang.
                 var confirmed = false
                 try {
-                    // Bounded settle so a merely-slow (not wedged) bind() still gets its unbind here.
-                    withTimeoutOrNull(BIND_SETTLE_TIMEOUT_MS) { bindJob.join() }
-                    if (bindState.compareAndSet(BindState.BINDING, BindState.TEARDOWN)) {
-                        // bind() has not returned yet: nothing to unbind now, the late-unbind path
-                        // above owns the eventual cleanup.
-                    } else if (bindState.get() == BindState.BOUND) {
-                        log(TAG) { "Unbinding Shizuku user service…" }
-                        // unbindUserService() is a synchronous binder transaction against the same
-                        // server that may already be wedged, and runCatching bounds nothing - it only
-                        // catches a throw. Collection of a callbackFlow awaits its producer, so an
-                        // unbounded wedge in this finally pins every collector even though the watchdog
-                        // above already close()d the channel: the eternal setup spinner, moved into
-                        // teardown. Detached + bounded, the same trade bind() makes above.
-                        //
-                        // That trade is not free, and not merely "the unbind finishes later": once we
-                        // stop waiting, an outstanding unbind can outlive this generation, and Shizuku
-                        // keys its remove=true unbind on the service args rather than on our callback -
-                        // so a late one can remove a service a NEWER generation just bound. The
-                        // late-unbind path above already carries that race; a teardown that never
-                        // returns is worse. The detached call may also never run at all, if it was
-                        // still queued when we gave up. What we can do is report it: `confirmed` is
-                        // what keeps a caller from binding that newer generation into the race.
-                        var unbindReturned = false
-                        runCatching {
-                            val unbound = appScope.runDetachedWithTimeout(dispatcherProvider.IO, unbindTimeoutMs) {
-                                runCatching { service.unbind() }
-                                    .onFailure { log(TAG, WARN) { "unbindUserService() failed: ${it.asLog()}" } }
-                                Unit
-                            }
-                            if (unbound == null) {
-                                log(TAG, WARN) { "unbindUserService() did not return within ${unbindTimeoutMs}ms" }
-                            } else {
-                                // Returned, a thrown failure included: the server answered instead of
-                                // leaving the transaction in flight.
-                                unbindReturned = true
-                            }
-                        }.onFailure {
-                            // Mainly @AppScope already cancelled (shutdown): await() then throws a
-                            // CancellationException that withTimeoutOrNull does not convert. It would
-                            // not corrupt what collectors see (the watchdog's close() already latched
-                            // the cause), but it would abandon the rest of this teardown - the
-                            // disconnect wait below - and surface as an unhandled producer failure.
-                            // Teardown is best-effort, and not being able to start the unbind is no
-                            // reason to skip the rest of it.
-                            log(TAG, WARN) { "Detached unbind could not run: ${it.asLog()}" }
-                        }
-                        // Bounded wait for the actual disconnect; without it, quick flow restarts can
-                        // cause DeadObjectExceptions from our Shizuku service binder. Still worth doing
-                        // after a timed-out unbind: the server may have processed the removal while the
-                        // synchronous transaction was still waiting on its reply.
-                        val disconnected = withTimeoutOrNull(DISCONNECT_TIMEOUT_MS) {
-                            service.awaitDisconnect()
-                        } != null
-                        // Both halves, because they answer different halves of the question: the unbind
-                        // returning means the server took the removal, the disconnect arriving means it
-                        // carried it out.
-                        confirmed = unbindReturned && disconnected
-                        log(TAG) { "Shizuku user service unbind teardown finished (confirmed=$confirmed)" }
+                    val bound = service
+                    if (bound == null) {
+                        log(TAG) { "No user service was created, nothing to stop" }
+                    } else if (bindFailed.get()) {
+                        log(TAG) { "Bind failed, nothing to stop" }
+                    } else {
+                        log(TAG) { "Stopping ADB user service…" }
+                        val stopReturned = stopBounded(bound, unbindTimeoutMs)
+                        // Still worth waiting after a timed-out stop: the server may have carried it out
+                        // while its reply was still on the way.
+                        val ended = withTimeoutOrNull(DISCONNECT_TIMEOUT_MS) { serviceEnded.await() } != null
+                        if (!ended) log(TAG, WARN) { "User service did not end within ${DISCONNECT_TIMEOUT_MS}ms" }
+                        // Both halves, because they answer different halves of the question: the stop
+                        // returning means the server took it, the collection ending means the service
+                        // is gone.
+                        confirmed = stopReturned && ended
+                        log(TAG) { "ADB user service teardown finished (confirmed=$confirmed)" }
                     }
                 } finally {
-                    disconnectConfirmed.complete(confirmed)
+                    try {
+                        collection?.cancel()
+                        disconnectConfirmed.complete(confirmed)
+                    } finally {
+                        if (holdsGenerationLock) GENERATION_LOCK.unlock()
+                    }
                 }
             }
         }
     }
 
-    private enum class BindState {
-        /** bind() is still running (or failed, leaving nothing to clean up). */
-        BINDING,
-
-        /** bind() returned and the flow's teardown owns the unbind. */
-        BOUND,
-
-        /** Teardown ran while bind() was still wedged; the bind job owns a late unbind. */
-        TEARDOWN,
+    /**
+     * Sends the stop detached and waits at most [timeoutMs] for it, true when it returned in time, a
+     * thrown failure included: the server answered instead of leaving the call in flight.
+     *
+     * Detached, like everything that talks to a server that may be wedged: an unbounded wait here
+     * would pin every collector, since collection of a callbackFlow awaits its producer.
+     */
+    private suspend fun stopBounded(service: AdbUserService, timeoutMs: Long): Boolean {
+        val stop = appScope.async(dispatcherProvider.IO) {
+            try {
+                service.stop()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(TAG, WARN) { "stopUserService() failed: ${e.asLog()}" }
+            }
+        }
+        return try {
+            val returned = withTimeoutOrNull(timeoutMs) { stop.await() } != null
+            if (!returned) log(TAG, WARN) { "stopUserService() did not return within ${timeoutMs}ms" }
+            returned
+        } catch (e: CancellationException) {
+            // @AppScope already cancelled (shutdown): the stop never ran, and not being able to start
+            // it is no reason to skip the rest of the teardown.
+            log(TAG, WARN) { "Detached stop could not run: ${e.asLog()}" }
+            false
+        } finally {
+            stop.cancel()
+        }
     }
 
     data class ConnectionWrapper<Service : IInterface, Host : AdbConnection>(
@@ -251,10 +234,10 @@ class AdbHostLauncher(
         val host: Host,
         /**
          * Scoped to THIS connection attempt: completes with true only once its teardown both got its
-         * `unbind()` back within the timeout and saw the service actually disconnect. False means a
-         * removal may still be in flight, and since Shizuku keys `remove=true` on the service args, a
-         * replacement bound now could be the one that removal hits. Anyone rebinding after a teardown
-         * has to wait for this and honour it.
+         * stop back within the timeout and saw the service's binder collection end. False means a stop
+         * may still be in flight, and since the server keys it on the service args, a replacement bound
+         * now could be the one it hits. Anyone rebinding after a teardown has to wait for this and
+         * honour it.
          */
         val disconnectConfirmed: Deferred<Boolean>,
     )
@@ -262,37 +245,27 @@ class AdbHostLauncher(
     companion object {
         private val TAG = logTag("ADB", "Host", "Launcher")
 
-        // How long to wait for the Shizuku service to actually disconnect after unbinding before
-        // giving up — bounded so teardown can't hang.
+        // Every generation binds the same service args, so an older generation's stop would destroy a
+        // newer generation's helper. A new generation binds only once the previous one's stop returned
+        // or gave up. Process-wide, because the launcher itself is not a singleton.
+        private val GENERATION_LOCK = Mutex()
+
+        // How long to wait for the user service to actually end after the stop before giving up,
+        // bounded so teardown can't hang.
         private const val DISCONNECT_TIMEOUT_MS = 500L
 
-        // How long teardown waits for a still-running bind() before concluding it is wedged and
-        // leaving cleanup to the late-unbind path.
-        private const val BIND_SETTLE_TIMEOUT_MS = 500L
-
-        // How long to wait for onServiceConnected after binding. Generous: a cold AdbHost start is a
-        // multi-second affair (see AdbServiceClient's keep-alive rationale). AppOpsNext uses 12s for
-        // the same probe against the same upstream Shizuku defect where bindUserService() returns but
-        // the connection callback never fires (MediaTek/HyperOS, Shizuku 13.6.0).
+        // How long to wait for the user service to connect after binding. Generous: a cold AdbHost
+        // start is a multi-second affair (see AdbServiceClient's keep-alive rationale). AppOpsNext uses
+        // 12s for the same probe against the upstream Shizuku defect where the bind returns but the
+        // connection callback never fires (MediaTek/HyperOS, Shizuku 13.6.0).
         internal const val CONNECT_TIMEOUT_MS = 15 * 1000L
 
-        // How long teardown waits for unbindUserService() before moving on without it. Short, unlike
-        // the probe timeouts around it, because it answers a different question: a probe that gives up
-        // too early reports a working Shizuku as broken, while this one only decides how long a
-        // failing teardown may hold the flow open.
-        //
-        // Measured on sdmse against a healthy Shizuku, idle, 4 cold teardowns each: Pixel 7a (2023)
-        // 4.1-6.1ms, Pixel 2 (2017) 6.5-10.8ms. So this leaves ~185x headroom over the slowest sample
-        // across a six-year hardware gap. Deliberately not tightened towards those numbers: the
-        // measurements are from idle devices, while the wedge this guards against shows up on low-end
-        // hardware under memory pressure, where a dispatcher hop plus binder round-trip is far slower.
-        // Giving up early is not free either - it is what exposes the cross-generation race described
-        // at the call site - so the headroom is the point.
+        // How long teardown waits for stopUserService() before moving on without it. Short, unlike the
+        // probe timeouts around it, because it answers a different question: a probe that gives up too
+        // early reports a working server as broken, while this one only decides how long a failing
+        // teardown may hold the flow open. Still generous against a healthy server's round-trip, since
+        // the wedge this guards against shows up on low-end hardware under memory pressure, and giving
+        // up early is not free either: it is what leaves the stop in flight (see disconnectConfirmed).
         internal const val UNBIND_TIMEOUT_MS = 2 * 1000L
-
-        // Budget for the getVersion() round-trip. Same size as CONNECT_TIMEOUT_MS on purpose: this only
-        // has to turn "never returns" into "eventually fails", and timing out a slow-but-working
-        // Shizuku would break a setup that currently works.
-        internal const val API_VERSION_TIMEOUT_MS = 15 * 1000L
     }
 }

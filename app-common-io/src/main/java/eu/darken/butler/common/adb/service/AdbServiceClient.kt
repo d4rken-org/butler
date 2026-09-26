@@ -71,7 +71,7 @@ class AdbServiceClient @Inject constructor(
             isDebug = debugSettings.isDebugMode.value(),
             isTrace = debugSettings.isTraceMode.value(),
             recorderPath = recorderPathPublisher.path.value,
-            // Shizuku has no init args, so this initial push doubles as the host's launch arguments.
+            // User services have no init args, so this initial push doubles as the host's launch arguments.
             hostIdentity = IpcContract.current(context).encode(),
         )
 
@@ -80,7 +80,7 @@ class AdbServiceClient @Inject constructor(
             .createServiceHostConnection(optionsInitial)
             .onEach { wrapper ->
                 lastInternal.value = wrapper.host
-                // The teardown signal rides along: Shizuku's unbind is detached and bounded, so the
+                // The teardown signal rides along: the launcher's stop is bounded, so the
                 // identity gate must not rebind on a mismatch until this generation is really gone.
                 send(IpcHostAttempt(wrapper.service, wrapper.disconnectConfirmed))
             }
@@ -161,7 +161,7 @@ class AdbServiceClient @Inject constructor(
         // An identity mismatch is excluded for a different reason: the gate has already decided whether
         // rebinding is safe (it reconnects only when the stale host's teardown was confirmed), and a
         // fresh source collection started here would bypass that decision — binding a replacement that
-        // the still-in-flight `remove=true` unbind can take out.
+        // the still-in-flight stop can take out.
         //
         // Shared with the regression test that covers the mismatch case, so a change here can't quietly
         // leave the test guarding a stale copy.

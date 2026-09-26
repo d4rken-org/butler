@@ -103,7 +103,7 @@
     <string name="app_uninstall_confirm_pending_reason">Android wartet auf Deine Bestätigung</string>
 
     <!-- App uninstall errors -->
-    <string name="app_uninstall_other_user_unsupported">Das Entfernen dieser App für einen anderen Nutzer erfordert Root oder Shizuku</string>
+    <string name="app_uninstall_other_user_unsupported">Das Entfernen dieser App für einen anderen Nutzer erfordert Root-Zugriff oder ADB-Zugriff</string>
     <string name="app_uninstall_no_result">Android hat kein Ergebnis gemeldet</string>
 
     <!-- Service connection errors -->
