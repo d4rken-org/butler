@@ -378,7 +378,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Tab rail plus as many panes as the screen fits. Pin a layout from the Butler menu in the rail.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptive (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Single with tab rail</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">One tab pane plus the tab rail of the multi-pane layouts. Switch tabs from the rail instead of by swiping; the rail takes a strip of the screen.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">One tab pane plus the tab rail of the multi-pane layouts. The rail takes a strip of the screen.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Dual vertical</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Two panes side-by-side (left/right).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Dual horizontal</string>

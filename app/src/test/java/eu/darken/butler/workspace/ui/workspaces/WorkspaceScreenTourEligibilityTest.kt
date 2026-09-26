@@ -331,6 +331,19 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
     }
 
     @Test
+    fun `the swipe tour starts on a single-with-rail screen with two tabs`() {
+        val harness = setScreen(
+            state(
+                infos = listOf(tabInfo, secondTabInfo),
+                panelMode = WorkspacePanelMode.SINGLE_RAIL,
+                swipeGesturesEnabled = true,
+            ),
+        )
+
+        harness.tourAccess.started shouldBe listOf(WorkspaceSwipeTour.id)
+    }
+
+    @Test
     fun `one tab is nothing to swipe between`() {
         val harness = setScreen(swipeState(infos = listOf(tabInfo)))
 
@@ -359,7 +372,7 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
 
     @Test
     fun `the swipe tour stays away from a multi-pane layout`() {
-        // The adaptive layout composes no pager, so there is nothing to swipe there.
+        // Only a one-pane layout composes the pager, so there is nothing to swipe here.
         val harness = setScreen(
             state(
                 infos = listOf(tabInfo, secondTabInfo),
@@ -432,7 +445,7 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
     }
 
     @Test
-    fun `a swipe tour session ends when the window grows a rail`() {
+    fun `a swipe tour session ends when the window grows a second pane`() {
         val harness = setScreen(swipeState())
         harness.tourAccess.started shouldBe listOf(WorkspaceSwipeTour.id)
 
@@ -446,6 +459,24 @@ class WorkspaceScreenTourEligibilityTest : ComposeTest() {
         applyAndRecompose()
 
         harness.tourAccess.skipForNowCalls shouldBe 1
+    }
+
+    /** The rail appearing beside the one pane leaves the pager, and with it the tour's subject, in place. */
+    @Test
+    fun `a swipe tour session survives the rail appearing beside the one pane`() {
+        val harness = setScreen(swipeState())
+        harness.tourAccess.started shouldBe listOf(WorkspaceSwipeTour.id)
+
+        composeTestRule.runOnIdle {
+            harness.state.value = state(
+                infos = listOf(tabInfo, secondTabInfo),
+                panelMode = WorkspacePanelMode.SINGLE_RAIL,
+                swipeGesturesEnabled = true,
+            )
+        }
+        applyAndRecompose()
+
+        harness.tourAccess.skipForNowCalls shouldBe 0
     }
 
     @Test
