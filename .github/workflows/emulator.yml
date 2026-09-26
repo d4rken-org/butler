@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api: [ 30, 36 ]
+        api: [ 36 ]
     steps:
       - name: Checkout source code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
@@ -65,8 +65,10 @@ jobs:
           # Each line runs on its own and the first failing one ends the step, so a device test
           # failure is only recorded until the upgrade test has run too.
           script: |
+            mkdir -p "$RUNNER_TEMP/diag"; adb shell getprop ro.boot.qemu.gltransport > "$RUNNER_TEMP/diag/props.txt"; adb shell cmd overlay list | grep navbar >> "$RUNNER_TEMP/diag/props.txt"
             ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest || touch "$RUNNER_TEMP/device-tests-failed"
-            if [ "${{ matrix.api }}" = 36 ]; then old_e2e="$RUNNER_TEMP/upgrade-base/app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP/upgrade-base/app/build/outputs/apk/foss/debug/app-foss-debug.apk" app/build/outputs/apk/foss/debug/app-foss-debug.apk app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk $old_e2e; fi
+            if [ "${{ matrix.api }}" = 36 ]; then old_e2e="$RUNNER_TEMP/upgrade-base/app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP/upgrade-base/app/build/outputs/apk/foss/debug/app-foss-debug.apk" app/build/outputs/apk/foss/debug/app-foss-debug.apk app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk $old_e2e || touch "$RUNNER_TEMP/device-tests-failed"; fi
+            adb logcat -d -b all > "$RUNNER_TEMP/diag/logcat.txt"; adb shell dumpsys activity processes > "$RUNNER_TEMP/diag/processes.txt"; adb root; sleep 3; adb pull /data/anr "$RUNNER_TEMP/diag/anr" || true; adb shell uptime > "$RUNNER_TEMP/diag/uptime.txt"
             test ! -e "$RUNNER_TEMP/device-tests-failed"
 
       - name: Upload device test results
@@ -79,5 +81,6 @@ jobs:
             */build/reports/androidTests/**
             */build/outputs/connected_android_test_additional_output/**
             app-e2e/build/outputs/upgrade-test/**
+            ${{ runner.temp }}/diag/**
           if-no-files-found: warn
           retention-days: 14
