@@ -66,6 +66,7 @@ jobs:
           # failure is only recorded until the upgrade test has run too.
           script: |
             mkdir -p "$RUNNER_TEMP/diag"; adb shell getprop ro.boot.qemu.gltransport > "$RUNNER_TEMP/diag/props.txt"; adb shell cmd overlay list | grep navbar >> "$RUNNER_TEMP/diag/props.txt"
+            adb shell cmd overlay enable-exclusive --category com.android.internal.systemui.navbar.threebutton; sleep 10; adb shell cmd overlay list | grep navbar >> "$RUNNER_TEMP/diag/props.txt"
             ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest || touch "$RUNNER_TEMP/device-tests-failed"
             if [ "${{ matrix.api }}" = 36 ]; then old_e2e="$RUNNER_TEMP/upgrade-base/app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP/upgrade-base/app/build/outputs/apk/foss/debug/app-foss-debug.apk" app/build/outputs/apk/foss/debug/app-foss-debug.apk app-e2e/build/outputs/apk/foss/debug/app-e2e-foss-debug.apk $old_e2e || touch "$RUNNER_TEMP/device-tests-failed"; fi
             adb logcat -d -b all > "$RUNNER_TEMP/diag/logcat.txt"; adb shell dumpsys activity processes > "$RUNNER_TEMP/diag/processes.txt"; adb root; sleep 3; adb pull /data/anr "$RUNNER_TEMP/diag/anr" || true; adb shell uptime > "$RUNNER_TEMP/diag/uptime.txt"
