@@ -10,6 +10,8 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.PaneEdges
 import kotlin.math.abs
 
 /**
@@ -29,14 +31,15 @@ import kotlin.math.abs
  * pager's drag never begins and the window is never asked to stop intercepting. Zeroing the scroll
  * delta afterwards would not do: by then the drag has started and the gesture is already lost.
  */
-fun Modifier.ignoreEdgeHorizontalDrags(edgeWidthPx: Int): Modifier {
-    if (edgeWidthPx <= 0) return this
-    return pointerInput(edgeWidthPx) {
+fun Modifier.ignoreEdgeHorizontalDrags(leftPx: Int, rightPx: Int): Modifier {
+    if (leftPx <= 0 && rightPx <= 0) return this
+    return pointerInput(leftPx, rightPx) {
         val claimSlop = viewConfiguration.touchSlop / 2f
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-            val fromEdge = down.position.x <= edgeWidthPx || down.position.x >= size.width - edgeWidthPx
-            if (!fromEdge) return@awaitEachGesture
+            val fromLeft = leftPx > 0 && down.position.x < leftPx
+            val fromRight = rightPx > 0 && down.position.x >= size.width - rightPx
+            if (!fromLeft && !fromRight) return@awaitEachGesture
 
             var claimed = false
             while (true) {
@@ -55,12 +58,41 @@ fun Modifier.ignoreEdgeHorizontalDrags(edgeWidthPx: Int): Modifier {
     }
 }
 
-/** [ignoreEdgeHorizontalDrags] sized from the window's own back-gesture strips. */
+/**
+ * The strip widths for a pane, as (left, right) in pixels. Each strip the pane reaches is as wide
+ * as the wider of the two gesture insets; a side the pane does not reach has none, because with the
+ * rail at the start the pane's start edge sits next to the rail, where no system back gesture begins.
+ *
+ * ```
+ * insets (left=40, right=60)
+ * LTR, no rail:     all edges                          -> (60, 60)
+ * LTR, start rail:  touchesStart=false, touchesEnd=true -> (0, 60)
+ * RTL, start rail:  touchesStart=false, touchesEnd=true -> (60, 0)
+ * ```
+ */
+internal fun edgeStripWidths(
+    paneEdges: PaneEdges,
+    layoutDirection: LayoutDirection,
+    leftInsetPx: Int,
+    rightInsetPx: Int,
+): Pair<Int, Int> {
+    val width = maxOf(leftInsetPx, rightInsetPx)
+    val touchesLeft = if (layoutDirection == LayoutDirection.Ltr) paneEdges.touchesStart else paneEdges.touchesEnd
+    val touchesRight = if (layoutDirection == LayoutDirection.Ltr) paneEdges.touchesEnd else paneEdges.touchesStart
+    return (if (touchesLeft) width else 0) to (if (touchesRight) width else 0)
+}
+
+/** [ignoreEdgeHorizontalDrags] sized from the window's own back-gesture strips, on the edges [paneEdges] reaches. */
 @Composable
-fun Modifier.ignoreEdgeHorizontalDrags(): Modifier {
+fun Modifier.ignoreEdgeHorizontalDrags(paneEdges: PaneEdges): Modifier {
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
     val gestures = WindowInsets.systemGestures
-    val edge = maxOf(gestures.getLeft(density, layoutDirection), gestures.getRight(density, layoutDirection))
-    return ignoreEdgeHorizontalDrags(edge)
+    val (left, right) = edgeStripWidths(
+        paneEdges = paneEdges,
+        layoutDirection = layoutDirection,
+        leftInsetPx = gestures.getLeft(density, layoutDirection),
+        rightInsetPx = gestures.getRight(density, layoutDirection),
+    )
+    return ignoreEdgeHorizontalDrags(left, right)
 }

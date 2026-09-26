@@ -8,16 +8,16 @@ import eu.darken.butler.common.compose.tour.TourId
 import eu.darken.butler.common.compose.tour.TourStep
 
 /**
- * Walks the classic pager: swiping between tabs, swiping past the last one for a fresh tab, and the
- * side-by-side layouts a wider window opens up.
+ * Walks the one-pane tab pager: swiping between tabs, swiping past the last one for a fresh tab, and
+ * the side-by-side layouts a wider window opens up.
  *
  * Every step is centerless. A swipe has no element to point at, and the pager fills the window, so
  * anchoring on it would cut a hole the size of the screen and single out nothing.
  *
  * That also decides how the tour can end: only a step carrying a target id ever reaches the host's
  * missing-target grace window, so none of these steps can grace-skip and the tour cannot end itself
- * once a navigation rail appears and its copy stops describing the screen. The layout-change effect
- * in `WorkspaceScreen` is what ends it there.
+ * once the window gains a second pane and its copy stops describing the screen. The layout-change
+ * effect in `WorkspaceScreen` is what ends it there.
  *
  * The create-by-swipe step is conditional: the pager adds its trailing placeholder page only while
  * `onDemandWorkspaceCreation` is on. A settings flip mid-tour is safe rather than confusing - the

@@ -81,7 +81,7 @@ import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.scroll.LocalWorkspaceScrollPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRailDefaults
-import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
+import eu.darken.butler.workspace.ui.workspaces.classic.WorkspacePagerContainer
 import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
 import eu.darken.butler.workspace.ui.workspaces.tour.WorkspacePanesTour
 import eu.darken.butler.workspace.ui.workspaces.tour.WorkspaceSwipeTour
@@ -161,13 +161,12 @@ fun WorkspaceScreen(
         state.fullScreenModalWorkspace == null &&
         managerDialogs.none { it.isBlocking && it is ManagerDialog.Global }
 
-    // Swiping only exists in the classic pager, which is what !hasNavigationRail selects: a
-    // SINGLE_RAIL / ADAPTIVE panel mode has one pane but composes the adaptive layout, where there
-    // is nothing to swipe. Two tabs is the minimum that makes "swipe between tabs" true.
-    // The two eligibility values are mutually exclusive by construction: WorkspaceDesign's init
-    // require ties hasNavigationRail to a non-SINGLE layout, and maxPanes > 1 implies non-SINGLE.
+    // Every one-pane layout is the tab pager, with or without the rail beside it, so pane count is
+    // what decides whether there is anything to swipe. Two tabs is the minimum that makes "swipe
+    // between tabs" true. Mutually exclusive with the panes tour by construction: one pane here,
+    // at least two there.
     val swipeTourEligible = tourSurfaceQuiet &&
-        !design.hasNavigationRail &&
+        design.maxPanes == 1 &&
         state.swipeGesturesEnabled &&
         state.tabWorkspaces.size >= 2
 
@@ -206,12 +205,12 @@ fun WorkspaceScreen(
     // never grace-skips, and the panes tour's Butler-button anchor survives into the classic layout,
     // where that button's menu has no Layout row. skipForNow rather than dismissForever - the skip
     // is in-memory, so the tour returns after an app restart instead of being burned for a rotation.
-    // Each branch mirrors its own start gate: the swipe tour needs the classic pager, which is what
-    // !hasNavigationRail selects, while the panes tour needs two panes - a rail stays composed over
-    // one pane, so pane count is the only thing that sees an ADAPTIVE window being narrowed.
-    LaunchedEffect(activeTourSession?.definition?.id, design.hasNavigationRail, design.maxPanes) {
+    // Each branch mirrors its own start gate: the swipe tour needs the one-pane pager, the panes
+    // tour needs two panes. A rail stays composed over one pane, so pane count is the only thing
+    // that sees an ADAPTIVE window being widened or narrowed.
+    LaunchedEffect(activeTourSession?.definition?.id, design.maxPanes) {
         val live = activeTourSession?.definition?.id ?: return@LaunchedEffect
-        val stale = (live == WorkspaceSwipeTour.id && design.hasNavigationRail) ||
+        val stale = (live == WorkspaceSwipeTour.id && design.maxPanes > 1) ||
             (live == WorkspacePanesTour.id && design.maxPanes <= 1)
         if (stale) tourController.skipForNow()
     }
@@ -255,10 +254,28 @@ fun WorkspaceScreen(
                 firstTabTourRequester = createTabRequester,
                 railThickness = railThickness,
                 onRailThicknessChanged = onRailThicknessChanged,
+                singlePanePager = { paneDesign, revealRequests, emptyContent ->
+                    WorkspacePagerContainer(
+                        design = paneDesign,
+                        state = state,
+                        managerDialogs = managerDialogs,
+                        isOverlayVisible = isOverlayVisible,
+                        onWorkspaceScreenAction = onScreenAction,
+                        managerDialogStates = managerDialogStates,
+                        bannerStates = bannerStates,
+                        onDismissBanner = onDismissBanner,
+                        paneLocalModalChains = state.paneLocalModalChains,
+                        emptyContent = emptyContent,
+                        revealRequests = revealRequests,
+                        // The rail already marks the current tab.
+                        showSwitchIndicator = false,
+                        onShareError = onShareError,
+                    )
+                },
                 onShareError = onShareError,
             )
         } else {
-            ClassicWorkspaceContainer(
+            WorkspacePagerContainer(
                 state = state,
                 managerDialogs = managerDialogs,
                 isOverlayVisible = isOverlayVisible,
