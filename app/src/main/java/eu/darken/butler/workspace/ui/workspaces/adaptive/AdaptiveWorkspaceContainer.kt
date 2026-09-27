@@ -26,7 +26,6 @@ import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.DualHorizontalLayout
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.DualVerticalLayout
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.QuadGridLayout
-import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.SinglePaneLayout
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.TripleMainLeftLayout
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.TripleMainRightLayout
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
@@ -53,7 +52,8 @@ data class DividerPositions(
 
 /**
  * An adaptive container that displays workspaces in different layouts based on the design.
- * Supports single, dual (vertical/horizontal), and triple pane layouts with draggable dividers.
+ * Supports dual (vertical/horizontal), triple and quad pane layouts with draggable dividers; one pane
+ * is the tab pager's.
  *
  * @param design The workspace design configuration determining the layout
  * @param selected List of selected workspaces to display
@@ -88,16 +88,7 @@ fun AdaptiveWorkspaceContainer(
             }
     ) {
         when (design.layout) {
-            WorkspaceDesign.Layout.SINGLE -> {
-                SinglePaneLayout(
-                    selected = selected,
-                    focusedTabId = focusedTabId,
-                    showPaneNumbers = showPaneNumbers,
-                    showPaneOverlay = showPaneOverlay,
-                    onTabFocus = onTabFocus,
-                    paneContent = paneContent,
-                )
-            }
+            WorkspaceDesign.Layout.SINGLE -> error("A one-pane layout is rendered by the tab pager")
 
             WorkspaceDesign.Layout.DUAL_VERTICAL -> {
                 DualVerticalLayout(

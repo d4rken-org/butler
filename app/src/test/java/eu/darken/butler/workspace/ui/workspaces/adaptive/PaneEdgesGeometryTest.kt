@@ -99,10 +99,12 @@ class PaneEdgesGeometryTest : ComposeTest() {
 
     private fun assertAllLayoutsMatchTable(direction: LayoutDirection) {
         var pass by mutableStateOf(0)
-        var layout by mutableStateOf(Layout.entries.first())
+        // One pane is the tab pager's, which fills the area; this container only renders splits.
+        val splitLayouts = Layout.entries - Layout.SINGLE
+        var layout by mutableStateOf(splitLayouts.first())
         setContent(passState = { pass }, layoutState = { layout }, direction = direction)
 
-        Layout.entries.forEachIndexed { index, current ->
+        splitLayouts.forEachIndexed { index, current ->
             panes.clear()
             layout = current
             pass = index + 1

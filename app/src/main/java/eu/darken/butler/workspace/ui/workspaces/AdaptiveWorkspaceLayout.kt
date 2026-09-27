@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -81,16 +82,13 @@ fun AdaptiveWorkspaceLayout(
     /** The rail's measured height in its bottom placement, owned by the host that draws chrome too. */
     railThickness: Dp = 0.dp,
     onRailThicknessChanged: (Dp) -> Unit = {},
-    /**
-     * Renders the sole pane of a one-pane layout, so that it can be swiped like the classic pager.
-     * Null keeps the plain single pane.
-     */
+    /** Renders the sole pane of a one-pane layout, so it swipes like the classic pager. Required at one pane. */
     singlePanePager: SinglePanePager? = null,
     onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val dragDropState = remember { DragDropState() }
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
-    val pagerHostsPane = singlePanePager != null && design.maxPanes == 1
+    val pagerHostsPane = design.maxPanes == 1
     val revealRequests = remember {
         MutableSharedFlow<Workspace.Id>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
@@ -190,7 +188,6 @@ fun AdaptiveWorkspaceLayout(
                     railThickness = railThickness,
                     selected = selected,
                     focusedId = focusedId,
-                    focusedRootId = focusedRootId,
                     dividerPositions = dividerPositions,
                     onDividerPositionsChange = onDividerPositionsChange,
                     showPaneNumbers = showPaneNumbers,
@@ -206,7 +203,7 @@ fun AdaptiveWorkspaceLayout(
                     fullScreenModalVisible = fullScreenModalVisible,
                     firstTabTourPaneNumber = firstTabTourPaneNumber,
                     firstTabTourRequester = firstTabTourRequester,
-                    singlePanePager = singlePanePager.takeIf { pagerHostsPane },
+                    singlePanePager = singlePanePager,
                     revealRequests = revealRequests,
                     onShareError = onShareError,
                 )
@@ -222,7 +219,6 @@ fun AdaptiveWorkspaceLayout(
                     railThickness = railThickness,
                     selected = selected,
                     focusedId = focusedId,
-                    focusedRootId = focusedRootId,
                     dividerPositions = dividerPositions,
                     onDividerPositionsChange = onDividerPositionsChange,
                     showPaneNumbers = showPaneNumbers,
@@ -238,7 +234,7 @@ fun AdaptiveWorkspaceLayout(
                     fullScreenModalVisible = fullScreenModalVisible,
                     firstTabTourPaneNumber = firstTabTourPaneNumber,
                     firstTabTourRequester = firstTabTourRequester,
-                    singlePanePager = singlePanePager.takeIf { pagerHostsPane },
+                    singlePanePager = singlePanePager,
                     revealRequests = revealRequests,
                     onShareError = onShareError,
                 )
@@ -259,8 +255,6 @@ private fun PaneArea(
     railThickness: Dp,
     selected: Map<Int, WorkspacePaneInfo>,
     focusedId: Workspace.Id?,
-    /** The tab owning [focusedId], null when focus resolves to no tab. */
-    focusedRootId: Workspace.Id?,
     dividerPositions: DividerPositions,
     onDividerPositionsChange: (DividerPositions) -> Unit,
     showPaneNumbers: Boolean,
@@ -283,14 +277,15 @@ private fun PaneArea(
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
     val placement = design.railPlacement
 
-    if (singlePanePager != null) {
+    if (design.maxPanes == 1) {
+        val singlePanePager = requireNotNull(singlePanePager) { "A one-pane layout is rendered by the tab pager" }
         val paneDesign = design.forPane(1).withoutEdges(
             start = placement == RailPlacement.START,
             bottom = placement == RailPlacement.BOTTOM,
         )
         // The Box carries the weight this area gets from the rail's Row/Column; the pager's own
-        // root only fills what it is given.
-        Box(modifier = modifier) {
+        // root only fills what it is given. Clipped to the shape every multi-pane pane has.
+        Box(modifier = modifier.clip(MaterialTheme.shapes.medium)) {
             CompositionLocalProvider(
                 LocalPaneBottomChrome provides if (placement == RailPlacement.BOTTOM) railThickness else 0.dp,
             ) {
@@ -343,12 +338,6 @@ private fun PaneArea(
                         val focusSuppressed = isOverlayVisible || fullScreenModalVisible
                         val paneIsFocused = !focusSuppressed &&
                             (focusedId == info.id || chain.any { it.id == focusedId })
-                        // Widened for presses only, as the classic pager does for its resting page:
-                        // with a single pane nobody else can hold focus, so while focus resolves to
-                        // no tab the pane must not consume the first press to request one. Back
-                        // below stays tied to focus actually held.
-                        val paneAcceptsPresses = paneIsFocused ||
-                            (design.maxPanes == 1 && !focusSuppressed && focusedRootId == null)
                         // Deepest layer is the active one; global focus can sit on a covered
                         // ancestor (launchPicker never moves it).
                         val activeId = (chain.lastOrNull()?.id ?: info.id).takeIf { paneIsFocused }
@@ -359,7 +348,7 @@ private fun PaneArea(
                             // Any occupant counts as focusing the pane, and every layer requests
                             // focus for the tab: a Focus() for a modal is silently dropped,
                             // which would leave another pane active.
-                            paneFocused = paneAcceptsPresses,
+                            paneFocused = paneIsFocused,
                             backActive = paneIsFocused,
                             clickToFocus = clickToFocus,
                             onRequestPaneFocus = {
