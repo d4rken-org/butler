@@ -63,7 +63,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -569,8 +568,11 @@ internal fun WorkspaceRailItem(
     val cells = remember(layout) { paneCells(layout) }
     val glyphPaneIndex = paneIndex?.takeIf { !isDraggingItem && cells.size > 1 && it in cells.indices }
 
+    // Faded out as the same hue at zero alpha, not Color.Transparent: that is transparent black, and
+    // the colour animator interpolates lightness and alpha separately, so the card would dip to grey
+    // halfway through every focus change.
     val restingContainerColor by animateColorAsState(
-        targetValue = if (isFocused) colorScheme.secondaryContainer else Color.Transparent,
+        targetValue = colorScheme.secondaryContainer.copy(alpha = if (isFocused) 1f else 0f),
     )
     // A dragging item is always opaque, in every state: the elevation shadow is drawn from the
     // shape, not the fill, so a see-through card would carry a shadow and show other items through
