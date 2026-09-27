@@ -424,7 +424,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Pasek kart plus tyle paneli, ile zmieści się na ekranie. Przypnij układ z menu Butler na pasku.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptacyjny (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Pojedynczy z paskiem kart</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">Jeden panel karty plus pasek kart z układów wielopanelowych. Przełączaj karty z paska zamiast przesuwaniem; pasek zajmuje pasmo ekranu.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Jeden panel karty plus pasek kart z układów wielopanelowych. Pasek zajmuje pasmo ekranu.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Podwójny pionowy</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Dwa panele obok siebie (lewy/prawy).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Podwójny poziomy</string>

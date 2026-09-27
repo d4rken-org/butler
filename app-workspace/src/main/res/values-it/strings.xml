@@ -378,7 +378,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Barra delle schede più tanti riquadri quanti ne entrano nello schermo. Fissa una disposizione dal menu Butler nella barra.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adattiva (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Singolo con barra delle schede</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">Un riquadro di schede più la barra delle schede delle disposizioni multi-riquadro. Cambia scheda dalla barra invece di scorrere; la barra occupa una striscia dello schermo.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Un riquadro di schede più la barra delle schede delle disposizioni multi-riquadro. La barra occupa una striscia dello schermo.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Doppio verticale</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Due riquadri affiancati (sinistra/destra).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Doppio orizzontale</string>

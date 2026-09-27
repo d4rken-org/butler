@@ -378,7 +378,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">نوار زبانه به‌همراه هر تعداد قابی که صفحه جا می‌دهد. یک چیدمان را از منوی Butler در نوار سنجاق کنید.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">تطبیقی (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">تک‌قاب با نوار زبانه</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">یک قاب زبانه به‌همراه نوار زبانه چیدمان‌های چندقابی. به‌جای سوایپ کردن، زبانه‌ها را از نوار تغییر دهید؛ نوار بخش نواری از صفحه را اشغال می‌کند.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">یک قاب زبانه به‌همراه نوار زبانه چیدمان‌های چندقابی. نوار بخش نواری از صفحه را اشغال می‌کند.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">دوتایی عمودی</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">دو قاب کنار هم (چپ/راست).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">دوتایی افقی</string>

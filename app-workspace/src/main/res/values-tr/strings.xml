@@ -378,7 +378,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Sekme rayı ile ekrana sığan kadar bölme. Raydaki Butler menüsünden bir düzen sabitleyin.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Uyarlanabilir (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Sekme raylı tekli</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">Çok bölmeli düzenlerin sekme rayıyla birlikte tek sekme bölmesi. Sekmeler arasında kaydırma yerine raydan geçiş yapın; ray ekranda bir şerit kaplar.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Çok bölmeli düzenlerin sekme rayıyla birlikte tek sekme bölmesi. Ray ekranda bir şerit kaplar.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Dikey ikili</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Yan yana iki bölme (sol/sağ).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Yatay ikili</string>

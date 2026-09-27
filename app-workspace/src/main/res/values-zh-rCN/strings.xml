@@ -355,7 +355,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">标签页导航栏加上屏幕能容纳的尽可能多的窗格。可在导航栏的 Butler 菜单中固定某种布局。</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">自适应（%1$s）</string>
     <string name="workspace_settings_layout_mode_single_rail">单窗格带标签页导航栏</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">一个标签页窗格加上多窗格布局中的标签页导航栏。通过导航栏而非滑动来切换标签页；导航栏会占用屏幕的一部分。</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">一个标签页窗格加上多窗格布局中的标签页导航栏。导航栏会占用屏幕的一部分。</string>
     <string name="workspace_settings_layout_mode_dual_vertical">垂直双栏</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">两个窗格左右并排显示。</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">水平双栏</string>

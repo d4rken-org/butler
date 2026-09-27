@@ -378,7 +378,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Tab-Leiste plus so viele Bereiche, wie auf den Bildschirm passen. Pinne eine Anordnung über das Butler-Menü in der Leiste.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptiv (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Einzeln mit Tab-Leiste</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">Ein Tab-Bereich plus die Tab-Leiste der Mehrbereichs-Anordnungen. Wechsle Tabs über die Leiste statt durch Wischen; die Leiste nimmt einen Streifen des Bildschirms ein.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Ein Tab-Bereich plus die Tab-Leiste der Mehrbereichs-Anordnungen. Die Leiste nimmt einen Streifen des Bildschirms ein.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Zwei nebeneinander</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Zwei Bereiche nebeneinander (links/rechts).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Zwei übereinander</string>

@@ -378,7 +378,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Rail d’onglets et autant de panneaux que l’écran le permet. Épinglez une disposition depuis le menu Butler du rail.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptative (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Simple avec rail d’onglets</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">Un panneau d’onglet plus le rail d’onglets des dispositions multi-panneaux. Changez d’onglet depuis le rail plutôt qu’en balayant ; le rail occupe une bande de l’écran.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Un panneau d’onglet plus le rail d’onglets des dispositions multi-panneaux. Le rail occupe une bande de l’écran.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Double verticale</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Deux panneaux côte à côte (gauche/droite).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Double horizontale</string>
