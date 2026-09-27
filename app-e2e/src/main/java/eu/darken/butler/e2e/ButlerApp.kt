@@ -1,6 +1,7 @@
 package eu.darken.butler.e2e
 
 import android.os.SystemClock
+import android.view.ViewConfiguration
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.BySelector
@@ -56,6 +57,8 @@ class ButlerApp {
                 awaitGone(controls)
                 return
             }
+            // The tour drops a second advance within the double-tap timeout (GuidedTourHostTest).
+            SystemClock.sleep(ViewConfiguration.getDoubleTapTimeout() + TOUR_TAP_MARGIN_MS)
         }
         throw AssertionError("The '$titleName' tour did not reach Done within $MAX_TOUR_STEPS steps")
     }
@@ -108,5 +111,6 @@ class ButlerApp {
         private const val TIMEOUT_MS = 30_000L
         private const val SETTLE_POLL_MS = 150L
         private const val MAX_TOUR_STEPS = 10
+        private const val TOUR_TAP_MARGIN_MS = 100L
     }
 }
