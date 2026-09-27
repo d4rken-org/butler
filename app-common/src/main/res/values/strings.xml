@@ -309,7 +309,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Use multiple panes to compare files side by side.</string>
     <string name="common_tip_different_folders">Open different folders in each pane for easy file management.</string>
-    <string name="common_tip_switch_layouts">Switch between pane layouts in the tab settings manager.</string>
+    <string name="common_tip_switch_layouts">Switch pane layouts from Layout in the Butler menu.</string>
     <string name="common_tip_elevated_access">Enable root or ADB access in Setup for advanced file operations.</string>
     <string name="common_tip_breadcrumb_home">Long-press an Explorer breadcrumb to set it as your home directory.</string>
 </resources>
