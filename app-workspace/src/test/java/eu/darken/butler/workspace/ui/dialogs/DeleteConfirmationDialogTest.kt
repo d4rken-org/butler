@@ -1,9 +1,14 @@
 package eu.darken.butler.workspace.ui.dialogs
 
+import android.view.KeyEvent as NativeKeyEvent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.StateRestorationTester
@@ -39,6 +44,8 @@ class DeleteConfirmationDialogTest : ComposeTest() {
     private val deleteTitle = "Delete item?"
 
     private var confirmed: Pair<Set<APath<*>>, Boolean>? = null
+    private var confirmCount = 0
+    private var inputModeManager: InputModeManager? = null
 
     private fun setDialog(
         items: Set<APath<*>>,
@@ -46,6 +53,7 @@ class DeleteConfirmationDialogTest : ComposeTest() {
         initialPermanentDelete: Boolean = false,
     ) {
         composeTestRule.setContent {
+            inputModeManager = LocalInputModeManager.current
             PreviewWrapper {
                 DeleteConfirmationDialog(
                     items = items,
@@ -54,11 +62,14 @@ class DeleteConfirmationDialogTest : ComposeTest() {
                     onDismiss = {},
                     onConfirm = { confirmedItems, forcePermDelete ->
                         confirmed = confirmedItems to forcePermDelete
+                        confirmCount++
                     },
                 )
             }
         }
     }
+
+    private fun pressKey(keyCode: Int, metaState: Int = 0) = composeTestRule.pressDialogKey(keyCode, metaState)
 
     @Test
     fun `toggling the checkbox flips the confirm payload and the button label`() {
@@ -152,5 +163,41 @@ class DeleteConfirmationDialogTest : ComposeTest() {
         composeTestRule.onNodeWithText(moveAction).performClick()
 
         confirmed shouldBe (setOf(localFile) to false)
+    }
+
+    @Test
+    fun `in keyboard mode the confirm button holds focus and Enter confirms`() {
+        setDialog(items = setOf(localFile))
+
+        composeTestRule.runOnIdle { inputModeManager!!.inputMode shouldBe InputMode.Keyboard }
+        composeTestRule.onNodeWithText(moveAction).assertIsFocused()
+
+        pressKey(NativeKeyEvent.KEYCODE_ENTER)
+
+        composeTestRule.runOnIdle {
+            confirmCount shouldBe 1
+            confirmed shouldBe (setOf(localFile) to false)
+        }
+    }
+
+    @Test
+    fun `the permanent delete toggle can be reached and flipped by keyboard`() {
+        setDialog(items = setOf(localFile))
+
+        composeTestRule.onNodeWithText(moveAction).assertIsFocused()
+        repeat(2) { pressKey(NativeKeyEvent.KEYCODE_TAB, NativeKeyEvent.META_SHIFT_ON) }
+        composeTestRule.onNodeWithText(toggleLabel).assertIsFocused()
+
+        pressKey(NativeKeyEvent.KEYCODE_SPACE)
+        composeTestRule.onNodeWithText(toggleLabel).assertIsOn()
+
+        repeat(2) { pressKey(NativeKeyEvent.KEYCODE_TAB) }
+        composeTestRule.onNodeWithText(deleteAction).assertIsFocused()
+        pressKey(NativeKeyEvent.KEYCODE_ENTER)
+
+        composeTestRule.runOnIdle {
+            confirmCount shouldBe 1
+            confirmed shouldBe (setOf(localFile) to true)
+        }
     }
 }

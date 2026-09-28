@@ -43,6 +43,7 @@ import eu.darken.butler.viewer.core.ViewerExternalChange
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.error.ErrorCard
 import eu.darken.butler.workspace.ui.states.PathGoneBody
@@ -54,9 +55,9 @@ import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 import me.saket.telephoto.zoomable.ZoomableState
-import me.saket.telephoto.zoomable.rememberZoomableState
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
@@ -67,6 +68,9 @@ private val VIEWER_EXTERNAL_CHANGE_POLL_INTERVAL = 15.seconds
 sealed interface ViewerPageAction {
     /** Leave a drill-down viewer and return to the workspace that opened the file. */
     data object Close : ViewerPageAction
+
+    /** Ask to delete the file with "Delete permanently" already ticked. */
+    data object RequestPermanentDelete : ViewerPageAction
 }
 
 @Composable
@@ -138,6 +142,7 @@ fun ViewerWorkspacePageHost(
             onPageAction = { action ->
                 when (action) {
                     ViewerPageAction.Close -> vm.close()
+                    ViewerPageAction.RequestPermanentDelete -> vm.requestDelete(permanent = true)
                 }
             },
         )
@@ -153,6 +158,11 @@ fun ViewerWorkspacePage(
     callerWorkspaceId: Workspace.Id? = null,
     /** Test and preview seam for the tap-hidden chrome, mirroring [ApkFileContent]'s expand seam. */
     initiallyChromeVisible: Boolean = true,
+    /**
+     * Hoisted: the toolbar is a sibling of the content area, so it cannot read the zoom itself. A
+     * parameter so tests can read and drive the zoom.
+     */
+    zoomableState: ZoomableState = rememberViewerZoomableState(),
     onAction: (ViewerActionBarItem) -> Unit = {},
     onOpenWith: () -> Unit = {},
     onSaveCopy: () -> Unit = {},
@@ -195,8 +205,6 @@ fun ViewerWorkspacePage(
         end = WorkspacePaddings.ContentHorizontal,
     )
 
-    // Hoisted: the toolbar is a sibling of the content area, so it cannot read the zoom itself.
-    val zoomableState = rememberZoomableState()
     // derivedStateOf keeps pan frames out of the page: contentTransformation carries scale and
     // offset in one object, so a direct read would recompose both floating stacks on every frame.
     val zoomedIn by remember(zoomableState) {
@@ -263,7 +271,18 @@ fun ViewerWorkspacePage(
         listOf(topBarStackState.nestedScrollConnection, bottomBarStackState.nestedScrollConnection)
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .viewerKeyboardShortcuts(
+                active = LocalWorkspaceFocused.current && LocalLayerActive.current,
+                state = state,
+                onAction = onAction,
+                onPageAction = onPageAction,
+                onPdfPreviousPage = onPdfPreviousPage,
+                onPdfNextPage = onPdfNextPage,
+            ),
+    ) {
         when (state) {
             ViewerWorkspaceViewModel.State.Initializing -> CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),

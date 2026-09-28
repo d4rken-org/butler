@@ -64,10 +64,11 @@ fun ViewerWorkspaceOverlaysHost(
         )
     }
 
-    deleteRequest?.let { targets ->
+    deleteRequest?.let { request ->
         DeleteConfirmationDialog(
-            items = targets,
+            items = request.targets,
             trashEnabled = trashEnabled,
+            initialPermanentDelete = request.initialPermanentDelete,
             onDismiss = { vm.dismissDelete() },
             onConfirm = { _, forcePermDelete -> vm.confirmDelete(forcePermDelete) },
         )

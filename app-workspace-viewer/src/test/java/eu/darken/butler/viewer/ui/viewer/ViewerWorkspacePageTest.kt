@@ -347,6 +347,7 @@ class ViewerWorkspacePageTest : ComposeTest() {
                     onPageAction = { action ->
                         when (action) {
                             ViewerPageAction.Close -> closeCount++
+                            ViewerPageAction.RequestPermanentDelete -> Unit
                         }
                     },
                 )

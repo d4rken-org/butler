@@ -61,5 +61,7 @@ data class KeyboardShortcut(
         val ArrowRight = KeyboardShortcut(key = Key.DirectionRight)
         val Home = KeyboardShortcut(key = Key.MoveHome)
         val End = KeyboardShortcut(key = Key.MoveEnd)
+        val PageUp = KeyboardShortcut(key = Key.PageUp)
+        val PageDown = KeyboardShortcut(key = Key.PageDown)
     }
 }

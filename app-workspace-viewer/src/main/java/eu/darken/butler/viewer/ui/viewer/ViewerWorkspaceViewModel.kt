@@ -837,8 +837,8 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     }
 
     /** Non-null while the user is being asked to confirm the delete. */
-    private val deleteRequestFlow = MutableStateFlow<Set<APath<*>>?>(null)
-    val deleteRequest: StateFlow<Set<APath<*>>?> = deleteRequestFlow
+    private val deleteRequestFlow = MutableStateFlow<DeleteRequest?>(null)
+    val deleteRequest: StateFlow<DeleteRequest?> = deleteRequestFlow
 
     /** Drives the confirmation dialog's trash-vs-permanent wording, same source as the delete icon. */
     val trashEnabled: StateFlow<Boolean> = trashSettings.enabled.flow
@@ -864,11 +864,19 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         .map { it?.issue }
         .stateIn(vmScope, SharingStarted.Eagerly, null)
 
-    fun requestDelete() = launch {
-        // Deleting someone else's shared content is not ours to do; the action bar hides it.
-        val path = workspaceSource.first().storedPath ?: return@launch
-        log(tag, INFO) { "requestDelete($path)" }
-        deleteRequestFlow.value = setOf(path)
+    /** @param permanent pre-ticks "Delete permanently" in the confirmation. */
+    fun requestDelete(permanent: Boolean = false) {
+        // The file on display is about to be replaced, so the dialog would name the one being left.
+        if (fileStep?.isActive == true) {
+            log(tag) { "requestDelete(permanent=$permanent) ignored, a file step is in flight" }
+            return
+        }
+        launch {
+            // Deleting someone else's shared content is not ours to do; the action bar hides it.
+            val path = workspaceSource.first().storedPath ?: return@launch
+            log(tag, INFO) { "requestDelete($path, permanent=$permanent)" }
+            deleteRequestFlow.value = DeleteRequest(targets = setOf(path), initialPermanentDelete = permanent)
+        }
     }
 
     fun dismissDelete() {
@@ -886,11 +894,19 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             log(tag, WARN) { "A delete is already in progress, ignoring" }
             return
         }
+        val request = deleteRequestFlow.value
         deleteRequestFlow.value = null
 
         launch {
             try {
                 val workspace = workspaceSource.first()
+                // A file step may have landed while the dialog was open; only the file the dialog
+                // named may be deleted.
+                val confirmed = request?.targets?.singleOrNull()
+                if (confirmed == null || confirmed != workspace.storedPath) {
+                    log(tag, WARN) { "confirmDelete() for $confirmed, but ${workspace.storedPath} is on display" }
+                    return@launch
+                }
                 // Attached before the submit and undispatched: `completedOperations` has no replay,
                 // so a delete that finishes quickly would otherwise complete unobserved and leave
                 // the viewer showing a deleted file. The id is not known until submit returns, so it
@@ -938,6 +954,12 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         log(tag, INFO) { "resolveIssue(${pending.operationId}, $resolution)" }
         workspaceSource.first().resolveConflict(pending.operationId, resolution)
     }
+
+    /** What the delete confirmation asks about, and whether it starts with "Delete permanently" ticked. */
+    data class DeleteRequest(
+        val targets: Set<APath<*>>,
+        val initialPermanentDelete: Boolean,
+    )
 
     /** A conflict and the operation blocked on it, kept together so they cannot get out of step. */
     data class PendingConflict(
