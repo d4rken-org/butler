@@ -49,7 +49,12 @@ jobs:
           # GitHub runners have no GPU.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest
+          # The AOSP image still hangs System UI or the launcher now and then, and the ANR dialog it
+          # raises hides the app from UI Automator. With dialogs hidden, the system restarts the hung
+          # process instead.
+          script: |
+            adb shell settings put global hide_error_dialogs 1
+            ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest
 
       - name: Upload device test results
         if: always()
@@ -206,6 +211,7 @@ jobs:
           # failure is only recorded until the upgrade test has run too.
           script: |
             ANDROID_SERIAL=emulator-5554 adb shell setprop debug.hwui.drawing_enabled 1
+            ANDROID_SERIAL=emulator-5554 adb shell settings put global hide_error_dialogs 1
             ANDROID_SERIAL=emulator-5554 tools/e2e-test.sh "$RUNNER_TEMP/minified/app.apk" "$RUNNER_TEMP/minified/app-e2e.apk" || touch "$RUNNER_TEMP/device-tests-failed"
             old_e2e="$RUNNER_TEMP/previous-release/app-e2e.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP/previous-release/app.apk" "$RUNNER_TEMP/minified/app.apk" "$RUNNER_TEMP/minified/app-e2e.apk" $old_e2e
             test ! -e "$RUNNER_TEMP/device-tests-failed"
