@@ -190,7 +190,6 @@
     <string name="searcher_action_properties">Eigenschappen</string>
     <string name="searcher_action_select_all">Alles selecteren</string>
     <string name="searcher_action_deselect_all">Selectie opheffen</string>
-    <string name="searcher_action_open_in_new_tabs">Openen in nieuwe tabladen</string>
     <string name="searcher_action_sort">Sorteren</string>
     <string name="searcher_action_view">Weergave</string>
 

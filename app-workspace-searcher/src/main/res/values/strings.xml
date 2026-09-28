@@ -190,7 +190,6 @@
     <string name="searcher_action_properties">Properties</string>
     <string name="searcher_action_select_all">Select all</string>
     <string name="searcher_action_deselect_all">Deselect all</string>
-    <string name="searcher_action_open_in_new_tabs">Open in new tabs</string>
     <string name="searcher_action_sort">Sort</string>
     <string name="searcher_action_view">Layout</string>
 

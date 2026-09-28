@@ -46,4 +46,13 @@ sealed interface SearcherDialogState {
     ) : SearcherDialogState
 
     data class ShowItemProperties(val result: SearchItem) : SearcherDialogState
+
+    /**
+     * The selected results as they were when "Open" was tapped, in display order. The chosen mode
+     * opens this snapshot, not the live selection.
+     */
+    data class OpenSelection(
+        val results: List<SearchItem>,
+        val viewerModesAvailable: Boolean,
+    ) : SearcherDialogState
 }

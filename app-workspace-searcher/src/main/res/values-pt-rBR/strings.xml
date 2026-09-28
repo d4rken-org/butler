@@ -189,7 +189,6 @@
     <string name="searcher_action_properties">Propriedades</string>
     <string name="searcher_action_select_all">Selecionar tudo</string>
     <string name="searcher_action_deselect_all">Desmarcar tudo</string>
-    <string name="searcher_action_open_in_new_tabs">Abrir em novas abas</string>
     <string name="searcher_action_sort">Ordenar</string>
     <string name="searcher_action_view">Visualização</string>
 

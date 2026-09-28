@@ -151,11 +151,11 @@ sealed interface SearcherActionBarItem : WorkspaceActionBarItem {
         override val label = R.string.searcher_action_deselect_all.toCaString()
     }
 
-    data class OpenInNewTabs(
+    data class OpenSelection(
         val results: List<SearchItem>,
     ) : SearcherActionBarItem {
         override val icon = Icons.AutoMirrored.TwoTone.OpenInNew
-        override val label = R.string.searcher_action_open_in_new_tabs.toCaString()
+        override val label = CommonR.string.general_open_action.toCaString()
         override val group = WorkspaceActionBarItem.Group.PRIMARY
     }
 

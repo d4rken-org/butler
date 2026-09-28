@@ -180,7 +180,6 @@
     <string name="searcher_action_properties">Properti</string>
     <string name="searcher_action_select_all">Pilih semua</string>
     <string name="searcher_action_deselect_all">Batalkan pilihan semua</string>
-    <string name="searcher_action_open_in_new_tabs">Buka di tab baru</string>
     <string name="searcher_action_sort">Urutkan</string>
     <string name="searcher_action_view">Tata letak</string>
 

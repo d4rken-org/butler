@@ -181,7 +181,6 @@
     <string name="searcher_action_properties">속성</string>
     <string name="searcher_action_select_all">전체 선택</string>
     <string name="searcher_action_deselect_all">선택 해제</string>
-    <string name="searcher_action_open_in_new_tabs">새 탭에서 열기</string>
     <string name="searcher_action_sort">정렬</string>
     <string name="searcher_action_view">레이아웃</string>
 

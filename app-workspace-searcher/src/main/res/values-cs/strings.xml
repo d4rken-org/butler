@@ -208,7 +208,6 @@
     <string name="searcher_action_properties">Vlastnosti</string>
     <string name="searcher_action_select_all">Vybrat vše</string>
     <string name="searcher_action_deselect_all">Zrušit výběr</string>
-    <string name="searcher_action_open_in_new_tabs">Otevřít v nových kartách</string>
     <string name="searcher_action_sort">Seřadit</string>
     <string name="searcher_action_view">Rozložení</string>
 

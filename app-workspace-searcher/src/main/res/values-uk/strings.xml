@@ -208,7 +208,6 @@
     <string name="searcher_action_properties">Властивості</string>
     <string name="searcher_action_select_all">Вибрати все</string>
     <string name="searcher_action_deselect_all">Зняти вибір</string>
-    <string name="searcher_action_open_in_new_tabs">Відкрити у нових вкладках</string>
     <string name="searcher_action_sort">Сортування</string>
     <string name="searcher_action_view">Макет</string>
 

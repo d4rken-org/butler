@@ -61,6 +61,7 @@ import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.NoAppForFileException
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
+import eu.darken.butler.workspace.core.OpenSelectionMode
 import eu.darken.butler.workspace.core.OpenWithIntentUseCase
 import eu.darken.butler.workspace.core.ShareIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
@@ -447,8 +448,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     add(SearcherActionBarItem.SelectAll)
                 }
 
-                // Open in New Tabs
-                add(SearcherActionBarItem.OpenInNewTabs(updatedSelectionState.selectedResults))
+                // Open
+                add(SearcherActionBarItem.OpenSelection(updatedSelectionState.selectedResults))
 
                 // Copy
                 add(SearcherActionBarItem.Copy(updatedSelectionState.selectedResults))
@@ -936,26 +937,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherActionBarItem.Common.ViewOptions -> {
                 dialogStateFlow.value = SearcherDialogState.EditViewStyle
             }
-            is SearcherActionBarItem.OpenInNewTabs -> {
-                vmScope.launch {
-                    log(TAG) { "openInNewTabs(): ${action.results.size} items" }
-
-                    val request = OpenInNewTabsUseCase.Request(
-                        items = action.results.map { it.toOpenInNewTabsItem() },
-                        sourceWorkspaceId = id,
-                    )
-
-                    val analysis = openInNewTabsUseCase.analyze(request)
-
-                    if (!analysis.hasItemsToOpen) {
-                        log(TAG, WARN) { "All items skipped (no openable items)" }
-                        return@launch
-                    }
-
-                    // Always emit event - WorkspacesViewModel handles confirmation
-                    executeOpenInNewTabs(analysis)
-                }
-            }
+            is SearcherActionBarItem.OpenSelection -> showOpenSelection(action.results)
         }
         hideQuickActions()
     }
@@ -1005,6 +987,65 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             log(TAG, ERROR) { "installPackage($path) failed: ${e.asLog()}" }
             errorEvents.emit(e)
         }
+    }
+
+    private fun showOpenSelection(results: List<SearchItem>) {
+        log(TAG) { "showOpenSelection(): ${results.size} items" }
+        if (results.isEmpty()) return
+
+        dialogStateFlow.value = SearcherDialogState.OpenSelection(
+            results = results,
+            viewerModesAvailable = results.isNotEmpty() && results.none { it.fileType == FileType.DIRECTORY },
+        )
+    }
+
+    private fun onOpenSelectionModePicked(state: SearcherDialogState.OpenSelection, mode: OpenSelectionMode) {
+        if (!dialogStateFlow.compareAndSet(state, SearcherDialogState.None)) {
+            log(TAG, WARN) { "onOpenSelectionModePicked($mode): chooser is no longer showing" }
+            return
+        }
+        log(TAG) { "onOpenSelectionModePicked($mode): ${state.results.size} items" }
+
+        vmScope.launch {
+            when (mode) {
+                OpenSelectionMode.VIEW_HERE,
+                OpenSelectionMode.VIEW_IN_TAB -> openSelectionViewer(state, mode)
+
+                OpenSelectionMode.EACH_IN_TAB -> openEachInTab(state.results)
+            }
+        }
+    }
+
+    private suspend fun openSelectionViewer(state: SearcherDialogState.OpenSelection, mode: OpenSelectionMode) {
+        if (!state.viewerModesAvailable) {
+            log(TAG, WARN) { "openSelectionViewer($mode): selection is not all files" }
+            return
+        }
+        val request = openInNewTabsUseCase.createSelectionViewerRequest(state.results.map { it.path }, mode, id)
+        workspaceRemote.createAndFocus(
+            type = request.type,
+            arguments = request.arguments,
+            sourceWorkspaceId = id,
+            skipContentDedup = request.skipContentDedup,
+        )
+        deselectAll()
+    }
+
+    private suspend fun openEachInTab(results: List<SearchItem>) {
+        val request = OpenInNewTabsUseCase.Request(
+            items = results.map { it.toOpenInNewTabsItem() },
+            sourceWorkspaceId = id,
+        )
+
+        val analysis = openInNewTabsUseCase.analyze(request)
+
+        if (!analysis.hasItemsToOpen) {
+            log(TAG, WARN) { "All items skipped (no openable items)" }
+            return
+        }
+
+        // Always emit event - WorkspacesViewModel handles confirmation
+        executeOpenInNewTabs(analysis)
     }
 
     private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {
@@ -1469,6 +1510,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Dialogs.DeleteConfirmed -> onDeleteConfirmed(action.paths, action.forcePermDelete)
             is SearcherPageAction.Dialogs.SortOptionsConfirmed -> onSortOptions(action.result)
             is SearcherPageAction.Dialogs.ClearHistoryConfirmed -> onClearHistoryConfirmed()
+            is SearcherPageAction.Dialogs.OpenSelectionModePicked ->
+                onOpenSelectionModePicked(action.state, action.mode)
 
             // Issues
             is SearcherPageAction.Issues.Resolve -> resolveIssue(action.resolution)
