@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import eu.darken.butler.common.compose.ButlerChip
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.history.R
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
@@ -195,7 +196,7 @@ private fun PathScopeSection(
                                 modifier = Modifier
                                     .weight(1f)
                                     .widthIn(max = 320.dp),
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.bodyMedium.asPathStyle(),
                                 maxLines = 1,
                                 overflow = androidx.compose.ui.text.style.TextOverflow.MiddleEllipsis,
                             )

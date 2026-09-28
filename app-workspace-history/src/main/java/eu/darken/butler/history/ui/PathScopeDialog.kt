@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -16,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.history.R
 import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 
@@ -41,6 +43,7 @@ fun PathScopeDialog(
                     value = input,
                     onValueChange = { input = it },
                     label = { Text(stringResource(R.string.history_path_scope_dialog_input_label)) },
+                    textStyle = LocalTextStyle.current.asPathStyle(),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )

@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.history.R
 import eu.darken.butler.history.core.isPackageKind
 import eu.darken.butler.history.core.labelRes
@@ -206,7 +207,7 @@ private fun PathsSection(
                     attemptedPaths.forEach { path ->
                         Text(
                             text = path,
-                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace).asPathStyle(),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.MiddleEllipsis,
@@ -390,21 +391,21 @@ private fun PathRow(p: HistoryEntry.PathChange) {
         if (previousPath != null) {
             Text(
                 text = previousPath,
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace).asPathStyle(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.MiddleEllipsis,
             )
             Text(
                 text = "  → ${p.path}",
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace).asPathStyle(),
                 maxLines = 1,
                 overflow = TextOverflow.MiddleEllipsis,
             )
         } else {
             Text(
                 text = "${p.change.name.lowercase()}: ${p.path}",
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace).asPathStyle(),
                 maxLines = 1,
                 overflow = TextOverflow.MiddleEllipsis,
             )

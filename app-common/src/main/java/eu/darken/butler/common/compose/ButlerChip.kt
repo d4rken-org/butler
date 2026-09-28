@@ -24,10 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
@@ -106,6 +108,10 @@ object ButlerChipDefaults {
     )
 }
 
+/**
+ * @param labelDirection [TextDirection.Ltr] for a label that is a path, [TextDirection.Content] for
+ * one that only sometimes is; `null` keeps the layout direction's default.
+ */
 @Composable
 fun ButlerChip(
     modifier: Modifier = Modifier,
@@ -119,6 +125,7 @@ fun ButlerChip(
     size: ButlerChipSize = ButlerChipSize.Default,
     colors: ButlerChipColors = ButlerChipDefaults.colors(),
     contentDescription: String? = null,
+    labelDirection: TextDirection? = null,
 ) {
     val containerColor = if (selected) colors.selectedContainerColor else colors.containerColor
     val contentColor = if (selected) colors.selectedContentColor else colors.contentColor
@@ -135,6 +142,10 @@ fun ButlerChip(
             } else Modifier
         )
     val chipShape = MaterialTheme.shapes.small
+    val layoutDirection = LocalLayoutDirection.current
+    val labelStyle = MaterialTheme.typography.labelMedium.let { style ->
+        if (labelDirection != null) style.asPathStyle(layoutDirection, textDirection = labelDirection) else style
+    }
     val chipContainerColor = containerColor.copy(alpha = containerColor.alpha * disabledAlpha)
     val chipContentColor = contentColor.copy(alpha = contentColor.alpha * disabledAlpha)
 
@@ -154,7 +165,7 @@ fun ButlerChip(
 
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelMedium,
+                style = labelStyle,
                 fontSize = size.fontSize,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

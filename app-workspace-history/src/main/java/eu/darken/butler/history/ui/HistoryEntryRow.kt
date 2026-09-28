@@ -52,6 +52,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.compose.icons.Snowflake
 import eu.darken.butler.common.compose.icons.SnowflakeOff
 import eu.darken.butler.common.formatRelativeTime
@@ -146,7 +147,7 @@ fun HistoryEntryRow(
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         text = path,
-                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace).asPathStyle(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.MiddleEllipsis,
