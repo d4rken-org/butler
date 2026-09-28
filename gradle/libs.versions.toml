@@ -46,7 +46,7 @@ work = "2.11.2"
 billing = "8.3.0"
 play-review = "2.0.2"
 vico = "2.2.0"
-porter = "0.7.0"
+porter = "0.8.0"
 semver = "3.0.0"
 reorderable = "3.1.0"
 # Testing (versions used by buildSrc addTesting())
