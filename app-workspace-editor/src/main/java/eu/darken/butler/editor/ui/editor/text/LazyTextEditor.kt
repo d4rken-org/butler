@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.magnifier
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -53,6 +55,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -66,6 +69,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -632,9 +636,42 @@ private fun DualColumnEditorContent(
         }
     }
 
+    // The handles are translated in this Box, so the magnifier works in the same coordinates.
+    val handleMagnifier = remember { SelectionMagnifierTracker() }
+    var containerWidthPx by remember { mutableIntStateOf(0) }
+    val currentSelection by rememberUpdatedState(selection)
+    val currentGutterWidth by rememberUpdatedState(lineNumberWidth)
+    val currentWordWrap by rememberUpdatedState(wordWrap)
+    val currentTabSize by rememberUpdatedState(tabSize)
+    // Stable, reading everything through state: the magnifier re-evaluates it on the reads it
+    // observed, so a new lambda per recomposition could leave a read unobserved.
+    val magnifierSource: Density.() -> Offset = remember {
+        {
+            val moving = handleMagnifier.position
+            if (moving == null || currentSelection == null || !isFocused) {
+                Offset.Unspecified
+            } else {
+                selectionMagnifierSource(
+                    moving = moving,
+                    layoutInfo = contentListState.layoutInfo,
+                    textLayouts = textLayouts,
+                    visibleLineContent = currentVisibleLineContent,
+                    startColumns = currentStartColumns,
+                    tabSize = currentTabSize,
+                    gutterWidthPx = currentGutterWidth.toPx(),
+                    containerWidthPx = containerWidthPx.toFloat(),
+                    horizontalScrollPx = horizontalScrollState.value.toFloat(),
+                    wordWrap = currentWordWrap,
+                )
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .onSizeChanged { containerWidthPx = it.width }
+            .magnifier(sourceCenter = magnifierSource)
             .focusRequester(focusRequester)
     ) {
         // Hidden text field for keyboard input
@@ -990,8 +1027,14 @@ private fun DualColumnEditorContent(
                 lineNumberWidth = lineNumberWidth,
                 horizontalScrollState = horizontalScrollState,
                 actualCharWidth = charWidthPx,
-                onDragStart = { handleDrag.beginStart(start, end) },
-                onDragEnd = { handleDrag.endStart() },
+                onDragStart = {
+                    handleDrag.beginStart(start, end)
+                    handleMagnifier.followStart(start)
+                },
+                onDragEnd = {
+                    handleDrag.endStart()
+                    handleMagnifier.releaseStart()
+                },
                 onDrag = { offset ->
                     val result = calculatePositionFromOffset(
                         offset = offset,
@@ -1006,6 +1049,7 @@ private fun DualColumnEditorContent(
 
                     if (result != null) {
                         handleDrag.updateStart(result.position)?.let(onSelectionChange)
+                        handleMagnifier.followStart(result.position)
                     }
                 },
                 wordWrap = wordWrap,
@@ -1023,8 +1067,14 @@ private fun DualColumnEditorContent(
                 lineNumberWidth = lineNumberWidth,
                 horizontalScrollState = horizontalScrollState,
                 actualCharWidth = charWidthPx,
-                onDragStart = { handleDrag.beginEnd(start, end) },
-                onDragEnd = { handleDrag.endEnd() },
+                onDragStart = {
+                    handleDrag.beginEnd(start, end)
+                    handleMagnifier.followEnd(end)
+                },
+                onDragEnd = {
+                    handleDrag.endEnd()
+                    handleMagnifier.releaseEnd()
+                },
                 onDrag = { offset ->
                     val result = calculatePositionFromOffset(
                         offset = offset,
@@ -1039,6 +1089,7 @@ private fun DualColumnEditorContent(
 
                     if (result != null) {
                         handleDrag.updateEnd(result.position)?.let(onSelectionChange)
+                        handleMagnifier.followEnd(result.position)
                     }
                 },
                 wordWrap = wordWrap,
@@ -1049,6 +1100,46 @@ private fun DualColumnEditorContent(
             )
         }
     }
+}
+
+/**
+ * Container-space point to magnify for the handle drag at [moving], or [Offset.Unspecified] when
+ * that point is not on screen.
+ */
+private fun Density.selectionMagnifierSource(
+    moving: TextPosition,
+    layoutInfo: LazyListLayoutInfo,
+    textLayouts: Map<Long, TextLayoutResult>,
+    visibleLineContent: Map<Long, String>,
+    startColumns: Map<Long, Long>,
+    tabSize: Int,
+    gutterWidthPx: Float,
+    containerWidthPx: Float,
+    horizontalScrollPx: Float,
+    wordWrap: Boolean,
+): Offset {
+    val item = layoutInfo.visibleItemsInfo.find { it.index.toLong() == moving.line } ?: return Offset.Unspecified
+    val rawLine = visibleLineContent[moving.line] ?: ""
+    val localColumn = moving.column - (startColumns[moving.line] ?: 0L).toInt()
+    // Outside the rendered window the caret geometry would clamp it onto the window's edge.
+    if (localColumn !in 0..rawLine.length) return Offset.Unspecified
+    val caretLine = caretGeometry(textLayouts[moving.line], rawLine, localColumn, tabSize).measuredLine
+        ?: return Offset.Unspecified
+    val source = magnifierSourceInContainer(
+        itemContainerY = layoutInfo.itemToContainerY(item.offset.toFloat()),
+        caretLine = caretLine,
+        gutterWidthPx = gutterWidthPx,
+        textInsetPx = 8.dp.toPx(),
+        lineTopInsetPx = 2.dp.toPx(),
+        horizontalScrollPx = horizontalScrollPx,
+        wordWrap = wordWrap,
+    )
+    // A partially visible item can still put the caret's line under the content padding, which
+    // callers may cover, or scrolled behind the gutter.
+    val contentY = layoutInfo.containerToItemY(source.y)
+    val contentBottom = (layoutInfo.viewportEndOffset - layoutInfo.afterContentPadding).toFloat()
+    val onScreen = source.x in gutterWidthPx..containerWidthPx && contentY in 0f..contentBottom
+    return if (onScreen) source else Offset.Unspecified
 }
 
 @Preview2

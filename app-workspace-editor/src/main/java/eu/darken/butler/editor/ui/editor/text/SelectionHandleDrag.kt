@@ -1,5 +1,8 @@
 package eu.darken.butler.editor.ui.editor.text
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import eu.darken.butler.editor.core.engine.TextPosition
 
 /**
@@ -120,5 +123,42 @@ internal class SelectionDragCoordinator {
         slot.active = false
         slot.anchor = null
         slot.moving = null
+    }
+}
+
+/**
+ * The position a selection magnifier enlarges while handles are dragged: where the finger that
+ * moved last is, or where the other finger is while only that one is still down.
+ *
+ * Tracked per handle, not per selection endpoint, since after a crossover the end handle's finger
+ * moves the selection start. Snapshot state, unlike [SelectionDragCoordinator]: only the magnifier
+ * reads it, outside composition, and has to follow every move.
+ */
+internal class SelectionMagnifierTracker {
+
+    private var startHandle by mutableStateOf<TextPosition?>(null)
+    private var endHandle by mutableStateOf<TextPosition?>(null)
+    private var startMovedLast by mutableStateOf(false)
+
+    /** Null while no handle is being dragged. */
+    val position: TextPosition?
+        get() = if (startMovedLast) startHandle ?: endHandle else endHandle ?: startHandle
+
+    fun followStart(position: TextPosition) {
+        startHandle = position
+        startMovedLast = true
+    }
+
+    fun followEnd(position: TextPosition) {
+        endHandle = position
+        startMovedLast = false
+    }
+
+    fun releaseStart() {
+        startHandle = null
+    }
+
+    fun releaseEnd() {
+        endHandle = null
     }
 }
