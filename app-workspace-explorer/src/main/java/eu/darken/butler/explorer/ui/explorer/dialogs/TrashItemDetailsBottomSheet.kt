@@ -42,6 +42,7 @@ import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.InfoCard
 import eu.darken.butler.workspace.ui.dialogs.InfoField
+import eu.darken.butler.workspace.ui.dialogs.InfoValueKind
 import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
@@ -148,6 +149,7 @@ private fun TrashItemOptionsContent(
                     value = lookup.path,
                     onCopy = { onCopyToClipboard(lookup.path) },
                     valueStyle = InfoValueStyle.MONOSPACE,
+                    valueKind = InfoValueKind.PATH,
                 )
 
                 // Type

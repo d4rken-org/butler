@@ -40,6 +40,7 @@ import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.InfoCard
 import eu.darken.butler.workspace.ui.dialogs.InfoField
+import eu.darken.butler.workspace.ui.dialogs.InfoValueKind
 import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
 
 @Composable
@@ -130,6 +131,7 @@ private fun TrashNestedItemOptionsContent(
                     value = restorePath,
                     onCopy = { onCopyToClipboard(restorePath) },
                     valueStyle = InfoValueStyle.MONOSPACE,
+                    valueKind = InfoValueKind.PATH,
                 )
 
                 // Type

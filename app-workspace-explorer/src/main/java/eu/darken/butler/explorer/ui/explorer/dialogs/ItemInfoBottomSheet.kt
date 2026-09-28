@@ -57,6 +57,7 @@ import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.InfoCard
 import eu.darken.butler.workspace.ui.dialogs.InfoField
 import eu.darken.butler.workspace.ui.dialogs.InfoFieldPair
+import eu.darken.butler.workspace.ui.dialogs.InfoValueKind
 import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
@@ -213,6 +214,7 @@ private fun SingleFileInfo(
             value = item.lookup.path,
             onCopy = { onCopyToClipboard(item.lookup.path) },
             valueStyle = InfoValueStyle.MONOSPACE,
+            valueKind = InfoValueKind.PATH,
         )
 
         InfoField(
@@ -263,6 +265,7 @@ private fun SingleFileInfo(
                 value = item.targetPath ?: stringResource(R.string.explorer_info_unknown),
                 onCopy = item.targetPath?.let { targetPath -> { onCopyToClipboard(targetPath) } },
                 valueStyle = InfoValueStyle.MONOSPACE,
+                valueKind = InfoValueKind.MIXED,
             )
 
             if (item.isBroken) {
@@ -291,6 +294,7 @@ private fun SingleDirectoryInfo(
             value = item.lookup.path,
             onCopy = { onCopyToClipboard(item.lookup.path) },
             valueStyle = InfoValueStyle.MONOSPACE,
+            valueKind = InfoValueKind.PATH,
         )
 
         InfoField(
@@ -599,6 +603,7 @@ private fun LocalStorageInfo(
             value = path,
             onCopy = { onCopyToClipboard(path) },
             valueStyle = InfoValueStyle.MONOSPACE,
+            valueKind = InfoValueKind.PATH,
         )
 
         totalBytes?.let { total ->

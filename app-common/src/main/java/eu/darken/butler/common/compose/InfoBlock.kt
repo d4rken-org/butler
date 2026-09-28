@@ -28,7 +28,10 @@ data class InfoEntry(
     val valueMaxLines: Int = 2,
     val valueStyle: ValueStyle = ValueStyle.DEFAULT,
 ) {
-    /** [PATH] pins the value to a single line so the trailing file name survives truncation. */
+    /**
+     * [PATH] pins the value to a single line so the trailing file name survives truncation, and
+     * lays it out with [asPathStyle].
+     */
     enum class ValueStyle { DEFAULT, PATH }
 }
 
@@ -100,7 +103,7 @@ fun InfoBlock(
         val value: @Composable () -> Unit = {
             Text(
                 text = entry.value,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall.let { if (isPath) it.asPathStyle() else it },
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Medium,
                 // MiddleEllipsis degrades to clipping on multiline Android text, so it only ever

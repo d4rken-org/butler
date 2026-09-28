@@ -127,6 +127,7 @@ private fun FileInfoContent(
                 value = lookup.path,
                 onCopy = { onCopyToClipboard(lookup.path) },
                 valueStyle = InfoValueStyle.MONOSPACE,
+                valueKind = InfoValueKind.PATH,
             )
 
             // Type - shown with MIME info if available, otherwise generic type
@@ -202,6 +203,7 @@ private fun FileInfoContent(
                     value = lookup.target?.path ?: stringResource(R.string.workspace_file_info_unknown),
                     onCopy = lookup.target?.path?.let { targetPath -> { onCopyToClipboard(targetPath) } },
                     valueStyle = InfoValueStyle.MONOSPACE,
+                    valueKind = InfoValueKind.PATH,
                 )
             }
         }

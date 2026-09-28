@@ -30,11 +30,24 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.asMaybePathStyle
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.workspace.R
 
 enum class InfoValueStyle {
     NORMAL,
     MONOSPACE,
+}
+
+/** What the value is, independent of [InfoValueStyle]: a permission string is monospace, not a path. */
+enum class InfoValueKind {
+    TEXT,
+
+    /** Laid out with [asPathStyle]. */
+    PATH,
+
+    /** A path or a localized placeholder, laid out with [asMaybePathStyle]. */
+    MIXED,
 }
 
 @Composable
@@ -64,6 +77,7 @@ fun InfoField(
     modifier: Modifier = Modifier,
     onCopy: (() -> Unit)? = null,
     valueStyle: InfoValueStyle = InfoValueStyle.NORMAL,
+    valueKind: InfoValueKind = InfoValueKind.TEXT,
     valueColor: Color? = null,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
@@ -103,13 +117,18 @@ fun InfoField(
                 }
             }
 
+            val typeset = when (valueStyle) {
+                InfoValueStyle.NORMAL -> MaterialTheme.typography.bodyMedium
+                InfoValueStyle.MONOSPACE -> {
+                    MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
+                }
+            }
             Text(
                 text = value,
-                style = when (valueStyle) {
-                    InfoValueStyle.NORMAL -> MaterialTheme.typography.bodyMedium
-                    InfoValueStyle.MONOSPACE -> {
-                        MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
-                    }
+                style = when (valueKind) {
+                    InfoValueKind.TEXT -> typeset
+                    InfoValueKind.PATH -> typeset.asPathStyle()
+                    InfoValueKind.MIXED -> typeset.asMaybePathStyle()
                 },
                 color = valueColor ?: MaterialTheme.colorScheme.onSurface,
                 maxLines = when (valueStyle) {
@@ -201,6 +220,7 @@ private fun InfoFieldMonospacePreview() {
         value = "/storage/emulated/0/Documents/Reports/2026/annual-report-2026-final.txt",
         onCopy = {},
         valueStyle = InfoValueStyle.MONOSPACE,
+        valueKind = InfoValueKind.PATH,
     )
 }
 
@@ -237,6 +257,7 @@ private fun InfoCardPreview() {
             value = "/storage/emulated/0/Documents/Reports/2026/annual-report-2026-final.txt",
             onCopy = {},
             valueStyle = InfoValueStyle.MONOSPACE,
+            valueKind = InfoValueKind.PATH,
         )
         InfoField(
             label = "Type",

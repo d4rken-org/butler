@@ -65,6 +65,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.LocalWorkspaceTitles
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.InfoField
+import eu.darken.butler.workspace.ui.dialogs.InfoValueKind
 import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
 import eu.darken.butler.workspace.ui.originWorkspaceLabel
 import kotlin.time.Clock
@@ -303,6 +304,7 @@ private fun ClipboardOverviewSection(
                         ),
                         value = sources.joinToString("\n"),
                         valueStyle = InfoValueStyle.MONOSPACE,
+                        valueKind = InfoValueKind.PATH,
                     )
                 }
             }
@@ -535,6 +537,7 @@ private fun ClipboardTextOverviewSection(
                         label = stringResource(R.string.clipboard_info_source),
                         value = sourcePath.userReadablePath.get(LocalContext.current),
                         valueStyle = InfoValueStyle.MONOSPACE,
+                        valueKind = InfoValueKind.PATH,
                     )
                 }
             }
