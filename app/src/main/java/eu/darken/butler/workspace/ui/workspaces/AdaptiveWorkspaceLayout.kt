@@ -169,6 +169,8 @@ fun AdaptiveWorkspaceLayout(
                 onPaneUnassign = { workspaceId ->
                     onScreenAction(WorkspaceScreenAction.UnassignPane(workspaceId))
                 },
+                // The pager can rest on the trailing new-tab page while the assigned tab keeps focus.
+                onReveal = { workspaceId -> if (pagerHostsPane) revealRequests.tryEmit(workspaceId) },
                 onRename = onRenameWorkspace,
                 onPaneMenuToggle = onPaneMenuToggle,
                 onRailThicknessChanged = onRailThicknessChanged,

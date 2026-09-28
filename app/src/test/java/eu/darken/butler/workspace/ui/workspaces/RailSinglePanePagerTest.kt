@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.down
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -22,6 +23,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.up
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.R
@@ -215,11 +217,24 @@ class RailSinglePanePagerTest : ComposeTest() {
         settle()
     }
 
+    /** With one pane a tap shows the entry; the menu is on long press. */
     private fun openRailMenu(index: Int) {
-        composeTestRule.onAllNodesWithTag(WorkspaceNavigationRailDefaults.ITEM_TEST_TAG)[index].performClick()
-        // The clock is parked, so a state change needs a frame before it has recomposed.
+        var longPressMs = 0L
+        val entry = composeTestRule.onAllNodesWithTag(WorkspaceNavigationRailDefaults.ITEM_TEST_TAG)[index]
+        entry.performTouchInput {
+            longPressMs = viewConfiguration.longPressTimeoutMillis
+            down(center)
+        }
+        // The long press is timed on the composition clock, which is parked.
+        composeTestRule.mainClock.advanceTimeBy(longPressMs + 100)
+        entry.performTouchInput { up() }
         composeTestRule.mainClock.advanceTimeByFrame()
         composeTestRule.waitForIdle()
+    }
+
+    private fun tapRailEntry(index: Int) {
+        composeTestRule.onAllNodesWithTag(WorkspaceNavigationRailDefaults.ITEM_TEST_TAG)[index].performClick()
+        settle()
     }
 
     private fun pickFromMenu(label: Int) {
@@ -319,6 +334,31 @@ class RailSinglePanePagerTest : ComposeTest() {
      * Parked on the new-tab page, focus stays on the last tab, so selecting that same tab changes no
      * state at all. The pager has to come back anyway.
      */
+    /**
+     * The same from a plain tap, which leaves the pane assignment alone: a Select would replace the
+     * whole assignment map and drop the panes a larger layout keeps.
+     */
+    @Test
+    fun `tapping the shown tab brings it back from the new-tab page without selecting`() {
+        setScreen(focused = secondTab.id, onDemand = true)
+        swipeOntoPlaceholder()
+        actions.clear()
+
+        tapRailEntry(1)
+
+        composeTestRule.onNodeWithTag(pageTag(secondTab.id)).assertIsDisplayed()
+        actions.none { it is WorkspaceScreenAction.Select } shouldBe true
+    }
+
+    @Test
+    fun `tapping another tab turns the pager to it`() {
+        setScreen()
+
+        tapRailEntry(1)
+
+        composeTestRule.onNodeWithTag(pageTag(secondTab.id)).assertIsDisplayed()
+    }
+
     @Test
     fun `Show brings the focused tab back from the new-tab page`() {
         setScreen(focused = secondTab.id, onDemand = true)

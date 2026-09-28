@@ -267,6 +267,8 @@ fun WorkspaceNavigationRail(
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     onPaneUnassign: (workspaceId: Workspace.Id) -> Unit,
+    /** A one-pane tap on the entry already in the pane: bring its page on screen, assignments untouched. */
+    onReveal: (workspaceId: Workspace.Id) -> Unit = {},
     onRename: (Workspace.Id) -> Unit = {},
     onPaneMenuToggle: (Boolean) -> Unit = {},
     /** How much of the bottom edge the rail covers, so chrome outside it can clear the rail. */
@@ -351,6 +353,7 @@ fun WorkspaceNavigationRail(
                     onTabAction = onTabAction,
                     onPaneAssignment = onPaneAssignment,
                     onPaneUnassign = onPaneUnassign,
+                    onReveal = onReveal,
                     onRename = onRename,
                     design = design,
                     placement = placement,
@@ -916,6 +919,7 @@ private fun DraggableWorkspaceRailItem(
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     onPaneUnassign: (workspaceId: Workspace.Id) -> Unit,
+    onReveal: (workspaceId: Workspace.Id) -> Unit,
     onRename: (Workspace.Id) -> Unit,
     design: WorkspaceDesign,
     placement: RailPlacement,
@@ -971,8 +975,9 @@ private fun DraggableWorkspaceRailItem(
             onClick = {
                 when {
                     !singlePane -> showPaneMenu = true
-                    // Already showing; a Select would only reset the pane assignments.
-                    currentPaneIndex == 0 -> Unit
+                    // Already assigned; a Select would only reset the pane assignments. The pane can
+                    // still be scrolled away from it, so it is only brought back on screen.
+                    currentPaneIndex == 0 -> onReveal(workspace.id)
                     else -> onPaneAssignment(workspace.id, 0)
                 }
             },
