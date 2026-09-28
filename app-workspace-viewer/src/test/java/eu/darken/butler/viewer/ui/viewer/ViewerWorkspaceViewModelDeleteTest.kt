@@ -84,6 +84,7 @@ class ViewerWorkspaceViewModelDeleteTest : BaseTest() {
         every { source } returns ViewerSource.Stored(path)
         every { storedPath } returns path
         every { listingSourceId } returns originId
+        every { stepPaths } returns null
         every { sharedCaption } returns null
         every { info } returns MutableStateFlow(
             Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = path.name.toCaString()),
