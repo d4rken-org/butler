@@ -66,10 +66,8 @@ internal fun RecentItemRow(
             )
         },
         primaryText = item.displayName.get(context),
-        secondaryText = listOfNotNull(
-            item.lookup.parent?.userReadablePath?.get(context),
-            item.lookup.size?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) },
-        ).joinToString(" • ").takeIf { it.isNotEmpty() },
+        secondaryPath = item.lookup.parent?.userReadablePath?.get(context),
+        secondaryText = item.lookup.size?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) },
         secondaryEndText = indexedAt?.let { formatSmartTime(it, absoluteStyle = DateTimeStyle.COMPACT) },
     )
 }

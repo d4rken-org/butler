@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,13 +27,21 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.isProblematicInvisible
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -43,6 +52,7 @@ import eu.darken.butler.explorer.ui.explorer.items.rowIconGap
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.items.rowPadding
 import eu.darken.butler.explorer.ui.explorer.items.rowVerticalPadding
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 private fun TertiaryMeta(
@@ -73,6 +83,94 @@ private fun TertiaryMeta(
         )
     }
 }
+
+/**
+ * `/storage/emulated/0/Download • 820 KB        2 hours ago`
+ *
+ * The path is what gives way when the line runs short, down to a third of it; below that [text]
+ * and [endText] ellipsize instead, so neither can squeeze the path out entirely.
+ */
+@Composable
+private fun SecondaryPathLine(
+    modifier: Modifier = Modifier,
+    path: String,
+    text: String?,
+    endText: String?,
+) {
+    val style = MaterialTheme.typography.bodySmall
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    Layout(
+        modifier = modifier,
+        content = {
+            Text(
+                text = path,
+                style = style.asPathStyle(),
+                color = color,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.layoutId(PathLineSlot.PATH),
+            )
+            if (text != null) {
+                Row(
+                    modifier = Modifier.layoutId(PathLineSlot.TEXT),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(text = " • ", style = style, color = color, maxLines = 1)
+                    Text(
+                        text = text,
+                        style = style,
+                        color = color,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                }
+            }
+            if (endText != null) {
+                Text(
+                    text = endText,
+                    style = style,
+                    color = color,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .layoutId(PathLineSlot.END)
+                        .padding(start = 8.dp),
+                )
+            }
+        },
+    ) { measurables, constraints ->
+        val pathMeasurable = measurables.first { it.layoutId == PathLineSlot.PATH }
+        val textMeasurable = measurables.firstOrNull { it.layoutId == PathLineSlot.TEXT }
+        val endMeasurable = measurables.firstOrNull { it.layoutId == PathLineSlot.END }
+
+        val pathWidth = pathMeasurable.maxIntrinsicWidth(constraints.maxHeight)
+        val width = if (constraints.hasBoundedWidth) {
+            constraints.maxWidth
+        } else {
+            pathWidth +
+                (textMeasurable?.maxIntrinsicWidth(constraints.maxHeight) ?: 0) +
+                (endMeasurable?.maxIntrinsicWidth(constraints.maxHeight) ?: 0)
+        }
+        val loose = constraints.copy(minWidth = 0, minHeight = 0)
+
+        var remaining = width - minOf(pathWidth, width / 3)
+        val end = endMeasurable?.measure(loose.copy(maxWidth = remaining.coerceAtLeast(0)))
+        remaining -= end?.width ?: 0
+        val meta = textMeasurable?.measure(loose.copy(maxWidth = remaining.coerceAtLeast(0)))
+        val pathMax = width - (end?.width ?: 0) - (meta?.width ?: 0)
+        val pathPlaceable = pathMeasurable.measure(loose.copy(maxWidth = pathMax.coerceAtLeast(0)))
+
+        val height = maxOf(pathPlaceable.height, meta?.height ?: 0, end?.height ?: 0)
+        layout(width, height) {
+            pathPlaceable.placeRelative(0, (height - pathPlaceable.height) / 2)
+            meta?.placeRelative(pathPlaceable.width, (height - meta.height) / 2)
+            end?.placeRelative(width - end.width, (height - end.height) / 2)
+        }
+    }
+}
+
+private enum class PathLineSlot { PATH, TEXT, END }
 
 private fun String.withProblematicCharsUnderlined(color: Color): AnnotatedString {
     if (this.trim { it.isProblematicInvisible() } == this) return AnnotatedString(this)
@@ -134,6 +232,8 @@ internal fun FileRowBase(
     decorations: ItemDecorations = ItemDecorations(),
     leadingContent: @Composable () -> Unit,
     primaryText: String,
+    /** Leads the second line as its own node, followed by [secondaryText]. */
+    secondaryPath: String? = null,
     secondaryText: String? = null,
     secondaryEndText: String? = null,
     tertiaryText: String? = null,
@@ -224,7 +324,13 @@ internal fun FileRowBase(
                 overflow = TextOverflow.Ellipsis
             )
 
-            if (secondaryText != null || secondaryEndText != null) {
+            if (secondaryPath != null) {
+                SecondaryPathLine(
+                    path = secondaryPath,
+                    text = secondaryText,
+                    endText = secondaryEndText,
+                )
+            } else if (secondaryText != null || secondaryEndText != null) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = secondaryText.orEmpty(),
@@ -288,5 +394,28 @@ internal fun FileRowBase(
             Spacer(modifier = Modifier.width(8.dp))
             it()
         }
+    }
+}
+
+/** An RTL layout: the path keeps its root slash in front and sits on the start (right) edge. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FileRowBaseSecondaryPathRtlPreview() {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        FileRowBase(
+            modifier = Modifier.width(220.dp),
+            item = MockDataProvider.createMockRecentFile(),
+            density = ExplorerViewStyle.Density.COMFORTABLE,
+            isSelected = false,
+            onToggleSelection = {},
+            onClick = {},
+            showSelection = false,
+            leadingContent = {},
+            primaryText = "invoice_2026.pdf",
+            secondaryPath = "/storage/emulated/0/Download/work/reports",
+            secondaryText = "820 KB",
+            secondaryEndText = "12.09.2026 13:45",
+        )
     }
 }

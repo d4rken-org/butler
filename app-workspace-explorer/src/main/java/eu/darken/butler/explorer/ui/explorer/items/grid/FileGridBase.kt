@@ -23,13 +23,20 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -37,6 +44,7 @@ import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.ui.explorer.items.LeadingIconSlot
 import eu.darken.butler.explorer.ui.explorer.items.gridBadgeSize
 import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 internal fun FileGridBase(
@@ -55,6 +63,8 @@ internal fun FileGridBase(
     primaryText: String,
     secondaryText: String? = null,
     tertiaryText: String? = null,
+    /** Lays [tertiaryText] out with [asPathStyle]. */
+    tertiaryIsPath: Boolean = false,
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     previewContent: @Composable (() -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
@@ -189,9 +199,10 @@ internal fun FileGridBase(
                     )
 
                     tertiaryText?.let { text ->
+                        val style = MaterialTheme.typography.labelSmall
                         Text(
                             text = text,
-                            style = MaterialTheme.typography.labelSmall,
+                            style = if (tertiaryIsPath) style.asPathStyle() else style,
                             color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -207,5 +218,27 @@ internal fun FileGridBase(
                 }
             }
         }
+    }
+}
+
+/** An RTL layout: the path line keeps its root slash in front and sits on the start (right) edge. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FileGridBaseTertiaryPathRtlPreview() {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        FileGridBase(
+            modifier = Modifier.width(140.dp),
+            item = MockDataProvider.createMockStorageLocal(),
+            density = ExplorerViewStyle.Density.COMFORTABLE,
+            isSelected = false,
+            onToggleSelection = {},
+            onClick = {},
+            showSelection = false,
+            icon = {},
+            primaryText = "Internal Storage",
+            tertiaryText = "/storage/emulated/0",
+            tertiaryIsPath = true,
+        )
     }
 }

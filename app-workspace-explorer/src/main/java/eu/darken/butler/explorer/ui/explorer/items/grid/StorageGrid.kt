@@ -149,6 +149,7 @@ fun StorageGrid(
         // A network path is a UUID, the location's own subtitle is what identifies it to the user.
         tertiaryText = (item.subtitle?.get(context) ?: item.target.path.userReadablePath.get(context))
             .takeIf { density.showsTileMetadata },
+        tertiaryIsPath = item.subtitle == null,
         backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
         trailingContent = when {
             item is ExplorerItem.Storage.SAF -> {

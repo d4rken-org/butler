@@ -66,7 +66,7 @@ fun TrashItemRow(
             }
         },
         primaryText = item.displayName.get(context),
-        secondaryText = item.subtitle.get(context),
+        secondaryPath = item.subtitle.get(context),
         tertiaryText = formatSmartTime(item.deletedAt, absoluteStyle = DateTimeStyle.FULL),
         tertiaryEndText = item.trashLookup?.size?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) },
     )

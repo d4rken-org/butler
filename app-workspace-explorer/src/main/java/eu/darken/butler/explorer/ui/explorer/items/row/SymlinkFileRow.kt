@@ -70,10 +70,8 @@ internal fun SymlinkFileRow(
         },
         primaryText = primaryText,
         hasProblematicChars = hasProblematicChars,
-        secondaryText = listOfNotNull(
-            item.targetPath?.let { "→ $it" },
-            stringResource(R.string.explorer_file_broken_link_label).takeIf { item.isBroken },
-        ).joinToString(" • ").takeIf { it.isNotEmpty() },
+        secondaryPath = item.targetPath?.let { "→ $it" },
+        secondaryText = stringResource(R.string.explorer_file_broken_link_label).takeIf { item.isBroken },
         secondaryEndText = item.lookup.modifiedAt
             ?.takeUnless { density.showsDatesOnOwnLine }
             ?.let { formatDateTime(it, density.rowDateStyle) },
