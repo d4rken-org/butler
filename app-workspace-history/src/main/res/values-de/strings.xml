@@ -194,7 +194,7 @@
         <item quantity="other">%1$d Einträge löschen</item>
     </plurals>
     <string name="history_delete_dialog_message">Nur die Verlaufsdaten werden entfernt. Die Dateien selbst bleiben unverändert.</string>
-    <string name="history_pro_dialog_message">Das Teilen und Löschen von Verlaufseinträgen gehört zum Upgrade. Das Löschen des gesamten Verlaufs bleibt in den Verlaufseinstellungen kostenlos.</string>
+    <string name="history_pro_dialog_message">Mehrere Verlaufseinträge auf einmal zu teilen gehört zum Upgrade. Einzelne Einträge teilen und Einträge löschen bleibt kostenlos.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Ergebnis</string>

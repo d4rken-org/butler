@@ -198,7 +198,8 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
                 val selectionAtTap = _selectedIds.value
                 launch {
                     try {
-                        if (!upgradeRepo.isProForUi()) {
+                        // One entry shares for free, as it does from the detail sheet.
+                        if (item.entries.size > 1 && !upgradeRepo.isProForUi()) {
                             showProPrompt()
                             return@launch
                         }

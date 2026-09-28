@@ -177,8 +177,8 @@ class HistoryWorkspaceOverlaysTest : ComposeTest() {
 
     companion object {
         private const val PRO_PROMPT_MESSAGE =
-            "Sharing and deleting history entries is part of the upgrade. " +
-                "Clearing the whole history stays free in the history settings."
+            "Sharing several history entries at once is part of the upgrade. " +
+                "Sharing a single entry and deleting entries stay free."
         private const val UPGRADE_ACTION = "Upgrade"
         private const val CANCEL_ACTION = "Cancel"
     }

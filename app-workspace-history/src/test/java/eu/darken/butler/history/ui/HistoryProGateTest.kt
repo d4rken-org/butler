@@ -42,9 +42,10 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 /**
- * Exporting a selection of history entries is a Pro feature. The gate suspends, so it also has to
+ * Exporting several history entries at once is a Pro feature. The gate suspends, so it also has to
  * cope with the selection moving on while it is in flight. Deleting entries and sharing a single
- * one from the detail sheet are free: a free user can already erase the whole history from Settings.
+ * one, from the detail sheet or the selection, are free: a free user can already erase the whole
+ * history from Settings.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -120,6 +121,8 @@ class HistoryProGateTest : BaseTest() {
     /** A second selected entry, so a partial deselection can be distinguished from a full one. */
     private val entry2 = entry.copy(id = "entry-2", title = "Delete 1 item")
 
+    private val entry3 = entry.copy(id = "entry-3", title = "Copy 3 items")
+
     private val attempted = OperationHistoryRepo.AttemptedPaths(
         paths = listOf("/sdcard/ButlerQA", "/sdcard/ButlerQA/notes.txt"),
         totalCount = 2,
@@ -141,14 +144,25 @@ class HistoryProGateTest : BaseTest() {
     private fun startedChooser(): Intent? = shadowOf(application).nextStartedActivity
 
     @Test
-    fun `a free user gets the upgrade prompt instead of sharing the selection`() {
+    fun `a free user gets the upgrade prompt instead of sharing several entries`() {
+        val vm = createVM(FakeUpgradeRepo(pro = false))
+        vm.setSelection(setOf(entry.id, entry2.id))
+
+        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry, entry2)))
+
+        vm.overlayState.value.proPromptOpen shouldBe true
+        startedChooser() shouldBe null
+    }
+
+    @Test
+    fun `a free user shares a single selected entry`() {
         val vm = createVM(FakeUpgradeRepo(pro = false))
         vm.setSelection(setOf(entry.id))
 
         vm.onActionClick(HistoryActionBarItem.Share(listOf(entry)))
 
-        vm.overlayState.value.proPromptOpen shouldBe true
-        startedChooser() shouldBe null
+        vm.overlayState.value.proPromptOpen shouldBe false
+        startedChooser()!!.action shouldBe Intent.ACTION_CHOOSER
     }
 
     @Test
@@ -212,8 +226,8 @@ class HistoryProGateTest : BaseTest() {
     @Test
     fun `dismissing the prompt closes it`() {
         val vm = createVM(FakeUpgradeRepo(pro = false))
-        vm.setSelection(setOf(entry.id))
-        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry)))
+        vm.setSelection(setOf(entry.id, entry2.id))
+        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry, entry2)))
         vm.overlayState.value.proPromptOpen shouldBe true
 
         vm.dismissProPrompt()
@@ -224,8 +238,8 @@ class HistoryProGateTest : BaseTest() {
     @Test
     fun `upgrading from the prompt closes it and navigates to the upgrade screen`() {
         val vm = createVM(FakeUpgradeRepo(pro = false))
-        vm.setSelection(setOf(entry.id))
-        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry)))
+        vm.setSelection(setOf(entry.id, entry2.id))
+        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry, entry2)))
 
         vm.onProPromptUpgrade()
 
@@ -248,9 +262,9 @@ class HistoryProGateTest : BaseTest() {
     @Test
     fun `a settled state carrying a read error still denies`() {
         val vm = createVM(FakeUpgradeRepo(pro = false, error = IllegalStateException("billing is down")))
-        vm.setSelection(setOf(entry.id))
+        vm.setSelection(setOf(entry.id, entry2.id))
 
-        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry)))
+        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry, entry2)))
 
         vm.overlayState.value.proPromptOpen shouldBe true
         startedChooser() shouldBe null
@@ -260,9 +274,9 @@ class HistoryProGateTest : BaseTest() {
     fun `a selection cleared while the share gate waits drops the share`() = runTest {
         val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
         val vm = createVM(upgradeRepo, TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
-        vm.setSelection(setOf(entry.id))
+        vm.setSelection(setOf(entry.id, entry2.id))
 
-        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry)))
+        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry, entry2)))
         runCurrent()
 
         vm.clearSelection()
@@ -291,21 +305,21 @@ class HistoryProGateTest : BaseTest() {
     }
 
     /**
-     * The gate parks with only [entry] captured; adding [entry2] to the selection while it waits
-     * means the user is now looking at two selected rows, so the captured single-entry action is
-     * stale and must not fire.
+     * The gate parks with [entry] and [entry2] captured; adding [entry3] to the selection while it
+     * waits means the user is now looking at three selected rows, so the captured action is stale
+     * and must not fire.
      */
     @Test
     fun `an entry added to the selection while the share gate waits drops the share`() = runTest {
         val upgradeRepo = FakeUpgradeRepo(pro = false, settled = false)
         val vm = createVM(upgradeRepo, TestDispatcherProvider(StandardTestDispatcher(testScheduler)))
-        vm.setSelection(setOf(entry.id))
+        vm.setSelection(setOf(entry.id, entry2.id))
 
-        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry)))
+        vm.onActionClick(HistoryActionBarItem.Share(listOf(entry, entry2)))
         // Billing has not settled, so the gate is parked while the action bar stays live.
         runCurrent()
 
-        vm.toggleSelection(entry2.id)
+        vm.toggleSelection(entry3.id)
         upgradeRepo.settle(pro = true)
         advanceUntilIdle()
 
