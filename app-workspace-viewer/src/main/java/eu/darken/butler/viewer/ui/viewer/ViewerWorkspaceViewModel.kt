@@ -893,9 +893,9 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         .stateIn(vmScope, SharingStarted.Eagerly, null)
 
     fun requestDelete() {
-        // The step replaces this tab; the dialog would confirm a delete for the file it leaves.
-        if (fileStep?.isActive == true) {
-            log(tag) { "requestDelete() ignored, a step is in flight" }
+        // A step or a delete (with its post-delete replace) takes this file off display; the dialog would name it.
+        if (fileStep?.isActive == true || deleteInFlight.value) {
+            log(tag) { "requestDelete() ignored, a step or delete is in flight" }
             return
         }
         launch {

@@ -513,6 +513,25 @@ class ViewerDeleteAdvanceTest : BaseTest() {
     }
 
     @Test
+    fun `a delete cannot be requested while a delete is in flight`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        vm.requestDelete()
+        vm.deleteRequest.value shouldBe setOf(b)
+        vm.confirmDelete(forcePermDelete = false)
+
+        vm.requestDelete()
+        vm.deleteRequest.value shouldBe null
+
+        completeLastDelete()
+        creates.single().target shouldBe c
+
+        vm.requestDelete()
+        vm.deleteRequest.value shouldBe setOf(c)
+    }
+
+    @Test
     fun `a confirm for a file that is no longer on display deletes nothing`() = runTest2 {
         val vm = makeViewModel()
         startCollecting(vm)
