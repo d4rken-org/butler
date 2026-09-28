@@ -107,6 +107,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             every { source } returns this@ViewerWorkspaceViewModelPagingTest.source
             every { storedPath } returns this@ViewerWorkspaceViewModelPagingTest.filePath
             every { listingSourceId } returns null
+            every { stepPaths } returns null
             every { info } returns MutableStateFlow(
                 Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = "manual.pdf".toCaString()),
             )
@@ -263,6 +264,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             every { source } returns otherSource
             every { storedPath } returns otherPath
             every { listingSourceId } returns null
+            every { stepPaths } returns null
             every { info } returns MutableStateFlow(
                 Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = "other.pdf".toCaString()),
             )

@@ -287,8 +287,13 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
 
     /** Where a step from the file on display would land, or null when there is nothing to step to. */
     private val neighboursFlow: Flow<ViewerNeighbours?> = workspaceSource.flatMapLatest { workspace ->
-        val originId = workspace.listingSourceId
         val path = workspace.storedPath
+        // A selection does not change after the viewer opened, so it has no origin to outlive.
+        val stepPaths = workspace.stepPaths
+        if (stepPaths != null && path != null) {
+            return@flatMapLatest flowOf(resolveNeighbours(path, stepPaths))
+        }
+        val originId = workspace.listingSourceId
         if (originId == null || path == null) return@flatMapLatest flowOf(null)
         val live = workspaceProvider.retrieve(originId).flatMapLatest { origin ->
             (origin as? Workspace.FileListingSource)?.fileListing ?: flowOf<List<APath<*>>?>(null)

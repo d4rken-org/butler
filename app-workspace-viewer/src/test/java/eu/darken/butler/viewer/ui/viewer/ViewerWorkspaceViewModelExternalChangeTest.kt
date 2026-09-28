@@ -72,6 +72,7 @@ class ViewerWorkspaceViewModelExternalChangeTest : BaseTest() {
             every { source } returns this@ViewerWorkspaceViewModelExternalChangeTest.source
             every { storedPath } returns filePath
             every { listingSourceId } returns null
+            every { stepPaths } returns null
             every { info } returns MutableStateFlow(
                 Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = "photo.jpg".toCaString()),
             )

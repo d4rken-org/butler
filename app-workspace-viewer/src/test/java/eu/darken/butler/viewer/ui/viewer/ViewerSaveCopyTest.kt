@@ -96,6 +96,7 @@ class ViewerSaveCopyTest : BaseTest() {
             every { source } returns streamed
             every { storedPath } returns null
             every { listingSourceId } returns null
+            every { stepPaths } returns null
             every { sharedCaption } returns "look at this"
             every { info } returns MutableStateFlow(
                 Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = "backup.zip".toCaString()),
