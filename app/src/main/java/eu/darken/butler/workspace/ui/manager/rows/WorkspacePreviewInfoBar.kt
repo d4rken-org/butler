@@ -23,6 +23,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.common.theming.onScrim
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 
@@ -66,14 +67,14 @@ fun WorkspacePreviewInfoBar(
     ) {
         Text(
             text = primaryText ?: "",
-            style = MaterialTheme.typography.labelSmall.copy(lineHeight = INFOBAR_LINE_HEIGHT),
+            style = MaterialTheme.typography.labelSmall.copy(lineHeight = INFOBAR_LINE_HEIGHT).asMaybePathStyle(),
             color = MaterialTheme.colorScheme.onScrim,
             maxLines = 1,
             overflow = TextOverflow.StartEllipsis,
         )
         Text(
             text = secondaryText ?: "",
-            style = MaterialTheme.typography.labelSmall.copy(lineHeight = INFOBAR_LINE_HEIGHT),
+            style = MaterialTheme.typography.labelSmall.copy(lineHeight = INFOBAR_LINE_HEIGHT).asMaybePathStyle(),
             color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
             maxLines = 1,
             overflow = TextOverflow.MiddleEllipsis,

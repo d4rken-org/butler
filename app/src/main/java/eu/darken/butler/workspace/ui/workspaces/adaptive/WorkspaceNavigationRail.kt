@@ -86,6 +86,7 @@ import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.common.compose.systemBarsWithOptionalCutout
 import eu.darken.butler.common.compose.tour.guidedTourTarget
 import eu.darken.butler.workspace.core.Workspace
@@ -694,7 +695,7 @@ internal fun WorkspaceRailItem(
                 Text(
                     modifier = Modifier.padding(start = 2.dp, end = 2.dp, bottom = 4.dp, top = 4.dp),
                     text = workspace.displayTitle.get(LocalContext.current),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall.asMaybePathStyle(),
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     overflow = TextOverflow.StartEllipsis,

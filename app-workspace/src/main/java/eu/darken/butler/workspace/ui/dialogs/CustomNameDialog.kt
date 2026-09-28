@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -26,6 +27,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.common.ui.dialogs.AdaptiveAlertDialog
 import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import eu.darken.butler.workspace.ui.modal.PaneLayerHost
@@ -98,7 +100,7 @@ fun CustomNameDialog(
                         }
                     },
                     label = { Text(fieldLabel) },
-                    placeholder = { Text(autoName) },
+                    placeholder = { Text(autoName, style = LocalTextStyle.current.asMaybePathStyle()) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { handleConfirm() }),

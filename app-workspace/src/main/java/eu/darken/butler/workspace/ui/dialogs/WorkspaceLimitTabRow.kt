@@ -28,6 +28,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.common.formatSmartTime
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
@@ -89,7 +90,7 @@ fun WorkspaceLimitTabRow(
                 Text(
                     modifier = Modifier.weight(1f, fill = false),
                     text = candidate.title.get(context),
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyLarge.asMaybePathStyle(),
                     fontWeight = FontWeight.Medium,
                     color = contentColor,
                     maxLines = 1,
@@ -109,7 +110,7 @@ fun WorkspaceLimitTabRow(
             }
             Text(
                 text = candidate.secondaryLine(),
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall.asMaybePathStyle(),
                 color = if (candidate.isClosable) {
                     MaterialTheme.colorScheme.onSurfaceVariant
                 } else {

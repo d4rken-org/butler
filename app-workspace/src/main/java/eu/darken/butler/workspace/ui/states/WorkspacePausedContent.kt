@@ -30,6 +30,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
@@ -138,7 +139,7 @@ fun WorkspacePausedContent(
                         if (resolvedTitle != null) {
                             Text(
                                 text = resolvedTitle,
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleMedium.asMaybePathStyle(),
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
                         }
@@ -146,7 +147,7 @@ fun WorkspacePausedContent(
                         if (resolvedSubtitle != null) {
                             Text(
                                 text = resolvedSubtitle,
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.bodyMedium.asMaybePathStyle(),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 2,
                                 overflow = TextOverflow.MiddleEllipsis,
