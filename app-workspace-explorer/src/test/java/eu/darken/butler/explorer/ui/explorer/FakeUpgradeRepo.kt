@@ -13,21 +13,22 @@ import kotlin.time.Instant
 class FakeUpgradeRepo(
     pro: Boolean = true,
     settled: Boolean = true,
+    error: Throwable? = null,
 ) : UpgradeRepo {
 
     private class FakeInfo(
         override val isPro: Boolean,
         override val isSettled: Boolean,
+        override val error: Throwable?,
     ) : UpgradeRepo.Info {
         override val type = UpgradeRepo.Type.FOSS
         override val upgradedAt: Instant? = null
-        override val error: Throwable? = null
     }
 
     override val storeSite = ""
     override val upgradeSite = ""
     override val betaSite = ""
-    override val upgradeInfo: Flow<UpgradeRepo.Info> = MutableStateFlow(FakeInfo(pro, settled))
+    override val upgradeInfo: Flow<UpgradeRepo.Info> = MutableStateFlow(FakeInfo(pro, settled, error))
 
     override suspend fun refresh() = Unit
 }

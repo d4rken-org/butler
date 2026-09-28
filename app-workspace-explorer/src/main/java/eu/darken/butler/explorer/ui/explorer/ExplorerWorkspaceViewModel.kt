@@ -261,6 +261,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         onError = { errorEvents.tryEmit(it) },
         doLaunch = doLaunch,
         tag = tag,
+        upgradeHintTimeout = { context.recommendedHintTimeout(ExplorerSmbLocationController.UPGRADE_HINT_TIMEOUT) },
     )
     private val trash = ExplorerTrashController(
         context = context,
@@ -289,7 +290,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         dialogs = dialogs,
         favoritesRepo = favoritesRepo,
         upgradeRepo = upgradeRepo,
-        navToUpgrade = ::navToUpgrade,
+        onNetworkLocked = { smbLocations.showUpgradeHint(SmbUpgradeHint.Reason.LOCKED) },
         selectedItems = { selection.selectedItems.value },
         toggleSelection = { selection.toggle(it) },
         clearSelection = ::clearSelection,
@@ -932,6 +933,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun onFavoriteFeedbackAction() = favoritesController.onFeedbackAction()
+
+    val smbUpgradeHint: StateFlow<SmbUpgradeHint?> get() = smbLocations.upgradeHint
+
+    fun onSmbUpgradeHintAction() = smbLocations.onUpgradeHintAction()
 
     fun onFavoriteFeedbackRename() = favoritesController.onFeedbackRename()
 

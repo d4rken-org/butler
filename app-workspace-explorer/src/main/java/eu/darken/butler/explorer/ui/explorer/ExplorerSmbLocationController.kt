@@ -1,5 +1,8 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import android.content.Context
+import android.os.Build
+import android.view.accessibility.AccessibilityManager
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
@@ -23,17 +26,25 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RevealedPassword
 import eu.darken.butler.explorer.ui.explorer.dialogs.SmbLocationFormInput
 import eu.darken.butler.upgrade.UpgradeRepo
-import eu.darken.butler.upgrade.isProForUi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
 /**
  * Network location management: the add/edit form, its connection test, and rename/removal.
  *
  * Nothing is stored until the entered details actually connect, so a location in the list is always
- * one that worked at least once. Seeing and removing stored locations stays free, everything that
- * opens a session does not - see [requirePro].
+ * one that worked at least once. Adding, testing and removing locations is free, so a free user can
+ * check their share before buying. Browsing one is Pro, which [upgradeHint] explains.
  */
 class ExplorerSmbLocationController(
     private val locationManager: SmbLocationManager,
@@ -48,24 +59,30 @@ class ExplorerSmbLocationController(
     private val onError: (Throwable) -> Unit,
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
     private val tag: String,
+    private val upgradeHintTimeout: () -> Duration = { UPGRADE_HINT_TIMEOUT },
 ) {
 
-    /**
-     * Network shares are a Pro feature. The form is gated rather than its submit: editing is not a
-     * local-only change, [submit] connects to whatever endpoint the form now names.
-     *
-     * @return false when the upgrade screen was opened instead.
-     */
-    private suspend fun requirePro(): Boolean {
-        if (upgradeRepo.isProForUi()) return true
-        log(tag, INFO) { "Network shares are Pro-only, routing to the upgrade screen" }
-        navToUpgrade()
-        return false
+    private val upgradeHintFlow = MutableStateFlow<SmbUpgradeHint?>(null)
+    private val upgradeHintIds = AtomicLong()
+    val upgradeHint: StateFlow<SmbUpgradeHint?> = upgradeHintFlow
+
+    fun showUpgradeHint(reason: SmbUpgradeHint.Reason) {
+        log(tag, INFO) { "showUpgradeHint($reason)" }
+        val hint = SmbUpgradeHint(id = upgradeHintIds.incrementAndGet(), reason = reason)
+        upgradeHintFlow.value = hint
+        doLaunch {
+            delay(upgradeHintTimeout())
+            upgradeHintFlow.update { current -> if (current?.id == hint.id) null else current }
+        }
     }
 
-    fun showAddForm() = doLaunch {
+    fun onUpgradeHintAction() {
+        upgradeHintFlow.value = null
+        navToUpgrade()
+    }
+
+    fun showAddForm() {
         log(tag) { "showAddForm()" }
-        if (!requirePro()) return@doLaunch
         dialogs.show(ExplorerDialogState.SmbLocationForm())
     }
 
@@ -75,7 +92,6 @@ class ExplorerSmbLocationController(
      */
     fun showEditForm(locationId: Uuid) = doLaunch {
         log(tag) { "showEditForm($locationId)" }
-        if (!requirePro()) return@doLaunch
         val location = locationManager.get(locationId)
         if (location == null) {
             log(tag, ERROR) { "showEditForm(): Unknown location $locationId" }
@@ -162,7 +178,10 @@ class ExplorerSmbLocationController(
             return
         }
 
-        dialogs.show(formState.copy(isTesting = true, error = null))
+        // A form dismissed or replaced while the test runs is abandoned: nothing is saved for it and
+        // nothing brings it back.
+        val testing = formState.copy(isTesting = true, error = null)
+        dialogs.show(testing)
 
         // Nothing typed while editing: the test has to run against the stored password, otherwise a
         // location could be saved with details nobody ever verified.
@@ -171,7 +190,7 @@ class ExplorerSmbLocationController(
                 credentialStore.resolve(existing)
             } catch (e: Exception) {
                 log(tag, ERROR) { "onFormSubmit(): Stored credential unusable: ${e.asLog()}" }
-                dialogs.show(formState.copy(isTesting = false, error = e.localizedDescription()))
+                dialogs.showIfCurrent(testing, formState.copy(isTesting = false, error = e.localizedDescription()))
                 return
             }
 
@@ -189,10 +208,15 @@ class ExplorerSmbLocationController(
             )
         } catch (e: Exception) {
             log(tag, ERROR) { "onFormSubmit(): Connection test failed: ${e.asLog()}" }
-            dialogs.show(formState.copy(isTesting = false, error = e.localizedDescription()))
+            dialogs.showIfCurrent(testing, formState.copy(isTesting = false, error = e.localizedDescription()))
             return
         } finally {
             storedCredential?.wipe()
+        }
+
+        if (dialogs.current() !== testing) {
+            log(tag, WARN) { "onFormSubmit(): Form was closed during the connection test, not saving" }
+            return
         }
 
         try {
@@ -227,13 +251,19 @@ class ExplorerSmbLocationController(
             log(tag, INFO) { "onFormSubmit(): Saved network location" }
         } catch (e: Exception) {
             log(tag, ERROR) { "onFormSubmit(): Failed to save: ${e.asLog()}" }
-            dialogs.show(formState.copy(isTesting = false, error = e.localizedDescription()))
+            dialogs.showIfCurrent(testing, formState.copy(isTesting = false, error = e.localizedDescription()))
             return
         }
 
-        dialogs.dismiss()
+        dialogs.showIfCurrent(testing, ExplorerDialogState.None)
         clearSelection()
         refreshUnlessLive()
+        // Only a clean "no purchase" says so: a paying user whose billing is still connecting, or whose
+        // lookup failed, must not be told to upgrade.
+        val upgrade = upgradeRepo.upgradeInfo.first()
+        if (upgrade.isSettled && !upgrade.isPro && upgrade.error == null) {
+            showUpgradeHint(SmbUpgradeHint.Reason.SAVED)
+        }
     }
 
     fun onRemoveConfirmed(items: List<ExplorerItem.Storage.Network>) = doLaunch {
@@ -249,7 +279,7 @@ class ExplorerSmbLocationController(
         refreshUnlessLive()
     }
 
-    /** Opens the form for a location whose password has to be entered again, gated like every form. */
+    /** Opens the form for a location whose password has to be entered again. */
     fun promptSignIn(locationId: Uuid) {
         log(tag) { "promptSignIn($locationId)" }
         showEditForm(locationId)
@@ -282,4 +312,21 @@ class ExplorerSmbLocationController(
         SmbLocationInput.Issue.BasePathMalformed -> R.string.explorer_network_form_error_base_path
         SmbLocationInput.Issue.UsernameBlank -> R.string.explorer_network_form_error_username_blank
     }.toCaString()
+
+    companion object {
+        internal val UPGRADE_HINT_TIMEOUT = 6.seconds
+    }
+}
+
+/** Why the upgrade hint is up: a location was just saved, or a saved one was tapped. */
+data class SmbUpgradeHint(val id: Long, val reason: Reason) {
+    enum class Reason { SAVED, LOCKED }
+}
+
+/** Stretches [base] to what the user's accessibility settings ask for, e.g. more time with TalkBack. */
+internal fun Context.recommendedHintTimeout(base: Duration): Duration {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return base
+    val manager = getSystemService(AccessibilityManager::class.java) ?: return base
+    val flags = AccessibilityManager.FLAG_CONTENT_TEXT or AccessibilityManager.FLAG_CONTENT_CONTROLS
+    return manager.getRecommendedTimeoutMillis(base.inWholeMilliseconds.toInt(), flags).milliseconds
 }

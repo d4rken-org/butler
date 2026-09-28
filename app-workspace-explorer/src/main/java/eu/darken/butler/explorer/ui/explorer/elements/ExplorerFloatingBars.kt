@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.elements
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,6 +17,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
 import eu.darken.butler.explorer.ui.explorer.ExplorerBarKeys
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
+import eu.darken.butler.explorer.ui.explorer.SmbUpgradeHint
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
@@ -146,6 +148,11 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     state.favoriteFeedback?.let { lastFavoriteFeedback = it }
     val showFavoritesFeedbackBar = state.favoriteFeedback != null && state.pickerConfig == null
 
+    // Same caching as the favorites feedback: the bar needs content while it slides out.
+    val smbUpgradeHint = vm?.smbUpgradeHint?.collectAsState()?.value
+    var lastSmbUpgradeHint by remember { mutableStateOf<SmbUpgradeHint?>(null) }
+    smbUpgradeHint?.let { lastSmbUpgradeHint = it }
+
     WorkspaceOperationsFloatingBar(
         key = ExplorerBarKeys.OPERATIONS,
         operations = operationsState.operations,
@@ -189,6 +196,20 @@ internal fun FloatingBarScope.ExplorerBottomBars(
                 feedback = feedback,
                 onAction = { vm?.onFavoriteFeedbackAction() },
                 onRename = { vm?.onFavoriteFeedbackRename() },
+            )
+        }
+    }
+
+    FloatingBar(
+        key = ExplorerBarKeys.SMB_UPGRADE_HINT,
+        visible = smbUpgradeHint != null,
+        scrollBehavior = BarScrollBehavior.Static,
+        animation = BarAnimation.Slide(),
+    ) {
+        lastSmbUpgradeHint?.let { hint ->
+            SmbUpgradeHintBar(
+                hint = hint,
+                onUpgrade = { vm?.onSmbUpgradeHintAction() },
             )
         }
     }

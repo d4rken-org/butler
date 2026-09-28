@@ -279,6 +279,7 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
         ) : Network {
             override val icon = Icons.TwoTone.Add
             override val label = R.string.explorer_network_add_location_action.toCaString()
+            override val isProFeature = true
         }
 
         data class EditLocation(

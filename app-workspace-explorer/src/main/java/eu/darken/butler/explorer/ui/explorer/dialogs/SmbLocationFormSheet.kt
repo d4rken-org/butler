@@ -41,6 +41,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asPathStyle
+import eu.darken.butler.common.compose.rememberIsPro
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.smb.SmbLocationInput
 import eu.darken.butler.common.files.smb.location.SmbLocation
@@ -71,6 +72,7 @@ fun SmbLocationFormSheet(
     onRevealPassword: suspend () -> RevealedPassword? = { null },
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
+    isPro: Boolean = rememberIsPro(),
 ) {
     val context = LocalContext.current
     val existing = state.existing
@@ -289,6 +291,14 @@ fun SmbLocationFormSheet(
                 }
             }
 
+            if (!isPro) {
+                Text(
+                    text = stringResource(R.string.explorer_network_form_pro_notice),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
             state.error?.let { error ->
                 Text(
                     text = error.get(context),
@@ -363,6 +373,18 @@ private fun SmbLocationFormSheetEditPreview() {
         onDismiss = {},
         onSubmit = {},
         onRevealPassword = { RevealedPassword("hunter2") },
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SmbLocationFormSheetFreePreview() {
+    SmbLocationFormSheet(
+        state = ExplorerDialogState.SmbLocationForm(),
+        onDismiss = {},
+        onSubmit = {},
+        isPro = false,
     )
 }
 

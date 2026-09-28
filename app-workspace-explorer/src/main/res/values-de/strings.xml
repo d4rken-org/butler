@@ -283,6 +283,9 @@
     <string name="explorer_network_status_unavailable_since_format">Nicht verfügbar (%1$s)</string>
     <string name="explorer_network_empty_title">Noch kein Netzwerkspeicher</string>
     <string name="explorer_network_empty_caption">Füge eine Windows-Freigabe oder einen NAS-Ordner hinzu, um ihn hier zu durchsuchen.</string>
+    <string name="explorer_network_form_pro_notice">Speicherorte hinzufügen und testen ist kostenlos. Zum Durchsuchen brauchst du Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Gespeichert. Zum Durchsuchen von Netzwerkspeicher brauchst du Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Zum Durchsuchen von Netzwerkspeicher brauchst du Butler Pro.</string>
     <string name="explorer_network_remove_confirmation_title">Netzwerkspeicher entfernen?</string>
     <plurals name="explorer_network_remove_confirmation_title_multiple">
         <item quantity="one">%1$d Netzwerkspeicher entfernen?</item>

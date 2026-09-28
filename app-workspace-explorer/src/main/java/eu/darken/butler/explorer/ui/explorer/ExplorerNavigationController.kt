@@ -51,7 +51,7 @@ class ExplorerNavigationController(
     private val dialogs: ExplorerDialogController,
     private val favoritesRepo: ExplorerFavoritesRepo,
     private val upgradeRepo: UpgradeRepo,
-    private val navToUpgrade: () -> Unit,
+    private val onNetworkLocked: () -> Unit,
     private val selectedItems: () -> Set<ExplorerItem>,
     private val toggleSelection: (ExplorerItem) -> Unit,
     private val clearSelection: () -> Unit,
@@ -148,11 +148,11 @@ class ExplorerNavigationController(
                 clearSelection()
             }
             is ExplorerItem.Storage -> when {
-                // Network shares are a Pro feature. The rows stay listed either way - that is where
+                // Browsing network shares is Pro. The rows stay listed either way - that is where
                 // the offer is - but opening one means an SMB session, sign-in prompt included.
                 item is ExplorerItem.Storage.Network && !upgradeRepo.isProForUi() -> {
-                    log(tag, INFO) { "Network shares are Pro-only, routing to the upgrade screen" }
-                    navToUpgrade()
+                    log(tag, INFO) { "Browsing network shares is Pro-only, showing the upgrade hint" }
+                    onNetworkLocked()
                 }
                 // Opening a location whose password is gone would just fail: ask for it first.
                 item is ExplorerItem.Storage.Network &&

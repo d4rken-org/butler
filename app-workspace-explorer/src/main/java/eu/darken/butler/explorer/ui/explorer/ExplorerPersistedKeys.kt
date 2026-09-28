@@ -33,5 +33,6 @@ internal object ExplorerBarKeys {
     const val CLIPBOARD = "clipboard"
     // Value predates the bar covering additions too; keep it so stored fractions still resolve.
     const val FAVORITES_FEEDBACK = "favorites-undo"
+    const val SMB_UPGRADE_HINT = "smb-upgrade-hint"
     const val ACTIONS = "actions"
 }

@@ -111,7 +111,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         tag = "test",
     )
 
-    private var upgrades = 0
+    private var lockedHints = 0
 
     private fun CoroutineScope.controller(
         workspace: ExplorerWorkspace = mockWorkspace(),
@@ -131,7 +131,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         dialogs = dialogs,
         favoritesRepo = favoritesRepo,
         upgradeRepo = upgradeRepo,
-        navToUpgrade = { upgrades++ },
+        onNetworkLocked = { lockedHints++ },
         selectedItems = selectedItems,
         toggleSelection = {},
         clearSelection = clearSelection,
@@ -141,20 +141,20 @@ class ExplorerNavigationControllerTest : BaseTest() {
     )
 
     @Test
-    fun `a free user tapping a network location is routed to the upgrade screen`() = runTest {
+    fun `a free user tapping a network location gets the upgrade hint`() = runTest {
         val workspace = mockWorkspace()
         val controller = controller(workspace = workspace, upgradeRepo = FakeUpgradeRepo(pro = false))
 
         controller.navigate(networkItem() as ExplorerItem)
         runCurrent()
 
-        upgrades shouldBe 1
+        lockedHints shouldBe 1
         coVerify(exactly = 0) { workspace.navigate(any()) }
     }
 
-    /** The sign-in form submits a live connection test, so it is gated like opening the share is. */
+    /** Signing in only leads on to browsing, which a free user cannot do anyway. */
     @Test
-    fun `a free user tapping a sign-in required location gets the upgrade screen, not the form`() = runTest {
+    fun `a free user tapping a sign-in required location gets the upgrade hint, not the form`() = runTest {
         val dialogs = dialogs()
         val controller = controller(dialogs = dialogs, upgradeRepo = FakeUpgradeRepo(pro = false))
         val item = networkItem(ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED)
@@ -162,7 +162,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         controller.navigate(item as ExplorerItem)
         runCurrent()
 
-        upgrades shouldBe 1
+        lockedHints shouldBe 1
         dialogs.current() shouldBe ExplorerDialogState.None
     }
 
@@ -175,7 +175,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         controller.navigate(item as ExplorerItem)
         runCurrent()
 
-        upgrades shouldBe 0
+        lockedHints shouldBe 0
         val form = dialogs.current().shouldBeInstanceOf<ExplorerDialogState.SmbLocationForm>()
         form.existing shouldBe item.location
     }
@@ -189,7 +189,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         controller.navigate(item as ExplorerItem)
         runCurrent()
 
-        upgrades shouldBe 0
+        lockedHints shouldBe 0
         coVerify { workspace.navigate(item.target) }
     }
 
@@ -202,7 +202,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         controller.navigate(item as ExplorerItem)
         runCurrent()
 
-        upgrades shouldBe 0
+        lockedHints shouldBe 0
         coVerify { workspace.navigate(item.target) }
     }
 

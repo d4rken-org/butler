@@ -25,11 +25,13 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.icons.NetworkOffline
 import eu.darken.butler.common.compose.icons.NetworkOnline
+import eu.darken.butler.common.compose.rememberIsPro
 import eu.darken.butler.common.rememberMinuteTick
 import eu.darken.butler.explorer.ui.explorer.items.AppIconImage
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.settings.UpgradeBadge
 import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
@@ -146,6 +148,8 @@ private fun NetworkStatusIndicator(item: ExplorerItem.Storage.Network) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Browsing it is Pro, so a free user learns that before tapping.
+        if (!rememberIsPro()) UpgradeBadge()
         if (item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED) {
             Icon(
                 imageVector = Icons.TwoTone.Lock,

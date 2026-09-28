@@ -13,9 +13,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Lan
@@ -40,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.rememberIsPro
+import eu.darken.butler.common.settings.UpgradeBadge
 import eu.darken.butler.explorer.R
 import kotlinx.coroutines.delay
 
@@ -139,6 +143,10 @@ fun EmptyNetworkState(
                         modifier = Modifier.padding(top = 16.dp),
                     ) {
                         Text(text = stringResource(R.string.explorer_network_add_location_action))
+                        if (!rememberIsPro()) {
+                            Spacer(Modifier.width(8.dp))
+                            UpgradeBadge()
+                        }
                     }
                 }
             }

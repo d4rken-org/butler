@@ -68,7 +68,7 @@
     <string name="smb_error_credential_unavailable_title">Anmeldung erforderlich</string>
     <string name="smb_error_credential_unavailable_description">Das gespeicherte Passwort für diesen Netzwerkspeicher kann nicht mehr gelesen werden. Gib es erneut ein, um die Verbindung wiederherzustellen.</string>
     <string name="smb_error_pro_required_title">Netzwerkfreigaben erfordern Butler Pro</string>
-    <string name="smb_error_pro_required_description">Die Verbindung zu Netzwerkfreigaben ist Teil von Butler Pro. Deine gespeicherten Speicherorte bleiben aufgelistet und können auch ohne Pro entfernt werden.</string>
+    <string name="smb_error_pro_required_description">Das Durchsuchen von Netzwerkfreigaben ist Teil von Butler Pro. Speicherorte hinzufügen, testen und entfernen ist kostenlos.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Geschütztes App-Bundle</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" ist verschlüsselt und kann nur von der App installiert werden, die es erstellt hat.</string>

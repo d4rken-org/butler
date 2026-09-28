@@ -288,6 +288,9 @@
     <string name="explorer_network_status_unavailable_since_format">Unavailable (%1$s)</string>
     <string name="explorer_network_empty_title">No network storage yet</string>
     <string name="explorer_network_empty_caption">Add a Windows share or NAS folder to browse it here.</string>
+    <string name="explorer_network_form_pro_notice">Adding and testing a location is free. Browsing it needs Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Saved. Browsing network storage needs Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Browsing network storage needs Butler Pro.</string>
     <string name="explorer_network_remove_confirmation_title">Remove network storage?</string>
     <plurals name="explorer_network_remove_confirmation_title_multiple">
         <item quantity="one">Remove %1$d network storage?</item>

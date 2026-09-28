@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldNotBeInstanceOf
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -100,15 +101,17 @@ class SmbProGateTest : BaseTest() {
         assertNothingWasContacted()
     }
 
-    /** Builds its own client, so the pool's gate does not cover the form's connection test. */
+    /** Checking a share before buying is free; the test connects without asking for the upgrade. */
     @Test
-    fun `a free user cannot test a connection`() = runTest {
-        val tester = SmbConnectionTester(clientFactory, FakeUpgradeRepo(pro = false))
+    fun `a connection test reaches the server without the upgrade`() = runTest {
+        every { clientFactory.create() } throws IllegalStateException("reached the client")
+        val tester = SmbConnectionTester(clientFactory)
 
-        shouldThrow<SmbProRequiredException> {
+        val error = shouldThrow<Exception> {
             tester.test("nas.local", 445, "media", "darken", null, "hunter2".toCharArray())
         }
 
-        verify(exactly = 0) { clientFactory.create() }
+        error.shouldNotBeInstanceOf<SmbProRequiredException>()
+        verify(exactly = 1) { clientFactory.create() }
     }
 }
