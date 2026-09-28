@@ -38,6 +38,7 @@ import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
 import eu.darken.butler.common.compose.icons.Snowflake
 import eu.darken.butler.common.compose.icons.SnowflakeOff
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
@@ -225,7 +226,7 @@ private fun AppDetailsContent(
                             )
                             Text(
                                 text = appPath.path.path,
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodySmall.asPathStyle(),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }

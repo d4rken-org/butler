@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.developer.R
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.StorageVolumeInfo
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.SystemInfo
@@ -82,7 +83,7 @@ internal fun SystemInfoSection(
                         )
                         Text(
                             text = volume.path,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodySmall.asPathStyle(),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         )
                         Text(

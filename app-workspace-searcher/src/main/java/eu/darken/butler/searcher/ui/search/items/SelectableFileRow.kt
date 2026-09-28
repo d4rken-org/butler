@@ -36,6 +36,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
@@ -201,7 +202,7 @@ fun SelectableFileRow(
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontSize = 10.sp,
                             fontFamily = FontFamily.Monospace,
-                        ),
+                        ).asPathStyle(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         maxLines = 1,
                         overflow = TextOverflow.StartEllipsis,

@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.saver.R
@@ -71,7 +72,7 @@ internal fun DestinationCard(
                         // Batch mode: show only directory
                         Text(
                             text = destination.userReadablePath.get(context),
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyLarge.asPathStyle(),
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
@@ -79,7 +80,7 @@ internal fun DestinationCard(
                         // Single file mode with filename: show full path
                         Text(
                             text = "${destination.userReadablePath.get(context)}/$filename",
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodyMedium.asPathStyle(),
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
@@ -87,7 +88,7 @@ internal fun DestinationCard(
                         // Single file mode without filename: show directory only
                         Text(
                             text = destination.userReadablePath.get(context),
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyLarge.asPathStyle(),
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                     }

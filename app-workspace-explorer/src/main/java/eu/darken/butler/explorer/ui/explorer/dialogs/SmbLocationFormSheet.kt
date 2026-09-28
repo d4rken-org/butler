@@ -14,6 +14,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -39,6 +40,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.smb.SmbLocationInput
 import eu.darken.butler.common.files.smb.location.SmbLocation
@@ -165,6 +167,7 @@ fun SmbLocationFormSheet(
                 value = basePath,
                 onValueChange = { basePath = it },
                 label = { Text(stringResource(R.string.explorer_network_form_base_path_label)) },
+                textStyle = LocalTextStyle.current.asPathStyle(),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )

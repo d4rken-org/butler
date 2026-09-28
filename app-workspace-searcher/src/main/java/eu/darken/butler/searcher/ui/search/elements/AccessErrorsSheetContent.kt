@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.R
@@ -109,7 +110,7 @@ fun AccessErrorsSheetContent(
             fullPaths.forEach { label ->
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall.asPathStyle(),
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 4.dp),

@@ -39,6 +39,7 @@ import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
@@ -211,7 +212,7 @@ fun StorageListItems(
                     )
                     Text(
                         text = appPath.path.path,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodySmall.asPathStyle(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     // The row stays clickable: browsing there is what leads to the setup options.

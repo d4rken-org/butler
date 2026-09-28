@@ -33,6 +33,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.viewer.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.common.CutoutCard
@@ -148,7 +149,7 @@ fun ViewerToolbarCard(
                                     .heightIn(max = PathBlockMaxHeight)
                                     .verticalScroll(rememberScrollState()),
                                 text = folderPath,
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodySmall.asPathStyle(),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 softWrap = true,
                             )

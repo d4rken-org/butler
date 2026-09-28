@@ -42,6 +42,7 @@ import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -217,7 +218,7 @@ fun SelectableFileGrid(
                     if (parentPath != null && density.showsTileMetadata) {
                         Text(
                             text = parentPath,
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelSmall.asPathStyle(),
                             color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
                             maxLines = 1,
                             overflow = TextOverflow.MiddleEllipsis,

@@ -40,6 +40,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.common.formatFileSize
@@ -121,7 +122,7 @@ private fun CalculatedSizesContent(
             }
             Text(
                 text = state.root.userReadablePath.get(context),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.asPathStyle(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -284,7 +285,7 @@ private fun ProblemList(
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = problem.path.userReadablePath.asComposable(),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall.asPathStyle(),
                     fontFamily = FontFamily.Monospace,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                     maxLines = 1,
