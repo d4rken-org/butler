@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,16 +10,22 @@ import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
@@ -35,6 +42,9 @@ import eu.darken.butler.workspace.ui.workspaces.adaptive.DragDropState
 import eu.darken.butler.workspace.ui.workspaces.adaptive.EmptyAdaptiveWorkspaceContent
 import eu.darken.butler.workspace.ui.workspaces.adaptive.LocalDragDropState
 import eu.darken.butler.workspace.ui.workspaces.adaptive.WorkspaceNavigationRail
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 @Composable
 fun AdaptiveWorkspaceLayout(
@@ -72,10 +82,30 @@ fun AdaptiveWorkspaceLayout(
     /** The rail's measured height in its bottom placement, owned by the host that draws chrome too. */
     railThickness: Dp = 0.dp,
     onRailThicknessChanged: (Dp) -> Unit = {},
+    /** Renders the sole pane of a one-pane layout, so it swipes like the classic pager. Required at one pane. */
+    singlePanePager: SinglePanePager? = null,
     onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val dragDropState = remember { DragDropState() }
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
+    val pagerHostsPane = design.maxPanes == 1
+    val revealRequests = remember {
+        MutableSharedFlow<Workspace.Id>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    }
+    // A pane-hosted dialog renders in its tab's page, which the pager may have left for the
+    // trailing placeholder. Only newly added hosts move it, so a dialog already on screen does not.
+    val dialogHosts = managerDialogStates.keys.toSet()
+    var knownDialogHosts by remember { mutableStateOf(dialogHosts) }
+    LaunchedEffect(dialogHosts, pagerHostsPane) {
+        val added = dialogHosts - knownDialogHosts
+        knownDialogHosts = dialogHosts
+        if (!pagerHostsPane) return@LaunchedEffect
+        added.forEach { host ->
+            // A stacked child hosts in its owning tab's page.
+            val tab = paneLocalModalChains.entries.firstOrNull { (_, chain) -> chain.any { it.id == host } }?.key
+            revealRequests.tryEmit(tab ?: host)
+        }
+    }
 
     CompositionLocalProvider(LocalDragDropState provides dragDropState) {
         val rail: @Composable () -> Unit = {
@@ -92,6 +122,9 @@ fun AdaptiveWorkspaceLayout(
                     // the tab manager selects into a one-pane layout.
                     if (design.maxPanes == 1) {
                         onScreenAction(WorkspaceScreenAction.Select(workspaceId))
+                        // Selecting the tab that already holds focus changes no state, so nothing
+                        // else would bring its page back from the trailing placeholder.
+                        if (pagerHostsPane && workspaceId == focusedRootId) revealRequests.tryEmit(workspaceId)
                         onPaneMenuToggle(false)
                         return@WorkspaceNavigationRail
                     }
@@ -136,6 +169,8 @@ fun AdaptiveWorkspaceLayout(
                 onPaneUnassign = { workspaceId ->
                     onScreenAction(WorkspaceScreenAction.UnassignPane(workspaceId))
                 },
+                // The pager can rest on the trailing new-tab page while the assigned tab keeps focus.
+                onReveal = { workspaceId -> if (pagerHostsPane) revealRequests.tryEmit(workspaceId) },
                 onRename = onRenameWorkspace,
                 onPaneMenuToggle = onPaneMenuToggle,
                 onRailThicknessChanged = onRailThicknessChanged,
@@ -155,7 +190,6 @@ fun AdaptiveWorkspaceLayout(
                     railThickness = railThickness,
                     selected = selected,
                     focusedId = focusedId,
-                    focusedRootId = focusedRootId,
                     dividerPositions = dividerPositions,
                     onDividerPositionsChange = onDividerPositionsChange,
                     showPaneNumbers = showPaneNumbers,
@@ -171,6 +205,8 @@ fun AdaptiveWorkspaceLayout(
                     fullScreenModalVisible = fullScreenModalVisible,
                     firstTabTourPaneNumber = firstTabTourPaneNumber,
                     firstTabTourRequester = firstTabTourRequester,
+                    singlePanePager = singlePanePager,
+                    revealRequests = revealRequests,
                     onShareError = onShareError,
                 )
             }
@@ -185,7 +221,6 @@ fun AdaptiveWorkspaceLayout(
                     railThickness = railThickness,
                     selected = selected,
                     focusedId = focusedId,
-                    focusedRootId = focusedRootId,
                     dividerPositions = dividerPositions,
                     onDividerPositionsChange = onDividerPositionsChange,
                     showPaneNumbers = showPaneNumbers,
@@ -201,6 +236,8 @@ fun AdaptiveWorkspaceLayout(
                     fullScreenModalVisible = fullScreenModalVisible,
                     firstTabTourPaneNumber = firstTabTourPaneNumber,
                     firstTabTourRequester = firstTabTourRequester,
+                    singlePanePager = singlePanePager,
+                    revealRequests = revealRequests,
                     onShareError = onShareError,
                 )
                 rail()
@@ -220,8 +257,6 @@ private fun PaneArea(
     railThickness: Dp,
     selected: Map<Int, WorkspacePaneInfo>,
     focusedId: Workspace.Id?,
-    /** The tab owning [focusedId], null when focus resolves to no tab. */
-    focusedRootId: Workspace.Id?,
     dividerPositions: DividerPositions,
     onDividerPositionsChange: (DividerPositions) -> Unit,
     showPaneNumbers: Boolean,
@@ -237,11 +272,39 @@ private fun PaneArea(
     fullScreenModalVisible: Boolean,
     firstTabTourPaneNumber: Int?,
     firstTabTourRequester: BringIntoViewRequester?,
+    singlePanePager: SinglePanePager?,
+    revealRequests: Flow<Workspace.Id>,
     onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
-    val currentOnScreenAction by rememberUpdatedState(onScreenAction)
     val placement = design.railPlacement
+
+    if (design.maxPanes == 1) {
+        val singlePanePager = requireNotNull(singlePanePager) { "A one-pane layout is rendered by the tab pager" }
+        val paneDesign = design.forPane(1).withoutEdges(
+            start = placement == RailPlacement.START,
+            bottom = placement == RailPlacement.BOTTOM,
+        )
+        // The Box carries the weight this area gets from the rail's Row/Column; the pager's own
+        // root only fills what it is given. Clipped to the shape every multi-pane pane has.
+        Box(modifier = modifier.clip(MaterialTheme.shapes.medium)) {
+            CompositionLocalProvider(
+                LocalPaneBottomChrome provides if (placement == RailPlacement.BOTTOM) railThickness else 0.dp,
+            ) {
+                singlePanePager(paneDesign, revealRequests) {
+                    EmptyPane(
+                        paneNumber = 1,
+                        paneDesign = paneDesign,
+                        isUpgraded = isUpgraded,
+                        firstTabTourPaneNumber = firstTabTourPaneNumber,
+                        firstTabTourRequester = firstTabTourRequester,
+                        onScreenAction = onScreenAction,
+                    )
+                }
+            }
+        }
+        return
+    }
 
     AdaptiveWorkspaceContainer(
         modifier = modifier,
@@ -277,12 +340,6 @@ private fun PaneArea(
                         val focusSuppressed = isOverlayVisible || fullScreenModalVisible
                         val paneIsFocused = !focusSuppressed &&
                             (focusedId == info.id || chain.any { it.id == focusedId })
-                        // Widened for presses only, as the classic pager does for its resting page:
-                        // with a single pane nobody else can hold focus, so while focus resolves to
-                        // no tab the pane must not consume the first press to request one. Back
-                        // below stays tied to focus actually held.
-                        val paneAcceptsPresses = paneIsFocused ||
-                            (design.maxPanes == 1 && !focusSuppressed && focusedRootId == null)
                         // Deepest layer is the active one; global focus can sit on a covered
                         // ancestor (launchPicker never moves it).
                         val activeId = (chain.lastOrNull()?.id ?: info.id).takeIf { paneIsFocused }
@@ -293,7 +350,7 @@ private fun PaneArea(
                             // Any occupant counts as focusing the pane, and every layer requests
                             // focus for the tab: a Focus() for a modal is silently dropped,
                             // which would leave another pane active.
-                            paneFocused = paneAcceptsPresses,
+                            paneFocused = paneIsFocused,
                             backActive = paneIsFocused,
                             clickToFocus = clickToFocus,
                             onRequestPaneFocus = {
@@ -318,58 +375,99 @@ private fun PaneArea(
                         )
                     }
                 } else {
-                    // An empty pane opens exactly one dropped item, the same way tapping it
-                    // would (folder -> Explorer, text -> Editor, anything else -> Viewer).
-                    val paneIndex = paneNumber - 1
-                    val isDropHovered = remember { mutableStateOf(false) }
-                    val dropTarget = remember(paneIndex) {
-                        object : DragAndDropTarget {
-                            override fun onEntered(event: DragAndDropEvent) {
-                                isDropHovered.value = true
-                            }
-
-                            override fun onExited(event: DragAndDropEvent) {
-                                isDropHovered.value = false
-                            }
-
-                            override fun onEnded(event: DragAndDropEvent) {
-                                isDropHovered.value = false
-                            }
-
-                            override fun onDrop(event: DragAndDropEvent): Boolean {
-                                isDropHovered.value = false
-                                val payload = event.workspaceDragPayload()
-                                    ?.takeIf { it.items.size == 1 }
-                                    ?: return false
-                                currentOnScreenAction(
-                                    WorkspaceScreenAction.OpenDropInPane(paneIndex, payload)
-                                )
-                                return true
-                            }
-                        }
-                    }
-
-                    EmptyAdaptiveWorkspaceContent(
-                        modifier = Modifier
-                            .paneHorizontalInsetPadding(paneDesign.paneEdges)
-                            .dragAndDropTarget(
-                                shouldStartDragAndDrop = { event ->
-                                    event.workspaceDragPayload()?.items?.size == 1
-                                },
-                                target = dropTarget,
-                            )
-                            .dropTargetHighlight(isDropHovered.value),
+                    EmptyPane(
                         paneNumber = paneNumber,
-                        paneEdges = paneDesign.paneEdges,
+                        paneDesign = paneDesign,
                         isUpgraded = isUpgraded,
-                        isTourTarget = paneNumber == firstTabTourPaneNumber,
-                        tourRequester = firstTabTourRequester,
-                        onAddWorkspace = {
-                            onScreenAction(WorkspaceScreenAction.CreateForPane(paneNumber - 1))
-                        },
+                        firstTabTourPaneNumber = firstTabTourPaneNumber,
+                        firstTabTourRequester = firstTabTourRequester,
+                        onScreenAction = onScreenAction,
                     )
                 }
             }
         }
+    )
+}
+
+/** The pager that hosts a one-pane layout's only pane, given the pane's design and what it should reveal. */
+typealias SinglePanePager = @Composable (
+    paneDesign: WorkspaceDesign,
+    revealRequests: Flow<Workspace.Id>,
+    emptyContent: @Composable () -> Unit,
+) -> Unit
+
+@Composable
+private fun EmptyPane(
+    paneNumber: Int,
+    paneDesign: WorkspaceDesign,
+    isUpgraded: Boolean,
+    firstTabTourPaneNumber: Int?,
+    firstTabTourRequester: BringIntoViewRequester?,
+    onScreenAction: (WorkspaceScreenAction) -> Unit,
+) {
+    val currentOnScreenAction by rememberUpdatedState(onScreenAction)
+    // An empty pane opens exactly one dropped item, the same way tapping it would (folder ->
+    // Explorer, text -> Editor, anything else -> Viewer).
+    val paneIndex = paneNumber - 1
+    val isDropHovered = remember { mutableStateOf(false) }
+    val dropTarget = remember(paneIndex) {
+        object : DragAndDropTarget {
+            override fun onEntered(event: DragAndDropEvent) {
+                isDropHovered.value = true
+            }
+
+            override fun onExited(event: DragAndDropEvent) {
+                isDropHovered.value = false
+            }
+
+            override fun onEnded(event: DragAndDropEvent) {
+                isDropHovered.value = false
+            }
+
+            override fun onDrop(event: DragAndDropEvent): Boolean {
+                isDropHovered.value = false
+                val payload = event.workspaceDragPayload()
+                    ?.takeIf { it.items.size == 1 }
+                    ?: return false
+                currentOnScreenAction(
+                    WorkspaceScreenAction.OpenDropInPane(paneIndex, payload)
+                )
+                return true
+            }
+        }
+    }
+
+    EmptyAdaptiveWorkspaceContent(
+        modifier = Modifier
+            .paneHorizontalInsetPadding(paneDesign.paneEdges)
+            .dragAndDropTarget(
+                shouldStartDragAndDrop = { event ->
+                    event.workspaceDragPayload()?.items?.size == 1
+                },
+                target = dropTarget,
+            )
+            .dropTargetHighlight(isDropHovered.value),
+        paneNumber = paneNumber,
+        paneEdges = paneDesign.paneEdges,
+        isUpgraded = isUpgraded,
+        isTourTarget = paneNumber == firstTabTourPaneNumber,
+        tourRequester = firstTabTourRequester,
+        onAddWorkspace = {
+            onScreenAction(WorkspaceScreenAction.CreateForPane(paneNumber - 1))
+        },
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun EmptyPanePreview() {
+    EmptyPane(
+        paneNumber = 1,
+        paneDesign = WorkspaceDesign(),
+        isUpgraded = false,
+        firstTabTourPaneNumber = null,
+        firstTabTourRequester = null,
+        onScreenAction = {},
     )
 }

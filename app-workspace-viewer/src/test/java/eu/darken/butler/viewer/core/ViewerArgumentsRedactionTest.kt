@@ -63,6 +63,18 @@ class ViewerArgumentsRedactionTest : BaseTest() {
     }
 
     @Test
+    fun `a selection is printed as its size`() {
+        val first = LocalPath.build("/storage/emulated/0/Music/first.mp3")
+        val second = LocalPath.build("/storage/emulated/0/Music/second.mp3")
+        val args = ViewerArguments.Default(filePath = path, stepPaths = listOf(first, second))
+
+        // A selection can hold thousands of files, far too many for a log line.
+        args.toString() shouldContain "stepPaths=2"
+        args.toString() shouldNotContain first.path
+        args.toString() shouldNotContain second.path
+    }
+
+    @Test
     fun `redacting the log form does not change equality`() {
         val withCaption = ViewerArguments.Default(filePath = path, caption = caption)
 

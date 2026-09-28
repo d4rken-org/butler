@@ -13,6 +13,7 @@ import eu.darken.butler.setup.core.SetupAction
 import eu.darken.butler.setup.core.SetupItem
 import eu.darken.butler.setup.core.SetupManager
 import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.setup.core.shizuku.AdbManagerInstallGuide
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -24,6 +25,7 @@ class SetupViewModel @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     private val setupManager: SetupManager,
     private val webpageTool: WebpageTool,
+    val adbManagerInstallGuide: AdbManagerInstallGuide,
 ) : ViewModel4(dispatcherProvider, logTag("Setup", "ViewModel")) {
 
     private val _permissionRequestEvents = MutableSharedFlow<android.content.Intent>(
@@ -111,6 +113,10 @@ class SetupViewModel @AssistedInject constructor(
                 _runtimePermissionEvents.emit(result.runtimePermissions)
             }
         }
+    }
+
+    fun onPermissionIntentFailed(error: Throwable) {
+        errorEvents.tryEmit(error)
     }
 
     fun openHelp(type: SetupModule.Type) = launch {

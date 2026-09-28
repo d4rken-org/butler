@@ -6,8 +6,8 @@ import eu.darken.butler.common.adb.service.AdbHostOptions
 import eu.darken.butler.common.adb.service.AdbServiceClient
 import eu.darken.butler.common.adb.service.internal.AdbConnection
 import eu.darken.butler.common.adb.service.internal.AdbHostLauncher
-import eu.darken.butler.common.adb.service.internal.ShizukuUserService
-import eu.darken.butler.common.adb.service.internal.ShizukuUserServiceFactory
+import eu.darken.butler.common.adb.service.internal.AdbUserService
+import eu.darken.butler.common.adb.service.internal.AdbUserServiceFactory
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.sharedresource.SharedResource
@@ -20,8 +20,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.runTest
@@ -40,10 +43,10 @@ import kotlin.time.Duration.Companion.seconds
 
 /**
  * The identity gate on top of the REAL [AdbHostLauncher], because that is where the gate's recovery
- * and Shizuku's teardown have to line up: the launcher's unbind is detached under a timeout, so its
- * producer coroutine can finish with the removal still in flight, and rebinding then risks the late
- * `remove=true` unbind taking out the replacement instead. Shizuku is replaced via the launcher's
- * seam (AdbHostLauncherSeam.kt).
+ * and the launcher's teardown have to line up: the launcher's stop is detached under a timeout, so its
+ * producer coroutine can finish with the stop still in flight, and rebinding then risks that late stop
+ * taking out the replacement instead. The SDK is replaced via the launcher's seam
+ * (AdbHostLauncherSeam.kt).
  */
 class IpcHostIdentityGateAdbTest : BaseTest() {
 
@@ -59,39 +62,52 @@ class IpcHostIdentityGateAdbTest : BaseTest() {
 
     private val binds = AtomicInteger()
     private val checks = AtomicInteger()
-    private val connectCallbacks = LinkedBlockingQueue<(IBinder?) -> Unit>()
+    private val created = LinkedBlockingQueue<FakeService>()
     private val binder = mockk<IBinder>()
 
-    private inner class FakeFactory(private val service: ShizukuUserService) : ShizukuUserServiceFactory {
+    /** One user service per host generation; its binder flow completes on [end], like the SDK's. */
+    private inner class FakeService(private val onStop: suspend FakeService.() -> Unit) : AdbUserService {
+        private val connected = Channel<IBinder>(Channel.UNLIMITED)
 
-        override fun apiVersion(): Int = 11
+        fun connect() {
+            connected.trySend(binder)
+        }
+
+        fun end() {
+            connected.close()
+        }
+
+        override fun binders(): Flow<IBinder> = flow {
+            binds.incrementAndGet()
+            for (binder in connected) emit(binder)
+        }
+
+        override suspend fun stop() = onStop(this)
+    }
+
+    private inner class FakeFactory(private val onStop: suspend FakeService.() -> Unit) : AdbUserServiceFactory {
 
         override fun <Host : AdbConnection> create(
             hostClass: KClass<Host>,
             options: AdbHostOptions,
-            onConnected: (IBinder?) -> Unit,
-            onDisconnected: () -> Unit,
-        ): ShizukuUserService {
-            connectCallbacks.put(onConnected)
-            return service
-        }
+        ): AdbUserService = FakeService(onStop).also { created.put(it) }
 
         @Suppress("UNCHECKED_CAST")
         override fun <Service : IInterface, Host : AdbConnection> handshake(
-            binder: IBinder?,
+            binder: IBinder,
             serviceClass: KClass<Service>,
             options: AdbHostOptions,
         ): Pair<Service, Host> = (mockk<AdbConnection>() as Service) to (mockk<AdbConnection>() as Host)
     }
 
     /**
-     * Stands in for Shizuku firing onServiceConnected, for however many generations get bound — which
-     * is the thing under test, so it can't be a fixed number of hand-fired callbacks.
+     * Stands in for the server reporting each service connected, for however many generations get
+     * bound, which is the thing under test, so it can't be a fixed number of hand-fired connects.
      */
     private fun startConnectPump(): Thread = Thread {
         try {
             while (!Thread.currentThread().isInterrupted) {
-                connectCallbacks.poll(100, TimeUnit.MILLISECONDS)?.invoke(binder)
+                created.poll(100, TimeUnit.MILLISECONDS)?.connect()
             }
         } catch (_: InterruptedException) {
             // Shutting down
@@ -109,7 +125,7 @@ class IpcHostIdentityGateAdbTest : BaseTest() {
     private suspend fun <T> awaitOrFail(what: String, block: suspend () -> T): T =
         withTimeoutOrNull(5 * 1000L) { block() } ?: throw AssertionError("Timed out waiting for $what")
 
-    /** bind() runs detached from the flow, so its count is only stable once it has caught up. */
+    /** The bind runs detached from the flow, so its count is only stable once it has caught up. */
     private suspend fun awaitBinds(expected: Int) = awaitOrFail("$expected bind(s)") {
         while (binds.get() < expected) delay(10)
     }
@@ -131,32 +147,26 @@ class IpcHostIdentityGateAdbTest : BaseTest() {
             onAccepted = { _, identity -> "connection#${identity.lastUpdateTime}" },
         )
 
-    private fun launcher(service: ShizukuUserService, scope: CoroutineScope) = AdbHostLauncher(
-        serviceFactory = FakeFactory(service),
+    private fun launcher(onStop: suspend FakeService.() -> Unit, scope: CoroutineScope) = AdbHostLauncher(
+        serviceFactory = FakeFactory(onStop),
         appScope = scope,
         // Real dispatchers: the wedge below blocks an actual thread, virtual time can't model that.
         dispatcherProvider = TestDispatcherProvider(Dispatchers.IO),
     )
 
-    @Test fun `a mismatch does not rebind while the stale unbind is still in flight`() = runTest(
+    @Test fun `a mismatch does not rebind while the stale stop is still in flight`() = runTest(
         timeout = 10.seconds,
     ) {
-        val unbindEntered = CompletableDeferred<Unit>()
-        val unbindWedge = CountDownLatch(1)
-        val service = object : ShizukuUserService {
-            override fun bind() {
-                binds.incrementAndGet()
-            }
-
-            override fun unbind() {
-                unbindEntered.complete(Unit)
-                unbindWedge.await() // blocks the thread, unaffected by coroutine cancellation
-            }
-
-            override suspend fun awaitDisconnect() {}
-        }
+        val stopEntered = CompletableDeferred<Unit>()
+        val stopWedge = CountDownLatch(1)
         val realScope = CoroutineScope(SupervisorJob())
-        val hostLauncher = launcher(service, realScope)
+        val hostLauncher = launcher(
+            onStop = {
+                stopEntered.complete(Unit)
+                stopWedge.await() // blocks the thread, unaffected by coroutine cancellation
+            },
+            scope = realScope,
+        )
         val pump = startConnectPump()
 
         try {
@@ -165,35 +175,27 @@ class IpcHostIdentityGateAdbTest : BaseTest() {
             }
 
             withContext(Dispatchers.Default) {
-                awaitOrFail("unbind() to be entered") { unbindEntered.await() }
+                awaitOrFail("the stop to be entered") { stopEntered.await() }
 
-                // Teardown gives up on the wedged unbind, and an unconfirmed teardown is not a base to
+                // Teardown gives up on the wedged stop, and an unconfirmed teardown is not a base to
                 // rebind on: the mismatch reaches the caller instead.
                 val error = awaitOrFail("the collector to be released") { result.await() }.exceptionOrNull()
                 error.shouldBeInstanceOf<IpcContractMismatchException>()
             }
 
-            // The whole point: no second generation for the in-flight unbind to remove.
+            // The whole point: no second generation for the in-flight stop to take out.
             binds.get() shouldBe 1
         } finally {
-            unbindWedge.countDown()
+            stopWedge.countDown()
             pump.interrupt()
             realScope.cancel()
         }
     }
 
     @Test fun `a mismatch rebinds once the teardown is confirmed`() = runTest(timeout = 10.seconds) {
-        val service = object : ShizukuUserService {
-            override fun bind() {
-                binds.incrementAndGet()
-            }
-
-            override fun unbind() {}
-
-            override suspend fun awaitDisconnect() {}
-        }
         val realScope = CoroutineScope(SupervisorJob())
-        val hostLauncher = launcher(service, realScope)
+        // The stop ends the service, which is what confirms the teardown.
+        val hostLauncher = launcher(onStop = { end() }, scope = realScope)
         val pump = startConnectPump()
 
         try {
@@ -217,26 +219,20 @@ class IpcHostIdentityGateAdbTest : BaseTest() {
      * The gate refusing to rebind only settles the gate's own retry. [SharedResource] has a second
      * one: a caller that latched onto a generation which died before producing a value gets that
      * generation detached and a FRESH source collection started — the rebind the gate just declined,
-     * with the stale unbind still in flight. Wired with the predicate AdbServiceClient passes, so
+     * with the stale stop still in flight. Wired with the predicate AdbServiceClient passes, so
      * this covers the layer the gate-only tests above cannot see.
      */
     @Test fun `a mismatch is not rebound by the shared resource retry either`() = runTest(timeout = 10.seconds) {
-        val unbindEntered = CompletableDeferred<Unit>()
-        val unbindWedge = CountDownLatch(1)
-        val service = object : ShizukuUserService {
-            override fun bind() {
-                binds.incrementAndGet()
-            }
-
-            override fun unbind() {
-                unbindEntered.complete(Unit)
-                unbindWedge.await() // blocks the thread, unaffected by coroutine cancellation
-            }
-
-            override suspend fun awaitDisconnect() {}
-        }
+        val stopEntered = CompletableDeferred<Unit>()
+        val stopWedge = CountDownLatch(1)
         val realScope = CoroutineScope(SupervisorJob())
-        val hostLauncher = launcher(service, realScope)
+        val hostLauncher = launcher(
+            onStop = {
+                stopEntered.complete(Unit)
+                stopWedge.await() // blocks the thread, unaffected by coroutine cancellation
+            },
+            scope = realScope,
+        )
 
         // Only a REUSING get() logs this, and it is trace-gated. Without waiting for it, the second
         // caller could arrive after generation 1 already died and pass vacuously on a fresh one.
@@ -270,16 +266,16 @@ class IpcHostIdentityGateAdbTest : BaseTest() {
         try {
             withContext(Dispatchers.Default) {
                 val creator = realScope.async(Dispatchers.IO) { runCatching { sharedResource.get() } }
-                // Generation 1 is installed and its source is running, but nothing has answered its
-                // connect callback yet, so it cannot have produced a value.
+                // Generation 1 is installed and its source is running, but its service has not been
+                // reported connected yet, so it cannot have produced a value.
                 awaitBinds(1)
 
                 val reuser = realScope.async(Dispatchers.IO) { runCatching { sharedResource.get() } }
                 awaitOrFail("the second caller to latch onto generation 1") { reuserLatched.await() }
 
-                // Only now let the host connect, mismatch, and wedge its unbind.
+                // Only now let the host connect, mismatch, and wedge its stop.
                 pump = startConnectPump()
-                awaitOrFail("unbind() to be entered") { unbindEntered.await() }
+                awaitOrFail("the stop to be entered") { stopEntered.await() }
 
                 awaitOrFail("the starting caller to be released") { creator.await() }
                     .exceptionOrNull().shouldBeInstanceOf<IpcContractMismatchException>()
@@ -288,10 +284,10 @@ class IpcHostIdentityGateAdbTest : BaseTest() {
                     .exceptionOrNull().shouldBeInstanceOf<IpcContractMismatchException>()
             }
 
-            // The whole point: no second generation for the in-flight unbind to remove.
+            // The whole point: no second generation for the in-flight stop to take out.
             binds.get() shouldBe 1
         } finally {
-            unbindWedge.countDown()
+            stopWedge.countDown()
             pump?.interrupt()
             realScope.cancel()
             Logging.remove(capture)

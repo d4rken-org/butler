@@ -39,6 +39,13 @@ sealed interface ViewerArguments : Workspace.Arguments {
          * [callerWorkspaceId]: a restored tab has no listing to step through.
          */
         @Transient val listingSourceId: Workspace.Id? = null,
+        /**
+         * The ordered files "previous" and "next" step through when the viewer was opened on a
+         * selection, or null when it was not. Takes precedence over [listingSourceId].
+         * Session-transient like [callerWorkspaceId]: a restored tab has no selection to step
+         * through.
+         */
+        @Transient val stepPaths: List<APath<*>>? = null,
     ) : ViewerArguments, Workspace.ArgumentsWithCaller, Workspace.ArgumentsWithContentPath {
         // Get-only (no backing field): invisible to kotlinx-serialization and Parcelize, so
         // persisted session arguments are unaffected.
@@ -54,10 +61,12 @@ sealed interface ViewerArguments : Workspace.Arguments {
         override val pausableAsChild: Boolean get() = true
 
         // The caption is the sender's own text and arguments end up in retained diagnostic logs,
-        // so only its presence is reported.
+        // so only its presence is reported. A selection can run to thousands of files, so only its
+        // size is.
         override fun toString(): String =
             "ViewerArguments.Default(filePath=$filePath, caption=${caption.redacted}, " +
-                "callerWorkspaceId=$callerWorkspaceId, listingSourceId=$listingSourceId)"
+                "callerWorkspaceId=$callerWorkspaceId, listingSourceId=$listingSourceId, " +
+                "stepPaths=${stepPaths?.size})"
     }
 
     /**

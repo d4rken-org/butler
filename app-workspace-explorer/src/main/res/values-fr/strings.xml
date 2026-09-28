@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Activer la corbeille</string>
     <string name="explorer_settings_trash_enabled_desc">Déplacer les fichiers supprimés vers la corbeille au lieu de les supprimer définitivement</string>
     <string name="explorer_settings_trash_auto_delete_title">Suppression automatique après</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Supprimer automatiquement les éléments de plus de %d jours</string>
     <string name="explorer_settings_trash_auto_delete_value">%d jours</string>
     <string name="explorer_settings_trash_max_size_title">Taille maximale par stockage</string>
-    <string name="explorer_settings_trash_max_size_desc">%d MB maximum par emplacement de stockage</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Délai de suppression automatique</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Taille maximale par stockage</string>
@@ -644,7 +642,6 @@
     <string name="explorer_permission_option_storage_action">Accorder l’autorisation</string>
 
     <!-- Open in new tabs action -->
-    <string name="explorer_action_open_in_new_tabs">Ouvrir dans de nouveaux onglets</string>
     <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
     <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
 

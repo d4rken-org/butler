@@ -11,6 +11,7 @@ import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -41,6 +42,7 @@ import eu.darken.butler.viewer.core.ViewerExternalChange
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.viewer.core.ViewerFileGoneException
 import eu.darken.butler.viewer.core.ViewerIconUnavailableException
+import eu.darken.butler.viewer.core.ViewerSettings
 import eu.darken.butler.viewer.core.ViewerShareUnavailableException
 import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.contracts.editor.EditorArguments
@@ -114,6 +116,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     private val apkIconExporter: ApkIconExporter,
     private val filenameValidator: FilenameValidator,
     private val errorIncidentStore: ErrorIncidentStore,
+    private val viewerSettings: ViewerSettings,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel3(dispatchers, logTag("Viewer", "Workspace", id.shortTag, "Page")) {
 
@@ -285,10 +288,23 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
      */
     private var lastListing: Pair<Workspace.Id, List<APath<*>>>? = null
 
+    /**
+     * Files this ViewModel deleted, for the same lifetime reason as [lastListing]: the origin may not
+     * have republished its listing yet, or is paused and replays the last one, and neither may offer
+     * a file that is already gone as the next step. The file on display is exempt: a refused replace
+     * leaves the deleted file there, and it keeps its arrows so the user can still move on.
+     */
+    private val deletedPaths = MutableStateFlow<Set<APath<*>>>(emptySet())
+
     /** Where a step from the file on display would land, or null when there is nothing to step to. */
     private val neighboursFlow: Flow<ViewerNeighbours?> = workspaceSource.flatMapLatest { workspace ->
-        val originId = workspace.listingSourceId
         val path = workspace.storedPath
+        // A selection does not change after the viewer opened, so it has no origin to outlive.
+        val stepPaths = workspace.stepPaths
+        if (stepPaths != null && path != null) {
+            return@flatMapLatest flowOf(resolveNeighbours(path, stepPaths))
+        }
+        val originId = workspace.listingSourceId
         if (originId == null || path == null) return@flatMapLatest flowOf(null)
         val live = workspaceProvider.retrieve(originId).flatMapLatest { origin ->
             (origin as? Workspace.FileListingSource)?.fileListing ?: flowOf<List<APath<*>>?>(null)
@@ -297,12 +313,13 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         val originExists = workspaceRemote.state
             .map { state -> state.infos.any { it.id == originId } }
             .distinctUntilChanged()
-        combine(live, originExists) { listing, exists ->
-            when {
+        combine(live, originExists, deletedPaths) { listing, exists, deleted ->
+            val files = when {
                 !exists -> null
                 listing != null -> listing.also { lastListing = originId to it }
                 else -> lastListing?.takeIf { it.first == originId }?.second
             }
+            files?.filterNot { it != path && it in deleted }
         }.map { files -> files?.let { resolveNeighbours(path, it) } }
     }.distinctUntilChanged()
 
@@ -574,6 +591,10 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
      * arguments and cannot be swapped in place.
      */
     private fun stepFile(delta: Int) {
+        if (deleteInFlight.value) {
+            log(tag) { "stepFile($delta) ignored, a delete is in flight" }
+            return
+        }
         val ready = state.value as? State.Ready ?: return
         val neighbours = ready.neighbours ?: return
         val target = (if (delta < 0) neighbours.previous else neighbours.next) ?: run {
@@ -585,24 +606,32 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             return
         }
         fileStep = vmScope.launch {
-            val workspace = workspaceSource.first()
-            val arguments = workspace.siblingArguments(target) ?: return@launch
             log(tag, INFO) { "stepFile($delta) -> $target" }
-            val result = workspaceRemote.createAndFocus(
-                type = Workspace.Type.VIEWER,
-                arguments = arguments,
-                replace = id,
-                id = id,
-                // The neighbour may already be open in another tab; sending the user there would
-                // leave this one on the file they just stepped away from.
-                skipContentDedup = true,
-            )
-            // The guard has to outlive the create: the page state observes the swap asynchronously,
-            // and a tap in between would read the old file's neighbours.
-            if (result is WorkspaceAction.Create.Result.Success) {
-                workspaceSource.first { it.storedPath == target }
-            }
+            replaceWithSibling(target)
         }
+    }
+
+    /**
+     * Replaces this tab with a viewer on [target] and suspends until the replacement is the one on
+     * display. Null when this tab's content has no listing to take a sibling from.
+     */
+    private suspend fun replaceWithSibling(target: APath<*>): WorkspaceAction.Create.Result? {
+        val arguments = workspaceSource.first().siblingArguments(target) ?: return null
+        val result = workspaceRemote.createAndFocus(
+            type = Workspace.Type.VIEWER,
+            arguments = arguments,
+            replace = id,
+            id = id,
+            // The neighbour may already be open in another tab; sending the user there would
+            // leave this one on the file they just stepped away from.
+            skipContentDedup = true,
+        )
+        // The caller's guard has to outlive the create: the page state observes the swap
+        // asynchronously, and a tap in between would read the old file's neighbours.
+        if (result is WorkspaceAction.Create.Result.Success) {
+            workspaceSource.first { it.storedPath == target }
+        }
+        return result
     }
 
     fun close() = launch {
@@ -844,7 +873,11 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     val trashEnabled: StateFlow<Boolean> = trashSettings.enabled.flow
         .stateIn(vmScope, SharingStarted.WhileSubscribed(5_000), false)
 
-    /** Reserved synchronously so a double tap cannot submit the delete twice. */
+    /**
+     * Reserved synchronously so a double tap cannot submit the delete twice. Held until the viewer
+     * closed or the replacement showing the neighbour arrived, and [stepFile] honours it: a step
+     * taken meanwhile would race the replace this delete is about to perform.
+     */
     private val deleteInFlight = MutableStateFlow(false)
 
     /**
@@ -866,9 +899,9 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
 
     /** @param permanent pre-ticks "Delete permanently" in the confirmation. */
     fun requestDelete(permanent: Boolean = false) {
-        // The file on display is about to be replaced, so the dialog would name the one being left.
-        if (fileStep?.isActive == true) {
-            log(tag) { "requestDelete(permanent=$permanent) ignored, a file step is in flight" }
+        // A step or a delete (with its post-delete replace) takes this file off display; the dialog would name it.
+        if (fileStep?.isActive == true || deleteInFlight.value) {
+            log(tag) { "requestDelete(permanent=$permanent) ignored, a step or delete is in flight" }
             return
         }
         launch {
@@ -885,28 +918,34 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     }
 
     /**
-     * Closes the viewer once the delete actually succeeded. The workspace does not re-read the file
-     * after an operation, so a viewer left open would keep rendering a file that no longer exists -
-     * but a failed or cancelled delete must leave it exactly where it was.
+     * Once the delete actually succeeded, moves on to the neighbouring file of the listing, or closes
+     * the viewer when there is none or [ViewerSettings.showNextAfterDelete] is off. The workspace
+     * does not re-read the file after an operation, so a viewer left on it would keep rendering a
+     * file that no longer exists - but a failed or cancelled delete must leave it exactly where it
+     * was.
      */
     fun confirmDelete(forcePermDelete: Boolean) {
+        val requested = deleteRequestFlow.value?.targets?.singleOrNull()
+        if (requested == null) {
+            log(tag, WARN) { "confirmDelete() without a pending request, ignoring" }
+            return
+        }
         if (!deleteInFlight.compareAndSet(expect = false, update = true)) {
             log(tag, WARN) { "A delete is already in progress, ignoring" }
             return
         }
-        val request = deleteRequestFlow.value
         deleteRequestFlow.value = null
 
         launch {
             try {
                 val workspace = workspaceSource.first()
-                // A file step may have landed while the dialog was open; only the file the dialog
-                // named may be deleted.
-                val confirmed = request?.targets?.singleOrNull()
-                if (confirmed == null || confirmed != workspace.storedPath) {
-                    log(tag, WARN) { "confirmDelete() for $confirmed, but ${workspace.storedPath} is on display" }
+                if (workspace.storedPath != requested) {
+                    log(tag, WARN) { "confirmDelete() for $requested, but ${workspace.storedPath} is on display" }
                     return@launch
                 }
+                // Taken before the submit: by completion the listing has usually dropped this file
+                // already, and a file missing from the listing has no neighbours to read.
+                val target = (state.value as? State.Ready)?.neighbours?.let { it.next ?: it.previous }
                 // Attached before the submit and undispatched: `completedOperations` has no replay,
                 // so a delete that finishes quickly would otherwise complete unobserved and leave
                 // the viewer showing a deleted file. The id is not known until submit returns, so it
@@ -937,8 +976,23 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                     log(tag, INFO) { "Delete removed nothing, leaving the viewer open" }
                     return@launch
                 }
-                log(tag, INFO) { "Delete completed, closing the viewer" }
-                workspaceRemote.execute(WorkspaceAction.Close(id))
+                deletedPaths.update { it + requested }
+
+                val showNext = viewerSettings.showNextAfterDelete.value()
+                if (!showNext || target == null) {
+                    log(tag, INFO) { "Delete completed, closing the viewer (showNext=$showNext, target=$target)" }
+                    workspaceRemote.execute(WorkspaceAction.Close(id))
+                    return@launch
+                }
+                log(tag, INFO) { "Delete completed, showing $target" }
+                // Awaited here, so the delete's reservation also keeps a step out of the replace.
+                val result = replaceWithSibling(target)
+                if (result !is WorkspaceAction.Create.Result.Success) {
+                    // The deleted file stays on display; a reload turns it into the "file is gone"
+                    // card instead of stale content.
+                    log(tag, WARN) { "Replacing with $target failed ($result), reloading" }
+                    workspace.reload()
+                }
             } finally {
                 deleteInFlight.value = false
             }

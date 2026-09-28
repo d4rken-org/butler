@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Activar papelera</string>
     <string name="explorer_settings_trash_enabled_desc">Mueve los archivos eliminados a la papelera en lugar de eliminarlos permanentemente</string>
     <string name="explorer_settings_trash_auto_delete_title">Eliminación automática después de</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Elimina automáticamente los elementos con más de %d días de antigüedad</string>
     <string name="explorer_settings_trash_auto_delete_value">%d días</string>
     <string name="explorer_settings_trash_max_size_title">Tamaño máximo por almacenamiento</string>
-    <string name="explorer_settings_trash_max_size_desc">%d MB máximo por ubicación de almacenamiento</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Periodo de eliminación automática</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Tamaño máximo por almacenamiento</string>
@@ -647,7 +645,6 @@
     <string name="explorer_permission_option_storage_action">Conceder permiso</string>
 
     <!-- Open in new tabs action -->
-    <string name="explorer_action_open_in_new_tabs">Abrir en pestañas nuevas</string>
     <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
     <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
 

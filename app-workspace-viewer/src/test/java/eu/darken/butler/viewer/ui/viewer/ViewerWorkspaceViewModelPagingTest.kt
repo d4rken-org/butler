@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.viewer.core.PdfPreviewLoader
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerSettings
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.core.Workspace
@@ -39,6 +40,7 @@ import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 import testhelpers.error.recordingIncidentStore
+import testhelpers.mockDataStoreValue
 
 /**
  * PDF paging as the ViewModel drives it: which page the loader is asked for, and when it may be
@@ -107,6 +109,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             every { source } returns this@ViewerWorkspaceViewModelPagingTest.source
             every { storedPath } returns this@ViewerWorkspaceViewModelPagingTest.filePath
             every { listingSourceId } returns null
+            every { stepPaths } returns null
             every { info } returns MutableStateFlow(
                 Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = "manual.pdf".toCaString()),
             )
@@ -146,6 +149,9 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),
             errorIncidentStore = incidentStore,
+            viewerSettings = mockk<ViewerSettings>().apply {
+                every { showNextAfterDelete } returns mockDataStoreValue(true)
+            },
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns chrome
             },
@@ -263,6 +269,7 @@ class ViewerWorkspaceViewModelPagingTest : BaseTest() {
             every { source } returns otherSource
             every { storedPath } returns otherPath
             every { listingSourceId } returns null
+            every { stepPaths } returns null
             every { info } returns MutableStateFlow(
                 Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = "other.pdf".toCaString()),
             )

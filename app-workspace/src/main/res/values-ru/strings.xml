@@ -424,7 +424,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Панель вкладок плюс столько панелей, сколько помещается на экране. Закрепите расположение через меню Butler на панели.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Адаптивное (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Одиночное с панелью вкладок</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">Одна панель вкладки плюс панель вкладок из многопанельных расположений. Переключайте вкладки с панели вместо свайпа; панель занимает полосу экрана.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Одна панель вкладки плюс панель вкладок из многопанельных расположений. Панель занимает полосу экрана.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Два по вертикали</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Две панели рядом (слева/справа).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Два по горизонтали</string>

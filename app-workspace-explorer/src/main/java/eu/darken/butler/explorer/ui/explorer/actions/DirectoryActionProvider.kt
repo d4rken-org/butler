@@ -44,7 +44,7 @@ class DirectoryActionProvider @Inject constructor(
                 actions.add(ExplorerActionBarItem.Directory.SelectAll)
             }
 
-            actions.add(ExplorerActionBarItem.Directory.OpenInNewTabs())
+            actions.add(ExplorerActionBarItem.Directory.OpenSelection())
 
             // Rename/Cut/Delete mutate the source, so they're hidden for read-only archive content.
             if (selectionState.selectionCount == 1 && !isReadOnlySource) {

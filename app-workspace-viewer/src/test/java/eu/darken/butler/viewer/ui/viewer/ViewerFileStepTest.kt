@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerSettings
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
@@ -41,6 +42,7 @@ import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 import testhelpers.error.recordingIncidentStore
+import testhelpers.mockDataStoreValue
 
 /**
  * Stepping to the neighbouring file of the listing this viewer was opened from: which arrows the bar
@@ -59,6 +61,7 @@ class ViewerFileStepTest : BaseTest() {
     private val a = LocalPath.build("/storage/emulated/0/DCIM/a.jpg")
     private val b = LocalPath.build("/storage/emulated/0/DCIM/b.jpg")
     private val c = LocalPath.build("/storage/emulated/0/DCIM/c.jpg")
+    private val d = LocalPath.build("/storage/emulated/0/DCIM/d.jpg")
 
     private val creates = mutableListOf<WorkspaceAction.Create>()
 
@@ -111,6 +114,7 @@ class ViewerFileStepTest : BaseTest() {
     private fun makeWorkspace(
         path: APath<*>,
         listingSourceId: Workspace.Id? = originId,
+        stepPaths: List<APath<*>>? = null,
     ) = mockk<ViewerWorkspace>().apply {
         every { state } returns MutableStateFlow(
             ViewerWorkspace.State(content = ViewerContent.Image(MimeInfo("image/jpeg"))),
@@ -118,20 +122,30 @@ class ViewerFileStepTest : BaseTest() {
         every { source } returns ViewerSource.Stored(path)
         every { storedPath } returns path
         every { this@apply.listingSourceId } returns listingSourceId
+        every { this@apply.stepPaths } returns stepPaths
         every { sharedCaption } returns "look at this"
         every { info } returns MutableStateFlow(
             Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = path.name.toCaString()),
         )
         every { reload() } just Runs
         every { siblingArguments(any()) } answers {
-            arguments(path).copy(filePath = firstArg(), caption = null)
+            arguments(path).copy(
+                filePath = firstArg(),
+                caption = null,
+                listingSourceId = listingSourceId,
+                stepPaths = stepPaths,
+            )
         }
     }
 
     private val incidentStore = recordingIncidentStore()
 
-    private fun makeViewModel(path: APath<*> = b): ViewerWorkspaceViewModel {
-        workspaces = MutableStateFlow(makeWorkspace(path))
+    private fun makeViewModel(
+        path: APath<*> = b,
+        listingSourceId: Workspace.Id? = originId,
+        stepPaths: List<APath<*>>? = null,
+    ): ViewerWorkspaceViewModel {
+        workspaces = MutableStateFlow(makeWorkspace(path, listingSourceId, stepPaths))
         val remote = mockk<WorkspaceRemote>(relaxed = true).apply {
             every { events } returns emptyFlow()
             every { this@apply.state } returns remoteState
@@ -167,6 +181,9 @@ class ViewerFileStepTest : BaseTest() {
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),
             errorIncidentStore = incidentStore,
+            viewerSettings = mockk<ViewerSettings>().apply {
+                every { showNextAfterDelete } returns mockDataStoreValue(true)
+            },
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns mockk<WorkspacePageChrome>().apply {
                     every { shareIntentEvent } returns SingleEventFlow()
@@ -326,5 +343,52 @@ class ViewerFileStepTest : BaseTest() {
             val current = state.neighbours?.current ?: return@forEach
             current shouldBe (state.source as ViewerSource.Stored).path
         }
+    }
+
+    @Test
+    fun `a viewer opened on a selection steps through that selection`() = runTest2 {
+        val vm = makeViewModel(path = a, listingSourceId = null, stepPaths = listOf(a, c, d))
+        startCollecting(vm)
+
+        vm.readyState.neighbours shouldBe ViewerNeighbours(current = a, previous = null, next = c)
+        vm.steps shouldBe listOf(
+            ViewerActionBarItem.PreviousFile(isEnabled = false),
+            ViewerActionBarItem.NextFile(isEnabled = true),
+        )
+    }
+
+    @Test
+    fun `stepping through a selection keeps the selection`() = runTest2 {
+        val selection = listOf<APath<*>>(a, c, d)
+        val vm = makeViewModel(path = a, listingSourceId = null, stepPaths = selection)
+        startCollecting(vm)
+
+        vm.showNextFile()
+
+        val step = creates.single()
+        step.replace shouldBe workspaceId
+        step.id shouldBe workspaceId
+        val arguments = step.arguments.shouldBeInstanceOf<ViewerArguments.Default>()
+        arguments.filePath shouldBe c
+        arguments.stepPaths shouldBe selection
+    }
+
+    @Test
+    fun `a selection takes precedence over the listing`() = runTest2 {
+        // The origin lists a, b, c: its neighbour of a would be b.
+        val vm = makeViewModel(path = a, stepPaths = listOf(a, c, d))
+        startCollecting(vm)
+
+        vm.readyState.neighbours shouldBe ViewerNeighbours(current = a, previous = null, next = c)
+    }
+
+    @Test
+    fun `a file outside the selection offers no steps`() = runTest2 {
+        // The origin still lists b, but a selection never falls back to it.
+        val vm = makeViewModel(path = b, stepPaths = listOf(a, c, d))
+        startCollecting(vm)
+
+        vm.readyState.neighbours shouldBe null
+        vm.steps shouldBe emptyList()
     }
 }

@@ -199,6 +199,9 @@ fun SearcherWorkspaceOverlays(
             onCopyToClipboard = { text -> onPageAction(SearcherPageAction.Clipboard.CopyText(text)) },
             onNavigateToClipboardSource = { clip -> onPageAction(SearcherPageAction.Clipboard.NavigateToSource(clip)) },
             onRemoveClipboardEntry = { clip -> onPageAction(SearcherPageAction.Clipboard.RemoveEntry(clip)) },
+            onOpenSelectionModePicked = { state, mode ->
+                onPageAction(SearcherPageAction.Dialogs.OpenSelectionModePicked(state, mode))
+            },
             onSortOptionsConfirmed = { onPageAction(SearcherPageAction.Dialogs.SortOptionsConfirmed(it)) },
             onClearHistoryConfirmed = { onPageAction(SearcherPageAction.Dialogs.ClearHistoryConfirmed) },
             onConditionApply = { existing, new ->

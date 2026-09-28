@@ -168,19 +168,10 @@ fun ShortcutsSettingsScreen(
                     item {
                         SettingsBaseItem(
                             title = stringResource(R.string.shortcuts_settings_max_count_title),
-                            subtitle = stringResource(
-                                R.string.shortcuts_settings_max_count_subtitle,
-                                state.maxShortcuts
-                            ),
+                            subtitle = stringResource(R.string.shortcuts_settings_max_count_summary),
+                            value = state.maxShortcuts.toString(),
                             onClick = { showMaxShortcutsDialog = true },
                             icon = Icons.TwoTone.FormatListNumbered,
-                            trailingContent = {
-                                Text(
-                                    text = state.maxShortcuts.toString(),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            },
                         )
                         SettingsDivider()
                     }
@@ -188,19 +179,10 @@ fun ShortcutsSettingsScreen(
                     item {
                         SettingsBaseItem(
                             title = stringResource(R.string.shortcuts_settings_min_access_title),
-                            subtitle = stringResource(
-                                R.string.shortcuts_settings_min_access_subtitle,
-                                state.minAccessCount
-                            ),
+                            subtitle = stringResource(R.string.shortcuts_settings_min_access_summary),
+                            value = state.minAccessCount.toString(),
                             onClick = { showMinAccessDialog = true },
                             icon = Icons.TwoTone.TouchApp,
-                            trailingContent = {
-                                Text(
-                                    text = state.minAccessCount.toString(),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            },
                         )
                         SettingsDivider()
                     }

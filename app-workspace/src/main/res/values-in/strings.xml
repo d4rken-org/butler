@@ -355,7 +355,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Rel tab ditambah sebanyak mungkin panel yang muat di layar. Sematkan tata letak dari menu Butler di rel.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptif (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Tunggal dengan rel tab</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">Satu panel tab ditambah rel tab dari tata letak multi-panel. Beralih tab dari rel, bukan dengan menggeser; rel mengambil sebagian kecil layar.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Satu panel tab ditambah rel tab dari tata letak multi-panel. Rel mengambil sebagian kecil layar.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Ganda vertikal</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Dua panel berdampingan (kiri/kanan).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Ganda horizontal</string>

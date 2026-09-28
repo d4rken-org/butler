@@ -12,11 +12,13 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.workspace.contracts.searcher.FilterCondition
+import eu.darken.butler.workspace.core.OpenSelectionMode
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.FileInfo
 import eu.darken.butler.workspace.ui.dialogs.FileInfoBottomSheet
+import eu.darken.butler.workspace.ui.dialogs.OpenSelectionDialog
 import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 
 @Composable
@@ -30,6 +32,7 @@ fun SearcherDialogHost(
     onCopyToClipboard: (String) -> Unit,
     onNavigateToClipboardSource: (ClipboardClip) -> Unit,
     onRemoveClipboardEntry: (ClipboardClip) -> Unit,
+    onOpenSelectionModePicked: (SearcherDialogState.OpenSelection, OpenSelectionMode) -> Unit,
     onSortOptionsConfirmed: (SearchSortOptionsResult) -> Unit = {},
     onClearHistoryConfirmed: () -> Unit = {},
     onConditionApply: (existing: FilterCondition?, new: FilterCondition) -> Unit = { _, _ -> },
@@ -50,6 +53,14 @@ fun SearcherDialogHost(
                 initialPermanentDelete = dialogState.initialPermanentDelete,
                 onDismiss = onDismiss,
                 onConfirm = onDeleteConfirmed,
+            )
+        }
+        is SearcherDialogState.OpenSelection -> {
+            OpenSelectionDialog(
+                itemCount = dialogState.results.size,
+                viewerModesAvailable = dialogState.viewerModesAvailable,
+                onDismiss = onDismiss,
+                onSelect = { mode -> onOpenSelectionModePicked(dialogState, mode) },
             )
         }
         is SearcherDialogState.ClearHistoryConfirmation -> {

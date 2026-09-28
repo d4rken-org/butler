@@ -45,9 +45,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">إضافة المسارات الأكثر زيارة تلقائيًا كاختصارات</string>
     <string name="shortcuts_settings_last_accessed_title">آخر وصول</string>
     <string name="shortcuts_settings_max_count_title">الحد الأقصى للاختصارات</string>
-    <string name="shortcuts_settings_max_count_subtitle">يتم حاليًا عرض %d اختصارات</string>
     <string name="shortcuts_settings_min_access_title">الحد الأدنى لمرات الوصول</string>
-    <string name="shortcuts_settings_min_access_subtitle">يتطلب %d مرات وصول قبل العرض</string>
     <string name="shortcuts_settings_current_title">الاختصارات الحالية</string>
     <string name="shortcuts_settings_current_subtitle">تم تتبّع %d اختصارات</string>
     <string name="shortcuts_settings_clear_title">مسح سجل الاختصارات</string>

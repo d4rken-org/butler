@@ -190,7 +190,6 @@
     <string name="searcher_action_properties">Ιδιότητες</string>
     <string name="searcher_action_select_all">Επιλογή όλων</string>
     <string name="searcher_action_deselect_all">Αποεπιλογή όλων</string>
-    <string name="searcher_action_open_in_new_tabs">Άνοιγμα σε νέες καρτέλες</string>
     <string name="searcher_action_sort">Ταξινόμηση</string>
     <string name="searcher_action_view">Διάταξη</string>
 

@@ -110,4 +110,9 @@
     <string name="viewer_text_truncated_lines">Preview limited to the first %1$s lines of this file.</string>
     <string name="viewer_text_truncated_width">Long lines are shortened in this preview.</string>
     <string name="viewer_text_unreadable_label">This file couldn\'t be read</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">Viewer</string>
+    <string name="viewer_settings_show_next_after_delete_title">Show next file after deleting</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">After deleting a file opened from a folder, show the next file in that folder instead of closing the viewer.</string>
 </resources>

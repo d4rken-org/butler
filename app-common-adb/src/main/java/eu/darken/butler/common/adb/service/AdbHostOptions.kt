@@ -10,8 +10,8 @@ data class AdbHostOptions(
     val isTrace: Boolean = false,
     val recorderPath: String? = null,
     /**
-     * Encoded `IpcContract.HostIdentity` of the app installation that launched the host. Shizuku has
-     * no init arguments, so this rides along with the initial options push; the host keeps the FIRST
+     * Encoded `IpcContract.HostIdentity` of the app installation that launched the host. User services
+     * have no init arguments, so this rides along with the initial options push; the host keeps the FIRST
      * one it ever receives, which makes it a launch stamp rather than a settable value.
      *
      * APPEND new fields, never insert: this crosses the binder as a parcelable, so field order is the

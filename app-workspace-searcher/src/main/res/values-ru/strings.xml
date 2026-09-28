@@ -207,7 +207,6 @@
     <string name="searcher_action_properties">Свойства</string>
     <string name="searcher_action_select_all">Выбрать все</string>
     <string name="searcher_action_deselect_all">Снять выделение</string>
-    <string name="searcher_action_open_in_new_tabs">Открыть в новых вкладках</string>
     <string name="searcher_action_sort">Сортировать</string>
     <string name="searcher_action_view">Вид</string>
 

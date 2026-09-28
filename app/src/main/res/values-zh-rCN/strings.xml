@@ -45,9 +45,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">自动将常访问的路径添加为快捷方式</string>
     <string name="shortcuts_settings_last_accessed_title">最近访问</string>
     <string name="shortcuts_settings_max_count_title">最大快捷方式数量</string>
-    <string name="shortcuts_settings_max_count_subtitle">当前显示 %d 个快捷方式</string>
     <string name="shortcuts_settings_min_access_title">最小访问次数</string>
-    <string name="shortcuts_settings_min_access_subtitle">需要访问 %d 次后才会显示</string>
     <string name="shortcuts_settings_current_title">当前快捷方式</string>
     <string name="shortcuts_settings_current_subtitle">已跟踪 %d 个快捷方式</string>
     <string name="shortcuts_settings_clear_title">清除快捷方式历史</string>

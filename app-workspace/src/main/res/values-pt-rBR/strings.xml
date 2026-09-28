@@ -378,7 +378,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Trilho de abas mais quantos painéis a tela comportar. Fixe um layout no menu do Butler no trilho.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptativo (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Único com trilho de abas</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">Um painel de aba mais o trilho de abas dos layouts multipainel. Alterne entre abas pelo trilho em vez de deslizar; o trilho ocupa uma faixa da tela.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Um painel de aba mais o trilho de abas dos layouts multipainel. O trilho ocupa uma faixa da tela.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Duplo vertical</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Dois painéis lado a lado (esquerda/direita).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Duplo horizontal</string>

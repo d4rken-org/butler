@@ -14,10 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">Povolit koš</string>
     <string name="explorer_settings_trash_enabled_desc">Přesunout smazané soubory do koše místo jejich trvalého smazání</string>
     <string name="explorer_settings_trash_auto_delete_title">Automaticky smazat po</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Automaticky smazat položky starší než %d dní</string>
     <string name="explorer_settings_trash_auto_delete_value">%d dní</string>
     <string name="explorer_settings_trash_max_size_title">Maximální velikost na úložiště</string>
-    <string name="explorer_settings_trash_max_size_desc">Maximálně %d MB na umístění úložiště</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Doba automatického smazání</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maximální velikost na úložiště</string>
@@ -711,7 +709,6 @@
     <string name="explorer_permission_option_storage_action">Udělit oprávnění</string>
 
     <!-- Open in new tabs action -->
-    <string name="explorer_action_open_in_new_tabs">Otevřít na nových kartách</string>
     <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
     <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
 

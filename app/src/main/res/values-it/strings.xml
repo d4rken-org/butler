@@ -45,9 +45,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Aggiungi automaticamente i percorsi visitati di frequente come scorciatoie</string>
     <string name="shortcuts_settings_last_accessed_title">Ultimo accesso</string>
     <string name="shortcuts_settings_max_count_title">Numero massimo di scorciatoie</string>
-    <string name="shortcuts_settings_max_count_subtitle">Attualmente vengono mostrate %d scorciatoie</string>
     <string name="shortcuts_settings_min_access_title">Accessi minimi</string>
-    <string name="shortcuts_settings_min_access_subtitle">Richiede %d accessi prima di essere mostrata</string>
     <string name="shortcuts_settings_current_title">Scorciatoie attuali</string>
     <string name="shortcuts_settings_current_subtitle">%d scorciatoie monitorate</string>
     <string name="shortcuts_settings_clear_title">Cancella cronologia scorciatoie</string>

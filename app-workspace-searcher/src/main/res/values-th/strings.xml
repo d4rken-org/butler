@@ -181,7 +181,6 @@
     <string name="searcher_action_properties">คุณสมบัติ</string>
     <string name="searcher_action_select_all">เลือกทั้งหมด</string>
     <string name="searcher_action_deselect_all">ยกเลิกการเลือกทั้งหมด</string>
-    <string name="searcher_action_open_in_new_tabs">เปิดในแท็บใหม่</string>
     <string name="searcher_action_sort">เรียงลำดับ</string>
     <string name="searcher_action_view">เลย์เอาต์</string>
 

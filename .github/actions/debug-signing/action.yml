@@ -1,0 +1,23 @@
+name: 'Debug signing for release-type builds'
+description: >
+  Creates the debug keystore if it is missing and points the STORE_* variables at it, so beta and
+  release builds sign with the debug key instead of the release secrets. Run it before the first
+  Gradle invocation, which is when those variables are read.
+runs:
+  using: "composite"
+  steps:
+    - name: Export debug signing
+      shell: bash
+      run: |
+        keystore="$HOME/.android/debug.keystore"
+        if [ ! -f "$keystore" ]; then
+          mkdir -p "$(dirname "$keystore")"
+          keytool -genkeypair -keystore "$keystore" -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        fi
+        {
+          echo "STORE_PATH=$keystore"
+          echo "STORE_PASSWORD=android"
+          echo "KEY_ALIAS=androiddebugkey"
+          echo "KEY_PASSWORD=android"
+        } >> "$GITHUB_ENV"

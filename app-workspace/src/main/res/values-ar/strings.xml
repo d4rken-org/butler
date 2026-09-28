@@ -470,7 +470,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">شريط علامات تبويب مع أكبر عدد ممكن من الأجزاء التي تسعها الشاشة. ثبِّت تخطيطًا من قائمة Butler في الشريط.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">تكيفي (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">مفرد مع شريط علامات التبويب</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">جزء علامة تبويب واحد بالإضافة إلى شريط علامات التبويب الخاص بالتخطيطات متعددة الأجزاء. بدِّل علامات التبويب من الشريط بدلًا من التمرير؛ يشغل الشريط شريطًا من الشاشة.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">جزء علامة تبويب واحد بالإضافة إلى شريط علامات التبويب الخاص بالتخطيطات متعددة الأجزاء. يشغل الشريط شريطًا من الشاشة.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">مزدوج رأسي</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">جزآن جنبًا إلى جنب (يسار/يمين).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">مزدوج أفقي</string>

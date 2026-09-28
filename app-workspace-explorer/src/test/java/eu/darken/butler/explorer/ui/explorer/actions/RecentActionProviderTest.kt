@@ -82,7 +82,7 @@ class RecentActionProviderTest : BaseTest() {
         actions.any { it is ExplorerActionBarItem.Directory.Delete } shouldBe true
         actions.any { it is ExplorerActionBarItem.Directory.Share } shouldBe true
         actions.any { it is ExplorerActionBarItem.Common.Info } shouldBe true
-        actions.any { it is ExplorerActionBarItem.Directory.OpenInNewTabs } shouldBe true
+        actions.any { it is ExplorerActionBarItem.Directory.OpenSelection } shouldBe true
         actions.any { it is ExplorerActionBarItem.Directory.SelectAll } shouldBe true
     }
 

@@ -378,7 +378,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Riel de pestañas más tantos paneles como quepan en la pantalla. Fija un diseño desde el menú de Butler en el riel.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptable (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Único con riel de pestañas</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">Un panel de pestaña más el riel de pestañas de los diseños con varios paneles. Cambia de pestaña desde el riel en lugar de deslizando; el riel ocupa una franja de la pantalla.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Un panel de pestaña más el riel de pestañas de los diseños con varios paneles. El riel ocupa una franja de la pantalla.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Doble vertical</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Dos paneles uno al lado del otro (izquierda/derecha).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Doble horizontal</string>

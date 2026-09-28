@@ -228,14 +228,14 @@ class AppDetailsWorkspaceStoragePathsTest {
     }
 
     @Test
-    fun `a row that needs root or Shizuku says so`() = runTest {
+    fun `a row that needs root or ADB access says so`() = runTest {
         every { pathPermissionCheck.monitor(match<APath<*>> { it.path == INTERNAL }) } returns flowOf(
             PathRequirements(
                 combos = setOf(setOf(SetupModule.Type.ROOT), setOf(SetupModule.Type.SHIZUKU)),
             )
         )
 
-        pathsOf(createWorkspace()).first().requirement?.get(context) shouldBe "Requires root or Shizuku"
+        pathsOf(createWorkspace()).first().requirement?.get(context) shouldBe "Requires root or ADB access"
     }
 
     /** An existing SAF grant makes the path accessible as it is, so there is nothing to announce. */

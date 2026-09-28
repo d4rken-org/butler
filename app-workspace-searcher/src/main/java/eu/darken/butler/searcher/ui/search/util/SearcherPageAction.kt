@@ -8,8 +8,10 @@ import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearchTemplate
 import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.ui.search.dialogs.SearchSortOptionsResult
+import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
+import eu.darken.butler.workspace.core.OpenSelectionMode
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation
 
@@ -318,6 +320,14 @@ sealed interface SearcherPageAction {
          * Clear-history confirmed
          */
         data object ClearHistoryConfirmed : Dialogs
+
+        /**
+         * A mode was picked in the open-selection chooser shown as [state]
+         */
+        data class OpenSelectionModePicked(
+            val state: SearcherDialogState.OpenSelection,
+            val mode: OpenSelectionMode,
+        ) : Dialogs
     }
 
     /**

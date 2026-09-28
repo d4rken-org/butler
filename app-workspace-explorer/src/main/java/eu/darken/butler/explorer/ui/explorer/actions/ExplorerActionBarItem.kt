@@ -218,12 +218,12 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
             override val label = R.string.explorer_action_deselect_all.toCaString()
         }
 
-        data class OpenInNewTabs(
+        data class OpenSelection(
             override val isEnabled: Boolean = true,
             override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.AutoMirrored.TwoTone.OpenInNew
-            override val label = R.string.explorer_action_open_in_new_tabs.toCaString()
+            override val label = eu.darken.butler.common.R.string.general_open_action.toCaString()
         }
 
         /**

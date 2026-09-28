@@ -230,7 +230,7 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.Directory.Delete,
             is ExplorerActionBarItem.Directory.Share,
             is ExplorerActionBarItem.Directory.Rename,
-            is ExplorerActionBarItem.Directory.OpenInNewTabs,
+            is ExplorerActionBarItem.Directory.OpenSelection,
             is ExplorerActionBarItem.Common.Info,
             is ExplorerActionBarItem.Common.Rename,
             is ExplorerActionBarItem.Device.AddLocation,

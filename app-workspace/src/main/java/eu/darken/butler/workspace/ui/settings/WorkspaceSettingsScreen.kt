@@ -312,7 +312,10 @@ fun WorkspaceSettingsScreen(
                     description = surface.description(),
                     selected = state.layoutModePortrait.surface == surface,
                     onSelect = {
-                        onSetLayoutModePortrait(surface.toPanelMode())
+                        // Re-picking the stored surface must not unpin its geometry
+                        if (surface != state.layoutModePortrait.surface) {
+                            onSetLayoutModePortrait(surface.toPanelMode())
+                        }
                         showPortraitDialog = false
                     },
                 )
@@ -331,7 +334,9 @@ fun WorkspaceSettingsScreen(
                     description = surface.description(),
                     selected = state.layoutModeLandscape.surface == surface,
                     onSelect = {
-                        onSetLayoutModeLandscape(surface.toPanelMode())
+                        if (surface != state.layoutModeLandscape.surface) {
+                            onSetLayoutModeLandscape(surface.toPanelMode())
+                        }
                         showLandscapeDialog = false
                     },
                 )

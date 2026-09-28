@@ -180,7 +180,6 @@
     <string name="searcher_action_properties">属性</string>
     <string name="searcher_action_select_all">全选</string>
     <string name="searcher_action_deselect_all">取消全选</string>
-    <string name="searcher_action_open_in_new_tabs">在新标签页中打开</string>
     <string name="searcher_action_sort">排序</string>
     <string name="searcher_action_view">布局</string>
 

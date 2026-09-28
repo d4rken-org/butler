@@ -29,9 +29,9 @@ import eu.darken.butler.workspace.ui.tour.WorkspaceTourTargets
  *
  * Ending the tour when the window goes back to a single pane is not something this tour can do on
  * its own. Its rail and divider anchors do unregister, but [WorkspaceTourTargets.BUTLER_BUTTON] does
- * not: the Templates page registers the same id for the button it draws when there is no rail, and
- * that button's menu has no Layout row at all - so the layout step would render and describe
- * something that is not there. The layout-change effect in `WorkspaceScreen` is what prevents it.
+ * not: the Templates page registers the same id for the button it draws when there is no rail, so
+ * the layout step would render over a single pane and describe rearranging panes that are not
+ * there. The layout-change effect in `WorkspaceScreen` is what prevents it.
  * A tour ended that way keeps the steps it already showed in the controller's rendered set, so it
  * is not persisted as completed but stays suppressed for the rest of the process and comes back
  * after an app restart.

@@ -14,10 +14,10 @@
     <string name="explorer_settings_trash_enabled_title">Enable trash</string>
     <string name="explorer_settings_trash_enabled_desc">Move deleted files to trash instead of permanently deleting them</string>
     <string name="explorer_settings_trash_auto_delete_title">Auto-delete after</string>
-    <string name="explorer_settings_trash_auto_delete_desc">Automatically delete items older than %d days</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Automatically delete items after this much time in trash</string>
     <string name="explorer_settings_trash_auto_delete_value">%d days</string>
     <string name="explorer_settings_trash_max_size_title">Maximum size per storage</string>
-    <string name="explorer_settings_trash_max_size_desc">%d MB maximum per storage location</string>
+    <string name="explorer_settings_trash_max_size_summary">How much space the trash may use on each storage location</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Auto-delete period</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maximum size per storage</string>
@@ -628,11 +628,11 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android restricts access to this folder. Use the folder picker to grant access.</string>
-    <string name="explorer_permission_multiple_options_description">You can grant access using Android\'s folder picker or set up Root/Shizuku for faster access to all restricted folders.</string>
+    <string name="explorer_permission_multiple_options_description">You can grant access using Android\'s folder picker or set up root or ADB access for faster access to all restricted folders.</string>
     <string name="explorer_permission_multiple_options_root_description">You can grant access using Android\'s folder picker, or set up Root for access to all restricted folders.</string>
-    <string name="explorer_permission_multiple_options_shizuku_description">You can grant access using Android\'s folder picker, or set up Shizuku for faster access to restricted folders.</string>
-    <string name="explorer_permission_setup_both_description">This folder requires elevated access. Install and configure either Root or Shizuku in setup.</string>
-    <string name="explorer_permission_setup_shizuku_description">This folder requires elevated access via Shizuku. Install Shizuku Manager and configure in setup.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">You can grant access using Android\'s folder picker, or set up ADB access for faster access to restricted folders.</string>
+    <string name="explorer_permission_setup_both_description">This folder requires elevated access. Set up root or ADB access in setup.</string>
+    <string name="explorer_permission_setup_shizuku_description">This folder requires elevated access via ADB. Configure ADB access in setup.</string>
     <string name="explorer_permission_setup_root_description">This folder requires Root access. Configure Root in setup if your device is rooted.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -640,9 +640,9 @@
     <string name="explorer_permission_option_picker_action">Open SAF picker</string>
 
     <string name="explorer_permission_option_setup_title">Full access</string>
-    <string name="explorer_permission_option_setup_description">Configure Root or Shizuku for faster access to all restricted folders.</string>
+    <string name="explorer_permission_option_setup_description">Configure root or ADB access for faster access to all restricted folders.</string>
     <string name="explorer_permission_option_setup_root_description">Configure Root to access this folder and other restricted folders.</string>
-    <string name="explorer_permission_option_setup_shizuku_description">Configure Shizuku to access this folder.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Configure ADB access to open this folder.</string>
     <string name="explorer_permission_option_setup_action">Configure</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -651,7 +651,6 @@
     <string name="explorer_permission_option_storage_action">Grant permission</string>
 
     <!-- Open in new tabs action -->
-    <string name="explorer_action_open_in_new_tabs">Open in new tabs</string>
     <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
     <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
 

@@ -64,7 +64,6 @@ fun WorkspaceButton(
     containerColor: Color? = null,
     buttonSize: Dp = sizeDefault,
     currentWorkspaceId: Workspace.Id? = null,
-    showLayoutEntry: Boolean = false,
     mascotVariant: ButlerMascotMode = ButlerMascotMode.Animated.RandomCycling(),
     isPro: Boolean = rememberIsPro(),
 ) {
@@ -122,7 +121,7 @@ fun WorkspaceButton(
             state = state,
             currentWorkspaceId = currentWorkspaceId,
             provider = provider,
-            layoutEntryMode = if (showLayoutEntry) currentPanelMode ?: WorkspacePanelMode.AUTO else null,
+            layoutEntryMode = currentPanelMode ?: WorkspacePanelMode.AUTO,
             isLandscape = isLandscape,
             onCloseAllRequested = { showCloseAllDialog = true },
             onOpenManager = openManager,

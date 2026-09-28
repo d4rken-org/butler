@@ -122,7 +122,7 @@ class ClassicPaneFocusFallbackTest : ComposeTest() {
                 // nothing in the workspace tree consumed the press.
                 BackHandler(enabled = true) { onReachedAppRoot() }
 
-                ClassicWorkspaceContainer(
+                WorkspacePagerContainer(
                     state = state,
                     onWorkspaceScreenAction = onAction,
                     managerDialogStates = emptyMap(),

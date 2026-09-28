@@ -31,17 +31,17 @@ internal data class IpcHostAttempt<IPC : Any>(
  * release, session close) is structured, so the producer coroutine finishing means the host is gone,
  * and [IpcHostAttempt.disconnectConfirmed] is null.
  *
- * Shizuku is not like that. Its `unbindUserService()` is a synchronous binder transaction that can
- * wedge, so AdbHostLauncher runs it detached under a timeout and gives up waiting when that expires:
- * the producer can finish with the unbind still in flight. Since Shizuku keys a `remove=true` unbind
- * on the service args rather than on our callback, rebinding then risks the late unbind removing the
+ * The ADB path is not like that. AdbHostLauncher stops the user service with a server call that can
+ * wedge, so it waits for the stop and for the service's end under timeouts and gives up when those
+ * expire: the producer can finish with the stop still in flight. Since the server keys that stop on
+ * the service args rather than on our binding, rebinding then risks the late stop taking out the
  * REPLACEMENT — recovery killing what it just recovered. So this reconnects only when the launcher
  * confirms the teardown finished; otherwise the mismatch propagates and the caller sees the host as
  * unavailable, which is the better of the two outcomes.
  *
  * Exactly one retry, no loop: the case worth recovering from is a stale host that goes away when
- * torn down. If the second attempt lands on the same host again (Shizuku handing back a still-running
- * user service), the mismatch is real and belongs to the caller.
+ * torn down. If the second attempt lands on the same host again (the server handing back a
+ * still-running user service), the mismatch is real and belongs to the caller.
  *
  * @param expected our own identity, re-read per attempt
  * @param checkBase the host round-trip whose first line carries the echo
@@ -84,7 +84,7 @@ internal fun <IPC : Any, CONNECTION : Any> Flow<IpcHostAttempt<IPC>>.gateOnHostI
         } else {
             log(tag, ERROR) {
                 "Stale host teardown was not confirmed, not reconnecting: a replacement bound now " +
-                    "could be removed by the unbind that is still in flight."
+                    "could be taken out by the stop that is still in flight."
             }
         }
         confirmed

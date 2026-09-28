@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -46,10 +47,13 @@ import eu.darken.butler.workspace.ui.workspaces.WorkspaceScreenAction
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceSwitchIndicator
 import eu.darken.butler.workspace.ui.workspaces.WorkspacesViewModel
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
-private val TAG = logTag("Workspace", "Classic", "Container")
+private val TAG = logTag("Workspace", "Pager", "Container")
 
 // Stable key for the on-demand-creation placeholder page (last index when enabled).
 // Distinct from any Workspace.Id so the pager preserves identity across list churn.
@@ -71,7 +75,7 @@ internal fun WorkspaceStacks.creationAllowedFor(rootId: Workspace.Id?): Boolean 
 }
 
 @Composable
-internal fun ClassicWorkspaceContainer(
+internal fun WorkspacePagerContainer(
     design: WorkspaceDesign = WorkspaceDesign(),
     state: WorkspacesViewModel.State,
     managerDialogs: List<ManagerDialog> = emptyList(),
@@ -85,6 +89,16 @@ internal fun ClassicWorkspaceContainer(
     isFirstTabTourTarget: Boolean = false,
     /** Scrolls the create card into view before the tour's step is published. */
     firstTabTourRequester: BringIntoViewRequester? = null,
+    /** Shown while there are no tabs; null for the classic empty state. */
+    emptyContent: (@Composable () -> Unit)? = null,
+    /**
+     * Tabs to bring on screen, as events. Parked on the trailing placeholder, focus stays on the last
+     * tab, so selecting that same tab again changes no state; only an event moves the pager back.
+     * Not replayed, so a pager composed later does not act on a request meant for an earlier one.
+     */
+    revealRequests: Flow<Workspace.Id> = emptyFlow(),
+    /** The centered tab card shown on a switch; a host whose own chrome marks the current tab turns it off. */
+    showSwitchIndicator: Boolean = true,
     onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val workspaceActionHandler = LocalWorkspaceButtonProvider.current
@@ -103,7 +117,12 @@ internal fun ClassicWorkspaceContainer(
     val currentRootIdHolder = remember { mutableStateOf<Workspace.Id?>(null) }
     val placeholderAllowed = state.onDemandWorkspaceCreation && state.swipeGesturesEnabled
 
+    // A pager composed afresh (rotation between rail placements, a window crossing the one-pane
+    // threshold) starts on the tab it will show, so no other tab's page is composed first.
+    val initialPage = (state.focusedRootId?.takeIf { it in tabIds } ?: state.visibleSelected[0]?.id)
+        ?.let(tabIds::indexOf)?.takeIf { it >= 0 } ?: 0
     val pagerState = rememberPagerState(
+        initialPage = initialPage,
         pageCount = {
             val hasPlaceholder = placeholderAllowed && stacks.creationAllowedFor(currentRootIdHolder.value)
             state.tabWorkspaces.size + if (hasPlaceholder) 1 else 0
@@ -177,6 +196,11 @@ internal fun ClassicWorkspaceContainer(
     )
 
     val restState = rememberPagerRestState(pagerState)
+
+    val currentTabIds by rememberUpdatedState(tabIds)
+    LaunchedEffect(revealRequests, pagerState) {
+        revealRequests.collectLatest { id -> coordinator.scrollToWorkspace(pagerState, currentTabIds, id) }
+    }
 
     val hasBlockingDialog = managerDialogs.any { it.isBlocking }
 
@@ -263,7 +287,7 @@ internal fun ClassicWorkspaceContainer(
                 // Back appear dead on ROMs that hand the app the edge touch first.
                 modifier = Modifier
                     .fillMaxSize()
-                    .ignoreEdgeHorizontalDrags(),
+                    .ignoreEdgeHorizontalDrags(design.paneEdges),
                 flingBehavior = flingBehavior,
                 userScrollEnabled = state.swipeGesturesEnabled,
                 key = { page ->
@@ -350,6 +374,8 @@ internal fun ClassicWorkspaceContainer(
                     )
                 }
             }
+        } else if (emptyContent != null) {
+            emptyContent()
         } else {
             EmptyClassicWorkspaceContent(
                 modifier = Modifier
@@ -369,7 +395,7 @@ internal fun ClassicWorkspaceContainer(
         val currentWorkspace = effectiveRootId?.let { rootId ->
             state.tabWorkspaces.firstOrNull { it.id == rootId }
         }
-        if (currentWorkspace != null && state.tabWorkspaces.size > 1) {
+        if (showSwitchIndicator && currentWorkspace != null && state.tabWorkspaces.size > 1) {
             val position = state.tabWorkspaces.indexOfFirst { it.id == currentWorkspace.id } + 1
             if (position > 0) {
                 WorkspaceSwitchIndicator(

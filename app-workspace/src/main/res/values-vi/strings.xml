@@ -355,7 +355,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Thanh thẻ cùng số khung tối đa mà màn hình có thể chứa. Ghim một bố cục từ menu Butler trên thanh.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Thích ứng (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Đơn kèm thanh thẻ</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">Một khung thẻ cùng thanh thẻ của các bố cục nhiều khung. Chuyển thẻ từ thanh thay vì vuốt; thanh chiếm một dải trên màn hình.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Một khung thẻ cùng thanh thẻ của các bố cục nhiều khung. Thanh chiếm một dải trên màn hình.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Đôi dọc</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Hai khung cạnh nhau (trái/phải).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Đôi ngang</string>

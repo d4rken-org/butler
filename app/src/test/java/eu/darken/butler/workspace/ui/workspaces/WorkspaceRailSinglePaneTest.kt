@@ -13,6 +13,7 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.R
@@ -185,31 +186,75 @@ class WorkspaceRailSinglePaneTest : ComposeTest() {
             .assertDoesNotExist()
     }
 
-    /**
-     * With one pane there is nothing to swap the entry against, so the menu's single assign item
-     * selects the tab into the pane instead of rearranging assignments around it.
-     */
-    @Test
-    @Config(qualifiers = "w720dp-h1280dp-port")
-    fun `Show selects the entry into the only pane`() {
-        val actions = mutableListOf<WorkspaceScreenAction>()
-        setScreen(onScreenAction = { actions.add(it) })
-        // The reveal scroll holds the list's scroll mutex until its first frame; a touch on a
-        // scrolling list starts a drag instead of a click.
+    private fun advanceFrame() {
         composeTestRule.mainClock.advanceTimeByFrame()
         composeTestRule.waitForIdle()
+    }
+
+    private fun setScreenForGestures(
+        mode: WorkspacePanelMode,
+        onScreenAction: (WorkspaceScreenAction) -> Unit,
+    ) {
+        setScreen(mode = mode, onScreenAction = onScreenAction)
+        // The reveal scroll holds the list's scroll mutex until its first frame; a touch on a
+        // scrolling list starts a drag instead of a click.
+        advanceFrame()
+    }
+
+    private fun assertTapShowsTheEntry(mode: WorkspacePanelMode) {
+        val actions = mutableListOf<WorkspaceScreenAction>()
+        setScreenForGestures(mode = mode, onScreenAction = { actions.add(it) })
 
         composeTestRule.onAllNodesWithTag(WorkspaceNavigationRailDefaults.ITEM_TEST_TAG)[1]
             .performClick()
-        // The clock is parked, so a state change needs a frame before it has recomposed.
-        composeTestRule.mainClock.advanceTimeByFrame()
-        composeTestRule.waitForIdle()
+        advanceFrame()
 
-        composeTestRule
-            .onNodeWithText(context.getString(R.string.workspace_pane_show_action))
-            .performClick()
-        composeTestRule.mainClock.advanceTimeByFrame()
-        composeTestRule.waitForIdle()
+        actions shouldContain WorkspaceScreenAction.Select(secondTab.id)
+        actions.none { it is WorkspaceScreenAction.SelectMultiple } shouldBe true
+        composeTestRule.onNodeWithText(context.getString(R.string.workspace_pane_show_action))
+            .assertDoesNotExist()
+    }
+
+    @Test
+    @Config(qualifiers = "w720dp-h1280dp-port")
+    fun `a tap shows the entry in the only pane`() {
+        assertTapShowsTheEntry(WorkspacePanelMode.SINGLE_RAIL)
+    }
+
+    @Test
+    @Config(qualifiers = "w360dp-h640dp-port")
+    fun `a tap shows the entry in the only pane of a compact adaptive window`() {
+        assertTapShowsTheEntry(WorkspacePanelMode.ADAPTIVE)
+    }
+
+    /**
+     * The menu keeps its Show item, which does what a tap does: with one pane there is nothing to
+     * swap the entry against, so it selects the tab instead of rearranging assignments around it.
+     */
+    @Test
+    @Config(qualifiers = "w720dp-h1280dp-port")
+    fun `a long press opens the menu without showing the entry`() {
+        val actions = mutableListOf<WorkspaceScreenAction>()
+        setScreenForGestures(mode = WorkspacePanelMode.SINGLE_RAIL, onScreenAction = { actions.add(it) })
+
+        val entry = composeTestRule.onAllNodesWithTag(WorkspaceNavigationRailDefaults.ITEM_TEST_TAG)[1]
+        var longPressMs = 0L
+        entry.performTouchInput {
+            longPressMs = viewConfiguration.longPressTimeoutMillis
+            down(center)
+        }
+        // The long press is timed on the composition clock, which is parked.
+        composeTestRule.mainClock.advanceTimeBy(longPressMs + 100)
+        advanceFrame()
+        // Before the finger lifts: a menu that only appears on release would be a click.
+        val show = composeTestRule.onNodeWithText(context.getString(R.string.workspace_pane_show_action))
+        show.assertExists()
+        entry.performTouchInput { up() }
+        advanceFrame()
+
+        actions.none { it is WorkspaceScreenAction.Select } shouldBe true
+        show.performClick()
+        advanceFrame()
 
         actions shouldContain WorkspaceScreenAction.Select(secondTab.id)
         actions.none { it is WorkspaceScreenAction.SelectMultiple } shouldBe true

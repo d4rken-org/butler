@@ -9,6 +9,7 @@ import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerSettings
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.contracts.saver.SaverArguments
@@ -44,6 +45,7 @@ import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 import testhelpers.error.recordingIncidentStore
+import testhelpers.mockDataStoreValue
 
 /**
  * "Save a copy" and the tab rebind that follows it: one Saver at a time, and only the one this
@@ -96,6 +98,7 @@ class ViewerSaveCopyTest : BaseTest() {
             every { source } returns streamed
             every { storedPath } returns null
             every { listingSourceId } returns null
+            every { stepPaths } returns null
             every { sharedCaption } returns "look at this"
             every { info } returns MutableStateFlow(
                 Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = "backup.zip".toCaString()),
@@ -132,6 +135,9 @@ class ViewerSaveCopyTest : BaseTest() {
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),
             errorIncidentStore = incidentStore,
+            viewerSettings = mockk<ViewerSettings>().apply {
+                every { showNextAfterDelete } returns mockDataStoreValue(true)
+            },
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns mockk<WorkspacePageChrome>().apply {
                     every { shareIntentEvent } returns SingleEventFlow()

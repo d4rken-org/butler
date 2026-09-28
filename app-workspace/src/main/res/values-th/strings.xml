@@ -355,7 +355,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">รางแท็บพร้อมพาเนลมากเท่าที่หน้าจอรองรับ ปักหมุดเค้าโครงได้จากเมนู Butler ในราง</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">อแดปทีฟ (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">เดี่ยวพร้อมรางแท็บ</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">พาเนลแท็บเดียวพร้อมรางแท็บของเค้าโครงหลายพาเนล สลับแท็บจากรางแทนการปัด รางจะใช้พื้นที่แถบหนึ่งของหน้าจอ</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">พาเนลแท็บเดียวพร้อมรางแท็บของเค้าโครงหลายพาเนล รางจะใช้พื้นที่แถบหนึ่งของหน้าจอ</string>
     <string name="workspace_settings_layout_mode_dual_vertical">คู่แนวตั้ง</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">สองพาเนลเรียงข้างกัน (ซ้าย/ขวา)</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">คู่แนวนอน</string>

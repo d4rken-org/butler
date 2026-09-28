@@ -45,9 +45,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Automatycznie dodawaj często odwiedzane ścieżki jako skróty</string>
     <string name="shortcuts_settings_last_accessed_title">Ostatnio używane</string>
     <string name="shortcuts_settings_max_count_title">Maksymalna liczba skrótów</string>
-    <string name="shortcuts_settings_max_count_subtitle">Obecnie widocznych skrótów: %d</string>
     <string name="shortcuts_settings_min_access_title">Minimalna liczba dostępów</string>
-    <string name="shortcuts_settings_min_access_subtitle">Wymagaj %d dostępów przed wyświetleniem</string>
     <string name="shortcuts_settings_current_title">Bieżące skróty</string>
     <string name="shortcuts_settings_current_subtitle">Śledzonych skrótów: %d</string>
     <string name="shortcuts_settings_clear_title">Wyczyść historię skrótów</string>

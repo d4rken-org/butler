@@ -44,9 +44,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Автоматично додавати часто відвідувані шляхи як ярлики</string>
     <string name="shortcuts_settings_last_accessed_title">Останній доступ</string>
     <string name="shortcuts_settings_max_count_title">Максимум ярликів</string>
-    <string name="shortcuts_settings_max_count_subtitle">Зараз показано %d ярликів</string>
     <string name="shortcuts_settings_min_access_title">Мінімум звернень</string>
-    <string name="shortcuts_settings_min_access_subtitle">Потрібно %d звернень перед показом</string>
     <string name="shortcuts_settings_current_title">Поточні ярлики</string>
     <string name="shortcuts_settings_current_subtitle">Відстежується %d ярликів</string>
     <string name="shortcuts_settings_clear_title">Очистити історію ярликів</string>

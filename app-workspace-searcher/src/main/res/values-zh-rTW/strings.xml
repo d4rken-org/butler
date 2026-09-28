@@ -181,7 +181,6 @@
     <string name="searcher_action_properties">內容</string>
     <string name="searcher_action_select_all">全選</string>
     <string name="searcher_action_deselect_all">取消全選</string>
-    <string name="searcher_action_open_in_new_tabs">在新分頁中開啟</string>
     <string name="searcher_action_sort">排序</string>
     <string name="searcher_action_view">配置</string>
 

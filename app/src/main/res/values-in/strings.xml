@@ -45,9 +45,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Otomatis tambahkan lokasi yang sering dikunjungi sebagai pintasan</string>
     <string name="shortcuts_settings_last_accessed_title">Terakhir diakses</string>
     <string name="shortcuts_settings_max_count_title">Jumlah maksimum pintasan</string>
-    <string name="shortcuts_settings_max_count_subtitle">Saat ini menampilkan %d pintasan</string>
     <string name="shortcuts_settings_min_access_title">Akses minimum</string>
-    <string name="shortcuts_settings_min_access_subtitle">Memerlukan %d akses sebelum ditampilkan</string>
     <string name="shortcuts_settings_current_title">Pintasan saat ini</string>
     <string name="shortcuts_settings_current_subtitle">%d pintasan terlacak</string>
     <string name="shortcuts_settings_clear_title">Hapus riwayat pintasan</string>

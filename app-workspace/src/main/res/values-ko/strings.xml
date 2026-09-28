@@ -355,7 +355,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">탭 레일과 화면에 맞는 만큼의 패널을 표시합니다. 레일의 Butler 메뉴에서 레이아웃을 고정할 수 있습니다.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">적응형 (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">탭 레일이 있는 단일 패널</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">탭 패널 하나와 다중 패널 레이아웃의 탭 레일을 함께 표시합니다. 스와이프 대신 레일에서 탭을 전환하며, 레일이 화면의 일부를 차지합니다.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">탭 패널 하나와 다중 패널 레이아웃의 탭 레일을 함께 표시합니다. 레일이 화면의 일부를 차지합니다.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">세로 2분할</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">패널 2개를 좌우로 나란히 표시합니다.</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">가로 2분할</string>

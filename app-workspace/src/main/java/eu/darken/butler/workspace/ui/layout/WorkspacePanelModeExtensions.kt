@@ -26,7 +26,7 @@ fun WorkspacePanelMode.label(): String {
 fun WorkspacePanelMode.description(): String {
     return when (this) {
         WorkspacePanelMode.AUTO -> stringResource(R.string.workspace_settings_layout_mode_auto_desc)
-        WorkspacePanelMode.ADAPTIVE -> stringResource(R.string.workspace_settings_layout_mode_adaptive_desc)
+        WorkspacePanelMode.ADAPTIVE -> stringResource(R.string.workspace_layout_dialog_mode_adaptive_desc)
         WorkspacePanelMode.SINGLE -> stringResource(R.string.workspace_settings_layout_mode_classic_desc)
         WorkspacePanelMode.SINGLE_RAIL -> stringResource(R.string.workspace_settings_layout_mode_single_rail_desc)
         WorkspacePanelMode.DUAL_VERTICAL -> stringResource(R.string.workspace_settings_layout_mode_dual_vertical_desc)

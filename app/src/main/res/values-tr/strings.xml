@@ -45,9 +45,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Sık ziyaret edilen yolları otomatik olarak kısayol olarak ekle</string>
     <string name="shortcuts_settings_last_accessed_title">Son erişilen</string>
     <string name="shortcuts_settings_max_count_title">Maksimum kısayol</string>
-    <string name="shortcuts_settings_max_count_subtitle">Şu anda %d kısayol gösteriliyor</string>
     <string name="shortcuts_settings_min_access_title">Minimum erişim sayısı</string>
-    <string name="shortcuts_settings_min_access_subtitle">Gösterilmeden önce %d erişim gerektirir</string>
     <string name="shortcuts_settings_current_title">Mevcut kısayollar</string>
     <string name="shortcuts_settings_current_subtitle">%d kısayol izleniyor</string>
     <string name="shortcuts_settings_clear_title">Kısayol geçmişini temizle</string>

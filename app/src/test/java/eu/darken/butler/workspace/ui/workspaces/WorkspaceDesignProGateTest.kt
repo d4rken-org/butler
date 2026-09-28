@@ -66,8 +66,8 @@ class WorkspaceDesignProGateTest : ComposeTest() {
     }
 
     /**
-     * Without this the downgrade would also take the rail, and the rail's Butler button is the only
-     * route to the Layout dialog - the free user could never see the badged rows or reach the offer.
+     * A pinned geometry is a choice of the adaptive surface, so the downgrade takes panes, not the
+     * rail: without this the free user would be switched to classic.
      */
     @Test
     fun `the downgraded window keeps its navigation rail`() {

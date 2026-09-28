@@ -8,7 +8,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assert
@@ -19,6 +21,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -72,6 +75,7 @@ class WorkspaceRailItemTest : ComposeTest() {
     private val paneIndexState = mutableStateOf<Int?>(null)
     private val layoutState = mutableStateOf(WorkspaceDesign.Layout.DUAL_VERTICAL)
     private val placementState = mutableStateOf(WorkspaceDesign.RailPlacement.START)
+    private val longClickableState = mutableStateOf(false)
     private var isRendered = false
 
     /**
@@ -87,10 +91,12 @@ class WorkspaceRailItemTest : ComposeTest() {
         paneIndex: Int?,
         layout: WorkspaceDesign.Layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
         placement: WorkspaceDesign.RailPlacement = WorkspaceDesign.RailPlacement.START,
+        longClickable: Boolean = false,
     ) {
         paneIndexState.value = paneIndex
         layoutState.value = layout
         placementState.value = placement
+        longClickableState.value = longClickable
 
         if (isRendered) {
             composeTestRule.waitForIdle()
@@ -107,6 +113,11 @@ class WorkspaceRailItemTest : ComposeTest() {
                         isFocused = false,
                         layout = layoutState.value,
                         placement = placementState.value,
+                        onLongClick = if (longClickableState.value) {
+                            {}
+                        } else {
+                            null
+                        },
                         onClick = {},
                     )
                     Text(
@@ -160,11 +171,11 @@ class WorkspaceRailItemTest : ComposeTest() {
     }
 
     /**
-     * The glyph is a sibling of the clickable `Surface`, not a child, so the pane it depicts has to
-     * be announced by the Surface for the entry to stay one node. Moving the selection state or the
-     * pane description onto the wrapping `Box` instead splits the entry in two for TalkBack: a
-     * merging node cannot absorb `Surface(onClick)`, which merges in its own right - so the click
-     * action would no longer share a node with the tag.
+     * The glyph is a sibling of the `Surface`, not a child, so the pane it depicts has to be
+     * announced by the card's clickable content for the entry to stay one node. Moving the selection
+     * state or the pane description onto the wrapping `Box` instead splits the entry in two for
+     * TalkBack: a merging node cannot absorb the clickable content, which merges in its own right -
+     * so the click action would no longer share a node with the tag.
      */
     @Test
     fun `the entry is a single node`() {
@@ -263,6 +274,48 @@ class WorkspaceRailItemTest : ComposeTest() {
         val unconstrained = heightOf(composeTestRule.onNodeWithTag(LABEL_REFERENCE_TAG, useUnmergedTree = true))
 
         label shouldBe unconstrained
+    }
+
+    @Test
+    fun `a long-clickable entry is still one selected tab`() {
+        renderItem(paneIndex = 0, layout = WorkspaceDesign.Layout.SINGLE, longClickable = true)
+
+        val item = composeTestRule.onNodeWithTag(ITEM_TAG)
+        item.assertHasClickAction()
+        item.assertIsSelected()
+        item.assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab))
+        item.assert(
+            SemanticsMatcher("long click labelled as the menu") {
+                it.config.getOrNull(SemanticsActions.OnLongClick)?.label ==
+                    context.getString(R.string.workspace_pane_menu_action)
+            },
+        )
+        item.assert(hasText("Explorer"))
+    }
+
+    /** A multi-pane card leaves long press to the icon's reorder handle. */
+    @Test
+    fun `an entry without a long click offers none`() {
+        renderItem(paneIndex = 0)
+
+        composeTestRule.onNodeWithTag(ITEM_TAG)
+            .assert(SemanticsMatcher.keyNotDefined(SemanticsActions.OnLongClick))
+    }
+
+    /**
+     * Crossing between one pane and several toggles the long click. The card has to stay the same
+     * node through that, or keyboard and TalkBack focus on it is lost on every fold and resize.
+     */
+    @Test
+    fun `toggling the long click keeps the card's node`() {
+        renderItem(paneIndex = 0)
+        val before = composeTestRule.onNodeWithTag(ITEM_TAG).fetchSemanticsNode().id
+
+        renderItem(paneIndex = 0, layout = WorkspaceDesign.Layout.SINGLE, longClickable = true)
+        composeTestRule.onNodeWithTag(ITEM_TAG).fetchSemanticsNode().id shouldBe before
+
+        renderItem(paneIndex = 0)
+        composeTestRule.onNodeWithTag(ITEM_TAG).fetchSemanticsNode().id shouldBe before
     }
 
     @Test

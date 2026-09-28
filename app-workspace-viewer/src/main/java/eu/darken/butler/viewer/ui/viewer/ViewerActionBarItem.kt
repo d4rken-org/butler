@@ -24,9 +24,8 @@ import eu.darken.butler.common.R as CommonR
 /**
  * Workspace-level actions for the viewer, shown in the bottom action bar.
  *
- * [Install], [BrowseArchive], [OpenWith] and [Share] stay visible on the narrowest pane; the rest are
- * SECONDARY and fall into the overflow menu as space runs out, [Delete] first because it is the one
- * a mis-tap costs most.
+ * [Install], [BrowseArchive], [OpenWith] and [Share] stay visible on the narrowest pane, and [Delete]
+ * follows them while space allows. [Copy], [Cut] and [OpenLocation] always live in the overflow menu.
  */
 sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
     override val icon: ImageVector
@@ -110,6 +109,7 @@ sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
         override val icon = Icons.TwoTone.ContentCopy
         override val label = CommonR.string.general_copy_action.toCaString()
         override val group = WorkspaceActionBarItem.Group.SECONDARY
+        override val forceOverflow = true
     }
 
     /**
@@ -121,6 +121,7 @@ sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
         override val icon = Icons.TwoTone.ContentCut
         override val label = CommonR.string.general_cut_action.toCaString()
         override val group = WorkspaceActionBarItem.Group.SECONDARY
+        override val forceOverflow = true
     }
 
     /**
@@ -133,6 +134,7 @@ sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
         override val icon = Icons.AutoMirrored.TwoTone.OpenInNew
         override val label = R.string.viewer_open_location_action.toCaString()
         override val group = WorkspaceActionBarItem.Group.SECONDARY
+        override val forceOverflow = true
     }
 
     /**

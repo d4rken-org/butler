@@ -424,7 +424,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Рейка вкладок плюс стільки панелей, скільки вміщує екран. Закріпіть розташування в меню Butler на рейці.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Адаптивний (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Одна панель з рейкою вкладок</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">Одна панель вкладок плюс рейка вкладок із багатопанельних розташувань. Перемикайте вкладки на рейці замість проведення пальцем; рейка займає смугу екрана.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Одна панель вкладок плюс рейка вкладок із багатопанельних розташувань. Рейка займає смугу екрана.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Подвійний вертикальний</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Дві панелі поруч (ліворуч/праворуч).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Подвійний горизонтальний</string>

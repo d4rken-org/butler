@@ -148,10 +148,7 @@ fun ExplorerSettingsScreen(
                     SettingsPreferenceItem(
                         icon = Icons.TwoTone.DeleteSweep,
                         title = stringResource(R.string.explorer_settings_trash_auto_delete_title),
-                        subtitle = stringResource(
-                            R.string.explorer_settings_trash_auto_delete_desc,
-                            state.trashAutoDeleteDays
-                        ),
+                        subtitle = stringResource(R.string.explorer_settings_trash_auto_delete_summary),
                         value = stringResource(
                             R.string.explorer_settings_trash_auto_delete_value,
                             state.trashAutoDeleteDays
@@ -165,10 +162,7 @@ fun ExplorerSettingsScreen(
                     SettingsPreferenceItem(
                         icon = Icons.TwoTone.Storage,
                         title = stringResource(R.string.explorer_settings_trash_max_size_title),
-                        subtitle = stringResource(
-                            R.string.explorer_settings_trash_max_size_desc,
-                            state.trashMaxSizeMB
-                        ),
+                        subtitle = stringResource(R.string.explorer_settings_trash_max_size_summary),
                         value = stringResource(
                             R.string.explorer_settings_trash_max_size_value,
                             state.trashMaxSizeMB

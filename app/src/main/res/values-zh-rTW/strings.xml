@@ -44,9 +44,7 @@
     <string name="shortcuts_settings_auto_remember_subtitle">自動將常造訪的路徑加入捷徑</string>
     <string name="shortcuts_settings_last_accessed_title">最近存取</string>
     <string name="shortcuts_settings_max_count_title">捷徑數量上限</string>
-    <string name="shortcuts_settings_max_count_subtitle">目前顯示 %d 個捷徑</string>
     <string name="shortcuts_settings_min_access_title">最低存取次數</string>
-    <string name="shortcuts_settings_min_access_subtitle">需存取 %d 次才會顯示</string>
     <string name="shortcuts_settings_current_title">目前的捷徑</string>
     <string name="shortcuts_settings_current_subtitle">已追蹤 %d 個捷徑</string>
     <string name="shortcuts_settings_clear_title">清除捷徑紀錄</string>

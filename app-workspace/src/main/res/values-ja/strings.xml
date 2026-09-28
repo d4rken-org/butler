@@ -355,7 +355,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">タブレールに加えて、画面に収まるだけのペインを表示します。レール内のButlerメニューからレイアウトを固定できます。</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">アダプティブ（%1$s）</string>
     <string name="workspace_settings_layout_mode_single_rail">シングル＋タブレール</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">1つのタブペインと、マルチペインレイアウトのタブレールを組み合わせます。スワイプの代わりにレールからタブを切り替えます。レールは画面の一部を占めます。</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">1つのタブペインと、マルチペインレイアウトのタブレールを組み合わせます。レールは画面の一部を占めます。</string>
     <string name="workspace_settings_layout_mode_dual_vertical">デュアル縦</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">2つのペインを左右に並べて表示します。</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">デュアル横</string>

@@ -3,16 +3,20 @@ package eu.darken.butler.viewer.ui.viewer
 import android.content.Context
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -27,12 +31,14 @@ import eu.darken.butler.viewer.core.ViewerExternalChange
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerFileInfo
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
 import kotlin.uuid.Uuid
 import eu.darken.butler.common.R as CommonR
+import eu.darken.butler.workspace.R as WorkspaceR
 
 class ViewerWorkspacePageTest : ComposeTest() {
 
@@ -558,5 +564,48 @@ class ViewerWorkspacePageTest : ComposeTest() {
             .performClick()
 
         closeCount shouldBe 1
+    }
+
+    /** 328dp is a 360dp phone minus the floating bar's side padding. */
+    @Test
+    fun `a phone-width bar shows delete and keeps the clipboard actions in the overflow menu`() {
+        val path = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg")
+        val actions = viewerActions(
+            source = ViewerSource.Stored(path),
+            trashEnabled = true,
+            neighbours = ViewerNeighbours(current = path, previous = null, next = null),
+        )
+        composeTestRule.setContent {
+            PreviewWrapper {
+                WorkspaceActionBar(
+                    modifier = Modifier.width(328.dp),
+                    actions = actions,
+                    onActionClick = {},
+                )
+            }
+        }
+
+        val inBar = listOf(
+            R.string.viewer_previous_file_action,
+            R.string.viewer_next_file_action,
+            R.string.viewer_open_with_action,
+            CommonR.string.general_share_action,
+            CommonR.string.general_delete_action,
+        )
+        val inMenu = listOf(
+            CommonR.string.general_copy_action,
+            CommonR.string.general_cut_action,
+            R.string.viewer_open_location_action,
+        )
+        inBar.forEach { composeTestRule.onNodeWithContentDescription(context.getString(it)).assertIsDisplayed() }
+        inMenu.forEach {
+            composeTestRule.onAllNodesWithContentDescription(context.getString(it)).fetchSemanticsNodes().size shouldBe 0
+        }
+
+        composeTestRule.onNodeWithContentDescription(context.getString(WorkspaceR.string.workspace_action_more))
+            .performClick()
+        composeTestRule.waitForIdle()
+
+        inMenu.forEach { composeTestRule.onNodeWithText(context.getString(it)).assertIsDisplayed() }
     }
 }

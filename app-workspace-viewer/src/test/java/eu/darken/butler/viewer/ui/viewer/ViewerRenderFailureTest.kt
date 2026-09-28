@@ -11,6 +11,7 @@ import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.viewer.core.GatewayZoomableImageSource
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerSettings
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerUndecodableImageException
 import eu.darken.butler.viewer.core.ViewerWorkspace
@@ -50,6 +51,7 @@ import testhelpers.error.recordingIncidentStore
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import testhelpers.mockDataStoreValue
 
 /**
  * The failures this page shows - reported by the image source or resolved by the workspace - which
@@ -110,6 +112,7 @@ class ViewerRenderFailureTest : BaseTest() {
         every { this@apply.source } returns source
         every { storedPath } returns (source as? ViewerSource.Stored)?.path
         every { listingSourceId } returns null
+        every { stepPaths } returns null
         every { sharedCaption } returns null
         every { info } returns MutableStateFlow(
             Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = source.displayName.toCaString()),
@@ -150,6 +153,9 @@ class ViewerRenderFailureTest : BaseTest() {
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),
             errorIncidentStore = incidentStore,
+            viewerSettings = mockk<ViewerSettings>().apply {
+                every { showNextAfterDelete } returns mockDataStoreValue(true)
+            },
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns mockk<WorkspacePageChrome>().apply {
                     every { shareIntentEvent } returns SingleEventFlow()

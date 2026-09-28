@@ -56,6 +56,7 @@ import eu.darken.butler.explorer.ui.explorer
 import eu.darken.butler.history.ui.history
 import eu.darken.butler.searcher.ui.searcher
 import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.viewer.ui.viewer
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 
@@ -228,6 +229,16 @@ fun SettingsIndexScreen(
                     title = stringResource(eu.darken.butler.editor.R.string.editor_settings_title),
                     subtitle = stringResource(R.string.editor_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.editor()) },
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    icon = Workspace.Type.VIEWER.icon,
+                    title = stringResource(eu.darken.butler.viewer.R.string.viewer_settings_title),
+                    subtitle = stringResource(R.string.viewer_settings_subtitle),
+                    onClick = { onNavigateTo(Nav.Settings.viewer()) },
                 )
                 SettingsDivider()
             }

@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerSettings
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
@@ -44,6 +45,7 @@ import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 import testhelpers.error.recordingIncidentStore
+import testhelpers.mockDataStoreValue
 
 /**
  * The delete confirmation as the ViewModel drives it. Stepping to a neighbour replaces the workspace
@@ -144,6 +146,9 @@ class ViewerWorkspaceViewModelDeleteTest : BaseTest() {
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),
             errorIncidentStore = incidentStore,
+            viewerSettings = mockk<ViewerSettings>().apply {
+                every { showNextAfterDelete } returns mockDataStoreValue(true)
+            },
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns mockk<WorkspacePageChrome>().apply {
                     every { shareIntentEvent } returns SingleEventFlow()

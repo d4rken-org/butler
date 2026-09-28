@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -60,7 +63,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -115,7 +117,7 @@ object WorkspaceNavigationRailDefaults {
     const val LIST_TEST_TAG = "workspace.rail.list"
 
     /**
-     * On the entry's card, not on its outer box: the card is the node that carries the click, the
+     * On the card's content, not on the entry's outer box: that is the node that carries the click, the
      * selection state and the pane description, and a tag on the box would address a different node
      * than the one under test.
      */
@@ -265,6 +267,8 @@ fun WorkspaceNavigationRail(
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     onPaneUnassign: (workspaceId: Workspace.Id) -> Unit,
+    /** A one-pane tap on the entry already in the pane: bring its page on screen, assignments untouched. */
+    onReveal: (workspaceId: Workspace.Id) -> Unit = {},
     onRename: (Workspace.Id) -> Unit = {},
     onPaneMenuToggle: (Boolean) -> Unit = {},
     /** How much of the bottom edge the rail covers, so chrome outside it can clear the rail. */
@@ -349,6 +353,7 @@ fun WorkspaceNavigationRail(
                     onTabAction = onTabAction,
                     onPaneAssignment = onPaneAssignment,
                     onPaneUnassign = onPaneUnassign,
+                    onReveal = onReveal,
                     onRename = onRename,
                     design = design,
                     placement = placement,
@@ -383,7 +388,6 @@ fun WorkspaceNavigationRail(
                     RailPlacement.BOTTOM -> Modifier.padding(horizontal = RailSectionPadding)
                 }.guidedTourTarget(WorkspaceTourTargets.BUTLER_BUTTON),
                 currentWorkspaceId = focusedId,
-                showLayoutEntry = true,
             )
         }
 
@@ -532,10 +536,10 @@ internal fun WorkspaceRailContainer(
  * to its shape and the notch is by definition outside it - hence the wrapping [Box], which exists
  * purely to position the two and is deliberately semantics-free.
  *
- * The glyph is decorative and the pane it depicts is announced by the Surface instead, so that the
- * entry stays one node for TalkBack. Merging at the Box would not achieve that: `Surface(onClick)`
- * is itself a merging node, so an enclosing merging node cannot absorb it, and the entry would
- * announce twice - once for the glyph, once for the clickable card.
+ * The glyph is decorative and the pane it depicts is announced by the card's clickable content
+ * instead, so that the entry stays one node for TalkBack. Merging at the Box would not achieve that:
+ * the clickable content is itself a merging node, so an enclosing merging node cannot absorb it, and
+ * the entry would announce twice - once for the glyph, once for the clickable card.
  *
  * [modifier] therefore goes on the Box: everything that lays the entry out or paints it has to move
  * the card and the glyph together, so it cannot live on the card alone.
@@ -554,6 +558,8 @@ internal fun WorkspaceRailItem(
     placement: RailPlacement = RailPlacement.START,
     isDraggingItem: Boolean = false,
     dragHandleModifier: Modifier = Modifier,
+    /** Null in every multi-pane layout, where a long press on the icon reorders instead. */
+    onLongClick: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -564,8 +570,11 @@ internal fun WorkspaceRailItem(
     val cells = remember(layout) { paneCells(layout) }
     val glyphPaneIndex = paneIndex?.takeIf { !isDraggingItem && cells.size > 1 && it in cells.indices }
 
+    // Faded out as the same hue at zero alpha, not Color.Transparent: that is transparent black, and
+    // the colour animator interpolates lightness and alpha separately, so the card would dip to grey
+    // halfway through every focus change.
     val restingContainerColor by animateColorAsState(
-        targetValue = if (isFocused) colorScheme.secondaryContainer else Color.Transparent,
+        targetValue = colorScheme.secondaryContainer.copy(alpha = if (isFocused) 1f else 0f),
     )
     // A dragging item is always opaque, in every state: the elevation shadow is drawn from the
     // shape, not the fill, so a see-through card would carry a shadow and show other items through
@@ -620,20 +629,19 @@ internal fun WorkspaceRailItem(
             )
             .scale(scale),
     ) {
+        val longClickLabel = stringResource(R.string.workspace_pane_menu_action)
+        // Not clickable itself: Surface(onClick) has no long-click overload. The click sits on the
+        // content instead - inside the Surface's clip, so the ripple follows the shape while the lift
+        // shadow stays outside it - and is one combinedClickable in every pane mode, so the card keeps
+        // its node, and with it focus, when the pane count crosses one.
         Surface(
-            onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
                 // A minimum rather than a fixed height: the label's line box is sized in sp, so at
                 // a font scale above 1 a fixed entry would clip its own text. The Box wraps the card
                 // instead of sizing it, so the notch glyph keeps aligning to the card's corner.
                 .heightIn(min = RailItemHeight)
-                .testTag(WorkspaceNavigationRailDefaults.ITEM_TEST_TAG)
-                .semantics {
-                    selected = isAssigned
-                    role = Role.Tab
-                    entryDescription?.let { contentDescription = it }
-                },
+                .minimumInteractiveComponentSize(),
             shape = if (glyphPaneIndex != null) RailItemNotchedShape else RailItemShape,
             color = containerColor,
             contentColor = when {
@@ -646,6 +654,19 @@ internal fun WorkspaceRailItem(
         ) {
             Column(
                 modifier = Modifier
+                    .combinedClickable(
+                        interactionSource = null,
+                        indication = ripple(),
+                        onLongClickLabel = longClickLabel.takeIf { onLongClick != null },
+                        onLongClick = onLongClick,
+                        onClick = onClick,
+                    )
+                    .testTag(WorkspaceNavigationRailDefaults.ITEM_TEST_TAG)
+                    .semantics {
+                        selected = isAssigned
+                        role = Role.Tab
+                        entryDescription?.let { contentDescription = it }
+                    }
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -897,6 +918,7 @@ private fun DraggableWorkspaceRailItem(
     onTabAction: (WorkspaceAction) -> Unit,
     onPaneAssignment: (workspaceId: Workspace.Id, paneIndex: Int) -> Unit,
     onPaneUnassign: (workspaceId: Workspace.Id) -> Unit,
+    onReveal: (workspaceId: Workspace.Id) -> Unit,
     onRename: (Workspace.Id) -> Unit,
     design: WorkspaceDesign,
     placement: RailPlacement,
@@ -908,6 +930,9 @@ private fun DraggableWorkspaceRailItem(
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     var showPaneMenu by remember { mutableStateOf(false) }
+    // With one pane a tap has only one place to put the tab, so it shows it right away and the menu
+    // moves to long press - which is why reordering, the other long-press gesture, is off here.
+    val singlePane = design.maxPanes == 1
 
     LaunchedEffect(showPaneMenu) {
         onPaneMenuToggle(showPaneMenu)
@@ -926,7 +951,11 @@ private fun DraggableWorkspaceRailItem(
             dragHandleModifier = with(reorderableScope) {
                 // Long press, not press: the handle drags along the list's own scroll axis, so a
                 // press-based detector turns every scroll that starts on an item into a reorder.
+                // Off with one pane, where long press opens the menu instead. A drag in flight when
+                // the layout drops to one pane still commits its order - pinned by
+                // WorkspaceRailGestureTest.
                 Modifier.longPressDraggableHandle(
+                    enabled = !singlePane,
                     onDragStarted = {
                         onDragStarted()
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -937,7 +966,20 @@ private fun DraggableWorkspaceRailItem(
                     },
                 )
             },
-            onClick = { showPaneMenu = true },
+            onLongClick = if (singlePane) {
+                { showPaneMenu = true }
+            } else {
+                null
+            },
+            onClick = {
+                when {
+                    !singlePane -> showPaneMenu = true
+                    // Already assigned; a Select would only reset the pane assignments. The pane can
+                    // still be scrolled away from it, so it is only brought back on screen.
+                    currentPaneIndex == 0 -> onReveal(workspace.id)
+                    else -> onPaneAssignment(workspace.id, 0)
+                }
+            },
         )
 
         WorkspaceRailItemMenu(

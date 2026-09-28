@@ -190,7 +190,6 @@
     <string name="searcher_action_properties">خصوصیات</string>
     <string name="searcher_action_select_all">انتخاب همه</string>
     <string name="searcher_action_deselect_all">لغو انتخاب همه</string>
-    <string name="searcher_action_open_in_new_tabs">باز کردن در زبانه‌های جدید</string>
     <string name="searcher_action_sort">مرتب‌سازی</string>
     <string name="searcher_action_view">طرح‌بندی</string>
 

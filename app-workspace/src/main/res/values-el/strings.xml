@@ -378,7 +378,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">Γραμμή καρτελών συν όσα τμήματα χωράει η οθόνη. Καρφιτσώστε μια διάταξη από το μενού Butler στη γραμμή.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Προσαρμοστική (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Μονή με γραμμή καρτελών</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">Ένα τμήμα καρτέλας συν τη γραμμή καρτελών των διατάξεων πολλαπλών τμημάτων. Εναλλαγή καρτελών από τη γραμμή αντί με σάρωση· η γραμμή καταλαμβάνει μια λωρίδα της οθόνης.</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Ένα τμήμα καρτέλας συν τη γραμμή καρτελών των διατάξεων πολλαπλών τμημάτων. Η γραμμή καταλαμβάνει μια λωρίδα της οθόνης.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Διπλή κατακόρυφη</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Δύο τμήματα δίπλα-δίπλα (αριστερά/δεξιά).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Διπλή οριζόντια</string>

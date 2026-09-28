@@ -355,7 +355,7 @@
     <string name="workspace_settings_layout_mode_adaptive_desc">分頁軌加上螢幕可容納的窗格數量。可從分頁軌中的 Butler 選單釘選版面配置。</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">自適應（%1$s）</string>
     <string name="workspace_settings_layout_mode_single_rail">單一窗格含分頁軌</string>
-    <string name="workspace_settings_layout_mode_single_rail_desc">一個分頁窗格，加上多窗格版面配置的分頁軌。從分頁軌切換分頁，而不是用滑動的方式；分頁軌會佔用螢幕的一小條區域。</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">一個分頁窗格，加上多窗格版面配置的分頁軌。分頁軌會佔用螢幕的一小條區域。</string>
     <string name="workspace_settings_layout_mode_dual_vertical">雙欄直向</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">兩個並排的窗格（左／右）。</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">雙欄橫向</string>

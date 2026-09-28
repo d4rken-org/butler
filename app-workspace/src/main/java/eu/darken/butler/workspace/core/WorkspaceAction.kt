@@ -22,8 +22,10 @@ sealed interface WorkspaceAction {
          *
          * For the narrow case of a workspace binding ITSELF to a path it just produced (the viewer
          * rebinding to a saved copy): the alternative is refusing the create and focusing a foreign
-         * tab, which abandons the workspace the user was working in. Ordinary creates must keep
-         * deduping, so this stays opt-in per call site.
+         * tab, which abandons the workspace the user was working in. The other case is a viewer
+         * opened on a selection: it must be a new viewer, because an existing one on the same file
+         * does not step through that selection. Ordinary creates must keep deduping, so this stays
+         * opt-in per call site.
          */
         val skipContentDedup: Boolean = false,
         /**
