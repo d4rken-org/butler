@@ -140,32 +140,52 @@ internal fun SelectionHandle(
                     translationY = anchorY + visualLineOffsetY
                 }
                 .pointerInput(lineNumberWidthPx, wordWrap, charWidth) {
-                    detectDragGestures(
-                        onDragStart = { currentOnDragStart() },
-                        onDragEnd = { currentOnDragEnd() },
-                        // A cancelled gesture ends just as much as a lifted finger: whatever the
-                        // caller captured on start has to be released either way.
-                        onDragCancel = { currentOnDragEnd() },
-                    ) { change, _ ->
-                        // Recompute the handle's anchor the same way the graphicsLayer block does
-                        // so drag deltas convert back into content coordinates.
-                        val horizontalScrollOffset = if (wordWrap) 0f else horizontalScrollState.value.toFloat()
-                        val contentX = if (visualCharOffsetX >= 0f) {
-                            visualCharOffsetX
-                        } else {
-                            currentPositionColumn * charWidth
+                    var dragging = false
+                    try {
+                        detectDragGestures(
+                            onDragStart = {
+                                dragging = true
+                                currentOnDragStart()
+                            },
+                            onDragEnd = {
+                                dragging = false
+                                currentOnDragEnd()
+                            },
+                            // A cancelled gesture ends just as much as a lifted finger: whatever
+                            // the caller captured on start has to be released either way.
+                            onDragCancel = {
+                                dragging = false
+                                currentOnDragEnd()
+                            },
+                        ) { change, _ ->
+                            // Recompute the handle's anchor the same way the graphicsLayer block
+                            // does so drag deltas convert back into content coordinates.
+                            val horizontalScrollOffset = if (wordWrap) 0f else horizontalScrollState.value.toFloat()
+                            val contentX = if (visualCharOffsetX >= 0f) {
+                                visualCharOffsetX
+                            } else {
+                                currentPositionColumn * charWidth
+                            }
+                            val xPosition = lineNumberWidthPx + contentPaddingPx + contentX -
+                                horizontalScrollOffset - handleHalfWidth
+                            val currentYPosition = yPosition ?: 0f
+
+                            // Convert handle-relative position to LazyColumn coordinates
+                            val lazyColumnX =
+                                (change.position.x + xPosition) - lineNumberWidthPx + horizontalScrollOffset
+                            val anchorY = contentListState.layoutInfo.itemToContainerY(currentYPosition)
+                            val lazyColumnY = change.position.y + anchorY + visualLineOffsetY
+
+                            currentOnDrag(Offset(lazyColumnX, lazyColumnY))
+                            change.consume()
                         }
-                        val xPosition =
-                            lineNumberWidthPx + contentPaddingPx + contentX - horizontalScrollOffset - handleHalfWidth
-                        val currentYPosition = yPosition ?: 0f
-
-                        // Convert handle-relative position to LazyColumn coordinates
-                        val lazyColumnX = (change.position.x + xPosition) - lineNumberWidthPx + horizontalScrollOffset
-                        val anchorY = contentListState.layoutInfo.itemToContainerY(currentYPosition)
-                        val lazyColumnY = change.position.y + anchorY + visualLineOffsetY
-
-                        currentOnDrag(Offset(lazyColumnX, lazyColumnY))
-                        change.consume()
+                    } finally {
+                        // A pointerInput key change cancels this coroutine mid-drag, and
+                        // detectDragGestures then reports neither end nor cancel.
+                        if (dragging) {
+                            dragging = false
+                            currentOnDragEnd()
+                        }
                     }
                 }
         ) {
