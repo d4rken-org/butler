@@ -193,7 +193,9 @@ jobs:
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d #v2.38.0
         with:
           api-level: 36
-          target: default
+          # The slim test image, which ships with app drawing disabled: the script turns it back
+          # on first, or every failure screenshot comes out black.
+          target: aosp_atd
           arch: x86_64
           profile: pixel_6
           avd-name: butler-ci
@@ -203,6 +205,7 @@ jobs:
           # Each line runs on its own and the first failing one ends the step, so a golden-path
           # failure is only recorded until the upgrade test has run too.
           script: |
+            ANDROID_SERIAL=emulator-5554 adb shell setprop debug.hwui.drawing_enabled 1
             ANDROID_SERIAL=emulator-5554 tools/e2e-test.sh "$RUNNER_TEMP/minified/app.apk" "$RUNNER_TEMP/minified/app-e2e.apk" || touch "$RUNNER_TEMP/device-tests-failed"
             old_e2e="$RUNNER_TEMP/previous-release/app-e2e.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP/previous-release/app.apk" "$RUNNER_TEMP/minified/app.apk" "$RUNNER_TEMP/minified/app-e2e.apk" $old_e2e
             test ! -e "$RUNNER_TEMP/device-tests-failed"
