@@ -268,6 +268,96 @@ internal fun LazyListLayoutInfo.containerToItemY(containerY: Float): Float = con
 /** Inverse of [containerToItemY]. */
 internal fun LazyListLayoutInfo.itemToContainerY(itemY: Float): Float = itemY - viewportStartOffset
 
+/**
+ * Where a caret sits within its line's layout, relative to the line's text origin.
+ *
+ * @property x the caret's x, or null when there is no usable layout and callers fall back to
+ * `expandedColumn * advance`.
+ * @property lineTop top of the caret's visual line; 0 on an empty line and without a usable layout.
+ * @property measuredLine the caret's visual line as the layout measured it, or null when there is
+ * no layout to measure it from.
+ */
+internal data class CaretGeometry(
+    val x: Float?,
+    val lineTop: Float,
+    val measuredLine: CaretLine?,
+)
+
+internal data class CaretLine(
+    val x: Float,
+    val top: Float,
+    val bottom: Float,
+)
+
+/**
+ * Caret geometry for [localColumn] (a RAW index into [rawLine]) from [layout], which is built from
+ * the tab-EXPANDED line, so the column is converted and clamped before indexing it.
+ *
+ * - A layout shorter than the current content is stale (edit landed, relayout pending) and indexing
+ *   it would throw, so it counts as no usable layout until the fresh one arrives.
+ * - A column equal to a wrapped visual line's start belongs to the END of the previous visual line
+ *   (`getLineForOffset` alone would put it at the start of the next): with "abcd" wrapped as
+ *   "ab" / "cd", column 2 is the right edge of "b" on visual line 0.
+ * - A column at/after the end sits at the right edge of the last glyph, on the last visual line.
+ * - An empty line renders a " " placeholder: the caret is at 0/0, and [CaretGeometry.measuredLine]
+ *   takes its height from the placeholder's line 0.
+ */
+internal fun caretGeometry(
+    layout: TextLayoutResult?,
+    rawLine: String,
+    localColumn: Int,
+    tabSize: Int,
+): CaretGeometry {
+    val textLength = rawLine.toDisplayText(tabSize).length
+    if (layout != null && textLength in 1..layout.layoutInput.text.length) {
+        val column = rawToExpandedColumnClamped(rawLine, localColumn, tabSize).coerceIn(0, textLength)
+        val rawVisualLine = if (column < textLength) layout.getLineForOffset(column) else layout.lineCount - 1
+        val isAtBoundary = rawVisualLine > 0 && column == layout.getLineStart(rawVisualLine)
+        val visualLine = if (isAtBoundary) rawVisualLine - 1 else rawVisualLine
+        val x = when {
+            isAtBoundary && column > 0 -> layout.getBoundingBox(column - 1).right
+            column < textLength -> layout.getBoundingBox(column).left
+            else -> layout.getBoundingBox(textLength - 1).right
+        }
+        val top = layout.getLineTop(visualLine)
+        return CaretGeometry(
+            x = x,
+            lineTop = top,
+            measuredLine = CaretLine(x = x, top = top, bottom = layout.getLineBottom(visualLine)),
+        )
+    }
+    if (textLength == 0) {
+        return CaretGeometry(
+            x = 0f,
+            lineTop = 0f,
+            measuredLine = layout?.let { CaretLine(x = 0f, top = it.getLineTop(0), bottom = it.getLineBottom(0)) },
+        )
+    }
+    return CaretGeometry(x = null, lineTop = 0f, measuredLine = null)
+}
+
+/**
+ * Container-space point a magnifier enlarges: the caret's x, vertically centred on its visual line.
+ * Only a layout-measured [caretLine] qualifies, since without a layout there is no line height to
+ * centre on and the magnifier gets no source rather than an estimated one.
+ *
+ * [itemContainerY] is the line item's top in container space ([itemToContainerY]); [textInsetPx] and
+ * [lineTopInsetPx] are the item's horizontal and top padding around its text. Wrapped lines never
+ * scroll horizontally, so [horizontalScrollPx] only applies with [wordWrap] off.
+ */
+internal fun magnifierSourceInContainer(
+    itemContainerY: Float,
+    caretLine: CaretLine,
+    gutterWidthPx: Float,
+    textInsetPx: Float,
+    lineTopInsetPx: Float,
+    horizontalScrollPx: Float,
+    wordWrap: Boolean,
+): Offset = Offset(
+    x = gutterWidthPx + textInsetPx + caretLine.x - if (wordWrap) 0f else horizontalScrollPx,
+    y = itemContainerY + lineTopInsetPx + (caretLine.top + caretLine.bottom) / 2f,
+)
+
 internal fun calculatePositionFromOffset(
     offset: Offset,
     contentListState: LazyListState,

@@ -107,43 +107,9 @@ internal fun SelectionHandle(
     // lineStartColumn too: a horizontal window slide changes the caret's LOCAL column even if
     // position.column doesn't.
     LaunchedEffect(position.line, position.column, wordWrap, lineLayout, rawLine, lineStartColumn, tabSize) {
-        // The layout is built from the tab-EXPANDED line, so work in expanded columns/length.
-        val textLength = rawLine.toDisplayText(tabSize).length
-        // A layout shorter than the current content is stale (edit landed, relayout pending) and
-        // indexing it below would throw — fall back until the fresh layout arrives.
-        if (lineLayout != null && textLength in 1..lineLayout.layoutInput.text.length) {
-            val columnForCalc = rawToExpandedColumnClamped(rawLine, localColumn, tabSize).coerceIn(0, textLength)
-
-            // Calculate visual line, handling boundary case
-            // getLineForOffset(N) returns the line where char N starts, but if N equals
-            // getLineStart of that line (i.e., it's at a line boundary), cursor should
-            // appear at the END of the previous visual line, not start of next
-            val rawVisualLine = if (columnForCalc < textLength) {
-                lineLayout.getLineForOffset(columnForCalc)
-            } else {
-                lineLayout.lineCount - 1
-            }
-            val isAtBoundary = rawVisualLine > 0 && columnForCalc == lineLayout.getLineStart(rawVisualLine)
-            val visualLine = if (isAtBoundary) rawVisualLine - 1 else rawVisualLine
-            visualLineOffsetY = lineLayout.getLineTop(visualLine)
-
-            // Calculate X position from TextLayoutResult
-            // At boundary: use right edge of previous char (end of visual line)
-            // Otherwise: use left edge of current char
-            visualCharOffsetX = if (isAtBoundary && columnForCalc > 0) {
-                lineLayout.getBoundingBox(columnForCalc - 1).right
-            } else if (columnForCalc < textLength) {
-                lineLayout.getBoundingBox(columnForCalc).left
-            } else {
-                lineLayout.getBoundingBox(textLength - 1).right
-            }
-        } else if (textLength == 0) {
-            visualLineOffsetY = 0f
-            visualCharOffsetX = 0f
-        } else {
-            visualLineOffsetY = 0f
-            visualCharOffsetX = -1f  // No usable layout yet: use column * charWidth fallback
-        }
+        val geometry = caretGeometry(lineLayout, rawLine, localColumn, tabSize)
+        visualLineOffsetY = geometry.lineTop
+        visualCharOffsetX = geometry.x ?: -1f
     }
 
     if (yPosition != null) {
