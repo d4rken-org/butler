@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.searcher.R
 import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 import java.io.IOException
@@ -60,7 +61,7 @@ fun SearchErrorDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = path,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.asMaybePathStyle(),
                     fontWeight = FontWeight.Medium
                 )
 

@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerChip
@@ -81,6 +82,7 @@ fun MultiPathChipBar(
                 is SearchTarget.Path -> {
                     ButlerChip(
                         label = target.displayText.asComposable(),
+                        labelDirection = TextDirection.Content,
                         selected = target.enabled,
                         enabled = !isSearching,
                         onClick = { if (!isSearching) onPathToggle(target) },
@@ -94,6 +96,7 @@ fun MultiPathChipBar(
                 is SearchTarget.MediaStore -> {
                     ButlerChip(
                         label = target.displayText.asComposable(),
+                        labelDirection = TextDirection.Content,
                         leadingIcon = target.collection.icon,
                         selected = target.enabled,
                         enabled = !isSearching,
