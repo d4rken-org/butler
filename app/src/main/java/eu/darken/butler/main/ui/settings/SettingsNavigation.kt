@@ -23,6 +23,8 @@ import eu.darken.butler.history.ui.DestinationHistorySettings
 import eu.darken.butler.history.ui.settings.HistorySettingsScreenHost
 import eu.darken.butler.searcher.ui.DestinationSearcherSettings
 import eu.darken.butler.searcher.ui.settings.SearcherSettingsScreenHost
+import eu.darken.butler.viewer.ui.DestinationViewerSettings
+import eu.darken.butler.viewer.ui.settings.ViewerSettingsScreenHost
 import eu.darken.butler.workspace.ui.settings.WorkspaceSettingsScreenHost
 import eu.darken.butler.workspace.ui.settings.clipboard.ClipboardSettingsScreenHost
 import javax.inject.Inject
@@ -52,6 +54,9 @@ class SettingsNavigation @Inject constructor() : NavigationEntry {
         }
         entry<DestinationEditorSettings> {
             EditorSettingsScreenHost()
+        }
+        entry<DestinationViewerSettings> {
+            ViewerSettingsScreenHost()
         }
         entry<DestinationSettingsSupport> {
             SupportScreenHost()
