@@ -11,6 +11,7 @@ import eu.darken.butler.viewer.core.ViewerBrokenSymlinkException
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerExternalChange
 import eu.darken.butler.viewer.core.ViewerFileGoneException
+import eu.darken.butler.viewer.core.ViewerSettings
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerWorkspace
 import eu.darken.butler.workspace.core.Workspace
@@ -43,6 +44,7 @@ import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 import testhelpers.error.recordingIncidentStore
+import testhelpers.mockDataStoreValue
 
 /**
  * How the external-change verdict reaches the page, and what Refresh has to survive: a render error
@@ -122,6 +124,9 @@ class ViewerWorkspaceViewModelExternalChangeTest : BaseTest() {
             apkIconExporter = mockk(relaxed = true),
             filenameValidator = FilenameValidator(),
             errorIncidentStore = incidentStore,
+            viewerSettings = mockk<ViewerSettings>().apply {
+                every { showNextAfterDelete } returns mockDataStoreValue(true)
+            },
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns chrome
             },
