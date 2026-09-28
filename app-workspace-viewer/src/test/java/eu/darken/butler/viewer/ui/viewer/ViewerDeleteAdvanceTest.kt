@@ -145,6 +145,7 @@ class ViewerDeleteAdvanceTest : BaseTest() {
         every { source } returns ViewerSource.Stored(path)
         every { storedPath } returns path
         every { this@apply.listingSourceId } returns listingSourceId
+        every { stepPaths } returns null
         every { sharedCaption } returns null
         every { info } returns MutableStateFlow(
             Workspace.Info(id = workspaceId, type = Workspace.Type.VIEWER, title = path.name.toCaString()),
@@ -289,7 +290,7 @@ class ViewerDeleteAdvanceTest : BaseTest() {
     private fun ViewerWorkspaceViewModel.deleteDisplayed() {
         val displayed = workspaces.value.storedPath!!
         requestDelete()
-        deleteRequest.value shouldBe setOf(displayed)
+        deleteRequest.value?.targets shouldBe setOf(displayed)
         confirmDelete(forcePermDelete = false)
     }
 
@@ -518,7 +519,7 @@ class ViewerDeleteAdvanceTest : BaseTest() {
         startCollecting(vm)
 
         vm.requestDelete()
-        vm.deleteRequest.value shouldBe setOf(b)
+        vm.deleteRequest.value?.targets shouldBe setOf(b)
         vm.confirmDelete(forcePermDelete = false)
 
         vm.requestDelete()
@@ -528,7 +529,7 @@ class ViewerDeleteAdvanceTest : BaseTest() {
         creates.single().target shouldBe c
 
         vm.requestDelete()
-        vm.deleteRequest.value shouldBe setOf(c)
+        vm.deleteRequest.value?.targets shouldBe setOf(c)
     }
 
     @Test
@@ -537,7 +538,7 @@ class ViewerDeleteAdvanceTest : BaseTest() {
         startCollecting(vm)
 
         vm.requestDelete()
-        vm.deleteRequest.value shouldBe setOf(b)
+        vm.deleteRequest.value?.targets shouldBe setOf(b)
         workspaces.value = makeWorkspace(c)
 
         vm.confirmDelete(forcePermDelete = false)

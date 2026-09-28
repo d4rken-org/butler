@@ -22,11 +22,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -78,6 +82,9 @@ object PaneBoundAlertDialogDefaults {
  *
  * @param includeImePadding pad the dialog above the soft keyboard. Enable for dialogs containing an
  *        editable text field; when `false` the dialog dismisses the keyboard as it appears.
+ * @param initialFocus control to focus when the dialog becomes active in keyboard input mode, so
+ *        Enter acts on it. Only used when [includeImePadding] is `false`; in touch mode focus is
+ *        still cleared.
  * @param neutralButton action placed at the *start* of the action row, away from confirm/dismiss.
  *        Material's `AlertDialog` has no equivalent slot; both of Butler's hosts do, so needing a
  *        third action is no longer a reason to pick one host over the other.
@@ -94,6 +101,7 @@ fun PaneBoundAlertDialog(
     text: @Composable (() -> Unit)? = null,
     properties: DialogProperties = DialogProperties(),
     includeImePadding: Boolean = false,
+    initialFocus: FocusRequester? = null,
 ) {
     val context = LocalContext.current
     val isDebuggable = remember(context) {
@@ -132,10 +140,22 @@ fun PaneBoundAlertDialog(
         if (!includeImePadding) {
             val focusManager = LocalFocusManager.current
             val keyboardController = LocalSoftwareKeyboardController.current
-            LaunchedEffect(layerActive) {
+            val inputModeManager = LocalInputModeManager.current
+            // Keyed on the input mode only when there is a focus target: in touch mode the target
+            // is not focusable yet, and the first key press flips the mode and re-runs this to
+            // claim focus. Without a target a mode change must not re-run the clearing branch. The
+            // frame wait lets the target get laid out when the layer is active from its first
+            // composition.
+            LaunchedEffect(layerActive, inputModeManager.inputMode.takeIf { initialFocus != null }) {
                 if (!layerActive) return@LaunchedEffect
-                focusManager.clearFocus()
-                keyboardController?.hide()
+                if (initialFocus != null && inputModeManager.inputMode == InputMode.Keyboard) {
+                    keyboardController?.hide()
+                    withFrameNanos { }
+                    runCatching { initialFocus.requestFocus() }
+                } else {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                }
             }
         }
 

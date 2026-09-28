@@ -15,10 +15,18 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -56,9 +64,20 @@ fun DeleteConfirmationDialog(
     val itemCount = items.size
     val itemsToShow = items.toList().take(5)
     val hasMore = items.size > 5
+    val confirmFocus = remember { FocusRequester() }
 
     PaneBoundAlertDialog(
+        // A focused control's unhandled Escape would otherwise become a focus-exit that the pane trap cancels
+        modifier = Modifier.onKeyEvent { event ->
+            if (event.key == Key.Escape && event.type == KeyEventType.KeyDown) {
+                onDismiss()
+                true
+            } else {
+                false
+            }
+        },
         onDismissRequest = onDismiss,
+        initialFocus = confirmFocus,
         title = {
             Text(
                 text = if (effectiveTrashEnabled) {
@@ -176,8 +195,9 @@ fun DeleteConfirmationDialog(
         },
         confirmButton = {
             TextButton(
+                modifier = Modifier.focusRequester(confirmFocus),
                 // When nothing can be trashed the dialog already promised a permanent delete
-                onClick = { onConfirm(items, permDelete || !canTrashAny) }
+                onClick = { onConfirm(items, permDelete || !canTrashAny) },
             ) {
                 Text(
                     text = if (effectiveTrashEnabled) {
