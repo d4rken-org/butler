@@ -543,4 +543,24 @@ class ViewerDeleteAdvanceTest : BaseTest() {
         workspaces.value shouldBe deleted
         verify(exactly = 1) { deleted.reload() }
     }
+
+    @Test
+    fun `a refused replace keeps the arrows on the deleted file`() = runTest2 {
+        createResult = WorkspaceAction.Create.Result.Refused
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        vm.deleteDisplayed()
+        completeLastDelete()
+
+        creates.single().target shouldBe c
+        val ready = vm.state.value.shouldBeInstanceOf<ViewerWorkspaceViewModel.State.Ready>()
+        ready.neighbours shouldBe ViewerNeighbours(current = b, previous = a, next = c)
+        ready.actions.filterIsInstance<ViewerActionBarItem.PreviousFile>() shouldBe listOf(
+            ViewerActionBarItem.PreviousFile(isEnabled = true),
+        )
+        ready.actions.filterIsInstance<ViewerActionBarItem.NextFile>() shouldBe listOf(
+            ViewerActionBarItem.NextFile(isEnabled = true),
+        )
+    }
 }

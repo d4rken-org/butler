@@ -291,7 +291,8 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
     /**
      * Files this ViewModel deleted, for the same lifetime reason as [lastListing]: the origin may not
      * have republished its listing yet, or is paused and replays the last one, and neither may offer
-     * a file that is already gone as the next step.
+     * a file that is already gone as the next step. The file on display is exempt: a refused replace
+     * leaves the deleted file there, and it keeps its arrows so the user can still move on.
      */
     private val deletedPaths = MutableStateFlow<Set<APath<*>>>(emptySet())
 
@@ -313,7 +314,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 listing != null -> listing.also { lastListing = originId to it }
                 else -> lastListing?.takeIf { it.first == originId }?.second
             }
-            files?.filterNot { it in deleted }
+            files?.filterNot { it != path && it in deleted }
         }.map { files -> files?.let { resolveNeighbours(path, it) } }
     }.distinctUntilChanged()
 
