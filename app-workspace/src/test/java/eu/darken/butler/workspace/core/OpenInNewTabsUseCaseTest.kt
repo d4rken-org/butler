@@ -7,7 +7,9 @@ import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 
@@ -167,5 +169,63 @@ class OpenInNewTabsUseCaseTest : BaseTest() {
             Workspace.Type.VIEWER,
             Workspace.Type.VIEWER,
         )
+    }
+
+    private val selection = listOf<APath<*>>(textFile, imageFile, binaryFile)
+
+    @Test
+    fun `viewing a selection here opens one viewer overlay that steps through it`() {
+        val request = useCase.createSelectionViewerRequest(
+            paths = selection,
+            mode = OpenSelectionMode.VIEW_HERE,
+            sourceWorkspaceId = workspaceId,
+        )
+
+        request.type shouldBe Workspace.Type.VIEWER
+        request.skipContentDedup shouldBe false
+        val arguments = request.arguments.shouldBeInstanceOf<ViewerArguments.Default>()
+        arguments.filePath shouldBe textFile
+        arguments.stepPaths shouldBe selection
+        arguments.callerWorkspaceId shouldBe workspaceId
+        arguments.listingSourceId shouldBe null
+    }
+
+    @Test
+    fun `viewing a selection in a tab opens a new viewer tab that steps through it`() {
+        val request = useCase.createSelectionViewerRequest(
+            paths = selection,
+            mode = OpenSelectionMode.VIEW_IN_TAB,
+            sourceWorkspaceId = workspaceId,
+        )
+
+        request.type shouldBe Workspace.Type.VIEWER
+        request.skipContentDedup shouldBe true
+        val arguments = request.arguments.shouldBeInstanceOf<ViewerArguments.Default>()
+        arguments.filePath shouldBe textFile
+        arguments.stepPaths shouldBe selection
+        arguments.callerWorkspaceId shouldBe null
+        arguments.listingSourceId shouldBe null
+    }
+
+    @Test
+    fun `a selection viewer needs at least one path`() {
+        shouldThrow<IllegalArgumentException> {
+            useCase.createSelectionViewerRequest(
+                paths = emptyList(),
+                mode = OpenSelectionMode.VIEW_HERE,
+                sourceWorkspaceId = workspaceId,
+            )
+        }
+    }
+
+    @Test
+    fun `opening each item in its own tab is not a selection viewer`() {
+        shouldThrow<IllegalArgumentException> {
+            useCase.createSelectionViewerRequest(
+                paths = selection,
+                mode = OpenSelectionMode.EACH_IN_TAB,
+                sourceWorkspaceId = workspaceId,
+            )
+        }
     }
 }

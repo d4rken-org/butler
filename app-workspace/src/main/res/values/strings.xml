@@ -336,6 +336,19 @@
     <string name="workspace_open_tabs_confirmation_title">Open multiple tabs?</string>
     <string name="workspace_open_tabs_confirmation_message">This will open %1$d tabs.</string>
 
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Open %d item</item>
+        <item quantity="other">Open %d items</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">View here</string>
+    <string name="workspace_open_selection_view_here_description">Shows the selected files in a viewer on top of this pane. Previous and next only go through your selection.</string>
+    <string name="workspace_open_selection_view_in_tab_action">View in new tab</string>
+    <string name="workspace_open_selection_view_in_tab_description">Shows the selected files in a viewer in its own tab. Previous and next only go through your selection.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Open each in its own tab</string>
+    <string name="workspace_open_selection_each_in_tab_description">Opens every selected item in a separate tab. Folders open as file browser tabs.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Folders can\'t be shown in the viewer.</string>
+
     <!-- Open with (hand a file to another app) -->
     <string name="workspace_open_with_chooser_title">Open with</string>
     <string name="workspace_open_with_no_app_label">No other app found</string>

@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.core
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import javax.inject.Inject
 
 /**
@@ -107,6 +108,30 @@ class OpenInNewTabsUseCase @Inject constructor() {
                 Workspace.Type.EXPLORER -> createExplorerArguments(item.path)
                 else -> createViewerArguments(item.path)
             },
+        )
+    }
+
+    /**
+     * One viewer that steps through [paths] in order, starting at the first. [paths] must be files;
+     * [OpenSelectionMode.EACH_IN_TAB] goes through [analyze] + [createRequests] instead.
+     */
+    fun createSelectionViewerRequest(
+        paths: List<APath<*>>,
+        mode: OpenSelectionMode,
+        sourceWorkspaceId: Workspace.Id,
+    ): WorkspaceAction.Create {
+        require(paths.isNotEmpty()) { "No paths to view" }
+        require(mode != OpenSelectionMode.EACH_IN_TAB) { "$mode does not open a single viewer" }
+        log(tag) { "createSelectionViewerRequest(): ${paths.size} files, $mode, from ${sourceWorkspaceId.shortTag}" }
+
+        return WorkspaceAction.Create(
+            type = Workspace.Type.VIEWER,
+            arguments = ViewerArguments.Default(
+                filePath = paths.first(),
+                stepPaths = paths,
+                callerWorkspaceId = if (mode == OpenSelectionMode.VIEW_HERE) sourceWorkspaceId else null,
+            ),
+            skipContentDedup = mode == OpenSelectionMode.VIEW_IN_TAB,
         )
     }
 
