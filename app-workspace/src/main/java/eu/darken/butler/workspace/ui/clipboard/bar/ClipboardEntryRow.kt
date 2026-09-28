@@ -34,6 +34,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.workspace.ui.clipboard.mockFileLookup
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.workspace.R
@@ -130,7 +131,7 @@ fun ClipboardEntryRow(
 
                             Text(
                                 text = entry.description.asComposable(),
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodySmall.asMaybePathStyle(),
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -204,7 +205,7 @@ fun ClipboardEntryRow(
 
                         Text(
                             text = entry.description.asComposable(),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodySmall.asMaybePathStyle(),
                             color = MaterialTheme.colorScheme.onTertiaryContainer,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,

@@ -36,6 +36,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.common.formatDuration
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.R
@@ -138,7 +139,7 @@ fun OperationEntryRow(
 
                         Text(
                             text = secondaryText,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodySmall.asMaybePathStyle(),
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -307,7 +308,7 @@ fun OperationEntryRow(
                 if (showSecondaryText && secondaryText.isNotEmpty()) {
                     Text(
                         text = secondaryText,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodySmall.asMaybePathStyle(),
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,

@@ -54,6 +54,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
@@ -212,7 +213,7 @@ private fun ClipboardInfoHeader(
             Text(
                 modifier = Modifier.padding(top = 2.dp),
                 text = clip.description.asComposable(),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.asMaybePathStyle(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.MiddleEllipsis,

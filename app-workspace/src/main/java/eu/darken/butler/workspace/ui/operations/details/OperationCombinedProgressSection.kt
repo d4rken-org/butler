@@ -24,6 +24,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.R
 
@@ -145,7 +146,7 @@ private fun OperationProgressDisplay(
                             MaterialTheme.typography.bodyMedium
                         } else {
                             MaterialTheme.typography.bodySmall
-                        },
+                        }.asMaybePathStyle(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
                             alpha = if (isPrimary) 0.7f else 0.6f
                         )
