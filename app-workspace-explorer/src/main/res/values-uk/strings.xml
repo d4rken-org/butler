@@ -711,7 +711,6 @@
     <string name="explorer_permission_option_storage_action">Надати дозвіл</string>
 
     <!-- Open in new tabs action -->
-    <string name="explorer_action_open_in_new_tabs">Відкрити в нових вкладках</string>
     <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
     <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
 

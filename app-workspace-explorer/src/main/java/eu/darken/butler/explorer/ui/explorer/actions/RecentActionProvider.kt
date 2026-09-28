@@ -31,7 +31,7 @@ class RecentActionProvider @Inject constructor() : ExplorerActionProvider {
                 actions.add(ExplorerActionBarItem.Directory.SelectAll)
             }
 
-            actions.add(ExplorerActionBarItem.Directory.OpenInNewTabs())
+            actions.add(ExplorerActionBarItem.Directory.OpenSelection())
 
             if (selectionState.selectionCount == 1) {
                 actions.add(ExplorerActionBarItem.Directory.Rename())

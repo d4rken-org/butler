@@ -11,6 +11,7 @@ import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.FileInfo
 import eu.darken.butler.workspace.ui.dialogs.FileInfoBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.MultipleItemsInfoBottomSheet
+import eu.darken.butler.workspace.ui.dialogs.OpenSelectionDialog
 
 @Composable
 fun ExplorerDialogHost(
@@ -44,6 +45,15 @@ fun ExplorerDialogHost(
                 onConfirm = { items, forcePermDelete ->
                     vm?.onDeleteConfirmed(items, forcePermDelete)
                 },
+            )
+        }
+
+        is ExplorerDialogState.OpenSelection -> {
+            OpenSelectionDialog(
+                itemCount = dialogState.items.size,
+                viewerModesAvailable = dialogState.viewerModesAvailable,
+                onDismiss = { vm?.dismissDialog() },
+                onSelect = { mode -> vm?.onOpenSelectionMode(dialogState, mode) },
             )
         }
 

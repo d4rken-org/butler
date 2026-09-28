@@ -59,7 +59,7 @@ class NetworkActionProviderTest : BaseTest() {
     fun `a selected location does not offer opening in a new tab`() {
         val actions = actionsFor(first)
 
-        actions.any { it is ExplorerActionBarItem.Directory.OpenInNewTabs } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Directory.OpenSelection } shouldBe false
     }
 
     /** Refreshing is blocked while items are selected, so it must not be offered there either. */

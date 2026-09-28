@@ -109,9 +109,9 @@ import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.NoAppForFileException
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
+import eu.darken.butler.workspace.core.OpenSelectionMode
 import eu.darken.butler.workspace.core.ShareIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -294,6 +294,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         toggleSelection = { selection.toggle(it) },
         clearSelection = ::clearSelection,
         getState = ::getState,
+        doLaunch = doLaunch,
+        tag = tag,
+    )
+    private val openSelection = ExplorerOpenSelectionController(
+        workspaceId = id,
+        selectedItems = { selection.selectedItems.value },
+        orderSelection = ::orderSelection,
+        dialogs = dialogs,
+        workspaceRemote = workspaceRemote,
+        openInNewTabsUseCase = openInNewTabsUseCase,
+        clearSelection = ::clearSelection,
         doLaunch = doLaunch,
         tag = tag,
     )
@@ -1192,50 +1203,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerActionBarItem.Directory.DeselectAll -> {
                 selection.clear()
             }
-            is ExplorerActionBarItem.Directory.OpenInNewTabs -> {
-                log(tag) { "openInNewTabs(): ${selection.selectedItems.value.size} items" }
-                val selectedLookups = selection.selectedItems.value.filterIsInstance<ExplorerItem.Lookup>()
-                val selectedStorages = selection.selectedItems.value.filterIsInstance<ExplorerItem.Storage>()
-                if (selectedLookups.isEmpty() && selectedStorages.isEmpty()) return@launch
-
-                // Convert Explorer items to use case items
-                val items = buildList {
-                    // Lookup items (files and directories inside a folder)
-                    selectedLookups.forEach { item ->
-                        add(
-                            if (item.lookup.isDirectory) {
-                                OpenInNewTabsUseCase.Item.Directory(item.lookup.lookedUp)
-                            } else {
-                                val isText = when (item) {
-                                    is ExplorerItem.File -> TextFileDetector.isTextFile(item.mimeType)
-                                    else -> TextFileDetector.isTextFile(item.lookup.lookedUp)
-                                }
-                                OpenInNewTabsUseCase.Item.File(item.lookup.lookedUp, isText)
-                            }
-                        )
-                    }
-                    // Storage items (USB sticks, SAF locations, etc.) - always directories
-                    selectedStorages.forEach { storage ->
-                        add(OpenInNewTabsUseCase.Item.Directory(storage.target.path))
-                    }
-                }
-
-                val request = OpenInNewTabsUseCase.Request(
-                    items = items,
-                    sourceWorkspaceId = id,
-                )
-
-                val analysis = openInNewTabsUseCase.analyze(request)
-
-                if (!analysis.hasItemsToOpen) {
-                    // All items were skipped
-                    log(tag, WARN) { "All items skipped (no openable items)" }
-                    return@launch
-                }
-
-                // Always emit event - WorkspacesViewModel handles confirmation
-                executeOpenInNewTabs(analysis)
-            }
+            is ExplorerActionBarItem.Directory.OpenSelection -> openSelection.showChooser()
             is ExplorerActionBarItem.Common.Sort -> {
                 // No sheet while the location's rules are still resolving: it would edit stale ones
                 buildSortOptionsState(stateSnap)?.let { dialogs.show(it) }
@@ -1673,40 +1641,29 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
-    private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {
-        log(tag, INFO) { "executeOpenInNewTabs(): Opening ${analysis.totalOpenableCount} workspaces" }
-
-        // Create workspace requests
-        val requests = openInNewTabsUseCase.createRequests(
-            analysis = analysis,
-            createExplorerArguments = { path -> ExplorerArguments.Default(startPath = path) },
-            createViewerArguments = { path ->
-                ViewerArguments.Default(filePath = path, listingSourceId = id)
-            },
+    private suspend fun orderSelection(selected: Collection<ExplorerItem>): List<ExplorerItem> {
+        val stateSnap = getState()
+        val location = stateSnap.currentLocation
+        val resolvedSort = stateSnap.resolvedSort
+        val sortForDisplay: ((List<ExplorerItem>) -> List<ExplorerItem>)? =
+            if (location != null && resolvedSort != null) {
+                { items ->
+                    itemSorter.sortItemsFor(location, items, resolvedSort.resolution.settings)
+                        .let { applyFavoritePriority(it, location, stateSnap.pickerConfig, stateSnap.favoritePaths) }
+                }
+            } else {
+                null
+            }
+        return orderSelectionForDisplay(
+            selected = selected,
+            rawItems = location?.items,
+            displayed = stateSnap.items.takeIf { stateSnap.listingLocationId == location?.locationId },
+            sortForDisplay = sortForDisplay,
         )
-
-        // Execute batch creation directly - WorkspaceRepo handles confirmation and banner
-        val result = workspaceRemote.execute(
-            WorkspaceAction.CreateBatch(
-                requests = requests,
-                sourceWorkspaceId = id,
-            )
-        )
-
-        when (result) {
-            is WorkspaceAction.CreateBatch.Result.Success -> {
-                log(tag, INFO) { "Batch creation succeeded: $result" }
-            }
-            is WorkspaceAction.CreateBatch.Result.Cancelled -> {
-                log(tag, INFO) { "Batch creation cancelled by user" }
-            }
-            is WorkspaceAction.CreateBatch.Result.AwaitingConfirmation -> {
-                log(tag, INFO) { "Batch creation awaiting confirmation" }
-            }
-        }
-
-        clearSelection()
     }
+
+    fun onOpenSelectionMode(dialogState: ExplorerDialogState.OpenSelection, mode: OpenSelectionMode) =
+        openSelection.onModeSelected(dialogState, mode)
 
     fun dismissDialog() = dialogs.dismiss()
 

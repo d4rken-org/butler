@@ -29,7 +29,7 @@ class DeviceActionProvider @Inject constructor(
             // Check if any storage items are selected (for opening in new tabs)
             val hasStorageItems = selectionState.selectedItems.any { it is ExplorerItem.Storage }
             if (hasStorageItems) {
-                actions.add(ExplorerActionBarItem.Directory.OpenInNewTabs())
+                actions.add(ExplorerActionBarItem.Directory.OpenSelection())
             }
 
             actions.add(ExplorerActionBarItem.Common.Info())

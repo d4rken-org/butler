@@ -29,6 +29,16 @@ sealed interface ExplorerDialogState {
 
     data class RemoveLocationConfirmation(val items: List<ExplorerItem.Storage>) : ExplorerDialogState
 
+    /**
+     * The selection as it was when "Open" was tapped, in display order. The chosen mode opens this
+     * snapshot, not the live selection. [viewerPaths] is empty unless [viewerModesAvailable].
+     */
+    data class OpenSelection(
+        val items: List<ExplorerItem>,
+        val viewerPaths: List<APath<*>>,
+        val viewerModesAvailable: Boolean,
+    ) : ExplorerDialogState
+
     data class LocationStorageName(
         val locationId: String,
         val currentName: String?,
