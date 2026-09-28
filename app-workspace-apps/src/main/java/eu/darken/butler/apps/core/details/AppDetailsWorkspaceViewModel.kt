@@ -28,11 +28,14 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.destSetup
+import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.pkgs.features.AppStore
 import eu.darken.butler.common.pkgs.features.SourceAvailable
 import eu.darken.butler.common.pkgs.isEnabled
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.upgrade.isProForUi
 import eu.darken.butler.workspace.contracts.apps.DetailTab
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.saver.SaverArguments
@@ -44,6 +47,7 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationFocusRequest
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -57,6 +61,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = AppDetailsWorkspaceViewModel.Factory::class)
 class AppDetailsWorkspaceViewModel @AssistedInject constructor(
@@ -68,6 +73,7 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     componentsLoader: AppComponentsLoader,
     chromeFactory: WorkspacePageChrome.Factory,
     operationFocusRequest: OperationFocusRequest,
+    private val upgradeRepo: UpgradeRepo,
 ) : ViewModel4(dispatchers, logTag("AppDetails", "Workspace", id.shortTag, "Page")) {
 
     private val chrome = chromeFactory.create(id, vmScope)
@@ -194,19 +200,33 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
         componentsController.dismiss()
     }
 
+    private var disableGateJob: Job? = null
+
     /** Batch actions are always confirmed; the single-component toggle in the sheet is not. */
     fun onComponentAction(item: ComponentsActionBarItem) {
         log(tag) { "onComponentAction($item)" }
-        componentConfirmFlow.value = when (item) {
-            is ComponentsActionBarItem.Enable -> ComponentsConfirmRequest(item.entries, enable = true)
-            is ComponentsActionBarItem.Disable -> ComponentsConfirmRequest(item.entries, enable = false)
+        when (item) {
+            is ComponentsActionBarItem.Enable ->
+                componentConfirmFlow.value = ComponentsConfirmRequest(item.entries, enable = true)
+            is ComponentsActionBarItem.Disable -> {
+                // Taps while billing connects would otherwise each queue their own upgrade screen.
+                if (disableGateJob?.isActive == true) return
+                disableGateJob = vmScope.launch {
+                    if (!requireProToDisable()) return@launch
+                    // The gate can wait for billing, and the retire collector only clears a request
+                    // that was already up when the selection moved.
+                    if (!item.entries.matchesSelection()) return@launch
+                    componentConfirmFlow.value = ComponentsConfirmRequest(item.entries, enable = false)
+                }
+            }
         }
     }
 
     fun onComponentConfirm(request: ComponentsConfirmRequest) = launch {
-        val live = componentsController.selectedComponents.value
         componentConfirmFlow.value = null
-        if (live.mapTo(mutableSetOf()) { it.key } != request.entries.mapTo(mutableSetOf()) { it.key }) {
+        if (!request.enable && !requireProToDisable()) return@launch
+        val live = componentsController.selectedComponents.value
+        if (!request.entries.matchesSelection()) {
             log(tag, WARN) { "onComponentConfirm(): selection changed under the dialog, ignoring" }
             return@launch
         }
@@ -221,7 +241,31 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
 
     fun onSetComponentEnabled(entry: ComponentEntry, enabled: Boolean) = launch {
         log(tag) { "onSetComponentEnabled(${entry.key}, enabled=$enabled)" }
+        // Pro first, so nobody sets up elevated access only to learn that disabling needs Pro.
+        if (!enabled && !requireProToDisable()) return@launch
+        if (componentToggleState.value == ComponentToggleState.NEEDS_SETUP) {
+            openElevatedAccessSetup()
+            return@launch
+        }
         applyComponentState(listOf(entry), enabled)
+    }
+
+    private fun List<ComponentEntry>.matchesSelection(): Boolean {
+        val selected = componentsController.selectedComponents.value.mapTo(mutableSetOf()) { it.key }
+        return selected == mapTo(mutableSetOf()) { it.key }
+    }
+
+    /**
+     * Disabling components is Pro, enabling them is not: a component disabled during a trial must
+     * stay recoverable without paying.
+     *
+     * @return false when the upgrade screen was opened instead.
+     */
+    private suspend fun requireProToDisable(): Boolean {
+        if (upgradeRepo.isProForUi()) return true
+        log(tag, INFO) { "Disabling components is Pro-only, routing to the upgrade screen" }
+        navTo(Nav.Main.upgrade())
+        return false
     }
 
     fun openElevatedAccessSetup() {

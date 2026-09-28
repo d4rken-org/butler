@@ -69,7 +69,6 @@ fun AppDetailsWorkspaceOverlaysHost(
         onDismiss = vm::onComponentSheetDismissed,
         onLaunch = { vm.onLaunchComponent(packageName = it.packageName, className = it.className) },
         onSetEnabled = { entry, enabled -> vm.onSetComponentEnabled(entry, enabled) },
-        onSetupRequested = vm::openElevatedAccessSetup,
         onConfirm = vm::onComponentConfirm,
         onConfirmDismiss = vm::onComponentConfirmDismiss,
         onAppConfirm = vm::onAppConfirm,
@@ -102,7 +101,6 @@ fun AppDetailsWorkspaceOverlays(
     onDismiss: () -> Unit = {},
     onLaunch: (ComponentEntry) -> Unit = {},
     onSetEnabled: (ComponentEntry, Boolean) -> Unit = { _, _ -> },
-    onSetupRequested: () -> Unit = {},
     onConfirm: (ComponentsConfirmRequest) -> Unit = {},
     onConfirmDismiss: () -> Unit = {},
     onAppConfirm: (AppDetailsConfirmRequest) -> Unit = {},
@@ -143,7 +141,6 @@ fun AppDetailsWorkspaceOverlays(
         onLaunch = launchable?.let { entry -> { onLaunch(entry) } },
         toggleState = toggleState,
         onSetEnabled = { enabled -> toggleTarget?.let { onSetEnabled(it, enabled) } },
-        onSetupRequested = onSetupRequested,
         topInset = paneInsets.top,
         bottomInset = paneInsets.bottom,
     )

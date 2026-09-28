@@ -36,7 +36,6 @@ class ComponentDetailsSheetTest : ComposeTest() {
         onLaunch: (() -> Unit)? = null,
         toggleState: ComponentToggleState = ComponentToggleState.UNSUPPORTED,
         onSetEnabled: (Boolean) -> Unit = {},
-        onSetupRequested: () -> Unit = {},
     ) {
         composeTestRule.setContent {
             PreviewWrapper {
@@ -47,7 +46,6 @@ class ComponentDetailsSheetTest : ComposeTest() {
                         onLaunch = onLaunch,
                         toggleState = toggleState,
                         onSetEnabled = onSetEnabled,
-                        onSetupRequested = onSetupRequested,
                     )
                 }
             }
@@ -169,21 +167,18 @@ class ComponentDetailsSheetTest : ComposeTest() {
     }
 
     @Test
-    fun `without elevated access the toggle explains itself and routes to setup`() {
-        var setupRequests = 0
+    fun `without elevated access the toggle explains itself and leaves the routing to the caller`() {
         val values = mutableListOf<Boolean>()
         setSheet(
             exportedActivity,
             toggleState = ComponentToggleState.NEEDS_SETUP,
             onSetEnabled = { values += it },
-            onSetupRequested = { setupRequests++ },
         )
 
         composeTestRule.onNodeWithText("Requires root or ADB access — tap to set up").assertExists()
         composeTestRule.onNodeWithText("Disable component").performScrollTo().performClick()
 
-        setupRequests shouldBe 1
-        values shouldBe emptyList()
+        values shouldBe listOf(false)
     }
 
     @Test

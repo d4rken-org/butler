@@ -23,6 +23,7 @@ import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Star
+import androidx.compose.material.icons.twotone.Stars
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -49,6 +50,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.CaString
@@ -57,6 +60,8 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.LocalTooltipsEnabled
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.rememberIsPro
+import eu.darken.butler.common.settings.UpgradeBadge
 import eu.darken.butler.workspace.R
 import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
@@ -72,15 +77,18 @@ import eu.darken.butler.workspace.ui.modal.DismissWhenPaneUnfocused
  * @param actions List of actions to display
  * @param onActionClick Callback when an action is clicked
  * @param modifier Modifier to apply to the action bar
+ * @param isPro Hides the upgrade marker on [WorkspaceActionBarItem.isProFeature] actions
  */
 @Composable
 fun <T : WorkspaceActionBarItem> WorkspaceActionBar(
     actions: List<T>,
     onActionClick: (T) -> Unit,
     modifier: Modifier = Modifier,
+    isPro: Boolean = rememberIsPro(),
 ) {
     BoxWithConstraints(modifier = modifier) {
         val context = LocalContext.current
+        val upgradeLabel = stringResource(CommonR.string.app_name_upgrade_postfix)
         val availableWidth = maxWidth
         val visibleActions = actions.filter { it.isVisible }
 
@@ -154,6 +162,7 @@ fun <T : WorkspaceActionBarItem> WorkspaceActionBar(
                 displayedActions.forEach { action ->
                     // Keyed so tooltip state can't migrate between actions when the list reorders
                     key(action) {
+                        val showsUpgrade = action.isProFeature && !isPro
                         Box(
                             modifier = Modifier.size(48.dp),
                             contentAlignment = Alignment.Center,
@@ -174,6 +183,13 @@ fun <T : WorkspaceActionBarItem> WorkspaceActionBar(
                                         .clickable(
                                             enabled = action.isEnabled,
                                             onClick = { onActionClick(action) },
+                                        )
+                                        .then(
+                                            if (showsUpgrade) {
+                                                Modifier.semantics { stateDescription = upgradeLabel }
+                                            } else {
+                                                Modifier
+                                            }
                                         ),
                                     contentAlignment = Alignment.Center,
                                 ) {
@@ -188,6 +204,19 @@ fun <T : WorkspaceActionBarItem> WorkspaceActionBar(
                                         },
                                     )
                                 }
+                            }
+
+                            // Decorative: the clickable above announces it as the action's state.
+                            if (showsUpgrade) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.Stars,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .offset(x = (-4).dp, y = (-4).dp)
+                                        .size(14.dp),
+                                )
                             }
 
                             if (action.badge) {
@@ -265,6 +294,11 @@ fun <T : WorkspaceActionBarItem> WorkspaceActionBar(
                                             }
                                         )
                                     },
+                                    trailingIcon = if (action.isProFeature && !isPro) {
+                                        { UpgradeBadge() }
+                                    } else {
+                                        null
+                                    },
                                     enabled = action.isEnabled,
                                 )
                             }
@@ -293,6 +327,7 @@ private fun WorkspaceActionBarPreview() {
             override val isDestructive: Boolean = false,
             override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
             override val badge: Boolean = false,
+            override val isProFeature: Boolean = false,
         ) : WorkspaceActionBarItem
 
         // Basic action bar with a few actions
@@ -354,6 +389,24 @@ private fun WorkspaceActionBarPreview() {
                 ),
             ),
             onActionClick = {},
+        )
+
+        // A Pro feature while not Pro
+        WorkspaceActionBar(
+            actions = listOf(
+                SampleActionBarItem(
+                    Icons.TwoTone.Edit,
+                    CommonR.string.general_edit_action.toCaString(),
+                    isProFeature = true,
+                ),
+                SampleActionBarItem(
+                    Icons.TwoTone.Delete,
+                    CommonR.string.general_delete_action.toCaString(),
+                    isDestructive = true,
+                ),
+            ),
+            onActionClick = {},
+            isPro = false,
         )
     }
 }

@@ -25,6 +25,7 @@ sealed interface ComponentsActionBarItem : WorkspaceActionBarItem {
     ) : ComponentsActionBarItem {
         override val icon = Icons.TwoTone.Block
         override val label = R.string.apps_action_disable.toCaString()
+        override val isProFeature = true
         override val isVisible: Boolean
             get() = entries.isNotEmpty() && entries.all { it.enabledState == ComponentEnabledState.ENABLED }
     }

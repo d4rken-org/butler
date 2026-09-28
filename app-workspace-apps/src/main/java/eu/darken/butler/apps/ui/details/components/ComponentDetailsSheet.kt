@@ -43,6 +43,8 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.rememberClipboardCopy
+import eu.darken.butler.common.compose.rememberIsPro
+import eu.darken.butler.common.settings.UpgradeBadge
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
 /**
@@ -62,7 +64,6 @@ fun ComponentDetailsSheet(
     onLaunch: (() -> Unit)? = null,
     toggleState: ComponentToggleState = ComponentToggleState.UNSUPPORTED,
     onSetEnabled: (Boolean) -> Unit = {},
-    onSetupRequested: () -> Unit = {},
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -86,7 +87,6 @@ fun ComponentDetailsSheet(
                 onLaunch = onLaunch,
                 toggleState = toggleState,
                 onSetEnabled = onSetEnabled,
-                onSetupRequested = onSetupRequested,
             )
         }
     }
@@ -100,7 +100,6 @@ private fun ComponentDetailsContent(
     onLaunch: (() -> Unit)?,
     toggleState: ComponentToggleState = ComponentToggleState.UNSUPPORTED,
     onSetEnabled: (Boolean) -> Unit = {},
-    onSetupRequested: () -> Unit = {},
 ) {
     val copy = rememberClipboardCopy()
 
@@ -170,6 +169,7 @@ private fun ComponentDetailsContent(
             entry.enabledState != ComponentEnabledState.UNRESOLVED
         ) {
             val currentlyEnabled = entry.enabledState == ComponentEnabledState.ENABLED
+            val requiresUpgrade = currentlyEnabled && !rememberIsPro()
             ComponentActionRow(
                 icon = if (currentlyEnabled) Icons.TwoTone.Block else Icons.TwoTone.CheckCircle,
                 title = if (currentlyEnabled) {
@@ -181,14 +181,12 @@ private fun ComponentDetailsContent(
                     ComponentToggleState.NEEDS_SETUP -> stringResource(R.string.apps_components_action_requires_elevated)
                     else -> null
                 },
-                // Dimmed, not disabled: the row stays clickable and routes into setup.
+                // Dimmed, not disabled: the row stays clickable and the caller routes it into setup.
                 dimmed = toggleState == ComponentToggleState.NEEDS_SETUP,
+                requiresUpgrade = requiresUpgrade,
                 onClick = {
                     onDismiss()
-                    when (toggleState) {
-                        ComponentToggleState.NEEDS_SETUP -> onSetupRequested()
-                        else -> onSetEnabled(!currentlyEnabled)
-                    }
+                    onSetEnabled(!currentlyEnabled)
                 },
             )
         }
@@ -319,6 +317,7 @@ private fun ComponentActionRow(
     enabled: Boolean = true,
     subtitle: String? = null,
     dimmed: Boolean = false,
+    requiresUpgrade: Boolean = false,
     onClick: () -> Unit,
 ) {
     val contentAlpha = if (enabled && !dimmed) 1f else 0.38f
@@ -337,11 +336,17 @@ private fun ComponentActionRow(
             modifier = Modifier.size(24.dp),
         )
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha),
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha),
+                )
+                if (requiresUpgrade) UpgradeBadge()
+            }
             subtitle?.let {
                 Text(
                     text = it,
@@ -466,7 +471,6 @@ private fun ComponentDetailsSheetToggleNeedsSetupPreview() {
         ),
         onDismiss = {},
         toggleState = ComponentToggleState.NEEDS_SETUP,
-        onSetupRequested = {},
     )
 }
 

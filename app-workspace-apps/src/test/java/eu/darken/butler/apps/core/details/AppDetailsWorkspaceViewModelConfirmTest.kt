@@ -74,6 +74,7 @@ class AppDetailsWorkspaceViewModelConfirmTest {
                 }
             },
             operationFocusRequest = OperationFocusRequest(),
+            upgradeRepo = FakeUpgradeRepo(),
         )
     }
 

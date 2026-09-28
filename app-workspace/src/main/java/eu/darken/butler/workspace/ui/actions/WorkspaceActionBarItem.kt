@@ -18,6 +18,9 @@ interface WorkspaceActionBarItem {
     val group: Group get() = Group.PRIMARY
     val badge: Boolean get() = false
 
+    /** A Pro feature: the bar marks it with the upgrade badge while the user is not Pro. */
+    val isProFeature: Boolean get() = false
+
     /**
      * Items that must render as a labelled overflow menu row regardless of available width
      */

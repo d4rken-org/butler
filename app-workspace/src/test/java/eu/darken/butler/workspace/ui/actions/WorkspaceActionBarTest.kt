@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.actions
 
+import android.content.Context
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ContentCopy
@@ -11,8 +12,11 @@ import androidx.compose.material.icons.twotone.Star
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -21,10 +25,12 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
+import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.LocalTooltipsEnabled
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.R as CommonR
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import org.junit.Test
@@ -41,6 +47,7 @@ class WorkspaceActionBarTest : ComposeTest() {
         override val isDestructive: Boolean = false,
         override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         override val forceOverflow: Boolean = false,
+        override val isProFeature: Boolean = false,
     ) : WorkspaceActionBarItem {
         override val label: CaString = name.toCaString()
     }
@@ -56,6 +63,7 @@ class WorkspaceActionBarTest : ComposeTest() {
         actions: List<WorkspaceActionBarItem>,
         width: Int? = null,
         tooltipsEnabled: Boolean = true,
+        isPro: Boolean = true,
         onActionClick: (WorkspaceActionBarItem) -> Unit = {},
     ) {
         composeTestRule.setContent {
@@ -65,6 +73,7 @@ class WorkspaceActionBarTest : ComposeTest() {
                         modifier = if (width != null) Modifier.width(width.dp) else Modifier,
                         actions = actions,
                         onActionClick = onActionClick,
+                        isPro = isPro,
                     )
                 }
             }
@@ -187,4 +196,29 @@ class WorkspaceActionBarTest : ComposeTest() {
             withClue(name) { inBar + inMenu shouldBe 1 }
         }
     }
+
+    @Test
+    fun `a Pro feature carries the upgrade marker only while not Pro`() {
+        val upgradeLabel = ApplicationProvider.getApplicationContext<Context>()
+            .getString(CommonR.string.app_name_upgrade_postfix)
+        val disable = SampleAction(Icons.TwoTone.Delete, "Disable", isProFeature = true)
+
+        setBar(listOf(share, disable), isPro = false)
+        // One stop for TalkBack: the upgrade is the action's state, not a separate node.
+        composeTestRule.onNode(hasContentDescription("Disable") and hasStateDescription(upgradeLabel)).assertExists()
+        composeTestRule.onAllNodesWithContentDescription(upgradeLabel).assertCountEquals(0)
+    }
+
+    @Test
+    fun `a Pro user sees no upgrade marker`() {
+        val upgradeLabel = ApplicationProvider.getApplicationContext<Context>()
+            .getString(CommonR.string.app_name_upgrade_postfix)
+        val disable = SampleAction(Icons.TwoTone.Delete, "Disable", isProFeature = true)
+
+        setBar(listOf(share, disable), isPro = true)
+        composeTestRule.onAllNodes(hasStateDescription(upgradeLabel)).assertCountEquals(0)
+    }
+
+    private fun hasStateDescription(value: String) =
+        SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, value)
 }
