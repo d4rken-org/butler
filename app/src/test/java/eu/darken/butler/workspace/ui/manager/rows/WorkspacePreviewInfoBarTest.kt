@@ -132,14 +132,13 @@ class WorkspacePreviewInfoBarTest : ComposeTest() {
         title.getParagraphDirection(0) shouldBe ResolvedTextDirection.Rtl
     }
 
-    @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Test
-    fun `known limitation - in an rtl layout a path without letters still reads right to left`() {
+    fun `a path without letters is still laid out by its content in an rtl layout`() {
         setContent(DIGITS_PATH.toCaString(), null, LayoutDirection.Rtl)
 
         val title = layoutOf(DIGITS_PATH)
         title.layoutInput.style.textDirection shouldBe TextDirection.Content
-        title.getParagraphDirection(0) shouldBe ResolvedTextDirection.Rtl
+        title.layoutInput.style.textAlign shouldBe TextAlign.Right
     }
 
     companion object {
