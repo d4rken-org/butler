@@ -45,6 +45,7 @@ import eu.darken.butler.common.compose.ButlerTooltip
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.ui.editor.EditorPageAction
@@ -186,7 +187,7 @@ fun EditorToolbarCard(
 
                         Text(
                             text = subTitle.asComposable(),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodySmall.asMaybePathStyle(),
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
