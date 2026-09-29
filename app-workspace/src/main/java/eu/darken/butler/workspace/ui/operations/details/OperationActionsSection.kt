@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.Launch
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Handyman
@@ -35,6 +36,7 @@ internal fun OperationActionsSection(
     onCancel: (() -> Unit)? = null,
     onShareError: (() -> Unit)? = null,
     onHandleIssue: (() -> Unit)? = null,
+    onLaunchApp: (() -> Unit)? = null,
     onShowInHistory: (() -> Unit)? = null,
 ) {
     Card(
@@ -81,6 +83,13 @@ internal fun OperationActionsSection(
                         icon = Icons.TwoTone.Handyman,
                         label = stringResource(R.string.operations_details_handle_issue),
                         onClick = onHandleIssue,
+                    )
+                }
+                is OperationDisplay.State.Completed -> if (onLaunchApp != null) {
+                    ActionButton(
+                        icon = Icons.AutoMirrored.TwoTone.Launch,
+                        label = stringResource(R.string.operations_details_open_app_action),
+                        onClick = onLaunchApp,
                     )
                 }
                 else -> Unit
