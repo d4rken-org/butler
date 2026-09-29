@@ -197,6 +197,49 @@ class OperationHistoryPersistTest : BaseTest() {
     }
 
     @Test
+    fun `an install that reports its package keeps the container as its label and scope`() = runTest {
+        val container = LocalPath.build("/sdcard/Download/example.apk")
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(
+                    operationKind = Operation.Metadata.Kind.INSTALL,
+                    plan = planOver(container),
+                ),
+                state = TestCompletedState(
+                    report = Operation.Report.Packages(
+                        summary = "Example was installed.".toCaString(),
+                        outcomes = listOf(
+                            Operation.Report.Packages.Outcome(
+                                label = "Example".toCaString(),
+                                packageName = "com.example.app",
+                                status = Operation.Report.Packages.Outcome.Status.DONE,
+                            ),
+                        ),
+                    ),
+                ),
+            )
+        )
+
+        val entry = repo.observeEntry(id).first()!!
+        entry.packages shouldContainExactly listOf(
+            HistoryEntry.PackageOutcome(
+                label = "Example",
+                packageName = "com.example.app",
+                status = Operation.Report.Packages.Outcome.Status.DONE,
+                errorMessage = null,
+            ),
+        )
+        entry.primaryPath shouldBe container.path
+        entry.paths.shouldBeEmpty()
+        entry.affectedPathsCount shouldBe 0
+        entry.outcome shouldBe HistoryOutcome.COMPLETED
+        entry.partialErrorCount shouldBe 0
+
+        repo.getAttemptedPaths(id).paths shouldContain container.path
+        allScopePaths(id).map { it.path } shouldContain container.path
+    }
+
+    @Test
     fun `an Apps origin is stored as APPS`() = runTest {
         val workspaceId = Workspace.Id()
         val id = persist(
