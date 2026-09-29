@@ -594,9 +594,9 @@
 
     <!-- 권한 요청 카드 설명 -->
     <string name="explorer_permission_saf_workaround_description">Android가 이 폴더에 대한 접근을 제한합니다. 폴더 선택기로 접근을 허용하세요.</string>
-    <string name="explorer_permission_multiple_options_description">Android 폴더 선택기로 접근을 허용하거나, Root/Shizuku를 설정해 제한된 모든 폴더에 더 빠르게 접근할 수 있습니다.</string>
-    <string name="explorer_permission_setup_both_description">이 폴더는 상위 권한 접근이 필요합니다. 설정에서 Root 또는 Shizuku를 설치하고 구성하세요.</string>
-    <string name="explorer_permission_setup_shizuku_description">이 폴더는 Shizuku를 통한 상위 권한 접근이 필요합니다. Shizuku Manager를 설치하고 설정에서 구성하세요.</string>
+    <string name="explorer_permission_multiple_options_description">Android 폴더 선택기로 접근을 허용하거나, Root 또는 ADB 접근을 설정해 제한된 모든 폴더에 더 빠르게 접근할 수 있습니다.</string>
+    <string name="explorer_permission_setup_both_description">이 폴더는 상위 권한 접근이 필요합니다. 설정에서 Root 또는 ADB 접근을 구성하세요.</string>
+    <string name="explorer_permission_setup_shizuku_description">이 폴더는 ADB를 통한 상위 권한 접근이 필요합니다. 설정에서 ADB 접근을 구성하세요.</string>
     <string name="explorer_permission_setup_root_description">이 폴더는 Root 접근이 필요합니다. 기기가 루팅되어 있다면 설정에서 Root를 구성하세요.</string>
 
     <string name="explorer_permission_option_picker_title">스토리지 액세스 프레임워크</string>
@@ -604,7 +604,7 @@
     <string name="explorer_permission_option_picker_action">SAF 선택기 열기</string>
 
     <string name="explorer_permission_option_setup_title">전체 접근</string>
-    <string name="explorer_permission_option_setup_description">제한된 모든 폴더에 더 빠르게 접근하려면 Root 또는 Shizuku를 구성하세요.</string>
+    <string name="explorer_permission_option_setup_description">제한된 모든 폴더에 더 빠르게 접근하려면 Root 또는 ADB 접근을 구성하세요.</string>
     <string name="explorer_permission_option_setup_action">구성</string>
 
     <!-- 권한 요청 카드 - 저장공간 접근 옵션 -->
@@ -640,4 +640,13 @@
     <plurals name="explorer_settings_folder_sort_rules_value">
         <item quantity="other">폴더 %1$d개</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">위치 추가와 테스트는 무료입니다. 찾아보려면 Butler Pro가 필요합니다.</string>
+    <string name="explorer_network_upgrade_hint_locked">네트워크 저장공간을 찾아보려면 Butler Pro가 필요합니다.</string>
+    <string name="explorer_network_upgrade_hint_saved">저장했습니다. 네트워크 저장공간을 찾아보려면 Butler Pro가 필요합니다.</string>
+    <string name="explorer_permission_multiple_options_root_description">Android 폴더 선택기로 접근을 허용하거나, Root를 설정해 제한된 모든 폴더에 접근할 수 있습니다.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Android 폴더 선택기로 접근을 허용하거나, ADB 접근을 설정해 제한된 폴더에 더 빠르게 접근할 수 있습니다.</string>
+    <string name="explorer_permission_option_setup_root_description">이 폴더와 다른 제한된 폴더에 접근하려면 Root를 구성하세요.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">이 폴더를 열려면 ADB 접근을 구성하세요.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">휴지통에 이 기간 동안 있던 항목을 자동으로 삭제합니다</string>
+    <string name="explorer_settings_trash_max_size_summary">각 저장공간 위치에서 휴지통이 사용할 수 있는 공간</string>
 </resources>

@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">پیش‌نمایش محدود به %1$s خط اول این فایل است.</string>
     <string name="viewer_text_truncated_width">خطوط بلند در این پیش‌نمایش کوتاه می‌شوند.</string>
     <string name="viewer_text_unreadable_label">این فایل نتوانست خوانده شود</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">پس از حذف فایلی که از یک پوشه باز شده، به‌جای بستن نمایشگر، فایل بعدی همان پوشه نمایش داده می‌شود.</string>
+    <string name="viewer_settings_show_next_after_delete_title">نمایش فایل بعدی پس از حذف</string>
+    <string name="viewer_settings_title">نمایشگر</string>
 </resources>

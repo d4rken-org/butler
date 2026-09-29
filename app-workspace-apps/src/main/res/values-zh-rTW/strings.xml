@@ -78,8 +78,8 @@
     <string name="apps_path_internal_data_label">內部資料</string>
     <string name="apps_path_external_data_label">外部儲存空間</string>
     <string name="apps_path_requires_root_label">需要 root</string>
-    <string name="apps_path_requires_shizuku_label">需要 Shizuku</string>
-    <string name="apps_path_requires_root_or_shizuku_label">需要 root 或 Shizuku</string>
+    <string name="apps_path_requires_shizuku_label">需要 ADB 存取</string>
+    <string name="apps_path_requires_root_or_shizuku_label">需要 root 或 ADB 存取</string>
     <string name="apps_path_requires_access_label">需要額外存取權限</string>
     <string name="apps_storage_breakdown_label">儲存空間明細</string>
     <string name="apps_storage_app_label">應用程式</string>
@@ -225,7 +225,7 @@
     <string name="apps_components_copy_package_action">複製套件名稱</string>
     <string name="apps_components_action_enable">啟用元件</string>
     <string name="apps_components_action_disable">停用元件</string>
-    <string name="apps_components_action_requires_elevated">需要 root 或 Shizuku——點按以設定</string>
+    <string name="apps_components_action_requires_elevated">需要 root 或 ADB 存取——點按以設定</string>
     <string name="apps_components_confirm_enable_title">要啟用這些元件嗎？</string>
     <string name="apps_components_confirm_disable_title">要停用這些元件嗎？</string>
     <string name="apps_components_confirm_enable_message">以下元件將會被啟用：</string>

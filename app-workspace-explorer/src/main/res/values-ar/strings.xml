@@ -751,9 +751,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">يقيّد Android الوصول إلى هذا المجلد. استخدم أداة اختيار المجلدات لمنح الوصول.</string>
-    <string name="explorer_permission_multiple_options_description">يمكنك منح الوصول باستخدام أداة اختيار المجلدات في Android أو إعداد Root/Shizuku للوصول الأسرع إلى جميع المجلدات المقيدة.</string>
-    <string name="explorer_permission_setup_both_description">يتطلب هذا المجلد وصولًا مرتفعًا. ثبّت وأعدّ Root أو Shizuku في الإعداد.</string>
-    <string name="explorer_permission_setup_shizuku_description">يتطلب هذا المجلد وصولًا مرتفعًا عبر Shizuku. ثبّت Shizuku Manager وأعدّه في الإعداد.</string>
+    <string name="explorer_permission_multiple_options_description">يمكنك منح الوصول باستخدام أداة اختيار المجلدات في Android، أو إعداد Root أو وصول ADB للوصول الأسرع إلى جميع المجلدات المقيدة.</string>
+    <string name="explorer_permission_setup_both_description">يتطلب هذا المجلد وصولًا مرتفعًا. أعدّ Root أو وصول ADB في الإعداد.</string>
+    <string name="explorer_permission_setup_shizuku_description">يتطلب هذا المجلد وصولًا مرتفعًا عبر ADB. أعدّ وصول ADB في الإعداد.</string>
     <string name="explorer_permission_setup_root_description">يتطلب هذا المجلد وصول Root. أعدّ Root في الإعداد إذا كان جهازك يتمتع بصلاحيات Root.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -761,7 +761,7 @@
     <string name="explorer_permission_option_picker_action">فتح أداة اختيار SAF</string>
 
     <string name="explorer_permission_option_setup_title">وصول كامل</string>
-    <string name="explorer_permission_option_setup_description">أعدّ Root أو Shizuku للوصول الأسرع إلى جميع المجلدات المقيدة.</string>
+    <string name="explorer_permission_option_setup_description">أعدّ Root أو وصول ADB للوصول الأسرع إلى جميع المجلدات المقيدة.</string>
     <string name="explorer_permission_option_setup_action">إعداد</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -817,4 +817,13 @@
         <item quantity="many">%1$d مجلدًا</item>
         <item quantity="other">%1$d مجلد</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">إضافة موقع واختباره مجانيان. أما تصفحه فيتطلب Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">تصفح تخزين الشبكة يتطلب Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">تم الحفظ. تصفح تخزين الشبكة يتطلب Butler Pro.</string>
+    <string name="explorer_permission_multiple_options_root_description">يمكنك منح الوصول باستخدام أداة اختيار المجلدات في Android، أو إعداد Root للوصول إلى جميع المجلدات المقيدة.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">يمكنك منح الوصول باستخدام أداة اختيار المجلدات في Android، أو إعداد وصول ADB للوصول الأسرع إلى المجلدات المقيدة.</string>
+    <string name="explorer_permission_option_setup_root_description">أعدّ Root للوصول إلى هذا المجلد وغيره من المجلدات المقيدة.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">أعدّ وصول ADB لفتح هذا المجلد.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">حذف العناصر تلقائيًا بعد بقائها في سلة المهملات لهذه المدة</string>
+    <string name="explorer_settings_trash_max_size_summary">المساحة التي يمكن لسلة المهملات استخدامها في كل موقع تخزين</string>
 </resources>

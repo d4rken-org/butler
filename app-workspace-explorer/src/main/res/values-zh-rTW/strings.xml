@@ -594,9 +594,9 @@
 
     <!-- 權限請求卡片說明 -->
     <string name="explorer_permission_saf_workaround_description">Android 限制了對此資料夾的存取權，請使用資料夾選擇工具來授予存取權。</string>
-    <string name="explorer_permission_multiple_options_description">您可以使用 Android 的資料夾選擇工具授予存取權，或設定 Root／Shizuku 以更快速存取所有受限資料夾。</string>
-    <string name="explorer_permission_setup_both_description">此資料夾需要更高的存取權限，請在設定精靈中安裝並設定 Root 或 Shizuku。</string>
-    <string name="explorer_permission_setup_shizuku_description">此資料夾需要透過 Shizuku 取得更高的存取權限，請安裝 Shizuku Manager 並在設定精靈中完成設定。</string>
+    <string name="explorer_permission_multiple_options_description">你可以使用 Android 的資料夾選擇工具授予存取權，或設定 Root 或 ADB 存取，以更快速存取所有受限資料夾。</string>
+    <string name="explorer_permission_setup_both_description">此資料夾需要更高的存取權限，請在設定精靈中設定 Root 或 ADB 存取。</string>
+    <string name="explorer_permission_setup_shizuku_description">此資料夾需要透過 ADB 取得更高的存取權限，請在設定精靈中設定 ADB 存取。</string>
     <string name="explorer_permission_setup_root_description">此資料夾需要 Root 存取權限，如果您的裝置已取得 Root，請在設定精靈中設定 Root。</string>
 
     <string name="explorer_permission_option_picker_title">儲存空間存取架構</string>
@@ -604,7 +604,7 @@
     <string name="explorer_permission_option_picker_action">開啟 SAF 選擇工具</string>
 
     <string name="explorer_permission_option_setup_title">完整存取權</string>
-    <string name="explorer_permission_option_setup_description">設定 Root 或 Shizuku 以更快速存取所有受限資料夾。</string>
+    <string name="explorer_permission_option_setup_description">設定 Root 或 ADB 存取，以更快速存取所有受限資料夾。</string>
     <string name="explorer_permission_option_setup_action">設定</string>
 
     <!-- 權限請求卡片－儲存空間存取選項 -->
@@ -640,4 +640,13 @@
     <plurals name="explorer_settings_folder_sort_rules_value">
         <item quantity="other">%1$d 個資料夾</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">新增與測試位置皆可免費使用，瀏覽則需要 Butler Pro。</string>
+    <string name="explorer_network_upgrade_hint_locked">瀏覽網路儲存空間需要 Butler Pro。</string>
+    <string name="explorer_network_upgrade_hint_saved">已儲存。瀏覽網路儲存空間需要 Butler Pro。</string>
+    <string name="explorer_permission_multiple_options_root_description">你可以使用 Android 的資料夾選擇工具授予存取權，或設定 Root 以存取所有受限資料夾。</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">你可以使用 Android 的資料夾選擇工具授予存取權，或設定 ADB 存取，以更快速存取受限資料夾。</string>
+    <string name="explorer_permission_option_setup_root_description">設定 Root 以存取此資料夾及其他受限資料夾。</string>
+    <string name="explorer_permission_option_setup_shizuku_description">設定 ADB 存取以開啟此資料夾。</string>
+    <string name="explorer_settings_trash_auto_delete_summary">項目在回收桶中放置這麼久後會自動刪除</string>
+    <string name="explorer_settings_trash_max_size_summary">回收桶在每個儲存位置可使用的空間大小</string>
 </resources>

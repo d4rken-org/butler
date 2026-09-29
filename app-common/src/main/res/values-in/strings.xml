@@ -197,10 +197,10 @@
     <string name="general_error_cant_access_msg">Tidak dapat mengakses %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s tidak dapat dijelajahi secara langsung: penyimpanan tempatnya berada hanya mendukung pembacaan berurutan, tetapi format arsip ini memerlukan akses acak.</string>
     <string name="general_error_root_unavailable">Akses root tidak tersedia.</string>
-    <string name="general_error_elevated_access_required">Operasi ini memerlukan akses tingkat lanjut. Konfigurasikan Root atau Shizuku di Penyiapan.</string>
+    <string name="general_error_elevated_access_required">Operasi ini memerlukan akses tingkat lanjut. Konfigurasikan Root atau akses ADB di Penyiapan.</string>
     <string name="general_error_no_compatible_app_found_msg">Tidak ditemukan aplikasi yang kompatibel untuk menangani permintaan ini.</string>
     <string name="general_error_ipc_deadobject_title">Koneksi layanan terputus</string>
-    <string name="general_error_ipc_deadobject_description">Koneksi ke layanan penting (misalnya Magisk, Shizuku, atau layanan tingkat sistem lainnya) terputus secara tak terduga. Silakan mulai ulang perangkat Anda. Jika masalah ini berlanjut, periksa pembaruan atau hubungi saya agar dapat saya perbaiki.</string>
+    <string name="general_error_ipc_deadobject_description">Koneksi ke layanan penting (misalnya Magisk atau layanan tingkat sistem lainnya) terputus secara tak terduga. Silakan mulai ulang perangkat Anda. Jika masalah ini berlanjut, periksa pembaruan atau hubungi saya agar dapat saya perbaiki.</string>
 
     <string name="ui_theme_mode_dark_label">Gelap</string>
     <string name="ui_theme_mode_light_label">Terang</string>
@@ -238,7 +238,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">Statistik penggunaan</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Akses ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Akses notifikasi</string>
     <string name="setup_manage_storage_card_title">Kelola penyimpanan eksternal</string>
@@ -294,7 +294,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Gunakan beberapa panel untuk membandingkan berkas secara berdampingan.</string>
     <string name="common_tip_different_folders">Buka folder berbeda di setiap panel untuk memudahkan pengelolaan berkas.</string>
-    <string name="common_tip_switch_layouts">Beralih antar tata letak panel di pengelola pengaturan tab.</string>
-    <string name="common_tip_elevated_access">Aktifkan root atau Shizuku di Penyiapan untuk operasi berkas tingkat lanjut.</string>
+    <string name="common_tip_switch_layouts">Beralih tata letak panel dari Layout di menu Butler.</string>
+    <string name="common_tip_elevated_access">Aktifkan root atau akses ADB di Penyiapan untuk operasi berkas tingkat lanjut.</string>
     <string name="common_tip_breadcrumb_home">Tekan lama breadcrumb Explorer untuk menjadikannya direktori beranda Anda.</string>
 </resources>

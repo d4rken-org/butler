@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">Geïnstalleerd</string>
     <string name="developer_options_root_available_label">Beschikbaar</string>
     <string name="developer_options_root_base_check_label">Basiscontrole</string>
-    <string name="developer_options_shizuku_test_action">Shizuku testen</string>
+    <string name="developer_options_shizuku_test_action">ADB-toegang testen</string>
     <string name="developer_options_shizuku_installed_label">Geïnstalleerd</string>
     <string name="developer_options_shizuku_granted_label">Machtigingen</string>
     <string name="developer_options_shizuku_compatible_label">Compatibel</string>

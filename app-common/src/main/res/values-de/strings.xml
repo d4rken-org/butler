@@ -309,7 +309,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Nutze mehrere Bereiche, um Dateien nebeneinander zu vergleichen.</string>
     <string name="common_tip_different_folders">Öffne in jedem Bereich einen anderen Ordner, um Dateien einfach zu verwalten.</string>
-    <string name="common_tip_switch_layouts">Wechsle die Anordnung der Bereiche in den Tab-Einstellungen.</string>
+    <string name="common_tip_switch_layouts">Wechsle die Anordnung der Bereiche über Layout im Butler-Menü.</string>
     <string name="common_tip_elevated_access">Aktiviere Root-Zugriff oder ADB-Zugriff in der Einrichtung für erweiterte Dateivorgänge.</string>
     <string name="common_tip_breadcrumb_home">Halte einen Abschnitt der Pfadleiste im Explorer gedrückt, um ihn als Dein Startverzeichnis festzulegen.</string>
 </resources>

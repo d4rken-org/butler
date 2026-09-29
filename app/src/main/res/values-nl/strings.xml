@@ -44,7 +44,9 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Voeg veelbezochte paden automatisch toe als snelkoppeling</string>
     <string name="shortcuts_settings_last_accessed_title">Laatst geopend</string>
     <string name="shortcuts_settings_max_count_title">Maximum aantal snelkoppelingen</string>
+    <string name="shortcuts_settings_max_count_summary">Maximum aantal snelkoppelingen dat op het startscherm wordt getoond</string>
     <string name="shortcuts_settings_min_access_title">Minimum aantal keer geopend</string>
+    <string name="shortcuts_settings_min_access_summary">Aantal keer dat een pad geopend moet zijn voordat het een snelkoppeling wordt</string>
     <string name="shortcuts_settings_current_title">Huidige snelkoppelingen</string>
     <string name="shortcuts_settings_current_subtitle">%d snelkoppelingen bijgehouden</string>
     <string name="shortcuts_settings_clear_title">Snelkoppelingsgeschiedenis wissen</string>
@@ -58,7 +60,7 @@
     <string name="shortcuts_settings_min_dialog_message">Hoe vaak een pad geopend moet zijn voordat het als snelkoppeling verschijnt (1–10)</string>
 
     <string name="setup_usagestats_title">Gebruiksstatistieken</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB-toegang</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Meldingstoegang</string>
     <string name="setup_manage_storage_card_title">Externe opslag beheren</string>
@@ -69,7 +71,7 @@
     <string name="setup_help_description">Help</string>
 
     <string name="setup_root_description">Geeft toegang tot systeembestanden en beveiligde mappen voor geavanceerd bestandsbeheer. Ontgrendelt het volledige potentieel van Butler, inclusief toegang tot app-gegevens en systeemwijzigingen. Het toestel moet geroot zijn.</string>
-    <string name="setup_shizuku_description">Alternatief voor root dat bevoorrechte bestandsbewerkingen biedt via een beveiligde API. Geeft toegang tot beveiligde mappen zonder traditionele root. Vereist dat de Shizuku-app is geïnstalleerd en actief is.</string>
+    <string name="setup_shizuku_description">Alternatief voor root dat bevoorrechte bestandsbewerkingen biedt via een beveiligde API. Geeft toegang tot beveiligde mappen zonder traditionele root. Vereist dat Porter of Shizuku is geïnstalleerd en actief.</string>
     <string name="setup_notification_description">Toont updates voor bestandsbewerkingen, achtergrondtaken en overdrachtsvoortgang. Houdt je op de hoogte wanneer bewerkingen voltooid zijn of er fouten optreden.</string>
     <string name="setup_usagestats_description">Analyseert het opslaggebruik van apps om grote bestanden te vinden en ruimte effectief te beheren. Alle gegevens blijven op je toestel en worden nooit verzonden.</string>
     <string name="setup_storage_description">Volledige toegang tot alle opslag van het toestel voor snelle bestandsbewerkingen en batchverwerking. Maakt uitgebreid bestandsbeheer mogelijk zonder herhaalde machtigingsverzoeken.</string>
@@ -78,7 +80,7 @@
     <string name="setup_grant_access_label">Toegang verlenen</string>
     <string name="setup_access_granted_label">Toegang verleend</string>
     <string name="setup_use_root_label">Root gebruiken indien beschikbaar</string>
-    <string name="setup_use_shizuku_label">Shizuku gebruiken indien beschikbaar</string>
+    <string name="setup_use_shizuku_label">ADB-toegang gebruiken indien beschikbaar</string>
 
     <string name="setup_status_checking">Controleren…</string>
     <string name="setup_status_completed">Geconfigureerd</string>
@@ -90,6 +92,14 @@
     <string name="setup_status_connecting">Verbinden…</string>
     <string name="setup_status_connection_failed">Verbinding mislukt</string>
     <string name="setup_status_unavailable">Niet beschikbaar</string>
+    <string name="setup_status_permission_denied">Toestemming geweigerd</string>
+    <string name="setup_adb_status_manager_update_required">Update vereist</string>
+    <string name="setup_adb_status_butler_update_required">Butler-update vereist</string>
+    <string name="setup_adb_status_connected_via">Verbonden via %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">Nog niet toegestaan door %1$s</string>
+    <string name="setup_adb_status_denied_in">Geweigerd in %1$s</string>
+    <string name="setup_adb_open_manager_action">Open %1$s</string>
+    <string name="setup_adb_install_manager_action">Installeer %1$s</string>
 
     <!-- Foutopsporingslog -->
     <string name="debug_notification_channel_label">Foutopsporingsmeldingen</string>
@@ -388,6 +398,7 @@
     <!-- Tabblad-navigatiebalk -->
     <string name="workspace_pane_assign_action">Toewijzen aan deelvenster %1$d</string>
     <string name="workspace_pane_show_action">Tonen</string>
+    <string name="workspace_pane_menu_action">Toon tabbladopties</string>
     <string name="workspace_pane_close_action">Sluiten</string>
     <string name="workspace_pane_unassign_action">Verwijderen uit deelvenster</string>
     <string name="workspace_dragging_description">Wordt gesleept</string>
@@ -408,6 +419,7 @@
     <string name="explorer_settings_subtitle">Stel het gedrag van de bestandsverkenner in.</string>
     <string name="searcher_settings_subtitle">Stel het zoekgedrag in.</string>
     <string name="editor_settings_subtitle">Stel het gedrag van de teksteditor in.</string>
+    <string name="viewer_settings_subtitle">Configureer het gedrag van de bestandsviewer.</string>
     <string name="history_settings_subtitle">Bewaren en wissen van bewerkingsgeschiedenis.</string>
     <string name="clipboard_settings_subtitle">Stel het gedrag van het klembord in.</string>
 
@@ -523,4 +535,6 @@
     <string name="review_app_dismiss_action">Misschien later</string>
     <string name="review_app_review_action">Beoordelen</string>
 
+    <string name="acknowledgement_porter_subtitle">Geeft Android-apps ADB-toegang via de Shizuku-API\'s, met optionele rootondersteuning. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
 </resources>

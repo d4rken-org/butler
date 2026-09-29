@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">ดูตัวอย่างจำกัดเฉพาะบรรทัด %1$s แรกของไฟล์นี้</string>
     <string name="viewer_text_truncated_width">บรรทัดยาวมีการย่อลงในการดูตัวอย่างนี้</string>
     <string name="viewer_text_unreadable_label">ไม่สามารถอ่านไฟล์นี้ได้</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">หลังจากลบไฟล์ที่เปิดจากโฟลเดอร์ ให้แสดงไฟล์ถัดไปในโฟลเดอร์นั้นแทนการปิดตัวดูไฟล์</string>
+    <string name="viewer_settings_show_next_after_delete_title">แสดงไฟล์ถัดไปหลังลบ</string>
+    <string name="viewer_settings_title">ตัวดูไฟล์</string>
 </resources>

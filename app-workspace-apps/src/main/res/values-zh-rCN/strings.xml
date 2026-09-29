@@ -78,8 +78,8 @@
     <string name="apps_path_internal_data_label">内部数据</string>
     <string name="apps_path_external_data_label">外部存储</string>
     <string name="apps_path_requires_root_label">需要 root</string>
-    <string name="apps_path_requires_shizuku_label">需要 Shizuku</string>
-    <string name="apps_path_requires_root_or_shizuku_label">需要 root 或 Shizuku</string>
+    <string name="apps_path_requires_shizuku_label">需要 ADB 访问权限</string>
+    <string name="apps_path_requires_root_or_shizuku_label">需要 root 或 ADB 访问权限</string>
     <string name="apps_path_requires_access_label">需要额外的访问权限</string>
     <string name="apps_storage_breakdown_label">存储明细</string>
     <string name="apps_storage_app_label">应用</string>
@@ -224,7 +224,7 @@
     <string name="apps_components_copy_package_action">复制软件包名称</string>
     <string name="apps_components_action_enable">启用组件</string>
     <string name="apps_components_action_disable">禁用组件</string>
-    <string name="apps_components_action_requires_elevated">需要 root 或 Shizuku，点按以设置</string>
+    <string name="apps_components_action_requires_elevated">需要 root 或 ADB 访问权限，点按以设置</string>
     <string name="apps_components_confirm_enable_title">启用组件？</string>
     <string name="apps_components_confirm_disable_title">禁用组件？</string>
     <string name="apps_components_confirm_enable_message">以下组件将被启用：</string>

@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">تقتصر المعاينة على أول %1$s أسطر من هذا الملف.</string>
     <string name="viewer_text_truncated_width">يتم تقصير الأسطر الطويلة في هذه المعاينة.</string>
     <string name="viewer_text_unreadable_label">تعذر قراءة هذا الملف</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">بعد حذف ملف فُتح من مجلد، اعرض الملف التالي في ذلك المجلد بدلًا من إغلاق العارض.</string>
+    <string name="viewer_settings_show_next_after_delete_title">عرض الملف التالي بعد الحذف</string>
+    <string name="viewer_settings_title">العارض</string>
 </resources>

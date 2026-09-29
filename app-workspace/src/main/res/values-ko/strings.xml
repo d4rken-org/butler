@@ -352,7 +352,7 @@
     <string name="workspace_settings_layout_mode_classic">클래식</string>
     <string name="workspace_settings_layout_mode_classic_desc">탭 레일 없이 한 번에 하나의 패널만 표시합니다.</string>
     <string name="workspace_settings_layout_mode_adaptive">적응형</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">탭 레일과 화면에 맞는 만큼의 패널을 표시합니다. 레일의 Butler 메뉴에서 레이아웃을 고정할 수 있습니다.</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">탭 레일과 화면에 맞는 만큼의 패널을 표시합니다. Butler 메뉴에서 레이아웃을 고정할 수 있습니다.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">적응형 (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">탭 레일이 있는 단일 패널</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">탭 패널 하나와 다중 패널 레이아웃의 탭 레일을 함께 표시합니다. 레일이 화면의 일부를 차지합니다.</string>
@@ -443,4 +443,15 @@
     <plurals name="workspace_operation_restore_summary">
         <item quantity="other">항목 %d개 복원됨</item>
     </plurals>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">탭 레일과 화면에 맞는 만큼의 패널.</string>
+    <string name="workspace_open_selection_each_in_tab_action">각각 별도 탭에서 열기</string>
+    <string name="workspace_open_selection_each_in_tab_description">선택한 항목을 모두 각각 별도 탭에서 엽니다. 폴더는 파일 탐색기 탭으로 열립니다.</string>
+    <plurals name="workspace_open_selection_title">
+        <item quantity="other">항목 %d개 열기</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">여기서 보기</string>
+    <string name="workspace_open_selection_view_here_description">선택한 파일을 이 패널 위의 뷰어에서 보여줍니다. 이전과 다음은 선택한 파일 안에서만 이동합니다.</string>
+    <string name="workspace_open_selection_view_in_tab_action">새 탭에서 보기</string>
+    <string name="workspace_open_selection_view_in_tab_description">선택한 파일을 별도 탭의 뷰어에서 보여줍니다. 이전과 다음은 선택한 파일 안에서만 이동합니다.</string>
+    <string name="workspace_open_selection_viewer_unavailable">폴더는 뷰어에서 볼 수 없습니다.</string>
 </resources>

@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">Dostęp root jest wymagany do przeglądania tej lokalizacji. Włącz dostęp root w ustawieniach aplikacji Butler.</string>
-    <string name="provider_documents_error_requires_adb">Dostęp ADB/Shizuku jest wymagany do przeglądania tej lokalizacji. Włącz Shizuku w ustawieniach aplikacji Butler.</string>
+    <string name="provider_documents_error_requires_adb">Dostęp ADB jest wymagany do przeglądania tej lokalizacji. Włącz go w konfiguracji Butler.</string>
     <string name="provider_documents_error_requires_storage">Uprawnienie do pamięci jest wymagane do przeglądania tej lokalizacji. Udziel uprawnienia w ustawieniach aplikacji Butler.</string>
     <string name="provider_documents_error_requires_permissions">Dodatkowe uprawnienia są wymagane do przeglądania tej lokalizacji. Sprawdź ustawienia aplikacji Butler.</string>
     <string name="provider_documents_error_generic">Nie można uzyskać dostępu do tej lokalizacji. Sprawdź aplikację Butler, aby zapoznać się z opcjami dostępu.</string>

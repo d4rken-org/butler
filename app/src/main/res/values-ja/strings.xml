@@ -58,7 +58,7 @@
     <string name="shortcuts_settings_min_dialog_message">ショートカットとして表示されるまでに必要なアクセス回数(1〜10)</string>
 
     <string name="setup_usagestats_title">使用状況統計</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADBアクセス</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">通知アクセス</string>
     <string name="setup_manage_storage_card_title">外部ストレージの管理</string>
@@ -69,7 +69,7 @@
     <string name="setup_help_description">ヘルプ</string>
 
     <string name="setup_root_description">システムファイルや保護されたディレクトリへのアクセスを可能にし、高度なファイル管理を実現します。アプリデータへのアクセスやシステム変更など、Butlerの全機能を利用できるようになります。デバイスがroot化されている必要があります。</string>
-    <string name="setup_shizuku_description">rootの代替として、安全なAPIを通じて特権的なファイル操作を提供します。従来のroot化なしに制限されたディレクトリへアクセスできます。Shizukuアプリのインストールと起動が必要です。</string>
+    <string name="setup_shizuku_description">rootの代替として、安全なAPIを通じて特権的なファイル操作を提供します。従来のroot化なしに制限されたディレクトリへアクセスできます。PorterまたはShizukuのインストールと起動が必要です。</string>
     <string name="setup_notification_description">ファイル操作、バックグラウンドタスク、転送の進捗状況を通知します。操作の完了やエラー発生時にお知らせします。</string>
     <string name="setup_usagestats_description">アプリのストレージ使用状況を分析し、大きなファイルの特定と容量管理に役立てます。データはすべて端末内に留まり、外部へ送信されることはありません。</string>
     <string name="setup_storage_description">端末内の全ストレージへの完全なアクセスにより、高速なファイル操作と一括処理を実現します。権限確認を繰り返すことなく、包括的なファイル管理が可能になります。</string>
@@ -78,7 +78,7 @@
     <string name="setup_grant_access_label">アクセスを許可</string>
     <string name="setup_access_granted_label">アクセス許可済み</string>
     <string name="setup_use_root_label">利用可能な場合はrootを使用</string>
-    <string name="setup_use_shizuku_label">利用可能な場合はShizukuを使用</string>
+    <string name="setup_use_shizuku_label">利用可能な場合はADBアクセスを使用</string>
 
     <string name="setup_status_checking">確認中…</string>
     <string name="setup_status_completed">設定済み</string>
@@ -516,4 +516,18 @@
     <string name="review_app_dismiss_action">後で</string>
     <string name="review_app_review_action">レビューを書く</string>
 
+    <string name="acknowledgement_porter_subtitle">Shizuku API を通じて Android アプリに ADB アクセスを提供し、root にも対応できます。(APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="setup_adb_install_manager_action">%1$sをインストール</string>
+    <string name="setup_adb_open_manager_action">%1$sを開く</string>
+    <string name="setup_adb_status_butler_update_required">Butlerのアップデートが必要です</string>
+    <string name="setup_adb_status_connected_via">%1$s経由で接続済み</string>
+    <string name="setup_adb_status_denied_in">%1$sで拒否されました</string>
+    <string name="setup_adb_status_manager_update_required">アップデートが必要です</string>
+    <string name="setup_adb_status_not_allowed_yet">%1$sでまだ許可されていません</string>
+    <string name="setup_status_permission_denied">権限が拒否されました</string>
+    <string name="shortcuts_settings_max_count_summary">ランチャーに表示するショートカットの最大数</string>
+    <string name="shortcuts_settings_min_access_summary">パスがショートカットになるまでに開く必要がある回数</string>
+    <string name="viewer_settings_subtitle">ファイルビューアの動作を設定します。</string>
+    <string name="workspace_pane_menu_action">タブのオプションを表示</string>
 </resources>

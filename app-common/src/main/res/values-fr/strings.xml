@@ -210,10 +210,10 @@
     <string name="general_error_cant_access_msg">Impossible d’accéder à %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s ne peut pas être parcouru directement : le support sur lequel il se trouve ne prend en charge que la lecture séquentielle, alors que ce format d’archive nécessite un accès aléatoire.</string>
     <string name="general_error_root_unavailable">L’accès root n’est pas disponible.</string>
-    <string name="general_error_elevated_access_required">Cette opération nécessite des privilèges élevés. Configurez Root ou Shizuku dans la configuration.</string>
+    <string name="general_error_elevated_access_required">Cette opération nécessite des privilèges élevés. Configure l’accès root ou ADB dans la configuration.</string>
     <string name="general_error_no_compatible_app_found_msg">Aucune application compatible trouvée pour traiter cette demande.</string>
     <string name="general_error_ipc_deadobject_title">Connexion au service perdue</string>
-    <string name="general_error_ipc_deadobject_description">La connexion à un service critique (par exemple Magisk, Shizuku ou un autre service système) a été perdue de manière inattendue. Veuillez redémarrer votre appareil. Si le problème persiste, recherchez des mises à jour ou contactez-moi afin que je puisse le corriger.</string>
+    <string name="general_error_ipc_deadobject_description">La connexion à un service critique (par exemple Magisk ou un autre service système) a été perdue de manière inattendue. Redémarre ton appareil. Si le problème persiste, recherche des mises à jour ou contacte-moi pour que je puisse le corriger.</string>
 
     <string name="ui_theme_mode_dark_label">Sombre</string>
     <string name="ui_theme_mode_light_label">Clair</string>
@@ -251,7 +251,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">Statistiques d’utilisation</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Accès ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Accès aux notifications</string>
     <string name="setup_manage_storage_card_title">Gérer le stockage externe</string>
@@ -310,7 +310,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Utilisez plusieurs volets pour comparer des fichiers côte à côte.</string>
     <string name="common_tip_different_folders">Ouvrez un dossier différent dans chaque volet pour gérer vos fichiers plus facilement.</string>
-    <string name="common_tip_switch_layouts">Changez de disposition des volets dans le gestionnaire des paramètres de l’onglet.</string>
-    <string name="common_tip_elevated_access">Activez Root ou Shizuku dans la configuration pour des opérations avancées sur les fichiers.</string>
+    <string name="common_tip_switch_layouts">Change la disposition des volets via Disposition dans le menu Butler.</string>
+    <string name="common_tip_elevated_access">Active l’accès root ou ADB dans la configuration pour des opérations avancées sur les fichiers.</string>
     <string name="common_tip_breadcrumb_home">Appuyez longuement sur un élément du fil d’Ariane de l’Explorateur pour le définir comme répertoire de départ.</string>
 </resources>

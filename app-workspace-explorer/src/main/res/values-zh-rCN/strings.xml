@@ -14,6 +14,8 @@
     <string name="explorer_settings_trash_enabled_title">启用回收站</string>
     <string name="explorer_settings_trash_enabled_desc">将删除的文件移至回收站，而不是永久删除</string>
     <string name="explorer_settings_trash_auto_delete_title">自动删除时限</string>
+    <string name="explorer_settings_trash_auto_delete_summary">项目在回收站中存放这么久后自动删除</string>
+    <string name="explorer_settings_trash_max_size_summary">回收站在每个存储位置上可使用的空间大小</string>
     <string name="explorer_settings_trash_auto_delete_value">%d 天</string>
     <string name="explorer_settings_trash_max_size_title">每个存储位置的最大容量</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
@@ -280,6 +282,9 @@
     <string name="explorer_network_remove_confirmation_message">Butler 将忘记服务器详情和已保存的密码，服务器上的内容不会被删除。</string>
 
     <!-- Network Storage Form -->
+    <string name="explorer_network_form_pro_notice">添加和测试位置是免费的，浏览它需要 Butler Pro。</string>
+    <string name="explorer_network_upgrade_hint_locked">浏览网络存储需要 Butler Pro。</string>
+    <string name="explorer_network_upgrade_hint_saved">已保存。浏览网络存储需要 Butler Pro。</string>
     <string name="explorer_network_form_add_title">添加网络存储</string>
     <string name="explorer_network_form_edit_title">编辑网络存储</string>
     <string name="explorer_network_form_label_label">名称（可选）</string>
@@ -591,9 +596,11 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android 限制了对此文件夹的访问。请使用文件夹选择器授予访问权限。</string>
-    <string name="explorer_permission_multiple_options_description">您可以使用 Android 的文件夹选择器授予访问权限，或设置 Root/Shizuku 以更快地访问所有受限文件夹。</string>
-    <string name="explorer_permission_setup_both_description">此文件夹需要提升的访问权限。请在设置中安装并配置 Root 或 Shizuku。</string>
-    <string name="explorer_permission_setup_shizuku_description">此文件夹需要通过 Shizuku 获得提升的访问权限。请安装 Shizuku Manager 并在设置中进行配置。</string>
+    <string name="explorer_permission_multiple_options_description">您可以使用 Android 的文件夹选择器授予访问权限，或设置 root 或 ADB 访问权限，以更快地访问所有受限文件夹。</string>
+    <string name="explorer_permission_setup_both_description">此文件夹需要提升的访问权限。请在设置中配置 root 或 ADB 访问权限。</string>
+    <string name="explorer_permission_setup_shizuku_description">此文件夹需要通过 ADB 获得提升的访问权限。请在设置中配置 ADB 访问权限。</string>
+    <string name="explorer_permission_multiple_options_root_description">您可以使用 Android 的文件夹选择器授予访问权限，或设置 Root 以访问所有受限文件夹。</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">您可以使用 Android 的文件夹选择器授予访问权限，或设置 ADB 访问权限，以更快地访问受限文件夹。</string>
     <string name="explorer_permission_setup_root_description">此文件夹需要 Root 权限。如果您的设备已 Root，请在设置中进行配置。</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -601,7 +608,9 @@
     <string name="explorer_permission_option_picker_action">打开 SAF 选择器</string>
 
     <string name="explorer_permission_option_setup_title">完全访问权限</string>
-    <string name="explorer_permission_option_setup_description">设置 Root 或 Shizuku 以更快地访问所有受限文件夹。</string>
+    <string name="explorer_permission_option_setup_description">设置 root 或 ADB 访问权限，以更快地访问所有受限文件夹。</string>
+    <string name="explorer_permission_option_setup_root_description">配置 Root 以访问此文件夹和其他受限文件夹。</string>
+    <string name="explorer_permission_option_setup_shizuku_description">配置 ADB 访问权限以打开此文件夹。</string>
     <string name="explorer_permission_option_setup_action">配置</string>
 
     <!-- Permission Request Card - Storage Access Option -->

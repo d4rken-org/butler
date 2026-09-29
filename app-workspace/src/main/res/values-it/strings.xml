@@ -336,6 +336,19 @@
     <string name="workspace_open_tabs_confirmation_title">Aprire più schede?</string>
     <string name="workspace_open_tabs_confirmation_message">Questa azione aprirà %1$d schede.</string>
 
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Apri %d elemento</item>
+        <item quantity="other">Apri %d elementi</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Visualizza qui</string>
+    <string name="workspace_open_selection_view_here_description">Mostra i file selezionati in un visualizzatore sopra questo riquadro. Precedente e successivo scorrono solo attraverso la tua selezione.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Visualizza in nuova scheda</string>
+    <string name="workspace_open_selection_view_in_tab_description">Mostra i file selezionati in un visualizzatore in una scheda propria. Precedente e successivo scorrono solo attraverso la tua selezione.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Apri ognuno in una propria scheda</string>
+    <string name="workspace_open_selection_each_in_tab_description">Apre ogni elemento selezionato in una scheda separata. Le cartelle si aprono come schede di esplorazione file.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Le cartelle non possono essere visualizzate nel visualizzatore.</string>
+
     <!-- Open with (hand a file to another app) -->
     <string name="workspace_open_with_chooser_title">Apri con</string>
     <string name="workspace_open_with_no_app_label">Nessun’altra app trovata</string>
@@ -375,7 +388,8 @@
     <string name="workspace_settings_layout_mode_classic">Classica</string>
     <string name="workspace_settings_layout_mode_classic_desc">Un riquadro alla volta, senza la barra delle schede.</string>
     <string name="workspace_settings_layout_mode_adaptive">Adattiva</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">Barra delle schede più tanti riquadri quanti ne entrano nello schermo. Fissa una disposizione dal menu Butler nella barra.</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Barra delle schede più tanti riquadri quanti ne entrano nello schermo. Fissa una disposizione dal menu Butler.</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Barra delle schede più tanti riquadri quanti ne entrano nello schermo.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adattiva (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Singolo con barra delle schede</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">Un riquadro di schede più la barra delle schede delle disposizioni multi-riquadro. La barra occupa una striscia dello schermo.</string>

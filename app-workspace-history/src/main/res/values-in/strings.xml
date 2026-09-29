@@ -187,7 +187,7 @@
         <item quantity="other">Hapus %1$d entri</item>
     </plurals>
     <string name="history_delete_dialog_message">Hanya catatan riwayat yang dihapus, berkas itu sendiri tidak disentuh.</string>
-    <string name="history_pro_dialog_message">Berbagi dan menghapus entri riwayat adalah bagian dari peningkatan. Menghapus seluruh riwayat tetap gratis di pengaturan riwayat.</string>
+    <string name="history_pro_dialog_message">Membagikan beberapa entri riwayat sekaligus adalah bagian dari peningkatan. Membagikan satu entri dan menghapus entri tetap gratis.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Hasil</string>

@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">Попередній перегляд обмежений першими %1$s рядків цього файла.</string>
     <string name="viewer_text_truncated_width">Довгі рядки скорочені в цьому попередньому перегляді.</string>
     <string name="viewer_text_unreadable_label">Цей файл не вдалося прочитати</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Після видалення файлу, відкритого з теки, показувати наступний файл із цієї теки замість закриття переглядача.</string>
+    <string name="viewer_settings_show_next_after_delete_title">Показувати наступний файл після видалення</string>
+    <string name="viewer_settings_title">Переглядач</string>
 </resources>

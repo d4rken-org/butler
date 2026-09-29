@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">Podgląd ograniczony do pierwszych %1$s linii tego pliku.</string>
     <string name="viewer_text_truncated_width">Długie linie są skracane w tym podglądzie.</string>
     <string name="viewer_text_unreadable_label">Ten plik nie mógł być odczytany</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Po usunięciu pliku otwartego z folderu pokaż następny plik z tego folderu zamiast zamykać podgląd.</string>
+    <string name="viewer_settings_show_next_after_delete_title">Pokaż następny plik po usunięciu</string>
+    <string name="viewer_settings_title">Podgląd</string>
 </resources>

@@ -194,7 +194,7 @@
         <item quantity="other">Verwijder %1$d items</item>
     </plurals>
     <string name="history_delete_dialog_message">Alleen de geschiedenisrecords worden verwijderd, de bestanden zelf worden niet aangeraakt.</string>
-    <string name="history_pro_dialog_message">Het delen en verwijderen van geschiedenisitems maakt deel uit van de upgrade. Het wissen van de hele geschiedenis blijft gratis in de geschiedenissinstellingen.</string>
+    <string name="history_pro_dialog_message">Meerdere geschiedenisitems tegelijk delen maakt deel uit van de upgrade. Eén item delen en items verwijderen blijft gratis.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Uitkomst</string>

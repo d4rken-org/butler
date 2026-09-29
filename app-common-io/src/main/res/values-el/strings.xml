@@ -68,7 +68,7 @@
     <string name="smb_error_credential_unavailable_title">Απαιτείται σύνδεση</string>
     <string name="smb_error_credential_unavailable_description">Ο αποθηκευμένος κωδικός για αυτόν τον αποθηκευτικό χώρο δικτύου δεν μπορεί πλέον να διαβαστεί. Εισάγετε τον ξανά για να επανασυνδεθείτε.</string>
     <string name="smb_error_pro_required_title">Τα κοινά δικτύου απαιτούν Butler Pro</string>
-    <string name="smb_error_pro_required_description">Η σύνδεση με κοινά δικτύου είναι μέρος του Butler Pro. Οι αποθηκευμένες τοποθεσίες σας παραμένουν σε λίστα και μπορούν να αφαιρεθούν χωρίς αυτό.</string>
+    <string name="smb_error_pro_required_description">Η περιήγηση σε κοινόχρηστους φακέλους δικτύου είναι μέρος του Butler Pro. Η προσθήκη, η δοκιμή και η αφαίρεση τοποθεσιών είναι δωρεάν.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Προστατευμένη δέσμη εφαρμογής</string>
     <string name="app_install_error_protected_bundle_description">Το \"%1$s\" είναι κρυπτογραφημένο και μπορεί να εγκατασταθεί μόνο από την εφαρμογή που το δημιούργησε.</string>
@@ -103,7 +103,7 @@
     <string name="app_uninstall_confirm_pending_reason">Το Android περιμένει την επιβεβαίωσή σας</string>
 
     <!-- App uninstall errors -->
-    <string name="app_uninstall_other_user_unsupported">Η αφαίρεση αυτής της εφαρμογής για άλλο χρήστη χρειάζεται root ή Shizuku</string>
+    <string name="app_uninstall_other_user_unsupported">Η αφαίρεση αυτής της εφαρμογής για άλλο χρήστη χρειάζεται root ή πρόσβαση ADB</string>
     <string name="app_uninstall_no_result">Το Android δεν ανέφερε αποτέλεσμα</string>
 
     <!-- Service connection errors -->

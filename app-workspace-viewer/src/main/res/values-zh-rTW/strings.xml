@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">預覽限制為此檔案的前 %1$s 行。</string>
     <string name="viewer_text_truncated_width">在此預覽中長行會被縮短。</string>
     <string name="viewer_text_unreadable_label">無法讀取此檔案</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">刪除從資料夾開啟的檔案後，顯示該資料夾中的下一個檔案，而不是關閉檢視器。</string>
+    <string name="viewer_settings_show_next_after_delete_title">刪除後顯示下一個檔案</string>
+    <string name="viewer_settings_title">檢視器</string>
 </resources>

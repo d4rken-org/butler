@@ -690,9 +690,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android обмежує доступ до цієї теки. Скористайтеся вибором теки, щоб надати доступ.</string>
-    <string name="explorer_permission_multiple_options_description">Ви можете надати доступ за допомогою вибору теки в Android або налаштувати root/Shizuku для швидшого доступу до всіх обмежених тек.</string>
-    <string name="explorer_permission_setup_both_description">Ця тека потребує підвищеного доступу. Установіть і налаштуйте root або Shizuku в налаштуваннях.</string>
-    <string name="explorer_permission_setup_shizuku_description">Ця тека потребує підвищеного доступу через Shizuku. Установіть Shizuku Manager і налаштуйте його в налаштуваннях.</string>
+    <string name="explorer_permission_multiple_options_description">Можна надати доступ за допомогою вибору теки в Android або налаштувати root чи доступ до ADB для швидшого доступу до всіх обмежених тек.</string>
+    <string name="explorer_permission_setup_both_description">Ця тека потребує підвищеного доступу. Налаштуй root або доступ до ADB в розділі «Налаштування».</string>
+    <string name="explorer_permission_setup_shizuku_description">Ця тека потребує підвищеного доступу через ADB. Налаштуй доступ до ADB в розділі «Налаштування».</string>
     <string name="explorer_permission_setup_root_description">Ця тека потребує root-доступу. Налаштуйте root, якщо на вашому пристрої є root-права.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -700,7 +700,7 @@
     <string name="explorer_permission_option_picker_action">Відкрити вибір SAF</string>
 
     <string name="explorer_permission_option_setup_title">Повний доступ</string>
-    <string name="explorer_permission_option_setup_description">Налаштуйте root або Shizuku для швидшого доступу до всіх обмежених тек.</string>
+    <string name="explorer_permission_option_setup_description">Налаштування root або доступу до ADB для швидшого доступу до всіх обмежених тек.</string>
     <string name="explorer_permission_option_setup_action">Налаштувати</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -748,4 +748,13 @@
         <item quantity="many">%1$d тек</item>
         <item quantity="other">%1$d теки</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">Додавання й перевірка розташування безплатні. Для перегляду потрібен Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Для перегляду мережевих сховищ потрібен Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Збережено. Для перегляду мережевих сховищ потрібен Butler Pro.</string>
+    <string name="explorer_permission_multiple_options_root_description">Можна надати доступ за допомогою вибору теки в Android або налаштувати root для доступу до всіх обмежених тек.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Можна надати доступ за допомогою вибору теки в Android або налаштувати доступ до ADB для швидшого доступу до обмежених тек.</string>
+    <string name="explorer_permission_option_setup_root_description">Налаштування root для доступу до цієї та інших обмежених тек.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Налаштування доступу до ADB, щоб відкрити цю теку.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Автоматично видаляти елементи після такого часу в кошику</string>
+    <string name="explorer_settings_trash_max_size_summary">Скільки місця може займати кошик у кожному сховищі</string>
 </resources>

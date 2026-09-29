@@ -110,4 +110,9 @@
     <string name="viewer_text_truncated_lines">L’anteprima è limitata alle prime %1$s righe di questo file.</string>
     <string name="viewer_text_truncated_width">Le linee lunghe sono abbreviate in questa anteprima.</string>
     <string name="viewer_text_unreadable_label">Questo file non poteva essere letto</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_show_next_after_delete_subtitle">Dopo aver eliminato un file aperto da una cartella, mostra il file successivo di quella cartella invece di chiudere il visualizzatore.</string>
+    <string name="viewer_settings_show_next_after_delete_title">Mostra il file successivo dopo l’eliminazione</string>
+    <string name="viewer_settings_title">Visualizzatore</string>
 </resources>

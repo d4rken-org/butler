@@ -194,7 +194,7 @@
         <item quantity="other">Excluir %1$d entradas</item>
     </plurals>
     <string name="history_delete_dialog_message">Apenas os registros de histórico serão removidos; os arquivos em si não são afetados.</string>
-    <string name="history_pro_dialog_message">Compartilhar e excluir entradas de histórico faz parte da atualização. Limpar o histórico inteiro permanece gratuito nas configurações de histórico.</string>
+    <string name="history_pro_dialog_message">Compartilhar várias entradas de histórico de uma vez faz parte da atualização. Compartilhar uma única entrada e excluir entradas continuam gratuitos.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Resultado</string>

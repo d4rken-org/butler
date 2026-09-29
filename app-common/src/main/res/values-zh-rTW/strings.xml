@@ -196,10 +196,10 @@
     <string name="general_error_cant_access_msg">無法存取 %s。</string>
     <string name="general_error_archive_not_seekable_msg">無法直接瀏覽 %s：其所在的儲存空間僅支援循序讀取，但此封存格式需要隨機存取。</string>
     <string name="general_error_root_unavailable">無法使用 Root 存取權。</string>
-    <string name="general_error_elevated_access_required">此操作需要提升的存取權限，請在設定精靈中設定 Root 或 Shizuku。</string>
+    <string name="general_error_elevated_access_required">此操作需要提升的存取權限。請在設定精靈中設定 Root 或 ADB 存取權。</string>
     <string name="general_error_no_compatible_app_found_msg">找不到相容的應用程式可處理此要求。</string>
     <string name="general_error_ipc_deadobject_title">服務連線中斷</string>
-    <string name="general_error_ipc_deadobject_description">與重要服務（例如 Magisk、Shizuku 或其他系統層級服務）的連線意外中斷。請重新啟動裝置。如果問題持續發生，請檢查是否有更新，或回報此問題。</string>
+    <string name="general_error_ipc_deadobject_description">與重要服務（如 Magisk 或其他系統層級服務）的連線意外中斷。請重新啟動您的裝置。如果問題持續發生，請檢查是否有更新，或聯絡我讓我協助修復。</string>
 
     <string name="ui_theme_mode_dark_label">深色</string>
     <string name="ui_theme_mode_light_label">淺色</string>
@@ -237,7 +237,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">使用狀況統計</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB 存取權</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">通知存取權</string>
     <string name="setup_manage_storage_card_title">管理外部儲存空間</string>
@@ -293,7 +293,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">使用多個窗格，並排比較檔案。</string>
     <string name="common_tip_different_folders">在每個窗格開啟不同的資料夾，輕鬆管理檔案。</string>
-    <string name="common_tip_switch_layouts">在分頁設定管理員中切換窗格版面配置。</string>
-    <string name="common_tip_elevated_access">在設定精靈中啟用 Root 或 Shizuku，以使用進階檔案操作功能。</string>
+    <string name="common_tip_switch_layouts">在 Butler 菜單的「版面配置」中切換窗格版面配置。</string>
+    <string name="common_tip_elevated_access">在設定精靈中啟用 Root 或 ADB 存取權，即可使用進階檔案操作功能。</string>
     <string name="common_tip_breadcrumb_home">長按檔案總管中的路徑列項目，將其設為首頁資料夾。</string>
 </resources>

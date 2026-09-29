@@ -78,8 +78,8 @@
     <string name="apps_path_internal_data_label">Dữ liệu nội bộ</string>
     <string name="apps_path_external_data_label">Bộ nhớ ngoài</string>
     <string name="apps_path_requires_root_label">Yêu cầu root</string>
-    <string name="apps_path_requires_shizuku_label">Yêu cầu Shizuku</string>
-    <string name="apps_path_requires_root_or_shizuku_label">Yêu cầu root hoặc Shizuku</string>
+    <string name="apps_path_requires_shizuku_label">Yêu cầu quyền truy cập ADB</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Yêu cầu quyền truy cập root hoặc ADB</string>
     <string name="apps_path_requires_access_label">Yêu cầu quyền truy cập bổ sung</string>
     <string name="apps_storage_breakdown_label">Chi tiết bộ nhớ</string>
     <string name="apps_storage_app_label">Ứng dụng</string>
@@ -225,7 +225,7 @@
     <string name="apps_components_copy_package_action">Sao chép tên gói</string>
     <string name="apps_components_action_enable">Bật thành phần</string>
     <string name="apps_components_action_disable">Tắt thành phần</string>
-    <string name="apps_components_action_requires_elevated">Yêu cầu root hoặc Shizuku — nhấn để thiết lập</string>
+    <string name="apps_components_action_requires_elevated">Yêu cầu quyền truy cập root hoặc ADB — nhấn để thiết lập</string>
     <string name="apps_components_confirm_enable_title">Bật thành phần?</string>
     <string name="apps_components_confirm_disable_title">Tắt thành phần?</string>
     <string name="apps_components_confirm_enable_message">Các thành phần sau sẽ được bật:</string>

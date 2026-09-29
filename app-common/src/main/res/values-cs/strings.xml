@@ -235,10 +235,10 @@
     <string name="general_error_cant_access_msg">Nelze přistoupit k %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s nelze procházet přímo: úložiště, na kterém se nachází, podporuje pouze sekvenční čtení, ale tento formát archivu vyžaduje náhodný přístup.</string>
     <string name="general_error_root_unavailable">Přístup s právy root není k dispozici.</string>
-    <string name="general_error_elevated_access_required">Tato operace vyžaduje rozšířený přístup. Nastavte Root nebo Shizuku v Nastavení.</string>
+    <string name="general_error_elevated_access_required">Tato operace vyžaduje rozšířený přístup. Nastavte Root nebo ADB v Nastavení.</string>
     <string name="general_error_no_compatible_app_found_msg">Nebyla nalezena žádná kompatibilní aplikace pro zpracování tohoto požadavku.</string>
     <string name="general_error_ipc_deadobject_title">Spojení se službou přerušeno</string>
-    <string name="general_error_ipc_deadobject_description">Spojení s kritickou službou (např. Magisk, Shizuku nebo jinou službou na úrovni systému) bylo neočekávaně přerušeno. Restartujte prosím své zařízení. Pokud problém přetrvává, zkontrolujte aktualizace nebo mě kontaktujte, aby bylo možné problém vyřešit.</string>
+    <string name="general_error_ipc_deadobject_description">Spojení s kritickou službou (např. Magisk nebo jinou službou na úrovni systému) bylo neočekávaně přerušeno. Restartujte prosím své zařízení. Pokud problém přetrvává, zkontrolujte aktualizace nebo mě kontaktujte, abych to vyřešil.</string>
 
     <string name="ui_theme_mode_dark_label">Tmavý</string>
     <string name="ui_theme_mode_light_label">Světlý</string>
@@ -276,7 +276,7 @@
 
     <!-- Typy modulů nastavení -->
     <string name="setup_usagestats_title">Statistiky používání</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Přístup k ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Přístup k oznámením</string>
     <string name="setup_manage_storage_card_title">Správa externího úložiště</string>
@@ -341,7 +341,7 @@
     <!-- Tipy Butlera -->
     <string name="common_tip_multiple_panes">Pomocí více panelů můžete soubory porovnávat vedle sebe.</string>
     <string name="common_tip_different_folders">Otevřete různé složky v jednotlivých panelech pro snadnou správu souborů.</string>
-    <string name="common_tip_switch_layouts">Rozložení panelů můžete přepínat ve správci nastavení karet.</string>
-    <string name="common_tip_elevated_access">Pro pokročilé operace se soubory povolte v Nastavení root nebo Shizuku.</string>
+    <string name="common_tip_switch_layouts">Rozložení panelů můžete přepínat v Layoutu v Butlerově menu.</string>
+    <string name="common_tip_elevated_access">Pro pokročilé operace se soubory povolte Root nebo ADB v Nastavení.</string>
     <string name="common_tip_breadcrumb_home">Dlouhým stisknutím položky v drobečkové navigaci Průzkumníka ji nastavíte jako domovskou složku.</string>
 </resources>

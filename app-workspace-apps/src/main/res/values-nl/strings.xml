@@ -78,8 +78,8 @@
     <string name="apps_path_internal_data_label">Interne gegevens</string>
     <string name="apps_path_external_data_label">Externe opslag</string>
     <string name="apps_path_requires_root_label">Vereist root</string>
-    <string name="apps_path_requires_shizuku_label">Vereist Shizuku</string>
-    <string name="apps_path_requires_root_or_shizuku_label">Vereist root of Shizuku</string>
+    <string name="apps_path_requires_shizuku_label">Vereist ADB-toegang</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Vereist root of ADB-toegang</string>
     <string name="apps_path_requires_access_label">Vereist extra toegang</string>
     <string name="apps_storage_breakdown_label">Opslagoverzicht</string>
     <string name="apps_storage_app_label">App</string>
@@ -230,7 +230,7 @@
     <string name="apps_components_copy_package_action">Pakketnaam kopiëren</string>
     <string name="apps_components_action_enable">Onderdeel inschakelen</string>
     <string name="apps_components_action_disable">Onderdeel uitschakelen</string>
-    <string name="apps_components_action_requires_elevated">Vereist root of Shizuku — tik om in te stellen</string>
+    <string name="apps_components_action_requires_elevated">Vereist root of ADB-toegang — tik om in te stellen</string>
     <string name="apps_components_confirm_enable_title">Onderdelen inschakelen?</string>
     <string name="apps_components_confirm_disable_title">Onderdelen uitschakelen?</string>
     <string name="apps_components_confirm_enable_message">De volgende onderdelen worden ingeschakeld:</string>

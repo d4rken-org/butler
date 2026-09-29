@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">Nainstalován</string>
     <string name="developer_options_root_available_label">K dispozici</string>
     <string name="developer_options_root_base_check_label">Základní kontrola</string>
-    <string name="developer_options_shizuku_test_action">Testovat Shizuku</string>
+    <string name="developer_options_shizuku_test_action">Testovat přístup ADB</string>
     <string name="developer_options_shizuku_installed_label">Nainstalován</string>
     <string name="developer_options_shizuku_granted_label">Oprávnění</string>
     <string name="developer_options_shizuku_compatible_label">Kompatibilní</string>

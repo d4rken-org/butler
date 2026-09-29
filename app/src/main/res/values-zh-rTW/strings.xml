@@ -44,7 +44,9 @@
     <string name="shortcuts_settings_auto_remember_subtitle">自動將常造訪的路徑加入捷徑</string>
     <string name="shortcuts_settings_last_accessed_title">最近存取</string>
     <string name="shortcuts_settings_max_count_title">捷徑數量上限</string>
+    <string name="shortcuts_settings_max_count_summary">啟動器中顯示的捷徑數量上限</string>
     <string name="shortcuts_settings_min_access_title">最低存取次數</string>
+    <string name="shortcuts_settings_min_access_summary">路徑需開啟多少次才會成為捷徑</string>
     <string name="shortcuts_settings_current_title">目前的捷徑</string>
     <string name="shortcuts_settings_current_subtitle">已追蹤 %d 個捷徑</string>
     <string name="shortcuts_settings_clear_title">清除捷徑紀錄</string>
@@ -58,7 +60,7 @@
     <string name="shortcuts_settings_min_dialog_message">路徑需存取多少次才會顯示為捷徑（1–10）</string>
 
     <string name="setup_usagestats_title">使用狀況統計</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB 存取</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">通知存取權</string>
     <string name="setup_manage_storage_card_title">管理外部儲存空間</string>
@@ -69,7 +71,7 @@
     <string name="setup_help_description">說明</string>
 
     <string name="setup_root_description">啟用系統檔案與受保護目錄的存取權限，供進階檔案管理使用。解鎖 Butler 的完整功能，包括應用程式資料存取與系統修改。裝置需要已取得 root 權限。</string>
-    <string name="setup_shizuku_description">root 的替代方案，透過安全的 API 提供具權限的檔案操作。無需傳統 root 即可存取受限目錄。需要安裝並執行 Shizuku 應用程式。</string>
+    <string name="setup_shizuku_description">root 的替代方案，透過安全的 API 提供具權限的檔案操作。無需傳統 root 即可存取受限目錄。需要安裝並執行 Porter 或 Shizuku。</string>
     <string name="setup_notification_description">顯示檔案操作、背景工作與傳輸進度的更新通知，在操作完成或發生錯誤時通知你。</string>
     <string name="setup_usagestats_description">分析應用程式的儲存空間使用狀況，找出大型檔案，有效管理空間。所有資料都留在裝置上，絕不會傳送出去。</string>
     <string name="setup_storage_description">完整存取裝置所有儲存空間，實現快速檔案操作與批次處理，無需重複的權限提示即可進行全面的檔案管理。</string>
@@ -78,7 +80,7 @@
     <string name="setup_grant_access_label">授予權限</string>
     <string name="setup_access_granted_label">已授予權限</string>
     <string name="setup_use_root_label">如可用則使用 root</string>
-    <string name="setup_use_shizuku_label">如可用則使用 Shizuku</string>
+    <string name="setup_use_shizuku_label">如可用則使用 ADB 存取</string>
 
     <string name="setup_status_checking">檢查中…</string>
     <string name="setup_status_completed">已設定</string>
@@ -90,6 +92,17 @@
     <string name="setup_status_connecting">連線中…</string>
     <string name="setup_status_connection_failed">連線失敗</string>
     <string name="setup_status_unavailable">無法使用</string>
+    <string name="setup_status_permission_denied">權限被拒</string>
+
+    <!-- ADB 狀態 -->
+    <string name="setup_adb_status_manager_update_required">需要更新</string>
+    <string name="setup_adb_status_butler_update_required">Butler 需要更新</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". (applies to the next 5 setup_adb_* strings taking %1$s) -->
+    <string name="setup_adb_status_connected_via">已透過 %1$s 連線</string>
+    <string name="setup_adb_status_not_allowed_yet">%1$s 尚未允許</string>
+    <string name="setup_adb_status_denied_in">%1$s 中被拒</string>
+    <string name="setup_adb_open_manager_action">開啟 %1$s</string>
+    <string name="setup_adb_install_manager_action">安裝 %1$s</string>
 
     <!-- 偵錯記錄 -->
     <string name="debug_notification_channel_label">偵錯通知</string>
@@ -267,6 +280,8 @@
     <string name="acknowledgement_librootjava_subtitle">以 root 權限執行 Java（與 Kotlin）程式碼！（APACHE 2.0）</string>
     <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
     <string name="acknowledgement_librootkotlinx_subtitle">透過協同程式，輕鬆執行具 root 權限的 Kotlin JVM 程式碼。（APACHE 2.0）</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">為 Android 應用程式透過 Shizuku API 提供 ADB 存取，支援選用的 root 功能。（APACHE 2.0）</string>
     <string name="acknowledgement_shizuku_title">Shizuku</string>
     <string name="acknowledgement_shizuku_subtitle">透過 app_process 啟動的 Java 處理程序，讓一般應用程式以 adb／root 權限直接使用系統 API。（APACHE 2.0）</string>
     <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
@@ -403,6 +418,7 @@
     <string name="explorer_settings_subtitle">設定檔案總管行為。</string>
     <string name="searcher_settings_subtitle">設定搜尋行為。</string>
     <string name="editor_settings_subtitle">設定文字編輯器行為。</string>
+    <string name="viewer_settings_subtitle">設定檔案檢視器行為。</string>
     <string name="history_settings_subtitle">操作紀錄的保留與清除設定。</string>
     <string name="clipboard_settings_subtitle">設定剪貼簿行為。</string>
 
@@ -515,5 +531,6 @@
     <string name="review_app_body">願意給 Butler 一則評價嗎？❤️</string>
     <string name="review_app_dismiss_action">之後再說</string>
     <string name="review_app_review_action">評價</string>
+    <string name="workspace_pane_menu_action">顯示分頁選項</string>
 
 </resources>

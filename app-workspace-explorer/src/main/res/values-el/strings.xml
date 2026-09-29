@@ -626,9 +626,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Το Android περιορίζει την πρόσβαση σε αυτόν τον φάκελο. Χρησιμοποιήστε τον επιλογέα φακέλων για να παραχωρήσετε πρόσβαση.</string>
-    <string name="explorer_permission_multiple_options_description">Μπορείτε να παραχωρήσετε πρόσβαση χρησιμοποιώντας τον επιλογέα φακέλων του Android ή να ρυθμίσετε το Root/Shizuku για ταχύτερη πρόσβαση σε όλους τους περιορισμένους φακέλους.</string>
-    <string name="explorer_permission_setup_both_description">Αυτός ο φάκελος απαιτεί αυξημένα δικαιώματα πρόσβασης. Εγκαταστήστε και ρυθμίστε είτε το Root είτε το Shizuku στις ρυθμίσεις.</string>
-    <string name="explorer_permission_setup_shizuku_description">Αυτός ο φάκελος απαιτεί αυξημένα δικαιώματα πρόσβασης μέσω Shizuku. Εγκαταστήστε το Shizuku Manager και ρυθμίστε το στις ρυθμίσεις.</string>
+    <string name="explorer_permission_multiple_options_description">Μπορείς να παραχωρήσεις πρόσβαση με τον επιλογέα φακέλων του Android ή να ρυθμίσεις το Root ή την πρόσβαση ADB για ταχύτερη πρόσβαση σε όλους τους περιορισμένους φακέλους.</string>
+    <string name="explorer_permission_setup_both_description">Αυτός ο φάκελος απαιτεί αυξημένα δικαιώματα πρόσβασης. Ρύθμισε το Root ή την πρόσβαση ADB στη Ρύθμιση.</string>
+    <string name="explorer_permission_setup_shizuku_description">Αυτός ο φάκελος απαιτεί αυξημένα δικαιώματα πρόσβασης μέσω ADB. Ρύθμισε την πρόσβαση ADB στη Ρύθμιση.</string>
     <string name="explorer_permission_setup_root_description">Αυτός ο φάκελος απαιτεί πρόσβαση Root. Ρυθμίστε το Root στις ρυθμίσεις αν η συσκευή σας διαθέτει πρόσβαση root.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -636,7 +636,7 @@
     <string name="explorer_permission_option_picker_action">Άνοιγμα επιλογέα SAF</string>
 
     <string name="explorer_permission_option_setup_title">Πλήρης πρόσβαση</string>
-    <string name="explorer_permission_option_setup_description">Ρυθμίστε το Root ή το Shizuku για ταχύτερη πρόσβαση σε όλους τους περιορισμένους φακέλους.</string>
+    <string name="explorer_permission_option_setup_description">Ρύθμισε το Root ή την πρόσβαση ADB για ταχύτερη πρόσβαση σε όλους τους περιορισμένους φακέλους.</string>
     <string name="explorer_permission_option_setup_action">Ρύθμιση</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -676,4 +676,13 @@
         <item quantity="one">%1$d φάκελος</item>
         <item quantity="other">%1$d φάκελοι</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">Η προσθήκη και η δοκιμή μιας τοποθεσίας είναι δωρεάν. Η περιήγηση σε αυτήν απαιτεί Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Η περιήγηση σε δικτυακό αποθηκευτικό χώρο απαιτεί Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Αποθηκεύτηκε. Η περιήγηση σε δικτυακό αποθηκευτικό χώρο απαιτεί Butler Pro.</string>
+    <string name="explorer_permission_multiple_options_root_description">Μπορείς να παραχωρήσεις πρόσβαση με τον επιλογέα φακέλων του Android ή να ρυθμίσεις το Root για πρόσβαση σε όλους τους περιορισμένους φακέλους.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Μπορείς να παραχωρήσεις πρόσβαση με τον επιλογέα φακέλων του Android ή να ρυθμίσεις την πρόσβαση ADB για ταχύτερη πρόσβαση σε περιορισμένους φακέλους.</string>
+    <string name="explorer_permission_option_setup_root_description">Ρύθμισε το Root για πρόσβαση σε αυτόν τον φάκελο και σε άλλους περιορισμένους φακέλους.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Ρύθμισε την πρόσβαση ADB για να ανοίξεις αυτόν τον φάκελο.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Αυτόματη διαγραφή στοιχείων μετά από τόσο χρόνο στον κάδο</string>
+    <string name="explorer_settings_trash_max_size_summary">Πόσο χώρο μπορεί να χρησιμοποιεί ο κάδος σε κάθε αποθηκευτική τοποθεσία</string>
 </resources>

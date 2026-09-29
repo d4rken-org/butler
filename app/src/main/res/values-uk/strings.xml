@@ -58,7 +58,7 @@
     <string name="shortcuts_settings_min_dialog_message">Скільки разів потрібно відкрити шлях, перш ніж він з’явиться як ярлик (1–10)</string>
 
     <string name="setup_usagestats_title">Статистика використання</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Доступ до ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Доступ до сповіщень</string>
     <string name="setup_manage_storage_card_title">Керування зовнішнім сховищем</string>
@@ -69,7 +69,7 @@
     <string name="setup_help_description">Довідка</string>
 
     <string name="setup_root_description">Надає доступ до системних файлів і захищених каталогів для розширеного керування файлами. Розкриває весь потенціал Butler, зокрема доступ до даних програм і зміну системи. Пристрій має бути рутований.</string>
-    <string name="setup_shizuku_description">Альтернатива root, що надає привілейовані файлові операції через безпечний API. Дозволяє доступ до обмежених каталогів без традиційного root. Потребує встановленої та запущеної програми Shizuku.</string>
+    <string name="setup_shizuku_description">Альтернатива root, що надає привілейовані файлові операції через безпечний API. Дозволяє доступ до обмежених каталогів без традиційного root. Потребує встановлення та запущення Porter або Shizuku.</string>
     <string name="setup_notification_description">Показує оновлення про файлові операції, фонові завдання та хід перенесення. Тримає вас в курсі завершення операцій чи помилок.</string>
     <string name="setup_usagestats_description">Аналізує використання сховища програмами, щоб знаходити великі файли та ефективно керувати простором. Усі дані залишаються на пристрої й ніколи не передаються.</string>
     <string name="setup_storage_description">Повний доступ до всього сховища пристрою для швидких файлових операцій і пакетної обробки. Дозволяє повноцінне керування файлами без повторних запитів дозволу.</string>
@@ -78,7 +78,7 @@
     <string name="setup_grant_access_label">Надати доступ</string>
     <string name="setup_access_granted_label">Доступ надано</string>
     <string name="setup_use_root_label">Використовувати root, якщо доступний</string>
-    <string name="setup_use_shizuku_label">Використовувати Shizuku, якщо доступний</string>
+    <string name="setup_use_shizuku_label">Використовувати доступ до ADB, якщо доступний</string>
 
     <string name="setup_status_checking">Перевірка…</string>
     <string name="setup_status_completed">Налаштовано</string>
@@ -536,5 +536,20 @@
     <string name="review_app_body">Бажаєте залишити відгук про Butler? ❤️</string>
     <string name="review_app_dismiss_action">Можливо пізніше</string>
     <string name="review_app_review_action">Залишити відгук</string>
+
+    <string name="shortcuts_settings_max_count_summary">Максимальна кількість ярликів, що показуються в лаунчері</string>
+    <string name="shortcuts_settings_min_access_summary">Кількість разів, скільки потрібно відкрити шлях, перш ніж він стане ярликом</string>
+    <string name="setup_status_permission_denied">Дозвіл відмовлено</string>
+    <string name="setup_adb_status_manager_update_required">Потрібно оновлення</string>
+    <string name="setup_adb_status_butler_update_required">Потрібне оновлення Butler</string>
+    <string name="setup_adb_status_connected_via">Підключено через %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">Ще не дозволено %1$s</string>
+    <string name="setup_adb_status_denied_in">Відмовлено в %1$s</string>
+    <string name="setup_adb_open_manager_action">Відкрити %1$s</string>
+    <string name="setup_adb_install_manager_action">Встановити %1$s</string>
+    <string name="viewer_settings_subtitle">Налаштування поведінки переглядача файлів.</string>
+    <string name="workspace_pane_menu_action">Показати параметри вкладки</string>
+    <string name="acknowledgement_porter_subtitle">Надає програмам Android доступ до ADB через API Shizuku, з можливою підтримкою root. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
 
 </resources>

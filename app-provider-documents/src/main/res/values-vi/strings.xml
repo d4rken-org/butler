@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">Cần quyền truy cập root để duyệt vị trí này. Bật quyền truy cập root trong cài đặt ứng dụng Butler.</string>
-    <string name="provider_documents_error_requires_adb">Cần quyền truy cập ADB/Shizuku để duyệt vị trí này. Bật Shizuku trong cài đặt ứng dụng Butler.</string>
+    <string name="provider_documents_error_requires_adb">Cần quyền truy cập ADB để duyệt vị trí này. Hãy bật nó trong phần thiết lập của Butler.</string>
     <string name="provider_documents_error_requires_storage">Cần quyền truy cập bộ nhớ để duyệt vị trí này. Cấp quyền truy cập bộ nhớ trong cài đặt ứng dụng Butler.</string>
     <string name="provider_documents_error_requires_permissions">Cần quyền bổ sung để duyệt vị trí này. Kiểm tra cài đặt ứng dụng Butler.</string>
     <string name="provider_documents_error_generic">Không thể truy cập vị trí này. Kiểm tra ứng dụng Butler để tìm các tùy chọn truy cập.</string>

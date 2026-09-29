@@ -14,7 +14,9 @@
     <string name="explorer_settings_trash_enabled_title">Attiva cestino</string>
     <string name="explorer_settings_trash_enabled_desc">Sposta i file eliminati nel cestino invece di eliminarli definitivamente</string>
     <string name="explorer_settings_trash_auto_delete_title">Eliminazione automatica dopo</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Elimina automaticamente gli elementi dopo questo tempo nel cestino</string>
     <string name="explorer_settings_trash_auto_delete_value">%d giorni</string>
+    <string name="explorer_settings_trash_max_size_summary">Quanto spazio può usare il cestino in ogni posizione di archiviazione</string>
     <string name="explorer_settings_trash_max_size_title">Dimensione massima per archiviazione</string>
     <string name="explorer_settings_trash_max_size_value">%d MB</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Periodo di eliminazione automatica</string>
@@ -291,6 +293,9 @@
     <string name="explorer_network_remove_confirmation_message">Butler dimentica i dettagli del server e la password salvata. Nulla viene eliminato dal server.</string>
 
     <!-- Network Storage Form -->
+    <string name="explorer_network_form_pro_notice">Aggiungere e verificare una posizione è gratuito. Sfogliarla richiede Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Sfogliare l’archiviazione di rete richiede Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Salvata. Sfogliare l’archiviazione di rete richiede Butler Pro.</string>
     <string name="explorer_network_form_add_title">Aggiungi archiviazione di rete</string>
     <string name="explorer_network_form_edit_title">Modifica archiviazione di rete</string>
     <string name="explorer_network_form_label_label">Nome (opzionale)</string>
@@ -623,9 +628,11 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android limita l’accesso a questa cartella. Usa il selettore di cartelle per concedere l’accesso.</string>
-    <string name="explorer_permission_multiple_options_description">Puoi concedere l’accesso usando il selettore di cartelle di Android oppure configurare Root/Shizuku per un accesso più rapido a tutte le cartelle con restrizioni.</string>
-    <string name="explorer_permission_setup_both_description">Questa cartella richiede accesso con privilegi elevati. Installa e configura Root oppure Shizuku nella configurazione.</string>
-    <string name="explorer_permission_setup_shizuku_description">Questa cartella richiede accesso con privilegi elevati tramite Shizuku. Installa Shizuku Manager e configuralo nella configurazione.</string>
+    <string name="explorer_permission_multiple_options_description">Puoi concedere l’accesso usando il selettore di cartelle di Android oppure configurare root o l’accesso ADB per un accesso più rapido a tutte le cartelle con restrizioni.</string>
+    <string name="explorer_permission_multiple_options_root_description">Puoi concedere l’accesso usando il selettore di cartelle di Android oppure configurare Root per accedere a tutte le cartelle con restrizioni.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Puoi concedere l’accesso usando il selettore di cartelle di Android oppure configurare l’accesso ADB per un accesso più rapido alle cartelle con restrizioni.</string>
+    <string name="explorer_permission_setup_both_description">Questa cartella richiede accesso con privilegi elevati. Configura root o l’accesso ADB nella configurazione.</string>
+    <string name="explorer_permission_setup_shizuku_description">Questa cartella richiede accesso con privilegi elevati tramite ADB. Configura l’accesso ADB nella configurazione.</string>
     <string name="explorer_permission_setup_root_description">Questa cartella richiede accesso Root. Configura Root nella configurazione se il tuo dispositivo ha eseguito il root.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -633,7 +640,9 @@
     <string name="explorer_permission_option_picker_action">Apri selettore SAF</string>
 
     <string name="explorer_permission_option_setup_title">Accesso completo</string>
-    <string name="explorer_permission_option_setup_description">Configura Root o Shizuku per un accesso più rapido a tutte le cartelle con restrizioni.</string>
+    <string name="explorer_permission_option_setup_description">Configura root o l’accesso ADB per un accesso più rapido a tutte le cartelle con restrizioni.</string>
+    <string name="explorer_permission_option_setup_root_description">Configura Root per accedere a questa cartella e alle altre cartelle con restrizioni.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Configura l’accesso ADB per aprire questa cartella.</string>
     <string name="explorer_permission_option_setup_action">Configura</string>
 
     <!-- Permission Request Card - Storage Access Option -->

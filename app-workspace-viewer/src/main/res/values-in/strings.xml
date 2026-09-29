@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">Pratinjau terbatas pada %1$s baris pertama dari file ini.</string>
     <string name="viewer_text_truncated_width">Baris panjang diperpendek dalam pratinjau ini.</string>
     <string name="viewer_text_unreadable_label">File ini tidak dapat dibaca</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Setelah menghapus file yang dibuka dari sebuah folder, tampilkan file berikutnya di folder itu alih-alih menutup penampil.</string>
+    <string name="viewer_settings_show_next_after_delete_title">Tampilkan file berikutnya setelah menghapus</string>
+    <string name="viewer_settings_title">Penampil</string>
 </resources>

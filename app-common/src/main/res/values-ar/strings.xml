@@ -262,10 +262,10 @@
     <string name="general_error_cant_access_msg">تعذر الوصول إلى %s.</string>
     <string name="general_error_archive_not_seekable_msg">يتعذّر تصفح %s مباشرة: التخزين الذي يوجد عليه يدعم القراءة المتسلسلة فقط، بينما يتطلب تنسيق الأرشيف هذا وصولًا عشوائيًا.</string>
     <string name="general_error_root_unavailable">الوصول بصلاحيات Root غير متاح.</string>
-    <string name="general_error_elevated_access_required">تتطلب هذه العملية وصولًا مرتفع الصلاحيات. اضبط Root أو Shizuku في الإعداد.</string>
+    <string name="general_error_elevated_access_required">تتطلب هذه العملية وصولًا مرتفع الصلاحيات. اضبط Root أو وصول ADB في الإعداد.</string>
     <string name="general_error_no_compatible_app_found_msg">لم يتم العثور على تطبيق متوافق للتعامل مع هذا الطلب.</string>
     <string name="general_error_ipc_deadobject_title">انقطع الاتصال بالخدمة</string>
-    <string name="general_error_ipc_deadobject_description">انقطع الاتصال بخدمة أساسية (مثل Magisk أو Shizuku أو خدمات أخرى على مستوى النظام) بشكل غير متوقع. يُرجى إعادة تشغيل جهازك. إذا استمرت المشكلة، تحقق من وجود تحديثات أو تواصل معي لأتمكن من إصلاحها.</string>
+    <string name="general_error_ipc_deadobject_description">انقطع الاتصال بخدمة أساسية (مثل Magisk أو خدمة أخرى على مستوى النظام) بشكل غير متوقع. يُرجى إعادة تشغيل جهازك. إذا استمرت المشكلة، تحقق من وجود تحديثات أو تواصل معي لأتمكن من إصلاحها.</string>
 
     <string name="ui_theme_mode_dark_label">داكن</string>
     <string name="ui_theme_mode_light_label">فاتح</string>
@@ -303,7 +303,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">إحصاءات الاستخدام</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">وصول ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">إذن الوصول إلى الإشعارات</string>
     <string name="setup_manage_storage_card_title">إدارة التخزين الخارجي</string>
@@ -374,7 +374,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">استخدم عدة أجزاء لمقارنة الملفات جنبًا إلى جنب.</string>
     <string name="common_tip_different_folders">افتح مجلدات مختلفة في كل جزء لإدارة الملفات بسهولة.</string>
-    <string name="common_tip_switch_layouts">بدّل بين تخطيطات الأجزاء في مدير إعدادات علامة التبويب.</string>
-    <string name="common_tip_elevated_access">فعّل Root أو Shizuku في الإعداد لإجراء عمليات ملفات متقدمة.</string>
+    <string name="common_tip_switch_layouts">بدّل تخطيطات الأجزاء من خلال Layout في قائمة Butler.</string>
+    <string name="common_tip_elevated_access">فعّل Root أو وصول ADB في الإعداد لإجراء عمليات ملفات متقدمة.</string>
     <string name="common_tip_breadcrumb_home">اضغط مطولًا على عنصر مسار التنقل في المستكشف لتعيينه كمجلدك الرئيسي.</string>
 </resources>

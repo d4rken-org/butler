@@ -375,7 +375,7 @@
     <string name="workspace_settings_layout_mode_classic">Classique</string>
     <string name="workspace_settings_layout_mode_classic_desc">Un panneau à la fois, sans rail d’onglets.</string>
     <string name="workspace_settings_layout_mode_adaptive">Adaptative</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">Rail d’onglets et autant de panneaux que l’écran le permet. Épinglez une disposition depuis le menu Butler du rail.</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Rail d’onglets et autant de panneaux que l’écran le permet. Épingle une disposition depuis le menu Butler.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptative (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Simple avec rail d’onglets</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">Un panneau d’onglet plus le rail d’onglets des dispositions multi-panneaux. Le rail occupe une bande de l’écran.</string>
@@ -472,4 +472,16 @@
         <item quantity="one">%d élément restauré</item>
         <item quantity="other">%d éléments restaurés</item>
     </plurals>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Rail d’onglets et autant de panneaux que l’écran le permet.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Ouvrir chacun dans son propre onglet</string>
+    <string name="workspace_open_selection_each_in_tab_description">Ouvre chaque élément sélectionné dans un onglet distinct. Les dossiers s’ouvrent dans des onglets de l’explorateur de fichiers.</string>
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Ouvrir %d élément</item>
+        <item quantity="other">Ouvrir %d éléments</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Afficher ici</string>
+    <string name="workspace_open_selection_view_here_description">Affiche les fichiers sélectionnés dans une visionneuse au-dessus de ce panneau. Précédent et suivant ne parcourent que ta sélection.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Afficher dans un nouvel onglet</string>
+    <string name="workspace_open_selection_view_in_tab_description">Affiche les fichiers sélectionnés dans une visionneuse, dans son propre onglet. Précédent et suivant ne parcourent que ta sélection.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Les dossiers ne peuvent pas être affichés dans la visionneuse.</string>
 </resources>

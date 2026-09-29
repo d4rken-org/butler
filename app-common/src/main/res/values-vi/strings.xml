@@ -196,10 +196,10 @@
     <string name="general_error_cant_access_msg">Không thể truy cập %s.</string>
     <string name="general_error_archive_not_seekable_msg">Không thể duyệt trực tiếp %s: bộ nhớ chứa tệp này chỉ hỗ trợ đọc tuần tự, nhưng định dạng tệp nén này yêu cầu truy cập ngẫu nhiên.</string>
     <string name="general_error_root_unavailable">Không có quyền truy cập root.</string>
-    <string name="general_error_elevated_access_required">Thao tác này yêu cầu quyền truy cập nâng cao. Hãy thiết lập Root hoặc Shizuku trong phần Thiết lập.</string>
+    <string name="general_error_elevated_access_required">Thao tác này yêu cầu quyền truy cập nâng cao. Hãy cấu hình truy cập Root hoặc ADB trong Thiết lập.</string>
     <string name="general_error_no_compatible_app_found_msg">Không tìm thấy ứng dụng phù hợp để xử lý yêu cầu này.</string>
     <string name="general_error_ipc_deadobject_title">Mất kết nối dịch vụ</string>
-    <string name="general_error_ipc_deadobject_description">Kết nối đến một dịch vụ quan trọng (ví dụ: Magisk, Shizuku hoặc các dịch vụ cấp hệ thống khác) đã bị mất đột ngột. Hãy khởi động lại thiết bị. Nếu sự cố vẫn tiếp diễn, hãy kiểm tra bản cập nhật hoặc báo cáo lỗi để được khắc phục.</string>
+    <string name="general_error_ipc_deadobject_description">Kết nối đến một dịch vụ quan trọng (ví dụ: Magisk hoặc một dịch vụ cấp hệ thống khác) đã bị mất đột ngột. Vui lòng khởi động lại thiết bị. Nếu sự cố vẫn tiếp diễn, hãy kiểm tra bản cập nhật hoặc liên hệ với tôi để được khắc phục.</string>
 
     <string name="ui_theme_mode_dark_label">Tối</string>
     <string name="ui_theme_mode_light_label">Sáng</string>
@@ -237,7 +237,7 @@
 
     <!-- Các loại mô-đun thiết lập -->
     <string name="setup_usagestats_title">Dữ liệu sử dụng</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Truy cập ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Quyền truy cập thông báo</string>
     <string name="setup_manage_storage_card_title">Quản lý bộ nhớ ngoài</string>
@@ -293,7 +293,7 @@
     <!-- Mẹo từ Butler -->
     <string name="common_tip_multiple_panes">Dùng nhiều khung để so sánh tệp cạnh nhau.</string>
     <string name="common_tip_different_folders">Mở các thư mục khác nhau ở mỗi khung để quản lý tệp dễ dàng hơn.</string>
-    <string name="common_tip_switch_layouts">Chuyển đổi bố cục khung trong trình quản lý cài đặt thẻ.</string>
-    <string name="common_tip_elevated_access">Bật root hoặc Shizuku trong phần Thiết lập để thực hiện các thao tác tệp nâng cao.</string>
+    <string name="common_tip_switch_layouts">Chuyển đổi bố cục khung từ Layout trong trình đơn Butler.</string>
+    <string name="common_tip_elevated_access">Bật truy cập Root hoặc ADB trong Thiết lập để thực hiện các thao tác tệp nâng cao.</string>
     <string name="common_tip_breadcrumb_home">Nhấn giữ vào một mục trên thanh đường dẫn của Trình duyệt tệp để đặt làm thư mục chính.</string>
 </resources>

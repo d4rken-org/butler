@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">Náhled je omezen na prvních %1$s řádků tohoto souboru.</string>
     <string name="viewer_text_truncated_width">Dlouhé řádky jsou v tomto náhledu zkráceny.</string>
     <string name="viewer_text_unreadable_label">Soubor se nepodařilo přečíst</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Po smazání souboru otevřeného ze složky zobrazit další soubor v této složce místo zavření prohlížeče.</string>
+    <string name="viewer_settings_show_next_after_delete_title">Po smazání zobrazit další soubor</string>
+    <string name="viewer_settings_title">Prohlížeč</string>
 </resources>

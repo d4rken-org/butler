@@ -78,8 +78,8 @@
     <string name="apps_path_internal_data_label">Εσωτερικά δεδομένα</string>
     <string name="apps_path_external_data_label">Εξωτερικός αποθηκευτικός χώρος</string>
     <string name="apps_path_requires_root_label">Απαιτεί root</string>
-    <string name="apps_path_requires_shizuku_label">Απαιτεί Shizuku</string>
-    <string name="apps_path_requires_root_or_shizuku_label">Απαιτεί root ή Shizuku</string>
+    <string name="apps_path_requires_shizuku_label">Απαιτεί πρόσβαση ADB</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Απαιτεί root ή πρόσβαση ADB</string>
     <string name="apps_path_requires_access_label">Απαιτεί πρόσθετη πρόσβαση</string>
     <string name="apps_storage_breakdown_label">Ανάλυση αποθηκευτικού χώρου</string>
     <string name="apps_storage_app_label">Εφαρμογή</string>
@@ -230,7 +230,7 @@
     <string name="apps_components_copy_package_action">Αντιγραφή ονόματος πακέτου</string>
     <string name="apps_components_action_enable">Ενεργοποίηση στοιχείου</string>
     <string name="apps_components_action_disable">Απενεργοποίηση στοιχείου</string>
-    <string name="apps_components_action_requires_elevated">Απαιτεί root ή Shizuku — πατήστε για ρύθμιση</string>
+    <string name="apps_components_action_requires_elevated">Απαιτεί root ή πρόσβαση ADB — πάτησε για ρύθμιση</string>
     <string name="apps_components_confirm_enable_title">Ενεργοποίηση στοιχείων;</string>
     <string name="apps_components_confirm_disable_title">Απενεργοποίηση στοιχείων;</string>
     <string name="apps_components_confirm_enable_message">Τα ακόλουθα στοιχεία θα ενεργοποιηθούν:</string>

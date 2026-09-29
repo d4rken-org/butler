@@ -235,10 +235,10 @@
     <string name="general_error_cant_access_msg">Не вдається отримати доступ до %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s не можна переглянути напряму: сховище, на якому розташовано цей файл, підтримує лише послідовне читання, а цей формат архіву потребує довільного доступу.</string>
     <string name="general_error_root_unavailable">Доступ до root недоступний.</string>
-    <string name="general_error_elevated_access_required">Ця операція потребує розширеного доступу. Налаштуйте Root або Shizuku в налаштуваннях.</string>
+    <string name="general_error_elevated_access_required">Ця операція потребує розширеного доступу. Налаштуй root або доступ до ADB в розділі «Налаштування».</string>
     <string name="general_error_no_compatible_app_found_msg">Не знайдено сумісного програми для обробки цього запиту.</string>
     <string name="general_error_ipc_deadobject_title">З’єднання зі службою втрачено</string>
-    <string name="general_error_ipc_deadobject_description">З’єднання з критичною службою (наприклад, Magisk, Shizuku чи іншими системними службами) несподівано перервалося. Перезавантажте пристрій. Якщо проблема не зникає, перевірте оновлення або напишіть мені, і я це виправлю.</string>
+    <string name="general_error_ipc_deadobject_description">З’єднання з критичною службою (наприклад, Magisk чи іншою системною службою) несподівано перервалося. Перезавантаж пристрій. Якщо проблема не зникає, перевір оновлення або напиши мені, і я це виправлю.</string>
 
     <string name="ui_theme_mode_dark_label">Темна</string>
     <string name="ui_theme_mode_light_label">Світла</string>
@@ -276,7 +276,7 @@
 
     <!-- Типи модулів налаштування -->
     <string name="setup_usagestats_title">Статистика використання</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Доступ до ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Доступ до сповіщень</string>
     <string name="setup_manage_storage_card_title">Керування зовнішнім сховищем</string>
@@ -341,7 +341,7 @@
     <!-- Поради Butler -->
     <string name="common_tip_multiple_panes">Використовуйте кілька панелей, щоб порівнювати файли поруч.</string>
     <string name="common_tip_different_folders">Відкривайте різні теки в кожній панелі для зручнішого керування файлами.</string>
-    <string name="common_tip_switch_layouts">Перемикайте розташування панелей у менеджері налаштувань вкладки.</string>
-    <string name="common_tip_elevated_access">Увімкніть root або Shizuku в налаштуваннях для розширених файлових операцій.</string>
+    <string name="common_tip_switch_layouts">Перемикати розташування панелей можна через «Розташування» в меню Butler.</string>
+    <string name="common_tip_elevated_access">Увімкни root або доступ до ADB в розділі «Налаштування» для розширених файлових операцій.</string>
     <string name="common_tip_breadcrumb_home">Довго натисніть елемент шляху в Провіднику, щоб зробити його домашньою текою.</string>
 </resources>

@@ -187,7 +187,7 @@
         <item quantity="other">Xóa %1$d mục</item>
     </plurals>
     <string name="history_delete_dialog_message">Chỉ các bản ghi lịch sử bị xóa, tệp không bị ảnh hưởng.</string>
-    <string name="history_pro_dialog_message">Chia sẻ và xóa mục lịch sử là một phần của bản nâng cấp. Xóa toàn bộ lịch sử vẫn miễn phí trong cài đặt lịch sử.</string>
+    <string name="history_pro_dialog_message">Chia sẻ nhiều mục lịch sử cùng lúc là một phần của bản nâng cấp. Chia sẻ một mục và xóa mục vẫn miễn phí.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Kết quả</string>

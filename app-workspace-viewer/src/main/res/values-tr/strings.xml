@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">Önizleme bu dosyanın ilk %1$s satırıyla sınırlıdır.</string>
     <string name="viewer_text_truncated_width">Uzun satırlar bu önizlemede kısaltılmıştır.</string>
     <string name="viewer_text_unreadable_label">Bu dosya okunamadı</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Bir klasörden açılan dosya silindikten sonra görüntüleyiciyi kapatmak yerine o klasördeki sonraki dosyayı göster.</string>
+    <string name="viewer_settings_show_next_after_delete_title">Silindikten sonra sonraki dosyayı göster</string>
+    <string name="viewer_settings_title">Görüntüleyici</string>
 </resources>

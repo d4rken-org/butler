@@ -110,4 +110,9 @@
     <string name="viewer_text_truncated_lines">Visualização limitada às primeiras %1$s linhas deste arquivo.</string>
     <string name="viewer_text_truncated_width">Linhas longas são encurtadas nesta visualização.</string>
     <string name="viewer_text_unreadable_label">Este arquivo não pôde ser lido</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">Visualizador</string>
+    <string name="viewer_settings_show_next_after_delete_title">Mostrar próximo arquivo após deletar</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Depois de deletar um arquivo aberto de uma pasta, mostra o próximo arquivo nessa pasta em vez de fechar o visualizador.</string>
 </resources>

@@ -209,10 +209,10 @@
     <string name="general_error_cant_access_msg">دسترسی به %s ممکن نیست.</string>
     <string name="general_error_archive_not_seekable_msg">%s را نمی‌توان مستقیماً مرور کرد: حافظه‌ای که روی آن قرار دارد فقط از خواندن ترتیبی پشتیبانی می‌کند، اما این قالب بایگانی به دسترسی تصادفی نیاز دارد.</string>
     <string name="general_error_root_unavailable">دسترسی root در دسترس نیست.</string>
-    <string name="general_error_elevated_access_required">این عملیات به دسترسی سطح‌بالا نیاز دارد. root یا Shizuku را در راه‌اندازی پیکربندی کنید.</string>
+    <string name="general_error_elevated_access_required">این عملیات به دسترسی سطح‌بالا نیاز دارد. در راه‌اندازی، root یا دسترسی ADB را پیکربندی کنید.</string>
     <string name="general_error_no_compatible_app_found_msg">برنامهٔ سازگاری برای انجام این درخواست یافت نشد.</string>
     <string name="general_error_ipc_deadobject_title">اتصال سرویس قطع شد</string>
-    <string name="general_error_ipc_deadobject_description">اتصال به یک سرویس حیاتی (مانند Magisk، Shizuku یا سایر سرویس‌های سطح سیستم) به‌طور غیرمنتظره قطع شد. لطفاً دستگاه خود را دوباره راه‌اندازی کنید. اگر مشکل ادامه داشت، به‌روزرسانی‌ها را بررسی کنید یا این مشکل را گزارش دهید.</string>
+    <string name="general_error_ipc_deadobject_description">اتصال به یک سرویس حیاتی (مثلاً Magisk یا سایر سرویس‌های سطح سیستم) به‌طور غیرمنتظره قطع شد. لطفاً دستگاه خود را دوباره راه‌اندازی کنید. اگر مشکل ادامه داشت، برنامه را به‌روز کنید یا با من تماس بگیرید تا مشکل را حل کنم.</string>
 
     <string name="ui_theme_mode_dark_label">تیره</string>
     <string name="ui_theme_mode_light_label">روشن</string>
@@ -250,7 +250,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">آمار استفاده</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">دسترسی ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">دسترسی اعلان‌ها</string>
     <string name="setup_manage_storage_card_title">مدیریت حافظهٔ خارجی</string>
@@ -309,7 +309,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">برای مقایسهٔ فایل‌ها در کنار هم، از چند قاب استفاده کنید.</string>
     <string name="common_tip_different_folders">برای مدیریت آسان‌تر فایل‌ها، در هر قاب یک پوشهٔ متفاوت باز کنید.</string>
-    <string name="common_tip_switch_layouts">چیدمان قاب‌ها را از مدیریت تنظیمات زبانه تغییر دهید.</string>
-    <string name="common_tip_elevated_access">برای عملیات پیشرفتهٔ فایل، root یا Shizuku را در راه‌اندازی فعال کنید.</string>
+    <string name="common_tip_switch_layouts">چیدمان قاب‌ها را از گزینهٔ «چیدمان» در منوی Butler تغییر دهید.</string>
+    <string name="common_tip_elevated_access">برای عملیات پیشرفتهٔ فایل، در راه‌اندازی root یا دسترسی ADB را فعال کنید.</string>
     <string name="common_tip_breadcrumb_home">برای تنظیم یک مسیر به‌عنوان پوشهٔ خانگی، آن را در نوار مسیر کاوشگر فشار دهید و نگه دارید.</string>
 </resources>

@@ -187,7 +187,7 @@
         <item quantity="other">ลบ %1$d รายการ</item>
     </plurals>
     <string name="history_delete_dialog_message">ลบเฉพาะบันทึกประวัติ ไฟล์เองจะไม่ได้รับผลกระทบ</string>
-    <string name="history_pro_dialog_message">การแชร์และลบรายการประวัติเป็นส่วนหนึ่งของการอัปเกรด การล้างประวัติทั้งหมดยังคงฟรีในการตั้งค่าประวัติ</string>
+    <string name="history_pro_dialog_message">การแชร์รายการประวัติหลายรายการพร้อมกันเป็นส่วนหนึ่งของการอัปเกรด ส่วนการแชร์รายการเดียวและการลบรายการยังคงฟรี</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">ผลลัพธ์</string>

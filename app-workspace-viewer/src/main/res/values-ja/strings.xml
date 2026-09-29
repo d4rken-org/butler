@@ -110,4 +110,9 @@
     <string name="viewer_text_truncated_lines">プレビューはこのファイルの最初の %1$s 行に制限されています。</string>
     <string name="viewer_text_truncated_width">このプレビューでは長い行は短縮されています。</string>
     <string name="viewer_text_unreadable_label">このファイルを読み取ることができませんでした</string>
+
+    <!-- Viewer settings -->
+    <string name="viewer_settings_title">ビューアー</string>
+    <string name="viewer_settings_show_next_after_delete_title">ファイル削除後に次のファイルを表示</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">フォルダから開いたファイルを削除した後、ビューアーを閉じる代わりにそのフォルダの次のファイルを表示します。</string>
 </resources>

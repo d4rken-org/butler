@@ -59,7 +59,7 @@
     <string name="shortcuts_settings_min_dialog_message">Cuántas veces se debe acceder a una ruta antes de que aparezca como acceso directo (1–10)</string>
 
     <string name="setup_usagestats_title">Estadísticas de uso</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Acceso a ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Acceso a notificaciones</string>
     <string name="setup_manage_storage_card_title">Administrar almacenamiento externo</string>
@@ -70,7 +70,7 @@
     <string name="setup_help_description">Ayuda</string>
 
     <string name="setup_root_description">Habilita el acceso a archivos del sistema y directorios protegidos para una gestión de archivos avanzada. Desbloquea todo el potencial de Butler, incluido el acceso a datos de aplicaciones y modificaciones del sistema. El dispositivo debe tener root.</string>
-    <string name="setup_shizuku_description">Alternativa a root que ofrece operaciones de archivos con privilegios mediante una API segura. Permite acceder a directorios restringidos sin necesidad de root tradicional. Requiere que la aplicación Shizuku esté instalada y en ejecución.</string>
+    <string name="setup_shizuku_description">Alternativa a root que ofrece operaciones de archivos con privilegios mediante una API segura. Permite acceder a directorios restringidos sin root tradicional. Requiere que Porter o Shizuku estén instalados y en ejecución.</string>
     <string name="setup_notification_description">Muestra actualizaciones de las operaciones de archivos, tareas en segundo plano y progreso de transferencias. Te mantiene informado cuando las operaciones finalizan o se producen errores.</string>
     <string name="setup_usagestats_description">Analiza el uso de almacenamiento de las aplicaciones para identificar archivos grandes y ayudarte a administrar el espacio de forma eficaz. Todos los datos permanecen en tu dispositivo y nunca se transmiten.</string>
     <string name="setup_storage_description">Acceso completo a todo el almacenamiento del dispositivo para operaciones de archivos rápidas y procesamiento por lotes. Permite una gestión de archivos completa sin solicitudes de permiso repetidas.</string>
@@ -79,7 +79,7 @@
     <string name="setup_grant_access_label">Conceder acceso</string>
     <string name="setup_access_granted_label">Acceso concedido</string>
     <string name="setup_use_root_label">Usar root si está disponible</string>
-    <string name="setup_use_shizuku_label">Usar Shizuku si está disponible</string>
+    <string name="setup_use_shizuku_label">Usar acceso a ADB si está disponible</string>
 
     <string name="setup_status_checking">Comprobando…</string>
     <string name="setup_status_completed">Configurado</string>
@@ -91,6 +91,14 @@
     <string name="setup_status_connecting">Conectando…</string>
     <string name="setup_status_connection_failed">Error de conexión</string>
     <string name="setup_status_unavailable">No disponible</string>
+    <string name="setup_status_permission_denied">Permiso denegado</string>
+    <string name="setup_adb_status_manager_update_required">Actualización requerida</string>
+    <string name="setup_adb_status_butler_update_required">Actualización de Butler requerida</string>
+    <string name="setup_adb_status_connected_via">Conectado a través de %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">Aún no permitido por %1$s</string>
+    <string name="setup_adb_status_denied_in">Denegado en %1$s</string>
+    <string name="setup_adb_open_manager_action">Abrir %1$s</string>
+    <string name="setup_adb_install_manager_action">Instalar %1$s</string>
 
     <!-- Debug Log -->
     <string name="debug_notification_channel_label">Notificaciones de depuración</string>
@@ -273,6 +281,8 @@
     <string name="acknowledgement_librootjava_subtitle">¡Ejecuta código Java (y Kotlin) como root! (APACHE 2.0)</string>
     <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
     <string name="acknowledgement_librootkotlinx_subtitle">Ejecuta código Kotlin JVM con root de forma sencilla gracias a las corrutinas. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Proporciona acceso a ADB a aplicaciones de Android a través de las API de Shizuku, con soporte opcional de root. (APACHE 2.0)</string>
     <string name="acknowledgement_shizuku_title">Shizuku</string>
     <string name="acknowledgement_shizuku_subtitle">Usa las API del sistema directamente con privilegios de adb/root desde aplicaciones normales mediante un proceso Java iniciado con app_process. (APACHE 2.0)</string>
     <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
@@ -409,6 +419,7 @@
     <string name="explorer_settings_subtitle">Configura el comportamiento del explorador de archivos.</string>
     <string name="searcher_settings_subtitle">Configura el comportamiento de la búsqueda.</string>
     <string name="editor_settings_subtitle">Configura el comportamiento del editor de texto.</string>
+    <string name="viewer_settings_subtitle">Configura el comportamiento del visor de archivos.</string>
     <string name="history_settings_subtitle">Retención y borrado del historial de operaciones.</string>
     <string name="clipboard_settings_subtitle">Configura el comportamiento del portapapeles.</string>
 
@@ -523,5 +534,8 @@
     <string name="review_app_body">¿Te gustaría dejarle una reseña a Butler? ❤️</string>
     <string name="review_app_dismiss_action">Quizás más tarde</string>
     <string name="review_app_review_action">Reseñar</string>
+    <string name="shortcuts_settings_max_count_summary">Número máximo de accesos directos que se muestran en el launcher</string>
+    <string name="shortcuts_settings_min_access_summary">Cuántas veces se debe abrir una ruta para que se convierta en acceso directo</string>
+    <string name="workspace_pane_menu_action">Mostrar opciones de la pestaña</string>
 
 </resources>

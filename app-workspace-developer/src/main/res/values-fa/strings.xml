@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">نصب‌شده</string>
     <string name="developer_options_root_available_label">دستیاب</string>
     <string name="developer_options_root_base_check_label">بررسی پایه‌ای</string>
-    <string name="developer_options_shizuku_test_action">آزمون Shizuku</string>
+    <string name="developer_options_shizuku_test_action">آزمون دسترسی ADB</string>
     <string name="developer_options_shizuku_installed_label">نصب‌شده</string>
     <string name="developer_options_shizuku_granted_label">مجوز</string>
     <string name="developer_options_shizuku_compatible_label">سازگار</string>

@@ -69,7 +69,7 @@
     <string name="smb_error_credential_unavailable_title">Masuk diperlukan</string>
     <string name="smb_error_credential_unavailable_description">Kata sandi yang disimpan untuk penyimpanan jaringan ini tidak dapat dibaca lagi. Masukkan lagi untuk terhubung kembali.</string>
     <string name="smb_error_pro_required_title">Share jaringan memerlukan Butler Pro</string>
-    <string name="smb_error_pro_required_description">Terhubung ke share jaringan adalah bagian dari Butler Pro. Lokasi tersimpan Anda tetap terdaftar dan dapat dihapus tanpa itu.</string>
+    <string name="smb_error_pro_required_description">Menjelajahi share jaringan adalah bagian dari Butler Pro. Menambah, menguji, dan menghapus lokasi gratis.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Bundle aplikasi terlindungi</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" dienkripsi dan hanya dapat diinstal oleh aplikasi yang membuatnya.</string>
@@ -104,7 +104,7 @@
     <string name="app_uninstall_confirm_pending_reason">Android menunggu konfirmasi Anda</string>
 
     <!-- App uninstall errors -->
-    <string name="app_uninstall_other_user_unsupported">Menghapus aplikasi ini untuk pengguna lain memerlukan root atau Shizuku</string>
+    <string name="app_uninstall_other_user_unsupported">Menghapus aplikasi ini untuk pengguna lain memerlukan akses root atau ADB</string>
     <string name="app_uninstall_no_result">Android tidak melaporkan hasil</string>
 
     <!-- Service connection errors -->

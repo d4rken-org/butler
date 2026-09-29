@@ -591,9 +591,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android membatasi akses ke folder ini. Gunakan pemilih folder untuk memberikan akses.</string>
-    <string name="explorer_permission_multiple_options_description">Anda dapat memberikan akses menggunakan pemilih folder Android atau menyiapkan Root/Shizuku untuk akses lebih cepat ke semua folder yang dibatasi.</string>
-    <string name="explorer_permission_setup_both_description">Folder ini memerlukan akses tingkat lanjut. Pasang dan konfigurasikan Root atau Shizuku di pengaturan.</string>
-    <string name="explorer_permission_setup_shizuku_description">Folder ini memerlukan akses tingkat lanjut melalui Shizuku. Pasang Shizuku Manager dan konfigurasikan di pengaturan.</string>
+    <string name="explorer_permission_multiple_options_description">Akses dapat diberikan lewat pemilih folder Android, atau siapkan akses root atau ADB untuk akses lebih cepat ke semua folder yang dibatasi.</string>
+    <string name="explorer_permission_setup_both_description">Folder ini memerlukan akses tingkat lanjut. Siapkan akses root atau ADB di pengaturan.</string>
+    <string name="explorer_permission_setup_shizuku_description">Folder ini memerlukan akses tingkat lanjut melalui ADB. Konfigurasikan akses ADB di pengaturan.</string>
     <string name="explorer_permission_setup_root_description">Folder ini memerlukan akses Root. Konfigurasikan Root di pengaturan jika perangkat Anda sudah di-root.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -601,7 +601,7 @@
     <string name="explorer_permission_option_picker_action">Buka pemilih SAF</string>
 
     <string name="explorer_permission_option_setup_title">Akses penuh</string>
-    <string name="explorer_permission_option_setup_description">Konfigurasikan Root atau Shizuku untuk akses lebih cepat ke semua folder yang dibatasi.</string>
+    <string name="explorer_permission_option_setup_description">Konfigurasikan akses root atau ADB untuk akses lebih cepat ke semua folder yang dibatasi.</string>
     <string name="explorer_permission_option_setup_action">Konfigurasikan</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -637,4 +637,13 @@
     <plurals name="explorer_settings_folder_sort_rules_value">
         <item quantity="other">%1$d folder</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">Menambahkan dan menguji lokasi gratis. Menjelajahinya memerlukan Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Menjelajahi penyimpanan jaringan memerlukan Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Tersimpan. Menjelajahi penyimpanan jaringan memerlukan Butler Pro.</string>
+    <string name="explorer_permission_multiple_options_root_description">Akses dapat diberikan lewat pemilih folder Android, atau siapkan Root untuk akses ke semua folder yang dibatasi.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Akses dapat diberikan lewat pemilih folder Android, atau siapkan akses ADB untuk akses lebih cepat ke folder yang dibatasi.</string>
+    <string name="explorer_permission_option_setup_root_description">Konfigurasikan Root untuk mengakses folder ini dan folder terbatas lainnya.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Konfigurasikan akses ADB untuk membuka folder ini.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Hapus item secara otomatis setelah selama ini berada di sampah</string>
+    <string name="explorer_settings_trash_max_size_summary">Seberapa besar ruang yang boleh dipakai sampah di setiap lokasi penyimpanan</string>
 </resources>

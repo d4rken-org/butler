@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">L’accès root est nécessaire pour parcourir cet emplacement. Activez l’accès root dans les paramètres de l’application Butler.</string>
-    <string name="provider_documents_error_requires_adb">L’accès ADB/Shizuku est nécessaire pour parcourir cet emplacement. Activez Shizuku dans les paramètres de l’application Butler.</string>
+    <string name="provider_documents_error_requires_adb">L’accès ADB est nécessaire pour parcourir cet emplacement. Active-le dans la configuration de Butler.</string>
     <string name="provider_documents_error_requires_storage">L’autorisation de stockage est nécessaire pour parcourir cet emplacement. Accordez l’autorisation de stockage dans les paramètres de l’application Butler.</string>
     <string name="provider_documents_error_requires_permissions">Des autorisations supplémentaires sont nécessaires pour parcourir cet emplacement. Vérifiez les paramètres de l’application Butler.</string>
     <string name="provider_documents_error_generic">Impossible d’accéder à cet emplacement. Vérifiez l’application Butler pour les options d’accès.</string>

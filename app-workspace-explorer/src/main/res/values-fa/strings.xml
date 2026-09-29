@@ -626,9 +626,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">اندروید دسترسی به این پوشه را محدود می‌کند. برای اعطای دسترسی از انتخاب‌گر پوشه استفاده کنید.</string>
-    <string name="explorer_permission_multiple_options_description">می‌توانید با استفاده از انتخاب‌گر پوشه اندروید دسترسی بدهید یا Root/Shizuku را برای دسترسی سریع‌تر به همه پوشه‌های محدودشده تنظیم کنید.</string>
-    <string name="explorer_permission_setup_both_description">این پوشه به دسترسی بالاتر نیاز دارد. در بخش تنظیم، Root یا Shizuku را نصب و پیکربندی کنید.</string>
-    <string name="explorer_permission_setup_shizuku_description">این پوشه به دسترسی بالاتر از طریق Shizuku نیاز دارد. Shizuku Manager را نصب کنید و در بخش تنظیم پیکربندی کنید.</string>
+    <string name="explorer_permission_multiple_options_description">می‌توانید با استفاده از انتخاب‌گر پوشه اندروید دسترسی بدهید یا Root یا دسترسی ADB را برای دسترسی سریع‌تر به همه پوشه‌های محدودشده تنظیم کنید.</string>
+    <string name="explorer_permission_setup_both_description">این پوشه به دسترسی بالاتر نیاز دارد. در بخش تنظیم، Root یا دسترسی ADB را پیکربندی کنید.</string>
+    <string name="explorer_permission_setup_shizuku_description">این پوشه به دسترسی بالاتر از طریق ADB نیاز دارد. دسترسی ADB را در بخش تنظیم پیکربندی کنید.</string>
     <string name="explorer_permission_setup_root_description">این پوشه به دسترسی Root نیاز دارد. اگر دستگاه شما روت شده است، Root را در بخش تنظیم پیکربندی کنید.</string>
 
     <string name="explorer_permission_option_picker_title">چارچوب دسترسی به حافظه (SAF)</string>
@@ -636,7 +636,7 @@
     <string name="explorer_permission_option_picker_action">باز کردن انتخاب‌گر SAF</string>
 
     <string name="explorer_permission_option_setup_title">دسترسی کامل</string>
-    <string name="explorer_permission_option_setup_description">برای دسترسی سریع‌تر به همه پوشه‌های محدودشده، Root یا Shizuku را پیکربندی کنید.</string>
+    <string name="explorer_permission_option_setup_description">برای دسترسی سریع‌تر به همه پوشه‌های محدودشده، Root یا دسترسی ADB را پیکربندی کنید.</string>
     <string name="explorer_permission_option_setup_action">پیکربندی</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -676,4 +676,13 @@
         <item quantity="one">%1$d پوشه</item>
         <item quantity="other">%1$d پوشه</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">افزودن و آزمایش یک مکان رایگان است. مرور آن به Butler Pro نیاز دارد.</string>
+    <string name="explorer_network_upgrade_hint_locked">مرور حافظه شبکه به Butler Pro نیاز دارد.</string>
+    <string name="explorer_network_upgrade_hint_saved">ذخیره شد. مرور حافظه شبکه به Butler Pro نیاز دارد.</string>
+    <string name="explorer_permission_multiple_options_root_description">می‌توانید با استفاده از انتخاب‌گر پوشه اندروید دسترسی بدهید یا Root را برای دسترسی به همه پوشه‌های محدودشده تنظیم کنید.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">می‌توانید با استفاده از انتخاب‌گر پوشه اندروید دسترسی بدهید یا دسترسی ADB را برای دسترسی سریع‌تر به پوشه‌های محدودشده تنظیم کنید.</string>
+    <string name="explorer_permission_option_setup_root_description">Root را برای دسترسی به این پوشه و سایر پوشه‌های محدودشده پیکربندی کنید.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">دسترسی ADB را برای باز کردن این پوشه پیکربندی کنید.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">موارد پس از این مدت ماندن در سطل زباله به‌طور خودکار حذف می‌شوند</string>
+    <string name="explorer_settings_trash_max_size_summary">میزان فضایی که سطل زباله می‌تواند روی هر حافظه استفاده کند</string>
 </resources>

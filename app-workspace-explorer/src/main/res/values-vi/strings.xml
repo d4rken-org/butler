@@ -594,9 +594,9 @@
 
     <!-- Giải thích thẻ yêu cầu quyền -->
     <string name="explorer_permission_saf_workaround_description">Android hạn chế quyền truy cập vào thư mục này. Hãy dùng trình chọn thư mục để cấp quyền truy cập.</string>
-    <string name="explorer_permission_multiple_options_description">Bạn có thể cấp quyền truy cập bằng trình chọn thư mục của Android hoặc thiết lập Root/Shizuku để truy cập nhanh hơn vào tất cả thư mục bị hạn chế.</string>
-    <string name="explorer_permission_setup_both_description">Thư mục này cần quyền truy cập nâng cao. Hãy cài đặt và cấu hình Root hoặc Shizuku trong phần thiết lập.</string>
-    <string name="explorer_permission_setup_shizuku_description">Thư mục này cần quyền truy cập nâng cao qua Shizuku. Hãy cài đặt Shizuku Manager và cấu hình trong phần thiết lập.</string>
+    <string name="explorer_permission_multiple_options_description">Bạn có thể cấp quyền truy cập bằng trình chọn thư mục của Android hoặc thiết lập quyền truy cập root hoặc ADB để truy cập nhanh hơn vào tất cả thư mục bị hạn chế.</string>
+    <string name="explorer_permission_setup_both_description">Thư mục này cần quyền truy cập nâng cao. Hãy thiết lập quyền truy cập root hoặc ADB trong phần thiết lập.</string>
+    <string name="explorer_permission_setup_shizuku_description">Thư mục này cần quyền truy cập nâng cao qua ADB. Hãy cấu hình quyền truy cập ADB trong phần thiết lập.</string>
     <string name="explorer_permission_setup_root_description">Thư mục này cần quyền truy cập Root. Hãy cấu hình Root trong phần thiết lập nếu thiết bị của bạn đã root.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -604,7 +604,7 @@
     <string name="explorer_permission_option_picker_action">Mở trình chọn SAF</string>
 
     <string name="explorer_permission_option_setup_title">Toàn quyền truy cập</string>
-    <string name="explorer_permission_option_setup_description">Cấu hình Root hoặc Shizuku để truy cập nhanh hơn vào tất cả thư mục bị hạn chế.</string>
+    <string name="explorer_permission_option_setup_description">Cấu hình quyền truy cập root hoặc ADB để truy cập nhanh hơn vào tất cả thư mục bị hạn chế.</string>
     <string name="explorer_permission_option_setup_action">Cấu hình</string>
 
     <!-- Thẻ yêu cầu quyền - Tùy chọn truy cập bộ nhớ -->
@@ -640,4 +640,13 @@
     <plurals name="explorer_settings_folder_sort_rules_value">
         <item quantity="other">%1$d thư mục</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">Thêm và kiểm tra một vị trí là miễn phí. Duyệt vị trí đó cần Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Duyệt bộ nhớ mạng cần Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Đã lưu. Duyệt bộ nhớ mạng cần Butler Pro.</string>
+    <string name="explorer_permission_multiple_options_root_description">Bạn có thể cấp quyền truy cập bằng trình chọn thư mục của Android, hoặc thiết lập Root để truy cập tất cả thư mục bị hạn chế.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Bạn có thể cấp quyền truy cập bằng trình chọn thư mục của Android, hoặc thiết lập quyền truy cập ADB để truy cập nhanh hơn vào các thư mục bị hạn chế.</string>
+    <string name="explorer_permission_option_setup_root_description">Cấu hình Root để truy cập thư mục này và các thư mục bị hạn chế khác.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Cấu hình quyền truy cập ADB để mở thư mục này.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Tự động xóa các mục sau khoảng thời gian này trong thùng rác</string>
+    <string name="explorer_settings_trash_max_size_summary">Dung lượng thùng rác được dùng trên mỗi vị trí lưu trữ</string>
 </resources>

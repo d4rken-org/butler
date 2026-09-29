@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">Εγκατεστημένο</string>
     <string name="developer_options_root_available_label">Διαθέσιμο</string>
     <string name="developer_options_root_base_check_label">Βασικός έλεγχος</string>
-    <string name="developer_options_shizuku_test_action">Δοκιμή Shizuku</string>
+    <string name="developer_options_shizuku_test_action">Δοκιμή πρόσβασης ADB</string>
     <string name="developer_options_shizuku_installed_label">Εγκατεστημένο</string>
     <string name="developer_options_shizuku_granted_label">Δικαίωμα</string>
     <string name="developer_options_shizuku_compatible_label">Συμβατό</string>

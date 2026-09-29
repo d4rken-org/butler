@@ -594,9 +594,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android はこのフォルダへのアクセスを制限しています。フォルダピッカーを使ってアクセスを許可してください。</string>
-    <string name="explorer_permission_multiple_options_description">Android のフォルダピッカーを使ってアクセスを許可するか、Root または Shizuku を設定してすべての制限フォルダに高速にアクセスできます。</string>
-    <string name="explorer_permission_setup_both_description">このフォルダには昇格されたアクセス権が必要です。設定で Root または Shizuku をインストールして構成してください。</string>
-    <string name="explorer_permission_setup_shizuku_description">このフォルダには Shizuku 経由の昇格されたアクセス権が必要です。Shizuku Manager をインストールし、設定で構成してください。</string>
+    <string name="explorer_permission_multiple_options_description">Android のフォルダピッカーを使ってアクセスを許可するか、Root または ADB アクセスを設定してすべての制限フォルダに高速にアクセスできます。</string>
+    <string name="explorer_permission_setup_both_description">このフォルダには昇格されたアクセス権が必要です。設定で Root または ADB アクセスを構成してください。</string>
+    <string name="explorer_permission_setup_shizuku_description">このフォルダには ADB 経由の昇格されたアクセス権が必要です。設定で ADB アクセスを構成してください。</string>
     <string name="explorer_permission_setup_root_description">このフォルダには Root アクセスが必要です。端末が root化されている場合は、設定で Root を構成してください。</string>
 
     <string name="explorer_permission_option_picker_title">ストレージアクセスフレームワーク</string>
@@ -604,7 +604,7 @@
     <string name="explorer_permission_option_picker_action">SAF ピッカーを開く</string>
 
     <string name="explorer_permission_option_setup_title">完全なアクセス</string>
-    <string name="explorer_permission_option_setup_description">Root または Shizuku を構成すると、すべての制限フォルダに高速にアクセスできます。</string>
+    <string name="explorer_permission_option_setup_description">Root または ADB アクセスを構成すると、すべての制限フォルダに高速にアクセスできます。</string>
     <string name="explorer_permission_option_setup_action">構成</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -640,4 +640,13 @@
     <plurals name="explorer_settings_folder_sort_rules_value">
         <item quantity="other">%1$d 個のフォルダ</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">場所の追加とテストは無料です。閲覧には Butler Pro が必要です。</string>
+    <string name="explorer_network_upgrade_hint_locked">ネットワークストレージの閲覧には Butler Pro が必要です。</string>
+    <string name="explorer_network_upgrade_hint_saved">保存しました。ネットワークストレージの閲覧には Butler Pro が必要です。</string>
+    <string name="explorer_permission_multiple_options_root_description">Android のフォルダピッカーを使ってアクセスを許可するか、Root を設定してすべての制限フォルダにアクセスできます。</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Android のフォルダピッカーを使ってアクセスを許可するか、ADB アクセスを設定して制限フォルダに高速にアクセスできます。</string>
+    <string name="explorer_permission_option_setup_root_description">Root を構成すると、このフォルダやその他の制限フォルダにアクセスできます。</string>
+    <string name="explorer_permission_option_setup_shizuku_description">ADB アクセスを構成すると、このフォルダを開けます。</string>
+    <string name="explorer_settings_trash_auto_delete_summary">ゴミ箱に入れてからこの期間が過ぎたアイテムを自動的に削除します</string>
+    <string name="explorer_settings_trash_max_size_summary">各ストレージでゴミ箱が使用できる容量</string>
 </resources>

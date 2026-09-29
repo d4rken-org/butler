@@ -336,6 +336,19 @@
     <string name="workspace_open_tabs_confirmation_title">Meerdere tabbladen openen?</string>
     <string name="workspace_open_tabs_confirmation_message">Dit opent %1$d tabbladen.</string>
 
+    <!-- Selectie openen dialoog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Open %d item</item>
+        <item quantity="other">Open %d items</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Hier weergeven</string>
+    <string name="workspace_open_selection_view_here_description">Toont de geselecteerde bestanden in een weergave bovenop dit deelvenster. Vorige en volgende gaan alleen door je selectie.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Weergeven in nieuw tabblad</string>
+    <string name="workspace_open_selection_view_in_tab_description">Toont de geselecteerde bestanden in een weergave in een eigen tabblad. Vorige en volgende gaan alleen door je selectie.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Elk in een eigen tabblad openen</string>
+    <string name="workspace_open_selection_each_in_tab_description">Opent elk geselecteerd item in een apart tabblad. Mappen worden als bestandsbrowser-tabbladen geopend.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Mappen kunnen niet in de weergave worden getoond.</string>
+
     <!-- Openen met (bestand doorgeven aan andere app) -->
     <string name="workspace_open_with_chooser_title">Openen met</string>
     <string name="workspace_open_with_no_app_label">Geen andere app gevonden</string>
@@ -375,7 +388,8 @@
     <string name="workspace_settings_layout_mode_classic">Klassiek</string>
     <string name="workspace_settings_layout_mode_classic_desc">Eén deelvenster tegelijk, zonder tabbladbalk.</string>
     <string name="workspace_settings_layout_mode_adaptive">Adaptief</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">Tabbladbalk plus zoveel deelvensters als op het scherm passen. Zet een indeling vast via het Butler-menu in de balk.</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Tabbladbalk plus zoveel deelvensters als op het scherm passen. Zet een indeling vast via het Butler-menu.</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Tabbladbalk plus zoveel deelvensters als op het scherm passen.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptief (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Enkel met tabbladbalk</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">Eén tabbladdeelvenster plus de tabbladbalk van de indelingen met meerdere deelvensters. De balk neemt een strook van het scherm in beslag.</string>

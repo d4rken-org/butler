@@ -78,8 +78,8 @@
     <string name="apps_path_internal_data_label">البيانات الداخلية</string>
     <string name="apps_path_external_data_label">التخزين الخارجي</string>
     <string name="apps_path_requires_root_label">يتطلب صلاحيات root</string>
-    <string name="apps_path_requires_shizuku_label">يتطلب Shizuku</string>
-    <string name="apps_path_requires_root_or_shizuku_label">يتطلب صلاحيات root أو Shizuku</string>
+    <string name="apps_path_requires_shizuku_label">يتطلب وصول ADB</string>
+    <string name="apps_path_requires_root_or_shizuku_label">يتطلب root أو وصول ADB</string>
     <string name="apps_path_requires_access_label">يتطلب وصولاً إضافيًا</string>
     <string name="apps_storage_breakdown_label">تفاصيل التخزين</string>
     <string name="apps_storage_app_label">التطبيق</string>
@@ -249,7 +249,7 @@
     <string name="apps_components_copy_package_action">نسخ اسم الحزمة</string>
     <string name="apps_components_action_enable">تفعيل المكوّن</string>
     <string name="apps_components_action_disable">تعطيل المكوّن</string>
-    <string name="apps_components_action_requires_elevated">يتطلب صلاحيات root أو Shizuku — انقر للإعداد</string>
+    <string name="apps_components_action_requires_elevated">يتطلب root أو وصول ADB — انقر للإعداد</string>
     <string name="apps_components_confirm_enable_title">تفعيل المكوّنات؟</string>
     <string name="apps_components_confirm_disable_title">تعطيل المكوّنات؟</string>
     <string name="apps_components_confirm_enable_message">سيتم تفعيل المكوّنات التالية:</string>

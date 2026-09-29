@@ -626,9 +626,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android beperkt de toegang tot deze map. Gebruik de mapkiezer om toegang te verlenen.</string>
-    <string name="explorer_permission_multiple_options_description">Je kunt toegang verlenen via de mapkiezer van Android, of Root/Shizuku instellen voor snellere toegang tot alle beperkte mappen.</string>
-    <string name="explorer_permission_setup_both_description">Deze map vereist verhoogde toegang. Installeer en configureer Root of Shizuku in Setup.</string>
-    <string name="explorer_permission_setup_shizuku_description">Deze map vereist verhoogde toegang via Shizuku. Installeer Shizuku Manager en configureer deze in Setup.</string>
+    <string name="explorer_permission_multiple_options_description">Je kunt toegang verlenen via de mapkiezer van Android, of Root of ADB-toegang instellen voor snellere toegang tot alle beperkte mappen.</string>
+    <string name="explorer_permission_setup_both_description">Deze map vereist verhoogde toegang. Stel Root of ADB-toegang in bij Setup.</string>
+    <string name="explorer_permission_setup_shizuku_description">Deze map vereist verhoogde toegang via ADB. Configureer ADB-toegang in Setup.</string>
     <string name="explorer_permission_setup_root_description">Deze map vereist Root-toegang. Configureer Root in Setup als je apparaat geroot is.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -636,7 +636,7 @@
     <string name="explorer_permission_option_picker_action">SAF-kiezer openen</string>
 
     <string name="explorer_permission_option_setup_title">Volledige toegang</string>
-    <string name="explorer_permission_option_setup_description">Configureer Root of Shizuku voor snellere toegang tot alle beperkte mappen.</string>
+    <string name="explorer_permission_option_setup_description">Configureer Root of ADB-toegang voor snellere toegang tot alle beperkte mappen.</string>
     <string name="explorer_permission_option_setup_action">Configureren</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -676,4 +676,13 @@
         <item quantity="one">%1$d map</item>
         <item quantity="other">%1$d mappen</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">Een locatie toevoegen en testen is gratis. Doorbladeren vereist Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Netwerkopslag doorbladeren vereist Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Opgeslagen. Netwerkopslag doorbladeren vereist Butler Pro.</string>
+    <string name="explorer_permission_multiple_options_root_description">Je kunt toegang verlenen via de mapkiezer van Android, of Root instellen voor toegang tot alle beperkte mappen.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Je kunt toegang verlenen via de mapkiezer van Android, of ADB-toegang instellen voor snellere toegang tot beperkte mappen.</string>
+    <string name="explorer_permission_option_setup_root_description">Configureer Root om deze map en andere beperkte mappen te openen.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Configureer ADB-toegang om deze map te openen.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Items automatisch verwijderen na zo lang in de prullenbak</string>
+    <string name="explorer_settings_trash_max_size_summary">Hoeveel ruimte de prullenbak mag gebruiken op elke opslaglocatie</string>
 </resources>

@@ -57,9 +57,11 @@
     <string name="shortcuts_settings_max_dialog_message">Jumlah pintasan yang ditampilkan di peluncur (1–4)</string>
     <string name="shortcuts_settings_min_dialog_title">Jumlah akses minimum</string>
     <string name="shortcuts_settings_min_dialog_message">Berapa kali suatu lokasi harus diakses sebelum muncul sebagai pintasan (1–10)</string>
+    <string name="shortcuts_settings_max_count_summary">Jumlah maksimum pintasan yang ditampilkan di peluncur</string>
+    <string name="shortcuts_settings_min_access_summary">Berapa kali suatu lokasi harus dibuka sebelum menjadi pintasan</string>
 
     <string name="setup_usagestats_title">Statistik penggunaan</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Akses ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Akses notifikasi</string>
     <string name="setup_manage_storage_card_title">Kelola penyimpanan eksternal</string>
@@ -70,7 +72,7 @@
     <string name="setup_help_description">Bantuan</string>
 
     <string name="setup_root_description">Mengaktifkan akses ke berkas sistem dan direktori yang dilindungi untuk manajemen berkas tingkat lanjut. Membuka potensi penuh Butler termasuk akses data aplikasi dan modifikasi sistem. Perangkat harus di-root.</string>
-    <string name="setup_shizuku_description">Alternatif untuk root yang menyediakan operasi berkas dengan hak istimewa melalui API yang aman. Memungkinkan akses ke direktori terbatas tanpa root tradisional. Memerlukan aplikasi Shizuku terpasang dan berjalan.</string>
+    <string name="setup_shizuku_description">Alternatif untuk root yang menyediakan operasi berkas dengan hak istimewa melalui API yang aman. Memungkinkan akses ke direktori terbatas tanpa root tradisional. Memerlukan Porter atau Shizuku terpasang dan berjalan.</string>
     <string name="setup_notification_description">Menampilkan pembaruan untuk operasi berkas, tugas latar belakang, dan progres transfer. Memberi tahu Anda saat operasi selesai atau terjadi kesalahan.</string>
     <string name="setup_usagestats_description">Menganalisis penggunaan penyimpanan aplikasi untuk mengidentifikasi berkas besar dan membantu mengelola ruang secara efektif. Semua data tetap di perangkat Anda dan tidak pernah dikirim.</string>
     <string name="setup_storage_description">Akses penuh ke semua penyimpanan perangkat untuk operasi berkas yang cepat dan pemrosesan massal. Mengaktifkan manajemen berkas menyeluruh tanpa permintaan izin berulang.</string>
@@ -79,7 +81,7 @@
     <string name="setup_grant_access_label">Berikan akses</string>
     <string name="setup_access_granted_label">Akses diberikan</string>
     <string name="setup_use_root_label">Gunakan root jika tersedia</string>
-    <string name="setup_use_shizuku_label">Gunakan Shizuku jika tersedia</string>
+    <string name="setup_use_shizuku_label">Gunakan akses ADB jika tersedia</string>
 
     <string name="setup_status_checking">Memeriksa…</string>
     <string name="setup_status_completed">Dikonfigurasi</string>
@@ -91,6 +93,14 @@
     <string name="setup_status_connecting">Menghubungkan…</string>
     <string name="setup_status_connection_failed">Koneksi gagal</string>
     <string name="setup_status_unavailable">Tidak tersedia</string>
+    <string name="setup_status_permission_denied">Izin ditolak</string>
+    <string name="setup_adb_status_manager_update_required">Pembaruan diperlukan</string>
+    <string name="setup_adb_status_butler_update_required">Pembaruan Butler diperlukan</string>
+    <string name="setup_adb_status_connected_via">Terhubung melalui %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">Belum diizinkan oleh %1$s</string>
+    <string name="setup_adb_status_denied_in">Ditolak di %1$s</string>
+    <string name="setup_adb_open_manager_action">Buka %1$s</string>
+    <string name="setup_adb_install_manager_action">Pasang %1$s</string>
 
     <!-- Debug Log -->
     <string name="debug_notification_channel_label">Notifikasi debug</string>
@@ -268,6 +278,8 @@
     <string name="acknowledgement_librootjava_subtitle">Jalankan kode Java (dan Kotlin) sebagai root! (APACHE 2.0)</string>
     <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
     <string name="acknowledgement_librootkotlinx_subtitle">Menjalankan kode Kotlin JVM ber-root dengan mudah menggunakan coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Memberikan aplikasi Android akses ADB melalui API Shizuku, dengan dukungan root opsional. (APACHE 2.0)</string>
     <string name="acknowledgement_shizuku_title">Shizuku</string>
     <string name="acknowledgement_shizuku_subtitle">Menggunakan API sistem secara langsung dengan hak istimewa adb/root dari aplikasi biasa melalui proses Java yang dimulai dengan app_process. (APACHE 2.0)</string>
     <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
@@ -384,6 +396,7 @@
     <!-- Workspace Navigation Rail -->
     <string name="workspace_pane_assign_action">Tetapkan ke panel %1$d</string>
     <string name="workspace_pane_show_action">Tampilkan</string>
+    <string name="workspace_pane_menu_action">Tampilkan opsi tab</string>
     <string name="workspace_pane_close_action">Tutup</string>
     <string name="workspace_pane_unassign_action">Hapus dari panel</string>
     <string name="workspace_dragging_description">Menyeret</string>
@@ -404,6 +417,7 @@
     <string name="explorer_settings_subtitle">Konfigurasi perilaku penjelajah berkas.</string>
     <string name="searcher_settings_subtitle">Konfigurasi perilaku pencarian.</string>
     <string name="editor_settings_subtitle">Konfigurasi perilaku editor teks.</string>
+    <string name="viewer_settings_subtitle">Konfigurasi perilaku penampil berkas.</string>
     <string name="history_settings_subtitle">Retensi dan penghapusan riwayat operasi.</string>
     <string name="clipboard_settings_subtitle">Konfigurasi perilaku papan klip.</string>
 

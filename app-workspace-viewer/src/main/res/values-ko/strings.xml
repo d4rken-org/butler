@@ -110,4 +110,9 @@
     <string name="viewer_text_truncated_lines">미리보기는 이 파일의 처음 %1$s 줄로 제한됩니다.</string>
     <string name="viewer_text_truncated_width">이 미리보기에서는 긴 줄이 단축됩니다.</string>
     <string name="viewer_text_unreadable_label">이 파일을 읽을 수 없습니다</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">뷰어</string>
+    <string name="viewer_settings_show_next_after_delete_title">파일 삭제 후 다음 파일 표시</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">폴더에서 열린 파일을 삭제한 후 뷰어를 닫는 대신 해당 폴더의 다음 파일을 표시합니다.</string>
 </resources>

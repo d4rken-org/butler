@@ -623,9 +623,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android restreint l’accès à ce dossier. Utilisez le sélecteur de dossier pour accorder l’accès.</string>
-    <string name="explorer_permission_multiple_options_description">Vous pouvez accorder l’accès via le sélecteur de dossier d’Android ou configurer Root/Shizuku pour un accès plus rapide à tous les dossiers restreints.</string>
-    <string name="explorer_permission_setup_both_description">Ce dossier nécessite un accès élevé. Installez et configurez Root ou Shizuku dans la configuration.</string>
-    <string name="explorer_permission_setup_shizuku_description">Ce dossier nécessite un accès élevé via Shizuku. Installez Shizuku Manager et configurez-le dans la configuration.</string>
+    <string name="explorer_permission_multiple_options_description">Tu peux accorder l’accès via le sélecteur de dossier d’Android ou configurer l’accès root ou ADB pour un accès plus rapide à tous les dossiers restreints.</string>
+    <string name="explorer_permission_setup_both_description">Ce dossier nécessite un accès élevé. Configure l’accès root ou ADB dans la configuration.</string>
+    <string name="explorer_permission_setup_shizuku_description">Ce dossier nécessite un accès élevé via ADB. Configure l’accès ADB dans la configuration.</string>
     <string name="explorer_permission_setup_root_description">Ce dossier nécessite un accès Root. Configurez Root dans la configuration si votre appareil est rooté.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -633,7 +633,7 @@
     <string name="explorer_permission_option_picker_action">Ouvrir le sélecteur SAF</string>
 
     <string name="explorer_permission_option_setup_title">Accès complet</string>
-    <string name="explorer_permission_option_setup_description">Configurez Root ou Shizuku pour un accès plus rapide à tous les dossiers restreints.</string>
+    <string name="explorer_permission_option_setup_description">Configure l’accès root ou ADB pour un accès plus rapide à tous les dossiers restreints.</string>
     <string name="explorer_permission_option_setup_action">Configurer</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -673,4 +673,13 @@
         <item quantity="one">%1$d dossier</item>
         <item quantity="other">%1$d dossiers</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">Ajouter et tester un emplacement est gratuit. Le parcourir nécessite Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Parcourir le stockage réseau nécessite Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Enregistré. Parcourir le stockage réseau nécessite Butler Pro.</string>
+    <string name="explorer_permission_multiple_options_root_description">Tu peux accorder l’accès via le sélecteur de dossier d’Android, ou configurer Root pour accéder à tous les dossiers restreints.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Tu peux accorder l’accès via le sélecteur de dossier d’Android, ou configurer l’accès ADB pour un accès plus rapide aux dossiers restreints.</string>
+    <string name="explorer_permission_option_setup_root_description">Configure Root pour accéder à ce dossier et aux autres dossiers restreints.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Configure l’accès ADB pour ouvrir ce dossier.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Supprimer automatiquement les éléments après ce délai dans la corbeille</string>
+    <string name="explorer_settings_trash_max_size_summary">Espace que la corbeille peut utiliser sur chaque emplacement de stockage</string>
 </resources>

@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">Yüklü</string>
     <string name="developer_options_root_available_label">Kullanılabilir</string>
     <string name="developer_options_root_base_check_label">Temel kontrol</string>
-    <string name="developer_options_shizuku_test_action">Shizuku\'yu test et</string>
+    <string name="developer_options_shizuku_test_action">ADB erişimini test et</string>
     <string name="developer_options_shizuku_installed_label">Yüklü</string>
     <string name="developer_options_shizuku_granted_label">İzin</string>
     <string name="developer_options_shizuku_compatible_label">Uyumlu</string>

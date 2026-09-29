@@ -78,8 +78,8 @@
     <string name="apps_path_internal_data_label">Datos internos</string>
     <string name="apps_path_external_data_label">Almacenamiento externo</string>
     <string name="apps_path_requires_root_label">Requiere root</string>
-    <string name="apps_path_requires_shizuku_label">Requiere Shizuku</string>
-    <string name="apps_path_requires_root_or_shizuku_label">Requiere root o Shizuku</string>
+    <string name="apps_path_requires_shizuku_label">Requiere acceso a ADB</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Requiere root o acceso a ADB</string>
     <string name="apps_path_requires_access_label">Requiere acceso adicional</string>
     <string name="apps_storage_breakdown_label">Desglose de almacenamiento</string>
     <string name="apps_storage_app_label">Aplicación</string>
@@ -230,7 +230,7 @@
     <string name="apps_components_copy_package_action">Copiar nombre del paquete</string>
     <string name="apps_components_action_enable">Habilitar componente</string>
     <string name="apps_components_action_disable">Deshabilitar componente</string>
-    <string name="apps_components_action_requires_elevated">Requiere root o Shizuku: toca para configurarlo</string>
+    <string name="apps_components_action_requires_elevated">Requiere root o acceso a ADB: toca para configurarlo</string>
     <string name="apps_components_confirm_enable_title">¿Habilitar componentes?</string>
     <string name="apps_components_confirm_disable_title">¿Deshabilitar componentes?</string>
     <string name="apps_components_confirm_enable_message">Se habilitarán los siguientes componentes:</string>

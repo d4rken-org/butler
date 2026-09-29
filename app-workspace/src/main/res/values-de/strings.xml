@@ -371,11 +371,11 @@
     <string name="workspace_settings_layout_mode_landscape_title">Anordnung im Querformat</string>
     <string name="workspace_settings_layout_mode_landscape_desc">Wähle die Tab-Anordnung im Querformat.</string>
     <string name="workspace_settings_layout_mode_auto">Automatisch</string>
-    <string name="workspace_settings_layout_mode_auto_desc">Anordnung automatisch an die Bildschirmgröße anpassen.</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Klassisch auf kleinen Bildschirmen, Tab-Leiste mit Bereichen auf großen.</string>
     <string name="workspace_settings_layout_mode_classic">Klassisch</string>
     <string name="workspace_settings_layout_mode_classic_desc">Jeweils ein Bereich, ohne Tab-Leiste.</string>
     <string name="workspace_settings_layout_mode_adaptive">Adaptiv</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">Tab-Leiste plus so viele Bereiche, wie auf den Bildschirm passen. Pinne eine Anordnung über das Butler-Menü in der Leiste.</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Tab-Leiste plus so viele Bereiche, wie auf den Bildschirm passen. Pinne eine Anordnung über das Butler-Menü.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptiv (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Einzeln mit Tab-Leiste</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">Ein Tab-Bereich plus die Tab-Leiste der Mehrbereichs-Anordnungen. Die Leiste nimmt einen Streifen des Bildschirms ein.</string>
@@ -472,4 +472,16 @@
         <item quantity="one">%d Element wiederhergestellt</item>
         <item quantity="other">%d Elemente wiederhergestellt</item>
     </plurals>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Tab-Leiste plus so viele Bereiche, wie auf den Bildschirm passen.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Jeweils in eigenem Tab öffnen</string>
+    <string name="workspace_open_selection_each_in_tab_description">Öffnet jedes ausgewählte Element in einem eigenen Tab. Ordner werden als Explorer-Tabs geöffnet.</string>
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">%d Element öffnen</item>
+        <item quantity="other">%d Elemente öffnen</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Hier anzeigen</string>
+    <string name="workspace_open_selection_view_here_description">Zeigt die ausgewählten Dateien in einem Betrachter über diesem Bereich an. Vorherige und nächste Datei umfassen nur Deine Auswahl.</string>
+    <string name="workspace_open_selection_view_in_tab_action">In neuem Tab anzeigen</string>
+    <string name="workspace_open_selection_view_in_tab_description">Zeigt die ausgewählten Dateien in einem Betrachter in einem eigenen Tab an. Vorherige und nächste Datei umfassen nur Deine Auswahl.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Ordner können nicht im Betrachter angezeigt werden.</string>
 </resources>

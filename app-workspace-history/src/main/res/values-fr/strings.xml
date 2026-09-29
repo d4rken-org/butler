@@ -194,7 +194,7 @@
         <item quantity="other">Supprimer %1$d entrées</item>
     </plurals>
     <string name="history_delete_dialog_message">Seuls les enregistrements d’historique sont supprimés, les fichiers eux-mêmes ne sont pas modifiés.</string>
-    <string name="history_pro_dialog_message">Le partage et la suppression d’entrées d’historique font partie de la mise à niveau. L’effacement de l’intégralité de l’historique reste gratuit dans les paramètres d’historique.</string>
+    <string name="history_pro_dialog_message">Partager plusieurs entrées d’historique à la fois fait partie de la mise à niveau. Partager une seule entrée et supprimer des entrées restent gratuits.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Résultat</string>

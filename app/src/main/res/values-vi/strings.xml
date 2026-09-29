@@ -58,7 +58,7 @@
     <string name="shortcuts_settings_min_dialog_message">Số lần một đường dẫn phải được truy cập trước khi xuất hiện dưới dạng lối tắt (1–10)</string>
 
     <string name="setup_usagestats_title">Thống kê sử dụng</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Quyền truy cập ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Quyền truy cập thông báo</string>
     <string name="setup_manage_storage_card_title">Quản lý bộ nhớ ngoài</string>
@@ -69,7 +69,7 @@
     <string name="setup_help_description">Trợ giúp</string>
 
     <string name="setup_root_description">Cho phép truy cập vào tệp hệ thống và thư mục được bảo vệ để quản lý tệp nâng cao. Mở khóa toàn bộ tiềm năng của Butler, bao gồm truy cập dữ liệu ứng dụng và chỉnh sửa hệ thống. Thiết bị phải được root.</string>
-    <string name="setup_shizuku_description">Một giải pháp thay thế cho root, cung cấp các thao tác tệp đặc quyền thông qua API an toàn. Cho phép truy cập vào thư mục bị hạn chế mà không cần root truyền thống. Yêu cầu ứng dụng Shizuku đã được cài đặt và đang chạy.</string>
+    <string name="setup_shizuku_description">Một giải pháp thay thế cho root, cung cấp các thao tác tệp đặc quyền thông qua API an toàn. Cho phép truy cập vào thư mục bị hạn chế mà không cần root truyền thống. Yêu cầu Porter hoặc Shizuku được cài đặt và đang chạy.</string>
     <string name="setup_notification_description">Hiển thị cập nhật cho các thao tác tệp, tác vụ nền và tiến trình chuyển tệp. Giúp bạn luôn nắm được khi thao tác hoàn tất hoặc xảy ra lỗi.</string>
     <string name="setup_usagestats_description">Phân tích dung lượng lưu trữ của ứng dụng để xác định tệp lớn và giúp quản lý dung lượng hiệu quả. Mọi dữ liệu đều được giữ trên thiết bị của bạn và không bao giờ được truyền đi.</string>
     <string name="setup_storage_description">Toàn quyền truy cập vào bộ nhớ thiết bị để thao tác tệp nhanh và xử lý hàng loạt. Cho phép quản lý tệp toàn diện mà không cần yêu cầu quyền lặp lại.</string>
@@ -78,7 +78,7 @@
     <string name="setup_grant_access_label">Cấp quyền truy cập</string>
     <string name="setup_access_granted_label">Đã cấp quyền truy cập</string>
     <string name="setup_use_root_label">Dùng root nếu có</string>
-    <string name="setup_use_shizuku_label">Dùng Shizuku nếu có</string>
+    <string name="setup_use_shizuku_label">Dùng quyền truy cập ADB nếu có</string>
 
     <string name="setup_status_checking">Đang kiểm tra…</string>
     <string name="setup_status_completed">Đã cấu hình</string>
@@ -515,5 +515,20 @@
     <string name="review_app_body">Bạn có muốn để lại đánh giá cho Butler không? ❤️</string>
     <string name="review_app_dismiss_action">Để sau</string>
     <string name="review_app_review_action">Đánh giá</string>
+
+    <string name="shortcuts_settings_max_count_summary">Số lượng tối đa lối tắt hiển thị trên màn hình chính</string>
+    <string name="shortcuts_settings_min_access_summary">Số lần một đường dẫn phải được mở trước khi trở thành lối tắt</string>
+    <string name="setup_status_permission_denied">Quyền bị từ chối</string>
+    <string name="setup_adb_status_manager_update_required">Cần cập nhật</string>
+    <string name="setup_adb_status_butler_update_required">Cần cập nhật Butler</string>
+    <string name="setup_adb_status_connected_via">Đã kết nối qua %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">Chưa được phép bởi %1$s</string>
+    <string name="setup_adb_status_denied_in">Bị từ chối trong %1$s</string>
+    <string name="setup_adb_open_manager_action">Mở %1$s</string>
+    <string name="setup_adb_install_manager_action">Cài đặt %1$s</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Cấp quyền truy cập ADB cho ứng dụng Android thông qua các API Shizuku, với hỗ trợ root tùy chọn. (APACHE 2.0)</string>
+    <string name="workspace_pane_menu_action">Hiển thị tùy chọn thẻ</string>
+    <string name="viewer_settings_subtitle">Cấu hình cách hoạt động của trình xem tệp.</string>
 
 </resources>

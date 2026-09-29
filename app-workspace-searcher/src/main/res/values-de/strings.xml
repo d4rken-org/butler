@@ -190,7 +190,7 @@
     <string name="searcher_action_select_all">Alle auswählen</string>
     <string name="searcher_action_deselect_all">Auswahl aufheben</string>
     <string name="searcher_action_sort">Sortieren</string>
-    <string name="searcher_action_view">Ansicht</string>
+    <string name="searcher_action_view">Layout</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Sortieren nach</string>

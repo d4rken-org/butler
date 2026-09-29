@@ -58,7 +58,7 @@
     <string name="shortcuts_settings_min_dialog_message">경로가 바로가기로 표시되기까지 필요한 접근 횟수 (1–10)</string>
 
     <string name="setup_usagestats_title">사용 통계</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB 접근</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">알림 접근 권한</string>
     <string name="setup_manage_storage_card_title">외부 저장공간 관리</string>
@@ -69,7 +69,7 @@
     <string name="setup_help_description">도움말</string>
 
     <string name="setup_root_description">고급 파일 관리를 위해 시스템 파일과 보호된 디렉터리에 접근할 수 있게 해줍니다. 앱 데이터 접근과 시스템 수정을 포함해 Butler의 모든 기능을 사용할 수 있게 해줍니다. 기기가 root 상태여야 합니다.</string>
-    <string name="setup_shizuku_description">보안 API를 통해 권한이 필요한 파일 작업을 제공하는 root의 대안입니다. 기존 root 없이도 제한된 디렉터리에 접근할 수 있습니다. Shizuku 앱이 설치되어 실행 중이어야 합니다.</string>
+    <string name="setup_shizuku_description">보안 API를 통해 권한이 필요한 파일 작업을 제공하는 root의 대안입니다. 기존 root 없이도 제한된 디렉터리에 접근할 수 있습니다. Porter 또는 Shizuku가 설치되어 실행 중이어야 합니다.</string>
     <string name="setup_notification_description">파일 작업, 백그라운드 작업, 전송 진행 상황에 대한 업데이트를 보여줍니다. 작업이 완료되거나 오류가 발생하면 알려줍니다.</string>
     <string name="setup_usagestats_description">앱 저장공간 사용량을 분석해 큰 파일을 찾고 공간을 효율적으로 관리하도록 도와줍니다. 모든 데이터는 기기에만 저장되며 외부로 전송되지 않습니다.</string>
     <string name="setup_storage_description">빠른 파일 작업과 일괄 처리를 위해 기기의 모든 저장공간에 전체 접근할 수 있습니다. 반복되는 권한 요청 없이 파일을 폭넓게 관리할 수 있습니다.</string>
@@ -78,7 +78,7 @@
     <string name="setup_grant_access_label">권한 부여</string>
     <string name="setup_access_granted_label">권한 부여됨</string>
     <string name="setup_use_root_label">가능하면 root 사용</string>
-    <string name="setup_use_shizuku_label">가능하면 Shizuku 사용</string>
+    <string name="setup_use_shizuku_label">가능하면 ADB 접근 사용</string>
 
     <string name="setup_status_checking">확인 중…</string>
     <string name="setup_status_completed">설정 완료</string>
@@ -515,5 +515,20 @@
     <string name="review_app_body">Butler에 리뷰를 남겨주시겠습니까? ❤️</string>
     <string name="review_app_dismiss_action">나중에</string>
     <string name="review_app_review_action">리뷰 남기기</string>
+
+    <string name="acknowledgement_porter_subtitle">Shizuku API를 통해 Android 앱에 ADB 접근을 제공하며, root 지원은 선택 사항입니다. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="setup_adb_install_manager_action">%1$s 설치</string>
+    <string name="setup_adb_open_manager_action">%1$s 열기</string>
+    <string name="setup_adb_status_butler_update_required">Butler 업데이트 필요</string>
+    <string name="setup_adb_status_connected_via">%1$s을(를) 통해 연결됨</string>
+    <string name="setup_adb_status_denied_in">%1$s에서 거부됨</string>
+    <string name="setup_adb_status_manager_update_required">업데이트 필요</string>
+    <string name="setup_adb_status_not_allowed_yet">%1$s에서 아직 허용되지 않음</string>
+    <string name="setup_status_permission_denied">권한 거부됨</string>
+    <string name="shortcuts_settings_max_count_summary">런처에 표시할 바로가기의 최대 개수</string>
+    <string name="shortcuts_settings_min_access_summary">경로가 바로가기가 되기 전에 열어야 하는 횟수</string>
+    <string name="viewer_settings_subtitle">파일 뷰어 동작을 설정하세요.</string>
+    <string name="workspace_pane_menu_action">탭 옵션 표시</string>
 
 </resources>

@@ -375,7 +375,7 @@
     <string name="workspace_settings_layout_mode_classic">Clássico</string>
     <string name="workspace_settings_layout_mode_classic_desc">Um painel por vez, sem o trilho de abas.</string>
     <string name="workspace_settings_layout_mode_adaptive">Adaptativo</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">Trilho de abas mais quantos painéis a tela comportar. Fixe um layout no menu do Butler no trilho.</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Trilho de abas mais quantos painéis a tela comportar. Fixe um layout no menu do Butler.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptativo (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Único com trilho de abas</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">Um painel de aba mais o trilho de abas dos layouts multipainel. O trilho ocupa uma faixa da tela.</string>
@@ -472,4 +472,16 @@
         <item quantity="one">%d item restaurado</item>
         <item quantity="other">%d itens restaurados</item>
     </plurals>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Trilho de abas mais quantos painéis a tela comportar.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Abrir cada um em sua própria aba</string>
+    <string name="workspace_open_selection_each_in_tab_description">Abre cada item selecionado em uma aba separada. Pastas abrem como abas do navegador de arquivos.</string>
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Abrir %d item</item>
+        <item quantity="other">Abrir %d itens</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Ver aqui</string>
+    <string name="workspace_open_selection_view_here_description">Mostra os arquivos selecionados em um visualizador sobre este painel. Anterior e próximo percorrem apenas a sua seleção.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Ver em nova aba</string>
+    <string name="workspace_open_selection_view_in_tab_description">Mostra os arquivos selecionados em um visualizador em uma aba própria. Anterior e próximo percorrem apenas a sua seleção.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Pastas não podem ser mostradas no visualizador.</string>
 </resources>

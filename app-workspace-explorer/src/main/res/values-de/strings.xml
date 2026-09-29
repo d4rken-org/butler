@@ -79,7 +79,7 @@
     <string name="explorer_action_calculate_sizes">Größen berechnen</string>
     <string name="explorer_action_sort">Sortieren</string>
     <string name="explorer_action_filter">Filtern</string>
-    <string name="explorer_action_view">Ansicht</string>
+    <string name="explorer_action_view">Layout</string>
     <string name="explorer_action_create">Erstellen</string>
     <string name="explorer_action_rename">Umbenennen</string>
     <string name="explorer_action_copy">Kopieren</string>
@@ -677,4 +677,10 @@
         <item quantity="one">%1$d Ordner</item>
         <item quantity="other">%1$d Ordner</item>
     </plurals>
+    <string name="explorer_permission_multiple_options_root_description">Du kannst mit der Android-Ordnerauswahl Zugriff gewähren oder Root einrichten, um auf alle geschützten Ordner zuzugreifen.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Du kannst mit der Android-Ordnerauswahl Zugriff gewähren oder ADB-Zugriff einrichten, um schneller auf geschützte Ordner zuzugreifen.</string>
+    <string name="explorer_permission_option_setup_root_description">Root konfigurieren, um auf diesen und andere geschützte Ordner zuzugreifen.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">ADB-Zugriff konfigurieren, um diesen Ordner zu öffnen.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Elemente automatisch löschen, wenn sie so lange im Papierkorb liegen</string>
+    <string name="explorer_settings_trash_max_size_summary">Wie viel Speicherplatz der Papierkorb auf jedem Speicherort belegen darf</string>
 </resources>

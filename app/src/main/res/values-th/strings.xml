@@ -58,7 +58,7 @@
     <string name="shortcuts_settings_min_dialog_message">จำนวนครั้งที่ต้องเข้าถึงเส้นทางก่อนจะปรากฏเป็นทางลัด (1–10)</string>
 
     <string name="setup_usagestats_title">สถิติการใช้งาน</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">การเข้าถึง ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">การเข้าถึงการแจ้งเตือน</string>
     <string name="setup_manage_storage_card_title">จัดการที่เก็บข้อมูลภายนอก</string>
@@ -69,7 +69,7 @@
     <string name="setup_help_description">ความช่วยเหลือ</string>
 
     <string name="setup_root_description">เปิดให้เข้าถึงไฟล์ระบบและโฟลเดอร์ที่ได้รับการป้องกันเพื่อการจัดการไฟล์ขั้นสูง ปลดล็อกศักยภาพเต็มรูปแบบของ Butler รวมถึงการเข้าถึงข้อมูลแอปและการแก้ไขระบบ อุปกรณ์ต้องรูทแล้ว</string>
-    <string name="setup_shizuku_description">ทางเลือกแทน root ที่เปิดให้ดำเนินการไฟล์แบบมีสิทธิ์สูงผ่าน API ที่ปลอดภัย เข้าถึงโฟลเดอร์ที่ถูกจำกัดได้โดยไม่ต้องรูทเครื่อง ต้องติดตั้งและเปิดแอป Shizuku ไว้</string>
+    <string name="setup_shizuku_description">ทางเลือกแทน root ที่เปิดให้ดำเนินการไฟล์แบบมีสิทธิ์สูงผ่าน API ที่ปลอดภัย เข้าถึงโฟลเดอร์ที่ถูกจำกัดได้โดยไม่ต้องรูทเครื่อง ต้องติดตั้งและเปิด Porter หรือ Shizuku ไว้</string>
     <string name="setup_notification_description">แสดงความคืบหน้าของการดำเนินการไฟล์ งานเบื้องหลัง และการโอนย้ายข้อมูล แจ้งให้ทราบเมื่อการดำเนินการเสร็จสิ้นหรือเกิดข้อผิดพลาด</string>
     <string name="setup_usagestats_description">วิเคราะห์การใช้ที่เก็บข้อมูลของแอปเพื่อค้นหาไฟล์ขนาดใหญ่และช่วยจัดการพื้นที่อย่างมีประสิทธิภาพ ข้อมูลทั้งหมดอยู่บนอุปกรณ์ของคุณเท่านั้นและไม่ถูกส่งออกไปที่ใด</string>
     <string name="setup_storage_description">เข้าถึงที่เก็บข้อมูลทั้งหมดของอุปกรณ์เพื่อดำเนินการไฟล์ได้รวดเร็วและประมวลผลเป็นชุด จัดการไฟล์ได้อย่างครบถ้วนโดยไม่ต้องขอสิทธิ์ซ้ำ</string>
@@ -78,7 +78,7 @@
     <string name="setup_grant_access_label">ให้สิทธิ์เข้าถึง</string>
     <string name="setup_access_granted_label">ได้รับสิทธิ์แล้ว</string>
     <string name="setup_use_root_label">ใช้ root หากมี</string>
-    <string name="setup_use_shizuku_label">ใช้ Shizuku หากมี</string>
+    <string name="setup_use_shizuku_label">ใช้การเข้าถึง ADB หากมี</string>
 
     <string name="setup_status_checking">กำลังตรวจสอบ…</string>
     <string name="setup_status_completed">ตั้งค่าแล้ว</string>
@@ -515,5 +515,20 @@
     <string name="review_app_body">อยากให้คะแนน Butler ไหม? ❤️</string>
     <string name="review_app_dismiss_action">ไว้ทีหลัง</string>
     <string name="review_app_review_action">รีวิว</string>
+
+    <string name="acknowledgement_porter_subtitle">มอบการเข้าถึง ADB ให้แอป Android ผ่าน Shizuku API พร้อมรองรับ root เพิ่มเติมได้ (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="setup_adb_install_manager_action">ติดตั้ง %1$s</string>
+    <string name="setup_adb_open_manager_action">เปิด %1$s</string>
+    <string name="setup_adb_status_butler_update_required">ต้องอัปเดต Butler</string>
+    <string name="setup_adb_status_connected_via">เชื่อมต่อผ่าน %1$s</string>
+    <string name="setup_adb_status_denied_in">ถูกปฏิเสธใน %1$s</string>
+    <string name="setup_adb_status_manager_update_required">ต้องอัปเดต</string>
+    <string name="setup_adb_status_not_allowed_yet">%1$s ยังไม่อนุญาต</string>
+    <string name="setup_status_permission_denied">ปฏิเสธสิทธิ์</string>
+    <string name="shortcuts_settings_max_count_summary">จำนวนทางลัดสูงสุดที่แสดงในหน้าจอหลัก</string>
+    <string name="shortcuts_settings_min_access_summary">จำนวนครั้งที่ต้องเปิดเส้นทางก่อนที่จะกลายเป็นทางลัด</string>
+    <string name="viewer_settings_subtitle">ตั้งค่าพฤติกรรมของตัวดูไฟล์</string>
+    <string name="workspace_pane_menu_action">แสดงตัวเลือกแท็บ</string>
 
 </resources>

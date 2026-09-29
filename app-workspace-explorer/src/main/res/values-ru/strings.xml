@@ -15,6 +15,8 @@
     <string name="explorer_settings_trash_enabled_desc">Перемещать удалённые файлы в корзину вместо немедленного удаления</string>
     <string name="explorer_settings_trash_auto_delete_title">Автоудаление через</string>
     <string name="explorer_settings_trash_auto_delete_value">%d дней</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Автоматически удалять объекты после такого времени в корзине</string>
+    <string name="explorer_settings_trash_max_size_summary">Сколько места корзина может занимать в каждом хранилище</string>
     <string name="explorer_settings_trash_max_size_title">Максимальный размер на хранилище</string>
     <string name="explorer_settings_trash_max_size_value">%d МБ</string>
     <string name="explorer_settings_trash_auto_delete_dialog_title">Период автоудаления</string>
@@ -687,9 +689,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android ограничивает доступ к этой папке. Используйте выбор папки, чтобы предоставить доступ.</string>
-    <string name="explorer_permission_multiple_options_description">Вы можете предоставить доступ через выбор папки Android или настроить Root/Shizuku для более быстрого доступа ко всем ограниченным папкам.</string>
-    <string name="explorer_permission_setup_both_description">Для этой папки требуется расширенный доступ. Установите и настройте Root или Shizuku в настройке.</string>
-    <string name="explorer_permission_setup_shizuku_description">Для этой папки требуется расширенный доступ через Shizuku. Установите Shizuku Manager и настройте его.</string>
+    <string name="explorer_permission_multiple_options_description">Можно предоставить доступ через выбор папки Android или настроить root или доступ ADB для более быстрого доступа ко всем ограниченным папкам.</string>
+    <string name="explorer_permission_setup_both_description">Для этой папки требуется расширенный доступ. Настрой root или доступ ADB в настройке.</string>
+    <string name="explorer_permission_setup_shizuku_description">Для этой папки требуется расширенный доступ через ADB. Настрой доступ ADB в настройке.</string>
     <string name="explorer_permission_setup_root_description">Для этой папки требуется доступ Root. Настройте Root, если ваше устройство рутировано.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -697,7 +699,7 @@
     <string name="explorer_permission_option_picker_action">Открыть выбор SAF</string>
 
     <string name="explorer_permission_option_setup_title">Полный доступ</string>
-    <string name="explorer_permission_option_setup_description">Настройте Root или Shizuku для более быстрого доступа ко всем ограниченным папкам.</string>
+    <string name="explorer_permission_option_setup_description">Настройка root или доступа ADB для более быстрого доступа ко всем ограниченным папкам.</string>
     <string name="explorer_permission_option_setup_action">Настроить</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -745,4 +747,11 @@
         <item quantity="many">%1$d папок</item>
         <item quantity="other">%1$d папки</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">Добавлять и проверять расположение можно бесплатно. Для просмотра нужен Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Для просмотра сетевых хранилищ нужен Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Сохранено. Для просмотра сетевых хранилищ нужен Butler Pro.</string>
+    <string name="explorer_permission_multiple_options_root_description">Можно предоставить доступ через выбор папки Android или настроить root для доступа ко всем ограниченным папкам.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Можно предоставить доступ через выбор папки Android или настроить доступ ADB для более быстрого доступа к ограниченным папкам.</string>
+    <string name="explorer_permission_option_setup_root_description">Настрой root, чтобы получить доступ к этой и другим ограниченным папкам.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Настрой доступ ADB, чтобы открыть эту папку.</string>
 </resources>
