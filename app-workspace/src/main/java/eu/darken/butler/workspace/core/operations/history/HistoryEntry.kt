@@ -28,7 +28,7 @@ data class HistoryEntry(
     val partialErrorCount: Int,
     val pathsTruncated: Boolean,
     val paths: List<PathChange>,
-    /** Per-app outcomes of a package operation. Empty for path operations. */
+    /** Per-app outcomes of a package operation, or the app an install installed. Empty otherwise. */
     val packages: List<PackageOutcome> = emptyList(),
     /**
      * The path the operation was about, used as the row label. Not necessarily [paths]`[0]`: an
