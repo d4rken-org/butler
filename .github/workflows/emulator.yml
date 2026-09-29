@@ -83,9 +83,9 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  # An R8 build takes about 12 minutes, so the current build (both flavors) and the previous
+  # An R8 build takes about 12 minutes, so the current build of each flavor and the previous
   # release run as parallel jobs next to the debug legs, and minified-tests installs their APKs
-  # without Gradle.
+  # without Gradle. Both flavors in one Gradle run exhaust the CI daemon's 512 MB Metaspace in KSP.
   minified-build:
     name: Build the minified app
     runs-on: ubuntu-latest
@@ -103,19 +103,49 @@ jobs:
       - name: Build minified APKs
         # With four workers, R8 and the dex merges can run the daemon out of heap.
         run: |
-          ./gradlew --max-workers=2 :app:assembleGplayBeta :app-e2e:assembleGplayBeta :app:assembleFossBeta :app-e2e:assembleFossBeta
+          ./gradlew --max-workers=2 :app:assembleGplayBeta :app-e2e:assembleGplayBeta
           out="$RUNNER_TEMP/minified"
           mkdir -p "$out"
           cp app/build/outputs/apk/gplay/beta/*.apk "$out/app.apk"
           cp app-e2e/build/outputs/apk/gplay/beta/app-e2e-gplay-beta.apk "$out/app-e2e.apk"
-          cp app/build/outputs/apk/foss/beta/*.apk "$out/app-foss.apk"
-          cp app-e2e/build/outputs/apk/foss/beta/app-e2e-foss-beta.apk "$out/app-e2e-foss.apk"
 
       - name: Upload minified APKs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
         with:
           name: minified-apks
           path: ${{ runner.temp }}/minified
+          if-no-files-found: error
+          retention-days: 1
+
+  # The SFTP end-to-end test needs a FOSS build, where sponsoring unlocks Pro without a store.
+  minified-foss-build:
+    name: Build the minified FOSS app
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
+        with:
+          persist-credentials: false
+      - name: Setup project and build environment
+        uses: ./.github/actions/common-setup
+      - name: Sign release-type builds with the debug key
+        uses: ./.github/actions/debug-signing
+
+      - name: Build minified FOSS APKs
+        # With four workers, R8 and the dex merges can run the daemon out of heap.
+        run: |
+          ./gradlew --max-workers=2 :app:assembleFossBeta :app-e2e:assembleFossBeta
+          out="$RUNNER_TEMP/minified-foss"
+          mkdir -p "$out"
+          cp app/build/outputs/apk/foss/beta/*.apk "$out/app-foss.apk"
+          cp app-e2e/build/outputs/apk/foss/beta/app-e2e-foss-beta.apk "$out/app-e2e-foss.apk"
+
+      - name: Upload minified FOSS APKs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        with:
+          name: minified-foss-apks
+          path: ${{ runner.temp }}/minified-foss
           if-no-files-found: error
           retention-days: 1
 
@@ -178,7 +208,7 @@ jobs:
 
   minified-tests:
     name: Minified app tests (Android 36)
-    needs: [ minified-build, previous-release-build ]
+    needs: [ minified-build, minified-foss-build, previous-release-build ]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -199,6 +229,11 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c #v8.0.1
         with:
           name: minified-apks
+          path: ${{ runner.temp }}/minified
+      - name: Download minified FOSS APKs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c #v8.0.1
+        with:
+          name: minified-foss-apks
           path: ${{ runner.temp }}/minified
       - name: Download the previous release's APKs
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c #v8.0.1
