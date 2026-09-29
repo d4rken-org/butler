@@ -4,10 +4,12 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.archive.crumbsTo
 import eu.darken.butler.common.files.local.relativeSegmentsTo
 import eu.darken.butler.common.files.saf.crumbsTo
+import eu.darken.butler.common.files.sftp.crumbsTo
 import eu.darken.butler.common.files.smb.crumbsTo
 import java.io.File
 
@@ -19,6 +21,7 @@ fun APath<*>.crumbsTo(child: APath<*>): Array<String> {
         is SAFPath -> this.crumbsTo(child as SAFPath)
         is ArchivePath -> this.crumbsTo(child as ArchivePath)
         is SmbPath -> this.crumbsTo(child as SmbPath)
+        is SftpPath -> this.crumbsTo(child as SftpPath)
     }
 }
 
@@ -27,8 +30,9 @@ fun APath<*>.toFile(): File = when (this) {
     // Archive entries have no filesystem representation; a File from the synthetic
     // "container!/entry" path would silently point at nothing.
     is ArchivePath -> throw IllegalArgumentException("Archive paths have no File representation: $this")
-    // Same reasoning: an SMB path only exists on the server, never in the local filesystem.
+    // Same reasoning: a network path only exists on the server, never in the local filesystem.
     is SmbPath -> throw IllegalArgumentException("SMB paths have no File representation: $this")
+    is SftpPath -> throw IllegalArgumentException("SFTP paths have no File representation: $this")
     else -> File(this.path)
 }
 
@@ -57,9 +61,12 @@ fun Collection<APath<*>>.commonParent(): APath<*>? {
         if (!all { (it as ArchivePath).container == firstArchive.container }) return null
     }
 
-    // Same for SMB paths, identical segments under two locations are two different servers.
+    // Same for network paths, identical segments under two locations are two different servers.
     (first() as? SmbPath)?.let { firstSmb ->
         if (!all { (it as SmbPath).locationId == firstSmb.locationId }) return null
+    }
+    (first() as? SftpPath)?.let { firstSftp ->
+        if (!all { (it as SftpPath).locationId == firstSftp.locationId }) return null
     }
 
     // Get all segment lists

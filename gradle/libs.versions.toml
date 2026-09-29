@@ -15,6 +15,8 @@ kotlinx-serialization = "1.11.0"
 okio = "3.13.0"
 smbj = "0.15.0"
 bouncycastle = "1.85.2"
+bouncycastle-pkix = "1.85"
+sshj = "0.41.1"
 commons-compress = "1.28.0"
 zip4j = "2.11.6"
 retrofit = "2.11.0"
@@ -63,6 +65,7 @@ espresso = "3.7.0"
 robolectric = "4.16.1"
 arch-core-testing = "1.1.1"
 testcontainers = "2.0.5"
+sshd = "2.19.0"
 # Testing (app-common-test pins newer versions; align via Dependabot later)
 jupiter-ct = "5.13.0"
 kotest-ct = "5.9.1"
@@ -100,6 +103,8 @@ serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-jso
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 smbj = { module = "com.hierynomus:smbj", version.ref = "smbj" }
+bouncycastle-pkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle-pkix" }
+sshj = { module = "com.hierynomus:sshj", version.ref = "sshj" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
@@ -201,6 +206,8 @@ robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectr
 arch-core-testing = { module = "android.arch.core:core-testing", version.ref = "arch-core-testing" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
+sshd-core = { module = "org.apache.sshd:sshd-core", version.ref = "sshd" }
+sshd-sftp = { module = "org.apache.sshd:sshd-sftp", version.ref = "sshd" }
 # Testing (app-common-test pinned versions)
 junit-vintage-engine-ct = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "jupiter-ct" }
 jupiter-engine-ct = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "jupiter-ct" }

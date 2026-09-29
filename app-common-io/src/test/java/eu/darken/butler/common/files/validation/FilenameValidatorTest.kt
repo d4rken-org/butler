@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.validation
 
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.smb.SmbLocationInput
 import io.kotest.matchers.shouldBe
@@ -231,5 +232,34 @@ class FilenameValidatorTest : BaseTest() {
         validator.validate("trailing ", smbPath)
             .shouldBeInstanceOf<FilenameValidator.ValidationResult.InvalidName>()
             .reason shouldBe SmbLocationInput.NameIssue.TRAILING_DOT_OR_SPACE
+    }
+
+    // SFTP
+
+    private val sftpPath = SftpPath.root(Uuid.parse("11111111-2222-3333-4444-555555555555"))
+
+    @Test
+    fun `sftp only rejects the separator and NUL`() {
+        val result = validator.validate("a/b\u0000c", sftpPath)
+
+        result.shouldBeInstanceOf<FilenameValidator.ValidationResult.Invalid>()
+        result.invalidChars shouldBe setOf('/', '\u0000')
+        result.context shouldBe FilenameValidator.StorageContext.SFTP
+    }
+
+    @Test
+    fun `sftp accepts names windows servers refuse`() {
+        listOf("a\\b", "c:d*e?f", "\"g<h>i|j\"", "trailing.", "trailing ", "Überweisung 2024.pdf").forEach {
+            validator.validate(it, sftpPath) shouldBe FilenameValidator.ValidationResult.Valid
+        }
+    }
+
+    @Test
+    fun `sftp rejects the traversal names`() {
+        listOf(".", "..").forEach {
+            validator.validate(it, sftpPath)
+                .shouldBeInstanceOf<FilenameValidator.ValidationResult.InvalidName>()
+                .reason shouldBe SmbLocationInput.NameIssue.TRAVERSAL
+        }
     }
 }

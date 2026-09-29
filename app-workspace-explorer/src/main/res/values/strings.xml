@@ -144,6 +144,15 @@
     <string name="explorer_info_network_updated_label">Updated</string>
     <string name="explorer_info_network_last_seen_label">Last seen</string>
     <string name="explorer_info_network_last_seen_never">Never</string>
+    <string name="explorer_info_sftp_type_value">SFTP</string>
+    <string name="explorer_info_sftp_folder_initial">The server\'s initial folder</string>
+    <string name="explorer_info_sftp_folder_relative_format">%1$s (inside the server\'s initial folder)</string>
+    <string name="explorer_info_sftp_auth_private_key">Username and private key</string>
+    <string name="explorer_info_sftp_private_key_label">Private key</string>
+    <string name="explorer_info_sftp_credential_stored">Stored on this device</string>
+    <string name="explorer_info_sftp_credential_session">Kept until Butler closes</string>
+    <string name="explorer_info_sftp_host_key_type_label">Host key type</string>
+    <string name="explorer_info_sftp_host_key_fingerprint_label">Host key fingerprint</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Selected</string>
@@ -328,6 +337,67 @@
     <string name="explorer_network_form_error_base_path">This folder path cannot be used</string>
     <string name="explorer_network_form_error_username_blank">Enter a username</string>
     <string name="explorer_network_form_error_password_required">Enter the password again to change the username or domain</string>
+
+    <!-- Network Protocol Chooser -->
+    <string name="explorer_network_protocol_title">Add network storage</string>
+    <string name="explorer_network_protocol_smb_label">SMB share</string>
+    <string name="explorer_network_protocol_smb_caption">Windows shares and most NAS folders</string>
+    <string name="explorer_network_protocol_sftp_label">SFTP server</string>
+    <string name="explorer_network_protocol_sftp_caption">Any server you can reach over SSH</string>
+
+    <!-- SFTP Server Form -->
+    <string name="explorer_sftp_form_add_title">Add SFTP server</string>
+    <string name="explorer_sftp_form_edit_title">Edit SFTP server</string>
+    <string name="explorer_sftp_form_sign_in_title">Sign in to %1$s</string>
+    <string name="explorer_sftp_form_sign_in_password_hint">Enter the password again to open this server.</string>
+    <string name="explorer_sftp_form_sign_in_key_hint">Choose the private key file again, or enter its passphrase, to open this server.</string>
+    <string name="explorer_sftp_form_host_hint">build.lan or 192.168.1.10</string>
+    <string name="explorer_sftp_form_base_path_label">Base path (optional)</string>
+    <string name="explorer_sftp_form_base_path_help">Empty: the server\'s start folder. Starting with /: an absolute path. Anything else: relative to the start folder.</string>
+    <string name="explorer_sftp_form_auth_password">Password</string>
+    <string name="explorer_sftp_form_auth_private_key">Private key</string>
+    <string name="explorer_sftp_form_private_key_label">Private key file</string>
+    <string name="explorer_sftp_form_private_key_none">No key file chosen</string>
+    <string name="explorer_sftp_form_private_key_saved">The saved key</string>
+    <string name="explorer_sftp_form_private_key_reading">Reading key file…</string>
+    <string name="explorer_sftp_form_private_key_choose_action">Choose file</string>
+    <string name="explorer_sftp_form_passphrase_label">Key passphrase (optional)</string>
+    <string name="explorer_sftp_form_passphrase_kept_hint">Leave empty to keep the saved passphrase</string>
+    <string name="explorer_sftp_form_remember_label">Remember credentials</string>
+    <string name="explorer_sftp_form_error_username_malformed">The username cannot contain control characters</string>
+    <string name="explorer_sftp_form_error_password_required">Enter the password again to change the username, sign-in method or remember setting</string>
+    <string name="explorer_sftp_form_error_key_required">Choose a private key file</string>
+    <string name="explorer_sftp_form_error_key_too_large">This file is larger than %1$d KiB and cannot be a private key</string>
+    <string name="explorer_sftp_form_error_key_not_a_file">Choose a file, not a folder</string>
+    <string name="explorer_sftp_form_error_key_unreadable">The key file could not be read</string>
+    <string name="explorer_sftp_form_error_auth">%1$s rejected the username, password or key</string>
+    <string name="explorer_sftp_form_error_key_format">This private key cannot be read. Use an OpenSSH, PEM or PKCS#8 key file.</string>
+    <string name="explorer_sftp_form_error_key_passphrase">The passphrase does not unlock this private key</string>
+    <string name="explorer_sftp_form_error_base_path_missing">The base path does not exist on the server</string>
+    <string name="explorer_sftp_form_error_base_path_not_directory">The base path is not a folder</string>
+    <string name="explorer_sftp_form_error_base_path_denied">This account may not open the base path</string>
+    <string name="explorer_sftp_form_error_unreachable">Cannot reach %1$s</string>
+    <string name="explorer_sftp_form_error_host_key_mismatch">The server presented a different host key than the one confirmed for it. Nothing was saved.\n\nExpected: %1$s\nPresented: %2$s</string>
+    <string name="explorer_sftp_form_error_host_key_rejected">The server\'s host key was not accepted. Nothing was saved.</string>
+    <string name="explorer_sftp_form_error_host_key_stale">The server details changed after the connection test started. Nothing was saved, test again to confirm the server\'s key.</string>
+    <string name="explorer_sftp_form_error_unconfirmed">The server\'s identity could not be confirmed. Nothing was saved.</string>
+    <string name="explorer_sftp_form_error_retrust_endpoint_changed">This server\'s address changed since that key was presented. Nothing was changed, open the server again to review the key it presents now.</string>
+    <string name="explorer_sftp_form_error_retrust_not_found">This SFTP server was removed. Nothing was changed.</string>
+
+    <!-- SFTP Host Keys -->
+    <string name="explorer_sftp_host_key_unknown_title">Trust this server?</string>
+    <string name="explorer_sftp_host_key_unknown_message">Butler has not connected to %1$s before. Only continue if this is the key the server should have, e.g. as shown by its administrator.</string>
+    <string name="explorer_sftp_host_key_type_label">Key type</string>
+    <string name="explorer_sftp_host_key_fingerprint_label">Fingerprint</string>
+    <string name="explorer_sftp_host_key_stored_label">Confirmed key</string>
+    <string name="explorer_sftp_host_key_presented_label">Presented key</string>
+    <string name="explorer_sftp_host_key_accept_action">Trust key</string>
+    <string name="explorer_sftp_host_key_changed_title">Server key changed</string>
+    <string name="explorer_sftp_host_key_changed_message">%1$s presented a different host key than the one confirmed for it. This happens after the server was reinstalled, but also when someone intercepts the connection. Nothing was sent to the server.</string>
+    <string name="explorer_sftp_host_key_review_action">Review</string>
+    <string name="explorer_sftp_host_key_retrust_title">Replace the server key?</string>
+    <string name="explorer_sftp_host_key_retrust_message">Only replace the key if you know why %1$s changed it. Butler will trust the presented key from now on.</string>
+    <string name="explorer_sftp_host_key_retrust_action">Replace key</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Name location</string>

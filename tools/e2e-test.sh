@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Installs a Butler build and an :app-e2e APK and runs the e2e tests against them, except the
-# two-phase UpgradeTest (see tools/upgrade-test.sh). Runs without Gradle, so APKs built elsewhere,
+# two-phase UpgradeTest (see tools/upgrade-test.sh) and SftpEndToEndTest (see
+# tools/sftp-e2e-test.sh). Runs without Gradle, so APKs built elsewhere,
 # for example by another CI job, are tested as they are. Wipes eu.darken.butler on the target
 # device, which ANDROID_SERIAL must name.
 #
@@ -34,7 +35,7 @@ adb shell mkdir -p "$DEVICE_OUT"
 
 result=0
 adb shell am instrument -w \
-    -e notClass eu.darken.butler.e2e.UpgradeTest \
+    -e notClass eu.darken.butler.e2e.UpgradeTest,eu.darken.butler.e2e.SftpEndToEndTest \
     -e additionalTestOutputDir "$DEVICE_OUT" \
     "$RUNNER" | tee "$RESULTS/instrumentation.txt" || result=$?
 adb pull "$DEVICE_OUT/." "$RESULTS/" >/dev/null 2>&1 || echo "Could not pull $DEVICE_OUT" >&2

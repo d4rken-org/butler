@@ -30,7 +30,7 @@ import eu.darken.butler.common.rememberMinuteTick
 import eu.darken.butler.explorer.ui.explorer.items.AppIconImage
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.files.saf.location.SAFLocation
-import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.files.network.NetworkEndpointState
 import eu.darken.butler.common.settings.UpgradeBadge
 import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.explorer.R
@@ -159,16 +159,16 @@ private fun NetworkStatusIndicator(item: ExplorerItem.Storage.Network) {
             )
         }
         when (item.endpoint.reachability) {
-            SmbEndpointState.Reachability.CHECKING -> Unit
+            NetworkEndpointState.Reachability.CHECKING -> Unit
 
-            SmbEndpointState.Reachability.REACHABLE -> Icon(
+            NetworkEndpointState.Reachability.REACHABLE -> Icon(
                 imageVector = Icons.TwoTone.NetworkOnline,
                 contentDescription = stringResource(R.string.explorer_network_status_available_label),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp),
             )
 
-            SmbEndpointState.Reachability.UNREACHABLE -> Icon(
+            NetworkEndpointState.Reachability.UNREACHABLE -> Icon(
                 imageVector = Icons.TwoTone.NetworkOffline,
                 contentDescription = stringResource(R.string.explorer_network_status_unavailable_label),
                 tint = MaterialTheme.colorScheme.error,
@@ -263,7 +263,7 @@ private fun StorageRowNetworkReachablePreview() {
     StorageRow(
         density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockStorageNetwork(
-            endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+            endpoint = NetworkEndpointState("192.168.1.50", NetworkEndpointState.Reachability.REACHABLE),
         ),
         onClick = {}
     )
@@ -276,7 +276,7 @@ private fun StorageRowNetworkUnreachablePreview() {
     StorageRow(
         density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockStorageNetwork(
-            endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
+            endpoint = NetworkEndpointState("192.168.1.50", NetworkEndpointState.Reachability.UNREACHABLE),
         ),
         onClick = {}
     )
@@ -289,7 +289,7 @@ private fun StorageRowNetworkUnreachableSincePreview() {
     StorageRow(
         density = ExplorerViewStyle.Density.COMFORTABLE,
         item = MockDataProvider.createMockStorageNetwork(
-            endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
+            endpoint = NetworkEndpointState("192.168.1.50", NetworkEndpointState.Reachability.UNREACHABLE),
             lastSeenAt = MockDataProvider.MockTimes.hoursAgo(3),
         ),
         onClick = {}
@@ -305,6 +305,19 @@ private fun StorageRowNetworkSignInRequiredPreview() {
         item = MockDataProvider.createMockStorageNetwork(
             name = "Work NAS",
             status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+        ),
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun StorageRowSftpPreview() {
+    StorageRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+        item = MockDataProvider.createMockStorageSftp(
+            endpoint = NetworkEndpointState("192.168.1.20", NetworkEndpointState.Reachability.REACHABLE),
         ),
         onClick = {}
     )

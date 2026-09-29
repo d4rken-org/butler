@@ -4,7 +4,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.files.network.NetworkEndpointState
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -880,7 +880,7 @@ class BrowsingEngineTest : BaseTest() {
 
         private val checking = MockDataProvider.createMockStorageNetwork(name = "Home NAS")
         private val reachable = checking.copy(
-            endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+            endpoint = NetworkEndpointState("192.168.1.50", NetworkEndpointState.Reachability.REACHABLE),
         )
 
         private val runs = ArrayDeque<Flow<ExplorerLocation>>()

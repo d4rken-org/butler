@@ -1,7 +1,8 @@
 package eu.darken.butler.explorer.ui.explorer.items
 
 import android.content.Context
-import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.files.network.NetworkEndpointState
+import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -22,10 +23,10 @@ internal fun ExplorerItem.Storage.Network.statusLabel(context: Context, now: Ins
     }
 
     ExplorerItem.Storage.Network.Status.AVAILABLE -> when (endpoint.reachability) {
-        SmbEndpointState.Reachability.CHECKING -> context.getString(R.string.explorer_network_status_checking_label)
-        SmbEndpointState.Reachability.REACHABLE -> context.getString(R.string.explorer_network_status_available_label)
+        NetworkEndpointState.Reachability.CHECKING -> context.getString(R.string.explorer_network_status_checking_label)
+        NetworkEndpointState.Reachability.REACHABLE -> context.getString(R.string.explorer_network_status_available_label)
         // A location that was never reached has no "ago" to state.
-        SmbEndpointState.Reachability.UNREACHABLE -> location.lastSeenAt
+        NetworkEndpointState.Reachability.UNREACHABLE -> location.lastSeenAt
             ?.let {
                 context.getString(
                     R.string.explorer_network_status_unavailable_since_format,
@@ -34,4 +35,14 @@ internal fun ExplorerItem.Storage.Network.statusLabel(context: Context, now: Ins
             }
             ?: context.getString(R.string.explorer_network_status_unavailable_label)
     }
+}
+
+/**
+ * The base path as the user typed it: `""` is the server's initial folder, `/srv/media` is shown
+ * as-is, `media` is marked as relative to the initial folder.
+ */
+internal fun SftpLocation.basePathLabel(context: Context): String = when {
+    basePath.isEmpty() -> context.getString(R.string.explorer_info_sftp_folder_initial)
+    basePath.startsWith("/") -> basePath
+    else -> context.getString(R.string.explorer_info_sftp_folder_relative_format, basePath)
 }

@@ -76,6 +76,41 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.NetworkProtocolChooser -> {
+            NetworkProtocolChooserDialog(
+                onChoose = { protocol -> vm?.onNetworkProtocolChosen(protocol) },
+                onDismiss = { vm?.dismissDialog() },
+            )
+        }
+
+        is ExplorerDialogState.SftpLocationForm -> {
+            val fields = rememberSftpLocationFormFields(dialogState)
+            SftpLocationFormSheet(
+                state = dialogState,
+                fields = fields,
+                onDismiss = { vm?.dismissDialog() },
+                onSubmit = { input -> vm?.onSftpLocationFormSubmit(input) },
+                onPickKeyFile = { vm?.onPickSftpKeyFile() },
+                topInset = topInset,
+                bottomInset = bottomInset,
+            )
+            // Siblings after the sheet, so they stack above it within the pane.
+            dialogState.hostKeyConfirmation?.let { confirmation ->
+                SftpHostKeyConfirmationDialog(
+                    confirmation = confirmation,
+                    onAccept = { vm?.onSftpHostKeyAccepted(confirmation.id, fields.toInput()) },
+                    onCancel = { vm?.onSftpHostKeyRejected(confirmation.id) },
+                )
+            }
+            dialogState.retrustConfirmation?.let { confirmation ->
+                SftpHostKeyRetrustDialog(
+                    confirmation = confirmation,
+                    onAccept = { vm?.onSftpRetrustAccepted(confirmation.id) },
+                    onCancel = { vm?.onSftpRetrustRejected(confirmation.id) },
+                )
+            }
+        }
+
         is ExplorerDialogState.Rename -> {
             RenameDialog(
                 item = dialogState.item,

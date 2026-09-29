@@ -141,6 +141,10 @@ android {
     packaging {
         resources {
             excludes.add("attach_hotspot_windows.dll")
+            // Identical in bcprov, bcpkix and bcutil (via :lib-ssh).
+            pickFirsts.add("META-INF/LICENSE.md")
+            // Build metadata of each sshd-* jar (via :lib-ssh).
+            pickFirsts.add("META-INF/DEPENDENCIES")
         }
     }
 }

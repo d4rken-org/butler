@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.smb.credentials
 
+import eu.darken.butler.common.files.credentials.CredentialCipher
 import kotlin.uuid.Uuid
 
 /**
@@ -49,6 +50,6 @@ interface SmbCredentialCipher {
     fun isKeyAvailable(keyAlias: String): Boolean
 
     companion object {
-        const val ENVELOPE_VERSION = 1
+        const val ENVELOPE_VERSION = CredentialCipher.ENVELOPE_VERSION
     }
 }

@@ -248,6 +248,24 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_apache_mina_sshd_title),
+                    subtitle = stringResource(R.string.acknowledgement_apache_mina_sshd_subtitle),
+                    onClick = { onOpenUrl("https://github.com/apache/mina-sshd") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_slf4j_title),
+                    subtitle = stringResource(R.string.acknowledgement_slf4j_subtitle),
+                    onClick = { onOpenUrl("https://www.slf4j.org/") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
                     title = stringResource(R.string.acknowledgement_square_libraries_title),
                     subtitle = stringResource(R.string.acknowledgement_square_libraries_subtitle),
                     onClick = { onOpenUrl("https://square.github.io/") }

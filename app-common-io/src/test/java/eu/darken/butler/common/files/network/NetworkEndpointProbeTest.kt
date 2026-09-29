@@ -1,10 +1,15 @@
-package eu.darken.butler.common.files.smb
+package eu.darken.butler.common.files.network
 
+import eu.darken.butler.common.files.sftp.location.SftpLocation
+import eu.darken.butler.common.files.sftp.location.SftpLocationManager
+import eu.darken.butler.common.files.sftp.testHostKey
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.network.NetworkStateProvider
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
@@ -35,7 +40,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
-class SmbEndpointProbeTest : BaseTest() {
+class NetworkEndpointProbeTest : BaseTest() {
 
     private val locationId = Uuid.parse("11111111-1111-1111-1111-111111111111")
     private val otherLocationId = Uuid.parse("22222222-2222-2222-2222-222222222222")
@@ -46,28 +51,48 @@ class SmbEndpointProbeTest : BaseTest() {
     )
     private val ipv4 = InetAddress.getByAddress("nas.local", byteArrayOf(192.toByte(), 168.toByte(), 1, 50))
 
-    private fun location(id: Uuid = locationId, host: String = "nas.local") = SmbLocation(
-        id = id,
-        label = null,
-        host = host,
-        share = "media",
-        authType = SmbLocation.AuthType.GUEST,
-        rememberCredential = false,
-        credentialVersion = 1,
-        createdAt = Instant.fromEpochMilliseconds(0),
-        updatedAt = Instant.fromEpochMilliseconds(0),
+    private fun location(id: Uuid = locationId, host: String = "nas.local"): NetworkLocation = NetworkLocation.Smb(
+        SmbLocation(
+            id = id,
+            label = null,
+            host = host,
+            share = "media",
+            authType = SmbLocation.AuthType.GUEST,
+            rememberCredential = false,
+            credentialVersion = 1,
+            createdAt = Instant.fromEpochMilliseconds(0),
+            updatedAt = Instant.fromEpochMilliseconds(0),
+        )
     )
+
+    private fun sftpLocation(id: Uuid = locationId, host: String = "nas.local", port: Int = 2222) =
+        NetworkLocation.Sftp(
+            SftpLocation(
+                id = id,
+                label = null,
+                host = host,
+                port = port,
+                username = "darken",
+                authType = SftpLocation.AuthType.PASSWORD,
+                rememberCredential = true,
+                credentialVersion = 1,
+                hostKey = testHostKey(1),
+                trustRevision = 1,
+                createdAt = Instant.fromEpochMilliseconds(0),
+                updatedAt = Instant.fromEpochMilliseconds(0),
+            )
+        )
 
     private val wifi = NetworkStateProvider.State.LegacyAPI21(isMeteredConnection = false, isInternetAvailable = true)
     private val mobile = NetworkStateProvider.State.LegacyAPI21(isMeteredConnection = true, isInternetAvailable = true)
 
-    private class FakeResolver(private val result: (String) -> List<InetAddress>) : SmbEndpointProbe.Resolver {
+    private class FakeResolver(private val result: (String) -> List<InetAddress>) : NetworkEndpointProbe.Resolver {
         override fun resolve(host: String): List<InetAddress> = result(host)
     }
 
     private class FakeConnector(
         private val behavior: suspend (InetAddress) -> Unit = {},
-    ) : SmbEndpointProbe.Connector {
+    ) : NetworkEndpointProbe.Connector {
         val attempts = mutableListOf<InetAddress>()
         override suspend fun connect(address: InetAddress, port: Int, timeout: Duration) {
             attempts.add(address)
@@ -75,19 +100,19 @@ class SmbEndpointProbeTest : BaseTest() {
         }
     }
 
-    private class FakeClock(var current: Instant = Instant.fromEpochMilliseconds(0)) : SmbEndpointProbe.Clock {
+    private class FakeClock(var current: Instant = Instant.fromEpochMilliseconds(0)) : NetworkEndpointProbe.Clock {
         override fun now(): Instant = current
     }
 
     private class FakeRecorder(
         private val behavior: () -> Unit = {},
-    ) : SmbEndpointProbe.LastSeenRecorder {
+    ) : NetworkEndpointProbe.LastSeenRecorder {
         data class Sighting(val id: Uuid, val host: String, val port: Int, val at: Instant)
 
         val recorded = mutableListOf<Sighting>()
 
-        override suspend fun recordSeen(id: Uuid, host: String, port: Int, at: Instant) {
-            recorded.add(Sighting(id, host, port, at))
+        override suspend fun recordSeen(location: NetworkLocation, host: String, port: Int, at: Instant) {
+            recorded.add(Sighting(location.id, host, port, at))
             behavior()
         }
     }
@@ -109,12 +134,12 @@ class SmbEndpointProbeTest : BaseTest() {
         .also { appScopes.add(it) }
 
     private fun TestScope.createProbe(
-        resolver: SmbEndpointProbe.Resolver,
-        connector: SmbEndpointProbe.Connector,
-        clock: SmbEndpointProbe.Clock = FakeClock(),
-        recorder: SmbEndpointProbe.LastSeenRecorder = FakeRecorder(),
+        resolver: NetworkEndpointProbe.Resolver,
+        connector: NetworkEndpointProbe.Connector,
+        clock: NetworkEndpointProbe.Clock = FakeClock(),
+        recorder: NetworkEndpointProbe.LastSeenRecorder = FakeRecorder(),
         networkStates: Flow<NetworkStateProvider.State> = emptyFlow(),
-    ) = SmbEndpointProbe(
+    ) = NetworkEndpointProbe(
         appScope = appScope(),
         dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler)),
         resolver = resolver,
@@ -135,9 +160,9 @@ class SmbEndpointProbeTest : BaseTest() {
         advanceUntilIdle()
 
         connector.attempts shouldBe listOf(ipv6, ipv4)
-        probe.states.value[locationId] shouldBe SmbEndpointState(
+        probe.states.value[locationId] shouldBe NetworkEndpointState(
             address = ipv4.hostAddress,
-            reachability = SmbEndpointState.Reachability.REACHABLE,
+            reachability = NetworkEndpointState.Reachability.REACHABLE,
         )
     }
 
@@ -149,9 +174,9 @@ class SmbEndpointProbeTest : BaseTest() {
         probe.probe(listOf(location()))
         advanceUntilIdle()
 
-        probe.states.value[locationId] shouldBe SmbEndpointState(
+        probe.states.value[locationId] shouldBe NetworkEndpointState(
             address = ipv6.hostAddress,
-            reachability = SmbEndpointState.Reachability.UNREACHABLE,
+            reachability = NetworkEndpointState.Reachability.UNREACHABLE,
         )
     }
 
@@ -162,9 +187,9 @@ class SmbEndpointProbeTest : BaseTest() {
         probe.probe(listOf(location()))
         advanceUntilIdle()
 
-        probe.states.value[locationId] shouldBe SmbEndpointState(
+        probe.states.value[locationId] shouldBe NetworkEndpointState(
             address = null,
-            reachability = SmbEndpointState.Reachability.UNREACHABLE,
+            reachability = NetworkEndpointState.Reachability.UNREACHABLE,
         )
     }
 
@@ -175,10 +200,10 @@ class SmbEndpointProbeTest : BaseTest() {
 
         probe.probe(listOf(location()))
         runCurrent()
-        probe.states.value[locationId]?.reachability shouldBe SmbEndpointState.Reachability.CHECKING
+        probe.states.value[locationId]?.reachability shouldBe NetworkEndpointState.Reachability.CHECKING
 
         advanceTimeBy(30.seconds)
-        probe.states.value[locationId]?.reachability shouldBe SmbEndpointState.Reachability.UNREACHABLE
+        probe.states.value[locationId]?.reachability shouldBe NetworkEndpointState.Reachability.UNREACHABLE
     }
 
     @Test
@@ -189,7 +214,7 @@ class SmbEndpointProbeTest : BaseTest() {
         probe.probe(listOf(location()))
         advanceUntilIdle()
 
-        probe.states.value[locationId]?.reachability shouldBe SmbEndpointState.Reachability.UNREACHABLE
+        probe.states.value[locationId]?.reachability shouldBe NetworkEndpointState.Reachability.UNREACHABLE
     }
 
     @Test
@@ -201,8 +226,8 @@ class SmbEndpointProbeTest : BaseTest() {
         advanceUntilIdle()
 
         connector.attempts shouldBe listOf(ipv4)
-        probe.states.value[locationId]?.reachability shouldBe SmbEndpointState.Reachability.REACHABLE
-        probe.states.value[otherLocationId]?.reachability shouldBe SmbEndpointState.Reachability.REACHABLE
+        probe.states.value[locationId]?.reachability shouldBe NetworkEndpointState.Reachability.REACHABLE
+        probe.states.value[otherLocationId]?.reachability shouldBe NetworkEndpointState.Reachability.REACHABLE
     }
 
     @Test
@@ -253,7 +278,7 @@ class SmbEndpointProbeTest : BaseTest() {
         gate.complete(Unit)
         advanceUntilIdle()
 
-        probe.states.value[locationId]?.reachability shouldBe SmbEndpointState.Reachability.REACHABLE
+        probe.states.value[locationId]?.reachability shouldBe NetworkEndpointState.Reachability.REACHABLE
     }
 
     /** A deadline hit while connecting still knows where the host is, DNS answered before that. */
@@ -265,9 +290,9 @@ class SmbEndpointProbeTest : BaseTest() {
         probe.probe(listOf(location()))
         advanceTimeBy(30.seconds)
 
-        probe.states.value[locationId] shouldBe SmbEndpointState(
+        probe.states.value[locationId] shouldBe NetworkEndpointState(
             address = ipv6.hostAddress,
-            reachability = SmbEndpointState.Reachability.UNREACHABLE,
+            reachability = NetworkEndpointState.Reachability.UNREACHABLE,
         )
     }
 
@@ -282,13 +307,13 @@ class SmbEndpointProbeTest : BaseTest() {
 
         probe.probe(listOf(location(host = "old.nas")))
         runCurrent()
-        probe.states.value[locationId]?.reachability shouldBe SmbEndpointState.Reachability.CHECKING
+        probe.states.value[locationId]?.reachability shouldBe NetworkEndpointState.Reachability.CHECKING
 
         probe.probe(listOf(location(host = "new.nas")))
         runCurrent()
-        val current = SmbEndpointState(
+        val current = NetworkEndpointState(
             address = ipv4.hostAddress,
-            reachability = SmbEndpointState.Reachability.REACHABLE,
+            reachability = NetworkEndpointState.Reachability.REACHABLE,
         )
         probe.states.value[locationId] shouldBe current
 
@@ -363,9 +388,9 @@ class SmbEndpointProbeTest : BaseTest() {
         advanceUntilIdle()
 
         connector.attempts shouldBe listOf(ipv4)
-        probe.states.value[locationId] shouldBe SmbEndpointState(
+        probe.states.value[locationId] shouldBe NetworkEndpointState(
             address = ipv4.hostAddress,
-            reachability = SmbEndpointState.Reachability.REACHABLE,
+            reachability = NetworkEndpointState.Reachability.REACHABLE,
         )
     }
 
@@ -394,18 +419,18 @@ class SmbEndpointProbeTest : BaseTest() {
 
         gates[0].complete(Unit)
         runCurrent()
-        probe.states.value[locationId]?.reachability shouldBe SmbEndpointState.Reachability.CHECKING
+        probe.states.value[locationId]?.reachability shouldBe NetworkEndpointState.Reachability.CHECKING
 
         // Nothing was cached either, this joins the replacement instead of being served REACHABLE.
         probe.probe(listOf(location()))
         runCurrent()
-        probe.states.value[locationId]?.reachability shouldBe SmbEndpointState.Reachability.CHECKING
+        probe.states.value[locationId]?.reachability shouldBe NetworkEndpointState.Reachability.CHECKING
 
         gates[1].complete(Unit)
         runCurrent()
-        probe.states.value[locationId] shouldBe SmbEndpointState(
+        probe.states.value[locationId] shouldBe NetworkEndpointState(
             address = ipv4.hostAddress,
-            reachability = SmbEndpointState.Reachability.UNREACHABLE,
+            reachability = NetworkEndpointState.Reachability.UNREACHABLE,
         )
 
         watching.cancel()
@@ -570,9 +595,9 @@ class SmbEndpointProbeTest : BaseTest() {
         probe.probe(listOf(location()))
         advanceUntilIdle()
 
-        probe.states.value[locationId] shouldBe SmbEndpointState(
+        probe.states.value[locationId] shouldBe NetworkEndpointState(
             address = ipv4.hostAddress,
-            reachability = SmbEndpointState.Reachability.REACHABLE,
+            reachability = NetworkEndpointState.Reachability.REACHABLE,
         )
     }
 
@@ -580,7 +605,7 @@ class SmbEndpointProbeTest : BaseTest() {
     fun `the real connector reaches a listening port`() = runTest {
         val server = ServerSocket(0)
         try {
-            SmbEndpointProbeModule.connector().connect(InetAddress.getLoopbackAddress(), server.localPort, 5.seconds)
+            NetworkEndpointProbeModule.connector().connect(InetAddress.getLoopbackAddress(), server.localPort, 5.seconds)
         } finally {
             server.close()
         }
@@ -593,7 +618,61 @@ class SmbEndpointProbeTest : BaseTest() {
         server.close()
 
         shouldThrow<IOException> {
-            SmbEndpointProbeModule.connector().connect(InetAddress.getLoopbackAddress(), port, 5.seconds)
+            NetworkEndpointProbeModule.connector().connect(InetAddress.getLoopbackAddress(), port, 5.seconds)
         }
+    }
+
+    @Test
+    fun `an SFTP server is probed on its own port and recorded as seen`() = runTest {
+        val connector = FakeConnector()
+        val recorder = FakeRecorder()
+        val clock = FakeClock(Instant.fromEpochMilliseconds(7_000))
+        val probe = createProbe(FakeResolver { listOf(ipv4) }, connector, clock, recorder)
+
+        probe.probe(listOf(sftpLocation()))
+        advanceUntilIdle()
+
+        connector.attempts shouldBe listOf(ipv4)
+        probe.states.value[locationId] shouldBe NetworkEndpointState(
+            address = ipv4.hostAddress,
+            reachability = NetworkEndpointState.Reachability.REACHABLE,
+        )
+        recorder.recorded shouldBe listOf(
+            FakeRecorder.Sighting(locationId, "nas.local", 2222, Instant.fromEpochMilliseconds(7_000)),
+        )
+    }
+
+    @Test
+    fun `SMB and SFTP locations on different ports of one host are probed separately`() = runTest {
+        val ports = mutableListOf<Int>()
+        val connector = object : NetworkEndpointProbe.Connector {
+            override suspend fun connect(address: InetAddress, port: Int, timeout: Duration) {
+                ports.add(port)
+            }
+        }
+        val probe = createProbe(FakeResolver { listOf(ipv4) }, connector)
+
+        probe.probe(listOf(location(), sftpLocation(id = otherLocationId, port = 22)))
+        advanceUntilIdle()
+
+        ports.sorted() shouldBe listOf(22, 445)
+        probe.states.value[locationId]?.reachability shouldBe NetworkEndpointState.Reachability.REACHABLE
+        probe.states.value[otherLocationId]?.reachability shouldBe NetworkEndpointState.Reachability.REACHABLE
+    }
+
+    @Test
+    fun `a sighting is recorded through the manager of the location's protocol`() = runTest {
+        val smbManager = mockk<SmbLocationManager>(relaxed = true)
+        val sftpManager = mockk<SftpLocationManager>(relaxed = true)
+        val recorder = NetworkEndpointProbeModule.lastSeenRecorder(smbManager, sftpManager)
+        val at = Instant.fromEpochMilliseconds(7_000)
+
+        recorder.recordSeen(location(), "nas.local", 445, at)
+        recorder.recordSeen(sftpLocation(id = otherLocationId), "nas.local", 2222, at)
+
+        coVerify(exactly = 1) { smbManager.recordSeen(locationId, "nas.local", 445, at) }
+        coVerify(exactly = 1) { sftpManager.recordSeen(otherLocationId, "nas.local", 2222, at) }
+        coVerify(exactly = 0) { smbManager.recordSeen(otherLocationId, any(), any(), any()) }
+        coVerify(exactly = 0) { sftpManager.recordSeen(locationId, any(), any(), any()) }
     }
 }

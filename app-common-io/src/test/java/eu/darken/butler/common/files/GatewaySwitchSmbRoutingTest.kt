@@ -37,6 +37,7 @@ class GatewaySwitchSmbRoutingTest : BaseTest() {
         localGateway = mockk<LocalGateway>(relaxed = true),
         archiveGateway = mockk<ArchiveGateway>(relaxed = true),
         smbGateway = smbGateway,
+        sftpGateway = mockk(relaxed = true),
         safLocationManager = mockk<SAFLocationManager>(relaxed = true),
         proxyPfdFactory = proxyPfdFactory,
     )

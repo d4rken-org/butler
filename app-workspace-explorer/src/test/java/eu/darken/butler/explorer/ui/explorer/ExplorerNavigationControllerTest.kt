@@ -7,7 +7,10 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
-import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.network.NetworkCredentialAvailability
+import eu.darken.butler.common.files.network.NetworkLocation
+import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -16,6 +19,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.upgrade.UpgradeRepo
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -74,14 +78,14 @@ class ExplorerNavigationControllerTest : BaseTest() {
             updatedAt = Instant.fromEpochMilliseconds(0),
         )
         return ExplorerItem.Storage.Network(
-            location = location,
+            location = NetworkLocation.Smb(location),
             displayName = "Home NAS".toCaString(),
             displayIcon = Icons.TwoTone.Lan,
             target = ExplorerNavigation.Target.Directory(location.rootPath),
             subtitle = location.endpointLabel.toCaString(),
             credentials = when (status) {
-                ExplorerItem.Storage.Network.Status.AVAILABLE -> SmbCredentialStore.Availability.AVAILABLE
-                ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> SmbCredentialStore.Availability.MISSING
+                ExplorerItem.Storage.Network.Status.AVAILABLE -> NetworkCredentialAvailability.AVAILABLE
+                ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> NetworkCredentialAvailability.MISSING
             },
         )
     }
@@ -112,6 +116,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
     )
 
     private var lockedHints = 0
+    private val sftpForms = mutableListOf<SftpLocation>()
 
     private fun CoroutineScope.controller(
         workspace: ExplorerWorkspace = mockWorkspace(),
@@ -132,6 +137,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         favoritesRepo = favoritesRepo,
         upgradeRepo = upgradeRepo,
         onNetworkLocked = { lockedHints++ },
+        showSftpLocationForm = { sftpForms.add(it) },
         selectedItems = selectedItems,
         toggleSelection = {},
         clearSelection = clearSelection,
@@ -177,7 +183,64 @@ class ExplorerNavigationControllerTest : BaseTest() {
 
         lockedHints shouldBe 0
         val form = dialogs.current().shouldBeInstanceOf<ExplorerDialogState.SmbLocationForm>()
-        form.existing shouldBe item.location
+        form.existing shouldBe (item.location as NetworkLocation.Smb).location
+    }
+
+    @Test
+    fun `a free user tapping an SFTP location gets the upgrade hint`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace, upgradeRepo = FakeUpgradeRepo(pro = false))
+
+        controller.navigate(MockDataProvider.createMockStorageSftp() as ExplorerItem)
+        runCurrent()
+
+        lockedHints shouldBe 1
+        sftpForms shouldBe emptyList()
+        coVerify(exactly = 0) { workspace.navigate(any()) }
+    }
+
+    @Test
+    fun `a free user tapping a sign-in required SFTP location gets the upgrade hint, not the form`() = runTest {
+        val dialogs = dialogs()
+        val controller = controller(dialogs = dialogs, upgradeRepo = FakeUpgradeRepo(pro = false))
+        val item = MockDataProvider.createMockStorageSftp(status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED)
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        lockedHints shouldBe 1
+        sftpForms shouldBe emptyList()
+        dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `a pro user tapping a sign-in required SFTP location is routed to the SFTP form, not the SMB one`() = runTest {
+        val dialogs = dialogs()
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace, dialogs = dialogs)
+        val item = MockDataProvider.createMockStorageSftp(status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED)
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        lockedHints shouldBe 0
+        sftpForms shouldBe listOf((item.location as NetworkLocation.Sftp).location)
+        dialogs.current() shouldBe ExplorerDialogState.None
+        coVerify(exactly = 0) { workspace.navigate(any()) }
+    }
+
+    @Test
+    fun `a pro user tapping an SFTP location navigates into it`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace)
+        val item = MockDataProvider.createMockStorageSftp()
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        lockedHints shouldBe 0
+        sftpForms shouldBe emptyList()
+        coVerify { workspace.navigate(item.target) }
     }
 
     @Test
@@ -469,6 +532,72 @@ class ExplorerNavigationControllerTest : BaseTest() {
             workspace.navigate(
                 ExplorerNavigation.Target.Directory(LocalPath.build("/storage/Documents")),
             )
+        }
+    }
+
+    private val sftpLocationId = Uuid.parse("66666666-7777-8888-9999-000000000000")
+
+    @Test
+    fun `an edited SFTP path is relative to the location root`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace)
+
+        controller.navigateToEditedPath(SftpPath(sftpLocationId, listOf("srv")), "/builds//2026:rc*/")
+        runCurrent()
+
+        coVerify {
+            workspace.navigate(
+                ExplorerNavigation.Target.Directory(SftpPath(sftpLocationId, listOf("builds", "2026:rc*"))),
+            )
+        }
+    }
+
+    @Test
+    fun `a backslash in an edited SFTP path is part of the name`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace)
+
+        controller.navigateToEditedPath(SftpPath.root(sftpLocationId), "a\\b/c")
+        runCurrent()
+
+        coVerify {
+            workspace.navigate(ExplorerNavigation.Target.Directory(SftpPath(sftpLocationId, listOf("a\\b", "c"))))
+        }
+    }
+
+    @Test
+    fun `an edited SFTP path cannot climb out of the location`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace)
+
+        controller.navigateToEditedPath(SftpPath(sftpLocationId, listOf("srv")), "../etc")
+        controller.navigateToEditedPath(SftpPath(sftpLocationId, listOf("srv")), "./srv")
+        runCurrent()
+
+        coVerify(exactly = 0) { workspace.navigate(any()) }
+    }
+
+    @Test
+    fun `an empty edited SFTP path goes to the location root`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace)
+
+        controller.navigateToEditedPath(SftpPath(sftpLocationId, listOf("srv")), "/")
+        runCurrent()
+
+        coVerify { workspace.navigate(ExplorerNavigation.Target.Directory(SftpPath.root(sftpLocationId))) }
+    }
+
+    @Test
+    fun `spaces in an edited SFTP path are part of the names`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace)
+
+        controller.navigateToEditedPath(SftpPath.root(sftpLocationId), "/ /draft ")
+        runCurrent()
+
+        coVerify {
+            workspace.navigate(ExplorerNavigation.Target.Directory(SftpPath(sftpLocationId, listOf(" ", "draft "))))
         }
     }
 }

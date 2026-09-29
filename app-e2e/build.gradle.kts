@@ -11,8 +11,10 @@ android {
         minSdk = projectConfig.minSdk
         targetSdk = projectConfig.targetSdk
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Its phases need an APK swap in between, so they run outside Gradle.
-        testInstrumentationRunnerArguments["notClass"] = "eu.darken.butler.e2e.UpgradeTest"
+        // UpgradeTest's phases need an APK swap in between, and SftpEndToEndTest needs the SFTP test
+        // server, so both run outside Gradle (tools/upgrade-test.sh, tools/sftp-e2e-test.sh).
+        testInstrumentationRunnerArguments["notClass"] =
+            "eu.darken.butler.e2e.UpgradeTest,eu.darken.butler.e2e.SftpEndToEndTest"
     }
 
     targetProjectPath = ":app"

@@ -9,10 +9,13 @@ import eu.darken.butler.common.files.smb.location.db.SmbLocationEntity
 import eu.darken.butler.common.files.smb.location.db.SmbLocationsDao
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
@@ -64,8 +67,14 @@ class SmbLocationManagerTest : BaseTest() {
         /** Runs inside a credential write, i.e. in the middle of a create() or update(). */
         var onUpsert: (suspend () -> Unit)? = null
 
+        /** Runs before the credential rows are read, i.e. in the middle of a reconcile(). */
+        var onGetAllOnce: (suspend () -> Unit)? = null
+
         override fun getAll(): Flow<List<SmbCredentialEntity>> = rows
-        override suspend fun getAllOnce() = rows.value
+        override suspend fun getAllOnce(): List<SmbCredentialEntity> {
+            onGetAllOnce?.invoke()
+            return rows.value
+        }
         override suspend fun get(locationId: Uuid, credentialVersion: Int) = rows.value.firstOrNull {
             it.locationId == locationId && it.credentialVersion == credentialVersion
         }
@@ -146,6 +155,35 @@ class SmbLocationManagerTest : BaseTest() {
         val manager = manager()
         val location = manager.createSample()
         manager.get(location.id)!!.basePath shouldBe listOf("movies")
+    }
+
+    @Test
+    fun `credentials stored while the startup reconciliation runs survive it`() = runTest {
+        val scanning = CompletableDeferred<Unit>()
+        val resume = CompletableDeferred<Unit>()
+        credentialsDao.onGetAllOnce = {
+            credentialsDao.onGetAllOnce = null
+            scanning.complete(Unit)
+            resume.await()
+        }
+        val manager = SmbLocationManagerImpl(
+            appScope = backgroundScope,
+            dao = locationsDao,
+            credentialStore = credentialStore,
+        )
+        // The reconciliation holds its snapshot of the (still empty) location rows
+        scanning.await()
+
+        val remembered = async { manager.createSample() }
+        val sessionOnly = async { manager.createSample(remember = false) }
+        // Both creates get as far as they can before the reconciliation scans the credentials
+        runCurrent()
+        resume.complete(Unit)
+        // The reconciliation finishes before anything is asserted
+        runCurrent()
+
+        String(credentialStore.resolve(remembered.await()).password) shouldBe "hunter2"
+        String(credentialStore.resolve(sessionOnly.await()).password) shouldBe "hunter2"
     }
 
     @Test
