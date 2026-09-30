@@ -150,6 +150,8 @@ class FloatingBarStackState(
      */
     val nestedScrollConnection: NestedScrollConnection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+            if (source == NestedScrollSource.UserInput) barStates.forEach { it.holdsExpansion = false }
+
             val delta = available.y
             if (abs(delta) <= SCROLL_THRESHOLD) return Offset.Zero
 
@@ -164,6 +166,9 @@ class FloatingBarStackState(
                     delta > 0 -> 0f // Scrolling up -> show/expand
                     else -> null
                 }
+
+                // Only non-user deltas get here with the hold still set, user input released it above
+                if (targetFraction == 1f && barState.holdsExpansion) return@forEach
 
                 if (targetFraction != null) {
                     when (barState.scrollBehavior) {

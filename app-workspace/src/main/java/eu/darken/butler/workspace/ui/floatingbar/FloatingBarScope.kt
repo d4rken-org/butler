@@ -16,6 +16,12 @@ class FloatingBarContentScope(
      * Use this for [BarScrollBehavior.CollapseOnScroll] to animate content.
      */
     val collapsedFraction: Float,
+    /**
+     * Expands this bar alone out of its scroll-collapsed state, e.g. when its collapsed form is
+     * tapped. A fling that is still running afterwards does not collapse it again; the next user
+     * scroll does.
+     */
+    val expand: () -> Unit,
 )
 
 /**

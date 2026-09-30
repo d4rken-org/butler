@@ -280,9 +280,12 @@ internal class FloatingBarScopeImpl(
             }
         }
 
+        val expand: () -> Unit = remember(barState) { { barState.expand(coroutineScope) } }
+
         // Create content scope with current collapsed fraction
         val contentScope = FloatingBarContentScope(
             collapsedFraction = barState.scrollCollapsedFraction,
+            expand = expand,
         )
 
         // Render bar content wrapped in measurement container

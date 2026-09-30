@@ -82,6 +82,7 @@ internal fun FloatingBarScope.SearcherTopBars(
             state = state,
             design = design,
             collapsedFraction = collapsedFraction,
+            onExpand = expand,
             onAction = onPageAction,
         )
     }
