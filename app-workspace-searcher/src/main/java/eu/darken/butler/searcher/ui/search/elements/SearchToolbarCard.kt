@@ -38,6 +38,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,6 +65,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.modal.LocalLayerActive
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun SearchToolbarCard(
@@ -162,7 +164,11 @@ fun SearchToolbarCard(
         } else {
             val filenameFocusRequester = remember { FocusRequester() }
             val layerActive = LocalLayerActive.current
+            // CutoutMode.Auto also composes this branch into a measure-only copy that is never placed
+            // (pinned by SearchToolbarCardTest), so only the placed copy may consume the pending focus.
+            var placed by remember { mutableStateOf(false) }
             LaunchedEffect(Unit) {
+                snapshotFlow { placed }.first { it }
                 if (!focusPending) return@LaunchedEffect
                 focusPending = false
                 // The user may have moved to another pane while the bar was expanding
@@ -186,6 +192,7 @@ fun SearchToolbarCard(
                     Column {
                         // Filename pattern field
                         PatternField(
+                            modifier = Modifier.onPlaced { placed = true },
                             text = state?.filenameQuery.orEmpty(),
                             onTextChange = { onAction(SearcherPageAction.Search.UpdateFilenameQuery(it)) },
                             onSearch = { onAction(SearcherPageAction.Search.Explicit) },
