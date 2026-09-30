@@ -1,6 +1,7 @@
 package eu.darken.butler.apps.ui.apps.elements
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,7 +17,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -40,6 +47,7 @@ import eu.darken.butler.workspace.ui.common.WorkspaceToolbarDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 
 @Composable
 fun AppsToolbarCard(
@@ -52,8 +60,12 @@ fun AppsToolbarCard(
     onFilterRemove: (AppTag, isExcluded: Boolean) -> Unit,
     design: WorkspaceDesign,
     collapsedFraction: Float = 0f,
+    onExpand: () -> Unit = {},
 ) {
     val isCollapsed = collapsedFraction > 0.5f
+    // Set by tapping the collapsed row, consumed once by the expanded branch that tap leads to
+    var focusPending by remember { mutableStateOf(false) }
+    val currentCollapsedFraction by rememberUpdatedState(collapsedFraction)
     val cardPadding by animateDpAsState(
         targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "cardPadding",
@@ -78,10 +90,25 @@ fun AppsToolbarCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
         if (isCollapsed) {
+            // Collapsing again before the expanded branch appears means the tap lost to a scroll,
+            // and a later unrelated reveal must not pop the keyboard.
+            LaunchedEffect(focusPending) {
+                if (!focusPending) return@LaunchedEffect
+                var previous = currentCollapsedFraction
+                snapshotFlow { currentCollapsedFraction }.collect { fraction ->
+                    if (fraction > previous) focusPending = false
+                    previous = fraction
+                }
+            }
+
             // Collapsed state - compact display with filter count badge
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable {
+                        focusPending = true
+                        onExpand()
+                    }
                     .padding(start = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -115,6 +142,12 @@ fun AppsToolbarCard(
                 }
             }
         } else {
+            val layerActive = LocalLayerActive.current
+            // Decided once per entry: autoFocus keys the field's focus request, so it must not flip
+            // back when the pending flag is cleared. The layer check skips a pane the user already left.
+            val focusOnEnter = remember { focusPending && layerActive }
+            LaunchedEffect(Unit) { focusPending = false }
+
             // Expanded state - full search bar + filter chips
             CutoutAwareColumn(
                 cutoutWidth = cutoutWidth,
@@ -125,6 +158,7 @@ fun AppsToolbarCard(
                         query = searchQuery,
                         onQueryChange = onSearchQueryChange,
                         modifier = Modifier.fillMaxWidth(),
+                        autoFocus = focusOnEnter,
                     )
                 }
 
