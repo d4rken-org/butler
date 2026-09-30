@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Butler FOSS szükséges</string>
+    <string name="upgrade_prompt_title">Butler bővítése</string>
+    <string name="upgrade_prompt_body">Oldj fel további funkciókat, és támogatóként segítsd a további fejlesztést!</string>
+    <string name="upgrade_prompt_upgrade_action">Bővítés</string>
+    <string name="upgrade_screen_title">Butler bővítése</string>
+    <string name="upgrade_screen_preamble">A Butlerben nincsenek hirdetések, és nem adja el a felhasználói adatokat. A további fejlesztést csak te teszed lehetővé.</string>
+    <string name="upgrade_screen_how_title">Hogyan segíthetsz?</string>
+    <string name="upgrade_screen_how_body">Légy támogató, és szponzoráld a fejlesztést! Az alábbi gombbal aktiválhatod az összes extra funkciót, és megnyithatod a GitHub Sponsors-profilomat.</string>
+    <string name="upgrade_screen_sponsor_action">Fejlesztés támogatása</string>
+    <string name="upgrade_screen_sponsor_action_hint">Az alternatíva a hirdetések, az analitika és a Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Köszönöm, hogy támogatod a nyílt forráskódú fejlesztést ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Máris visszatértél? A támogatásod tartja életben a Butlert — szánj egy kis időt a támogatói oldalra.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Nem sikerült megnyitni a támogatói oldalt. Próbáld inkább böngészőben megnyitni.</string>
+    <string name="upgrade_screen_status_free_title">Az ingyenes verziót használod</string>
+    <string name="upgrade_screen_status_free_body">A Butler FOSS teljesen nyílt forráskódú. A fejlesztés támogatásával feloldhatod az extra funkciókat.</string>
+    <string name="upgrade_screen_status_free_action">Bővítési lehetőségek</string>
+    <string name="upgrade_screen_status_upgraded_title">Támogató vagy</string>
+    <string name="upgrade_screen_status_upgraded_body">Köszönöm, hogy támogatod a nyílt forráskódú fejlesztést ❤️ Minden extra funkció feloldva.</string>
+    <string name="upgrade_screen_supporter_since">Támogatás kezdete: %s</string>
+    <string name="upgrade_screen_recurring_title">Tartsuk életben</string>
+    <string name="upgrade_screen_recurring_body">A Butlert a szabadidőmben fejlesztem. A rendszeres adományok segítenek életben tartani.</string>
+    <string name="upgrade_screen_recurring_action">Rendszeres támogatás</string>
+    <string name="upgrade_benefits_title">A bővítés előnyei</string>
+    <string name="upgrade_screen_benefits_body">• Korlátlan lap és művelet\n• Személyre szabható megjelenés és használat\n• Extra lehetőségek és funkciók minden eszközhöz\n• Korai hozzáférés az új funkciókhoz\n• Egy motivált fejlesztő 🧙\nés még sok más…</string>
+</resources>

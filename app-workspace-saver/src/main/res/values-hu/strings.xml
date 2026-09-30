@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="saver_workspace_title">Mentés másként</string>
+    <string name="saver_preview_label">Előnézet</string>
+    <string name="saver_loading">Betöltés…</string>
+    <string name="saver_shared_from">Megosztva innen: %1$s</string>
+    <string name="saver_shared_generic">Megosztva a Butlerrel</string>
+    <string name="saver_destination_label">Cél</string>
+    <string name="saver_select_destination_hint">Válassz célmappát</string>
+    <string name="saver_filename_label">Fájlnév</string>
+    <string name="saver_save_action">Mentés</string>
+    <string name="saver_saving_progress">Mentés…</string>
+    <string name="saver_success_message">A fájl sikeresen mentve</string>
+    <string name="saver_open_saved_action">Könyvtár megnyitása</string>
+    <string name="saver_retry_action">Újrapróbálkozás</string>
+    <string name="saver_save_again_action">Mentés új helyre</string>
+    <string name="saver_close_tab_action">Lap bezárása</string>
+    <string name="saver_close_butler_action">Lap bezárása és visszatérés</string>
+    <string name="saver_done_action">Kész</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">A forrásfájl már nem érhető el. Oszd meg újra.</item>
+        <item quantity="other">%1$d forrásfájl már nem érhető el. Oszd meg újra.</item>
+    </plurals>
+    <string name="saver_error_source_expired">A forrásfájl már nem érhető el</string>
+    <string name="saver_error_permission_denied">Hozzáférés megtagadva</string>
+    <string name="saver_error_write_failed">Nem sikerült menteni a fájlt</string>
+    <string name="saver_error_file_exists">A fájl már létezik</string>
+    <string name="saver_operation_title">Fájlok mentése</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">%1$d fájl mentése ide: %2$s</item>
+        <item quantity="other">%1$d fájl mentése ide: %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">%1$d fájl mentése</item>
+        <item quantity="other">%1$d fájl mentése</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d fájl mentve</item>
+        <item quantity="other">%1$d fájl mentve</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d fájl sikertelen</item>
+        <item quantity="other">%1$d fájl sikertelen</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d fájl kihagyva</item>
+        <item quantity="other">%1$d fájl kihagyva</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d / %2$d fájl mentve</string>
+</resources>
