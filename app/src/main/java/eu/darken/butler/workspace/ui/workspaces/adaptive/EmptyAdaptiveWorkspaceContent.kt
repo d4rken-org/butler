@@ -43,7 +43,8 @@ import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
 @Composable
 internal fun EmptyAdaptiveWorkspaceContent(
     modifier: Modifier = Modifier,
-    paneNumber: Int,
+    /** Null when the layout has a single pane, where a number would identify nothing. */
+    paneNumber: Int?,
     paneEdges: PaneEdges = PaneEdges.All,
     isUpgraded: Boolean = false,
     isTourTarget: Boolean = false,
@@ -83,7 +84,11 @@ internal fun EmptyAdaptiveWorkspaceContent(
                         style = MaterialTheme.typography.titleLarge,
                     )
                     Text(
-                        text = stringResource(R.string.workspace_adaptive_pane_ready, paneNumber),
+                        text = if (paneNumber != null) {
+                            stringResource(R.string.workspace_adaptive_pane_ready, paneNumber)
+                        } else {
+                            stringResource(R.string.workspace_classic_empty_tabs_closed)
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -142,6 +147,16 @@ internal fun EmptyAdaptiveWorkspaceContent(
 private fun EmptyWorkspaceContentPreview() {
     EmptyAdaptiveWorkspaceContent(
         paneNumber = 2,
+        onAddWorkspace = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun EmptyWorkspaceContentUnnumberedPreview() {
+    EmptyAdaptiveWorkspaceContent(
+        paneNumber = null,
         onAddWorkspace = {},
     )
 }

@@ -294,6 +294,7 @@ private fun PaneArea(
                 singlePanePager(paneDesign, revealRequests) {
                     EmptyPane(
                         paneNumber = 1,
+                        showPaneNumber = false,
                         paneDesign = paneDesign,
                         isUpgraded = isUpgraded,
                         firstTabTourPaneNumber = firstTabTourPaneNumber,
@@ -399,6 +400,7 @@ typealias SinglePanePager = @Composable (
 @Composable
 private fun EmptyPane(
     paneNumber: Int,
+    showPaneNumber: Boolean = true,
     paneDesign: WorkspaceDesign,
     isUpgraded: Boolean,
     firstTabTourPaneNumber: Int?,
@@ -447,7 +449,7 @@ private fun EmptyPane(
                 target = dropTarget,
             )
             .dropTargetHighlight(isDropHovered.value),
-        paneNumber = paneNumber,
+        paneNumber = paneNumber.takeIf { showPaneNumber },
         paneEdges = paneDesign.paneEdges,
         isUpgraded = isUpgraded,
         isTourTarget = paneNumber == firstTabTourPaneNumber,
