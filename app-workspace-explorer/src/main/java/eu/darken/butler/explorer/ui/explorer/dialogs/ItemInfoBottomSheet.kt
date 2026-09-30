@@ -35,6 +35,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.location.SAFLocation
@@ -215,6 +216,7 @@ private fun SingleFileInfo(
     onCopyToClipboard: (String) -> Unit,
 ) {
     val context = LocalContext.current
+    val shownPath = item.lookup.lookedUp.shownPath.get(context)
 
     InfoCard {
         InfoField(
@@ -224,8 +226,8 @@ private fun SingleFileInfo(
 
         InfoField(
             label = stringResource(R.string.explorer_info_path_label),
-            value = item.lookup.path,
-            onCopy = { onCopyToClipboard(item.lookup.path) },
+            value = shownPath,
+            onCopy = { onCopyToClipboard(shownPath) },
             valueStyle = InfoValueStyle.MONOSPACE,
             valueKind = InfoValueKind.PATH,
         )
@@ -273,10 +275,11 @@ private fun SingleFileInfo(
     if (item is ExplorerItem.SymbolicLink) {
         Spacer(modifier = Modifier.height(6.dp))
         InfoCard {
+            val shownTarget = item.targetPath?.shownPath?.get(context)
             InfoField(
                 label = stringResource(R.string.explorer_info_symlink_target_label),
-                value = item.targetPath ?: stringResource(R.string.explorer_info_unknown),
-                onCopy = item.targetPath?.let { targetPath -> { onCopyToClipboard(targetPath) } },
+                value = shownTarget ?: stringResource(R.string.explorer_info_unknown),
+                onCopy = shownTarget?.let { targetPath -> { onCopyToClipboard(targetPath) } },
                 valueStyle = InfoValueStyle.MONOSPACE,
                 valueKind = InfoValueKind.MIXED,
             )
@@ -296,6 +299,8 @@ private fun SingleDirectoryInfo(
     item: ExplorerItem.Directory,
     onCopyToClipboard: (String) -> Unit,
 ) {
+    val shownPath = item.lookup.lookedUp.shownPath.get(LocalContext.current)
+
     InfoCard {
         InfoField(
             label = stringResource(R.string.explorer_info_name_label),
@@ -304,8 +309,8 @@ private fun SingleDirectoryInfo(
 
         InfoField(
             label = stringResource(R.string.explorer_info_path_label),
-            value = item.lookup.path,
-            onCopy = { onCopyToClipboard(item.lookup.path) },
+            value = shownPath,
+            onCopy = { onCopyToClipboard(shownPath) },
             valueStyle = InfoValueStyle.MONOSPACE,
             valueKind = InfoValueKind.PATH,
         )

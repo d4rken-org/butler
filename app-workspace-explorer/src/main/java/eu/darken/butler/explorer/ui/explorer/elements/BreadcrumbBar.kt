@@ -71,6 +71,7 @@ import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.extensions.matches
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.ui.pagerFriendlyHorizontalScroll
 import eu.darken.butler.explorer.R
@@ -548,6 +549,8 @@ private fun BreadcrumbDisplayRow(
     onToggleFavorite: ((APath<*>) -> Unit)?,
     favoritePaths: List<APath<*>>,
 ) {
+    val context = LocalContext.current
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -591,7 +594,7 @@ private fun BreadcrumbDisplayRow(
                     onCopyPath = if (isDirectory && onCopyPath != null) {
                         {
                             onShowContextMenu(null)
-                            onCopyPath(breadcrumb.target.path.path)
+                            onCopyPath(breadcrumb.target.path.shownPath.get(context))
                         }
                     } else null,
                     onToggleFavorite = if (crumbPath != null && onToggleFavorite != null) {

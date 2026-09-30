@@ -28,6 +28,7 @@ import eu.darken.butler.common.debug.logviewer.core.LogHistoryRecorder
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.network.NetworkLocationNamesUpdater
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.theming.Theming
 import eu.darken.butler.common.trash.TrashCleanupScheduler
@@ -104,6 +105,9 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
 
     /** Same deal: nothing else injects it, so its sweep loop needs an eager .get() to ever run. */
     @Inject lateinit var externalImportSweeper: dagger.Lazy<ExternalImportSweeper>
+
+    /** Nothing else injects it either; network paths render with their UUID until it has run. */
+    @Inject lateinit var networkLocationNamesUpdater: dagger.Lazy<NetworkLocationNamesUpdater>
 
     private val logCatLogger = LogCatLogger()
 
@@ -182,6 +186,9 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         shortcutManager.initialize()
 
         workspacePreviewManager.start()
+
+        // Starts loading the location names that network paths are shown with.
+        networkLocationNamesUpdater.get()
 
         // Eagerly construct OperationHistoryRepo so it subscribes to completedOperations from start.
         operationHistoryRepo.get()

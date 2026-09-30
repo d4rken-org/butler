@@ -58,6 +58,7 @@ import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.workspace.ui.clipboard.mockFileLookup
 import eu.darken.butler.common.formatRelativeTime
@@ -376,12 +377,13 @@ private fun ClipboardFilesSection(
                             .heightIn(max = 300.dp),
                     ) {
                         items(paths) { path ->
+                            val shownPath = path.lookedUp.shownPath.get(LocalContext.current)
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .then(
                                         if (onCopyPath != null) {
-                                            Modifier.clickable { onCopyPath(path.path) }
+                                            Modifier.clickable { onCopyPath(shownPath) }
                                         } else {
                                             Modifier
                                         }
@@ -409,7 +411,7 @@ private fun ClipboardFilesSection(
 
                                 // File path (truncated)
                                 Text(
-                                    text = path.path,
+                                    text = shownPath,
                                     style = MaterialTheme.typography.labelSmall.asPathStyle(),
                                     fontFamily = FontFamily.Monospace,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),

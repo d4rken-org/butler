@@ -345,7 +345,7 @@ fun ViewerWorkspacePage(
                                 // The name is already the title above it, so repeating it here as
                                 // the tail of the full path told the user nothing. Null for streamed
                                 // content, which lives nowhere Butler could name.
-                                folderPath = state.source.folderPath,
+                                folderPath = state.source.folderPath?.get(LocalContext.current),
                                 isCollapsed = isToolbarCollapsed || collapsedFraction > 0.5f,
                                 onBackClick = if (isModal) {
                                     { onPageAction(ViewerPageAction.Close) }

@@ -122,7 +122,7 @@ object MockDataProvider {
         return ExplorerItem.SymbolicLink(
             lookup = createMockLookup(name, "/home/user/$name", 0L, FileType.SYMBOLIC_LINK, target = target),
             mimeType = MimeInfo("inode/symlink"),
-            targetPath = targetPath,
+            targetPath = target,
             isBroken = isBroken
         )
     }

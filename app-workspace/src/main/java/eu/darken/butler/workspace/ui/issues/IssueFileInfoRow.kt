@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,6 +30,7 @@ import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.DateTimeStyle
@@ -96,7 +98,7 @@ fun PathIssueFileComparisonCard(
             }
 
             Text(
-                text = lookup.lookedUp.parent?.path ?: "/",
+                text = lookup.lookedUp.parent?.shownPath?.get(LocalContext.current) ?: "/",
                 style = MaterialTheme.typography.bodySmall.asPathStyle(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 maxLines = 1,
@@ -151,7 +153,7 @@ fun PathIssueFileComparisonCard(
             }
 
             Text(
-                text = path.parent?.path ?: "/",
+                text = path.parent?.shownPath?.get(LocalContext.current) ?: "/",
                 style = MaterialTheme.typography.bodySmall.asPathStyle(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 maxLines = 1,

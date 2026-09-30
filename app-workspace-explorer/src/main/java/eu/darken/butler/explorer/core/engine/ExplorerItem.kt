@@ -233,7 +233,7 @@ sealed interface ExplorerItem {
         override val ownership: Ownership? = null,
         override val permissions: Permissions? = null,
         override val createdAt: Instant? = null,
-        val targetPath: String? = null,
+        val targetPath: APath<*>? = null,
         val isBroken: Boolean = false,
         override val metadata: FileMetadata? = null,
         override val canWrite: Boolean? = null,

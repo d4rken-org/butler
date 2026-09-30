@@ -32,6 +32,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.DateTimeStyle
@@ -110,7 +111,7 @@ fun SearchResultItemDetails(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = result.path.path,
+                        text = result.path.shownPath.get(LocalContext.current),
                         style = MaterialTheme.typography.bodySmall.asPathStyle(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

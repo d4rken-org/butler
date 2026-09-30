@@ -6,6 +6,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.network.NetworkLocationNames
+import eu.darken.butler.common.files.sftp.location.SftpLocation
+import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.Operation
@@ -42,6 +46,7 @@ import java.io.IOException
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 /**
  * Ingest behavior against a real (in-memory) database: what ends up in the audit table, what ends up
@@ -83,6 +88,7 @@ class OperationHistoryPersistTest : BaseTest() {
     fun teardown() {
         appScope.cancel()
         database.close()
+        NetworkLocationNames.clear()
     }
 
     private suspend fun persist(snapshot: CompletedOperationSnapshot): String {
@@ -173,6 +179,55 @@ class OperationHistoryPersistTest : BaseTest() {
         // The source was only read and the destination folder only gained a child - neither is a change.
         stored.paths.map { it.path } shouldNotContain source.path
         stored.paths.map { it.path } shouldNotContain destinationFolder.path
+    }
+
+    @Test
+    fun `a network path is recorded under its location's name`() = runTest {
+        val locationId = Uuid.parse("c0360031-0000-4000-8000-000000000001")
+        NetworkLocationNames.updateSftp(
+            listOf(
+                SftpLocation(
+                    id = locationId,
+                    label = null,
+                    host = "cnc-dev",
+                    username = "darken",
+                    authType = SftpLocation.AuthType.PASSWORD,
+                    rememberCredential = true,
+                    credentialVersion = 1,
+                    hostKey = TrustedHostKey(
+                        type = "ssh-ed25519",
+                        blob = ByteArray(51),
+                        fingerprint = "SHA256:Utlnml924yfwY1Df/Rf4pu3A8u5JKZ118Cd9/hz+ijM",
+                    ),
+                    trustRevision = 1,
+                    createdAt = Instant.fromEpochMilliseconds(0),
+                    updatedAt = Instant.fromEpochMilliseconds(0),
+                ),
+            ),
+        )
+        val remoteFolder = SftpPath(locationId, listOf("usr", "bin"))
+        val remoteCopy = remoteFolder.child("photo.jpg")
+
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(
+                    operationKind = Operation.Metadata.Kind.COPY,
+                    plan = planInto(source, destination = remoteFolder),
+                ),
+                state = TestCompletedState(
+                    report = TestReport(
+                        affectedPaths = listOf(
+                            changeOf(remoteCopy, Operation.Report.Paths.PathChange.Change.ADDED),
+                        ),
+                    ),
+                ),
+            )
+        )
+
+        val stored = database.operationHistoryDao().getById(id)!!
+        stored.paths.single().path shouldBe "sftp://cnc-dev/usr/bin/photo.jpg"
+        allScopePaths(id).map { it.path } shouldContain "sftp://cnc-dev/usr/bin"
+        idsForScopes("sftp://cnc-dev/usr/bin") shouldContainExactly listOf(id)
     }
 
     @Test

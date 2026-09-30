@@ -1,7 +1,10 @@
 package eu.darken.butler.common.files
 
 import androidx.annotation.Keep
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.files.extensions.Segments
+import eu.darken.butler.common.files.network.NetworkLocationNames
 import eu.darken.butler.common.parcel.UuidParceler
 import eu.darken.butler.common.serialization.UuidSerializer
 import kotlinx.parcelize.Parcelize
@@ -35,13 +38,27 @@ data class SftpPath(
     }
 
     override val path: String
-        get() = when {
-            segments.isEmpty() -> "sftp://$locationId"
-            else -> "sftp://$locationId/${segments.joinToString("/")}"
-        }
+        get() = format(locationId.toString())
 
     override val name: String
         get() = segments.lastOrNull() ?: locationId.toString()
+
+    /** `sftp://cnc-dev/a/b` while the location's name is known, [path] otherwise. */
+    override val userReadablePath: CaString
+        get() = caString { context ->
+            format(NetworkLocationNames.sftp(locationId)?.get(context) ?: locationId.toString())
+        }
+
+    override val userReadableName: CaString
+        get() = when {
+            segments.isEmpty() -> caString { context -> NetworkLocationNames.sftp(locationId)?.get(context) ?: name }
+            else -> super.userReadableName
+        }
+
+    private fun format(location: String): String = when {
+        segments.isEmpty() -> "sftp://$location"
+        else -> "sftp://$location/${segments.joinToString("/")}"
+    }
 
     override val parent: SftpPath?
         get() = if (segments.isEmpty()) null else copy(segments = segments.dropLast(1))

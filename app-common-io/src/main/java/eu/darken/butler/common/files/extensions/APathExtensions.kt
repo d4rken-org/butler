@@ -1,5 +1,7 @@
 package eu.darken.butler.common.files.extensions
 
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
@@ -38,6 +40,16 @@ fun APath<*>.toFile(): File = when (this) {
 
 val APath<*>.extension: String?
     get() = name.substringAfterLast('.', "").takeIf { it.isNotEmpty() }
+
+/**
+ * What a path field shows and copies: `sftp://cnc-dev/usr/bin` for a network path, [APath.path]
+ * unchanged for every other type.
+ */
+val APath<*>.shownPath: CaString
+    get() = when (this) {
+        is SmbPath, is SftpPath -> userReadablePath
+        else -> path.toCaString()
+    }
 
 /**
  * Finds the common parent directory of all paths in this collection.
