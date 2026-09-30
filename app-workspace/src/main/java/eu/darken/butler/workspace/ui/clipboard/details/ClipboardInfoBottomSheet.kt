@@ -36,6 +36,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,6 +61,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.network.NetworkLocationNames
 import eu.darken.butler.workspace.ui.clipboard.mockFileLookup
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.workspace.R
@@ -123,6 +125,8 @@ private fun ClipboardInfoContent(
         when (clip) {
             is ClipboardClip.Paths -> {
                 val context = LocalContext.current
+                // Reading the names subscribes the source list to renames.
+                NetworkLocationNames.snapshot.collectAsState().value
                 val sources = clip.sourceLocations(context)
 
                 // Header Section
@@ -214,7 +218,7 @@ private fun ClipboardInfoHeader(
 
             Text(
                 modifier = Modifier.padding(top = 2.dp),
-                text = clip.description.asComposable(),
+                text = clip.description.withLocationNames(),
                 style = MaterialTheme.typography.bodyMedium.asMaybePathStyle(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
