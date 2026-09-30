@@ -193,15 +193,14 @@ class FloatingBarState(
      * (pinned by FloatingBarStackStateTest). The list is a sibling of the bar, so tapping the bar
      * does not stop a running fling, and its next frame would collapse the bar again.
      */
-    internal var holdsExpansion: Boolean = false
+    internal var holdsExpansion: Boolean by mutableStateOf(false)
 
     /**
-     * Expands a scroll-collapsed bar with the same spring as a scroll reveal. No-op for static bars
-     * and for a bar that is already heading to expanded.
+     * Expands a scroll-collapsed bar with the same spring as a scroll reveal and starts
+     * [holdsExpansion], also for a bar that is already heading to expanded. No-op for static bars.
      */
     internal fun expand(scope: CoroutineScope) {
         if (scrollBehavior is BarScrollBehavior.Static) return
-        if (scrollCollapseAnimatable.targetValue == 0f) return
         holdsExpansion = true
         triggerScrollCollapse(scope, 0f)
     }

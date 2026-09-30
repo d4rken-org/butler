@@ -126,6 +126,7 @@ fun AppsWorkspacePage(
                         design = design,
                         collapsedFraction = collapsedFraction,
                         onExpand = expand,
+                        isExpandHeld = isExpandHeld,
                     )
                 }
 

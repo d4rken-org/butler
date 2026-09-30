@@ -286,6 +286,7 @@ internal class FloatingBarScopeImpl(
         val contentScope = FloatingBarContentScope(
             collapsedFraction = barState.scrollCollapsedFraction,
             expand = expand,
+            isExpandHeld = barState.holdsExpansion,
         )
 
         // Render bar content wrapped in measurement container

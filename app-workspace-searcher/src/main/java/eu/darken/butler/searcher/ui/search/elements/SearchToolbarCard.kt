@@ -75,12 +75,13 @@ fun SearchToolbarCard(
     design: WorkspaceDesign,
     collapsedFraction: Float = 0f,
     onExpand: () -> Unit = {},
+    isExpandHeld: Boolean = false,
     onAction: (SearcherPageAction) -> Unit,
 ) {
     val isCollapsed = collapsedFraction > 0.5f
-    // Set by tapping the collapsed row, consumed once by the expanded branch that tap leads to
+    // Set by tapping the collapsed row, consumed by the next expanded branch, which focuses only
+    // while the tap's expansion is still held (no user scroll in between)
     var focusPending by remember { mutableStateOf(false) }
-    val currentCollapsedFraction by rememberUpdatedState(collapsedFraction)
     val cardPadding by animateDpAsState(
         targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "cardPadding"
@@ -104,17 +105,6 @@ fun SearchToolbarCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
         if (isCollapsed) {
-            // Collapsing again before the expanded branch appears means the tap lost to a scroll,
-            // and a later unrelated reveal must not pop the keyboard.
-            LaunchedEffect(focusPending) {
-                if (!focusPending) return@LaunchedEffect
-                var previous = currentCollapsedFraction
-                snapshotFlow { currentCollapsedFraction }.collect { fraction ->
-                    if (fraction > previous) focusPending = false
-                    previous = fraction
-                }
-            }
-
             // Collapsed state - compact display
             Row(
                 modifier = Modifier
@@ -167,12 +157,14 @@ fun SearchToolbarCard(
             // CutoutMode.Auto also composes this branch into a measure-only copy that is never placed
             // (pinned by SearchToolbarCardTest), so only the placed copy may consume the pending focus.
             var placed by remember { mutableStateOf(false) }
+            val currentExpandHeld by rememberUpdatedState(isExpandHeld)
+            val currentLayerActive by rememberUpdatedState(layerActive)
             LaunchedEffect(Unit) {
                 snapshotFlow { placed }.first { it }
                 if (!focusPending) return@LaunchedEffect
                 focusPending = false
                 // The user may have moved to another pane while the bar was expanding
-                if (layerActive) filenameFocusRequester.requestFocus()
+                if (currentExpandHeld && currentLayerActive) filenameFocusRequester.requestFocus()
             }
 
             // Expanded state - full interactive card with dual pattern fields

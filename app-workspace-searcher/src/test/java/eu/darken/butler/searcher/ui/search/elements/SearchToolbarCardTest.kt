@@ -84,6 +84,7 @@ class SearchToolbarCardTest : ComposeTest() {
 
     private var collapsedFraction by mutableFloatStateOf(1f)
     private var layerActive by mutableStateOf(true)
+    private var expandHeld by mutableStateOf(false)
     private var expandCalls = 0
     private var focusManager: FocusManager? = null
 
@@ -118,6 +119,7 @@ class SearchToolbarCardTest : ComposeTest() {
                             expandCalls++
                             onExpand()
                         },
+                        isExpandHeld = expandHeld,
                         onAction = {},
                     )
                 }
@@ -159,7 +161,7 @@ class SearchToolbarCardTest : ComposeTest() {
 
     @Test
     fun `a tap that expands the bar focuses the filename field`() {
-        setHost(onExpand = { collapsedFraction = 0f })
+        setHost(onExpand = { expandHeld = true; collapsedFraction = 0f })
 
         tapCollapsedRow()
 
@@ -169,9 +171,12 @@ class SearchToolbarCardTest : ComposeTest() {
 
     @Test
     fun `a tap that loses to a collapsing scroll does not focus on a later reveal`() {
-        setHost(onExpand = { collapsedFraction = 0.8f })
+        setHost(onExpand = { expandHeld = true; collapsedFraction = 0.8f })
 
         tapCollapsedRow()
+        // The user scrolls, which releases the hold
+        expandHeld = false
+        composeTestRule.waitForIdle()
         moveBarTo(1f)
         moveBarTo(0f)
 
@@ -180,7 +185,7 @@ class SearchToolbarCardTest : ComposeTest() {
 
     @Test
     fun `a tap does not focus once the pane is no longer active`() {
-        setHost(onExpand = { collapsedFraction = 0.8f })
+        setHost(onExpand = { expandHeld = true; collapsedFraction = 0.8f })
 
         tapCollapsedRow()
         layerActive = false
@@ -192,15 +197,30 @@ class SearchToolbarCardTest : ComposeTest() {
 
     @Test
     fun `an ordinary re-expand after a tap-expand does not focus again`() {
-        setHost(onExpand = { collapsedFraction = 0f })
+        setHost(onExpand = { expandHeld = true; collapsedFraction = 0f })
         tapCollapsedRow()
         filenameField().assertIsFocused()
 
         composeTestRule.runOnIdle { focusManager!!.clearFocus(force = true) }
+        // A user scroll releases the hold
+        expandHeld = false
         moveBarTo(1f)
         moveBarTo(0f)
 
         assertNoFieldFocused()
+    }
+
+    @Test
+    fun `a tap while the collapse spring still rises keeps the focus intent`() {
+        // The spring's leftover upward momentum arrives a frame after the tap.
+        collapsedFraction = 0.8f
+        setHost(onExpand = { expandHeld = true })
+
+        tapCollapsedRow()
+        moveBarTo(0.9f)
+        moveBarTo(0f)
+
+        filenameField().assertIsFocused()
     }
 
     /** CutoutMode.Auto also composes the content into a measure-only copy that is never placed. */
@@ -211,7 +231,7 @@ class SearchToolbarCardTest : ComposeTest() {
 
     @Test
     fun `a tap in the cutout layout focuses the displayed filename field`() {
-        setHost(design = WorkspaceDesign(), onExpand = { collapsedFraction = 0f })
+        setHost(design = WorkspaceDesign(), onExpand = { expandHeld = true; collapsedFraction = 0f })
 
         tapCollapsedRow()
 

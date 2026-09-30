@@ -22,6 +22,11 @@ class FloatingBarContentScope(
      * scroll does.
      */
     val expand: () -> Unit,
+    /**
+     * True from [expand] until the next user scroll on the stack, so a bar the user scrolled closed
+     * again is no longer held.
+     */
+    val isExpandHeld: Boolean,
 )
 
 /**

@@ -21,9 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -61,11 +59,12 @@ fun AppsToolbarCard(
     design: WorkspaceDesign,
     collapsedFraction: Float = 0f,
     onExpand: () -> Unit = {},
+    isExpandHeld: Boolean = false,
 ) {
     val isCollapsed = collapsedFraction > 0.5f
-    // Set by tapping the collapsed row, consumed once by the expanded branch that tap leads to
+    // Set by tapping the collapsed row, consumed by the next expanded branch, which focuses only
+    // while the tap's expansion is still held (no user scroll in between)
     var focusPending by remember { mutableStateOf(false) }
-    val currentCollapsedFraction by rememberUpdatedState(collapsedFraction)
     val cardPadding by animateDpAsState(
         targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "cardPadding",
@@ -90,17 +89,6 @@ fun AppsToolbarCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
         if (isCollapsed) {
-            // Collapsing again before the expanded branch appears means the tap lost to a scroll,
-            // and a later unrelated reveal must not pop the keyboard.
-            LaunchedEffect(focusPending) {
-                if (!focusPending) return@LaunchedEffect
-                var previous = currentCollapsedFraction
-                snapshotFlow { currentCollapsedFraction }.collect { fraction ->
-                    if (fraction > previous) focusPending = false
-                    previous = fraction
-                }
-            }
-
             // Collapsed state - compact display with filter count badge
             Row(
                 modifier = Modifier
@@ -145,7 +133,7 @@ fun AppsToolbarCard(
             val layerActive = LocalLayerActive.current
             // Decided once per entry: autoFocus keys the field's focus request, so it must not flip
             // back when the pending flag is cleared. The layer check skips a pane the user already left.
-            val focusOnEnter = remember { focusPending && layerActive }
+            val focusOnEnter = remember { focusPending && isExpandHeld && layerActive }
             LaunchedEffect(Unit) { focusPending = false }
 
             // Expanded state - full search bar + filter chips

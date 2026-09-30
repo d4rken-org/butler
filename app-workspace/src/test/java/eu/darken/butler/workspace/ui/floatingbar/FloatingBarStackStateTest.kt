@@ -284,6 +284,26 @@ class FloatingBarStackStateTest : BaseTest() {
         stack.toolbar.scrollCollapsedFraction shouldBe 1f
     }
 
+    @Test
+    fun `expanding a bar that is already heading to expanded still holds it`() = runTest(ImmediateFrameClock()) {
+        val toolbar = FloatingBarState(id = "toolbar", scrollBehavior = BarScrollBehavior.CollapseOnScroll)
+        val state = FloatingBarStackState(position = BarPosition.TOP).apply {
+            animationScope = this@runTest
+            registerBar(toolbar)
+        }
+
+        toolbar.expand(this)
+        advanceUntilIdle()
+        toolbar.holdsExpansion shouldBe true
+
+        state.nestedScrollConnection.onPreScroll(scrollDown, NestedScrollSource.SideEffect)
+        advanceUntilIdle()
+        toolbar.scrollCollapsedFraction shouldBe 0f
+
+        state.nestedScrollConnection.onPreScroll(Offset(0f, 40f), NestedScrollSource.UserInput)
+        toolbar.holdsExpansion shouldBe false
+    }
+
     // endregion
 
     // region Saver
