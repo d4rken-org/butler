@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">इस रूप में सहेजें</string>
+    <string name="saver_preview_label">प्रीव्यू</string>
+    <string name="saver_loading">लोड हो रहा है…</string>
+    <string name="saver_shared_from">%1$s से साझा किया गया</string>
+    <string name="saver_shared_generic">Butler के साथ साझा किया गया</string>
+    <string name="saver_destination_label">गंतव्य</string>
+    <string name="saver_select_destination_hint">गंतव्य फ़ोल्डर चुनें</string>
+    <string name="saver_filename_label">फ़ाइल नाम</string>
+    <string name="saver_save_action">सहेजें</string>
+    <string name="saver_saving_progress">सहेजा जा रहा है…</string>
+    <string name="saver_success_message">फ़ाइल सफलतापूर्वक सहेजी गई</string>
+    <string name="saver_open_saved_action">डायरेक्टरी खोलें</string>
+    <string name="saver_retry_action">फिर कोशिश करें</string>
+    <string name="saver_save_again_action">नए स्थान पर सहेजें</string>
+    <string name="saver_close_tab_action">टैब बंद करें</string>
+    <string name="saver_close_butler_action">टैब बंद करके लौटें</string>
+    <string name="saver_done_action">हो गया</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">स्रोत फ़ाइल की पहुँच अब नहीं है। कृपया फिर साझा करें।</item>
+        <item quantity="other">%1$d स्रोत फ़ाइलों की पहुँच अब नहीं है। कृपया फिर साझा करें।</item>
+    </plurals>
+    <string name="saver_error_source_expired">स्रोत फ़ाइल की पहुँच अब नहीं है</string>
+    <string name="saver_error_permission_denied">अनुमति नहीं मिली</string>
+    <string name="saver_error_write_failed">फ़ाइल सहेजना विफल हुआ</string>
+    <string name="saver_error_file_exists">फ़ाइल पहले से मौजूद है</string>
+    <string name="saver_operation_title">फ़ाइलें सहेजें</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">%1$d फ़ाइल %2$s में सहेजी जा रही है</item>
+        <item quantity="other">%1$d फ़ाइलें %2$s में सहेजी जा रही हैं</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">%1$d फ़ाइल सहेजें</item>
+        <item quantity="other">%1$d फ़ाइलें सहेजें</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d फ़ाइल सहेजी गई</item>
+        <item quantity="other">%1$d फ़ाइलें सहेजी गईं</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d फ़ाइल विफल हुई</item>
+        <item quantity="other">%1$d फ़ाइलें विफल हुईं</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d फ़ाइल छोड़ी गई</item>
+        <item quantity="other">%1$d फ़ाइलें छोड़ी गईं</item>
+    </plurals>
+    <string name="saver_partial_success">%2$d में से %1$d फ़ाइलें सहेजी गईं</string>
+</resources>
