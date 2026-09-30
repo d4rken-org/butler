@@ -67,6 +67,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.LocalWorkspaceTitles
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import eu.darken.butler.workspace.ui.dialogs.InfoField
 import eu.darken.butler.workspace.ui.dialogs.InfoValueKind
 import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
@@ -377,7 +378,7 @@ private fun ClipboardFilesSection(
                             .heightIn(max = 300.dp),
                     ) {
                         items(paths) { path ->
-                            val shownPath = path.lookedUp.shownPath.get(LocalContext.current)
+                            val shownPath = path.lookedUp.shownPath.withLocationNames()
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -539,7 +540,7 @@ private fun ClipboardTextOverviewSection(
                 clip.sourcePath?.let { sourcePath ->
                     InfoField(
                         label = stringResource(R.string.clipboard_info_source),
-                        value = sourcePath.userReadablePath.get(LocalContext.current),
+                        value = sourcePath.userReadablePath.withLocationNames(),
                         valueStyle = InfoValueStyle.MONOSPACE,
                         valueKind = InfoValueKind.PATH,
                     )

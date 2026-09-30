@@ -25,6 +25,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.common.theming.onScrim
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 
 const val TEST_TAG_WORKSPACE_CARD_INFOBAR = "workspace_card_infobar"
@@ -54,7 +55,7 @@ fun WorkspacePreviewInfoBar(
     secondary: CaString?,
 ) {
     val primaryText = primary?.asComposable()?.takeIf { it.isNotBlank() }
-    val secondaryText = secondary?.asComposable()?.takeIf { it.isNotBlank() }
+    val secondaryText = secondary?.withLocationNames()?.takeIf { it.isNotBlank() }
     if (primaryText == null && secondaryText == null) return
 
     Column(

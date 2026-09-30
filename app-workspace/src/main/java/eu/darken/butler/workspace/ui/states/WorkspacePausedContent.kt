@@ -35,6 +35,7 @@ import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.label
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.FakeWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
@@ -68,7 +69,7 @@ fun WorkspacePausedContent(
 
     val typeLabel = type.label.asComposable()
     val resolvedTitle = title?.asComposable()?.takeIf { it.isNotBlank() && it != typeLabel }
-    val resolvedSubtitle = subtitle?.asComposable()?.takeIf { it.isNotBlank() }
+    val resolvedSubtitle = subtitle?.withLocationNames()?.takeIf { it.isNotBlank() }
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(

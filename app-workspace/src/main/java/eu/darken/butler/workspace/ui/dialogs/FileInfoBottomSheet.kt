@@ -33,6 +33,7 @@ import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -123,7 +124,7 @@ private fun FileInfoContent(
             )
 
             // Path - always shown, copyable
-            val shownPath = lookup.lookedUp.shownPath.get(context)
+            val shownPath = lookup.lookedUp.shownPath.withLocationNames()
             InfoField(
                 label = stringResource(R.string.workspace_file_info_path_label),
                 value = shownPath,
@@ -200,7 +201,7 @@ private fun FileInfoContent(
         if (lookup.fileType == FileType.SYMBOLIC_LINK && lookup.target != null) {
             Spacer(modifier = Modifier.height(8.dp))
             InfoCard {
-                val shownTarget = lookup.target?.shownPath?.get(context)
+                val shownTarget = lookup.target?.shownPath?.withLocationNames()
                 InfoField(
                     label = stringResource(R.string.workspace_file_info_symlink_target_label),
                     value = shownTarget ?: stringResource(R.string.workspace_file_info_unknown),

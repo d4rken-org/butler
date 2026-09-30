@@ -17,7 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,6 +36,7 @@ import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.workspace.R
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import kotlin.time.Instant
 
 @Composable
@@ -98,7 +98,7 @@ fun PathIssueFileComparisonCard(
             }
 
             Text(
-                text = lookup.lookedUp.parent?.shownPath?.get(LocalContext.current) ?: "/",
+                text = lookup.lookedUp.parent?.shownPath?.withLocationNames() ?: "/",
                 style = MaterialTheme.typography.bodySmall.asPathStyle(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 maxLines = 1,
@@ -153,7 +153,7 @@ fun PathIssueFileComparisonCard(
             }
 
             Text(
-                text = path.parent?.shownPath?.get(LocalContext.current) ?: "/",
+                text = path.parent?.shownPath?.withLocationNames() ?: "/",
                 style = MaterialTheme.typography.bodySmall.asPathStyle(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 maxLines = 1,

@@ -4,6 +4,10 @@ import androidx.annotation.VisibleForTesting
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlin.uuid.Uuid
 
 /**
@@ -12,27 +16,35 @@ import kotlin.uuid.Uuid
  * loaded yet) returns null.
  *
  * SMB and SFTP ids are separate namespaces. [NetworkLocationNamesUpdater] keeps both current.
+ * [snapshot] is the same state as a flow, for UI that has to redraw when a name arrives or changes.
  */
 object NetworkLocationNames {
 
-    @Volatile private var smb: Map<Uuid, CaString> = emptyMap()
-    @Volatile private var sftp: Map<Uuid, CaString> = emptyMap()
+    data class Snapshot(
+        val smb: Map<Uuid, CaString> = emptyMap(),
+        val sftp: Map<Uuid, CaString> = emptyMap(),
+    )
 
-    fun smb(id: Uuid): CaString? = smb[id]
+    private val state = MutableStateFlow(Snapshot())
 
-    fun sftp(id: Uuid): CaString? = sftp[id]
+    val snapshot: StateFlow<Snapshot> = state.asStateFlow()
+
+    fun smb(id: Uuid): CaString? = state.value.smb[id]
+
+    fun sftp(id: Uuid): CaString? = state.value.sftp[id]
 
     fun updateSmb(locations: Collection<SmbLocation>) {
-        smb = locations.associate { it.id to it.displayName }
+        val names = locations.associate { it.id to it.displayName }
+        state.update { it.copy(smb = names) }
     }
 
     fun updateSftp(locations: Collection<SftpLocation>) {
-        sftp = locations.associate { it.id to it.displayName }
+        val names = locations.associate { it.id to it.displayName }
+        state.update { it.copy(sftp = names) }
     }
 
     @VisibleForTesting
     fun clear() {
-        smb = emptyMap()
-        sftp = emptyMap()
+        state.value = Snapshot()
     }
 }

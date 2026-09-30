@@ -87,6 +87,30 @@ class SymlinkTargetDisplayTest : ComposeTest() {
     }
 
     @Test
+    fun `a name that arrives or changes after the row is drawn replaces the old text`() {
+        render(
+            SftpPathLookup(
+                lookedUp = SftpPath(locationId, listOf("usr", "local", "bin", "tool")),
+                fileType = FileType.SYMBOLIC_LINK,
+                size = null,
+                modifiedAt = null,
+                target = SftpPath(locationId, listOf("usr", "bin")),
+            )
+        )
+        exists("→ sftp://$locationId/usr/bin") shouldBe true
+
+        NetworkLocationNames.updateSftp(listOf(location))
+        composeTestRule.waitForIdle()
+        exists("→ sftp://cnc-dev/usr/bin") shouldBe true
+        exists("→ sftp://$locationId/usr/bin") shouldBe false
+
+        NetworkLocationNames.updateSftp(listOf(location.copy(label = "Build box")))
+        composeTestRule.waitForIdle()
+        exists("→ sftp://Build box/usr/bin") shouldBe true
+        exists("→ sftp://cnc-dev/usr/bin") shouldBe false
+    }
+
+    @Test
     fun `a local target is shown as its path`() {
         NetworkLocationNames.updateSftp(listOf(location))
 

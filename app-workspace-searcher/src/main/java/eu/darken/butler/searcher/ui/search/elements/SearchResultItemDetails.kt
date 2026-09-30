@@ -44,6 +44,7 @@ import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.getEllipsizedMatchLine
 import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import kotlin.time.Clock
 
 @Composable
@@ -111,7 +112,7 @@ fun SearchResultItemDetails(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = result.path.shownPath.get(LocalContext.current),
+                        text = result.path.shownPath.withLocationNames(),
                         style = MaterialTheme.typography.bodySmall.asPathStyle(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

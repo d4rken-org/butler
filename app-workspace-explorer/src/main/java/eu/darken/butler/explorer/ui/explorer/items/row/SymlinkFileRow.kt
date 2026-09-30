@@ -27,6 +27,7 @@ import eu.darken.butler.explorer.ui.explorer.items.rowDateStyle
 import eu.darken.butler.explorer.ui.explorer.items.showsDatesOnOwnLine
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.ui.common.withLocationNames
 
 @Composable
 internal fun SymlinkFileRow(
@@ -42,8 +43,7 @@ internal fun SymlinkFileRow(
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
 ) {
-    val context = LocalContext.current
-    val primaryText = item.displayName.get(context)
+    val primaryText = item.displayName.get(LocalContext.current)
     val hasProblematicChars = primaryText.trim { it.isProblematicInvisible() } != primaryText
 
     FileRowBase(
@@ -72,7 +72,7 @@ internal fun SymlinkFileRow(
         },
         primaryText = primaryText,
         hasProblematicChars = hasProblematicChars,
-        secondaryPath = item.targetPath?.let { "→ ${it.shownPath.get(context)}" },
+        secondaryPath = item.targetPath?.shownPath?.withLocationNames()?.let { "→ $it" },
         secondaryText = stringResource(R.string.explorer_file_broken_link_label).takeIf { item.isBroken },
         secondaryEndText = item.lookup.modifiedAt
             ?.takeUnless { density.showsDatesOnOwnLine }

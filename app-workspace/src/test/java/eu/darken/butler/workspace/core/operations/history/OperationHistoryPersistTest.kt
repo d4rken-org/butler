@@ -7,9 +7,12 @@ import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.network.NetworkLocationNames
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.sftp.location.TrustedHostKey
+import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.Operation
@@ -228,6 +231,102 @@ class OperationHistoryPersistTest : BaseTest() {
         stored.paths.single().path shouldBe "sftp://cnc-dev/usr/bin/photo.jpg"
         allScopePaths(id).map { it.path } shouldContain "sftp://cnc-dev/usr/bin"
         idsForScopes("sftp://cnc-dev/usr/bin") shouldContainExactly listOf(id)
+    }
+
+    private fun unlabeledShare(id: Uuid, share: String) = SmbLocation(
+        id = id,
+        label = null,
+        host = "nas-$id.local",
+        share = share,
+        authType = SmbLocation.AuthType.GUEST,
+        rememberCredential = false,
+        credentialVersion = 1,
+        createdAt = Instant.fromEpochMilliseconds(0),
+        updatedAt = Instant.fromEpochMilliseconds(0),
+    )
+
+    @Test
+    fun `the same file on two locations sharing a name is two changes`() = runTest {
+        val firstId = Uuid.parse("11111111-0000-4000-8000-000000000001")
+        val secondId = Uuid.parse("22222222-0000-4000-8000-000000000002")
+        NetworkLocationNames.updateSmb(listOf(unlabeledShare(firstId, "photos"), unlabeledShare(secondId, "photos")))
+        val first = SmbPath(firstId, listOf("a.jpg"))
+        val second = SmbPath(secondId, listOf("a.jpg"))
+
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(
+                    operationKind = Operation.Metadata.Kind.DELETE,
+                    plan = planOver(first, second),
+                ),
+                state = TestCompletedState(
+                    report = TestReport(
+                        affectedPaths = listOf(
+                            changeOf(first, Operation.Report.Paths.PathChange.Change.REMOVED),
+                            changeOf(second, Operation.Report.Paths.PathChange.Change.REMOVED),
+                        ),
+                    ),
+                ),
+            )
+        )
+
+        val stored = database.operationHistoryDao().getById(id)!!
+        stored.paths.map { it.path } shouldContainExactly listOf("smb://photos/a.jpg", "smb://photos/a.jpg")
+        stored.entry.affectedPathsCount shouldBe 2
+    }
+
+    @Test
+    fun `a failed network operation records its error under the location's name`() = runTest {
+        val locationId = Uuid.parse("c0360031-0000-4000-8000-000000000001")
+        NetworkLocationNames.updateSftp(
+            listOf(
+                SftpLocation(
+                    id = locationId,
+                    label = null,
+                    host = "cnc-dev",
+                    username = "darken",
+                    authType = SftpLocation.AuthType.PASSWORD,
+                    rememberCredential = true,
+                    credentialVersion = 1,
+                    hostKey = TrustedHostKey(
+                        type = "ssh-ed25519",
+                        blob = ByteArray(51),
+                        fingerprint = "SHA256:Utlnml924yfwY1Df/Rf4pu3A8u5JKZ118Cd9/hz+ijM",
+                    ),
+                    trustRevision = 1,
+                    createdAt = Instant.fromEpochMilliseconds(0),
+                    updatedAt = Instant.fromEpochMilliseconds(0),
+                ),
+            ),
+        )
+        val remoteFile = SftpPath(locationId, listOf("usr", "bin", "photo.jpg"))
+        val error = ReadException(path = remoteFile)
+
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(Operation.Metadata.Kind.DELETE, plan = planOver(remoteFile)),
+                state = TestCompletedState(report = null, error = error),
+            )
+        )
+
+        val stored = database.operationHistoryDao().getById(id)!!
+        stored.entry.errorMessage shouldBe "Can't read from path. <-> sftp://cnc-dev/usr/bin/photo.jpg"
+        error.message shouldBe "Can't read from path. <-> sftp://$locationId/usr/bin/photo.jpg"
+    }
+
+    @Test
+    fun `a failed local operation records its error unchanged`() = runTest {
+        val target = LocalPath.build("/sdcard/protected/notes.txt")
+        val error = ReadException(path = target)
+
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(Operation.Metadata.Kind.DELETE, plan = planOver(target)),
+                state = TestCompletedState(report = null, error = error),
+            )
+        )
+
+        database.operationHistoryDao().getById(id)!!.entry.errorMessage shouldBe error.message
     }
 
     @Test

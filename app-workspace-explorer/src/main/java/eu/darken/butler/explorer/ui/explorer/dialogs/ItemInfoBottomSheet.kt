@@ -57,6 +57,7 @@ import eu.darken.butler.explorer.ui.explorer.items.basePathLabel
 import eu.darken.butler.explorer.ui.explorer.items.statusLabel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import eu.darken.butler.workspace.ui.dialogs.InfoCard
 import eu.darken.butler.workspace.ui.dialogs.InfoField
 import eu.darken.butler.workspace.ui.dialogs.InfoFieldPair
@@ -216,7 +217,7 @@ private fun SingleFileInfo(
     onCopyToClipboard: (String) -> Unit,
 ) {
     val context = LocalContext.current
-    val shownPath = item.lookup.lookedUp.shownPath.get(context)
+    val shownPath = item.lookup.lookedUp.shownPath.withLocationNames()
 
     InfoCard {
         InfoField(
@@ -275,7 +276,7 @@ private fun SingleFileInfo(
     if (item is ExplorerItem.SymbolicLink) {
         Spacer(modifier = Modifier.height(6.dp))
         InfoCard {
-            val shownTarget = item.targetPath?.shownPath?.get(context)
+            val shownTarget = item.targetPath?.shownPath?.withLocationNames()
             InfoField(
                 label = stringResource(R.string.explorer_info_symlink_target_label),
                 value = shownTarget ?: stringResource(R.string.explorer_info_unknown),
@@ -299,7 +300,7 @@ private fun SingleDirectoryInfo(
     item: ExplorerItem.Directory,
     onCopyToClipboard: (String) -> Unit,
 ) {
-    val shownPath = item.lookup.lookedUp.shownPath.get(LocalContext.current)
+    val shownPath = item.lookup.lookedUp.shownPath.withLocationNames()
 
     InfoCard {
         InfoField(

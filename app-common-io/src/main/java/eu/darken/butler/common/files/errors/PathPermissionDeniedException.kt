@@ -7,6 +7,8 @@ import eu.darken.butler.common.error.HasLocalizedError
 import eu.darken.butler.common.error.LocalizedError
 import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.io.R
 
@@ -56,7 +58,6 @@ class PathPermissionDeniedException(
 
     private fun describe(): CaString {
         val resolvedPath = path!!
-        val pathDisplay = resolvedPath.name.ifBlank { resolvedPath.path }
         val descriptionRes = when (reason) {
             Reason.NO_MECHANISM -> R.string.path_action_permission_denied_no_mechanism_description
             Reason.READONLY_FILESYSTEM -> R.string.path_action_permission_denied_readonly_description
@@ -64,6 +65,10 @@ class PathPermissionDeniedException(
             Reason.ACCESS_DENIED -> R.string.path_action_permission_denied_description
         }
         return caString {
+            val pathDisplay = when (resolvedPath) {
+                is SmbPath, is SftpPath -> resolvedPath.userReadableName.get(it)
+                else -> resolvedPath.name.ifBlank { resolvedPath.path }
+            }
             val parentDisplay = resolvedPath.parent?.shownPath?.get(it) ?: "/"
             it.getString(descriptionRes, pathDisplay, parentDisplay)
         }

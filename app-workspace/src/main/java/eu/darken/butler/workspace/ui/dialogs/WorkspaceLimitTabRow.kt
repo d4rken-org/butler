@@ -34,6 +34,7 @@ import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceLimitCandidate
 import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -138,7 +139,7 @@ fun WorkspaceLimitTabRow(
 private fun WorkspaceLimitCandidate.secondaryLine(): String {
     blocker?.let { return stringResource(it.labelRes) }
     val age = stringResource(R.string.workspace_limit_tab_opened, formatSmartTime(openedAt))
-    val where = subtitle?.get(LocalContext.current)?.takeIf { it.isNotBlank() } ?: return age
+    val where = subtitle?.withLocationNames()?.takeIf { it.isNotBlank() } ?: return age
     return "$where · $age"
 }
 

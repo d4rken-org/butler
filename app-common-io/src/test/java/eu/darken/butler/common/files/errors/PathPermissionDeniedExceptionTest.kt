@@ -7,19 +7,28 @@ import eu.darken.butler.common.error.Fix
 import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.error.PermissionFixResolver
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.network.NetworkLocationNames
+import eu.darken.butler.common.files.sftp.testSftpLocation
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.EmptyApp
+import kotlin.uuid.Uuid
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [29], application = EmptyApp::class)
 class PathPermissionDeniedExceptionTest : BaseTest() {
 
     private val app: Application get() = ApplicationProvider.getApplicationContext()
+
+    @After
+    fun resetNames() = NetworkLocationNames.clear()
 
     private fun build(reason: PathPermissionDeniedException.Reason) = PathPermissionDeniedException(
         path = LocalPath.build("/data/foo.txt"),
@@ -106,5 +115,20 @@ class PathPermissionDeniedExceptionTest : BaseTest() {
         val text = e.getLocalizedError(LocalizedErrorContext()).description.get(app)
         // Should show "/" not ""
         text shouldContain "\"/\""
+    }
+
+    @Test
+    fun `path display - a network location root is named after the location`() {
+        val locationId = Uuid.parse("c0360031-0000-4000-8000-000000000001")
+        NetworkLocationNames.updateSftp(listOf(testSftpLocation(locationId, host = "cnc-dev")))
+        val e = PathPermissionDeniedException(
+            path = SftpPath.root(locationId),
+            operation = "createFile",
+            reason = PathPermissionDeniedException.Reason.ACCESS_DENIED,
+        )
+
+        val text = e.getLocalizedError(LocalizedErrorContext()).description.get(app)
+        text shouldContain "\"cnc-dev\""
+        text shouldNotContain locationId.toString()
     }
 }

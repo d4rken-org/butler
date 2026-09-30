@@ -15,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -27,6 +26,7 @@ import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.saver.R
+import eu.darken.butler.workspace.ui.common.withLocationNames
 
 @Composable
 internal fun DestinationCard(
@@ -36,7 +36,6 @@ internal fun DestinationCard(
     isBatchMode: Boolean,
     onClick: () -> Unit,
 ) {
-    val context = LocalContext.current
     OutlinedCard(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
@@ -71,7 +70,7 @@ internal fun DestinationCard(
                     isBatchMode -> {
                         // Batch mode: show only directory
                         Text(
-                            text = destination.userReadablePath.get(context),
+                            text = destination.userReadablePath.withLocationNames(),
                             style = MaterialTheme.typography.bodyLarge.asPathStyle(),
                             color = MaterialTheme.colorScheme.onSurface,
                         )
@@ -79,7 +78,7 @@ internal fun DestinationCard(
                     !filename.isNullOrBlank() -> {
                         // Single file mode with filename: show full path
                         Text(
-                            text = "${destination.userReadablePath.get(context)}/$filename",
+                            text = "${destination.userReadablePath.withLocationNames()}/$filename",
                             style = MaterialTheme.typography.bodyMedium.asPathStyle(),
                             color = MaterialTheme.colorScheme.onSurface,
                         )
@@ -87,7 +86,7 @@ internal fun DestinationCard(
                     else -> {
                         // Single file mode without filename: show directory only
                         Text(
-                            text = destination.userReadablePath.get(context),
+                            text = destination.userReadablePath.withLocationNames(),
                             style = MaterialTheme.typography.bodyLarge.asPathStyle(),
                             color = MaterialTheme.colorScheme.onSurface,
                         )

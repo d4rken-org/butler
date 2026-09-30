@@ -41,7 +41,6 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
@@ -52,6 +51,7 @@ import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import eu.darken.butler.workspace.ui.preview.FolderPreviewCollage
 import eu.darken.butler.workspace.ui.preview.rememberFolderPreviewChildren
 
@@ -79,7 +79,7 @@ fun SelectableFileGrid(
 
     // Parent path for context (memoize the allocation-heavy parent lookup + CaString)
     val parentCaString = remember(result.lookup) { result.lookup.parent?.userReadablePath }
-    val parentPath = parentCaString?.asComposable()
+    val parentPath = parentCaString?.withLocationNames()
 
     val context = LocalContext.current
     val sizeText = remember(result.size, context, density) {
