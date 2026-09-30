@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Memerlukan Butler FOSS</string>
+    <string name="upgrade_prompt_title">Naik taraf Butler</string>
+    <string name="upgrade_prompt_body">Buka ciri tambahan dan jadi penyokong untuk menyokong pembangunan berterusan!</string>
+    <string name="upgrade_prompt_upgrade_action">Naik taraf</string>
+    <string name="upgrade_screen_title">Naik taraf Butler</string>
+    <string name="upgrade_screen_preamble">Butler tiada iklan dan tidak menjual data pengguna. Pembangunan berterusan hanya mungkin dengan sokongan kamu.</string>
+    <string name="upgrade_screen_how_title">Cara membantu</string>
+    <string name="upgrade_screen_how_body">Jadi penyokong dan taja pembangunan! Ketik butang di bawah untuk mengaktifkan semua ciri tambahan dan membuka profil GitHub Sponsors saya.</string>
+    <string name="upgrade_screen_sponsor_action">Taja pembangunan</string>
+    <string name="upgrade_screen_sponsor_action_hint">Alternatifnya ialah iklan, analitik dan Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Terima kasih kerana menyokong pembangunan sumber terbuka ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Dah kembali? Sokongan kamu memastikan Butler terus hidup — luangkan sedikit masa untuk melihat halaman penaja.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Tidak dapat membuka halaman penaja. Cuba buka dalam pelayar.</string>
+    <string name="upgrade_screen_status_free_title">Kamu menggunakan versi percuma</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS sepenuhnya sumber terbuka. Buka ciri tambahan dengan menyokong pembangunan.</string>
+    <string name="upgrade_screen_status_free_action">Lihat pilihan naik taraf</string>
+    <string name="upgrade_screen_status_upgraded_title">Kamu seorang penyokong</string>
+    <string name="upgrade_screen_status_upgraded_body">Terima kasih kerana menyokong pembangunan sumber terbuka ❤️ Semua ciri tambahan telah dibuka.</string>
+    <string name="upgrade_screen_supporter_since">Penyokong sejak %s</string>
+    <string name="upgrade_screen_recurring_title">Teruskan sokongan</string>
+    <string name="upgrade_screen_recurring_body">Butler dibangunkan pada masa lapang saya. Derma berkala membantu memastikan ia terus hidup.</string>
+    <string name="upgrade_screen_recurring_action">Jadi penaja berkala</string>
+    <string name="upgrade_benefits_title">Manfaat naik taraf</string>
+    <string name="upgrade_screen_benefits_body">• Tab dan operasi tanpa had\n• Sesuaikan reka bentuk, gaya dan rupa\n• Pilihan dan ciri tambahan untuk setiap alat\n• Akses awal kepada ciri baharu\n• Pembangun yang bermotivasi 🧙\ndan banyak lagi…</string>
+</resources>
