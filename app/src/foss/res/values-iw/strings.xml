@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">נדרש Butler FOSS</string>
+    <string name="upgrade_prompt_title">שדרוג Butler</string>
+    <string name="upgrade_prompt_body">פתיחת תכונות נוספות ותמיכה בהמשך הפיתוח באמצעות חסות!</string>
+    <string name="upgrade_prompt_upgrade_action">שדרוג</string>
+    <string name="upgrade_screen_title">שדרוג Butler</string>
+    <string name="upgrade_screen_preamble">ב־Butler אין פרסומות, ונתוני משתמשים אינם נמכרים. המשך הפיתוח מתאפשר רק בזכותך.</string>
+    <string name="upgrade_screen_how_title">איך אפשר לעזור</string>
+    <string name="upgrade_screen_how_body">אפשר לתת חסות ולממן את הפיתוח! לחיצה על הכפתור למטה תפעיל את כל התכונות הנוספות ותפתח את פרופיל GitHub Sponsors שלי.</string>
+    <string name="upgrade_screen_sponsor_action">מימון הפיתוח</string>
+    <string name="upgrade_screen_sponsor_action_hint">החלופה היא פרסומות, ניתוח נתונים ו־Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">תודה על התמיכה בפיתוח קוד פתוח ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">כבר חזרת? התמיכה שלך משאירה את Butler בחיים — כדאי להקדיש רגע לעמוד נותני החסות.</string>
+    <string name="upgrade_screen_sponsor_open_failed">לא ניתן לפתוח את עמוד נותני החסות. כדאי לנסות לפתוח אותו בדפדפן.</string>
+    <string name="upgrade_screen_status_free_title">הגרסה החינמית פעילה</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS הוא קוד פתוח במלואו. תמיכה בפיתוח פותחת את התכונות הנוספות.</string>
+    <string name="upgrade_screen_status_free_action">הצגת אפשרויות שדרוג</string>
+    <string name="upgrade_screen_status_upgraded_title">תודה על התמיכה</string>
+    <string name="upgrade_screen_status_upgraded_body">תודה על התמיכה בפיתוח קוד פתוח ❤️ כל התכונות הנוספות פתוחות.</string>
+    <string name="upgrade_screen_supporter_since">תמיכה מאז %s</string>
+    <string name="upgrade_screen_recurring_title">ממשיכים הלאה</string>
+    <string name="upgrade_screen_recurring_body">Butler מפותח בזמני הפנוי. תרומה קבועה עוזרת להשאיר אותו בחיים.</string>
+    <string name="upgrade_screen_recurring_action">מתן חסות קבועה</string>
+    <string name="upgrade_benefits_title">יתרונות השדרוג</string>
+    <string name="upgrade_screen_benefits_body">• לשוניות ופעולות ללא הגבלה\n• התאמת העיצוב, התחושה והמראה\n• אפשרויות ותכונות נוספות לכל כלי\n• גישה מוקדמת לתכונות חדשות\n• מפתח עם מוטיבציה 🧙\nועוד…</string>
+</resources>

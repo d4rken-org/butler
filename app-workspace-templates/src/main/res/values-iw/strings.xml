@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">חדש</string>
+    <string name="workspace_templates_choose_title">לשונית חדשה</string>
+    <string name="workspace_templates_choose_subtitle">בחירת סוג לשונית. איך אפשר לעזור?</string>
+    <string name="workspace_templates_name_tab_action">מתן שם ללשונית הזו</string>
+    <string name="tour_templates_picker_title">בחירת כלי</string>
+    <string name="tour_templates_picker_body">זהו בורר הלשוניות, כאן בוחרים מה תהיה הלשונית הזו. בחירה בכלי תהפוך את הלשונית לכלי הזה.</string>
+    <string name="tour_templates_butler_button_title">כאן נמצאות הלשוניות שלך</string>
+    <string name="tour_templates_butler_button_body">לחיצה על כפתור Butler פותחת את תפריט הלשוניות: יצירת לשונית חדשה, סגירת הנוכחית או פתיחת מנהל הלשוניות המלא. לחיצה ארוכה תעביר ישירות למנהל הלשוניות.</string>
+</resources>

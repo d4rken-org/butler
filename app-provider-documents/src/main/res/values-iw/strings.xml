@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">גישה מתקדמת למכשיר</string>
+    <string name="provider_documents_connection_device_title">מכשיר</string>
+    <string name="documents_connection_device_summary">אחסון מקומי במכשיר</string>
+    <string name="provider_documents_storage_root_label">מערכת הקבצים הראשית</string>
+    <string name="provider_documents_storage_internal_label">אחסון פנימי</string>
+    <string name="provider_documents_storage_sd_card_label">כרטיס SD</string>
+    <string name="provider_documents_storage_saf_label">מיקום SAF</string>
+    <string name="provider_documents_storage_free_suffix">פנוי</string>
+    <string name="provider_documents_error_requires_root">נדרשת גישת root כדי לעיין במיקום הזה. יש להפעיל גישת root בהגדרות היישומון Butler.</string>
+    <string name="provider_documents_error_requires_adb">נדרשת גישת ADB כדי לעיין במיקום הזה. יש להפעיל אותה בהגדרת ההרשאות של Butler.</string>
+    <string name="provider_documents_error_requires_storage">נדרשת הרשאת אחסון כדי לעיין במיקום הזה. יש לתת הרשאת אחסון בהגדרות היישומון Butler.</string>
+    <string name="provider_documents_error_requires_permissions">נדרשות הרשאות נוספות כדי לעיין במיקום הזה. יש לבדוק את הגדרות היישומון Butler.</string>
+    <string name="provider_documents_error_generic">אין גישה למיקום הזה. אפשר לבדוק ביישומון Butler אילו אפשרויות גישה זמינות.</string>
+    <string name="provider_documents_settings_title">ספק מסמכים</string>
+    <string name="provider_documents_settings_subtitle">שילוב עם יישומונים חיצוניים</string>
+    <string name="provider_documents_settings_category_integration_label">שילוב</string>
+    <string name="provider_documents_enabled_title">הפעלת ספק המסמכים</string>
+    <string name="provider_documents_enabled_desc">מתן גישה לקבצים דרך Butler ליישומונים אחרים באמצעות בורר הקבצים של Android</string>
+</resources>

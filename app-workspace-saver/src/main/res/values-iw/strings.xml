@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">שמירה בשם</string>
+    <string name="saver_preview_label">תצוגה מקדימה</string>
+    <string name="saver_loading">בטעינה…</string>
+    <string name="saver_shared_from">שותף מתוך %1$s</string>
+    <string name="saver_shared_generic">שותף עם Butler</string>
+    <string name="saver_destination_label">יעד</string>
+    <string name="saver_select_destination_hint">בחירת תיקיית יעד</string>
+    <string name="saver_filename_label">שם קובץ</string>
+    <string name="saver_save_action">שמירה</string>
+    <string name="saver_saving_progress">בשמירה…</string>
+    <string name="saver_success_message">הקובץ נשמר בהצלחה</string>
+    <string name="saver_open_saved_action">פתיחת התיקייה</string>
+    <string name="saver_retry_action">ניסיון חוזר</string>
+    <string name="saver_save_again_action">שמירה במיקום חדש</string>
+    <string name="saver_close_tab_action">סגירת הלשונית</string>
+    <string name="saver_close_butler_action">סגירת הלשונית וחזרה</string>
+    <string name="saver_done_action">סיום</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">קובץ המקור כבר אינו נגיש. יש לשתף שוב.</item>
+        <item quantity="two">%1$d קובצי מקור כבר אינם נגישים. יש לשתף שוב.</item>
+        <item quantity="many">%1$d קובצי מקור כבר אינם נגישים. יש לשתף שוב.</item>
+        <item quantity="other">%1$d קובצי מקור כבר אינם נגישים. יש לשתף שוב.</item>
+    </plurals>
+    <string name="saver_error_source_expired">קובץ המקור כבר אינו נגיש</string>
+    <string name="saver_error_permission_denied">הגישה נדחתה</string>
+    <string name="saver_error_write_failed">שמירת הקובץ נכשלה</string>
+    <string name="saver_error_file_exists">הקובץ כבר קיים</string>
+    <string name="saver_operation_title">שמירת קבצים</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">שמירת %1$d קובץ אל %2$s</item>
+        <item quantity="two">שמירת %1$d קבצים אל %2$s</item>
+        <item quantity="many">שמירת %1$d קבצים אל %2$s</item>
+        <item quantity="other">שמירת %1$d קבצים אל %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">שמירת %1$d קובץ</item>
+        <item quantity="two">שמירת %1$d קבצים</item>
+        <item quantity="many">שמירת %1$d קבצים</item>
+        <item quantity="other">שמירת %1$d קבצים</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d קובץ נשמר</item>
+        <item quantity="two">%1$d קבצים נשמרו</item>
+        <item quantity="many">%1$d קבצים נשמרו</item>
+        <item quantity="other">%1$d קבצים נשמרו</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d קובץ נכשל</item>
+        <item quantity="two">%1$d קבצים נכשלו</item>
+        <item quantity="many">%1$d קבצים נכשלו</item>
+        <item quantity="other">%1$d קבצים נכשלו</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d קובץ דולג</item>
+        <item quantity="two">%1$d קבצים דולגו</item>
+        <item quantity="many">%1$d קבצים דולגו</item>
+        <item quantity="other">%1$d קבצים דולגו</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d מתוך %2$d קבצים נשמרו</string>
+</resources>
