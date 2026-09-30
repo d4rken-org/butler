@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Butler Pro প্রয়োজন</string>
+
+    <string name="upgrade_prompt_title">Butler আপগ্রেড করুন</string>
+    <string name="upgrade_prompt_body">Butler Pro অভিজ্ঞ ব্যবহারকারীদের জন্য আরও ভালো ফলাফল, বাড়তি সুবিধা ও বিকল্প দেয়।</string>
+    <string name="upgrade_prompt_upgrade_action">আপগ্রেড করুন</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">%1$s নিন</string>
+    <string name="upgrade_screen_preamble">Butler-এ বিজ্ঞাপন নেই এবং ব্যবহারকারীর তথ্য বিক্রি করা হয় না। আমার কাজের খরচ জোগান আপনি ❤️।</string>
+
+    <string name="upgrade_screen_how_title">বিকল্প</string>
+    <string name="upgrade_screen_subscription_trial_action">বিনামূল্যে ১৪ দিনের ট্রায়াল শুরু করুন</string>
+    <string name="upgrade_screen_subscription_action">সাবস্ক্রাইব করুন</string>
+    <string name="upgrade_screen_iap_action">এককালীন কেনাকাটা</string>
+    <string name="upgrade_screen_restore_purchase_action">কেনাকাটা পুনরুদ্ধার করুন</string>
+    <string name="upgrade_screen_restore_banner_title">আগেই Pro কিনেছেন?</string>
+    <string name="upgrade_screen_restore_banner_body">মনে হচ্ছে আপনি আগে এই ডিভাইসে Pro-তে আপগ্রেড করেছেন। আবার খুলতে আপনার কেনাকাটা পুনরুদ্ধার করুন।</string>
+    <string name="upgrade_screen_restore_checked_message">Butler এইমাত্র Google Play-তে পরীক্ষা করেছে, কিন্তু এই অ্যাপের জন্য Google Play যে অ্যাকাউন্ট ব্যবহার করে তাতে কোনো Pro কেনাকাটা নিশ্চিত করা যায়নি।</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Google Play-তে পরীক্ষাটি সময়মতো শেষ হয়নি, তাই আপনার কেনাকাটার অবস্থা এখনো অজানা। আপনার অ্যাকাউন্টে কিছুই বদলায়নি।</string>
+    <string name="upgrade_screen_restore_contact_hint">এখনো আটকে আছেন? যে ইমেইল দিয়ে কিনেছিলেন সেটি থেকে যোগাযোগ করুন এবং আপনার Google Play অর্ডার নম্বর দিন।</string>
+    <string name="upgrade_screen_contact_support_action">সহায়তা নিন</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Play Store সিঙ্ক হতে সময় লাগতে পারে। রিবুট করুন, Google Play-এর ক্যাশ মুছুন বা কিছুক্ষণ অপেক্ষা করুন।</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">একাধিক অ্যাকাউন্ট থাকলে Google Play বিভ্রান্ত হতে পারে। অন্য অ্যাকাউন্ট থেকে লগ আউট করুন বা Google Play ওয়েবসাইট দিয়ে ইনস্টল করুন, যা নির্দিষ্ট অ্যাকাউন্টের সঙ্গে সংযোগ নিশ্চিত করে।</string>
+    <string name="upgrade_screen_restore_success_message">আপনার কেনাকাটা পুনরুদ্ধার হয়েছে ❤️</string>
+    <string name="upgrade_screen_restore_status_title">অবস্থা ভুল মনে হচ্ছে?</string>
+    <string name="upgrade_screen_restore_status_body">Google Play-তে আপনার কেনাকাটা আবার পরীক্ষা করুন। ডিভাইস বদলানোর পরে বা Google অ্যাকাউন্ট পাল্টালে এটি সাহায্য করতে পারে।</string>
+
+    <string name="upgrade_screen_offers_or">অথবা</string>
+
+    <string name="upgrade_screen_offers_title">আপগ্রেডের বিকল্প</string>
+    <string name="upgrade_screen_offers_body">দুটি বিকল্পেই একই Pro সুবিধা খোলে — আপনার জন্য সুবিধাজনক মূল্যটি বেছে নিন।</string>
+    <string name="upgrade_screen_offers_unavailable_title">মূল্য পাওয়া যাচ্ছে না</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler Google Play থেকে আপগ্রেডের বিকল্প লোড করতে পারেনি। এটি প্রায়ই সাময়িক হয় — একটু পরে আবার চেষ্টা করুন।</string>
+    <string name="upgrade_screen_subscription_offer_title">বার্ষিক সাবস্ক্রিপশন</string>
+    <string name="upgrade_screen_subscription_offer_body">শুরুতে বিনামূল্যে ১৪ দিনের ট্রায়াল, এরপর বছরে একবার বিল হবে। যেকোনো সময় বাতিল করুন।</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">বছরে একবার বিল হবে। যেকোনো সময় বাতিল করুন।</string>
+    <string name="upgrade_screen_iap_offer_title">একবার কিনুন</string>
+    <string name="upgrade_screen_iap_offer_body">একবার টাকা দিন, চিরদিন আপনার। কোনো সাবস্ক্রিপশন নেই।</string>
+    <string name="upgrade_screen_restore_body">পুনরুদ্ধার করলে Google Play-কে বর্তমান অ্যাকাউন্টে এই অ্যাপের কেনাকাটা আবার পরীক্ষা করতে বলা হয়।</string>
+
+    <string name="upgrade_screen_owned_hero_title">আপনার Butler Pro আছে!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">এককালীন কেনাকাটার জন্য ধন্যবাদ — চিরদিনের জন্য সব প্রস্তুত ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">সাবস্ক্রাইব করার জন্য ধন্যবাদ ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">এককালীন কেনাকাটা</string>
+    <string name="upgrade_screen_owned_iap_body">আপনার স্থায়ী Pro আপগ্রেড আছে।</string>
+    <string name="upgrade_screen_owned_sub_title">সাবস্ক্রিপশন</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">আপনার সাবস্ক্রিপশন সক্রিয় এবং স্বয়ংক্রিয়ভাবে নবায়ন হয়।</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">আপনার সাবস্ক্রিপশন সক্রিয়, তবে নবায়ন বন্ধ করা আছে। বর্তমান মেয়াদ শেষ হওয়া পর্যন্ত Pro থাকবে।</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">আপনার এককালীন কেনাকাটা আছে, কিন্তু সাবস্ক্রিপশন এখনো নবায়ন হচ্ছে। দুবার টাকা দেওয়া এড়াতে Google Play-তে সেটি বাতিল করুন।</string>
+    <string name="upgrade_screen_manage_subscription_action">সাবস্ক্রিপশন পরিচালনা করুন</string>
+
+    <string name="upgrade_screen_switch_locked_note">প্রথমে \"সাবস্ক্রিপশন পরিচালনা করুন\" থেকে নবায়ন বাতিল করুন, নইলে দুটির জন্যই টাকা কাটা হবে।</string>
+    <string name="upgrade_screen_switch_purchase_note">আপনার সাবস্ক্রিপশন আর নবায়ন হবে না — এখন নিরাপদে এককালীন কেনাকাটা করতে পারেন।</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">সাবস্ক্রিপশন এখনো সক্রিয়</string>
+    <string name="upgrade_screen_sub_still_renewing_message">আপনার সাবস্ক্রিপশন এখনো নবায়নের জন্য সেট করা আছে। দুটির জন্য টাকা কাটা এড়াতে আগে Google Play-তে নবায়ন বাতিল করুন, তারপর এককালীন কেনাকাটা করুন।</string>
+    <string name="upgrade_screen_purchase_check_failed_title">যাচাই করা যায়নি</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler Google Play-তে আপনার কেনাকাটার অবস্থা নিশ্চিত করতে পারেনি, তাই দুবার টাকা কাটা এড়াতে কেনাকাটা থামানো হয়েছে। একটু পরে আবার চেষ্টা করুন।</string>
+
+    <string name="upgrade_screen_pending_card_title">পেমেন্ট অপেক্ষমান</string>
+    <string name="upgrade_screen_pending_card_body">Google Play এখনো আপনার পেমেন্ট প্রক্রিয়া করছে। পেমেন্ট সম্পন্ন হলে Pro স্বয়ংক্রিয়ভাবে খুলবে। কিছু পেমেন্ট পদ্ধতিতে সময় লাগতে পারে। আপনাকে আর কিছু করতে হবে না।</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play একটি অপেক্ষমান পেমেন্টসহ কেনাকাটা পেয়েছে এবং এখনো সেটি প্রক্রিয়া করছে। পেমেন্ট সম্পন্ন হলে Pro স্বয়ংক্রিয়ভাবে খুলবে।</string>
+
+    <string name="upgrade_screen_grace_title">আপনার কেনাকাটা নিশ্চিত করা হচ্ছে</string>
+    <string name="upgrade_screen_grace_body_short">Google Play আপনার Pro অবস্থা নিশ্চিত করতে একটু সময় নিচ্ছে। আপনার পূর্ণ অ্যাক্সেস এখনো আছে।</string>
+    <string name="upgrade_screen_grace_body">Google Play এখনো আপনার Pro অবস্থা আবার নিশ্চিত করেনি। আপাতত আপনার অ্যাক্সেস আছে। এটি ভুল মনে হলে কেনাকাটা পুনরুদ্ধার করে দেখুন।</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">আগেই কিনেছেন?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play জানাচ্ছে এই আপগ্রেডটি আপনার আছে, কিন্তু স্বয়ংক্রিয়ভাবে পুনরুদ্ধার করা যায়নি। মূল কেনাকাটার Google অ্যাকাউন্ট দিয়ে লগ ইন করেছেন কি না নিশ্চিত করুন, তারপর \"কেনাকাটা পুনরুদ্ধার করুন\" ব্যবহার করুন।</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play পাওয়া যাচ্ছে না</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler Google Play-তে সংযোগ করতে পারছে না। Google Play ইনস্টল ও হালনাগাদ আছে? আপনার Google অ্যাকাউন্টে লগ ইন করেছেন? Google Play অ্যাপের ক্যাশ মুছে ডিভাইস রিবুট করে দেখুন।</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can't open Google Play's app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Google Play খোলা যায়নি। এই ডিভাইসে এটি না-ও থাকতে পারে, বন্ধ বা সীমাবদ্ধ থাকতে পারে।</string>
+    <string name="upgrades_gplay_billing_error_label">Google Play-তে সমস্যা</string>
+    <string name="upgrades_gplay_billing_error_description">Google Play-এর সঙ্গে যোগাযোগের সময় সমস্যা হয়েছে। পরে আবার চেষ্টা করুন বা ডিভাইস রিস্টার্ট করুন।\n\nবিস্তারিত: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Google Play-এর ত্রুটি</string>
+    <string name="upgrades_gplay_internal_error_description">Google Play-তে একটি অভ্যন্তরীণ ত্রুটি হয়েছে। নিচের পদক্ষেপগুলো চেষ্টা করুন:\n\n• ডিভাইস রিস্টার্ট করুন\n• Google Play Store-এর ক্যাশ মুছুন\n• পরে আবার চেষ্টা করুন</string>
+    <string name="upgrades_gplay_network_error_title">সংযোগের ত্রুটি</string>
+    <string name="upgrades_gplay_network_error_description">Butler Google Play-তে পৌঁছাতে পারেনি। আপনার ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
+    <string name="upgrades_gplay_offer_unavailable_title">অফার পাওয়া যাচ্ছে না</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play বর্তমানে আপনার অ্যাকাউন্টের জন্য এই আপগ্রেডের বিকল্প দেয় না। পরে আবার চেষ্টা করুন বা Google Play Store দেখুন।</string>
+    <string name="upgrades_no_purchases_found_check_account">কোনো কেনাকাটা পাওয়া যায়নি। সঠিক অ্যাকাউন্ট ব্যবহার করছেন তো?</string>
+
+    <string name="upgrade_benefits_title">আপগ্রেডের সুবিধা</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• সীমাহীন ট্যাব ও কাজ\n• ডিজাইন, ব্যবহার ও চেহারা নিজের মতো সাজান\n• প্রতিটি টুলে বাড়তি বিকল্প ও সুবিধা\n• নতুন সুবিধা সবার আগে ব্যবহার করুন\n• একজন উৎসাহী ডেভেলপার 🧙\nআরও অনেক কিছু…</string>
+</resources>

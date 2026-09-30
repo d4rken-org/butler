@@ -1,0 +1,688 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">এক্সপ্লোরার</string>
+    <string name="explorer_subtitle">ফাইল ও ডিরেক্টরি ব্রাউজ করুন</string>
+    <string name="explorer_settings_title">এক্সপ্লোরারের সেটিংস</string>
+    <string name="explorer_settings_file_display">ফাইল প্রদর্শন</string>
+    <string name="explorer_settings_filter_regex_title">উন্নত ওয়াইল্ডকার্ড মিল</string>
+    <string name="explorer_settings_filter_regex_desc">অন্তর্ভুক্তি/বর্জন ফিল্টারে রেগেক্স প্যাটার্ন ব্যবহার করুন।</string>
+    <string name="explorer_settings_navigation">নেভিগেশন</string>
+    <string name="explorer_settings_back_button_title">পেছনের বোতামের নেভিগেশন</string>
+    <string name="explorer_settings_back_button_desc">পেছনের বোতাম/ভঙ্গি দিয়ে ইতিহাসে চলাচল করুন।</string>
+    <string name="explorer_settings_trash_category">ট্র্যাশ</string>
+    <string name="explorer_settings_trash_enabled_title">ট্র্যাশ চালু করুন</string>
+    <string name="explorer_settings_trash_enabled_desc">মুছে ফেলা ফাইল স্থায়ীভাবে না মুছে ট্র্যাশে সরান</string>
+    <string name="explorer_settings_trash_auto_delete_title">স্বয়ংক্রিয় মোছার আগে সময়</string>
+    <string name="explorer_settings_trash_auto_delete_summary">ট্র্যাশে এত সময় থাকার পরে স্বয়ংক্রিয়ভাবে আইটেম মুছুন</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d দিন</string>
+    <string name="explorer_settings_trash_max_size_title">প্রতি স্টোরেজে সর্বোচ্চ আকার</string>
+    <string name="explorer_settings_trash_max_size_summary">প্রতিটি স্টোরেজের অবস্থানে ট্র্যাশ কতটা জায়গা ব্যবহার করতে পারবে</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">স্বয়ংক্রিয় মোছার সময়কাল</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">প্রতি স্টোরেজে সর্বোচ্চ আকার</string>
+    <string name="explorer_settings_trash_enable_dialog_title">ট্র্যাশ চালু করবেন?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">ডেস্কটপ সিস্টেমের বিপরীতে, Android-এ নিজস্ব ট্র্যাশ নেই। Butler তার ক্যাশ ফোল্ডার দিয়ে একটি ট্র্যাশ দেয়।\n\nমনে রাখুন:\n• আইটেম স্থায়ীভাবে মুছে না ফেলা পর্যন্ত ডিভাইসের স্টোরেজ নির্দেশকে খালি হওয়া জায়গা দেখা যাবে না\n• ডিভাইসে স্টোরেজ কম থাকলে Android অ্যাপের ক্যাশ মুছে দিতে পারে, এতে ট্র্যাশের ফাইল সরিয়ে ফেলা হবে</string>
+    <string name="explorer_settings_trash_enable_action">চালু করুন</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">ফাইল</string>
+    <string name="explorer_file_symlink_content_desc">সিম্বলিক লিংক</string>
+    <string name="explorer_file_folder_content_desc">ফোল্ডার</string>
+    <string name="explorer_file_peek_content_desc">ফাইলের তথ্য লোড হচ্ছে</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">শর্টকাট</string>
+    <string name="explorer_file_storage_local_label">স্থানীয়</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">শুধু পড়ার অ্যাক্সেস</string>
+    <string name="explorer_file_storage_saf_write_only_label">শুধু লেখার অ্যাক্সেস</string>
+    <string name="explorer_file_storage_saf_no_access_label">অ্যাক্সেস নেই</string>
+    <string name="explorer_file_storage_saf_uri_label">SAF ট্রি URI</string>
+    <string name="explorer_file_storage_size_format">%1$s • মোট %2$s • খালি %3$s</string>
+    <string name="explorer_file_broken_link_label">ভাঙা লিংক</string>
+    <string name="explorer_file_items_count">%1$dটি আইটেম</string>
+    <string name="explorer_file_empty">খালি</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · আংশিক</string>
+    <string name="explorer_sizes_estimate_description">Android-এর মোট স্টোরেজ থেকে অনুমান করা। পড়া যায় না এমন ফাইলের আকারের অনুমান হিসেবে ব্যবহৃত স্টোরেজ নেওয়া হয়। Android পরিচালিত লুকানো ফাইলও অন্তর্ভুক্ত হতে পারে। অন্য অপঠনযোগ্য অবস্থানের আকার অজানা থাকে।</string>
+    <string name="explorer_sizes_estimate_coverage">স্টোরেজের অন্য অংশ পুরোপুরি মাপা যায়নি বলে Android/data-এর আকার অনুমান করা যায়নি।</string>
+    <string name="explorer_sizes_estimate_unavailable">Android-এর স্টোরেজ পরিসংখ্যান পাওয়া যায়নি। মাপা আকারগুলো এখনো দেখানো হচ্ছে।</string>
+    <string name="explorer_sizes_estimate_inconsistent">Android-এর মোট স্টোরেজ স্ক্যানের সঙ্গে মেলেনি। মাপা আকারগুলো এখনো দেখানো হচ্ছে।</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">ফোল্ডার বাছুন</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">ফোল্ডার বাছুন</item>
+        <item quantity="one">ফোল্ডার বাছুন (%d)</item>
+        <item quantity="other">ফোল্ডার বাছুন (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">ফাইল বাছুন</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">ফাইল বাছুন</item>
+        <item quantity="one">ফাইল বাছুন (%d)</item>
+        <item quantity="other">ফাইল বাছুন (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">আইটেম বাছুন</item>
+        <item quantity="one">আইটেম বাছুন (%d)</item>
+        <item quantity="other">আইটেম বাছুন (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">এই ফোল্ডার বাছুন</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">%dটি বাছুন</item>
+        <item quantity="other">%dটি বাছুন</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">ফাইল সংরক্ষণ করুন</string>
+    <string name="explorer_picker_save_here_action">এখানে সংরক্ষণ করুন</string>
+    <string name="explorer_picker_save_as_filename_label">ফাইলের নাম</string>
+    <string name="explorer_picker_save_as_filename_hint">ফাইলের নাম দিন</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">রিফ্রেশ করুন</string>
+    <string name="explorer_action_calculate_sizes">আকার হিসাব করুন</string>
+    <string name="explorer_action_sort">সাজান</string>
+    <string name="explorer_action_filter">ফিল্টার</string>
+    <string name="explorer_action_view">বিন্যাস</string>
+    <string name="explorer_action_create">তৈরি করুন</string>
+    <string name="explorer_action_rename">নাম বদলান</string>
+    <string name="explorer_action_copy">কপি করুন</string>
+    <string name="explorer_action_cut">কাট করুন</string>
+    <string name="explorer_action_delete">মুছে ফেলুন</string>
+    <string name="explorer_action_select_all">সব নির্বাচন করুন</string>
+    <string name="explorer_action_deselect_all">সব অনির্বাচিত করুন</string>
+    <string name="explorer_action_compress">সংকুচিত করুন</string>
+    <string name="explorer_action_extract">বের করুন</string>
+    <string name="explorer_action_add_location">অবস্থান যোগ করুন</string>
+    <string name="explorer_action_info">তথ্য</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">তথ্য</string>
+    <string name="explorer_info_name_label">নাম</string>
+    <string name="explorer_info_path_label">পাথ</string>
+    <string name="explorer_info_type_label">ধরন</string>
+    <string name="explorer_info_type_file">ফাইল</string>
+    <string name="explorer_info_type_directory">ডিরেক্টরি</string>
+    <string name="explorer_info_size_label">আকার</string>
+    <string name="explorer_info_modified_label">পরিবর্তিত</string>
+    <string name="explorer_info_created_label">তৈরি</string>
+    <string name="explorer_info_permissions_label">অনুমতি</string>
+    <string name="explorer_info_owner_label">মালিক</string>
+    <string name="explorer_info_child_count_label">আইটেম</string>
+    <string name="explorer_info_symlink_target_label">লক্ষ্য</string>
+    <string name="explorer_info_symlink_status_label">অবস্থা</string>
+    <string name="explorer_info_symlink_broken">ভাঙা লিংক</string>
+    <string name="explorer_info_unknown">অজানা</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">মুছে ফেলা</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">অনুমতি</string>
+    <string name="explorer_info_saf_granted_label">দেওয়া হয়েছে</string>
+    <string name="explorer_info_saf_permission_read">পড়া</string>
+    <string name="explorer_info_saf_permission_write">লেখা</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">সার্ভার</string>
+    <string name="explorer_info_network_port_label">পোর্ট</string>
+    <string name="explorer_info_network_share_label">শেয়ার</string>
+    <string name="explorer_info_network_folder_label">ফোল্ডার</string>
+    <string name="explorer_info_network_address_label">ঠিকানা</string>
+    <string name="explorer_info_network_status_label">অবস্থা</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">সাইন ইন</string>
+    <string name="explorer_info_network_domain_label">ডোমেইন</string>
+    <string name="explorer_info_network_password_label">পাসওয়ার্ড</string>
+    <string name="explorer_info_network_password_show_action">পাসওয়ার্ড দেখান</string>
+    <string name="explorer_info_network_password_hide_action">পাসওয়ার্ড লুকান</string>
+    <string name="explorer_info_network_password_missing">নেই, আবার সাইন ইন করুন</string>
+    <string name="explorer_info_network_password_locked">রাখা আছে, তবে এই ডিভাইস খুলতে পারে না</string>
+    <string name="explorer_info_network_added_label">যোগ করা</string>
+    <string name="explorer_info_network_updated_label">আপডেট করা</string>
+    <string name="explorer_info_network_last_seen_label">সর্বশেষ দেখা</string>
+    <string name="explorer_info_network_last_seen_never">কখনো নয়</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">নির্বাচিত</string>
+    <string name="explorer_info_files_label">ফাইল</string>
+    <string name="explorer_info_directories_label">ডিরেক্টরি</string>
+    <string name="explorer_info_total_size_label">মোট আকার</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">অবস্থান</string>
+    <string name="explorer_info_shortcuts_label">শর্টকাট</string>
+    <string name="explorer_info_total_capacity_label">মোট ধারণক্ষমতা</string>
+    <string name="explorer_info_used_space_label">ব্যবহৃত জায়গা</string>
+    <string name="explorer_info_free_space_label">খালি জায়গা</string>
+    <string name="explorer_info_usage_label">ব্যবহার</string>
+    <string name="explorer_info_device_storage_total_label">ডিভাইসের স্টোরেজ</string>
+    <string name="explorer_info_device_storage_used_label">ব্যবহৃত</string>
+    <string name="explorer_info_device_storage_free_label">খালি</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">হোম</string>
+    <string name="explorer_breadcrumb_set_as_home_action">হোম হিসেবে নির্ধারণ করুন</string>
+    <string name="explorer_breadcrumb_copy_path_action">পাথ কপি করুন</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">পাথ ক্লিপবোর্ডে কপি হয়েছে</string>
+    <string name="explorer_navigation_device">ডিভাইস</string>
+    <string name="explorer_navigation_network">নেটওয়ার্ক</string>
+    <string name="explorer_navigation_recent">সাম্প্রতিক</string>
+    <string name="explorer_navigation_recent_desc">এই ডিভাইসে সম্প্রতি আসা ফাইল</string>
+    <string name="explorer_navigation_trash">ট্র্যাশ</string>
+    <string name="explorer_navigation_trash_desc">মুছে ফেলা ফাইল পুনরুদ্ধার করুন</string>
+    <string name="explorer_navigation_trash_nested_desc">ট্র্যাশের ফোল্ডারের ভেতরে</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">কোনো মুছে ফেলা আইটেম নেই</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%dটি আইটেম</item>
+        <item quantity="other">%dটি আইটেম</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">পুনরুদ্ধার করুন</string>
+    <string name="explorer_trash_restore_selected_action">নির্বাচিতগুলো পুনরুদ্ধার করুন</string>
+    <string name="explorer_trash_delete_permanently_action">স্থায়ীভাবে মুছে ফেলুন</string>
+    <string name="explorer_trash_delete_selected_action">নির্বাচিতগুলো মুছে ফেলুন</string>
+    <string name="explorer_trash_empty_trash_action">ট্র্যাশ খালি করুন</string>
+    <string name="explorer_trash_empty_confirm">ট্র্যাশ খালি করবেন?</string>
+    <string name="explorer_trash_empty_message">ট্র্যাশের সব আইটেম স্থায়ীভাবে মুছে ফেলা হবে। এটি ফেরানো যাবে না।</string>
+    <string name="explorer_trash_empty_confirm_action">ট্র্যাশ খালি করুন</string>
+    <string name="explorer_trash_restore_desc">মূল অবস্থানে পুনরুদ্ধার করুন</string>
+    <string name="explorer_trash_item_unavailable">আইটেম পাওয়া যাচ্ছে না</string>
+    <string name="explorer_trash_delete_warning">এটি ফেরানো যাবে না</string>
+    <string name="explorer_trash_disabled_warning">ট্র্যাশ বন্ধ</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">ট্র্যাশের ফোল্ডারের বিষয়বস্তু লোড হচ্ছে…</string>
+    <string name="explorer_trash_nested_restore_action">মূল অবস্থানে পুনরুদ্ধার করুন</string>
+    <string name="explorer_trash_nested_delete_action">স্থায়ীভাবে মুছে ফেলুন</string>
+    <string name="explorer_trash_nested_restore_conflict">মূল অবস্থানে ফাইল আগে থেকেই আছে</string>
+    <string name="explorer_trash_nested_parent_missing">মূল আইটেম ট্র্যাশে আর নেই</string>
+    <string name="explorer_trash_nested_path_missing">পাথ আর নেই</string>
+    <string name="explorer_trash_error_items_not_found">ট্র্যাশে আইটেম পাওয়া যায়নি</string>
+    <string name="explorer_trash_error_restore_failed">আইটেম পুনরুদ্ধার ব্যর্থ হয়েছে</string>
+    <string name="explorer_trash_error_delete_failed">আইটেম মুছে ফেলা ব্যর্থ হয়েছে</string>
+    <string name="explorer_trash_nested_error_restore_failed">%1$s পুনরুদ্ধার ব্যর্থ হয়েছে</string>
+    <string name="explorer_trash_nested_error_delete_failed">%1$s মুছে ফেলা ব্যর্থ হয়েছে</string>
+
+    <string name="explorer_navigation_root">রুট ডিরেক্টরি</string>
+    <string name="explorer_navigation_rom">সিস্টেম ROM</string>
+    <string name="explorer_navigation_internal_storage">অভ্যন্তরীণ সর্বজনীন স্টোরেজ</string>
+    <string name="explorer_navigation_external_storage">বাহ্যিক সর্বজনীন স্টোরেজ</string>
+
+    <string name="explorer_loader_progress_directory_loading">%s ব্রাউজ হচ্ছে</string>
+    <string name="explorer_loader_progress_directory_permissions">অনুমতি পরীক্ষা হচ্ছে</string>
+    <string name="explorer_loader_progress_directory_filesystem">ফাইল সিস্টেমের তথ্য আনা হচ্ছে</string>
+    <string name="explorer_loader_progress_directory_content">ফোল্ডারের বিষয়বস্তু লোড হচ্ছে</string>
+    <string name="explorer_loader_progress_directory_content_details">বিষয়বস্তুর বিস্তারিত লোড হচ্ছে</string>
+    <string name="explorer_loader_progress_directory_content_extended">বিষয়বস্তুর বাড়তি বিস্তারিত লোড হচ্ছে</string>
+
+    <string name="explorer_loader_progress_device_loading">ডিভাইস লোড হচ্ছে</string>
+    <string name="explorer_loader_progress_device_locations">স্টোরেজের অবস্থান লোড হচ্ছে</string>
+
+    <string name="explorer_loader_progress_network_loading">নেটওয়ার্ক স্টোরেজ লোড হচ্ছে</string>
+
+    <string name="explorer_loader_progress_home_loading">হোম লোড হচ্ছে</string>
+    <string name="explorer_loader_progress_trash_loading">ট্র্যাশ লোড হচ্ছে…</string>
+    <string name="explorer_loader_progress_recent_loading">সাম্প্রতিক ফাইল লোড হচ্ছে…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%dটি শর্টকাট</item>
+        <item quantity="other">%dটি শর্টকাট</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%dটি অবস্থান</item>
+        <item quantity="other">%dটি অবস্থান</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%dটি লুকানো</item>
+        <item quantity="other">%dটি লুকানো</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s খালি</string>
+    <string name="explorer_infobar_loading">লোড হচ্ছে…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">নতুন আইটেম তৈরি করুন</string>
+    <string name="explorer_dialog_rename_title">নাম বদলান</string>
+    <string name="explorer_dialog_name_label">নাম</string>
+    <string name="explorer_dialog_type_label">ধরন</string>
+    <string name="explorer_dialog_type_folder">ফোল্ডার</string>
+    <string name="explorer_dialog_type_file">ফাইল</string>
+    <string name="explorer_dialog_create_text_file_title">টেক্সট থেকে ফাইল তৈরি করুন</string>
+    <string name="explorer_dialog_create_text_file_preview_label">প্রিভিউ</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$dটি অক্ষর</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">স্টোরেজের অবস্থান যোগ করুন</string>
+    <string name="explorer_add_device_storage_desc">USB ড্রাইভ, ভার্চুয়াল অ্যাপ ফোল্ডারসহ অতিরিক্ত স্টোরেজের অবস্থানে Butler-কে অ্যাক্সেস দিতে Storage Access Framework (SAF) ব্যবহার করুন।</string>
+    <string name="explorer_add_device_storage_continue">চালিয়ে যান</string>
+    <string name="explorer_add_device_storage_cancel">বাতিল করুন</string>
+    <string name="explorer_add_device_storage_suggestions_title">স্টোরেজ আছে এমন অ্যাপ</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">এই অ্যাপের ফোল্ডার খোলে</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">অবস্থান সরান</string>
+    <string name="explorer_device_remove_confirmation_title">স্টোরেজের অবস্থান সরাবেন?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">%1$dটি স্টোরেজের অবস্থান সরাবেন?</item>
+        <item quantity="other">%1$dটি স্টোরেজের অবস্থান সরাবেন?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">এতে এই অবস্থানে Butler-এর অ্যাক্সেস প্রত্যাহার হবে। আপনার ফাইল মুছে ফেলা হবে না।</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%dটি নেটওয়ার্ক অবস্থান</item>
+        <item quantity="other">%dটি নেটওয়ার্ক অবস্থান</item>
+    </plurals>
+    <string name="explorer_network_storage_label">নেটওয়ার্ক</string>
+    <string name="explorer_network_add_location_action">নেটওয়ার্ক স্টোরেজ যোগ করুন</string>
+    <string name="explorer_network_edit_location_action">নেটওয়ার্ক স্টোরেজ সম্পাদনা করুন</string>
+    <string name="explorer_network_remove_location_action">নেটওয়ার্ক স্টোরেজ সরান</string>
+    <string name="explorer_network_sign_in_required_label">সাইন ইন প্রয়োজন</string>
+    <string name="explorer_network_status_checking_label">পরীক্ষা হচ্ছে…</string>
+    <string name="explorer_network_status_available_label">পাওয়া যাচ্ছে</string>
+    <string name="explorer_network_status_unavailable_label">পাওয়া যাচ্ছে না</string>
+    <string name="explorer_network_status_unavailable_since_format">পাওয়া যাচ্ছে না (%1$s)</string>
+    <string name="explorer_network_empty_title">এখনো নেটওয়ার্ক স্টোরেজ নেই</string>
+    <string name="explorer_network_empty_caption">এখানে ব্রাউজ করতে Windows শেয়ার বা NAS ফোল্ডার যোগ করুন।</string>
+    <string name="explorer_network_form_pro_notice">অবস্থান যোগ ও পরীক্ষা বিনামূল্যে। ব্রাউজ করতে Butler Pro প্রয়োজন।</string>
+    <string name="explorer_network_upgrade_hint_saved">সংরক্ষিত হয়েছে। নেটওয়ার্ক স্টোরেজ ব্রাউজ করতে Butler Pro প্রয়োজন।</string>
+    <string name="explorer_network_upgrade_hint_locked">নেটওয়ার্ক স্টোরেজ ব্রাউজ করতে Butler Pro প্রয়োজন।</string>
+    <string name="explorer_network_remove_confirmation_title">নেটওয়ার্ক স্টোরেজ সরাবেন?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">%1$dটি নেটওয়ার্ক স্টোরেজ সরাবেন?</item>
+        <item quantity="other">%1$dটি নেটওয়ার্ক স্টোরেজ সরাবেন?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler সার্ভারের বিস্তারিত ও সংরক্ষিত পাসওয়ার্ড ভুলে যাবে। সার্ভারের কোনো কিছু মুছে ফেলা হবে না।</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">নেটওয়ার্ক স্টোরেজ যোগ করুন</string>
+    <string name="explorer_network_form_edit_title">নেটওয়ার্ক স্টোরেজ সম্পাদনা করুন</string>
+    <string name="explorer_network_form_label_label">নাম (ঐচ্ছিক)</string>
+    <string name="explorer_network_form_host_label">সার্ভারের ঠিকানা</string>
+    <string name="explorer_network_form_host_hint">nas.local অথবা 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">পোর্ট</string>
+    <string name="explorer_network_form_share_label">শেয়ার</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">শেয়ারের ভেতরের ফোল্ডার (ঐচ্ছিক)</string>
+    <string name="explorer_network_form_auth_guest">অতিথি</string>
+    <string name="explorer_network_form_auth_password">ব্যবহারকারীর নাম ও পাসওয়ার্ড</string>
+    <string name="explorer_network_form_username_label">ব্যবহারকারীর নাম</string>
+    <string name="explorer_network_form_domain_label">ডোমেইন (ঐচ্ছিক)</string>
+    <string name="explorer_network_form_password_label">পাসওয়ার্ড</string>
+    <string name="explorer_network_form_password_kept_hint">সংরক্ষিত পাসওয়ার্ড রাখতে খালি রাখুন</string>
+    <string name="explorer_network_form_remember_label">পাসওয়ার্ড মনে রাখুন</string>
+    <string name="explorer_network_form_remember_hint">শুধু এই ডিভাইসে এনক্রিপ্ট করে রাখা হয়</string>
+    <string name="explorer_network_form_test_and_save_action">পরীক্ষা ও সংরক্ষণ করুন</string>
+    <string name="explorer_network_form_testing">সংযোগ হচ্ছে…</string>
+    <string name="explorer_network_form_error_host_blank">সার্ভারের ঠিকানা দিন</string>
+    <string name="explorer_network_form_error_host_not_bare">স্কিম বা পাথ ছাড়া শুধু সার্ভারের ঠিকানা দিন</string>
+    <string name="explorer_network_form_error_host_malformed">এটি বৈধ সার্ভারের ঠিকানা নয়</string>
+    <string name="explorer_network_form_error_port">১ থেকে ৬৫৫৩৫-এর মধ্যে পোর্ট দিন</string>
+    <string name="explorer_network_form_error_share_blank">শেয়ারের নাম দিন</string>
+    <string name="explorer_network_form_error_share_not_single">শুধু শেয়ারের নাম দিন, সাবফোল্ডার নিচে দিন</string>
+    <string name="explorer_network_form_error_share_malformed">এটি বৈধ শেয়ারের নাম নয়</string>
+    <string name="explorer_network_form_error_base_path">এই ফোল্ডার পাথ ব্যবহার করা যায় না</string>
+    <string name="explorer_network_form_error_username_blank">ব্যবহারকারীর নাম দিন</string>
+    <string name="explorer_network_form_error_password_required">ব্যবহারকারীর নাম বা ডোমেইন বদলাতে আবার পাসওয়ার্ড দিন</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">অবস্থানের নাম দিন</string>
+    <string name="explorer_location_name_label">অবস্থানের নাম</string>
+    <string name="explorer_location_name_hint">ডিফল্ট নাম ব্যবহার করতে খালি রাখুন</string>
+    <string name="explorer_location_rename_action">অবস্থানের নাম বদলান</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">গত এক দিনে যোগ করা</item>
+        <item quantity="other">গত %d দিনে যোগ করা</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">এখানে নতুন কিছু নেই</string>
+    <string name="explorer_recent_empty_message">এই ডিভাইসে আসা ফাইল এখানে দেখা যায়</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">এই ফোল্ডার খালি</string>
+    <string name="explorer_empty_search_title">খোঁজে কোনো ফলাফল নেই</string>
+    <string name="explorer_empty_search_caption">অন্য শব্দ দিয়ে খুঁজে দেখুন</string>
+    <string name="explorer_empty_folder_label">খালি ফোল্ডার</string>
+    <string name="explorer_empty_filtered_title">কোনো মেলা আইটেম নেই</string>
+    <string name="explorer_empty_filtered_caption">ফিল্টার পরিবর্তন করে দেখুন</string>
+    <string name="explorer_empty_hidden_title">এখানে শুধু লুকানো আইটেম</string>
+    <string name="explorer_empty_hidden_caption">এই ট্যাব ডট দিয়ে শুরু হওয়া নামের আইটেম লুকায়</string>
+    <string name="explorer_empty_show_hidden_action">লুকানো আইটেম দেখান</string>
+    <string name="explorer_empty_hidden_or_filtered_title">দেখানোর আর কিছু নেই</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">লুকানো আইটেম ও আপনার ফিল্টার এই ফোল্ডারের কিছু অংশ বাদ দেয়</string>
+    <string name="explorer_empty_clear_filters_action">ফিল্টার মুছুন</string>
+    <string name="explorer_empty_hidden_and_filtered_title">লুকানো আইটেম ও ফিল্টার এখানে সব বাদ দেয়</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">লুকানো আইটেম দেখালে ও এই ট্যাবের ফিল্টার মুছলে সেগুলো ফিরে আসে</string>
+    <string name="explorer_empty_show_all_action">সব আইটেম দেখান</string>
+    <string name="explorer_path_not_found_title">এই ফোল্ডার আর নেই</string>
+    <string name="explorer_path_not_found_caption">এটি মুছে ফেলা হয়েছে, নাম বদলানো হয়েছে বা অন্যত্র সরানো হয়েছে।</string>
+    <string name="explorer_path_not_found_back_action">ফিরে যান</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">লোড হচ্ছে…</string>
+    <string name="explorer_file_peek_loading_text">লোড হচ্ছে…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">এখানে দেখার কিছু নেই… এগিয়ে যান 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">এই ফোল্ডার ডায়েট করছে</string>
+    <string name="explorer_empty_folder_caption_3">আজ ফাইলগুলোও তাড়াতাড়ি বাড়ি চলে গেছে</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe কাজ করা বন্ধ করেছে</string>
+    <string name="explorer_empty_folder_caption_5">ফাইলগুলো লুকোচুরি খেলছে</string>
+    <string name="explorer_empty_folder_caption_6">404: ফাইল পাওয়া যায়নি</string>
+    <string name="explorer_empty_folder_caption_7">এই ফোল্ডার কাউকে বিশ্বাস করতে পারে না</string>
+    <string name="explorer_empty_folder_caption_8">ফাইলগুলো না জানিয়ে ছুটিতে গেছে</string>
+    <string name="explorer_empty_folder_caption_9">আমার মনের মতো খালি… তবে বেশি গোছানো</string>
+    <string name="explorer_empty_folder_caption_10">ডিজিটাল মরুভূমির নির্জনতা</string>
+    <string name="explorer_empty_folder_caption_11">ফাইলগুলো সামাজিক দূরত্ব রাখছে</string>
+    <string name="explorer_empty_folder_caption_12">এই ফোল্ডার অল্পেই সন্তুষ্ট</string>
+    <string name="explorer_empty_folder_caption_13">কেউ ফাইলগুলোকে খাওয়াতে ভুলে গেছে</string>
+    <string name="explorer_empty_folder_caption_14">ফাইলগুলো ভবন ছেড়ে চলে গেছে</string>
+    <string name="explorer_empty_folder_caption_15">রাজনীতিবিদের প্রতিশ্রুতির চেয়েও ফাঁকা</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">যেভাবে সাজাবেন</string>
+    <string name="explorer_sort_mode_name_label">নাম</string>
+    <string name="explorer_sort_mode_size_label">আকার</string>
+    <string name="explorer_sort_mode_modified_label">পরিবর্তনের তারিখ</string>
+    <string name="explorer_sort_mode_created_label">তৈরির তারিখ</string>
+    <string name="explorer_sort_descending_label">অবরোহ ক্রম</string>
+    <string name="explorer_sort_scope_label">যেখানে প্রয়োগ হবে</string>
+    <string name="explorer_sort_scope_all_folders">সব ফোল্ডার</string>
+    <string name="explorer_sort_scope_this_folder">এই ফোল্ডার</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">এই ফোল্ডার ও সাবফোল্ডার</string>
+    <string name="explorer_sort_scope_use_default_here">এখানে ডিফল্ট ব্যবহার করুন</string>
+    <string name="explorer_sort_only_this_tab_label">শুধু এই ট্যাবের জন্য</string>
+    <string name="explorer_sort_inherited_notice">%1$s-এর জন্য সংরক্ষিত নিয়মে সাজানো</string>
+    <string name="explorer_sort_suppressed_notice">এটি %1$s-এর জন্য সংরক্ষিত নিয়মের বদলে প্রযোজ্য হবে</string>
+    <string name="explorer_sort_tab_overrides_default_notice">এই ট্যাব নিজের ডিফল্ট সাজানোর ক্রম ব্যবহার করে</string>
+    <string name="explorer_sort_tab_overrides_clear_action">মুছুন</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">ফোল্ডারের আকার</string>
+    <string name="explorer_sizes_sheet_label_calculated">হিসাব করা</string>
+    <string name="explorer_sizes_sheet_label_folders">ফোল্ডার</string>
+    <string name="explorer_sizes_sheet_label_unreadable">পড়া যায় না এমন অবস্থান</string>
+    <string name="explorer_sizes_sheet_problems_more">আরও %1$dটি তালিকায় নেই</string>
+    <string name="explorer_sizes_sheet_recalculate">আবার হিসাব করুন</string>
+    <string name="explorer_sizes_sheet_discard">আকার বাতিল করুন</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">আইটেম কীভাবে সাজানো হবে ও কতটা বিস্তারিত দেখাবে</string>
+    <string name="explorer_view_mode_list_label">তালিকা</string>
+    <string name="explorer_view_mode_grid_label">গ্রিড</string>
+    <string name="explorer_view_density_compact_label">সংক্ষিপ্ত</string>
+    <string name="explorer_view_density_comfortable_label">স্বচ্ছন্দ</string>
+    <string name="explorer_view_density_detailed_label">বিস্তারিত</string>
+    <string name="explorer_view_show_hidden_label">লুকানো ফাইল দেখান</string>
+    <string name="explorer_view_set_default_action">ডিফল্ট করুন</string>
+    <string name="explorer_view_detail_created_label">তৈরি</string>
+    <string name="explorer_view_detail_modified_label">পরিবর্তিত</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">ফোল্ডার সাজানোর নিয়ম</string>
+    <string name="explorer_settings_folder_sort_rules_desc">আলাদা ফোল্ডারের জন্য সংরক্ষিত সাজানোর সেটিংস</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">ফোল্ডার সাজানোর নিয়ম মুছবেন?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">সব ফোল্ডার ডিফল্ট সাজানোর ক্রমে ফিরে যাবে। নিজস্ব সাজানোর নিয়ম আছে এমন ট্যাবে তা থাকবে। এটি ফেরানো যাবে না।</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">সব মুছুন</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">ফাইলের ধরন</string>
+    <string name="explorer_filter_type_all">সব</string>
+    <string name="explorer_filter_type_files">শুধু ফাইল</string>
+    <string name="explorer_filter_type_folders">শুধু ফোল্ডার</string>
+    <string name="explorer_filter_include_label">অন্তর্ভুক্তির প্যাটার্ন</string>
+    <string name="explorer_filter_include_placeholder_simple">যেমন, vacation, report, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">যেমন, .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">বর্জনের প্যাটার্ন</string>
+    <string name="explorer_filter_exclude_placeholder_simple">যেমন, tmp, cache, old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">যেমন, ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 সেটিংসে রেগেক্স প্যাটার্ন চালু করুন</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">অনুমতি প্রয়োজন</string>
+    <string name="explorer_permission_generic_description">এই অবস্থান ব্রাউজ করতে Butler-এর অতিরিক্ত অনুমতি প্রয়োজন।</string>
+    <string name="explorer_permission_setup_action">সেটআপ খুলুন</string>
+    <string name="explorer_grant_access_action">অ্যাক্সেস দিন</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">পদক্ষেপ</string>
+    <string name="explorer_file_info_type_label">ধরন</string>
+    <string name="explorer_file_info_size_label">আকার</string>
+    <string name="explorer_file_info_modified_label">পরিবর্তিত</string>
+    <string name="explorer_file_action_install">ইনস্টল করুন</string>
+    <string name="explorer_file_action_install_subtitle">এই অ্যাপ আপনার ডিভাইসে ইনস্টল করুন</string>
+    <string name="explorer_file_action_open">খুলুন</string>
+    <string name="explorer_file_action_open_subtitle">এখানে দেখুন, পেছনে গেলে এই ফোল্ডারে ফিরবে</string>
+    <string name="explorer_file_action_open_in_tab">নতুন ট্যাবে খুলুন</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Butler-এ নিজস্ব ট্যাবে দেখুন</string>
+    <string name="explorer_file_action_open_in_editor">এডিটরে খুলুন</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">নতুন ট্যাবে সম্পাদনা করুন</string>
+    <string name="explorer_file_action_open_with">যা দিয়ে খুলবেন</string>
+    <string name="explorer_file_action_open_with_subtitle">খোলার জন্য বাহ্যিক অ্যাপ বাছুন</string>
+    <string name="explorer_file_action_share">শেয়ার করুন</string>
+    <string name="explorer_file_action_share_subtitle">ইনস্টল করা অ্যাপ দিয়ে শেয়ার করুন</string>
+    <string name="explorer_file_action_copy">কপি করুন</string>
+    <string name="explorer_file_action_copy_subtitle">পেস্ট করার জন্য ক্লিপবোর্ডে কপি করুন</string>
+    <string name="explorer_file_action_cut">কাট করুন</string>
+    <string name="explorer_file_action_cut_subtitle">পেস্ট করার জন্য ক্লিপবোর্ডে রাখুন</string>
+    <string name="explorer_file_action_rename">নাম বদলান</string>
+    <string name="explorer_file_action_rename_subtitle">ফাইলের নাম বদলান</string>
+    <string name="explorer_file_action_delete">মুছে ফেলুন</string>
+    <string name="explorer_file_action_delete_subtitle">এই ফাইল স্থায়ীভাবে সরান</string>
+    <string name="explorer_file_action_move_to_trash">ট্র্যাশে সরান</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">ফাইল ট্র্যাশে সরান</string>
+    <string name="explorer_file_action_properties">বৈশিষ্ট্য</string>
+    <string name="explorer_file_action_properties_subtitle">ফাইলের বিস্তারিত তথ্য দেখুন</string>
+    <string name="explorer_file_action_extract">বের করুন</string>
+    <string name="explorer_file_action_extract_subtitle">আর্কাইভের বিষয়বস্তু ফোল্ডারে বের করুন</string>
+    <string name="explorer_file_action_show_in_folder">ফোল্ডারে দেখান</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">এই ফাইল যে ফোল্ডারে আছে সেটি খুলুন</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">%dটি ফাইল তৈরি হয়েছে।</item>
+        <item quantity="other">%dটি ফাইল তৈরি হয়েছে।</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">%dটি ডিরেক্টরি তৈরি হয়েছে।</item>
+        <item quantity="other">%dটি ডিরেক্টরি তৈরি হয়েছে।</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">কপি করার কাজ</string>
+    <string name="explorer_operation_copy_description_single">\"%2$s\" থেকে \"%1$s\" \"%3$s\"-এ কপি করুন।</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">\"%2$s\"-এ %1$dটি আইটেম কপি করুন।</item>
+        <item quantity="other">\"%2$s\"-এ %1$dটি আইটেম কপি করুন।</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%dটি ফাইল কপি হয়েছে।</item>
+        <item quantity="other">%dটি ফাইল কপি হয়েছে।</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%dটি ডিরেক্টরি কপি হয়েছে।</item>
+        <item quantity="other">%dটি ডিরেক্টরি কপি হয়েছে।</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">%s কপি হয়েছে।</item>
+        <item quantity="other">%s কপি হয়েছে।</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">বের করার কাজ</string>
+    <string name="explorer_operation_extract_description">\"%1$s\" \"%2$s\"-এ বের করুন।</string>
+    <string name="explorer_operation_download_copy_title">স্থানীয় কপি করার কাজ</string>
+    <string name="explorer_operation_download_copy_description">স্থানীয়ভাবে ব্রাউজ করতে \"%1$s\" \"%2$s\"-এ কপি করুন।</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">%dটি ফাইল বের করা হয়েছে।</item>
+        <item quantity="other">%dটি ফাইল বের করা হয়েছে।</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">%s বের করা হয়েছে।</item>
+        <item quantity="other">%s বের করা হয়েছে।</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">সংকোচনের কাজ</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">%1$dটি আইটেম \"%2$s\"-এ সংকুচিত করুন।</item>
+        <item quantity="other">%1$dটি আইটেম \"%2$s\"-এ সংকুচিত করুন।</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">%dটি ফাইল সংকুচিত হয়েছে।</item>
+        <item quantity="other">%dটি ফাইল সংকুচিত হয়েছে।</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">আর্কাইভ তৈরি করুন</string>
+    <string name="explorer_compress_dialog_name_label">আর্কাইভের নাম</string>
+    <string name="explorer_compress_dialog_format_label">ফরম্যাট</string>
+    <string name="explorer_compress_dialog_format_zip_hint">যেকোনো ডিভাইসে খোলে। পাসওয়ার্ড দিয়ে সুরক্ষিত করা যায়।</string>
+    <string name="explorer_compress_dialog_format_targz_hint">অনেক ফাইলের ক্ষেত্রে ছোট হয়। পাসওয়ার্ড সুরক্ষা নেই।</string>
+    <string name="explorer_compress_dialog_create_action">তৈরি করুন</string>
+    <string name="explorer_compress_dialog_level_label">সংকোচনের স্তর</string>
+    <string name="explorer_compress_dialog_level_fast">দ্রুত</string>
+    <string name="explorer_compress_dialog_level_normal">স্বাভাবিক</string>
+    <string name="explorer_compress_dialog_level_best">সেরা</string>
+    <string name="explorer_compress_dialog_password_label">পাসওয়ার্ড (ঐচ্ছিক)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">পাসওয়ার্ড নিশ্চিত করুন</string>
+    <string name="explorer_compress_dialog_password_mismatch">পাসওয়ার্ড মিলছে না</string>
+    <string name="explorer_compress_dialog_password_weak">দুর্বল পাসওয়ার্ড</string>
+    <string name="explorer_compress_dialog_password_notice">ফাইলের বিষয়বস্তু এনক্রিপ্ট করা হয়, নাম নয়।</string>
+    <string name="explorer_compress_dialog_password_show">পাসওয়ার্ড দেখান</string>
+    <string name="explorer_compress_dialog_password_hide">পাসওয়ার্ড লুকান</string>
+    <string name="explorer_compress_dialog_overwrite_title">আর্কাইভ প্রতিস্থাপন করবেন?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" আগে থেকেই আছে এবং প্রতিস্থাপিত হবে।</string>
+    <string name="explorer_compress_dialog_overwrite_action">প্রতিস্থাপন করুন</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">%1$dটি আইটেম ফেলবেন?</item>
+        <item quantity="other">%1$dটি আইটেম ফেলবেন?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">\"%2$s\"-এ %1$dটি আইটেম কপি করবেন বা সরাবেন?</item>
+        <item quantity="other">\"%2$s\"-এ %1$dটি আইটেম কপি করবেন বা সরাবেন?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">\"%2$s\"-এ %1$dটি আইটেম কপি করবেন?</item>
+        <item quantity="other">\"%2$s\"-এ %1$dটি আইটেম কপি করবেন?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">ট্র্যাশে সরাবেন?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">%1$dটি আইটেম ট্র্যাশে সরাবেন?</item>
+        <item quantity="other">%1$dটি আইটেম ট্র্যাশে সরাবেন?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">সরানোর কাজ</string>
+    <string name="explorer_operation_move_description_single">\"%2$s\" থেকে \"%1$s\" \"%3$s\"-এ সরান।</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">\"%2$s\"-এ %1$dটি আইটেম সরান।</item>
+        <item quantity="other">\"%2$s\"-এ %1$dটি আইটেম সরান।</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%dটি ফাইল সরানো হয়েছে।</item>
+        <item quantity="other">%dটি ফাইল সরানো হয়েছে।</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%dটি ডিরেক্টরি সরানো হয়েছে।</item>
+        <item quantity="other">%dটি ডিরেক্টরি সরানো হয়েছে।</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">%s সরানো হয়েছে।</item>
+        <item quantity="other">%s সরানো হয়েছে।</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">ফোল্ডার তৈরি</string>
+    <string name="explorer_operation_create_description_directory">\"%2$s\"-এ \"%1$s\" ফোল্ডার তৈরি করুন</string>
+    <string name="explorer_operation_create_title_file">ফাইল তৈরি</string>
+    <string name="explorer_operation_create_description_file">\"%2$s\"-এ \"%1$s\" ফাইল তৈরি করুন</string>
+    <string name="explorer_operation_create_text_file_title">টেক্সট ফাইল তৈরি</string>
+    <string name="explorer_operation_create_text_file_description">টেক্সটের অংশ থেকে \"%1$s\" তৈরি করুন</string>
+    <string name="explorer_operation_calculate_sizes_title">আকারের হিসাব</string>
+    <string name="explorer_operation_calculate_sizes_description">\"%1$s\"-এ ফোল্ডারের আকার হিসাব করুন।</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$dটি আইটেম স্ক্যান হয়েছে</item>
+        <item quantity="other">%1$dটি আইটেম স্ক্যান হয়েছে</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">%1$dটি ফোল্ডারের আকার হিসাব করা হয়েছে।</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">%1$dটি ফোল্ডারের আকার হিসাব করা হয়েছে, %2$dটি অবস্থান পড়া যায়নি।</item>
+        <item quantity="other">%1$dটি ফোল্ডারের আকার হিসাব করা হয়েছে, %2$dটি অবস্থান পড়া যায়নি।</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">হিসাবের সময় বদলেছে বলে \"%1$s\"-এর ফোল্ডারের আকার বাতিল করা হয়েছে।</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">নেভিগেশন ব্যর্থ হয়েছে</string>
+    <string name="explorer_aborted_dialog_title">কাজ থামানো হয়েছে</string>
+    <string name="explorer_aborted_dialog_message">কিছু দেখানোর আগেই লোড বাতিল করা হয়েছে।</string>
+    <string name="explorer_archive_unbrowsable_title">এখানে আর্কাইভ ব্রাউজ করা যায় না</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" এমন স্টোরেজে আছে যা শুধু ধারাবাহিকভাবে পড়তে দেয়, কিন্তু আর্কাইভ ব্রাউজ করতে যেকোনো অবস্থান থেকে পড়ার সুবিধা প্রয়োজন। এখানে আর্কাইভ বের করুন, অথবা ব্রাউজ করার জন্য স্থানীয় কপি ডাউনলোড করুন।</string>
+    <string name="explorer_archive_unbrowsable_extract_action">আর্কাইভ বের করুন</string>
+    <string name="explorer_archive_unbrowsable_download_action">স্থানীয় কপি ডাউনলোড করুন</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (বিশেষ অ্যাক্সেস)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (বিশেষ অ্যাক্সেস)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android এই ফোল্ডারে অ্যাক্সেস সীমিত করে। অ্যাক্সেস দিতে ফোল্ডার বাছাইকারী ব্যবহার করুন।</string>
+    <string name="explorer_permission_multiple_options_description">Android-এর ফোল্ডার বাছাইকারী দিয়ে অ্যাক্সেস দিতে পারেন বা সব সীমাবদ্ধ ফোল্ডারে দ্রুত অ্যাক্সেসের জন্য রুট বা ADB অ্যাক্সেস সেটআপ করতে পারেন।</string>
+    <string name="explorer_permission_multiple_options_root_description">Android-এর ফোল্ডার বাছাইকারী দিয়ে অ্যাক্সেস দিতে পারেন বা সব সীমাবদ্ধ ফোল্ডারে অ্যাক্সেসের জন্য রুট সেটআপ করতে পারেন।</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Android-এর ফোল্ডার বাছাইকারী দিয়ে অ্যাক্সেস দিতে পারেন বা সীমাবদ্ধ ফোল্ডারে দ্রুত অ্যাক্সেসের জন্য ADB অ্যাক্সেস সেটআপ করতে পারেন।</string>
+    <string name="explorer_permission_setup_both_description">এই ফোল্ডারে উচ্চতর অ্যাক্সেস প্রয়োজন। সেটআপে রুট বা ADB অ্যাক্সেস সেটআপ করুন।</string>
+    <string name="explorer_permission_setup_shizuku_description">এই ফোল্ডারে ADB-এর মাধ্যমে উচ্চতর অ্যাক্সেস প্রয়োজন। সেটআপে ADB অ্যাক্সেস কনফিগার করুন।</string>
+    <string name="explorer_permission_setup_root_description">এই ফোল্ডারে রুট অ্যাক্সেস প্রয়োজন। ডিভাইস রুট করা থাকলে সেটআপে রুট কনফিগার করুন।</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">এই ফোল্ডারে অ্যাক্সেস দিতে Android-এর ফোল্ডার বাছাইকারী ব্যবহার করুন।</string>
+    <string name="explorer_permission_option_picker_action">SAF বাছাইকারী খুলুন</string>
+
+    <string name="explorer_permission_option_setup_title">পূর্ণ অ্যাক্সেস</string>
+    <string name="explorer_permission_option_setup_description">সব সীমাবদ্ধ ফোল্ডারে দ্রুত অ্যাক্সেসের জন্য রুট বা ADB অ্যাক্সেস কনফিগার করুন।</string>
+    <string name="explorer_permission_option_setup_root_description">এই ফোল্ডার ও অন্য সীমাবদ্ধ ফোল্ডারে অ্যাক্সেসের জন্য রুট কনফিগার করুন।</string>
+    <string name="explorer_permission_option_setup_shizuku_description">এই ফোল্ডার খুলতে ADB অ্যাক্সেস কনফিগার করুন।</string>
+    <string name="explorer_permission_option_setup_action">কনফিগার করুন</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">স্টোরেজের অ্যাক্সেস</string>
+    <string name="explorer_permission_option_storage_description">আপনার ডিভাইসের স্টোরেজের ফাইল অ্যাক্সেস করতে Butler-কে অনুমতি দিন।</string>
+    <string name="explorer_permission_option_storage_action">অনুমতি দিন</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">পছন্দের</string>
+    <string name="explorer_action_add_to_favorites">পছন্দে যোগ করুন</string>
+    <string name="explorer_action_remove_from_favorites">পছন্দ থেকে সরান</string>
+    <string name="explorer_favorites_select_action">নির্বাচন করুন</string>
+    <string name="explorer_favorites_unavailable_subtitle">অ্যাক্সেস করা যায় না</string>
+    <string name="explorer_favorites_unavailable_toast">পছন্দের আইটেম অ্যাক্সেস করা যায় না</string>
+    <string name="explorer_favorites_added_message">%1$s পছন্দে যোগ হয়েছে</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">%1$dটি আইটেম পছন্দে যোগ হয়েছে</item>
+        <item quantity="other">%1$dটি আইটেম পছন্দে যোগ হয়েছে</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">%1$s পছন্দ থেকে সরানো হয়েছে</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">%1$dটি আইটেম পছন্দ থেকে সরানো হয়েছে</item>
+        <item quantity="other">%1$dটি আইটেম পছন্দ থেকে সরানো হয়েছে</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">পছন্দের নাম বদলান</string>
+    <string name="explorer_favorites_rename_hint">পছন্দের নাম</string>
+    <string name="explorer_favorites_rename_description">শুধু পছন্দের এন্ট্রির নাম বদলায়, ফোল্ডারের নিজের নাম একই থাকে।</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">এই ট্যাব %1$dটি ফোল্ডারের সাজানোর ক্রমের বদলে নিজস্ব ক্রম ব্যবহার করে</item>
+        <item quantity="other">এই ট্যাব %1$dটি ফোল্ডারের সাজানোর ক্রমের বদলে নিজস্ব ক্রম ব্যবহার করে</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$dটি ফোল্ডার</item>
+        <item quantity="other">%1$dটি ফোল্ডার</item>
+    </plurals>
+</resources>

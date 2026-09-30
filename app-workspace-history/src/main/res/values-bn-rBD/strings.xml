@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">ইতিহাস</string>
+    <string name="history_workspace_subtitle">সাম্প্রতিক ফাইলের কাজ</string>
+    <string name="history_workspace_title_scoped">ইতিহাস: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">ইতিহাস: ব্যর্থ</string>
+    <string name="history_workspace_title_outcome_partial">ইতিহাস: আংশিক</string>
+    <string name="history_workspace_title_outcome_cancelled">ইতিহাস: বাতিল</string>
+    <string name="history_workspace_title_outcome_completed">ইতিহাস: সম্পন্ন</string>
+    <string name="history_workspace_title_kind_copy">ইতিহাস: কপি</string>
+    <string name="history_workspace_title_kind_move">ইতিহাস: সরানো</string>
+    <string name="history_workspace_title_kind_delete">ইতিহাস: মুছে ফেলা</string>
+    <string name="history_workspace_title_kind_create_file">ইতিহাস: ফাইল তৈরি</string>
+    <string name="history_workspace_title_kind_create_folder">ইতিহাস: ফোল্ডার তৈরি</string>
+    <string name="history_workspace_title_kind_save">ইতিহাস: সংরক্ষণ</string>
+    <string name="history_workspace_title_kind_compress">ইতিহাস: সংকোচন</string>
+    <string name="history_workspace_title_kind_extract">ইতিহাস: বের করা</string>
+    <string name="history_workspace_title_filtered">ইতিহাস (ছাঁকা)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">ইতিহাস: %1$dটি পাথ</item>
+        <item quantity="other">ইতিহাস: %1$dটি পাথ</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">সব</string>
+    <string name="history_filter_outcome_completed">সম্পন্ন</string>
+    <string name="history_filter_outcome_partial">আংশিক</string>
+    <string name="history_filter_outcome_failed">ব্যর্থ</string>
+    <string name="history_filter_outcome_cancelled">বাতিল</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">কপি</string>
+    <string name="history_filter_kind_move">সরানো</string>
+    <string name="history_filter_kind_delete">মুছে ফেলা</string>
+    <string name="history_filter_kind_create_file">ফাইল তৈরি</string>
+    <string name="history_filter_kind_create_folder">ফোল্ডার তৈরি</string>
+    <string name="history_filter_kind_save">সংরক্ষণ</string>
+    <string name="history_filter_kind_compress">সংকোচন</string>
+    <string name="history_filter_kind_extract">বের করা</string>
+    <string name="history_filter_kind_enable">সক্রিয় করা</string>
+    <string name="history_filter_kind_disable">বন্ধ করা</string>
+    <string name="history_filter_kind_force_stop">জোর করে থামানো</string>
+    <string name="history_filter_kind_uninstall">আনইনস্টল</string>
+    <string name="history_filter_kind_clear_data">তথ্য মোছা</string>
+    <string name="history_filter_kind_components">কম্পোনেন্ট</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">পাথের পরিধি নির্ধারণ করুন…</string>
+    <string name="history_path_scope_clear_action">পাথের পরিধি মুছুন</string>
+    <string name="history_path_scope_dialog_title">পাথ দিয়ে ছাঁকুন</string>
+    <string name="history_path_scope_dialog_description">শুধু এই পাথ বা এর অধীন পাথে প্রভাব ফেলে এমন কাজ দেখান।</string>
+    <string name="history_path_scope_dialog_input_label">পাথ</string>
+    <string name="history_path_scope_dialog_pick_folder_action">ফোল্ডার বাছুন…</string>
+    <string name="history_path_scope_dialog_apply_action">প্রয়োগ করুন</string>
+    <string name="history_path_scope_dialog_cancel_action">বাতিল করুন</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">আজ</string>
+    <string name="history_group_yesterday">গতকাল</string>
+    <string name="history_group_this_week">এই সপ্তাহ</string>
+    <string name="history_group_this_month">এই মাস</string>
+    <string name="history_group_older">আরও পুরোনো</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">নাম বদলানো হয়েছে</string>
+    <string name="history_entry_intent_paste_copy">পেস্ট করা হয়েছে</string>
+    <string name="history_entry_intent_paste_move">পেস্ট করা হয়েছে (সরানো)</string>
+    <string name="history_entry_intent_drop_copy">ফেলা হয়েছে (কপি)</string>
+    <string name="history_entry_intent_drop_move">ফেলা হয়েছে (সরানো)</string>
+    <string name="history_entry_intent_enable_components">কম্পোনেন্ট সক্রিয় করা হয়েছে:</string>
+    <string name="history_entry_intent_disable_components">কম্পোনেন্ট বন্ধ করা হয়েছে:</string>
+    <string name="history_entry_kind_copy">কপি করা হয়েছে</string>
+    <string name="history_entry_kind_move">সরানো হয়েছে</string>
+    <string name="history_entry_kind_delete">মুছে ফেলা হয়েছে</string>
+    <string name="history_entry_kind_create_file">ফাইল তৈরি হয়েছে</string>
+    <string name="history_entry_kind_create_folder">ফোল্ডার তৈরি হয়েছে</string>
+    <string name="history_entry_kind_save">সংরক্ষিত হয়েছে</string>
+    <string name="history_entry_kind_compress">সংকুচিত হয়েছে</string>
+    <string name="history_entry_kind_extract">বের করা হয়েছে</string>
+    <string name="history_entry_kind_restore">পুনরুদ্ধার হয়েছে</string>
+    <string name="history_entry_kind_install">ইনস্টল হয়েছে</string>
+    <string name="history_entry_kind_enable">সক্রিয় হয়েছে</string>
+    <string name="history_entry_kind_disable">বন্ধ হয়েছে</string>
+    <string name="history_entry_kind_force_stop">জোর করে থামানো হয়েছে</string>
+    <string name="history_entry_kind_uninstall">আনইনস্টল হয়েছে</string>
+    <string name="history_entry_kind_clear_data">তথ্য মোছা হয়েছে:</string>
+    <string name="history_entry_kind_components">কম্পোনেন্ট বদলানো হয়েছে:</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%dটি পাথ</item>
+        <item quantity="other">%dটি পাথ</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">%2$dটি প্রভাবিত পাথের প্রথম %1$dটি</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">শুরু</string>
+    <string name="history_detail_label_completed">সম্পন্ন</string>
+    <string name="history_detail_label_duration">সময়কাল</string>
+    <string name="history_detail_label_outcome">ফলাফল</string>
+    <string name="history_detail_label_origin">উৎস</string>
+    <string name="history_detail_label_error">ত্রুটি</string>
+    <string name="history_detail_label_paths">প্রভাবিত পাথ</string>
+    <string name="history_detail_label_partial_errors">প্রতিটি আইটেমের ব্যর্থতা</string>
+    <string name="history_detail_copy_path_action">পাথ কপি করুন</string>
+    <string name="history_detail_paths_empty">কোনো প্রভাবিত পাথ রেকর্ড করা হয়নি।</string>
+    <string name="history_detail_label_attempted_paths">চেষ্টা করা পাথ</string>
+    <string name="history_detail_label_packages">প্রভাবিত অ্যাপ</string>
+    <string name="history_detail_packages_empty">কোনো প্রভাবিত অ্যাপ রেকর্ড করা হয়নি।</string>
+    <string name="history_detail_paths_truncated_callout">%2$dটি প্রভাবিত পাথের প্রথম %1$dটি দেখানো হচ্ছে।</string>
+    <string name="history_detail_attempted_paths_truncated_callout">%2$dটি চেষ্টা করা পাথের প্রথম %1$dটি দেখানো হচ্ছে।</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">এই কাজের সময় %1$dটি আইটেম ব্যর্থ হয়েছে।</item>
+        <item quantity="other">এই কাজের সময় %1$dটি আইটেম ব্যর্থ হয়েছে।</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">এক্সপ্লোরার</string>
+    <string name="history_origin_searcher">সার্চ</string>
+    <string name="history_origin_saver">সেভার</string>
+    <string name="history_origin_developer">ডেভেলপার</string>
+    <string name="history_origin_viewer">ভিউয়ার</string>
+    <string name="history_origin_apps">অ্যাপ</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d মি.সে.</string>
+    <string name="history_duration_seconds">%1$.1f সেকেন্ড</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">এখনো ইতিহাস নেই</string>
+    <string name="history_empty_subtitle">Butler ব্যবহার করার সময় ফাইলের কাজ এখানে দেখা যাবে।</string>
+    <string name="history_empty_filtered_title">কোনো মিল নেই</string>
+    <string name="history_empty_filtered_subtitle">বর্তমান ফিল্টারের সঙ্গে ইতিহাসের কোনো এন্ট্রি মেলেনি।</string>
+    <string name="history_empty_filtered_reset_action">ফিল্টার রিসেট করুন</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">ফিল্টার রিসেট করুন</string>
+    <string name="history_toolbar_reset_filter_content_description">ফিল্টারগুলো রিসেট করুন</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">%2$dটি প্রভাবিত পাথের প্রথম %1$dটি</string>
+    <string name="history_add_filter_action">ফিল্টার যোগ করুন</string>
+    <string name="history_add_filter_sheet_title">ফিল্টার যোগ করুন</string>
+    <string name="history_add_filter_section_outcome">ফলাফল</string>
+    <string name="history_add_filter_section_kind">ধরন</string>
+    <string name="history_add_filter_section_path_scope">পাথের পরিধি</string>
+    <string name="history_add_filter_add_path_action">পাথ যোগ করুন…</string>
+    <string name="history_path_scope_remove_action">সরান</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$dটি এন্ট্রি</item>
+        <item quantity="other">%1$dটি এন্ট্রি</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%2$dটির মধ্যে %1$dটি দেখানো হচ্ছে</item>
+        <item quantity="other">%2$dটির মধ্যে %1$dটি দেখানো হচ্ছে</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">ইতিহাস</string>
+    <string name="history_settings_save_history_title">ইতিহাস রাখুন</string>
+    <string name="history_settings_save_history_subtitle">সম্পন্ন ফাইলের কাজ রেকর্ড করুন।</string>
+    <string name="history_settings_max_history_label">ইতিহাসের সর্বোচ্চ আইটেম</string>
+    <string name="history_settings_max_history_subtitle">এই সীমা ছাড়ালে পুরোনো এন্ট্রি সরানো হয়।</string>
+    <string name="history_settings_max_history_input_label">সর্বোচ্চ এন্ট্রি</string>
+    <string name="history_settings_clear_history_title">ইতিহাস মুছুন</string>
+    <string name="history_settings_clear_history_subtitle">সংরক্ষিত সব এন্ট্রি সরান (%1$d)।</string>
+    <string name="history_clear_dialog_title">ইতিহাস মুছবেন?</string>
+    <string name="history_clear_dialog_message">কাজের ইতিহাসের ডেটাবেস থেকে সব এন্ট্রি সরায়। এটি ফেরানো যাবে না।</string>
+    <string name="history_clear_confirm_action">মুছুন</string>
+    <string name="history_cleared_success">ইতিহাস মোছা হয়েছে</string>
+    <string name="history_workspace_title_kind_restore">পুনরুদ্ধার</string>
+    <string name="history_filter_kind_restore">পুনরুদ্ধার</string>
+    <string name="history_workspace_title_kind_install">ইতিহাস: ইনস্টল</string>
+    <string name="history_filter_kind_install">ইনস্টল</string>
+    <string name="history_workspace_title_kind_enable">ইতিহাস: সক্রিয় করা</string>
+    <string name="history_workspace_title_kind_disable">ইতিহাস: বন্ধ করা</string>
+    <string name="history_workspace_title_kind_force_stop">ইতিহাস: জোর করে থামানো</string>
+    <string name="history_workspace_title_kind_uninstall">ইতিহাস: আনইনস্টল</string>
+    <string name="history_workspace_title_kind_clear_data">ইতিহাস: তথ্য মোছা</string>
+    <string name="history_workspace_title_kind_components">ইতিহাস: কম্পোনেন্ট</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">সব নির্বাচন করুন</string>
+    <string name="history_action_deselect_all">সব অনির্বাচিত করুন</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">%1$dটি এন্ট্রি মুছে ফেলুন</item>
+        <item quantity="other">%1$dটি এন্ট্রি মুছে ফেলুন</item>
+    </plurals>
+    <string name="history_delete_dialog_message">শুধু ইতিহাসের রেকর্ড সরানো হয়, ফাইলগুলো অপরিবর্তিত থাকে।</string>
+    <string name="history_pro_dialog_message">একসঙ্গে একাধিক ইতিহাসের এন্ট্রি শেয়ার করা আপগ্রেডের অংশ। একক এন্ট্রি শেয়ার করা ও এন্ট্রি মুছে ফেলা বিনামূল্যে থাকে।</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">ফলাফল</string>
+    <string name="history_share_label_kind">ধরন</string>
+    <string name="history_share_label_origin">উৎস</string>
+    <string name="history_share_label_summary">সারাংশ</string>
+    <string name="history_share_label_completed">সম্পন্ন</string>
+    <string name="history_share_label_duration">সময়কাল</string>
+    <string name="history_share_label_error">ত্রুটি</string>
+    <string name="history_share_label_failed_items">ব্যর্থ আইটেম</string>
+    <string name="history_share_label_paths">প্রভাবিত পাথ (%1$d)</string>
+    <string name="history_share_label_packages">প্রভাবিত অ্যাপ (%1$d)</string>
+    <string name="history_share_paths_more">… এবং আরও %1$dটি</string>
+    <string name="history_share_truncated">… এবং আরও %1$dটি এন্ট্রি অন্তর্ভুক্ত করা হয়নি</string>
+</resources>

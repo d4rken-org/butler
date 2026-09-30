@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">ডিভাইসে উন্নত অ্যাক্সেস</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">ডিভাইস</string>
+    <string name="documents_connection_device_summary">স্থানীয় ডিভাইসের স্টোরেজ</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">রুট ফাইল সিস্টেম</string>
+    <string name="provider_documents_storage_internal_label">অভ্যন্তরীণ স্টোরেজ</string>
+    <string name="provider_documents_storage_sd_card_label">SD কার্ড</string>
+    <string name="provider_documents_storage_saf_label">SAF অবস্থান</string>
+    <string name="provider_documents_storage_free_suffix">খালি</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">এই অবস্থান ব্রাউজ করতে রুট অ্যাক্সেস প্রয়োজন। Butler অ্যাপের সেটিংসে রুট অ্যাক্সেস চালু করুন।</string>
+    <string name="provider_documents_error_requires_adb">এই অবস্থান ব্রাউজ করতে ADB অ্যাক্সেস প্রয়োজন। Butler-এর সেটআপে এটি চালু করুন।</string>
+    <string name="provider_documents_error_requires_storage">এই অবস্থান ব্রাউজ করতে স্টোরেজের অনুমতি প্রয়োজন। Butler অ্যাপের সেটিংসে স্টোরেজের অনুমতি দিন।</string>
+    <string name="provider_documents_error_requires_permissions">এই অবস্থান ব্রাউজ করতে অতিরিক্ত অনুমতি প্রয়োজন। Butler অ্যাপের সেটিংস দেখুন।</string>
+    <string name="provider_documents_error_generic">এই অবস্থান অ্যাক্সেস করা যাচ্ছে না। অ্যাক্সেসের বিকল্পের জন্য Butler অ্যাপ দেখুন।</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">ডকুমেন্ট প্রদানকারী</string>
+    <string name="provider_documents_settings_subtitle">বাহ্যিক অ্যাপের সঙ্গে সংযোগ</string>
+    <string name="provider_documents_settings_category_integration_label">সংযোগ</string>
+    <string name="provider_documents_enabled_title">ডকুমেন্ট প্রদানকারী চালু করুন</string>
+    <string name="provider_documents_enabled_desc">Android-এর ফাইল বাছাইকারী ব্যবহার করে অন্য অ্যাপকে Butler-এর মাধ্যমে ফাইল অ্যাক্সেস করতে দিন</string>
+</resources>

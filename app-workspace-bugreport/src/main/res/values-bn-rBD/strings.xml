@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">বাগ রিপোর্ট</string>
+    <string name="bugreport_workspace_subtitle">ক্র্যাশ ও ত্রুটির রিপোর্ট</string>
+
+    <string name="bugreport_empty_title">কোনো রিপোর্ট নেই</string>
+    <string name="bugreport_empty_subtitle">ক্র্যাশ ও ত্রুটির রিপোর্ট এখানে দেখা যাবে। স্বয়ংক্রিয়ভাবে কিছু পাঠানো হয় না।</string>
+
+    <string name="bugreport_type_crash">ক্র্যাশ</string>
+    <string name="bugreport_type_report">রিপোর্ট</string>
+    <string name="bugreport_type_recording">রেকর্ডিং</string>
+
+    <string name="bugreport_record_action">ডিবাগ লগ রেকর্ড করুন</string>
+    <string name="bugreport_record_short_action">রেকর্ড করুন</string>
+    <string name="bugreport_stop_action">রেকর্ডিং থামান</string>
+    <string name="bugreport_stop_short_action">থামান</string>
+    <string name="bugreport_recording_ongoing_label">রেকর্ড হচ্ছে…</string>
+
+    <string name="bugreport_recording_short_title">রেকর্ডিং খুব ছোট</string>
+    <string name="bugreport_recording_short_message">এই রেকর্ডিং মাত্র কয়েক সেকেন্ডের এবং এতে দরকারি তথ্য না-ও থাকতে পারে। তবু থামাবেন?</string>
+    <string name="bugreport_recording_short_keep_action">রেকর্ডিং চালিয়ে যান</string>
+
+    <string name="bugreport_rename_action">নাম বদলান</string>
+    <string name="bugreport_rename_dialog_title">এই রিপোর্টের নাম দিন</string>
+    <string name="bugreport_rename_name_label">নাম</string>
+    <string name="bugreport_rename_name_hint">তালিকায় ও শেয়ার করা ফাইলের নামে দেখা যাবে</string>
+
+    <string name="bugreport_share_action">শেয়ার করুন</string>
+    <string name="bugreport_delete_action">মুছে ফেলুন</string>
+    <string name="bugreport_delete_all_action">সব মুছে ফেলুন</string>
+    <string name="bugreport_delete_all_confirm_title">সব ডিবাগ লগ মুছে ফেলবেন?</string>
+    <string name="bugreport_delete_all_confirm_message">এতে রেকর্ড করা সব ডিবাগ লগ সেশন স্থায়ীভাবে মুছে যাবে। চলমান রেকর্ডিং প্রভাবিত হবে না।</string>
+    <string name="bugreport_delete_confirm_title">এই রিপোর্ট মুছে ফেলবেন?</string>
+    <string name="bugreport_delete_confirm_message">এতে এই রিপোর্ট ও এর লগ স্থায়ীভাবে মুছে যাবে।</string>
+    <string name="bugreport_cancel_action">বাতিল করুন</string>
+
+    <string name="bugreport_share_chooser_title">বাগ রিপোর্ট শেয়ার করুন</string>
+    <string name="bugreport_share_consent_title">রিপোর্ট শেয়ার করবেন?</string>
+    <string name="bugreport_share_consent_message">এই রিপোর্টে অ্যাপের লগ আছে, যাতে ফাইলের নাম, পাথ এবং অ্যাপ ও ডিভাইসের তথ্য থাকতে পারে। শুধু বিশ্বস্ত ব্যক্তিদের সঙ্গে শেয়ার করুন।</string>
+
+    <string name="bugreport_detail_back_action">পেছনে</string>
+    <string name="bugreport_detail_section_error">ত্রুটি</string>
+    <string name="bugreport_detail_section_log">সাম্প্রতিক লগ</string>
+    <string name="bugreport_detail_field_type">ধরন</string>
+    <string name="bugreport_detail_field_time">সময়</string>
+    <string name="bugreport_detail_field_app_version">অ্যাপের সংস্করণ</string>
+    <string name="bugreport_detail_field_device">ডিভাইস</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">বিল্ড</string>
+    <string name="bugreport_detail_field_error_class">ত্রুটির ধরন</string>
+    <string name="bugreport_detail_field_thread">থ্রেড</string>
+    <string name="bugreport_detail_log_truncated">%2$dটি লাইনের শেষ %1$dটি</string>
+    <string name="bugreport_detail_log_count">%1$dটি লাইন</string>
+    <string name="bugreport_detail_log_empty">কোনো লগ ধরা হয়নি</string>
+    <string name="bugreport_detail_log_error">লগ লোড করা যায়নি</string>
+</resources>

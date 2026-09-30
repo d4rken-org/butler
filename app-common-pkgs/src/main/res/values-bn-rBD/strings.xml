@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">অ্যাপের তালিকা অবৈধ</string>
+    <string name="pkgrepo_invalid_inventory_error_description">সিস্টেম Butler-কে ইনস্টল করা অ্যাপের একটি অবৈধ তালিকা দিয়েছে।</string>
+</resources>

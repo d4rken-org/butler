@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">নতুন</string>
+    <string name="workspace_templates_choose_title">নতুন ট্যাব</string>
+    <string name="workspace_templates_choose_subtitle">ট্যাবের ধরন বাছুন। কীভাবে সাহায্য করতে পারি?</string>
+    <string name="workspace_templates_name_tab_action">এই ট্যাবের নাম দিন</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">একটি টুল বাছুন</string>
+    <string name="tour_templates_picker_body">এটি ট্যাব বাছাইকারী, এই ট্যাব কী হবে তা বাছুন। একটি বাছলেই ট্যাব সেই টুলে পরিণত হয়।</string>
+    <string name="tour_templates_butler_button_title">আপনার ট্যাব এখানে থাকে</string>
+    <string name="tour_templates_butler_button_body">ট্যাব মেনু পেতে Butler বোতামে ট্যাপ করুন: নতুন ট্যাব তৈরি করুন, বর্তমানটি বন্ধ করুন বা পূর্ণ ট্যাব ম্যানেজার খুলুন। সরাসরি ট্যাব ম্যানেজারে যেতে বোতামটি দীর্ঘক্ষণ চেপে ধরুন।</string>
+</resources>

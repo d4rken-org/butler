@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">আইটেম মুছে ফেলা হচ্ছে</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">আইটেম কপি করা হচ্ছে</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">আইটেম সরানো হচ্ছে</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">স্ক্যান হচ্ছে…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">ফাইলটি আগে থেকেই আছে</string>
+    <string name="path_action_folder_exists_title">ফোল্ডারটি আগে থেকেই আছে</string>
+    <string name="path_action_file_exists_description">\"%2$s\"-এ \"%1$s\" নামের একটি ফাইল আগে থেকেই আছে।</string>
+    <string name="path_action_folder_exists_description">\"%2$s\"-এ \"%1$s\" নামের একটি ফোল্ডার আগে থেকেই আছে।</string>
+
+    <string name="path_action_not_found_title">ফাইলটি আর নেই</string>
+    <string name="path_action_not_found_description">\"%1$s\" মুছে ফেলা হয়েছে, নাম বদলানো হয়েছে বা অন্যত্র সরানো হয়েছে।</string>
+
+    <string name="path_action_permission_denied_title">অনুমতি প্রত্যাখ্যাত</string>
+    <string name="path_action_permission_denied_description">যথেষ্ট অনুমতি না থাকায় \"%2$s\"-এ \"%1$s\" অ্যাক্সেস করা যাচ্ছে না।</string>
+    <string name="path_action_permission_denied_no_mechanism_description">\"%2$s\"-এ \"%1$s\" অ্যাক্সেস করা যাচ্ছে না। এই কাজ করার কোনো পদ্ধতি পাওয়া যাচ্ছে না।</string>
+    <string name="path_action_permission_denied_readonly_description">\"%2$s\"-এ \"%1$s\" অ্যাক্সেস করা যাচ্ছে না। ফাইল সিস্টেম শুধু পড়া যায়।</string>
+    <string name="path_action_permission_denied_not_permitted_description">\"%2$s\"-এ \"%1$s\" অ্যাক্সেস করা যাচ্ছে না। সিস্টেম কাজটি প্রত্যাখ্যান করেছে।</string>
+
+    <string name="path_action_insufficient_space_title">যথেষ্ট জায়গা নেই</string>
+    <string name="path_action_insufficient_space_description">\"%2$s\" থেকে \"%1$s\" কপি করার জন্য স্টোরেজে যথেষ্ট জায়গা নেই।</string>
+
+    <string name="path_action_unknown_error_title">কাজ ব্যর্থ হয়েছে</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">প্রতিস্থাপন অসম্পূর্ণ</string>
+    <string name="path_action_data_kept_new_data_description">Butler \"%1$s\" লেখা শেষ করতে পারেনি। আপনার নতুন তথ্য একই ফোল্ডারে \"%2$s\" হিসেবে রাখা আছে। পুনরুদ্ধার করতে নাম বদলান, অথবা বাদ দিতে মুছে ফেলুন।</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler \"%1$s\" লেখা শেষ করতে পারেনি, আগের ফাইল অপরিবর্তিত আছে। আপনার নতুন তথ্য একই ফোল্ডারে \"%2$s\" হিসেবে রাখা আছে। পুনরুদ্ধার করতে নাম বদলান, অথবা বাদ দিতে মুছে ফেলুন।</string>
+    <string name="path_action_data_kept_both_description">Butler \"%1$s\" লেখা শেষ করতে পারেনি। কিছুই হারায়নি: আগের ফাইল একই ফোল্ডারে \"%2$s\" এবং নতুন তথ্য \"%3$s\" হিসেবে রাখা আছে। যেটি রাখতে চান সেটির নাম বদলান।</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler \"%1$s\" লেখা শেষ করতে পারেনি এবং \"%2$s\" এখনো আছে কি না পরীক্ষা করতে পারেনি। একটি অসম্পূর্ণ কপি একই ফোল্ডারে \"%3$s\" হিসেবে থাকতে পারে। কোনোটি মুছে ফেলার আগে দুটোই তুলনা করুন।</string>
+    <string name="path_action_data_kept_intermediate_description">Butler \"%1$s\" সরানো শেষ করতে পারেনি এবং ফাইলটি তার ফোল্ডার থেকে সরেছে কি না জানে না। আপনার তথ্য ওই ফোল্ডারে \"%2$s\" হিসেবে আছে, অথবা ইতিমধ্যে \"%3$s\"-এ আছে। কোনোটি মুছে ফেলার আগে দুটোই পরীক্ষা করুন।</string>
+    <string name="path_action_data_kept_uncertain_description">Butler \"%1$s\" লেখা শেষ করতে পারেনি এবং আপনার ফাইল কোথায় আছে জানে না। এটি ওই ফোল্ডারের তিনটি ফাইলের একটি: \"%1$s\" নিজেই, \"%2$s\" বা \"%3$s\"। কোনোটি মুছে ফেলার আগে তিনটিই পরীক্ষা করুন।</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler \"%1$s\" লেখা শেষ করতে পারেনি এবং আপনার ফাইল কোথায় আছে জানে না। এটি ওই ফোল্ডারের দুটি ফাইলের একটি: \"%1$s\" নিজেই বা \"%2$s\"। কোনোটি মুছে ফেলার আগে দুটোই পরীক্ষা করুন।</string>
+
+    <string name="path_action_trash_size_limit_title">ট্র্যাশের জন্য আইটেমগুলো বেশি বড়</string>
+    <string name="path_action_trash_size_limit_description">মোট %2$s আকারের %1$dটি আইটেম ট্র্যাশের আকারসীমা (%3$s) ছাড়িয়ে গেছে।</string>
+
+    <string name="path_action_trash_move_failed_title">ট্র্যাশে সরানো ব্যর্থ হয়েছে</string>
+    <string name="path_action_trash_move_failed_description">%1$dটি আইটেম ট্র্যাশে সরানো যায়নি।</string>
+
+    <string name="path_action_trash_not_supported_title">ট্র্যাশ সমর্থিত নয়</string>
+    <string name="path_action_trash_not_supported_description">%1$dটি আইটেম এমন স্টোরেজে আছে যা ট্র্যাশ সমর্থন করে না।</string>
+
+    <string name="path_action_archive_password_title">পাসওয়ার্ড প্রয়োজন</string>
+    <string name="path_action_archive_password_description">\"%1$s\" এনক্রিপ্ট করা। এর বিষয়বস্তু পড়তে পাসওয়ার্ড দিন।</string>
+    <string name="path_action_archive_password_wrong_description">\"%1$s\"-এর পাসওয়ার্ড ভুল ছিল। আবার চেষ্টা করুন।</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">সার্ভারে পৌঁছানো যাচ্ছে না</string>
+    <string name="smb_error_unreachable_description">Butler \"%1$s\"-এ পৌঁছাতে পারেনি। ডিভাইস একই নেটওয়ার্কে আছে এবং সার্ভার চালু আছে কি না পরীক্ষা করুন।</string>
+    <string name="smb_error_auth_title">সাইন ইন ব্যর্থ হয়েছে</string>
+    <string name="smb_error_auth_description">\"%1$s\" ব্যবহারকারীর নাম বা পাসওয়ার্ড প্রত্যাখ্যান করেছে।</string>
+    <string name="smb_error_share_access_denied_title">এই শেয়ারে অ্যাক্সেস নেই</string>
+    <string name="smb_error_share_access_denied_description">এই অ্যাকাউন্ট \"%2$s\"-এ \"%1$s\" ব্যবহার করতে পারে না। সার্ভারে শেয়ারের অনুমতি পরীক্ষা করুন।</string>
+    <string name="smb_error_share_not_found_title">শেয়ার পাওয়া যায়নি</string>
+    <string name="smb_error_share_not_found_description">\"%2$s\"-এ \"%1$s\" নেই।</string>
+    <string name="smb_error_dialect_title">সার্ভার খুব পুরোনো</string>
+    <string name="smb_error_dialect_description">\"%1$s\" শুধু SMB1 দেয়, যা অনিরাপদ এবং সমর্থিত নয়। সার্ভারে SMB2 বা নতুন সংস্করণ চালু করুন।</string>
+    <string name="smb_error_credential_unavailable_title">সাইন ইন প্রয়োজন</string>
+    <string name="smb_error_credential_unavailable_description">এই নেটওয়ার্ক স্টোরেজের সংরক্ষিত পাসওয়ার্ড আর পড়া যাচ্ছে না। পুনঃসংযোগ করতে আবার দিন।</string>
+    <string name="smb_error_pro_required_title">নেটওয়ার্ক শেয়ারের জন্য Butler Pro প্রয়োজন</string>
+    <string name="smb_error_pro_required_description">নেটওয়ার্ক শেয়ার ব্রাউজ করা Butler Pro-এর অংশ। অবস্থান যোগ, পরীক্ষা ও অপসারণ বিনামূল্যে করা যায়।</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">সুরক্ষিত অ্যাপ বান্ডেল</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" এনক্রিপ্ট করা এবং শুধু যে অ্যাপ এটি তৈরি করেছে সেটি দিয়ে ইনস্টল করা যায়।</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">APK সেট ফরম্যাট সমর্থিত নয়</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" একটি bundletool APK সেট। Butler নির্ধারণ করতে পারছে না এর কোন সংস্করণটি এই ডিভাইসের জন্য উপযুক্ত।</string>
+
+    <string name="app_install_error_unsupported_bundle_title">ইনস্টল করার মতো অ্যাপ নেই</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\"-এ কোনো ইনস্টলযোগ্য APK নেই।</string>
+
+    <string name="app_install_error_session_title">ইনস্টল ব্যর্থ হয়েছে</string>
+    <string name="app_install_error_session_description">সিস্টেম ইনস্টল প্রত্যাখ্যান করেছে: %1$s</string>
+
+    <string name="app_install_error_busy_title">অন্য একটি ইনস্টল চলছে</string>
+    <string name="app_install_error_busy_description">\"%1$s\" এখনো ইনস্টল হচ্ছে। নতুনটি শুরুর আগে ওই ইনস্টল নিশ্চিত বা বাতিল করুন।</string>
+
+    <string name="app_install_error_no_elevation_title">উচ্চতর অ্যাক্সেস নেই</string>
+    <string name="app_install_error_no_elevation_description">রুট বা ADB অ্যাক্সেস বর্তমানে পাওয়া যাচ্ছে না।</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">নিশ্চিতকরণ প্রয়োজন</string>
+    <string name="app_install_confirm_pending_description">\"%1$s\" ইনস্টল শেষ করতে Android-এ আপনার নিশ্চিতকরণ প্রয়োজন।</string>
+    <string name="app_install_confirm_pending_description_unnamed">এই ইনস্টল শেষ করতে Android-এ আপনার নিশ্চিতকরণ প্রয়োজন।</string>
+    <string name="app_install_confirm_pending_action">ইনস্টল নিশ্চিত করুন</string>
+    <string name="app_install_confirm_pending_reason">ইনস্টলার আপনার নিশ্চিতকরণের অপেক্ষায় আছে</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">নিশ্চিতকরণ প্রয়োজন</string>
+    <string name="app_uninstall_confirm_pending_description">\"%1$s\" অপসারণ শেষ করতে Android-এ আপনার নিশ্চিতকরণ প্রয়োজন।</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">এই অপসারণ শেষ করতে Android-এ আপনার নিশ্চিতকরণ প্রয়োজন।</string>
+    <string name="app_uninstall_confirm_pending_action">অপসারণ নিশ্চিত করুন</string>
+    <string name="app_uninstall_confirm_pending_reason">Android আপনার নিশ্চিতকরণের অপেক্ষায় আছে</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">অন্য ব্যবহারকারীর জন্য এই অ্যাপ অপসারণ করতে রুট বা ADB অ্যাক্সেস প্রয়োজন</string>
+    <string name="app_uninstall_no_result">Android কোনো ফলাফল জানায়নি</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">ফাইলের কাজ বাধাগ্রস্ত হয়েছে</string>
+    <string name="service_connection_lost_error_message">ফাইলের কাজের সেবা অপ্রত্যাশিতভাবে বন্ধ হয়েছে। আবার চেষ্টা করুন।</string>
+</resources>

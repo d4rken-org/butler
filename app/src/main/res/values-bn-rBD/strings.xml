@@ -1,0 +1,545 @@
+<resources>
+    <string name="onboarding_welcome_title">Butler-এ স্বাগতম</string>
+    <string name="onboarding_welcome_message">ফাইলের জন্য ট্যাব।\nব্রাউজ, খোঁজ ও সম্পাদনা — সব একসঙ্গে।</string>
+    <string name="onboarding_welcome_subtitle">ওপেন সোর্স। বিজ্ঞাপনমুক্ত। ট্র্যাকিং নেই।\nআপনার প্রাপ্য ফাইল এক্সপ্লোরার।</string>
+    <string name="onboarding_welcome_action">ঘুরে দেখা শুরু করুন</string>
+    <string name="onboarding_beta_title">ভবিষ্যৎ গড়ুন</string>
+    <string name="onboarding_beta_message">এটি একটি বিটা (পরীক্ষামূলক) বিল্ড। হাসিমুখে এগোন, তবে ব্যাকআপের ব্যবস্থা রাখুন। কোনো সমস্যা পেলে জানান।</string>
+    <string name="onboarding_beta_action">আমার কোনো ভয় নেই</string>
+    <string name="onboarding_beta_feature_early_access_title">আগাম অ্যাক্সেস</string>
+    <string name="onboarding_beta_feature_early_access_description">অন্য সবার আগে সর্বাধুনিক সুবিধা ব্যবহার করুন।</string>
+    <string name="onboarding_beta_feature_influence_title">সরাসরি প্রভাব</string>
+    <string name="onboarding_beta_feature_influence_description">আপনার মতামত Butler-এর উন্নয়নের দিক ঠিক করে।</string>
+    <string name="onboarding_beta_feature_feedback_title">কমিউনিটির উদ্যোগে</string>
+    <string name="onboarding_beta_feature_feedback_description">Butler উন্নত করছেন এমন অভিজ্ঞ ব্যবহারকারীদের কমিউনিটিতে যোগ দিন।</string>
+    <string name="onboarding_privacy_title">গোপনীয়তা ও তথ্য</string>
+    <string name="onboarding_privacy_message">Butler-এ বিজ্ঞাপন নেই এবং ব্যবহারকারীর তথ্য বিক্রি করা হয় না। আপনার গোপনীয়তা আমার কাছে গুরুত্বপূর্ণ।</string>
+    <string name="onboarding_privacy_read_action">গোপনীয়তা নীতি পড়ুন</string>
+    <string name="onboarding_privacy_action">গ্রহণ করুন</string>
+    <string name="onboarding_skip_action">এড়িয়ে যান</string>
+    <string name="onboarding_progress_step">%2$dটির মধ্যে %1$d</string>
+
+    <string name="onboarding_workspaces_title">ট্যাবে কাজ করুন</string>
+    <string name="onboarding_workspaces_message">একাধিক ট্যাব খুলে সেগুলোর মধ্যে পাল্টান — ঠিক আপনার ওয়েব ব্রাউজারের মতো।</string>
+    <string name="onboarding_workspaces_action">চালিয়ে যান</string>
+    <string name="onboarding_workspaces_hint">একসঙ্গে একাধিক ট্যাব খোলা রাখুন।</string>
+    <string name="onboarding_workspaces_explorer_title">এক্সপ্লোরার</string>
+    <string name="onboarding_workspaces_explorer_description">আপনার ফাইল ব্রাউজ করুন।</string>
+    <string name="onboarding_workspaces_searcher_title">সার্চ</string>
+    <string name="onboarding_workspaces_searcher_description">জিনিসপত্র খুঁজুন।</string>
+    <string name="onboarding_workspaces_editor_title">এডিটর</string>
+    <string name="onboarding_workspaces_editor_description">ফাইল সম্পাদনা করুন।</string>
+    <string name="onboarding_workspaces_apps_description">আপনার অ্যাপ পরিচালনা করুন।</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">নতুন এক্সপ্লোরার</string>
+    <string name="shortcut_explorer_new_long">নতুন এক্সপ্লোরার ট্যাব তৈরি করুন</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">শর্টকাট</string>
+    <string name="shortcuts_settings_subtitle">লঞ্চারের শর্টকাট কনফিগার করুন</string>
+    <string name="shortcuts_settings_enabled_title">শর্টকাট চালু করুন</string>
+    <string name="shortcuts_settings_enabled_subtitle">লঞ্চারে বেশি ব্যবহৃত আইটেম দেখান</string>
+    <string name="shortcuts_settings_auto_remember_title">দেখা পাথ মনে রাখুন</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">বেশি দেখা পাথ স্বয়ংক্রিয়ভাবে শর্টকাট হিসেবে যোগ করুন</string>
+    <string name="shortcuts_settings_last_accessed_title">সর্বশেষ অ্যাক্সেস</string>
+    <string name="shortcuts_settings_max_count_title">সর্বোচ্চ শর্টকাট</string>
+    <string name="shortcuts_settings_max_count_summary">লঞ্চারে দেখানো শর্টকাটের সর্বোচ্চ সংখ্যা</string>
+    <string name="shortcuts_settings_min_access_title">ন্যূনতম অ্যাক্সেস</string>
+    <string name="shortcuts_settings_min_access_summary">শর্টকাট হওয়ার আগে একটি পাথ যতবার খুলতে হবে</string>
+    <string name="shortcuts_settings_current_title">বর্তমান শর্টকাট</string>
+    <string name="shortcuts_settings_current_subtitle">%dটি শর্টকাটের হিসাব রাখা হচ্ছে</string>
+    <string name="shortcuts_settings_clear_title">শর্টকাটের ইতিহাস মুছুন</string>
+    <string name="shortcuts_settings_clear_subtitle">হিসাব রাখা সব শর্টকাট সরান</string>
+    <string name="shortcuts_settings_clear_confirm_title">শর্টকাটের ইতিহাস মুছবেন?</string>
+    <string name="shortcuts_settings_clear_confirm_message">এতে হিসাব রাখা সব শর্টকাট সরানো হবে। বুকমার্ক রাখা হবে।</string>
+    <string name="shortcuts_settings_cleared_message">শর্টকাটের ইতিহাস মোছা হয়েছে</string>
+    <string name="shortcuts_settings_max_dialog_title">সর্বোচ্চ শর্টকাট</string>
+    <string name="shortcuts_settings_max_dialog_message">লঞ্চারে দেখানোর শর্টকাটের সংখ্যা (১–৪)</string>
+    <string name="shortcuts_settings_min_dialog_title">ন্যূনতম অ্যাক্সেস সংখ্যা</string>
+    <string name="shortcuts_settings_min_dialog_message">শর্টকাট হিসেবে দেখানোর আগে একটি পাথ যতবার অ্যাক্সেস করতে হবে (১–১০)</string>
+
+    <string name="setup_usagestats_title">ব্যবহারের পরিসংখ্যান</string>
+    <string name="setup_shizuku_card_title">ADB অ্যাক্সেস</string>
+    <string name="setup_root_card_title">রুট</string>
+    <string name="setup_notification_title">নোটিফিকেশনের অ্যাক্সেস</string>
+    <string name="setup_manage_storage_card_title">বাহ্যিক স্টোরেজ পরিচালনা</string>
+    <string name="setup_inventory_card_title">অ্যাপের তালিকা</string>
+
+    <string name="setup_title">অনুমতির সেটআপ</string>
+    <string name="setup_settings_description">অ্যাপের অনুমতি ও সুবিধা কনফিগার করুন।</string>
+    <string name="setup_help_description">সাহায্য</string>
+
+    <string name="setup_root_description">উন্নত ফাইল পরিচালনার জন্য সিস্টেম ফাইল ও সুরক্ষিত ডিরেক্টরিতে অ্যাক্সেস দেয়। অ্যাপের তথ্য দেখা ও সিস্টেম পরিবর্তনসহ Butler-এর পূর্ণ ক্ষমতা খুলে দেয়। ডিভাইস রুট করা থাকতে হবে।</string>
+    <string name="setup_shizuku_description">রুটের বিকল্প, যা একটি নিরাপদ API-এর মাধ্যমে বিশেষ অনুমতিতে ফাইলের কাজ করতে দেয়। প্রচলিত রুট ছাড়াই সীমাবদ্ধ ডিরেক্টরিতে অ্যাক্সেস দেয়। Porter বা Shizuku ইনস্টল করা ও চালু থাকা প্রয়োজন।</string>
+    <string name="setup_notification_description">ফাইলের কাজ, ব্যাকগ্রাউন্ডের কাজ ও স্থানান্তরের অগ্রগতি জানায়। কাজ শেষ হলে বা ত্রুটি ঘটলে আপনাকে জানিয়ে রাখে।</string>
+    <string name="setup_usagestats_description">বড় ফাইল শনাক্ত করতে ও জায়গা ভালোভাবে পরিচালনা করতে অ্যাপের স্টোরেজ ব্যবহার বিশ্লেষণ করে। সব তথ্য আপনার ডিভাইসেই থাকে, কখনো পাঠানো হয় না।</string>
+    <string name="setup_storage_description">দ্রুত ফাইলের কাজ ও একসঙ্গে অনেক কাজ করতে ডিভাইসের সব স্টোরেজে পূর্ণ অ্যাক্সেস দেয়। বারবার অনুমতি না চেয়েই পূর্ণাঙ্গ ফাইল পরিচালনা করা যায়।</string>
+    <string name="setup_inventory_description">APK বের করা ও স্টোরেজ বিশ্লেষণের মতো সুবিধার জন্য ইনস্টল করা সব অ্যাপ দেখুন। Android 11+ এ অ্যাপের সম্পূর্ণ তালিকা দেখতে এটি প্রয়োজন।</string>
+
+    <string name="setup_grant_access_label">অ্যাক্সেস দিন</string>
+    <string name="setup_access_granted_label">অ্যাক্সেস দেওয়া হয়েছে</string>
+    <string name="setup_use_root_label">পাওয়া গেলে রুট ব্যবহার করুন</string>
+    <string name="setup_use_shizuku_label">পাওয়া গেলে ADB অ্যাক্সেস ব্যবহার করুন</string>
+
+    <string name="setup_status_checking">পরীক্ষা হচ্ছে…</string>
+    <string name="setup_status_completed">কনফিগার করা হয়েছে</string>
+    <string name="setup_status_required">প্রয়োজনীয়</string>
+    <string name="setup_status_optional">ঐচ্ছিক</string>
+    <string name="setup_status_connected">সংযুক্ত</string>
+    <string name="setup_status_not_connected">সংযুক্ত নয়</string>
+    <string name="setup_status_not_installed">ইনস্টল করা নেই</string>
+    <string name="setup_status_connecting">সংযোগ হচ্ছে…</string>
+    <string name="setup_status_connection_failed">সংযোগ ব্যর্থ হয়েছে</string>
+    <string name="setup_status_unavailable">পাওয়া যাচ্ছে না</string>
+    <string name="setup_status_permission_denied">অনুমতি প্রত্যাখ্যাত</string>
+    <string name="setup_adb_status_manager_update_required">আপডেট প্রয়োজন</string>
+    <string name="setup_adb_status_butler_update_required">Butler আপডেট প্রয়োজন</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_connected_via">%1$s-এর মাধ্যমে সংযুক্ত</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_not_allowed_yet">%1$s এখনো অনুমতি দেয়নি</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". Shown when that app no longer asks, so access has to be changed there. -->
+    <string name="setup_adb_status_denied_in">%1$s-এ প্রত্যাখ্যাত</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_open_manager_action">%1$s খুলুন</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_install_manager_action">%1$s ইনস্টল করুন</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">ডিবাগ নোটিফিকেশন</string>
+    <string name="debug_log_consent_title">ডিবাগ লগ</string>
+    <string name="debug_log_consent_explanation">এই সুবিধা অ্যাপের সব কাজ শেয়ারযোগ্য একটি ফাইলে রেকর্ড করে। তৈরি ফাইলে সংবেদনশীল তথ্য থাকে (যেমন ফাইলের নাম ও ইনস্টল করা অ্যাপ)। শুধু বিশ্বস্ত ব্যক্তিদের সঙ্গে শেয়ার করুন (যেমন সমস্যা সমাধান করছেন এমন ডেভেলপার)।</string>
+    <string name="debug_log_recording_progress">ডিবাগ লগ রেকর্ড হচ্ছে</string>
+    <string name="debug_log_record_action">রেকর্ড করুন</string>
+    <string name="debug_log_record_full_action">ডিবাগ লগ রেকর্ড করুন</string>
+    <string name="debug_log_stop_action">রেকর্ডিং থামান</string>
+    <string name="debug_log_screen_title">ডিবাগ লগ রেকর্ডার</string>
+    <string name="debug_log_screen_sensitive_information_message">তৈরি ফাইলে সংবেদনশীল তথ্য থাকে (যেমন ফাইলের নাম ও ইনস্টল করা অ্যাপ)। শুধু বিশ্বস্ত ব্যক্তিদের সঙ্গে শেয়ার করুন।</string>
+    <string name="debug_log_screen_session_path_label">ডিবাগ সেশনের পাথ</string>
+    <string name="debug_log_screen_log_files_label">লগ ফাইল</string>
+    <string name="debug_log_screen_log_files_ready">লগ ফাইল প্রস্তুত (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">বাতিল করে দিন</string>
+    <string name="debug_log_file_label">রেকর্ড করা লগ ফাইল</string>
+    <string name="debug_banner_label">রেকর্ড</string>
+    <string name="debug_banner_label_expanded">লগ ফাইল রেকর্ড হচ্ছে</string>
+    <string name="debug_banner_stop_action">থামান</string>
+    <string name="debug_banner_view_action">দেখুন</string>
+    <string name="debug_banner_explanation">অ্যাপের কাজ রেকর্ড হচ্ছে। শেষ হলে থামান, তারপর বাগ জানানোর সময় লগ শেয়ার করুন।</string>
+    <string name="debug_log_short_recording_title">রেকর্ডিং খুব ছোট</string>
+    <string name="debug_log_short_recording_message">রেকর্ডিং চালু থাকাকালীন যা ঘটে তা ডিবাগ লগে ধরা হয়। রেকর্ডিং শুরু করুন, সমস্যাটি আবার ঘটান, তারপর থামান। এই রেকর্ডিংয়ে দরকারি তথ্য না-ও থাকতে পারে।</string>
+    <string name="debug_log_short_recording_keep_action">রেকর্ডিং চালিয়ে যান</string>
+
+    <string name="debug_logview_screen_title">লগ ভিউয়ার</string>
+    <string name="debug_logview_pause_action">বিরতি দিন (প্রদর্শন স্থির রাখুন)</string>
+    <string name="debug_logview_resume_action">আবার চালান</string>
+    <string name="debug_logview_copy_action">লগ কপি করুন</string>
+    <string name="debug_logview_collapse_action">সংকুচিত করুন</string>
+    <string name="debug_logview_close_action">লগ প্যানেল বন্ধ করুন</string>
+    <string name="debug_logview_resize_action">আকার বদলান</string>
+    <string name="debug_logview_more_action">আরও বিকল্প</string>
+    <string name="debug_logview_level_action">লগের স্তর</string>
+    <string name="debug_logview_clear_action">বাফার মুছুন</string>
+    <string name="debug_logview_search_action">খুঁজুন</string>
+    <string name="debug_logview_search_clear_action">খোঁজ মুছুন</string>
+    <string name="debug_logview_search_close_action">খোঁজ বন্ধ করুন</string>
+    <string name="debug_logview_search_prev_action">আগের মিল</string>
+    <string name="debug_logview_search_next_action">পরের মিল</string>
+    <string name="debug_logview_jump_to_bottom_action">সর্বশেষটিতে যান</string>
+    <string name="debug_logview_paused_msg">বিরতিতে — প্রদর্শন স্থির</string>
+    <string name="debug_logview_paused_new_msg">বিরতিতে — এর পর %1$dটি নতুন লাইন</string>
+    <string name="debug_logview_copied_msg">লগ ক্লিপবোর্ডে কপি হয়েছে</string>
+    <string name="debug_logview_copied_truncated_msg">শেষ %1$dটি লাইন ক্লিপবোর্ডে কপি হয়েছে</string>
+    <string name="debug_logview_share_label">লগ শেয়ার করুন</string>
+
+    <string name="settings_label">সেটিংস</string>
+    <string name="settings_category_tools_label">টুল</string>
+    <string name="settings_category_other_label">অন্যান্য</string>
+    <string name="settings_category_integration_label">সংযোগ</string>
+    <string name="general_settings_label">সাধারণ</string>
+    <string name="general_settings_desc">পুরো অ্যাপে প্রভাব ফেলে এমন সাধারণ পরিবর্তন।</string>
+    <string name="settings_category_ui_label">ইউজার ইন্টারফেস</string>
+    <string name="ui_mascot_suit_setting_label">Butler-এর স্যুট</string>
+    <string name="ui_mascot_suit_setting_explanation">যে রং দিয়ে Butler-এর পোশাক তৈরি।</string>
+    <string name="ui_theme_mode_setting_label">থিম মোড</string>
+    <string name="ui_theme_mode_setting_explanation">অ্যাপের থিম তৈরির মোড (যেমন রাত বা দিন)।</string>
+    <string name="ui_theme_style_setting_label">থিমের ধরন</string>
+    <string name="ui_theme_style_setting_explanation">অ্যাপের থিম তৈরির রঙের ধরন।</string>
+    <string name="ui_theme_color_setting_label">থিমের রং</string>
+    <string name="ui_theme_color_setting_explanation">অ্যাপের থিম তৈরির রঙের প্যালেট।</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">আপনার ওয়ালপেপার থেকে Material You রং দেয়</string>
+    <string name="ui_theme_color_value_system">সিস্টেমের রং</string>
+    <string name="ui_language_override_label">অ্যাপের ভাষা</string>
+    <string name="ui_language_override_desc">সিস্টেমের ডিফল্ট ভাষা থেকে স্বাধীনভাবে Butler-এর জন্য আলাদা ভাষা বেছে নিন।</string>
+    <string name="ui_display_cutout_avoid_setting_title">ডিসপ্লে কাটআউট এড়ান</string>
+    <string name="ui_display_cutout_avoid_setting_description">ক্যামেরার কাটআউট থেকে ইন্টারফেস দূরে রাখে। পর্দার আরও অংশ ব্যবহার করতে এটি বন্ধ করুন, তবে ইন্টারফেসের কিছু অংশ কাটআউটের পেছনে পড়তে পারে।</string>
+
+    <string name="previews_settings_title">প্রিভিউ</string>
+    <string name="previews_settings_subtitle">ছবির প্রিভিউ ক্যাশ পরিচালনা করুন।</string>
+
+    <string name="tour_settings_reset_title">নির্দেশিত পরিচিতি রিসেট করুন</string>
+    <string name="tour_settings_reset_subtitle">এড়িয়ে যাওয়া বা বন্ধ করা পরিচিতিসহ নির্দেশিত পরিচিতিগুলো আবার দেখান।</string>
+    <string name="tour_settings_reset_done">নির্দেশিত পরিচিতি রিসেট করা হয়েছে।</string>
+
+    <string name="storage_settings_title">স্টোরেজ</string>
+    <string name="storage_settings_subtitle">Butler-এর ক্যাশ, স্টোরেজ ও ট্র্যাশ পরিচালনা করুন।</string>
+    <string name="storage_category_previews_label">প্রিভিউ</string>
+    <string name="storage_previews_disk_cache_title">ডিস্ক ক্যাশ</string>
+    <string name="storage_previews_memory_cache_title">মেমরি ক্যাশ</string>
+    <string name="storage_previews_max_size_title">ক্যাশের সর্বোচ্চ আকার</string>
+    <string name="storage_clear_disk_confirm_title">ডিস্ক ক্যাশ মুছবেন?</string>
+    <string name="storage_clear_disk_confirm_message">এতে ক্যাশ করা সব প্রিভিউ ছবি সরানো হবে। প্রয়োজনমতো আবার তৈরি হবে।</string>
+    <string name="storage_clear_memory_confirm_title">মেমরি ক্যাশ মুছবেন?</string>
+    <string name="storage_clear_memory_confirm_message">এতে মেমরি থেকে ক্যাশ করা প্রিভিউ ছবি সরানো হবে। প্রয়োজনমতো আবার তৈরি হবে।</string>
+    <string name="storage_clear_all_confirm_title">সব ক্যাশ মুছবেন?</string>
+    <string name="storage_clear_all_confirm_message">এতে প্রিভিউ ছবির ডিস্ক ও মেমরি ক্যাশ দুটোই মোছা হবে।</string>
+    <string name="storage_clear_all_previews_action">সব প্রিভিউ ক্যাশ মুছুন</string>
+    <string name="storage_clear_all_subtitle">সব প্রিভিউ ক্যাশ সরান</string>
+    <string name="storage_cache_cleared_message">ক্যাশ মোছা হয়েছে</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">আপডেট পরীক্ষা করুন</string>
+    <string name="updater_check_enabled_setting_description">নতুন সংস্করণ আছে কি না Butler-কে অনলাইনে পরীক্ষা করতে দিন।</string>
+    <string name="motd_check_enabled_setting_title">ঘোষণা পরীক্ষা করুন</string>
+    <string name="motd_check_enabled_setting_description">ডেভেলপারের গুরুত্বপূর্ণ বার্তা Butler-কে আনতে দিন।</string>
+    <string name="motd_card_header">ঘোষণা</string>
+
+    <string name="confirm_exit_setting_title">বের হওয়া নিশ্চিত করুন</string>
+    <string name="confirm_exit_setting_description">অ্যাপ থেকে বের হওয়ার সময় নিশ্চিতকরণ ডায়ালগ দেখান।</string>
+    <string name="confirm_exit_dialog_title">Butler থেকে বের হন</string>
+    <string name="confirm_exit_dialog_message">এতে অ্যাপ বন্ধ হবে এবং আপনার হোম স্ক্রিনে ফিরে যাবে।</string>
+    <string name="confirm_exit_dialog_exit">বের হন</string>
+    <string name="confirm_exit_dialog_cancel">বাতিল করুন</string>
+    <string name="confirm_exit_dialog_dont_ask_again">আবার জিজ্ঞাসা করবেন না</string>
+
+    <string name="settings_support_category_help_label">সাহায্য নিন</string>
+    <string name="settings_support_label">সহায়তা</string>
+    <string name="settings_support_description">ডকুমেন্টেশন পড়ুন, সমস্যা জানান, অন্যদের সঙ্গে কথা বলুন বা ডিবাগ লগ রেকর্ড করুন।</string>
+    <string name="settings_support_wiki_label">ডকুমেন্টেশন</string>
+    <string name="settings_support_wiki_description">Butler ভালোভাবে ব্যবহার করতে শিখুন।</string>
+    <string name="settings_support_issue_tracker_description">বাগ রিপোর্ট ও নতুন সুবিধার অনুরোধের জন্য উন্মুক্ত ইস্যু ট্র্যাকার।</string>
+    <string name="settings_support_issue_tracker_label">ইস্যু ট্র্যাকার</string>
+    <string name="settings_support_debuglog_label">ডিবাগ লগ</string>
+    <string name="settings_support_debuglog_desc">অ্যাপের সব কাজ শেয়ারযোগ্য একটি টেক্সট ফাইলে রেকর্ড করুন।</string>
+    <string name="settings_support_debuglog_recording_desc">বর্তমানে ডিবাগ তথ্য রেকর্ড হচ্ছে। রেকর্ডিং থামাতে ট্যাপ করুন।</string>
+    <string name="settings_support_debuglog_path">লগের পাথ: %1$s</string>
+    <string name="settings_support_bugreports_label">বাগ রিপোর্ট</string>
+    <string name="settings_support_bugreports_desc">ক্র্যাশ রিপোর্ট দেখুন, ডিবাগ লগ রেকর্ড করুন এবং আমার সঙ্গে শেয়ার করুন।</string>
+    <string name="support_contact_report_type_crash">ক্র্যাশ রিপোর্ট</string>
+    <string name="support_contact_report_type_reported">বাগ রিপোর্ট</string>
+    <string name="support_contact_report_type_recording">রেকর্ডিং</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">আড্ডা দেওয়া ও প্রশ্ন করার জায়গা।</string>
+
+    <string name="settings_acknowledgements_label">কৃতজ্ঞতা</string>
+    <string name="settings_acknowledgements_description">কৃতিত্ব, লাইসেন্স ও বিশেষ ধন্যবাদ।</string>
+    <string name="settings_acks_translation_header">অনুবাদ</string>
+    <string name="settings_acks_translators_title">অনুবাদক</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Butler অনুবাদ করুন</string>
+    <string name="settings_acks_translate_desc">আপনার ভাষায় Butler অনুবাদ করতে সাহায্য করুন।</string>
+
+    <string name="settings_acks_thanks_header">ধন্যবাদ</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">ওপেন সোর্স প্রকল্পের অনুবাদে সহায়তার জন্য।</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">আইকন, ম্যাসকট ডিজাইন ও অ্যানিমেশনের জন্য ধন্যবাদ।</string>
+    <string name="settings_licenses_label">লাইসেন্স</string>
+
+    <!-- Workspace Status Card -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$dটি ট্যাব</item>
+        <item quantity="other">%1$dটি ট্যাব</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$dটি কাজ</item>
+        <item quantity="other">%1$dটি কাজ</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$dটিতে মনোযোগ প্রয়োজন</item>
+        <item quantity="other">%1$dটিতে মনোযোগ প্রয়োজন</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$dটি অসংরক্ষিত</item>
+        <item quantity="other">%1$dটি অসংরক্ষিত</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$dটি বিরতিতে</item>
+        <item quantity="other">%1$dটি বিরতিতে</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">সব ট্যাব দেখান</string>
+    <string name="workspace_status_filter_operations_desc">কাজ চলছে এমন ট্যাব দিয়ে ছাঁকুন</string>
+    <string name="workspace_status_filter_attention_desc">মনোযোগ প্রয়োজন এমন ট্যাব দিয়ে ছাঁকুন</string>
+    <string name="workspace_status_filter_paused_desc">বিরতিতে থাকা ট্যাব দিয়ে ছাঁকুন</string>
+    <string name="workspace_status_filter_unsaved_desc">অসংরক্ষিত পরিবর্তন আছে এমন ট্যাব দিয়ে ছাঁকুন</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Kotlin প্রোগ্রামিং ভাষা। (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Android ও Java-এর জন্য দ্রুত ডিপেন্ডেন্সি ইনজেক্টর। (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">রুট হিসেবে Java (ও Kotlin) কোড চালান! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">করুটিন দিয়ে রুট করা Kotlin JVM কোড চালানো সহজ। (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">ঐচ্ছিক রুট সহায়তাসহ Shizuku API-এর মাধ্যমে Android অ্যাপকে ADB অ্যাক্সেস দেয়। (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">app_process দিয়ে শুরু করা Java প্রক্রিয়ার মাধ্যমে সাধারণ অ্যাপ থেকে adb/root সুবিধায় সরাসরি সিস্টেম API ব্যবহার। (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Android-এর জন্য Airbnb-এর Lottie। (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Android রোবটটি Google-এর তৈরি ও শেয়ার করা কাজ থেকে পুনরুৎপাদিত বা পরিবর্তিত, এবং Creative Commons 3.0 Attribution License-এর শর্ত অনুযায়ী ব্যবহৃত।</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">নেটিভ UI তৈরির জন্য Android-এর আধুনিক টুলকিট। (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpack লাইব্রেরি</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation ও অন্যান্য AndroidX লাইব্রেরি। (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin এক্সটেনশন</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Coroutines ও Serialization লাইব্রেরি। (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Kotlin Coroutines-ভিত্তিক ছবি লোড করার লাইব্রেরি। (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">SMB প্রমাণীকরণ, স্বাক্ষর ও এনক্রিপশনের জন্য ক্রিপ্টোগ্রাফিক মৌলিক উপাদান। (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Square লাইব্রেরি</string>
+    <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp ও OkIO নেটওয়ার্কিং লাইব্রেরি। (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Jetpack Compose-এর সহায়ক টুল। (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Compose-এর LazyColumn-এ টেনে সরানোর সুবিধা। (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Kotlin-এর জন্য সেমান্টিক সংস্করণ নির্ধারণের লাইব্রেরি। (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Jetpack Compose-এর চার্ট ও গ্রাফ। (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">গোপনীয়তা নীতি</string>
+    <string name="settings_privacy_policy_desc">দায়িত্বশীলভাবে তথ্য পরিচালনা।</string>
+
+
+    <string name="changelog_label">পরিবর্তনের তালিকা</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Butler আপগ্রেডের অবস্থা</string>
+    <string name="upgrade_status_free">অবস্থা: বিনামূল্যে</string>
+    <string name="upgrade_status_pro">অবস্থা: Pro</string>
+    <string name="upgrade_status_foss">অবস্থা: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD কার্ড</string>
+    <string name="storage_area_public_label">সর্বজনীন স্টোরেজ</string>
+    <string name="storage_area_public_app_data_label">সর্বজনীন অ্যাপের তথ্য</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">ট্যাব ম্যানেজার</string>
+    <string name="workspace_manager_empty_title">কোনো ট্যাব নেই</string>
+    <string name="workspace_manager_empty_subtitle">শুরু করতে আপনার প্রথম ট্যাব তৈরি করুন</string>
+
+    <!-- Workspace > Empty Content-->
+    <string name="workspace_empty_create_action">ট্যাব তৈরি করুন</string>
+    <string name="workspace_empty_create_hint">একসঙ্গে কাজ করুন: একটি ট্যাব তৈরি করে পছন্দের টুলে পরিণত করুন।</string>
+    <string name="workspace_empty_settings_action">সেটিংস খুলুন</string>
+    <string name="workspace_empty_settings_hint">Butler নিজের মতো সাজান। টুলগুলো কীভাবে কাজ করবে তা ঠিক করুন।</string>
+    <string name="workspace_classic_empty_tabs_closed">কোনো ট্যাব খোলা নেই। আপনি প্রস্তুত হলেই শুরু।</string>
+    <string name="workspace_classic_empty_tip">পরামর্শ: “ট্যাব তৈরি করুন”-এ ট্যাপ করে একটি টুল বাছুন — এক্সপ্লোরার, সার্চ, এডিটর ও আরও অনেক কিছু।</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">একটি ট্যাব দিয়ে শুরু করুন</string>
+    <string name="tour_first_tab_body">Butler ব্রাউজারের মতো ট্যাবে কাজ করে: প্রতিটি ট্যাব আলাদা টুল — এক্সপ্লোরার, সার্চ, এডিটর ও আরও অনেক কিছু। আপনার প্রথম ট্যাব তৈরি করুন।</string>
+    <string name="tour_manager_fab_title">দ্রুত শর্টকাট</string>
+    <string name="tour_manager_fab_body">সবচেয়ে বেশি ব্যবহৃত টুলের শর্টকাট পেতে এবং একসঙ্গে সব ট্যাব বন্ধ করতে এখানে ট্যাপ করুন।</string>
+    <string name="tour_manager_reorder_title">ট্যাবের ক্রম বদলান</string>
+    <string name="tour_manager_reorder_body">ট্যাবের শিরোনাম বার চেপে ধরে পছন্দের জায়গায় টানুন। অন্য সব জায়গায়ও ট্যাবগুলো এই ক্রমে দেখা যাবে।</string>
+    <string name="tour_manager_select_title">একাধিক ট্যাবে কাজ করুন</string>
+    <string name="tour_manager_select_body">ট্যাব বাছাই শুরু করতে একটি ট্যাবের প্রিভিউ চেপে ধরুন। তারপর বাকিগুলোতে ট্যাপ করে একসঙ্গে বন্ধ করুন বা বিরতি দিন।</string>
+    <string name="tour_manager_new_tab_title">নতুন ট্যাব শুরু করুন</string>
+    <string name="tour_manager_new_tab_body">নতুন ট্যাবের জন্য যেকোনো টুল বাছতে এই কার্ডে ট্যাপ করুন।</string>
+    <string name="tour_swipe_switch_title">সোয়াইপ করে ট্যাব পাল্টান</string>
+    <string name="tour_swipe_switch_body">খোলা ট্যাবগুলোর মধ্যে যেতে পৃষ্ঠার যেকোনো জায়গায় বাঁয়ে বা ডানে সোয়াইপ করুন।</string>
+    <string name="tour_swipe_create_title">সোয়াইপ করে ট্যাব শুরু করুন</string>
+    <string name="tour_swipe_create_body">শেষ ট্যাবের পরে সোয়াইপ করলে Butler নতুন ট্যাবের সুযোগ দেয়।</string>
+    <string name="tour_swipe_panes_title">একসঙ্গে একাধিক ট্যাব</string>
+    <string name="tour_swipe_panes_body">বড় পর্দায় বা ল্যান্ডস্কেপে Butler একাধিক ট্যাব পাশাপাশি দেখায়। কখন তা হবে, ট্যাবের বিন্যাস সেটিংস ঠিক করে।</string>
+    <string name="tour_panes_rail_title">আপনার সব ট্যাব</string>
+    <string name="tour_panes_rail_body">প্রতিটি খোলা ট্যাব এখানে থাকে। একটিতে ট্যাপ করে কোন প্যানে যাবে বাছুন। ক্রম বদলাতে ট্যাব চেপে ধরে টানুন।</string>
+    <string name="tour_panes_divider_title">প্যানের আকার বদলান</string>
+    <string name="tour_panes_divider_body">একটি প্যানকে বেশি জায়গা দিতে এই বিভাজক টানুন।</string>
+    <string name="tour_panes_layout_title">বিন্যাস বদলান</string>
+    <string name="tour_panes_layout_body">প্যানগুলো আবার সাজাতে Butler বোতামে ট্যাপ করে বিন্যাস বাছুন। ট্যাব সেটিংসে প্রতিটি অভিমুখের জন্য বিন্যাস স্থির করা যায়।</string>
+
+    <string name="workspace_creating_placeholder">ট্যাব তৈরি হচ্ছে…</string>
+    <string name="workspace_ondemand_swipe_title">নতুন ট্যাব তৈরি করতে সোয়াইপ করুন</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">%1$d নম্বর প্যান কনটেন্টের জন্য প্রস্তুত</string>
+    <string name="workspace_adaptive_add_action">ট্যাব যোগ করুন</string>
+
+    <string name="workspace_badge_tip_title">পরামর্শ: ট্যাব বোতামের নির্দেশক</string>
+    <string name="workspace_badge_open_workspaces">খোলা ট্যাবের সংখ্যা</string>
+    <string name="workspace_badge_active_operations">চলমান কাজ (ফাইল কপি, খোঁজ ইত্যাদি)</string>
+    <string name="workspace_badge_attention_items">মনোযোগ প্রয়োজন এমন আইটেম (ব্যর্থ বা অপেক্ষমান কাজ, পৌঁছানো যায় না এমন ফাইল)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">সরিয়ে দিন</string>
+    <string name="workspace_manager_selection_count">%1$dটি নির্বাচিত</string>
+    <string name="workspace_manager_selection_select_all">সব নির্বাচন করুন</string>
+    <string name="workspace_manager_selection_pause_action">নির্বাচিতগুলোতে বিরতি দিন</string>
+    <string name="workspace_manager_selection_close_action">নির্বাচিতগুলো বন্ধ করুন</string>
+    <string name="workspace_manager_selection_cancel_content_desc">নির্বাচন মোড ছাড়ুন</string>
+    <string name="workspace_manager_selection_clear_content_desc">নির্বাচন মুছুন</string>
+    <string name="workspace_manager_select_all_tabs_desc">সব ট্যাব নির্বাচন করুন</string>
+    <string name="workspace_manager_new_tab_card_title">নতুন ট্যাব</string>
+    <string name="workspace_row_select_content_desc">ট্যাব নির্বাচন করুন</string>
+    <string name="general_cancel_action">বাতিল করুন</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">দ্রুত শর্টকাট</string>
+    <string name="workspace_fab_close_shortcuts">শর্টকাট বন্ধ করুন</string>
+    <string name="workspace_fab_close_all">সব ট্যাব বন্ধ করুন</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">%1$d নম্বর প্যানে দিন</string>
+    <string name="workspace_pane_show_action">দেখান</string>
+    <string name="workspace_pane_menu_action">ট্যাবের বিকল্প দেখান</string>
+    <string name="workspace_pane_close_action">বন্ধ করুন</string>
+    <string name="workspace_pane_unassign_action">প্যান থেকে সরান</string>
+    <string name="workspace_dragging_description">টানা হচ্ছে</string>
+    <string name="workspace_pane_current_description">%1$d নম্বর প্যানে</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">ট্যাব বন্ধ করুন</string>
+    <string name="workspace_row_more_options_content_desc">আরও বিকল্প</string>
+    <string name="workspace_row_operations_running_content_desc">কাজ চলছে</string>
+    <string name="workspace_row_operations_pending_content_desc">কাজ অপেক্ষমান</string>
+    <string name="workspace_row_pause_action">বিরতি দিন</string>
+    <string name="workspace_row_resume_action">আবার চালান</string>
+    <string name="workspace_row_stacked_content_desc">এই ট্যাবের ওপর স্তূপ করা</string>
+    <string name="workspace_row_unsaved_content_desc">অসংরক্ষিত পরিবর্তন</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">ট্যাবের আচরণ কনফিগার করুন।</string>
+    <string name="explorer_settings_subtitle">ফাইল এক্সপ্লোরারের আচরণ কনফিগার করুন।</string>
+    <string name="searcher_settings_subtitle">সার্চের আচরণ কনফিগার করুন।</string>
+    <string name="editor_settings_subtitle">টেক্সট এডিটরের আচরণ কনফিগার করুন।</string>
+    <string name="viewer_settings_subtitle">ফাইল ভিউয়ারের আচরণ কনফিগার করুন।</string>
+    <string name="history_settings_subtitle">কাজের ইতিহাস রাখা ও মোছা।</string>
+    <string name="clipboard_settings_subtitle">ক্লিপবোর্ডের আচরণ কনফিগার করুন।</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">নতুন নামে সংরক্ষণ করুন…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">Butler-এ খুলুন</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">টেক্সট সম্পাদনা করুন</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">নামহীন ফাইল</string>
+    <string name="external_open_action_view">দেখুন</string>
+    <string name="external_open_action_edit">টেক্সট হিসেবে সম্পাদনা করুন</string>
+    <string name="external_open_action_show_in_explorer">এক্সপ্লোরারে দেখান</string>
+    <string name="external_open_action_save">নতুন নামে সংরক্ষণ করুন…</string>
+    <string name="external_open_failed_label">ফাইল খোলা যায়নি</string>
+    <string name="external_open_failed_description">Butler \"%1$s\" খুলতে পারেনি।</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">ডেভেলপার মোড চালু করবেন?</string>
+    <string name="settings_developer_mode_unlock_message">এতে সমস্যা সমাধান ও পরীক্ষার জন্য উন্নত ডায়াগনস্টিক টুল খোলে।</string>
+    <string name="settings_developer_mode_unlock_action">চালু করুন</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">ডেভেলপার মোড থেকে %d ধাপ দূরে</item>
+        <item quantity="other">ডেভেলপার মোড থেকে %d ধাপ দূরে</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">ডেভেলপারের সঙ্গে যোগাযোগ করুন</string>
+    <string name="support_contact_description">আমাকে ইমেইল পাঠাতে একটি ফর্ম পূরণ করুন।</string>
+    <string name="support_contact_no_email_app">কোনো ইমেইল অ্যাপ পাওয়া যায়নি</string>
+    <string name="support_contact_category_label">বিভাগ</string>
+    <string name="support_contact_category_question">প্রশ্ন</string>
+    <string name="support_contact_category_feature">নতুন সুবিধার অনুরোধ</string>
+    <string name="support_contact_category_bug">বাগ রিপোর্ট</string>
+    <string name="support_contact_workspace_label">সংশ্লিষ্ট ক্ষেত্র</string>
+    <string name="support_contact_workspace_general">সাধারণ</string>
+    <string name="support_contact_workspace_explorer">এক্সপ্লোরার</string>
+    <string name="support_contact_workspace_searcher">সার্চ</string>
+    <string name="support_contact_workspace_editor">এডিটর</string>
+    <string name="support_contact_description_label">বিবরণ</string>
+    <string name="support_contact_description_question_hint">আপনার প্রশ্ন বিস্তারিত লিখুন। নির্দিষ্টভাবে বলুন (অন্তত ২০ শব্দ)।</string>
+    <string name="support_contact_description_feature_hint">যে সুবিধা দেখতে চান তা লিখুন। নির্দিষ্টভাবে বলুন (অন্তত ২০ শব্দ)।</string>
+    <string name="support_contact_description_bug_hint">কী হয়েছে এবং কীভাবে আবার সমস্যাটি ঘটানো যায় তা লিখুন। নির্দিষ্টভাবে বলুন (অন্তত ২০ শব্দ)।</string>
+    <string name="support_contact_expected_label">প্রত্যাশিত আচরণ</string>
+    <string name="support_contact_expected_hint">কী ঘটবে বলে আশা করেছিলেন তা লিখুন (অন্তত ১০ শব্দ)।</string>
+    <string name="support_contact_word_count">অন্তত %1$dটি শব্দ</string>
+    <string name="support_contact_debuglog_label">ডিবাগ লগ</string>
+    <string name="support_contact_debuglog_empty">কোনো ডিবাগ লগ পাওয়া যায়নি। আগে একটি রেকর্ড করুন।</string>
+    <string name="support_contact_debuglog_picker_hint">আগের ডিবাগ লগ যুক্ত করুন বা নতুন একটি রেকর্ড করুন।</string>
+    <string name="support_contact_send_action">ইমেইল অ্যাপ খুলুন</string>
+    <string name="support_contact_welcome">প্রতিটি বার্তা নিজে পড়ি এবং উত্তর দেওয়ার যথাসাধ্য চেষ্টা করি, তবে একা কাজ করি বলে একটু সময় লাগতে পারে। ধৈর্যের জন্য ধন্যবাদ।</string>
+    <string name="support_contact_footer">আপনার বার্তা ইমেইলে পাঠানো হবে। ডিভাইস ও সেটআপের তথ্য স্বয়ংক্রিয়ভাবে যুক্ত হয়। ইমেইলে স্ক্রিনশট বা ভিডিও যুক্ত করতে পারেন।\n\nইমেইলের কিছু অংশ ইংরেজিতে থাকবে, যাতে সহজে বুঝতে পারি।</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">ডিবাগ লগের স্টোরেজ</string>
+    <string name="support_debuglog_storage_description">%1$dটি লগ সেশন, %2$s</string>
+    <string name="support_debuglog_storage_empty">কোনো ডিবাগ লগ রাখা নেই</string>
+    <string name="support_debuglog_delete_action">সব ডিবাগ লগ মুছে ফেলুন</string>
+    <string name="support_debuglog_delete_description">রেকর্ড করা সব ডিবাগ লগ ফাইল সরান</string>
+    <string name="support_debuglog_delete_confirm_title">সব ডিবাগ লগ মুছে ফেলবেন?</string>
+    <string name="support_debuglog_delete_confirm_message">এতে রেকর্ড করা সব ডিবাগ লগ সেশন স্থায়ীভাবে মুছে যাবে। চলমান রেকর্ডিং প্রভাবিত হবে না।</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">রেকর্ডিং থামান</string>
+    <string name="settings_support_debuglog_record_action">ডিবাগ লগ রেকর্ড করুন</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">ডিবাগ লগ সেশন</string>
+    <string name="support_debuglog_sessions_desc">রেকর্ড করা ডিবাগ লগ সেশন পরিচালনা করুন</string>
+    <string name="support_debuglog_sessions_empty">কোনো ডিবাগ লগ সেশন নেই</string>
+    <string name="support_debuglog_session_recording">রেকর্ড হচ্ছে…</string>
+    <string name="support_debuglog_session_compressing">সংকোচন হচ্ছে…</string>
+    <string name="support_debuglog_session_failed_empty_log">ব্যর্থ: খালি লগ</string>
+    <string name="support_debuglog_session_failed_missing_log">ব্যর্থ: লগ নেই</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">ব্যর্থ: নষ্ট আর্কাইভ</string>
+    <string name="support_debuglog_session_failed_zip_failed">ব্যর্থ: সংকোচনের ত্রুটি</string>
+    <string name="support_debuglog_session_delete_title">ডিবাগ সেশন মুছে ফেলবেন?</string>
+    <string name="support_debuglog_session_delete_message">এতে এই ডিবাগ লগ সেশন স্থায়ীভাবে মুছে যাবে।</string>
+    <string name="support_debuglog_clear_action">সব মুছুন</string>
+    <string name="support_debuglog_clear_confirm_message">রাখা সব ডিবাগ লগ সেশন মুছে ফেলবেন?</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butler ডিবাগ লগ - %1$s</string>
+    <string name="debug_log_screen_subtitle">সমস্যা সমাধানের জন্য ডিবাগ তথ্য এক্সপোর্ট করুন</string>
+    <string name="debug_log_screen_sensitive_information_title">সংবেদনশীল তথ্য</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">বার্তা পাঠিয়েছেন?</string>
+    <string name="support_contact_sent_message">বার্তা পাঠানো হয়ে থাকলে জায়গা বাঁচাতে যুক্ত ডিবাগ লগ মুছে ফেলা হবে। না পাঠালে রেখে দিয়ে পরে আবার চেষ্টা করতে পারেন।</string>
+    <string name="support_contact_debuglog_zip_error">ডিবাগ লগ সংযুক্তি প্রস্তুত করা ব্যর্থ হয়েছে</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">ফাইলের কাজের অগ্রগতি</string>
+    <string name="ops_notification_channel_progress_desc">কপি, সরানো ও মুছে ফেলার চলমান অগ্রগতি</string>
+    <string name="ops_notification_channel_attention_name">ফাইলের কাজের সতর্কতা</string>
+    <string name="ops_notification_channel_attention_desc">মনোযোগ প্রয়োজন বা ব্যর্থ হয়েছে এমন কাজ</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$dটি ফাইলের কাজ চলছে</item>
+        <item quantity="other">%1$dটি ফাইলের কাজ চলছে</item>
+    </plurals>
+    <string name="ops_notification_state_queued">সারিতে আছে…</string>
+    <string name="ops_notification_state_cancelling">বাতিল হচ্ছে…</string>
+    <string name="ops_notification_state_attention_title">পদক্ষেপ প্রয়োজন</string>
+    <string name="ops_notification_state_attention_text">একটি দ্বন্দ্বে আপনার মনোযোগ প্রয়োজন — সমাধান করতে ট্যাপ করুন</string>
+    <string name="ops_notification_result_failed_title">কাজ ব্যর্থ হয়েছে</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">Butler-এর জন্য একটি রিভিউ দিতে চান? ❤️</string>
+    <string name="review_app_dismiss_action">হয়তো পরে</string>
+    <string name="review_app_review_action">রিভিউ দিন</string>
+
+</resources>

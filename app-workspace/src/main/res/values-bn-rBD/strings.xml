@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">ক্লিপবোর্ড</string>
+    <string name="clipboard_clear_all">সব মুছুন</string>
+    <string name="clipboard_paste">পেস্ট করুন</string>
+    <string name="clipboard_open_in_explorer">এক্সপ্লোরারে খুলুন</string>
+    <string name="clipboard_copy">কপি করুন</string>
+    <string name="clipboard_cut">কাট করুন</string>
+    <string name="clipboard_origin">উৎস: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">%dটি আইটেম কপি করুন</item>
+        <item quantity="other">%dটি আইটেম কপি করুন</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%dটি আইটেম, %s থেকে</item>
+        <item quantity="other">%dটি আইটেম, %s থেকে</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">%dটি আইটেম কাট করুন</item>
+        <item quantity="other">%dটি আইটেম কাট করুন</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%dটি আইটেম, %s থেকে</item>
+        <item quantity="other">%dটি আইটেম, %s থেকে</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%dটি অবস্থান</item>
+        <item quantity="other">%dটি অবস্থান</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%2$s থেকে %1$dটি আইটেম</item>
+        <item quantity="other">%2$s থেকে %1$dটি আইটেম</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%2$s থেকে %1$dটি আইটেম</item>
+        <item quantity="other">%2$s থেকে %1$dটি আইটেম</item>
+    </plurals>
+    <string name="clipboard_text_title">টেক্সটের অংশ</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$dটি অক্ষর</item>
+        <item quantity="other">%1$dটি অক্ষর</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">ফাইল হিসেবে পেস্ট করুন</string>
+    <string name="clipboard_text_info_characters">অক্ষর</string>
+    <string name="clipboard_text_info_lines">লাইন</string>
+    <string name="clipboard_text_info_content">বিষয়বস্তু</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">সারসংক্ষেপ</string>
+    <string name="clipboard_info_operation">কাজ</string>
+    <string name="clipboard_info_items">আইটেম</string>
+    <string name="clipboard_info_source">উৎস</string>
+    <string name="clipboard_info_sources">উৎসসমূহ</string>
+    <string name="clipboard_info_workspace">ওয়ার্কস্পেস</string>
+    <string name="clipboard_info_workspace_closed">বন্ধ</string>
+    <string name="clipboard_info_time">সময়</string>
+    <string name="clipboard_info_items_with_count">আইটেম (%1$d)</string>
+    <string name="clipboard_info_actions">পদক্ষেপ</string>
+    <string name="clipboard_info_go_to_source">উৎসে যান</string>
+    <string name="clipboard_info_go_to_first_source">প্রথম উৎসে যান</string>
+    <string name="clipboard_info_remove">ক্লিপবোর্ড থেকে সরান</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">ক্লিপবোর্ড</string>
+    <string name="clipboard_settings_remove_on_paste_title">পেস্ট হলে সরান</string>
+    <string name="clipboard_settings_remove_on_paste_desc">পেস্ট করার পরে ক্লিপবোর্ড থেকে কপি করা আইটেম সরান</string>
+    <string name="clipboard_settings_max_items_title">সর্বোচ্চ আইটেম</string>
+    <string name="clipboard_settings_max_items_desc">ক্লিপবোর্ডে আইটেমের সর্বোচ্চ সংখ্যা</string>
+
+    <string name="workspace_explorer_label">এক্সপ্লোরার</string>
+    <string name="workspace_searcher_label">সার্চ</string>
+    <string name="workspace_editor_label">এডিটর</string>
+    <string name="workspace_templates_label">টেমপ্লেট</string>
+    <string name="workspace_apps_label">অ্যাপ</string>
+    <string name="workspace_appdetails_label">অ্যাপের বিস্তারিত</string>
+    <string name="workspace_saver_label">নতুন নামে সংরক্ষণ</string>
+    <string name="workspace_developer_label">ডেভেলপার</string>
+    <string name="workspace_history_label">ইতিহাস</string>
+    <string name="workspace_bugreport_label">বাগ রিপোর্ট</string>
+    <string name="workspace_viewer_label">ভিউয়ার</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">ছবি</string>
+    <string name="workspace_searcher_target_videos">ভিডিও</string>
+    <string name="workspace_searcher_target_music">সংগীত</string>
+    <string name="workspace_searcher_target_downloads">ডাউনলোড</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">আরও</string>
+    <string name="workspace_expand_less_action">কম</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">ট্যাব ও ওয়ার্কস্পেস</string>
+    <string name="workspace_button_menu_new_workspace_format">নতুন %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">নতুন ট্যাব</string>
+    <string name="workspace_button_menu_category_recent">সম্প্রতি</string>
+    <string name="workspace_button_menu_category_other">অন্যান্য</string>
+    <string name="workspace_button_menu_category_current_tab">এই ট্যাব</string>
+    <string name="workspace_button_menu_manager_action">ট্যাব ম্যানেজার</string>
+    <string name="workspace_button_menu_layout_action">বিন্যাস</string>
+    <string name="workspace_button_menu_close_current_action">বর্তমান ট্যাব বন্ধ করুন</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">বর্তমান ট্যাব বন্ধ করুন (%dটি ওয়ার্কস্পেস)</item>
+        <item quantity="other">বর্তমান ট্যাব বন্ধ করুন (%dটি ওয়ার্কস্পেস)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">সেটিংস</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">সব ট্যাব বন্ধ করবেন?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">এতে খোলা %1$dটি ট্যাব বন্ধ হবে। এই কাজ ফেরানো যাবে না।</item>
+        <item quantity="other">এতে খোলা সব %1$dটি ট্যাব বন্ধ হবে। এই কাজ ফেরানো যাবে না।</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">সব বন্ধ করুন</string>
+    <string name="workspace_manager_close_all_unsaved_warning">কিছু ট্যাবে অসংরক্ষিত পরিবর্তন আছে যা হারিয়ে যাবে।</string>
+    <string name="workspace_manager_close_all_unsaved_action">সব বাতিল করে দিন</string>
+    <string name="workspace_manager_close_selected_title">নির্বাচিত ট্যাবগুলো বন্ধ করবেন?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">এতে নির্বাচিত %1$dটি ট্যাব বন্ধ হবে। এই কাজ ফেরানো যাবে না।</item>
+        <item quantity="other">এতে নির্বাচিত %1$dটি ট্যাব বন্ধ হবে। এই কাজ ফেরানো যাবে না।</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">নির্বাচিতগুলো বন্ধ করুন</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">কিছু নির্বাচিত ট্যাবে অসংরক্ষিত পরিবর্তন আছে যা হারিয়ে যাবে।</string>
+    <string name="workspace_manager_close_selected_unsaved_action">নির্বাচিতগুলো বাতিল করে দিন</string>
+    <string name="workspace_manager_pause_partial_title">ট্যাবে বিরতি দেবেন?</string>
+    <string name="workspace_manager_pause_partial_message">নির্বাচিত %2$dটির মধ্যে %1$dটি ট্যাবে বিরতি দেওয়া যায়। বাকিগুলো ব্যবহৃত হচ্ছে, অসংরক্ষিত পরিবর্তন আছে বা বর্তমানে খোলা আছে।</string>
+    <string name="workspace_manager_pause_partial_action">%1$dটিতে বিরতি দিন</string>
+    <string name="general_cancel_action">বাতিল করুন</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">কাজ</string>
+    <string name="operations_clear_completed">সম্পন্নগুলো মুছুন</string>
+    <string name="operations_state_queued">সারিতে আছে</string>
+    <string name="operations_state_running">চলছে</string>
+    <string name="operations_state_waiting">ইনপুটের অপেক্ষায়</string>
+    <string name="operations_state_successful">সফল</string>
+    <string name="operations_state_failed">ব্যর্থ</string>
+    <string name="operations_state_cancelled">বাতিল হয়েছে</string>
+    <string name="operations_state_cancelling">বাতিল হচ্ছে…</string>
+    <string name="operations_cancel_operation">কাজ বাতিল করুন</string>
+    <string name="operations_cancel_dialog_title">কাজ বাতিল করবেন?</string>
+    <string name="operations_cancel_dialog_message">আপনি কি এই কাজ বাতিল করতে চান?</string>
+    <string name="operations_cancel_dialog_warning">বাতিল করলে ফাইল অসম্পূর্ণ বা অসংগত অবস্থায় থাকতে পারে।</string>
+    <string name="operations_details_started_at">শুরু</string>
+    <string name="operations_details_completed_at">সম্পন্ন</string>
+    <string name="operations_details_duration">সময়কাল</string>
+    <string name="operations_details_duration_not_started">শুরু হয়নি</string>
+    <string name="operations_details_progress">অগ্রগতি</string>
+    <string name="operations_details_error">ত্রুটির বিস্তারিত</string>
+    <string name="operations_details_actions">পদক্ষেপ</string>
+    <string name="operations_details_overview">সারসংক্ষেপ</string>
+    <string name="operations_details_handle_issue">সমস্যা সমাধান করুন</string>
+    <string name="operations_details_show_in_history_action">ইতিহাসে দেখান</string>
+    <string name="operations_details_status">অবস্থা</string>
+    <string name="operations_details_result">ফলাফল</string>
+    <string name="operations_details_destination_folder">গন্তব্য ফোল্ডার</string>
+    <string name="operations_details_destination_path">গন্তব্য পাথ</string>
+    <string name="operations_details_affected_paths_with_count">প্রভাবিত পাথ (%d)</string>
+    <string name="operations_details_problems_with_count">সমস্যা (%d)</string>
+    <string name="operations_details_problems_more">আরও %dটি তালিকায় নেই</string>
+    <string name="workspace_operation_packages_section_title">অ্যাপ</string>
+    <string name="workspace_operation_package_status_done">হয়েছে</string>
+    <string name="workspace_operation_package_status_failed">ব্যর্থ</string>
+    <string name="workspace_operation_package_status_declined">প্রত্যাখ্যাত</string>
+    <string name="operations_details_section_expand">%1$s প্রসারিত করুন</string>
+    <string name="operations_details_section_collapse">%1$s সংকুচিত করুন</string>
+    <string name="workspace_operations_performance_graph_label">কর্মদক্ষতার গ্রাফ</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">আইটেম মুছে ফেলবেন?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">%1$dটি আইটেম মুছে ফেলবেন?</item>
+        <item quantity="other">%1$dটি আইটেম মুছে ফেলবেন?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">এই আইটেম স্থায়ীভাবে মুছে ফেলা হবে:</string>
+    <string name="workspace_dialog_delete_message_multiple">এই আইটেমগুলো স্থায়ীভাবে মুছে ফেলা হবে:</string>
+    <string name="workspace_dialog_delete_more_items">… এবং আরও %1$dটি</string>
+    <string name="workspace_dialog_delete_warning">এই কাজ ফেরানো যাবে না।</string>
+    <string name="workspace_dialog_delete_permanently_action">স্থায়ীভাবে মুছে ফেলুন</string>
+    <string name="workspace_dialog_delete_permanently_toggle">এর বদলে স্থায়ীভাবে মুছে ফেলুন</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">কিছু আইটেম ট্র্যাশে সরানো যায় না এবং আলাদাভাবে ব্যবস্থা নেওয়া হবে।</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">ট্র্যাশে সরাবেন?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">%1$dটি আইটেম ট্র্যাশে সরাবেন?</item>
+        <item quantity="other">%1$dটি আইটেম ট্র্যাশে সরাবেন?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">এই আইটেম ট্র্যাশে সরানো হবে:</string>
+    <string name="workspace_dialog_trash_message_multiple">এই আইটেমগুলো ট্র্যাশে সরানো হবে:</string>
+    <string name="workspace_dialog_trash_hint">ট্র্যাশ অবস্থানে এগুলো পাবেন</string>
+    <string name="workspace_dialog_move_to_trash_action">সরান</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%dটি নির্বাচিত</item>
+        <item quantity="other">%dটি নির্বাচিত</item>
+    </plurals>
+    <string name="workspace_action_more">আরও পদক্ষেপ</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">ফাইল মুছে ফেলা</string>
+    <string name="workspace_operation_delete_description_single">\"%2$s\" থেকে \"%1$s\" মুছে ফেলুন।</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">\"%2$s\" থেকে %1$dটি আইটেম মুছে ফেলুন।</item>
+        <item quantity="other">\"%2$s\" থেকে %1$dটি আইটেম মুছে ফেলুন।</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">অ্যাপ ইনস্টল</string>
+    <string name="workspace_operation_install_description">\"%1$s\" ইনস্টল করুন।</string>
+    <string name="workspace_operation_install_progress_inspecting">প্যাকেজ পড়া হচ্ছে…</string>
+    <string name="workspace_operation_install_progress_extracting">প্যাক খোলা হচ্ছে…</string>
+    <string name="workspace_operation_install_progress_writing">ইনস্টলারকে ফাইল দেওয়া হচ্ছে…</string>
+    <string name="workspace_operation_install_progress_committing">ইনস্টল শেষ হচ্ছে…</string>
+    <string name="workspace_operation_install_progress_placing_obb">সম্প্রসারণ ফাইল রাখা হচ্ছে…</string>
+    <string name="workspace_operation_install_summary_success">%1$s ইনস্টল হয়েছে।</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s ইনস্টল হয়েছে, কিন্তু এর সম্প্রসারণ ফাইল রাখা যায়নি।</string>
+    <string name="workspace_install_unknown_sources_required">অ্যাপ ইনস্টল করতে Butler-এর অনুমতি প্রয়োজন। এখনই খোলা সেটিংসে অনুমতি দিন, তারপর আবার চেষ্টা করুন।</string>
+    <string name="workspace_install_obb_failed">অ্যাপ ইনস্টল হয়েছে, কিন্তু এর সম্প্রসারণ ফাইল রাখা যায়নি: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$dটি ফাইল মুছে ফেলা হয়েছে।</item>
+        <item quantity="other">%1$dটি ফাইল মুছে ফেলা হয়েছে।</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$dটি ডিরেক্টরি মুছে ফেলা হয়েছে।</item>
+        <item quantity="other">%1$dটি ডিরেক্টরি মুছে ফেলা হয়েছে।</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$dটি আইটেম বাদ দেওয়া হয়েছে।</item>
+        <item quantity="other">%1$dটি আইটেম বাদ দেওয়া হয়েছে।</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s খালি হয়েছে।</item>
+        <item quantity="other">%1$s খালি হয়েছে।</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">ট্র্যাশে সরানো হচ্ছে…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$dটি ফাইল ট্র্যাশে সরানো হয়েছে।</item>
+        <item quantity="other">%1$dটি ফাইল ট্র্যাশে সরানো হয়েছে।</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$dটি ডিরেক্টরি ট্র্যাশে সরানো হয়েছে।</item>
+        <item quantity="other">%1$dটি ডিরেক্টরি ট্র্যাশে সরানো হয়েছে।</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/সে. খালি হয়েছে।</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s খালি হয়েছে।</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s বাকি।</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">তথ্য</string>
+    <string name="workspace_file_info_name_label">নাম</string>
+    <string name="workspace_file_info_path_label">পাথ</string>
+    <string name="workspace_file_info_type_label">ধরন</string>
+    <string name="workspace_file_info_type_file">ফাইল</string>
+    <string name="workspace_file_info_type_directory">ডিরেক্টরি</string>
+    <string name="workspace_file_info_type_symlink">সিম্বলিক লিংক</string>
+    <string name="workspace_file_info_type_unknown">অজানা</string>
+    <string name="workspace_file_info_size_label">আকার</string>
+    <string name="workspace_file_info_modified_label">পরিবর্তিত</string>
+    <string name="workspace_file_info_created_label">তৈরি</string>
+    <string name="workspace_file_info_permissions_label">অনুমতি</string>
+    <string name="workspace_file_info_owner_label">মালিক</string>
+    <string name="workspace_file_info_child_count_label">আইটেম</string>
+    <string name="workspace_file_info_symlink_target_label">লক্ষ্য</string>
+    <string name="workspace_file_info_unknown">অজানা</string>
+    <string name="workspace_file_info_copy_action">ক্লিপবোর্ডে কপি করুন</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">নির্বাচিত</string>
+    <string name="workspace_file_info_files_label">ফাইল</string>
+    <string name="workspace_file_info_directories_label">ডিরেক্টরি</string>
+    <string name="workspace_file_info_total_size_label">মোট আকার</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">এই কাজ এখনো শুরু হয়নি।</string>
+    <string name="workspace_operation_performance_unavailable_collecting">কর্মদক্ষতার তথ্য সংগ্রহ হচ্ছে…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">গ্রাফ আঁকার জন্য এই কাজের যথেষ্ট কর্মদক্ষতার তথ্য নেই।</string>
+    <string name="workspace_operation_performance_unavailable_not_available">এই কাজের কর্মদক্ষতার তথ্য পাওয়া যাচ্ছে না।</string>
+    <string name="workspace_operation_performance_window_seconds">শেষ %1$d সেকেন্ড</string>
+    <string name="workspace_operation_performance_window_minutes">শেষ %1$d মিনিট</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">আইটেম/সে.</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">প্রযুক্তিগত বিস্তারিত দেখান</string>
+    <string name="workspace_error_hide_details_action">প্রযুক্তিগত বিস্তারিত লুকান</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">ট্যাব শুরু হচ্ছে</string>
+    <string name="workspace_error_subtitle">একটি অপ্রত্যাশিত ত্রুটি ঘটেছে</string>
+    <string name="workspace_close_tab_action">ট্যাব বন্ধ করুন</string>
+    <string name="workspace_paused_body">মেমরি ও ব্যাটারি বাঁচাতে এই ট্যাব বিরতিতে আছে। চালিয়ে যেতে আবার চালান।</string>
+    <string name="workspace_paused_error_body">এই ট্যাব আবার চালানো যায়নি।</string>
+    <string name="workspace_paused_resume_action">আবার চালান</string>
+    <string name="workspace_paused_label">বিরতিতে</string>
+    <string name="workspace_paused_content_label">ট্যাবের বিষয়বস্তু</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">বিদ্যমান ফাইল</string>
+    <string name="workspace_issue_collision_existing_folder_label">বিদ্যমান ফোল্ডার</string>
+    <string name="workspace_issue_collision_new_file">আসা ফাইল</string>
+    <string name="workspace_issue_collision_new_folder">আসা ফোল্ডার</string>
+    <string name="workspace_issue_collision_overwrite">প্রতিস্থাপন করুন</string>
+    <string name="workspace_issue_collision_merge">একত্র করুন</string>
+    <string name="workspace_issue_common_source_file">উৎস ফাইল</string>
+    <string name="workspace_issue_common_destination_file">গন্তব্য</string>
+    <string name="workspace_issue_common_skip">এড়িয়ে যান</string>
+    <string name="workspace_issue_common_rename">নাম বদলান</string>
+    <string name="workspace_issue_common_rename_new">নতুনটির নাম বদলান</string>
+    <string name="workspace_issue_common_rename_existing">বিদ্যমানটির নাম বদলান</string>
+    <string name="workspace_issue_common_cancel">বাতিল করুন</string>
+    <string name="workspace_issue_common_delete_permanently">স্থায়ীভাবে মুছে ফেলুন</string>
+    <string name="workspace_issue_archive_password_label">পাসওয়ার্ড</string>
+    <string name="workspace_issue_archive_password_unlock">খুলুন</string>
+    <string name="workspace_issue_trash_move_failed_items_label">ব্যর্থ আইটেম</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… এবং আরও %1$dটি আইটেম</string>
+    <string name="workspace_issue_trash_not_supported_items_label">প্রভাবিত আইটেম</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… এবং আরও %1$dটি আইটেম</string>
+    <string name="workspace_issue_apply_all">বাকি সব সমস্যায় প্রয়োগ করুন</string>
+    <string name="workspace_issue_rename_new_name">নতুন নাম</string>
+    <string name="workspace_issue_rename_dialog_title_new">আসা ফাইলের নাম বদলান</string>
+    <string name="workspace_issue_rename_dialog_title_existing">বিদ্যমান ফাইলের নাম বদলান</string>
+    <string name="workspace_issue_type_folder">ফোল্ডার</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">একাধিক ট্যাব খুলবেন?</string>
+    <string name="workspace_open_tabs_confirmation_message">এতে %1$dটি ট্যাব খুলবে।</string>
+
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">%dটি আইটেম খুলুন</item>
+        <item quantity="other">%dটি আইটেম খুলুন</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">এখানে দেখুন</string>
+    <string name="workspace_open_selection_view_here_description">এই প্যানের ওপর একটি ভিউয়ারে নির্বাচিত ফাইল দেখায়। আগের ও পরের বোতাম শুধু নির্বাচিত ফাইলগুলোর মধ্যে যায়।</string>
+    <string name="workspace_open_selection_view_in_tab_action">নতুন ট্যাবে দেখুন</string>
+    <string name="workspace_open_selection_view_in_tab_description">নিজস্ব ট্যাবের ভিউয়ারে নির্বাচিত ফাইল দেখায়। আগের ও পরের বোতাম শুধু নির্বাচিত ফাইলগুলোর মধ্যে যায়।</string>
+    <string name="workspace_open_selection_each_in_tab_action">প্রতিটি আলাদা ট্যাবে খুলুন</string>
+    <string name="workspace_open_selection_each_in_tab_description">প্রতিটি নির্বাচিত আইটেম আলাদা ট্যাবে খোলে। ফোল্ডার ফাইল ব্রাউজার ট্যাব হিসেবে খোলে।</string>
+    <string name="workspace_open_selection_viewer_unavailable">ভিউয়ারে ফোল্ডার দেখানো যায় না।</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">যা দিয়ে খুলবেন</string>
+    <string name="workspace_open_with_no_app_label">অন্য কোনো অ্যাপ পাওয়া যায়নি</string>
+    <string name="workspace_open_with_no_app_description">ইনস্টল করা অন্য কোনো অ্যাপ %1$s খুলতে পারে না।</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">%1$dটি ট্যাব খোলা হয়েছে</item>
+        <item quantity="other">%1$dটি ট্যাব খোলা হয়েছে</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">বন্ধ করা যাচ্ছে না: %1$dটি ট্যাবে কাজ এখনো চলছে</item>
+        <item quantity="other">বন্ধ করা যাচ্ছে না: %1$dটি ট্যাবে কাজ এখনো চলছে</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">ট্যাব</string>
+    <string name="workspace_settings_navigation">নেভিগেশন</string>
+    <string name="workspace_settings_swipe_gestures_title">সোয়াইপ ভঙ্গি</string>
+    <string name="workspace_settings_swipe_gestures_desc">ট্যাব পাল্টাতে বাঁয়ে বা ডানে সোয়াইপ করুন।</string>
+    <string name="workspace_settings_ondemand_creation_title">স্বয়ংক্রিয় ট্যাব তৈরি</string>
+    <string name="workspace_settings_ondemand_creation_desc">শেষ ট্যাবের পরে সোয়াইপ করলে স্বয়ংক্রিয়ভাবে নতুন ট্যাব তৈরি করুন।</string>
+    <string name="workspace_settings_newtab_type_title">নতুন ট্যাবের ধরন</string>
+    <string name="workspace_settings_newtab_type_desc">শেষ ট্যাবের পরে সোয়াইপ করলে, খালি প্যানে ট্যাব যোগ করলে বা প্রথম ট্যাব তৈরি করলে যে ওয়ার্কস্পেস খুলবে।</string>
+    <string name="workspace_settings_newtab_type_ask">প্রতিবার জিজ্ঞাসা করুন</string>
+    <string name="workspace_settings_newtab_type_ask_desc">প্রতিটি নতুন ট্যাবের জন্য ট্যাবের ধরন বাছাইকারী দেখান।</string>
+    <string name="workspace_settings_live_preview_title">লাইভ প্রিভিউ</string>
+    <string name="workspace_settings_live_preview_desc">ট্যাব ম্যানেজারে ট্যাবের লাইভ বিষয়বস্তু দেখান।</string>
+    <string name="workspace_settings_other">অন্যান্য</string>
+    <string name="workspace_settings_layout_title">বিন্যাস</string>
+    <string name="workspace_settings_layout_mode_portrait_title">পোর্ট্রেট বিন্যাস মোড</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">পোর্ট্রেট অভিমুখে ট্যাবের বিন্যাস বাছুন।</string>
+    <string name="workspace_settings_layout_mode_landscape_title">ল্যান্ডস্কেপ বিন্যাস মোড</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">ল্যান্ডস্কেপ অভিমুখে ট্যাবের বিন্যাস বাছুন।</string>
+    <string name="workspace_settings_layout_mode_auto">স্বয়ংক্রিয়</string>
+    <string name="workspace_settings_layout_mode_auto_desc">ছোট পর্দায় ক্লাসিক, বড় পর্দায় প্যানসহ ট্যাব রেল।</string>
+    <string name="workspace_settings_layout_mode_classic">ক্লাসিক</string>
+    <string name="workspace_settings_layout_mode_classic_desc">একবারে একটি প্যান, ট্যাব রেল ছাড়া।</string>
+    <string name="workspace_settings_layout_mode_adaptive">অভিযোজিত</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">ট্যাব রেল এবং পর্দায় যতগুলো প্যান ধরে। Butler মেনু থেকে বিন্যাস স্থির করুন।</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">ট্যাব রেল এবং পর্দায় যতগুলো প্যান ধরে।</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">অভিযোজিত (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">ট্যাব রেলসহ একক</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">একটি ট্যাব প্যানের সঙ্গে বহু-প্যান বিন্যাসের ট্যাব রেল। রেল পর্দার একটি সরু অংশ নেয়।</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">দ্বৈত উল্লম্ব</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">দুটি প্যান পাশাপাশি (বাঁয়ে/ডানে)।</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">দ্বৈত অনুভূমিক</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">দুটি প্যান ওপর-নিচে।</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">বাঁয়ে বড় প্যানসহ তিনটি</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">বাঁয়ে একটি বড় প্যান, ডানে দুটি ছোট প্যান ওপর-নিচে।</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">ডানে বড় প্যানসহ তিনটি</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">বাঁয়ে দুটি ছোট প্যান ওপর-নিচে, ডানে একটি বড় প্যান।</string>
+    <string name="workspace_settings_layout_mode_quad_grid">চারটি প্যানের গ্রিড</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">২×২ গ্রিডে চারটি প্যান।</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">ফোকাস করতে ক্লিক করুন</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">ফোকাসহীন প্যানে প্রথম ক্লিক শুধু ফোকাস করে, আর ফোকাসহীন প্যান মাউস পয়েন্টারে সাড়া দেয় না। সরাসরি ব্যবহার করতে এটি বন্ধ করুন।</string>
+
+    <string name="workspace_settings_rail_button_title">Butler বোতাম</string>
+    <string name="workspace_settings_rail_button_desc">ট্যাব রেলে Butler বোতাম কোথায় থাকবে বাছুন।</string>
+    <string name="workspace_settings_rail_button_leading">শুরু</string>
+    <string name="workspace_settings_rail_button_leading_desc">পোর্ট্রেটে ট্যাবের আগে, ল্যান্ডস্কেপে ওপরে।</string>
+    <string name="workspace_settings_rail_button_trailing">শেষ</string>
+    <string name="workspace_settings_rail_button_trailing_desc">পোর্ট্রেটে ট্যাবের পরে, ল্যান্ডস্কেপে নিচে। এক হাতে ব্যবহারের জন্য বুড়ো আঙুলের নাগালে।</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">সেশন</string>
+    <string name="workspace_settings_session_restore_title">শুরুতে ট্যাব পুনরুদ্ধার করুন</string>
+    <string name="workspace_settings_session_restore_desc">অ্যাপ চালু হলে আগে খোলা ট্যাব স্বয়ংক্রিয়ভাবে পুনরুদ্ধার করুন।</string>
+    <string name="workspace_settings_autopause_title">অব্যবহৃত ট্যাবে বিরতি দিন</string>
+    <string name="workspace_settings_autopause_desc">কিছুক্ষণ না দেখা ট্যাবে মেমরি ও ব্যাটারি বাঁচাতে বিরতি দেওয়া হয়। খুললে আবার চলে।</string>
+    <string name="workspace_settings_autopause_delay_title">বিরতির আগে সময়</string>
+    <string name="workspace_settings_autopause_delay_desc">চোখের আড়ালে থাকা ট্যাবে বিরতি দেওয়ার আগে অপেক্ষার সময়।</string>
+    <string name="workspace_settings_undoclose_title">ট্যাব বন্ধ করা ফেরান</string>
+    <string name="workspace_settings_undoclose_desc">ট্যাব বন্ধ করলে কয়েক সেকেন্ডের জন্য ফিরিয়ে আনার সুযোগ দেয়।</string>
+    <string name="workspace_settings_session_data_title">সেশনের তথ্য</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$dটি ট্যাব • %2$s</item>
+        <item quantity="other">%1$dটি ট্যাব • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">\"%1$s\" বন্ধ হয়েছে</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">সেশন পুনরুদ্ধার ব্যর্থ হয়েছে</string>
+    <string name="workspace_session_restoration_error_description">আপনার আগের ট্যাব সেশন পুনরুদ্ধার করা যায়নি। এটি এমন বাগের কারণে হতে পারে যা ভবিষ্যৎ আপডেটে ঠিক হবে।\n\nButler ব্যবহার চালিয়ে যেতে সংরক্ষিত সেশন মুছতে পারেন, অথবা আপডেটের অপেক্ষা করতে পারেন।</string>
+    <string name="workspace_session_restoration_error_clear_action">সেশন মুছুন</string>
+    <string name="workspace_session_restoration_error_report_action">সমস্যা জানান</string>
+    <string name="workspace_session_restoration_error_confirm_title">সেশন মুছবেন?</string>
+    <string name="workspace_session_restoration_error_confirm_description">এতে আপনার সংরক্ষিত ট্যাব সেশন স্থায়ীভাবে মুছে যাবে। এই কাজ ফেরানো যাবে না।</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">ট্যাবের নাম বদলান</string>
+    <string name="workspace_rename_name_label">কাস্টম নাম</string>
+    <string name="workspace_rename_name_hint">স্বয়ংক্রিয় নাম ব্যবহার করতে খালি রাখুন</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">ট্যাবের সীমায় পৌঁছেছে</string>
+    <string name="workspace_limit_reached_message">বিনামূল্যের ব্যবহারকারীরা একসঙ্গে সর্বোচ্চ %1$dটি ট্যাব খুলতে পারেন। সীমাহীন ট্যাবের জন্য Butler Pro-তে আপগ্রেড করুন!</string>
+    <string name="workspace_limit_pick_tabs_message">আপনার বিনামূল্যের প্ল্যানে %1$dটি খোলা ট্যাব রাখা যায়। আর দরকার নেই এমন ট্যাব বেছে বন্ধ করে জায়গা করুন।</string>
+    <string name="workspace_limit_no_slot_hint">এখন ট্যাব বন্ধ করলেও নতুন ট্যাবের জায়গা হবে না।</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">%dটি ট্যাব বন্ধ করুন</item>
+        <item quantity="other">%dটি ট্যাব বন্ধ করুন</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">বন্ধ করতে অন্তত %dটি ট্যাব বাছুন।</item>
+        <item quantity="other">বন্ধ করতে অন্তত %dটি ট্যাব বাছুন।</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">%1$s খোলা হয়েছে</string>
+    <string name="workspace_limit_blocker_unsaved">অসংরক্ষিত পরিবর্তন</string>
+    <string name="workspace_limit_blocker_busy">এখন ব্যস্ত</string>
+    <string name="workspace_limit_blocker_attention">আপনার অপেক্ষায়</string>
+    <string name="workspace_limit_blocker_loading">এখনো লোড হচ্ছে</string>
+    <string name="workspace_limit_blocker_awaiting_result">আগে খোলা বাছাইকারীর কাজ শেষ করুন</string>
+    <string name="workspace_limit_blocker_unavailable">এখন বন্ধ করা যায় না</string>
+    <string name="workspace_limit_stacked_content_desc">এই ট্যাব বন্ধ করলে এর ওপর স্তূপ করা বিষয়বস্তুও বন্ধ হবে</string>
+    <string name="workspace_limit_pro_description">যত খুশি ট্যাব খুলুন।</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$dটি আইটেম</item>
+        <item quantity="other">%1$dটি আইটেম</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">ট্র্যাশ পুনরুদ্ধার</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">ট্র্যাশ থেকে %dটি আইটেম পুনরুদ্ধার করুন।</item>
+        <item quantity="other">ট্র্যাশ থেকে %dটি আইটেম পুনরুদ্ধার করুন।</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%dটি আইটেম পুনরুদ্ধার হয়েছে</item>
+        <item quantity="other">%dটি আইটেম পুনরুদ্ধার হয়েছে</item>
+    </plurals>
+</resources>
