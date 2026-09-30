@@ -124,6 +124,7 @@
     <string name="operations_details_actions">Tindakan</string>
     <string name="operations_details_overview">Gambaran keseluruhan</string>
     <string name="operations_details_handle_issue">Kendalikan isu</string>
+    <string name="operations_details_open_app_action">Buka aplikasi</string>
     <string name="operations_details_show_in_history_action">Tunjukkan dalam sejarah</string>
     <string name="operations_details_status">Status</string>
     <string name="operations_details_result">Hasil</string>

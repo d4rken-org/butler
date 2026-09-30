@@ -135,6 +135,7 @@
     <string name="operations_details_actions">Műveletek</string>
     <string name="operations_details_overview">Áttekintés</string>
     <string name="operations_details_handle_issue">Probléma kezelése</string>
+    <string name="operations_details_open_app_action">Alkalmazás megnyitása</string>
     <string name="operations_details_show_in_history_action">Megjelenítés az előzményekben</string>
     <string name="operations_details_status">Állapot</string>
     <string name="operations_details_result">Eredmény</string>

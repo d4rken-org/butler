@@ -135,6 +135,7 @@
     <string name="operations_details_actions">कार्रवाइयाँ</string>
     <string name="operations_details_overview">अवलोकन</string>
     <string name="operations_details_handle_issue">समस्या सुलझाएँ</string>
+    <string name="operations_details_open_app_action">ऐप खोलें</string>
     <string name="operations_details_show_in_history_action">इतिहास में दिखाएँ</string>
     <string name="operations_details_status">स्थिति</string>
     <string name="operations_details_result">परिणाम</string>

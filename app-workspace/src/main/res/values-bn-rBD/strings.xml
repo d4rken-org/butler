@@ -151,6 +151,7 @@
     <string name="operations_details_actions">পদক্ষেপ</string>
     <string name="operations_details_overview">সারসংক্ষেপ</string>
     <string name="operations_details_handle_issue">সমস্যা সমাধান করুন</string>
+    <string name="operations_details_open_app_action">অ্যাপ খুলুন</string>
     <string name="operations_details_show_in_history_action">ইতিহাসে দেখান</string>
     <string name="operations_details_status">অবস্থা</string>
     <string name="operations_details_result">ফলাফল</string>

@@ -146,6 +146,7 @@
     <string name="operations_details_actions">Acțiuni</string>
     <string name="operations_details_overview">Prezentare generală</string>
     <string name="operations_details_handle_issue">Rezolvă problema</string>
+    <string name="operations_details_open_app_action">Deschide aplicația</string>
     <string name="operations_details_show_in_history_action">Arată în istoric</string>
     <string name="operations_details_status">Stare</string>
     <string name="operations_details_result">Rezultat</string>

@@ -157,6 +157,7 @@
     <string name="operations_details_actions">פעולות</string>
     <string name="operations_details_overview">סקירה</string>
     <string name="operations_details_handle_issue">טיפול בבעיה</string>
+    <string name="operations_details_open_app_action">פתיחת היישומון</string>
     <string name="operations_details_show_in_history_action">הצגה בהיסטוריה</string>
     <string name="operations_details_status">מצב</string>
     <string name="operations_details_result">תוצאה</string>
