@@ -57,11 +57,16 @@ class ShizukuWrapperTest {
     }
 
     private class FakeSource : AdbServerSource {
-        val server = MutableStateFlow<AdbServerConnection?>(null)
+        override val state = MutableStateFlow<AdbConnectionState>(AdbConnectionState.Disconnected)
+        var server: AdbServerConnection?
+            get() = current()
+            set(value) {
+                state.value = value?.let { AdbConnectionState.Connected(AdbServer(it)) }
+                    ?: AdbConnectionState.Disconnected
+            }
         var onAvailability: suspend () -> AdbAvailability = { AdbAvailability.NotInstalled }
 
-        override val connection: Flow<AdbServerConnection?> = server
-        override fun current(): AdbServerConnection? = server.value
+        override fun current(): AdbServerConnection? = (state.value as? AdbConnectionState.Connected)?.server?.connection
         override suspend fun availability(): AdbAvailability = onAvailability()
     }
 
@@ -201,12 +206,12 @@ class ShizukuWrapperTest {
         wrapper.connection.first() shouldBe null
 
         val first = FakeServer(AdbBackend.SHIZUKU)
-        source.server.value = first
+        source.server = first
         val firstHandle = wrapper.connection.first()!!
         firstHandle.backend shouldBe AdbBackend.SHIZUKU
         firstHandle shouldBe AdbServer(first)
 
-        source.server.value = FakeServer(AdbBackend.PORTER)
+        source.server = FakeServer(AdbBackend.PORTER)
         val secondHandle = wrapper.connection.first()!!
         secondHandle.backend shouldBe AdbBackend.PORTER
         secondHandle shouldNotBe firstHandle
@@ -225,14 +230,14 @@ class ShizukuWrapperTest {
         // No connection: nothing to ask, which is not a denial.
         seen.last() shouldBe AdbPermissionState.Unknown
 
-        source.server.value = first
+        source.server = first
         runCurrent()
         seen.last() shouldBe AdbPermissionState.Denied(permanentlyDenied = false)
         first.permissionFlow.value = AdbPermissionState.Granted
         runCurrent()
         seen.last() shouldBe AdbPermissionState.Granted
 
-        source.server.value = second
+        source.server = second
         runCurrent()
         seen.last() shouldBe AdbPermissionState.Denied(permanentlyDenied = false)
         // A replaced connection's late state must not leak into the current one.
@@ -240,11 +245,53 @@ class ShizukuWrapperTest {
         runCurrent()
         seen.last() shouldBe AdbPermissionState.Denied(permanentlyDenied = false)
 
-        source.server.value = null
+        source.server = null
         runCurrent()
         seen.last() shouldBe AdbPermissionState.Unknown
 
         job.cancel()
+    }
+
+    @Test
+    fun `refusal reason changes and departure emit state even with null connection and unknown permission`() = runTest {
+        val wrapper = wrapper()
+        val states = mutableListOf<AdbConnectionState>()
+        val connections = mutableListOf<AdbServer?>()
+        val permissions = mutableListOf<AdbPermissionState>()
+        val jobs = listOf(
+            launch { wrapper.connectionState.toList(states) },
+            launch { wrapper.connection.toList(connections) },
+            launch { wrapper.permissionState.toList(permissions) },
+        )
+        runCurrent()
+
+        val serverTooOld = AdbConnectionState.Incompatible(AdbBackend.PORTER, true, false)
+        source.state.value = serverTooOld
+        runCurrent()
+        val clientTooOld = AdbConnectionState.Incompatible(AdbBackend.PORTER, false, true)
+        source.state.value = clientTooOld
+        runCurrent()
+        source.state.value = AdbConnectionState.Disconnected
+        runCurrent()
+
+        states shouldBe listOf(AdbConnectionState.Disconnected, serverTooOld, clientTooOld, AdbConnectionState.Disconnected)
+        connections shouldBe listOf(null)
+        permissions shouldBe listOf(AdbPermissionState.Unknown)
+
+        val server = FakeServer().apply { permissionFlow.value = AdbPermissionState.Granted }
+        source.server = server
+        runCurrent()
+        connections.last() shouldBe AdbServer(server)
+        permissions.last() shouldBe AdbPermissionState.Granted
+
+        source.state.value = serverTooOld
+        runCurrent()
+        connections.last() shouldBe null
+        permissions.last() shouldBe AdbPermissionState.Unknown
+        server.permissionFlow.value = AdbPermissionState.Denied(permanentlyDenied = true)
+        runCurrent()
+        permissions.last() shouldBe AdbPermissionState.Unknown
+        jobs.forEach { it.cancel() }
     }
 
     @Test
@@ -255,7 +302,7 @@ class ShizukuWrapperTest {
     @Test
     fun `isGranted reflects the connection's permission check`() = runTest {
         val wrapper = wrapper()
-        val server = FakeServer().also { source.server.value = it }
+        val server = FakeServer().also { source.server = it }
 
         server.onCheck = { AdbPermissionState.Granted }
         wrapper.isGranted() shouldBe true
@@ -276,7 +323,7 @@ class ShizukuWrapperTest {
         val wrapper = wrapper()
         FakeServer().also {
             it.onCheck = { awaitCancellation() }
-            source.server.value = it
+            source.server = it
         }
 
         wrapper.isGranted() shouldBe null
@@ -297,7 +344,7 @@ class ShizukuWrapperTest {
                 delay(ShizukuWrapper.IPC_TIMEOUT_MS * 4)
                 AdbPermissionState.Granted
             }
-            source.server.value = it
+            source.server = it
         }
 
         wrapper.requestPermission() shouldBe AdbPermissionState.Granted
@@ -307,7 +354,7 @@ class ShizukuWrapperTest {
     @Test
     fun `requestPermission passes the answer through`() = runTest {
         val wrapper = wrapper()
-        val server = FakeServer().also { source.server.value = it }
+        val server = FakeServer().also { source.server = it }
 
         server.onRequest = { AdbPermissionState.Denied(permanentlyDenied = true) }
         wrapper.requestPermission() shouldBe AdbPermissionState.Denied(permanentlyDenied = true)
@@ -318,7 +365,7 @@ class ShizukuWrapperTest {
         val wrapper = wrapper()
         FakeServer().also {
             it.onRequest = { throw IllegalStateException("the Porter connection was lost") }
-            source.server.value = it
+            source.server = it
         }
 
         wrapper.requestPermission() shouldBe AdbPermissionState.Unknown

@@ -17,6 +17,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -34,6 +38,7 @@ class ShizukuManagerTest : BaseTest() {
     private val useShizukuValue: DataStoreValue<Boolean?> = mockk()
     private lateinit var useShizukuFlow: MutableStateFlow<Boolean?>
     private lateinit var connectionFlow: MutableStateFlow<AdbServer?>
+    private lateinit var connectionStateFlow: MutableStateFlow<AdbConnectionState>
     private lateinit var permissionFlow: MutableStateFlow<AdbPermissionState>
     private lateinit var scope: CoroutineScope
 
@@ -44,12 +49,14 @@ class ShizukuManagerTest : BaseTest() {
         connectionSubscriptions = 0
         useShizukuFlow = MutableStateFlow(true)
         connectionFlow = MutableStateFlow(null)
+        connectionStateFlow = MutableStateFlow(AdbConnectionState.Disconnected)
         permissionFlow = MutableStateFlow(AdbPermissionState.Unknown)
         scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 
         every { settings.useShizuku } returns useShizukuValue
         every { useShizukuValue.flow } returns useShizukuFlow
 
+        every { shizukuWrapper.connectionState } returns connectionStateFlow
         every { shizukuWrapper.permissionState } returns permissionFlow
         // Tracks whether the SDK connection flow is ever collected.
         every { shizukuWrapper.connection } returns connectionFlow.onStart { connectionSubscriptions++ }
@@ -76,6 +83,36 @@ class ShizukuManagerTest : BaseTest() {
         coEvery { shizukuWrapper.getManagerPackages() } returns pkgs.toList()
     }
 
+    @Test fun `connection state is passive for enabled disabled and unset settings`() = runTest {
+        val mgr = manager()
+        val seen = mutableListOf<AdbConnectionState>()
+        val job = launch { mgr.connectionState.toList(seen) }
+        runCurrent()
+        seen.last() shouldBe AdbConnectionState.Disconnected
+
+        for (enabled in listOf(true, false, null)) {
+            useShizukuFlow.value = enabled
+            val refusal = AdbConnectionState.Incompatible(AdbBackend.SHIZUKU, true, false)
+            connectionStateFlow.value = refusal
+            runCurrent()
+            seen.last() shouldBe refusal
+            val connected = AdbConnectionState.Connected(mockk())
+            connectionStateFlow.value = connected
+            runCurrent()
+            seen.last() shouldBe connected
+            connectionStateFlow.value = AdbConnectionState.Disconnected
+            runCurrent()
+            seen.last() shouldBe AdbConnectionState.Disconnected
+        }
+
+        connectionSubscriptions shouldBe 0
+        coVerify(exactly = 0) { shizukuWrapper.requestPermission() }
+        coVerify(exactly = 0) { shizukuWrapper.isGranted() }
+        coVerify(exactly = 0) { shizukuWrapper.availability() }
+        coVerify(exactly = 0) { serviceClient.get() }
+        job.cancel()
+    }
+
     @Test fun `binder stays closed when user opted out`() {
         useShizukuFlow.value = false
         connectionFlow.value = mockk()
@@ -86,6 +123,21 @@ class ShizukuManagerTest : BaseTest() {
 
         collector.latestValues.last() shouldBe null
         connectionSubscriptions shouldBe 0
+
+        runBlocking { collector.cancelAndJoin() }
+    }
+
+    @Test fun `binder stays closed when the setting is unset`() {
+        useShizukuFlow.value = null
+        connectionFlow.value = mockk()
+        val mgr = manager()
+
+        val collector = mgr.shizukuBinder.test(tag = "binder", scope = scope)
+        collector.await { values, _ -> values.isNotEmpty() }
+
+        collector.latestValues.last() shouldBe null
+        connectionSubscriptions shouldBe 0
+        coVerify(exactly = 0) { serviceClient.get() }
 
         runBlocking { collector.cancelAndJoin() }
     }

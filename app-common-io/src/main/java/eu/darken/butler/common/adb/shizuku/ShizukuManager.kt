@@ -44,6 +44,9 @@ class ShizukuManager @Inject constructor(
     val serviceClient: AdbServiceClient,
 ) {
 
+    /** Passive server status for setup, independent of whether ADB use is enabled. */
+    val connectionState: Flow<AdbConnectionState> = shizukuWrapper.connectionState
+
     /** The connected ADB access server while the user opted in, null otherwise. */
     val shizukuBinder: Flow<AdbServer?> = settings.useShizuku.flow
         // Only the setting gates this: the connection flow itself is passive, and a manager installed

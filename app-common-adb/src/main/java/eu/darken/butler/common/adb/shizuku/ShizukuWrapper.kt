@@ -69,14 +69,17 @@ class ShizukuWrapper internal constructor(
         null
     }
 
+    /** Passive connection and compatibility updates, including refused server arrivals and departures. */
+    val connectionState: Flow<AdbConnectionState> = source.state
+
     /** The connected server, null while there is none. */
-    val connection: Flow<AdbServer?> = source.connection
-        .map { connection -> connection?.let { AdbServer(it) } }
+    val connection: Flow<AdbServer?> = connectionState
+        .map { (it as? AdbConnectionState.Connected)?.server }
         .distinctUntilChanged()
 
     /** The current connection's permission state, [AdbPermissionState.Unknown] while there is no connection. */
-    val permissionState: Flow<AdbPermissionState> = source.connection
-        .flatMapLatest { it?.permission ?: flowOf<AdbPermissionState>(AdbPermissionState.Unknown) }
+    val permissionState: Flow<AdbPermissionState> = connection
+        .flatMapLatest { it?.connection?.permission ?: flowOf<AdbPermissionState>(AdbPermissionState.Unknown) }
         .distinctUntilChanged()
 
     internal fun currentServer(): AdbServerConnection? = source.current()

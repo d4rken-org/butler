@@ -10,8 +10,8 @@ import dagger.multibindings.IntoSet
 import eu.darken.butler.common.adb.AdbSettings
 import eu.darken.butler.common.adb.shizuku.AdbAvailability
 import eu.darken.butler.common.adb.shizuku.AdbBackend
+import eu.darken.butler.common.adb.shizuku.AdbConnectionState
 import eu.darken.butler.common.adb.shizuku.AdbPermissionState
-import eu.darken.butler.common.adb.shizuku.AdbServer
 import eu.darken.butler.common.adb.shizuku.ShizukuManager
 import eu.darken.butler.common.adb.shizuku.ShizukuServiceState
 import eu.darken.butler.common.coroutine.AppScope
@@ -40,7 +40,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
@@ -105,31 +105,28 @@ class ShizukuSetupModule @Inject constructor(
         rootManager.useRoot,
     ) { _, useShizuku, useRoot ->
         if (useShizuku != true) {
-            return@combine flow {
-                emit(
-                    probe(
-                        useShizuku = useShizuku,
-                        useRoot = useRoot,
-                        server = null,
-                        permission = AdbPermissionState.Unknown,
-                        probeService = false,
-                    )
+            return@combine shizukuManager.connectionState.mapLatest { connectionState ->
+                probe(
+                    useShizuku = useShizuku,
+                    useRoot = useRoot,
+                    connectionState = connectionState,
+                    permission = AdbPermissionState.Unknown,
                 )
             }
         }
 
         combine(
             shizukuManager.permissionState.onStart { emit(AdbPermissionState.Unknown) },
-            shizukuManager.shizukuBinder.onStart { emit(null) },
-        ) { permission, server ->
-            probe(
-                useShizuku = useShizuku,
-                useRoot = useRoot,
-                server = server,
-                permission = permission,
-                probeService = true,
-            )
-        }
+            shizukuManager.connectionState,
+        ) { permission, connectionState -> permission to connectionState }
+            .mapLatest { (permission, connectionState) ->
+                probe(
+                    useShizuku = useShizuku,
+                    useRoot = useRoot,
+                    connectionState = connectionState,
+                    permission = permission,
+                )
+            }
     }
         .flatMapLatest { it }
         .onEach { lastResult = it }
@@ -150,27 +147,37 @@ class ShizukuSetupModule @Inject constructor(
     private suspend fun probe(
         useShizuku: Boolean?,
         useRoot: Boolean,
-        server: AdbServer?,
+        connectionState: AdbConnectionState,
         permission: AdbPermissionState,
-        probeService: Boolean,
     ): Result {
         val availability = shizukuManager.availability()
-        val incompatible = availability as? AdbAvailability.Incompatible
+        val incompatible = connectionState as? AdbConnectionState.Incompatible
+        val server = (connectionState as? AdbConnectionState.Connected)?.server
+        val enabledConnection = useShizuku == true && server != null
         val openTarget = availability?.let { findOpenTarget(it) }
         return Result(
             useShizuku = useShizuku,
-            backend = availability?.backend ?: server?.backend,
+            backend = when (connectionState) {
+                is AdbConnectionState.Connected -> connectionState.server.backend
+                is AdbConnectionState.Incompatible -> connectionState.backend
+                AdbConnectionState.Disconnected -> availability?.backend
+            },
             pkg = openTarget,
             managerLabel = openTarget?.let { labelOf(it) },
-            // A live connection proves a manager even when the availability could not be read.
-            isInstalled = server != null || (availability != null && availability !is AdbAvailability.NotInstalled),
+            // A live or refused server proves installation even when metadata could not be read.
+            isInstalled = connectionState != AdbConnectionState.Disconnected ||
+                (availability != null && availability !is AdbAvailability.NotInstalled),
             isUnrecognized = availability is AdbAvailability.InstalledUnrecognized,
             isCompatible = incompatible == null,
             serverTooOld = incompatible?.serverTooOld == true,
             clientTooOld = incompatible?.clientTooOld == true,
-            permissionState = permission,
-            basicService = server != null,
-            serviceState = if (probeService) shizukuManager.getServiceState() else ShizukuServiceState.NotChecked,
+            permissionState = if (enabledConnection) permission else AdbPermissionState.Unknown,
+            basicService = enabledConnection,
+            serviceState = when {
+                enabledConnection -> shizukuManager.getServiceState()
+                useShizuku == true -> ShizukuServiceState.Unknown
+                else -> ShizukuServiceState.NotChecked
+            },
             alsoHasRoot = useRoot,
         )
     }
