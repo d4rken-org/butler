@@ -44,4 +44,5 @@ dependencies {
     implementation(libs.androidx.test.runner)
     implementation(libs.androidx.test.junit.android)
     implementation(libs.androidx.test.uiautomator)
+    implementation(libs.mockk.android)
 }
