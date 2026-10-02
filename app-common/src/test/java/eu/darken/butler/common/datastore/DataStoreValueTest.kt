@@ -1,21 +1,33 @@
 package eu.darken.butler.common.datastore
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.DataStoreFactory
+import androidx.datastore.core.Serializer
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.PreferencesFileSerializer
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import java.io.File
+import java.io.OutputStream
 
 class DataStoreValueTest : BaseTest() {
 
@@ -28,6 +40,64 @@ class DataStoreValueTest : BaseTest() {
             scope = scope,
             produceFile = { testFile },
         )
+    }
+
+    @Test
+    fun `collector started during a write receives the committed value`(@TempDir tempDir: File) = runTest {
+        val key = intPreferencesKey("counter")
+        val file = File(tempDir, "concurrent.preferences_pb")
+        val writing = CompletableDeferred<Unit>()
+        val releaseWrite = CompletableDeferred<Unit>()
+        val serializer = object : Serializer<Preferences> by PreferencesFileSerializer {
+            override suspend fun writeTo(t: Preferences, output: OutputStream) {
+                if (t[key] == 1) {
+                    // DataStore has advanced its version, but the final file is still unchanged.
+                    writing.complete(Unit)
+                    releaseWrite.await()
+                }
+                PreferencesFileSerializer.writeTo(t, output)
+            }
+        }
+        val storeJob = SupervisorJob()
+        val store = DataStoreFactory.create(
+            serializer = serializer,
+            scope = CoroutineScope(coroutineContext + storeJob),
+            produceFile = { file },
+        )
+        val value = store.createValue("counter", 0)
+        val beforeWrite = mutableListOf<Int>()
+        val duringWrite = mutableListOf<Int>()
+        val beforeCollector = backgroundScope.launch { value.flow.collect { beforeWrite.add(it) } }
+        var duringCollector: Job? = null
+        try {
+            runCurrent()
+            beforeWrite shouldBe listOf(0)
+
+            val writer = async { value.value(1) }
+            writing.await()
+            duringCollector = backgroundScope.launch { value.flow.collect { duringWrite.add(it) } }
+            runCurrent()
+            duringWrite shouldBe listOf(0)
+
+            releaseWrite.complete(Unit)
+            writer.await()
+            runCurrent()
+
+            file.inputStream().use { PreferencesFileSerializer.readFrom(it) }[key] shouldBe 1
+            value.value() shouldBe 1
+            beforeWrite shouldBe listOf(0, 1)
+            duringWrite shouldBe listOf(0, 1)
+
+            value.value(2)
+            runCurrent()
+            beforeWrite shouldBe listOf(0, 1, 2)
+            duringWrite shouldBe listOf(0, 1, 2)
+        } finally {
+            releaseWrite.complete(Unit)
+            beforeCollector.cancelAndJoin()
+            duringCollector?.cancelAndJoin()
+            storeJob.cancelAndJoin()
+        }
     }
 
     @Test
