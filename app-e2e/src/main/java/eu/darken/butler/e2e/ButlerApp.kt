@@ -50,9 +50,7 @@ class ButlerApp {
         val done = string("general_done_action")
         val controls = anyDesc("tour_action_next", "general_done_action")
         repeat(MAX_TOUR_STEPS) {
-            val node = await(controls)
-            val isLast = node.contentDescription == done
-            click(node)
+            val isLast = click(controls) { it.contentDescription == done }
             if (isLast) {
                 awaitGone(controls)
                 return
@@ -79,21 +77,14 @@ class ButlerApp {
         }
     }
 
-    fun click(selector: BySelector) = click(await(selector))
+    fun click(selector: BySelector) = click(selector) { }
 
-    // Onboarding pages slide in, and a click at a moving node lands where it was a frame earlier.
-    private fun click(node: UiObject2) {
-        val deadline = SystemClock.uptimeMillis() + TIMEOUT_MS
-        var bounds = node.visibleBounds
-        while (true) {
-            if (SystemClock.uptimeMillis() > deadline) throw AssertionError("$node never stopped moving")
-            SystemClock.sleep(SETTLE_POLL_MS)
-            val current = node.visibleBounds
-            if (current == bounds && !current.isEmpty) break
-            bounds = current
-        }
-        node.click()
-    }
+    private fun <T> click(selector: BySelector, beforeClick: (UiObject2) -> T): T = clickWhenSettled(
+        selector = selector,
+        timeoutMs = TIMEOUT_MS,
+        findNode = { remaining -> device.wait(Until.findObject(selector), remaining) },
+        beforeClick = beforeClick,
+    )
 
     private fun anyDesc(vararg names: String): BySelector = By.desc(alternatives(names))
 
@@ -109,7 +100,6 @@ class ButlerApp {
     companion object {
         const val PKG = "eu.darken.butler"
         private const val TIMEOUT_MS = 30_000L
-        private const val SETTLE_POLL_MS = 150L
         private const val MAX_TOUR_STEPS = 10
         private const val TOUR_TAP_MARGIN_MS = 100L
     }
