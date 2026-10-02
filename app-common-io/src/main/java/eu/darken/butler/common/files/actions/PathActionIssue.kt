@@ -5,6 +5,7 @@ import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.error.localized
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.issue.Issue
 
 sealed interface PathActionIssue : Issue {
@@ -30,7 +31,7 @@ sealed interface PathActionIssue : Issue {
             }
         }
         override val description: CaString = caString {
-            val parentPath = destination.lookedUp.parent?.path ?: "/"
+            val parentPath = destination.lookedUp.parent?.shownPath?.get(it) ?: "/"
             if (destination.fileType == eu.darken.butler.common.files.metadata.FileType.DIRECTORY) {
                 getString(
                     eu.darken.butler.common.io.R.string.path_action_folder_exists_description,
@@ -67,7 +68,7 @@ sealed interface PathActionIssue : Issue {
             getString(eu.darken.butler.common.io.R.string.path_action_permission_denied_title)
         }
         override val description: CaString = caString {
-            val parentPath = destinationPath.parent?.path ?: "/"
+            val parentPath = destinationPath.parent?.shownPath?.get(it) ?: "/"
             getString(
                 eu.darken.butler.common.io.R.string.path_action_permission_denied_description,
                 destinationPath.name,
@@ -90,7 +91,7 @@ sealed interface PathActionIssue : Issue {
             getString(eu.darken.butler.common.io.R.string.path_action_insufficient_space_title)
         }
         override val description: CaString = caString {
-            val parentPath = source.lookedUp.parent?.path ?: "/"
+            val parentPath = source.lookedUp.parent?.shownPath?.get(it) ?: "/"
             getString(
                 eu.darken.butler.common.io.R.string.path_action_insufficient_space_description,
                 source.lookedUp.name,

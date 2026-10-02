@@ -15,7 +15,7 @@ class FileTypeClassifier {
         FileType.SYMBOLIC_LINK -> ExplorerItem.SymbolicLink(
             lookup = lookup,
             mimeType = getMimeType(lookup.name),
-            targetPath = lookup.target?.path,
+            targetPath = lookup.target,
             isBroken = lookup.target == null,
             metadata = metadata,
         )

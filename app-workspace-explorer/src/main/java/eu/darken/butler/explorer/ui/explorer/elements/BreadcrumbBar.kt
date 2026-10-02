@@ -68,8 +68,10 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.extensions.matches
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.ui.pagerFriendlyHorizontalScroll
 import eu.darken.butler.explorer.R
@@ -371,6 +373,19 @@ private fun rememberBreadcrumbPathInfo(
                             prefixLabel = rootBreadcrumb?.label?.get(context),
                         )
                     }
+
+                    is SftpPath -> {
+                        val rootBreadcrumb = breadcrumbs.find {
+                            it.target is ExplorerNavigation.Target.Directory &&
+                                it.target.path == SftpPath.root(path.locationId)
+                        }
+                        BreadcrumbPathInfo(
+                            displayPath = path.segments.joinToString("/"),
+                            path = path,
+                            prefixIcon = rootBreadcrumb?.icon ?: Icons.TwoTone.Lan,
+                            prefixLabel = rootBreadcrumb?.label?.get(context),
+                        )
+                    }
                 }
             }
             else -> BreadcrumbPathInfo(displayPath = "", path = null)
@@ -534,6 +549,8 @@ private fun BreadcrumbDisplayRow(
     onToggleFavorite: ((APath<*>) -> Unit)?,
     favoritePaths: List<APath<*>>,
 ) {
+    val context = LocalContext.current
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -577,7 +594,7 @@ private fun BreadcrumbDisplayRow(
                     onCopyPath = if (isDirectory && onCopyPath != null) {
                         {
                             onShowContextMenu(null)
-                            onCopyPath(breadcrumb.target.path.path)
+                            onCopyPath(breadcrumb.target.path.shownPath.get(context))
                         }
                     } else null,
                     onToggleFavorite = if (crumbPath != null && onToggleFavorite != null) {

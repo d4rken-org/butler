@@ -36,6 +36,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,7 +59,9 @@ import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.network.NetworkLocationNames
 import eu.darken.butler.workspace.ui.clipboard.mockFileLookup
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.workspace.R
@@ -66,6 +69,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.LocalWorkspaceTitles
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import eu.darken.butler.workspace.ui.dialogs.InfoField
 import eu.darken.butler.workspace.ui.dialogs.InfoValueKind
 import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
@@ -121,6 +125,8 @@ private fun ClipboardInfoContent(
         when (clip) {
             is ClipboardClip.Paths -> {
                 val context = LocalContext.current
+                // Reading the names subscribes the source list to renames.
+                NetworkLocationNames.snapshot.collectAsState().value
                 val sources = clip.sourceLocations(context)
 
                 // Header Section
@@ -212,7 +218,7 @@ private fun ClipboardInfoHeader(
 
             Text(
                 modifier = Modifier.padding(top = 2.dp),
-                text = clip.description.asComposable(),
+                text = clip.description.withLocationNames(),
                 style = MaterialTheme.typography.bodyMedium.asMaybePathStyle(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -376,12 +382,13 @@ private fun ClipboardFilesSection(
                             .heightIn(max = 300.dp),
                     ) {
                         items(paths) { path ->
+                            val shownPath = path.lookedUp.shownPath.withLocationNames()
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .then(
                                         if (onCopyPath != null) {
-                                            Modifier.clickable { onCopyPath(path.path) }
+                                            Modifier.clickable { onCopyPath(shownPath) }
                                         } else {
                                             Modifier
                                         }
@@ -409,7 +416,7 @@ private fun ClipboardFilesSection(
 
                                 // File path (truncated)
                                 Text(
-                                    text = path.path,
+                                    text = shownPath,
                                     style = MaterialTheme.typography.labelSmall.asPathStyle(),
                                     fontFamily = FontFamily.Monospace,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
@@ -537,7 +544,7 @@ private fun ClipboardTextOverviewSection(
                 clip.sourcePath?.let { sourcePath ->
                     InfoField(
                         label = stringResource(R.string.clipboard_info_source),
-                        value = sourcePath.userReadablePath.get(LocalContext.current),
+                        value = sourcePath.userReadablePath.withLocationNames(),
                         valueStyle = InfoValueStyle.MONOSPACE,
                         valueKind = InfoValueKind.PATH,
                     )

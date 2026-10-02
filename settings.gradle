@@ -48,3 +48,4 @@ include ':saf-test-provider'
 include ':app-e2e'
 
 include ':lib-smb'
+include ':lib-ssh'

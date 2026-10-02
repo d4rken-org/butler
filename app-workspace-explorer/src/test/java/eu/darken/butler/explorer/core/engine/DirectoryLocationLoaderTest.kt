@@ -1,16 +1,22 @@
 package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.archive.ArchiveNotSeekableException
 import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.metadata.FileSystem
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.sftp.SftpPathLookup
 import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.workspace.core.Workspace
@@ -74,6 +80,52 @@ class DirectoryLocationLoaderTest : BaseTest() {
 
         // The extended pass stays skipped, no extra round trip over the network.
         coVerify(exactly = 0) { gatewaySwitch.lookup(any(), any<LookupOptions>()) }
+    }
+
+    @Test
+    fun `an SFTP listing keeps the permissions and owner it was listed with, without another round trip`() = runTest {
+        val path = SftpPath(LOCATION_ID, listOf("srv"))
+        val folder = SftpPath(LOCATION_ID, listOf("srv", "builds"))
+        val file = SftpPath(LOCATION_ID, listOf("srv", "notes.txt"))
+        @Suppress("UNCHECKED_CAST")
+        val listing = listOf(
+            SftpPathLookup(
+                lookedUp = folder,
+                fileType = FileType.DIRECTORY,
+                size = null,
+                modifiedAt = null,
+                ownership = Ownership(1000, 100),
+                permissions = Permissions(0b111_101_000),
+            ),
+            SftpPathLookup(
+                lookedUp = file,
+                fileType = FileType.FILE,
+                size = 12,
+                modifiedAt = null,
+                ownership = Ownership(0, 0),
+                permissions = Permissions(0b110_100_100),
+            ),
+        ) as List<APathLookup<APath<*>>>
+        coEvery { gatewaySwitch.lookupFiles(path, any<LookupOptions>()) } returns listing
+
+        val last = loader().loadDirectory(path).toList().last().shouldBeInstanceOf<ExplorerLocation.Directory>()
+
+        last.info?.isWritable shouldBe true
+        val items = last.items!!.filterIsInstance<ExplorerItem.Lookup>().associateBy { it.lookup.lookedUp }
+        items[folder].shouldBeInstanceOf<ExplorerItem.Directory>().let {
+            it.permissions shouldBe Permissions(0b111_101_000)
+            it.ownership shouldBe Ownership(1000, 100)
+            it.canWrite shouldBe true
+            it.childCount shouldBe null
+        }
+        items[file].shouldBeInstanceOf<ExplorerItem.File>().let {
+            it.permissions shouldBe Permissions(0b110_100_100)
+            it.ownership shouldBe Ownership(0, 0)
+        }
+
+        coVerify(exactly = 0) { gatewaySwitch.lookup(any(), any<LookupOptions>()) }
+        coVerify(exactly = 0) { gatewaySwitch.listFiles(folder) }
+        coVerify(exactly = 1) { gatewaySwitch.lookupFiles(any(), any<LookupOptions>()) }
     }
 
     @Test

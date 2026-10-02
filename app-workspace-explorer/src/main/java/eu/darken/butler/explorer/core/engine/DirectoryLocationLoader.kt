@@ -17,6 +17,7 @@ import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
@@ -118,10 +119,15 @@ class DirectoryLocationLoader @AssistedInject constructor(
                         context.loadContent()
 
                         currentCoroutineContext().ensureActive()
-                        // A second pass over the network would mean one more round trip per item for
-                        // ownership and permissions an SMB share does not report anyway.
+                        // A second pass over the network would mean one more round trip per item: an
+                        // SMB share does not report ownership and permissions anyway, and an SFTP
+                        // listing already carried them.
                         when (context.targetPath) {
                             is SmbPath -> context.loadNetworkWritability()
+                            is SftpPath -> {
+                                context.loadNetworkWritability()
+                                context.applyListingAttributes()
+                            }
                             else -> context.loadContentExtended()
                         }
                     }
@@ -279,6 +285,30 @@ class DirectoryLocationLoader @AssistedInject constructor(
         updateState {
             copy(info = info?.copy(isWritable = writable != false))
         }
+    }
+
+    /**
+     * Moves the ownership and permissions the listing already delivered onto the items, where the
+     * info sheet reads them. Directories keep an unknown child count: counting would list every one.
+     */
+    private suspend fun LocationLoaderContext<ExplorerLocation.Directory>.applyListingAttributes() {
+        val context = WritabilityContext(hasRoot = false, hasAdb = false, appUid = 0, safLocation = null)
+        val items = state.items?.map { item ->
+            if (item !is ExplorerItem.Lookup) return@map item
+            item.withExtendedData(
+                ownership = item.lookup.ownership,
+                permissions = item.lookup.permissions,
+                createdAt = item.lookup.createdAt,
+                canWrite = writabilityEvaluator.evaluate(
+                    path = item.path,
+                    permissions = item.lookup.permissions,
+                    ownership = item.lookup.ownership,
+                    context = context,
+                ),
+            )
+        } ?: return
+
+        updateState { copy(items = items) }
     }
 
     private suspend fun LocationLoaderContext<ExplorerLocation.Directory>.loadContentExtended() {

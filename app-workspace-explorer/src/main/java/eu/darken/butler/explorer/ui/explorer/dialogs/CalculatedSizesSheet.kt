@@ -29,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatRelativeTime
@@ -50,6 +48,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.sizes.ScanProblem
 import eu.darken.butler.explorer.core.sizes.AndroidDataEstimate
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.Uuid
@@ -91,7 +90,6 @@ private fun CalculatedSizesContent(
     onDiscard: () -> Unit,
     initiallyShowProblems: Boolean = false,
 ) {
-    val context = LocalContext.current
     var showProblems by rememberSaveable { mutableStateOf(initiallyShowProblems) }
 
     Column(
@@ -121,7 +119,7 @@ private fun CalculatedSizesContent(
                 )
             }
             Text(
-                text = state.root.userReadablePath.get(context),
+                text = state.root.userReadablePath.withLocationNames(),
                 style = MaterialTheme.typography.bodyMedium.asPathStyle(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
@@ -284,7 +282,7 @@ private fun ProblemList(
         items(items = problems) { problem ->
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = problem.path.userReadablePath.asComposable(),
+                    text = problem.path.userReadablePath.withLocationNames(),
                     style = MaterialTheme.typography.labelSmall.asPathStyle(),
                     fontFamily = FontFamily.Monospace,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),

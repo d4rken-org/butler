@@ -23,6 +23,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
@@ -32,6 +33,7 @@ import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -122,10 +124,11 @@ private fun FileInfoContent(
             )
 
             // Path - always shown, copyable
+            val shownPath = lookup.lookedUp.shownPath.withLocationNames()
             InfoField(
                 label = stringResource(R.string.workspace_file_info_path_label),
-                value = lookup.path,
-                onCopy = { onCopyToClipboard(lookup.path) },
+                value = shownPath,
+                onCopy = { onCopyToClipboard(shownPath) },
                 valueStyle = InfoValueStyle.MONOSPACE,
                 valueKind = InfoValueKind.PATH,
             )
@@ -198,10 +201,11 @@ private fun FileInfoContent(
         if (lookup.fileType == FileType.SYMBOLIC_LINK && lookup.target != null) {
             Spacer(modifier = Modifier.height(8.dp))
             InfoCard {
+                val shownTarget = lookup.target?.shownPath?.withLocationNames()
                 InfoField(
                     label = stringResource(R.string.workspace_file_info_symlink_target_label),
-                    value = lookup.target?.path ?: stringResource(R.string.workspace_file_info_unknown),
-                    onCopy = lookup.target?.path?.let { targetPath -> { onCopyToClipboard(targetPath) } },
+                    value = shownTarget ?: stringResource(R.string.workspace_file_info_unknown),
+                    onCopy = shownTarget?.let { targetPath -> { onCopyToClipboard(targetPath) } },
                     valueStyle = InfoValueStyle.MONOSPACE,
                     valueKind = InfoValueKind.PATH,
                 )

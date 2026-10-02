@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.twotone.NoteAdd
 import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
@@ -26,6 +27,7 @@ import eu.darken.butler.explorer.ui.explorer.items.rowDateStyle
 import eu.darken.butler.explorer.ui.explorer.items.showsDatesOnOwnLine
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.ui.common.withLocationNames
 
 @Composable
 internal fun SymlinkFileRow(
@@ -70,7 +72,7 @@ internal fun SymlinkFileRow(
         },
         primaryText = primaryText,
         hasProblematicChars = hasProblematicChars,
-        secondaryPath = item.targetPath?.let { "→ $it" },
+        secondaryPath = item.targetPath?.shownPath?.withLocationNames()?.let { "→ $it" },
         secondaryText = stringResource(R.string.explorer_file_broken_link_label).takeIf { item.isBroken },
         secondaryEndText = item.lookup.modifiedAt
             ?.takeUnless { density.showsDatesOnOwnLine }

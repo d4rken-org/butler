@@ -30,6 +30,7 @@ import eu.darken.butler.common.files.archive.ArchiveNotSeekableException
 import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
+import eu.darken.butler.explorer.core.sftpHostKeyChange
 import eu.darken.butler.explorer.core.engine.BrowsingAbortedException
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
@@ -145,6 +146,7 @@ internal fun ExplorerReadyContent(
         // dialog in the overlay slot instead, and a vanished target by the content-level
         // PathNotFoundState, so neither must raise a card of its own.
         state.error?.takeIf { it !is BrowsingAbortedException && it !is PathNotFoundException }?.let { error ->
+            val hostKeyChange = error.sftpHostKeyChange()
             if (error is ArchiveNotSeekableException) {
                 val archiveBusy by (vm?.archiveActionBusy ?: remember { MutableStateFlow(false) }).collectAsState()
                 ArchiveAccessErrorCard(
@@ -156,6 +158,19 @@ internal fun ExplorerReadyContent(
                     busy = archiveBusy,
                     onExtract = { vm?.extractUnbrowsableArchive(error.container) },
                     onDownloadCopy = { vm?.downloadArchiveCopy(error.container) },
+                    onRetry = { vm?.retryNavigation() },
+                    onDismiss = { vm?.dismissNavigationError() },
+                )
+            } else if (hostKeyChange != null) {
+                SftpHostKeyChangedCard(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset { IntOffset(x = 0, y = topBarStackState.contentPaddingPx.roundToInt()) }
+                        .padding(horizontal = WorkspacePaddings.BarHorizontal),
+                    endpoint = hostKeyChange.endpoint,
+                    storedKey = hostKeyChange.storedKey,
+                    presentedKey = hostKeyChange.presentedKey,
+                    onReview = { vm?.onReviewSftpHostKeyChange(hostKeyChange) },
                     onRetry = { vm?.retryNavigation() },
                     onDismiss = { vm?.dismissNavigationError() },
                 )

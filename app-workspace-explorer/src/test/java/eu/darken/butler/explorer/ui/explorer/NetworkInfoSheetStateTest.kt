@@ -1,6 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer
 
-import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.files.network.NetworkEndpointState
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import io.kotest.matchers.shouldBe
@@ -12,7 +12,7 @@ class NetworkInfoSheetStateTest : BaseTest() {
 
     private val checking = MockDataProvider.createMockStorageNetwork()
     private val reachable = checking.copy(
-        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+        endpoint = NetworkEndpointState("192.168.1.50", NetworkEndpointState.Reachability.REACHABLE),
     )
 
     private fun sheetFor() = ExplorerDialogState.ItemInfo(
@@ -36,6 +36,21 @@ class NetworkInfoSheetStateTest : BaseTest() {
 
         resolved.shouldBeInstanceOf<ExplorerDialogState.ItemInfo>()
         (resolved.context as ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork).item shouldBe null
+    }
+
+    @Test
+    fun `an SFTP sheet resolves to its own row, not to an SMB row next to it`() {
+        val sftp = MockDataProvider.createMockStorageSftp(
+            endpoint = NetworkEndpointState("192.168.1.20", NetworkEndpointState.Reachability.REACHABLE),
+        )
+        val sheet = ExplorerDialogState.ItemInfo(
+            ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(sftp.location.id),
+        )
+
+        val resolved = sheet.withLiveNetworkItem(listOf(checking, sftp))
+
+        resolved.shouldBeInstanceOf<ExplorerDialogState.ItemInfo>()
+        (resolved.context as ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork).item shouldBe sftp
     }
 
     @Test

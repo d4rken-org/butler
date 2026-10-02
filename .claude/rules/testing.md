@@ -147,5 +147,17 @@ APKs are cached per tag commit. The workflow uploads the `device-tests-api-<leve
 a module that gains device tests (an `androidTest` source set, or a `com.android.test` module like
 `:app-e2e`) must be added to both its build and its run step, or its tests never run in CI.
 
+The SFTP device tests in `:app-common-io` need `tools/sftp-test-server.sh` (Docker) and skip without
+its `sftpHost`/`sftpPort` instrumentation arguments. Locally, `tools/sftp-device-test.sh` starts the
+server and passes them. In CI, the debug job starts the server on the runner before the emulator,
+and `tools/sftp-device-results.py` fails the job unless every SFTP device class ran without skips.
+
+`SftpEndToEndTest` in `:app-e2e` unlocks Pro in a FOSS build through the Sponsor button, adds the
+test server as a network location and opens a file on it. The test APK's `SponsorPageStubActivity`
+stands in for the browser: the test selects the test package for `github.com` links (API 31+). The
+Gradle task and `tools/e2e-test.sh` skip it; `tools/sftp-e2e-test.sh <app.apk> <app-e2e.apk>` starts
+the server, runs only this test and fails if it was skipped. CI runs it on the minified FOSS beta
+build in the minified tests job.
+
 Mocking on a device uses `mockk-android`, which needs a mockk release that ships its native agent
 (1.14.9 does, 1.12.4 did not).

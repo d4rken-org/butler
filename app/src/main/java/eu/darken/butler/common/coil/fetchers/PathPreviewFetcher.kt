@@ -27,6 +27,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.extension
@@ -101,7 +102,7 @@ class PathPreviewFetcher @Inject constructor(
 
         // Network files show a generic type icon: a thumbnail would download every visible file
         // over the network just to scroll a folder.
-        if (data.lookedUp is SmbPath) return fallbackIcon
+        if (data.lookedUp is SmbPath || data.lookedUp is SftpPath) return fallbackIcon
 
         val mimeType = mimeTypeTool.determineMimeType(data)
 

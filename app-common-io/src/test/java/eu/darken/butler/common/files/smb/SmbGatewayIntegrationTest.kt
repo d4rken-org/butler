@@ -362,7 +362,7 @@ class SmbGatewayIntegrationTest : BaseTest() {
         }
 
         /** dperson/samba builds its own smb.conf from these flags, a copied file would be ignored. */
-        private fun sambaContainer(protocol: String): GenericContainer<*> =
+        internal fun sambaContainer(protocol: String): GenericContainer<*> =
             GenericContainer("dperson/samba@sha256:66088b78a19810dd1457a8f39340e95e663c728083efa5fe7dc0d40b2478e869")
                 .withExposedPorts(SMB_PORT)
                 .withCommand(

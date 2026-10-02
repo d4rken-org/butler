@@ -16,8 +16,10 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.explorer.R
@@ -27,6 +29,7 @@ import javax.inject.Inject
 class BreadcrumbGenerator @Inject constructor(
     private val safLocationManager: SAFLocationManager,
     private val smbLocationManager: SmbLocationManager,
+    private val sftpLocationManager: SftpLocationManager,
     private val trashSettings: TrashSettings,
 ) {
 
@@ -91,7 +94,7 @@ class BreadcrumbGenerator @Inject constructor(
                 // Recent breadcrumbs as Home > Device > path and system Back is the way back.
                 is ExplorerNavigation.Target.Recent -> {
                     add(HOME)
-                    add(if (location.path is SmbPath) NETWORK else DEVICE)
+                    add(if (location.path.isNetworkPath) NETWORK else DEVICE)
                 }
                 is ExplorerNavigation.Target.Trash -> {
                     add(HOME)
@@ -103,11 +106,11 @@ class BreadcrumbGenerator @Inject constructor(
                 }
                 is ExplorerNavigation.Target.Directory -> {
                     add(HOME)
-                    add(if (location.path is SmbPath) NETWORK else DEVICE)
+                    add(if (location.path.isNetworkPath) NETWORK else DEVICE)
                 }
                 null -> {
                     add(HOME)
-                    add(if (location.path is SmbPath) NETWORK else DEVICE)
+                    add(if (location.path.isNetworkPath) NETWORK else DEVICE)
                 }
             }
 
@@ -250,8 +253,38 @@ class BreadcrumbGenerator @Inject constructor(
                         )
                     }
                 }
+
+                is SftpPath -> {
+                    val label = sftpLocationManager.get(path.locationId)?.displayName
+                        ?: path.locationId.toString().toCaString()
+
+                    add(
+                        ExplorerBreadcrumb(
+                            label = label,
+                            icon = Icons.TwoTone.Lan,
+                            target = ExplorerNavigation.Target.Directory(SftpPath.root(path.locationId)),
+                        )
+                    )
+
+                    val accumulated = mutableListOf<String>()
+                    path.segments.forEach { segment ->
+                        accumulated.add(segment)
+                        add(
+                            ExplorerBreadcrumb(
+                                label = segment.toCaString(),
+                                icon = Icons.TwoTone.FolderOpen,
+                                target = ExplorerNavigation.Target.Directory(
+                                    SftpPath(path.locationId, accumulated.toList())
+                                ),
+                            )
+                        )
+                    }
+                }
             }
         }
+
+    private val APath<*>.isNetworkPath: Boolean
+        get() = this is SmbPath || this is SftpPath
 
     companion object {
 

@@ -69,6 +69,24 @@
     <string name="smb_error_credential_unavailable_description">The saved password for this network storage can no longer be read. Enter it again to reconnect.</string>
     <string name="smb_error_pro_required_title">Network shares require Butler Pro</string>
     <string name="smb_error_pro_required_description">Browsing network shares is part of Butler Pro. Adding, testing and removing locations is free.</string>
+    <string name="sftp_error_credential_unavailable_title">Sign-in required</string>
+    <string name="sftp_error_credential_unavailable_description">The saved password or key for this SFTP server can no longer be read. Enter it again to reconnect.</string>
+    <string name="sftp_error_unreachable_title">Server unreachable</string>
+    <string name="sftp_error_unreachable_description">Butler could not reach \"%1$s\". Check the address and port, and that the SSH server is running.</string>
+    <string name="sftp_error_auth_title">Sign-in failed</string>
+    <string name="sftp_error_auth_description">\"%1$s\" rejected the username, password or key.</string>
+    <string name="sftp_error_host_key_unknown_title">Unknown server</string>
+    <string name="sftp_error_host_key_unknown_description">Butler has not trusted \"%1$s\" yet. It identifies itself with the key %2$s.</string>
+    <string name="sftp_error_host_key_changed_title">Server identity changed</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" presented a different key than the one you trusted. Butler did not sign in.\n\nTrusted: %2$s\nPresented: %3$s</string>
+    <string name="sftp_error_key_format_title">Unreadable key</string>
+    <string name="sftp_error_key_format_description">The private key is not in a format Butler can read. OpenSSH, PEM and PKCS#8 key files are supported.</string>
+    <string name="sftp_error_key_passphrase_title">Wrong passphrase</string>
+    <string name="sftp_error_key_passphrase_description">The private key is protected and the passphrase is wrong or missing.</string>
+    <string name="sftp_error_access_denied_title">No access to this folder</string>
+    <string name="sftp_error_access_denied_description">This account may not open the folder set for \"%1$s\". Check the folder\'s permissions on the server.</string>
+    <string name="sftp_error_pro_required_title">SFTP servers require Butler Pro</string>
+    <string name="sftp_error_pro_required_description">Browsing SFTP servers is part of Butler Pro. Adding, testing and removing servers is free.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Protected app bundle</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" is encrypted and can only be installed by the app that created it.</string>

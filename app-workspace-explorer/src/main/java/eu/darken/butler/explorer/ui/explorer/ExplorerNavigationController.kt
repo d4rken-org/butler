@@ -8,7 +8,11 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.network.NetworkLocation
+import eu.darken.butler.common.files.sftp.SftpLocationInput
+import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.smb.SmbLocationInput
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.extensions.isDirectory
@@ -52,6 +56,7 @@ class ExplorerNavigationController(
     private val favoritesRepo: ExplorerFavoritesRepo,
     private val upgradeRepo: UpgradeRepo,
     private val onNetworkLocked: () -> Unit,
+    private val showSftpLocationForm: (SftpLocation) -> Unit,
     private val selectedItems: () -> Set<ExplorerItem>,
     private val toggleSelection: (ExplorerItem) -> Unit,
     private val clearSelection: () -> Unit,
@@ -148,16 +153,21 @@ class ExplorerNavigationController(
                 clearSelection()
             }
             is ExplorerItem.Storage -> when {
-                // Browsing network shares is Pro. The rows stay listed either way - that is where
-                // the offer is - but opening one means an SMB session, sign-in prompt included.
+                // Browsing network storage is Pro. The rows stay listed either way - that is where
+                // the offer is - but opening one means a session, sign-in prompt included.
                 item is ExplorerItem.Storage.Network && !upgradeRepo.isProForUi() -> {
-                    log(tag, INFO) { "Browsing network shares is Pro-only, showing the upgrade hint" }
+                    log(tag, INFO) { "Browsing network storage is Pro-only, showing the upgrade hint" }
                     onNetworkLocked()
                 }
-                // Opening a location whose password is gone would just fail: ask for it first.
+                // Opening a location whose credential is gone would just fail: ask for it first.
                 item is ExplorerItem.Storage.Network &&
                     item.status == ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED ->
-                    dialogs.show(ExplorerDialogState.SmbLocationForm(existing = item.location))
+                    when (val location = item.location) {
+                        is NetworkLocation.Smb -> {
+                            dialogs.show(ExplorerDialogState.SmbLocationForm(existing = location.location))
+                        }
+                        is NetworkLocation.Sftp -> showSftpLocationForm(location.location)
+                    }
 
                 else -> {
                     workspace().navigate(item.target)
@@ -221,6 +231,15 @@ class ExplorerNavigationController(
                     return
                 }
                 SmbPath(currentPath.locationId, segments)
+            }
+
+            is SftpPath -> {
+                val segments = SftpLocationInput.splitPath(editedPath)
+                if (segments.any { SftpLocationInput.pathSegmentIssue(it) != null }) {
+                    log(tag, WARN) { "navigateToEditedPath(): Rejecting '$editedPath', not a usable SFTP path" }
+                    return
+                }
+                SftpPath(currentPath.locationId, segments)
             }
         }
         navigateToPath(newPath)

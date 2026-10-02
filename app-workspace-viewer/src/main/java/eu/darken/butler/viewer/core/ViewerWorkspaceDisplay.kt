@@ -1,6 +1,7 @@
 package eu.darken.butler.viewer.core
 
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.WorkspaceDisplay
 
@@ -14,7 +15,7 @@ import eu.darken.butler.workspace.core.WorkspaceDisplay
 fun deriveViewerDisplay(arguments: ViewerArguments) = when (arguments) {
     is ViewerArguments.Default -> WorkspaceDisplay(
         title = arguments.filePath.name.toCaString(),
-        subtitle = arguments.filePath.parent?.path?.toCaString(),
+        subtitle = arguments.filePath.parent?.shownPath,
     )
 
     is ViewerArguments.Streamed -> WorkspaceDisplay(

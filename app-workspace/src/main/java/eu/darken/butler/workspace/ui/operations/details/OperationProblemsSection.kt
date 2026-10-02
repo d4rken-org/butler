@@ -21,11 +21,11 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.common.withLocationNames
 
 /**
  * The sub-items an operation could not process. [totalCount] is what the report counted, which is
@@ -54,7 +54,7 @@ internal fun OperationProblemsSection(
             items(items = problemList) { problem ->
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = problem.path.userReadablePath.asComposable(),
+                        text = problem.path.userReadablePath.withLocationNames(),
                         style = MaterialTheme.typography.labelSmall.asPathStyle(),
                         fontFamily = FontFamily.Monospace,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),

@@ -35,7 +35,6 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
-import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.DateTimeStyle
@@ -47,6 +46,7 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.util.getEllipsizedMatchLine
+import eu.darken.butler.workspace.ui.common.withLocationNames
 
 /**
  * A modification timestamp, named by the same glyph the Explorer listing uses for the field.
@@ -128,7 +128,7 @@ fun SelectableFileRow(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             val isDirectory = result.fileType == FileType.DIRECTORY
-            val parentPath = result.lookup.parent?.userReadablePath?.asComposable()
+            val parentPath = result.lookup.parent?.userReadablePath?.withLocationNames()
             val sizeText = result.size
                 ?.takeIf { !isDirectory }
                 ?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) }

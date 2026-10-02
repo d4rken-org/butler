@@ -3,6 +3,8 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.sftp.location.SftpLocation
+import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.explorer.core.FileTypeFilter
@@ -52,6 +54,28 @@ sealed interface ExplorerDialogState {
         val existing: SmbLocation? = null,
         val isTesting: Boolean = false,
         val error: CaString? = null,
+    ) : ExplorerDialogState
+
+    /** "Add network storage" asks for the protocol first, each has its own form. */
+    data object NetworkProtocolChooser : ExplorerDialogState
+
+    /**
+     * Add, edit or sign in to an SFTP server. Like [SmbLocationForm], the entered fields live with
+     * the sheet; a picked key file stays with the view model and only its name is shown here.
+     *
+     * [formId] identifies this opening of the form: a key file or a confirmation that arrives after
+     * the form was closed and opened again belongs to the old one.
+     */
+    data class SftpLocationForm(
+        val mode: SftpFormMode = SftpFormMode.ADD,
+        val existing: SftpLocation? = null,
+        val isTesting: Boolean = false,
+        val error: CaString? = null,
+        val keyFileName: String? = null,
+        val isReadingKey: Boolean = false,
+        val hostKeyConfirmation: SftpHostKeyConfirmation? = null,
+        val retrustConfirmation: SftpRetrustConfirmation? = null,
+        val formId: Uuid = Uuid.random(),
     ) : ExplorerDialogState
 
     data class Rename(val item: APath<*>) : ExplorerDialogState
@@ -203,6 +227,52 @@ sealed interface ExplorerDialogState {
         }
     }
 }
+
+enum class NetworkProtocol {
+    SMB,
+    SFTP,
+}
+
+enum class SftpFormMode {
+    ADD,
+    EDIT,
+
+    /** Opened because the stored credential was rejected or is gone: a fresh secret is required. */
+    SIGN_IN,
+}
+
+/**
+ * A server key presented to a connection test, waiting for the user's decision.
+ *
+ * Accepting it only counts for exactly this endpoint, key and form: [formRevision] and
+ * [keyGeneration] are the field and key-file state the test ran with.
+ */
+data class SftpHostKeyConfirmation(
+    val host: String,
+    val port: Int,
+    val presentedKey: TrustedHostKey,
+    val formRevision: Int,
+    val keyGeneration: Int,
+    val id: Uuid = Uuid.random(),
+)
+
+/**
+ * A changed server key, taken from the failed connection as it was: nothing is re-read or parsed.
+ *
+ * [fromFormTest] marks one found by the form's own connection test: accepting it keeps the form open,
+ * to be submitted again against the new pin.
+ */
+data class SftpRetrustConfirmation(
+    val locationId: Uuid,
+    val host: String,
+    val port: Int,
+    val endpoint: String,
+    val storedKey: TrustedHostKey,
+    val presentedKey: TrustedHostKey,
+    val trustRevision: Int,
+    val fromFormTest: Boolean = false,
+    val id: Uuid = Uuid.random(),
+)
 
 /**
  * A stored password on its way to the screen.

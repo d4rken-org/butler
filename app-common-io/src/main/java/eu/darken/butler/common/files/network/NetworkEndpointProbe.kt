@@ -1,4 +1,4 @@
-package eu.darken.butler.common.files.smb
+package eu.darken.butler.common.files.network
 
 import dagger.Module
 import dagger.Provides
@@ -11,7 +11,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.network.NetworkStateProvider
 import kotlinx.coroutines.CancellationException
@@ -56,7 +56,7 @@ import kotlin.uuid.Uuid
  * Address and reachability are separate: a host that resolves but whose port refuses still has an
  * address worth showing next to "unavailable".
  */
-data class SmbEndpointState(
+data class NetworkEndpointState(
     val address: String? = null,
     val reachability: Reachability = Reachability.CHECKING,
 ) {
@@ -71,7 +71,7 @@ data class SmbEndpointState(
  * Resolves and TCP-pings the stored network locations so the Network list can show where a server is
  * and whether it answers.
  *
- * No SMB negotiation and no authentication happen here, a probe is a DNS lookup plus a connect that
+ * No protocol negotiation and no authentication happen here, a probe is a DNS lookup plus a connect that
  * is closed again, so it costs the server no login attempt.
  *
  * Probes run on the application scope and are never structured children of whoever asked for them:
@@ -80,7 +80,7 @@ data class SmbEndpointState(
  * DNS lookup to return. Leaving the Network view therefore only stops the observation.
  */
 @Singleton
-class SmbEndpointProbe @Inject constructor(
+class NetworkEndpointProbe @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     private val resolver: Resolver,
@@ -109,16 +109,16 @@ class SmbEndpointProbe @Inject constructor(
 
     /** Injected like the seams above, so this class stays testable without a database. */
     fun interface LastSeenRecorder {
-        suspend fun recordSeen(id: Uuid, host: String, port: Int, at: Instant)
+        suspend fun recordSeen(location: NetworkLocation, host: String, port: Int, at: Instant)
     }
 
-    private val tag = logTag("SMB", "EndpointProbe")
+    private val tag = logTag("Network", "EndpointProbe")
 
     private data class Endpoint(val host: String, val port: Int)
 
-    private data class CacheEntry(val state: SmbEndpointState, val probedAt: Instant)
+    private data class CacheEntry(val state: NetworkEndpointState, val probedAt: Instant)
 
-    private data class InFlightProbe(val epoch: Int, val deferred: Deferred<SmbEndpointState>)
+    private data class InFlightProbe(val epoch: Int, val deferred: Deferred<NetworkEndpointState>)
 
     private val mutex = Mutex()
     private val cache = mutableMapOf<Endpoint, CacheEntry>()
@@ -128,15 +128,15 @@ class SmbEndpointProbe @Inject constructor(
     private val probedEndpoints = mutableMapOf<Uuid, Endpoint>()
 
     /** Which probe an id already recorded a sighting for, so waiters do not each write one. */
-    private val lastRecorded = mutableMapOf<Uuid, Deferred<SmbEndpointState>>()
+    private val lastRecorded = mutableMapOf<Uuid, Deferred<NetworkEndpointState>>()
 
     /** Bumped on every connectivity change, results from an earlier epoch describe another network. */
     private var connectivityEpoch = 0
 
-    @Volatile private var watched: List<SmbLocation> = emptyList()
+    @Volatile private var watched: List<NetworkLocation> = emptyList()
 
-    private val _states = MutableStateFlow<Map<Uuid, SmbEndpointState>>(emptyMap())
-    val states: StateFlow<Map<Uuid, SmbEndpointState>> = _states.asStateFlow()
+    private val _states = MutableStateFlow<Map<Uuid, NetworkEndpointState>>(emptyMap())
+    val states: StateFlow<Map<Uuid, NetworkEndpointState>> = _states.asStateFlow()
 
     init {
         // Expiry and connectivity only matter while somebody is looking, and the connectivity
@@ -191,13 +191,13 @@ class SmbEndpointProbe @Inject constructor(
      * Publishes a state for every given location, probing the ones whose cached result is missing or
      * stale. [force] skips the cache, which is what an explicit user refresh does.
      */
-    fun probe(locations: Collection<SmbLocation>, force: Boolean = false) {
+    fun probe(locations: Collection<NetworkLocation>, force: Boolean = false) {
         log(tag) { "probe(${locations.size} locations, force=$force)" }
         watched = locations.toList()
         appScope.launch { probeAll(locations, force) }
     }
 
-    private suspend fun probeAll(locations: Collection<SmbLocation>, force: Boolean) = coroutineScope {
+    private suspend fun probeAll(locations: Collection<NetworkLocation>, force: Boolean) = coroutineScope {
         val known = watched.map { it.id }.toSet()
         _states.update { states -> states.filterKeys { it in known } }
         locations.forEach { location -> launch { probeLocation(location, force) } }
@@ -211,7 +211,7 @@ class SmbEndpointProbe @Inject constructor(
         .firstOrNull { it.id == id }
         ?.let { Endpoint(it.host, it.port) }
 
-    private suspend fun probeLocation(location: SmbLocation, force: Boolean) {
+    private suspend fun probeLocation(location: NetworkLocation, force: Boolean) {
         val endpoint = Endpoint(location.host, location.port)
 
         val probe = mutex.withLock {
@@ -230,7 +230,7 @@ class SmbEndpointProbe @Inject constructor(
             // another connection to it, unless that probe ran on the network we just left.
             if (probedEndpoints[location.id] != endpoint) {
                 probedEndpoints[location.id] = endpoint
-                publish(location.id, SmbEndpointState())
+                publish(location.id, NetworkEndpointState())
             }
             inFlight[endpoint]?.takeIf { it.epoch == connectivityEpoch }
                 ?: InFlightProbe(
@@ -245,7 +245,7 @@ class SmbEndpointProbe @Inject constructor(
             throw e
         } catch (e: Exception) {
             log(tag, WARN) { "Probe of $endpoint failed: ${e.asLog()}" }
-            SmbEndpointState(reachability = SmbEndpointState.Reachability.UNREACHABLE)
+            NetworkEndpointState(reachability = NetworkEndpointState.Reachability.UNREACHABLE)
         }
 
         val shouldRecord = mutex.withLock {
@@ -263,7 +263,7 @@ class SmbEndpointProbe @Inject constructor(
             // Every caller that joined this one probe resumes here, so without the guard one
             // physical probe would write once per waiter. Two locations that share an endpoint
             // still get one write each, which is what they need.
-            val record = state.reachability == SmbEndpointState.Reachability.REACHABLE &&
+            val record = state.reachability == NetworkEndpointState.Reachability.REACHABLE &&
                 lastRecorded[location.id] !== probe.deferred
             if (record) lastRecorded[location.id] = probe.deferred
             record
@@ -275,7 +275,7 @@ class SmbEndpointProbe @Inject constructor(
         // `watched` without holding the mutex, so suspending inside would let the endpoint change
         // under the write and would queue every endpoint of a pass behind disk I/O.
         try {
-            lastSeenRecorder.recordSeen(location.id, endpoint.host, endpoint.port, clock.now())
+            lastSeenRecorder.recordSeen(location, endpoint.host, endpoint.port, clock.now())
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -284,11 +284,11 @@ class SmbEndpointProbe @Inject constructor(
         }
     }
 
-    private fun publish(id: Uuid, state: SmbEndpointState) {
+    private fun publish(id: Uuid, state: NetworkEndpointState) {
         _states.update { it + (id to state) }
     }
 
-    private suspend fun runProbe(endpoint: Endpoint): SmbEndpointState {
+    private suspend fun runProbe(endpoint: Endpoint): NetworkEndpointState {
         // A blocking name lookup offers no suspension point, so awaiting it from a coroutine of its
         // own is the only way the deadline below can fire while the resolver is still stuck.
         val resolution = appScope.async(dispatcherProvider.IO) { resolver.resolve(endpoint.host) }
@@ -304,8 +304,8 @@ class SmbEndpointProbe @Inject constructor(
                     log(tag, VERBOSE) { "${endpoint.host} does not resolve: ${e.asLog()}" }
                     emptyList<InetAddress>()
                 }
-                if (addresses.isEmpty()) return@withTimeoutOrNull SmbEndpointState(
-                    reachability = SmbEndpointState.Reachability.UNREACHABLE,
+                if (addresses.isEmpty()) return@withTimeoutOrNull NetworkEndpointState(
+                    reachability = NetworkEndpointState.Reachability.UNREACHABLE,
                 )
                 firstResolvedAddress = addresses.first().hostAddress
 
@@ -314,9 +314,9 @@ class SmbEndpointProbe @Inject constructor(
                 addresses.forEach { address ->
                     try {
                         connector.connect(address, endpoint.port, ATTEMPT_TIMEOUT)
-                        return@withTimeoutOrNull SmbEndpointState(
+                        return@withTimeoutOrNull NetworkEndpointState(
                             address = address.hostAddress,
-                            reachability = SmbEndpointState.Reachability.REACHABLE,
+                            reachability = NetworkEndpointState.Reachability.REACHABLE,
                         )
                     } catch (e: CancellationException) {
                         throw e
@@ -325,13 +325,13 @@ class SmbEndpointProbe @Inject constructor(
                     }
                 }
 
-                SmbEndpointState(
+                NetworkEndpointState(
                     address = firstResolvedAddress,
-                    reachability = SmbEndpointState.Reachability.UNREACHABLE,
+                    reachability = NetworkEndpointState.Reachability.UNREACHABLE,
                 )
-            } ?: SmbEndpointState(
+            } ?: NetworkEndpointState(
                 address = firstResolvedAddress,
-                reachability = SmbEndpointState.Reachability.UNREACHABLE,
+                reachability = NetworkEndpointState.Reachability.UNREACHABLE,
             )
         } finally {
             resolution.cancel()
@@ -349,17 +349,17 @@ class SmbEndpointProbe @Inject constructor(
 
 @Module
 @InstallIn(SingletonComponent::class)
-object SmbEndpointProbeModule {
+object NetworkEndpointProbeModule {
 
     @Provides
     @Singleton
-    fun resolver(): SmbEndpointProbe.Resolver = SmbEndpointProbe.Resolver { host ->
+    fun resolver(): NetworkEndpointProbe.Resolver = NetworkEndpointProbe.Resolver { host ->
         InetAddress.getAllByName(host).toList()
     }
 
     @Provides
     @Singleton
-    fun connector(): SmbEndpointProbe.Connector = object : SmbEndpointProbe.Connector {
+    fun connector(): NetworkEndpointProbe.Connector = object : NetworkEndpointProbe.Connector {
         override suspend fun connect(address: InetAddress, port: Int, timeout: Duration) {
             val socket = Socket()
             // A blocking connect only ends when the socket is closed, so cancellation has to do
@@ -376,13 +376,17 @@ object SmbEndpointProbeModule {
 
     @Provides
     @Singleton
-    fun clock(): SmbEndpointProbe.Clock = SmbEndpointProbe.Clock { kotlin.time.Clock.System.now() }
+    fun clock(): NetworkEndpointProbe.Clock = NetworkEndpointProbe.Clock { kotlin.time.Clock.System.now() }
 
     @Provides
     @Singleton
     fun lastSeenRecorder(
-        locationManager: SmbLocationManager,
-    ): SmbEndpointProbe.LastSeenRecorder = SmbEndpointProbe.LastSeenRecorder { id, host, port, at ->
-        locationManager.recordSeen(id, host, port, at)
+        smbLocationManager: SmbLocationManager,
+        sftpLocationManager: SftpLocationManager,
+    ): NetworkEndpointProbe.LastSeenRecorder = NetworkEndpointProbe.LastSeenRecorder { location, host, port, at ->
+        when (location) {
+            is NetworkLocation.Smb -> smbLocationManager.recordSeen(location.id, host, port, at)
+            is NetworkLocation.Sftp -> sftpLocationManager.recordSeen(location.id, host, port, at)
+        }
     }
 }

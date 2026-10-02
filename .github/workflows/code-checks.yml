@@ -273,6 +273,118 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  sftp-integration:
+    name: SFTP integration (Docker)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
+        with:
+          persist-credentials: false
+      - name: Setup project and build environment
+        uses: ./.github/actions/common-setup
+
+      - name: Verify Docker is available
+        run: docker info
+
+      # Kover's report runs both test tasks: the unit tests and contractTest, whose contract,
+      # extension-less and performance suites need the digest-pinned OpenSSH image and an
+      # embedded MINA server.
+      - name: Run MINA and sshj contracts with coverage
+        run: ./gradlew :lib-ssh:koverXmlReport :lib-ssh:koverHtmlReport
+
+      - name: Exercise the app gateway against OpenSSH
+        run: ./gradlew :app-common-io:testFossDebugUnitTest --tests '*SftpGatewayIntegrationTest' --rerun --no-build-cache
+
+      - name: Require executed integration suites and summarize coverage and performance
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          unit = Path("lib-ssh/build/test-results/test")
+          contract = Path("lib-ssh/build/test-results/contractTest")
+          suites = {
+              "API unit tests": unit / "TEST-eu.darken.ssh.SftpApiTest.xml",
+              "MINA contract": contract / "TEST-eu.darken.ssh.MinaSftpContractTest.xml",
+              "sshj reference contract": contract / "TEST-eu.darken.ssh.SshjSftpContractTest.xml",
+              "MINA without OpenSSH extensions": contract / "TEST-eu.darken.ssh.MinaExtensionlessSftpContractTest.xml",
+              "sshj without OpenSSH extensions": contract / "TEST-eu.darken.ssh.SshjExtensionlessSftpContractTest.xml",
+              "MINA performance": contract / "TEST-eu.darken.ssh.MinaSftpPerformanceTest.xml",
+              "sshj performance": contract / "TEST-eu.darken.ssh.SshjSftpPerformanceTest.xml",
+              "App gateway": Path("app-common-io/build/test-results/testFossDebugUnitTest/TEST-eu.darken.butler.common.files.sftp.SftpGatewayIntegrationTest.xml"),
+          }
+          summary = ["## SFTP Docker integration", "", "| Suite | Passed |", "| --- | ---: |"]
+          for label, path in suites.items():
+              result = ET.parse(path).getroot()
+              count = int(result.attrib["tests"])
+              if count == 0 or any(int(result.attrib[key]) for key in ("failures", "errors", "skipped")):
+                  raise SystemExit(f"{label} did not run successfully without skips: {result.attrib}")
+              summary.append(f"| {label} | {count} |")
+
+          report = ET.parse("lib-ssh/build/reports/kover/report.xml").getroot()
+          classes = {item.attrib["name"]: item for item in report.findall(".//class")}
+          for name in ("MinaSession", "MinaSftpConnector", "MinaSetup"):
+              item = classes[f"eu/darken/ssh/{name}"]
+              lines = item.find("counter[@type='LINE']")
+              if lines is None or int(lines.attrib["covered"]) == 0:
+                  raise SystemExit(f"Missing coverage for {name}")
+          counters = {counter.attrib["type"]: counter for counter in report.findall("counter")}
+          summary += ["", "Coverage of lib-ssh production code from unit and Docker tests:"]
+          for kind in ("LINE", "BRANCH"):
+              counter = counters[kind]
+              covered = int(counter.attrib["covered"])
+              total = covered + int(counter.attrib["missed"])
+              if total == 0:
+                  raise SystemExit(f"Missing {kind} coverage")
+              summary.append(f"- {kind.title()}: {covered}/{total} ({covered / total:.1%})")
+
+          summary += [
+              "",
+              "Performance against OpenSSH on the runner, measured after a warm-up pass:",
+              "",
+              "| Scenario | Connector | Measured | Warm-up | Rate |",
+              "| --- | --- | ---: | ---: | ---: |",
+          ]
+          rows = []
+          for connector in ("mina", "sshj"):
+              path = Path(f"lib-ssh/build/reports/ssh-perf/{connector}.json")
+              scenarios = json.loads(path.read_text())["scenarios"]
+              if not scenarios:
+                  raise SystemExit(f"No performance results in {path}")
+              for name, result in scenarios.items():
+                  rate = result["perSecond"]
+                  if result["unit"] == "bytes":
+                      rate = f"{rate / 1024 / 1024:.1f} MiB/s"
+                  else:
+                      rate = f"{rate:.0f} {result['unit']}/s"
+                  rows.append((name, connector, f"{result['millis']} ms", f"{result['warmupMillis']} ms", rate))
+          summary += [f"| {' | '.join(row)} |" for row in sorted(rows)]
+          summary += ["", "OpenSSH and MINA interoperability on the JVM; no Android coverage."]
+          text = "\n".join(summary) + "\n"
+          print(text)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as output:
+              output.write(text)
+          PY
+
+      - name: Upload SFTP test, coverage and performance reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        with:
+          name: sftp-integration-reports
+          path: |
+            lib-ssh/build/test-results/**/*.xml
+            lib-ssh/build/reports/tests/**
+            lib-ssh/build/reports/kover/**
+            lib-ssh/build/reports/ssh-perf/*.json
+            app-common-io/build/test-results/testFossDebugUnitTest/**/*.xml
+            app-common-io/build/reports/tests/testFossDebugUnitTest/**
+          if-no-files-found: error
+          retention-days: 14
+
   check-release-tooling:
     name: Release tooling
     runs-on: ubuntu-22.04

@@ -37,6 +37,10 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      # The emulator reaches the runner's loopback, where Docker publishes the server, as 10.0.2.2.
+      - name: Start the SFTP test server
+        run: tools/sftp-test-server.sh start
+
       - name: Run device tests
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d #v2.38.0
         with:
@@ -51,10 +55,21 @@ jobs:
           disable-animations: true
           # The AOSP image still hangs System UI or the launcher now and then, and the ANR dialog it
           # raises hides the app from UI Automator. With dialogs hidden, the system restarts the hung
-          # process instead.
+          # process instead. 2222 is tools/sftp-test-server.sh's default port. The last line prints
+          # the SFTP throughput numbers the device tests logged.
           script: |
             adb shell settings put global hide_error_dialogs 1
-            ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest
+            ./gradlew --continue :app-common-io:connectedFossDebugAndroidTest :app-common-pkgs:connectedFossDebugAndroidTest :app-e2e:connectedFossDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.sftpHost=10.0.2.2 -Pandroid.testInstrumentationRunnerArguments.sftpPort=2222
+            adb logcat -d -s SftpThroughput:I
+
+      - name: Stop the SFTP test server
+        if: always()
+        run: tools/sftp-test-server.sh stop
+
+      # Without the server arguments the SFTP device tests skip, and a skipped test passes.
+      - name: Require executed SFTP device tests
+        if: ${{ !cancelled() }}
+        run: tools/sftp-device-results.py app-common-io/build/outputs/androidTest-results/connected
 
       - name: Upload device test results
         if: always()
@@ -68,12 +83,13 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  # The two R8 builds take about 12 minutes each, so they run as parallel jobs next to the debug
-  # legs, and minified-tests installs their APKs without Gradle.
+  # An R8 build takes about 12 minutes, so the current build of each flavor and the previous
+  # release run as parallel jobs next to the debug legs, and minified-tests installs their APKs
+  # without Gradle. Both flavors in one Gradle run exhaust the CI daemon's 512 MB Metaspace in KSP.
   minified-build:
     name: Build the minified app
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout source code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
@@ -98,6 +114,38 @@ jobs:
         with:
           name: minified-apks
           path: ${{ runner.temp }}/minified
+          if-no-files-found: error
+          retention-days: 1
+
+  # The SFTP end-to-end test needs a FOSS build, where sponsoring unlocks Pro without a store.
+  minified-foss-build:
+    name: Build the minified FOSS app
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
+        with:
+          persist-credentials: false
+      - name: Setup project and build environment
+        uses: ./.github/actions/common-setup
+      - name: Sign release-type builds with the debug key
+        uses: ./.github/actions/debug-signing
+
+      - name: Build minified FOSS APKs
+        # With four workers, R8 and the dex merges can run the daemon out of heap.
+        run: |
+          ./gradlew --max-workers=2 :app:assembleFossBeta :app-e2e:assembleFossBeta
+          out="$RUNNER_TEMP/minified-foss"
+          mkdir -p "$out"
+          cp app/build/outputs/apk/foss/beta/*.apk "$out/app-foss.apk"
+          cp app-e2e/build/outputs/apk/foss/beta/app-e2e-foss-beta.apk "$out/app-e2e-foss.apk"
+
+      - name: Upload minified FOSS APKs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        with:
+          name: minified-foss-apks
+          path: ${{ runner.temp }}/minified-foss
           if-no-files-found: error
           retention-days: 1
 
@@ -160,7 +208,7 @@ jobs:
 
   minified-tests:
     name: Minified app tests (Android 36)
-    needs: [ minified-build, previous-release-build ]
+    needs: [ minified-build, minified-foss-build, previous-release-build ]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -181,6 +229,11 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c #v8.0.1
         with:
           name: minified-apks
+          path: ${{ runner.temp }}/minified
+      - name: Download minified FOSS APKs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c #v8.0.1
+        with:
+          name: minified-foss-apks
           path: ${{ runner.temp }}/minified
       - name: Download the previous release's APKs
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c #v8.0.1
@@ -207,12 +260,14 @@ jobs:
           # GitHub runners have no GPU.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -camera-back none
           disable-animations: true
-          # Each line runs on its own and the first failing one ends the step, so a golden-path
-          # failure is only recorded until the upgrade test has run too.
+          # Each line runs on its own and the first failing one ends the step, so a golden-path or
+          # SFTP failure is only recorded until the upgrade test has run too. The SFTP test needs a
+          # FOSS build, where sponsoring unlocks Pro without a store.
           script: |
             ANDROID_SERIAL=emulator-5554 adb shell setprop debug.hwui.drawing_enabled 1
             ANDROID_SERIAL=emulator-5554 adb shell settings put global hide_error_dialogs 1
             ANDROID_SERIAL=emulator-5554 tools/e2e-test.sh "$RUNNER_TEMP/minified/app.apk" "$RUNNER_TEMP/minified/app-e2e.apk" || touch "$RUNNER_TEMP/device-tests-failed"
+            ANDROID_SERIAL=emulator-5554 tools/sftp-e2e-test.sh "$RUNNER_TEMP/minified/app-foss.apk" "$RUNNER_TEMP/minified/app-e2e-foss.apk" || touch "$RUNNER_TEMP/device-tests-failed"
             old_e2e="$RUNNER_TEMP/previous-release/app-e2e.apk"; [ -f "$old_e2e" ] || old_e2e=; ANDROID_SERIAL=emulator-5554 tools/upgrade-test.sh "$RUNNER_TEMP/previous-release/app.apk" "$RUNNER_TEMP/minified/app.apk" "$RUNNER_TEMP/minified/app-e2e.apk" $old_e2e
             test ! -e "$RUNNER_TEMP/device-tests-failed"
 
@@ -223,6 +278,7 @@ jobs:
           name: minified-tests-api-36
           path: |
             app-e2e/build/outputs/e2e-test/**
+            app-e2e/build/outputs/sftp-e2e-test/**
             app-e2e/build/outputs/upgrade-test/**
           if-no-files-found: warn
           retention-days: 14

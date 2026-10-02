@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.archive.isAncestorOf
 import eu.darken.butler.common.files.archive.isParentOf
@@ -17,6 +18,11 @@ import eu.darken.butler.common.files.saf.isAncestorOf
 import eu.darken.butler.common.files.saf.isParentOf
 import eu.darken.butler.common.files.saf.removePrefix
 import eu.darken.butler.common.files.saf.startsWith
+import eu.darken.butler.common.files.sftp.isAncestorOf
+import eu.darken.butler.common.files.sftp.isParentOf
+import eu.darken.butler.common.files.sftp.matches
+import eu.darken.butler.common.files.sftp.removePrefix
+import eu.darken.butler.common.files.sftp.startsWith
 import eu.darken.butler.common.files.smb.isAncestorOf
 import eu.darken.butler.common.files.smb.isParentOf
 import eu.darken.butler.common.files.smb.matches
@@ -31,6 +37,7 @@ fun APath<*>.isAncestorOf(descendant: APath<*>): Boolean {
         is SAFPath -> this.isAncestorOf(descendant as SAFPath)
         is ArchivePath -> this.isAncestorOf(descendant as ArchivePath)
         is SmbPath -> this.isAncestorOf(descendant as SmbPath)
+        is SftpPath -> this.isAncestorOf(descendant as SftpPath)
     }
 }
 
@@ -58,6 +65,7 @@ fun APath<*>.isParentOf(child: APath<*>): Boolean {
         is SAFPath -> this.isParentOf(child as SAFPath)
         is ArchivePath -> this.isParentOf(child as ArchivePath)
         is SmbPath -> this.isParentOf(child as SmbPath)
+        is SftpPath -> this.isParentOf(child as SftpPath)
     }
 }
 
@@ -73,6 +81,7 @@ fun APath<*>.matches(other: APath<*>): Boolean {
         is SAFPath -> this.path == (other as SAFPath).path
         is ArchivePath -> this == (other as ArchivePath)
         is SmbPath -> this.matches(other as SmbPath)
+        is SftpPath -> this.matches(other as SftpPath)
     }
 }
 
@@ -87,6 +96,7 @@ fun APath<*>.startsWith(prefix: APath<*>): Boolean {
         is SAFPath -> this.startsWith(prefix as SAFPath)
         is ArchivePath -> this.startsWith(prefix as ArchivePath)
         is SmbPath -> this.startsWith(prefix as SmbPath)
+        is SftpPath -> this.startsWith(prefix as SftpPath)
     }
 }
 
@@ -99,6 +109,7 @@ fun APath<*>.removePrefix(prefix: APath<*>, overlap: Int = 0): Segments {
         is SAFPath -> this.removePrefix(prefix as SAFPath, overlap)
         is ArchivePath -> this.removePrefix(prefix as ArchivePath, overlap)
         is SmbPath -> this.removePrefix(prefix as SmbPath, overlap)
+        is SftpPath -> this.removePrefix(prefix as SftpPath, overlap)
     }
 }
 

@@ -7,7 +7,8 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.network.NetworkCredentialAvailability
+import eu.darken.butler.common.files.network.NetworkLocation
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -38,14 +39,14 @@ class ExplorerItemListChangeTest : BaseTest() {
             updatedAt = Instant.fromEpochMilliseconds(0),
         )
         return ExplorerItem.Storage.Network(
-            location = location,
+            location = NetworkLocation.Smb(location),
             displayName = label.toCaString(),
             displayIcon = Icons.TwoTone.Lan,
             target = ExplorerNavigation.Target.Directory(location.rootPath),
             subtitle = location.endpointLabel.toCaString(),
             credentials = when (status) {
-                ExplorerItem.Storage.Network.Status.AVAILABLE -> SmbCredentialStore.Availability.AVAILABLE
-                ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> SmbCredentialStore.Availability.MISSING
+                ExplorerItem.Storage.Network.Status.AVAILABLE -> NetworkCredentialAvailability.AVAILABLE
+                ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> NetworkCredentialAvailability.MISSING
             },
         )
     }

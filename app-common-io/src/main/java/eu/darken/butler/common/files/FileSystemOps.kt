@@ -25,6 +25,7 @@ import kotlin.time.Instant
  *    - SAFPath: Android DocumentsContract + ContentResolver
  *    - FtpPath: FTP client library
  *    - SmbPath: SMB client library
+ *    - SftpPath: SFTP client library
  *
  * 3. **Dependency Encapsulation**: Platform-specific dependencies (Context,
  *    ContentResolver, UriPermissions, connection pools) are hidden in the
@@ -197,12 +198,15 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
     /**
      * Read the target of a symbolic link.
      *
-     * Returns the target path that the symlink points to (which may be relative or absolute).
+     * Returns the target already resolved into an addressable path of the same type: a relative
+     * target is resolved against the link's parent, e.g. `/a/b/link -> ../c` returns `/a/c`.
+     * Callers use the result as-is and never resolve it again.
      * Some file systems (like SAF) do not support symlinks and will throw UnsupportedOperationException.
      *
      * @param linkPath The symlink path to read
-     * @return The target path the symlink points to
-     * @throws eu.darken.butler.common.files.errors.ReadException if symlink cannot be read or doesn't exist
+     * @return The resolved target path the symlink points to
+     * @throws eu.darken.butler.common.files.errors.ReadException if symlink cannot be read or doesn't
+     * exist, or if its target cannot be expressed as a path of this type
      * @throws UnsupportedOperationException if file system doesn't support symlinks
      */
     suspend fun readSymbolicLink(linkPath: P): P

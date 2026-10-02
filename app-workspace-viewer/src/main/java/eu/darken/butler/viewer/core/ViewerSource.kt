@@ -2,8 +2,10 @@ package eu.darken.butler.viewer.core
 
 import android.net.Uri
 import androidx.core.net.toUri
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 
 /**
@@ -21,7 +23,7 @@ sealed interface ViewerSource {
     val displayName: String
 
     /** The folder to show, or null when the content has no location worth showing. */
-    val folderPath: String?
+    val folderPath: CaString?
 
     /**
      * Which renderer runs. Deliberately NOT derived from [displayName] at the use sites: content
@@ -36,7 +38,7 @@ sealed interface ViewerSource {
     /** A real file on the device, with all the file actions that implies. */
     data class Stored(val path: APath<*>) : ViewerSource {
         override val displayName: String get() = path.name
-        override val folderPath: String? get() = path.parent?.path ?: path.path
+        override val folderPath: CaString? get() = (path.parent ?: path).shownPath
         override val mime: MimeInfo get() = MimeInfo.fromFileName(path.name)
         override val cacheKey: String get() = path.path
     }
@@ -52,7 +54,7 @@ sealed interface ViewerSource {
         val sizeBytes: Long?,
         val arrivalId: String,
     ) : ViewerSource {
-        override val folderPath: String? get() = null
+        override val folderPath: CaString? get() = null
 
         // Keyed by arrival, not by URI: providers reuse document ids, so two shares of "the same"
         // URI must not serve each other's bytes from cache.
