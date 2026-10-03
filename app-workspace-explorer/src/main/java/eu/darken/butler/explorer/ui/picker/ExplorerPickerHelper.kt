@@ -207,7 +207,6 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.Common.Filter,
             is ExplorerActionBarItem.Common.ViewOptions,
             is ExplorerActionBarItem.Directory.Create,
-            is ExplorerActionBarItem.Directory.CalculateSizes,
             is ExplorerActionBarItem.Directory.DeselectAll,
             // Navigates this workspace to the file's folder, the same as tapping a breadcrumb; it
             // spawns nothing, so a picker can offer it.
@@ -223,6 +222,9 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.Network.AddLocation,
             is ExplorerActionBarItem.Network.EditLocation,
             is ExplorerActionBarItem.Network.RemoveLocation -> allowsNetworkManagementActions(config)
+
+            // Analysing where the space went is not part of choosing a path
+            is ExplorerActionBarItem.Directory.CalculateSizes -> false
 
             // Blocked: modification, clipboard, device, file, and recycle bin actions
             is ExplorerActionBarItem.Directory.Copy,

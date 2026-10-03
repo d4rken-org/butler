@@ -715,4 +715,31 @@ class ExplorerPickerHelperTest : BaseTest() {
             helper.filterActionsForPicker(actions, config = null) shouldBe actions
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // filterActionsForPicker Tests
+    // ═══════════════════════════════════════════════════════════════
+
+    @Nested
+    inner class FilterActionsForPicker {
+
+        @Test
+        fun `calculate sizes is offered outside a picker only`() {
+            val actions = listOf(ExplorerActionBarItem.Directory.CalculateSizes())
+            val selections = listOf(
+                PickerConfig.Selection.DirectorySingle,
+                PickerConfig.Selection.DirectoryMulti,
+                PickerConfig.Selection.FileSingle,
+                PickerConfig.Selection.FileMulti,
+                PickerConfig.Selection.MixedMulti,
+                PickerConfig.Selection.SaveAs(suggestedFilename = "test.txt"),
+            )
+
+            selections.forEach { selection ->
+                val config = PickerConfig(callerWorkspaceId = mockk(), selection = selection)
+                helper.filterActionsForPicker(actions, config).shouldBeEmpty()
+            }
+            helper.filterActionsForPicker(actions, config = null) shouldBe actions
+        }
+    }
 }
