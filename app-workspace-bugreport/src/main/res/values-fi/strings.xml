@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Virheraportit</string>
+    <string name="bugreport_workspace_subtitle">Kaatumis- ja virheraportit</string>
+
+    <string name="bugreport_empty_title">Ei raportteja</string>
+    <string name="bugreport_empty_subtitle">Kaatumis- ja virheraportit näkyvät täällä. Mitään ei lähetetä automaattisesti.</string>
+
+    <string name="bugreport_type_crash">Kaatuminen</string>
+    <string name="bugreport_type_report">Raportti</string>
+    <string name="bugreport_type_recording">Tallennus</string>
+
+    <string name="bugreport_record_action">Tallenna vianmääritysloki</string>
+    <string name="bugreport_record_short_action">Tallenna</string>
+    <string name="bugreport_stop_action">Lopeta tallennus</string>
+    <string name="bugreport_stop_short_action">Lopeta</string>
+    <string name="bugreport_recording_ongoing_label">Tallennetaan…</string>
+
+    <string name="bugreport_recording_short_title">Tallennus on hyvin lyhyt</string>
+    <string name="bugreport_recording_short_message">Tämä tallennus on vain muutaman sekunnin mittainen eikä välttämättä sisällä hyödyllistä tietoa. Lopetetaanko se silti?</string>
+    <string name="bugreport_recording_short_keep_action">Jatka tallennusta</string>
+
+    <string name="bugreport_rename_action">Nimeä uudelleen</string>
+    <string name="bugreport_rename_dialog_title">Nimeä tämä raportti</string>
+    <string name="bugreport_rename_name_label">Nimi</string>
+    <string name="bugreport_rename_name_hint">Näkyy luettelossa ja jaettavan tiedoston nimessä</string>
+
+    <string name="bugreport_share_action">Jaa</string>
+    <string name="bugreport_delete_action">Poista</string>
+    <string name="bugreport_delete_all_action">Poista kaikki</string>
+    <string name="bugreport_delete_all_confirm_title">Poistetaanko kaikki vianmäärityslokit?</string>
+    <string name="bugreport_delete_all_confirm_message">Tämä poistaa pysyvästi kaikki tallennetut vianmääritysloki-istunnot. Käynnissä oleviin tallennuksiin ei vaikuteta.</string>
+    <string name="bugreport_delete_confirm_title">Poistetaanko tämä raportti?</string>
+    <string name="bugreport_delete_confirm_message">Tämä poistaa pysyvästi tämän raportin ja sen lokin.</string>
+    <string name="bugreport_cancel_action">Peruuta</string>
+
+    <string name="bugreport_share_chooser_title">Jaa virheraportti</string>
+    <string name="bugreport_share_consent_title">Jaetaanko raportti?</string>
+    <string name="bugreport_share_consent_message">Tämä raportti sisältää sovelluksen lokeja, joissa voi olla tiedostonimiä, polkuja sekä sovelluksen ja laitteen tietoja. Jaa se vain ihmisille, joihin luotat.</string>
+
+    <string name="bugreport_detail_back_action">Takaisin</string>
+    <string name="bugreport_detail_section_error">Virhe</string>
+    <string name="bugreport_detail_section_log">Viimeisimmät lokimerkinnät</string>
+    <string name="bugreport_detail_field_type">Tyyppi</string>
+    <string name="bugreport_detail_field_time">Aika</string>
+    <string name="bugreport_detail_field_app_version">Sovelluksen versio</string>
+    <string name="bugreport_detail_field_device">Laite</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Koontiversio</string>
+    <string name="bugreport_detail_field_error_class">Virheen tyyppi</string>
+    <string name="bugreport_detail_field_thread">Säie</string>
+    <string name="bugreport_detail_log_truncated">viimeiset %1$d riviä yhteensä %2$d rivistä</string>
+    <string name="bugreport_detail_log_count">%1$d riviä</string>
+    <string name="bugreport_detail_log_empty">Lokia ei tallennettu</string>
+    <string name="bugreport_detail_log_error">Lokia ei voitu ladata</string>
+</resources>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Raderar objekt</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Kopierar objekt</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Flyttar objekt</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Skannar…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">Filen finns redan</string>
+    <string name="path_action_folder_exists_title">Mappen finns redan</string>
+    <string name="path_action_file_exists_description">En fil med namnet \"%1$s\" finns redan på \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">En mapp med namnet \"%1$s\" finns redan på \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">Filen finns inte längre</string>
+    <string name="path_action_not_found_description">\"%1$s\" har raderats, bytt namn eller flyttats någon annanstans.</string>
+
+    <string name="path_action_permission_denied_title">Åtkomst nekad</string>
+    <string name="path_action_permission_denied_description">Kan inte komma åt \"%1$s\" på \"%2$s\" eftersom behörigheterna inte räcker till.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Kan inte komma åt \"%1$s\" på \"%2$s\". Ingen metod är tillgänglig för att utföra den här åtgärden.</string>
+    <string name="path_action_permission_denied_readonly_description">Kan inte komma åt \"%1$s\" på \"%2$s\". Filsystemet är skrivskyddat.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Kan inte komma åt \"%1$s\" på \"%2$s\". Systemet nekade åtgärden.</string>
+
+    <string name="path_action_insufficient_space_title">Inte tillräckligt med utrymme</string>
+    <string name="path_action_insufficient_space_description">Det finns inte tillräckligt med ledigt lagringsutrymme för att kopiera \"%1$s\" från \"%2$s\".</string>
+
+    <string name="path_action_unknown_error_title">Åtgärden misslyckades</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">Ersättningen slutfördes inte</string>
+    <string name="path_action_data_kept_new_data_description">Butler kunde inte slutföra skrivningen av \"%1$s\". Dina nya data finns kvar i samma mapp under namnet \"%2$s\". Byt namn på filen för att återställa dina data, eller radera den för att kasta dem.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler kunde inte slutföra skrivningen av \"%1$s\". Den tidigare filen är oförändrad. Dina nya data finns kvar i samma mapp under namnet \"%2$s\". Byt namn på filen för att återställa dina data, eller radera den för att kasta dem.</string>
+    <string name="path_action_data_kept_both_description">Butler kunde inte slutföra skrivningen av \"%1$s\". Inget gick förlorat: den tidigare filen finns kvar i samma mapp under namnet \"%2$s\" och dina nya data som \"%3$s\". Byt namn på den du vill behålla.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler kunde inte slutföra skrivningen av \"%1$s\" och kunde inte kontrollera om \"%2$s\" fortfarande finns kvar. En ofullständig kopia kan finnas kvar i samma mapp under namnet \"%3$s\". Jämför båda innan du raderar någon av dem.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler kunde inte slutföra flytten av \"%1$s\" och kan inte avgöra om filen har lämnat sin mapp. Dina data finns antingen kvar i den mappen under namnet \"%2$s\", eller redan på \"%3$s\". Kontrollera båda innan du raderar någon av dem.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler kunde inte slutföra skrivningen av \"%1$s\" och kan inte avgöra var din fil hamnade. Det är en av tre filer i den mappen: själva \"%1$s\", \"%2$s\" eller \"%3$s\". Kontrollera alla tre innan du raderar någon av dem.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler kunde inte slutföra skrivningen av \"%1$s\" och kan inte avgöra var din fil hamnade. Det är en av två filer i den mappen: själva \"%1$s\" eller \"%2$s\". Kontrollera båda innan du raderar någon av dem.</string>
+
+    <string name="path_action_trash_size_limit_title">Objekten är för stora för papperskorgen</string>
+    <string name="path_action_trash_size_limit_description">%1$d objekt på totalt %2$s överskrider papperskorgens storleksgräns (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">Kunde inte flytta till papperskorgen</string>
+    <string name="path_action_trash_move_failed_description">%1$d objekt kunde inte flyttas till papperskorgen.</string>
+
+    <string name="path_action_trash_not_supported_title">Papperskorgen stöds inte</string>
+    <string name="path_action_trash_not_supported_description">%1$d objekt finns på en lagringsplats som inte stöder papperskorgen.</string>
+
+    <string name="path_action_archive_password_title">Lösenord krävs</string>
+    <string name="path_action_archive_password_description">\"%1$s\" är krypterad. Ange lösenordet för att läsa innehållet.</string>
+    <string name="path_action_archive_password_wrong_description">Lösenordet för \"%1$s\" var felaktigt. Försök igen.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Servern kan inte nås</string>
+    <string name="smb_error_unreachable_description">Butler kunde inte nå \"%1$s\". Kontrollera att enheten är på samma nätverk och att servern är påslagen.</string>
+    <string name="smb_error_auth_title">Inloggningen misslyckades</string>
+    <string name="smb_error_auth_description">\"%1$s\" avvisade användarnamnet eller lösenordet.</string>
+    <string name="smb_error_share_access_denied_title">Ingen åtkomst till den här delade resursen</string>
+    <string name="smb_error_share_access_denied_description">Det här kontot får inte använda \"%1$s\" på \"%2$s\". Kontrollera behörigheterna för den delade resursen på servern.</string>
+    <string name="smb_error_share_not_found_title">Den delade resursen hittades inte</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" finns inte på \"%2$s\".</string>
+    <string name="smb_error_dialect_title">Servern är för gammal</string>
+    <string name="smb_error_dialect_description">\"%1$s\" erbjuder bara SMB1, som är osäkert och inte stöds. Aktivera SMB2 eller senare på servern.</string>
+    <string name="smb_error_credential_unavailable_title">Inloggning krävs</string>
+    <string name="smb_error_credential_unavailable_description">Det sparade lösenordet för den här nätverkslagringen kan inte längre läsas. Ange det igen för att ansluta på nytt.</string>
+    <string name="smb_error_pro_required_title">Delade nätverksresurser kräver Butler Pro</string>
+    <string name="smb_error_pro_required_description">Att bläddra bland delade nätverksresurser ingår i Butler Pro. Det är gratis att lägga till, testa och ta bort platser.</string>
+
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Skyddat app-paket</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" är krypterat och kan bara installeras av appen som skapade det.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">Formatet för APK-uppsättningen stöds inte</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" är en APK-uppsättning från bundletool. Butler kan inte avgöra vilken av varianterna som passar den här enheten.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Ingen app att installera</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" innehåller ingen APK som går att installera.</string>
+
+    <string name="app_install_error_session_title">Installationen misslyckades</string>
+    <string name="app_install_error_session_description">Systemet avvisade installationen: %1$s</string>
+
+    <string name="app_install_error_busy_title">En annan installation pågår</string>
+    <string name="app_install_error_busy_description">\"%1$s\" håller fortfarande på att installeras. Bekräfta eller avbryt den installationen innan du startar en ny.</string>
+
+    <string name="app_install_error_no_elevation_title">Ingen utökad åtkomst</string>
+    <string name="app_install_error_no_elevation_description">Root- eller ADB-åtkomst är inte tillgänglig just nu.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Bekräftelse krävs</string>
+    <string name="app_install_confirm_pending_description">Android behöver din bekräftelse för att kunna slutföra installationen av \"%1$s\".</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android behöver din bekräftelse för att kunna slutföra den här installationen.</string>
+    <string name="app_install_confirm_pending_action">Bekräfta installation</string>
+    <string name="app_install_confirm_pending_reason">Installationsprogrammet väntar på din bekräftelse</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Bekräftelse krävs</string>
+    <string name="app_uninstall_confirm_pending_description">Android behöver din bekräftelse för att kunna slutföra avinstallationen av \"%1$s\".</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android behöver din bekräftelse för att kunna slutföra den här avinstallationen.</string>
+    <string name="app_uninstall_confirm_pending_action">Bekräfta avinstallation</string>
+    <string name="app_uninstall_confirm_pending_reason">Android väntar på din bekräftelse</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Att avinstallera den här appen för en annan användare kräver root- eller ADB-åtkomst</string>
+    <string name="app_uninstall_no_result">Android rapporterade inget resultat</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Filåtgärden avbröts</string>
+    <string name="service_connection_lost_error_message">Tjänsten för filåtgärder stoppades oväntat. Försök igen.</string>
+</resources>

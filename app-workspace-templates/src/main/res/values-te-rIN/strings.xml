@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">కొత్తది</string>
+    <string name="workspace_templates_choose_title">కొత్త ట్యాబ్</string>
+    <string name="workspace_templates_choose_subtitle">ట్యాబ్ రకాన్ని ఎంచుకోండి. ఎలా సహాయపడగలను?</string>
+    <string name="workspace_templates_name_tab_action">ఈ ట్యాబ్‌కు పేరు పెట్టండి</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">ఒక సాధనాన్ని ఎంచుకోండి</string>
+    <string name="tour_templates_picker_body">ఇది ట్యాబ్ ఎంపిక తెర. ఈ ట్యాబ్ ఏ సాధనంగా ఉండాలో ఎంచుకోండి. ఒకదాన్ని ఎంచుకుంటే ఈ ట్యాబ్ ఆ సాధనంగా మారుతుంది.</string>
+    <string name="tour_templates_butler_button_title">మీ ట్యాబ్‌లు ఇక్కడ ఉంటాయి</string>
+    <string name="tour_templates_butler_button_body">ట్యాబ్ మెనూ కోసం Butler బటన్‌ను నొక్కండి: కొత్త ట్యాబ్‌ను సృష్టించండి, ప్రస్తుత ట్యాబ్‌ను మూసివేయండి లేదా పూర్తి ట్యాబ్ మేనేజర్‌ను తెరవండి. నేరుగా ట్యాబ్ మేనేజర్‌కు వెళ్లడానికి బటన్‌ను ఎక్కువసేపు నొక్కి ఉంచండి.</string>
+</resources>

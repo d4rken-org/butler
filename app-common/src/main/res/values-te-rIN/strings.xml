@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">అద్భుతమైన ఫైల్ ఎక్స్‌ప్లోరర్</string>
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Butler యాప్ చిహ్నం</string>
+    <string name="butler_mascot_description">Butler మస్కట్</string>
+    <string name="butler_mascot_animation_random_description">వివిధ యానిమేషన్లు చేస్తున్న Butler మస్కట్</string>
+    <string name="butler_mascot_animation_wink_description">కన్ను కొడుతున్న Butler మస్కట్</string>
+    <string name="butler_mascot_animation_greeting_description">చేయి ఊపి పలకరిస్తున్న Butler మస్కట్</string>
+    <string name="butler_mascot_animation_hatoff_description">గౌరవంగా టోపీని కొద్దిగా ఎత్తుతున్న Butler మస్కట్</string>
+    <string name="butler_mascot_animation_drink_description">పానీయం తాగుతున్న Butler మస్కట్</string>
+    <string name="butler_mascot_animation_moustache_description">మీసం నిమురుతున్న Butler మస్కట్</string>
+    <string name="butler_mascot_animation_sleep_closing_description">నిద్రపోవడానికి కళ్లు మూసుకుంటున్న Butler మస్కట్</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">గురక పెడుతున్న Butler మస్కట్</string>
+    <string name="butler_mascot_animation_sleep_waking_description">నిద్ర లేస్తున్న Butler మస్కట్</string>
+    <string name="butler_mascot_animation_cameo_description">అతిథిగా కనిపిస్తున్న SD Maid మస్కట్</string>
+
+    <string name="slogan_general_message_0">మీ సేవలో.</string>
+    <string name="slogan_general_message_1">ప్రతిదీ దాని స్థానంలో.</string>
+    <string name="slogan_general_message_2">క్రమం, గందరగోళం కాదు.</string>
+    <string name="slogan_general_message_3">మీ ఫైళ్లను తీసుకొస్తున్నాం.</string>
+    <string name="slogan_general_message_4">మీ ఫైళ్లన్నీ ఒక వరుసలో.</string>
+    <string name="slogan_general_message_5">ఎప్పుడూ క్రమబద్ధంగా.</string>
+    <string name="slogan_general_message_6">ఫైళ్లు చిటికెలో దొరుకుతాయి!</string>
+    <string name="slogan_general_message_7">సులభంగా యాక్సెస్ చేయండి.</string>
+    <string name="slogan_general_message_8">మీ ఫైళ్లు ఎప్పటికీ తప్పిపోవు.</string>
+    <string name="slogan_general_message_9">ఎన్నో బాధ్యతలు నిర్వహిస్తూ.</string>
+    <string name="slogan_newyear_message_0">ప్రతి ఏడాదిలాగే అదే పద్ధతి.</string>
+    <string name="slogan_xmas_message_0">ఫైళ్లను రెండుసార్లు తనిఖీ చేస్తున్నాం.</string>
+    <string name="slogan_xmas_message_1">మంచివారి జాబితాలో.</string>
+    <string name="slogan_halloween_message_0">భయపెట్టే Butler మీ సేవలో.</string>
+    <string name="slogan_halloween_message_1">మాయలు కాదు, ఫైళ్లు మాత్రమే.</string>
+    <string name="slogan_stpatricks_message_0">అదృష్టం కలిసొస్తుందనిపిస్తోందా?</string>
+    <string name="slogan_stpatricks_message_1">మీ బంగారు నిధిని వెతుకుతున్నాం.</string>
+    <string name="slogan_aprilfools_message_0">ఆటపట్టించడం లేదు.</string>
+    <string name="slogan_aprilfools_message_1">నిజంగా క్రమబద్ధం.</string>
+    <string name="slogan_oktoberfest_message_0">మీ ఫైళ్లకు చీర్స్!</string>
+    <string name="slogan_oktoberfest_message_1">ఫైళ్లు కావాలంటే చాలు, సిద్ధం.</string>
+
+    <string name="general_share_action">షేర్ చేయండి</string>
+    <string name="general_share_single_title">%s షేర్ చేయండి</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">%d ఫైల్‌ను షేర్ చేయండి</item>
+        <item quantity="other">%d ఫైళ్లను షేర్ చేయండి</item>
+    </plurals>
+    <string name="general_done_action">పూర్తయింది</string>
+    <string name="general_copy_action">కాపీ చేయండి</string>
+    <string name="general_cut_action">కట్ చేయండి</string>
+    <string name="general_move_action">తరలించండి</string>
+    <string name="general_paste_action">పేస్ట్ చేయండి</string>
+    <string name="general_apply_action">వర్తింపజేయండి</string>
+    <string name="general_open_action">తెరవండి</string>
+    <string name="general_cancel_action">రద్దు చేయండి</string>
+    <string name="general_close_action">మూసివేయండి</string>
+    <string name="general_confirm_action">నిర్ధారించండి</string>
+    <string name="general_reset_action">రీసెట్ చేయండి</string>
+    <string name="general_save_action">సేవ్ చేయండి</string>
+    <string name="general_edit_action">సవరించండి</string>
+    <string name="general_na_label">వర్తించదు</string>
+    <string name="general_dialog_a11y_label">డైలాగ్</string>
+    <string name="general_dismiss_action">మూసేయండి</string>
+    <string name="general_read_more_action">మరింత చదవండి</string>
+    <string name="general_mark_as_read_action">చదివినట్లు గుర్తించండి</string>
+    <string name="general_back_action">వెనుకకు</string>
+    <string name="general_navigate_up_action">పై స్థాయికి వెళ్లండి</string>
+    <string name="general_error_label">లోపం</string>
+    <string name="general_error_unknown_label">తెలియని లోపం</string>
+    <string name="general_error_invalid_input_label">చెల్లని ఇన్‌పుట్</string>
+    <string name="general_share_error_action">లోపాన్ని షేర్ చేయండి</string>
+    <string name="general_error_report_subject">%1$s లోప నివేదిక (%2$s)</string>
+    <string name="general_error_report_consent_title">లోప నివేదికను షేర్ చేయాలా?</string>
+    <string name="general_error_report_consent_message">ఈ నివేదికలో లోపం, దాని వల్ల ఏర్పడిన స్టాక్ ట్రేస్, యాప్ ఇటీవలి లాగ్ వివరాలు, అలాగే ఆ సమయంలో యాప్ స్థితికి సంబంధించిన వివరాలు ఉంటాయి: ఫైల్ పేర్లు, పాత్‌లు, శోధన ప్రశ్నలు, ప్యాకేజీ పేర్లు, URIలు, నెట్‌వర్క్ మరియు SMB హోస్ట్ పేర్లు, మీ పరికరం మరియు బిల్డ్ సమాచారం, అలాగే ఒక అనామక ఇన్‌స్టాల్ ID. మీరు నమ్మే వ్యక్తులతో మాత్రమే దీన్ని షేర్ చేయండి.</string>
+    <string name="general_error_report_consent_confirm">నివేదికను షేర్ చేయండి</string>
+    <string name="general_privacy_policy_action">గోప్యతా విధానం</string>
+    <string name="general_bug_report_subject">%1$s బగ్ నివేదిక (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">%1$s బగ్ నివేదిక: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(ఏం జరిగిందో ఇక్కడ వివరించండి.)</string>
+    <string name="general_bug_report_body_expected_prompt">(బదులుగా ఏం జరుగుతుందని ఆశించారో వివరించండి.)</string>
+    <string name="general_duration_input_label">వ్యవధి</string>
+    <string name="general_size_input_label">పరిమాణం</string>
+    <string name="general_upgrade_action">అప్‌గ్రేడ్ చేయండి</string>
+    <string name="general_refresh_action">రిఫ్రెష్ చేయండి</string>
+    <string name="general_clear_action">క్లియర్ చేయండి</string>
+    <string name="general_expand_action">విస్తరించండి</string>
+    <string name="general_collapse_action">కుదించండి</string>
+    <string name="general_completed_label">పూర్తయింది</string>
+    <string name="general_cancelled_label">రద్దయింది</string>
+    <string name="general_searching_label">వెతుకుతోంది</string>
+    <string name="general_searching_ellipsis">వెతుకుతోంది…</string>
+    <string name="general_progress_loading">లోడ్ అవుతోంది</string>
+    <string name="general_progress_loading_egg_0">ఇప్పటికీ iPhone కంటే వేగమే</string>
+    <string name="general_progress_loading_egg_1">మరింత RAM డౌన్‌లోడ్ అవుతోంది</string>
+    <string name="general_progress_loading_egg_2">పూర్తయ్యే సమయం: త్వరలో™</string>
+    <string name="general_progress_loading_egg_3">CPU కాఫీ విరామంలో ఉంది</string>
+    <string name="general_progress_loading_egg_4">Pepe Silvia నుంచి డేటా కోసం ఎదురుచూస్తోంది</string>
+    <string name="general_progress_loading_egg_5">టర్బో ఎన్‌క్యాబ్యులేటర్ ప్రారంభమవుతోంది</string>
+    <string name="general_progress_loading_egg_6">వెన్న అందిస్తున్నాం</string>
+    <string name="general_progress_loading_egg_7">మరి. ఎలా నెట్టుకొస్తున్నారు?</string>
+    <string name="general_progress_loading_egg_8">బీప్ బూప్ బాప్</string>
+    <string name="general_progress_loading_egg_9">జీవిత నిర్ణయాలు బఫర్ అవుతున్నాయి</string>
+    <string name="general_progress_loading_egg_10">Cthulhuను ఆహ్వానిస్తున్నాం</string>
+    <string name="general_progress_loading_egg_11">ఇదంతా బాగానే ఉంది</string>
+    <string name="general_progress_loading_egg_12">దయచేసి వేచి ఉండండి</string>
+    <string name="general_progress_loading_egg_13">కనీసం ఫోన్‌లో వేచి ఉండాల్సిన పని లేదు</string>
+    <string name="general_progress_loading_egg_14">నేరుగా నుదుటిపై రాయండి</string>
+
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%d మి.సె.</item>
+        <item quantity="other">%d మి.సె.</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%d సె.</item>
+        <item quantity="other">%d సె.</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%d ని.</item>
+        <item quantity="other">%d ని.</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%d గం.</item>
+        <item quantity="other">%d గం.</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%d రో.</item>
+        <item quantity="other">%d రో.</item>
+    </plurals>
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d సెకను</item>
+        <item quantity="other">%d సెకన్లు</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d నిమిషం</item>
+        <item quantity="other">%d నిమిషాలు</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d గంట</item>
+        <item quantity="other">%d గంటలు</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d రోజు</item>
+        <item quantity="other">%d రోజులు</item>
+    </plurals>
+
+    <string name="general_view_action">చూడండి</string>
+    <string name="general_delete_action">తొలగించండి</string>
+    <string name="general_show_details_action">వివరాలు చూపండి</string>
+    <string name="general_hide_details_action">వివరాలు దాచండి</string>
+    <string name="general_delete_confirmation_title">తొలగింపును నిర్ధారించండి</string>
+    <string name="general_delete_confirmation_message_x">\"%s\"ను తొలగించాలా?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">ఎంచుకున్న %d అంశాలను తొలగించాలా?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">%d అంశం తొలగించబడింది.</item>
+        <item quantity="other">%d అంశాలు తొలగించబడ్డాయి.</item>
+    </plurals>
+    <string name="general_create_action">సృష్టించండి</string>
+    <string name="general_rename_action">పేరు మార్చండి</string>
+    <string name="general_retry_action">మళ్లీ ప్రయత్నించండి</string>
+    <string name="general_open_setup_action">సెటప్ తెరవండి</string>
+    <string name="general_grant_usage_stats_action">వినియోగ సమాచారానికి యాక్సెస్ ఇవ్వండి</string>
+    <string name="general_grant_storage_permission_action">నిల్వ అనుమతి ఇవ్వండి</string>
+    <string name="general_grant_all_files_access_action">అన్ని ఫైళ్లకు యాక్సెస్ అనుమతించండి</string>
+    <string name="general_result_user_cancel_msg">వినియోగదారు ఈ చర్యను రద్దు చేశారు.</string>
+    <string name="general_path_label">పాత్</string>
+    <string name="general_filename_validation_error">పేరులో చెల్లని అక్షరాలు ఉన్నాయి: %1$s</string>
+    <string name="common_workspace_position_indicator">%2$dలో %1$d: %3$s</string>
+    <string name="common_x_of_y_label">%2$dలో %1$d</string>
+    <string name="file_type_symbolic_link">లింక్</string>
+    <string name="file_type_directory">డైరెక్టరీ</string>
+    <string name="file_type_file">ఫైల్</string>
+    <string name="file_type_unknown">తెలియదు</string>
+
+    <string name="common_mimetype_image">చిత్రం</string>
+    <string name="common_mimetype_video">వీడియో</string>
+    <string name="common_mimetype_audio">ఆడియో</string>
+    <string name="common_mimetype_text_plain">సాదా వచనం</string>
+    <string name="common_mimetype_text">వచన పత్రం</string>
+    <string name="common_mimetype_pdf">PDF పత్రం</string>
+    <string name="common_mimetype_document">పత్రం</string>
+    <string name="common_mimetype_archive">ఆర్కైవ్</string>
+    <string name="common_mimetype_apk">Android ప్యాకేజీ</string>
+    <string name="common_mimetype_json">JSON ఫైల్</string>
+    <string name="common_mimetype_xml">XML ఫైల్</string>
+    <string name="common_mimetype_unknown">తెలియని రకం</string>
+    <string name="general_rom_type_auto_label">ఆటోమేటిక్ (డిఫాల్ట్)</string>
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s అంశం/సె.</item>
+        <item quantity="other">%s అంశాలు/సె.</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/సె.</item>
+        <item quantity="other">%s/సె.</item>
+    </plurals>
+    <string name="general_error_type_mismatch_msg">రకం సరిపోలలేదు: %1$s కావాలి, కానీ %2$s వచ్చింది.</string>
+    <string name="general_error_cant_access_msg">%sను యాక్సెస్ చేయలేము.</string>
+    <string name="general_error_archive_not_seekable_msg">%sను నేరుగా బ్రౌజ్ చేయలేము: అది ఉన్న నిల్వలో వరుసగా చదవడం మాత్రమే సాధ్యం, కానీ ఈ ఆర్కైవ్ ఫార్మాట్‌కు ఏ స్థానాన్నైనా నేరుగా యాక్సెస్ చేయగలగాలి.</string>
+    <string name="general_error_root_unavailable">రూట్ యాక్సెస్ అందుబాటులో లేదు.</string>
+    <string name="general_error_elevated_access_required">ఈ చర్యకు అధిక అధికారాలతో యాక్సెస్ అవసరం. సెటప్‌లో రూట్ లేదా ADB యాక్సెస్‌ను కాన్ఫిగర్ చేయండి.</string>
+    <string name="general_error_no_compatible_app_found_msg">ఈ అభ్యర్థనను నిర్వహించగల అనుకూల యాప్ ఏదీ దొరకలేదు.</string>
+    <string name="general_error_ipc_deadobject_title">సేవతో కనెక్షన్ పోయింది</string>
+    <string name="general_error_ipc_deadobject_description">ఒక కీలక సేవతో (ఉదా. Magisk లేదా మరో సిస్టమ్ స్థాయి సేవ) కనెక్షన్ అనుకోకుండా పోయింది. దయచేసి మీ పరికరాన్ని రీబూట్ చేయండి. సమస్య కొనసాగితే, అప్‌డేట్‌ల కోసం తనిఖీ చేయండి లేదా నేను దాన్ని పరిష్కరించగలిగేలా నన్ను సంప్రదించండి.</string>
+
+    <string name="ui_theme_mode_dark_label">ముదురు</string>
+    <string name="ui_theme_mode_light_label">లేత</string>
+    <string name="ui_theme_mode_system_label">సిస్టమ్</string>
+    <string name="ui_theme_style_default_label">డిఫాల్ట్</string>
+    <string name="ui_theme_style_medium_contrast_label">మధ్యస్థ కాంట్రాస్ట్</string>
+    <string name="ui_theme_style_high_contrast_label">అధిక కాంట్రాస్ట్</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">ఆకుపచ్చ</string>
+    <string name="ui_theme_color_blue_label">నీలం</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">అనుకూలం</string>
+    <string name="ui_theme_palette_tonalspot_label">టోనల్ స్పాట్</string>
+    <string name="ui_theme_palette_neutral_label">తటస్థం</string>
+    <string name="ui_theme_palette_vibrant_label">ప్రకాశవంతం</string>
+    <string name="ui_theme_palette_expressive_label">భావవ్యక్తీకరణ</string>
+    <string name="ui_theme_palette_rainbow_label">ఇంద్రధనుస్సు</string>
+    <string name="ui_theme_palette_fruitsalad_label">పండ్ల మిశ్రమం</string>
+    <string name="ui_theme_palette_monochrome_label">ఏకవర్ణం</string>
+    <string name="ui_theme_palette_fidelity_label">మూల రంగుకు దగ్గరగా</string>
+    <string name="ui_theme_palette_content_label">కంటెంట్</string>
+    <string name="ui_theme_custom_dialog_title">అనుకూల థీమ్</string>
+    <string name="ui_theme_custom_seed_label">మూల రంగు</string>
+    <string name="ui_theme_custom_palette_label">పాలెట్ శైలి</string>
+    <string name="ui_theme_custom_default_action">డిఫాల్ట్</string>
+    <string name="ui_mascot_suit_dialog_title">Butler సూట్</string>
+    <string name="ui_mascot_suit_default_action">డిఫాల్ట్</string>
+    <string name="ui_mascot_suit_hue_label">వర్ణం</string>
+    <string name="ui_mascot_suit_saturation_label">రంగు తీవ్రత</string>
+    <string name="ui_mascot_suit_brightness_label">ప్రకాశం</string>
+    <string name="ui_mascot_suit_value_description">సూట్ రంగు %s</string>
+
+    <string name="setup_usagestats_title">వినియోగ గణాంకాలు</string>
+    <string name="setup_shizuku_card_title">ADB యాక్సెస్</string>
+    <string name="setup_root_card_title">రూట్</string>
+    <string name="setup_notification_title">నోటిఫికేషన్ యాక్సెస్</string>
+    <string name="setup_manage_storage_card_title">బాహ్య నిల్వను నిర్వహించండి</string>
+    <string name="setup_inventory_card_title">యాప్ జాబితా</string>
+    <string name="setup_required_card_title">సెటప్ అవసరం</string>
+    <string name="setup_required_card_body">ఈ చర్యను నిర్వహించడానికి అదనపు సెటప్ అవసరం.</string>
+    <string name="setup_required_card_setup_action">సెటప్ తెరవండి</string>
+
+    <string name="common_open_tabs_confirmation_title">పలు ట్యాబ్‌లను తెరవాలా?</string>
+    <string name="common_open_tabs_confirmation_message">ఇది %1$d ట్యాబ్‌లను తెరుస్తుంది.</string>
+    <string name="common_open_tabs_success">%1$d ట్యాబ్‌లు తెరవబడ్డాయి</string>
+    <string name="common_open_tabs_success_with_skipped">%1$d ట్యాబ్‌లు తెరవబడ్డాయి (%2$d అంశాలు దాటవేయబడ్డాయి)</string>
+    <string name="general_tab_close_confirmation_title">ట్యాబ్‌ను మూసివేయాలా?</string>
+    <string name="general_tab_close_confirmation_message">\"%1$s\"ను ఖచ్చితంగా మూసివేయాలనుకుంటున్నారా?</string>
+    <string name="general_tab_close_unsaved_title">సేవ్ చేయని మార్పులు</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\"లో సేవ్ చేయని మార్పులు ఉన్నాయి. దాన్ని మూసివేసి ఆ మార్పులను విస్మరించాలా?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\"లోనూ మరో %2$d ట్యాబ్‌లలోనూ సేవ్ చేయని మార్పులు ఉన్నాయి. వాటిని మూసివేసి ఆ మార్పులను విస్మరించాలా?</string>
+    <string name="general_discard_action">విస్మరించండి</string>
+    <string name="general_tab_close_goto_action">ట్యాబ్‌కు వెళ్లండి</string>
+    <string name="general_press_back_again_to_exit">నిష్క్రమించడానికి వెనుకకు బటన్‌ను మళ్లీ నొక్కండి</string>
+
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d ఎంచుకోబడింది</item>
+        <item quantity="other">%d ఎంచుకోబడ్డాయి</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d ఫోల్డర్</item>
+        <item quantity="other">%1$d ఫోల్డర్లు</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d ఫైల్</item>
+        <item quantity="other">%1$d ఫైళ్లు</item>
+    </plurals>
+    <string name="common_select_all_folders_action">అన్ని ఫోల్డర్లను ఎంచుకోండి</string>
+    <string name="common_select_all_files_action">అన్ని ఫైళ్లను ఎంచుకోండి</string>
+    <string name="general_undo_action">చర్యను వెనక్కి తీసుకోండి</string>
+
+    <string name="tour_action_next">తదుపరి</string>
+    <string name="tour_action_previous">మునుపటి</string>
+    <string name="tour_action_cancel">దాటవేయండి</string>
+    <string name="tour_confirm_title">పరిచయ పర్యటనను దాటవేయాలా?</string>
+    <string name="tour_confirm_message">సెట్టింగ్‌ల నుంచి ఎప్పుడైనా పరిచయ పర్యటనలను మళ్లీ ప్రారంభించవచ్చు.</string>
+    <string name="tour_confirm_continue">పరిచయ పర్యటన కొనసాగించండి</string>
+    <string name="tour_confirm_dont_show_this_tour">ఈ పరిచయ పర్యటనను చూపవద్దు</string>
+    <string name="tour_confirm_disable_all">అన్ని పరిచయ పర్యటనలను నిలిపివేయండి</string>
+    <string name="common_tip_multiple_panes">ఫైళ్లను పక్కపక్కన పోల్చడానికి పలు పేన్‌లను ఉపయోగించండి.</string>
+    <string name="common_tip_different_folders">ఫైళ్లను సులభంగా నిర్వహించడానికి ప్రతి పేన్‌లో వేర్వేరు ఫోల్డర్లను తెరవండి.</string>
+    <string name="common_tip_switch_layouts">Butler మెనూలోని లేఅవుట్ నుంచి పేన్ లేఅవుట్‌లను మార్చండి.</string>
+    <string name="common_tip_elevated_access">అధునాతన ఫైల్ చర్యల కోసం సెటప్‌లో రూట్ లేదా ADB యాక్సెస్‌ను ప్రారంభించండి.</string>
+    <string name="common_tip_breadcrumb_home">ఎక్స్‌ప్లోరర్ బ్రెడ్‌క్రంబ్‌ను మీ హోమ్ డైరెక్టరీగా సెట్ చేయడానికి దాన్ని ఎక్కువసేపు నొక్కండి.</string>
+</resources>

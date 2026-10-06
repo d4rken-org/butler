@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Fejlrapporter</string>
+    <string name="bugreport_workspace_subtitle">Rapporter om nedbrud og fejl</string>
+
+    <string name="bugreport_empty_title">Ingen rapporter</string>
+    <string name="bugreport_empty_subtitle">Rapporter om nedbrud og fejl vises her. Intet sendes automatisk.</string>
+
+    <string name="bugreport_type_crash">Nedbrud</string>
+    <string name="bugreport_type_report">Rapport</string>
+    <string name="bugreport_type_recording">Optagelse</string>
+
+    <string name="bugreport_record_action">Optag fejlfindingslog</string>
+    <string name="bugreport_record_short_action">Optag</string>
+    <string name="bugreport_stop_action">Stop optagelse</string>
+    <string name="bugreport_stop_short_action">Stop</string>
+    <string name="bugreport_recording_ongoing_label">Optager…</string>
+
+    <string name="bugreport_recording_short_title">Optagelsen er meget kort</string>
+    <string name="bugreport_recording_short_message">Denne optagelse er kun få sekunder lang og indeholder muligvis ikke nyttige oplysninger. Vil du stoppe den alligevel?</string>
+    <string name="bugreport_recording_short_keep_action">Fortsæt optagelse</string>
+
+    <string name="bugreport_rename_action">Omdøb</string>
+    <string name="bugreport_rename_dialog_title">Navngiv denne rapport</string>
+    <string name="bugreport_rename_name_label">Navn</string>
+    <string name="bugreport_rename_name_hint">Vises på listen og i navnet på den delte fil</string>
+
+    <string name="bugreport_share_action">Del</string>
+    <string name="bugreport_delete_action">Slet</string>
+    <string name="bugreport_delete_all_action">Slet alle</string>
+    <string name="bugreport_delete_all_confirm_title">Slet alle fejlfindingslogge?</string>
+    <string name="bugreport_delete_all_confirm_message">Dette sletter permanent alle optagede logsessioner til fejlfinding. Igangværende optagelser påvirkes ikke.</string>
+    <string name="bugreport_delete_confirm_title">Slet denne rapport?</string>
+    <string name="bugreport_delete_confirm_message">Dette sletter permanent denne rapport og dens log.</string>
+    <string name="bugreport_cancel_action">Annuller</string>
+
+    <string name="bugreport_share_chooser_title">Del fejlrapport</string>
+    <string name="bugreport_share_consent_title">Del rapport?</string>
+    <string name="bugreport_share_consent_message">Denne rapport indeholder applogge, som kan indeholde filnavne, stier og oplysninger om appen og enheden. Del den kun med personer, du stoler på.</string>
+
+    <string name="bugreport_detail_back_action">Tilbage</string>
+    <string name="bugreport_detail_section_error">Fejl</string>
+    <string name="bugreport_detail_section_log">Seneste log</string>
+    <string name="bugreport_detail_field_type">Type</string>
+    <string name="bugreport_detail_field_time">Tid</string>
+    <string name="bugreport_detail_field_app_version">Appversion</string>
+    <string name="bugreport_detail_field_device">Enhed</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">Fejltype</string>
+    <string name="bugreport_detail_field_thread">Tråd</string>
+    <string name="bugreport_detail_log_truncated">sidste %1$d af %2$d linjer</string>
+    <string name="bugreport_detail_log_count">%1$d linjer</string>
+    <string name="bugreport_detail_log_empty">Ingen log registreret</string>
+    <string name="bugreport_detail_log_error">Kunne ikke indlæse loggen</string>
+</resources>

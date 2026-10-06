@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">திருத்தி</string>
+    <string name="editor_subtitle">உரைக் கோப்புகளைத் திருத்துங்கள்</string>
+    <string name="editor_settings_title">திருத்தி அமைப்புகள்</string>
+    <string name="editor_settings_show_line_numbers_title">வரி எண்களைக் காட்டு</string>
+    <string name="editor_settings_show_line_numbers_subtitle">திருத்தியில் வரி எண்களைக் காட்டு.</string>
+    <string name="editor_settings_word_wrap_title">வரி மடிப்பு</string>
+    <string name="editor_settings_word_wrap_subtitle">நீண்ட வரிகளைத் திரையின் அகலத்திற்குள் அடங்கும்படி மடித்து காட்டு.</string>
+    <string name="editor_settings_syntax_highlighting_title">தொடரமைப்பு சிறப்பித்தல்</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">ஆதரிக்கப்படும் கோப்புகளில் (JavaScript, Bash, Markdown, JSON) நிரல் குறியீட்டை வண்ணங்களில் காட்டு.</string>
+    <string name="editor_settings_font_size_title">எழுத்துரு அளவு</string>
+    <string name="editor_settings_font_size_subtitle">திருத்தியில் உரையின் அளவு</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">டேப் அகலம்</string>
+    <string name="editor_settings_tab_size_subtitle">ஒரு டேப் எழுத்து எடுத்துக்கொள்ளும் இடைவெளிகளின் எண்ணிக்கை</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">திற</string>
+    <string name="editor_action_save">சேமி</string>
+    <string name="editor_action_save_as">வேறாகச் சேமி…</string>
+    <string name="editor_action_close">மூடு</string>
+    <string name="editor_action_undo">செயல்தவிர்</string>
+    <string name="editor_action_redo">மீண்டும் செய்</string>
+    <string name="editor_action_search">தேடு</string>
+    <string name="editor_action_go_to_line">வரிக்குச் செல்</string>
+    <string name="editor_action_dismiss">மறை</string>
+    <string name="editor_action_previous">முந்தையது</string>
+    <string name="editor_action_next">அடுத்தது</string>
+    <string name="editor_action_copy">நகலெடு</string>
+    <string name="editor_action_cut">வெட்டு</string>
+    <string name="editor_action_copy_to_butler_clipboard">Butler கிளிப்போர்டுக்கு நகலெடு</string>
+    <string name="editor_action_cut_to_butler_clipboard">Butler கிளிப்போர்டுக்கு வெட்டு</string>
+    <string name="editor_action_paste">ஒட்டு</string>
+    <string name="editor_action_select_all">அனைத்தையும் தேர்ந்தெடு</string>
+    <string name="editor_action_delete">நீக்கு</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">கோப்பை மேலெழுதவா?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s ஏற்கனவே உள்ளது. அதன் தற்போதைய உள்ளடக்கம் மாற்றப்படும்.</string>
+    <string name="editor_dialog_save_as_overwrite_action">மேலெழுது</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">தடைபட்ட சேமிப்பிலிருந்து ஒரு காப்புப்பிரதி கிடைத்தது:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">உரையாகத் திருத்துவது ஆதரிக்கப்படவில்லை</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">மிக நீண்ட வரிகள்</string>
+    <string name="editor_long_lines_banner_message">மிக நீண்ட வரிகள் காட்சிக்காகச் சுருக்கப்படுகின்றன; முழு உள்ளடக்கமும் பாதுகாக்கப்பட்டுச் சேமிக்கப்படும்.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">வரியின் அடுத்த பகுதியைக் காட்டு</string>
+    <string name="editor_line_truncated_marker_previous_action">வரியின் முந்தைய பகுதியைக் காட்டு</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">கோப்பு இனி கிடைக்கவில்லை</string>
+    <string name="editor_backing_lost_banner_message">அது நகர்த்தப்பட்டிருக்கலாம் அல்லது நீக்கப்பட்டிருக்கலாம். இந்தக் காட்சியை வாசிக்க மட்டுமே முடியும் — மீண்டும் திறக்கவும் அல்லது மூடவும்.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">கோப்பு இல்லை, ஆனால் காப்புப்பிரதி உள்ளது</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" கிடைக்கவில்லை, ஆனால் தடைபட்ட சேமிப்பு இதை விட்டுச் சென்றுள்ளது: %2$s. உங்கள் உள்ளடக்கம் பெரும்பாலும் இன்னும் அதில் இருக்கும்.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">சேமிப்பகத்தில் கோப்பு மாற்றப்பட்டுள்ளது</string>
+    <string name="editor_external_change_banner_message">வேறொரு செயலி இந்தக் கோப்பை மாற்றியுள்ளது.</string>
+    <string name="editor_external_change_reload_action">மீண்டும் ஏற்று</string>
+    <string name="editor_external_change_keep_action">தொடர்ந்து திருத்து</string>
+    <string name="editor_error_external_change">வேறொரு செயலி இந்தக் கோப்பை மாற்றியுள்ளது. தொடர்வதற்குக் கோப்பை மீண்டும் ஏற்றுங்கள்.</string>
+    <string name="editor_dialog_reload_confirm_title">கோப்பை மீண்டும் ஏற்றவா?</string>
+    <string name="editor_dialog_reload_confirm_message">மீண்டும் ஏற்றினால் சேமிக்கப்படாத மாற்றங்கள் கைவிடப்பட்டு, சேமிப்பகத்தில் உள்ள கோப்பின் தற்போதைய உள்ளடக்கம் காட்டப்படும்.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d வரி</item>
+        <item quantity="other">%1$d வரிகள்</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d எழுத்து</item>
+        <item quantity="other">%1$d எழுத்துகள்</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">தேர்ந்தெடுத்தவை: %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$d வரி · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">கோப்பை ஏற்றுகிறது…</string>
+    <string name="editor_saving">சேமிக்கிறது…</string>
+    <string name="editor_action_cancel_loading">ரத்துசெய்</string>
+    <string name="editor_progress_opening">கோப்பைத் திறக்கிறது…</string>
+    <string name="editor_progress_saving">கோப்பைச் சேமிக்கிறது…</string>
+    <string name="editor_progress_building_index">கோப்பின் சுட்டியை உருவாக்குகிறது…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">தெரியாத பிழை</string>
+    <string name="editor_error_read_only">இந்தக் கோப்பை வாசிக்க மட்டுமே முடியும்; மாற்ற முடியாது.</string>
+    <string name="editor_error_save_integrity_label">சேமிப்பு தடைபட்டது</string>
+    <string name="editor_error_save_integrity">சேமிப்பு தடைபட்டது; சேமிப்பகத்தில் உள்ள கோப்பு முழுமையற்றதாக இருக்கலாம். மேலும் திருத்துவதற்கு முன் கோப்பை மீண்டும் ஏற்றுங்கள்.</string>
+    <string name="editor_error_clipboard_too_large_label">தேர்வு மிகப் பெரியது</string>
+    <string name="editor_error_clipboard_too_large">நகலெடுக்க முடியாத அளவிற்குத் தேர்வு மிகப் பெரியது (வரம்பு %1$s).</string>
+    <string name="editor_error_paste_too_large_label">கோப்பு மிகப் பெரியது</string>
+    <string name="editor_error_paste_too_large">ஒட்ட முடியாத அளவிற்கு இந்தக் கோப்பு மிகப் பெரியது (அதிகபட்சம் %1$s).</string>
+    <string name="editor_error_paste_binary_label">உரைக் கோப்பு அல்ல</string>
+    <string name="editor_error_paste_binary">இந்தக் கோப்பின் உள்ளடக்கத்தை உரையாக ஒட்ட முடியாது.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%2$d முடிவில் %1$d</item>
+        <item quantity="other">%2$d முடிவுகளில் %1$d</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%2$d+ முடிவுகளில் %1$d</string>
+    <string name="editor_search_too_many_matches_label">மிக அதிகமான பொருத்தங்கள்</string>
+    <string name="editor_search_too_many_matches">%1$d-க்கும் அதிகமான பொருத்தங்கள் அல்லது மிக அதிகமான பொருந்திய உரை — அனைத்தையும் மாற்றுவதற்குத் தேடலைக் குறுக்குங்கள்.</string>
+    <string name="editor_search_placeholder">தேடு…</string>
+    <string name="editor_search_previous">முந்தைய முடிவு</string>
+    <string name="editor_search_next">அடுத்த முடிவு</string>
+    <string name="editor_search_case_sensitive_label">பெரிய/சிறிய எழுத்துகளை வேறுபடுத்து</string>
+    <string name="editor_search_regex_label">சீரான கோவை (regex)</string>
+    <string name="editor_search_whole_word_label">முழுச் சொல்</string>
+    <string name="editor_search_options_label">தேடல் விருப்பங்கள்</string>
+    <string name="editor_search_replace_label">மாற்று</string>
+    <string name="editor_search_replace_toggle">மாற்றும் வசதியை இயக்கு/முடக்கு</string>
+    <string name="editor_search_replace_placeholder">இதைக் கொண்டு மாற்று…</string>
+    <string name="editor_search_replace_one_action">மாற்று</string>
+    <string name="editor_search_replace_all_action">அனைத்தும்</string>
+    <string name="editor_search_replaced_not_undoable">%1$d மாற்றப்பட்டன (செயல்தவிர்க்க முடியாத அளவிற்கு மிகப் பெரியது)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d மாற்றப்பட்டது</item>
+        <item quantity="other">%1$d மாற்றப்பட்டன</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">வரிக்குச் செல்</string>
+    <string name="editor_dialog_go_to_line_label">வரி எண் (1-%1$d)</string>
+    <string name="editor_dialog_action_go">செல்</string>
+    <string name="editor_dialog_action_cancel">ரத்துசெய்</string>
+    <string name="editor_dialog_close_confirm_title">சேமிக்கப்படாத மாற்றங்கள்</string>
+    <string name="editor_dialog_close_confirm_message">சேமிக்கப்படாத மாற்றங்கள் உள்ளன. அவற்றைக் கைவிடவா?</string>
+    <string name="editor_dialog_close_confirm_discard">கைவிடு</string>
+    <string name="editor_dialog_large_delete_confirm_title">பெரிய தேர்வைத் திருத்தவா?</string>
+    <string name="editor_dialog_large_delete_confirm_message">செயல்தவிர்க்க முடியாத அளவிற்கு இந்தத் தேர்வு மிகப் பெரியது. இருந்தாலும் தொடரவா?</string>
+    <string name="editor_dialog_large_delete_confirm_action">தொடர்</string>
+    <string name="editor_encoding_dialog_title">எழுத்துக் குறியாக்கம்</string>
+    <string name="editor_encoding_dialog_message">வேறு எழுத்துக் குறியாக்கத்துடன் கோப்பை மீண்டும் திறக்கவும். சேமிக்கப்படாத மாற்றங்கள் கைவிடப்படும்; சேமிக்கும்போது திருத்தப்படாத பைட்டுகள் மாற்றப்படாது.</string>
+    <string name="editor_infobar_read_only">வாசிக்க மட்டும்</string>
+    <string name="editor_line_ending_mixed">கலந்தவை</string>
+    <string name="editor_line_ending_dialog_title">வரி முடிவுகள்</string>
+    <string name="editor_line_ending_dialog_message">எல்லா வரி முறிவுகளையும் மாற்றி, சேமிக்கப்படாத மாற்றங்களையும் சேர்த்துக் கோப்பைச் சேமிக்கவும். செயல்தவிர்ப்பு வரலாறு அழிக்கப்படும்.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">தலைப்பிடப்படாதது</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">தானியங்குச் சேமிப்பு</string>
+    <string name="editor_settings_autosave_enabled_title">தானியங்குச் சேமிப்பை இயக்கு</string>
+    <string name="editor_settings_autosave_enabled_subtitle">சிறிது நேரம் செயல்பாடு இல்லாத பிறகு மாற்றங்களைத் தானாகச் சேமி.</string>
+    <string name="editor_settings_autosave_interval_title">தானியங்குச் சேமிப்பு இடைவெளி</string>
+    <string name="editor_settings_autosave_interval_subtitle">கடைசித் திருத்தத்திற்குப் பிறகு சேமிப்பதற்கு முன் காத்திருக்கும் நேரம்.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">தானியங்குச் சேமிப்பு இடைவெளி</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">கிளிப்போர்டு</string>
+    <string name="editor_settings_clipboard_behavior_title">Butler கிளிப்போர்டு</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">உரை நகல்கள் Butler கிளிப்போர்டில் எவ்வாறு சேமிக்கப்படுகின்றன என்பதைக் கட்டுப்படுத்து.</string>
+    <string name="editor_settings_clipboard_system_only">சாதனத்தின் கிளிப்போர்டு மட்டும்</string>
+    <string name="editor_settings_clipboard_system_only_desc">சாதனத்தின் கிளிப்போர்டுக்கு மட்டும் நகலெடு</string>
+    <string name="editor_settings_clipboard_butler_always">எப்போதும் Butler இல் சேர்</string>
+    <string name="editor_settings_clipboard_butler_always_desc">பணிப்பரப்புகளுக்கிடையே ஒட்டுவதற்காக Butler கிளிப்போர்டிலும் சேமி</string>
+    <string name="editor_settings_clipboard_ask">ஒவ்வொரு முறையும் கேள்</string>
+    <string name="editor_settings_clipboard_ask_desc">Butler கிளிப்போர்டில் சேர்ப்பதற்கு முன் கேள்</string>
+</resources>

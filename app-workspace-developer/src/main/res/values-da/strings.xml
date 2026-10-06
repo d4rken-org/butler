@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Udvikler</string>
+    <string name="developer_title">Udviklerværktøjer</string>
+    <string name="developer_subtitle">Hjælpeværktøjer til udvikling</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">System</string>
+    <string name="developer_tab_options">Indstillinger</string>
+    <string name="developer_tab_workspaces">Arbejdsområder</string>
+    <string name="developer_tab_logs">Log</string>
+    <string name="developer_tab_testdata">Testdata</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Fejlfindingsindstillinger</string>
+    <string name="developer_options_debug_mode">Fejlfindingstilstand</string>
+    <string name="developer_options_debug_mode_desc">Aktivér detaljeret logning</string>
+    <string name="developer_options_trace_mode">Sporingstilstand</string>
+    <string name="developer_options_trace_mode_desc">Aktivér logning på sporingsniveau</string>
+    <string name="developer_options_floating_log">Flydende logpanel</string>
+    <string name="developer_options_floating_log_desc">Vis et flytbart logpanel oven på alle skærmbilleder</string>
+    <string name="developer_options_services_header">Tjenestetest</string>
+    <string name="developer_options_root_test_action">Test root</string>
+    <string name="developer_options_root_installed_label">Installeret</string>
+    <string name="developer_options_root_available_label">Tilgængelig</string>
+    <string name="developer_options_root_base_check_label">Grundlæggende kontrol</string>
+    <string name="developer_options_shizuku_test_action">Test ADB-adgang</string>
+    <string name="developer_options_shizuku_installed_label">Installeret</string>
+    <string name="developer_options_shizuku_granted_label">Tilladelse</string>
+    <string name="developer_options_shizuku_compatible_label">Kompatibel</string>
+    <string name="developer_options_shizuku_service_label">Tjeneste</string>
+    <string name="developer_options_test_running">Tester…</string>
+    <string name="developer_options_result_yes">Ja</string>
+    <string name="developer_options_result_no">Nej</string>
+    <string name="developer_options_result_unknown">Ukendt</string>
+    <string name="developer_options_visibility_header">Synlighed</string>
+    <string name="developer_options_hide_mode">Skjul udviklertilstand</string>
+    <string name="developer_options_hide_mode_desc">Tryk på versionen 7 gange i Indstillinger for at aktivere den igen.</string>
+    <string name="developer_options_hide_action">Skjul</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Enhed</string>
+    <string name="developer_system_device_model">Model</string>
+    <string name="developer_system_device_manufacturer">Producent</string>
+    <string name="developer_system_device_api">API-niveau</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">Version</string>
+    <string name="developer_system_build_code">Versionskode</string>
+    <string name="developer_system_build_flavor">Buildvariant</string>
+    <string name="developer_system_build_type">Buildtype</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Hukommelse</string>
+    <string name="developer_system_memory_available">Tilgængelig</string>
+    <string name="developer_system_memory_total">I alt</string>
+    <string name="developer_system_storage_header">Lager</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d arbejdsområder</string>
+    <string name="developer_workspaces_empty">Ingen arbejdsområder</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Ryd</string>
+    <string name="developer_logs_pause">Sæt på pause</string>
+    <string name="developer_logs_resume">Genoptag</string>
+    <string name="developer_logs_empty">Ingen logposter</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Målstier</string>
+    <string name="developer_testdata_no_paths">Ingen målstier valgt. Tilføj stier for at generere testdata.</string>
+    <string name="developer_testdata_add_path_action">Tilføj sti</string>
+    <string name="developer_testdata_options_header">Genereringsindstillinger</string>
+    <string name="developer_testdata_large_files">Store filer</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Indlejret struktur</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 mapper, ~1100 filer</string>
+    <string name="developer_testdata_text_files">Tekstfiler til tekstredigering</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Generér</string>
+    <string name="developer_testdata_generating">Genererer…</string>
+    <string name="developer_testdata_history_header">Eksempelposter i historikken</string>
+    <string name="developer_testdata_history_desc">Tilføjer ~25 fiktive handlingsposter fra i dag → 30 dage siden med forskellige typer/resultater/oprindelser/stier. Indsætter direkte i historikdatabasen; du kan trygt trykke igen.</string>
+    <string name="developer_testdata_history_generate_action">Generér eksempelhistorik</string>
+    <string name="developer_testdata_progress">%1$s af %2$s</string>
+    <string name="developer_testdata_complete">Testdata genereret i:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Generér store filer</string>
+    <string name="developer_operation_large_files_desc">Opretter testfiler i %1$s</string>
+    <string name="developer_operation_large_files_creating">Opretter %1$s</string>
+
+    <string name="developer_operation_nested_title">Generér indlejret struktur</string>
+    <string name="developer_operation_nested_desc">Opretter mappehierarki i %1$s</string>
+    <string name="developer_operation_nested_starting">Starter indlejret struktur…</string>
+    <string name="developer_operation_nested_creating">Opretter %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d filer oprettet</string>
+
+    <string name="developer_operation_text_files_title">Generér tekstfiler</string>
+    <string name="developer_operation_text_files_desc">Opretter tekstfiler i %1$s</string>
+    <string name="developer_operation_text_files_creating">Opretter %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d fil oprettet</item>
+        <item quantity="other">%d filer oprettet</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d mappe</item>
+        <item quantity="other">%d mapper</item>
+    </plurals>
+</resources>

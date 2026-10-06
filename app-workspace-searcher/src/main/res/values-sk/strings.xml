@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Vyhľadávanie</string>
+    <string name="searcher_subtitle">Hľadať súbory a obsah</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Nastavenia vyhľadávania</string>
+    <string name="searcher_settings_search_category">Vyhľadávanie</string>
+    <string name="searcher_settings_history">História vyhľadávania</string>
+    <string name="searcher_settings_save_history_title">Ukladať históriu vyhľadávania</string>
+    <string name="searcher_settings_save_history_subtitle">Pamätať si predchádzajúce vyhľadávania</string>
+    <string name="searcher_settings_max_history_label">Maximálny počet záznamov histórie</string>
+    <string name="searcher_settings_max_history_subtitle">Maximálny počet uložených vyhľadávaní</string>
+    <string name="searcher_settings_max_history_input_label">Počet záznamov (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Vymazať históriu vyhľadávania</string>
+    <string name="searcher_settings_clear_history_subtitle">Odstrániť všetky uložené vyhľadávania (%1$d)</string>
+    <string name="searcher_settings_search_performance">Výkon</string>
+    <string name="searcher_settings_max_results_title">Maximálny počet výsledkov vyhľadávania</string>
+    <string name="searcher_settings_max_results_subtitle">Obmedziť počet výsledkov pri každom vyhľadávaní.</string>
+    <string name="searcher_settings_content_search_category">Vyhľadávanie v obsahu</string>
+    <string name="searcher_settings_include_binaries_title">Zahrnúť binárne súbory</string>
+    <string name="searcher_settings_include_binaries_subtitle">Prehľadávať obsah binárnych súborov (môže to byť pomalé a priniesť nerelevantné výsledky)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Nedávne vyhľadávania</string>
+    <string name="searcher_placeholder_search">Hľadať súbory a priečinky</string>
+    <string name="searcher_placeholder_filename">Názov súboru</string>
+    <string name="searcher_placeholder_content">Obsah</string>
+    <string name="searcher_search_error">Chyba vyhľadávania</string>
+    <string name="searcher_no_paths_hint">Ťukni na + a pridaj umiestnenia na vyhľadávanie</string>
+    <string name="searcher_add_path_action">Pridať umiestnenie</string>
+    <string name="searcher_add_folder_action">Priečinok…</string>
+    <string name="searcher_multipath_show_fewer_action">Zobraziť menej</string>
+    <string name="searcher_empty_state_title">Nie sú nastavené žiadne cesty na vyhľadávanie</string>
+    <string name="searcher_empty_state_description">Pridaj umiestnenia úložiska, v ktorých chceš hľadať svoje súbory</string>
+    <string name="searcher_add_default_paths_action">Pridať predvolené cesty na vyhľadávanie</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Možnosti</string>
+    <string name="searcher_option_case_sensitive_label">Rozlišovať veľké a malé písmená</string>
+    <string name="searcher_option_case_sensitive_desc">Vyhľadávanie s rozlišovaním veľkých a malých písmen</string>
+    <string name="searcher_option_whole_word_label">Celé slovo</string>
+    <string name="searcher_option_whole_word_desc">Vyhľadávanie celých slov</string>
+    <string name="searcher_option_regex_label">Regulárny výraz</string>
+    <string name="searcher_option_regex_desc">Vyhľadávanie pomocou regulárneho výrazu</string>
+    <string name="searcher_option_search_content_label">Hľadať v obsahu</string>
+    <string name="searcher_option_search_content_desc">Prehľadávať obsah súborov</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Šablóny</string>
+    <string name="searcher_templates_card_title">Šablóny rýchleho vyhľadávania</string>
+    <string name="searcher_template_large_files">Veľké súbory</string>
+    <string name="searcher_template_large_files_desc">Súbory väčšie ako 100 MB</string>
+    <string name="searcher_template_recent_files">Nedávne súbory</string>
+    <string name="searcher_template_recent_files_desc">Upravené za posledných 7 dní</string>
+    <string name="searcher_template_old_files">Staré súbory</string>
+    <string name="searcher_template_old_files_desc">Neupravené viac ako rok</string>
+    <string name="searcher_template_images">Obrázky</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Videá</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Zvuk</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Dokumenty</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Archívy</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">Súbory APK</string>
+    <string name="searcher_template_apks_desc">Balíky aplikácií pre Android</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d šablóna</item>
+        <item quantity="few">%d šablóny</item>
+        <item quantity="many">%d šablóny</item>
+        <item quantity="other">%d šablón</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Filtrovať</string>
+    <string name="searcher_filter_add_action">Pridať filter</string>
+    <string name="searcher_filter_title">Filtre vyhľadávania</string>
+    <string name="searcher_filter_size_section">Veľkosť súboru</string>
+    <string name="searcher_filter_size_min">Minimálna veľkosť</string>
+    <string name="searcher_filter_size_max">Maximálna veľkosť</string>
+    <string name="searcher_filter_date_section">Dátum úpravy</string>
+    <string name="searcher_filter_date_after">Upravené po</string>
+    <string name="searcher_filter_date_before">Upravené pred</string>
+    <string name="searcher_filter_date_any">Kedykoľvek</string>
+    <string name="searcher_filter_date_24h">Posledných 24 hodín</string>
+    <string name="searcher_filter_date_7d">Posledných 7 dní</string>
+    <string name="searcher_filter_date_30d">Posledných 30 dní</string>
+    <string name="searcher_filter_date_90d">Posledných 90 dní</string>
+    <string name="searcher_filter_date_1y">Posledný rok</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">väčšia ako</string>
+    <string name="searcher_filter_comparator_greater_or_equal">väčšia alebo rovná</string>
+    <string name="searcher_filter_comparator_less_than">menšia ako</string>
+    <string name="searcher_filter_comparator_less_or_equal">menšia alebo rovná</string>
+    <string name="searcher_filter_comparator_equal">rovná</string>
+    <string name="searcher_filter_size_value_label">Veľkosť</string>
+    <string name="searcher_filter_size_at_least">Aspoň</string>
+    <string name="searcher_filter_size_at_most">Najviac</string>
+    <string name="searcher_filter_size_value_hint">napr. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Zadaj číslo s jednotkou (KB, MB, GB). Samotné číslo sa považuje za hodnotu v MB.</string>
+    <string name="searcher_filter_size_format_error">Neplatná veľkosť — použi číslo a jednotku, napr. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Dátum</string>
+    <string name="searcher_filter_date_direction_after">Po</string>
+    <string name="searcher_filter_date_direction_before">Pred</string>
+    <string name="searcher_filter_type_label">Typ</string>
+    <string name="searcher_filter_type_files">Súbory</string>
+    <string name="searcher_filter_type_directories">Adresáre</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Odstrániť z histórie</string>
+    <string name="searcher_history_clear_all_action">Vymazať všetko</string>
+    <string name="searcher_history_clear_dialog_title">Vymazať históriu vyhľadávania</string>
+    <string name="searcher_history_clear_dialog_message">Týmto sa odstráni celá uložená história vyhľadávania. Túto akciu nemožno vrátiť späť.</string>
+    <string name="searcher_history_clear_confirm_action">Vymazať</string>
+    <string name="searcher_history_cleared_success">História vyhľadávania vymazaná</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">Žiadne výsledky</item>
+        <item quantity="one">%d výsledok</item>
+        <item quantity="few">%d výsledky</item>
+        <item quantity="many">%d výsledku</item>
+        <item quantity="other">%d výsledkov</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">Zobraziť ďalšie %d</item>
+        <item quantity="few">Zobraziť ďalšie %d</item>
+        <item quantity="many">Zobraziť ďalšie %d</item>
+        <item quantity="other">Zobraziť ďalšie %d</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Prehľadávanie:</string>
+    <string name="searcher_progress_action_searched">Prehľadané</string>
+    <string name="searcher_progress_status_completed_with_errors">Dokončené s chybami</string>
+    <string name="searcher_result_limit_reached">Dosiahnutý limit výsledkov</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Niektoré položky sa nepodarilo úplne prehľadať</string>
+    <string name="searcher_progress_clear_action">Vymazať</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">Zlyhania: %d</item>
+        <item quantity="few">Zlyhania: %d</item>
+        <item quantity="many">Zlyhania: %d</item>
+        <item quantity="other">Zlyhania: %d</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">K %d položke sa nepodarilo získať prístup</item>
+        <item quantity="few">K %d položkám sa nepodarilo získať prístup</item>
+        <item quantity="many">K položkám sa nepodarilo získať prístup: %d</item>
+        <item quantity="other">K %d položkám sa nepodarilo získať prístup</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…a %d ďalšia</item>
+        <item quantity="few">…a %d ďalšie</item>
+        <item quantity="many">…a ďalšie: %d</item>
+        <item quantity="other">…a %d ďalších</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android chráni tieto umiestnenia. Dodatočný prístup umožní aplikácii Butler prehľadávať ich.</string>
+    <string name="searcher_access_sheet_body_protected">Android chráni tieto umiestnenia. Na tomto zariadení nie je možné udeliť prístup.</string>
+    <string name="searcher_access_sheet_unlock_action">Odomknúť prístup</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d umiestnenie</item>
+        <item quantity="few">%d umiestnenia</item>
+        <item quantity="many">%d umiestnenia</item>
+        <item quantity="other">%d umiestnení</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">Prehľadané: %d</item>
+        <item quantity="few">Prehľadané: %d</item>
+        <item quantity="many">Prehľadané: %d</item>
+        <item quantity="other">Prehľadané: %d</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">Nájdené: %d</item>
+        <item quantity="few">Nájdené: %d</item>
+        <item quantity="many">Nájdené: %d</item>
+        <item quantity="other">Nájdené: %d</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Kontext zhody</string>
+    <string name="searcher_match_line_label">Riadok %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Otvoriť</string>
+    <string name="searcher_action_open_in_tab">Otvoriť na novej karte</string>
+    <string name="searcher_action_open_with">Otvoriť pomocou</string>
+    <string name="searcher_action_open_in_editor">Otvoriť v editore</string>
+    <string name="searcher_action_open_in_explorer">Otvoriť v Prieskumníkovi</string>
+    <string name="searcher_action_install">Nainštalovať</string>
+    <string name="searcher_action_copy">Kopírovať</string>
+    <string name="searcher_action_cut">Vystrihnúť</string>
+    <string name="searcher_action_delete">Odstrániť</string>
+    <string name="searcher_action_copy_path">Kopírovať cestu</string>
+    <string name="searcher_action_properties">Vlastnosti</string>
+    <string name="searcher_action_select_all">Vybrať všetko</string>
+    <string name="searcher_action_deselect_all">Zrušiť celý výber</string>
+    <string name="searcher_action_sort">Zoradiť</string>
+    <string name="searcher_action_view">Rozloženie</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Zoradiť podľa</string>
+    <string name="searcher_sort_mode_name_label">Názov</string>
+    <string name="searcher_sort_mode_size_label">Veľkosť</string>
+    <string name="searcher_sort_mode_modified_label">Dátum úpravy</string>
+    <string name="searcher_sort_mode_created_label">Dátum vytvorenia</string>
+    <string name="searcher_sort_mode_path_label">Cesta</string>
+    <string name="searcher_sort_descending_label">Zostupné poradie</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Ako sú položky usporiadané a koľko podrobností zobrazujú</string>
+    <string name="searcher_view_mode_list_label">Zoznam</string>
+    <string name="searcher_view_mode_grid_label">Mriežka</string>
+    <string name="searcher_view_density_compact_label">Kompaktné</string>
+    <string name="searcher_view_density_comfortable_label">Pohodlné</string>
+    <string name="searcher_view_density_detailed_label">Podrobné</string>
+    <string name="searcher_view_detail_modified_label">Úprava</string>
+    <string name="searcher_view_set_default_action">Nastaviť ako predvolené</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Na vyhľadávanie v niektorých umiestneniach je potrebné ďalšie nastavenie.</string>
+</resources>

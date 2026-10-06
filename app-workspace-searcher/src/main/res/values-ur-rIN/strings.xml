@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">تلاش</string>
+    <string name="searcher_subtitle">فائلیں اور مواد تلاش کریں</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">تلاش کی ترتیبات</string>
+    <string name="searcher_settings_search_category">تلاش</string>
+    <string name="searcher_settings_history">تلاش کی سرگزشت</string>
+    <string name="searcher_settings_save_history_title">تلاش کی سرگزشت محفوظ کریں</string>
+    <string name="searcher_settings_save_history_subtitle">پچھلی تلاشیں یاد رکھیں</string>
+    <string name="searcher_settings_max_history_label">سرگزشت کے اندراجات کی زیادہ سے زیادہ تعداد</string>
+    <string name="searcher_settings_max_history_subtitle">محفوظ تلاشوں کی زیادہ سے زیادہ تعداد</string>
+    <string name="searcher_settings_max_history_input_label">اندراجات کی تعداد (1–500)</string>
+    <string name="searcher_settings_clear_history_title">تلاش کی سرگزشت صاف کریں</string>
+    <string name="searcher_settings_clear_history_subtitle">تمام محفوظ تلاشیں ہٹائیں (%1$d)</string>
+    <string name="searcher_settings_search_performance">کارکردگی</string>
+    <string name="searcher_settings_max_results_title">تلاش کے نتائج کی زیادہ سے زیادہ تعداد</string>
+    <string name="searcher_settings_max_results_subtitle">ہر تلاش میں ملنے والے نتائج کی تعداد محدود کریں۔</string>
+    <string name="searcher_settings_content_search_category">مواد کی تلاش</string>
+    <string name="searcher_settings_include_binaries_title">بائنری فائلیں شامل کریں</string>
+    <string name="searcher_settings_include_binaries_subtitle">بائنری فائلوں کے مواد میں تلاش کریں (یہ سست ہو سکتا ہے اور غیر متعلقہ نتائج دے سکتا ہے)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">حالیہ تلاشیں</string>
+    <string name="searcher_placeholder_search">فائلیں اور فولڈر تلاش کریں</string>
+    <string name="searcher_placeholder_filename">فائل کا نام</string>
+    <string name="searcher_placeholder_content">مواد</string>
+    <string name="searcher_search_error">تلاش میں خرابی</string>
+    <string name="searcher_no_paths_hint">تلاش کے مقامات شامل کرنے کے لیے + پر ٹیپ کریں</string>
+    <string name="searcher_add_path_action">مقام شامل کریں</string>
+    <string name="searcher_add_folder_action">فولڈر…</string>
+    <string name="searcher_multipath_show_fewer_action">کم دکھائیں</string>
+    <string name="searcher_empty_state_title">تلاش کے کوئی راستے مقرر نہیں کیے گئے</string>
+    <string name="searcher_empty_state_description">اپنی فائلوں میں تلاش کرنے کے لیے اسٹوریج کے مقامات شامل کریں</string>
+    <string name="searcher_add_default_paths_action">تلاش کے طے شدہ راستے شامل کریں</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">اختیارات</string>
+    <string name="searcher_option_case_sensitive_label">بڑے اور چھوٹے حروف میں فرق</string>
+    <string name="searcher_option_case_sensitive_desc">بڑے اور چھوٹے حروف میں فرق کے ساتھ تلاش</string>
+    <string name="searcher_option_whole_word_label">پورا لفظ</string>
+    <string name="searcher_option_whole_word_desc">پورے لفظ کی تلاش</string>
+    <string name="searcher_option_regex_label">ریگولر ایکسپریشن</string>
+    <string name="searcher_option_regex_desc">ریگولر ایکسپریشن سے تلاش</string>
+    <string name="searcher_option_search_content_label">مواد میں تلاش کریں</string>
+    <string name="searcher_option_search_content_desc">فائلوں کے مواد میں تلاش کریں</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">سانچے</string>
+    <string name="searcher_templates_card_title">فوری تلاش کے سانچے</string>
+    <string name="searcher_template_large_files">بڑی فائلیں</string>
+    <string name="searcher_template_large_files_desc">100 MB سے بڑی فائلیں</string>
+    <string name="searcher_template_recent_files">حالیہ فائلیں</string>
+    <string name="searcher_template_recent_files_desc">گزشتہ 7 دنوں میں ترمیم کی گئی</string>
+    <string name="searcher_template_old_files">پرانی فائلیں</string>
+    <string name="searcher_template_old_files_desc">ایک سال سے زیادہ عرصے سے ترمیم نہیں کی گئی</string>
+    <string name="searcher_template_images">تصاویر</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">ویڈیوز</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">آڈیو</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">دستاویزات</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">آرکائیوز</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APK فائلیں</string>
+    <string name="searcher_template_apks_desc">Android ایپلیکیشن پیکیجز</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d سانچہ</item>
+        <item quantity="other">%d سانچے</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">فلٹر</string>
+    <string name="searcher_filter_add_action">فلٹر شامل کریں</string>
+    <string name="searcher_filter_title">تلاش کے فلٹرز</string>
+    <string name="searcher_filter_size_section">فائل کا حجم</string>
+    <string name="searcher_filter_size_min">کم سے کم حجم</string>
+    <string name="searcher_filter_size_max">زیادہ سے زیادہ حجم</string>
+    <string name="searcher_filter_date_section">ترمیم کی تاریخ</string>
+    <string name="searcher_filter_date_after">اس کے بعد ترمیم کی گئی</string>
+    <string name="searcher_filter_date_before">اس سے پہلے ترمیم کی گئی</string>
+    <string name="searcher_filter_date_any">کسی بھی وقت</string>
+    <string name="searcher_filter_date_24h">گزشتہ 24 گھنٹے</string>
+    <string name="searcher_filter_date_7d">گزشتہ 7 دن</string>
+    <string name="searcher_filter_date_30d">گزشتہ 30 دن</string>
+    <string name="searcher_filter_date_90d">گزشتہ 90 دن</string>
+    <string name="searcher_filter_date_1y">گزشتہ سال</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">سے زیادہ</string>
+    <string name="searcher_filter_comparator_greater_or_equal">سے زیادہ یا برابر</string>
+    <string name="searcher_filter_comparator_less_than">سے کم</string>
+    <string name="searcher_filter_comparator_less_or_equal">سے کم یا برابر</string>
+    <string name="searcher_filter_comparator_equal">کے برابر</string>
+    <string name="searcher_filter_size_value_label">حجم</string>
+    <string name="searcher_filter_size_at_least">کم از کم</string>
+    <string name="searcher_filter_size_at_most">زیادہ سے زیادہ</string>
+    <string name="searcher_filter_size_value_hint">مثلاً 10 MB</string>
+    <string name="searcher_filter_size_format_help">اکائی (KB، MB، GB) کے ساتھ عدد درج کریں۔ صرف عدد درج کرنے پر اسے MB سمجھا جائے گا۔</string>
+    <string name="searcher_filter_size_format_error">حجم درست نہیں — عدد اور اکائی استعمال کریں، مثلاً 10 MB۔</string>
+    <string name="searcher_filter_date_value_label">تاریخ</string>
+    <string name="searcher_filter_date_direction_after">بعد از</string>
+    <string name="searcher_filter_date_direction_before">قبل از</string>
+    <string name="searcher_filter_type_label">قسم</string>
+    <string name="searcher_filter_type_files">فائلیں</string>
+    <string name="searcher_filter_type_directories">ڈائریکٹریاں</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">سرگزشت سے ہٹائیں</string>
+    <string name="searcher_history_clear_all_action">سب صاف کریں</string>
+    <string name="searcher_history_clear_dialog_title">تلاش کی سرگزشت صاف کریں</string>
+    <string name="searcher_history_clear_dialog_message">تلاش کی تمام محفوظ سرگزشت ہٹا دی جائے گی۔ یہ عمل واپس نہیں ہو سکتا۔</string>
+    <string name="searcher_history_clear_confirm_action">صاف کریں</string>
+    <string name="searcher_history_cleared_success">تلاش کی سرگزشت صاف کر دی گئی</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">کوئی نتیجہ نہیں</item>
+        <item quantity="one">%d نتیجہ</item>
+        <item quantity="other">%d نتائج</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">مزید %d دکھائیں</item>
+        <item quantity="other">مزید %d دکھائیں</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">تلاش جاری ہے</string>
+    <string name="searcher_progress_action_searched">تلاش کی گئی</string>
+    <string name="searcher_progress_status_completed_with_errors">خرابیوں کے ساتھ مکمل</string>
+    <string name="searcher_result_limit_reached">نتائج کی حد پوری ہو گئی</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">کچھ اشیا میں مکمل تلاش نہیں ہو سکی</string>
+    <string name="searcher_progress_clear_action">صاف کریں</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d ناکام</item>
+        <item quantity="other">%d ناکام</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">%d شے تک رسائی نہیں ہو سکی</item>
+        <item quantity="other">%d اشیا تک رسائی نہیں ہو سکی</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…اور مزید %d</item>
+        <item quantity="other">…اور مزید %d</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android ان مقامات کی حفاظت کرتا ہے۔ اضافی رسائی سے Butler ان میں تلاش کر سکتا ہے۔</string>
+    <string name="searcher_access_sheet_body_protected">Android ان مقامات کی حفاظت کرتا ہے۔ اس آلے پر رسائی کی اجازت دینے کا کوئی طریقہ نہیں ہے۔</string>
+    <string name="searcher_access_sheet_unlock_action">رسائی کھولیں</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d مقام</item>
+        <item quantity="other">%d مقامات</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d اسکین کی گئی</item>
+        <item quantity="other">%d اسکین کی گئیں</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d ملا</item>
+        <item quantity="other">%d ملے</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">مماثلت کا سیاق و سباق</string>
+    <string name="searcher_match_line_label">سطر %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">کھولیں</string>
+    <string name="searcher_action_open_in_tab">نئے ٹیب میں کھولیں</string>
+    <string name="searcher_action_open_with">اس کے ساتھ کھولیں</string>
+    <string name="searcher_action_open_in_editor">ایڈیٹر میں کھولیں</string>
+    <string name="searcher_action_open_in_explorer">ایکسپلورر میں کھولیں</string>
+    <string name="searcher_action_install">انسٹال کریں</string>
+    <string name="searcher_action_copy">کاپی کریں</string>
+    <string name="searcher_action_cut">کاٹیں</string>
+    <string name="searcher_action_delete">حذف کریں</string>
+    <string name="searcher_action_copy_path">راستہ کاپی کریں</string>
+    <string name="searcher_action_properties">خصوصیات</string>
+    <string name="searcher_action_select_all">سب منتخب کریں</string>
+    <string name="searcher_action_deselect_all">سب کا انتخاب ختم کریں</string>
+    <string name="searcher_action_sort">ترتیب دیں</string>
+    <string name="searcher_action_view">لے آؤٹ</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">اس کے لحاظ سے ترتیب دیں</string>
+    <string name="searcher_sort_mode_name_label">نام</string>
+    <string name="searcher_sort_mode_size_label">حجم</string>
+    <string name="searcher_sort_mode_modified_label">ترمیم کی تاریخ</string>
+    <string name="searcher_sort_mode_created_label">تخلیق کی تاریخ</string>
+    <string name="searcher_sort_mode_path_label">راستہ</string>
+    <string name="searcher_sort_descending_label">نزولی ترتیب</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">اشیا کی ترتیب اور دکھائی جانے والی تفصیل کی مقدار</string>
+    <string name="searcher_view_mode_list_label">فہرست</string>
+    <string name="searcher_view_mode_grid_label">گرڈ</string>
+    <string name="searcher_view_density_compact_label">مختصر</string>
+    <string name="searcher_view_density_comfortable_label">کشادہ</string>
+    <string name="searcher_view_density_detailed_label">تفصیلی</string>
+    <string name="searcher_view_detail_modified_label">ترمیم کی گئی</string>
+    <string name="searcher_view_set_default_action">طے شدہ بنائیں</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">کچھ مقامات میں تلاش کے لیے اضافی سیٹ اپ ضروری ہے۔</string>
+</resources>

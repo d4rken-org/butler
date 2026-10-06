@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Otvoriť pomocou</string>
+    <string name="viewer_image_content_description">Obrázok %1$s</string>
+    <string name="viewer_toolbar_folder_label">Priečinok</string>
+    <string name="viewer_back_action">Späť</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">Predchádzajúci súbor</string>
+    <string name="viewer_next_file_action">Nasledujúci súbor</string>
+    <string name="viewer_open_location_action">Otvoriť umiestnenie</string>
+    <string name="viewer_clipboard_copied">%1$s je skopírovaný. Vlož ho na karte Prieskumníka.</string>
+    <string name="viewer_clipboard_cut">%1$s je vystrihnutý. Vlož ho na karte Prieskumníka a tým ho presunieš.</string>
+    <string name="viewer_share_failed_label">Tento súbor sa nepodarilo zdieľať</string>
+    <string name="viewer_share_failed_description">%1$s sa nedá odovzdať inej aplikácii. Stáva sa to pri súboroch, ktoré vyžadujú prístup root alebo ADB, a pri súboroch, ktoré už neexistujú.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Veľkosť</string>
+    <string name="viewer_info_modified_label">Úprava</string>
+    <string name="viewer_info_created_label">Vytvorenie</string>
+    <string name="viewer_info_format_label">Formát</string>
+    <string name="viewer_info_dimensions_label">Rozmery</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Oprávnenia</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Vlastník</string>
+    <string name="viewer_info_caption_label">Zdieľaná správa</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Zobraziť všetky podrobnosti</string>
+    <string name="viewer_info_collapse_action">Skryť podrobnosti</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">Náhľad · 1 strana</string>
+    <string name="viewer_pdf_page_indicator">Strana %1$d z %2$d</string>
+    <string name="viewer_pdf_page_previous">Predchádzajúca strana</string>
+    <string name="viewer_pdf_page_next">Nasledujúca strana</string>
+    <string name="viewer_pdf_page_error">Stranu %1$d sa nepodarilo zobraziť.</string>
+    <string name="viewer_pdf_page_content_description">Náhľad PDF súboru %1$s, strana %2$d z %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">Tento typ súboru zatiaľ nie je podporovaný</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">Toto je archív</string>
+    <string name="viewer_browse_archive_action">Prehliadať obsah</string>
+    <string name="viewer_archive_needs_copy_msg">Ulož kópiu do svojho zariadenia a Butler bude môcť prehliadať jej obsah.</string>
+    <string name="viewer_archive_nested_msg">Tento archív sa nachádza v inom archíve. Najprv ho rozbaľ, aby sa dal prehliadať jeho obsah.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">Verzia</string>
+    <string name="viewer_apk_min_sdk_label">Minimálne SDK</string>
+    <string name="viewer_apk_target_sdk_label">Cieľové SDK</string>
+    <string name="viewer_apk_installed_label">Nainštalované</string>
+    <string name="viewer_apk_not_installed_value">Nenainštalované</string>
+    <string name="viewer_apk_installed_unknown_value">Nepodarilo sa overiť</string>
+    <string name="viewer_apk_installed_older_hint">Staršia verzia než v tomto súbore</string>
+    <string name="viewer_apk_installed_newer_hint">Novšia verzia než v tomto súbore</string>
+    <string name="viewer_apk_permissions_header">Oprávnenia (%1$d)</string>
+    <string name="viewer_apk_signing_header">Podpisové certifikáty</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">Nainštalovať</string>
+    <string name="viewer_bundle_format_label">Formát balíka</string>
+    <string name="viewer_bundle_splits_label">Súbory APK v balíku</string>
+    <string name="viewer_bundle_expansion_files_hint">Obsahuje rozširujúce súbory, ktoré sa umiestnia po inštalácii aplikácie.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Umiestnenie rozširujúcich súborov vyžaduje prístup root alebo ADB. Bez neho sa aplikácia nainštaluje, ale jej rozširujúce súbory zostanú na pôvodnom mieste.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">Ikona aplikácie %1$s</string>
+    <string name="viewer_apk_icon_show_action">Zobraziť ikonu</string>
+    <string name="viewer_apk_icon_save_action">Uložiť ikonu</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Ikona je uložená ako %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Nahradiť súbor?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s už v tomto priečinku existuje. Uložením ikony sa nahradí.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Nahradiť</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">Súbor sa zmenil</string>
+    <string name="viewer_external_change_message">Tento súbor sa v zariadení zmenil. Obnov zobrazenie a načítaj ho znova.</string>
+    <string name="viewer_external_change_gone_title">Súbor už nie je dostupný</string>
+    <string name="viewer_external_change_gone_message">Tento súbor bol odstránený alebo už nie je prístupný.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Tento súbor sa nedá zobraziť</string>
+    <string name="viewer_error_not_a_file_label">Nie je to súbor</string>
+    <string name="viewer_error_not_a_file_description">%1$s nie je bežný súbor.</string>
+    <string name="viewer_error_broken_symlink_label">Nefunkčný odkaz</string>
+    <string name="viewer_error_broken_symlink_description">%1$s odkazuje na niečo, čo už neexistuje.</string>
+    <string name="viewer_error_undecodable_label">Poškodený obrázok</string>
+    <string name="viewer_error_undecodable_description">%1$s sa nepodarilo dekódovať. Súbor môže byť neúplný alebo poškodený.</string>
+    <string name="viewer_error_file_gone_label">Súbor sa nenašiel</string>
+    <string name="viewer_error_file_gone_description">%1$s už neexistuje. Súbor mohol byť presunutý, premenovaný alebo odstránený.</string>
+    <string name="viewer_error_empty_file_label">Prázdny súbor</string>
+    <string name="viewer_error_empty_file_description">%1$s je prázdny a nie je v ňom čo zobraziť.</string>
+    <string name="viewer_error_apk_unreadable_label">Nečitateľný súbor APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s sa nepodarilo spracovať ako balík aplikácie pre Android.</string>
+    <string name="viewer_error_icon_unavailable_label">Žiadna ikona</string>
+    <string name="viewer_error_icon_unavailable_description">Ikonu aplikácie %1$s sa nepodarilo načítať.</string>
+    <string name="viewer_error_icon_target_notfile_label">Názov je už obsadený</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s tu už existuje a nie je to bežný súbor, takže sa nedá nahradiť.</string>
+    <string name="viewer_error_icon_target_appeared_label">Súbor sa objavil</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s vznikol počas výberu miesta na uloženie. Nič sa neprepísalo, skús to znova.</string>
+    <string name="viewer_error_content_unreadable_label">Tento súbor sa nedá prečítať</string>
+    <string name="viewer_error_content_unreadable_description">Aplikácia, ktorá zdieľala %1$s, už nedovoľuje Butleru čítať tento súbor. Požiadaj ju o opätovné zdieľanie.</string>
+    <string name="viewer_save_copy_action">Uložiť kópiu…</string>
+    <string name="viewer_open_in_editor_action">Otvoriť v editore</string>
+    <string name="viewer_text_truncated_bytes">Náhľad je obmedzený na prvých %1$s tohto súboru.</string>
+    <string name="viewer_text_truncated_lines">Náhľad je obmedzený na prvých %1$s riadkov tohto súboru.</string>
+    <string name="viewer_text_truncated_width">Dlhé riadky sú v tomto náhľade skrátené.</string>
+    <string name="viewer_text_unreadable_label">Tento súbor sa nepodarilo prečítať</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">Prehliadač</string>
+    <string name="viewer_settings_show_next_after_delete_title">Zobraziť nasledujúci súbor po odstránení</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Po odstránení súboru otvoreného z priečinka zobraziť nasledujúci súbor v tomto priečinku namiesto zatvorenia prehliadača.</string>
+</resources>

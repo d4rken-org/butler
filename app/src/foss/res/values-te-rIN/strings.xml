@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Butler FOSS అవసరం</string>
+
+    <string name="upgrade_prompt_title">Butlerను అప్‌గ్రేడ్ చేయండి</string>
+    <string name="upgrade_prompt_body">అదనపు ఫీచర్‌లను అందుబాటులోకి తెచ్చుకోండి, ఆర్థిక మద్దతు అందించి అభివృద్ధి కొనసాగడానికి తోడ్పడండి!</string>
+    <string name="upgrade_prompt_upgrade_action">అప్‌గ్రేడ్ చేయండి</string>
+
+    <string name="upgrade_screen_title">Butlerను అప్‌గ్రేడ్ చేయండి</string>
+    <string name="upgrade_screen_preamble">Butlerలో ప్రకటనలు లేవు, వినియోగదారుల డేటాను విక్రయించదు. మీ వల్లే అభివృద్ధి కొనసాగడం సాధ్యమవుతోంది.</string>
+    <string name="upgrade_screen_how_title">ఎలా సహాయం చేయవచ్చు</string>
+    <string name="upgrade_screen_how_body">ఆర్థిక మద్దతు అందించి అభివృద్ధికి తోడ్పడండి! అన్ని అదనపు ఫీచర్‌లను ప్రారంభించి, నా GitHub Sponsors ప్రొఫైల్‌ను తెరవడానికి కింద ఉన్న బటన్‌ను నొక్కండి.</string>
+
+    <string name="upgrade_screen_sponsor_action">అభివృద్ధికి ఆర్థిక మద్దతు ఇవ్వండి</string>
+    <string name="upgrade_screen_sponsor_action_hint">దీనికి ప్రత్యామ్నాయం ప్రకటనలు, వినియోగ విశ్లేషణలు, Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">ఓపెన్ సోర్స్ అభివృద్ధికి మద్దతు ఇచ్చినందుకు ధన్యవాదాలు ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">అప్పుడే తిరిగి వచ్చారా? మీ మద్దతే Butlerను కొనసాగిస్తుంది — దయచేసి కాసేపు స్పాన్సర్ల పేజీని చూడండి.</string>
+    <string name="upgrade_screen_sponsor_open_failed">స్పాన్సర్ల పేజీని తెరవలేకపోయాం. బదులుగా దాన్ని బ్రౌజర్‌లో తెరవడానికి ప్రయత్నించండి.</string>
+
+    <string name="upgrade_screen_status_free_title">మీరు ఉచిత వెర్షన్‌ను ఉపయోగిస్తున్నారు</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS పూర్తిగా ఓపెన్ సోర్స్. అభివృద్ధికి మద్దతు ఇచ్చి అదనపు ఫీచర్‌లను అందుబాటులోకి తెచ్చుకోండి.</string>
+    <string name="upgrade_screen_status_free_action">అప్‌గ్రేడ్ ఎంపికలను చూడండి</string>
+    <string name="upgrade_screen_status_upgraded_title">మీరు మద్దతు ఇస్తున్నారు</string>
+    <string name="upgrade_screen_status_upgraded_body">ఓపెన్ సోర్స్ అభివృద్ధికి మద్దతు ఇచ్చినందుకు ధన్యవాదాలు ❤️ అన్ని అదనపు ఫీచర్‌లు అందుబాటులో ఉన్నాయి.</string>
+    <string name="upgrade_screen_supporter_since">%s నుంచి మీ మద్దతు అందుతోంది</string>
+    <string name="upgrade_screen_recurring_title">ఇలాగే కొనసాగిద్దాం</string>
+    <string name="upgrade_screen_recurring_body">నా ఖాళీ సమయంలో Butlerను అభివృద్ధి చేస్తున్నాను. క్రమం తప్పకుండా ఇచ్చే విరాళం దీన్ని కొనసాగించడానికి తోడ్పడుతుంది.</string>
+    <string name="upgrade_screen_recurring_action">క్రమం తప్పకుండా ఆర్థిక మద్దతు ఇవ్వండి</string>
+
+    <string name="upgrade_benefits_title">అప్‌గ్రేడ్ ప్రయోజనాలు</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• అపరిమిత ట్యాబ్‌లు, చర్యలు\n• డిజైన్, వినియోగ అనుభూతి, రూపాన్ని మీకు నచ్చినట్లు మార్చుకోండి\n• ప్రతి సాధనానికి అదనపు ఎంపికలు, ఫీచర్‌లు\n• కొత్త ఫీచర్‌లకు ముందస్తు యాక్సెస్\n• ఉత్సాహంగా పనిచేసే డెవలపర్ 🧙\nఇంకా మరెన్నో…</string>
+</resources>

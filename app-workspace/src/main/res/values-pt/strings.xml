@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Área de transferência</string>
+    <string name="clipboard_clear_all">Limpar tudo</string>
+    <string name="clipboard_paste">Colar</string>
+    <string name="clipboard_open_in_explorer">Abrir no explorador</string>
+    <string name="clipboard_copy">Copiar</string>
+    <string name="clipboard_cut">Cortar</string>
+    <string name="clipboard_origin">Origem: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Copiar %d item</item>
+        <item quantity="many">Copiar %d itens</item>
+        <item quantity="other">Copiar %d itens</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d item de %s</item>
+        <item quantity="many">%d itens de %s</item>
+        <item quantity="other">%d itens de %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Cortar %d item</item>
+        <item quantity="many">Cortar %d itens</item>
+        <item quantity="other">Cortar %d itens</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d item de %s</item>
+        <item quantity="many">%d itens de %s</item>
+        <item quantity="other">%d itens de %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d localização</item>
+        <item quantity="many">%d localizações</item>
+        <item quantity="other">%d localizações</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d item de %2$s</item>
+        <item quantity="many">%1$d itens de %2$s</item>
+        <item quantity="other">%1$d itens de %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d item de %2$s</item>
+        <item quantity="many">%1$d itens de %2$s</item>
+        <item quantity="other">%1$d itens de %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Fragmento de texto</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d carácter</item>
+        <item quantity="many">%1$d caracteres</item>
+        <item quantity="other">%1$d caracteres</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Colar como ficheiro</string>
+    <string name="clipboard_text_info_characters">Caracteres</string>
+    <string name="clipboard_text_info_lines">Linhas</string>
+    <string name="clipboard_text_info_content">Conteúdo</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Resumo</string>
+    <string name="clipboard_info_operation">Operação</string>
+    <string name="clipboard_info_items">Itens</string>
+    <string name="clipboard_info_source">Origem</string>
+    <string name="clipboard_info_sources">Origens</string>
+    <string name="clipboard_info_workspace">Área de trabalho</string>
+    <string name="clipboard_info_workspace_closed">Fechada</string>
+    <string name="clipboard_info_time">Hora</string>
+    <string name="clipboard_info_items_with_count">Itens (%1$d)</string>
+    <string name="clipboard_info_actions">Ações</string>
+    <string name="clipboard_info_go_to_source">Ir para a origem</string>
+    <string name="clipboard_info_go_to_first_source">Ir para a primeira origem</string>
+    <string name="clipboard_info_remove">Remover da área de transferência</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Área de transferência</string>
+    <string name="clipboard_settings_remove_on_paste_title">Remover ao colar</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Remover os itens copiados da área de transferência depois de os colar</string>
+    <string name="clipboard_settings_max_items_title">Máximo de itens</string>
+    <string name="clipboard_settings_max_items_desc">Número máximo de itens na área de transferência</string>
+
+    <string name="workspace_explorer_label">Explorador</string>
+    <string name="workspace_searcher_label">Pesquisa</string>
+    <string name="workspace_editor_label">Editor</string>
+    <string name="workspace_templates_label">Modelos</string>
+    <string name="workspace_apps_label">Aplicações</string>
+    <string name="workspace_appdetails_label">Detalhes da aplicação</string>
+    <string name="workspace_saver_label">Guardar como</string>
+    <string name="workspace_developer_label">Programador</string>
+    <string name="workspace_history_label">Histórico</string>
+    <string name="workspace_bugreport_label">Relatórios de falhas</string>
+    <string name="workspace_viewer_label">Visualizador</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Fotografias</string>
+    <string name="workspace_searcher_target_videos">Vídeos</string>
+    <string name="workspace_searcher_target_music">Música</string>
+    <string name="workspace_searcher_target_downloads">Transferências</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Mais</string>
+    <string name="workspace_expand_less_action">Menos</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Separadores e áreas de trabalho</string>
+    <string name="workspace_button_menu_new_workspace_format">Criar %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Novo separador</string>
+    <string name="workspace_button_menu_category_recent">Recentes</string>
+    <string name="workspace_button_menu_category_other">Outros</string>
+    <string name="workspace_button_menu_category_current_tab">Este separador</string>
+    <string name="workspace_button_menu_manager_action">Gestor de separadores</string>
+    <string name="workspace_button_menu_layout_action">Disposição</string>
+    <string name="workspace_button_menu_close_current_action">Fechar separador atual</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Fechar separador atual (%d área de trabalho)</item>
+        <item quantity="many">Fechar separador atual (%d áreas de trabalho)</item>
+        <item quantity="other">Fechar separador atual (%d áreas de trabalho)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Definições</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Fechar todos os separadores?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Isto vai fechar %1$d separador aberto. Esta ação não pode ser anulada.</item>
+        <item quantity="many">Isto vai fechar todos os %1$d separadores abertos. Esta ação não pode ser anulada.</item>
+        <item quantity="other">Isto vai fechar todos os %1$d separadores abertos. Esta ação não pode ser anulada.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Fechar todos</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Alguns separadores têm alterações por guardar que serão perdidas.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Descartar tudo</string>
+    <string name="workspace_manager_close_selected_title">Fechar separadores selecionados?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Isto vai fechar %1$d separador selecionado. Esta ação não pode ser anulada.</item>
+        <item quantity="many">Isto vai fechar %1$d separadores selecionados. Esta ação não pode ser anulada.</item>
+        <item quantity="other">Isto vai fechar %1$d separadores selecionados. Esta ação não pode ser anulada.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">Fechar selecionados</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Alguns separadores selecionados têm alterações por guardar que serão perdidas.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Descartar selecionados</string>
+    <string name="workspace_manager_pause_partial_title">Pausar separadores?</string>
+    <string name="workspace_manager_pause_partial_message">É possível pausar %1$d dos %2$d separadores selecionados. Os restantes estão em uso, têm alterações por guardar ou estão atualmente abertos.</string>
+    <string name="workspace_manager_pause_partial_action">Pausar %1$d</string>
+    <string name="general_cancel_action">Cancelar</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Operações</string>
+    <string name="operations_clear_completed">Limpar concluídas</string>
+    <string name="operations_state_queued">Em fila</string>
+    <string name="operations_state_running">Em execução</string>
+    <string name="operations_state_waiting">À espera de resposta</string>
+    <string name="operations_state_successful">Bem-sucedida</string>
+    <string name="operations_state_failed">Falhou</string>
+    <string name="operations_state_cancelled">Cancelada</string>
+    <string name="operations_state_cancelling">A cancelar…</string>
+    <string name="operations_cancel_operation">Cancelar operação</string>
+    <string name="operations_cancel_dialog_title">Cancelar operação?</string>
+    <string name="operations_cancel_dialog_message">Queres mesmo cancelar esta operação?</string>
+    <string name="operations_cancel_dialog_warning">O cancelamento pode deixar ficheiros num estado inconsistente.</string>
+    <string name="operations_details_started_at">Início</string>
+    <string name="operations_details_completed_at">Conclusão</string>
+    <string name="operations_details_duration">Duração</string>
+    <string name="operations_details_duration_not_started">Ainda não iniciada</string>
+    <string name="operations_details_progress">Progresso</string>
+    <string name="operations_details_error">Detalhes do erro</string>
+    <string name="operations_details_actions">Ações</string>
+    <string name="operations_details_overview">Resumo</string>
+    <string name="operations_details_handle_issue">Resolver problema</string>
+    <string name="operations_details_open_app_action">Abrir aplicação</string>
+    <string name="operations_details_show_in_history_action">Mostrar no histórico</string>
+    <string name="operations_details_status">Estado</string>
+    <string name="operations_details_result">Resultado</string>
+    <string name="operations_details_destination_folder">Pasta de destino</string>
+    <string name="operations_details_destination_path">Caminho de destino</string>
+    <string name="operations_details_affected_paths_with_count">Caminhos afetados (%d)</string>
+    <string name="operations_details_problems_with_count">Problemas (%d)</string>
+    <string name="operations_details_problems_more">Mais %d não listados</string>
+    <string name="workspace_operation_packages_section_title">Aplicações</string>
+    <string name="workspace_operation_package_status_done">Concluído</string>
+    <string name="workspace_operation_package_status_failed">Falhou</string>
+    <string name="workspace_operation_package_status_declined">Recusado</string>
+    <string name="operations_details_section_expand">Expandir %1$s</string>
+    <string name="operations_details_section_collapse">Recolher %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Gráfico de desempenho</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Eliminar item?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Eliminar %1$d item?</item>
+        <item quantity="many">Eliminar %1$d itens?</item>
+        <item quantity="other">Eliminar %1$d itens?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Este item será eliminado permanentemente:</string>
+    <string name="workspace_dialog_delete_message_multiple">Estes itens serão eliminados permanentemente:</string>
+    <string name="workspace_dialog_delete_more_items">… e mais %1$d</string>
+    <string name="workspace_dialog_delete_warning">Esta ação não pode ser anulada.</string>
+    <string name="workspace_dialog_delete_permanently_action">Eliminar permanentemente</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Eliminar permanentemente em vez de mover para o lixo</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Alguns itens não podem ser movidos para o lixo e serão tratados separadamente.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Mover para o lixo?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Mover %1$d item para o lixo?</item>
+        <item quantity="many">Mover %1$d itens para o lixo?</item>
+        <item quantity="other">Mover %1$d itens para o lixo?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Este item será movido para o lixo:</string>
+    <string name="workspace_dialog_trash_message_multiple">Estes itens serão movidos para o lixo:</string>
+    <string name="workspace_dialog_trash_hint">Encontra-os na localização Lixo</string>
+    <string name="workspace_dialog_move_to_trash_action">Mover</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d selecionado</item>
+        <item quantity="many">%d selecionados</item>
+        <item quantity="other">%d selecionados</item>
+    </plurals>
+    <string name="workspace_action_more">Mais ações</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Eliminação de ficheiros</string>
+    <string name="workspace_operation_delete_description_single">Eliminar \"%1$s\" de \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Eliminar %1$d item de \"%2$s\".</item>
+        <item quantity="many">Eliminar %1$d itens de \"%2$s\".</item>
+        <item quantity="other">Eliminar %1$d itens de \"%2$s\".</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Instalação da aplicação</string>
+    <string name="workspace_operation_install_description">Instalar \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">A ler o pacote…</string>
+    <string name="workspace_operation_install_progress_extracting">A descompactar…</string>
+    <string name="workspace_operation_install_progress_writing">A entregar os ficheiros ao instalador…</string>
+    <string name="workspace_operation_install_progress_committing">A concluir a instalação…</string>
+    <string name="workspace_operation_install_progress_placing_obb">A colocar os ficheiros de expansão…</string>
+    <string name="workspace_operation_install_summary_success">%1$s foi instalada.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s foi instalada, mas não foi possível colocar os seus ficheiros de expansão.</string>
+    <string name="workspace_install_unknown_sources_required">O Butler precisa de permissão para instalar aplicações. Concede-a nas definições que acabaram de abrir e tenta novamente.</string>
+    <string name="workspace_install_obb_failed">A aplicação foi instalada, mas não foi possível colocar os seus ficheiros de expansão: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d ficheiro eliminado.</item>
+        <item quantity="many">%1$d ficheiros eliminados.</item>
+        <item quantity="other">%1$d ficheiros eliminados.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d pasta eliminada.</item>
+        <item quantity="many">%1$d pastas eliminadas.</item>
+        <item quantity="other">%1$d pastas eliminadas.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d item ignorado.</item>
+        <item quantity="many">%1$d itens ignorados.</item>
+        <item quantity="other">%1$d itens ignorados.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s libertado.</item>
+        <item quantity="many">%1$s libertados.</item>
+        <item quantity="other">%1$s libertados.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">A mover para o lixo…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d ficheiro movido para o lixo.</item>
+        <item quantity="many">%1$d ficheiros movidos para o lixo.</item>
+        <item quantity="other">%1$d ficheiros movidos para o lixo.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d pasta movida para o lixo.</item>
+        <item quantity="many">%1$d pastas movidas para o lixo.</item>
+        <item quantity="other">%1$d pastas movidas para o lixo.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s libertados.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s libertados.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s restantes.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Informações</string>
+    <string name="workspace_file_info_name_label">Nome</string>
+    <string name="workspace_file_info_path_label">Caminho</string>
+    <string name="workspace_file_info_type_label">Tipo</string>
+    <string name="workspace_file_info_type_file">Ficheiro</string>
+    <string name="workspace_file_info_type_directory">Pasta</string>
+    <string name="workspace_file_info_type_symlink">Ligação simbólica</string>
+    <string name="workspace_file_info_type_unknown">Desconhecido</string>
+    <string name="workspace_file_info_size_label">Tamanho</string>
+    <string name="workspace_file_info_modified_label">Modificação</string>
+    <string name="workspace_file_info_created_label">Criação</string>
+    <string name="workspace_file_info_permissions_label">Permissões</string>
+    <string name="workspace_file_info_owner_label">Proprietário</string>
+    <string name="workspace_file_info_child_count_label">Itens</string>
+    <string name="workspace_file_info_symlink_target_label">Destino</string>
+    <string name="workspace_file_info_unknown">Desconhecido</string>
+    <string name="workspace_file_info_copy_action">Copiar para a área de transferência</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Selecionados</string>
+    <string name="workspace_file_info_files_label">Ficheiros</string>
+    <string name="workspace_file_info_directories_label">Pastas</string>
+    <string name="workspace_file_info_total_size_label">Tamanho total</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Esta operação ainda não começou.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">A recolher dados de desempenho…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Não há dados de desempenho suficientes desta operação para traçar um gráfico.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Os dados de desempenho não estão disponíveis para esta operação.</string>
+    <string name="workspace_operation_performance_window_seconds">Últimos %1$d s</string>
+    <string name="workspace_operation_performance_window_minutes">Últimos %1$d min</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">itens/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Mostrar detalhes técnicos</string>
+    <string name="workspace_error_hide_details_action">Ocultar detalhes técnicos</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">A iniciar o separador</string>
+    <string name="workspace_error_subtitle">Ocorreu um erro inesperado</string>
+    <string name="workspace_close_tab_action">Fechar separador</string>
+    <string name="workspace_paused_body">Este separador está em pausa para poupar memória e bateria. Retoma-o para continuar.</string>
+    <string name="workspace_paused_error_body">Não foi possível retomar este separador.</string>
+    <string name="workspace_paused_resume_action">Retomar</string>
+    <string name="workspace_paused_label">Em pausa</string>
+    <string name="workspace_paused_content_label">Conteúdo do separador</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Ficheiro existente</string>
+    <string name="workspace_issue_collision_existing_folder_label">Pasta existente</string>
+    <string name="workspace_issue_collision_new_file">Ficheiro de entrada</string>
+    <string name="workspace_issue_collision_new_folder">Pasta de entrada</string>
+    <string name="workspace_issue_collision_overwrite">Substituir</string>
+    <string name="workspace_issue_collision_merge">Combinar</string>
+    <string name="workspace_issue_common_source_file">Ficheiro de origem</string>
+    <string name="workspace_issue_common_destination_file">Destino</string>
+    <string name="workspace_issue_common_skip">Ignorar</string>
+    <string name="workspace_issue_common_rename">Mudar o nome</string>
+    <string name="workspace_issue_common_rename_new">Mudar o nome do novo</string>
+    <string name="workspace_issue_common_rename_existing">Mudar o nome do existente</string>
+    <string name="workspace_issue_common_cancel">Cancelar</string>
+    <string name="workspace_issue_common_delete_permanently">Eliminar permanentemente</string>
+    <string name="workspace_issue_archive_password_label">Palavra-passe</string>
+    <string name="workspace_issue_archive_password_unlock">Desbloquear</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Itens com falha</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… e mais %1$d itens</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Itens afetados</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… e mais %1$d itens</string>
+    <string name="workspace_issue_apply_all">Aplicar a todos os problemas restantes</string>
+    <string name="workspace_issue_rename_new_name">Novo nome</string>
+    <string name="workspace_issue_rename_dialog_title_new">Mudar o nome do ficheiro de entrada</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Mudar o nome do ficheiro existente</string>
+    <string name="workspace_issue_type_folder">Pasta</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Abrir vários separadores?</string>
+    <string name="workspace_open_tabs_confirmation_message">Isto vai abrir %1$d separadores.</string>
+
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Abrir %d item</item>
+        <item quantity="many">Abrir %d itens</item>
+        <item quantity="other">Abrir %d itens</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Ver aqui</string>
+    <string name="workspace_open_selection_view_here_description">Mostra os ficheiros selecionados num visualizador sobre este painel. Anterior e Seguinte percorrem apenas a tua seleção.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Ver num novo separador</string>
+    <string name="workspace_open_selection_view_in_tab_description">Mostra os ficheiros selecionados num visualizador num separador próprio. Anterior e Seguinte percorrem apenas a tua seleção.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Abrir cada item no seu separador</string>
+    <string name="workspace_open_selection_each_in_tab_description">Abre cada item selecionado num separador separado. As pastas abrem em separadores do explorador de ficheiros.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Não é possível mostrar pastas no visualizador.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Abrir com</string>
+    <string name="workspace_open_with_no_app_label">Não foi encontrada outra aplicação</string>
+    <string name="workspace_open_with_no_app_description">Nenhuma outra aplicação instalada consegue abrir %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">%1$d separador aberto</item>
+        <item quantity="many">%1$d separadores abertos</item>
+        <item quantity="other">%1$d separadores abertos</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Não é possível fechar: ainda há uma operação em execução em %1$d separador</item>
+        <item quantity="many">Não é possível fechar: ainda há operações em execução em %1$d separadores</item>
+        <item quantity="other">Não é possível fechar: ainda há operações em execução em %1$d separadores</item>
+    </plurals>
+
+    <!-- Workspace > Settings -->
+    <string name="workspace_settings_title">Separadores</string>
+    <string name="workspace_settings_navigation">Navegação</string>
+    <string name="workspace_settings_swipe_gestures_title">Gestos de deslize</string>
+    <string name="workspace_settings_swipe_gestures_desc">Desliza para a esquerda ou para a direita para alternar entre separadores.</string>
+    <string name="workspace_settings_ondemand_creation_title">Criar separadores automaticamente</string>
+    <string name="workspace_settings_ondemand_creation_desc">Criar automaticamente um novo separador ao deslizar para além do último.</string>
+    <string name="workspace_settings_newtab_type_title">Tipo de novo separador</string>
+    <string name="workspace_settings_newtab_type_desc">Área de trabalho aberta ao deslizar para além do último separador, adicionar um separador a um painel vazio ou criar o primeiro separador.</string>
+    <string name="workspace_settings_newtab_type_ask">Perguntar sempre</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Mostrar o seletor de tipo de separador para cada novo separador.</string>
+    <string name="workspace_settings_live_preview_title">Pré-visualizações em tempo real</string>
+    <string name="workspace_settings_live_preview_desc">Mostrar o conteúdo dos separadores em tempo real no gestor de separadores.</string>
+    <string name="workspace_settings_other">Outras</string>
+    <string name="workspace_settings_layout_title">Disposição</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Modo de disposição na vertical</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Escolhe a disposição dos separadores na orientação vertical.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Modo de disposição na horizontal</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Escolhe a disposição dos separadores na orientação horizontal.</string>
+    <string name="workspace_settings_layout_mode_auto">Automático</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Clássico em ecrãs pequenos, barra de separadores com painéis nos grandes.</string>
+    <string name="workspace_settings_layout_mode_classic">Clássico</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Um painel de cada vez, sem a barra de separadores.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Adaptável</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Barra de separadores e tantos painéis quantos couberem no ecrã. Fixa uma disposição no menu do Butler.</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Barra de separadores e tantos painéis quantos couberem no ecrã.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptável (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Único com barra de separadores</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Um painel de separador e a barra de separadores das disposições com vários painéis. A barra ocupa uma faixa do ecrã.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Duplo vertical</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Dois painéis lado a lado (esquerda/direita).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Duplo horizontal</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Dois painéis empilhados (cima/baixo).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Triplo com painel lateral à esquerda</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Um painel grande à esquerda e dois painéis mais pequenos empilhados à direita.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Triplo com painel lateral à direita</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Dois painéis mais pequenos empilhados à esquerda e um painel grande à direita.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Grelha quádrupla</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Quatro painéis numa grelha 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Clicar para focar</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">O primeiro clique num painel sem foco apenas lhe dá foco, e os painéis sem foco não reagem ao ponteiro do rato. Desativa para interagir diretamente com eles.</string>
+
+    <string name="workspace_settings_rail_button_title">Botão do Butler</string>
+    <string name="workspace_settings_rail_button_desc">Escolhe onde fica o botão do Butler na barra de separadores.</string>
+    <string name="workspace_settings_rail_button_leading">Início</string>
+    <string name="workspace_settings_rail_button_leading_desc">Antes dos separadores na vertical, acima deles na horizontal.</string>
+    <string name="workspace_settings_rail_button_trailing">Fim</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Depois dos separadores na vertical, abaixo deles na horizontal. Ao alcance do polegar para usar com uma só mão.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Sessão</string>
+    <string name="workspace_settings_session_restore_title">Restaurar separadores ao iniciar</string>
+    <string name="workspace_settings_session_restore_desc">Restaurar automaticamente os separadores anteriormente abertos quando a aplicação inicia.</string>
+    <string name="workspace_settings_autopause_title">Pausar separadores inativos</string>
+    <string name="workspace_settings_autopause_desc">Os separadores que não consultaste há algum tempo são pausados para poupar memória e bateria. Ao abrir um, é retomado.</string>
+    <string name="workspace_settings_autopause_delay_title">Pausar após</string>
+    <string name="workspace_settings_autopause_delay_desc">Quanto tempo um separador fica fora de vista antes de ser pausado.</string>
+    <string name="workspace_settings_undoclose_title">Anular o fecho de separadores</string>
+    <string name="workspace_settings_undoclose_desc">Ao fechar um separador, tens alguns segundos para o reabrir.</string>
+    <string name="workspace_settings_session_data_title">Dados da sessão</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d separador • %2$s</item>
+        <item quantity="many">%1$d separadores • %2$s</item>
+        <item quantity="other">%1$d separadores • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">\"%1$s\" fechado</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Falha ao restaurar a sessão</string>
+    <string name="workspace_session_restoration_error_description">Não foi possível restaurar a tua sessão anterior de separadores. Isto pode dever-se a uma falha que será corrigida numa atualização futura.\n\nPodes limpar a sessão guardada para continuar a usar o Butler ou esperar por uma atualização.</string>
+    <string name="workspace_session_restoration_error_clear_action">Limpar sessão</string>
+    <string name="workspace_session_restoration_error_report_action">Comunicar problema</string>
+    <string name="workspace_session_restoration_error_confirm_title">Limpar sessão?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Isto vai eliminar permanentemente a tua sessão de separadores guardada. Esta ação não pode ser anulada.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Mudar o nome do separador</string>
+    <string name="workspace_rename_name_label">Nome personalizado</string>
+    <string name="workspace_rename_name_hint">Deixa em branco para usar o nome automático</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Limite de separadores atingido</string>
+    <string name="workspace_limit_reached_message">Na versão gratuita, podes ter até %1$d separadores abertos ao mesmo tempo. Muda para o Butler Pro para teres separadores ilimitados!</string>
+    <string name="workspace_limit_pick_tabs_message">O teu plano gratuito permite %1$d separadores abertos. Escolhe os de que já não precisas e fecha-os para libertar espaço.</string>
+    <string name="workspace_limit_no_slot_hint">Fechar separadores não vai libertar uma vaga neste momento.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Fechar %d separador</item>
+        <item quantity="many">Fechar %d separadores</item>
+        <item quantity="other">Fechar %d separadores</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Escolhe pelo menos %d separador para fechar.</item>
+        <item quantity="many">Escolhe pelo menos %d separadores para fechar.</item>
+        <item quantity="other">Escolhe pelo menos %d separadores para fechar.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Aberto %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Alterações por guardar</string>
+    <string name="workspace_limit_blocker_busy">Ocupado neste momento</string>
+    <string name="workspace_limit_blocker_attention">À tua espera</string>
+    <string name="workspace_limit_blocker_loading">Ainda a carregar</string>
+    <string name="workspace_limit_blocker_awaiting_result">Conclui primeiro a seleção no seletor aberto</string>
+    <string name="workspace_limit_blocker_unavailable">Não pode ser fechado neste momento</string>
+    <string name="workspace_limit_stacked_content_desc">Fechar este separador também fecha o que está sobre ele</string>
+    <string name="workspace_limit_pro_description">Abre tantos separadores quantos quiseres.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d item</item>
+        <item quantity="many">%1$d itens</item>
+        <item quantity="other">%1$d itens</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Restauro a partir do lixo</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Restaurar %d item do lixo.</item>
+        <item quantity="many">Restaurar %d itens do lixo.</item>
+        <item quantity="other">Restaurar %d itens do lixo.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d item restaurado</item>
+        <item quantity="many">%d itens restaurados</item>
+        <item quantity="other">%d itens restaurados</item>
+    </plurals>
+</resources>

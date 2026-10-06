@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Tekstredigering</string>
+    <string name="editor_subtitle">Rediger tekstfiler</string>
+    <string name="editor_settings_title">Innstillinger for tekstredigering</string>
+    <string name="editor_settings_show_line_numbers_title">Vis linjenumre</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Vis linjenumre i tekstredigereren.</string>
+    <string name="editor_settings_word_wrap_title">Linjebryting</string>
+    <string name="editor_settings_word_wrap_subtitle">Bryt lange linjer så de passer til skjermbredden.</string>
+    <string name="editor_settings_syntax_highlighting_title">Syntaksutheving</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Fargelegg kode i støttede filer (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Skriftstørrelse</string>
+    <string name="editor_settings_font_size_subtitle">Tekststørrelse i tekstredigereren</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Tabulatorbredde</string>
+    <string name="editor_settings_tab_size_subtitle">Antall mellomrom et tabulatortegn dekker</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Åpne</string>
+    <string name="editor_action_save">Lagre</string>
+    <string name="editor_action_save_as">Lagre som…</string>
+    <string name="editor_action_close">Lukk</string>
+    <string name="editor_action_undo">Angre</string>
+    <string name="editor_action_redo">Gjør om</string>
+    <string name="editor_action_search">Søk</string>
+    <string name="editor_action_go_to_line">Gå til linje</string>
+    <string name="editor_action_dismiss">Lukk</string>
+    <string name="editor_action_previous">Forrige</string>
+    <string name="editor_action_next">Neste</string>
+    <string name="editor_action_copy">Kopier</string>
+    <string name="editor_action_cut">Klipp ut</string>
+    <string name="editor_action_copy_to_butler_clipboard">Kopier til Butlers utklippstavle</string>
+    <string name="editor_action_cut_to_butler_clipboard">Klipp ut til Butlers utklippstavle</string>
+    <string name="editor_action_paste">Lim inn</string>
+    <string name="editor_action_select_all">Merk alt</string>
+    <string name="editor_action_delete">Slett</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Overskrive filen?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s finnes allerede. Det nåværende innholdet vil bli erstattet.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Overskriv</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Fant en sikkerhetskopi fra en avbrutt lagring:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Redigering som tekst støttes ikke</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Svært lange linjer</string>
+    <string name="editor_long_lines_banner_message">Svært lange linjer forkortes ved visning; hele innholdet bevares og lagres.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Vis neste del av linjen</string>
+    <string name="editor_line_truncated_marker_previous_action">Vis forrige del av linjen</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Filen er ikke lenger tilgjengelig</string>
+    <string name="editor_backing_lost_banner_message">Den kan ha blitt flyttet eller slettet. Denne visningen er skrivebeskyttet — åpne den på nytt eller lukk den.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Filen er borte, men en sikkerhetskopi finnes fortsatt</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" mangler, men en avbrutt lagring etterlot dette: %2$s. Innholdet ditt finnes mest sannsynlig fortsatt der.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Filen er endret på disken</string>
+    <string name="editor_external_change_banner_message">En annen app har endret denne filen.</string>
+    <string name="editor_external_change_reload_action">Last inn på nytt</string>
+    <string name="editor_external_change_keep_action">Fortsett å redigere</string>
+    <string name="editor_error_external_change">Denne filen er endret av en annen app. Last inn filen på nytt for å fortsette.</string>
+    <string name="editor_dialog_reload_confirm_title">Laste inn filen på nytt?</string>
+    <string name="editor_dialog_reload_confirm_message">Når du laster inn på nytt, forkastes ulagrede endringer, og filens nåværende innhold på disken vises.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d linje</item>
+        <item quantity="other">%1$d linjer</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d tegn</item>
+        <item quantity="other">%1$d tegn</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Valgt %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Laster inn fil…</string>
+    <string name="editor_saving">Lagrer…</string>
+    <string name="editor_action_cancel_loading">Avbryt</string>
+    <string name="editor_progress_opening">Åpner fil…</string>
+    <string name="editor_progress_saving">Lagrer fil…</string>
+    <string name="editor_progress_building_index">Bygger filindeks…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Ukjent feil</string>
+    <string name="editor_error_read_only">Denne filen er skrivebeskyttet og kan ikke endres.</string>
+    <string name="editor_error_save_integrity_label">Lagring avbrutt</string>
+    <string name="editor_error_save_integrity">Lagringen ble avbrutt, og filen på disken kan være ufullstendig. Last inn filen på nytt før du fortsetter å redigere.</string>
+    <string name="editor_error_clipboard_too_large_label">Utvalget er for stort</string>
+    <string name="editor_error_clipboard_too_large">Utvalget er for stort til å kopieres (grense %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Filen er for stor</string>
+    <string name="editor_error_paste_too_large">Denne filen er for stor til å limes inn (maks. %1$s).</string>
+    <string name="editor_error_paste_binary_label">Ikke en tekstfil</string>
+    <string name="editor_error_paste_binary">Innholdet i denne filen kan ikke limes inn som tekst.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d av %2$d treff</item>
+        <item quantity="other">%1$d av %2$d treff</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d av %2$d+ treff</string>
+    <string name="editor_search_too_many_matches_label">For mange treff</string>
+    <string name="editor_search_too_many_matches">Mer enn %1$d treff eller for mye tekst som samsvarer — avgrens søket for å erstatte alle.</string>
+    <string name="editor_search_placeholder">Søk…</string>
+    <string name="editor_search_previous">Forrige treff</string>
+    <string name="editor_search_next">Neste treff</string>
+    <string name="editor_search_case_sensitive_label">Skill mellom store og små bokstaver</string>
+    <string name="editor_search_regex_label">Regulært uttrykk</string>
+    <string name="editor_search_whole_word_label">Hele ord</string>
+    <string name="editor_search_options_label">Søkealternativer</string>
+    <string name="editor_search_replace_label">Erstatt</string>
+    <string name="editor_search_replace_toggle">Slå erstatning av/på</string>
+    <string name="editor_search_replace_placeholder">Erstatt med…</string>
+    <string name="editor_search_replace_one_action">Erstatt</string>
+    <string name="editor_search_replace_all_action">Alle</string>
+    <string name="editor_search_replaced_not_undoable">%1$d erstattet (for stort til å angres)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d erstattet</item>
+        <item quantity="other">%1$d erstattet</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Gå til linje</string>
+    <string name="editor_dialog_go_to_line_label">Linjenummer (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Gå</string>
+    <string name="editor_dialog_action_cancel">Avbryt</string>
+    <string name="editor_dialog_close_confirm_title">Ulagrede endringer</string>
+    <string name="editor_dialog_close_confirm_message">Du har ulagrede endringer. Forkaste dem?</string>
+    <string name="editor_dialog_close_confirm_discard">Forkast</string>
+    <string name="editor_dialog_large_delete_confirm_title">Redigere et stort utvalg?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Dette utvalget er for stort til at endringen kan angres. Fortsette likevel?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Fortsett</string>
+    <string name="editor_encoding_dialog_title">Tegnkoding</string>
+    <string name="editor_encoding_dialog_message">Åpne filen på nytt med en annen tegnkoding. Ulagrede endringer forkastes; byte som ikke er redigert, forblir urørt ved lagring.</string>
+    <string name="editor_infobar_read_only">Skrivebeskyttet</string>
+    <string name="editor_line_ending_mixed">Blandet</string>
+    <string name="editor_line_ending_dialog_title">Linjeslutt</string>
+    <string name="editor_line_ending_dialog_message">Konverter alle linjeskift og lagre filen, inkludert ulagrede endringer. Angrehistorikken tømmes.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Uten tittel</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Automatisk lagring</string>
+    <string name="editor_settings_autosave_enabled_title">Aktiver automatisk lagring</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Lagre endringer automatisk etter en periode uten aktivitet.</string>
+    <string name="editor_settings_autosave_interval_title">Intervall for automatisk lagring</string>
+    <string name="editor_settings_autosave_interval_subtitle">Ventetid etter siste redigering før lagring.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Intervall for automatisk lagring</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Utklippstavle</string>
+    <string name="editor_settings_clipboard_behavior_title">Butlers utklippstavle</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Velg hvordan tekstkopier lagres på Butlers utklippstavle.</string>
+    <string name="editor_settings_clipboard_system_only">Bare systemet</string>
+    <string name="editor_settings_clipboard_system_only_desc">Kopier bare til systemets utklippstavle</string>
+    <string name="editor_settings_clipboard_butler_always">Legg alltid til i Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Lagre også på Butlers utklippstavle for å kunne lime inn på tvers av arbeidsområder</string>
+    <string name="editor_settings_clipboard_ask">Spør hver gang</string>
+    <string name="editor_settings_clipboard_ask_desc">Spør før teksten legges til på Butlers utklippstavle</string>
+</resources>

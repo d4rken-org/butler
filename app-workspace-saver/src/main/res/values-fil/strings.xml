@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">I-save bilang</string>
+    <string name="saver_preview_label">Paunang tingin</string>
+    <string name="saver_loading">Naglo-load…</string>
+    <string name="saver_shared_from">Ibinahagi mula sa %1$s</string>
+    <string name="saver_shared_generic">Ibinahagi sa Butler</string>
+    <string name="saver_destination_label">Patutunguhan</string>
+    <string name="saver_select_destination_hint">Piliin ang patutunguhang folder</string>
+    <string name="saver_filename_label">Pangalan ng file</string>
+    <string name="saver_save_action">I-save</string>
+    <string name="saver_saving_progress">Nagse-save…</string>
+    <string name="saver_success_message">Matagumpay na na-save ang file</string>
+    <string name="saver_open_saved_action">Buksan ang direktoryo</string>
+    <string name="saver_retry_action">Subukan muli</string>
+    <string name="saver_save_again_action">I-save sa bagong lokasyon</string>
+    <string name="saver_close_tab_action">Isara ang tab</string>
+    <string name="saver_close_butler_action">Isara ang tab at bumalik</string>
+    <string name="saver_done_action">Tapos na</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Hindi na ma-access ang %1$d na pinagkunang file. Pakibahagi muli.</item>
+        <item quantity="other">Hindi na ma-access ang %1$d na pinagkunang file. Pakibahagi muli.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Hindi na ma-access ang pinagkunang file</string>
+    <string name="saver_error_permission_denied">Tinanggihan ang pahintulot</string>
+    <string name="saver_error_write_failed">Hindi na-save ang file</string>
+    <string name="saver_error_file_exists">May ganitong file na</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">I-save ang mga file</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Sine-save ang %1$d file sa %2$s</item>
+        <item quantity="other">Sine-save ang %1$d na file sa %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">I-save ang %1$d file</item>
+        <item quantity="other">I-save ang %1$d na file</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">Na-save ang %1$d file</item>
+        <item quantity="other">Na-save ang %1$d na file</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">Hindi na-save ang %1$d file</item>
+        <item quantity="other">Hindi na-save ang %1$d na file</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">Nilaktawan ang %1$d file</item>
+        <item quantity="other">Nilaktawan ang %1$d na file</item>
+    </plurals>
+    <string name="saver_partial_success">Na-save ang %1$d sa %2$d na file</string>
+</resources>

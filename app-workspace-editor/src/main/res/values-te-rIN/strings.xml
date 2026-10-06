@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">ఎడిటర్</string>
+    <string name="editor_subtitle">వచన ఫైళ్లను సవరించండి</string>
+    <string name="editor_settings_title">ఎడిటర్ సెట్టింగ్‌లు</string>
+    <string name="editor_settings_show_line_numbers_title">పంక్తి సంఖ్యలను చూపండి</string>
+    <string name="editor_settings_show_line_numbers_subtitle">ఎడిటర్‌లో పంక్తి సంఖ్యలను చూపండి.</string>
+    <string name="editor_settings_word_wrap_title">పంక్తులను మడవడం</string>
+    <string name="editor_settings_word_wrap_subtitle">పొడవైన పంక్తులను స్క్రీన్ వెడల్పుకు సరిపోయేలా మడవండి.</string>
+    <string name="editor_settings_syntax_highlighting_title">సింటాక్స్ హైలైటింగ్</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">మద్దతు ఉన్న ఫైళ్లలో (JavaScript, Bash, Markdown, JSON) కోడ్‌ను రంగులతో చూపండి.</string>
+    <string name="editor_settings_font_size_title">ఫాంట్ పరిమాణం</string>
+    <string name="editor_settings_font_size_subtitle">ఎడిటర్‌లో వచన పరిమాణం</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">ట్యాబ్ వెడల్పు</string>
+    <string name="editor_settings_tab_size_subtitle">ట్యాబ్ అక్షరం ఆక్రమించే ఖాళీల సంఖ్య</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">తెరవండి</string>
+    <string name="editor_action_save">సేవ్ చేయండి</string>
+    <string name="editor_action_save_as">ఇలా సేవ్ చేయండి…</string>
+    <string name="editor_action_close">మూసివేయండి</string>
+    <string name="editor_action_undo">వెనక్కి తీసుకోండి</string>
+    <string name="editor_action_redo">మళ్లీ చేయండి</string>
+    <string name="editor_action_search">వెతకండి</string>
+    <string name="editor_action_go_to_line">పంక్తికి వెళ్లండి</string>
+    <string name="editor_action_dismiss">మూసేయండి</string>
+    <string name="editor_action_previous">మునుపటిది</string>
+    <string name="editor_action_next">తదుపరిది</string>
+    <string name="editor_action_copy">కాపీ చేయండి</string>
+    <string name="editor_action_cut">కట్ చేయండి</string>
+    <string name="editor_action_copy_to_butler_clipboard">Butler క్లిప్‌బోర్డ్‌కు కాపీ చేయండి</string>
+    <string name="editor_action_cut_to_butler_clipboard">Butler క్లిప్‌బోర్డ్‌కు కట్ చేయండి</string>
+    <string name="editor_action_paste">పేస్ట్ చేయండి</string>
+    <string name="editor_action_select_all">అన్నీ ఎంచుకోండి</string>
+    <string name="editor_action_delete">తొలగించండి</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">ఫైల్‌ను ఓవర్‌రైట్ చేయాలా?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s ఇప్పటికే ఉంది. అందులోని ప్రస్తుత కంటెంట్ భర్తీ చేయబడుతుంది.</string>
+    <string name="editor_dialog_save_as_overwrite_action">ఓవర్‌రైట్ చేయండి</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">మధ్యలో ఆగిపోయిన సేవ్ ప్రక్రియ నుంచి ఒక బ్యాకప్ దొరికింది:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">వచనంగా సవరించడానికి మద్దతు లేదు</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">చాలా పొడవైన పంక్తులు</string>
+    <string name="editor_long_lines_banner_message">చాలా పొడవైన పంక్తులను చూపించడానికి కుదిస్తాము; పూర్తి కంటెంట్ అలాగే ఉంచి సేవ్ చేస్తాము.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">పంక్తిలోని తదుపరి భాగాన్ని చూపండి</string>
+    <string name="editor_line_truncated_marker_previous_action">పంక్తిలోని మునుపటి భాగాన్ని చూపండి</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">ఫైల్ ఇక అందుబాటులో లేదు</string>
+    <string name="editor_backing_lost_banner_message">దాన్ని తరలించి లేదా తొలగించి ఉండవచ్చు. ఈ వీక్షణ చదవడానికి మాత్రమే — మళ్లీ తెరవండి లేదా మూసివేయండి.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">ఫైల్ లేదు, కానీ బ్యాకప్ మిగిలి ఉంది</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" కనిపించడం లేదు, కానీ మధ్యలో ఆగిపోయిన సేవ్ ప్రక్రియ ఈ ఫైల్‌ను వదిలివెళ్లింది: %2$s. మీ కంటెంట్ ఇంకా అందులో ఉండే అవకాశం ఎక్కువగా ఉంది.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">డిస్క్‌లోని ఫైల్ మారింది</string>
+    <string name="editor_external_change_banner_message">మరో యాప్ ఈ ఫైల్‌ను సవరించింది.</string>
+    <string name="editor_external_change_reload_action">మళ్లీ లోడ్ చేయండి</string>
+    <string name="editor_external_change_keep_action">సవరణ కొనసాగించండి</string>
+    <string name="editor_error_external_change">మరో యాప్ ఈ ఫైల్‌ను మార్చింది. కొనసాగించడానికి ఫైల్‌ను మళ్లీ లోడ్ చేయండి.</string>
+    <string name="editor_dialog_reload_confirm_title">ఫైల్‌ను మళ్లీ లోడ్ చేయాలా?</string>
+    <string name="editor_dialog_reload_confirm_message">మళ్లీ లోడ్ చేస్తే మీరు సేవ్ చేయని మార్పులు పోతాయి, డిస్క్‌లోని ఫైల్ ప్రస్తుత కంటెంట్ కనిపిస్తుంది.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d పంక్తి</item>
+        <item quantity="other">%1$d పంక్తులు</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d అక్షరం</item>
+        <item quantity="other">%1$d అక్షరాలు</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">ఎంచుకున్నవి: %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$d పం. · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">ఫైల్ లోడ్ అవుతోంది…</string>
+    <string name="editor_saving">సేవ్ అవుతోంది…</string>
+    <string name="editor_action_cancel_loading">రద్దు చేయండి</string>
+    <string name="editor_progress_opening">ఫైల్ తెరుస్తోంది…</string>
+    <string name="editor_progress_saving">ఫైల్ సేవ్ అవుతోంది…</string>
+    <string name="editor_progress_building_index">ఫైల్ సూచికను నిర్మిస్తోంది…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">తెలియని లోపం</string>
+    <string name="editor_error_read_only">ఈ ఫైల్ చదవడానికి మాత్రమే; దీన్ని మార్చలేరు.</string>
+    <string name="editor_error_save_integrity_label">సేవ్ ప్రక్రియ మధ్యలో ఆగిపోయింది</string>
+    <string name="editor_error_save_integrity">సేవ్ ప్రక్రియ మధ్యలో ఆగిపోయింది, డిస్క్‌లోని ఫైల్ అసంపూర్తిగా ఉండవచ్చు. మరింత సవరించే ముందు ఫైల్‌ను మళ్లీ లోడ్ చేయండి.</string>
+    <string name="editor_error_clipboard_too_large_label">ఎంపిక చాలా పెద్దగా ఉంది</string>
+    <string name="editor_error_clipboard_too_large">ఎంపిక కాపీ చేయలేనంత పెద్దగా ఉంది (పరిమితి %1$s).</string>
+    <string name="editor_error_paste_too_large_label">ఫైల్ చాలా పెద్దగా ఉంది</string>
+    <string name="editor_error_paste_too_large">ఈ ఫైల్ పేస్ట్ చేయలేనంత పెద్దగా ఉంది (గరిష్ఠం %1$s).</string>
+    <string name="editor_error_paste_binary_label">వచన ఫైల్ కాదు</string>
+    <string name="editor_error_paste_binary">ఈ ఫైల్‌లోని కంటెంట్‌ను వచనంగా పేస్ట్ చేయలేరు.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%2$d ఫలితంలో %1$d</item>
+        <item quantity="other">%2$d ఫలితాల్లో %1$d</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%2$d+ ఫలితాల్లో %1$d</string>
+    <string name="editor_search_too_many_matches_label">చాలా సరిపోలికలు ఉన్నాయి</string>
+    <string name="editor_search_too_many_matches">%1$d కంటే ఎక్కువ సరిపోలికలు లేదా చాలా ఎక్కువ సరిపోలిన వచనం ఉంది — అన్నింటినీ భర్తీ చేయడానికి శోధనను మరింత నిర్దిష్టంగా చేయండి.</string>
+    <string name="editor_search_placeholder">వెతకండి…</string>
+    <string name="editor_search_previous">మునుపటి ఫలితం</string>
+    <string name="editor_search_next">తదుపరి ఫలితం</string>
+    <string name="editor_search_case_sensitive_label">పెద్ద, చిన్న అక్షరాల తేడాను గుర్తించండి</string>
+    <string name="editor_search_regex_label">రెగ్యులర్ ఎక్స్‌ప్రెషన్</string>
+    <string name="editor_search_whole_word_label">పూర్తి పదం</string>
+    <string name="editor_search_options_label">శోధన ఎంపికలు</string>
+    <string name="editor_search_replace_label">భర్తీ చేయండి</string>
+    <string name="editor_search_replace_toggle">భర్తీ ఎంపికను ఆన్ లేదా ఆఫ్ చేయండి</string>
+    <string name="editor_search_replace_placeholder">దీనితో భర్తీ చేయండి…</string>
+    <string name="editor_search_replace_one_action">భర్తీ చేయండి</string>
+    <string name="editor_search_replace_all_action">అన్నీ</string>
+    <string name="editor_search_replaced_not_undoable">%1$d భర్తీ చేయబడ్డాయి (వెనక్కి తీసుకోలేనంత పెద్ద మార్పు)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d భర్తీ చేయబడింది</item>
+        <item quantity="other">%1$d భర్తీ చేయబడ్డాయి</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">పంక్తికి వెళ్లండి</string>
+    <string name="editor_dialog_go_to_line_label">పంక్తి సంఖ్య (1-%1$d)</string>
+    <string name="editor_dialog_action_go">వెళ్లండి</string>
+    <string name="editor_dialog_action_cancel">రద్దు చేయండి</string>
+    <string name="editor_dialog_close_confirm_title">సేవ్ చేయని మార్పులు</string>
+    <string name="editor_dialog_close_confirm_message">సేవ్ చేయని మార్పులు ఉన్నాయి. వాటిని విస్మరించాలా?</string>
+    <string name="editor_dialog_close_confirm_discard">విస్మరించండి</string>
+    <string name="editor_dialog_large_delete_confirm_title">పెద్ద ఎంపికను సవరించాలా?</string>
+    <string name="editor_dialog_large_delete_confirm_message">ఈ ఎంపిక వెనక్కి తీసుకోలేనంత పెద్దగా ఉంది. అయినా కొనసాగించాలా?</string>
+    <string name="editor_dialog_large_delete_confirm_action">కొనసాగించండి</string>
+    <string name="editor_encoding_dialog_title">ఎన్‌కోడింగ్</string>
+    <string name="editor_encoding_dialog_message">వేరే ఎన్‌కోడింగ్‌తో ఫైల్‌ను మళ్లీ తెరవండి. సేవ్ చేయని మార్పులు పోతాయి; సేవ్ చేసేటప్పుడు సవరించని బైట్‌లు అలాగే ఉంటాయి.</string>
+    <string name="editor_infobar_read_only">చదవడానికి మాత్రమే</string>
+    <string name="editor_line_ending_mixed">మిశ్రమం</string>
+    <string name="editor_line_ending_dialog_title">పంక్తి ముగింపులు</string>
+    <string name="editor_line_ending_dialog_message">అన్ని పంక్తి విరామాలను మార్చి, సేవ్ చేయని మార్పులతో సహా ఫైల్‌ను సేవ్ చేయండి. వెనక్కి తీసుకునే చర్యల చరిత్ర క్లియర్ అవుతుంది.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">శీర్షిక లేదు</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">ఆటో-సేవ్</string>
+    <string name="editor_settings_autosave_enabled_title">ఆటో-సేవ్ ప్రారంభించండి</string>
+    <string name="editor_settings_autosave_enabled_subtitle">కొంత సమయం ఎలాంటి చర్యలు చేయకపోతే మార్పులను ఆటోమేటిక్‌గా సేవ్ చేయండి.</string>
+    <string name="editor_settings_autosave_interval_title">ఆటో-సేవ్ విరామం</string>
+    <string name="editor_settings_autosave_interval_subtitle">చివరి సవరణ తర్వాత సేవ్ చేసే వరకు వేచి ఉండే సమయం.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">ఆటో-సేవ్ విరామం</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">క్లిప్‌బోర్డ్</string>
+    <string name="editor_settings_clipboard_behavior_title">Butler క్లిప్‌బోర్డ్</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">వచన కాపీలు Butler క్లిప్‌బోర్డ్‌లో ఎలా సేవ్ అవుతాయో నియంత్రించండి.</string>
+    <string name="editor_settings_clipboard_system_only">సిస్టమ్ మాత్రమే</string>
+    <string name="editor_settings_clipboard_system_only_desc">సిస్టమ్ క్లిప్‌బోర్డ్‌కు మాత్రమే కాపీ చేయండి</string>
+    <string name="editor_settings_clipboard_butler_always">ఎల్లప్పుడూ Butlerకు జోడించండి</string>
+    <string name="editor_settings_clipboard_butler_always_desc">వర్క్‌స్పేస్‌ల మధ్య పేస్ట్ చేయడానికి Butler క్లిప్‌బోర్డ్‌లో కూడా సేవ్ చేయండి</string>
+    <string name="editor_settings_clipboard_ask">ప్రతిసారీ అడగండి</string>
+    <string name="editor_settings_clipboard_ask_desc">Butler క్లిప్‌బోర్డ్‌కు జోడించే ముందు అడగండి</string>
+</resources>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">மென்பொருள் பிழை அறிக்கைகள்</string>
+    <string name="bugreport_workspace_subtitle">செயலிழப்பு மற்றும் பிழை அறிக்கைகள்</string>
+
+    <string name="bugreport_empty_title">அறிக்கைகள் இல்லை</string>
+    <string name="bugreport_empty_subtitle">செயலிழப்பு மற்றும் பிழை அறிக்கைகள் இங்கே தோன்றும். எதுவும் தானாக அனுப்பப்படாது.</string>
+
+    <string name="bugreport_type_crash">செயலிழப்பு</string>
+    <string name="bugreport_type_report">அறிக்கை</string>
+    <string name="bugreport_type_recording">பதிவு</string>
+
+    <string name="bugreport_record_action">பிழைத்திருத்தப் பதிவைச் சேகரிக்கவும்</string>
+    <string name="bugreport_record_short_action">பதிவு செய்யவும்</string>
+    <string name="bugreport_stop_action">பதிவு செய்வதை நிறுத்தவும்</string>
+    <string name="bugreport_stop_short_action">நிறுத்தவும்</string>
+    <string name="bugreport_recording_ongoing_label">பதிவு செய்கிறது…</string>
+
+    <string name="bugreport_recording_short_title">பதிவின் கால அளவு மிகக் குறைவு</string>
+    <string name="bugreport_recording_short_message">இந்தப் பதிவு சில வினாடிகள் மட்டுமே நீளமானது என்பதால் பயனுள்ள தகவல்கள் இல்லாமல் இருக்கலாம். இருந்தாலும் நிறுத்தவா?</string>
+    <string name="bugreport_recording_short_keep_action">தொடர்ந்து பதிவு செய்யவும்</string>
+
+    <string name="bugreport_rename_action">பெயரை மாற்றவும்</string>
+    <string name="bugreport_rename_dialog_title">இந்த அறிக்கைக்குப் பெயரிடவும்</string>
+    <string name="bugreport_rename_name_label">பெயர்</string>
+    <string name="bugreport_rename_name_hint">பட்டியலிலும் பகிரப்படும் கோப்பின் பெயரிலும் காட்டப்படும்</string>
+
+    <string name="bugreport_share_action">பகிரவும்</string>
+    <string name="bugreport_delete_action">நீக்கவும்</string>
+    <string name="bugreport_delete_all_action">அனைத்தையும் நீக்கவும்</string>
+    <string name="bugreport_delete_all_confirm_title">அனைத்துப் பிழைத்திருத்தப் பதிவுகளையும் நீக்கவா?</string>
+    <string name="bugreport_delete_all_confirm_message">இது பதிவுசெய்யப்பட்ட அனைத்துப் பிழைத்திருத்தப் பதிவு அமர்வுகளையும் நிரந்தரமாக நீக்கும். தற்போது நடைபெறும் பதிவுகள் பாதிக்கப்படாது.</string>
+    <string name="bugreport_delete_confirm_title">இந்த அறிக்கையை நீக்கவா?</string>
+    <string name="bugreport_delete_confirm_message">இது இந்த அறிக்கையையும் அதன் பதிவையும் நிரந்தரமாக நீக்கும்.</string>
+    <string name="bugreport_cancel_action">ரத்துசெய்யவும்</string>
+
+    <string name="bugreport_share_chooser_title">மென்பொருள் பிழை அறிக்கையைப் பகிரவும்</string>
+    <string name="bugreport_share_consent_title">அறிக்கையைப் பகிரவா?</string>
+    <string name="bugreport_share_consent_message">இந்த அறிக்கையில் செயலியின் பதிவுகள் உள்ளன. அவற்றில் கோப்புப் பெயர்கள், பாதைகள், செயலி மற்றும் சாதனம் பற்றிய தகவல்கள் இருக்கலாம். நீங்கள் நம்பும் நபர்களுடன் மட்டுமே இதைப் பகிருங்கள்.</string>
+
+    <string name="bugreport_detail_back_action">பின் செல்லவும்</string>
+    <string name="bugreport_detail_section_error">பிழை</string>
+    <string name="bugreport_detail_section_log">சமீபத்திய பதிவு</string>
+    <string name="bugreport_detail_field_type">வகை</string>
+    <string name="bugreport_detail_field_time">நேரம்</string>
+    <string name="bugreport_detail_field_app_version">செயலியின் பதிப்பு</string>
+    <string name="bugreport_detail_field_device">சாதனம்</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">கட்டமைப்பு</string>
+    <string name="bugreport_detail_field_error_class">பிழை வகை</string>
+    <string name="bugreport_detail_field_thread">செயலிழை</string>
+    <string name="bugreport_detail_log_truncated">%2$d வரிகளில் கடைசி %1$d வரிகள்</string>
+    <string name="bugreport_detail_log_count">%1$d வரிகள்</string>
+    <string name="bugreport_detail_log_empty">பதிவு எதுவும் சேகரிக்கப்படவில்லை</string>
+    <string name="bugreport_detail_log_error">பதிவை ஏற்ற முடியவில்லை</string>
+</resources>

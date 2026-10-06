@@ -1,0 +1,685 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Filutforsker</string>
+    <string name="explorer_subtitle">Bla gjennom filer og mapper</string>
+    <string name="explorer_settings_title">Innstillinger for filutforskeren</string>
+    <string name="explorer_settings_file_display">Filvisning</string>
+    <string name="explorer_settings_filter_regex_title">Avansert matching med jokertegn</string>
+    <string name="explorer_settings_filter_regex_desc">Bruk regulære uttrykk i filtrene for inkludering og ekskludering.</string>
+    <string name="explorer_settings_navigation">Navigasjon</string>
+    <string name="explorer_settings_back_button_title">Navigasjon med tilbakeknappen</string>
+    <string name="explorer_settings_back_button_desc">Naviger gjennom historikken med tilbakeknappen eller tilbakebevegelsen.</string>
+    <string name="explorer_settings_trash_category">Papirkurv</string>
+    <string name="explorer_settings_trash_enabled_title">Aktiver papirkurv</string>
+    <string name="explorer_settings_trash_enabled_desc">Flytt slettede filer til papirkurven i stedet for å slette dem permanent</string>
+    <string name="explorer_settings_trash_auto_delete_title">Slett automatisk etter</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Slett elementer automatisk etter så lang tid i papirkurven</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d dager</string>
+    <string name="explorer_settings_trash_max_size_title">Maksimal størrelse per lagringssted</string>
+    <string name="explorer_settings_trash_max_size_summary">Hvor mye plass papirkurven kan bruke på hvert lagringssted</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Periode før automatisk sletting</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Maksimal størrelse per lagringssted</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Aktivere papirkurven?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">I motsetning til datamaskiner har Android ingen innebygd papirkurv. Butler tilbyr en ved å bruke hurtigbuffermappen sin.\n\nHusk:\n• Enhetens lagringsindikator viser ikke frigjort plass før elementene er slettet permanent\n• Hvis enheten får lite lagringsplass, kan Android tømme hurtigbufferen til apper og dermed fjerne filer i papirkurven</string>
+    <string name="explorer_settings_trash_enable_action">Aktiver</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">Fil</string>
+    <string name="explorer_file_symlink_content_desc">Symbolsk lenke</string>
+    <string name="explorer_file_folder_content_desc">Mappe</string>
+    <string name="explorer_file_peek_content_desc">Laster filinformasjon</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Snarvei</string>
+    <string name="explorer_file_storage_local_label">Lokal</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Kun lesetilgang</string>
+    <string name="explorer_file_storage_saf_write_only_label">Kun skrivetilgang</string>
+    <string name="explorer_file_storage_saf_no_access_label">Ingen tilgang</string>
+    <string name="explorer_file_storage_saf_uri_label">URI for SAF-tre</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s totalt • %3$s ledig</string>
+    <string name="explorer_file_broken_link_label">Brutt lenke</string>
+    <string name="explorer_file_items_count">%1$d elementer</string>
+    <string name="explorer_file_empty">Tom</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · delvis</string>
+    <string name="explorer_sizes_estimate_description">Anslått ut fra Androids totale lagringsverdier. For filer som ikke kan leses, brukes opptatt lagringsplass som et anslag på filstørrelsen. Skjulte filer som administreres av Android, kan også være inkludert. Andre plasseringer som ikke kan leses, forblir ukjente.</string>
+    <string name="explorer_sizes_estimate_coverage">Størrelsen på Android/data kunne ikke anslås fordi andre deler av lagringsplassen ikke kunne måles fullstendig.</string>
+    <string name="explorer_sizes_estimate_unavailable">Androids lagringsstatistikk var ikke tilgjengelig. Målte størrelser vises fortsatt.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Androids totale lagringsverdier stemte ikke overens med skanningen. Målte størrelser vises fortsatt.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Velg mappe</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="one">Velg mappe (%d)</item>
+        <item quantity="other">Velg mapper (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Velg fil</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="one">Velg fil (%d)</item>
+        <item quantity="other">Velg filer (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="one">Velg element (%d)</item>
+        <item quantity="other">Velg elementer (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Velg denne mappen</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">Velg %d</item>
+        <item quantity="other">Velg %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Lagre fil</string>
+    <string name="explorer_picker_save_here_action">Lagre her</string>
+    <string name="explorer_picker_save_as_filename_label">Filnavn</string>
+    <string name="explorer_picker_save_as_filename_hint">Skriv inn filnavn</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Oppdater</string>
+    <string name="explorer_action_calculate_sizes">Beregn størrelser</string>
+    <string name="explorer_action_sort">Sorter</string>
+    <string name="explorer_action_filter">Filtrer</string>
+    <string name="explorer_action_view">Visning</string>
+    <string name="explorer_action_create">Opprett</string>
+    <string name="explorer_action_rename">Gi nytt navn</string>
+    <string name="explorer_action_copy">Kopier</string>
+    <string name="explorer_action_cut">Klipp ut</string>
+    <string name="explorer_action_delete">Slett</string>
+    <string name="explorer_action_select_all">Velg alle</string>
+    <string name="explorer_action_deselect_all">Fjern alle valg</string>
+    <string name="explorer_action_compress">Komprimer</string>
+    <string name="explorer_action_extract">Pakk ut</string>
+    <string name="explorer_action_add_location">Legg til plassering</string>
+    <string name="explorer_action_info">Info</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Informasjon</string>
+    <string name="explorer_info_name_label">Navn</string>
+    <string name="explorer_info_path_label">Sti</string>
+    <string name="explorer_info_type_label">Type</string>
+    <string name="explorer_info_type_file">Fil</string>
+    <string name="explorer_info_type_directory">Mappe</string>
+    <string name="explorer_info_size_label">Størrelse</string>
+    <string name="explorer_info_modified_label">Endret</string>
+    <string name="explorer_info_created_label">Opprettet</string>
+    <string name="explorer_info_permissions_label">Tillatelser</string>
+    <string name="explorer_info_owner_label">Eier</string>
+    <string name="explorer_info_child_count_label">Elementer</string>
+    <string name="explorer_info_symlink_target_label">Mål</string>
+    <string name="explorer_info_symlink_status_label">Status</string>
+    <string name="explorer_info_symlink_broken">Brutt lenke</string>
+    <string name="explorer_info_unknown">Ukjent</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Slettet</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Tillatelser</string>
+    <string name="explorer_info_saf_granted_label">Gitt</string>
+    <string name="explorer_info_saf_permission_read">Lese</string>
+    <string name="explorer_info_saf_permission_write">Skrive</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Server</string>
+    <string name="explorer_info_network_port_label">Port</string>
+    <string name="explorer_info_network_share_label">Delt ressurs</string>
+    <string name="explorer_info_network_folder_label">Mappe</string>
+    <string name="explorer_info_network_address_label">Adresse</string>
+    <string name="explorer_info_network_status_label">Status</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Innlogging</string>
+    <string name="explorer_info_network_domain_label">Domene</string>
+    <string name="explorer_info_network_password_label">Passord</string>
+    <string name="explorer_info_network_password_show_action">Vis passord</string>
+    <string name="explorer_info_network_password_hide_action">Skjul passord</string>
+    <string name="explorer_info_network_password_missing">Mangler, logg inn på nytt</string>
+    <string name="explorer_info_network_password_locked">Lagret, men denne enheten kan ikke låse det opp</string>
+    <string name="explorer_info_network_added_label">Lagt til</string>
+    <string name="explorer_info_network_updated_label">Oppdatert</string>
+    <string name="explorer_info_network_last_seen_label">Sist sett</string>
+    <string name="explorer_info_network_last_seen_never">Aldri</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Valgt</string>
+    <string name="explorer_info_files_label">Filer</string>
+    <string name="explorer_info_directories_label">Mapper</string>
+    <string name="explorer_info_total_size_label">Total størrelse</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Plasseringer</string>
+    <string name="explorer_info_shortcuts_label">Snarveier</string>
+    <string name="explorer_info_total_capacity_label">Total kapasitet</string>
+    <string name="explorer_info_used_space_label">Brukt plass</string>
+    <string name="explorer_info_free_space_label">Ledig plass</string>
+    <string name="explorer_info_usage_label">Bruk</string>
+    <string name="explorer_info_device_storage_total_label">Enhetslagring</string>
+    <string name="explorer_info_device_storage_used_label">Brukt</string>
+    <string name="explorer_info_device_storage_free_label">Ledig</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Hjem</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Sett som hjem</string>
+    <string name="explorer_breadcrumb_copy_path_action">Kopier sti</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Sti kopiert til utklippstavlen</string>
+    <string name="explorer_navigation_device">Enhet</string>
+    <string name="explorer_navigation_network">Nettverk</string>
+    <string name="explorer_navigation_recent">Nylig</string>
+    <string name="explorer_navigation_recent_desc">Filer som nylig dukket opp på denne enheten</string>
+    <string name="explorer_navigation_trash">Papirkurv</string>
+    <string name="explorer_navigation_trash_desc">Gjenopprett slettede filer</string>
+    <string name="explorer_navigation_trash_nested_desc">Inne i mappe i papirkurven</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Ingen slettede elementer</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d element</item>
+        <item quantity="other">%d elementer</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Gjenopprett</string>
+    <string name="explorer_trash_restore_selected_action">Gjenopprett valgte</string>
+    <string name="explorer_trash_delete_permanently_action">Slett permanent</string>
+    <string name="explorer_trash_delete_selected_action">Slett valgte</string>
+    <string name="explorer_trash_empty_trash_action">Tøm papirkurven</string>
+    <string name="explorer_trash_empty_confirm">Tømme papirkurven?</string>
+    <string name="explorer_trash_empty_message">Alle elementer i papirkurven blir slettet permanent. Denne handlingen kan ikke angres.</string>
+    <string name="explorer_trash_empty_confirm_action">Tøm papirkurven</string>
+    <string name="explorer_trash_restore_desc">Gjenopprett til opprinnelig plassering</string>
+    <string name="explorer_trash_item_unavailable">Elementet er ikke tilgjengelig</string>
+    <string name="explorer_trash_delete_warning">Denne handlingen kan ikke angres</string>
+    <string name="explorer_trash_disabled_warning">Papirkurven er deaktivert</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Laster innholdet i mappen i papirkurven…</string>
+    <string name="explorer_trash_nested_restore_action">Gjenopprett til opprinnelig plassering</string>
+    <string name="explorer_trash_nested_delete_action">Slett permanent</string>
+    <string name="explorer_trash_nested_restore_conflict">Filen finnes allerede på opprinnelig plassering</string>
+    <string name="explorer_trash_nested_parent_missing">Det overordnede elementet finnes ikke lenger i papirkurven</string>
+    <string name="explorer_trash_nested_path_missing">Stien finnes ikke lenger</string>
+    <string name="explorer_trash_error_items_not_found">Fant ikke elementene i papirkurven</string>
+    <string name="explorer_trash_error_restore_failed">Kunne ikke gjenopprette elementene</string>
+    <string name="explorer_trash_error_delete_failed">Kunne ikke slette elementene</string>
+    <string name="explorer_trash_nested_error_restore_failed">Kunne ikke gjenopprette %1$s</string>
+    <string name="explorer_trash_nested_error_delete_failed">Kunne ikke slette %1$s</string>
+
+    <string name="explorer_navigation_root">Rotmappe</string>
+    <string name="explorer_navigation_rom">System-ROM</string>
+    <string name="explorer_navigation_internal_storage">Intern offentlig lagring</string>
+    <string name="explorer_navigation_external_storage">Ekstern offentlig lagring</string>
+
+    <string name="explorer_loader_progress_directory_loading">Blar gjennom %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Kontrollerer tillatelser</string>
+    <string name="explorer_loader_progress_directory_filesystem">Henter filsysteminformasjon</string>
+    <string name="explorer_loader_progress_directory_content">Laster mappeinnhold</string>
+    <string name="explorer_loader_progress_directory_content_details">Laster innholdsdetaljer</string>
+    <string name="explorer_loader_progress_directory_content_extended">Laster utvidede innholdsdetaljer</string>
+
+    <string name="explorer_loader_progress_device_loading">Laster enhet</string>
+    <string name="explorer_loader_progress_device_locations">Laster lagringssteder</string>
+
+    <string name="explorer_loader_progress_network_loading">Laster nettverkslagring</string>
+
+    <string name="explorer_loader_progress_home_loading">Laster hjem</string>
+    <string name="explorer_loader_progress_trash_loading">Laster papirkurven…</string>
+    <string name="explorer_loader_progress_recent_loading">Laster nylige filer…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d snarvei</item>
+        <item quantity="other">%d snarveier</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d plassering</item>
+        <item quantity="other">%d plasseringer</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d skjult</item>
+        <item quantity="other">%d skjulte</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s ledig</string>
+    <string name="explorer_infobar_loading">Laster…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Opprett nytt element</string>
+    <string name="explorer_dialog_rename_title">Gi nytt navn</string>
+    <string name="explorer_dialog_name_label">Navn</string>
+    <string name="explorer_dialog_type_label">Type</string>
+    <string name="explorer_dialog_type_folder">Mappe</string>
+    <string name="explorer_dialog_type_file">Fil</string>
+    <string name="explorer_dialog_create_text_file_title">Opprett fil fra tekst</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Forhåndsvisning</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d tegn</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Legg til lagringssted</string>
+    <string name="explorer_add_device_storage_desc">Bruk Storage Access Framework (SAF) for å gi Butler tilgang til flere lagringssteder, som USB-stasjoner, virtuelle appmapper og mer.</string>
+    <string name="explorer_add_device_storage_continue">Fortsett</string>
+    <string name="explorer_add_device_storage_cancel">Avbryt</string>
+    <string name="explorer_add_device_storage_suggestions_title">Apper med lagring</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Åpner mappen til denne appen</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Fjern plassering</string>
+    <string name="explorer_device_remove_confirmation_title">Fjerne lagringssted?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">Fjerne %1$d lagringssted?</item>
+        <item quantity="other">Fjerne %1$d lagringssteder?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Dette vil trekke tilbake Butlers tilgang til denne plasseringen. Filene dine blir ikke slettet.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d nettverksplassering</item>
+        <item quantity="other">%d nettverksplasseringer</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Nettverk</string>
+    <string name="explorer_network_add_location_action">Legg til nettverkslagring</string>
+    <string name="explorer_network_edit_location_action">Rediger nettverkslagring</string>
+    <string name="explorer_network_remove_location_action">Fjern nettverkslagring</string>
+    <string name="explorer_network_sign_in_required_label">Innlogging kreves</string>
+    <string name="explorer_network_status_checking_label">Kontrollerer…</string>
+    <string name="explorer_network_status_available_label">Tilgjengelig</string>
+    <string name="explorer_network_status_unavailable_label">Utilgjengelig</string>
+    <string name="explorer_network_status_unavailable_since_format">Utilgjengelig (%1$s)</string>
+    <string name="explorer_network_empty_title">Ingen nettverkslagring ennå</string>
+    <string name="explorer_network_empty_caption">Legg til en delt Windows-ressurs eller NAS-mappe for å bla gjennom den her.</string>
+    <string name="explorer_network_form_pro_notice">Det er gratis å legge til og teste en plassering. Du trenger Butler Pro for å bla gjennom den.</string>
+    <string name="explorer_network_upgrade_hint_saved">Lagret. Du trenger Butler Pro for å bla gjennom nettverkslagring.</string>
+    <string name="explorer_network_upgrade_hint_locked">Du trenger Butler Pro for å bla gjennom nettverkslagring.</string>
+    <string name="explorer_network_remove_confirmation_title">Fjerne nettverkslagring?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">Fjerne %1$d nettverkslagringssted?</item>
+        <item quantity="other">Fjerne %1$d nettverkslagringssteder?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler glemmer serverdetaljene og det lagrede passordet. Ingenting på serveren blir slettet.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Legg til nettverkslagring</string>
+    <string name="explorer_network_form_edit_title">Rediger nettverkslagring</string>
+    <string name="explorer_network_form_label_label">Navn (valgfritt)</string>
+    <string name="explorer_network_form_host_label">Serveradresse</string>
+    <string name="explorer_network_form_host_hint">nas.local eller 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Port</string>
+    <string name="explorer_network_form_share_label">Delt ressurs</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Mappe i den delte ressursen (valgfritt)</string>
+    <string name="explorer_network_form_auth_guest">Gjest</string>
+    <string name="explorer_network_form_auth_password">Brukernavn og passord</string>
+    <string name="explorer_network_form_username_label">Brukernavn</string>
+    <string name="explorer_network_form_domain_label">Domene (valgfritt)</string>
+    <string name="explorer_network_form_password_label">Passord</string>
+    <string name="explorer_network_form_password_kept_hint">La stå tomt for å beholde det lagrede passordet</string>
+    <string name="explorer_network_form_remember_label">Husk passord</string>
+    <string name="explorer_network_form_remember_hint">Lagres kryptert kun på denne enheten</string>
+    <string name="explorer_network_form_test_and_save_action">Test og lagre</string>
+    <string name="explorer_network_form_testing">Kobler til…</string>
+    <string name="explorer_network_form_error_host_blank">Skriv inn en serveradresse</string>
+    <string name="explorer_network_form_error_host_not_bare">Skriv inn bare serveradressen, uten protokollprefiks eller sti</string>
+    <string name="explorer_network_form_error_host_malformed">Dette er ikke en gyldig serveradresse</string>
+    <string name="explorer_network_form_error_port">Skriv inn en port mellom 1 og 65535</string>
+    <string name="explorer_network_form_error_share_blank">Skriv inn navnet på en delt ressurs</string>
+    <string name="explorer_network_form_error_share_not_single">Skriv inn bare navnet på den delte ressursen, og angi undermapper nedenfor</string>
+    <string name="explorer_network_form_error_share_malformed">Dette er ikke et gyldig navn på en delt ressurs</string>
+    <string name="explorer_network_form_error_base_path">Denne mappestien kan ikke brukes</string>
+    <string name="explorer_network_form_error_username_blank">Skriv inn et brukernavn</string>
+    <string name="explorer_network_form_error_password_required">Skriv inn passordet på nytt for å endre brukernavn eller domene</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Gi plasseringen et navn</string>
+    <string name="explorer_location_name_label">Plasseringsnavn</string>
+    <string name="explorer_location_name_hint">La stå tomt for å bruke standardnavnet</string>
+    <string name="explorer_location_rename_action">Gi plasseringen nytt navn</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Lagt til det siste døgnet</item>
+        <item quantity="other">Lagt til de siste %d dagene</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Ingenting nytt her</string>
+    <string name="explorer_recent_empty_message">Filer som dukker opp på denne enheten, vises her</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Denne mappen er tom</string>
+    <string name="explorer_empty_search_title">Ingen søkeresultater</string>
+    <string name="explorer_empty_search_caption">Prøv et annet søkeord</string>
+    <string name="explorer_empty_folder_label">Tom mappe</string>
+    <string name="explorer_empty_filtered_title">Ingen samsvarende elementer</string>
+    <string name="explorer_empty_filtered_caption">Prøv å justere filtrene dine</string>
+    <string name="explorer_empty_hidden_title">Bare skjulte elementer her</string>
+    <string name="explorer_empty_hidden_caption">Denne fanen skjuler elementer med navn som starter med et punktum</string>
+    <string name="explorer_empty_show_hidden_action">Vis skjulte elementer</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Ingenting igjen å vise</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Skjulte elementer og filtrene dine utelater hver sin del av denne mappen</string>
+    <string name="explorer_empty_clear_filters_action">Fjern filtre</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Skjulte elementer og filtre utelater alt her</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Vis skjulte elementer og fjern filtrene for denne fanen for å få dem tilbake</string>
+    <string name="explorer_empty_show_all_action">Vis alle elementer</string>
+    <string name="explorer_path_not_found_title">Denne mappen er borte</string>
+    <string name="explorer_path_not_found_caption">Den ble slettet, fikk nytt navn eller ble flyttet et annet sted.</string>
+    <string name="explorer_path_not_found_back_action">Gå tilbake</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Laster…</string>
+    <string name="explorer_file_peek_loading_text">Laster…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Ingenting å se her… gå videre 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Denne mappen er på slankekur</string>
+    <string name="explorer_empty_folder_caption_3">Til og med filene gikk hjem tidlig i dag</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe har sluttet å virke</string>
+    <string name="explorer_empty_folder_caption_5">Filene leker gjemsel</string>
+    <string name="explorer_empty_folder_caption_6">404: Filer ikke funnet</string>
+    <string name="explorer_empty_folder_caption_7">Denne mappen har tillitsproblemer</string>
+    <string name="explorer_empty_folder_caption_8">Filene dro på ferie uten å si fra</string>
+    <string name="explorer_empty_folder_caption_9">Tom som sjelen min… men mer organisert</string>
+    <string name="explorer_empty_folder_caption_10">Den digitale utgaven av busker som triller i vinden</string>
+    <string name="explorer_empty_folder_caption_11">Filene holder sosial avstand</string>
+    <string name="explorer_empty_folder_caption_12">Denne mappen praktiserer minimalisme</string>
+    <string name="explorer_empty_folder_caption_13">Noen glemte å mate filene</string>
+    <string name="explorer_empty_folder_caption_14">Filene har forlatt bygningen</string>
+    <string name="explorer_empty_folder_caption_15">Tommere enn et løfte fra en politiker</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Sorter etter</string>
+    <string name="explorer_sort_mode_name_label">Navn</string>
+    <string name="explorer_sort_mode_size_label">Størrelse</string>
+    <string name="explorer_sort_mode_modified_label">Endringsdato</string>
+    <string name="explorer_sort_mode_created_label">Opprettelsesdato</string>
+    <string name="explorer_sort_descending_label">Synkende rekkefølge</string>
+    <string name="explorer_sort_scope_label">Bruk på</string>
+    <string name="explorer_sort_scope_all_folders">Alle mapper</string>
+    <string name="explorer_sort_scope_this_folder">Denne mappen</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Denne mappen og undermapper</string>
+    <string name="explorer_sort_scope_use_default_here">Bruk standard her</string>
+    <string name="explorer_sort_only_this_tab_label">Bare for denne fanen</string>
+    <string name="explorer_sort_inherited_notice">Sortert etter en regel lagret for %1$s</string>
+    <string name="explorer_sort_suppressed_notice">Dette overstyrer regelen lagret for %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Denne fanen bruker sin egen standard sorteringsrekkefølge</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Fjern</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Mappestørrelser</string>
+    <string name="explorer_sizes_sheet_label_calculated">Beregnet</string>
+    <string name="explorer_sizes_sheet_label_folders">Mapper</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Plasseringer som ikke kan leses</string>
+    <string name="explorer_sizes_sheet_problems_more">%1$d til er ikke oppført</string>
+    <string name="explorer_sizes_sheet_recalculate">Beregn på nytt</string>
+    <string name="explorer_sizes_sheet_discard">Forkast størrelser</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Hvordan elementene ordnes, og hvor mange detaljer de viser</string>
+    <string name="explorer_view_mode_list_label">Liste</string>
+    <string name="explorer_view_mode_grid_label">Rutenett</string>
+    <string name="explorer_view_density_compact_label">Kompakt</string>
+    <string name="explorer_view_density_comfortable_label">Romslig</string>
+    <string name="explorer_view_density_detailed_label">Detaljert</string>
+    <string name="explorer_view_show_hidden_label">Vis skjulte filer</string>
+    <string name="explorer_view_set_default_action">Sett som standard</string>
+    <string name="explorer_view_detail_created_label">Opprettet</string>
+    <string name="explorer_view_detail_modified_label">Endret</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Sorteringsregler for mapper</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Sorteringsinnstillinger du har lagret for enkeltmapper</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Fjerne sorteringsregler for mapper?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Alle mapper går tilbake til standard sorteringsrekkefølge. Faner med egen overstyring av sorteringen beholder den. Denne handlingen kan ikke angres.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Fjern alle</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Filtype</string>
+    <string name="explorer_filter_type_all">Alle</string>
+    <string name="explorer_filter_type_files">Bare filer</string>
+    <string name="explorer_filter_type_folders">Bare mapper</string>
+    <string name="explorer_filter_include_label">Inkluderingsmønster</string>
+    <string name="explorer_filter_include_placeholder_simple">f.eks. ferie, rapport, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">f.eks. .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Ekskluderingsmønster</string>
+    <string name="explorer_filter_exclude_placeholder_simple">f.eks. tmp, cache, gammel</string>
+    <string name="explorer_filter_exclude_placeholder_regex">f.eks. ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Aktiver regulære uttrykk i innstillingene</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Tillatelse kreves</string>
+    <string name="explorer_permission_generic_description">Butler trenger en ekstra tillatelse for å bla gjennom denne plasseringen.</string>
+    <string name="explorer_permission_setup_action">Åpne oppsett</string>
+    <string name="explorer_grant_access_action">Gi tilgang</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Handlinger</string>
+    <string name="explorer_file_info_type_label">Type</string>
+    <string name="explorer_file_info_size_label">Størrelse</string>
+    <string name="explorer_file_info_modified_label">Endret</string>
+    <string name="explorer_file_action_install">Installer</string>
+    <string name="explorer_file_action_install_subtitle">Installer denne appen på enheten din</string>
+    <string name="explorer_file_action_open">Åpne</string>
+    <string name="explorer_file_action_open_subtitle">Vis her, tilbake tar deg til denne mappen</string>
+    <string name="explorer_file_action_open_in_tab">Åpne i ny fane</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Vis i Butler som en egen fane</string>
+    <string name="explorer_file_action_open_in_editor">Åpne i tekstredigering</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Rediger i en ny fane</string>
+    <string name="explorer_file_action_open_with">Åpne med</string>
+    <string name="explorer_file_action_open_with_subtitle">Velg en ekstern app for å åpne filen</string>
+    <string name="explorer_file_action_share">Del</string>
+    <string name="explorer_file_action_share_subtitle">Del via installerte apper</string>
+    <string name="explorer_file_action_copy">Kopier</string>
+    <string name="explorer_file_action_copy_subtitle">Kopier til utklippstavlen for å lime inn</string>
+    <string name="explorer_file_action_cut">Klipp ut</string>
+    <string name="explorer_file_action_cut_subtitle">Flytt til utklippstavlen for å lime inn</string>
+    <string name="explorer_file_action_rename">Gi nytt navn</string>
+    <string name="explorer_file_action_rename_subtitle">Endre filnavnet</string>
+    <string name="explorer_file_action_delete">Slett</string>
+    <string name="explorer_file_action_delete_subtitle">Fjern denne filen permanent</string>
+    <string name="explorer_file_action_move_to_trash">Flytt til papirkurven</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Flytt filen til papirkurven</string>
+    <string name="explorer_file_action_properties">Egenskaper</string>
+    <string name="explorer_file_action_properties_subtitle">Vis detaljert filinformasjon</string>
+    <string name="explorer_file_action_extract">Pakk ut</string>
+    <string name="explorer_file_action_extract_subtitle">Pakk ut arkivinnholdet til en mappe</string>
+    <string name="explorer_file_action_show_in_folder">Vis i mappe</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Åpne mappen denne filen ligger i</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">%d fil opprettet.</item>
+        <item quantity="other">%d filer opprettet.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">%d mappe opprettet.</item>
+        <item quantity="other">%d mapper opprettet.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Kopieringsoperasjon</string>
+    <string name="explorer_operation_copy_description_single">Kopier \"%1$s\" fra \"%2$s\" til \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">Kopier %1$d element til \"%2$s\".</item>
+        <item quantity="other">Kopier %1$d elementer til \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%d fil kopiert.</item>
+        <item quantity="other">%d filer kopiert.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%d mappe kopiert.</item>
+        <item quantity="other">%d mapper kopiert.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">%s kopiert.</item>
+        <item quantity="other">%s kopiert.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Utpakkingsoperasjon</string>
+    <string name="explorer_operation_extract_description">Pakk ut \"%1$s\" til \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Lokal kopieringsoperasjon</string>
+    <string name="explorer_operation_download_copy_description">Kopier \"%1$s\" til \"%2$s\" for å bla gjennom lokalt.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">%d fil pakket ut.</item>
+        <item quantity="other">%d filer pakket ut.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">%s pakket ut.</item>
+        <item quantity="other">%s pakket ut.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Komprimeringsoperasjon</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">Komprimer %1$d element til \"%2$s\".</item>
+        <item quantity="other">Komprimer %1$d elementer til \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">%d fil komprimert.</item>
+        <item quantity="other">%d filer komprimert.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Opprett arkiv</string>
+    <string name="explorer_compress_dialog_name_label">Arkivnavn</string>
+    <string name="explorer_compress_dialog_format_label">Format</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Kan åpnes på alle enheter. Kan beskyttes med passord.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Mindre størrelse for mange filer. Ingen passordbeskyttelse.</string>
+    <string name="explorer_compress_dialog_create_action">Opprett</string>
+    <string name="explorer_compress_dialog_level_label">Komprimeringsnivå</string>
+    <string name="explorer_compress_dialog_level_fast">Rask</string>
+    <string name="explorer_compress_dialog_level_normal">Normal</string>
+    <string name="explorer_compress_dialog_level_best">Best</string>
+    <string name="explorer_compress_dialog_password_label">Passord (valgfritt)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Bekreft passord</string>
+    <string name="explorer_compress_dialog_password_mismatch">Passordene stemmer ikke overens</string>
+    <string name="explorer_compress_dialog_password_weak">Svakt passord</string>
+    <string name="explorer_compress_dialog_password_notice">Filinnholdet er kryptert, men ikke filnavnene.</string>
+    <string name="explorer_compress_dialog_password_show">Vis passord</string>
+    <string name="explorer_compress_dialog_password_hide">Skjul passord</string>
+    <string name="explorer_compress_dialog_overwrite_title">Erstatte arkivet?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" finnes allerede og vil bli erstattet.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Erstatt</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">Slippe %1$d element?</item>
+        <item quantity="other">Slippe %1$d elementer?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">Kopiere eller flytte %1$d element til \"%2$s\"?</item>
+        <item quantity="other">Kopiere eller flytte %1$d elementer til \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">Kopiere %1$d element til \"%2$s\"?</item>
+        <item quantity="other">Kopiere %1$d elementer til \"%2$s\"?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Flytte til papirkurven?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">Flytte %1$d element til papirkurven?</item>
+        <item quantity="other">Flytte %1$d elementer til papirkurven?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Flytteoperasjon</string>
+    <string name="explorer_operation_move_description_single">Flytt \"%1$s\" fra \"%2$s\" til \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">Flytt %1$d element til \"%2$s\".</item>
+        <item quantity="other">Flytt %1$d elementer til \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%d fil flyttet.</item>
+        <item quantity="other">%d filer flyttet.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%d mappe flyttet.</item>
+        <item quantity="other">%d mapper flyttet.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">%s flyttet.</item>
+        <item quantity="other">%s flyttet.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Mappeoppretting</string>
+    <string name="explorer_operation_create_description_directory">Opprett mappen \"%1$s\" i \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Filoppretting</string>
+    <string name="explorer_operation_create_description_file">Opprett filen \"%1$s\" i \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Oppretting av tekstfil</string>
+    <string name="explorer_operation_create_text_file_description">Opprett \"%1$s\" fra tekstutdrag</string>
+    <string name="explorer_operation_calculate_sizes_title">Størrelsesberegning</string>
+    <string name="explorer_operation_calculate_sizes_description">Beregn mappestørrelser i \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$d element skannet</item>
+        <item quantity="other">%1$d elementer skannet</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Beregnet størrelsene på %1$d mapper.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">Beregnet størrelsene på %1$d mapper, %2$d plassering kunne ikke leses.</item>
+        <item quantity="other">Beregnet størrelsene på %1$d mapper, %2$d plasseringer kunne ikke leses.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Mappestørrelsene for \"%1$s\" ble forkastet fordi mappen ble endret under beregningen.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Navigasjonen mislyktes</string>
+    <string name="explorer_aborted_dialog_title">Operasjonen ble avbrutt</string>
+    <string name="explorer_aborted_dialog_message">Lastingen ble avbrutt før noe kunne vises.</string>
+    <string name="explorer_archive_unbrowsable_title">Kan ikke bla gjennom arkivet her</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" ligger på et lagringssted som bare støtter sekvensiell lesing, men det å bla gjennom et arkiv krever direkte tilgang til vilkårlige deler av filen. Pakk ut arkivet her, eller last ned en lokal kopi for å bla gjennom det.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Pakk ut arkiv</string>
+    <string name="explorer_archive_unbrowsable_download_action">Last ned lokal kopi</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (spesiell tilgang)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (spesiell tilgang)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android begrenser tilgangen til denne mappen. Bruk mappevelgeren for å gi tilgang.</string>
+    <string name="explorer_permission_multiple_options_description">Du kan gi tilgang med Androids mappevelger eller sette opp root- eller ADB-tilgang for raskere tilgang til alle mapper med begrenset tilgang.</string>
+    <string name="explorer_permission_multiple_options_root_description">Du kan gi tilgang med Androids mappevelger eller sette opp root for tilgang til alle mapper med begrenset tilgang.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Du kan gi tilgang med Androids mappevelger eller sette opp ADB-tilgang for raskere tilgang til mapper med begrenset tilgang.</string>
+    <string name="explorer_permission_setup_both_description">Denne mappen krever utvidede tilgangsrettigheter. Sett opp root- eller ADB-tilgang i oppsettet.</string>
+    <string name="explorer_permission_setup_shizuku_description">Denne mappen krever utvidede tilgangsrettigheter via ADB. Konfigurer ADB-tilgang i oppsettet.</string>
+    <string name="explorer_permission_setup_root_description">Denne mappen krever root-tilgang. Konfigurer root i oppsettet hvis enheten din er rootet.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Bruk Androids mappevelger for å gi tilgang til denne mappen.</string>
+    <string name="explorer_permission_option_picker_action">Åpne SAF-velger</string>
+
+    <string name="explorer_permission_option_setup_title">Full tilgang</string>
+    <string name="explorer_permission_option_setup_description">Konfigurer root- eller ADB-tilgang for raskere tilgang til alle mapper med begrenset tilgang.</string>
+    <string name="explorer_permission_option_setup_root_description">Konfigurer root for tilgang til denne mappen og andre mapper med begrenset tilgang.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Konfigurer ADB-tilgang for å åpne denne mappen.</string>
+    <string name="explorer_permission_option_setup_action">Konfigurer</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Lagringstilgang</string>
+    <string name="explorer_permission_option_storage_description">Gi Butler tillatelse til å få tilgang til filer på enhetens lagringsplass.</string>
+    <string name="explorer_permission_option_storage_action">Gi tillatelse</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Favoritter</string>
+    <string name="explorer_action_add_to_favorites">Legg til i favoritter</string>
+    <string name="explorer_action_remove_from_favorites">Fjern fra favoritter</string>
+    <string name="explorer_favorites_select_action">Velg</string>
+    <string name="explorer_favorites_unavailable_subtitle">Ikke tilgjengelig</string>
+    <string name="explorer_favorites_unavailable_toast">Favoritten er ikke tilgjengelig</string>
+    <string name="explorer_favorites_added_message">Lagt til %1$s i favoritter</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">Lagt til %1$d element i favoritter</item>
+        <item quantity="other">Lagt til %1$d elementer i favoritter</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">Fjernet %1$s fra favoritter</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">Fjernet %1$d element fra favoritter</item>
+        <item quantity="other">Fjernet %1$d elementer fra favoritter</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Gi favoritten nytt navn</string>
+    <string name="explorer_favorites_rename_hint">Favorittnavn</string>
+    <string name="explorer_favorites_rename_description">Bare oppføringen i favorittene dine får nytt navn. Selve mappen beholder navnet sitt.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">Denne fanen overstyrer sorteringsrekkefølgen i %1$d mappe</item>
+        <item quantity="other">Denne fanen overstyrer sorteringsrekkefølgen i %1$d mapper</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d mappe</item>
+        <item quantity="other">%1$d mapper</item>
+    </plurals>
+</resources>

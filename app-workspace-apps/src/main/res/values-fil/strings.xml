@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apps Workspace -->
+    <string name="apps_title">Mga app</string>
+    <string name="apps_subtitle">Pamahalaan ang mga naka-install na app</string>
+
+    <!-- Filter Labels -->
+    <string name="apps_filter_app_type_label">Uri ng app</string>
+    <string name="apps_filter_type_all">Lahat</string>
+    <string name="apps_filter_type_user">Mga app ng user</string>
+    <string name="apps_filter_type_system">Mga app ng system</string>
+    <string name="apps_filter_status_label">Kalagayan</string>
+    <string name="apps_filter_status_all">Lahat</string>
+    <string name="apps_filter_status_enabled">Pinagana</string>
+    <string name="apps_filter_status_disabled">Hindi pinagana</string>
+
+    <!-- Sort Options -->
+    <string name="apps_sort_mode_label">Pagbukud-bukurin ayon sa</string>
+    <string name="apps_sort_mode_name_label">Pangalan</string>
+    <string name="apps_sort_mode_size_label">Laki</string>
+    <string name="apps_sort_mode_install_date_label">Petsa ng pag-install</string>
+    <string name="apps_sort_mode_update_date_label">Petsa ng pag-update</string>
+    <string name="apps_sort_mode_package_name_label">Pangalan ng package</string>
+    <string name="apps_sort_descending_label">Pababang pagkakasunod-sunod</string>
+    <string name="apps_sort_mode_size_slowdown_hint">Mas bumabagal ang pag-load kapag kinakalkula ang mga laki ng app</string>
+
+    <!-- Actions -->
+    <string name="apps_action_launch">Buksan</string>
+    <string name="apps_action_open_info">Impormasyon ng app</string>
+    <string name="apps_action_disable">I-disable</string>
+    <string name="apps_action_enable">Paganahin</string>
+    <string name="apps_action_uninstall">I-uninstall</string>
+    <string name="apps_action_clear_data">Burahin ang data</string>
+    <string name="apps_action_export_apk">I-export ang APK</string>
+    <string name="apps_action_browse_path">I-browse ang path</string>
+    <string name="apps_action_share">Ibahagi ang impormasyon</string>
+    <string name="apps_action_refresh">I-refresh</string>
+    <string name="apps_action_sort">Pagbukud-bukurin</string>
+    <string name="apps_action_filter">I-filter</string>
+    <string name="apps_action_select_all">Piliin lahat</string>
+    <string name="apps_action_deselect_all">Alisin ang lahat ng pagpili</string>
+    <string name="apps_action_open_in_tab">Buksan sa tab</string>
+    <string name="apps_action_force_stop">Sapilitang ihinto</string>
+    <string name="apps_action_view">Layout</string>
+
+    <!-- View options -->
+    <string name="apps_view_sheet_subtitle">Pagkakaayos ng mga item at dami ng detalyeng ipinapakita ng mga ito</string>
+    <string name="apps_view_mode_list_label">Listahan</string>
+    <string name="apps_view_mode_grid_label">Grid</string>
+    <string name="apps_view_density_compact_label">Siksik</string>
+    <string name="apps_view_density_comfortable_label">Maluwag</string>
+    <string name="apps_view_density_detailed_label">Detalyado</string>
+    <string name="apps_view_set_default_action">Itakda bilang default</string>
+    <string name="apps_view_detail_dates_label">Na-install %1$s · Na-update %2$s</string>
+
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">Simulan ang app</string>
+    <string name="apps_action_open_info_desc">Tingnan ang detalyadong impormasyon ng system</string>
+    <string name="apps_action_enable_desc">Paganahin ang app na ito</string>
+    <string name="apps_action_disable_desc">I-disable ang app na ito</string>
+    <string name="apps_action_uninstall_desc">Alisin ang app na ito</string>
+    <string name="apps_action_export_apk_desc">I-save ang APK file sa storage</string>
+    <string name="apps_action_share_desc">Ibahagi ang mga detalye ng app bilang teksto</string>
+    <string name="apps_action_force_stop_desc">Ihinto agad ang app</string>
+    <string name="apps_action_clear_data_desc">Burahin ang lahat ng data at setting ng app</string>
+
+    <!-- App Info Labels -->
+    <string name="apps_package_name_label">Package</string>
+    <string name="apps_version_label">Bersyon</string>
+    <string name="apps_size_label">Laki</string>
+    <string name="apps_size_chip_desc">Laki ng app: %1$s</string>
+    <string name="apps_size_permission_hint">Kailangan ng pag-access sa paggamit para sa mga laki ng app</string>
+    <string name="apps_size_permission_body">Ibinibigay lang ng Android ang mga laki ng app, data at cache sa mga app na may pahintulot sa pag-access sa paggamit. Ibigay ang pahintulot na ito para makita ang detalyadong paggamit ng storage ng app na ito.</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">Mga lokasyon ng storage</string>
+    <string name="apps_path_internal_data_label">Panloob na data</string>
+    <string name="apps_path_external_data_label">Panlabas na storage</string>
+    <string name="apps_path_requires_root_label">Kailangan ng root</string>
+    <string name="apps_path_requires_shizuku_label">Kailangan ng ADB access</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Kailangan ng root o ADB access</string>
+    <string name="apps_path_requires_access_label">Kailangan ng karagdagang access</string>
+    <string name="apps_storage_breakdown_label">Detalyadong paggamit ng storage</string>
+    <string name="apps_storage_app_label">App</string>
+
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">Pangkalahatang-ideya</string>
+    <string name="appdetails_tab_packageinfo_label">Impormasyon ng package</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">Bumalik sa mga app</string>
+    <string name="appdetails_close_action">Isara</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_title">Impormasyon ng package</string>
+    <string name="appdetails_packageinfo_view_action">Tingnan ang mga detalye ng package</string>
+    <string name="appdetails_packageinfo_unavailable_msg">Hindi mabasa ang mga detalye ng package ng app.</string>
+    <string name="appdetails_packageinfo_permissions_header">Mga pahintulot (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">Mga sertipiko ng paglagda</string>
+    <string name="appdetails_packageinfo_package_label">Package</string>
+    <string name="appdetails_packageinfo_version_label">Bersyon</string>
+    <string name="appdetails_packageinfo_min_sdk_label">Pinakamababang SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">Target na SDK</string>
+
+    <!-- Empty States -->
+    <string name="apps_empty_no_apps">Walang nakitang app</string>
+    <string name="apps_empty_no_apps_desc">Subukang baguhin ang mga filter</string>
+    <string name="apps_empty_loading">Naglo-load ng mga app…</string>
+
+    <!-- Search -->
+    <string name="apps_search_hint">Maghanap ng mga app</string>
+
+    <!-- Multi-select -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">Pumili ng mga app</item>
+        <item quantity="one">%d napili</item>
+        <item quantity="other">%d na napili</item>
+    </plurals>
+
+    <!-- Info Bar -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="one">%d app ng user</item>
+        <item quantity="other">%d na app ng user</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="one">%d app ng system</item>
+        <item quantity="other">%d na app ng system</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="one">%d napili</item>
+        <item quantity="other">%d na napili</item>
+    </plurals>
+
+    <!-- App Details Sections -->
+    <string name="apps_details_section_actions">Mga pagkilos</string>
+    <string name="apps_details_section_overview">Pangkalahatang-ideya</string>
+    <string name="apps_details_section_storage">Storage</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">Higit pang opsyon</string>
+
+    <!-- App Details package data -->
+    <string name="apps_details_pkgdata_error_title">Hindi ma-load ang data ng app</string>
+    <string name="apps_details_gone_title">Inalis ang app</string>
+    <string name="apps_details_gone_message">Hindi na naka-install ang app na ito sa device na ito.</string>
+    <string name="apps_details_gone_close_action">Isara</string>
+    <string name="apps_details_uninstalled_title">Na-uninstall para sa user na ito</string>
+    <string name="apps_details_uninstalled_message">Hindi na naka-install ang app para sa user na ito, pero nasa device pa rin ang mga file nito.</string>
+
+    <!-- App Details confirmations -->
+    <string name="apps_details_confirm_clear_data_title">Burahin ang data ng app?</string>
+    <string name="apps_details_confirm_clear_data_message">Buburahin ang lahat ng data at setting ng %1$s. Hindi na ito mababawi.</string>
+    <string name="apps_details_confirm_uninstall_title">I-uninstall ang app?</string>
+    <string name="apps_details_confirm_uninstall_message">Aalisin ang %1$s sa device na ito.</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">Uri</string>
+    <string name="apps_type_system">App ng system</string>
+    <string name="apps_type_user">App ng user</string>
+    <string name="apps_status_label">Kalagayan</string>
+    <string name="apps_status_enabled">Pinagana</string>
+    <string name="apps_status_disabled">Hindi pinagana</string>
+    <string name="apps_installed_label">Na-install</string>
+    <string name="apps_updated_label">Huling na-update</string>
+    <string name="apps_target_sdk_label">Target na SDK</string>
+    <string name="apps_min_sdk_label">Pinakamababang SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">Na-install ng</string>
+    <string name="apps_permissions_label">Mga pahintulot</string>
+    <string name="apps_permissions_count">%1$d na pahintulot</string>
+    <string name="apps_data_size_label">Data</string>
+    <string name="apps_cache_size_label">Cache</string>
+    <string name="apps_total_size_label">Kabuuan</string>
+
+    <!-- App Tags -->
+    <string name="apps_tag_system_label">System</string>
+    <string name="apps_tag_disabled_label">Hindi pinagana</string>
+    <string name="apps_tag_updated_label">Na-update</string>
+    <string name="apps_tag_sideloaded_label">Na-install mula sa labas ng app store</string>
+    <string name="apps_tag_split_label">Split APK</string>
+    <string name="apps_tag_debug_label">Debug</string>
+    <string name="apps_tag_user_label">User %1$d</string>
+
+    <!-- Filter Tags (virtual tags for filtering) -->
+    <string name="apps_filter_tag_enabled_label">Pinagana</string>
+    <string name="apps_filter_tag_user_app_label">App ng user</string>
+    <string name="apps_filter_include_label">Dapat tumugma (sa lahat ng napili)</string>
+    <string name="apps_filter_exclude_label">Hindi dapat tumugma</string>
+    <string name="apps_filter_add_action">I-filter</string>
+    <string name="apps_filter_hint">I-tap para isama, i-tap muli para ibukod, i-tap ulit para alisin</string>
+    <plurals name="apps_filter_count">
+        <item quantity="one">%d filter</item>
+        <item quantity="other">%d na filter</item>
+    </plurals>
+
+    <!-- Components Section -->
+    <string name="apps_details_section_components">Mga component</string>
+    <string name="apps_components_activities_label">Mga activity</string>
+    <string name="apps_components_services_label">Mga serbisyo</string>
+    <string name="apps_components_receivers_label">Mga broadcast receiver</string>
+    <string name="apps_components_providers_label">Mga content provider</string>
+    <string name="apps_components_exported">Na-export</string>
+    <string name="apps_components_disabled">Hindi pinagana</string>
+    <string name="apps_components_empty">Walang nakitang component</string>
+    <string name="apps_components_no_matches">Walang component na tumutugma sa “%1$s”</string>
+    <string name="apps_components_and_more">…at %d pa</string>
+    <string name="apps_components_view_all_action">Tingnan ang lahat ng component</string>
+    <string name="apps_components_loading">Naglo-load ng mga component…</string>
+    <string name="apps_components_error">Hindi ma-load ang mga component</string>
+    <string name="apps_components_launch_failed">Hindi mabuksan ang activity</string>
+    <string name="apps_components_kind_activity">Activity</string>
+    <string name="apps_components_kind_service">Serbisyo</string>
+    <string name="apps_components_kind_receiver">Broadcast receiver</string>
+    <string name="apps_components_kind_provider">Content provider</string>
+    <string name="apps_components_search_action">Maghanap ng mga component</string>
+    <string name="apps_components_search_hint">Maghanap ng pangalan o package</string>
+    <string name="apps_components_state_label">Kalagayan</string>
+    <string name="apps_components_state_enabled">Pinagana</string>
+    <string name="apps_components_state_disabled">Hindi pinagana</string>
+    <string name="apps_components_field_type">Uri</string>
+    <string name="apps_components_field_package">Package</string>
+    <string name="apps_components_field_permission">Pahintulot</string>
+    <string name="apps_components_field_write_permission">Pahintulot sa pagsulat</string>
+    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_process">Proseso</string>
+    <string name="apps_components_field_launch_mode">Mode ng pagbubukas</string>
+    <string name="apps_components_launch_action">Buksan</string>
+    <string name="apps_components_copy_name_action">Kopyahin ang pangalan ng component</string>
+    <string name="apps_components_copy_package_action">Kopyahin ang pangalan ng package</string>
+    <string name="apps_components_action_enable">Paganahin ang component</string>
+    <string name="apps_components_action_disable">I-disable ang component</string>
+    <string name="apps_components_action_requires_elevated">Kailangan ng root o ADB access — i-tap para i-set up</string>
+    <string name="apps_components_confirm_enable_title">Paganahin ang mga component?</string>
+    <string name="apps_components_confirm_disable_title">I-disable ang mga component?</string>
+    <string name="apps_components_confirm_enable_message">Papaganahin ang mga sumusunod na component:</string>
+    <string name="apps_components_confirm_disable_message">Idi-disable ang mga sumusunod na component. Maaaring hindi na gumana nang maayos ang app dahil dito.</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="one">%d component ang napili</item>
+        <item quantity="other">%d na component ang napili</item>
+    </plurals>
+
+    <!-- Package operations -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="one">Paganahin ang %d na app</item>
+        <item quantity="other">Paganahin ang %d na app</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="one">I-disable ang %d na app</item>
+        <item quantity="other">I-disable ang %d na app</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="one">Sapilitang ihinto ang %d na app</item>
+        <item quantity="other">Sapilitang ihinto ang %d na app</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="one">I-uninstall ang %d na app</item>
+        <item quantity="other">I-uninstall ang %d na app</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="one">Burahin ang data ng %d na app</item>
+        <item quantity="other">Burahin ang data ng %d na app</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="one">Paganahin ang %d na component</item>
+        <item quantity="other">Paganahin ang %d na component</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="one">I-disable ang %d na component</item>
+        <item quantity="other">I-disable ang %d na component</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="one">%d app</item>
+        <item quantity="other">%d na app</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">Pinagana ang %1$s</string>
+    <string name="apps_operation_disable_summary">Na-disable ang %1$s</string>
+    <string name="apps_operation_force_stop_summary">Inihinto ang %1$s</string>
+    <string name="apps_operation_uninstall_summary">Na-uninstall ang %1$s</string>
+    <string name="apps_operation_clear_data_summary">Nabura ang data ng %1$s</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="one">%1$d component ang pinagana</item>
+        <item quantity="other">%1$d na component ang pinagana</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="one">%1$d component ang na-disable</item>
+        <item quantity="other">%1$d na component ang na-disable</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">Hindi nakumpleto para sa %1$s</string>
+    <string name="apps_operation_single_declined_summary">Tinanggihan ang pag-alis ng %1$s</string>
+    <string name="apps_operation_batch_summary">%1$d sa %2$d ang tapos na</string>
+    <!-- Quoted so the leading separator survives the resource parser -->
+    <string name="apps_operation_batch_summary_failed">" · %1$d ang nabigo"</string>
+    <string name="apps_operation_batch_summary_declined">" · %1$d ang tinanggihan"</string>
+
+    <!-- Generic navigation -->
+    <string name="appdetails_back_generic_action">Bumalik</string>
+</resources>

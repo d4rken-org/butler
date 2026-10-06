@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">نیا</string>
+    <string name="workspace_templates_choose_title">نیا ٹیب</string>
+    <string name="workspace_templates_choose_subtitle">ٹیب کی قسم منتخب کریں۔ میں آپ کی کس طرح مدد کروں؟</string>
+    <string name="workspace_templates_name_tab_action">اس ٹیب کو نام دیں</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">کوئی ٹول چنیں</string>
+    <string name="tour_templates_picker_body">یہ ٹیب منتخب کرنے کی جگہ ہے، چنیں کہ یہ ٹیب کون سا ٹول بنے۔ کسی ٹول کو منتخب کرنے پر یہ ٹیب اسی ٹول میں بدل جاتا ہے۔</string>
+    <string name="tour_templates_butler_button_title">آپ کے ٹیب یہاں رہتے ہیں</string>
+    <string name="tour_templates_butler_button_body">ٹیب کے مینو کے لیے Butler بٹن پر ٹیپ کریں: نیا ٹیب بنائیں، موجودہ ٹیب بند کریں، یا مکمل ٹیب مینیجر کھولیں۔ براہ راست ٹیب مینیجر کھولنے کے لیے اس بٹن کو دبا کر رکھیں۔</string>
+</resources>

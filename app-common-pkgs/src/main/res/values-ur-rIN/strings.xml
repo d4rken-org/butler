@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">ایپس کی نامعتبر فہرست</string>
+    <string name="pkgrepo_invalid_inventory_error_description">سسٹم نے Butler کو انسٹال شدہ ایپس کی ایک نامعتبر فہرست فراہم کی۔</string>
+</resources>

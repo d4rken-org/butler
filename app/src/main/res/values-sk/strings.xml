@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_welcome_title">Vitaj v aplikácii Butler</string>
+    <string name="onboarding_welcome_message">Karty pre súbory.\nPrehliadaj, vyhľadávaj a upravuj — všetko naraz.</string>
+    <string name="onboarding_welcome_subtitle">Otvorený zdrojový kód. Bez reklám. Bez sledovania.\nPrieskumník súborov, ktorý si zaslúžiš.</string>
+    <string name="onboarding_welcome_action">Začať objavovať</string>
+    <string name="onboarding_beta_title">Formuj budúcnosť</string>
+    <string name="onboarding_beta_message">Toto je beta (testovacia) zostava. Pokračuj so zmyslom pre humor a záložným plánom. Nahlás, prosím, problémy, na ktoré narazíš.</string>
+    <string name="onboarding_beta_action">Ničho sa nebojím</string>
+    <string name="onboarding_beta_feature_early_access_title">Prednostný prístup</string>
+    <string name="onboarding_beta_feature_early_access_description">Vyskúšaj najnovšie funkcie skôr než ostatní.</string>
+    <string name="onboarding_beta_feature_influence_title">Priamy vplyv</string>
+    <string name="onboarding_beta_feature_influence_description">Tvoja spätná väzba formuje vývoj aplikácie Butler.</string>
+    <string name="onboarding_beta_feature_feedback_title">Tvorené komunitou</string>
+    <string name="onboarding_beta_feature_feedback_description">Pridaj sa ku komunite skúsených používateľov, ktorí vylepšujú Butler.</string>
+    <string name="onboarding_privacy_title">Súkromie a údaje</string>
+    <string name="onboarding_privacy_message">Butler neobsahuje reklamy a nepredáva údaje používateľov. Tvoje súkromie je pre mňa dôležité.</string>
+    <string name="onboarding_privacy_read_action">Prečítať zásady ochrany súkromia</string>
+    <string name="onboarding_privacy_action">Prijať</string>
+    <string name="onboarding_skip_action">Preskočiť</string>
+    <string name="onboarding_progress_step">%1$d z %2$d</string>
+
+    <string name="onboarding_workspaces_title">Pracuj na kartách</string>
+    <string name="onboarding_workspaces_message">Otvor viac kariet a prepínaj medzi nimi — rovnako ako vo webovom prehliadači.</string>
+    <string name="onboarding_workspaces_action">Pokračovať</string>
+    <string name="onboarding_workspaces_hint">Maj otvorených viac kariet súčasne.</string>
+    <string name="onboarding_workspaces_explorer_title">Prieskumník</string>
+    <string name="onboarding_workspaces_explorer_description">Prehliadaj svoje súbory.</string>
+    <string name="onboarding_workspaces_searcher_title">Vyhľadávanie</string>
+    <string name="onboarding_workspaces_searcher_description">Nájdi, čo hľadáš.</string>
+    <string name="onboarding_workspaces_editor_title">Editor</string>
+    <string name="onboarding_workspaces_editor_description">Upravuj súbory.</string>
+    <string name="onboarding_workspaces_apps_description">Spravuj svoje aplikácie.</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">Nový prieskumník</string>
+    <string name="shortcut_explorer_new_long">Vytvoriť novú kartu prieskumníka</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">Skratky</string>
+    <string name="shortcuts_settings_subtitle">Nastaviť skratky v spúšťači</string>
+    <string name="shortcuts_settings_enabled_title">Povoliť skratky</string>
+    <string name="shortcuts_settings_enabled_subtitle">Zobrazovať často používané položky v spúšťači</string>
+    <string name="shortcuts_settings_auto_remember_title">Pamätať si navštívené cesty</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Automaticky pridávať často navštevované cesty ako skratky</string>
+    <string name="shortcuts_settings_last_accessed_title">Posledný prístup</string>
+    <string name="shortcuts_settings_max_count_title">Maximálny počet skratiek</string>
+    <string name="shortcuts_settings_max_count_summary">Maximálny počet skratiek zobrazených v spúšťači</string>
+    <string name="shortcuts_settings_min_access_title">Minimálny počet prístupov</string>
+    <string name="shortcuts_settings_min_access_summary">Koľkokrát treba otvoriť cestu, kým sa z nej stane skratka</string>
+    <string name="shortcuts_settings_current_title">Aktuálne skratky</string>
+    <string name="shortcuts_settings_current_subtitle">Počet evidovaných skratiek: %d</string>
+    <string name="shortcuts_settings_clear_title">Vymazať históriu skratiek</string>
+    <string name="shortcuts_settings_clear_subtitle">Odstrániť všetky evidované skratky</string>
+    <string name="shortcuts_settings_clear_confirm_title">Vymazať históriu skratiek?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Odstránia sa všetky evidované skratky. Záložky zostanú zachované.</string>
+    <string name="shortcuts_settings_cleared_message">História skratiek bola vymazaná</string>
+    <string name="shortcuts_settings_max_dialog_title">Maximálny počet skratiek</string>
+    <string name="shortcuts_settings_max_dialog_message">Počet skratiek zobrazených v spúšťači (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Minimálny počet prístupov</string>
+    <string name="shortcuts_settings_min_dialog_message">Koľkokrát treba pristúpiť k ceste, kým sa zobrazí ako skratka (1–10)</string>
+
+    <string name="setup_usagestats_title">Štatistiky používania</string>
+    <string name="setup_shizuku_card_title">Prístup cez ADB</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Prístup k upozorneniam</string>
+    <string name="setup_manage_storage_card_title">Správa externého úložiska</string>
+    <string name="setup_inventory_card_title">Zoznam aplikácií</string>
+
+    <string name="setup_title">Nastavenie oprávnení</string>
+    <string name="setup_settings_description">Nastav oprávnenia a funkcie aplikácie.</string>
+    <string name="setup_help_description">Pomoc</string>
+
+    <string name="setup_root_description">Umožňuje prístup k systémovým súborom a chráneným priečinkom na pokročilú správu súborov. Odomyká plný potenciál aplikácie Butler vrátane prístupu k údajom aplikácií a úprav systému. Zariadenie musí mať prístup root.</string>
+    <string name="setup_shizuku_description">Alternatíva k prístupu root, ktorá poskytuje privilegované operácie so súbormi cez zabezpečené API. Umožňuje prístup k obmedzeným priečinkom bez tradičného prístupu root. Vyžaduje nainštalovanú a spustenú aplikáciu Porter alebo Shizuku.</string>
+    <string name="setup_notification_description">Zobrazuje aktuálne informácie o operáciách so súbormi, úlohách na pozadí a priebehu prenosov. Informuje ťa o dokončení operácií alebo výskyte chýb.</string>
+    <string name="setup_usagestats_description">Analyzuje využitie úložiska aplikáciami na identifikáciu veľkých súborov a efektívnu správu priestoru. Všetky údaje zostávajú v tvojom zariadení a nikdy sa neodosielajú.</string>
+    <string name="setup_storage_description">Plný prístup ku všetkým úložiskám zariadenia na rýchle operácie so súbormi a hromadné spracovanie. Umožňuje komplexnú správu súborov bez opakovaných žiadostí o oprávnenia.</string>
+    <string name="setup_inventory_description">Zobrazí všetky nainštalované aplikácie pre funkcie ako extrakcia APK a analýza úložiska. Na zobrazenie úplného zoznamu aplikácií v systéme Android 11+ je toto oprávnenie potrebné.</string>
+
+    <string name="setup_grant_access_label">Udeliť prístup</string>
+    <string name="setup_access_granted_label">Prístup udelený</string>
+    <string name="setup_use_root_label">Použiť root, ak je dostupný</string>
+    <string name="setup_use_shizuku_label">Použiť prístup cez ADB, ak je dostupný</string>
+
+    <string name="setup_status_checking">Kontroluje sa…</string>
+    <string name="setup_status_completed">Nastavené</string>
+    <string name="setup_status_required">Povinné</string>
+    <string name="setup_status_optional">Voliteľné</string>
+    <string name="setup_status_connected">Pripojené</string>
+    <string name="setup_status_not_connected">Nepripojené</string>
+    <string name="setup_status_not_installed">Nenainštalované</string>
+    <string name="setup_status_connecting">Pripája sa…</string>
+    <string name="setup_status_connection_failed">Pripojenie zlyhalo</string>
+    <string name="setup_status_unavailable">Nedostupné</string>
+    <string name="setup_status_permission_denied">Oprávnenie zamietnuté</string>
+    <string name="setup_adb_status_manager_update_required">Vyžaduje sa aktualizácia</string>
+    <string name="setup_adb_status_butler_update_required">Vyžaduje sa aktualizácia aplikácie Butler</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_connected_via">Pripojené cez %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">Aplikácia %1$s zatiaľ neudelila prístup</string>
+    <string name="setup_adb_status_denied_in">Zamietnuté v aplikácii %1$s</string>
+    <string name="setup_adb_open_manager_action">Otvoriť %1$s</string>
+    <string name="setup_adb_install_manager_action">Nainštalovať %1$s</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">Upozornenia ladenia</string>
+    <string name="debug_log_consent_title">Denník ladenia</string>
+    <string name="debug_log_consent_explanation">Táto funkcia zaznamenáva všetko, čo aplikácia robí, do súboru, ktorý možno zdieľať. Vytvorený súbor obsahuje citlivé informácie (napr. názvy súborov a nainštalované aplikácie). Zdieľaj ho len s dôveryhodnými osobami (napr. s vývojárom, ktorý rieši problém).</string>
+    <string name="debug_log_recording_progress">Zaznamenáva sa denník ladenia</string>
+    <string name="debug_log_record_action">Zaznamenať</string>
+    <string name="debug_log_record_full_action">Zaznamenať denník ladenia</string>
+    <string name="debug_log_stop_action">Zastaviť zaznamenávanie</string>
+    <string name="debug_log_screen_title">Záznamník denníka ladenia</string>
+    <string name="debug_log_screen_sensitive_information_message">Vytvorený súbor obsahuje citlivé informácie (napr. názvy súborov a nainštalované aplikácie). Zdieľaj ho len s dôveryhodnými osobami.</string>
+    <string name="debug_log_screen_session_path_label">Cesta relácie ladenia</string>
+    <string name="debug_log_screen_log_files_label">Súbory denníka</string>
+    <string name="debug_log_screen_log_files_ready">Súbory denníka sú pripravené (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Zahodiť</string>
+    <string name="debug_log_file_label">Zaznamenaný súbor denníka</string>
+    <string name="debug_banner_label">ZÁZNAM</string>
+    <string name="debug_banner_label_expanded">Zaznamenáva sa súbor denníka</string>
+    <string name="debug_banner_stop_action">Zastaviť</string>
+    <string name="debug_banner_view_action">Zobraziť</string>
+    <string name="debug_banner_explanation">Zaznamenáva sa činnosť aplikácie. Keď skončíš, zastav zaznamenávanie a zdieľaj denník pri hlásení chýb.</string>
+    <string name="debug_log_short_recording_title">Záznam je veľmi krátky</string>
+    <string name="debug_log_short_recording_message">Denníky ladenia zachytávajú dianie počas zaznamenávania. Spusti zaznamenávanie, zopakuj problém a potom ho zastav. Tento záznam nemusí obsahovať užitočné informácie.</string>
+    <string name="debug_log_short_recording_keep_action">Pokračovať v zaznamenávaní</string>
+
+    <string name="debug_logview_screen_title">Prehliadač denníka</string>
+    <string name="debug_logview_pause_action">Pozastaviť (zmraziť zobrazenie)</string>
+    <string name="debug_logview_resume_action">Pokračovať</string>
+    <string name="debug_logview_copy_action">Kopírovať denník</string>
+    <string name="debug_logview_collapse_action">Zbaliť</string>
+    <string name="debug_logview_close_action">Zavrieť panel denníka</string>
+    <string name="debug_logview_resize_action">Zmeniť veľkosť</string>
+    <string name="debug_logview_more_action">Ďalšie možnosti</string>
+    <string name="debug_logview_level_action">Úroveň záznamov</string>
+    <string name="debug_logview_clear_action">Vymazať vyrovnávaciu pamäť</string>
+    <string name="debug_logview_search_action">Vyhľadať</string>
+    <string name="debug_logview_search_clear_action">Vymazať vyhľadávanie</string>
+    <string name="debug_logview_search_close_action">Zavrieť vyhľadávanie</string>
+    <string name="debug_logview_search_prev_action">Predchádzajúca zhoda</string>
+    <string name="debug_logview_search_next_action">Ďalšia zhoda</string>
+    <string name="debug_logview_jump_to_bottom_action">Prejsť na najnovšie</string>
+    <string name="debug_logview_paused_msg">Pozastavené — zobrazenie je zmrazené</string>
+    <string name="debug_logview_paused_new_msg">Pozastavené — odvtedy nové riadky: %1$d</string>
+    <string name="debug_logview_copied_msg">Denník bol skopírovaný do schránky</string>
+    <string name="debug_logview_copied_truncated_msg">Do schránky boli skopírované posledné riadky: %1$d</string>
+    <string name="debug_logview_share_label">Zdieľať denník</string>
+
+    <string name="settings_label">Nastavenia</string>
+    <string name="settings_category_tools_label">Nástroje</string>
+    <string name="settings_category_other_label">Ostatné</string>
+    <string name="settings_category_integration_label">Integrácia</string>
+    <string name="general_settings_label">Všeobecné</string>
+    <string name="general_settings_desc">Všeobecné úpravy, ktoré ovplyvňujú celú aplikáciu.</string>
+    <string name="settings_category_ui_label">Používateľské rozhranie</string>
+    <string name="ui_mascot_suit_setting_label">Butlerov oblek</string>
+    <string name="ui_mascot_suit_setting_explanation">Farba látky, z ktorej je ušitý Butlerov odev.</string>
+    <string name="ui_theme_mode_setting_label">Režim motívu</string>
+    <string name="ui_theme_mode_setting_explanation">Režim použitý pri vzhľade aplikácie (napr. nočný alebo denný).</string>
+    <string name="ui_theme_style_setting_label">Štýl motívu</string>
+    <string name="ui_theme_style_setting_explanation">Farebný štýl použitý pri vzhľade aplikácie.</string>
+    <string name="ui_theme_color_setting_label">Farba motívu</string>
+    <string name="ui_theme_color_setting_explanation">Farebná paleta použitá pre vzhľad aplikácie.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Farby poskytuje Material You podľa tvojej tapety</string>
+    <string name="ui_theme_color_value_system">Systémové farby</string>
+    <string name="ui_language_override_label">Jazyk aplikácie</string>
+    <string name="ui_language_override_desc">Vyber si pre Butler iný jazyk, nezávislý od predvoleného jazyka systému.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Vyhnúť sa výrezu displeja</string>
+    <string name="ui_display_cutout_avoid_setting_description">Udržiava rozhranie mimo výrezu pre fotoaparát. Vypni túto možnosť, ak chceš využiť väčšiu časť obrazovky, no niektoré časti rozhrania sa potom môžu ocitnúť za výrezom.</string>
+
+    <string name="previews_settings_title">Náhľady</string>
+    <string name="previews_settings_subtitle">Spravuj vyrovnávacie pamäte náhľadov obrázkov.</string>
+
+    <string name="tour_settings_reset_title">Obnoviť prehliadky</string>
+    <string name="tour_settings_reset_subtitle">Znova zobraziť prehliadky vrátane preskočených alebo vypnutých.</string>
+    <string name="tour_settings_reset_done">Prehliadky boli obnovené.</string>
+
+    <string name="storage_settings_title">Úložisko</string>
+    <string name="storage_settings_subtitle">Spravuj vyrovnávacie pamäte, úložisko a kôš aplikácie Butler.</string>
+    <string name="storage_category_previews_label">Náhľady</string>
+    <string name="storage_previews_disk_cache_title">Disková vyrovnávacia pamäť</string>
+    <string name="storage_previews_memory_cache_title">Vyrovnávacia pamäť v RAM</string>
+    <string name="storage_previews_max_size_title">Maximálna veľkosť vyrovnávacej pamäte</string>
+    <string name="storage_clear_disk_confirm_title">Vymazať diskovú vyrovnávaciu pamäť?</string>
+    <string name="storage_clear_disk_confirm_message">Odstránia sa všetky obrázky náhľadov vo vyrovnávacej pamäti. Podľa potreby sa vytvoria znova.</string>
+    <string name="storage_clear_memory_confirm_title">Vymazať vyrovnávaciu pamäť v RAM?</string>
+    <string name="storage_clear_memory_confirm_message">Z pamäte sa odstránia uložené obrázky náhľadov. Podľa potreby sa vytvoria znova.</string>
+    <string name="storage_clear_all_confirm_title">Vymazať všetky vyrovnávacie pamäte?</string>
+    <string name="storage_clear_all_confirm_message">Vymaže sa disková vyrovnávacia pamäť aj vyrovnávacia pamäť v RAM pre obrázky náhľadov.</string>
+    <string name="storage_clear_all_previews_action">Vymazať všetky vyrovnávacie pamäte náhľadov</string>
+    <string name="storage_clear_all_subtitle">Odstrániť všetky vyrovnávacie pamäte náhľadov</string>
+    <string name="storage_cache_cleared_message">Vyrovnávacia pamäť bola vymazaná</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">Kontrolovať aktualizácie</string>
+    <string name="updater_check_enabled_setting_description">Povoliť aplikácii Butler overovať online, či je dostupná nová verzia.</string>
+    <string name="motd_check_enabled_setting_title">Kontrolovať oznamy</string>
+    <string name="motd_check_enabled_setting_description">Povoliť aplikácii Butler získavať dôležité správy od vývojára.</string>
+    <string name="motd_card_header">Oznam</string>
+
+    <string name="confirm_exit_setting_title">Potvrdiť ukončenie</string>
+    <string name="confirm_exit_setting_description">Zobraziť potvrdzovací dialóg pri ukončení aplikácie.</string>
+    <string name="confirm_exit_dialog_title">Ukončiť Butler</string>
+    <string name="confirm_exit_dialog_message">Aplikácia sa zavrie a vrátiš sa na domovskú obrazovku.</string>
+    <string name="confirm_exit_dialog_exit">Ukončiť</string>
+    <string name="confirm_exit_dialog_cancel">Zrušiť</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Viac sa nepýtať</string>
+
+    <string name="settings_support_category_help_label">Získať pomoc</string>
+    <string name="settings_support_label">Podpora</string>
+    <string name="settings_support_description">Prečítaj si dokumentáciu, nahlás problémy, porozprávaj sa s ostatnými alebo zaznamenaj denníky ladenia.</string>
+    <string name="settings_support_wiki_label">Dokumentácia</string>
+    <string name="settings_support_wiki_description">Nauč sa efektívne používať Butler.</string>
+    <string name="settings_support_issue_tracker_description">Verejný systém na hlásenie chýb a návrhov funkcií.</string>
+    <string name="settings_support_issue_tracker_label">Hlásenie problémov</string>
+    <string name="settings_support_debuglog_label">Denník ladenia</string>
+    <string name="settings_support_debuglog_desc">Zaznamenaj všetko, čo aplikácia robí, do textového súboru, ktorý môžeš zdieľať.</string>
+    <string name="settings_support_debuglog_recording_desc">Práve sa zaznamenávajú informácie o ladení. Ťuknutím zastavíš zaznamenávanie.</string>
+    <string name="settings_support_debuglog_path">Cesta denníka: %1$s</string>
+    <string name="settings_support_bugreports_label">Hlásenia chýb</string>
+    <string name="settings_support_bugreports_desc">Zobraz hlásenia pádov, zaznamenaj denníky ladenia a zdieľaj ich so mnou.</string>
+    <string name="support_contact_report_type_crash">Hlásenie pádu</string>
+    <string name="support_contact_report_type_reported">Hlásenie chyby</string>
+    <string name="support_contact_report_type_recording">Záznam</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Miesto na rozhovory a otázky.</string>
+
+    <string name="settings_acknowledgements_label">Poďakovania</string>
+    <string name="settings_acknowledgements_description">Autori, licencie a osobitné poďakovania.</string>
+    <string name="settings_acks_translation_header">Preklad</string>
+    <string name="settings_acks_translators_title">Prekladatelia</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Preložiť Butler</string>
+    <string name="settings_acks_translate_desc">Pomôž preložiť Butler do svojho jazyka.</string>
+
+    <string name="settings_acks_thanks_header">Poďakovanie</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">Za podporu prekladov projektov s otvoreným zdrojovým kódom.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Ďakujem za ikonu, návrhy maskota a animácie.</string>
+    <string name="settings_licenses_label">Licencie</string>
+
+    <!-- Workspace Status Card -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d karta</item>
+        <item quantity="few">%1$d karty</item>
+        <item quantity="many">%1$d karty</item>
+        <item quantity="other">%1$d kariet</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d operácia</item>
+        <item quantity="few">%1$d operácie</item>
+        <item quantity="many">%1$d operácie</item>
+        <item quantity="other">%1$d operácií</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">Vyžaduje pozornosť: %1$d</item>
+        <item quantity="few">Vyžadujú pozornosť: %1$d</item>
+        <item quantity="many">Vyžadujú pozornosť: %1$d</item>
+        <item quantity="other">Vyžaduje pozornosť: %1$d</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">Neuložené: %1$d</item>
+        <item quantity="few">Neuložené: %1$d</item>
+        <item quantity="many">Neuložené: %1$d</item>
+        <item quantity="other">Neuložené: %1$d</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">Pozastavené: %1$d</item>
+        <item quantity="few">Pozastavené: %1$d</item>
+        <item quantity="many">Pozastavené: %1$d</item>
+        <item quantity="other">Pozastavené: %1$d</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">Zobraziť všetky karty</string>
+    <string name="workspace_status_filter_operations_desc">Filtrovať podľa kariet s operáciami</string>
+    <string name="workspace_status_filter_attention_desc">Filtrovať podľa kariet vyžadujúcich pozornosť</string>
+    <string name="workspace_status_filter_paused_desc">Filtrovať podľa pozastavených kariet</string>
+    <string name="workspace_status_filter_unsaved_desc">Filtrovať podľa kariet s neuloženými zmenami</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Programovací jazyk Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Rýchly nástroj na vkladanie závislostí pre Android a Javu. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Spúšťaj kód v Jave (a Kotline) s oprávneniami root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Jednoduché spúšťanie kódu Kotlin JVM s oprávneniami root vďaka korutínam. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Poskytuje aplikáciám pre Android prístup cez ADB pomocou API Shizuku, s voliteľnou podporou prístupu root. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Priame používanie systémových API s oprávneniami adb/root z bežných aplikácií cez proces Java spustený pomocou app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Lottie od Airbnb pre Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Robot Android je reprodukciou alebo úpravou diela vytvoreného a zdieľaného spoločnosťou Google a používa sa v súlade s podmienkami licencie Creative Commons 3.0 Attribution.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Moderná súprava nástrojov systému Android na tvorbu natívneho používateľského rozhrania. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Knižnice Jetpack</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation a ďalšie knižnice AndroidX. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Rozšírenia Kotlin</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Knižnice Coroutines a Serialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Knižnica na načítavanie obrázkov využívajúca Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Kryptografické primitíva na autentifikáciu, podpisovanie a šifrovanie SMB. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Knižnice Square</string>
+    <string name="acknowledgement_square_libraries_subtitle">Sieťové knižnice Retrofit, OkHttp a OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Pomocné nástroje pre Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Presúvanie myšou alebo dotykom pre LazyColumn v Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Knižnica sémantického verziovania pre Kotlin. (Licencia MIT)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Diagramy a grafy pre Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Zásady ochrany súkromia</string>
+    <string name="settings_privacy_policy_desc">Zodpovedné zaobchádzanie s údajmi.</string>
+
+    <string name="changelog_label">Prehľad zmien</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Stav rozšírenia aplikácie Butler</string>
+    <string name="upgrade_status_free">Stav: Bezplatná verzia</string>
+    <string name="upgrade_status_pro">Stav: Pro</string>
+    <string name="upgrade_status_foss">Stav: FOSS</string>
+
+    <string name="storage_area_sdcard_label">Karta SD</string>
+    <string name="storage_area_public_label">Verejné úložisko</string>
+    <string name="storage_area_public_app_data_label">Verejné údaje aplikácií</string>
+
+    <!-- Workspace -->
+    <string name="workspace_manager_title">Správca kariet</string>
+    <string name="workspace_manager_empty_title">Žiadne karty</string>
+    <string name="workspace_manager_empty_subtitle">Začni vytvorením svojej prvej karty</string>
+
+    <string name="workspace_empty_create_action">Vytvoriť kartu</string>
+    <string name="workspace_empty_create_hint">Pracuj súbežne: Vytvor kartu a premeň ju na nástroj podľa svojho výberu.</string>
+    <string name="workspace_empty_settings_action">Otvoriť nastavenia</string>
+    <string name="workspace_empty_settings_hint">Prispôsob si Butler podľa seba. Uprav správanie nástrojov.</string>
+    <string name="workspace_classic_empty_tabs_closed">Žiadne otvorené karty. Môžeme začať, keď chceš.</string>
+    <string name="workspace_classic_empty_tip">Tip: Ťukni na „Vytvoriť kartu“ a vyber nástroj — Prieskumník, Vyhľadávanie, Editor a ďalšie.</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">Začni kartou</string>
+    <string name="tour_first_tab_body">Butler pracuje s kartami ako prehliadač: každá je samostatným nástrojom — Prieskumník, Vyhľadávanie, Editor a ďalšie. Vytvor svoju prvú kartu.</string>
+    <string name="tour_manager_fab_title">Rýchle skratky</string>
+    <string name="tour_manager_fab_body">Ťukni sem pre skratky k najčastejšie používaným nástrojom a možnosť zavrieť všetky karty naraz.</string>
+    <string name="tour_manager_reorder_title">Zmeň poradie kariet</string>
+    <string name="tour_manager_reorder_body">Podrž záhlavie karty a potiahni ju, kam chceš. V tomto poradí sa karty zobrazujú aj všade inde.</string>
+    <string name="tour_manager_select_title">Pracuj s viacerými kartami</string>
+    <string name="tour_manager_select_body">Podrž náhľad karty a začni vyberať karty. Potom ťukni na ostatné a všetky naraz zavri alebo pozastav.</string>
+    <string name="tour_manager_new_tab_title">Otvor novú kartu</string>
+    <string name="tour_manager_new_tab_body">Ťukni na túto kartu a vyber ľubovoľný nástroj pre novú kartu.</string>
+    <string name="tour_swipe_switch_title">Prepínaj medzi kartami potiahnutím</string>
+    <string name="tour_swipe_switch_body">Potiahni doľava alebo doprava kdekoľvek na stránke a prepínaj medzi otvorenými kartami.</string>
+    <string name="tour_swipe_create_title">Vytvor kartu potiahnutím</string>
+    <string name="tour_swipe_create_body">Potiahni za poslednú kartu a Butler ti ponúkne novú.</string>
+    <string name="tour_swipe_panes_title">Viac kariet naraz</string>
+    <string name="tour_swipe_panes_body">Na väčšej obrazovke alebo na šírku zobrazuje Butler viac kariet vedľa seba. Nastavenia rozloženia v časti Karty určujú, kedy sa tak stane.</string>
+    <string name="tour_panes_rail_title">Všetky tvoje karty</string>
+    <string name="tour_panes_rail_body">Tu nájdeš každú otvorenú kartu. Ťukni na ňu a vyber panel, do ktorého má ísť. Ak chceš zmeniť poradie kariet, podrž kartu a potiahni ju.</string>
+    <string name="tour_panes_divider_title">Zmeň veľkosť panelov</string>
+    <string name="tour_panes_divider_body">Potiahni tento oddeľovač a daj jednému panelu viac miesta.</string>
+    <string name="tour_panes_layout_title">Zmeň usporiadanie</string>
+    <string name="tour_panes_layout_body">Ťukni na tlačidlo Butler a vyber Rozloženie na zmenu usporiadania panelov. V nastaveniach kariet sa dá určiť pevné rozloženie pre každú orientáciu.</string>
+
+    <string name="workspace_creating_placeholder">Vytvára sa karta…</string>
+    <string name="workspace_ondemand_swipe_title">Potiahnutím vytvoríš novú kartu</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">Panel %1$d je pripravený na obsah</string>
+    <string name="workspace_adaptive_add_action">Pridať kartu</string>
+
+    <string name="workspace_badge_tip_title">Tip: Indikátory na tlačidle kariet</string>
+    <string name="workspace_badge_open_workspaces">Počet otvorených kariet</string>
+    <string name="workspace_badge_active_operations">Aktívne operácie (kopírovanie súborov, vyhľadávanie atď.)</string>
+    <string name="workspace_badge_attention_items">Položky vyžadujúce pozornosť (zlyhané alebo čakajúce operácie, nedostupné súbory)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">Zavrieť</string>
+    <string name="workspace_manager_selection_count">Vybrané: %1$d</string>
+    <string name="workspace_manager_selection_select_all">Vybrať všetko</string>
+    <string name="workspace_manager_selection_pause_action">Pozastaviť vybrané</string>
+    <string name="workspace_manager_selection_close_action">Zavrieť vybrané</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Opustiť režim výberu</string>
+    <string name="workspace_manager_selection_clear_content_desc">Zrušiť výber</string>
+    <string name="workspace_manager_select_all_tabs_desc">Vybrať všetky karty</string>
+    <string name="workspace_manager_new_tab_card_title">Nová karta</string>
+    <string name="workspace_row_select_content_desc">Vybrať kartu</string>
+    <string name="general_cancel_action">Zrušiť</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">Rýchle skratky</string>
+    <string name="workspace_fab_close_shortcuts">Zavrieť skratky</string>
+    <string name="workspace_fab_close_all">Zavrieť všetky karty</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">Priradiť k panelu %1$d</string>
+    <string name="workspace_pane_show_action">Zobraziť</string>
+    <string name="workspace_pane_menu_action">Zobraziť možnosti karty</string>
+    <string name="workspace_pane_close_action">Zavrieť</string>
+    <string name="workspace_pane_unassign_action">Odstrániť z panela</string>
+    <string name="workspace_dragging_description">Presúvanie</string>
+    <string name="workspace_pane_current_description">V paneli %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">Zavrieť kartu</string>
+    <string name="workspace_row_more_options_content_desc">Ďalšie možnosti</string>
+    <string name="workspace_row_operations_running_content_desc">Pracuje</string>
+    <string name="workspace_row_operations_pending_content_desc">Čaká na spracovanie</string>
+    <string name="workspace_row_pause_action">Pozastaviť</string>
+    <string name="workspace_row_resume_action">Pokračovať</string>
+    <string name="workspace_row_stacked_content_desc">V zásobníku na tejto karte</string>
+    <string name="workspace_row_unsaved_content_desc">Neuložené zmeny</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">Nastav správanie kariet.</string>
+    <string name="explorer_settings_subtitle">Nastav správanie prieskumníka súborov.</string>
+    <string name="searcher_settings_subtitle">Nastav správanie vyhľadávania.</string>
+    <string name="editor_settings_subtitle">Nastav správanie textového editora.</string>
+    <string name="viewer_settings_subtitle">Nastav správanie prehliadača súborov.</string>
+    <string name="history_settings_subtitle">Uchovávanie a vymazanie histórie operácií.</string>
+    <string name="clipboard_settings_subtitle">Nastav správanie schránky.</string>
+
+    <string name="saver_share_label">Uložiť ako…</string>
+    <string name="share_receive_label">Otvoriť v aplikácii Butler</string>
+    <string name="editor_share_label">Upraviť text</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">Nepomenovaný súbor</string>
+    <string name="external_open_action_view">Zobraziť</string>
+    <string name="external_open_action_edit">Upraviť ako text</string>
+    <string name="external_open_action_show_in_explorer">Zobraziť v Prieskumníkovi</string>
+    <string name="external_open_action_save">Uložiť ako…</string>
+    <string name="external_open_failed_label">Súbor sa nepodarilo otvoriť</string>
+    <string name="external_open_failed_description">Butler nedokázal otvoriť \"%1$s\".</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">Povoliť režim pre vývojárov?</string>
+    <string name="settings_developer_mode_unlock_message">Odomknú sa pokročilé diagnostické nástroje na riešenie problémov a testovanie.</string>
+    <string name="settings_developer_mode_unlock_action">Povoliť</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">%d krok do režimu pre vývojárov</item>
+        <item quantity="few">%d kroky do režimu pre vývojárov</item>
+        <item quantity="many">%d kroku do režimu pre vývojárov</item>
+        <item quantity="other">%d krokov do režimu pre vývojárov</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">Kontaktovať vývojára</string>
+    <string name="support_contact_description">Vyplň formulár a pošli mi e-mail.</string>
+    <string name="support_contact_no_email_app">Nenašla sa žiadna e-mailová aplikácia</string>
+    <string name="support_contact_category_label">Kategória</string>
+    <string name="support_contact_category_question">Otázka</string>
+    <string name="support_contact_category_feature">Návrh funkcie</string>
+    <string name="support_contact_category_bug">Hlásenie chyby</string>
+    <string name="support_contact_workspace_label">Súvisiaca oblasť</string>
+    <string name="support_contact_workspace_general">Všeobecné</string>
+    <string name="support_contact_workspace_explorer">Prieskumník</string>
+    <string name="support_contact_workspace_searcher">Vyhľadávanie</string>
+    <string name="support_contact_workspace_editor">Editor</string>
+    <string name="support_contact_description_label">Opis</string>
+    <string name="support_contact_description_question_hint">Podrobne opíš svoju otázku. Uveď, prosím, konkrétne podrobnosti (aspoň 20 slov).</string>
+    <string name="support_contact_description_feature_hint">Opíš funkciu, ktorú chceš mať v aplikácii. Uveď, prosím, konkrétne podrobnosti (aspoň 20 slov).</string>
+    <string name="support_contact_description_bug_hint">Opíš, čo sa stalo a ako problém zopakovať. Uveď, prosím, konkrétne podrobnosti (aspoň 20 slov).</string>
+    <string name="support_contact_expected_label">Očakávané správanie</string>
+    <string name="support_contact_expected_hint">Opíš, čo sa malo podľa tvojho očakávania stať (aspoň 10 slov).</string>
+    <string name="support_contact_word_count">Aspoň %1$d slov</string>
+    <string name="support_contact_debuglog_label">Denník ladenia</string>
+    <string name="support_contact_debuglog_empty">Nenašli sa žiadne denníky ladenia. Najprv nejaký zaznamenaj.</string>
+    <string name="support_contact_debuglog_picker_hint">Prilož existujúci denník ladenia alebo zaznamenaj nový.</string>
+    <string name="support_contact_send_action">Otvoriť e-mailovú aplikáciu</string>
+    <string name="support_contact_welcome">Každú správu si osobne prečítam a snažím sa odpovedať, no keďže na aplikácii pracujem sám, môže to chvíľu trvať. Ďakujem za trpezlivosť.</string>
+    <string name="support_contact_footer">Tvoja správa sa odošle e-mailom. Informácie o zariadení a nastavení sa priložia automaticky. K e-mailu môžeš priložiť snímky obrazovky alebo video.\n\nNiektoré časti e-mailu budú v angličtine, aby som im ľahko porozumel.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">Úložisko denníkov ladenia</string>
+    <string name="support_debuglog_storage_description">Počet relácií denníkov: %1$d, %2$s</string>
+    <string name="support_debuglog_storage_empty">Žiadne uložené denníky ladenia</string>
+    <string name="support_debuglog_delete_action">Vymazať všetky denníky ladenia</string>
+    <string name="support_debuglog_delete_description">Odstrániť všetky zaznamenané súbory denníkov ladenia</string>
+    <string name="support_debuglog_delete_confirm_title">Vymazať všetky denníky ladenia?</string>
+    <string name="support_debuglog_delete_confirm_message">Natrvalo sa vymažú všetky zaznamenané relácie denníkov ladenia. Aktívne zaznamenávanie nebude ovplyvnené.</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">Zastaviť zaznamenávanie</string>
+    <string name="settings_support_debuglog_record_action">Zaznamenať denník ladenia</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">Relácie denníkov ladenia</string>
+    <string name="support_debuglog_sessions_desc">Spravuj zaznamenané relácie denníkov ladenia</string>
+    <string name="support_debuglog_sessions_empty">Žiadne relácie denníkov ladenia</string>
+    <string name="support_debuglog_session_recording">Zaznamenáva sa…</string>
+    <string name="support_debuglog_session_compressing">Komprimuje sa…</string>
+    <string name="support_debuglog_session_failed_empty_log">Zlyhanie: prázdny denník</string>
+    <string name="support_debuglog_session_failed_missing_log">Zlyhanie: chýbajúci denník</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Zlyhanie: poškodený archív</string>
+    <string name="support_debuglog_session_failed_zip_failed">Zlyhanie: chyba kompresie</string>
+    <string name="support_debuglog_session_delete_title">Vymazať reláciu ladenia?</string>
+    <string name="support_debuglog_session_delete_message">Táto relácia denníka ladenia sa natrvalo vymaže.</string>
+    <string name="support_debuglog_clear_action">Vymazať všetko</string>
+    <string name="support_debuglog_clear_confirm_message">Vymazať všetky uložené relácie denníkov ladenia?</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butler – denník ladenia – %1$s</string>
+    <string name="debug_log_screen_subtitle">Exportuj informácie o ladení na riešenie problémov</string>
+    <string name="debug_log_screen_sensitive_information_title">Citlivé informácie</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">Bola správa odoslaná?</string>
+    <string name="support_contact_sent_message">Ak bola správa odoslaná, priložený denník ladenia sa vymaže, aby sa uvoľnilo miesto. Ak nie, môžeš ho ponechať a skúsiť to znova neskôr.</string>
+    <string name="support_contact_debuglog_zip_error">Nepodarilo sa pripraviť prílohu s denníkom ladenia</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">Priebeh operácií so súbormi</string>
+    <string name="ops_notification_channel_progress_desc">Priebežné informácie o kopírovaní, presúvaní a vymazávaní</string>
+    <string name="ops_notification_channel_attention_name">Upozornenia na operácie so súbormi</string>
+    <string name="ops_notification_channel_attention_desc">Operácie, ktoré vyžadujú tvoju pozornosť alebo zlyhali</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">Prebieha %1$d operácia so súbormi</item>
+        <item quantity="few">Prebiehajú %1$d operácie so súbormi</item>
+        <item quantity="many">Prebieha %1$d operácie so súbormi</item>
+        <item quantity="other">Prebieha %1$d operácií so súbormi</item>
+    </plurals>
+    <string name="ops_notification_state_queued">Vo fronte…</string>
+    <string name="ops_notification_state_cancelling">Ruší sa…</string>
+    <string name="ops_notification_state_attention_title">Vyžaduje sa zásah</string>
+    <string name="ops_notification_state_attention_text">Konflikt vyžaduje tvoju pozornosť — ťuknutím ho vyriešiš</string>
+    <string name="ops_notification_result_failed_title">Operácia zlyhala</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">Chceš napísať recenziu aplikácie Butler? ❤️</string>
+    <string name="review_app_dismiss_action">Možno neskôr</string>
+    <string name="review_app_review_action">Napísať recenziu</string>
+</resources>

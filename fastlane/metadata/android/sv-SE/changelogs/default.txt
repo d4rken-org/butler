@@ -1,0 +1,5 @@
+Buggfixar och små förbättringar, så att filhanteringen på din enhet förblir snabb och inte kommer i vägen.
+
+Vad som ändrats i den här versionen: butler.darken.eu/changelog
+
+Har något slutat fungera eller börjat bete sig konstigt efter uppdateringen? Berätta via Inställningar > Support. Det är ett enmansprojekt, så svar kan dröja lite, men varje rapport blir läst.

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">Historik</string>
+    <string name="history_workspace_subtitle">Seneste filhandlinger</string>
+    <string name="history_workspace_title_scoped">Historik: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">Historik: Mislykket</string>
+    <string name="history_workspace_title_outcome_partial">Historik: Delvist fuldført</string>
+    <string name="history_workspace_title_outcome_cancelled">Historik: Annulleret</string>
+    <string name="history_workspace_title_outcome_completed">Historik: Fuldført</string>
+    <string name="history_workspace_title_kind_copy">Historik: Kopiér</string>
+    <string name="history_workspace_title_kind_move">Historik: Flyt</string>
+    <string name="history_workspace_title_kind_delete">Historik: Slet</string>
+    <string name="history_workspace_title_kind_create_file">Historik: Opret fil</string>
+    <string name="history_workspace_title_kind_create_folder">Historik: Opret mappe</string>
+    <string name="history_workspace_title_kind_save">Historik: Gem</string>
+    <string name="history_workspace_title_kind_compress">Historik: Komprimer</string>
+    <string name="history_workspace_title_kind_extract">Historik: Pak ud</string>
+    <string name="history_workspace_title_filtered">Historik (filtreret)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">Historik: %1$d sti</item>
+        <item quantity="other">Historik: %1$d stier</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Alle</string>
+    <string name="history_filter_outcome_completed">Fuldført</string>
+    <string name="history_filter_outcome_partial">Delvist fuldført</string>
+    <string name="history_filter_outcome_failed">Mislykket</string>
+    <string name="history_filter_outcome_cancelled">Annulleret</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Kopiér</string>
+    <string name="history_filter_kind_move">Flyt</string>
+    <string name="history_filter_kind_delete">Slet</string>
+    <string name="history_filter_kind_create_file">Opret fil</string>
+    <string name="history_filter_kind_create_folder">Opret mappe</string>
+    <string name="history_filter_kind_save">Gem</string>
+    <string name="history_filter_kind_compress">Komprimer</string>
+    <string name="history_filter_kind_extract">Pak ud</string>
+    <string name="history_filter_kind_enable">Aktiver</string>
+    <string name="history_filter_kind_disable">Deaktiver</string>
+    <string name="history_filter_kind_force_stop">Tving til at stoppe</string>
+    <string name="history_filter_kind_uninstall">Afinstaller</string>
+    <string name="history_filter_kind_clear_data">Ryd data</string>
+    <string name="history_filter_kind_components">Komponenter</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Angiv stiafgrænsning…</string>
+    <string name="history_path_scope_clear_action">Fjern stiafgrænsning</string>
+    <string name="history_path_scope_dialog_title">Filtrer efter sti</string>
+    <string name="history_path_scope_dialog_description">Vis kun handlinger, der berører denne sti eller dens underliggende stier.</string>
+    <string name="history_path_scope_dialog_input_label">Sti</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Vælg mappe…</string>
+    <string name="history_path_scope_dialog_apply_action">Anvend</string>
+    <string name="history_path_scope_dialog_cancel_action">Annuller</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">I dag</string>
+    <string name="history_group_yesterday">I går</string>
+    <string name="history_group_this_week">Denne uge</string>
+    <string name="history_group_this_month">Denne måned</string>
+    <string name="history_group_older">Ældre</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Omdøbt</string>
+    <string name="history_entry_intent_paste_copy">Indsat</string>
+    <string name="history_entry_intent_paste_move">Indsat (flytning)</string>
+    <string name="history_entry_intent_drop_copy">Sluppet (kopiering)</string>
+    <string name="history_entry_intent_drop_move">Sluppet (flytning)</string>
+    <string name="history_entry_intent_enable_components">Aktiveret komponenter i</string>
+    <string name="history_entry_intent_disable_components">Deaktiveret komponenter i</string>
+    <string name="history_entry_kind_copy">Kopieret</string>
+    <string name="history_entry_kind_move">Flyttet</string>
+    <string name="history_entry_kind_delete">Slettet</string>
+    <string name="history_entry_kind_create_file">Oprettet fil</string>
+    <string name="history_entry_kind_create_folder">Oprettet mappe</string>
+    <string name="history_entry_kind_save">Gemt</string>
+    <string name="history_entry_kind_compress">Komprimeret</string>
+    <string name="history_entry_kind_extract">Pakket ud</string>
+    <string name="history_entry_kind_restore">Gendannet</string>
+    <string name="history_entry_kind_install">Installeret</string>
+    <string name="history_entry_kind_enable">Aktiveret</string>
+    <string name="history_entry_kind_disable">Deaktiveret</string>
+    <string name="history_entry_kind_force_stop">Tvunget til at stoppe</string>
+    <string name="history_entry_kind_uninstall">Afinstalleret</string>
+    <string name="history_entry_kind_clear_data">Ryddet data for</string>
+    <string name="history_entry_kind_components">Ændret komponenter i</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d sti</item>
+        <item quantity="other">%d stier</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">De første %1$d af %2$d berørte stier</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Startet</string>
+    <string name="history_detail_label_completed">Fuldført</string>
+    <string name="history_detail_label_duration">Varighed</string>
+    <string name="history_detail_label_outcome">Resultat</string>
+    <string name="history_detail_label_origin">Oprindelse</string>
+    <string name="history_detail_label_error">Fejl</string>
+    <string name="history_detail_label_paths">Berørte stier</string>
+    <string name="history_detail_label_partial_errors">Fejl for enkelte elementer</string>
+    <string name="history_detail_copy_path_action">Kopiér sti</string>
+    <string name="history_detail_paths_empty">Ingen berørte stier registreret.</string>
+    <string name="history_detail_label_attempted_paths">Stier forsøgt behandlet</string>
+    <string name="history_detail_label_packages">Berørte apps</string>
+    <string name="history_detail_packages_empty">Ingen berørte apps registreret.</string>
+    <string name="history_detail_paths_truncated_callout">Viser de første %1$d af %2$d berørte stier.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Viser de første %1$d af %2$d stier, der blev forsøgt behandlet.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">Behandling af %1$d element mislykkedes under denne handling.</item>
+        <item quantity="other">Behandling af %1$d elementer mislykkedes under denne handling.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Filhåndterer</string>
+    <string name="history_origin_searcher">Søgning</string>
+    <string name="history_origin_saver">Gem som</string>
+    <string name="history_origin_developer">Udvikler</string>
+    <string name="history_origin_viewer">Fremviser</string>
+    <string name="history_origin_apps">Apps</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Ingen historik endnu</string>
+    <string name="history_empty_subtitle">Filhandlinger vises her, efterhånden som du bruger Butler.</string>
+    <string name="history_empty_filtered_title">Ingen resultater</string>
+    <string name="history_empty_filtered_subtitle">Ingen historikposter matcher det aktuelle filter.</string>
+    <string name="history_empty_filtered_reset_action">Nulstil filter</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Nulstil filter</string>
+    <string name="history_toolbar_reset_filter_content_description">Nulstil filtre</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">De første %1$d af %2$d berørte stier</string>
+    <string name="history_add_filter_action">Tilføj filter</string>
+    <string name="history_add_filter_sheet_title">Tilføj filter</string>
+    <string name="history_add_filter_section_outcome">Resultat</string>
+    <string name="history_add_filter_section_kind">Type</string>
+    <string name="history_add_filter_section_path_scope">Stiafgrænsning</string>
+    <string name="history_add_filter_add_path_action">Tilføj sti…</string>
+    <string name="history_path_scope_remove_action">Fjern</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d post</item>
+        <item quantity="other">%1$d poster</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%1$d af %2$d vist</item>
+        <item quantity="other">%1$d af %2$d vist</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">Historik</string>
+    <string name="history_settings_save_history_title">Gem historik</string>
+    <string name="history_settings_save_history_subtitle">Registrer fuldførte filhandlinger.</string>
+    <string name="history_settings_max_history_label">Maksimalt antal historikposter</string>
+    <string name="history_settings_max_history_subtitle">Ældre poster fjernes, når denne grænse overskrides.</string>
+    <string name="history_settings_max_history_input_label">Maksimalt antal poster</string>
+    <string name="history_settings_clear_history_title">Ryd historik</string>
+    <string name="history_settings_clear_history_subtitle">Fjern alle gemte poster (%1$d).</string>
+    <string name="history_clear_dialog_title">Ryd historik?</string>
+    <string name="history_clear_dialog_message">Fjerner alle poster fra databasen med handlingshistorik. Dette kan ikke fortrydes.</string>
+    <string name="history_clear_confirm_action">Ryd</string>
+    <string name="history_cleared_success">Historik ryddet</string>
+    <string name="history_workspace_title_kind_restore">Gendannelser</string>
+    <string name="history_filter_kind_restore">Gendan</string>
+    <string name="history_workspace_title_kind_install">Historik: Installer</string>
+    <string name="history_filter_kind_install">Installer</string>
+    <string name="history_workspace_title_kind_enable">Historik: Aktiver</string>
+    <string name="history_workspace_title_kind_disable">Historik: Deaktiver</string>
+    <string name="history_workspace_title_kind_force_stop">Historik: Tving til at stoppe</string>
+    <string name="history_workspace_title_kind_uninstall">Historik: Afinstaller</string>
+    <string name="history_workspace_title_kind_clear_data">Historik: Ryd data</string>
+    <string name="history_workspace_title_kind_components">Historik: Komponenter</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Vælg alle</string>
+    <string name="history_action_deselect_all">Fravælg alle</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Slet %1$d post</item>
+        <item quantity="other">Slet %1$d poster</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Kun historikposterne fjernes. Selve filerne berøres ikke.</string>
+    <string name="history_pro_dialog_message">Deling af flere historikposter på én gang er en del af opgraderingen. Det er stadig gratis at dele en enkelt post og slette poster.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Resultat</string>
+    <string name="history_share_label_kind">Type</string>
+    <string name="history_share_label_origin">Oprindelse</string>
+    <string name="history_share_label_summary">Oversigt</string>
+    <string name="history_share_label_completed">Fuldført</string>
+    <string name="history_share_label_duration">Varighed</string>
+    <string name="history_share_label_error">Fejl</string>
+    <string name="history_share_label_failed_items">Mislykkede elementer</string>
+    <string name="history_share_label_paths">Berørte stier (%1$d)</string>
+    <string name="history_share_label_packages">Berørte apps (%1$d)</string>
+    <string name="history_share_paths_more">… og %1$d flere</string>
+    <string name="history_share_truncated">… og %1$d flere poster, der ikke er medtaget</string>
+</resources>

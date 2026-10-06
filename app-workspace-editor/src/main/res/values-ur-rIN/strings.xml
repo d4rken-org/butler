@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">ایڈیٹر</string>
+    <string name="editor_subtitle">متنی فائلوں میں ترمیم کریں</string>
+    <string name="editor_settings_title">ایڈیٹر کی ترتیبات</string>
+    <string name="editor_settings_show_line_numbers_title">سطروں کے نمبر دکھائیں</string>
+    <string name="editor_settings_show_line_numbers_subtitle">ایڈیٹر میں سطروں کے نمبر دکھائیں۔</string>
+    <string name="editor_settings_word_wrap_title">سطریں لپیٹیں</string>
+    <string name="editor_settings_word_wrap_subtitle">لمبی سطروں کو اسکرین کی چوڑائی کے مطابق لپیٹیں۔</string>
+    <string name="editor_settings_syntax_highlighting_title">سینٹیکس کو نمایاں کریں</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">معاونت یافتہ فائلوں (JavaScript، Bash، Markdown، JSON) میں کوڈ کو رنگوں سے نمایاں کریں۔</string>
+    <string name="editor_settings_font_size_title">فونٹ کا سائز</string>
+    <string name="editor_settings_font_size_subtitle">ایڈیٹر میں متن کا سائز</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">ٹیب کی چوڑائی</string>
+    <string name="editor_settings_tab_size_subtitle">ٹیب کا حرف جتنی خالی جگہوں کے برابر ہوتا ہے</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">کھولیں</string>
+    <string name="editor_action_save">محفوظ کریں</string>
+    <string name="editor_action_save_as">اس نام سے محفوظ کریں…</string>
+    <string name="editor_action_close">بند کریں</string>
+    <string name="editor_action_undo">واپس پلٹائیں</string>
+    <string name="editor_action_redo">دوبارہ کریں</string>
+    <string name="editor_action_search">تلاش کریں</string>
+    <string name="editor_action_go_to_line">سطر پر جائیں</string>
+    <string name="editor_action_dismiss">ہٹا دیں</string>
+    <string name="editor_action_previous">پچھلا</string>
+    <string name="editor_action_next">اگلا</string>
+    <string name="editor_action_copy">کاپی کریں</string>
+    <string name="editor_action_cut">کاٹیں</string>
+    <string name="editor_action_copy_to_butler_clipboard">Butler کے کلپ بورڈ میں کاپی کریں</string>
+    <string name="editor_action_cut_to_butler_clipboard">کاٹ کر Butler کے کلپ بورڈ میں رکھیں</string>
+    <string name="editor_action_paste">پیسٹ کریں</string>
+    <string name="editor_action_select_all">سب منتخب کریں</string>
+    <string name="editor_action_delete">حذف کریں</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">فائل کے مواد کو بدل دیں؟</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s پہلے سے موجود ہے۔ اس کا موجودہ مواد بدل دیا جائے گا۔</string>
+    <string name="editor_dialog_save_as_overwrite_action">مواد بدل دیں</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">محفوظ کرنے کے دوران رکاوٹ آنے سے بنا ایک بیک اپ ملا ہے:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">متن کے طور پر ترمیم کی سہولت نہیں ہے</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">بہت لمبی سطریں</string>
+    <string name="editor_long_lines_banner_message">بہت لمبی سطریں دکھانے کے لیے مختصر کی جاتی ہیں؛ مکمل مواد برقرار رہتا ہے اور محفوظ کیا جاتا ہے۔</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">سطر کا اگلا حصہ دکھائیں</string>
+    <string name="editor_line_truncated_marker_previous_action">سطر کا پچھلا حصہ دکھائیں</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">فائل اب دستیاب نہیں ہے</string>
+    <string name="editor_backing_lost_banner_message">ممکن ہے اسے منتقل یا حذف کر دیا گیا ہو۔ یہ منظر صرف پڑھنے کے لیے ہے — اسے دوبارہ کھولیں یا بند کریں۔</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">فائل موجود نہیں، لیکن بیک اپ باقی ہے</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" موجود نہیں ہے، لیکن محفوظ کرنے کے دوران رکاوٹ آنے سے یہ باقی رہ گیا ہے: %2$s۔ غالباً آپ کا مواد اب بھی اس میں موجود ہے۔</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">ڈسک پر فائل بدل گئی ہے</string>
+    <string name="editor_external_change_banner_message">کسی اور ایپ نے اس فائل میں ترمیم کی ہے۔</string>
+    <string name="editor_external_change_reload_action">دوبارہ لوڈ کریں</string>
+    <string name="editor_external_change_keep_action">ترمیم جاری رکھیں</string>
+    <string name="editor_error_external_change">کسی اور ایپ نے یہ فائل بدل دی ہے۔ جاری رکھنے کے لیے فائل دوبارہ لوڈ کریں۔</string>
+    <string name="editor_dialog_reload_confirm_title">فائل دوبارہ لوڈ کریں؟</string>
+    <string name="editor_dialog_reload_confirm_message">دوبارہ لوڈ کرنے سے آپ کی محفوظ نہ کی گئی تبدیلیاں ضائع ہو جائیں گی اور ڈسک پر موجود فائل کا موجودہ مواد دکھایا جائے گا۔</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d سطر</item>
+        <item quantity="other">%1$d سطریں</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d حرف</item>
+        <item quantity="other">%1$d حروف</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">منتخب: %1$s، %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">فائل لوڈ ہو رہی ہے…</string>
+    <string name="editor_saving">محفوظ کیا جا رہا ہے…</string>
+    <string name="editor_action_cancel_loading">منسوخ کریں</string>
+    <string name="editor_progress_opening">فائل کھل رہی ہے…</string>
+    <string name="editor_progress_saving">فائل محفوظ ہو رہی ہے…</string>
+    <string name="editor_progress_building_index">فائل کا انڈیکس بن رہا ہے…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">نامعلوم خرابی</string>
+    <string name="editor_error_read_only">یہ فائل صرف پڑھنے کے لیے ہے اور اسے بدلا نہیں جا سکتا۔</string>
+    <string name="editor_error_save_integrity_label">محفوظ کرنے میں رکاوٹ آئی</string>
+    <string name="editor_error_save_integrity">محفوظ کرنے میں رکاوٹ آئی اور ڈسک پر موجود فائل نامکمل ہو سکتی ہے۔ مزید ترمیم کرنے سے پہلے فائل دوبارہ لوڈ کریں۔</string>
+    <string name="editor_error_clipboard_too_large_label">انتخاب بہت بڑا ہے</string>
+    <string name="editor_error_clipboard_too_large">منتخب مواد کاپی کرنے کے لیے بہت بڑا ہے (حد %1$s)۔</string>
+    <string name="editor_error_paste_too_large_label">فائل بہت بڑی ہے</string>
+    <string name="editor_error_paste_too_large">یہ فائل پیسٹ کرنے کے لیے بہت بڑی ہے (زیادہ سے زیادہ %1$s)۔</string>
+    <string name="editor_error_paste_binary_label">متنی فائل نہیں ہے</string>
+    <string name="editor_error_paste_binary">اس فائل کا مواد متن کے طور پر پیسٹ نہیں کیا جا سکتا۔</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%2$d نتیجے میں سے %1$d</item>
+        <item quantity="other">%2$d نتائج میں سے %1$d</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%2$d+ نتائج میں سے %1$d</string>
+    <string name="editor_search_too_many_matches_label">بہت زیادہ مماثلتیں</string>
+    <string name="editor_search_too_many_matches">%1$d سے زیادہ مماثلتیں یا بہت زیادہ مماثل متن ہے — سب کو بدلنے کے لیے تلاش محدود کریں۔</string>
+    <string name="editor_search_placeholder">تلاش کریں…</string>
+    <string name="editor_search_previous">پچھلا نتیجہ</string>
+    <string name="editor_search_next">اگلا نتیجہ</string>
+    <string name="editor_search_case_sensitive_label">چھوٹے بڑے حروف کا فرق</string>
+    <string name="editor_search_regex_label">ریگولر ایکسپریشن</string>
+    <string name="editor_search_whole_word_label">پورا لفظ</string>
+    <string name="editor_search_options_label">تلاش کے اختیارات</string>
+    <string name="editor_search_replace_label">بدلیں</string>
+    <string name="editor_search_replace_toggle">بدلنے کی سہولت فعال یا غیر فعال کریں</string>
+    <string name="editor_search_replace_placeholder">اس سے بدلیں…</string>
+    <string name="editor_search_replace_one_action">بدلیں</string>
+    <string name="editor_search_replace_all_action">سب</string>
+    <string name="editor_search_replaced_not_undoable">%1$d بدل دیے گئے (تبدیلی واپس پلٹانے کے لیے بہت بڑی ہے)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d بدل دیا گیا</item>
+        <item quantity="other">%1$d بدل دیے گئے</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">سطر پر جائیں</string>
+    <string name="editor_dialog_go_to_line_label">سطر کا نمبر (1-%1$d)</string>
+    <string name="editor_dialog_action_go">جائیں</string>
+    <string name="editor_dialog_action_cancel">منسوخ کریں</string>
+    <string name="editor_dialog_close_confirm_title">محفوظ نہ کی گئی تبدیلیاں</string>
+    <string name="editor_dialog_close_confirm_message">آپ کی کچھ تبدیلیاں محفوظ نہیں کی گئی ہیں۔ انہیں ضائع کر دیں؟</string>
+    <string name="editor_dialog_close_confirm_discard">ضائع کریں</string>
+    <string name="editor_dialog_large_delete_confirm_title">بڑے انتخاب میں ترمیم کریں؟</string>
+    <string name="editor_dialog_large_delete_confirm_message">منتخب مواد اتنا بڑا ہے کہ ترمیم واپس نہیں پلٹائی جا سکتی۔ پھر بھی جاری رکھیں؟</string>
+    <string name="editor_dialog_large_delete_confirm_action">جاری رکھیں</string>
+    <string name="editor_encoding_dialog_title">انکوڈنگ</string>
+    <string name="editor_encoding_dialog_message">فائل کو مختلف انکوڈنگ کے ساتھ دوبارہ کھولیں۔ محفوظ نہ کی گئی تبدیلیاں ضائع ہو جائیں گی؛ محفوظ کرتے وقت جن بائٹس میں ترمیم نہیں کی گئی وہ جوں کی توں رہیں گی۔</string>
+    <string name="editor_infobar_read_only">صرف پڑھنے کے لیے</string>
+    <string name="editor_line_ending_mixed">ملی جلی</string>
+    <string name="editor_line_ending_dialog_title">سطروں کے اختتام</string>
+    <string name="editor_line_ending_dialog_message">تمام سطروں کے اختتامی حروف تبدیل کر کے فائل محفوظ کریں، بشمول محفوظ نہ کی گئی تبدیلیوں کے۔ واپس پلٹانے کی سرگزشت صاف ہو جائے گی۔</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">بے عنوان</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">خودکار محفوظ کرنا</string>
+    <string name="editor_settings_autosave_enabled_title">خودکار محفوظ کرنا فعال کریں</string>
+    <string name="editor_settings_autosave_enabled_subtitle">کچھ وقت تک کوئی سرگرمی نہ ہونے پر تبدیلیاں خودکار طور پر محفوظ کریں۔</string>
+    <string name="editor_settings_autosave_interval_title">خودکار محفوظ کرنے کا وقفہ</string>
+    <string name="editor_settings_autosave_interval_subtitle">آخری ترمیم کے بعد محفوظ کرنے سے پہلے انتظار کا وقت۔</string>
+    <string name="editor_settings_autosave_interval_dialog_title">خودکار محفوظ کرنے کا وقفہ</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">کلپ بورڈ</string>
+    <string name="editor_settings_clipboard_behavior_title">Butler کا کلپ بورڈ</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">طے کریں کہ متن کی کاپیاں Butler کے کلپ بورڈ میں کیسے محفوظ کی جائیں۔</string>
+    <string name="editor_settings_clipboard_system_only">صرف سسٹم</string>
+    <string name="editor_settings_clipboard_system_only_desc">صرف سسٹم کے کلپ بورڈ میں کاپی کریں</string>
+    <string name="editor_settings_clipboard_butler_always">ہمیشہ Butler میں شامل کریں</string>
+    <string name="editor_settings_clipboard_butler_always_desc">مختلف ورک اسپیس میں پیسٹ کرنے کے لیے Butler کے کلپ بورڈ میں بھی محفوظ کریں</string>
+    <string name="editor_settings_clipboard_ask">ہر بار پوچھیں</string>
+    <string name="editor_settings_clipboard_ask_desc">Butler کے کلپ بورڈ میں شامل کرنے سے پہلے پوچھیں</string>
+</resources>

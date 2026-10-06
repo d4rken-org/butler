@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">Ugyldig appoversikt</string>
+    <string name="pkgrepo_invalid_inventory_error_description">Systemet ga Butler en ugyldig liste over installerte apper.</string>
+</resources>

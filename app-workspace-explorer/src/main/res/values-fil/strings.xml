@@ -1,0 +1,685 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Explorer</string>
+    <string name="explorer_subtitle">Mag-browse ng mga file at direktoryo</string>
+    <string name="explorer_settings_title">Mga setting ng Explorer</string>
+    <string name="explorer_settings_file_display">Pagpapakita ng file</string>
+    <string name="explorer_settings_filter_regex_title">Advanced na pagtutugma ng wildcard</string>
+    <string name="explorer_settings_filter_regex_desc">Gumamit ng mga pattern ng regex sa mga filter para sa pagsama at pagbukod.</string>
+    <string name="explorer_settings_navigation">Pag-navigate</string>
+    <string name="explorer_settings_back_button_title">Pag-navigate gamit ang button na Bumalik</string>
+    <string name="explorer_settings_back_button_desc">Mag-navigate sa kasaysayan gamit ang button o galaw na Bumalik.</string>
+    <string name="explorer_settings_trash_category">Basurahan</string>
+    <string name="explorer_settings_trash_enabled_title">Paganahin ang basurahan</string>
+    <string name="explorer_settings_trash_enabled_desc">Ilipat ang mga tinanggal na file sa basurahan sa halip na permanenteng tanggalin ang mga ito</string>
+    <string name="explorer_settings_trash_auto_delete_title">Awtomatikong tanggalin pagkalipas ng</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Awtomatikong tanggalin ang mga item pagkatapos ng ganitong tagal sa basurahan</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d araw</string>
+    <string name="explorer_settings_trash_max_size_title">Pinakamalaking laki sa bawat storage</string>
+    <string name="explorer_settings_trash_max_size_summary">Dami ng espasyong maaaring gamitin ng basurahan sa bawat lokasyon ng storage</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Tagal bago ang awtomatikong pagtanggal</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Pinakamalaking laki sa bawat storage</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Paganahin ang basurahan?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Hindi tulad ng mga desktop system, walang built-in na basurahan ang Android. Nagbibigay ang Butler ng basurahan gamit ang cache folder nito.\n\nTandaan:\n• Hindi makikita sa indicator ng storage ng device ang nabawing espasyo hangga’t hindi permanenteng natatanggal ang mga item\n• Kapag paubos na ang espasyo sa storage ng device, maaaring burahin ng Android ang mga cache ng app, kaya matatanggal ang mga file sa basurahan</string>
+    <string name="explorer_settings_trash_enable_action">Paganahin</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">File</string>
+    <string name="explorer_file_symlink_content_desc">Simbolikong link</string>
+    <string name="explorer_file_folder_content_desc">Folder</string>
+    <string name="explorer_file_peek_content_desc">Naglo-load ng impormasyon ng file</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Shortcut</string>
+    <string name="explorer_file_storage_local_label">Lokal</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Access para sa pagbasa lang</string>
+    <string name="explorer_file_storage_saf_write_only_label">Access para sa pagsulat lang</string>
+    <string name="explorer_file_storage_saf_no_access_label">Walang access</string>
+    <string name="explorer_file_storage_saf_uri_label">URI ng SAF tree</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s kabuuan • %3$s libre</string>
+    <string name="explorer_file_broken_link_label">Sirang link</string>
+    <string name="explorer_file_items_count">%1$d na item</string>
+    <string name="explorer_file_empty">Walang laman</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · bahagya</string>
+    <string name="explorer_sizes_estimate_description">Tinatantiya mula sa kabuuang storage ng Android. Para sa mga file na hindi mabasa, ginagamit ang okupadong storage bilang tantiya ng laki ng file. Maaaring kasama rin ang mga nakatagong file na pinamamahalaan ng Android. Hindi pa rin alam ang laki sa iba pang lokasyong hindi mabasa.</string>
+    <string name="explorer_sizes_estimate_coverage">Hindi matantiya ang Android/data dahil hindi lubusang masukat ang ibang bahagi ng storage.</string>
+    <string name="explorer_sizes_estimate_unavailable">Hindi available ang mga estadistika ng storage ng Android. Ipinapakita pa rin ang mga nasukat na laki.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Hindi tumugma ang kabuuang storage ng Android sa pag-scan. Ipinapakita pa rin ang mga nasukat na laki.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Pumili ng folder</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="one">Pumili ng folder (%d)</item>
+        <item quantity="other">Pumili ng mga folder (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Pumili ng file</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="one">Pumili ng file (%d)</item>
+        <item quantity="other">Pumili ng mga file (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="one">Pumili ng item (%d)</item>
+        <item quantity="other">Pumili ng mga item (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Piliin ang folder na ito</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">Piliin ang %d</item>
+        <item quantity="other">Piliin ang %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">I-save ang file</string>
+    <string name="explorer_picker_save_here_action">I-save dito</string>
+    <string name="explorer_picker_save_as_filename_label">Pangalan ng file</string>
+    <string name="explorer_picker_save_as_filename_hint">Ilagay ang pangalan ng file</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">I-refresh</string>
+    <string name="explorer_action_calculate_sizes">Kalkulahin ang mga laki</string>
+    <string name="explorer_action_sort">Pagbukud-bukurin</string>
+    <string name="explorer_action_filter">I-filter</string>
+    <string name="explorer_action_view">Layout</string>
+    <string name="explorer_action_create">Gumawa</string>
+    <string name="explorer_action_rename">Palitan ang pangalan</string>
+    <string name="explorer_action_copy">Kopyahin</string>
+    <string name="explorer_action_cut">Gupitin</string>
+    <string name="explorer_action_delete">Tanggalin</string>
+    <string name="explorer_action_select_all">Piliin lahat</string>
+    <string name="explorer_action_deselect_all">Alisin ang lahat ng pagpili</string>
+    <string name="explorer_action_compress">I-compress</string>
+    <string name="explorer_action_extract">I-extract</string>
+    <string name="explorer_action_add_location">Magdagdag ng lokasyon</string>
+    <string name="explorer_action_info">Impormasyon</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Impormasyon</string>
+    <string name="explorer_info_name_label">Pangalan</string>
+    <string name="explorer_info_path_label">Path</string>
+    <string name="explorer_info_type_label">Uri</string>
+    <string name="explorer_info_type_file">File</string>
+    <string name="explorer_info_type_directory">Direktoryo</string>
+    <string name="explorer_info_size_label">Laki</string>
+    <string name="explorer_info_modified_label">Binago</string>
+    <string name="explorer_info_created_label">Ginawa</string>
+    <string name="explorer_info_permissions_label">Mga pahintulot</string>
+    <string name="explorer_info_owner_label">May-ari</string>
+    <string name="explorer_info_child_count_label">Mga item</string>
+    <string name="explorer_info_symlink_target_label">Target</string>
+    <string name="explorer_info_symlink_status_label">Kalagayan</string>
+    <string name="explorer_info_symlink_broken">Sirang link</string>
+    <string name="explorer_info_unknown">Hindi kilala</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Tinanggal</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Mga pahintulot</string>
+    <string name="explorer_info_saf_granted_label">Ibinigay</string>
+    <string name="explorer_info_saf_permission_read">Pagbasa</string>
+    <string name="explorer_info_saf_permission_write">Pagsulat</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Server</string>
+    <string name="explorer_info_network_port_label">Port</string>
+    <string name="explorer_info_network_share_label">Share</string>
+    <string name="explorer_info_network_folder_label">Folder</string>
+    <string name="explorer_info_network_address_label">Address</string>
+    <string name="explorer_info_network_status_label">Kalagayan</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Pag-sign in</string>
+    <string name="explorer_info_network_domain_label">Domain</string>
+    <string name="explorer_info_network_password_label">Password</string>
+    <string name="explorer_info_network_password_show_action">Ipakita ang password</string>
+    <string name="explorer_info_network_password_hide_action">Itago ang password</string>
+    <string name="explorer_info_network_password_missing">Nawawala, mag-sign in muli</string>
+    <string name="explorer_info_network_password_locked">Nakaimbak, pero hindi ito ma-unlock ng device na ito</string>
+    <string name="explorer_info_network_added_label">Idinagdag</string>
+    <string name="explorer_info_network_updated_label">Na-update</string>
+    <string name="explorer_info_network_last_seen_label">Huling nakita</string>
+    <string name="explorer_info_network_last_seen_never">Hindi pa kailanman</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Napili</string>
+    <string name="explorer_info_files_label">Mga file</string>
+    <string name="explorer_info_directories_label">Mga direktoryo</string>
+    <string name="explorer_info_total_size_label">Kabuuang laki</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Mga lokasyon</string>
+    <string name="explorer_info_shortcuts_label">Mga shortcut</string>
+    <string name="explorer_info_total_capacity_label">Kabuuang kapasidad</string>
+    <string name="explorer_info_used_space_label">Nagamit na espasyo</string>
+    <string name="explorer_info_free_space_label">Libreng espasyo</string>
+    <string name="explorer_info_usage_label">Paggamit</string>
+    <string name="explorer_info_device_storage_total_label">Storage ng device</string>
+    <string name="explorer_info_device_storage_used_label">Nagamit</string>
+    <string name="explorer_info_device_storage_free_label">Libre</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Home</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Itakda bilang home</string>
+    <string name="explorer_breadcrumb_copy_path_action">Kopyahin ang path</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Nakopya ang path sa clipboard</string>
+    <string name="explorer_navigation_device">Device</string>
+    <string name="explorer_navigation_network">Network</string>
+    <string name="explorer_navigation_recent">Kamakailan</string>
+    <string name="explorer_navigation_recent_desc">Mga file na kamakailang lumitaw sa device na ito</string>
+    <string name="explorer_navigation_trash">Basurahan</string>
+    <string name="explorer_navigation_trash_desc">Ibalik ang mga tinanggal na file</string>
+    <string name="explorer_navigation_trash_nested_desc">Nasa loob ng folder sa basurahan</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Walang tinanggal na item</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d na item</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Ibalik</string>
+    <string name="explorer_trash_restore_selected_action">Ibalik ang napili</string>
+    <string name="explorer_trash_delete_permanently_action">Permanenteng tanggalin</string>
+    <string name="explorer_trash_delete_selected_action">Tanggalin ang napili</string>
+    <string name="explorer_trash_empty_trash_action">Alisan ng laman ang basurahan</string>
+    <string name="explorer_trash_empty_confirm">Alisan ng laman ang basurahan?</string>
+    <string name="explorer_trash_empty_message">Permanenteng tatanggalin ang lahat ng item sa Basurahan. Hindi na mababawi ang pagkilos na ito.</string>
+    <string name="explorer_trash_empty_confirm_action">Alisan ng laman ang basurahan</string>
+    <string name="explorer_trash_restore_desc">Ibalik sa orihinal na lokasyon</string>
+    <string name="explorer_trash_item_unavailable">Hindi available ang item</string>
+    <string name="explorer_trash_delete_warning">Hindi na mababawi ang pagkilos na ito</string>
+    <string name="explorer_trash_disabled_warning">Hindi pinagana ang basurahan</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Naglo-load ng laman ng folder sa basurahan…</string>
+    <string name="explorer_trash_nested_restore_action">Ibalik sa orihinal na lokasyon</string>
+    <string name="explorer_trash_nested_delete_action">Permanenteng tanggalin</string>
+    <string name="explorer_trash_nested_restore_conflict">May file na sa orihinal na lokasyon</string>
+    <string name="explorer_trash_nested_parent_missing">Wala na sa basurahan ang parent item</string>
+    <string name="explorer_trash_nested_path_missing">Wala na ang path</string>
+    <string name="explorer_trash_error_items_not_found">Hindi makita ang mga item sa basurahan</string>
+    <string name="explorer_trash_error_restore_failed">Hindi naibalik ang mga item</string>
+    <string name="explorer_trash_error_delete_failed">Hindi natanggal ang mga item</string>
+    <string name="explorer_trash_nested_error_restore_failed">Hindi naibalik ang %1$s</string>
+    <string name="explorer_trash_nested_error_delete_failed">Hindi natanggal ang %1$s</string>
+
+    <string name="explorer_navigation_root">Root na direktoryo</string>
+    <string name="explorer_navigation_rom">ROM ng system</string>
+    <string name="explorer_navigation_internal_storage">Panloob na pampublikong storage</string>
+    <string name="explorer_navigation_external_storage">Panlabas na pampublikong storage</string>
+
+    <string name="explorer_loader_progress_directory_loading">Bina-browse ang %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Sinusuri ang mga pahintulot</string>
+    <string name="explorer_loader_progress_directory_filesystem">Kinukuha ang impormasyon ng filesystem</string>
+    <string name="explorer_loader_progress_directory_content">Naglo-load ng laman ng folder</string>
+    <string name="explorer_loader_progress_directory_content_details">Naglo-load ng mga detalye ng nilalaman</string>
+    <string name="explorer_loader_progress_directory_content_extended">Naglo-load ng mga karagdagang detalye ng nilalaman</string>
+
+    <string name="explorer_loader_progress_device_loading">Naglo-load ng device</string>
+    <string name="explorer_loader_progress_device_locations">Naglo-load ng mga lokasyon ng storage</string>
+
+    <string name="explorer_loader_progress_network_loading">Naglo-load ng storage sa network</string>
+
+    <string name="explorer_loader_progress_home_loading">Naglo-load ng home</string>
+    <string name="explorer_loader_progress_trash_loading">Naglo-load ng basurahan…</string>
+    <string name="explorer_loader_progress_recent_loading">Naglo-load ng mga kamakailang file…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d shortcut</item>
+        <item quantity="other">%d na shortcut</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d lokasyon</item>
+        <item quantity="other">%d na lokasyon</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d nakatago</item>
+        <item quantity="other">%d na nakatago</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s libre</string>
+    <string name="explorer_infobar_loading">Naglo-load…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Gumawa ng bagong item</string>
+    <string name="explorer_dialog_rename_title">Palitan ang pangalan</string>
+    <string name="explorer_dialog_name_label">Pangalan</string>
+    <string name="explorer_dialog_type_label">Uri</string>
+    <string name="explorer_dialog_type_folder">Folder</string>
+    <string name="explorer_dialog_type_file">File</string>
+    <string name="explorer_dialog_create_text_file_title">Gumawa ng file mula sa teksto</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Preview</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d na character</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Magdagdag ng lokasyon ng storage</string>
+    <string name="explorer_add_device_storage_desc">Gamitin ang Storage Access Framework (SAF) para bigyan ang Butler ng access sa mga karagdagang lokasyon ng storage gaya ng mga USB drive, virtual na folder ng app, at iba pa.</string>
+    <string name="explorer_add_device_storage_continue">Magpatuloy</string>
+    <string name="explorer_add_device_storage_cancel">Kanselahin</string>
+    <string name="explorer_add_device_storage_suggestions_title">Mga app na may storage</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Binubuksan ang folder ng app na ito</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Alisin ang lokasyon</string>
+    <string name="explorer_device_remove_confirmation_title">Alisin ang lokasyon ng storage?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">Alisin ang %1$d lokasyon ng storage?</item>
+        <item quantity="other">Alisin ang %1$d na lokasyon ng storage?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Babawiin nito ang access ng Butler sa lokasyong ito. Hindi matatanggal ang mga file.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d lokasyon sa network</item>
+        <item quantity="other">%d na lokasyon sa network</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Network</string>
+    <string name="explorer_network_add_location_action">Magdagdag ng storage sa network</string>
+    <string name="explorer_network_edit_location_action">I-edit ang storage sa network</string>
+    <string name="explorer_network_remove_location_action">Alisin ang storage sa network</string>
+    <string name="explorer_network_sign_in_required_label">Kailangang mag-sign in</string>
+    <string name="explorer_network_status_checking_label">Sinusuri…</string>
+    <string name="explorer_network_status_available_label">Magagamit</string>
+    <string name="explorer_network_status_unavailable_label">Hindi available</string>
+    <string name="explorer_network_status_unavailable_since_format">Hindi available (%1$s)</string>
+    <string name="explorer_network_empty_title">Wala pang storage sa network</string>
+    <string name="explorer_network_empty_caption">Magdagdag ng Windows share o NAS folder para ma-browse ito rito.</string>
+    <string name="explorer_network_form_pro_notice">Libre ang pagdagdag at pagsubok ng lokasyon. Kailangan ng Butler Pro para ma-browse ito.</string>
+    <string name="explorer_network_upgrade_hint_saved">Na-save na. Kailangan ng Butler Pro para mag-browse ng storage sa network.</string>
+    <string name="explorer_network_upgrade_hint_locked">Kailangan ng Butler Pro para mag-browse ng storage sa network.</string>
+    <string name="explorer_network_remove_confirmation_title">Alisin ang storage sa network?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">Alisin ang %1$d storage sa network?</item>
+        <item quantity="other">Alisin ang %1$d na storage sa network?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Aalisin sa Butler ang mga detalye ng server at ang naka-save na password. Walang matatanggal sa server.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Magdagdag ng storage sa network</string>
+    <string name="explorer_network_form_edit_title">I-edit ang storage sa network</string>
+    <string name="explorer_network_form_label_label">Pangalan (opsyonal)</string>
+    <string name="explorer_network_form_host_label">Address ng server</string>
+    <string name="explorer_network_form_host_hint">nas.local o 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Port</string>
+    <string name="explorer_network_form_share_label">Share</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Folder sa loob ng share (opsyonal)</string>
+    <string name="explorer_network_form_auth_guest">Bisita</string>
+    <string name="explorer_network_form_auth_password">Username at password</string>
+    <string name="explorer_network_form_username_label">Username</string>
+    <string name="explorer_network_form_domain_label">Domain (opsyonal)</string>
+    <string name="explorer_network_form_password_label">Password</string>
+    <string name="explorer_network_form_password_kept_hint">Iwanang blangko para panatilihin ang naka-save na password</string>
+    <string name="explorer_network_form_remember_label">Tandaan ang password</string>
+    <string name="explorer_network_form_remember_hint">Nakaimbak nang naka-encrypt sa device na ito lang</string>
+    <string name="explorer_network_form_test_and_save_action">Subukan at i-save</string>
+    <string name="explorer_network_form_testing">Kumokonekta…</string>
+    <string name="explorer_network_form_error_host_blank">Ilagay ang address ng server</string>
+    <string name="explorer_network_form_error_host_not_bare">Address lang ng server ang ilagay, walang scheme o path</string>
+    <string name="explorer_network_form_error_host_malformed">Hindi wastong address ng server ito</string>
+    <string name="explorer_network_form_error_port">Maglagay ng port mula 1 hanggang 65535</string>
+    <string name="explorer_network_form_error_share_blank">Ilagay ang pangalan ng share</string>
+    <string name="explorer_network_form_error_share_not_single">Pangalan lang ng share ang ilagay, ilagay sa ibaba ang mga subfolder</string>
+    <string name="explorer_network_form_error_share_malformed">Hindi wastong pangalan ng share ito</string>
+    <string name="explorer_network_form_error_base_path">Hindi magagamit ang path ng folder na ito</string>
+    <string name="explorer_network_form_error_username_blank">Ilagay ang username</string>
+    <string name="explorer_network_form_error_password_required">Ilagay muli ang password para palitan ang username o domain</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Pangalanan ang lokasyon</string>
+    <string name="explorer_location_name_label">Pangalan ng lokasyon</string>
+    <string name="explorer_location_name_hint">Iwanang blangko para gamitin ang default na pangalan</string>
+    <string name="explorer_location_rename_action">Palitan ang pangalan ng lokasyon</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Idinagdag sa nakaraang %d araw</item>
+        <item quantity="other">Idinagdag sa nakaraang %d na araw</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Walang bago rito</string>
+    <string name="explorer_recent_empty_message">Makikita rito ang mga file na lumilitaw sa device na ito</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Walang laman ang folder na ito</string>
+    <string name="explorer_empty_search_title">Walang resulta ng paghahanap</string>
+    <string name="explorer_empty_search_caption">Subukan ang ibang salita sa paghahanap</string>
+    <string name="explorer_empty_folder_label">Walang lamang folder</string>
+    <string name="explorer_empty_filtered_title">Walang tumutugmang item</string>
+    <string name="explorer_empty_filtered_caption">Subukang baguhin ang mga filter</string>
+    <string name="explorer_empty_hidden_title">Mga nakatagong item lang ang narito</string>
+    <string name="explorer_empty_hidden_caption">Itinatago ng tab na ito ang mga item na nagsisimula sa tuldok ang pangalan</string>
+    <string name="explorer_empty_show_hidden_action">Ipakita ang mga nakatagong item</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Wala nang maipapakita</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">May bahagi ng folder na ito na hindi ipinapakita dahil sa mga nakatagong item, at may bahagi ring ibinubukod ng mga filter</string>
+    <string name="explorer_empty_clear_filters_action">Burahin ang mga filter</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Walang maipapakita rito dahil sa mga nakatagong item at filter</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Makikita muli ang mga ito kapag ipinakita ang mga nakatagong item at binura ang mga filter ng tab na ito</string>
+    <string name="explorer_empty_show_all_action">Ipakita ang lahat ng item</string>
+    <string name="explorer_path_not_found_title">Wala na ang folder na ito</string>
+    <string name="explorer_path_not_found_caption">Tinanggal ito, pinalitan ang pangalan, o inilipat sa ibang lugar.</string>
+    <string name="explorer_path_not_found_back_action">Bumalik</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Naglo-load…</string>
+    <string name="explorer_file_peek_loading_text">Naglo-load…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Walang makikita rito… tuloy lang 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Nagdiyeta ang folder na ito</string>
+    <string name="explorer_empty_folder_caption_3">Pati mga file maagang umuwi ngayon</string>
+    <string name="explorer_empty_folder_caption_4">Tumigil sa paggana ang Folder.exe</string>
+    <string name="explorer_empty_folder_caption_5">Naglalaro ng taguan ang mga file</string>
+    <string name="explorer_empty_folder_caption_6">404: Hindi makita ang mga file</string>
+    <string name="explorer_empty_folder_caption_7">Hirap magtiwala ang folder na ito</string>
+    <string name="explorer_empty_folder_caption_8">Nagbakasyon ang mga file nang walang pasabi</string>
+    <string name="explorer_empty_folder_caption_9">Walang laman tulad ng kaluluwa ko… pero mas maayos</string>
+    <string name="explorer_empty_folder_caption_10">Parang damong gumugulong sa isang digital na disyerto</string>
+    <string name="explorer_empty_folder_caption_11">Naglalayuan ang mga file para sa social distancing</string>
+    <string name="explorer_empty_folder_caption_12">Minimalista ang folder na ito</string>
+    <string name="explorer_empty_folder_caption_13">May nakalimot magpakain sa mga file</string>
+    <string name="explorer_empty_folder_caption_14">Umalis na sa gusali ang mga file</string>
+    <string name="explorer_empty_folder_caption_15">Mas walang laman kaysa sa pangako ng pulitiko</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Pagbukud-bukurin ayon sa</string>
+    <string name="explorer_sort_mode_name_label">Pangalan</string>
+    <string name="explorer_sort_mode_size_label">Laki</string>
+    <string name="explorer_sort_mode_modified_label">Petsa ng pagbabago</string>
+    <string name="explorer_sort_mode_created_label">Petsa ng paggawa</string>
+    <string name="explorer_sort_descending_label">Pababang pagkakasunod-sunod</string>
+    <string name="explorer_sort_scope_label">Ilapat sa</string>
+    <string name="explorer_sort_scope_all_folders">Lahat ng folder</string>
+    <string name="explorer_sort_scope_this_folder">Folder na ito</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Folder na ito at mga subfolder</string>
+    <string name="explorer_sort_scope_use_default_here">Gamitin ang default dito</string>
+    <string name="explorer_sort_only_this_tab_label">Para lang sa tab na ito</string>
+    <string name="explorer_sort_inherited_notice">Pinagbukud-bukod ayon sa panuntunang na-save para sa %1$s</string>
+    <string name="explorer_sort_suppressed_notice">Pinapalitan nito ang panuntunang na-save para sa %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Ginagamit ng tab na ito ang sarili nitong default na pagkakasunod-sunod</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Burahin</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Mga laki ng folder</string>
+    <string name="explorer_sizes_sheet_label_calculated">Nakalkula</string>
+    <string name="explorer_sizes_sheet_label_folders">Mga folder</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Mga lokasyong hindi mabasa</string>
+    <string name="explorer_sizes_sheet_problems_more">%1$d pa ang hindi nakalista</string>
+    <string name="explorer_sizes_sheet_recalculate">Kalkulahin muli</string>
+    <string name="explorer_sizes_sheet_discard">Itapon ang mga laki</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Ayos ng mga item at dami ng detalyeng ipinapakita ng mga ito</string>
+    <string name="explorer_view_mode_list_label">Listahan</string>
+    <string name="explorer_view_mode_grid_label">Grid</string>
+    <string name="explorer_view_density_compact_label">Siksik</string>
+    <string name="explorer_view_density_comfortable_label">Maluwag</string>
+    <string name="explorer_view_density_detailed_label">Detalyado</string>
+    <string name="explorer_view_show_hidden_label">Ipakita ang mga nakatagong file</string>
+    <string name="explorer_view_set_default_action">Itakda bilang default</string>
+    <string name="explorer_view_detail_created_label">Ginawa</string>
+    <string name="explorer_view_detail_modified_label">Binago</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Mga panuntunan sa pagbubukud-bukod ng folder</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Mga setting sa pagbubukud-bukod na na-save para sa bawat folder</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Burahin ang mga panuntunan sa pagbubukud-bukod ng folder?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Babalik ang lahat ng folder sa default na pagkakasunod-sunod. Mananatili ang sariling pagkakasunod-sunod ng mga tab na may ganitong setting. Hindi na mababawi ang pagkilos na ito.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Burahin lahat</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Uri ng file</string>
+    <string name="explorer_filter_type_all">Lahat</string>
+    <string name="explorer_filter_type_files">Mga file lang</string>
+    <string name="explorer_filter_type_folders">Mga folder lang</string>
+    <string name="explorer_filter_include_label">Pattern para sa pagsama</string>
+    <string name="explorer_filter_include_placeholder_simple">hal., bakasyon, ulat, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">hal., .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Pattern para sa pagbukod</string>
+    <string name="explorer_filter_exclude_placeholder_simple">hal., tmp, cache, luma</string>
+    <string name="explorer_filter_exclude_placeholder_regex">hal., ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Paganahin ang mga pattern ng regex sa mga setting</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Kailangan ng pahintulot</string>
+    <string name="explorer_permission_generic_description">Kailangan ng Butler ng karagdagang pahintulot para ma-browse ang lokasyong ito.</string>
+    <string name="explorer_permission_setup_action">Buksan ang Pag-setup</string>
+    <string name="explorer_grant_access_action">Magbigay ng access</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Mga aksyon</string>
+    <string name="explorer_file_info_type_label">Uri</string>
+    <string name="explorer_file_info_size_label">Laki</string>
+    <string name="explorer_file_info_modified_label">Binago</string>
+    <string name="explorer_file_action_install">I-install</string>
+    <string name="explorer_file_action_install_subtitle">I-install ang app na ito sa device</string>
+    <string name="explorer_file_action_open">Buksan</string>
+    <string name="explorer_file_action_open_subtitle">Tingnan dito; gamitin ang Bumalik para bumalik sa folder na ito</string>
+    <string name="explorer_file_action_open_in_tab">Buksan sa bagong tab</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Tingnan sa Butler sa sarili nitong tab</string>
+    <string name="explorer_file_action_open_in_editor">Buksan sa editor</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">I-edit sa bagong tab</string>
+    <string name="explorer_file_action_open_with">Buksan gamit ang</string>
+    <string name="explorer_file_action_open_with_subtitle">Pumili ng panlabas na app na magbubukas nito</string>
+    <string name="explorer_file_action_share">Ibahagi</string>
+    <string name="explorer_file_action_share_subtitle">Ibahagi gamit ang mga naka-install na app</string>
+    <string name="explorer_file_action_copy">Kopyahin</string>
+    <string name="explorer_file_action_copy_subtitle">Kopyahin sa clipboard para idikit</string>
+    <string name="explorer_file_action_cut">Gupitin</string>
+    <string name="explorer_file_action_cut_subtitle">Ilipat sa clipboard para idikit</string>
+    <string name="explorer_file_action_rename">Palitan ang pangalan</string>
+    <string name="explorer_file_action_rename_subtitle">Palitan ang pangalan ng file</string>
+    <string name="explorer_file_action_delete">Tanggalin</string>
+    <string name="explorer_file_action_delete_subtitle">Permanenteng tanggalin ang file na ito</string>
+    <string name="explorer_file_action_move_to_trash">Ilipat sa Basurahan</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Ilipat ang file sa basurahan</string>
+    <string name="explorer_file_action_properties">Mga katangian</string>
+    <string name="explorer_file_action_properties_subtitle">Tingnan ang detalyadong impormasyon ng file</string>
+    <string name="explorer_file_action_extract">I-extract</string>
+    <string name="explorer_file_action_extract_subtitle">I-extract ang laman ng archive sa isang folder</string>
+    <string name="explorer_file_action_show_in_folder">Ipakita sa folder</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Buksan ang folder na kinalalagyan ng file na ito</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">Nagawa ang %d file.</item>
+        <item quantity="other">Nagawa ang %d na file.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">Nagawa ang %d direktoryo.</item>
+        <item quantity="other">Nagawa ang %d na direktoryo.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Pagkopya</string>
+    <string name="explorer_operation_copy_description_single">Kopyahin ang \"%1$s\" mula sa \"%2$s\" papunta sa \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">Kopyahin ang %1$d item papunta sa \"%2$s\".</item>
+        <item quantity="other">Kopyahin ang %1$d na item papunta sa \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">Nakopya ang %d file.</item>
+        <item quantity="other">Nakopya ang %d na file.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">Nakopya ang %d direktoryo.</item>
+        <item quantity="other">Nakopya ang %d na direktoryo.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">Nakopya ang %s.</item>
+        <item quantity="other">Nakopya ang %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Pag-extract</string>
+    <string name="explorer_operation_extract_description">I-extract ang \"%1$s\" papunta sa \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Pagkopya sa lokal na storage</string>
+    <string name="explorer_operation_download_copy_description">Kopyahin ang \"%1$s\" papunta sa \"%2$s\" para ma-browse sa lokal na storage.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">Na-extract ang %d file.</item>
+        <item quantity="other">Na-extract ang %d na file.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">Na-extract ang %s.</item>
+        <item quantity="other">Na-extract ang %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Pag-compress</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">I-compress ang %1$d item bilang \"%2$s\".</item>
+        <item quantity="other">I-compress ang %1$d na item bilang \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">Na-compress ang %d file.</item>
+        <item quantity="other">Na-compress ang %d na file.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Gumawa ng archive</string>
+    <string name="explorer_compress_dialog_name_label">Pangalan ng archive</string>
+    <string name="explorer_compress_dialog_format_label">Format</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Nabubuksan sa anumang device. Maaaring protektahan ng password.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Mas maliit para sa maraming file. Walang proteksyon ng password.</string>
+    <string name="explorer_compress_dialog_create_action">Gumawa</string>
+    <string name="explorer_compress_dialog_level_label">Antas ng compression</string>
+    <string name="explorer_compress_dialog_level_fast">Mabilis</string>
+    <string name="explorer_compress_dialog_level_normal">Karaniwan</string>
+    <string name="explorer_compress_dialog_level_best">Pinakamahusay</string>
+    <string name="explorer_compress_dialog_password_label">Password (opsyonal)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Kumpirmahin ang password</string>
+    <string name="explorer_compress_dialog_password_mismatch">Hindi magkatugma ang mga password</string>
+    <string name="explorer_compress_dialog_password_weak">Mahinang password</string>
+    <string name="explorer_compress_dialog_password_notice">Naka-encrypt ang laman ng mga file, pero hindi ang mga pangalan ng file.</string>
+    <string name="explorer_compress_dialog_password_show">Ipakita ang password</string>
+    <string name="explorer_compress_dialog_password_hide">Itago ang password</string>
+    <string name="explorer_compress_dialog_overwrite_title">Palitan ang archive?</string>
+    <string name="explorer_compress_dialog_overwrite_message">May \"%1$s\" na at papalitan ito.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Palitan</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">I-drop ang %1$d item?</item>
+        <item quantity="other">I-drop ang %1$d na item?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">Kopyahin o ilipat ang %1$d item papunta sa \"%2$s\"?</item>
+        <item quantity="other">Kopyahin o ilipat ang %1$d na item papunta sa \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">Kopyahin ang %1$d item papunta sa \"%2$s\"?</item>
+        <item quantity="other">Kopyahin ang %1$d na item papunta sa \"%2$s\"?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Ilipat sa basurahan?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">Ilipat ang %1$d item sa basurahan?</item>
+        <item quantity="other">Ilipat ang %1$d na item sa basurahan?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Paglipat</string>
+    <string name="explorer_operation_move_description_single">Ilipat ang \"%1$s\" mula sa \"%2$s\" papunta sa \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">Ilipat ang %1$d item papunta sa \"%2$s\".</item>
+        <item quantity="other">Ilipat ang %1$d na item papunta sa \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">Nailipat ang %d file.</item>
+        <item quantity="other">Nailipat ang %d na file.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">Nailipat ang %d direktoryo.</item>
+        <item quantity="other">Nailipat ang %d na direktoryo.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">Nailipat ang %s.</item>
+        <item quantity="other">Nailipat ang %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Paggawa ng folder</string>
+    <string name="explorer_operation_create_description_directory">Gumawa ng folder na \"%1$s\" sa \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Paggawa ng file</string>
+    <string name="explorer_operation_create_description_file">Gumawa ng file na \"%1$s\" sa \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Paggawa ng text file</string>
+    <string name="explorer_operation_create_text_file_description">Gumawa ng \"%1$s\" mula sa piraso ng teksto</string>
+    <string name="explorer_operation_calculate_sizes_title">Pagkalkula ng laki</string>
+    <string name="explorer_operation_calculate_sizes_description">Kalkulahin ang mga laki ng folder sa \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">Na-scan ang %1$d item</item>
+        <item quantity="other">Na-scan ang %1$d na item</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Nakalkula ang mga laki ng %1$d na folder.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">Nakalkula ang mga laki ng %1$d na folder, hindi mabasa ang %2$d lokasyon.</item>
+        <item quantity="other">Nakalkula ang mga laki ng %1$d na folder, hindi mabasa ang %2$d na lokasyon.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Itinapon ang mga laki ng folder para sa \"%1$s\" dahil nagbago ito habang kinakalkula.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Nabigo ang pag-navigate</string>
+    <string name="explorer_aborted_dialog_title">Itinigil ang operasyon</string>
+    <string name="explorer_aborted_dialog_message">Kinansela ang pag-load bago may maipakita.</string>
+    <string name="explorer_archive_unbrowsable_title">Hindi ma-browse ang archive dito</string>
+    <string name="explorer_archive_unbrowsable_msg">Nasa storage ang \"%1$s\" na sunod-sunod na pagbasa lang ang sinusuportahan, pero kailangan ng random access para ma-browse ang archive. I-extract ang archive dito, o mag-download ng lokal na kopya para ma-browse ito.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">I-extract ang archive</string>
+    <string name="explorer_archive_unbrowsable_download_action">Mag-download ng lokal na kopya</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (espesyal na access)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (espesyal na access)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Nililimitahan ng Android ang access sa folder na ito. Gamitin ang tagapili ng folder para magbigay ng access.</string>
+    <string name="explorer_permission_multiple_options_description">Maaaring magbigay ng access gamit ang tagapili ng folder ng Android o mag-set up ng root o ADB access para sa mas mabilis na access sa lahat ng pinaghihigpitang folder.</string>
+    <string name="explorer_permission_multiple_options_root_description">Maaaring magbigay ng access gamit ang tagapili ng folder ng Android, o mag-set up ng Root para ma-access ang lahat ng pinaghihigpitang folder.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Maaaring magbigay ng access gamit ang tagapili ng folder ng Android, o mag-set up ng ADB access para sa mas mabilis na access sa mga pinaghihigpitang folder.</string>
+    <string name="explorer_permission_setup_both_description">Kailangan ng folder na ito ng mas mataas na antas ng access. Mag-set up ng root o ADB access sa Pag-setup.</string>
+    <string name="explorer_permission_setup_shizuku_description">Kailangan ng folder na ito ng mas mataas na antas ng access gamit ang ADB. I-configure ang ADB access sa Pag-setup.</string>
+    <string name="explorer_permission_setup_root_description">Kailangan ng folder na ito ng Root access. I-configure ang Root sa Pag-setup kung naka-root ang device.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Gamitin ang tagapili ng folder ng Android para magbigay ng access sa folder na ito.</string>
+    <string name="explorer_permission_option_picker_action">Buksan ang tagapili ng SAF</string>
+
+    <string name="explorer_permission_option_setup_title">Buong access</string>
+    <string name="explorer_permission_option_setup_description">I-configure ang root o ADB access para sa mas mabilis na access sa lahat ng pinaghihigpitang folder.</string>
+    <string name="explorer_permission_option_setup_root_description">I-configure ang Root para ma-access ang folder na ito at ang iba pang pinaghihigpitang folder.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">I-configure ang ADB access para buksan ang folder na ito.</string>
+    <string name="explorer_permission_option_setup_action">I-configure</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Access sa storage</string>
+    <string name="explorer_permission_option_storage_description">Bigyan ang Butler ng pahintulot na ma-access ang mga file sa storage ng device.</string>
+    <string name="explorer_permission_option_storage_action">Magbigay ng pahintulot</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders &amp; files -->
+    <string name="explorer_favorites_section_title">Mga paborito</string>
+    <string name="explorer_action_add_to_favorites">Idagdag sa mga paborito</string>
+    <string name="explorer_action_remove_from_favorites">Alisin sa mga paborito</string>
+    <string name="explorer_favorites_select_action">Piliin</string>
+    <string name="explorer_favorites_unavailable_subtitle">Hindi ma-access</string>
+    <string name="explorer_favorites_unavailable_toast">Hindi ma-access ang paborito</string>
+    <string name="explorer_favorites_added_message">Idinagdag ang %1$s sa mga paborito</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">Idinagdag ang %1$d item sa mga paborito</item>
+        <item quantity="other">Idinagdag ang %1$d na item sa mga paborito</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">Inalis ang %1$s sa mga paborito</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">Inalis ang %1$d item sa mga paborito</item>
+        <item quantity="other">Inalis ang %1$d na item sa mga paborito</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Palitan ang pangalan ng paborito</string>
+    <string name="explorer_favorites_rename_hint">Pangalan ng paborito</string>
+    <string name="explorer_favorites_rename_description">Ang entry lang sa mga paborito ang papalitan ng pangalan, mananatili ang pangalan ng mismong folder.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">Pinapalitan ng tab na ito ang pagkakasunod-sunod sa %1$d folder</item>
+        <item quantity="other">Pinapalitan ng tab na ito ang pagkakasunod-sunod sa %1$d na folder</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d folder</item>
+        <item quantity="other">%1$d na folder</item>
+    </plurals>
+</resources>

@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">Ogiltig appförteckning</string>
+    <string name="pkgrepo_invalid_inventory_error_description">Systemet gav Butler en ogiltig lista över installerade appar.</string>
+</resources>

@@ -1,0 +1,685 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Filutforskare</string>
+    <string name="explorer_subtitle">Bläddra bland filer och kataloger</string>
+    <string name="explorer_settings_title">Inställningar för filutforskaren</string>
+    <string name="explorer_settings_file_display">Filvisning</string>
+    <string name="explorer_settings_filter_regex_title">Avancerad matchning med jokertecken</string>
+    <string name="explorer_settings_filter_regex_desc">Använd reguljära uttryck i filter för inkludering och exkludering.</string>
+    <string name="explorer_settings_navigation">Navigering</string>
+    <string name="explorer_settings_back_button_title">Navigering med bakåtknappen</string>
+    <string name="explorer_settings_back_button_desc">Navigera genom historiken med bakåtknappen eller bakåtgesten.</string>
+    <string name="explorer_settings_trash_category">Papperskorg</string>
+    <string name="explorer_settings_trash_enabled_title">Aktivera papperskorgen</string>
+    <string name="explorer_settings_trash_enabled_desc">Flytta raderade filer till papperskorgen i stället för att radera dem permanent</string>
+    <string name="explorer_settings_trash_auto_delete_title">Radera automatiskt efter</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Radera objekt automatiskt efter så här lång tid i papperskorgen</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d dagar</string>
+    <string name="explorer_settings_trash_max_size_title">Maximal storlek per lagringsplats</string>
+    <string name="explorer_settings_trash_max_size_summary">Hur mycket utrymme papperskorgen får använda på varje lagringsplats</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Tid till automatisk radering</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Maximal storlek per lagringsplats</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Aktivera papperskorgen?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Till skillnad från datorsystem har Android ingen inbyggd papperskorg. Butler tillhandahåller en genom att använda sin cachemapp.\n\nTänk på:\n• Enhetens lagringsindikator visar inte det frigjorda utrymmet förrän objekten har raderats permanent\n• Om enhetens lagringsutrymme börjar ta slut kan Android tömma apparnas cache, vilket tar bort filerna i papperskorgen</string>
+    <string name="explorer_settings_trash_enable_action">Aktivera</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">Fil</string>
+    <string name="explorer_file_symlink_content_desc">Symbolisk länk</string>
+    <string name="explorer_file_folder_content_desc">Mapp</string>
+    <string name="explorer_file_peek_content_desc">Läser in filinformation</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Genväg</string>
+    <string name="explorer_file_storage_local_label">Lokal</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Endast läsåtkomst</string>
+    <string name="explorer_file_storage_saf_write_only_label">Endast skrivåtkomst</string>
+    <string name="explorer_file_storage_saf_no_access_label">Ingen åtkomst</string>
+    <string name="explorer_file_storage_saf_uri_label">URI för SAF-träd</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s totalt • %3$s ledigt</string>
+    <string name="explorer_file_broken_link_label">Trasig länk</string>
+    <string name="explorer_file_items_count">%1$d objekt</string>
+    <string name="explorer_file_empty">Tom</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · partiell</string>
+    <string name="explorer_sizes_estimate_description">Uppskattat utifrån Androids totala lagringsvärden. För oläsbara filer används upptaget lagringsutrymme som en uppskattning av filstorleken. Dolda filer som hanteras av Android kan också ingå. Storleken för andra oläsbara platser förblir okänd.</string>
+    <string name="explorer_sizes_estimate_coverage">Android/data kunde inte uppskattas eftersom andra delar av lagringen inte kunde mätas fullständigt.</string>
+    <string name="explorer_sizes_estimate_unavailable">Androids lagringsstatistik var inte tillgänglig. Uppmätta storlekar visas fortfarande.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Androids totala lagringsvärden stämde inte överens med skanningen. Uppmätta storlekar visas fortfarande.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Välj mapp</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="one">Välj mapp (%d)</item>
+        <item quantity="other">Välj mappar (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Välj fil</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="one">Välj fil (%d)</item>
+        <item quantity="other">Välj filer (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="one">Välj objekt (%d)</item>
+        <item quantity="other">Välj objekt (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Välj den här mappen</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">Välj %d</item>
+        <item quantity="other">Välj %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Spara fil</string>
+    <string name="explorer_picker_save_here_action">Spara här</string>
+    <string name="explorer_picker_save_as_filename_label">Filnamn</string>
+    <string name="explorer_picker_save_as_filename_hint">Ange filnamn</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Uppdatera</string>
+    <string name="explorer_action_calculate_sizes">Beräkna storlekar</string>
+    <string name="explorer_action_sort">Sortera</string>
+    <string name="explorer_action_filter">Filtrera</string>
+    <string name="explorer_action_view">Layout</string>
+    <string name="explorer_action_create">Skapa</string>
+    <string name="explorer_action_rename">Byt namn</string>
+    <string name="explorer_action_copy">Kopiera</string>
+    <string name="explorer_action_cut">Klipp ut</string>
+    <string name="explorer_action_delete">Radera</string>
+    <string name="explorer_action_select_all">Markera alla</string>
+    <string name="explorer_action_deselect_all">Avmarkera alla</string>
+    <string name="explorer_action_compress">Komprimera</string>
+    <string name="explorer_action_extract">Packa upp</string>
+    <string name="explorer_action_add_location">Lägg till plats</string>
+    <string name="explorer_action_info">Info</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Information</string>
+    <string name="explorer_info_name_label">Namn</string>
+    <string name="explorer_info_path_label">Sökväg</string>
+    <string name="explorer_info_type_label">Typ</string>
+    <string name="explorer_info_type_file">Fil</string>
+    <string name="explorer_info_type_directory">Katalog</string>
+    <string name="explorer_info_size_label">Storlek</string>
+    <string name="explorer_info_modified_label">Ändrad</string>
+    <string name="explorer_info_created_label">Skapad</string>
+    <string name="explorer_info_permissions_label">Behörigheter</string>
+    <string name="explorer_info_owner_label">Ägare</string>
+    <string name="explorer_info_child_count_label">Objekt</string>
+    <string name="explorer_info_symlink_target_label">Mål</string>
+    <string name="explorer_info_symlink_status_label">Status</string>
+    <string name="explorer_info_symlink_broken">Trasig länk</string>
+    <string name="explorer_info_unknown">Okänd</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Raderad</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Behörigheter</string>
+    <string name="explorer_info_saf_granted_label">Beviljad</string>
+    <string name="explorer_info_saf_permission_read">Läsa</string>
+    <string name="explorer_info_saf_permission_write">Skriva</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Server</string>
+    <string name="explorer_info_network_port_label">Port</string>
+    <string name="explorer_info_network_share_label">Resurs</string>
+    <string name="explorer_info_network_folder_label">Mapp</string>
+    <string name="explorer_info_network_address_label">Adress</string>
+    <string name="explorer_info_network_status_label">Status</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Inloggning</string>
+    <string name="explorer_info_network_domain_label">Domän</string>
+    <string name="explorer_info_network_password_label">Lösenord</string>
+    <string name="explorer_info_network_password_show_action">Visa lösenord</string>
+    <string name="explorer_info_network_password_hide_action">Dölj lösenord</string>
+    <string name="explorer_info_network_password_missing">Saknas, logga in igen</string>
+    <string name="explorer_info_network_password_locked">Sparat, men den här enheten kan inte låsa upp det</string>
+    <string name="explorer_info_network_added_label">Tillagd</string>
+    <string name="explorer_info_network_updated_label">Uppdaterad</string>
+    <string name="explorer_info_network_last_seen_label">Senast sedd</string>
+    <string name="explorer_info_network_last_seen_never">Aldrig</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Markerade</string>
+    <string name="explorer_info_files_label">Filer</string>
+    <string name="explorer_info_directories_label">Kataloger</string>
+    <string name="explorer_info_total_size_label">Total storlek</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Platser</string>
+    <string name="explorer_info_shortcuts_label">Genvägar</string>
+    <string name="explorer_info_total_capacity_label">Total kapacitet</string>
+    <string name="explorer_info_used_space_label">Använt utrymme</string>
+    <string name="explorer_info_free_space_label">Ledigt utrymme</string>
+    <string name="explorer_info_usage_label">Användning</string>
+    <string name="explorer_info_device_storage_total_label">Enhetslagring</string>
+    <string name="explorer_info_device_storage_used_label">Använt</string>
+    <string name="explorer_info_device_storage_free_label">Ledigt</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Hem</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Ange som hem</string>
+    <string name="explorer_breadcrumb_copy_path_action">Kopiera sökväg</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Sökvägen har kopierats till urklipp</string>
+    <string name="explorer_navigation_device">Enhet</string>
+    <string name="explorer_navigation_network">Nätverk</string>
+    <string name="explorer_navigation_recent">Senaste</string>
+    <string name="explorer_navigation_recent_desc">Filer som nyligen dök upp på den här enheten</string>
+    <string name="explorer_navigation_trash">Papperskorg</string>
+    <string name="explorer_navigation_trash_desc">Återställ raderade filer</string>
+    <string name="explorer_navigation_trash_nested_desc">Inuti en mapp i papperskorgen</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Inga raderade objekt</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d objekt</item>
+        <item quantity="other">%d objekt</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Återställ</string>
+    <string name="explorer_trash_restore_selected_action">Återställ markerade</string>
+    <string name="explorer_trash_delete_permanently_action">Radera permanent</string>
+    <string name="explorer_trash_delete_selected_action">Radera markerade</string>
+    <string name="explorer_trash_empty_trash_action">Töm papperskorgen</string>
+    <string name="explorer_trash_empty_confirm">Töm papperskorgen?</string>
+    <string name="explorer_trash_empty_message">Alla objekt i papperskorgen kommer att raderas permanent. Åtgärden kan inte ångras.</string>
+    <string name="explorer_trash_empty_confirm_action">Töm papperskorgen</string>
+    <string name="explorer_trash_restore_desc">Återställ till ursprunglig plats</string>
+    <string name="explorer_trash_item_unavailable">Objektet är inte tillgängligt</string>
+    <string name="explorer_trash_delete_warning">Åtgärden kan inte ångras</string>
+    <string name="explorer_trash_disabled_warning">Papperskorgen är inaktiverad</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Läser in innehållet i mappen i papperskorgen…</string>
+    <string name="explorer_trash_nested_restore_action">Återställ till ursprunglig plats</string>
+    <string name="explorer_trash_nested_delete_action">Radera permanent</string>
+    <string name="explorer_trash_nested_restore_conflict">Filen finns redan på den ursprungliga platsen</string>
+    <string name="explorer_trash_nested_parent_missing">Det överordnade objektet finns inte längre i papperskorgen</string>
+    <string name="explorer_trash_nested_path_missing">Sökvägen finns inte längre</string>
+    <string name="explorer_trash_error_items_not_found">Objekten hittades inte i papperskorgen</string>
+    <string name="explorer_trash_error_restore_failed">Kunde inte återställa objekten</string>
+    <string name="explorer_trash_error_delete_failed">Kunde inte radera objekten</string>
+    <string name="explorer_trash_nested_error_restore_failed">Kunde inte återställa %1$s</string>
+    <string name="explorer_trash_nested_error_delete_failed">Kunde inte radera %1$s</string>
+
+    <string name="explorer_navigation_root">Rotkatalog</string>
+    <string name="explorer_navigation_rom">System-ROM</string>
+    <string name="explorer_navigation_internal_storage">Intern offentlig lagring</string>
+    <string name="explorer_navigation_external_storage">Extern offentlig lagring</string>
+
+    <string name="explorer_loader_progress_directory_loading">Bläddrar i %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Kontrollerar behörigheter</string>
+    <string name="explorer_loader_progress_directory_filesystem">Hämtar filsystemsinformation</string>
+    <string name="explorer_loader_progress_directory_content">Läser in mappinnehåll</string>
+    <string name="explorer_loader_progress_directory_content_details">Läser in innehållsdetaljer</string>
+    <string name="explorer_loader_progress_directory_content_extended">Läser in utökade innehållsdetaljer</string>
+
+    <string name="explorer_loader_progress_device_loading">Läser in enhet</string>
+    <string name="explorer_loader_progress_device_locations">Läser in lagringsplatser</string>
+
+    <string name="explorer_loader_progress_network_loading">Läser in nätverkslagring</string>
+
+    <string name="explorer_loader_progress_home_loading">Läser in hem</string>
+    <string name="explorer_loader_progress_trash_loading">Läser in papperskorgen…</string>
+    <string name="explorer_loader_progress_recent_loading">Läser in senaste filer…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d genväg</item>
+        <item quantity="other">%d genvägar</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d plats</item>
+        <item quantity="other">%d platser</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d dolt</item>
+        <item quantity="other">%d dolda</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s ledigt</string>
+    <string name="explorer_infobar_loading">Läser in…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Skapa nytt objekt</string>
+    <string name="explorer_dialog_rename_title">Byt namn</string>
+    <string name="explorer_dialog_name_label">Namn</string>
+    <string name="explorer_dialog_type_label">Typ</string>
+    <string name="explorer_dialog_type_folder">Mapp</string>
+    <string name="explorer_dialog_type_file">Fil</string>
+    <string name="explorer_dialog_create_text_file_title">Skapa fil från text</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Förhandsvisning</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d tecken</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Lägg till lagringsplats</string>
+    <string name="explorer_add_device_storage_desc">Använd Storage Access Framework (SAF) för att ge Butler åtkomst till fler lagringsplatser, som USB-enheter, virtuella appmappar med mera.</string>
+    <string name="explorer_add_device_storage_continue">Fortsätt</string>
+    <string name="explorer_add_device_storage_cancel">Avbryt</string>
+    <string name="explorer_add_device_storage_suggestions_title">Appar med lagring</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Öppnar den här appens mapp</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Ta bort plats</string>
+    <string name="explorer_device_remove_confirmation_title">Ta bort lagringsplatsen?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">Ta bort %1$d lagringsplats?</item>
+        <item quantity="other">Ta bort %1$d lagringsplatser?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Detta återkallar Butlers åtkomst till den här platsen. Dina filer kommer inte att raderas.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d nätverksplats</item>
+        <item quantity="other">%d nätverksplatser</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Nätverk</string>
+    <string name="explorer_network_add_location_action">Lägg till nätverkslagring</string>
+    <string name="explorer_network_edit_location_action">Redigera nätverkslagring</string>
+    <string name="explorer_network_remove_location_action">Ta bort nätverkslagring</string>
+    <string name="explorer_network_sign_in_required_label">Inloggning krävs</string>
+    <string name="explorer_network_status_checking_label">Kontrollerar…</string>
+    <string name="explorer_network_status_available_label">Tillgänglig</string>
+    <string name="explorer_network_status_unavailable_label">Inte tillgänglig</string>
+    <string name="explorer_network_status_unavailable_since_format">Inte tillgänglig (%1$s)</string>
+    <string name="explorer_network_empty_title">Ingen nätverkslagring ännu</string>
+    <string name="explorer_network_empty_caption">Lägg till en delad Windows-resurs eller NAS-mapp för att bläddra i den här.</string>
+    <string name="explorer_network_form_pro_notice">Det är gratis att lägga till och testa en plats. För att bläddra i den krävs Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Sparat. För att bläddra i nätverkslagring krävs Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">För att bläddra i nätverkslagring krävs Butler Pro.</string>
+    <string name="explorer_network_remove_confirmation_title">Ta bort nätverkslagringen?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">Ta bort %1$d nätverkslagringsplats?</item>
+        <item quantity="other">Ta bort %1$d nätverkslagringsplatser?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler glömmer serveruppgifterna och det sparade lösenordet. Ingenting på servern raderas.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Lägg till nätverkslagring</string>
+    <string name="explorer_network_form_edit_title">Redigera nätverkslagring</string>
+    <string name="explorer_network_form_label_label">Namn (valfritt)</string>
+    <string name="explorer_network_form_host_label">Serveradress</string>
+    <string name="explorer_network_form_host_hint">nas.local eller 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Port</string>
+    <string name="explorer_network_form_share_label">Resurs</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Mapp i den delade resursen (valfritt)</string>
+    <string name="explorer_network_form_auth_guest">Gäst</string>
+    <string name="explorer_network_form_auth_password">Användarnamn och lösenord</string>
+    <string name="explorer_network_form_username_label">Användarnamn</string>
+    <string name="explorer_network_form_domain_label">Domän (valfritt)</string>
+    <string name="explorer_network_form_password_label">Lösenord</string>
+    <string name="explorer_network_form_password_kept_hint">Lämna tomt för att behålla det sparade lösenordet</string>
+    <string name="explorer_network_form_remember_label">Kom ihåg lösenordet</string>
+    <string name="explorer_network_form_remember_hint">Sparas krypterat endast på den här enheten</string>
+    <string name="explorer_network_form_test_and_save_action">Testa och spara</string>
+    <string name="explorer_network_form_testing">Ansluter…</string>
+    <string name="explorer_network_form_error_host_blank">Ange en serveradress</string>
+    <string name="explorer_network_form_error_host_not_bare">Ange endast serveradressen, utan protokollprefix eller sökväg</string>
+    <string name="explorer_network_form_error_host_malformed">Det här är inte en giltig serveradress</string>
+    <string name="explorer_network_form_error_port">Ange en port mellan 1 och 65535</string>
+    <string name="explorer_network_form_error_share_blank">Ange ett resursnamn</string>
+    <string name="explorer_network_form_error_share_not_single">Ange endast resursnamnet, ange undermappar nedanför</string>
+    <string name="explorer_network_form_error_share_malformed">Det här är inte ett giltigt resursnamn</string>
+    <string name="explorer_network_form_error_base_path">Den här mappsökvägen kan inte användas</string>
+    <string name="explorer_network_form_error_username_blank">Ange ett användarnamn</string>
+    <string name="explorer_network_form_error_password_required">Ange lösenordet igen för att ändra användarnamnet eller domänen</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Namnge plats</string>
+    <string name="explorer_location_name_label">Platsnamn</string>
+    <string name="explorer_location_name_hint">Lämna tomt för att använda standardnamnet</string>
+    <string name="explorer_location_rename_action">Byt namn på plats</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Tillagda det senaste dygnet</item>
+        <item quantity="other">Tillagda de senaste %d dagarna</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Inget nytt här</string>
+    <string name="explorer_recent_empty_message">Filer som dyker upp på den här enheten visas här</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Den här mappen är tom</string>
+    <string name="explorer_empty_search_title">Inga sökresultat</string>
+    <string name="explorer_empty_search_caption">Prova ett annat sökord</string>
+    <string name="explorer_empty_folder_label">Tom mapp</string>
+    <string name="explorer_empty_filtered_title">Inga matchande objekt</string>
+    <string name="explorer_empty_filtered_caption">Prova att justera dina filter</string>
+    <string name="explorer_empty_hidden_title">Här finns bara dolda objekt</string>
+    <string name="explorer_empty_hidden_caption">Den här fliken döljer objekt vars namn börjar med en punkt</string>
+    <string name="explorer_empty_show_hidden_action">Visa dolda objekt</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Inget kvar att visa</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Dolda objekt och dina filter utesluter var sin del av den här mappen</string>
+    <string name="explorer_empty_clear_filters_action">Rensa filter</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Dolda objekt och filter utesluter allt här</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Visa dolda objekt och rensa den här flikens filter för att få tillbaka dem</string>
+    <string name="explorer_empty_show_all_action">Visa alla objekt</string>
+    <string name="explorer_path_not_found_title">Den här mappen är borta</string>
+    <string name="explorer_path_not_found_caption">Den har raderats, bytt namn eller flyttats någon annanstans.</string>
+    <string name="explorer_path_not_found_back_action">Gå tillbaka</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Läser in…</string>
+    <string name="explorer_file_peek_loading_text">Läser in…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Inget att se här… gå vidare 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Den här mappen går på diet</string>
+    <string name="explorer_empty_folder_caption_3">Till och med filerna gick hem tidigt i dag</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe har slutat fungera</string>
+    <string name="explorer_empty_folder_caption_5">Filerna leker kurragömma</string>
+    <string name="explorer_empty_folder_caption_6">404: Filerna hittades inte</string>
+    <string name="explorer_empty_folder_caption_7">Den här mappen har svårt att lita på andra</string>
+    <string name="explorer_empty_folder_caption_8">Filerna tog semester utan att säga till</string>
+    <string name="explorer_empty_folder_caption_9">Tom som min själ… men mer välorganiserad</string>
+    <string name="explorer_empty_folder_caption_10">Den digitala motsvarigheten till rullande ökenbuskar</string>
+    <string name="explorer_empty_folder_caption_11">Filerna håller social distans</string>
+    <string name="explorer_empty_folder_caption_12">Den här mappen ägnar sig åt minimalism</string>
+    <string name="explorer_empty_folder_caption_13">Någon glömde att mata filerna</string>
+    <string name="explorer_empty_folder_caption_14">Filerna har lämnat byggnaden</string>
+    <string name="explorer_empty_folder_caption_15">Tommare än ett löfte från en politiker</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Sortera efter</string>
+    <string name="explorer_sort_mode_name_label">Namn</string>
+    <string name="explorer_sort_mode_size_label">Storlek</string>
+    <string name="explorer_sort_mode_modified_label">Ändringsdatum</string>
+    <string name="explorer_sort_mode_created_label">Skapandedatum</string>
+    <string name="explorer_sort_descending_label">Fallande ordning</string>
+    <string name="explorer_sort_scope_label">Tillämpa på</string>
+    <string name="explorer_sort_scope_all_folders">Alla mappar</string>
+    <string name="explorer_sort_scope_this_folder">Den här mappen</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Den här mappen och undermappar</string>
+    <string name="explorer_sort_scope_use_default_here">Använd standard här</string>
+    <string name="explorer_sort_only_this_tab_label">Bara för den här fliken</string>
+    <string name="explorer_sort_inherited_notice">Sorterad enligt en regel sparad för %1$s</string>
+    <string name="explorer_sort_suppressed_notice">Detta åsidosätter regeln som sparats för %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Den här fliken använder en egen standardsortering</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Rensa</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Mappstorlekar</string>
+    <string name="explorer_sizes_sheet_label_calculated">Beräknade</string>
+    <string name="explorer_sizes_sheet_label_folders">Mappar</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Oläsbara platser</string>
+    <string name="explorer_sizes_sheet_problems_more">Ytterligare %1$d visas inte</string>
+    <string name="explorer_sizes_sheet_recalculate">Beräkna igen</string>
+    <string name="explorer_sizes_sheet_discard">Ta bort storlekar</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Hur objekten ordnas och hur mycket detaljer de visar</string>
+    <string name="explorer_view_mode_list_label">Lista</string>
+    <string name="explorer_view_mode_grid_label">Rutnät</string>
+    <string name="explorer_view_density_compact_label">Kompakt</string>
+    <string name="explorer_view_density_comfortable_label">Rymlig</string>
+    <string name="explorer_view_density_detailed_label">Detaljerad</string>
+    <string name="explorer_view_show_hidden_label">Visa dolda filer</string>
+    <string name="explorer_view_set_default_action">Ange som standard</string>
+    <string name="explorer_view_detail_created_label">Skapad</string>
+    <string name="explorer_view_detail_modified_label">Ändrad</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Sorteringsregler för mappar</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Sorteringsinställningar du sparat för enskilda mappar</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Rensa sorteringsregler för mappar?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Alla mappar återgår till standardsorteringen. Flikar med en egen sorteringsinställning behåller den. Åtgärden kan inte ångras.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Rensa alla</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Filtyp</string>
+    <string name="explorer_filter_type_all">Alla</string>
+    <string name="explorer_filter_type_files">Endast filer</string>
+    <string name="explorer_filter_type_folders">Endast mappar</string>
+    <string name="explorer_filter_include_label">Inkluderingsmönster</string>
+    <string name="explorer_filter_include_placeholder_simple">t.ex. semester, rapport, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">t.ex. .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Exkluderingsmönster</string>
+    <string name="explorer_filter_exclude_placeholder_simple">t.ex. tmp, cache, gammal</string>
+    <string name="explorer_filter_exclude_placeholder_regex">t.ex. ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Aktivera reguljära uttryck i inställningarna</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Behörighet behövs</string>
+    <string name="explorer_permission_generic_description">Butler behöver ytterligare behörighet för att bläddra på den här platsen.</string>
+    <string name="explorer_permission_setup_action">Öppna konfiguration</string>
+    <string name="explorer_grant_access_action">Ge åtkomst</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Åtgärder</string>
+    <string name="explorer_file_info_type_label">Typ</string>
+    <string name="explorer_file_info_size_label">Storlek</string>
+    <string name="explorer_file_info_modified_label">Ändrad</string>
+    <string name="explorer_file_action_install">Installera</string>
+    <string name="explorer_file_action_install_subtitle">Installera den här appen på din enhet</string>
+    <string name="explorer_file_action_open">Öppna</string>
+    <string name="explorer_file_action_open_subtitle">Visa här, bakåt tar dig tillbaka till den här mappen</string>
+    <string name="explorer_file_action_open_in_tab">Öppna i ny flik</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Visa i Butler i en egen flik</string>
+    <string name="explorer_file_action_open_in_editor">Öppna i redigerare</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Redigera i en ny flik</string>
+    <string name="explorer_file_action_open_with">Öppna med</string>
+    <string name="explorer_file_action_open_with_subtitle">Välj en extern app att öppna med</string>
+    <string name="explorer_file_action_share">Dela</string>
+    <string name="explorer_file_action_share_subtitle">Dela via installerade appar</string>
+    <string name="explorer_file_action_copy">Kopiera</string>
+    <string name="explorer_file_action_copy_subtitle">Kopiera till urklipp för inklistring</string>
+    <string name="explorer_file_action_cut">Klipp ut</string>
+    <string name="explorer_file_action_cut_subtitle">Flytta till urklipp för inklistring</string>
+    <string name="explorer_file_action_rename">Byt namn</string>
+    <string name="explorer_file_action_rename_subtitle">Ändra filnamnet</string>
+    <string name="explorer_file_action_delete">Radera</string>
+    <string name="explorer_file_action_delete_subtitle">Radera den här filen permanent</string>
+    <string name="explorer_file_action_move_to_trash">Flytta till papperskorgen</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Flytta filen till papperskorgen</string>
+    <string name="explorer_file_action_properties">Egenskaper</string>
+    <string name="explorer_file_action_properties_subtitle">Visa detaljerad filinformation</string>
+    <string name="explorer_file_action_extract">Packa upp</string>
+    <string name="explorer_file_action_extract_subtitle">Packa upp arkivets innehåll till en mapp</string>
+    <string name="explorer_file_action_show_in_folder">Visa i mapp</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Öppna mappen som filen finns i</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">%d fil skapad.</item>
+        <item quantity="other">%d filer skapade.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">%d katalog skapad.</item>
+        <item quantity="other">%d kataloger skapade.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Kopiering</string>
+    <string name="explorer_operation_copy_description_single">Kopiera \"%1$s\" från \"%2$s\" till \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">Kopiera %1$d objekt till \"%2$s\".</item>
+        <item quantity="other">Kopiera %1$d objekt till \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%d fil kopierad.</item>
+        <item quantity="other">%d filer kopierade.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%d katalog kopierad.</item>
+        <item quantity="other">%d kataloger kopierade.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">%s kopierat.</item>
+        <item quantity="other">%s kopierat.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Uppackning</string>
+    <string name="explorer_operation_extract_description">Packa upp \"%1$s\" till \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Lokal kopiering</string>
+    <string name="explorer_operation_download_copy_description">Kopiera \"%1$s\" till \"%2$s\" för lokal bläddring.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">%d fil uppackad.</item>
+        <item quantity="other">%d filer uppackade.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">%s uppackat.</item>
+        <item quantity="other">%s uppackat.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Komprimering</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">Komprimera %1$d objekt till \"%2$s\".</item>
+        <item quantity="other">Komprimera %1$d objekt till \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">%d fil komprimerad.</item>
+        <item quantity="other">%d filer komprimerade.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Skapa arkiv</string>
+    <string name="explorer_compress_dialog_name_label">Arkivnamn</string>
+    <string name="explorer_compress_dialog_format_label">Format</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Kan öppnas på alla enheter. Kan lösenordsskyddas.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Mindre storlek vid många filer. Inget lösenordsskydd.</string>
+    <string name="explorer_compress_dialog_create_action">Skapa</string>
+    <string name="explorer_compress_dialog_level_label">Komprimeringsnivå</string>
+    <string name="explorer_compress_dialog_level_fast">Snabb</string>
+    <string name="explorer_compress_dialog_level_normal">Normal</string>
+    <string name="explorer_compress_dialog_level_best">Bäst</string>
+    <string name="explorer_compress_dialog_password_label">Lösenord (valfritt)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Bekräfta lösenord</string>
+    <string name="explorer_compress_dialog_password_mismatch">Lösenorden stämmer inte överens</string>
+    <string name="explorer_compress_dialog_password_weak">Svagt lösenord</string>
+    <string name="explorer_compress_dialog_password_notice">Filernas innehåll krypteras, men inte filnamnen.</string>
+    <string name="explorer_compress_dialog_password_show">Visa lösenord</string>
+    <string name="explorer_compress_dialog_password_hide">Dölj lösenord</string>
+    <string name="explorer_compress_dialog_overwrite_title">Ersätt arkivet?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" finns redan och kommer att ersättas.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Ersätt</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">Släpp %1$d objekt?</item>
+        <item quantity="other">Släpp %1$d objekt?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">Kopiera eller flytta %1$d objekt till \"%2$s\"?</item>
+        <item quantity="other">Kopiera eller flytta %1$d objekt till \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">Kopiera %1$d objekt till \"%2$s\"?</item>
+        <item quantity="other">Kopiera %1$d objekt till \"%2$s\"?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Flytta till papperskorgen?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">Flytta %1$d objekt till papperskorgen?</item>
+        <item quantity="other">Flytta %1$d objekt till papperskorgen?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Flyttning</string>
+    <string name="explorer_operation_move_description_single">Flytta \"%1$s\" från \"%2$s\" till \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">Flytta %1$d objekt till \"%2$s\".</item>
+        <item quantity="other">Flytta %1$d objekt till \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%d fil flyttad.</item>
+        <item quantity="other">%d filer flyttade.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%d katalog flyttad.</item>
+        <item quantity="other">%d kataloger flyttade.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">%s flyttat.</item>
+        <item quantity="other">%s flyttat.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Mappskapande</string>
+    <string name="explorer_operation_create_description_directory">Skapa mappen \"%1$s\" i \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Filskapande</string>
+    <string name="explorer_operation_create_description_file">Skapa filen \"%1$s\" i \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Skapande av textfil</string>
+    <string name="explorer_operation_create_text_file_description">Skapa \"%1$s\" från en textsnutt</string>
+    <string name="explorer_operation_calculate_sizes_title">Storleksberäkning</string>
+    <string name="explorer_operation_calculate_sizes_description">Beräkna mappstorlekar i \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$d objekt skannat</item>
+        <item quantity="other">%1$d objekt skannade</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Beräknade storlekarna för %1$d mappar.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">Beräknade storlekarna för %1$d mappar, %2$d plats kunde inte läsas.</item>
+        <item quantity="other">Beräknade storlekarna för %1$d mappar, %2$d platser kunde inte läsas.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Mappstorlekarna för \"%1$s\" togs bort eftersom mappen ändrades under beräkningen.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Navigeringen misslyckades</string>
+    <string name="explorer_aborted_dialog_title">Åtgärden avbröts</string>
+    <string name="explorer_aborted_dialog_message">Inläsningen avbröts innan något kunde visas.</string>
+    <string name="explorer_archive_unbrowsable_title">Det går inte att bläddra i arkivet här</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" finns på lagring som bara stöder sekventiell läsning, men för att bläddra i ett arkiv krävs direkt åtkomst till valfria delar. Packa upp arkivet här eller hämta en lokal kopia för att bläddra i det.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Packa upp arkivet</string>
+    <string name="explorer_archive_unbrowsable_download_action">Hämta lokal kopia</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (särskild åtkomst)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (särskild åtkomst)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android begränsar åtkomsten till den här mappen. Använd mappväljaren för att ge åtkomst.</string>
+    <string name="explorer_permission_multiple_options_description">Du kan ge åtkomst med Androids mappväljare eller konfigurera root- eller ADB-åtkomst för snabbare åtkomst till alla begränsade mappar.</string>
+    <string name="explorer_permission_multiple_options_root_description">Du kan ge åtkomst med Androids mappväljare eller konfigurera root för åtkomst till alla begränsade mappar.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Du kan ge åtkomst med Androids mappväljare eller konfigurera ADB-åtkomst för snabbare åtkomst till begränsade mappar.</string>
+    <string name="explorer_permission_setup_both_description">Den här mappen kräver utökad åtkomst. Konfigurera root- eller ADB-åtkomst i konfigurationen.</string>
+    <string name="explorer_permission_setup_shizuku_description">Den här mappen kräver utökad åtkomst via ADB. Konfigurera ADB-åtkomst i konfigurationen.</string>
+    <string name="explorer_permission_setup_root_description">Den här mappen kräver rootåtkomst. Konfigurera root i konfigurationen om din enhet är rootad.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Använd Androids mappväljare för att ge åtkomst till den här mappen.</string>
+    <string name="explorer_permission_option_picker_action">Öppna SAF-väljaren</string>
+
+    <string name="explorer_permission_option_setup_title">Full åtkomst</string>
+    <string name="explorer_permission_option_setup_description">Konfigurera root- eller ADB-åtkomst för snabbare åtkomst till alla begränsade mappar.</string>
+    <string name="explorer_permission_option_setup_root_description">Konfigurera root för åtkomst till den här mappen och andra begränsade mappar.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Konfigurera ADB-åtkomst för att öppna den här mappen.</string>
+    <string name="explorer_permission_option_setup_action">Konfigurera</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Lagringsåtkomst</string>
+    <string name="explorer_permission_option_storage_description">Ge Butler behörighet att komma åt filer i enhetens lagring.</string>
+    <string name="explorer_permission_option_storage_action">Ge behörighet</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Favoriter</string>
+    <string name="explorer_action_add_to_favorites">Lägg till i favoriter</string>
+    <string name="explorer_action_remove_from_favorites">Ta bort från favoriter</string>
+    <string name="explorer_favorites_select_action">Välj</string>
+    <string name="explorer_favorites_unavailable_subtitle">Inte åtkomlig</string>
+    <string name="explorer_favorites_unavailable_toast">Favoriten är inte åtkomlig</string>
+    <string name="explorer_favorites_added_message">Lade till %1$s i favoriter</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">Lade till %1$d objekt i favoriter</item>
+        <item quantity="other">Lade till %1$d objekt i favoriter</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">Tog bort %1$s från favoriter</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">Tog bort %1$d objekt från favoriter</item>
+        <item quantity="other">Tog bort %1$d objekt från favoriter</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Byt namn på favorit</string>
+    <string name="explorer_favorites_rename_hint">Favoritnamn</string>
+    <string name="explorer_favorites_rename_description">Bara posten i dina favoriter byter namn, själva mappen behåller sitt namn.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">Den här fliken åsidosätter sorteringen i %1$d mapp</item>
+        <item quantity="other">Den här fliken åsidosätter sorteringen i %1$d mappar</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d mapp</item>
+        <item quantity="other">%1$d mappar</item>
+    </plurals>
+</resources>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Kailangan ang Butler FOSS</string>
+
+    <string name="upgrade_prompt_title">I-upgrade ang Butler</string>
+    <string name="upgrade_prompt_body">Buksan ang mga dagdag na feature at maging tagasuporta upang makatulong sa patuloy na pagbuo!</string>
+    <string name="upgrade_prompt_upgrade_action">I-upgrade</string>
+
+    <string name="upgrade_screen_title">I-upgrade ang Butler</string>
+    <string name="upgrade_screen_preamble">Walang patalastas ang Butler at hindi ito nagbebenta ng data ng gumagamit. Nagiging posible lamang ang patuloy na pagbuo dahil sa iyo.</string>
+    <string name="upgrade_screen_how_title">Paano tumulong</string>
+    <string name="upgrade_screen_how_body">Maging tagasuporta at tustusan ang pagbuo! I-tap ang button sa ibaba upang paganahin ang lahat ng dagdag na feature at buksan ang aking profile sa GitHub Sponsors.</string>
+
+    <string name="upgrade_screen_sponsor_action">Tustusan ang pagbuo</string>
+    <string name="upgrade_screen_sponsor_action_hint">Ang mga alternatibo ay mga patalastas, analytics, at Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Salamat sa pagsuporta sa pagbuo ng open source ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Bumalik ka na agad? Ang iyong suporta ang nagpapanatiling buhay sa Butler — maglaan sana ng sandali upang tingnan ang pahina ng mga tagasuporta.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Hindi mabuksan ang pahina ng mga tagasuporta. Subukang buksan ito sa browser sa halip.</string>
+
+    <string name="upgrade_screen_status_free_title">Gamit mo ang libreng bersyon</string>
+    <string name="upgrade_screen_status_free_body">Ganap na open source ang Butler FOSS. Buksan ang mga dagdag na feature sa pamamagitan ng pagsuporta sa pagbuo.</string>
+    <string name="upgrade_screen_status_free_action">Tingnan ang mga opsyon sa pag-upgrade</string>
+    <string name="upgrade_screen_status_upgraded_title">Isa kang tagasuporta</string>
+    <string name="upgrade_screen_status_upgraded_body">Salamat sa pagsuporta sa pagbuo ng open source ❤️ Bukas na ang lahat ng dagdag na feature.</string>
+    <string name="upgrade_screen_supporter_since">Tagasuporta mula noong %s</string>
+    <string name="upgrade_screen_recurring_title">Ipagpatuloy ang suporta</string>
+    <string name="upgrade_screen_recurring_body">Binubuo ko ang Butler sa aking libreng oras. Ang regular na donasyon ay nakatutulong upang mapanatili itong buhay.</string>
+    <string name="upgrade_screen_recurring_action">Maging regular na tagasuporta</string>
+
+    <string name="upgrade_benefits_title">Mga benepisyo ng pag-upgrade</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Walang limitasyong mga tab at operasyon\n• I-customize ang disenyo, karanasan sa paggamit, at hitsura\n• Dagdag na mga opsyon at feature para sa bawat tool\n• Maagang pag-access sa mga bagong feature\n• Isang masigasig na developer 🧙\nat marami pang iba…</string>
+</resources>

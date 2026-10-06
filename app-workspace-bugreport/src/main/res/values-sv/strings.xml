@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Buggrapporter</string>
+    <string name="bugreport_workspace_subtitle">Krasch- &amp; felrapporter</string>
+
+    <string name="bugreport_empty_title">Inga rapporter</string>
+    <string name="bugreport_empty_subtitle">Krasch- och felrapporter visas här. Inget skickas automatiskt.</string>
+
+    <string name="bugreport_type_crash">Krasch</string>
+    <string name="bugreport_type_report">Rapport</string>
+    <string name="bugreport_type_recording">Inspelning</string>
+
+    <string name="bugreport_record_action">Spela in felsökningslogg</string>
+    <string name="bugreport_record_short_action">Spela in</string>
+    <string name="bugreport_stop_action">Stoppa inspelningen</string>
+    <string name="bugreport_stop_short_action">Stoppa</string>
+    <string name="bugreport_recording_ongoing_label">Spelar in…</string>
+
+    <string name="bugreport_recording_short_title">Inspelningen är mycket kort</string>
+    <string name="bugreport_recording_short_message">Den här inspelningen är bara några sekunder lång och kanske inte innehåller användbar information. Stoppa den ändå?</string>
+    <string name="bugreport_recording_short_keep_action">Fortsätt spela in</string>
+
+    <string name="bugreport_rename_action">Byt namn</string>
+    <string name="bugreport_rename_dialog_title">Ge rapporten ett namn</string>
+    <string name="bugreport_rename_name_label">Namn</string>
+    <string name="bugreport_rename_name_hint">Visas i listan och i den delade filens namn</string>
+
+    <string name="bugreport_share_action">Dela</string>
+    <string name="bugreport_delete_action">Radera</string>
+    <string name="bugreport_delete_all_action">Radera alla</string>
+    <string name="bugreport_delete_all_confirm_title">Radera alla felsökningsloggar?</string>
+    <string name="bugreport_delete_all_confirm_message">Detta raderar alla inspelade felsökningsloggsessioner permanent. Pågående inspelningar påverkas inte.</string>
+    <string name="bugreport_delete_confirm_title">Radera den här rapporten?</string>
+    <string name="bugreport_delete_confirm_message">Detta raderar den här rapporten och dess logg permanent.</string>
+    <string name="bugreport_cancel_action">Avbryt</string>
+
+    <string name="bugreport_share_chooser_title">Dela felrapport</string>
+    <string name="bugreport_share_consent_title">Dela rapporten?</string>
+    <string name="bugreport_share_consent_message">Den här rapporten innehåller apploggar som kan innehålla filnamn, sökvägar samt information om appen och enheten. Dela den bara med personer du litar på.</string>
+
+    <string name="bugreport_detail_back_action">Tillbaka</string>
+    <string name="bugreport_detail_section_error">Fel</string>
+    <string name="bugreport_detail_section_log">Senaste loggen</string>
+    <string name="bugreport_detail_field_type">Typ</string>
+    <string name="bugreport_detail_field_time">Tid</string>
+    <string name="bugreport_detail_field_app_version">Appversion</string>
+    <string name="bugreport_detail_field_device">Enhet</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Bygge</string>
+    <string name="bugreport_detail_field_error_class">Feltyp</string>
+    <string name="bugreport_detail_field_thread">Tråd</string>
+    <string name="bugreport_detail_log_truncated">de sista %1$d av %2$d raderna</string>
+    <string name="bugreport_detail_log_count">%1$d rader</string>
+    <string name="bugreport_detail_log_empty">Ingen logg har samlats in</string>
+    <string name="bugreport_detail_log_error">Kunde inte läsa in loggen</string>
+</resources>

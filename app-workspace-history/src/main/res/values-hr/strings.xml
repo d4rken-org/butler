@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">Povijest</string>
+    <string name="history_workspace_subtitle">Nedavne operacije s datotekama</string>
+    <string name="history_workspace_title_scoped">Povijest: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">Povijest: Neuspješno</string>
+    <string name="history_workspace_title_outcome_partial">Povijest: Djelomično</string>
+    <string name="history_workspace_title_outcome_cancelled">Povijest: Otkazano</string>
+    <string name="history_workspace_title_outcome_completed">Povijest: Dovršeno</string>
+    <string name="history_workspace_title_kind_copy">Povijest: Kopiranje</string>
+    <string name="history_workspace_title_kind_move">Povijest: Premještanje</string>
+    <string name="history_workspace_title_kind_delete">Povijest: Brisanje</string>
+    <string name="history_workspace_title_kind_create_file">Povijest: Stvaranje datoteke</string>
+    <string name="history_workspace_title_kind_create_folder">Povijest: Stvaranje mape</string>
+    <string name="history_workspace_title_kind_save">Povijest: Spremanje</string>
+    <string name="history_workspace_title_kind_compress">Povijest: Komprimiranje</string>
+    <string name="history_workspace_title_kind_extract">Povijest: Raspakiravanje</string>
+    <string name="history_workspace_title_filtered">Povijest (filtrirano)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">Povijest: %1$d putanja</item>
+        <item quantity="few">Povijest: %1$d putanje</item>
+        <item quantity="other">Povijest: %1$d putanja</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Sve</string>
+    <string name="history_filter_outcome_completed">Dovršeno</string>
+    <string name="history_filter_outcome_partial">Djelomično</string>
+    <string name="history_filter_outcome_failed">Neuspješno</string>
+    <string name="history_filter_outcome_cancelled">Otkazano</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Kopiranje</string>
+    <string name="history_filter_kind_move">Premještanje</string>
+    <string name="history_filter_kind_delete">Brisanje</string>
+    <string name="history_filter_kind_create_file">Stvaranje datoteke</string>
+    <string name="history_filter_kind_create_folder">Stvaranje mape</string>
+    <string name="history_filter_kind_save">Spremanje</string>
+    <string name="history_filter_kind_compress">Komprimiranje</string>
+    <string name="history_filter_kind_extract">Raspakiravanje</string>
+    <string name="history_filter_kind_enable">Omogućivanje</string>
+    <string name="history_filter_kind_disable">Onemogućivanje</string>
+    <string name="history_filter_kind_force_stop">Prisilno zaustavljanje</string>
+    <string name="history_filter_kind_uninstall">Deinstalacija</string>
+    <string name="history_filter_kind_clear_data">Brisanje podataka</string>
+    <string name="history_filter_kind_components">Komponente</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Postavi opseg putanje…</string>
+    <string name="history_path_scope_clear_action">Ukloni opseg putanje</string>
+    <string name="history_path_scope_dialog_title">Filtriraj prema putanji</string>
+    <string name="history_path_scope_dialog_description">Prikaži samo operacije koje utječu na ovu putanju ili na putanje unutar nje.</string>
+    <string name="history_path_scope_dialog_input_label">Putanja</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Odaberi mapu…</string>
+    <string name="history_path_scope_dialog_apply_action">Primijeni</string>
+    <string name="history_path_scope_dialog_cancel_action">Odustani</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Danas</string>
+    <string name="history_group_yesterday">Jučer</string>
+    <string name="history_group_this_week">Ovaj tjedan</string>
+    <string name="history_group_this_month">Ovaj mjesec</string>
+    <string name="history_group_older">Starije</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Preimenovano</string>
+    <string name="history_entry_intent_paste_copy">Zalijepljeno</string>
+    <string name="history_entry_intent_paste_move">Zalijepljeno (premještanje)</string>
+    <string name="history_entry_intent_drop_copy">Ispušteno (kopiranje)</string>
+    <string name="history_entry_intent_drop_move">Ispušteno (premještanje)</string>
+    <string name="history_entry_intent_enable_components">Omogućene komponente aplikacije</string>
+    <string name="history_entry_intent_disable_components">Onemogućene komponente aplikacije</string>
+    <string name="history_entry_kind_copy">Kopirano</string>
+    <string name="history_entry_kind_move">Premješteno</string>
+    <string name="history_entry_kind_delete">Izbrisano</string>
+    <string name="history_entry_kind_create_file">Stvorena datoteka</string>
+    <string name="history_entry_kind_create_folder">Stvorena mapa</string>
+    <string name="history_entry_kind_save">Spremljeno</string>
+    <string name="history_entry_kind_compress">Komprimirano</string>
+    <string name="history_entry_kind_extract">Raspakirano</string>
+    <string name="history_entry_kind_restore">Vraćeno</string>
+    <string name="history_entry_kind_install">Instalirano</string>
+    <string name="history_entry_kind_enable">Omogućeno</string>
+    <string name="history_entry_kind_disable">Onemogućeno</string>
+    <string name="history_entry_kind_force_stop">Prisilno zaustavljeno</string>
+    <string name="history_entry_kind_uninstall">Deinstalirano</string>
+    <string name="history_entry_kind_clear_data">Izbrisani podaci aplikacije</string>
+    <string name="history_entry_kind_components">Promijenjene komponente aplikacije</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d putanja</item>
+        <item quantity="few">%d putanje</item>
+        <item quantity="other">%d putanja</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">Prvih %1$d od %2$d zahvaćenih putanja</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Početak</string>
+    <string name="history_detail_label_completed">Dovršetak</string>
+    <string name="history_detail_label_duration">Trajanje</string>
+    <string name="history_detail_label_outcome">Ishod</string>
+    <string name="history_detail_label_origin">Izvor</string>
+    <string name="history_detail_label_error">Pogreška</string>
+    <string name="history_detail_label_paths">Zahvaćene putanje</string>
+    <string name="history_detail_label_partial_errors">Neuspjesi po stavkama</string>
+    <string name="history_detail_copy_path_action">Kopiraj putanju</string>
+    <string name="history_detail_paths_empty">Nema zabilježenih zahvaćenih putanja.</string>
+    <string name="history_detail_label_attempted_paths">Putanje na kojima je pokušana operacija</string>
+    <string name="history_detail_label_packages">Zahvaćene aplikacije</string>
+    <string name="history_detail_packages_empty">Nema zabilježenih zahvaćenih aplikacija.</string>
+    <string name="history_detail_paths_truncated_callout">Prikazuje se prvih %1$d od %2$d zahvaćenih putanja.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Prikazuje se prvih %1$d od %2$d putanja na kojima je pokušana operacija.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">Tijekom ove operacije nije uspjela %1$d stavka.</item>
+        <item quantity="few">Tijekom ove operacije nisu uspjele %1$d stavke.</item>
+        <item quantity="other">Tijekom ove operacije nije uspjelo %1$d stavki.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Preglednik datoteka</string>
+    <string name="history_origin_searcher">Pretraživanje</string>
+    <string name="history_origin_saver">Spremi kao</string>
+    <string name="history_origin_developer">Razvojni alati</string>
+    <string name="history_origin_viewer">Prikazivač</string>
+    <string name="history_origin_apps">Aplikacije</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Još nema povijesti</string>
+    <string name="history_empty_subtitle">Operacije s datotekama pojavljivat će se ovdje dok koristiš Butler.</string>
+    <string name="history_empty_filtered_title">Nema podudaranja</string>
+    <string name="history_empty_filtered_subtitle">Nijedan zapis u povijesti ne odgovara trenutačnom filtru.</string>
+    <string name="history_empty_filtered_reset_action">Poništi filtar</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Poništi filtar</string>
+    <string name="history_toolbar_reset_filter_content_description">Poništi filtre</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">Prvih %1$d od %2$d zahvaćenih putanja</string>
+    <string name="history_add_filter_action">Dodaj filtar</string>
+    <string name="history_add_filter_sheet_title">Dodaj filtar</string>
+    <string name="history_add_filter_section_outcome">Ishod</string>
+    <string name="history_add_filter_section_kind">Vrsta</string>
+    <string name="history_add_filter_section_path_scope">Opseg putanje</string>
+    <string name="history_add_filter_add_path_action">Dodaj putanju…</string>
+    <string name="history_path_scope_remove_action">Ukloni</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d zapis</item>
+        <item quantity="few">%1$d zapisa</item>
+        <item quantity="other">%1$d zapisa</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">Prikazano %1$d od %2$d</item>
+        <item quantity="few">Prikazano %1$d od %2$d</item>
+        <item quantity="other">Prikazano %1$d od %2$d</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="few">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">Povijest</string>
+    <string name="history_settings_save_history_title">Spremi povijest</string>
+    <string name="history_settings_save_history_subtitle">Bilježi dovršene operacije s datotekama.</string>
+    <string name="history_settings_max_history_label">Najveći broj stavki u povijesti</string>
+    <string name="history_settings_max_history_subtitle">Stariji se zapisi uklanjaju kada se ovo ograničenje prekorači.</string>
+    <string name="history_settings_max_history_input_label">Najveći broj zapisa</string>
+    <string name="history_settings_clear_history_title">Izbriši povijest</string>
+    <string name="history_settings_clear_history_subtitle">Ukloni sve spremljene zapise (%1$d).</string>
+    <string name="history_clear_dialog_title">Izbrisati povijest?</string>
+    <string name="history_clear_dialog_message">Uklanja sve zapise iz baze podataka povijesti operacija. Ovu radnju nije moguće poništiti.</string>
+    <string name="history_clear_confirm_action">Izbriši</string>
+    <string name="history_cleared_success">Povijest je izbrisana</string>
+    <string name="history_workspace_title_kind_restore">Vraćanja</string>
+    <string name="history_filter_kind_restore">Vraćanje</string>
+    <string name="history_workspace_title_kind_install">Povijest: Instalacija</string>
+    <string name="history_filter_kind_install">Instalacija</string>
+    <string name="history_workspace_title_kind_enable">Povijest: Omogućivanje</string>
+    <string name="history_workspace_title_kind_disable">Povijest: Onemogućivanje</string>
+    <string name="history_workspace_title_kind_force_stop">Povijest: Prisilno zaustavljanje</string>
+    <string name="history_workspace_title_kind_uninstall">Povijest: Deinstalacija</string>
+    <string name="history_workspace_title_kind_clear_data">Povijest: Brisanje podataka</string>
+    <string name="history_workspace_title_kind_components">Povijest: Komponente</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Odaberi sve</string>
+    <string name="history_action_deselect_all">Poništi odabir svih</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Izbrisati %1$d zapis</item>
+        <item quantity="few">Izbrisati %1$d zapisa</item>
+        <item quantity="other">Izbrisati %1$d zapisa</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Uklanjaju se samo zapisi iz povijesti, a same datoteke ostaju netaknute.</string>
+    <string name="history_pro_dialog_message">Dijeljenje više zapisa iz povijesti odjednom dio je nadogradnje. Dijeljenje pojedinačnog zapisa i brisanje zapisa ostaju besplatni.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Ishod</string>
+    <string name="history_share_label_kind">Vrsta</string>
+    <string name="history_share_label_origin">Izvor</string>
+    <string name="history_share_label_summary">Sažetak</string>
+    <string name="history_share_label_completed">Dovršetak</string>
+    <string name="history_share_label_duration">Trajanje</string>
+    <string name="history_share_label_error">Pogreška</string>
+    <string name="history_share_label_failed_items">Neuspjele stavke</string>
+    <string name="history_share_label_paths">Zahvaćene putanje (%1$d)</string>
+    <string name="history_share_label_packages">Zahvaćene aplikacije (%1$d)</string>
+    <string name="history_share_paths_more">… i još %1$d</string>
+    <string name="history_share_truncated">… i još %1$d zapisa koji nisu uključeni</string>
+</resources>

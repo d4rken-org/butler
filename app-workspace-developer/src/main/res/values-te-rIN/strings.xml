@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">డెవలపర్</string>
+    <string name="developer_title">డెవలపర్ సాధనాలు</string>
+    <string name="developer_subtitle">అభివృద్ధి కోసం ఉపయోగకరమైన సాధనాలు</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">సిస్టమ్</string>
+    <string name="developer_tab_options">ఎంపికలు</string>
+    <string name="developer_tab_workspaces">వర్క్‌స్పేస్‌లు</string>
+    <string name="developer_tab_logs">లాగ్‌లు</string>
+    <string name="developer_tab_testdata">పరీక్ష డేటా</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">డీబగ్ ఎంపికలు</string>
+    <string name="developer_options_debug_mode">డీబగ్ మోడ్</string>
+    <string name="developer_options_debug_mode_desc">వివరణాత్మక లాగింగ్‌ను ప్రారంభించండి</string>
+    <string name="developer_options_trace_mode">ట్రేస్ మోడ్</string>
+    <string name="developer_options_trace_mode_desc">ట్రేస్ స్థాయి లాగింగ్‌ను ప్రారంభించండి</string>
+    <string name="developer_options_floating_log">తేలియాడే లాగ్ ప్యానెల్</string>
+    <string name="developer_options_floating_log_desc">అన్ని స్క్రీన్‌లపై లాగి కదిలించగల లాగ్ ఓవర్‌లేను చూపండి</string>
+    <string name="developer_options_services_header">సేవల పరీక్షలు</string>
+    <string name="developer_options_root_test_action">రూట్‌ను పరీక్షించండి</string>
+    <string name="developer_options_root_installed_label">ఇన్‌స్టాల్ చేయబడింది</string>
+    <string name="developer_options_root_available_label">అందుబాటులో ఉంది</string>
+    <string name="developer_options_root_base_check_label">ప్రాథమిక తనిఖీ</string>
+    <string name="developer_options_shizuku_test_action">ADB యాక్సెస్‌ను పరీక్షించండి</string>
+    <string name="developer_options_shizuku_installed_label">ఇన్‌స్టాల్ చేయబడింది</string>
+    <string name="developer_options_shizuku_granted_label">అనుమతి</string>
+    <string name="developer_options_shizuku_compatible_label">అనుకూలంగా ఉంది</string>
+    <string name="developer_options_shizuku_service_label">సేవ</string>
+    <string name="developer_options_test_running">పరీక్ష జరుగుతోంది…</string>
+    <string name="developer_options_result_yes">అవును</string>
+    <string name="developer_options_result_no">కాదు</string>
+    <string name="developer_options_result_unknown">తెలియదు</string>
+    <string name="developer_options_visibility_header">కనిపించడం</string>
+    <string name="developer_options_hide_mode">డెవలపర్ మోడ్‌ను దాచండి</string>
+    <string name="developer_options_hide_mode_desc">మళ్లీ ప్రారంభించడానికి సెట్టింగ్‌లలో వెర్షన్‌పై 7 సార్లు నొక్కండి.</string>
+    <string name="developer_options_hide_action">దాచండి</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">పరికరం</string>
+    <string name="developer_system_device_model">మోడల్</string>
+    <string name="developer_system_device_manufacturer">తయారీదారు</string>
+    <string name="developer_system_device_api">API స్థాయి</string>
+    <string name="developer_system_build_header">బిల్డ్</string>
+    <string name="developer_system_build_version">వెర్షన్</string>
+    <string name="developer_system_build_code">వెర్షన్ కోడ్</string>
+    <string name="developer_system_build_flavor">ఫ్లేవర్</string>
+    <string name="developer_system_build_type">బిల్డ్ రకం</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">మెమరీ</string>
+    <string name="developer_system_memory_available">అందుబాటులో ఉంది</string>
+    <string name="developer_system_memory_total">మొత్తం</string>
+    <string name="developer_system_storage_header">నిల్వ</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d వర్క్‌స్పేస్‌లు</string>
+    <string name="developer_workspaces_empty">వర్క్‌స్పేస్‌లు లేవు</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">క్లియర్ చేయండి</string>
+    <string name="developer_logs_pause">పాజ్ చేయండి</string>
+    <string name="developer_logs_resume">కొనసాగించండి</string>
+    <string name="developer_logs_empty">లాగ్‌లు లేవు</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">గమ్య పాత్‌లు</string>
+    <string name="developer_testdata_no_paths">గమ్య పాత్‌లు ఎంచుకోలేదు. పరీక్ష డేటాను సృష్టించడానికి పాత్‌లను జోడించండి.</string>
+    <string name="developer_testdata_add_path_action">పాత్‌ను జోడించండి</string>
+    <string name="developer_testdata_options_header">సృష్టి ఎంపికలు</string>
+    <string name="developer_testdata_large_files">పెద్ద ఫైళ్లు</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">లోపల మరిన్ని ఫోల్డర్‌లున్న నిర్మాణం</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 ఫోల్డర్‌లు, ~1100 ఫైళ్లు</string>
+    <string name="developer_testdata_text_files">ఎడిటర్ కోసం వచన ఫైళ్లు</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">సృష్టించండి</string>
+    <string name="developer_testdata_generating">సృష్టిస్తోంది…</string>
+    <string name="developer_testdata_history_header">నమూనా చరిత్ర నమోదులు</string>
+    <string name="developer_testdata_history_desc">ఈరోజు → 30 రోజుల క్రితం వరకు, వివిధ రకాలు/ఫలితాలు/మూలాలు/పాత్‌లతో సుమారు 25 కల్పిత చర్య నమోదులను చేర్చుతుంది. నేరుగా చరిత్ర డేటాబేస్‌లో చేర్చుతుంది; మళ్లీ నొక్కినా సురక్షితమే.</string>
+    <string name="developer_testdata_history_generate_action">నమూనా చరిత్రను సృష్టించండి</string>
+    <string name="developer_testdata_progress">%2$s లో %1$s</string>
+    <string name="developer_testdata_complete">పరీక్ష డేటా సృష్టించిన స్థానం:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">పెద్ద ఫైళ్లను సృష్టించండి</string>
+    <string name="developer_operation_large_files_desc">%1$s లో పరీక్ష ఫైళ్లను సృష్టిస్తోంది</string>
+    <string name="developer_operation_large_files_creating">%1$s సృష్టిస్తోంది</string>
+
+    <string name="developer_operation_nested_title">లోపల మరిన్ని ఫోల్డర్‌లున్న నిర్మాణాన్ని సృష్టించండి</string>
+    <string name="developer_operation_nested_desc">%1$s లో ఫోల్డర్‌ల క్రమానుగత నిర్మాణాన్ని సృష్టిస్తోంది</string>
+    <string name="developer_operation_nested_starting">లోపల మరిన్ని ఫోల్డర్‌లున్న నిర్మాణాన్ని ప్రారంభిస్తోంది…</string>
+    <string name="developer_operation_nested_creating">%1$s సృష్టిస్తోంది</string>
+    <string name="developer_operation_nested_files_created">%1$d ఫైళ్లు సృష్టించబడ్డాయి</string>
+
+    <string name="developer_operation_text_files_title">వచన ఫైళ్లను సృష్టించండి</string>
+    <string name="developer_operation_text_files_desc">%1$s లో వచన ఫైళ్లను సృష్టిస్తోంది</string>
+    <string name="developer_operation_text_files_creating">%1$s సృష్టిస్తోంది</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d ఫైల్ సృష్టించబడింది</item>
+        <item quantity="other">%d ఫైళ్లు సృష్టించబడ్డాయి</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d డైరెక్టరీ</item>
+        <item quantity="other">%d డైరెక్టరీలు</item>
+    </plurals>
+</resources>

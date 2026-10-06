@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Uusi</string>
+    <string name="workspace_templates_choose_title">Uusi välilehti</string>
+    <string name="workspace_templates_choose_subtitle">Valitse välilehden tyyppi. Miten voin auttaa?</string>
+    <string name="workspace_templates_name_tab_action">Nimeä tämä välilehti</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Valitse työkalu</string>
+    <string name="tour_templates_picker_body">Tämä on välilehden valitsin: valitse, millainen tästä välilehdestä tulee. Valinta muuttaa tämän välilehden valituksi työkaluksi.</string>
+    <string name="tour_templates_butler_button_title">Välilehtesi löytyvät täältä</string>
+    <string name="tour_templates_butler_button_body">Napauta Butler-painiketta avataksesi välilehtivalikon: luo uusi välilehti, sulje nykyinen tai avaa välilehtien koko hallintanäkymä. Paina painiketta pitkään siirtyäksesi suoraan välilehtien hallintaan.</string>
+</resources>

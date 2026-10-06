@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Potreban je Butler Pro</string>
+
+    <string name="upgrade_prompt_title">Prijeđi na Butler Pro</string>
+    <string name="upgrade_prompt_body">Butler Pro nudi bolje rezultate, više značajki i opcija za napredne korisnike.</string>
+    <string name="upgrade_prompt_upgrade_action">Prijeđi na Pro</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">Nabavi %1$s</string>
+    <string name="upgrade_screen_preamble">Butler nema oglase i ne prodaje korisničke podatke. Moj rad financiraš ti ❤️.</string>
+
+    <string name="upgrade_screen_how_title">Opcije</string>
+    <string name="upgrade_screen_subscription_trial_action">Započni besplatno probno razdoblje od 14 dana</string>
+    <string name="upgrade_screen_subscription_action">Pretplati se</string>
+    <string name="upgrade_screen_iap_action">Jednokratna kupnja</string>
+    <string name="upgrade_screen_restore_purchase_action">Vrati kupnju</string>
+    <string name="upgrade_screen_restore_banner_title">Pro je već kupljen?</string>
+    <string name="upgrade_screen_restore_banner_body">Čini se da je na ovom uređaju već kupljena nadogradnja na Pro. Vrati svoju kupnju da ga ponovno otključaš.</string>
+    <string name="upgrade_screen_restore_checked_message">Butler je upravo provjerio kupnje na Google Playu, ali nije bilo moguće potvrditi kupnju verzije Pro za račun koji Google Play upotrebljava za ovu aplikaciju.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Provjera na Google Playu nije završila na vrijeme pa je status tvoje kupnje još nepoznat. Na tvojem računu ništa se nije promijenilo.</string>
+    <string name="upgrade_screen_restore_contact_hint">I dalje ne ide? Javi se s adrese e-pošte upotrijebljene za kupnju i navedi broj narudžbe s Google Playa.</string>
+    <string name="upgrade_screen_contact_support_action">Obrati se podršci</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Sinkronizacija s trgovinom Play Store može potrajati. Pokušaj ponovno pokrenuti uređaj, očistiti predmemoriju Google Playa ili jednostavno pričekaj.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">Više računa može zbuniti Google Play. Odjavi se s drugih računa ili instaliraj aplikaciju putem web-stranice Google Playa, čime se osigurava povezivanje s određenim računom.</string>
+    <string name="upgrade_screen_restore_success_message">Tvoja kupnja je vraćena ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Status izgleda pogrešno?</string>
+    <string name="upgrade_screen_restore_status_body">Ponovno provjeri svoju kupnju na Google Playu. To može pomoći nakon promjene uređaja ili prelaska na drugi Google račun.</string>
+
+    <string name="upgrade_screen_offers_or">ili</string>
+
+    <string name="upgrade_screen_offers_title">Mogućnosti nadogradnje na Pro</string>
+    <string name="upgrade_screen_offers_body">Obje opcije otključavaju potpuno iste značajke verzije Pro — odaberi cijenu koja ti odgovara.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Cijene nisu dostupne</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler nije uspio učitati mogućnosti nadogradnje na Pro s Google Playa. To je često privremeno — pokušaj ponovno za koji trenutak.</string>
+    <string name="upgrade_screen_subscription_offer_title">Godišnja pretplata</string>
+    <string name="upgrade_screen_subscription_offer_body">Počinje besplatnim probnim razdobljem od 14 dana, a zatim se naplaćuje jednom godišnje. Otkaži u bilo kojem trenutku.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Naplaćuje se jednom godišnje. Otkaži u bilo kojem trenutku.</string>
+    <string name="upgrade_screen_iap_offer_title">Kupi jednom</string>
+    <string name="upgrade_screen_iap_offer_body">Plati jednom i zadrži zauvijek. Bez pretplate.</string>
+    <string name="upgrade_screen_restore_body">Vraćanjem kupnje traži se od Google Playa da ponovno provjeri kupnje u ovoj aplikaciji za trenutačni račun.</string>
+
+    <string name="upgrade_screen_owned_hero_title">Imaš Butler Pro!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Hvala ti na jednokratnoj kupnji — Pro je tvoj zauvijek ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Hvala ti na pretplati ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">Jednokratna kupnja</string>
+    <string name="upgrade_screen_owned_iap_body">Imaš trajnu nadogradnju na Pro.</string>
+    <string name="upgrade_screen_owned_sub_title">Pretplata</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Tvoja je pretplata aktivna i automatski se obnavlja.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Tvoja je pretplata aktivna, ali neće se obnoviti. Pro ostaje dostupan do kraja trenutačnog razdoblja.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">Imaš jednokratnu kupnju, ali tvoja se pretplata i dalje obnavlja. Otkaži je na Google Playu da izbjegneš dvostruko plaćanje.</string>
+    <string name="upgrade_screen_manage_subscription_action">Upravljaj pretplatom</string>
+
+    <string name="upgrade_screen_switch_locked_note">Najprije otkaži obnovu putem opcije \"Upravljaj pretplatom\", inače će ti se naplatiti oboje.</string>
+    <string name="upgrade_screen_switch_purchase_note">Tvoja se pretplata neće obnoviti — sada možeš sigurno obaviti jednokratnu kupnju.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Pretplata je još aktivna</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Tvoja je pretplata još postavljena za obnovu. Najprije otkaži obnovu na Google Playu da ti se ne naplati oboje, a zatim obavi jednokratnu kupnju.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">Provjera nije uspjela</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler nije uspio potvrditi status tvoje kupnje na Google Playu pa je kupnja zaustavljena kako ti se ne bi naplatilo dvaput. Pokušaj ponovno za koji trenutak.</string>
+
+    <string name="upgrade_screen_pending_card_title">Plaćanje na čekanju</string>
+    <string name="upgrade_screen_pending_card_body">Google Play još obrađuje tvoje plaćanje. Pro se automatski otključava kad plaćanje prođe. Neki načini plaćanja mogu potrajati. Ne trebaš ništa više učiniti.</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play pronašao je kupnju s plaćanjem na čekanju i još je obrađuje. Pro se automatski otključava kad plaćanje prođe.</string>
+
+    <string name="upgrade_screen_grace_title">Potvrđivanje tvoje kupnje</string>
+    <string name="upgrade_screen_grace_body_short">Google Play treba malo vremena da potvrdi tvoj Pro status. I dalje imaš puni pristup.</string>
+    <string name="upgrade_screen_grace_body">Google Play još nije ponovno potvrdio tvoj Pro status. Zasad i dalje imaš pristup. Ako to izgleda pogrešno, pokušaj vratiti svoju kupnju.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">Već kupljeno?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play javlja da već imaš ovu nadogradnju, ali nije je bilo moguće automatski vratiti. Provjeri je li prijavljen Google račun upotrijebljen za izvornu kupnju, a zatim pokušaj s opcijom \"Vrati kupnju\".</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play nije dostupan</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler se ne može povezati s Google Playom. Je li Google Play instaliran i ažuriran? Je li tvoj Google račun prijavljen? Pokušaj očistiti predmemoriju aplikacije Google Play i ponovno pokrenuti uređaj.</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can't open Google Play's app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Nije moguće otvoriti Google Play. Možda nije instaliran, onemogućen je ili je njegov rad ograničen na ovom uređaju.</string>
+    <string name="upgrades_gplay_billing_error_label">Problem s Google Playom</string>
+    <string name="upgrades_gplay_billing_error_description">Nešto je pošlo po zlu pri komunikaciji s Google Playom. Pokušaj ponovno kasnije ili ponovno pokreni uređaj.\n\nPojedinosti: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Pogreška Google Playa</string>
+    <string name="upgrades_gplay_internal_error_description">Došlo je do interne pogreške u Google Playu. Pokušaj sljedeće:\n\n• Ponovno pokreni uređaj\n• Očisti predmemoriju trgovine Google Play Store\n• Pokušaj ponovno kasnije</string>
+    <string name="upgrades_gplay_network_error_title">Pogreška povezivanja</string>
+    <string name="upgrades_gplay_network_error_description">Butler nije uspio pristupiti Google Playu. Provjeri internetsku vezu i pokušaj ponovno.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Ponuda nije dostupna</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play trenutačno ne nudi ovu mogućnost nadogradnje za tvoj račun. Pokušaj ponovno kasnije ili provjeri trgovinu Google Play Store.</string>
+    <string name="upgrades_no_purchases_found_check_account">Nisu pronađene kupnje. Upotrebljavaš li pravi račun?</string>
+
+    <string name="upgrade_benefits_title">Prednosti nadogradnje</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Neograničen broj kartica i operacija\n• Prilagodi dizajn, doživljaj i izgled\n• Dodatne opcije i značajke za svaki alat\n• Rani pristup novim značajkama\n• Motivirana osoba koja razvija aplikaciju 🧙\ni još mnogo toga…</string>
+</resources>

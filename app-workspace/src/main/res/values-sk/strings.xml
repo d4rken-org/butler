@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Schránka</string>
+    <string name="clipboard_clear_all">Vymazať všetko</string>
+    <string name="clipboard_paste">Prilepiť</string>
+    <string name="clipboard_open_in_explorer">Otvoriť v Prieskumníkovi</string>
+    <string name="clipboard_copy">Kopírovať</string>
+    <string name="clipboard_cut">Vystrihnúť</string>
+    <string name="clipboard_origin">Pôvod: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Kopírovať %d položku</item>
+        <item quantity="few">Kopírovať %d položky</item>
+        <item quantity="many">Kopírovať položky: %d</item>
+        <item quantity="other">Kopírovať %d položiek</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d položka z %s</item>
+        <item quantity="few">%d položky z %s</item>
+        <item quantity="many">Počet položiek: %d, zdroj: %s</item>
+        <item quantity="other">%d položiek z %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Vystrihnúť %d položku</item>
+        <item quantity="few">Vystrihnúť %d položky</item>
+        <item quantity="many">Vystrihnúť položky: %d</item>
+        <item quantity="other">Vystrihnúť %d položiek</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d položka z %s</item>
+        <item quantity="few">%d položky z %s</item>
+        <item quantity="many">Počet položiek: %d, zdroj: %s</item>
+        <item quantity="other">%d položiek z %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d umiestnenie</item>
+        <item quantity="few">%d umiestnenia</item>
+        <item quantity="many">%d umiestnenia</item>
+        <item quantity="other">%d umiestnení</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d položka, zdroje: %2$s</item>
+        <item quantity="few">%1$d položky, zdroje: %2$s</item>
+        <item quantity="many">Počet položiek: %1$d, zdroje: %2$s</item>
+        <item quantity="other">%1$d položiek, zdroje: %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d položka, zdroje: %2$s</item>
+        <item quantity="few">%1$d položky, zdroje: %2$s</item>
+        <item quantity="many">Počet položiek: %1$d, zdroje: %2$s</item>
+        <item quantity="other">%1$d položiek, zdroje: %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Úryvok textu</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d znak</item>
+        <item quantity="few">%1$d znaky</item>
+        <item quantity="many">%1$d znaku</item>
+        <item quantity="other">%1$d znakov</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Prilepiť ako súbor</string>
+    <string name="clipboard_text_info_characters">Znaky</string>
+    <string name="clipboard_text_info_lines">Riadky</string>
+    <string name="clipboard_text_info_content">Obsah</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Prehľad</string>
+    <string name="clipboard_info_operation">Operácia</string>
+    <string name="clipboard_info_items">Položky</string>
+    <string name="clipboard_info_source">Zdroj</string>
+    <string name="clipboard_info_sources">Zdroje</string>
+    <string name="clipboard_info_workspace">Pracovný priestor</string>
+    <string name="clipboard_info_workspace_closed">Zavretý</string>
+    <string name="clipboard_info_time">Čas</string>
+    <string name="clipboard_info_items_with_count">Položky (%1$d)</string>
+    <string name="clipboard_info_actions">Akcie</string>
+    <string name="clipboard_info_go_to_source">Prejsť na zdroj</string>
+    <string name="clipboard_info_go_to_first_source">Prejsť na prvý zdroj</string>
+    <string name="clipboard_info_remove">Odstrániť zo schránky</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Schránka</string>
+    <string name="clipboard_settings_remove_on_paste_title">Odstrániť po prilepení</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Po prilepení odstrániť skopírované položky zo schránky</string>
+    <string name="clipboard_settings_max_items_title">Maximum položiek</string>
+    <string name="clipboard_settings_max_items_desc">Maximálny počet položiek v schránke</string>
+
+    <string name="workspace_explorer_label">Prieskumník</string>
+    <string name="workspace_searcher_label">Vyhľadávanie</string>
+    <string name="workspace_editor_label">Editor</string>
+    <string name="workspace_templates_label">Šablóny</string>
+    <string name="workspace_apps_label">Aplikácie</string>
+    <string name="workspace_appdetails_label">Podrobnosti aplikácie</string>
+    <string name="workspace_saver_label">Uložiť ako</string>
+    <string name="workspace_developer_label">Vývojár</string>
+    <string name="workspace_history_label">História</string>
+    <string name="workspace_bugreport_label">Hlásenia chýb</string>
+    <string name="workspace_viewer_label">Prehliadač</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Fotografie</string>
+    <string name="workspace_searcher_target_videos">Videá</string>
+    <string name="workspace_searcher_target_music">Hudba</string>
+    <string name="workspace_searcher_target_downloads">Stiahnuté súbory</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Viac</string>
+    <string name="workspace_expand_less_action">Menej</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Karty a pracovné priestory</string>
+    <string name="workspace_button_menu_new_workspace_format">Nové: %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Nová karta</string>
+    <string name="workspace_button_menu_category_recent">Nedávno</string>
+    <string name="workspace_button_menu_category_other">Ostatné</string>
+    <string name="workspace_button_menu_category_current_tab">Táto karta</string>
+    <string name="workspace_button_menu_manager_action">Správca kariet</string>
+    <string name="workspace_button_menu_layout_action">Rozloženie</string>
+    <string name="workspace_button_menu_close_current_action">Zavrieť aktuálnu kartu</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Zavrieť aktuálnu kartu (%d pracovný priestor)</item>
+        <item quantity="few">Zavrieť aktuálnu kartu (%d pracovné priestory)</item>
+        <item quantity="many">Zavrieť aktuálnu kartu (počet pracovných priestorov: %d)</item>
+        <item quantity="other">Zavrieť aktuálnu kartu (%d pracovných priestorov)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Nastavenia</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Zavrieť všetky karty?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Zavrie sa %1$d otvorená karta. Túto akciu nemožno vrátiť späť.</item>
+        <item quantity="few">Zavrú sa všetky %1$d otvorené karty. Túto akciu nemožno vrátiť späť.</item>
+        <item quantity="many">Zavrú sa všetky otvorené karty (počet: %1$d). Túto akciu nemožno vrátiť späť.</item>
+        <item quantity="other">Zavrie sa všetkých %1$d otvorených kariet. Túto akciu nemožno vrátiť späť.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Zavrieť všetky</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Niektoré karty majú neuložené zmeny, ktoré sa stratia.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Zahodiť všetko</string>
+    <string name="workspace_manager_close_selected_title">Zavrieť vybrané karty?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Zavrie sa %1$d vybraná karta. Túto akciu nemožno vrátiť späť.</item>
+        <item quantity="few">Zavrú sa %1$d vybrané karty. Túto akciu nemožno vrátiť späť.</item>
+        <item quantity="many">Zavrú sa vybrané karty (počet: %1$d). Túto akciu nemožno vrátiť späť.</item>
+        <item quantity="other">Zavrie sa %1$d vybraných kariet. Túto akciu nemožno vrátiť späť.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">Zavrieť vybrané</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Niektoré vybrané karty majú neuložené zmeny, ktoré sa stratia.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Zahodiť vybrané</string>
+    <string name="workspace_manager_pause_partial_title">Pozastaviť karty?</string>
+    <string name="workspace_manager_pause_partial_message">Z vybraných kariet (%2$d) možno pozastaviť %1$d. Ostatné sa používajú, majú neuložené zmeny alebo sú práve otvorené.</string>
+    <string name="workspace_manager_pause_partial_action">Pozastaviť %1$d</string>
+    <string name="general_cancel_action">Zrušiť</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Operácie</string>
+    <string name="operations_clear_completed">Vymazať dokončené</string>
+    <string name="operations_state_queued">Vo fronte</string>
+    <string name="operations_state_running">Prebieha</string>
+    <string name="operations_state_waiting">Čaká na vstup</string>
+    <string name="operations_state_successful">Úspešná</string>
+    <string name="operations_state_failed">Zlyhala</string>
+    <string name="operations_state_cancelled">Zrušená</string>
+    <string name="operations_state_cancelling">Ruší sa…</string>
+    <string name="operations_cancel_operation">Zrušiť operáciu</string>
+    <string name="operations_cancel_dialog_title">Zrušiť operáciu?</string>
+    <string name="operations_cancel_dialog_message">Naozaj chceš zrušiť túto operáciu?</string>
+    <string name="operations_cancel_dialog_warning">Po zrušení môžu súbory zostať v nekonzistentnom stave.</string>
+    <string name="operations_details_started_at">Začiatok</string>
+    <string name="operations_details_completed_at">Dokončenie</string>
+    <string name="operations_details_duration">Trvanie</string>
+    <string name="operations_details_duration_not_started">Ešte nezačala</string>
+    <string name="operations_details_progress">Priebeh</string>
+    <string name="operations_details_error">Podrobnosti chyby</string>
+    <string name="operations_details_actions">Akcie</string>
+    <string name="operations_details_overview">Prehľad</string>
+    <string name="operations_details_handle_issue">Vyriešiť problém</string>
+    <string name="operations_details_open_app_action">Otvoriť aplikáciu</string>
+    <string name="operations_details_show_in_history_action">Zobraziť v histórii</string>
+    <string name="operations_details_status">Stav</string>
+    <string name="operations_details_result">Výsledok</string>
+    <string name="operations_details_destination_folder">Cieľový priečinok</string>
+    <string name="operations_details_destination_path">Cieľová cesta</string>
+    <string name="operations_details_affected_paths_with_count">Dotknuté cesty (%d)</string>
+    <string name="operations_details_problems_with_count">Problémy (%d)</string>
+    <string name="operations_details_problems_more">Ďalšie neuvedené: %d</string>
+    <string name="workspace_operation_packages_section_title">Aplikácie</string>
+    <string name="workspace_operation_package_status_done">Hotovo</string>
+    <string name="workspace_operation_package_status_failed">Zlyhalo</string>
+    <string name="workspace_operation_package_status_declined">Odmietnuté</string>
+    <string name="operations_details_section_expand">Rozbaliť %1$s</string>
+    <string name="operations_details_section_collapse">Zbaliť %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Graf výkonu</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Odstrániť položku?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Odstrániť %1$d položku?</item>
+        <item quantity="few">Odstrániť %1$d položky?</item>
+        <item quantity="many">Odstrániť položky (počet: %1$d)?</item>
+        <item quantity="other">Odstrániť %1$d položiek?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Táto položka bude natrvalo odstránená:</string>
+    <string name="workspace_dialog_delete_message_multiple">Tieto položky budú natrvalo odstránené:</string>
+    <string name="workspace_dialog_delete_more_items">… a ďalšie: %1$d</string>
+    <string name="workspace_dialog_delete_warning">Túto akciu nemožno vrátiť späť.</string>
+    <string name="workspace_dialog_delete_permanently_action">Odstrániť natrvalo</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Namiesto toho odstrániť natrvalo</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Niektoré položky nemožno presunúť do koša a budú spracované samostatne.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Presunúť do koša?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Presunúť %1$d položku do koša?</item>
+        <item quantity="few">Presunúť %1$d položky do koša?</item>
+        <item quantity="many">Presunúť položky do koša (počet: %1$d)?</item>
+        <item quantity="other">Presunúť %1$d položiek do koša?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Táto položka bude presunutá do koša:</string>
+    <string name="workspace_dialog_trash_message_multiple">Tieto položky budú presunuté do koša:</string>
+    <string name="workspace_dialog_trash_hint">Nájdeš ich v umiestnení Kôš</string>
+    <string name="workspace_dialog_move_to_trash_action">Presunúť</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d vybraná položka</item>
+        <item quantity="few">%d vybrané položky</item>
+        <item quantity="many">Počet vybraných položiek: %d</item>
+        <item quantity="other">%d vybraných položiek</item>
+    </plurals>
+    <string name="workspace_action_more">Ďalšie akcie</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Odstraňovanie súborov</string>
+    <string name="workspace_operation_delete_description_single">Odstrániť \"%1$s\" z \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Odstrániť %1$d položku z \"%2$s\".</item>
+        <item quantity="few">Odstrániť %1$d položky z \"%2$s\".</item>
+        <item quantity="many">Odstrániť položky (počet: %1$d) z \"%2$s\".</item>
+        <item quantity="other">Odstrániť %1$d položiek z \"%2$s\".</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Inštalácia aplikácie</string>
+    <string name="workspace_operation_install_description">Nainštalovať \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">Čítanie balíka…</string>
+    <string name="workspace_operation_install_progress_extracting">Rozbaľovanie…</string>
+    <string name="workspace_operation_install_progress_writing">Odovzdávanie súborov inštalátoru…</string>
+    <string name="workspace_operation_install_progress_committing">Dokončovanie inštalácie…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Umiestňovanie rozširujúcich súborov…</string>
+    <string name="workspace_operation_install_summary_success">Aplikácia %1$s bola nainštalovaná.</string>
+    <string name="workspace_operation_install_summary_success_partial">Aplikácia %1$s bola nainštalovaná, ale jej rozširujúce súbory sa nepodarilo umiestniť.</string>
+    <string name="workspace_install_unknown_sources_required">Butler potrebuje povolenie na inštaláciu aplikácií. Udeľ ho v nastaveniach, ktoré sa práve otvorili, a potom to skús znova.</string>
+    <string name="workspace_install_obb_failed">Aplikácia bola nainštalovaná, ale jej rozširujúce súbory sa nepodarilo umiestniť: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">Odstránený %1$d súbor.</item>
+        <item quantity="few">Odstránené %1$d súbory.</item>
+        <item quantity="many">Počet odstránených súborov: %1$d.</item>
+        <item quantity="other">Odstránených %1$d súborov.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">Odstránený %1$d adresár.</item>
+        <item quantity="few">Odstránené %1$d adresáre.</item>
+        <item quantity="many">Počet odstránených adresárov: %1$d.</item>
+        <item quantity="other">Odstránených %1$d adresárov.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">Preskočená %1$d položka.</item>
+        <item quantity="few">Preskočené %1$d položky.</item>
+        <item quantity="many">Počet preskočených položiek: %1$d.</item>
+        <item quantity="other">Preskočených %1$d položiek.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">Uvoľnené: %1$s.</item>
+        <item quantity="few">Uvoľnené: %1$s.</item>
+        <item quantity="many">Uvoľnené: %1$s.</item>
+        <item quantity="other">Uvoľnené: %1$s.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Presúvanie do koša…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d súbor presunutý do koša.</item>
+        <item quantity="few">%1$d súbory presunuté do koša.</item>
+        <item quantity="many">Počet súborov presunutých do koša: %1$d.</item>
+        <item quantity="other">%1$d súborov presunutých do koša.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d adresár presunutý do koša.</item>
+        <item quantity="few">%1$d adresáre presunuté do koša.</item>
+        <item quantity="many">Počet adresárov presunutých do koša: %1$d.</item>
+        <item quantity="other">%1$d adresárov presunutých do koša.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">Uvoľňuje sa %1$s/s.</string>
+    <string name="workspace_operation_progress_bytes_freed">Uvoľnené: %1$s.</string>
+    <string name="workspace_operation_progress_time_remaining">Zostáva: %1$s.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Informácie</string>
+    <string name="workspace_file_info_name_label">Názov</string>
+    <string name="workspace_file_info_path_label">Cesta</string>
+    <string name="workspace_file_info_type_label">Typ</string>
+    <string name="workspace_file_info_type_file">Súbor</string>
+    <string name="workspace_file_info_type_directory">Adresár</string>
+    <string name="workspace_file_info_type_symlink">Symbolický odkaz</string>
+    <string name="workspace_file_info_type_unknown">Neznámy</string>
+    <string name="workspace_file_info_size_label">Veľkosť</string>
+    <string name="workspace_file_info_modified_label">Úprava</string>
+    <string name="workspace_file_info_created_label">Vytvorenie</string>
+    <string name="workspace_file_info_permissions_label">Oprávnenia</string>
+    <string name="workspace_file_info_owner_label">Vlastník</string>
+    <string name="workspace_file_info_child_count_label">Položky</string>
+    <string name="workspace_file_info_symlink_target_label">Cieľ</string>
+    <string name="workspace_file_info_unknown">Neznáme</string>
+    <string name="workspace_file_info_copy_action">Kopírovať do schránky</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Vybrané</string>
+    <string name="workspace_file_info_files_label">Súbory</string>
+    <string name="workspace_file_info_directories_label">Adresáre</string>
+    <string name="workspace_file_info_total_size_label">Celková veľkosť</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Táto operácia sa ešte nezačala.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Zhromažďovanie údajov o výkone…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Na vykreslenie grafu nie je dostatok údajov o výkone tejto operácie.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Údaje o výkone nie sú pre túto operáciu dostupné.</string>
+    <string name="workspace_operation_performance_window_seconds">Posledných %1$d s</string>
+    <string name="workspace_operation_performance_window_minutes">Posledných %1$d min</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">položky/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Zobraziť technické podrobnosti</string>
+    <string name="workspace_error_hide_details_action">Skryť technické podrobnosti</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Inicializácia karty</string>
+    <string name="workspace_error_subtitle">Vyskytla sa neočakávaná chyba</string>
+    <string name="workspace_close_tab_action">Zavrieť kartu</string>
+    <string name="workspace_paused_body">Táto karta je pozastavená, aby šetrila pamäť a batériu. Ak chceš pokračovať, obnov jej činnosť.</string>
+    <string name="workspace_paused_error_body">Činnosť tejto karty sa nepodarilo obnoviť.</string>
+    <string name="workspace_paused_resume_action">Pokračovať</string>
+    <string name="workspace_paused_label">Pozastavená</string>
+    <string name="workspace_paused_content_label">Obsah karty</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Existujúci súbor</string>
+    <string name="workspace_issue_collision_existing_folder_label">Existujúci priečinok</string>
+    <string name="workspace_issue_collision_new_file">Prichádzajúci súbor</string>
+    <string name="workspace_issue_collision_new_folder">Prichádzajúci priečinok</string>
+    <string name="workspace_issue_collision_overwrite">Nahradiť</string>
+    <string name="workspace_issue_collision_merge">Zlúčiť</string>
+    <string name="workspace_issue_common_source_file">Zdrojový súbor</string>
+    <string name="workspace_issue_common_destination_file">Cieľ</string>
+    <string name="workspace_issue_common_skip">Preskočiť</string>
+    <string name="workspace_issue_common_rename">Premenovať</string>
+    <string name="workspace_issue_common_rename_new">Premenovať nový</string>
+    <string name="workspace_issue_common_rename_existing">Premenovať existujúci</string>
+    <string name="workspace_issue_common_cancel">Zrušiť</string>
+    <string name="workspace_issue_common_delete_permanently">Odstrániť natrvalo</string>
+    <string name="workspace_issue_archive_password_label">Heslo</string>
+    <string name="workspace_issue_archive_password_unlock">Odomknúť</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Položky so zlyhaním</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… a ďalšie položky: %1$d</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Dotknuté položky</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… a ďalšie položky: %1$d</string>
+    <string name="workspace_issue_apply_all">Použiť na všetky zostávajúce problémy</string>
+    <string name="workspace_issue_rename_new_name">Nový názov</string>
+    <string name="workspace_issue_rename_dialog_title_new">Premenovať prichádzajúci súbor</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Premenovať existujúci súbor</string>
+    <string name="workspace_issue_type_folder">Priečinok</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Otvoriť viacero kariet?</string>
+    <string name="workspace_open_tabs_confirmation_message">Otvorí sa tento počet kariet: %1$d.</string>
+
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Otvoriť %d položku</item>
+        <item quantity="few">Otvoriť %d položky</item>
+        <item quantity="many">Otvoriť položky (počet: %d)</item>
+        <item quantity="other">Otvoriť %d položiek</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Zobraziť tu</string>
+    <string name="workspace_open_selection_view_here_description">Zobrazí vybrané súbory v prehliadači nad týmto panelom. Predchádzajúci a nasledujúci súbor sa vyberajú len z tvojho výberu.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Zobraziť na novej karte</string>
+    <string name="workspace_open_selection_view_in_tab_description">Zobrazí vybrané súbory v prehliadači na vlastnej karte. Predchádzajúci a nasledujúci súbor sa vyberajú len z tvojho výberu.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Otvoriť každú na vlastnej karte</string>
+    <string name="workspace_open_selection_each_in_tab_description">Otvorí každú vybranú položku na samostatnej karte. Priečinky sa otvoria na kartách Prieskumníka.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Priečinky nemožno zobraziť v prehliadači.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Otvoriť pomocou</string>
+    <string name="workspace_open_with_no_app_label">Nenašla sa iná aplikácia</string>
+    <string name="workspace_open_with_no_app_description">Žiadna iná nainštalovaná aplikácia nedokáže otvoriť %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Otvorená %1$d karta</item>
+        <item quantity="few">Otvorené %1$d karty</item>
+        <item quantity="many">Počet otvorených kariet: %1$d</item>
+        <item quantity="other">Otvorených %1$d kariet</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Nemožno zavrieť: na %1$d karte ešte prebieha operácia</item>
+        <item quantity="few">Nemožno zavrieť: na %1$d kartách ešte prebiehajú operácie</item>
+        <item quantity="many">Nemožno zavrieť: ešte prebiehajú operácie (počet kariet: %1$d)</item>
+        <item quantity="other">Nemožno zavrieť: na %1$d kartách ešte prebiehajú operácie</item>
+    </plurals>
+
+    <!-- Workspace > Settings -->
+    <string name="workspace_settings_title">Karty</string>
+    <string name="workspace_settings_navigation">Navigácia</string>
+    <string name="workspace_settings_swipe_gestures_title">Gestá potiahnutím</string>
+    <string name="workspace_settings_swipe_gestures_desc">Potiahnutím doľava alebo doprava prepneš medzi kartami.</string>
+    <string name="workspace_settings_ondemand_creation_title">Automatické vytváranie kariet</string>
+    <string name="workspace_settings_ondemand_creation_desc">Automaticky vytvoriť novú kartu pri potiahnutí za poslednú kartu.</string>
+    <string name="workspace_settings_newtab_type_title">Typ novej karty</string>
+    <string name="workspace_settings_newtab_type_desc">Pracovný priestor, ktorý sa otvorí pri potiahnutí za poslednú kartu, pridaní karty do prázdneho panela alebo vytvorení prvej karty.</string>
+    <string name="workspace_settings_newtab_type_ask">Vždy sa opýtať</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Zobraziť výber typu karty pri každej novej karte.</string>
+    <string name="workspace_settings_live_preview_title">Živé náhľady</string>
+    <string name="workspace_settings_live_preview_desc">Zobrazovať aktuálny obsah kariet v správcovi kariet.</string>
+    <string name="workspace_settings_other">Ostatné</string>
+    <string name="workspace_settings_layout_title">Rozloženie</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Rozloženie na výšku</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Vyber rozloženie kariet pri orientácii na výšku.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Rozloženie na šírku</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Vyber rozloženie kariet pri orientácii na šírku.</string>
+    <string name="workspace_settings_layout_mode_auto">Automatické</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Klasické na malých obrazovkách, lišta kariet s panelmi na veľkých.</string>
+    <string name="workspace_settings_layout_mode_classic">Klasické</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Vždy jeden panel, bez lišty kariet.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Prispôsobivé</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Lišta kariet a toľko panelov, koľko sa zmestí na obrazovku. Rozloženie pripni z ponuky aplikácie Butler.</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Lišta kariet a toľko panelov, koľko sa zmestí na obrazovku.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Prispôsobivé (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Jeden panel s lištou kariet</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Jeden panel s kartou a lišta kariet z viacpanelových rozložení. Lišta zaberá pruh obrazovky.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Dva panely vedľa seba</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Dva panely vedľa seba (vľavo/vpravo).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Dva panely nad sebou</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Dva panely nad sebou (hore/dole).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Tri panely, veľký vľavo</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Jeden veľký panel vľavo, dva menšie panely nad sebou vpravo.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Tri panely, veľký vpravo</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Dva menšie panely nad sebou vľavo, jeden veľký panel vpravo.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Štyri panely v mriežke</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Štyri panely v mriežke 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Aktivovať kliknutím</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Prvé kliknutie na neaktívny panel ho iba aktivuje a neaktívne panely nereagujú na ukazovateľ myši. Vypni túto možnosť, ak s nimi chceš pracovať priamo.</string>
+
+    <string name="workspace_settings_rail_button_title">Tlačidlo Butler</string>
+    <string name="workspace_settings_rail_button_desc">Vyber umiestnenie tlačidla Butler na lište kariet.</string>
+    <string name="workspace_settings_rail_button_leading">Začiatok</string>
+    <string name="workspace_settings_rail_button_leading_desc">Pred kartami pri orientácii na výšku, nad nimi pri orientácii na šírku.</string>
+    <string name="workspace_settings_rail_button_trailing">Koniec</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Za kartami pri orientácii na výšku, pod nimi pri orientácii na šírku. Na dosah palca pri používaní jednou rukou.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Relácia</string>
+    <string name="workspace_settings_session_restore_title">Obnoviť karty pri spustení</string>
+    <string name="workspace_settings_session_restore_desc">Automaticky obnoviť predtým otvorené karty pri spustení aplikácie.</string>
+    <string name="workspace_settings_autopause_title">Pozastaviť nečinné karty</string>
+    <string name="workspace_settings_autopause_desc">Karty, ktoré sa už dlhšie nezobrazili, sa pozastavia, aby šetrili pamäť a batériu. Otvorením karty sa obnoví jej činnosť.</string>
+    <string name="workspace_settings_autopause_delay_title">Pozastaviť po</string>
+    <string name="workspace_settings_autopause_delay_desc">Ako dlho zostane karta mimo dohľadu, kým sa pozastaví.</string>
+    <string name="workspace_settings_undoclose_title">Vrátiť zavreté karty</string>
+    <string name="workspace_settings_undoclose_desc">Po zavretí karty sa na niekoľko sekúnd ponúkne možnosť vrátiť ju späť.</string>
+    <string name="workspace_settings_session_data_title">Údaje relácie</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d karta • %2$s</item>
+        <item quantity="few">%1$d karty • %2$s</item>
+        <item quantity="many">Počet kariet: %1$d • %2$s</item>
+        <item quantity="other">%1$d kariet • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">Zavretá karta \"%1$s\"</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Obnovenie relácie zlyhalo</string>
+    <string name="workspace_session_restoration_error_description">Tvoju predchádzajúcu reláciu kariet sa nepodarilo obnoviť. Príčinou môže byť chyba, ktorá bude opravená v budúcej aktualizácii.\n\nMôžeš vymazať uloženú reláciu a ďalej používať Butler alebo počkať na aktualizáciu.</string>
+    <string name="workspace_session_restoration_error_clear_action">Vymazať reláciu</string>
+    <string name="workspace_session_restoration_error_report_action">Nahlásiť problém</string>
+    <string name="workspace_session_restoration_error_confirm_title">Vymazať reláciu?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Tvoja uložená relácia kariet sa natrvalo odstráni. Túto akciu nemožno vrátiť späť.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Premenovať kartu</string>
+    <string name="workspace_rename_name_label">Vlastný názov</string>
+    <string name="workspace_rename_name_hint">Nechaj prázdne, ak chceš použiť automatický názov</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Dosiahnutý limit kariet</string>
+    <string name="workspace_limit_reached_message">V bezplatnej verzii môže byť naraz otvorených najviac %1$d kariet. Prejdi na Butler Pro a získaj neobmedzený počet kariet!</string>
+    <string name="workspace_limit_pick_tabs_message">Tvoja bezplatná verzia umožňuje mať otvorené karty v počte %1$d. Vyber tie, ktoré už nepotrebuješ, a zavri ich, aby vzniklo miesto.</string>
+    <string name="workspace_limit_no_slot_hint">Zavretím kariet sa teraz neuvoľní miesto.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Zavrieť %d kartu</item>
+        <item quantity="few">Zavrieť %d karty</item>
+        <item quantity="many">Zavrieť karty (počet: %d)</item>
+        <item quantity="other">Zavrieť %d kariet</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Vyber aspoň %d kartu na zavretie.</item>
+        <item quantity="few">Vyber aspoň %d karty na zavretie.</item>
+        <item quantity="many">Vyber karty na zavretie (minimálny počet: %d).</item>
+        <item quantity="other">Vyber aspoň %d kariet na zavretie.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Otvorené: %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Neuložené zmeny</string>
+    <string name="workspace_limit_blocker_busy">Práve zaneprázdnená</string>
+    <string name="workspace_limit_blocker_attention">Čaká na teba</string>
+    <string name="workspace_limit_blocker_loading">Stále sa načítava</string>
+    <string name="workspace_limit_blocker_awaiting_result">Najprv dokonči otvorený výber</string>
+    <string name="workspace_limit_blocker_unavailable">Teraz sa nedá zavrieť</string>
+    <string name="workspace_limit_stacked_content_desc">Zavretím tejto karty sa zavrie aj obsah otvorený nad ňou</string>
+    <string name="workspace_limit_pro_description">Otvor si toľko kariet, koľko chceš.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d položka</item>
+        <item quantity="few">%1$d položky</item>
+        <item quantity="many">Počet položiek: %1$d</item>
+        <item quantity="other">%1$d položiek</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Obnovenie z koša</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Obnoviť %d položku z koša.</item>
+        <item quantity="few">Obnoviť %d položky z koša.</item>
+        <item quantity="many">Obnoviť položky z koša (počet: %d).</item>
+        <item quantity="other">Obnoviť %d položiek z koša.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">Obnovená %d položka</item>
+        <item quantity="few">Obnovené %d položky</item>
+        <item quantity="many">Počet obnovených položiek: %d</item>
+        <item quantity="other">Obnovených %d položiek</item>
+    </plurals>
+</resources>

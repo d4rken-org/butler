@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">اس کے ساتھ کھولیں</string>
+    <string name="viewer_image_content_description">تصویر %1$s</string>
+    <string name="viewer_toolbar_folder_label">فولڈر</string>
+    <string name="viewer_back_action">واپس</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">پچھلی فائل</string>
+    <string name="viewer_next_file_action">اگلی فائل</string>
+    <string name="viewer_open_location_action">مقام کھولیں</string>
+    <string name="viewer_clipboard_copied">%1$s کاپی کر دیا گیا۔ اسے ایکسپلورر کے ٹیب میں پیسٹ کریں۔</string>
+    <string name="viewer_clipboard_cut">%1$s کاٹ کر کلپ بورڈ میں رکھ دیا گیا۔ اسے منتقل کرنے کے لیے ایکسپلورر کے ٹیب میں پیسٹ کریں۔</string>
+    <string name="viewer_share_failed_label">یہ فائل شیئر نہیں کی جا سکی</string>
+    <string name="viewer_share_failed_description">%1$s کسی دوسری ایپ کو نہیں دی جا سکتی۔ ایسا ان فائلوں کے ساتھ ہوتا ہے جن کے لیے روٹ یا ADB رسائی درکار ہو، یا جو اب موجود نہ ہوں۔</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">حجم</string>
+    <string name="viewer_info_modified_label">ترمیم کی گئی</string>
+    <string name="viewer_info_created_label">بنائی گئی</string>
+    <string name="viewer_info_format_label">فارمیٹ</string>
+    <string name="viewer_info_dimensions_label">ابعاد</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">اجازتیں</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">مالک</string>
+    <string name="viewer_info_caption_label">شیئر کیا گیا پیغام</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">تمام تفصیلات دکھائیں</string>
+    <string name="viewer_info_collapse_action">تفصیلات چھپائیں</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">پیش منظر · 1 صفحہ</string>
+    <string name="viewer_pdf_page_indicator">%2$d میں سے صفحہ %1$d</string>
+    <string name="viewer_pdf_page_previous">پچھلا صفحہ</string>
+    <string name="viewer_pdf_page_next">اگلا صفحہ</string>
+    <string name="viewer_pdf_page_error">صفحہ %1$d دکھایا نہیں جا سکا۔</string>
+    <string name="viewer_pdf_page_content_description">%1$s کا PDF پیش منظر، %3$d میں سے صفحہ %2$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">اس قسم کی فائل کے لیے ابھی معاونت نہیں ہے</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">یہ ایک آرکائیو ہے</string>
+    <string name="viewer_browse_archive_action">مواد براؤز کریں</string>
+    <string name="viewer_archive_needs_copy_msg">اپنے آلے پر ایک کاپی محفوظ کریں، پھر Butler اس کے اندر کا مواد براؤز کر سکے گا۔</string>
+    <string name="viewer_archive_nested_msg">یہ آرکائیو ایک اور آرکائیو کے اندر ہے۔ اس کا مواد براؤز کرنے کے لیے پہلے اسے نکالیں۔</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">ورژن</string>
+    <string name="viewer_apk_min_sdk_label">کم از کم SDK</string>
+    <string name="viewer_apk_target_sdk_label">ہدف SDK</string>
+    <string name="viewer_apk_installed_label">انسٹال شدہ</string>
+    <string name="viewer_apk_not_installed_value">انسٹال نہیں ہے</string>
+    <string name="viewer_apk_installed_unknown_value">جانچ نہیں ہو سکی</string>
+    <string name="viewer_apk_installed_older_hint">اس فائل سے پرانا</string>
+    <string name="viewer_apk_installed_newer_hint">اس فائل سے نیا</string>
+    <string name="viewer_apk_permissions_header">اجازتیں (%1$d)</string>
+    <string name="viewer_apk_signing_header">دستخطی سرٹیفکیٹس</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">انسٹال کریں</string>
+    <string name="viewer_bundle_format_label">بنڈل کا فارمیٹ</string>
+    <string name="viewer_bundle_splits_label">اندر موجود APKs</string>
+    <string name="viewer_bundle_expansion_files_hint">اس میں توسیعی فائلیں ہیں جو ایپ انسٹال ہونے کے بعد اپنی جگہ رکھی جاتی ہیں۔</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">توسیعی فائلیں اپنی جگہ رکھنے کے لیے روٹ یا ADB رسائی درکار ہے۔ اس کے بغیر ایپ انسٹال ہو جاتی ہے، لیکن اس کی توسیعی فائلیں وہیں رہ جاتی ہیں۔</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">%1$s کی ایپ کا آئیکن</string>
+    <string name="viewer_apk_icon_show_action">آئیکن دکھائیں</string>
+    <string name="viewer_apk_icon_save_action">آئیکن محفوظ کریں</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">آئیکن %1$s کے نام سے محفوظ کر دیا گیا</string>
+    <string name="viewer_apk_icon_overwrite_title">فائل بدل دیں؟</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s اس فولڈر میں پہلے سے موجود ہے۔ آئیکن محفوظ کرنے سے اس کی جگہ نئی فائل آ جائے گی۔</string>
+    <string name="viewer_apk_icon_overwrite_confirm">بدل دیں</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">فائل بدل گئی ہے</string>
+    <string name="viewer_external_change_message">آلے پر یہ فائل بدل گئی ہے۔ اسے دوبارہ لوڈ کرنے کے لیے تازہ کریں۔</string>
+    <string name="viewer_external_change_gone_title">فائل اب موجود نہیں ہے</string>
+    <string name="viewer_external_change_gone_message">یہ فائل حذف کر دی گئی ہے یا اب اس تک رسائی نہیں ہو رہی۔</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">یہ فائل دکھائی نہیں جا سکتی</string>
+    <string name="viewer_error_not_a_file_label">فائل نہیں ہے</string>
+    <string name="viewer_error_not_a_file_description">%1$s عام فائل نہیں ہے۔</string>
+    <string name="viewer_error_broken_symlink_label">ٹوٹا ہوا شارٹ کٹ</string>
+    <string name="viewer_error_broken_symlink_description">%1$s جس چیز کی طرف اشارہ کرتا ہے وہ اب موجود نہیں ہے۔</string>
+    <string name="viewer_error_undecodable_label">خراب تصویر</string>
+    <string name="viewer_error_undecodable_description">%1$s کو ڈی کوڈ نہیں کیا جا سکا۔ فائل نامکمل یا خراب ہو سکتی ہے۔</string>
+    <string name="viewer_error_file_gone_label">فائل نہیں ملی</string>
+    <string name="viewer_error_file_gone_description">%1$s اب موجود نہیں ہے۔ ممکن ہے اسے منتقل یا حذف کر دیا گیا ہو یا اس کا نام بدل دیا گیا ہو۔</string>
+    <string name="viewer_error_empty_file_label">خالی فائل</string>
+    <string name="viewer_error_empty_file_description">%1$s خالی ہے اور اس میں دکھانے کے لیے کچھ نہیں ہے۔</string>
+    <string name="viewer_error_apk_unreadable_label">APK پڑھی نہیں جا سکتی</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s کو Android ایپ پیکیج کے طور پر پارس نہیں کیا جا سکا۔</string>
+    <string name="viewer_error_icon_unavailable_label">آئیکن نہیں ہے</string>
+    <string name="viewer_error_icon_unavailable_description">%1$s کی ایپ کا آئیکن پڑھا نہیں جا سکا۔</string>
+    <string name="viewer_error_icon_target_notfile_label">نام پہلے سے استعمال میں ہے</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s یہاں پہلے سے موجود ہے اور عام فائل نہیں ہے، اس لیے اسے بدلا نہیں جا سکتا۔</string>
+    <string name="viewer_error_icon_target_appeared_label">فائل بن گئی ہے</string>
+    <string name="viewer_error_icon_target_appeared_description">محفوظ کرنے کی جگہ منتخب کرنے کے دوران %1$s بن گئی۔ کسی فائل کا مواد نہیں بدلا گیا، دوبارہ کوشش کریں۔</string>
+    <string name="viewer_error_content_unreadable_label">یہ فائل پڑھی نہیں جا سکتی</string>
+    <string name="viewer_error_content_unreadable_description">جس ایپ نے %1$s شیئر کی تھی، وہ اب Butler کو اسے پڑھنے نہیں دے رہی۔ اس ایپ سے اسے دوبارہ شیئر کروائیں۔</string>
+    <string name="viewer_save_copy_action">ایک کاپی محفوظ کریں…</string>
+    <string name="viewer_open_in_editor_action">ایڈیٹر میں کھولیں</string>
+    <string name="viewer_text_truncated_bytes">پیش منظر اس فائل کے پہلے %1$s تک محدود ہے۔</string>
+    <string name="viewer_text_truncated_lines">پیش منظر اس فائل کی پہلی %1$s سطروں تک محدود ہے۔</string>
+    <string name="viewer_text_truncated_width">اس پیش منظر میں لمبی سطریں مختصر کی گئی ہیں۔</string>
+    <string name="viewer_text_unreadable_label">یہ فائل پڑھی نہیں جا سکی</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">ویوئر</string>
+    <string name="viewer_settings_show_next_after_delete_title">حذف کرنے کے بعد اگلی فائل دکھائیں</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">کسی فولڈر سے کھولی گئی فائل حذف کرنے کے بعد ویوئر بند کرنے کے بجائے اسی فولڈر کی اگلی فائل دکھائیں۔</string>
+</resources>

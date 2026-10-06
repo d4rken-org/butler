@@ -1,0 +1,5 @@
+Fejlrettelser og små forbedringer, så filhåndtering på din enhed forbliver hurtig og ikke står i vejen.
+
+Ændringer i denne version: butler.darken.eu/changelog
+
+Virker noget ikke eller opfører sig underligt efter opdateringen? Fortæl mig det via Indstillinger > Support. Det er et enmandsprojekt, så svar kan tage lidt tid, men alle rapporter bliver læst.

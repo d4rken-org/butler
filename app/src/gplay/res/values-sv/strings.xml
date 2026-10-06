@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Kräver Butler Pro</string>
+
+    <string name="upgrade_prompt_title">Uppgradera Butler</string>
+    <string name="upgrade_prompt_body">Butler Pro ger bättre resultat, fler funktioner och alternativ för avancerade användare.</string>
+    <string name="upgrade_prompt_upgrade_action">Uppgradera</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">Skaffa %1$s</string>
+    <string name="upgrade_screen_preamble">Butler har ingen reklam och säljer inte användardata. Mitt arbete finansieras av dig ❤️.</string>
+
+    <string name="upgrade_screen_how_title">Alternativ</string>
+    <string name="upgrade_screen_subscription_trial_action">Starta en gratis provperiod på 14 dagar</string>
+    <string name="upgrade_screen_subscription_action">Prenumerera</string>
+    <string name="upgrade_screen_iap_action">Engångsköp</string>
+    <string name="upgrade_screen_restore_purchase_action">Återställ köp</string>
+    <string name="upgrade_screen_restore_banner_title">Har du redan köpt Pro?</string>
+    <string name="upgrade_screen_restore_banner_body">Det verkar som att du har uppgraderat till Pro på den här enheten tidigare. Återställ ditt köp för att låsa upp Pro igen.</string>
+    <string name="upgrade_screen_restore_checked_message">Butler har precis kontrollerat med Google Play, men inget Pro-köp kunde bekräftas för det konto som Google Play använder för den här appen.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Kontrollen med Google Play slutfördes inte i tid, så din köpstatus är fortfarande okänd. Ingenting har ändrats på ditt konto.</string>
+    <string name="upgrade_screen_restore_contact_hint">Fungerar det fortfarande inte? Hör av dig från den e-postadress som användes vid köpet och ange ditt ordernummer från Google Play.</string>
+    <string name="upgrade_screen_contact_support_action">Kontakta supporten</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Synkroniseringen med Play Store kan ta tid. Prova att starta om enheten, rensa Google Plays cache eller bara vänta.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">Flera konton kan förvirra Google Play. Logga ut från andra konton eller installera via Google Plays webbplats, vilket gör att appen kopplas till ett specifikt konto.</string>
+    <string name="upgrade_screen_restore_success_message">Ditt köp har återställts ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Verkar statusen fel?</string>
+    <string name="upgrade_screen_restore_status_body">Kontrollera ditt köp med Google Play igen. Det kan hjälpa efter ett enhetsbyte eller om du har bytt Google-konto.</string>
+
+    <string name="upgrade_screen_offers_or">eller</string>
+
+    <string name="upgrade_screen_offers_title">Uppgraderingsalternativ</string>
+    <string name="upgrade_screen_offers_body">Båda alternativen låser upp exakt samma Pro-funktioner — välj det prisupplägg som passar dig.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Priserna är inte tillgängliga</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler kunde inte hämta uppgraderingsalternativen från Google Play. Det är ofta tillfälligt — försök igen om en stund.</string>
+    <string name="upgrade_screen_subscription_offer_title">Årsprenumeration</string>
+    <string name="upgrade_screen_subscription_offer_body">Börjar med en gratis provperiod på 14 dagar, därefter debiteras du en gång per år. Avsluta när som helst.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Du debiteras en gång per år. Avsluta när som helst.</string>
+    <string name="upgrade_screen_iap_offer_title">Köp en gång</string>
+    <string name="upgrade_screen_iap_offer_body">Betala en gång, behåll för alltid. Ingen prenumeration.</string>
+    <string name="upgrade_screen_restore_body">När du återställer ett köp ber du Google Play att kontrollera den här appens köp för det aktuella kontot igen.</string>
+
+    <string name="upgrade_screen_owned_hero_title">Du har Butler Pro!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Tack för ditt engångsköp — nu har du Pro för alltid ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Tack för att du prenumererar ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">Engångsköp</string>
+    <string name="upgrade_screen_owned_iap_body">Du äger den permanenta Pro-uppgraderingen.</string>
+    <string name="upgrade_screen_owned_sub_title">Prenumeration</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Din prenumeration är aktiv och förnyas automatiskt.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Din prenumeration är aktiv men inställd på att inte förnyas. Du behåller Pro tills den aktuella perioden tar slut.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">Du har gjort ett engångsköp, men din prenumeration förnyas fortfarande. Avsluta den i Google Play för att undvika att betala två gånger.</string>
+    <string name="upgrade_screen_manage_subscription_action">Hantera prenumeration</string>
+
+    <string name="upgrade_screen_switch_locked_note">Avbryt först förnyelsen via \"Hantera prenumeration\", annars debiteras du för båda.</string>
+    <string name="upgrade_screen_switch_purchase_note">Din prenumeration kommer inte att förnyas — du kan nu göra engångsköpet utan risk för dubbel debitering.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Prenumerationen är fortfarande aktiv</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Din prenumeration är fortfarande inställd på att förnyas. Avbryt först förnyelsen i Google Play så att du inte debiteras för båda, och gör sedan engångsköpet.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">Kunde inte verifiera</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler kunde inte bekräfta din köpstatus med Google Play, så köpet stoppades för att undvika att debitera dig två gånger. Försök igen om en stund.</string>
+
+    <string name="upgrade_screen_pending_card_title">Betalning väntar</string>
+    <string name="upgrade_screen_pending_card_body">Google Play behandlar fortfarande din betalning. Pro låses upp automatiskt när betalningen har gått igenom. Vissa betalningsmetoder kan ta en stund. Du behöver inte göra något mer.</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play hittade ett köp med en väntande betalning och behandlar den fortfarande. Pro låses upp automatiskt när betalningen har gått igenom.</string>
+
+    <string name="upgrade_screen_grace_title">Bekräftar ditt köp</string>
+    <string name="upgrade_screen_grace_body_short">Google Play behöver en stund för att bekräfta din Pro-status. Du har fortfarande full åtkomst.</string>
+    <string name="upgrade_screen_grace_body">Google Play har ännu inte bekräftat din Pro-status på nytt. Du har fortfarande åtkomst tills vidare. Om det verkar fel kan du prova att återställa ditt köp.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">Har du redan köpt uppgraderingen?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play anger att du redan äger den här uppgraderingen, men den kunde inte återställas automatiskt. Kontrollera att du är inloggad med det Google-konto som användes vid det ursprungliga köpet och prova sedan \"Återställ köp\".</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play är inte tillgängligt</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler kan inte ansluta till Google Play. Är Google Play installerat och uppdaterat? Är du inloggad på ditt Google-konto? Prova att rensa Google Play-appens cache och starta om enheten.</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can't open Google Play's app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Kunde inte öppna Google Play. Det kan saknas, vara inaktiverat eller ha begränsningar på den här enheten.</string>
+    <string name="upgrades_gplay_billing_error_label">Problem med Google Play</string>
+    <string name="upgrades_gplay_billing_error_description">Något gick fel vid kommunikationen med Google Play. Försök igen senare eller starta om enheten.\n\nDetaljer: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Fel i Google Play</string>
+    <string name="upgrades_gplay_internal_error_description">Ett internt fel uppstod i Google Play. Prova följande:\n\n• Starta om enheten\n• Rensa Google Play Stores cache\n• Försök igen senare</string>
+    <string name="upgrades_gplay_network_error_title">Anslutningsfel</string>
+    <string name="upgrades_gplay_network_error_description">Butler kunde inte nå Google Play. Kontrollera din internetanslutning och försök igen.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Erbjudandet är inte tillgängligt</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play erbjuder för närvarande inte det här uppgraderingsalternativet för ditt konto. Försök igen senare eller kontrollera Google Play Store.</string>
+    <string name="upgrades_no_purchases_found_check_account">Inga köp hittades. Använder du rätt konto?</string>
+
+    <string name="upgrade_benefits_title">Fördelar med uppgraderingen</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Obegränsat antal flikar och åtgärder\n• Anpassa design, känsla och utseende\n• Extra alternativ och funktioner för varje verktyg\n• Tidig tillgång till nya funktioner\n• En motiverad utvecklare 🧙\noch mer…</string>
+</resources>

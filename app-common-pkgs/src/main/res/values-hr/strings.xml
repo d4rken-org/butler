@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">Neispravan popis aplikacija</string>
+    <string name="pkgrepo_invalid_inventory_error_description">Sustav je aplikaciji Butler dostavio neispravan popis instaliranih aplikacija.</string>
+</resources>

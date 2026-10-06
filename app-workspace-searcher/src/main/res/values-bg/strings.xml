@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Търсене</string>
+    <string name="searcher_subtitle">Намирай файлове и съдържание</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Настройки на търсенето</string>
+    <string name="searcher_settings_search_category">Търсене</string>
+    <string name="searcher_settings_history">История на търсенето</string>
+    <string name="searcher_settings_save_history_title">Запазвай историята на търсенето</string>
+    <string name="searcher_settings_save_history_subtitle">Помни предишните търсения</string>
+    <string name="searcher_settings_max_history_label">Максимален брой записи в историята</string>
+    <string name="searcher_settings_max_history_subtitle">Максимален брой запазени търсения</string>
+    <string name="searcher_settings_max_history_input_label">Брой записи (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Изчисти историята на търсенето</string>
+    <string name="searcher_settings_clear_history_subtitle">Премахни всички запазени търсения (%1$d)</string>
+    <string name="searcher_settings_search_performance">Производителност</string>
+    <string name="searcher_settings_max_results_title">Максимален брой резултати от търсенето</string>
+    <string name="searcher_settings_max_results_subtitle">Ограничи броя резултати от всяко търсене.</string>
+    <string name="searcher_settings_content_search_category">Търсене в съдържанието</string>
+    <string name="searcher_settings_include_binaries_title">Включи двоичните файлове</string>
+    <string name="searcher_settings_include_binaries_subtitle">Търси в съдържанието на двоични файлове (може да е бавно и да дава неподходящи резултати)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Скорошни търсения</string>
+    <string name="searcher_placeholder_search">Търси файлове и папки</string>
+    <string name="searcher_placeholder_filename">Име на файла</string>
+    <string name="searcher_placeholder_content">Съдържание</string>
+    <string name="searcher_search_error">Грешка при търсене</string>
+    <string name="searcher_no_paths_hint">Докосни +, за да добавиш местоположения за търсене</string>
+    <string name="searcher_add_path_action">Добави местоположение</string>
+    <string name="searcher_add_folder_action">Папка…</string>
+    <string name="searcher_multipath_show_fewer_action">Покажи по-малко</string>
+    <string name="searcher_empty_state_title">Няма зададени пътища за търсене</string>
+    <string name="searcher_empty_state_description">Добави местоположения за съхранение, за да търсиш във файловете си</string>
+    <string name="searcher_add_default_paths_action">Добави пътищата за търсене по подразбиране</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Опции</string>
+    <string name="searcher_option_case_sensitive_label">Различаване на малки и главни букви</string>
+    <string name="searcher_option_case_sensitive_desc">Търсене с различаване на малки и главни букви</string>
+    <string name="searcher_option_whole_word_label">Цяла дума</string>
+    <string name="searcher_option_whole_word_desc">Търсене на цяла дума</string>
+    <string name="searcher_option_regex_label">Регулярен израз</string>
+    <string name="searcher_option_regex_desc">Търсене с регулярен израз</string>
+    <string name="searcher_option_search_content_label">Търси в съдържанието</string>
+    <string name="searcher_option_search_content_desc">Търси в съдържанието на файловете</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Шаблони</string>
+    <string name="searcher_templates_card_title">Шаблони за бързо търсене</string>
+    <string name="searcher_template_large_files">Големи файлове</string>
+    <string name="searcher_template_large_files_desc">Файлове над 100 MB</string>
+    <string name="searcher_template_recent_files">Скорошни файлове</string>
+    <string name="searcher_template_recent_files_desc">Променени през последните 7 дни</string>
+    <string name="searcher_template_old_files">Стари файлове</string>
+    <string name="searcher_template_old_files_desc">Без промени от повече от година</string>
+    <string name="searcher_template_images">Изображения</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Видеоклипове</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Аудио</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Документи</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Архиви</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APK файлове</string>
+    <string name="searcher_template_apks_desc">Пакети на приложения за Android</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d шаблон</item>
+        <item quantity="other">%d шаблона</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Филтрирай</string>
+    <string name="searcher_filter_add_action">Добави филтър</string>
+    <string name="searcher_filter_title">Филтри за търсене</string>
+    <string name="searcher_filter_size_section">Размер на файла</string>
+    <string name="searcher_filter_size_min">Минимален размер</string>
+    <string name="searcher_filter_size_max">Максимален размер</string>
+    <string name="searcher_filter_date_section">Дата на промяна</string>
+    <string name="searcher_filter_date_after">Променени след</string>
+    <string name="searcher_filter_date_before">Променени преди</string>
+    <string name="searcher_filter_date_any">По всяко време</string>
+    <string name="searcher_filter_date_24h">Последните 24 часа</string>
+    <string name="searcher_filter_date_7d">Последните 7 дни</string>
+    <string name="searcher_filter_date_30d">Последните 30 дни</string>
+    <string name="searcher_filter_date_90d">Последните 90 дни</string>
+    <string name="searcher_filter_date_1y">Последната година</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">по-голям от</string>
+    <string name="searcher_filter_comparator_greater_or_equal">по-голям или равен на</string>
+    <string name="searcher_filter_comparator_less_than">по-малък от</string>
+    <string name="searcher_filter_comparator_less_or_equal">по-малък или равен на</string>
+    <string name="searcher_filter_comparator_equal">равен на</string>
+    <string name="searcher_filter_size_value_label">Размер</string>
+    <string name="searcher_filter_size_at_least">Най-малко</string>
+    <string name="searcher_filter_size_at_most">Най-много</string>
+    <string name="searcher_filter_size_value_hint">напр. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Въведи число с мерна единица (KB, MB, GB). Число без мерна единица се приема за MB.</string>
+    <string name="searcher_filter_size_format_error">Невалиден размер — използвай число и мерна единица, напр. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Дата</string>
+    <string name="searcher_filter_date_direction_after">След</string>
+    <string name="searcher_filter_date_direction_before">Преди</string>
+    <string name="searcher_filter_type_label">Тип</string>
+    <string name="searcher_filter_type_files">Файлове</string>
+    <string name="searcher_filter_type_directories">Директории</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Премахни от историята</string>
+    <string name="searcher_history_clear_all_action">Изчисти всичко</string>
+    <string name="searcher_history_clear_dialog_title">Изчисти историята на търсенето</string>
+    <string name="searcher_history_clear_dialog_message">Това ще премахне цялата запазена история на търсенето. Това действие не може да бъде отменено.</string>
+    <string name="searcher_history_clear_confirm_action">Изчисти</string>
+    <string name="searcher_history_cleared_success">Историята на търсенето е изчистена</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="one">%d резултат</item>
+        <item quantity="other">%d резултата</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">Покажи още %d</item>
+        <item quantity="other">Покажи още %d</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Търсене</string>
+    <string name="searcher_progress_action_searched">Претърсено</string>
+    <string name="searcher_progress_status_completed_with_errors">Завършено с грешки</string>
+    <string name="searcher_result_limit_reached">Достигнат е лимитът за резултати</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Някои елементи не можаха да бъдат претърсени напълно</string>
+    <string name="searcher_progress_clear_action">Изчисти</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d неуспех</item>
+        <item quantity="other">%d неуспеха</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">Няма достъп до %d елемент</item>
+        <item quantity="other">Няма достъп до %d елемента</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…и още %d</item>
+        <item quantity="other">…и още %d</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android защитава тези местоположения. Допълнителният достъп позволява на Butler да ги претърсва.</string>
+    <string name="searcher_access_sheet_body_protected">Android защитава тези местоположения. Няма начин да се предостави достъп на това устройство.</string>
+    <string name="searcher_access_sheet_unlock_action">Отключи достъпа</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d местоположение</item>
+        <item quantity="other">%d местоположения</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d сканиран</item>
+        <item quantity="other">%d сканирани</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d намерен</item>
+        <item quantity="other">%d намерени</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Контекст на съвпадението</string>
+    <string name="searcher_match_line_label">Ред %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Отвори</string>
+    <string name="searcher_action_open_in_tab">Отвори в нов раздел</string>
+    <string name="searcher_action_open_with">Отвори с</string>
+    <string name="searcher_action_open_in_editor">Отвори в редактора</string>
+    <string name="searcher_action_open_in_explorer">Отвори във файловия мениджър</string>
+    <string name="searcher_action_install">Инсталирай</string>
+    <string name="searcher_action_copy">Копирай</string>
+    <string name="searcher_action_cut">Изрежи</string>
+    <string name="searcher_action_delete">Изтрий</string>
+    <string name="searcher_action_copy_path">Копирай пътя</string>
+    <string name="searcher_action_properties">Свойства</string>
+    <string name="searcher_action_select_all">Избери всички</string>
+    <string name="searcher_action_deselect_all">Премахни избора на всички</string>
+    <string name="searcher_action_sort">Сортирай</string>
+    <string name="searcher_action_view">Подредба</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Сортирай по</string>
+    <string name="searcher_sort_mode_name_label">Име</string>
+    <string name="searcher_sort_mode_size_label">Размер</string>
+    <string name="searcher_sort_mode_modified_label">Дата на промяна</string>
+    <string name="searcher_sort_mode_created_label">Дата на създаване</string>
+    <string name="searcher_sort_mode_path_label">Път</string>
+    <string name="searcher_sort_descending_label">Низходящ ред</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Как са подредени елементите и колко подробности се показват за тях</string>
+    <string name="searcher_view_mode_list_label">Списък</string>
+    <string name="searcher_view_mode_grid_label">Мрежа</string>
+    <string name="searcher_view_density_compact_label">Компактно</string>
+    <string name="searcher_view_density_comfortable_label">Удобно</string>
+    <string name="searcher_view_density_detailed_label">Подробно</string>
+    <string name="searcher_view_detail_modified_label">Промяна</string>
+    <string name="searcher_view_set_default_action">Задай по подразбиране</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">За търсене в някои местоположения е нужна допълнителна настройка.</string>
+</resources>

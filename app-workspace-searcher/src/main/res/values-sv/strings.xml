@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Sökning</string>
+    <string name="searcher_subtitle">Hitta filer och innehåll</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Sökinställningar</string>
+    <string name="searcher_settings_search_category">Sökning</string>
+    <string name="searcher_settings_history">Sökhistorik</string>
+    <string name="searcher_settings_save_history_title">Spara sökhistorik</string>
+    <string name="searcher_settings_save_history_subtitle">Kom ihåg tidigare sökningar</string>
+    <string name="searcher_settings_max_history_label">Maximalt antal historikposter</string>
+    <string name="searcher_settings_max_history_subtitle">Maximalt antal sparade sökningar</string>
+    <string name="searcher_settings_max_history_input_label">Antal poster (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Rensa sökhistorik</string>
+    <string name="searcher_settings_clear_history_subtitle">Ta bort alla sparade sökningar (%1$d)</string>
+    <string name="searcher_settings_search_performance">Prestanda</string>
+    <string name="searcher_settings_max_results_title">Maximalt antal sökresultat</string>
+    <string name="searcher_settings_max_results_subtitle">Begränsa antalet resultat per sökning.</string>
+    <string name="searcher_settings_content_search_category">Innehållssökning</string>
+    <string name="searcher_settings_include_binaries_title">Inkludera binära filer</string>
+    <string name="searcher_settings_include_binaries_subtitle">Sök i innehållet i binära filer (kan vara långsamt och ge irrelevanta resultat)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Senaste sökningarna</string>
+    <string name="searcher_placeholder_search">Sök efter filer och mappar</string>
+    <string name="searcher_placeholder_filename">Filnamn</string>
+    <string name="searcher_placeholder_content">Innehåll</string>
+    <string name="searcher_search_error">Sökfel</string>
+    <string name="searcher_no_paths_hint">Tryck på + för att lägga till sökplatser</string>
+    <string name="searcher_add_path_action">Lägg till plats</string>
+    <string name="searcher_add_folder_action">Mapp…</string>
+    <string name="searcher_multipath_show_fewer_action">Visa färre</string>
+    <string name="searcher_empty_state_title">Inga sökvägar har angetts</string>
+    <string name="searcher_empty_state_description">Lägg till lagringsplatser för att söka bland dina filer</string>
+    <string name="searcher_add_default_paths_action">Lägg till standardsökvägar</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Alternativ</string>
+    <string name="searcher_option_case_sensitive_label">Skiftlägeskänslig</string>
+    <string name="searcher_option_case_sensitive_desc">Skiftlägeskänslig sökning</string>
+    <string name="searcher_option_whole_word_label">Hela ord</string>
+    <string name="searcher_option_whole_word_desc">Sök efter hela ord</string>
+    <string name="searcher_option_regex_label">Reguljärt uttryck</string>
+    <string name="searcher_option_regex_desc">Sök med reguljära uttryck</string>
+    <string name="searcher_option_search_content_label">Sök i innehåll</string>
+    <string name="searcher_option_search_content_desc">Sök i filernas innehåll</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Mallar</string>
+    <string name="searcher_templates_card_title">Mallar för snabbsökning</string>
+    <string name="searcher_template_large_files">Stora filer</string>
+    <string name="searcher_template_large_files_desc">Filer över 100 MB</string>
+    <string name="searcher_template_recent_files">Senaste filerna</string>
+    <string name="searcher_template_recent_files_desc">Ändrade under de senaste 7 dagarna</string>
+    <string name="searcher_template_old_files">Gamla filer</string>
+    <string name="searcher_template_old_files_desc">Inte ändrade på över ett år</string>
+    <string name="searcher_template_images">Bilder</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Videor</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Ljud</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Dokument</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Arkiv</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APK-filer</string>
+    <string name="searcher_template_apks_desc">Android-applikationspaket</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d mall</item>
+        <item quantity="other">%d mallar</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Filter</string>
+    <string name="searcher_filter_add_action">Lägg till filter</string>
+    <string name="searcher_filter_title">Sökfilter</string>
+    <string name="searcher_filter_size_section">Filstorlek</string>
+    <string name="searcher_filter_size_min">Minsta storlek</string>
+    <string name="searcher_filter_size_max">Största storlek</string>
+    <string name="searcher_filter_date_section">Ändringsdatum</string>
+    <string name="searcher_filter_date_after">Ändrad efter</string>
+    <string name="searcher_filter_date_before">Ändrad före</string>
+    <string name="searcher_filter_date_any">När som helst</string>
+    <string name="searcher_filter_date_24h">Senaste 24 timmarna</string>
+    <string name="searcher_filter_date_7d">Senaste 7 dagarna</string>
+    <string name="searcher_filter_date_30d">Senaste 30 dagarna</string>
+    <string name="searcher_filter_date_90d">Senaste 90 dagarna</string>
+    <string name="searcher_filter_date_1y">Senaste året</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">större än</string>
+    <string name="searcher_filter_comparator_greater_or_equal">större än eller lika med</string>
+    <string name="searcher_filter_comparator_less_than">mindre än</string>
+    <string name="searcher_filter_comparator_less_or_equal">mindre än eller lika med</string>
+    <string name="searcher_filter_comparator_equal">lika med</string>
+    <string name="searcher_filter_size_value_label">Storlek</string>
+    <string name="searcher_filter_size_at_least">Minst</string>
+    <string name="searcher_filter_size_at_most">Högst</string>
+    <string name="searcher_filter_size_value_hint">t.ex. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Ange ett tal med en enhet (KB, MB, GB). Ett tal utan enhet tolkas som MB.</string>
+    <string name="searcher_filter_size_format_error">Ogiltig storlek — använd ett tal och en enhet, t.ex. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Datum</string>
+    <string name="searcher_filter_date_direction_after">Efter</string>
+    <string name="searcher_filter_date_direction_before">Före</string>
+    <string name="searcher_filter_type_label">Typ</string>
+    <string name="searcher_filter_type_files">Filer</string>
+    <string name="searcher_filter_type_directories">Kataloger</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Ta bort från historiken</string>
+    <string name="searcher_history_clear_all_action">Rensa allt</string>
+    <string name="searcher_history_clear_dialog_title">Rensa sökhistorik</string>
+    <string name="searcher_history_clear_dialog_message">Detta tar bort all sparad sökhistorik. Åtgärden kan inte ångras.</string>
+    <string name="searcher_history_clear_confirm_action">Rensa</string>
+    <string name="searcher_history_cleared_success">Sökhistoriken har rensats</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="one">%d resultat</item>
+        <item quantity="other">%d resultat</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">Visa %d till</item>
+        <item quantity="other">Visa %d till</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Genomsöker</string>
+    <string name="searcher_progress_action_searched">Genomsökte</string>
+    <string name="searcher_progress_status_completed_with_errors">Slutförd med fel</string>
+    <string name="searcher_result_limit_reached">Resultatgränsen har nåtts</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Vissa objekt kunde inte genomsökas fullständigt</string>
+    <string name="searcher_progress_clear_action">Rensa</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d misslyckades</item>
+        <item quantity="other">%d misslyckades</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">%d objekt kunde inte nås</item>
+        <item quantity="other">%d objekt kunde inte nås</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…och %d till</item>
+        <item quantity="other">…och %d till</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android skyddar de här platserna. Utökad åtkomst låter Butler söka på dem.</string>
+    <string name="searcher_access_sheet_body_protected">Android skyddar de här platserna. Det går inte att ge åtkomst på den här enheten.</string>
+    <string name="searcher_access_sheet_unlock_action">Lås upp åtkomst</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d plats</item>
+        <item quantity="other">%d platser</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d skannat</item>
+        <item quantity="other">%d skannade</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d hittat</item>
+        <item quantity="other">%d hittade</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Träffens sammanhang</string>
+    <string name="searcher_match_line_label">Rad %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Öppna</string>
+    <string name="searcher_action_open_in_tab">Öppna i ny flik</string>
+    <string name="searcher_action_open_with">Öppna med</string>
+    <string name="searcher_action_open_in_editor">Öppna i redigeraren</string>
+    <string name="searcher_action_open_in_explorer">Öppna i filutforskaren</string>
+    <string name="searcher_action_install">Installera</string>
+    <string name="searcher_action_copy">Kopiera</string>
+    <string name="searcher_action_cut">Klipp ut</string>
+    <string name="searcher_action_delete">Radera</string>
+    <string name="searcher_action_copy_path">Kopiera sökväg</string>
+    <string name="searcher_action_properties">Egenskaper</string>
+    <string name="searcher_action_select_all">Markera alla</string>
+    <string name="searcher_action_deselect_all">Avmarkera alla</string>
+    <string name="searcher_action_sort">Sortera</string>
+    <string name="searcher_action_view">Layout</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Sortera efter</string>
+    <string name="searcher_sort_mode_name_label">Namn</string>
+    <string name="searcher_sort_mode_size_label">Storlek</string>
+    <string name="searcher_sort_mode_modified_label">Ändringsdatum</string>
+    <string name="searcher_sort_mode_created_label">Skapandedatum</string>
+    <string name="searcher_sort_mode_path_label">Sökväg</string>
+    <string name="searcher_sort_descending_label">Fallande ordning</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Hur objekten ordnas och hur mycket detaljer de visar</string>
+    <string name="searcher_view_mode_list_label">Lista</string>
+    <string name="searcher_view_mode_grid_label">Rutnät</string>
+    <string name="searcher_view_density_compact_label">Kompakt</string>
+    <string name="searcher_view_density_comfortable_label">Rymlig</string>
+    <string name="searcher_view_density_detailed_label">Detaljerad</string>
+    <string name="searcher_view_detail_modified_label">Ändrad</string>
+    <string name="searcher_view_set_default_action">Ange som standard</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Ytterligare konfiguration krävs för att söka på vissa platser.</string>
+</resources>

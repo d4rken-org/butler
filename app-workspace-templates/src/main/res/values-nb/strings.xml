@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Ny</string>
+    <string name="workspace_templates_choose_title">Ny fane</string>
+    <string name="workspace_templates_choose_subtitle">Velg en fanetype. Hvordan kan jeg hjelpe?</string>
+    <string name="workspace_templates_name_tab_action">Gi denne fanen et navn</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Velg et verktøy</string>
+    <string name="tour_templates_picker_body">Dette er fanevelgeren. Velg hva denne fanen skal være. Når du velger et verktøy, blir denne fanen til det verktøyet.</string>
+    <string name="tour_templates_butler_button_title">Her finner du fanene dine</string>
+    <string name="tour_templates_butler_button_body">Trykk på Butler-knappen for å åpne fanemenyen: Opprett en ny fane, lukk den gjeldende eller åpne den fullstendige fanebehandlingen. Trykk og hold for å gå rett til fanebehandlingen.</string>
+</resources>

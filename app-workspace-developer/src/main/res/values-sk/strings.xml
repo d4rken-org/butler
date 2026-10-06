@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Vývojár</string>
+    <string name="developer_title">Vývojárske nástroje</string>
+    <string name="developer_subtitle">Pomôcky na vývoj</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">Systém</string>
+    <string name="developer_tab_options">Možnosti</string>
+    <string name="developer_tab_workspaces">Pracovné priestory</string>
+    <string name="developer_tab_logs">Záznamy</string>
+    <string name="developer_tab_testdata">Testovacie údaje</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Možnosti ladenia</string>
+    <string name="developer_options_debug_mode">Režim ladenia</string>
+    <string name="developer_options_debug_mode_desc">Zapnúť podrobné zaznamenávanie</string>
+    <string name="developer_options_trace_mode">Režim trasovania</string>
+    <string name="developer_options_trace_mode_desc">Zapnúť zaznamenávanie na úrovni trasovania</string>
+    <string name="developer_options_floating_log">Plávajúci panel denníka</string>
+    <string name="developer_options_floating_log_desc">Zobraziť presúvateľný panel denníka nad všetkými obrazovkami</string>
+    <string name="developer_options_services_header">Testy služieb</string>
+    <string name="developer_options_root_test_action">Otestovať prístup root</string>
+    <string name="developer_options_root_installed_label">Nainštalované</string>
+    <string name="developer_options_root_available_label">Dostupné</string>
+    <string name="developer_options_root_base_check_label">Základná kontrola</string>
+    <string name="developer_options_shizuku_test_action">Otestovať prístup ADB</string>
+    <string name="developer_options_shizuku_installed_label">Nainštalované</string>
+    <string name="developer_options_shizuku_granted_label">Oprávnenie</string>
+    <string name="developer_options_shizuku_compatible_label">Kompatibilné</string>
+    <string name="developer_options_shizuku_service_label">Služba</string>
+    <string name="developer_options_test_running">Prebieha testovanie…</string>
+    <string name="developer_options_result_yes">Áno</string>
+    <string name="developer_options_result_no">Nie</string>
+    <string name="developer_options_result_unknown">Neznáme</string>
+    <string name="developer_options_visibility_header">Viditeľnosť</string>
+    <string name="developer_options_hide_mode">Skryť vývojársky režim</string>
+    <string name="developer_options_hide_mode_desc">Znova ho zapneš 7 ťuknutiami na verziu v nastaveniach.</string>
+    <string name="developer_options_hide_action">Skryť</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Zariadenie</string>
+    <string name="developer_system_device_model">Model</string>
+    <string name="developer_system_device_manufacturer">Výrobca</string>
+    <string name="developer_system_device_api">Úroveň API</string>
+    <string name="developer_system_build_header">Zostava</string>
+    <string name="developer_system_build_version">Verzia</string>
+    <string name="developer_system_build_code">Kód verzie</string>
+    <string name="developer_system_build_flavor">Variant</string>
+    <string name="developer_system_build_type">Typ zostavy</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Pamäť</string>
+    <string name="developer_system_memory_available">Dostupná</string>
+    <string name="developer_system_memory_total">Celkom</string>
+    <string name="developer_system_storage_header">Úložisko</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">Počet pracovných priestorov: %d</string>
+    <string name="developer_workspaces_empty">Žiadne pracovné priestory</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Vymazať</string>
+    <string name="developer_logs_pause">Pozastaviť</string>
+    <string name="developer_logs_resume">Pokračovať</string>
+    <string name="developer_logs_empty">Žiadne záznamy</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Cieľové cesty</string>
+    <string name="developer_testdata_no_paths">Nie sú vybrané žiadne cieľové cesty. Pridaj cesty na generovanie testovacích údajov.</string>
+    <string name="developer_testdata_add_path_action">Pridať cestu</string>
+    <string name="developer_testdata_options_header">Možnosti generovania</string>
+    <string name="developer_testdata_large_files">Veľké súbory</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Vnorená štruktúra</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 priečinkov, ~1100 súborov</string>
+    <string name="developer_testdata_text_files">Textové súbory pre editor</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Generovať</string>
+    <string name="developer_testdata_generating">Prebieha generovanie…</string>
+    <string name="developer_testdata_history_header">Ukážkové záznamy histórie</string>
+    <string name="developer_testdata_history_desc">Vytvorí ~25 fiktívnych záznamov operácií za obdobie od dneška → 30 dní dozadu s rôznymi typmi, výsledkami, zdrojmi a cestami. Vkladá ich priamo do databázy histórie; môžeš bezpečne ťuknúť znova.</string>
+    <string name="developer_testdata_history_generate_action">Generovať ukážkovú históriu</string>
+    <string name="developer_testdata_progress">%1$s z %2$s</string>
+    <string name="developer_testdata_complete">Testovacie údaje vygenerované v:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Generovanie veľkých súborov</string>
+    <string name="developer_operation_large_files_desc">Vytváranie testovacích súborov v %1$s</string>
+    <string name="developer_operation_large_files_creating">Vytváranie %1$s</string>
+
+    <string name="developer_operation_nested_title">Generovanie vnorenej štruktúry</string>
+    <string name="developer_operation_nested_desc">Vytváranie hierarchie priečinkov v %1$s</string>
+    <string name="developer_operation_nested_starting">Spúšťanie vnorenej štruktúry…</string>
+    <string name="developer_operation_nested_creating">Vytváranie %1$s</string>
+    <string name="developer_operation_nested_files_created">Počet vytvorených súborov: %1$d</string>
+
+    <string name="developer_operation_text_files_title">Generovanie textových súborov</string>
+    <string name="developer_operation_text_files_desc">Vytváranie textových súborov v %1$s</string>
+    <string name="developer_operation_text_files_creating">Vytváranie %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">Vytvorený %d súbor</item>
+        <item quantity="few">Vytvorené %d súbory</item>
+        <item quantity="many">Počet vytvorených súborov: %d</item>
+        <item quantity="other">Vytvorených %d súborov</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d adresár</item>
+        <item quantity="few">%d adresáre</item>
+        <item quantity="many">Počet adresárov: %d</item>
+        <item quantity="other">%d adresárov</item>
+    </plurals>
+</resources>

@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Leikepöytä</string>
+    <string name="clipboard_clear_all">Tyhjennä kaikki</string>
+    <string name="clipboard_paste">Liitä</string>
+    <string name="clipboard_open_in_explorer">Avaa tiedostonhallinnassa</string>
+    <string name="clipboard_copy">Kopioi</string>
+    <string name="clipboard_cut">Leikkaa</string>
+    <string name="clipboard_origin">Alkuperä: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Kopioi %d kohde</item>
+        <item quantity="other">Kopioi %d kohdetta</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d kohde sijainnista %s</item>
+        <item quantity="other">%d kohdetta sijainnista %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Leikkaa %d kohde</item>
+        <item quantity="other">Leikkaa %d kohdetta</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d kohde sijainnista %s</item>
+        <item quantity="other">%d kohdetta sijainnista %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d sijainti</item>
+        <item quantity="other">%d sijaintia</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d kohde, lähteet: %2$s</item>
+        <item quantity="other">%1$d kohdetta, lähteet: %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d kohde, lähteet: %2$s</item>
+        <item quantity="other">%1$d kohdetta, lähteet: %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Tekstikatkelma</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d merkki</item>
+        <item quantity="other">%1$d merkkiä</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Liitä tiedostona</string>
+    <string name="clipboard_text_info_characters">Merkit</string>
+    <string name="clipboard_text_info_lines">Rivit</string>
+    <string name="clipboard_text_info_content">Sisältö</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Yleiskatsaus</string>
+    <string name="clipboard_info_operation">Toiminto</string>
+    <string name="clipboard_info_items">Kohteet</string>
+    <string name="clipboard_info_source">Lähde</string>
+    <string name="clipboard_info_sources">Lähteet</string>
+    <string name="clipboard_info_workspace">Työtila</string>
+    <string name="clipboard_info_workspace_closed">Suljettu</string>
+    <string name="clipboard_info_time">Aika</string>
+    <string name="clipboard_info_items_with_count">Kohteet (%1$d)</string>
+    <string name="clipboard_info_actions">Toiminnot</string>
+    <string name="clipboard_info_go_to_source">Siirry lähteeseen</string>
+    <string name="clipboard_info_go_to_first_source">Siirry ensimmäiseen lähteeseen</string>
+    <string name="clipboard_info_remove">Poista leikepöydältä</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Leikepöytä</string>
+    <string name="clipboard_settings_remove_on_paste_title">Poista liittämisen jälkeen</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Poista kopioidut kohteet leikepöydältä liittämisen jälkeen</string>
+    <string name="clipboard_settings_max_items_title">Kohteiden enimmäismäärä</string>
+    <string name="clipboard_settings_max_items_desc">Kohteiden enimmäismäärä leikepöydällä</string>
+
+    <string name="workspace_explorer_label">Tiedostonhallinta</string>
+    <string name="workspace_searcher_label">Haku</string>
+    <string name="workspace_editor_label">Muokkain</string>
+    <string name="workspace_templates_label">Mallit</string>
+    <string name="workspace_apps_label">Sovellukset</string>
+    <string name="workspace_appdetails_label">Sovelluksen tiedot</string>
+    <string name="workspace_saver_label">Tallenna nimellä</string>
+    <string name="workspace_developer_label">Kehittäjä</string>
+    <string name="workspace_history_label">Historia</string>
+    <string name="workspace_bugreport_label">Virheraportit</string>
+    <string name="workspace_viewer_label">Katselin</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Valokuvat</string>
+    <string name="workspace_searcher_target_videos">Videot</string>
+    <string name="workspace_searcher_target_music">Musiikki</string>
+    <string name="workspace_searcher_target_downloads">Lataukset</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Lisää</string>
+    <string name="workspace_expand_less_action">Vähemmän</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Välilehdet ja työtilat</string>
+    <string name="workspace_button_menu_new_workspace_format">Uusi %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Uusi välilehti</string>
+    <string name="workspace_button_menu_category_recent">Viimeksi käytetyt</string>
+    <string name="workspace_button_menu_category_other">Muut</string>
+    <string name="workspace_button_menu_category_current_tab">Tämä välilehti</string>
+    <string name="workspace_button_menu_manager_action">Välilehtien hallinta</string>
+    <string name="workspace_button_menu_layout_action">Asettelu</string>
+    <string name="workspace_button_menu_close_current_action">Sulje nykyinen välilehti</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Sulje nykyinen välilehti (%d työtila)</item>
+        <item quantity="other">Sulje nykyinen välilehti (%d työtilaa)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Asetukset</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Suljetaanko kaikki välilehdet?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Tämä sulkee %1$d avoimen välilehden. Tätä toimintoa ei voi kumota.</item>
+        <item quantity="other">Tämä sulkee kaikki %1$d avointa välilehteä. Tätä toimintoa ei voi kumota.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Sulje kaikki</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Joillakin välilehdillä on tallentamattomia muutoksia, jotka menetetään.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Hylkää kaikki</string>
+    <string name="workspace_manager_close_selected_title">Suljetaanko valitut välilehdet?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Tämä sulkee %1$d valitun välilehden. Tätä toimintoa ei voi kumota.</item>
+        <item quantity="other">Tämä sulkee %1$d valittua välilehteä. Tätä toimintoa ei voi kumota.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">Sulje valitut</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Joillakin valituilla välilehdillä on tallentamattomia muutoksia, jotka menetetään.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Hylkää valitut</string>
+    <string name="workspace_manager_pause_partial_title">Keskeytetäänkö välilehdet?</string>
+    <string name="workspace_manager_pause_partial_message">%1$d välilehteä %2$d valitusta voidaan keskeyttää. Loput ovat käytössä, sisältävät tallentamattomia muutoksia tai ovat parhaillaan avoinna.</string>
+    <string name="workspace_manager_pause_partial_action">Keskeytä %1$d</string>
+    <string name="general_cancel_action">Peruuta</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Toiminnot</string>
+    <string name="operations_clear_completed">Tyhjennä valmistuneet</string>
+    <string name="operations_state_queued">Jonossa</string>
+    <string name="operations_state_running">Käynnissä</string>
+    <string name="operations_state_waiting">Odottaa syötettä</string>
+    <string name="operations_state_successful">Onnistunut</string>
+    <string name="operations_state_failed">Epäonnistunut</string>
+    <string name="operations_state_cancelled">Peruutettu</string>
+    <string name="operations_state_cancelling">Peruutetaan…</string>
+    <string name="operations_cancel_operation">Peruuta toiminto</string>
+    <string name="operations_cancel_dialog_title">Peruutetaanko toiminto?</string>
+    <string name="operations_cancel_dialog_message">Haluatko varmasti peruuttaa tämän toiminnon?</string>
+    <string name="operations_cancel_dialog_warning">Peruuttaminen voi jättää tiedostot epäyhtenäiseen tilaan.</string>
+    <string name="operations_details_started_at">Aloitettu</string>
+    <string name="operations_details_completed_at">Valmistunut</string>
+    <string name="operations_details_duration">Kesto</string>
+    <string name="operations_details_duration_not_started">Ei aloitettu</string>
+    <string name="operations_details_progress">Edistyminen</string>
+    <string name="operations_details_error">Virheen tiedot</string>
+    <string name="operations_details_actions">Toiminnot</string>
+    <string name="operations_details_overview">Yleiskatsaus</string>
+    <string name="operations_details_handle_issue">Käsittele ongelma</string>
+    <string name="operations_details_open_app_action">Avaa sovellus</string>
+    <string name="operations_details_show_in_history_action">Näytä historiassa</string>
+    <string name="operations_details_status">Tila</string>
+    <string name="operations_details_result">Tulos</string>
+    <string name="operations_details_destination_folder">Kohdekansio</string>
+    <string name="operations_details_destination_path">Kohdepolku</string>
+    <string name="operations_details_affected_paths_with_count">Käsiteltävät polut (%d)</string>
+    <string name="operations_details_problems_with_count">Ongelmat (%d)</string>
+    <string name="operations_details_problems_more">Lisäksi %d muuta, joita ei ole lueteltu</string>
+    <string name="workspace_operation_packages_section_title">Sovellukset</string>
+    <string name="workspace_operation_package_status_done">Valmis</string>
+    <string name="workspace_operation_package_status_failed">Epäonnistunut</string>
+    <string name="workspace_operation_package_status_declined">Hylätty</string>
+    <string name="operations_details_section_expand">Laajenna %1$s</string>
+    <string name="operations_details_section_collapse">Supista %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Suorituskykykaavio</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Poistetaanko kohde?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Poistetaanko %1$d kohde?</item>
+        <item quantity="other">Poistetaanko %1$d kohdetta?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Tämä kohde poistetaan pysyvästi:</string>
+    <string name="workspace_dialog_delete_message_multiple">Nämä kohteet poistetaan pysyvästi:</string>
+    <string name="workspace_dialog_delete_more_items">… ja %1$d muuta</string>
+    <string name="workspace_dialog_delete_warning">Tätä toimintoa ei voi kumota.</string>
+    <string name="workspace_dialog_delete_permanently_action">Poista pysyvästi</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Poista sen sijaan pysyvästi</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Joitakin kohteita ei voi siirtää roskakoriin, ja ne käsitellään erikseen.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Siirretäänkö roskakoriin?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Siirretäänkö %1$d kohde roskakoriin?</item>
+        <item quantity="other">Siirretäänkö %1$d kohdetta roskakoriin?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Tämä kohde siirretään roskakoriin:</string>
+    <string name="workspace_dialog_trash_message_multiple">Nämä kohteet siirretään roskakoriin:</string>
+    <string name="workspace_dialog_trash_hint">Löydät ne Roskakori-sijainnista</string>
+    <string name="workspace_dialog_move_to_trash_action">Siirrä</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d valittu</item>
+        <item quantity="other">%d valittu</item>
+    </plurals>
+    <string name="workspace_action_more">Lisää toimintoja</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Tiedostojen poisto</string>
+    <string name="workspace_operation_delete_description_single">Poista \"%1$s\" sijainnista \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Poista %1$d kohde sijainnista \"%2$s\".</item>
+        <item quantity="other">Poista %1$d kohdetta sijainnista \"%2$s\".</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Sovelluksen asennus</string>
+    <string name="workspace_operation_install_description">Asenna \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">Luetaan pakettia…</string>
+    <string name="workspace_operation_install_progress_extracting">Puretaan…</string>
+    <string name="workspace_operation_install_progress_writing">Välitetään tiedostoja asentimelle…</string>
+    <string name="workspace_operation_install_progress_committing">Viimeistellään asennusta…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Sijoitetaan laajennustiedostoja…</string>
+    <string name="workspace_operation_install_summary_success">%1$s asennettiin.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s asennettiin, mutta sen laajennustiedostoja ei voitu sijoittaa.</string>
+    <string name="workspace_install_unknown_sources_required">Butler tarvitsee luvan sovellusten asentamiseen. Myönnä se juuri avautuneissa asetuksissa ja yritä sitten uudelleen.</string>
+    <string name="workspace_install_obb_failed">Sovellus asennettiin, mutta sen laajennustiedostoja ei voitu sijoittaa: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d tiedosto poistettu.</item>
+        <item quantity="other">%1$d tiedostoa poistettu.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d hakemisto poistettu.</item>
+        <item quantity="other">%1$d hakemistoa poistettu.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d kohde ohitettu.</item>
+        <item quantity="other">%1$d kohdetta ohitettu.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s vapautettu.</item>
+        <item quantity="other">%1$s vapautettu.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Siirretään roskakoriin…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d tiedosto siirretty roskakoriin.</item>
+        <item quantity="other">%1$d tiedostoa siirretty roskakoriin.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d hakemisto siirretty roskakoriin.</item>
+        <item quantity="other">%1$d hakemistoa siirretty roskakoriin.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s vapautettu.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s vapautettu.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s jäljellä.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Tiedot</string>
+    <string name="workspace_file_info_name_label">Nimi</string>
+    <string name="workspace_file_info_path_label">Polku</string>
+    <string name="workspace_file_info_type_label">Tyyppi</string>
+    <string name="workspace_file_info_type_file">Tiedosto</string>
+    <string name="workspace_file_info_type_directory">Hakemisto</string>
+    <string name="workspace_file_info_type_symlink">Symbolinen linkki</string>
+    <string name="workspace_file_info_type_unknown">Tuntematon</string>
+    <string name="workspace_file_info_size_label">Koko</string>
+    <string name="workspace_file_info_modified_label">Muokattu</string>
+    <string name="workspace_file_info_created_label">Luotu</string>
+    <string name="workspace_file_info_permissions_label">Käyttöoikeudet</string>
+    <string name="workspace_file_info_owner_label">Omistaja</string>
+    <string name="workspace_file_info_child_count_label">Kohteet</string>
+    <string name="workspace_file_info_symlink_target_label">Kohde</string>
+    <string name="workspace_file_info_unknown">Tuntematon</string>
+    <string name="workspace_file_info_copy_action">Kopioi leikepöydälle</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Valitut</string>
+    <string name="workspace_file_info_files_label">Tiedostot</string>
+    <string name="workspace_file_info_directories_label">Hakemistot</string>
+    <string name="workspace_file_info_total_size_label">Kokonaiskoko</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Tämä toiminto ei ole vielä alkanut.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Kerätään suorituskykytietoja…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Tästä toiminnosta ei ole riittävästi suorituskykytietoja kaavion piirtämiseen.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Tämän toiminnon suorituskykytietoja ei ole saatavilla.</string>
+    <string name="workspace_operation_performance_window_seconds">Viimeiset %1$d s</string>
+    <string name="workspace_operation_performance_window_minutes">Viimeiset %1$d min</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">kohdetta/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Näytä tekniset tiedot</string>
+    <string name="workspace_error_hide_details_action">Piilota tekniset tiedot</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Alustetaan välilehteä</string>
+    <string name="workspace_error_subtitle">Tapahtui odottamaton virhe</string>
+    <string name="workspace_close_tab_action">Sulje välilehti</string>
+    <string name="workspace_paused_body">Tämä välilehti on keskeytetty muistin ja akun säästämiseksi. Jatka sitä päästäksesi eteenpäin.</string>
+    <string name="workspace_paused_error_body">Tätä välilehteä ei voitu jatkaa.</string>
+    <string name="workspace_paused_resume_action">Jatka</string>
+    <string name="workspace_paused_label">Keskeytetty</string>
+    <string name="workspace_paused_content_label">Välilehden sisältö</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Olemassa oleva tiedosto</string>
+    <string name="workspace_issue_collision_existing_folder_label">Olemassa oleva kansio</string>
+    <string name="workspace_issue_collision_new_file">Saapuva tiedosto</string>
+    <string name="workspace_issue_collision_new_folder">Saapuva kansio</string>
+    <string name="workspace_issue_collision_overwrite">Korvaa</string>
+    <string name="workspace_issue_collision_merge">Yhdistä</string>
+    <string name="workspace_issue_common_source_file">Lähdetiedosto</string>
+    <string name="workspace_issue_common_destination_file">Kohde</string>
+    <string name="workspace_issue_common_skip">Ohita</string>
+    <string name="workspace_issue_common_rename">Nimeä uudelleen</string>
+    <string name="workspace_issue_common_rename_new">Nimeä uusi uudelleen</string>
+    <string name="workspace_issue_common_rename_existing">Nimeä olemassa oleva uudelleen</string>
+    <string name="workspace_issue_common_cancel">Peruuta</string>
+    <string name="workspace_issue_common_delete_permanently">Poista pysyvästi</string>
+    <string name="workspace_issue_archive_password_label">Salasana</string>
+    <string name="workspace_issue_archive_password_unlock">Avaa lukitus</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Epäonnistuneet kohteet</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… ja %1$d muuta kohdetta</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Käsiteltävät kohteet</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… ja %1$d muuta kohdetta</string>
+    <string name="workspace_issue_apply_all">Käytä kaikkiin jäljellä oleviin ongelmiin</string>
+    <string name="workspace_issue_rename_new_name">Uusi nimi</string>
+    <string name="workspace_issue_rename_dialog_title_new">Nimeä saapuva tiedosto uudelleen</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Nimeä olemassa oleva tiedosto uudelleen</string>
+    <string name="workspace_issue_type_folder">Kansio</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Avataanko useita välilehtiä?</string>
+    <string name="workspace_open_tabs_confirmation_message">Tämä avaa %1$d välilehteä.</string>
+
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Avaa %d kohde</item>
+        <item quantity="other">Avaa %d kohdetta</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Katsele tässä</string>
+    <string name="workspace_open_selection_view_here_description">Näyttää valitut tiedostot katselimessa tämän ruudun päällä. Edellinen ja seuraava selaavat vain valitsemiasi tiedostoja.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Katsele uudella välilehdellä</string>
+    <string name="workspace_open_selection_view_in_tab_description">Näyttää valitut tiedostot katselimessa omalla välilehdellään. Edellinen ja seuraava selaavat vain valitsemiasi tiedostoja.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Avaa jokainen omalla välilehdellään</string>
+    <string name="workspace_open_selection_each_in_tab_description">Avaa jokaisen valitun kohteen erillisellä välilehdellä. Kansiot avautuvat tiedostonhallinnan välilehtinä.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Kansioita ei voi näyttää katselimessa.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Avaa sovelluksella</string>
+    <string name="workspace_open_with_no_app_label">Muuta sovellusta ei löytynyt</string>
+    <string name="workspace_open_with_no_app_description">Mikään muu asennettu sovellus ei voi avata kohdetta %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Avattu %1$d välilehti</item>
+        <item quantity="other">Avattu %1$d välilehteä</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Ei voi sulkea: %1$d välilehdellä on yhä toiminto käynnissä</item>
+        <item quantity="other">Ei voi sulkea: %1$d välilehdellä on yhä toimintoja käynnissä</item>
+    </plurals>
+
+    <!-- Workspace > Settings -->
+    <string name="workspace_settings_title">Välilehdet</string>
+    <string name="workspace_settings_navigation">Navigointi</string>
+    <string name="workspace_settings_swipe_gestures_title">Pyyhkäisyeleet</string>
+    <string name="workspace_settings_swipe_gestures_desc">Vaihda välilehteä pyyhkäisemällä vasemmalle tai oikealle.</string>
+    <string name="workspace_settings_ondemand_creation_title">Luo välilehdet automaattisesti</string>
+    <string name="workspace_settings_ondemand_creation_desc">Luo automaattisesti uusi välilehti, kun pyyhkäiset viimeisen välilehden ohi.</string>
+    <string name="workspace_settings_newtab_type_title">Uuden välilehden tyyppi</string>
+    <string name="workspace_settings_newtab_type_desc">Työtila, joka avataan, kun pyyhkäiset viimeisen välilehden ohi, lisäät välilehden tyhjään ruutuun tai luot ensimmäisen välilehden.</string>
+    <string name="workspace_settings_newtab_type_ask">Kysy joka kerta</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Näytä välilehden tyypin valitsin jokaiselle uudelle välilehdelle.</string>
+    <string name="workspace_settings_live_preview_title">Reaaliaikaiset esikatselut</string>
+    <string name="workspace_settings_live_preview_desc">Näytä välilehtien sisältö reaaliajassa välilehtien hallinnassa.</string>
+    <string name="workspace_settings_other">Muut</string>
+    <string name="workspace_settings_layout_title">Asettelu</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Pystysuuntainen asettelu</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Valitse välilehtien asettelu pystysuunnassa.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Vaakasuuntainen asettelu</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Valitse välilehtien asettelu vaakasuunnassa.</string>
+    <string name="workspace_settings_layout_mode_auto">Automaattinen</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Perinteinen pienillä näytöillä, välilehtipalkki ja ruudut suurilla.</string>
+    <string name="workspace_settings_layout_mode_classic">Perinteinen</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Yksi ruutu kerrallaan ilman välilehtipalkkia.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Mukautuva</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Välilehtipalkki ja niin monta ruutua kuin näytölle mahtuu. Kiinnitä asettelu Butler-valikosta.</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Välilehtipalkki ja niin monta ruutua kuin näytölle mahtuu.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Mukautuva (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Yksi ruutu ja välilehtipalkki</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Yksi välilehtiruutu ja moniruutuisten asettelujen välilehtipalkki. Palkki vie kaistaleen näytöstä.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Kaksi ruutua rinnakkain</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Kaksi ruutua vierekkäin (vasen/oikea).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Kaksi ruutua päällekkäin</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Kaksi ruutua päällekkäin (ylä/ala).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Kolme ruutua, suuri vasemmalla</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Yksi suuri ruutu vasemmalla, kaksi pienempää päällekkäin oikealla.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Kolme ruutua, suuri oikealla</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Kaksi pienempää ruutua päällekkäin vasemmalla, yksi suuri oikealla.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Neljän ruudun ruudukko</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Neljä ruutua 2×2-ruudukossa.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Kohdista napsauttamalla</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Ensimmäinen napsautus kohdistamattomaan ruutuun vain kohdistaa sen, eivätkä kohdistamattomat ruudut reagoi hiiren osoittimeen. Poista käytöstä, jos haluat käyttää niitä suoraan.</string>
+
+    <string name="workspace_settings_rail_button_title">Butler-painike</string>
+    <string name="workspace_settings_rail_button_desc">Valitse Butler-painikkeen sijainti välilehtipalkissa.</string>
+    <string name="workspace_settings_rail_button_leading">Alku</string>
+    <string name="workspace_settings_rail_button_leading_desc">Ennen välilehtiä pystysuunnassa, niiden yläpuolella vaakasuunnassa.</string>
+    <string name="workspace_settings_rail_button_trailing">Loppu</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Välilehtien jälkeen pystysuunnassa, niiden alapuolella vaakasuunnassa. Peukalon ulottuvilla yhdellä kädellä käytettäessä.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Istunto</string>
+    <string name="workspace_settings_session_restore_title">Palauta välilehdet käynnistettäessä</string>
+    <string name="workspace_settings_session_restore_desc">Palauta aiemmin avoinna olleet välilehdet automaattisesti sovelluksen käynnistyessä.</string>
+    <string name="workspace_settings_autopause_title">Keskeytä käyttämättömät välilehdet</string>
+    <string name="workspace_settings_autopause_desc">Välilehdet, joita et ole katsonut hetkeen, keskeytetään muistin ja akun säästämiseksi. Välilehden avaaminen jatkaa sitä.</string>
+    <string name="workspace_settings_autopause_delay_title">Keskeytä viiveellä</string>
+    <string name="workspace_settings_autopause_delay_desc">Kuinka kauan välilehti voi olla poissa näkyvistä ennen kuin se keskeytetään.</string>
+    <string name="workspace_settings_undoclose_title">Kumoa välilehtien sulkeminen</string>
+    <string name="workspace_settings_undoclose_desc">Kun suljet välilehden, voit palauttaa sen muutaman sekunnin ajan.</string>
+    <string name="workspace_settings_session_data_title">Istunnon tiedot</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d välilehti • %2$s</item>
+        <item quantity="other">%1$d välilehteä • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">Suljettu \"%1$s\"</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Istunnon palautus epäonnistui</string>
+    <string name="workspace_session_restoration_error_description">Edellistä välilehti-istuntoasi ei voitu palauttaa. Syynä voi olla ohjelmistovirhe, joka korjataan tulevassa päivityksessä.\n\nVoit tyhjentää tallennetun istunnon jatkaaksesi Butlerin käyttöä tai odottaa päivitystä.</string>
+    <string name="workspace_session_restoration_error_clear_action">Tyhjennä istunto</string>
+    <string name="workspace_session_restoration_error_report_action">Ilmoita ongelmasta</string>
+    <string name="workspace_session_restoration_error_confirm_title">Tyhjennetäänkö istunto?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Tämä poistaa tallennetun välilehti-istuntosi pysyvästi. Tätä toimintoa ei voi kumota.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Nimeä välilehti uudelleen</string>
+    <string name="workspace_rename_name_label">Oma nimi</string>
+    <string name="workspace_rename_name_hint">Jätä tyhjäksi käyttääksesi automaattista nimeä</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Välilehtien enimmäismäärä saavutettu</string>
+    <string name="workspace_limit_reached_message">Ilmaisversion käyttäjillä voi olla enintään %1$d välilehteä avoinna kerrallaan. Hanki Butler Pro, niin voit avata rajattomasti välilehtiä!</string>
+    <string name="workspace_limit_pick_tabs_message">Ilmaisversiossa voit pitää %1$d välilehteä avoinna. Valitse välilehdet, joita et enää tarvitse, ja sulje ne tehdäksesi tilaa.</string>
+    <string name="workspace_limit_no_slot_hint">Välilehtien sulkeminen ei vapauta paikkaa juuri nyt.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Sulje %d välilehti</item>
+        <item quantity="other">Sulje %d välilehteä</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Valitse vähintään %d suljettava välilehti.</item>
+        <item quantity="other">Valitse vähintään %d suljettavaa välilehteä.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Avattu %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Tallentamattomia muutoksia</string>
+    <string name="workspace_limit_blocker_busy">Parhaillaan käytössä</string>
+    <string name="workspace_limit_blocker_attention">Odottaa sinua</string>
+    <string name="workspace_limit_blocker_loading">Latautuu vielä</string>
+    <string name="workspace_limit_blocker_awaiting_result">Päätä ensin avoimen valitsimen käyttö</string>
+    <string name="workspace_limit_blocker_unavailable">Ei voi sulkea juuri nyt</string>
+    <string name="workspace_limit_stacked_content_desc">Tämän välilehden sulkeminen sulkee myös sen päälle pinotun sisällön</string>
+    <string name="workspace_limit_pro_description">Avaa niin monta välilehteä kuin haluat.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d kohde</item>
+        <item quantity="other">%1$d kohdetta</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Palautus roskakorista</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Palauta %d kohde roskakorista.</item>
+        <item quantity="other">Palauta %d kohdetta roskakorista.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d kohde palautettu</item>
+        <item quantity="other">%d kohdetta palautettu</item>
+    </plurals>
+</resources>

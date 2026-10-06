@@ -1,0 +1,5 @@
+Opravy chýb a drobné vylepšenia, aby správa súborov v tvojom zariadení zostala rýchla a nezavadzala ti.
+
+Čo sa zmenilo v tejto verzii: butler.darken.eu/changelog
+
+Niečo po aktualizácii nefunguje alebo sa správa zvláštne? Daj mi vedieť cez Nastavenia > Podpora. Na projekte pracujem sám, takže odpoveď môže chvíľu trvať, ale každé hlásenie si prečítam.

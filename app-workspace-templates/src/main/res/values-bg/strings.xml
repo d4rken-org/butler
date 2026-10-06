@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Нов</string>
+    <string name="workspace_templates_choose_title">Нов раздел</string>
+    <string name="workspace_templates_choose_subtitle">Избери тип раздел. Как мога да помогна?</string>
+    <string name="workspace_templates_name_tab_action">Дай име на този раздел</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Избери инструмент</string>
+    <string name="tour_templates_picker_body">Тук избираш типа на раздела — избери какъв да бъде този раздел. Изборът на инструмент превръща този раздел в него.</string>
+    <string name="tour_templates_butler_button_title">Твоите раздели са тук</string>
+    <string name="tour_templates_butler_button_body">Докосни бутона Butler за менюто на разделите: създай нов раздел, затвори текущия или отвори пълното управление на разделите. Натисни и задръж бутона, за да отидеш направо в управлението на разделите.</string>
+</resources>

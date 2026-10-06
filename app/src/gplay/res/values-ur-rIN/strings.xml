@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Butler Pro ضروری ہے</string>
+
+    <string name="upgrade_prompt_title">Butler اپ گریڈ کریں</string>
+    <string name="upgrade_prompt_body">Butler Pro تجربہ کار صارفین کے لیے بہتر نتائج، مزید خصوصیات اور اختیارات فراہم کرتا ہے۔</string>
+    <string name="upgrade_prompt_upgrade_action">اپ گریڈ کریں</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">%1$s حاصل کریں</string>
+    <string name="upgrade_screen_preamble">Butler میں کوئی اشتہارات نہیں ہیں اور یہ صارفین کا ڈیٹا فروخت نہیں کرتا۔ میرے کام کی مالی معاونت آپ کی بدولت ہوتی ہے ❤️۔</string>
+
+    <string name="upgrade_screen_how_title">اختیارات</string>
+    <string name="upgrade_screen_subscription_trial_action">14 دن کی مفت آزمائش شروع کریں</string>
+    <string name="upgrade_screen_subscription_action">سبسکرپشن لیں</string>
+    <string name="upgrade_screen_iap_action">ایک بار کی خریداری</string>
+    <string name="upgrade_screen_restore_purchase_action">خریداری بحال کریں</string>
+    <string name="upgrade_screen_restore_banner_title">Pro پہلے ہی خرید لیا ہے؟</string>
+    <string name="upgrade_screen_restore_banner_body">لگتا ہے کہ اس آلے پر پہلے Pro میں اپ گریڈ کیا گیا تھا۔ اسے دوبارہ فعال کرنے کے لیے اپنی خریداری بحال کریں۔</string>
+    <string name="upgrade_screen_restore_checked_message">Butler نے ابھی Google Play سے جانچ کی، لیکن اس ایپ کے لیے Google Play جس اکاؤنٹ کو استعمال کرتا ہے، اس پر Pro کی کسی خریداری کی تصدیق نہیں ہو سکی۔</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Google Play سے جانچ وقت پر مکمل نہیں ہوئی، اس لیے آپ کی خریداری کی حالت ابھی نامعلوم ہے۔ آپ کے اکاؤنٹ میں کچھ بھی نہیں بدلا۔</string>
+    <string name="upgrade_screen_restore_contact_hint">اب بھی مسئلہ ہے؟ جس ای میل سے خریداری کی تھی، اسی سے رابطہ کریں اور اپنا Google Play آرڈر نمبر شامل کریں۔</string>
+    <string name="upgrade_screen_contact_support_action">معاونت سے رابطہ کریں</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Play Store کی ہم وقت سازی میں وقت لگ سکتا ہے۔ آلہ دوبارہ شروع کریں، Google Play کا کیش صاف کریں یا بس انتظار کریں۔</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">کئی اکاؤنٹس کی وجہ سے Google Play کو الجھن ہو سکتی ہے۔ دوسرے اکاؤنٹس سے لاگ آؤٹ کریں یا Google Play کی ویب سائٹ سے انسٹال کریں، جس سے ایپ لازماً ایک مخصوص اکاؤنٹ سے منسلک ہو جاتی ہے۔</string>
+    <string name="upgrade_screen_restore_success_message">آپ کی خریداری بحال ہو گئی ❤️</string>
+    <string name="upgrade_screen_restore_status_title">حالت غلط لگ رہی ہے؟</string>
+    <string name="upgrade_screen_restore_status_body">Google Play سے اپنی خریداری کی دوبارہ جانچ کریں۔ آلہ بدلنے یا Google اکاؤنٹ تبدیل کرنے کے بعد اس سے مدد مل سکتی ہے۔</string>
+
+    <string name="upgrade_screen_offers_or">یا</string>
+
+    <string name="upgrade_screen_offers_title">اپ گریڈ کے اختیارات</string>
+    <string name="upgrade_screen_offers_body">دونوں اختیارات بالکل ایک جیسی Pro خصوصیات فعال کرتے ہیں — جس کی قیمت آپ کے لیے مناسب ہو، وہ چنیں۔</string>
+    <string name="upgrade_screen_offers_unavailable_title">قیمتیں دستیاب نہیں</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler، Google Play سے اپ گریڈ کے اختیارات لوڈ نہیں کر سکا۔ یہ اکثر عارضی مسئلہ ہوتا ہے — کچھ دیر بعد دوبارہ کوشش کریں۔</string>
+    <string name="upgrade_screen_subscription_offer_title">سالانہ سبسکرپشن</string>
+    <string name="upgrade_screen_subscription_offer_body">14 دن کی مفت آزمائش سے آغاز ہوتا ہے، پھر سال میں ایک بار رقم وصول کی جاتی ہے۔ کسی بھی وقت منسوخ کریں۔</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">سال میں ایک بار رقم وصول کی جاتی ہے۔ کسی بھی وقت منسوخ کریں۔</string>
+    <string name="upgrade_screen_iap_offer_title">ایک بار خریدیں</string>
+    <string name="upgrade_screen_iap_offer_body">ایک بار ادائیگی کریں، ہمیشہ کے لیے آپ کا۔ کوئی سبسکرپشن نہیں۔</string>
+    <string name="upgrade_screen_restore_body">بحال کرنے سے Google Play سے موجودہ اکاؤنٹ پر اس ایپ کی خریداریوں کی دوبارہ جانچ کرنے کو کہا جاتا ہے۔</string>
+
+    <string name="upgrade_screen_owned_hero_title">آپ کے پاس Butler Pro ہے!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">ایک بار کی خریداری کا شکریہ — اب ہمیشہ کے لیے رسائی آپ کی ہے ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">سبسکرپشن لینے کا شکریہ ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">ایک بار کی خریداری</string>
+    <string name="upgrade_screen_owned_iap_body">Pro کا مستقل اپ گریڈ آپ کی ملکیت ہے۔</string>
+    <string name="upgrade_screen_owned_sub_title">سبسکرپشن</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">آپ کی سبسکرپشن فعال ہے اور خودکار طور پر تجدید ہوتی ہے۔</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">آپ کی سبسکرپشن فعال ہے، لیکن اس کی تجدید بند ہے۔ موجودہ مدت ختم ہونے تک Pro برقرار رہے گا۔</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">ایک بار کی خریداری آپ کی ملکیت ہے، لیکن آپ کی سبسکرپشن کی اب بھی تجدید ہو رہی ہے۔ دو بار ادائیگی سے بچنے کے لیے اسے Google Play میں منسوخ کریں۔</string>
+    <string name="upgrade_screen_manage_subscription_action">سبسکرپشن کا انتظام کریں</string>
+
+    <string name="upgrade_screen_switch_locked_note">پہلے \"سبسکرپشن کا انتظام کریں\" کے ذریعے تجدید منسوخ کریں، ورنہ دونوں کی رقم وصول کی جائے گی۔</string>
+    <string name="upgrade_screen_switch_purchase_note">آپ کی سبسکرپشن کی تجدید نہیں ہوگی — اب دوہری ادائیگی کے خدشے کے بغیر ایک بار کی خریداری ممکن ہے۔</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">سبسکرپشن اب بھی فعال ہے</string>
+    <string name="upgrade_screen_sub_still_renewing_message">آپ کی سبسکرپشن کی تجدید اب بھی فعال ہے۔ پہلے Google Play میں تجدید منسوخ کریں تاکہ دونوں کی رقم وصول نہ ہو، پھر ایک بار کی خریداری کریں۔</string>
+    <string name="upgrade_screen_purchase_check_failed_title">تصدیق نہیں ہو سکی</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler، Google Play سے آپ کی خریداری کی حالت کی تصدیق نہیں کر سکا، اس لیے دو بار رقم وصول ہونے سے بچنے کے لیے خریداری روک دی گئی۔ براہ کرم کچھ دیر بعد دوبارہ کوشش کریں۔</string>
+
+    <string name="upgrade_screen_pending_card_title">ادائیگی زیرِ التوا ہے</string>
+    <string name="upgrade_screen_pending_card_body">Google Play اب بھی آپ کی ادائیگی پر کارروائی کر رہا ہے۔ ادائیگی مکمل ہوتے ہی Pro خودکار طور پر فعال ہو جائے گا۔ ادائیگی کے کچھ طریقوں میں وقت لگ سکتا ہے۔ آپ کو مزید کچھ کرنے کی ضرورت نہیں۔</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play کو ایک ایسی خریداری ملی ہے جس کی ادائیگی زیرِ التوا ہے، اور اس پر اب بھی کارروائی جاری ہے۔ ادائیگی مکمل ہوتے ہی Pro خودکار طور پر فعال ہو جائے گا۔</string>
+
+    <string name="upgrade_screen_grace_title">آپ کی خریداری کی تصدیق جاری ہے</string>
+    <string name="upgrade_screen_grace_body_short">Google Play کو آپ کی Pro حالت کی تصدیق میں کچھ وقت لگ رہا ہے۔ آپ کو اب بھی مکمل رسائی حاصل ہے۔</string>
+    <string name="upgrade_screen_grace_body">Google Play نے ابھی تک آپ کی Pro حالت کی دوبارہ تصدیق نہیں کی۔ فی الحال آپ کو اب بھی رسائی حاصل ہے۔ اگر یہ غلط لگ رہا ہے تو اپنی خریداری بحال کرنے کی کوشش کریں۔</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">پہلے ہی خرید لیا ہے؟</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play کے مطابق یہ اپ گریڈ پہلے ہی آپ کی ملکیت ہے، لیکن اسے خودکار طور پر بحال نہیں کیا جا سکا۔ یقینی بنائیں کہ اصل خریداری کے لیے استعمال کیے گئے Google اکاؤنٹ سے لاگ ان ہیں، پھر \"خریداری بحال کریں\" آزمائیں۔</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play دستیاب نہیں ہے</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler، Google Play سے منسلک نہیں ہو سکتا۔ کیا Google Play انسٹال ہے اور تازہ ترین ورژن پر ہے؟ کیا آپ کا Google اکاؤنٹ لاگ ان ہے؟ Google Play ایپ کا کیش صاف کریں اور اپنا آلہ دوبارہ شروع کریں۔</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can't open Google Play's app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Google Play نہیں کھل سکا۔ ممکن ہے کہ یہ اس آلے پر موجود نہ ہو، غیر فعال ہو یا اس پر پابندی ہو۔</string>
+    <string name="upgrades_gplay_billing_error_label">Google Play کا مسئلہ</string>
+    <string name="upgrades_gplay_billing_error_description">Google Play سے رابطے کے دوران کچھ گڑبڑ ہو گئی۔ براہ کرم بعد میں دوبارہ کوشش کریں یا اپنا آلہ دوبارہ شروع کریں۔\n\nتفصیلات: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Google Play کی خرابی</string>
+    <string name="upgrades_gplay_internal_error_description">Google Play میں اندرونی خرابی پیش آئی۔ براہ کرم یہ اقدامات آزمائیں:\n\n• اپنا آلہ دوبارہ شروع کریں\n• Google Play Store کا کیش صاف کریں\n• بعد میں دوبارہ کوشش کریں</string>
+    <string name="upgrades_gplay_network_error_title">کنکشن کی خرابی</string>
+    <string name="upgrades_gplay_network_error_description">Butler، Google Play تک نہیں پہنچ سکا۔ براہ کرم اپنا انٹرنیٹ کنکشن جانچیں اور دوبارہ کوشش کریں۔</string>
+    <string name="upgrades_gplay_offer_unavailable_title">پیشکش دستیاب نہیں</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play فی الحال آپ کے اکاؤنٹ کے لیے اپ گریڈ کا یہ اختیار پیش نہیں کرتا۔ براہ کرم بعد میں دوبارہ کوشش کریں یا Google Play Store دیکھیں۔</string>
+    <string name="upgrades_no_purchases_found_check_account">کوئی خریداری نہیں ملی۔ کیا درست اکاؤنٹ استعمال ہو رہا ہے؟</string>
+
+    <string name="upgrade_benefits_title">اپ گریڈ کے فوائد</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• لامحدود ٹیب اور کارروائیاں\n• ڈیزائن، انداز اور ظاہری شکل اپنی پسند کے مطابق بنائیں\n• ہر ٹول کے لیے اضافی اختیارات اور خصوصیات\n• نئی خصوصیات تک ابتدائی رسائی\n• ایک پُرجوش ڈویلپر 🧙\nاور بھی بہت کچھ…</string>
+</resources>

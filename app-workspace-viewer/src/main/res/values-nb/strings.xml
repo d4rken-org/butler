@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Åpne med</string>
+    <string name="viewer_image_content_description">Bilde %1$s</string>
+    <string name="viewer_toolbar_folder_label">Mappe</string>
+    <string name="viewer_back_action">Tilbake</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">Forrige fil</string>
+    <string name="viewer_next_file_action">Neste fil</string>
+    <string name="viewer_open_location_action">Åpne plassering</string>
+    <string name="viewer_clipboard_copied">%1$s er kopiert. Lim den inn i en filutforskerfane.</string>
+    <string name="viewer_clipboard_cut">%1$s er klippet ut. Lim den inn i en filutforskerfane for å flytte den.</string>
+    <string name="viewer_share_failed_label">Kunne ikke dele denne filen</string>
+    <string name="viewer_share_failed_description">%1$s kan ikke sendes til en annen app. Det skjer med filer som krever root- eller ADB-tilgang, og med filer som ikke lenger finnes.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Størrelse</string>
+    <string name="viewer_info_modified_label">Endret</string>
+    <string name="viewer_info_created_label">Opprettet</string>
+    <string name="viewer_info_format_label">Format</string>
+    <string name="viewer_info_dimensions_label">Dimensjoner</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Tillatelser</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Eier</string>
+    <string name="viewer_info_caption_label">Delt melding</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Vis alle detaljer</string>
+    <string name="viewer_info_collapse_action">Skjul detaljer</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">Forhåndsvisning · 1 side</string>
+    <string name="viewer_pdf_page_indicator">Side %1$d av %2$d</string>
+    <string name="viewer_pdf_page_previous">Forrige side</string>
+    <string name="viewer_pdf_page_next">Neste side</string>
+    <string name="viewer_pdf_page_error">Side %1$d kunne ikke vises.</string>
+    <string name="viewer_pdf_page_content_description">PDF-forhåndsvisning av %1$s, side %2$d av %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">Denne filtypen støttes ikke ennå</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">Dette er et arkiv</string>
+    <string name="viewer_browse_archive_action">Bla gjennom innholdet</string>
+    <string name="viewer_archive_needs_copy_msg">Lagre en kopi på enheten din, så kan Butler bla gjennom innholdet.</string>
+    <string name="viewer_archive_nested_msg">Dette arkivet ligger inni et annet arkiv. Pakk det ut først for å bla gjennom innholdet.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">Versjon</string>
+    <string name="viewer_apk_min_sdk_label">Minimums-SDK</string>
+    <string name="viewer_apk_target_sdk_label">Mål-SDK</string>
+    <string name="viewer_apk_installed_label">Installert</string>
+    <string name="viewer_apk_not_installed_value">Ikke installert</string>
+    <string name="viewer_apk_installed_unknown_value">Kunne ikke sjekke</string>
+    <string name="viewer_apk_installed_older_hint">Eldre enn denne filen</string>
+    <string name="viewer_apk_installed_newer_hint">Nyere enn denne filen</string>
+    <string name="viewer_apk_permissions_header">Tillatelser (%1$d)</string>
+    <string name="viewer_apk_signing_header">Signeringssertifikater</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">Installer</string>
+    <string name="viewer_bundle_format_label">Pakkeformat</string>
+    <string name="viewer_bundle_splits_label">APK-er i pakken</string>
+    <string name="viewer_bundle_expansion_files_hint">Inneholder utvidelsesfiler som plasseres etter at appen er installert.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Plassering av utvidelsesfiler krever root- eller ADB-tilgang. Uten slik tilgang installeres appen, men utvidelsesfilene blir liggende igjen.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">Appikon for %1$s</string>
+    <string name="viewer_apk_icon_show_action">Vis ikon</string>
+    <string name="viewer_apk_icon_save_action">Lagre ikon</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Ikon lagret som %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Erstatte filen?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s finnes allerede i denne mappen. Hvis du lagrer ikonet, blir filen erstattet.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Erstatt</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">Filen er endret</string>
+    <string name="viewer_external_change_message">Denne filen er endret på enheten. Oppdater for å laste den inn på nytt.</string>
+    <string name="viewer_external_change_gone_title">Filen er borte</string>
+    <string name="viewer_external_change_gone_message">Denne filen er slettet eller er ikke lenger tilgjengelig.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Kan ikke vise denne filen</string>
+    <string name="viewer_error_not_a_file_label">Ikke en fil</string>
+    <string name="viewer_error_not_a_file_description">%1$s er ikke en vanlig fil.</string>
+    <string name="viewer_error_broken_symlink_label">Brutt snarvei</string>
+    <string name="viewer_error_broken_symlink_description">%1$s peker til noe som ikke lenger finnes.</string>
+    <string name="viewer_error_undecodable_label">Skadet bilde</string>
+    <string name="viewer_error_undecodable_description">%1$s kunne ikke dekodes. Filen kan være ufullstendig eller skadet.</string>
+    <string name="viewer_error_file_gone_label">Fant ikke filen</string>
+    <string name="viewer_error_file_gone_description">%1$s finnes ikke lenger. Den kan ha blitt flyttet, fått nytt navn eller blitt slettet.</string>
+    <string name="viewer_error_empty_file_label">Tom fil</string>
+    <string name="viewer_error_empty_file_description">%1$s er tom og har ingenting å vise.</string>
+    <string name="viewer_error_apk_unreadable_label">Uleselig APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s kunne ikke tolkes som en Android-apppakke.</string>
+    <string name="viewer_error_icon_unavailable_label">Ikke noe ikon</string>
+    <string name="viewer_error_icon_unavailable_description">Appikonet for %1$s kunne ikke leses.</string>
+    <string name="viewer_error_icon_target_notfile_label">Navnet er allerede i bruk</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s finnes allerede her og er ikke en vanlig fil, så den kan ikke erstattes.</string>
+    <string name="viewer_error_icon_target_appeared_label">Filen dukket opp</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s ble opprettet mens du valgte hvor du skulle lagre. Ingenting ble overskrevet. Prøv igjen.</string>
+    <string name="viewer_error_content_unreadable_label">Kan ikke lese denne filen</string>
+    <string name="viewer_error_content_unreadable_description">Appen som delte %1$s, lar ikke lenger Butler lese filen. Be den appen om å dele filen på nytt.</string>
+    <string name="viewer_save_copy_action">Lagre en kopi…</string>
+    <string name="viewer_open_in_editor_action">Åpne i tekstredigering</string>
+    <string name="viewer_text_truncated_bytes">Forhåndsvisningen er begrenset til de første %1$s av denne filen.</string>
+    <string name="viewer_text_truncated_lines">Forhåndsvisningen er begrenset til de første %1$s linjene i denne filen.</string>
+    <string name="viewer_text_truncated_width">Lange linjer forkortes i denne forhåndsvisningen.</string>
+    <string name="viewer_text_unreadable_label">Denne filen kunne ikke leses</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">Filviser</string>
+    <string name="viewer_settings_show_next_after_delete_title">Vis neste fil etter sletting</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Etter at en fil åpnet fra en mappe er slettet, vises neste fil i den mappen i stedet for at filviseren lukkes.</string>
+</resources>

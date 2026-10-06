@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Potreban je Butler FOSS</string>
+
+    <string name="upgrade_prompt_title">Nadogradi Butler</string>
+    <string name="upgrade_prompt_body">Otključaj dodatne značajke i pridruži se pokroviteljima za podršku daljnjem razvoju!</string>
+    <string name="upgrade_prompt_upgrade_action">Nadogradi</string>
+
+    <string name="upgrade_screen_title">Nadogradi Butler</string>
+    <string name="upgrade_screen_preamble">Butler nema oglase i ne prodaje korisničke podatke. Daljnji razvoj moguć je samo zahvaljujući tebi.</string>
+    <string name="upgrade_screen_how_title">Kako pomoći</string>
+    <string name="upgrade_screen_how_body">Pridruži se pokroviteljima i financiraj razvoj! Dodirni gumb u nastavku da aktiviraš sve dodatne značajke i otvoriš moj profil na GitHub Sponsors.</string>
+
+    <string name="upgrade_screen_sponsor_action">Financiraj razvoj</string>
+    <string name="upgrade_screen_sponsor_action_hint">Alternativa su oglasi, analitika i Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Hvala ti što podržavaš razvoj otvorenog koda ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Već si natrag? Tvoja podrška održava Butler na životu — odvoji trenutak i pogledaj stranicu za pokrovitelje.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Nije moguće otvoriti stranicu za pokrovitelje. Pokušaj je otvoriti u pregledniku.</string>
+
+    <string name="upgrade_screen_status_free_title">Upotrebljavaš besplatnu verziju</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS u potpunosti je otvorenog koda. Otključaj dodatne značajke podrškom razvoju.</string>
+    <string name="upgrade_screen_status_free_action">Pogledaj mogućnosti nadogradnje</string>
+    <string name="upgrade_screen_status_upgraded_title">Podržavaš razvoj</string>
+    <string name="upgrade_screen_status_upgraded_body">Hvala ti što podržavaš razvoj otvorenog koda ❤️ Sve dodatne značajke su otključane.</string>
+    <string name="upgrade_screen_supporter_since">Podržavaš razvoj od %s</string>
+    <string name="upgrade_screen_recurring_title">Neka se razvoj nastavi</string>
+    <string name="upgrade_screen_recurring_body">Butler razvijam u slobodno vrijeme. Redovita donacija pomaže mu da ostane živ.</string>
+    <string name="upgrade_screen_recurring_action">Podržavaj razvoj redovitim donacijama</string>
+
+    <string name="upgrade_benefits_title">Prednosti nadogradnje</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Neograničen broj kartica i operacija\n• Prilagodi dizajn, doživljaj i izgled\n• Dodatne opcije i značajke za svaki alat\n• Rani pristup novim značajkama\n• Motivirana osoba koja razvija aplikaciju 🧙\ni još mnogo toga…</string>
+</resources>

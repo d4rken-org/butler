@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Paghahanap</string>
+    <string name="searcher_subtitle">Maghanap ng mga file at nilalaman</string>
+    <!-- Tab subtitle listing the search locations -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Mga setting ng paghahanap</string>
+    <string name="searcher_settings_search_category">Paghahanap</string>
+    <string name="searcher_settings_history">Kasaysayan ng paghahanap</string>
+    <string name="searcher_settings_save_history_title">I-save ang kasaysayan ng paghahanap</string>
+    <string name="searcher_settings_save_history_subtitle">Tandaan ang mga nakaraang paghahanap</string>
+    <string name="searcher_settings_max_history_label">Pinakamaraming entry sa kasaysayan</string>
+    <string name="searcher_settings_max_history_subtitle">Pinakamaraming naka-save na paghahanap</string>
+    <string name="searcher_settings_max_history_input_label">Bilang ng mga entry (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Burahin ang kasaysayan ng paghahanap</string>
+    <string name="searcher_settings_clear_history_subtitle">Alisin ang lahat ng naka-save na paghahanap (%1$d)</string>
+    <string name="searcher_settings_search_performance">Pagganap</string>
+    <string name="searcher_settings_max_results_title">Pinakamaraming resulta ng paghahanap</string>
+    <string name="searcher_settings_max_results_subtitle">Limitahan ang bilang ng mga resultang ibinabalik sa bawat paghahanap.</string>
+    <string name="searcher_settings_content_search_category">Paghahanap sa nilalaman</string>
+    <string name="searcher_settings_include_binaries_title">Isama ang mga binary file</string>
+    <string name="searcher_settings_include_binaries_subtitle">Hanapin sa nilalaman ng mga binary file (maaaring mabagal at magbigay ng mga resultang hindi nauugnay)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Mga kamakailang paghahanap</string>
+    <string name="searcher_placeholder_search">Maghanap ng mga file at folder</string>
+    <string name="searcher_placeholder_filename">Pangalan ng file</string>
+    <string name="searcher_placeholder_content">Nilalaman</string>
+    <string name="searcher_search_error">Error sa paghahanap</string>
+    <string name="searcher_no_paths_hint">I-tap ang + para magdagdag ng mga lokasyon ng paghahanap</string>
+    <string name="searcher_add_path_action">Magdagdag ng lokasyon</string>
+    <string name="searcher_add_folder_action">Folder…</string>
+    <string name="searcher_multipath_show_fewer_action">Magpakita ng mas kaunti</string>
+    <string name="searcher_empty_state_title">Walang naka-configure na path ng paghahanap</string>
+    <string name="searcher_empty_state_description">Magdagdag ng mga lokasyon ng storage para hanapin ang mga file</string>
+    <string name="searcher_add_default_paths_action">Idagdag ang mga default na path ng paghahanap</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Mga opsyon</string>
+    <string name="searcher_option_case_sensitive_label">Nakadepende sa laki ng titik</string>
+    <string name="searcher_option_case_sensitive_desc">Paghahanap na nakadepende sa laki ng titik</string>
+    <string name="searcher_option_whole_word_label">Buong salita</string>
+    <string name="searcher_option_whole_word_desc">Paghahanap ng buong salita</string>
+    <string name="searcher_option_regex_label">Regular expression</string>
+    <string name="searcher_option_regex_desc">Paghahanap gamit ang regular expression</string>
+    <string name="searcher_option_search_content_label">Hanapin sa nilalaman</string>
+    <string name="searcher_option_search_content_desc">Hanapin sa nilalaman ng mga file</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Mga template</string>
+    <string name="searcher_templates_card_title">Mga template para sa mabilis na paghahanap</string>
+    <string name="searcher_template_large_files">Malalaking file</string>
+    <string name="searcher_template_large_files_desc">Mga file na higit sa 100 MB</string>
+    <string name="searcher_template_recent_files">Mga kamakailang file</string>
+    <string name="searcher_template_recent_files_desc">Binago sa nakaraang 7 araw</string>
+    <string name="searcher_template_old_files">Mga lumang file</string>
+    <string name="searcher_template_old_files_desc">Hindi binago nang mahigit isang taon</string>
+    <string name="searcher_template_images">Mga larawan</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Mga video</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Audio</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Mga dokumento</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Mga archive</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">Mga APK</string>
+    <string name="searcher_template_apks_desc">Mga package ng Android app</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d template</item>
+        <item quantity="other">%d na template</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">I-filter</string>
+    <string name="searcher_filter_add_action">Magdagdag ng filter</string>
+    <string name="searcher_filter_title">Mga filter ng paghahanap</string>
+    <string name="searcher_filter_size_section">Laki ng file</string>
+    <string name="searcher_filter_size_min">Pinakamaliit na laki</string>
+    <string name="searcher_filter_size_max">Pinakamalaking laki</string>
+    <string name="searcher_filter_date_section">Petsa ng pagbabago</string>
+    <string name="searcher_filter_date_after">Binago pagkatapos ng</string>
+    <string name="searcher_filter_date_before">Binago bago ang</string>
+    <string name="searcher_filter_date_any">Anumang oras</string>
+    <string name="searcher_filter_date_24h">Nakaraang 24 na oras</string>
+    <string name="searcher_filter_date_7d">Nakaraang 7 araw</string>
+    <string name="searcher_filter_date_30d">Nakaraang 30 araw</string>
+    <string name="searcher_filter_date_90d">Nakaraang 90 araw</string>
+    <string name="searcher_filter_date_1y">Nakaraang taon</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">mas malaki kaysa sa</string>
+    <string name="searcher_filter_comparator_greater_or_equal">mas malaki o katumbas</string>
+    <string name="searcher_filter_comparator_less_than">mas maliit kaysa sa</string>
+    <string name="searcher_filter_comparator_less_or_equal">mas maliit o katumbas</string>
+    <string name="searcher_filter_comparator_equal">katumbas ng</string>
+    <string name="searcher_filter_size_value_label">Laki</string>
+    <string name="searcher_filter_size_at_least">Hindi bababa sa</string>
+    <string name="searcher_filter_size_at_most">Hindi hihigit sa</string>
+    <string name="searcher_filter_size_value_hint">hal. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Maglagay ng numero na may yunit (KB, MB, GB). Ituturing na MB ang numerong walang yunit.</string>
+    <string name="searcher_filter_size_format_error">Hindi wastong laki — gumamit ng numero at yunit, hal. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Petsa</string>
+    <string name="searcher_filter_date_direction_after">Pagkatapos ng</string>
+    <string name="searcher_filter_date_direction_before">Bago ang</string>
+    <string name="searcher_filter_type_label">Uri</string>
+    <string name="searcher_filter_type_files">Mga file</string>
+    <string name="searcher_filter_type_directories">Mga direktoryo</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Alisin sa kasaysayan</string>
+    <string name="searcher_history_clear_all_action">Burahin lahat</string>
+    <string name="searcher_history_clear_dialog_title">Burahin ang kasaysayan ng paghahanap</string>
+    <string name="searcher_history_clear_dialog_message">Aalisin nito ang lahat ng naka-save na kasaysayan ng paghahanap. Hindi na mababawi ang pagkilos na ito.</string>
+    <string name="searcher_history_clear_confirm_action">Burahin</string>
+    <string name="searcher_history_cleared_success">Nabura ang kasaysayan ng paghahanap</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">Walang resulta</item>
+        <item quantity="one">%d resulta</item>
+        <item quantity="other">%d na resulta</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">Magpakita ng %d pa</item>
+        <item quantity="other">Magpakita ng %d pa</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Naghahanap sa</string>
+    <string name="searcher_progress_action_searched">Nahalughog ang</string>
+    <string name="searcher_progress_status_completed_with_errors">Nakumpleto na may mga error</string>
+    <string name="searcher_result_limit_reached">Naabot ang limitasyon ng mga resulta</string>
+    <!-- Banner: some individual items inside a searched location could not be read -->
+    <string name="searcher_progress_items_partial">Hindi lubusang nahalughog ang ilang item</string>
+    <string name="searcher_progress_clear_action">Burahin</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d nabigo</item>
+        <item quantity="other">%d na nabigo</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">Hindi ma-access ang %d item</item>
+        <item quantity="other">Hindi ma-access ang %d na item</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…at %d pa</item>
+        <item quantity="other">…at %d pa</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet -->
+    <string name="searcher_access_sheet_body_unlockable">Pinoprotektahan ng Android ang mga lokasyong ito. Sa karagdagang access, mahahalughog ng Butler ang mga ito.</string>
+    <string name="searcher_access_sheet_body_protected">Pinoprotektahan ng Android ang mga lokasyong ito. Walang paraan para magbigay ng access sa device na ito.</string>
+    <string name="searcher_access_sheet_unlock_action">I-unlock ang access</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d lokasyon</item>
+        <item quantity="other">%d na lokasyon</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d na-scan</item>
+        <item quantity="other">%d na na-scan</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d nahanap</item>
+        <item quantity="other">%d na nahanap</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Konteksto ng tugma</string>
+    <string name="searcher_match_line_label">Linya %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Buksan</string>
+    <string name="searcher_action_open_in_tab">Buksan sa bagong tab</string>
+    <string name="searcher_action_open_with">Buksan gamit ang</string>
+    <string name="searcher_action_open_in_editor">Buksan sa Editor</string>
+    <string name="searcher_action_open_in_explorer">Buksan sa Explorer</string>
+    <string name="searcher_action_install">I-install</string>
+    <string name="searcher_action_copy">Kopyahin</string>
+    <string name="searcher_action_cut">Gupitin</string>
+    <string name="searcher_action_delete">Tanggalin</string>
+    <string name="searcher_action_copy_path">Kopyahin ang path</string>
+    <string name="searcher_action_properties">Mga katangian</string>
+    <string name="searcher_action_select_all">Piliin lahat</string>
+    <string name="searcher_action_deselect_all">Alisin ang lahat ng pagpili</string>
+    <string name="searcher_action_sort">Pagbukud-bukurin</string>
+    <string name="searcher_action_view">Layout</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Pagbukud-bukurin ayon sa</string>
+    <string name="searcher_sort_mode_name_label">Pangalan</string>
+    <string name="searcher_sort_mode_size_label">Laki</string>
+    <string name="searcher_sort_mode_modified_label">Petsa ng pagbabago</string>
+    <string name="searcher_sort_mode_created_label">Petsa ng paggawa</string>
+    <string name="searcher_sort_mode_path_label">Path</string>
+    <string name="searcher_sort_descending_label">Pababang ayos</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Kung paano inaayos ang mga item at kung gaano karaming detalye ang ipinapakita ng mga ito</string>
+    <string name="searcher_view_mode_list_label">Listahan</string>
+    <string name="searcher_view_mode_grid_label">Grid</string>
+    <string name="searcher_view_density_compact_label">Siksik</string>
+    <string name="searcher_view_density_comfortable_label">Maluwag</string>
+    <string name="searcher_view_density_detailed_label">Detalyado</string>
+    <string name="searcher_view_detail_modified_label">Binago</string>
+    <string name="searcher_view_set_default_action">Itakda bilang default</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Kailangan ng karagdagang pag-setup para makapaghanap sa ilang lokasyon.</string>
+</resources>

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Uređivač</string>
+    <string name="editor_subtitle">Uređuj tekstne datoteke</string>
+    <string name="editor_settings_title">Postavke uređivača</string>
+    <string name="editor_settings_show_line_numbers_title">Prikaži brojeve redaka</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Prikaži brojeve redaka u uređivaču.</string>
+    <string name="editor_settings_word_wrap_title">Prelamanje redaka</string>
+    <string name="editor_settings_word_wrap_subtitle">Prelomi duge retke kako bi stali u širinu zaslona.</string>
+    <string name="editor_settings_syntax_highlighting_title">Isticanje sintakse</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Oboji kôd u podržanim datotekama (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Veličina fonta</string>
+    <string name="editor_settings_font_size_subtitle">Veličina teksta u uređivaču</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Širina tabulatora</string>
+    <string name="editor_settings_tab_size_subtitle">Broj razmaka koje zauzima znak tabulatora</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Otvori</string>
+    <string name="editor_action_save">Spremi</string>
+    <string name="editor_action_save_as">Spremi kao…</string>
+    <string name="editor_action_close">Zatvori</string>
+    <string name="editor_action_undo">Poništi</string>
+    <string name="editor_action_redo">Ponovi</string>
+    <string name="editor_action_search">Pretraži</string>
+    <string name="editor_action_go_to_line">Idi na redak</string>
+    <string name="editor_action_dismiss">Ukloni obavijest</string>
+    <string name="editor_action_previous">Prethodno</string>
+    <string name="editor_action_next">Sljedeće</string>
+    <string name="editor_action_copy">Kopiraj</string>
+    <string name="editor_action_cut">Izreži</string>
+    <string name="editor_action_copy_to_butler_clipboard">Kopiraj u Butlerov međuspremnik</string>
+    <string name="editor_action_cut_to_butler_clipboard">Izreži u Butlerov međuspremnik</string>
+    <string name="editor_action_paste">Zalijepi</string>
+    <string name="editor_action_select_all">Odaberi sve</string>
+    <string name="editor_action_delete">Izbriši</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Prepisati datoteku?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s već postoji. Njezin će se trenutačni sadržaj zamijeniti.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Prepiši</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Pronađena je sigurnosna kopija nastala pri prekinutom spremanju:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Uređivanje kao teksta nije podržano</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Vrlo dugi redci</string>
+    <string name="editor_long_lines_banner_message">Vrlo dugi redci skraćuju se za prikaz; puni sadržaj ostaje očuvan i sprema se.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Prikaži sljedeći dio retka</string>
+    <string name="editor_line_truncated_marker_previous_action">Prikaži prethodni dio retka</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Datoteka više nije dostupna</string>
+    <string name="editor_backing_lost_banner_message">Možda je premještena ili izbrisana. Ovaj je prikaz samo za čitanje — ponovno ga otvori ili zatvori.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Datoteke više nema, ali sigurnosna kopija ostaje</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" nedostaje, ali nakon prekinutog spremanja ostalo je ovo: %2$s. Tvoj je sadržaj najvjerojatnije još u tome.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Datoteka je promijenjena na disku</string>
+    <string name="editor_external_change_banner_message">Druga je aplikacija izmijenila ovu datoteku.</string>
+    <string name="editor_external_change_reload_action">Ponovno učitaj</string>
+    <string name="editor_external_change_keep_action">Nastavi uređivati</string>
+    <string name="editor_error_external_change">Druga je aplikacija promijenila ovu datoteku. Ponovno učitaj datoteku za nastavak.</string>
+    <string name="editor_dialog_reload_confirm_title">Ponovno učitati datoteku?</string>
+    <string name="editor_dialog_reload_confirm_message">Ponovnim učitavanjem odbacuju se tvoje nespremljene promjene i prikazuje trenutačni sadržaj datoteke na disku.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d redak</item>
+        <item quantity="few">%1$d retka</item>
+        <item quantity="other">%1$d redaka</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d znak</item>
+        <item quantity="few">%1$d znaka</item>
+        <item quantity="other">%1$d znakova</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Odabrano: %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Učitavanje datoteke…</string>
+    <string name="editor_saving">Spremanje…</string>
+    <string name="editor_action_cancel_loading">Odustani</string>
+    <string name="editor_progress_opening">Otvaranje datoteke…</string>
+    <string name="editor_progress_saving">Spremanje datoteke…</string>
+    <string name="editor_progress_building_index">Izrada indeksa datoteke…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Nepoznata pogreška</string>
+    <string name="editor_error_read_only">Ova je datoteka samo za čitanje i ne može se mijenjati.</string>
+    <string name="editor_error_save_integrity_label">Spremanje je prekinuto</string>
+    <string name="editor_error_save_integrity">Spremanje je prekinuto i datoteka na disku možda nije potpuna. Ponovno učitaj datoteku prije daljnjeg uređivanja.</string>
+    <string name="editor_error_clipboard_too_large_label">Odabir je prevelik</string>
+    <string name="editor_error_clipboard_too_large">Odabir je prevelik za kopiranje (ograničenje %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Datoteka je prevelika</string>
+    <string name="editor_error_paste_too_large">Ova je datoteka prevelika za lijepljenje (najviše %1$s).</string>
+    <string name="editor_error_paste_binary_label">Nije tekstna datoteka</string>
+    <string name="editor_error_paste_binary">Sadržaj ove datoteke ne može se zalijepiti kao tekst.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d od %2$d rezultata</item>
+        <item quantity="few">%1$d od %2$d rezultata</item>
+        <item quantity="other">%1$d od %2$d rezultata</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d od %2$d+ rezultata</string>
+    <string name="editor_search_too_many_matches_label">Previše podudaranja</string>
+    <string name="editor_search_too_many_matches">Više od %1$d podudaranja ili previše podudarnog teksta — suzi pretragu kako bi se sve moglo zamijeniti.</string>
+    <string name="editor_search_placeholder">Pretraži…</string>
+    <string name="editor_search_previous">Prethodni rezultat</string>
+    <string name="editor_search_next">Sljedeći rezultat</string>
+    <string name="editor_search_case_sensitive_label">Razlikuj velika i mala slova</string>
+    <string name="editor_search_regex_label">Regularni izraz</string>
+    <string name="editor_search_whole_word_label">Cijela riječ</string>
+    <string name="editor_search_options_label">Opcije pretraživanja</string>
+    <string name="editor_search_replace_label">Zamijeni</string>
+    <string name="editor_search_replace_toggle">Uključi ili isključi zamjenu</string>
+    <string name="editor_search_replace_placeholder">Zamijeni s…</string>
+    <string name="editor_search_replace_one_action">Zamijeni</string>
+    <string name="editor_search_replace_all_action">Sve</string>
+    <string name="editor_search_replaced_not_undoable">Zamijenjeno: %1$d (previše za poništavanje)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">Zamijenjeno: %1$d</item>
+        <item quantity="few">Zamijenjeno: %1$d</item>
+        <item quantity="other">Zamijenjeno: %1$d</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Idi na redak</string>
+    <string name="editor_dialog_go_to_line_label">Broj retka (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Idi</string>
+    <string name="editor_dialog_action_cancel">Odustani</string>
+    <string name="editor_dialog_close_confirm_title">Nespremljene promjene</string>
+    <string name="editor_dialog_close_confirm_message">Imaš nespremljene promjene. Odbaciti ih?</string>
+    <string name="editor_dialog_close_confirm_discard">Odbaci</string>
+    <string name="editor_dialog_large_delete_confirm_title">Urediti veliki odabir?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Ovaj je odabir prevelik za poništavanje promjene. Svejedno nastaviti?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Nastavi</string>
+    <string name="editor_encoding_dialog_title">Kodiranje</string>
+    <string name="editor_encoding_dialog_message">Ponovno otvori datoteku s drugim kodiranjem. Nespremljene promjene odbacuju se; neizmijenjeni bajtovi ostaju netaknuti pri spremanju.</string>
+    <string name="editor_infobar_read_only">Samo za čitanje</string>
+    <string name="editor_line_ending_mixed">Mješoviti</string>
+    <string name="editor_line_ending_dialog_title">Završeci redaka</string>
+    <string name="editor_line_ending_dialog_message">Pretvori sve prijelome redaka i spremi datoteku, uključujući nespremljene promjene. Povijest poništavanja briše se.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Bez naslova</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Automatsko spremanje</string>
+    <string name="editor_settings_autosave_enabled_title">Uključi automatsko spremanje</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Automatski spremi promjene nakon razdoblja neaktivnosti.</string>
+    <string name="editor_settings_autosave_interval_title">Interval automatskog spremanja</string>
+    <string name="editor_settings_autosave_interval_subtitle">Vrijeme čekanja nakon zadnje izmjene prije spremanja.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Interval automatskog spremanja</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Međuspremnik</string>
+    <string name="editor_settings_clipboard_behavior_title">Butlerov međuspremnik</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Odredi kako se kopije teksta spremaju u Butlerov međuspremnik.</string>
+    <string name="editor_settings_clipboard_system_only">Samo sustav</string>
+    <string name="editor_settings_clipboard_system_only_desc">Kopiraj samo u međuspremnik sustava</string>
+    <string name="editor_settings_clipboard_butler_always">Uvijek dodaj u Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Spremi i u Butlerov međuspremnik za lijepljenje u drugim radnim prostorima</string>
+    <string name="editor_settings_clipboard_ask">Pitaj svaki put</string>
+    <string name="editor_settings_clipboard_ask_desc">Pitaj prije dodavanja u Butlerov međuspremnik</string>
+</resources>

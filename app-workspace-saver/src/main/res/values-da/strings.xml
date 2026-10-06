@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Gem som</string>
+    <string name="saver_preview_label">Forhåndsvisning</string>
+    <string name="saver_loading">Indlæser…</string>
+    <string name="saver_shared_from">Delt fra %1$s</string>
+    <string name="saver_shared_generic">Delt med Butler</string>
+    <string name="saver_destination_label">Destination</string>
+    <string name="saver_select_destination_hint">Vælg destinationsmappe</string>
+    <string name="saver_filename_label">Filnavn</string>
+    <string name="saver_save_action">Gem</string>
+    <string name="saver_saving_progress">Gemmer…</string>
+    <string name="saver_success_message">Filen blev gemt</string>
+    <string name="saver_open_saved_action">Åbn mappe</string>
+    <string name="saver_retry_action">Prøv igen</string>
+    <string name="saver_save_again_action">Gem på en ny placering</string>
+    <string name="saver_close_tab_action">Luk fanen</string>
+    <string name="saver_close_butler_action">Luk fanen og vend tilbage</string>
+    <string name="saver_done_action">Færdig</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Kildefilen er ikke længere tilgængelig. Del den igen.</item>
+        <item quantity="other">%1$d kildefiler er ikke længere tilgængelige. Del dem igen.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Kildefilen er ikke længere tilgængelig</string>
+    <string name="saver_error_permission_denied">Adgang nægtet</string>
+    <string name="saver_error_write_failed">Filen kunne ikke gemmes</string>
+    <string name="saver_error_file_exists">Filen findes allerede</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Gem filer</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Gemmer %1$d fil i %2$s</item>
+        <item quantity="other">Gemmer %1$d filer i %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Gem %1$d fil</item>
+        <item quantity="other">Gem %1$d filer</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d fil gemt</item>
+        <item quantity="other">%1$d filer gemt</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d fil kunne ikke gemmes</item>
+        <item quantity="other">%1$d filer kunne ikke gemmes</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d fil sprunget over</item>
+        <item quantity="other">%1$d filer sprunget over</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d af %2$d filer gemt</string>
+</resources>

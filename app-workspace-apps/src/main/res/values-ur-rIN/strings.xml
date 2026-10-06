@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apps Workspace -->
+    <string name="apps_title">ایپس</string>
+    <string name="apps_subtitle">انسٹال شدہ ایپس کا نظم کریں</string>
+
+    <!-- Filter Labels -->
+    <string name="apps_filter_app_type_label">ایپ کی قسم</string>
+    <string name="apps_filter_type_all">تمام</string>
+    <string name="apps_filter_type_user">صارف کی ایپس</string>
+    <string name="apps_filter_type_system">سسٹم ایپس</string>
+    <string name="apps_filter_status_label">حالت</string>
+    <string name="apps_filter_status_all">تمام</string>
+    <string name="apps_filter_status_enabled">فعال</string>
+    <string name="apps_filter_status_disabled">غیر فعال</string>
+
+    <!-- Sort Options -->
+    <string name="apps_sort_mode_label">ترتیب کی بنیاد</string>
+    <string name="apps_sort_mode_name_label">نام</string>
+    <string name="apps_sort_mode_size_label">حجم</string>
+    <string name="apps_sort_mode_install_date_label">انسٹال کرنے کی تاریخ</string>
+    <string name="apps_sort_mode_update_date_label">اپ ڈیٹ کرنے کی تاریخ</string>
+    <string name="apps_sort_mode_package_name_label">پیکیج کا نام</string>
+    <string name="apps_sort_descending_label">نزولی ترتیب</string>
+    <string name="apps_sort_mode_size_slowdown_hint">ایپس کے حجم کا حساب لگانے سے لوڈ ہونے میں زیادہ وقت لگتا ہے</string>
+
+    <!-- Actions -->
+    <string name="apps_action_launch">چلائیں</string>
+    <string name="apps_action_open_info">ایپ کی معلومات</string>
+    <string name="apps_action_disable">غیر فعال کریں</string>
+    <string name="apps_action_enable">فعال کریں</string>
+    <string name="apps_action_uninstall">اَن انسٹال کریں</string>
+    <string name="apps_action_clear_data">ڈیٹا صاف کریں</string>
+    <string name="apps_action_export_apk">APK برآمد کریں</string>
+    <string name="apps_action_browse_path">راستہ کھولیں</string>
+    <string name="apps_action_share">معلومات شیئر کریں</string>
+    <string name="apps_action_refresh">تازہ کریں</string>
+    <string name="apps_action_sort">ترتیب دیں</string>
+    <string name="apps_action_filter">فلٹر کریں</string>
+    <string name="apps_action_select_all">سب منتخب کریں</string>
+    <string name="apps_action_deselect_all">سب کا انتخاب ختم کریں</string>
+    <string name="apps_action_open_in_tab">ٹیب میں کھولیں</string>
+    <string name="apps_action_force_stop">زبردستی روکیں</string>
+    <string name="apps_action_view">لے آؤٹ</string>
+
+    <!-- View options -->
+    <string name="apps_view_sheet_subtitle">اشیا کی ترتیب اور دکھائی جانے والی تفصیلات کی مقدار</string>
+    <string name="apps_view_mode_list_label">فہرست</string>
+    <string name="apps_view_mode_grid_label">گرڈ</string>
+    <string name="apps_view_density_compact_label">مختصر</string>
+    <string name="apps_view_density_comfortable_label">کشادہ</string>
+    <string name="apps_view_density_detailed_label">تفصیلی</string>
+    <string name="apps_view_set_default_action">بطور طے شدہ مقرر کریں</string>
+    <string name="apps_view_detail_dates_label">انسٹال: %1$s · اپ ڈیٹ: %2$s</string>
+
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">ایپ شروع کریں</string>
+    <string name="apps_action_open_info_desc">سسٹم کی تفصیلی معلومات دیکھیں</string>
+    <string name="apps_action_enable_desc">یہ ایپ فعال کریں</string>
+    <string name="apps_action_disable_desc">یہ ایپ غیر فعال کریں</string>
+    <string name="apps_action_uninstall_desc">یہ ایپ ہٹا دیں</string>
+    <string name="apps_action_export_apk_desc">APK فائل اسٹوریج میں محفوظ کریں</string>
+    <string name="apps_action_share_desc">ایپ کی تفصیلات بطور متن شیئر کریں</string>
+    <string name="apps_action_force_stop_desc">ایپ فوراً روکیں</string>
+    <string name="apps_action_clear_data_desc">ایپ کا تمام ڈیٹا اور ترتیبات حذف کریں</string>
+
+    <!-- App Info Labels -->
+    <string name="apps_package_name_label">پیکیج</string>
+    <string name="apps_version_label">ورژن</string>
+    <string name="apps_size_label">حجم</string>
+    <string name="apps_size_chip_desc">ایپ کا حجم: %1$s</string>
+    <string name="apps_size_permission_hint">ایپس کے حجم دیکھنے کے لیے استعمال کی معلومات تک رسائی درکار ہے</string>
+    <string name="apps_size_permission_body">Android صرف ان ایپس کو ایپ، ڈیٹا اور کیشے کے حجم کی معلومات دیتا ہے جنہیں استعمال کی معلومات تک رسائی کی اجازت حاصل ہو۔ اس ایپ کے اسٹوریج کی تفصیلی تقسیم دیکھنے کے لیے یہ اجازت دیں۔</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">اسٹوریج کے مقامات</string>
+    <string name="apps_path_internal_data_label">اندرونی ڈیٹا</string>
+    <string name="apps_path_external_data_label">بیرونی اسٹوریج</string>
+    <string name="apps_path_requires_root_label">روٹ درکار ہے</string>
+    <string name="apps_path_requires_shizuku_label">ADB رسائی درکار ہے</string>
+    <string name="apps_path_requires_root_or_shizuku_label">روٹ یا ADB رسائی درکار ہے</string>
+    <string name="apps_path_requires_access_label">اضافی رسائی درکار ہے</string>
+    <string name="apps_storage_breakdown_label">اسٹوریج کی تفصیلی تقسیم</string>
+    <string name="apps_storage_app_label">ایپ</string>
+
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">جائزہ</string>
+    <string name="appdetails_tab_packageinfo_label">پیکیج کی معلومات</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">ایپس پر واپس جائیں</string>
+    <string name="appdetails_close_action">بند کریں</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_title">پیکیج کی معلومات</string>
+    <string name="appdetails_packageinfo_view_action">پیکیج کی تفصیلات دیکھیں</string>
+    <string name="appdetails_packageinfo_unavailable_msg">ایپ کے پیکیج کی تفصیلات پڑھی نہیں جا سکیں۔</string>
+    <string name="appdetails_packageinfo_permissions_header">اجازتیں (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">دستخطی سرٹیفکیٹس</string>
+    <string name="appdetails_packageinfo_package_label">پیکیج</string>
+    <string name="appdetails_packageinfo_version_label">ورژن</string>
+    <string name="appdetails_packageinfo_min_sdk_label">کم از کم SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">ہدف SDK</string>
+
+    <!-- Empty States -->
+    <string name="apps_empty_no_apps">کوئی ایپ نہیں ملی</string>
+    <string name="apps_empty_no_apps_desc">فلٹر بدل کر دیکھیں</string>
+    <string name="apps_empty_loading">ایپس لوڈ ہو رہی ہیں…</string>
+
+    <!-- Search -->
+    <string name="apps_search_hint">ایپس تلاش کریں</string>
+
+    <!-- Multi-select -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">ایپس منتخب کریں</item>
+        <item quantity="one">%d منتخب</item>
+        <item quantity="other">%d منتخب</item>
+    </plurals>
+
+    <!-- Info Bar -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="one">صارف کی %d ایپ</item>
+        <item quantity="other">صارف کی %d ایپس</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="one">%d سسٹم ایپ</item>
+        <item quantity="other">%d سسٹم ایپس</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="one">%d منتخب</item>
+        <item quantity="other">%d منتخب</item>
+    </plurals>
+
+    <!-- App Details Sections -->
+    <string name="apps_details_section_actions">کارروائیاں</string>
+    <string name="apps_details_section_overview">جائزہ</string>
+    <string name="apps_details_section_storage">اسٹوریج</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">مزید اختیارات</string>
+
+    <!-- App Details package data -->
+    <string name="apps_details_pkgdata_error_title">ایپ کا ڈیٹا لوڈ نہیں ہو سکا</string>
+    <string name="apps_details_gone_title">ایپ ہٹا دی گئی</string>
+    <string name="apps_details_gone_message">یہ ایپ اب اس آلے پر انسٹال نہیں ہے۔</string>
+    <string name="apps_details_gone_close_action">بند کریں</string>
+    <string name="apps_details_uninstalled_title">اس صارف کے لیے اَن انسٹال کر دی گئی</string>
+    <string name="apps_details_uninstalled_message">یہ ایپ اب اس صارف کے لیے انسٹال نہیں ہے، لیکن اس کی فائلیں اب بھی آلے پر موجود ہیں۔</string>
+
+    <!-- App Details confirmations -->
+    <string name="apps_details_confirm_clear_data_title">ایپ کا ڈیٹا صاف کریں؟</string>
+    <string name="apps_details_confirm_clear_data_message">%1$s کا تمام ڈیٹا اور ترتیبات حذف کر دی جائیں گی۔ یہ عمل واپس نہیں لیا جا سکتا۔</string>
+    <string name="apps_details_confirm_uninstall_title">ایپ اَن انسٹال کریں؟</string>
+    <string name="apps_details_confirm_uninstall_message">%1$s اس آلے سے ہٹا دی جائے گی۔</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">قسم</string>
+    <string name="apps_type_system">سسٹم ایپ</string>
+    <string name="apps_type_user">صارف کی ایپ</string>
+    <string name="apps_status_label">حالت</string>
+    <string name="apps_status_enabled">فعال</string>
+    <string name="apps_status_disabled">غیر فعال</string>
+    <string name="apps_installed_label">انسٹال شدہ</string>
+    <string name="apps_updated_label">آخری اپ ڈیٹ</string>
+    <string name="apps_target_sdk_label">ہدف SDK</string>
+    <string name="apps_min_sdk_label">کم از کم SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">انسٹال کرنے والا</string>
+    <string name="apps_permissions_label">اجازتیں</string>
+    <string name="apps_permissions_count">%1$d اجازتیں</string>
+    <string name="apps_data_size_label">ڈیٹا</string>
+    <string name="apps_cache_size_label">کیشے</string>
+    <string name="apps_total_size_label">کل</string>
+
+    <!-- App Tags -->
+    <string name="apps_tag_system_label">سسٹم</string>
+    <string name="apps_tag_disabled_label">غیر فعال</string>
+    <string name="apps_tag_updated_label">اپ ڈیٹ شدہ</string>
+    <string name="apps_tag_sideloaded_label">اسٹور کے باہر سے انسٹال شدہ</string>
+    <string name="apps_tag_split_label">منقسم APK</string>
+    <string name="apps_tag_debug_label">ڈیبگ</string>
+    <string name="apps_tag_user_label">صارف %1$d</string>
+
+    <!-- Filter Tags (virtual tags for filtering) -->
+    <string name="apps_filter_tag_enabled_label">فعال</string>
+    <string name="apps_filter_tag_user_app_label">صارف کی ایپ</string>
+    <string name="apps_filter_include_label">میل ضروری ہے (تمام منتخب شرائط سے)</string>
+    <string name="apps_filter_exclude_label">میل نہیں ہونا چاہیے</string>
+    <string name="apps_filter_add_action">فلٹر کریں</string>
+    <string name="apps_filter_hint">شامل کرنے کے لیے ٹیپ کریں، خارج کرنے کے لیے دوبارہ ٹیپ کریں، ہٹانے کے لیے ایک بار پھر ٹیپ کریں</string>
+    <plurals name="apps_filter_count">
+        <item quantity="one">%d فلٹر</item>
+        <item quantity="other">%d فلٹر</item>
+    </plurals>
+
+    <!-- Components Section -->
+    <string name="apps_details_section_components">اجزا</string>
+    <string name="apps_components_activities_label">ایکٹیویٹیز</string>
+    <string name="apps_components_services_label">سروسز</string>
+    <string name="apps_components_receivers_label">براڈکاسٹ ریسیورز</string>
+    <string name="apps_components_providers_label">کانٹینٹ پرووائیڈرز</string>
+    <string name="apps_components_exported">بیرونی رسائی کے لیے دستیاب</string>
+    <string name="apps_components_disabled">غیر فعال</string>
+    <string name="apps_components_empty">کوئی جز نہیں ملا</string>
+    <string name="apps_components_no_matches">کوئی جز “%1$s” سے میل نہیں کھاتا</string>
+    <string name="apps_components_and_more">…اور مزید %d</string>
+    <string name="apps_components_view_all_action">تمام اجزا دیکھیں</string>
+    <string name="apps_components_loading">اجزا لوڈ ہو رہے ہیں…</string>
+    <string name="apps_components_error">اجزا لوڈ نہیں ہو سکے</string>
+    <string name="apps_components_launch_failed">ایکٹیویٹی شروع نہیں ہو سکی</string>
+    <string name="apps_components_kind_activity">ایکٹیویٹی</string>
+    <string name="apps_components_kind_service">سروس</string>
+    <string name="apps_components_kind_receiver">براڈکاسٹ ریسیور</string>
+    <string name="apps_components_kind_provider">کانٹینٹ پرووائیڈر</string>
+    <string name="apps_components_search_action">اجزا تلاش کریں</string>
+    <string name="apps_components_search_hint">نام یا پیکیج تلاش کریں</string>
+    <string name="apps_components_state_label">حالت</string>
+    <string name="apps_components_state_enabled">فعال</string>
+    <string name="apps_components_state_disabled">غیر فعال</string>
+    <string name="apps_components_field_type">قسم</string>
+    <string name="apps_components_field_package">پیکیج</string>
+    <string name="apps_components_field_permission">اجازت</string>
+    <string name="apps_components_field_write_permission">لکھنے کی اجازت</string>
+    <string name="apps_components_field_authority">اتھارٹی</string>
+    <string name="apps_components_field_process">پروسیس</string>
+    <string name="apps_components_field_launch_mode">شروع کرنے کا موڈ</string>
+    <string name="apps_components_launch_action">چلائیں</string>
+    <string name="apps_components_copy_name_action">جز کا نام کاپی کریں</string>
+    <string name="apps_components_copy_package_action">پیکیج کا نام کاپی کریں</string>
+    <string name="apps_components_action_enable">جز فعال کریں</string>
+    <string name="apps_components_action_disable">جز غیر فعال کریں</string>
+    <string name="apps_components_action_requires_elevated">روٹ یا ADB رسائی درکار ہے — سیٹ اپ کے لیے ٹیپ کریں</string>
+    <string name="apps_components_confirm_enable_title">اجزا فعال کریں؟</string>
+    <string name="apps_components_confirm_disable_title">اجزا غیر فعال کریں؟</string>
+    <string name="apps_components_confirm_enable_message">درج ذیل اجزا فعال کر دیے جائیں گے:</string>
+    <string name="apps_components_confirm_disable_message">درج ذیل اجزا غیر فعال کر دیے جائیں گے۔ اس سے ایپ کام کرنا چھوڑ سکتی ہے۔</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="one">%d جز منتخب</item>
+        <item quantity="other">%d اجزا منتخب</item>
+    </plurals>
+
+    <!-- Package operations -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="one">ایپ فعال کریں</item>
+        <item quantity="other">%d ایپس فعال کریں</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="one">ایپ غیر فعال کریں</item>
+        <item quantity="other">%d ایپس غیر فعال کریں</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="one">ایپ زبردستی روکیں</item>
+        <item quantity="other">%d ایپس زبردستی روکیں</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="one">ایپ اَن انسٹال کریں</item>
+        <item quantity="other">%d ایپس اَن انسٹال کریں</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="one">ایپ کا ڈیٹا صاف کریں</item>
+        <item quantity="other">%d ایپس کا ڈیٹا صاف کریں</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="one">جز فعال کریں</item>
+        <item quantity="other">%d اجزا فعال کریں</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="one">جز غیر فعال کریں</item>
+        <item quantity="other">%d اجزا غیر فعال کریں</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="one">%d ایپ</item>
+        <item quantity="other">%d ایپس</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">%1$s فعال کر دی گئی</string>
+    <string name="apps_operation_disable_summary">%1$s غیر فعال کر دی گئی</string>
+    <string name="apps_operation_force_stop_summary">%1$s روک دی گئی</string>
+    <string name="apps_operation_uninstall_summary">%1$s اَن انسٹال کر دی گئی</string>
+    <string name="apps_operation_clear_data_summary">%1$s کا ڈیٹا صاف کر دیا گیا</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="one">%1$d جز فعال کر دیا گیا</item>
+        <item quantity="other">%1$d اجزا فعال کر دیے گئے</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="one">%1$d جز غیر فعال کر دیا گیا</item>
+        <item quantity="other">%1$d اجزا غیر فعال کر دیے گئے</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">%1$s کے لیے کارروائی مکمل نہیں ہو سکی</string>
+    <string name="apps_operation_single_declined_summary">%1$s کو ہٹانے سے انکار کر دیا گیا</string>
+    <string name="apps_operation_batch_summary">%2$d میں سے %1$d مکمل</string>
+    <!-- Quoted so the leading separator survives the resource parser -->
+    <string name="apps_operation_batch_summary_failed">" · %1$d ناکام"</string>
+    <string name="apps_operation_batch_summary_declined">" · %1$d مسترد"</string>
+
+    <!-- Generic navigation -->
+    <string name="appdetails_back_generic_action">واپس</string>
+</resources>

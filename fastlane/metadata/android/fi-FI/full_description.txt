@@ -1,0 +1,57 @@
+Butler on välilehtiin perustuva Android-tiedostonhallinta. Selaa, etsi, katsele ja muokkaa tiedostoja koko tallennustilassasi usean paneelin näkymillä ja tarvittaessa root-oikeuksilla.
+
+Tällaista Android-tiedostoselainta olen aina halunnut, joten tein sen itse. Nopea, yksityinen ja avointa lähdekoodia.
+
+Butler toimii sisäisessä tallennustilassa, SD-korteilla, USB OTG -asemilla ja Butler Prolla myös verkkojaoissa. Se käsittelee kaikkia tiedostotyyppejä, ei vain galleriasi näyttämää mediaa.
+
+<b>Välilehdet ja työtilat</b>
+- Selaa tiedostoja välilehdillä ja käytä Butlerin työkaluja rinnakkain.
+- Järjestä välilehtiä välilehtien hallinnassa ja avaa uusia välilehtivalitsimesta.
+- Usean paneelin näkymät puhelimissa ja tableteissa sekä tiedostojen vetäminen ja pudottaminen paneelien välillä.
+- Kiinnitä suosikkeja ja lisää tallennussijainteja.
+
+<b>Tiedostotoiminnot</b>
+- Kopioi, siirrä, nimeä uudelleen ja poista. Näe siirtonopeudet ja suorituskykykaaviot työn aikana.
+- Roskakorituen ansiosta poistot voi perua.
+- Avaa arkistot kuin kansiot: selaa ZIP-, TAR- ja APK-paketteja purkamatta niitä ensin.
+- Luo ZIP-arkistoja ja pura niitä, myös salattuja.
+- Toiminnot jatkuvat, kun poistut sovelluksesta. Ilmoitus näyttää edistymisen ja peruutuspainikkeen.
+- Toimintohistoria näyttää tehdyt, onnistuneet ja epäonnistuneet toiminnot.
+
+<b>Verkkojaot (Butler Pro)</b>
+- Yhdistä Windows-jakoihin ja NAS-kansioihin SMB:llä ja selaa niitä kuin muutakin tallennustilaa.
+- Kopioi ja siirrä tiedostoja laitteen ja palvelimen välillä molempiin suuntiin.
+- Kirjaudu vieraana tai tunnuksella ja salasanalla, jotka tallennetaan salattuina vain laitteellesi.
+- Jaon lisääminen ja yhteyden testaus on ilmaista. Selaaminen vaatii Butler Pro -version.
+
+<b>Haku ja teksti</b>
+- Etsi tiedostonimistä ja tiedostojen sisällöstä. Tukee säännöllisiä lausekkeita (regex).
+- Tekstieditori pysyy nopeana myös erittäin suurilla tiedostoilla.
+
+<b>Tiedostojen katselu</b>
+- Katsele kuvia ja selaa PDF-sivuja poistumatta Butlerista.
+- Tiedostotiedot koosta ja mitoista käyttöoikeuksiin ja omistajaan.
+- Laske kansioiden koot tarvittaessa ja näe, mikä todella täyttää tallennustilasi.
+- Jos Butler ei itse näytä tiedostoa, se siirtää sen sopivan sovelluksen avattavaksi.
+
+<b>Sovellukset ja APK:t</b>
+- Sovellusten hallinta: selaa asennettuja sovelluksia, poista niitä käytöstä, vie APK:t, tyhjennä sovellustiedot ja poista asennuksia.
+- Vastaanota, tutki ja avaa APK-tiedostoja. Asennus tapahtuu Androidin järjestelmäasentimella.
+
+<b>Toimii muiden sovellustesi kanssa</b>
+- Butler näkyy muiden sovellusten tiedostovalitsimissa, joten voit selata Butlerilla aina avatessasi tai tallentaessasi tiedoston.
+- Jaa tiedosto mistä tahansa sovelluksesta Butleriin ja valitse tarkka tallennuspaikka ja nimi.
+- Jaettu teksti avautuu suoraan Butlerin editoriin.
+
+<b>Pääsy ja ulkoasu</b>
+- Root tai Shizuku avaa pääsyn Androidin normaalisti lukitsemiin paikkoihin.
+- Material You -teemat dynaamisilla väreillä, tumma tila ja AMOLED-vaihtoehto.
+
+<b>Yksityisyys</b>
+Ei seurantaa, analytiikka-SDK:ita, tiliä eikä pilveä. Kaatumis- ja virheraportit pysyvät laitteellasi, ellet päätä lähettää niitä. Avointa lähdekoodia.
+
+Butler pyytää pääsyä kaikkiin tiedostoihin, koska tiedostonhallinnan on päästävä koko tallennustilaasi. Kaikki sen toiminta tapahtuu laitteellasi.
+
+Sovelluksessa ei ole mainoksia. Jotkin ominaisuudet vaativat maksullisen Pro-version.
+
+Butler on Androidin tiedostonhallinta, tiedostoselain ja tekstieditori.

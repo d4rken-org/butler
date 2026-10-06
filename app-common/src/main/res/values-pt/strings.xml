@@ -1,0 +1,331 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Explorador de ficheiros extraordinário</string>
+    <!-- %1$s is the app name; %2$s is the tier qualifier. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Ícone da aplicação Butler</string>
+    <string name="butler_mascot_description">Mascote do Butler</string>
+    <string name="butler_mascot_animation_random_description">Mascote do Butler a executar várias animações</string>
+    <string name="butler_mascot_animation_wink_description">Mascote do Butler a piscar o olho</string>
+    <string name="butler_mascot_animation_greeting_description">Mascote do Butler a acenar para cumprimentar</string>
+    <string name="butler_mascot_animation_hatoff_description">Mascote do Butler a levantar o chapéu em sinal de respeito</string>
+    <string name="butler_mascot_animation_drink_description">Mascote do Butler a beber</string>
+    <string name="butler_mascot_animation_moustache_description">Mascote do Butler a acariciar o bigode</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Mascote do Butler a fechar os olhos para dormir</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Mascote do Butler a ressonar</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Mascote do Butler a acordar</string>
+    <string name="butler_mascot_animation_cameo_description">Participação especial da mascote do SD Maid</string>
+
+    <string name="slogan_general_message_0">Ao teu serviço.</string>
+    <string name="slogan_general_message_1">Tudo no seu lugar.</string>
+    <string name="slogan_general_message_2">Ordem, não caos.</string>
+    <string name="slogan_general_message_3">A ir buscar os teus ficheiros.</string>
+    <string name="slogan_general_message_4">Todos os teus ficheiros em fila.</string>
+    <string name="slogan_general_message_5">Sempre tudo organizado.</string>
+    <string name="slogan_general_message_6">Ficheiros encontrados num instante!</string>
+    <string name="slogan_general_message_7">Acesso sem complicações.</string>
+    <string name="slogan_general_message_8">Nunca vais perder os teus ficheiros.</string>
+    <string name="slogan_general_message_9">Um chapéu para cada função.</string>
+    <string name="slogan_newyear_message_0">O mesmo procedimento de todos os anos.</string>
+    <string name="slogan_xmas_message_0">A verificar os ficheiros duas vezes.</string>
+    <string name="slogan_xmas_message_1">Na lista dos bem-comportados.</string>
+    <string name="slogan_halloween_message_0">Bu-tler ao teu serviço.</string>
+    <string name="slogan_halloween_message_1">Sem partidas, só ficheiros.</string>
+    <string name="slogan_stpatricks_message_0">Será o teu dia de sorte?</string>
+    <string name="slogan_stpatricks_message_1">A encontrar o teu pote de ouro.</string>
+    <string name="slogan_aprilfools_message_0">Nada de brincadeiras.</string>
+    <string name="slogan_aprilfools_message_1">Organização a sério.</string>
+    <string name="slogan_oktoberfest_message_0">Um brinde aos teus ficheiros!</string>
+    <string name="slogan_oktoberfest_message_1">Ficheiros à pressão.</string>
+
+    <string name="general_share_action">Partilhar</string>
+    <string name="general_share_single_title">Partilhar %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Partilhar %d ficheiro</item>
+        <item quantity="many">Partilhar %d ficheiros</item>
+        <item quantity="other">Partilhar %d ficheiros</item>
+    </plurals>
+    <string name="general_done_action">Concluído</string>
+    <string name="general_copy_action">Copiar</string>
+    <string name="general_cut_action">Cortar</string>
+    <string name="general_move_action">Mover</string>
+    <string name="general_paste_action">Colar</string>
+    <string name="general_apply_action">Aplicar</string>
+    <string name="general_open_action">Abrir</string>
+    <string name="general_cancel_action">Cancelar</string>
+    <string name="general_close_action">Fechar</string>
+    <string name="general_confirm_action">Confirmar</string>
+    <string name="general_reset_action">Repor</string>
+    <string name="general_save_action">Guardar</string>
+    <string name="general_edit_action">Editar</string>
+    <string name="general_na_label">N/A</string>
+    <!-- Announced by screen readers when a dialog opens -->
+    <string name="general_dialog_a11y_label">Caixa de diálogo</string>
+    <string name="general_dismiss_action">Dispensar</string>
+    <string name="general_read_more_action">Ler mais</string>
+    <string name="general_mark_as_read_action">Marcar como lido</string>
+    <string name="general_back_action">Voltar</string>
+    <string name="general_navigate_up_action">Subir um nível</string>
+    <string name="general_error_label">Erro</string>
+    <string name="general_error_unknown_label">Erro desconhecido</string>
+    <string name="general_error_invalid_input_label">Dados introduzidos inválidos</string>
+    <string name="general_share_error_action">Partilhar erro</string>
+    <string name="general_error_report_subject">Relatório de erro do %1$s (%2$s)</string>
+    <string name="general_error_report_consent_title">Partilhar relatório de erro?</string>
+    <string name="general_error_report_consent_message">O relatório contém o erro e o rasto da pilha de chamadas que gerou, o registo recente da aplicação e detalhes sobre o estado em que se encontrava: nomes e caminhos de ficheiros, consultas de pesquisa, nomes de pacotes, URIs, nomes de anfitriões de rede e SMB, informações sobre o teu dispositivo e a compilação e um ID de instalação anónimo. Partilha-o apenas com pessoas em quem confias.</string>
+    <string name="general_error_report_consent_confirm">Partilhar relatório</string>
+    <string name="general_privacy_policy_action">Política de privacidade</string>
+    <string name="general_bug_report_subject">Relatório de falha do %1$s (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">Relatório de falha do %1$s: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Descreve aqui o que aconteceu.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Descreve o que esperavas que acontecesse.)</string>
+    <string name="general_duration_input_label">Duração</string>
+    <string name="general_size_input_label">Tamanho</string>
+    <string name="general_upgrade_action">Mudar para versão superior</string>
+    <string name="general_refresh_action">Atualizar</string>
+    <string name="general_clear_action">Limpar</string>
+    <string name="general_expand_action">Expandir</string>
+    <string name="general_collapse_action">Recolher</string>
+    <string name="general_completed_label">Concluído</string>
+    <string name="general_cancelled_label">Cancelado</string>
+    <string name="general_searching_label">A pesquisar</string>
+    <string name="general_searching_ellipsis">A pesquisar…</string>
+    <string name="general_progress_loading">A carregar</string>
+    <string name="general_progress_loading_egg_0">Ainda mais rápido do que um iPhone</string>
+    <string name="general_progress_loading_egg_1">A descarregar mais RAM</string>
+    <string name="general_progress_loading_egg_2">Previsão: Em breve™</string>
+    <string name="general_progress_loading_egg_3">O CPU foi tomar um café</string>
+    <string name="general_progress_loading_egg_4">À espera de dados de Pepe Silvia</string>
+    <string name="general_progress_loading_egg_5">O turboencabulador está a iniciar</string>
+    <string name="general_progress_loading_egg_6">A passar a manteiga</string>
+    <string name="general_progress_loading_egg_7">Então. Como te estás a aguentar?</string>
+    <string name="general_progress_loading_egg_8">Bip, bupe, bop</string>
+    <string name="general_progress_loading_egg_9">As escolhas de vida estão a carregar</string>
+    <string name="general_progress_loading_egg_10">A invocar Cthulhu</string>
+    <string name="general_progress_loading_egg_11">Está tudo bem</string>
+    <string name="general_progress_loading_egg_12">Aguarda um momento</string>
+    <string name="general_progress_loading_egg_13">Ao menos não estás em espera ao telefone</string>
+    <string name="general_progress_loading_egg_14">Aplicar diretamente na testa</string>
+
+    <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dms</item>
+        <item quantity="many">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%ds</item>
+        <item quantity="many">%ds</item>
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%dm</item>
+        <item quantity="many">%dm</item>
+        <item quantity="other">%dm</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dh</item>
+        <item quantity="many">%dh</item>
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dd</item>
+        <item quantity="many">%dd</item>
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d segundo</item>
+        <item quantity="many">%d segundos</item>
+        <item quantity="other">%d segundos</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d minuto</item>
+        <item quantity="many">%d minutos</item>
+        <item quantity="other">%d minutos</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d hora</item>
+        <item quantity="many">%d horas</item>
+        <item quantity="other">%d horas</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d dia</item>
+        <item quantity="many">%d dias</item>
+        <item quantity="other">%d dias</item>
+    </plurals>
+
+    <string name="general_view_action">Ver</string>
+    <string name="general_delete_action">Eliminar</string>
+    <string name="general_show_details_action">Mostrar detalhes</string>
+    <string name="general_hide_details_action">Ocultar detalhes</string>
+
+    <string name="general_delete_confirmation_title">Confirmar eliminação</string>
+    <string name="general_delete_confirmation_message_x">Eliminar \"%s\"?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Eliminar %d itens selecionados?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">%d item eliminado.</item>
+        <item quantity="many">%d itens eliminados.</item>
+        <item quantity="other">%d itens eliminados.</item>
+    </plurals>
+
+    <string name="general_create_action">Criar</string>
+    <string name="general_rename_action">Mudar o nome</string>
+    <string name="general_retry_action">Tentar novamente</string>
+    <string name="general_open_setup_action">Abrir configuração</string>
+    <string name="general_grant_usage_stats_action">Conceder acesso à utilização</string>
+    <string name="general_grant_storage_permission_action">Conceder permissão de armazenamento</string>
+    <string name="general_grant_all_files_access_action">Permitir acesso a todos os ficheiros</string>
+
+    <string name="general_result_user_cancel_msg">Cancelaste a operação.</string>
+
+    <string name="general_path_label">Caminho</string>
+    <string name="general_filename_validation_error">O nome contém caracteres inválidos: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d de %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d de %2$d</string>
+
+    <string name="file_type_symbolic_link">Ligação</string>
+    <string name="file_type_directory">Pasta</string>
+    <string name="file_type_file">Ficheiro</string>
+    <string name="file_type_unknown">Desconhecido</string>
+
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">Imagem</string>
+    <string name="common_mimetype_video">Vídeo</string>
+    <string name="common_mimetype_audio">Áudio</string>
+    <string name="common_mimetype_text_plain">Texto simples</string>
+    <string name="common_mimetype_text">Documento de texto</string>
+    <string name="common_mimetype_pdf">Documento PDF</string>
+    <string name="common_mimetype_document">Documento</string>
+    <string name="common_mimetype_archive">Arquivo</string>
+    <string name="common_mimetype_apk">Pacote Android</string>
+    <string name="common_mimetype_json">Ficheiro JSON</string>
+    <string name="common_mimetype_xml">Ficheiro XML</string>
+    <string name="common_mimetype_unknown">Tipo desconhecido</string>
+
+    <string name="general_rom_type_auto_label">Automático (predefinição)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s item/s</item>
+        <item quantity="many">%s itens/s</item>
+        <item quantity="other">%s itens/s</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/s</item>
+        <item quantity="many">%s/s</item>
+        <item quantity="other">%s/s</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Tipos incompatíveis: era esperado %1$s, mas foi obtido %2$s.</string>
+    <string name="general_error_cant_access_msg">Não é possível aceder a %s.</string>
+    <string name="general_error_archive_not_seekable_msg">Não é possível explorar %s diretamente: o armazenamento onde se encontra só permite leitura sequencial, mas o formato deste arquivo exige acesso aleatório.</string>
+    <string name="general_error_root_unavailable">O acesso root não está disponível.</string>
+    <string name="general_error_elevated_access_required">Esta operação requer acesso com privilégios elevados. Configura o acesso root ou ADB na Configuração.</string>
+    <string name="general_error_no_compatible_app_found_msg">Não foi encontrada nenhuma aplicação compatível para tratar este pedido.</string>
+    <string name="general_error_ipc_deadobject_title">Ligação ao serviço perdida</string>
+    <string name="general_error_ipc_deadobject_description">A ligação a um serviço crítico (por exemplo, Magisk ou outro serviço ao nível do sistema) perdeu-se inesperadamente. Reinicia o teu dispositivo. Se o problema persistir, procura atualizações ou contacta-me para que o possa corrigir.</string>
+
+    <string name="ui_theme_mode_dark_label">Escuro</string>
+    <string name="ui_theme_mode_light_label">Claro</string>
+    <string name="ui_theme_mode_system_label">Sistema</string>
+    <string name="ui_theme_style_default_label">Predefinido</string>
+    <string name="ui_theme_style_medium_contrast_label">Contraste médio</string>
+    <string name="ui_theme_style_high_contrast_label">Contraste elevado</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Verde</string>
+    <string name="ui_theme_color_blue_label">Azul</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Personalizado</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Tonalidades suaves</string>
+    <string name="ui_theme_palette_neutral_label">Neutra</string>
+    <string name="ui_theme_palette_vibrant_label">Vibrante</string>
+    <string name="ui_theme_palette_expressive_label">Expressiva</string>
+    <string name="ui_theme_palette_rainbow_label">Arco-íris</string>
+    <string name="ui_theme_palette_fruitsalad_label">Salada de fruta</string>
+    <string name="ui_theme_palette_monochrome_label">Monocromática</string>
+    <string name="ui_theme_palette_fidelity_label">Fidelidade</string>
+    <string name="ui_theme_palette_content_label">Conteúdo</string>
+
+    <string name="ui_theme_custom_dialog_title">Tema personalizado</string>
+    <string name="ui_theme_custom_seed_label">Cor base</string>
+    <string name="ui_theme_custom_palette_label">Estilo da paleta</string>
+    <string name="ui_theme_custom_default_action">Predefinido</string>
+
+    <string name="ui_mascot_suit_dialog_title">Fato do Butler</string>
+    <string name="ui_mascot_suit_default_action">Predefinido</string>
+    <string name="ui_mascot_suit_hue_label">Matiz</string>
+    <string name="ui_mascot_suit_saturation_label">Saturação</string>
+    <string name="ui_mascot_suit_brightness_label">Luminosidade</string>
+    <string name="ui_mascot_suit_value_description">Cor do fato: %s</string>
+
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">Estatísticas de utilização</string>
+    <string name="setup_shizuku_card_title">Acesso ADB</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Acesso às notificações</string>
+    <string name="setup_manage_storage_card_title">Gerir armazenamento externo</string>
+    <string name="setup_inventory_card_title">Inventário de aplicações</string>
+
+    <!-- Common permission strings -->
+    <string name="setup_required_card_title">Configuração necessária</string>
+    <string name="setup_required_card_body">É necessária configuração adicional para executar esta operação.</string>
+    <string name="setup_required_card_setup_action">Abrir configuração</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">Abrir vários separadores?</string>
+    <string name="common_open_tabs_confirmation_message">Isto vai abrir %1$d separadores.</string>
+    <string name="common_open_tabs_success">%1$d separadores abertos</string>
+    <string name="common_open_tabs_success_with_skipped">%1$d separadores abertos (%2$d itens ignorados)</string>
+
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">Fechar separador?</string>
+    <string name="general_tab_close_confirmation_message">Queres mesmo fechar \"%1$s\"?</string>
+    <string name="general_tab_close_unsaved_title">Alterações por guardar</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" tem alterações por guardar. Fechar e descartá-las?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" e mais %2$d têm alterações por guardar. Fechar e descartá-las?</string>
+    <string name="general_discard_action">Descartar</string>
+    <string name="general_tab_close_goto_action">Ir para o separador</string>
+
+    <!-- Exit app -->
+    <string name="general_press_back_again_to_exit">Prime Voltar novamente para sair</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d selecionado</item>
+        <item quantity="many">%d selecionados</item>
+        <item quantity="other">%d selecionados</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d pasta</item>
+        <item quantity="many">%1$d pastas</item>
+        <item quantity="other">%1$d pastas</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d ficheiro</item>
+        <item quantity="many">%1$d ficheiros</item>
+        <item quantity="other">%1$d ficheiros</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Selecionar todas as pastas</string>
+    <string name="common_select_all_files_action">Selecionar todos os ficheiros</string>
+    <string name="general_undo_action">Anular</string>
+
+    <!-- Guided tours -->
+    <string name="tour_action_next">Seguinte</string>
+    <string name="tour_action_previous">Anterior</string>
+    <string name="tour_action_cancel">Saltar</string>
+    <string name="tour_confirm_title">Saltar a visita guiada?</string>
+    <string name="tour_confirm_message">Podes voltar a ativar as visitas guiadas a qualquer momento nas Definições.</string>
+    <string name="tour_confirm_continue">Continuar visita guiada</string>
+    <string name="tour_confirm_dont_show_this_tour">Não mostrar esta visita guiada</string>
+    <string name="tour_confirm_disable_all">Desativar todas as visitas guiadas</string>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">Usa vários painéis para comparar ficheiros lado a lado.</string>
+    <string name="common_tip_different_folders">Abre pastas diferentes em cada painel para gerir os ficheiros facilmente.</string>
+    <string name="common_tip_switch_layouts">Muda a disposição dos painéis em Disposição, no menu do Butler.</string>
+    <string name="common_tip_elevated_access">Ativa o acesso root ou ADB na Configuração para operações avançadas com ficheiros.</string>
+    <string name="common_tip_breadcrumb_home">Mantém premido um segmento do caminho no Explorador para o definir como a tua pasta inicial.</string>
+</resources>

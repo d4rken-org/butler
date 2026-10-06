@@ -1,0 +1,551 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_welcome_title">Butler ti želi dobrodošlicu</string>
+    <string name="onboarding_welcome_message">Kartice za datoteke.\nPregledavaj, pretražuj i uređuj — sve odjednom.</string>
+    <string name="onboarding_welcome_subtitle">Otvorenog koda. Bez oglasa. Bez praćenja.\nPreglednik datoteka kakav zaslužuješ.</string>
+    <string name="onboarding_welcome_action">Počni istraživati</string>
+    <string name="onboarding_beta_title">Oblikuj budućnost</string>
+    <string name="onboarding_beta_message">Ovo je beta (testna) verzija. Nastavi uz smisao za humor i rezervni plan. Prijavi probleme na koje naiđeš.</string>
+    <string name="onboarding_beta_action">Ničega se ne bojim</string>
+    <string name="onboarding_beta_feature_early_access_title">Rani pristup</string>
+    <string name="onboarding_beta_feature_early_access_description">Isprobaj najnovije značajke prije svih ostalih.</string>
+    <string name="onboarding_beta_feature_influence_title">Izravan utjecaj</string>
+    <string name="onboarding_beta_feature_influence_description">Tvoje povratne informacije oblikuju razvoj Butlera.</string>
+    <string name="onboarding_beta_feature_feedback_title">Zajednica pokreće razvoj</string>
+    <string name="onboarding_beta_feature_feedback_description">Pridruži se zajednici naprednih korisnika koji poboljšavaju Butler.</string>
+    <string name="onboarding_privacy_title">Privatnost i podaci</string>
+    <string name="onboarding_privacy_message">Butler nema oglase i ne prodaje korisničke podatke. Tvoja mi je privatnost važna.</string>
+    <string name="onboarding_privacy_read_action">Pročitaj pravila privatnosti</string>
+    <string name="onboarding_privacy_action">Prihvati</string>
+    <string name="onboarding_skip_action">Preskoči</string>
+    <string name="onboarding_progress_step">%1$d od %2$d</string>
+
+    <string name="onboarding_workspaces_title">Radi u karticama</string>
+    <string name="onboarding_workspaces_message">Otvori više kartica i prelazi s jedne na drugu — baš kao u svojem web-pregledniku.</string>
+    <string name="onboarding_workspaces_action">Nastavi</string>
+    <string name="onboarding_workspaces_hint">Drži više kartica otvorenima istodobno.</string>
+    <string name="onboarding_workspaces_explorer_title">Preglednik datoteka</string>
+    <string name="onboarding_workspaces_explorer_description">Pregledavaj svoje datoteke.</string>
+    <string name="onboarding_workspaces_searcher_title">Pretraživanje</string>
+    <string name="onboarding_workspaces_searcher_description">Pronađi što tražiš.</string>
+    <string name="onboarding_workspaces_editor_title">Uređivač</string>
+    <string name="onboarding_workspaces_editor_description">Uređuj datoteke.</string>
+    <string name="onboarding_workspaces_apps_description">Upravljaj svojim aplikacijama.</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">Novi preglednik datoteka</string>
+    <string name="shortcut_explorer_new_long">Stvori novu karticu preglednika datoteka</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">Prečaci</string>
+    <string name="shortcuts_settings_subtitle">Postavi prečace u pokretaču</string>
+    <string name="shortcuts_settings_enabled_title">Omogući prečace</string>
+    <string name="shortcuts_settings_enabled_subtitle">Prikaži često upotrebljavane stavke u pokretaču</string>
+    <string name="shortcuts_settings_auto_remember_title">Zapamti posjećene putanje</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Automatski dodaj često posjećene putanje kao prečace</string>
+    <string name="shortcuts_settings_last_accessed_title">Posljednji pristup</string>
+    <string name="shortcuts_settings_max_count_title">Najviše prečaca</string>
+    <string name="shortcuts_settings_max_count_summary">Najveći broj prečaca prikazanih u pokretaču</string>
+    <string name="shortcuts_settings_min_access_title">Najmanje pristupa</string>
+    <string name="shortcuts_settings_min_access_summary">Koliko puta treba otvoriti putanju prije nego što postane prečac</string>
+    <string name="shortcuts_settings_current_title">Trenutačni prečaci</string>
+    <string name="shortcuts_settings_current_subtitle">Broj praćenih prečaca: %d</string>
+    <string name="shortcuts_settings_clear_title">Očisti povijest prečaca</string>
+    <string name="shortcuts_settings_clear_subtitle">Ukloni sve praćene prečace</string>
+    <string name="shortcuts_settings_clear_confirm_title">Očistiti povijest prečaca?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Uklonit će se svi praćeni prečaci. Knjižne oznake ostat će sačuvane.</string>
+    <string name="shortcuts_settings_cleared_message">Povijest prečaca je očišćena</string>
+    <string name="shortcuts_settings_max_dialog_title">Najviše prečaca</string>
+    <string name="shortcuts_settings_max_dialog_message">Broj prečaca za prikaz u pokretaču (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Najmanji broj pristupa</string>
+    <string name="shortcuts_settings_min_dialog_message">Koliko puta treba pristupiti putanji prije nego što se pojavi kao prečac (1–10)</string>
+
+    <string name="setup_usagestats_title">Statistika upotrebe</string>
+    <string name="setup_shizuku_card_title">ADB pristup</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Pristup obavijestima</string>
+    <string name="setup_manage_storage_card_title">Upravljanje vanjskom pohranom</string>
+    <string name="setup_inventory_card_title">Popis aplikacija</string>
+
+    <string name="setup_title">Postavljanje dozvola</string>
+    <string name="setup_settings_description">Postavi dozvole i značajke aplikacije.</string>
+    <string name="setup_help_description">Pomoć</string>
+
+    <string name="setup_root_description">Omogućuje pristup sustavskim datotekama i zaštićenim mapama za napredno upravljanje datotekama. Otključava puni potencijal Butlera, uključujući pristup podacima aplikacija i izmjene sustava. Uređaj mora imati root pristup.</string>
+    <string name="setup_shizuku_description">Alternativa root pristupu koja omogućuje povlaštene operacije s datotekama putem sigurnog API-ja. Omogućuje pristup ograničenim mapama bez uobičajenog root pristupa. Porter ili Shizuku mora biti instaliran i pokrenut.</string>
+    <string name="setup_notification_description">Prikazuje obavijesti o operacijama s datotekama, pozadinskim zadacima i napretku prijenosa. Obavještava te kada operacije završe ili dođe do pogrešaka.</string>
+    <string name="setup_usagestats_description">Analizira koliko prostora aplikacije zauzimaju u pohrani radi pronalaženja velikih datoteka i učinkovitog upravljanja prostorom. Svi podaci ostaju na tvojem uređaju i nikad se ne šalju.</string>
+    <string name="setup_storage_description">Puni pristup cjelokupnoj pohrani uređaja za brze operacije s datotekama i skupnu obradu. Omogućuje sveobuhvatno upravljanje datotekama bez ponavljanih zahtjeva za dozvolu.</string>
+    <string name="setup_inventory_description">Prikaži sve instalirane aplikacije za značajke poput izdvajanja APK-ova i analize pohrane. Potrebno na Androidu 11 i novijem za prikaz potpunog popisa aplikacija.</string>
+
+    <string name="setup_grant_access_label">Odobri pristup</string>
+    <string name="setup_access_granted_label">Pristup je odobren</string>
+    <string name="setup_use_root_label">Upotrijebi root pristup ako je dostupan</string>
+    <string name="setup_use_shizuku_label">Upotrijebi ADB pristup ako je dostupan</string>
+
+    <string name="setup_status_checking">Provjera…</string>
+    <string name="setup_status_completed">Postavljeno</string>
+    <string name="setup_status_required">Obavezno</string>
+    <string name="setup_status_optional">Neobavezno</string>
+    <string name="setup_status_connected">Povezano</string>
+    <string name="setup_status_not_connected">Nije povezano</string>
+    <string name="setup_status_not_installed">Nije instalirano</string>
+    <string name="setup_status_connecting">Povezivanje…</string>
+    <string name="setup_status_connection_failed">Povezivanje nije uspjelo</string>
+    <string name="setup_status_unavailable">Nedostupno</string>
+    <string name="setup_status_permission_denied">Dozvola je odbijena</string>
+    <string name="setup_adb_status_manager_update_required">Potrebno je ažuriranje</string>
+    <string name="setup_adb_status_butler_update_required">Potrebno je ažuriranje Butlera</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_connected_via">Povezano putem aplikacije %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_not_allowed_yet">Aplikacija %1$s još nije dopustila pristup</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". Shown when that app no longer asks, so access has to be changed there. -->
+    <string name="setup_adb_status_denied_in">Pristup je odbijen u aplikaciji %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_open_manager_action">Otvori %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_install_manager_action">Instaliraj %1$s</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">Obavijesti za otklanjanje pogrešaka</string>
+    <string name="debug_log_consent_title">Dnevnik za otklanjanje pogrešaka</string>
+    <string name="debug_log_consent_explanation">Ova značajka zapisuje sve što aplikacija radi u datoteku koju možeš podijeliti. Izrađena datoteka sadrži osjetljive informacije (npr. nazive datoteka i instalirane aplikacije). Podijeli je samo s osobama kojima vjeruješ (npr. s razvojnim programerom koji rješava problem).</string>
+    <string name="debug_log_recording_progress">Snimanje dnevnika za otklanjanje pogrešaka</string>
+    <string name="debug_log_record_action">Snimi</string>
+    <string name="debug_log_record_full_action">Snimi dnevnik za otklanjanje pogrešaka</string>
+    <string name="debug_log_stop_action">Zaustavi snimanje</string>
+    <string name="debug_log_screen_title">Snimač dnevnika za otklanjanje pogrešaka</string>
+    <string name="debug_log_screen_sensitive_information_message">Izrađena datoteka sadrži osjetljive informacije (npr. nazive datoteka i instalirane aplikacije). Podijeli je samo s osobama kojima vjeruješ.</string>
+    <string name="debug_log_screen_session_path_label">Putanja sesije otklanjanja pogrešaka</string>
+    <string name="debug_log_screen_log_files_label">Datoteke dnevnika</string>
+    <string name="debug_log_screen_log_files_ready">Datoteke dnevnika spremne (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Odbaci</string>
+    <string name="debug_log_file_label">Snimljena datoteka dnevnika</string>
+    <string name="debug_banner_label">SNIM</string>
+    <string name="debug_banner_label_expanded">Snimanje datoteke dnevnika</string>
+    <string name="debug_banner_stop_action">Zaustavi</string>
+    <string name="debug_banner_view_action">Prikaži</string>
+    <string name="debug_banner_explanation">Snimanje aktivnosti aplikacije. Zaustavi snimanje kad završiš, a zatim podijeli dnevnik pri prijavljivanju programskih pogrešaka.</string>
+    <string name="debug_log_short_recording_title">Snimka je vrlo kratka</string>
+    <string name="debug_log_short_recording_message">Dnevnici za otklanjanje pogrešaka bilježe što se događa dok je snimanje aktivno. Pokreni snimanje, ponovi problem, a zatim zaustavi snimanje. Ova snimka možda ne sadrži korisne informacije.</string>
+    <string name="debug_log_short_recording_keep_action">Nastavi snimanje</string>
+
+    <string name="debug_logview_screen_title">Preglednik dnevnika</string>
+    <string name="debug_logview_pause_action">Pauziraj (zamrzni prikaz)</string>
+    <string name="debug_logview_resume_action">Nastavi</string>
+    <string name="debug_logview_copy_action">Kopiraj dnevnik</string>
+    <string name="debug_logview_collapse_action">Sažmi</string>
+    <string name="debug_logview_close_action">Zatvori ploču dnevnika</string>
+    <string name="debug_logview_resize_action">Promijeni veličinu</string>
+    <string name="debug_logview_more_action">Više opcija</string>
+    <string name="debug_logview_level_action">Razina zapisivanja</string>
+    <string name="debug_logview_clear_action">Očisti međuspremnik</string>
+    <string name="debug_logview_search_action">Pretraži</string>
+    <string name="debug_logview_search_clear_action">Očisti pretraživanje</string>
+    <string name="debug_logview_search_close_action">Zatvori pretraživanje</string>
+    <string name="debug_logview_search_prev_action">Prethodno podudaranje</string>
+    <string name="debug_logview_search_next_action">Sljedeće podudaranje</string>
+    <string name="debug_logview_jump_to_bottom_action">Idi na najnovije</string>
+    <string name="debug_logview_paused_msg">Pauzirano — prikaz zamrznut</string>
+    <string name="debug_logview_paused_new_msg">Pauzirano — broj novih redaka od tada: %1$d</string>
+    <string name="debug_logview_copied_msg">Dnevnik kopiran u međuspremnik</string>
+    <string name="debug_logview_copied_truncated_msg">U međuspremnik su kopirani posljednji redci: %1$d</string>
+    <string name="debug_logview_share_label">Podijeli dnevnik</string>
+
+    <string name="settings_label">Postavke</string>
+    <string name="settings_category_tools_label">Alati</string>
+    <string name="settings_category_other_label">Ostalo</string>
+    <string name="settings_category_integration_label">Integracija</string>
+    <string name="general_settings_label">Općenito</string>
+    <string name="general_settings_desc">Opće prilagodbe koje utječu na cijelu aplikaciju.</string>
+    <string name="settings_category_ui_label">Korisničko sučelje</string>
+    <string name="ui_mascot_suit_setting_label">Butlerovo odijelo</string>
+    <string name="ui_mascot_suit_setting_explanation">Boja od koje je skrojeno Butlerovo odijelo.</string>
+    <string name="ui_theme_mode_setting_label">Način rada teme</string>
+    <string name="ui_theme_mode_setting_explanation">Način rada koji se upotrebljava pri oblikovanju teme aplikacije (npr. noćni ili dnevni).</string>
+    <string name="ui_theme_style_setting_label">Stil teme</string>
+    <string name="ui_theme_style_setting_explanation">Stil boja koji se upotrebljava za temu aplikacije.</string>
+    <string name="ui_theme_color_setting_label">Boja teme</string>
+    <string name="ui_theme_color_setting_explanation">Paleta boja koja se upotrebljava za temu aplikacije.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Material You određuje boje na temelju tvoje pozadine</string>
+    <string name="ui_theme_color_value_system">Boje sustava</string>
+    <string name="ui_language_override_label">Jezik aplikacije</string>
+    <string name="ui_language_override_desc">Odaberi drugi jezik za Butler, neovisno o zadanom jeziku svojeg sustava.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Izbjegavaj izrez zaslona</string>
+    <string name="ui_display_cutout_avoid_setting_description">Drži sučelje izvan izreza za kameru. Isključi ovu opciju da upotrijebiš veći dio zaslona, ali tada se dijelovi sučelja mogu naći iza izreza.</string>
+
+    <string name="previews_settings_title">Pretpregledi</string>
+    <string name="previews_settings_subtitle">Upravljaj predmemorijama pretpregleda slika.</string>
+
+    <string name="tour_settings_reset_title">Vrati vođene obilaske na početno</string>
+    <string name="tour_settings_reset_subtitle">Ponovno prikaži vođene obilaske, uključujući sve preskočene ili onemogućene.</string>
+    <string name="tour_settings_reset_done">Vođeni obilasci vraćeni su na početno.</string>
+
+    <string name="storage_settings_title">Pohrana</string>
+    <string name="storage_settings_subtitle">Upravljaj Butlerovim predmemorijama, pohranom i smećem.</string>
+    <string name="storage_category_previews_label">Pretpregledi</string>
+    <string name="storage_previews_disk_cache_title">Predmemorija na disku</string>
+    <string name="storage_previews_memory_cache_title">Predmemorija u radnoj memoriji</string>
+    <string name="storage_previews_max_size_title">Najveća veličina predmemorije</string>
+    <string name="storage_clear_disk_confirm_title">Očistiti predmemoriju na disku?</string>
+    <string name="storage_clear_disk_confirm_message">Uklonit će se sve slike pretpregleda iz predmemorije. Ponovno će se izraditi prema potrebi.</string>
+    <string name="storage_clear_memory_confirm_title">Očistiti predmemoriju u radnoj memoriji?</string>
+    <string name="storage_clear_memory_confirm_message">Uklonit će se slike pretpregleda iz predmemorije u radnoj memoriji. Ponovno će se izraditi prema potrebi.</string>
+    <string name="storage_clear_all_confirm_title">Očistiti sve predmemorije?</string>
+    <string name="storage_clear_all_confirm_message">Očistit će se predmemorije slika pretpregleda na disku i u radnoj memoriji.</string>
+    <string name="storage_clear_all_previews_action">Očisti sve predmemorije pretpregleda</string>
+    <string name="storage_clear_all_subtitle">Ukloni sve predmemorije pretpregleda</string>
+    <string name="storage_cache_cleared_message">Predmemorija je očišćena</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">Provjeravaj ažuriranja</string>
+    <string name="updater_check_enabled_setting_description">Dopusti Butleru da na internetu provjeri je li dostupna nova verzija.</string>
+    <string name="motd_check_enabled_setting_title">Provjeravaj objave</string>
+    <string name="motd_check_enabled_setting_description">Dopusti Butleru da dohvati važne poruke razvojnog programera.</string>
+    <string name="motd_card_header">Objava</string>
+
+    <string name="confirm_exit_setting_title">Potvrdi izlaz</string>
+    <string name="confirm_exit_setting_description">Prikaži dijaloški okvir za potvrdu pri izlasku iz aplikacije.</string>
+    <string name="confirm_exit_dialog_title">Izađi iz Butlera</string>
+    <string name="confirm_exit_dialog_message">Aplikacija će se zatvoriti i vratit ćeš se na početni zaslon.</string>
+    <string name="confirm_exit_dialog_exit">Izađi</string>
+    <string name="confirm_exit_dialog_cancel">Odustani</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Ne pitaj ponovno</string>
+
+    <string name="settings_support_category_help_label">Potraži pomoć</string>
+    <string name="settings_support_label">Podrška</string>
+    <string name="settings_support_description">Pročitaj dokumentaciju, prijavi probleme, razgovaraj s drugima ili snimi dnevnike za otklanjanje pogrešaka.</string>
+    <string name="settings_support_wiki_label">Dokumentacija</string>
+    <string name="settings_support_wiki_description">Saznaj kako učinkovito upotrebljavati Butler.</string>
+    <string name="settings_support_issue_tracker_description">Javni sustav za prijavu programskih pogrešaka i zahtjeva za značajke.</string>
+    <string name="settings_support_issue_tracker_label">Praćenje problema</string>
+    <string name="settings_support_debuglog_label">Dnevnik za otklanjanje pogrešaka</string>
+    <string name="settings_support_debuglog_desc">Zapiši sve što aplikacija radi u tekstnu datoteku koju možeš podijeliti.</string>
+    <string name="settings_support_debuglog_recording_desc">Trenutačno se snimaju podaci za otklanjanje pogrešaka. Dodirni za zaustavljanje snimanja.</string>
+    <string name="settings_support_debuglog_path">Putanja dnevnika: %1$s</string>
+    <string name="settings_support_bugreports_label">Izvješća o programskim pogreškama</string>
+    <string name="settings_support_bugreports_desc">Pregledaj izvješća o rušenju, snimi dnevnike za otklanjanje pogrešaka i podijeli ih sa mnom.</string>
+    <string name="support_contact_report_type_crash">Izvješće o rušenju</string>
+    <string name="support_contact_report_type_reported">Izvješće o programskoj pogrešci</string>
+    <string name="support_contact_report_type_recording">Snimanje</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Mjesto za druženje i postavljanje pitanja.</string>
+
+    <string name="settings_acknowledgements_label">Zahvale</string>
+    <string name="settings_acknowledgements_description">Zasluge, licence i posebne zahvale.</string>
+    <string name="settings_acks_translation_header">Prijevod</string>
+    <string name="settings_acks_translators_title">Prevoditelji</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Prevedi Butler</string>
+    <string name="settings_acks_translate_desc">Pomozi prevesti Butler na svoj jezik.</string>
+
+    <string name="settings_acks_thanks_header">Hvala</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">Za podršku prevođenju projekata otvorenog koda.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Hvala za ikonu, dizajn maskote i animacije.</string>
+    <string name="settings_licenses_label">Licence</string>
+
+    <!-- Workspace Status Card -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d kartica</item>
+        <item quantity="few">%1$d kartice</item>
+        <item quantity="other">%1$d kartica</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d operacija</item>
+        <item quantity="few">%1$d operacije</item>
+        <item quantity="other">%1$d operacija</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">Zahtijeva pozornost: %1$d</item>
+        <item quantity="few">Zahtijeva pozornost: %1$d</item>
+        <item quantity="other">Zahtijeva pozornost: %1$d</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">Nespremljeno: %1$d</item>
+        <item quantity="few">Nespremljeno: %1$d</item>
+        <item quantity="other">Nespremljeno: %1$d</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">Pauzirano: %1$d</item>
+        <item quantity="few">Pauzirano: %1$d</item>
+        <item quantity="other">Pauzirano: %1$d</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">Prikaži sve kartice</string>
+    <string name="workspace_status_filter_operations_desc">Filtriraj po karticama s operacijama</string>
+    <string name="workspace_status_filter_attention_desc">Filtriraj po karticama koje zahtijevaju pozornost</string>
+    <string name="workspace_status_filter_paused_desc">Filtriraj po pauziranim karticama</string>
+    <string name="workspace_status_filter_unsaved_desc">Filtriraj po karticama s nespremljenim promjenama</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Programski jezik Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Brz alat za ubrizgavanje ovisnosti za Android i Javu. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Pokreni kod u Javi (i Kotlinu) s root ovlastima! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Jednostavno pokretanje Kotlin JVM koda s root ovlastima pomoću korutina. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Omogućuje Android aplikacijama ADB pristup putem Shizuku API-ja, uz neobaveznu podršku za root pristup. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Izravna upotreba sustavskih API-ja s adb/root ovlastima iz običnih aplikacija putem procesa Jave pokrenutog pomoću app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Airbnbov Lottie za Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Robot Android reproduciran je ili izmijenjen prema djelu koje je izradio i podijelio Google, a upotrebljava se prema uvjetima opisanima u licenci Creative Commons 3.0 Attribution.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Androidov moderni skup alata za izradu izvornog korisničkog sučelja. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Biblioteke Jetpack</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation i druge biblioteke AndroidX. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Proširenja za Kotlin</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Biblioteke Coroutines i Serialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Biblioteka za učitavanje slika koja upotrebljava Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Kriptografski primitivi za SMB autentifikaciju, potpisivanje i šifriranje. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Biblioteke Square</string>
+    <string name="acknowledgement_square_libraries_subtitle">Mrežne biblioteke Retrofit, OkHttp i OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Pomoćni alati za Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Povlačenje i ispuštanje za LazyColumn u Composeu. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Biblioteka za semantičko verzioniranje za Kotlin. (Licenca MIT)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Dijagrami i grafikoni za Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Pravila privatnosti</string>
+    <string name="settings_privacy_policy_desc">Odgovorno postupanje s podacima.</string>
+
+    <string name="changelog_label">Dnevnik promjena</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Status nadogradnje Butlera</string>
+    <string name="upgrade_status_free">Status: Besplatno</string>
+    <string name="upgrade_status_pro">Status: Pro</string>
+    <string name="upgrade_status_foss">Status: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD kartica</string>
+    <string name="storage_area_public_label">Javna pohrana</string>
+    <string name="storage_area_public_app_data_label">Javni podaci aplikacija</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">Upravitelj kartica</string>
+    <string name="workspace_manager_empty_title">Nema kartica</string>
+    <string name="workspace_manager_empty_subtitle">Stvori svoju prvu karticu za početak</string>
+
+    <!-- Workspace > Empty Content -->
+    <string name="workspace_empty_create_action">Stvori karticu</string>
+    <string name="workspace_empty_create_hint">Radi usporedno: stvori karticu i pretvori je u alat po svojem izboru.</string>
+    <string name="workspace_empty_settings_action">Otvori postavke</string>
+    <string name="workspace_empty_settings_hint">Prilagodi Butler po svojem ukusu. Podesi kako se alati ponašaju.</string>
+    <string name="workspace_classic_empty_tabs_closed">Nema otvorenih kartica. Možemo početi kad god želiš.</string>
+    <string name="workspace_classic_empty_tip">Savjet: dodirni „Stvori karticu” i odaberi alat — Preglednik datoteka, Pretraživanje, Uređivač i druge.</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">Počni s karticom</string>
+    <string name="tour_first_tab_body">Butler radi u karticama, kao preglednik: svaka je zaseban alat — Preglednik datoteka, Pretraživanje, Uređivač i drugi. Stvori svoju prvu karticu.</string>
+    <string name="tour_manager_fab_title">Brzi prečaci</string>
+    <string name="tour_manager_fab_body">Dodirni ovdje za prečace do alata koje najviše upotrebljavaš i za zatvaranje svih kartica odjednom.</string>
+    <string name="tour_manager_reorder_title">Promijeni redoslijed kartica</string>
+    <string name="tour_manager_reorder_body">Pritisni i zadrži naslovnu traku kartice, a zatim je povuci kamo želiš. Tim će se redoslijedom tvoje kartice prikazivati i svugdje drugdje.</string>
+    <string name="tour_manager_select_title">Radi na više kartica</string>
+    <string name="tour_manager_select_body">Pritisni i zadrži pretpregled kartice da počneš odabirati kartice. Zatim dodirni ostale i zatvori ih ili pauziraj sve odjednom.</string>
+    <string name="tour_manager_new_tab_title">Otvori novu karticu</string>
+    <string name="tour_manager_new_tab_body">Dodirni ovu pločicu da odabereš bilo koji alat za novu karticu.</string>
+    <string name="tour_swipe_switch_title">Prelazi među karticama povlačenjem</string>
+    <string name="tour_swipe_switch_body">Povuci lijevo ili desno bilo gdje na stranici da prijeđeš na drugu otvorenu karticu.</string>
+    <string name="tour_swipe_create_title">Povuci za novu karticu</string>
+    <string name="tour_swipe_create_body">Povuci dalje od posljednje kartice i Butler će ti ponuditi novu.</string>
+    <string name="tour_swipe_panes_title">Više kartica odjednom</string>
+    <string name="tour_swipe_panes_body">Na većem zaslonu ili u vodoravnom položaju Butler prikazuje više kartica jednu uz drugu. Postavke rasporeda u odjeljku Kartice određuju kada se to događa.</string>
+    <string name="tour_panes_rail_title">Sve tvoje kartice</string>
+    <string name="tour_panes_rail_body">Ovdje su sve otvorene kartice. Dodirni jednu i odaberi okno u koje će se smjestiti. Pritisni i zadrži karticu, a zatim je povuci da promijeniš njihov redoslijed.</string>
+    <string name="tour_panes_divider_title">Promijeni veličinu okana</string>
+    <string name="tour_panes_divider_body">Povuci ovaj razdjelnik da jednom oknu daš više prostora.</string>
+    <string name="tour_panes_layout_title">Promijeni raspored</string>
+    <string name="tour_panes_layout_body">Dodirni gumb Butler i odaberi Raspored da prerasporediš okna. Postavke u odjeljku Kartice omogućuju postavljanje stalnog rasporeda za svaki položaj zaslona.</string>
+
+    <string name="workspace_creating_placeholder">Stvaranje kartice…</string>
+    <string name="workspace_ondemand_swipe_title">Povuci za stvaranje nove kartice</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">Okno %1$d spremno je za sadržaj</string>
+    <string name="workspace_adaptive_add_action">Dodaj karticu</string>
+
+    <string name="workspace_badge_tip_title">Savjet: pokazatelji na gumbu kartica</string>
+    <string name="workspace_badge_open_workspaces">Broj otvorenih kartica</string>
+    <string name="workspace_badge_active_operations">Aktivne operacije (kopiranje datoteka, pretraživanja itd.)</string>
+    <string name="workspace_badge_attention_items">Stavke koje zahtijevaju pozornost (neuspjele operacije ili operacije na čekanju, nedostupne datoteke)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">Zatvori</string>
+    <string name="workspace_manager_selection_count">Odabrano: %1$d</string>
+    <string name="workspace_manager_selection_select_all">Odaberi sve</string>
+    <string name="workspace_manager_selection_pause_action">Pauziraj odabrane</string>
+    <string name="workspace_manager_selection_close_action">Zatvori odabrane</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Izađi iz načina odabira</string>
+    <string name="workspace_manager_selection_clear_content_desc">Očisti odabir</string>
+    <string name="workspace_manager_select_all_tabs_desc">Odaberi sve kartice</string>
+    <string name="workspace_manager_new_tab_card_title">Nova kartica</string>
+    <string name="workspace_row_select_content_desc">Odaberi karticu</string>
+    <string name="general_cancel_action">Odustani</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">Brzi prečaci</string>
+    <string name="workspace_fab_close_shortcuts">Zatvori prečace</string>
+    <string name="workspace_fab_close_all">Zatvori sve kartice</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">Dodijeli oknu %1$d</string>
+    <string name="workspace_pane_show_action">Prikaži</string>
+    <string name="workspace_pane_menu_action">Prikaži opcije kartice</string>
+    <string name="workspace_pane_close_action">Zatvori</string>
+    <string name="workspace_pane_unassign_action">Ukloni iz okna</string>
+    <string name="workspace_dragging_description">Povlačenje</string>
+    <string name="workspace_pane_current_description">U oknu %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">Zatvori karticu</string>
+    <string name="workspace_row_more_options_content_desc">Više opcija</string>
+    <string name="workspace_row_operations_running_content_desc">Radi</string>
+    <string name="workspace_row_operations_pending_content_desc">Rad na čekanju</string>
+    <string name="workspace_row_pause_action">Pauziraj</string>
+    <string name="workspace_row_resume_action">Nastavi</string>
+    <string name="workspace_row_stacked_content_desc">Složeno na ovoj kartici</string>
+    <string name="workspace_row_unsaved_content_desc">Nespremljene promjene</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">Postavi ponašanje kartica.</string>
+    <string name="explorer_settings_subtitle">Postavi ponašanje preglednika datoteka.</string>
+    <string name="searcher_settings_subtitle">Postavi ponašanje pretraživanja.</string>
+    <string name="editor_settings_subtitle">Postavi ponašanje uređivača teksta.</string>
+    <string name="viewer_settings_subtitle">Postavi ponašanje prikazivača datoteka.</string>
+    <string name="history_settings_subtitle">Čuvanje i brisanje povijesti operacija.</string>
+    <string name="clipboard_settings_subtitle">Postavi ponašanje međuspremnika.</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">Spremi kao…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">Otvori u Butleru</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">Uredi tekst</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">Neimenovana datoteka</string>
+    <string name="external_open_action_view">Prikaži</string>
+    <string name="external_open_action_edit">Uredi kao tekst</string>
+    <string name="external_open_action_show_in_explorer">Prikaži u pregledniku datoteka</string>
+    <string name="external_open_action_save">Spremi kao…</string>
+    <string name="external_open_failed_label">Nije moguće otvoriti datoteku</string>
+    <string name="external_open_failed_description">Butler nije mogao otvoriti \"%1$s\".</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">Omogućiti način rada za razvojne programere?</string>
+    <string name="settings_developer_mode_unlock_message">Time se otključavaju napredni dijagnostički alati za rješavanje problema i testiranje.</string>
+    <string name="settings_developer_mode_unlock_action">Omogući</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">Još %d korak do načina rada za razvojne programere</item>
+        <item quantity="few">Još %d koraka do načina rada za razvojne programere</item>
+        <item quantity="other">Još %d koraka do načina rada za razvojne programere</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">Kontaktiraj razvojnog programera</string>
+    <string name="support_contact_description">Ispuni obrazac da mi pošalješ e-poruku.</string>
+    <string name="support_contact_no_email_app">Nije pronađena aplikacija za e-poštu</string>
+    <string name="support_contact_category_label">Kategorija</string>
+    <string name="support_contact_category_question">Pitanje</string>
+    <string name="support_contact_category_feature">Zahtjev za značajku</string>
+    <string name="support_contact_category_bug">Izvješće o programskoj pogrešci</string>
+    <string name="support_contact_workspace_label">Povezano područje</string>
+    <string name="support_contact_workspace_general">Općenito</string>
+    <string name="support_contact_workspace_explorer">Preglednik datoteka</string>
+    <string name="support_contact_workspace_searcher">Pretraživanje</string>
+    <string name="support_contact_workspace_editor">Uređivač</string>
+    <string name="support_contact_description_label">Opis</string>
+    <string name="support_contact_description_question_hint">Detaljno opiši svoje pitanje. Navedi konkretne pojedinosti (najmanje 20 riječi).</string>
+    <string name="support_contact_description_feature_hint">Opiši značajku koju želiš. Navedi konkretne pojedinosti (najmanje 20 riječi).</string>
+    <string name="support_contact_description_bug_hint">Opiši što se dogodilo i kako ponoviti problem. Navedi konkretne pojedinosti (najmanje 20 riječi).</string>
+    <string name="support_contact_expected_label">Očekivano ponašanje</string>
+    <string name="support_contact_expected_hint">Opiši što se trebalo dogoditi (najmanje 10 riječi).</string>
+    <string name="support_contact_word_count">Najmanje %1$d riječi</string>
+    <string name="support_contact_debuglog_label">Dnevnik za otklanjanje pogrešaka</string>
+    <string name="support_contact_debuglog_empty">Nisu pronađeni dnevnici za otklanjanje pogrešaka. Najprije snimi jedan.</string>
+    <string name="support_contact_debuglog_picker_hint">Priloži postojeći dnevnik za otklanjanje pogrešaka ili snimi novi.</string>
+    <string name="support_contact_send_action">Otvori aplikaciju za e-poštu</string>
+    <string name="support_contact_welcome">Osobno čitam svaku poruku i trudim se odgovoriti, ali budući da se ovime bavim samostalno, to može potrajati. Hvala na strpljenju.</string>
+    <string name="support_contact_footer">Tvoja će poruka biti poslana e-poštom. Podaci o uređaju i postavkama automatski se prilažu. E-poruci možeš priložiti snimke zaslona ili videozapis.\n\nNeki će dijelovi e-poruke biti na engleskom kako bi mi bili lakše razumljivi.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">Pohrana dnevnika za otklanjanje pogrešaka</string>
+    <string name="support_debuglog_storage_description">Broj sesija dnevnika: %1$d, %2$s</string>
+    <string name="support_debuglog_storage_empty">Nema pohranjenih dnevnika za otklanjanje pogrešaka</string>
+    <string name="support_debuglog_delete_action">Izbriši sve dnevnike za otklanjanje pogrešaka</string>
+    <string name="support_debuglog_delete_description">Ukloni sve snimljene datoteke dnevnika za otklanjanje pogrešaka</string>
+    <string name="support_debuglog_delete_confirm_title">Izbrisati sve dnevnike za otklanjanje pogrešaka?</string>
+    <string name="support_debuglog_delete_confirm_message">Trajno će se izbrisati sve snimljene sesije dnevnika za otklanjanje pogrešaka. To neće utjecati na aktivna snimanja.</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">Zaustavi snimanje</string>
+    <string name="settings_support_debuglog_record_action">Snimi dnevnik za otklanjanje pogrešaka</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">Sesije dnevnika za otklanjanje pogrešaka</string>
+    <string name="support_debuglog_sessions_desc">Upravljaj snimljenim sesijama dnevnika za otklanjanje pogrešaka</string>
+    <string name="support_debuglog_sessions_empty">Nema sesija dnevnika za otklanjanje pogrešaka</string>
+    <string name="support_debuglog_session_recording">Snimanje…</string>
+    <string name="support_debuglog_session_compressing">Sažimanje…</string>
+    <string name="support_debuglog_session_failed_empty_log">Neuspješno: prazan dnevnik</string>
+    <string name="support_debuglog_session_failed_missing_log">Neuspješno: dnevnik nedostaje</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Neuspješno: oštećena arhiva</string>
+    <string name="support_debuglog_session_failed_zip_failed">Neuspješno: pogreška pri sažimanju</string>
+    <string name="support_debuglog_session_delete_title">Izbrisati sesiju otklanjanja pogrešaka?</string>
+    <string name="support_debuglog_session_delete_message">Ova sesija dnevnika za otklanjanje pogrešaka trajno će se izbrisati.</string>
+    <string name="support_debuglog_clear_action">Očisti sve</string>
+    <string name="support_debuglog_clear_confirm_message">Izbrisati sve pohranjene sesije dnevnika za otklanjanje pogrešaka?</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butler — dnevnik za otklanjanje pogrešaka - %1$s</string>
+    <string name="debug_log_screen_subtitle">Izvezi podatke za otklanjanje pogrešaka radi rješavanja problema</string>
+    <string name="debug_log_screen_sensitive_information_title">Osjetljive informacije</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">Je li poruka poslana?</string>
+    <string name="support_contact_sent_message">Ako je poruka poslana, priloženi dnevnik za otklanjanje pogrešaka bit će izbrisan radi uštede prostora. Ako nije, možeš ga zadržati i pokušati ponovno kasnije.</string>
+    <string name="support_contact_debuglog_zip_error">Nije uspjela priprema privitka dnevnika za otklanjanje pogrešaka</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">Napredak operacija s datotekama</string>
+    <string name="ops_notification_channel_progress_desc">Trenutačni napredak operacija kopiranja, premještanja i brisanja</string>
+    <string name="ops_notification_channel_attention_name">Upozorenja o operacijama s datotekama</string>
+    <string name="ops_notification_channel_attention_desc">Operacije koje zahtijevaju tvoju pozornost ili nisu uspjele</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d operacija s datotekama u tijeku</item>
+        <item quantity="few">%1$d operacije s datotekama u tijeku</item>
+        <item quantity="other">%1$d operacija s datotekama u tijeku</item>
+    </plurals>
+    <string name="ops_notification_state_queued">U redu čekanja…</string>
+    <string name="ops_notification_state_cancelling">Otkazivanje…</string>
+    <string name="ops_notification_state_attention_title">Potrebna je radnja</string>
+    <string name="ops_notification_state_attention_text">Sukob zahtijeva tvoju pozornost — dodirni za rješavanje</string>
+    <string name="ops_notification_result_failed_title">Operacija nije uspjela</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">Želiš li ostaviti recenziju za Butler? ❤️</string>
+    <string name="review_app_dismiss_action">Možda kasnije</string>
+    <string name="review_app_review_action">Napiši recenziju</string>
+</resources>

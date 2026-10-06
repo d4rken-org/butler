@@ -1,0 +1,5 @@
+Correções de erros e pequenas melhorias para gerir os ficheiros no teu dispositivo de forma rápida e sem complicações.
+
+Novidades desta versão: butler.darken.eu/changelog
+
+Algo deixou de funcionar ou comporta-se de forma estranha após a atualização? Diz-me em Definições > Apoio. É um projeto de uma só pessoa, por isso as respostas podem demorar um pouco, mas leio todos os relatos.

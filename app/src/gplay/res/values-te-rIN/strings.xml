@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Butler Pro అవసరం</string>
+
+    <string name="upgrade_prompt_title">Butlerను అప్‌గ్రేడ్ చేయండి</string>
+    <string name="upgrade_prompt_body">Butler Pro అధునాతన వినియోగదారుల కోసం మెరుగైన ఫలితాలు, మరిన్ని ఫీచర్‌లు, ఎంపికలను అందిస్తుంది.</string>
+    <string name="upgrade_prompt_upgrade_action">అప్‌గ్రేడ్ చేయండి</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"). -->
+    <string name="upgrade_screen_title_template">%1$s పొందండి</string>
+    <string name="upgrade_screen_preamble">Butlerలో ప్రకటనలు లేవు, వినియోగదారుల డేటాను విక్రయించదు. నా పనికి ఆర్థిక మద్దతు మీ నుంచే అందుతోంది ❤️.</string>
+
+    <string name="upgrade_screen_how_title">ఎంపికలు</string>
+    <string name="upgrade_screen_subscription_trial_action">14 రోజుల ఉచిత ట్రయల్‌ను ప్రారంభించండి</string>
+    <string name="upgrade_screen_subscription_action">సబ్‌స్క్రైబ్ చేయండి</string>
+    <string name="upgrade_screen_iap_action">ఒక్కసారి కొనుగోలు</string>
+    <string name="upgrade_screen_restore_purchase_action">కొనుగోలును పునరుద్ధరించండి</string>
+    <string name="upgrade_screen_restore_banner_title">ఇప్పటికే Pro కొన్నారా?</string>
+    <string name="upgrade_screen_restore_banner_body">మీరు ఇంతకుముందు ఈ పరికరంలో Proకు అప్‌గ్రేడ్ చేసినట్లు కనిపిస్తోంది. దాన్ని మళ్లీ అందుబాటులోకి తెచ్చుకోవడానికి మీ కొనుగోలును పునరుద్ధరించండి.</string>
+    <string name="upgrade_screen_restore_checked_message">Butler ఇప్పుడే Google Playతో తనిఖీ చేసింది, కానీ ఈ యాప్ కోసం Google Play ఉపయోగించే ఖాతాలో Pro కొనుగోలును నిర్ధారించలేకపోయింది.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Google Playతో తనిఖీ సమయానికి పూర్తికాలేదు, కాబట్టి మీ కొనుగోలు స్థితి ఇంకా తెలియదు. మీ ఖాతాలో ఏ మార్పూ జరగలేదు.</string>
+    <string name="upgrade_screen_restore_contact_hint">ఇంకా సమస్య పరిష్కారం కాలేదా? కొనుగోలు చేసిన ఇమెయిల్ చిరునామా నుంచి సంప్రదించండి, మీ Google Play ఆర్డర్ నంబర్‌ను కూడా చేర్చండి.</string>
+    <string name="upgrade_screen_contact_support_action">సహాయం కోసం సంప్రదించండి</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Play Store సమకాలీకరణకు సమయం పట్టవచ్చు. పరికరాన్ని పునఃప్రారంభించడం, Google Play కాష్‌ను క్లియర్ చేయడం ప్రయత్నించండి లేదా కాసేపు వేచి ఉండండి.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">అనేక ఖాతాలు ఉంటే Google Play గందరగోళానికి లోనవచ్చు. ఇతర ఖాతాల నుంచి లాగ్ అవుట్ చేయండి లేదా Google Play వెబ్‌సైట్ ద్వారా ఇన్‌స్టాల్ చేయండి. అలా చేస్తే ఒక నిర్దిష్ట ఖాతాతోనే అనుసంధానం అవుతుంది.</string>
+    <string name="upgrade_screen_restore_success_message">మీ కొనుగోలు పునరుద్ధరించబడింది ❤️</string>
+    <string name="upgrade_screen_restore_status_title">స్థితి తప్పుగా కనిపిస్తోందా?</string>
+    <string name="upgrade_screen_restore_status_body">Google Playతో మీ కొనుగోలును మళ్లీ తనిఖీ చేయండి. పరికరాన్ని మార్చిన తర్వాత లేదా Google ఖాతాలను మార్చుకున్నప్పుడు ఇది సహాయపడవచ్చు.</string>
+
+    <string name="upgrade_screen_offers_or">లేదా</string>
+
+    <string name="upgrade_screen_offers_title">అప్‌గ్రేడ్ ఎంపికలు</string>
+    <string name="upgrade_screen_offers_body">రెండు ఎంపికలూ అవే Pro ఫీచర్‌లను అందుబాటులోకి తెస్తాయి — మీకు అనుకూలమైన ధర ఎంపికను ఎంచుకోండి.</string>
+    <string name="upgrade_screen_offers_unavailable_title">ధరలు అందుబాటులో లేవు</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler Google Play నుంచి అప్‌గ్రేడ్ ఎంపికలను లోడ్ చేయలేకపోయింది. ఇది సాధారణంగా తాత్కాలిక సమస్య — కాసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.</string>
+    <string name="upgrade_screen_subscription_offer_title">వార్షిక సబ్‌స్క్రిప్షన్</string>
+    <string name="upgrade_screen_subscription_offer_body">14 రోజుల ఉచిత ట్రయల్‌తో ప్రారంభమవుతుంది, ఆ తర్వాత సంవత్సరానికి ఒకసారి చెల్లింపు వసూలు చేయబడుతుంది. ఎప్పుడైనా రద్దు చేయవచ్చు.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">సంవత్సరానికి ఒకసారి చెల్లింపు వసూలు చేయబడుతుంది. ఎప్పుడైనా రద్దు చేయవచ్చు.</string>
+    <string name="upgrade_screen_iap_offer_title">ఒక్కసారి కొనండి</string>
+    <string name="upgrade_screen_iap_offer_body">ఒక్కసారి చెల్లిస్తే, శాశ్వతంగా మీదే. సబ్‌స్క్రిప్షన్ లేదు.</string>
+    <string name="upgrade_screen_restore_body">పునరుద్ధరణ ద్వారా ప్రస్తుత ఖాతాలో ఈ యాప్ కొనుగోళ్లను మళ్లీ తనిఖీ చేయమని Google Playను కోరుతుంది.</string>
+
+    <string name="upgrade_screen_owned_hero_title">మీకు Butler Pro ఉంది!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">ఒక్కసారి కొనుగోలు చేసినందుకు ధన్యవాదాలు — ఇక శాశ్వతంగా ఉపయోగించుకోవచ్చు ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">సబ్‌స్క్రైబ్ చేసినందుకు ధన్యవాదాలు ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">ఒక్కసారి కొనుగోలు</string>
+    <string name="upgrade_screen_owned_iap_body">మీకు శాశ్వత Pro అప్‌గ్రేడ్ ఉంది.</string>
+    <string name="upgrade_screen_owned_sub_title">సబ్‌స్క్రిప్షన్</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">మీ సబ్‌స్క్రిప్షన్ సక్రియంగా ఉంది, ఆటోమేటిక్‌గా రెన్యూ అవుతుంది.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">మీ సబ్‌స్క్రిప్షన్ సక్రియంగా ఉంది, కానీ రెన్యూ కాకుండా సెట్ చేయబడింది. ప్రస్తుత కాలవ్యవధి ముగిసే వరకు Pro అందుబాటులో ఉంటుంది.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">మీరు ఒక్కసారి కొనుగోలు చేశారు, కానీ మీ సబ్‌స్క్రిప్షన్ ఇంకా రెన్యూ అవుతోంది. రెండుసార్లు చెల్లించకుండా ఉండటానికి Google Playలో దాన్ని రద్దు చేయండి.</string>
+    <string name="upgrade_screen_manage_subscription_action">సబ్‌స్క్రిప్షన్‌ను నిర్వహించండి</string>
+
+    <string name="upgrade_screen_switch_locked_note">ముందుగా \"సబ్‌స్క్రిప్షన్‌ను నిర్వహించండి\" ద్వారా రెన్యువల్‌ను రద్దు చేయండి, లేకపోతే రెండింటికీ చెల్లింపు వసూలు చేయబడుతుంది.</string>
+    <string name="upgrade_screen_switch_purchase_note">మీ సబ్‌స్క్రిప్షన్ రెన్యూ కాదు — ఇప్పుడు మీరు సురక్షితంగా ఒక్కసారి కొనుగోలు చేయవచ్చు.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">సబ్‌స్క్రిప్షన్ ఇంకా సక్రియంగా ఉంది</string>
+    <string name="upgrade_screen_sub_still_renewing_message">మీ సబ్‌స్క్రిప్షన్ ఇంకా రెన్యూ అయ్యేలా సెట్ చేయబడి ఉంది. రెండింటికీ చెల్లింపు వసూలు కాకుండా ముందుగా Google Playలో రెన్యువల్‌ను రద్దు చేయండి, ఆ తర్వాత ఒక్కసారి కొనుగోలు చేయండి.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">ధృవీకరించలేకపోయాం</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler Google Playతో మీ కొనుగోలు స్థితిని నిర్ధారించలేకపోయింది, కాబట్టి మీ నుంచి రెండుసార్లు చెల్లింపు వసూలు కాకుండా కొనుగోలు నిలిపివేయబడింది. దయచేసి కాసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.</string>
+
+    <string name="upgrade_screen_pending_card_title">చెల్లింపు పెండింగ్‌లో ఉంది</string>
+    <string name="upgrade_screen_pending_card_body">Google Play ఇంకా మీ చెల్లింపును ప్రాసెస్ చేస్తోంది. చెల్లింపు పూర్తయిన వెంటనే Pro స్వయంచాలకంగా అందుబాటులోకి వస్తుంది. కొన్ని చెల్లింపు పద్ధతులకు కాస్త సమయం పట్టవచ్చు. మీరు ఇంకేమీ చేయాల్సిన అవసరం లేదు.</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play పెండింగ్ చెల్లింపు ఉన్న కొనుగోలును గుర్తించింది, ఇంకా దాన్ని ప్రాసెస్ చేస్తోంది. చెల్లింపు పూర్తయిన వెంటనే Pro స్వయంచాలకంగా అందుబాటులోకి వస్తుంది.</string>
+
+    <string name="upgrade_screen_grace_title">మీ కొనుగోలును నిర్ధారిస్తోంది</string>
+    <string name="upgrade_screen_grace_body_short">మీ Pro స్థితిని నిర్ధారించడానికి Google Playకు కాస్త సమయం పడుతోంది. మీకు ఇంకా పూర్తి యాక్సెస్ ఉంది.</string>
+    <string name="upgrade_screen_grace_body">Google Play ఇంకా మీ Pro స్థితిని మళ్లీ నిర్ధారించలేదు. ప్రస్తుతానికి మీకు ఇంకా యాక్సెస్ ఉంది. ఇది తప్పుగా అనిపిస్తే, మీ కొనుగోలును పునరుద్ధరించడానికి ప్రయత్నించండి.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">ఇప్పటికే కొనుగోలు చేశారా?</string>
+    <string name="upgrades_gplay_already_owned_error_description">మీకు ఇప్పటికే ఈ అప్‌గ్రేడ్ ఉందని Google Play చెబుతోంది, కానీ దాన్ని స్వయంచాలకంగా పునరుద్ధరించలేకపోయింది. మొదట కొనుగోలు చేసిన Google ఖాతాతోనే లాగిన్ అయ్యారని నిర్ధారించుకుని, ఆపై \"కొనుగోలును పునరుద్ధరించండి\" ప్రయత్నించండి.</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play అందుబాటులో లేదు</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler Google Playకి కనెక్ట్ కాలేకపోతోంది. Google Play ఇన్‌స్టాల్ చేయబడి, తాజా వెర్షన్‌లో ఉందా? మీ Google ఖాతాలో లాగిన్ అయ్యారా? Google Play యాప్ కాష్‌ను క్లియర్ చేసి, పరికరాన్ని పునఃప్రారంభించడానికి ప్రయత్నించండి.</string>
+    <string name="upgrades_gplay_not_installed_message">Google Playను తెరవలేకపోయాం. ఈ పరికరంలో అది లేకపోవచ్చు, నిలిపివేయబడి ఉండవచ్చు లేదా పరిమితులు విధించబడి ఉండవచ్చు.</string>
+    <string name="upgrades_gplay_billing_error_label">Google Play సమస్య</string>
+    <string name="upgrades_gplay_billing_error_description">Google Playతో కమ్యూనికేట్ చేస్తున్నప్పుడు ఏదో సమస్య వచ్చింది. దయచేసి తర్వాత మళ్లీ ప్రయత్నించండి లేదా మీ పరికరాన్ని పునఃప్రారంభించండి.\n\nవివరాలు: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Google Play లోపం</string>
+    <string name="upgrades_gplay_internal_error_description">Google Playలో అంతర్గత లోపం వచ్చింది. దయచేసి వీటిని ప్రయత్నించండి:\n\n• మీ పరికరాన్ని పునఃప్రారంభించండి\n• Google Play Store కాష్‌ను క్లియర్ చేయండి\n• తర్వాత మళ్లీ ప్రయత్నించండి</string>
+    <string name="upgrades_gplay_network_error_title">కనెక్షన్ లోపం</string>
+    <string name="upgrades_gplay_network_error_description">Butler Google Playను చేరుకోలేకపోయింది. దయచేసి మీ ఇంటర్నెట్ కనెక్షన్‌ను తనిఖీ చేసి, మళ్లీ ప్రయత్నించండి.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">ఆఫర్ అందుబాటులో లేదు</string>
+    <string name="upgrades_gplay_offer_unavailable_description">ప్రస్తుతం మీ ఖాతాకు Google Play ఈ అప్‌గ్రేడ్ ఎంపికను అందించడం లేదు. దయచేసి తర్వాత మళ్లీ ప్రయత్నించండి లేదా Google Play Storeలో తనిఖీ చేయండి.</string>
+    <string name="upgrades_no_purchases_found_check_account">కొనుగోళ్లు ఏవీ కనుగొనబడలేదు. మీరు సరైన ఖాతానే ఉపయోగిస్తున్నారా?</string>
+
+    <string name="upgrade_benefits_title">అప్‌గ్రేడ్ ప్రయోజనాలు</string>
+    <!-- Keep bullet markers: they render as checkmarked feature rows. -->
+    <string name="upgrade_screen_benefits_body">• అపరిమిత ట్యాబ్‌లు, చర్యలు\n• డిజైన్, వినియోగ అనుభూతి, రూపాన్ని మీకు నచ్చినట్లు మార్చుకోండి\n• ప్రతి సాధనానికి అదనపు ఎంపికలు, ఫీచర్‌లు\n• కొత్త ఫీచర్‌లకు ముందస్తు యాక్సెస్\n• ఉత్సాహంగా పనిచేసే డెవలపర్ 🧙\nఇంకా మరెన్నో…</string>
+</resources>

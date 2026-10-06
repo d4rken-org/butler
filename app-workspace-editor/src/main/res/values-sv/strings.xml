@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Redigerare</string>
+    <string name="editor_subtitle">Redigera textfiler</string>
+    <string name="editor_settings_title">Inställningar för redigeraren</string>
+    <string name="editor_settings_show_line_numbers_title">Visa radnummer</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Visa radnummer i redigeraren.</string>
+    <string name="editor_settings_word_wrap_title">Radbrytning</string>
+    <string name="editor_settings_word_wrap_subtitle">Bryt långa rader så att de ryms på skärmens bredd.</string>
+    <string name="editor_settings_syntax_highlighting_title">Syntaxmarkering</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Färgmarkera kod i filer som stöds (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Teckenstorlek</string>
+    <string name="editor_settings_font_size_subtitle">Textstorlek i redigeraren</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Tabulatorbredd</string>
+    <string name="editor_settings_tab_size_subtitle">Antal blanksteg som ett tabulatortecken motsvarar</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Öppna</string>
+    <string name="editor_action_save">Spara</string>
+    <string name="editor_action_save_as">Spara som…</string>
+    <string name="editor_action_close">Stäng</string>
+    <string name="editor_action_undo">Ångra</string>
+    <string name="editor_action_redo">Gör om</string>
+    <string name="editor_action_search">Sök</string>
+    <string name="editor_action_go_to_line">Gå till rad</string>
+    <string name="editor_action_dismiss">Stäng</string>
+    <string name="editor_action_previous">Föregående</string>
+    <string name="editor_action_next">Nästa</string>
+    <string name="editor_action_copy">Kopiera</string>
+    <string name="editor_action_cut">Klipp ut</string>
+    <string name="editor_action_copy_to_butler_clipboard">Kopiera till Butlers urklipp</string>
+    <string name="editor_action_cut_to_butler_clipboard">Klipp ut till Butlers urklipp</string>
+    <string name="editor_action_paste">Klistra in</string>
+    <string name="editor_action_select_all">Markera allt</string>
+    <string name="editor_action_delete">Radera</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Skriva över filen?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s finns redan. Filens nuvarande innehåll kommer att ersättas.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Skriv över</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">En säkerhetskopia från en avbruten sparning hittades:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Redigering som text stöds inte</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Mycket långa rader</string>
+    <string name="editor_long_lines_banner_message">Mycket långa rader förkortas vid visning; hela innehållet bevaras och sparas.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Visa nästa del av raden</string>
+    <string name="editor_line_truncated_marker_previous_action">Visa föregående del av raden</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Filen är inte längre tillgänglig</string>
+    <string name="editor_backing_lost_banner_message">Den kan ha flyttats eller raderats. Den här vyn är skrivskyddad — öppna den igen eller stäng den.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Filen är borta, men en säkerhetskopia finns kvar</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" saknas, men en avbruten sparning lämnade kvar detta: %2$s. Ditt innehåll finns troligen fortfarande där.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Filen har ändrats på disken</string>
+    <string name="editor_external_change_banner_message">En annan app har ändrat den här filen.</string>
+    <string name="editor_external_change_reload_action">Läs in igen</string>
+    <string name="editor_external_change_keep_action">Fortsätt redigera</string>
+    <string name="editor_error_external_change">Den här filen har ändrats av en annan app. Läs in filen igen för att fortsätta.</string>
+    <string name="editor_dialog_reload_confirm_title">Läsa in filen igen?</string>
+    <string name="editor_dialog_reload_confirm_message">Om du läser in filen igen förloras dina osparade ändringar och filens nuvarande innehåll på disken visas.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d rad</item>
+        <item quantity="other">%1$d rader</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d tecken</item>
+        <item quantity="other">%1$d tecken</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Markerat: %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Läser in fil…</string>
+    <string name="editor_saving">Sparar…</string>
+    <string name="editor_action_cancel_loading">Avbryt</string>
+    <string name="editor_progress_opening">Öppnar fil…</string>
+    <string name="editor_progress_saving">Sparar fil…</string>
+    <string name="editor_progress_building_index">Bygger filindex…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Okänt fel</string>
+    <string name="editor_error_read_only">Den här filen är skrivskyddad och kan inte ändras.</string>
+    <string name="editor_error_save_integrity_label">Sparningen avbröts</string>
+    <string name="editor_error_save_integrity">Sparningen avbröts och filen på disken kan vara ofullständig. Läs in filen igen innan du fortsätter redigera.</string>
+    <string name="editor_error_clipboard_too_large_label">Markeringen är för stor</string>
+    <string name="editor_error_clipboard_too_large">Markeringen är för stor för att kopieras (gräns: %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Filen är för stor</string>
+    <string name="editor_error_paste_too_large">Den här filen är för stor för att klistras in (max %1$s).</string>
+    <string name="editor_error_paste_binary_label">Inte en textfil</string>
+    <string name="editor_error_paste_binary">Den här filens innehåll kan inte klistras in som text.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d av %2$d träff</item>
+        <item quantity="other">%1$d av %2$d träffar</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d av %2$d+ träffar</string>
+    <string name="editor_search_too_many_matches_label">För många träffar</string>
+    <string name="editor_search_too_many_matches">Fler än %1$d träffar eller för mycket matchande text — begränsa sökningen för att ersätta alla.</string>
+    <string name="editor_search_placeholder">Sök…</string>
+    <string name="editor_search_previous">Föregående träff</string>
+    <string name="editor_search_next">Nästa träff</string>
+    <string name="editor_search_case_sensitive_label">Skiftlägeskänslig</string>
+    <string name="editor_search_regex_label">Reguljärt uttryck</string>
+    <string name="editor_search_whole_word_label">Hela ord</string>
+    <string name="editor_search_options_label">Sökalternativ</string>
+    <string name="editor_search_replace_label">Ersätt</string>
+    <string name="editor_search_replace_toggle">Visa eller dölj ersättning</string>
+    <string name="editor_search_replace_placeholder">Ersätt med…</string>
+    <string name="editor_search_replace_one_action">Ersätt</string>
+    <string name="editor_search_replace_all_action">Alla</string>
+    <string name="editor_search_replaced_not_undoable">%1$d ersatta (för stort för att ångra)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d ersatt</item>
+        <item quantity="other">%1$d ersatta</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Gå till rad</string>
+    <string name="editor_dialog_go_to_line_label">Radnummer (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Gå</string>
+    <string name="editor_dialog_action_cancel">Avbryt</string>
+    <string name="editor_dialog_close_confirm_title">Osparade ändringar</string>
+    <string name="editor_dialog_close_confirm_message">Du har osparade ändringar. Kasta dem?</string>
+    <string name="editor_dialog_close_confirm_discard">Kasta</string>
+    <string name="editor_dialog_large_delete_confirm_title">Redigera en stor markering?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Den här markeringen är för stor för att ångra. Fortsätta ändå?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Fortsätt</string>
+    <string name="editor_encoding_dialog_title">Teckenkodning</string>
+    <string name="editor_encoding_dialog_message">Öppna filen igen med en annan teckenkodning. Osparade ändringar går förlorade; byte som inte redigerats förblir orörda när filen sparas.</string>
+    <string name="editor_infobar_read_only">Skrivskyddad</string>
+    <string name="editor_line_ending_mixed">Blandade</string>
+    <string name="editor_line_ending_dialog_title">Radslut</string>
+    <string name="editor_line_ending_dialog_message">Konvertera alla radbrytningar och spara filen, inklusive osparade ändringar. Ångrahistoriken rensas.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Namnlös</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Automatisk sparning</string>
+    <string name="editor_settings_autosave_enabled_title">Aktivera automatisk sparning</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Spara ändringar automatiskt efter en stunds inaktivitet.</string>
+    <string name="editor_settings_autosave_interval_title">Intervall för automatisk sparning</string>
+    <string name="editor_settings_autosave_interval_subtitle">Väntetid efter senaste ändringen innan filen sparas.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Intervall för automatisk sparning</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Urklipp</string>
+    <string name="editor_settings_clipboard_behavior_title">Butlers urklipp</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Styr hur kopierad text sparas i Butlers urklipp.</string>
+    <string name="editor_settings_clipboard_system_only">Endast systemet</string>
+    <string name="editor_settings_clipboard_system_only_desc">Kopiera endast till systemets urklipp</string>
+    <string name="editor_settings_clipboard_butler_always">Lägg alltid till i Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Spara även i Butlers urklipp för inklistring mellan arbetsytor</string>
+    <string name="editor_settings_clipboard_ask">Fråga varje gång</string>
+    <string name="editor_settings_clipboard_ask_desc">Fråga innan text läggs till i Butlers urklipp</string>
+</resources>

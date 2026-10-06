@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Developer</string>
+    <string name="developer_title">Mga tool para sa developer</string>
+    <string name="developer_subtitle">Mga kagamitan sa pagbuo ng software</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">Sistema</string>
+    <string name="developer_tab_options">Mga opsyon</string>
+    <string name="developer_tab_workspaces">Mga workspace</string>
+    <string name="developer_tab_logs">Mga log</string>
+    <string name="developer_tab_testdata">Data sa pagsubok</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Mga opsyon sa pag-debug</string>
+    <string name="developer_options_debug_mode">Mode ng pag-debug</string>
+    <string name="developer_options_debug_mode_desc">Paganahin ang detalyadong pag-log</string>
+    <string name="developer_options_trace_mode">Mode ng trace</string>
+    <string name="developer_options_trace_mode_desc">Paganahin ang pag-log sa antas ng trace</string>
+    <string name="developer_options_floating_log">Lumulutang na panel ng log</string>
+    <string name="developer_options_floating_log_desc">Magpakita ng naididrag na overlay ng log sa lahat ng screen</string>
+    <string name="developer_options_services_header">Mga pagsubok sa serbisyo</string>
+    <string name="developer_options_root_test_action">Subukan ang Root</string>
+    <string name="developer_options_root_installed_label">Naka-install</string>
+    <string name="developer_options_root_available_label">Magagamit</string>
+    <string name="developer_options_root_base_check_label">Pangunahing pagsusuri</string>
+    <string name="developer_options_shizuku_test_action">Subukan ang pag-access sa ADB</string>
+    <string name="developer_options_shizuku_installed_label">Naka-install</string>
+    <string name="developer_options_shizuku_granted_label">Pahintulot</string>
+    <string name="developer_options_shizuku_compatible_label">Katugma</string>
+    <string name="developer_options_shizuku_service_label">Serbisyo</string>
+    <string name="developer_options_test_running">Sinusubukan…</string>
+    <string name="developer_options_result_yes">Oo</string>
+    <string name="developer_options_result_no">Hindi</string>
+    <string name="developer_options_result_unknown">Hindi alam</string>
+    <string name="developer_options_visibility_header">Pagpapakita</string>
+    <string name="developer_options_hide_mode">Itago ang mode ng developer</string>
+    <string name="developer_options_hide_mode_desc">I-tap ang bersyon nang 7 beses sa Mga Setting para muling paganahin.</string>
+    <string name="developer_options_hide_action">Itago</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Device</string>
+    <string name="developer_system_device_model">Modelo</string>
+    <string name="developer_system_device_manufacturer">Tagagawa</string>
+    <string name="developer_system_device_api">Antas ng API</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">Bersyon</string>
+    <string name="developer_system_build_code">Code ng bersyon</string>
+    <string name="developer_system_build_flavor">Flavor</string>
+    <string name="developer_system_build_type">Uri ng build</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Memory</string>
+    <string name="developer_system_memory_available">Magagamit</string>
+    <string name="developer_system_memory_total">Kabuuan</string>
+    <string name="developer_system_storage_header">Storage</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d na workspace</string>
+    <string name="developer_workspaces_empty">Walang workspace</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Burahin</string>
+    <string name="developer_logs_pause">I-pause</string>
+    <string name="developer_logs_resume">Ipagpatuloy</string>
+    <string name="developer_logs_empty">Walang log</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Mga target na path</string>
+    <string name="developer_testdata_no_paths">Walang napiling target na path. Magdagdag ng mga path para gumawa ng data sa pagsubok.</string>
+    <string name="developer_testdata_add_path_action">Magdagdag ng path</string>
+    <string name="developer_testdata_options_header">Mga opsyon sa paggawa</string>
+    <string name="developer_testdata_large_files">Malalaking file</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Istrukturang may mga folder sa loob ng mga folder</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 folder, ~1100 file</string>
+    <string name="developer_testdata_text_files">Mga text file para sa Editor</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Gumawa</string>
+    <string name="developer_testdata_generating">Ginagawa…</string>
+    <string name="developer_testdata_history_header">Mga halimbawang entry sa kasaysayan</string>
+    <string name="developer_testdata_history_desc">Naglalagay ng ~25 pekeng entry ng operasyon mula ngayong araw → 30 araw na ang nakalipas, na may halo-halong uri/resulta/pinagmulan/path. Direktang naglalagay sa database ng kasaysayan; ligtas i-tap muli.</string>
+    <string name="developer_testdata_history_generate_action">Gumawa ng halimbawang kasaysayan</string>
+    <string name="developer_testdata_progress">%1$s sa %2$s</string>
+    <string name="developer_testdata_complete">Nagawa ang data sa pagsubok sa:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Gumawa ng malalaking file</string>
+    <string name="developer_operation_large_files_desc">Gumagawa ng mga file sa pagsubok sa %1$s</string>
+    <string name="developer_operation_large_files_creating">Ginagawa ang %1$s</string>
+
+    <string name="developer_operation_nested_title">Gumawa ng istrukturang may mga folder sa loob ng mga folder</string>
+    <string name="developer_operation_nested_desc">Gumagawa ng hirarkiya ng mga folder sa %1$s</string>
+    <string name="developer_operation_nested_starting">Sinisimulan ang istrukturang may mga folder sa loob ng mga folder…</string>
+    <string name="developer_operation_nested_creating">Ginagawa ang %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d na file ang nagawa</string>
+
+    <string name="developer_operation_text_files_title">Gumawa ng mga text file</string>
+    <string name="developer_operation_text_files_desc">Gumagawa ng mga text file sa %1$s</string>
+    <string name="developer_operation_text_files_creating">Ginagawa ang %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d file ang nagawa</item>
+        <item quantity="other">%d na file ang nagawa</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d direktoryo</item>
+        <item quantity="other">%d na direktoryo</item>
+    </plurals>
+</resources>

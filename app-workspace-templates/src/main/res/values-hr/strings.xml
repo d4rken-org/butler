@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Nova</string>
+    <string name="workspace_templates_choose_title">Nova kartica</string>
+    <string name="workspace_templates_choose_subtitle">Odaberi vrstu kartice. Kako ti mogu pomoći?</string>
+    <string name="workspace_templates_name_tab_action">Imenuj ovu karticu</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Odaberi alat</string>
+    <string name="tour_templates_picker_body">Ovo je birač kartica. Odaberi što ova kartica treba biti. Odabirom alata ova se kartica pretvara u taj alat.</string>
+    <string name="tour_templates_butler_button_title">Tvoje su kartice ovdje</string>
+    <string name="tour_templates_butler_button_body">Dodirni gumb Butler za izbornik kartica: stvori novu karticu, zatvori trenutačnu ili otvori cjeloviti upravitelj kartica. Pritisni i zadrži gumb da prijeđeš izravno u upravitelj kartica.</string>
+</resources>

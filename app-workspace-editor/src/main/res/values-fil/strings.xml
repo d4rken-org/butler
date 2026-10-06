@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Editor</string>
+    <string name="editor_subtitle">I-edit ang mga text file</string>
+    <string name="editor_settings_title">Mga setting ng Editor</string>
+    <string name="editor_settings_show_line_numbers_title">Ipakita ang mga numero ng linya</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Ipakita ang mga numero ng linya sa editor.</string>
+    <string name="editor_settings_word_wrap_title">Pagkasya ng linya</string>
+    <string name="editor_settings_word_wrap_subtitle">Ipakita ang mahahabang linya sa maraming linya para magkasya sa lapad ng screen.</string>
+    <string name="editor_settings_syntax_highlighting_title">Pagha-highlight ng syntax</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Kulayan ang code sa mga sinusuportahang file (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Laki ng font</string>
+    <string name="editor_settings_font_size_subtitle">Laki ng teksto sa editor</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Lapad ng tab</string>
+    <string name="editor_settings_tab_size_subtitle">Bilang ng espasyong sakop ng isang tab character</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Buksan</string>
+    <string name="editor_action_save">I-save</string>
+    <string name="editor_action_save_as">I-save bilang…</string>
+    <string name="editor_action_close">Isara</string>
+    <string name="editor_action_undo">I-undo</string>
+    <string name="editor_action_redo">I-redo</string>
+    <string name="editor_action_search">Maghanap</string>
+    <string name="editor_action_go_to_line">Pumunta sa linya</string>
+    <string name="editor_action_dismiss">Alisin</string>
+    <string name="editor_action_previous">Nakaraan</string>
+    <string name="editor_action_next">Susunod</string>
+    <string name="editor_action_copy">Kopyahin</string>
+    <string name="editor_action_cut">Gupitin</string>
+    <string name="editor_action_copy_to_butler_clipboard">Kopyahin sa clipboard ng Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">Gupitin at ilagay sa clipboard ng Butler</string>
+    <string name="editor_action_paste">Idikit</string>
+    <string name="editor_action_select_all">Piliin lahat</string>
+    <string name="editor_action_delete">Tanggalin</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Patungan ang file?</string>
+    <string name="editor_dialog_save_as_overwrite_message">May %1$s na. Papalitan ang kasalukuyang nilalaman nito.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Patungan</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">May nakitang backup mula sa naputol na pag-save:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Hindi sinusuportahan ang pag-edit bilang teksto</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Napakahahabang linya</string>
+    <string name="editor_long_lines_banner_message">Pinaikli ang napakahahabang linya para maipakita; pinapanatili at sine-save ang buong nilalaman.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Ipakita ang susunod na bahagi ng linya</string>
+    <string name="editor_line_truncated_marker_previous_action">Ipakita ang nakaraang bahagi ng linya</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Hindi na available ang file</string>
+    <string name="editor_backing_lost_banner_message">Maaaring nailipat o natanggal ito. Para sa pagbasa lang ang view na ito — buksan muli o isara ito.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Wala na ang file, pero may natirang backup</string>
+    <string name="editor_error_save_artifacts_description">Nawawala ang \"%1$s\", pero may naiwan mula sa naputol na pag-save: %2$s. Malamang ay naroon pa ang nilalaman mo.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Nagbago ang file sa disk</string>
+    <string name="editor_external_change_banner_message">Binago ng ibang app ang file na ito.</string>
+    <string name="editor_external_change_reload_action">I-load muli</string>
+    <string name="editor_external_change_keep_action">Ipagpatuloy ang pag-edit</string>
+    <string name="editor_error_external_change">Binago ng ibang app ang file na ito. I-load muli ang file para magpatuloy.</string>
+    <string name="editor_dialog_reload_confirm_title">I-load muli ang file?</string>
+    <string name="editor_dialog_reload_confirm_message">Itatapon ng pag-load muli ang mga pagbabagong hindi na-save at ipapakita ang kasalukuyang nilalaman ng file sa disk.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d linya</item>
+        <item quantity="other">%1$d na linya</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d character</item>
+        <item quantity="other">%1$d na character</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Napili: %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Naglo-load ng file…</string>
+    <string name="editor_saving">Nagse-save…</string>
+    <string name="editor_action_cancel_loading">Kanselahin</string>
+    <string name="editor_progress_opening">Binubuksan ang file…</string>
+    <string name="editor_progress_saving">Sine-save ang file…</string>
+    <string name="editor_progress_building_index">Ginagawa ang index ng file…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Hindi kilalang error</string>
+    <string name="editor_error_read_only">Para sa pagbasa lang ang file na ito at hindi maaaring baguhin.</string>
+    <string name="editor_error_save_integrity_label">Naputol ang pag-save</string>
+    <string name="editor_error_save_integrity">Naputol ang pag-save at maaaring hindi kumpleto ang file sa disk. I-load muli ang file bago mag-edit pa.</string>
+    <string name="editor_error_clipboard_too_large_label">Masyadong malaki ang napili</string>
+    <string name="editor_error_clipboard_too_large">Masyadong malaki ang napili para makopya (limitasyon: %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Masyadong malaki ang file</string>
+    <string name="editor_error_paste_too_large">Masyadong malaki ang file na ito para maidikit (pinakamalaki: %1$s).</string>
+    <string name="editor_error_paste_binary_label">Hindi text file</string>
+    <string name="editor_error_paste_binary">Hindi maaaring idikit bilang teksto ang nilalaman ng file na ito.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d sa %2$d resulta</item>
+        <item quantity="other">%1$d sa %2$d na resulta</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d sa %2$d+ na resulta</string>
+    <string name="editor_search_too_many_matches_label">Masyadong maraming tugma</string>
+    <string name="editor_search_too_many_matches">Higit sa %1$d ang mga tugma o masyadong marami ang tumugmang teksto — gawing mas tiyak ang paghahanap para mapalitan lahat.</string>
+    <string name="editor_search_placeholder">Maghanap…</string>
+    <string name="editor_search_previous">Nakaraang resulta</string>
+    <string name="editor_search_next">Susunod na resulta</string>
+    <string name="editor_search_case_sensitive_label">Ihiwalay ang malaki at maliit na titik</string>
+    <string name="editor_search_regex_label">Regular na expression</string>
+    <string name="editor_search_whole_word_label">Buong salita</string>
+    <string name="editor_search_options_label">Mga opsyon sa paghahanap</string>
+    <string name="editor_search_replace_label">Palitan</string>
+    <string name="editor_search_replace_toggle">I-on o i-off ang pagpapalit</string>
+    <string name="editor_search_replace_placeholder">Ipapalit…</string>
+    <string name="editor_search_replace_one_action">Palitan</string>
+    <string name="editor_search_replace_all_action">Lahat</string>
+    <string name="editor_search_replaced_not_undoable">%1$d ang napalitan (masyadong malaki para i-undo)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d ang napalitan</item>
+        <item quantity="other">%1$d ang napalitan</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Pumunta sa linya</string>
+    <string name="editor_dialog_go_to_line_label">Numero ng linya (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Pumunta</string>
+    <string name="editor_dialog_action_cancel">Kanselahin</string>
+    <string name="editor_dialog_close_confirm_title">Mga pagbabagong hindi na-save</string>
+    <string name="editor_dialog_close_confirm_message">May mga pagbabagong hindi na-save. Itapon ang mga ito?</string>
+    <string name="editor_dialog_close_confirm_discard">Itapon</string>
+    <string name="editor_dialog_large_delete_confirm_title">I-edit ang malaking bahaging napili?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Masyadong malaki ang bahaging napili para i-undo. Magpatuloy pa rin?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Magpatuloy</string>
+    <string name="editor_encoding_dialog_title">Encoding</string>
+    <string name="editor_encoding_dialog_message">Buksan muli ang file gamit ang ibang encoding. Itatapon ang mga pagbabagong hindi na-save; hindi gagalawin ang mga byte na hindi na-edit kapag nag-save.</string>
+    <string name="editor_infobar_read_only">Para sa pagbasa lang</string>
+    <string name="editor_line_ending_mixed">Halo-halo</string>
+    <string name="editor_line_ending_dialog_title">Mga pagtatapos ng linya</string>
+    <string name="editor_line_ending_dialog_message">I-convert ang lahat ng line break at i-save ang file, kasama ang mga pagbabagong hindi na-save. Buburahin ang kasaysayan ng pag-undo.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Walang pamagat</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Awtomatikong pag-save</string>
+    <string name="editor_settings_autosave_enabled_title">Paganahin ang awtomatikong pag-save</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Awtomatikong i-save ang mga pagbabago pagkatapos ng ilang sandaling walang aktibidad.</string>
+    <string name="editor_settings_autosave_interval_title">Agwat ng awtomatikong pag-save</string>
+    <string name="editor_settings_autosave_interval_subtitle">Tagal ng paghihintay matapos ang huling pag-edit bago mag-save.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Agwat ng awtomatikong pag-save</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Clipboard</string>
+    <string name="editor_settings_clipboard_behavior_title">Clipboard ng Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Itakda kung paano sine-save ang mga kopya ng teksto sa clipboard ng Butler.</string>
+    <string name="editor_settings_clipboard_system_only">System lang</string>
+    <string name="editor_settings_clipboard_system_only_desc">Kopyahin lang sa clipboard ng system</string>
+    <string name="editor_settings_clipboard_butler_always">Laging idagdag sa Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">I-save rin sa clipboard ng Butler para maidikit sa ibang workspace</string>
+    <string name="editor_settings_clipboard_ask">Magtanong sa bawat pagkakataon</string>
+    <string name="editor_settings_clipboard_ask_desc">Magtanong bago idagdag sa clipboard ng Butler</string>
+</resources>

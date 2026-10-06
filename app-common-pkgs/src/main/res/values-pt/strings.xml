@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">Inventário de aplicações inválido</string>
+    <string name="pkgrepo_invalid_inventory_error_description">O sistema forneceu ao Butler uma lista inválida de aplicações instaladas.</string>
+</resources>

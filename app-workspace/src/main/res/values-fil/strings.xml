@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Clipboard</string>
+    <string name="clipboard_clear_all">Burahin lahat</string>
+    <string name="clipboard_paste">Idikit</string>
+    <string name="clipboard_open_in_explorer">Buksan sa Explorer</string>
+    <string name="clipboard_copy">Kopyahin</string>
+    <string name="clipboard_cut">Gupitin</string>
+    <string name="clipboard_origin">Pinagmulan: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Kopyahin ang %d item</item>
+        <item quantity="other">Kopyahin ang %d na item</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d item mula sa %s</item>
+        <item quantity="other">%d na item mula sa %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Gupitin ang %d item</item>
+        <item quantity="other">Gupitin ang %d na item</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d item mula sa %s</item>
+        <item quantity="other">%d na item mula sa %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d lokasyon</item>
+        <item quantity="other">%d na lokasyon</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d item mula sa %2$s</item>
+        <item quantity="other">%1$d na item mula sa %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d item mula sa %2$s</item>
+        <item quantity="other">%1$d na item mula sa %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Piraso ng teksto</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d character</item>
+        <item quantity="other">%1$d na character</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Idikit bilang file</string>
+    <string name="clipboard_text_info_characters">Mga character</string>
+    <string name="clipboard_text_info_lines">Mga linya</string>
+    <string name="clipboard_text_info_content">Nilalaman</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Pangkalahatang-ideya</string>
+    <string name="clipboard_info_operation">Operasyon</string>
+    <string name="clipboard_info_items">Mga item</string>
+    <string name="clipboard_info_source">Pinagkunan</string>
+    <string name="clipboard_info_sources">Mga pinagkunan</string>
+    <string name="clipboard_info_workspace">Workspace</string>
+    <string name="clipboard_info_workspace_closed">Nakasara</string>
+    <string name="clipboard_info_time">Oras</string>
+    <string name="clipboard_info_items_with_count">Mga item (%1$d)</string>
+    <string name="clipboard_info_actions">Mga aksyon</string>
+    <string name="clipboard_info_go_to_source">Pumunta sa pinagkunan</string>
+    <string name="clipboard_info_go_to_first_source">Pumunta sa unang pinagkunan</string>
+    <string name="clipboard_info_remove">Alisin sa clipboard</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Clipboard</string>
+    <string name="clipboard_settings_remove_on_paste_title">Alisin kapag idinikit</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Alisin ang mga kinopyang item sa clipboard pagkatapos idikit</string>
+    <string name="clipboard_settings_max_items_title">Pinakamaraming item</string>
+    <string name="clipboard_settings_max_items_desc">Pinakamaraming item na maaaring ilagay sa clipboard</string>
+
+    <string name="workspace_explorer_label">Explorer</string>
+    <string name="workspace_searcher_label">Paghahanap</string>
+    <string name="workspace_editor_label">Editor</string>
+    <string name="workspace_templates_label">Mga template</string>
+    <string name="workspace_apps_label">Mga app</string>
+    <string name="workspace_appdetails_label">Mga detalye ng app</string>
+    <string name="workspace_saver_label">I-save bilang</string>
+    <string name="workspace_developer_label">Developer</string>
+    <string name="workspace_history_label">Kasaysayan</string>
+    <string name="workspace_bugreport_label">Mga ulat ng bug</string>
+    <string name="workspace_viewer_label">Tagatingin</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Mga larawan</string>
+    <string name="workspace_searcher_target_videos">Mga video</string>
+    <string name="workspace_searcher_target_music">Musika</string>
+    <string name="workspace_searcher_target_downloads">Mga download</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Higit pa</string>
+    <string name="workspace_expand_less_action">Mas kaunti</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Mga tab at workspace</string>
+    <string name="workspace_button_menu_new_workspace_format">Bagong %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Bagong tab</string>
+    <string name="workspace_button_menu_category_recent">Kamakailan</string>
+    <string name="workspace_button_menu_category_other">Iba pa</string>
+    <string name="workspace_button_menu_category_current_tab">Tab na ito</string>
+    <string name="workspace_button_menu_manager_action">Tagapamahala ng mga tab</string>
+    <string name="workspace_button_menu_layout_action">Layout</string>
+    <string name="workspace_button_menu_close_current_action">Isara ang kasalukuyang tab</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Isara ang kasalukuyang tab (%d workspace)</item>
+        <item quantity="other">Isara ang kasalukuyang tab (%d na workspace)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Mga setting</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Isara ang lahat ng tab?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Isasara nito ang %1$d bukas na tab. Hindi na mababawi ang pagkilos na ito.</item>
+        <item quantity="other">Isasara nito ang lahat ng %1$d na bukas na tab. Hindi na mababawi ang pagkilos na ito.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Isara lahat</string>
+    <string name="workspace_manager_close_all_unsaved_warning">May mga tab na may mga pagbabagong hindi na-save na mawawala.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Itapon lahat</string>
+    <string name="workspace_manager_close_selected_title">Isara ang mga napiling tab?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Isasara nito ang %1$d napiling tab. Hindi na mababawi ang pagkilos na ito.</item>
+        <item quantity="other">Isasara nito ang %1$d na napiling tab. Hindi na mababawi ang pagkilos na ito.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">Isara ang napili</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">May mga napiling tab na may mga pagbabagong hindi na-save na mawawala.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Itapon ang napili</string>
+    <string name="workspace_manager_pause_partial_title">I-pause ang mga tab?</string>
+    <string name="workspace_manager_pause_partial_message">Maaaring i-pause ang %1$d sa %2$d napiling tab. Ang iba ay ginagamit, may mga pagbabagong hindi na-save, o kasalukuyang bukas.</string>
+    <string name="workspace_manager_pause_partial_action">I-pause ang %1$d</string>
+    <string name="general_cancel_action">Kanselahin</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Mga operasyon</string>
+    <string name="operations_clear_completed">Burahin ang mga nakumpleto</string>
+    <string name="operations_state_queued">Nakapila</string>
+    <string name="operations_state_running">Isinasagawa</string>
+    <string name="operations_state_waiting">Naghihintay ng input</string>
+    <string name="operations_state_successful">Matagumpay</string>
+    <string name="operations_state_failed">Nabigo</string>
+    <string name="operations_state_cancelled">Nakansela</string>
+    <string name="operations_state_cancelling">Kinakansela…</string>
+    <string name="operations_cancel_operation">Kanselahin ang operasyon</string>
+    <string name="operations_cancel_dialog_title">Kanselahin ang operasyon?</string>
+    <string name="operations_cancel_dialog_message">Talaga bang kakanselahin ang operasyong ito?</string>
+    <string name="operations_cancel_dialog_warning">Maaaring maiwan ang mga file sa hindi magkakatugmang kalagayan kapag kinansela.</string>
+    <string name="operations_details_started_at">Nagsimula</string>
+    <string name="operations_details_completed_at">Nakumpleto</string>
+    <string name="operations_details_duration">Tagal</string>
+    <string name="operations_details_duration_not_started">Hindi pa nagsimula</string>
+    <string name="operations_details_progress">Progreso</string>
+    <string name="operations_details_error">Mga detalye ng error</string>
+    <string name="operations_details_actions">Mga aksyon</string>
+    <string name="operations_details_overview">Pangkalahatang-ideya</string>
+    <string name="operations_details_handle_issue">Ayusin ang problema</string>
+    <string name="operations_details_open_app_action">Buksan ang app</string>
+    <string name="operations_details_show_in_history_action">Ipakita sa kasaysayan</string>
+    <string name="operations_details_status">Kalagayan</string>
+    <string name="operations_details_result">Resulta</string>
+    <string name="operations_details_destination_folder">Patutunguhang folder</string>
+    <string name="operations_details_destination_path">Patutunguhang path</string>
+    <string name="operations_details_affected_paths_with_count">Mga apektadong path (%d)</string>
+    <string name="operations_details_problems_with_count">Mga problema (%d)</string>
+    <string name="operations_details_problems_more">%d pa ang hindi nakalista</string>
+    <string name="workspace_operation_packages_section_title">Mga app</string>
+    <string name="workspace_operation_package_status_done">Tapos na</string>
+    <string name="workspace_operation_package_status_failed">Nabigo</string>
+    <string name="workspace_operation_package_status_declined">Tinanggihan</string>
+    <string name="operations_details_section_expand">Palawakin ang %1$s</string>
+    <string name="operations_details_section_collapse">Paliitin ang %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Graph ng pagganap</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Tanggalin ang item?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Tanggalin ang %1$d item?</item>
+        <item quantity="other">Tanggalin ang %1$d na item?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Permanenteng tatanggalin ang item na ito:</string>
+    <string name="workspace_dialog_delete_message_multiple">Permanenteng tatanggalin ang mga item na ito:</string>
+    <string name="workspace_dialog_delete_more_items">… at %1$d pa</string>
+    <string name="workspace_dialog_delete_warning">Hindi na mababawi ang pagkilos na ito.</string>
+    <string name="workspace_dialog_delete_permanently_action">Permanenteng tanggalin</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Permanenteng tanggalin sa halip</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">May mga item na hindi mailipat sa basurahan at hiwalay na aasikasuhin.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Ilipat sa Basurahan?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Ilipat ang %1$d item sa Basurahan?</item>
+        <item quantity="other">Ilipat ang %1$d na item sa Basurahan?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Ililipat sa basurahan ang item na ito:</string>
+    <string name="workspace_dialog_trash_message_multiple">Ililipat sa basurahan ang mga item na ito:</string>
+    <string name="workspace_dialog_trash_hint">Hanapin ang mga ito sa lokasyong Basurahan</string>
+    <string name="workspace_dialog_move_to_trash_action">Ilipat</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d napili</item>
+        <item quantity="other">%d na napili</item>
+    </plurals>
+    <string name="workspace_action_more">Higit pang aksyon</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Pagtanggal ng file</string>
+    <string name="workspace_operation_delete_description_single">Tanggalin ang \"%1$s\" mula sa \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Tanggalin ang %1$d item mula sa \"%2$s\".</item>
+        <item quantity="other">Tanggalin ang %1$d na item mula sa \"%2$s\".</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Pag-install ng app</string>
+    <string name="workspace_operation_install_description">I-install ang \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">Binabasa ang package…</string>
+    <string name="workspace_operation_install_progress_extracting">Ine-extract…</string>
+    <string name="workspace_operation_install_progress_writing">Ibinibigay ang mga file sa installer…</string>
+    <string name="workspace_operation_install_progress_committing">Tinatapos ang pag-install…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Inilalagay ang mga expansion file…</string>
+    <string name="workspace_operation_install_summary_success">Na-install ang %1$s.</string>
+    <string name="workspace_operation_install_summary_success_partial">Na-install ang %1$s, pero hindi mailagay ang mga expansion file nito.</string>
+    <string name="workspace_install_unknown_sources_required">Kailangan ng Butler ng pahintulot para mag-install ng mga app. Ibigay ito sa mga setting na kabubukas lang, at subukan muli.</string>
+    <string name="workspace_install_obb_failed">Na-install ang app, pero hindi mailagay ang mga expansion file nito: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">Natanggal ang %1$d file.</item>
+        <item quantity="other">Natanggal ang %1$d na file.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">Natanggal ang %1$d direktoryo.</item>
+        <item quantity="other">Natanggal ang %1$d na direktoryo.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">Nilaktawan ang %1$d item.</item>
+        <item quantity="other">Nilaktawan ang %1$d na item.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">Nabawi ang %1$s.</item>
+        <item quantity="other">Nabawi ang %1$s.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Inililipat sa basurahan…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">Inilipat sa basurahan ang %1$d file.</item>
+        <item quantity="other">Inilipat sa basurahan ang %1$d na file.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">Inilipat sa basurahan ang %1$d direktoryo.</item>
+        <item quantity="other">Inilipat sa basurahan ang %1$d na direktoryo.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">Nababawi ang %1$s/s.</string>
+    <string name="workspace_operation_progress_bytes_freed">Nabawi ang %1$s.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s ang natitira.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Impormasyon</string>
+    <string name="workspace_file_info_name_label">Pangalan</string>
+    <string name="workspace_file_info_path_label">Path</string>
+    <string name="workspace_file_info_type_label">Uri</string>
+    <string name="workspace_file_info_type_file">File</string>
+    <string name="workspace_file_info_type_directory">Direktoryo</string>
+    <string name="workspace_file_info_type_symlink">Simbolikong link</string>
+    <string name="workspace_file_info_type_unknown">Hindi kilala</string>
+    <string name="workspace_file_info_size_label">Laki</string>
+    <string name="workspace_file_info_modified_label">Binago</string>
+    <string name="workspace_file_info_created_label">Ginawa</string>
+    <string name="workspace_file_info_permissions_label">Mga pahintulot</string>
+    <string name="workspace_file_info_owner_label">May-ari</string>
+    <string name="workspace_file_info_child_count_label">Mga item</string>
+    <string name="workspace_file_info_symlink_target_label">Target</string>
+    <string name="workspace_file_info_unknown">Hindi kilala</string>
+    <string name="workspace_file_info_copy_action">Kopyahin sa clipboard</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Napili</string>
+    <string name="workspace_file_info_files_label">Mga file</string>
+    <string name="workspace_file_info_directories_label">Mga direktoryo</string>
+    <string name="workspace_file_info_total_size_label">Kabuuang laki</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Hindi pa nagsisimula ang operasyong ito.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Kinokolekta ang data ng pagganap…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Hindi sapat ang data ng pagganap mula sa operasyong ito para makabuo ng graph.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Walang available na data ng pagganap para sa operasyong ito.</string>
+    <string name="workspace_operation_performance_window_seconds">Huling %1$d s</string>
+    <string name="workspace_operation_performance_window_minutes">Huling %1$d min</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">item/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Ipakita ang mga teknikal na detalye</string>
+    <string name="workspace_error_hide_details_action">Itago ang mga teknikal na detalye</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Inihahanda ang tab</string>
+    <string name="workspace_error_subtitle">May naganap na hindi inaasahang error</string>
+    <string name="workspace_close_tab_action">Isara ang tab</string>
+    <string name="workspace_paused_body">Naka-pause ang tab na ito para makatipid sa memory at baterya. Ipagpatuloy ito para makatuloy.</string>
+    <string name="workspace_paused_error_body">Hindi maipagpatuloy ang tab na ito.</string>
+    <string name="workspace_paused_resume_action">Ipagpatuloy</string>
+    <string name="workspace_paused_label">Naka-pause</string>
+    <string name="workspace_paused_content_label">Nilalaman ng tab</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Kasalukuyang file</string>
+    <string name="workspace_issue_collision_existing_folder_label">Kasalukuyang folder</string>
+    <string name="workspace_issue_collision_new_file">Paparating na file</string>
+    <string name="workspace_issue_collision_new_folder">Paparating na folder</string>
+    <string name="workspace_issue_collision_overwrite">Palitan</string>
+    <string name="workspace_issue_collision_merge">Pagsamahin</string>
+    <string name="workspace_issue_common_source_file">Pinagkunang file</string>
+    <string name="workspace_issue_common_destination_file">Patutunguhan</string>
+    <string name="workspace_issue_common_skip">Laktawan</string>
+    <string name="workspace_issue_common_rename">Palitan ang pangalan</string>
+    <string name="workspace_issue_common_rename_new">Palitan ang pangalan ng bago</string>
+    <string name="workspace_issue_common_rename_existing">Palitan ang pangalan ng kasalukuyan</string>
+    <string name="workspace_issue_common_cancel">Kanselahin</string>
+    <string name="workspace_issue_common_delete_permanently">Permanenteng tanggalin</string>
+    <string name="workspace_issue_archive_password_label">Password</string>
+    <string name="workspace_issue_archive_password_unlock">I-unlock</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Mga nabigong item</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… at %1$d pang item</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Mga apektadong item</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… at %1$d pang item</string>
+    <string name="workspace_issue_apply_all">Ilapat sa lahat ng natitirang problema</string>
+    <string name="workspace_issue_rename_new_name">Bagong pangalan</string>
+    <string name="workspace_issue_rename_dialog_title_new">Palitan ang pangalan ng paparating na file</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Palitan ang pangalan ng kasalukuyang file</string>
+    <string name="workspace_issue_type_folder">Folder</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Magbukas ng maraming tab?</string>
+    <string name="workspace_open_tabs_confirmation_message">Magbubukas ito ng %1$d tab.</string>
+
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Buksan ang %d item</item>
+        <item quantity="other">Buksan ang %d na item</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Tingnan dito</string>
+    <string name="workspace_open_selection_view_here_description">Ipinapakita ang mga napiling file sa isang tagatingin sa ibabaw ng panel na ito. Ang Nakaraan at Susunod ay para lang sa mga napili.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Tingnan sa bagong tab</string>
+    <string name="workspace_open_selection_view_in_tab_description">Ipinapakita ang mga napiling file sa isang tagatingin sa sarili nitong tab. Ang Nakaraan at Susunod ay para lang sa mga napili.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Buksan ang bawat isa sa sarili nitong tab</string>
+    <string name="workspace_open_selection_each_in_tab_description">Binubuksan ang bawat napiling item sa hiwalay na tab. Binubuksan ang mga folder bilang mga tab ng tagabrowse ng file.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Hindi maipapakita ang mga folder sa tagatingin.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Buksan gamit ang</string>
+    <string name="workspace_open_with_no_app_label">Walang ibang app na nakita</string>
+    <string name="workspace_open_with_no_app_description">Walang ibang naka-install na app na makakabukas ng %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Nagbukas ng %1$d tab</item>
+        <item quantity="other">Nagbukas ng %1$d na tab</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Hindi maisara: may operasyon pang isinasagawa sa %1$d tab</item>
+        <item quantity="other">Hindi maisara: may mga operasyon pang isinasagawa sa %1$d na tab</item>
+    </plurals>
+
+    <!-- Workspace > Settings -->
+    <string name="workspace_settings_title">Mga tab</string>
+    <string name="workspace_settings_navigation">Pag-navigate</string>
+    <string name="workspace_settings_swipe_gestures_title">Mga galaw ng pag-swipe</string>
+    <string name="workspace_settings_swipe_gestures_desc">Mag-swipe pakaliwa o pakanan para lumipat sa pagitan ng mga tab.</string>
+    <string name="workspace_settings_ondemand_creation_title">Awtomatikong gumawa ng mga tab</string>
+    <string name="workspace_settings_ondemand_creation_desc">Awtomatikong gumawa ng bagong tab kapag nag-swipe lampas sa huling tab.</string>
+    <string name="workspace_settings_newtab_type_title">Uri ng bagong tab</string>
+    <string name="workspace_settings_newtab_type_desc">Workspace na bubuksan kapag nag-swipe lampas sa huling tab, nagdagdag ng tab sa bakanteng panel, o gumawa ng unang tab.</string>
+    <string name="workspace_settings_newtab_type_ask">Magtanong sa bawat pagkakataon</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Ipakita ang pagpipilian ng uri ng tab para sa bawat bagong tab.</string>
+    <string name="workspace_settings_live_preview_title">Mga live na preview</string>
+    <string name="workspace_settings_live_preview_desc">Ipakita ang live na nilalaman ng mga tab sa tagapamahala ng mga tab.</string>
+    <string name="workspace_settings_other">Iba pa</string>
+    <string name="workspace_settings_layout_title">Layout</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Ayos kapag patayo</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Piliin ang ayos ng mga tab kapag patayo ang screen.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Ayos kapag pahiga</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Piliin ang ayos ng mga tab kapag pahiga ang screen.</string>
+    <string name="workspace_settings_layout_mode_auto">Awtomatiko</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Klasiko sa maliliit na screen, hilera ng mga tab na may mga panel sa malalaki.</string>
+    <string name="workspace_settings_layout_mode_classic">Klasiko</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Isang panel lang sa bawat pagkakataon, walang hilera ng mga tab.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Umaangkop</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Hilera ng mga tab at maraming panel hangga’t kasya sa screen. I-pin ang isang ayos mula sa menu ng Butler.</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Hilera ng mga tab at maraming panel hangga’t kasya sa screen.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Umaangkop (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Isang panel na may hilera ng mga tab</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Isang panel ng tab at ang hilera ng mga tab mula sa mga ayos na maraming panel. Sumasakop ang hilera ng isang makitid na bahagi ng screen.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Dalawang patayong panel</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Dalawang panel na magkatabi (kaliwa/kanan).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Dalawang pahigang panel</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Dalawang panel na magkapatong (itaas/ibaba).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Tatlo, sidebar sa kaliwa</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Isang malaking panel sa kaliwa, dalawang mas maliit na panel na magkapatong sa kanan.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Tatlo, sidebar sa kanan</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Dalawang mas maliit na panel na magkapatong sa kaliwa, isang malaking panel sa kanan.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Apat sa grid</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Apat na panel sa isang 2×2 na grid.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">I-click para mag-focus</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Ang unang pag-click sa panel na hindi naka-focus ay magfo-focus lang dito, at hindi tumutugon sa pointer ng mouse ang mga panel na hindi naka-focus. I-off para direktang makipag-ugnayan sa mga ito.</string>
+
+    <string name="workspace_settings_rail_button_title">Button ng Butler</string>
+    <string name="workspace_settings_rail_button_desc">Piliin kung saan ilalagay ang button ng Butler sa hilera ng mga tab.</string>
+    <string name="workspace_settings_rail_button_leading">Simula</string>
+    <string name="workspace_settings_rail_button_leading_desc">Bago ang mga tab kapag patayo, sa itaas ng mga ito kapag pahiga.</string>
+    <string name="workspace_settings_rail_button_trailing">Dulo</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Pagkatapos ng mga tab kapag patayo, sa ibaba ng mga ito kapag pahiga. Abot ng hinlalaki para sa paggamit gamit ang isang kamay.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Session</string>
+    <string name="workspace_settings_session_restore_title">Ibalik ang mga tab sa pagsisimula</string>
+    <string name="workspace_settings_session_restore_desc">Awtomatikong ibalik ang mga dating bukas na tab kapag nagsimula ang app.</string>
+    <string name="workspace_settings_autopause_title">I-pause ang mga hindi ginagamit na tab</string>
+    <string name="workspace_settings_autopause_desc">Ang mga tab na matagal nang hindi tinitingnan ay ipi-pause para makatipid sa memory at baterya. Magpapatuloy ang isang tab kapag binuksan ito.</string>
+    <string name="workspace_settings_autopause_delay_title">I-pause pagkalipas ng</string>
+    <string name="workspace_settings_autopause_delay_desc">Tagal na hindi nakikita ang isang tab bago ito i-pause.</string>
+    <string name="workspace_settings_undoclose_title">I-undo ang pagsasara ng mga tab</string>
+    <string name="workspace_settings_undoclose_desc">Pagkatapos isara ang isang tab, may opsyong ibalik ito sa loob ng ilang segundo.</string>
+    <string name="workspace_settings_session_data_title">Data ng session</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d tab • %2$s</item>
+        <item quantity="other">%1$d na tab • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">Isinara ang \"%1$s\"</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Nabigo ang pagbabalik ng session</string>
+    <string name="workspace_session_restoration_error_description">Hindi maibalik ang nakaraang session ng mga tab. Maaaring dahil ito sa isang bug na maaayos sa susunod na update.\n\nMaaaring burahin ang naka-save na session para makapagpatuloy sa paggamit ng Butler, o maghintay ng update.</string>
+    <string name="workspace_session_restoration_error_clear_action">Burahin ang session</string>
+    <string name="workspace_session_restoration_error_report_action">Iulat ang problema</string>
+    <string name="workspace_session_restoration_error_confirm_title">Burahin ang session?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Permanenteng tatanggalin nito ang naka-save na session ng mga tab. Hindi na mababawi ang pagkilos na ito.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Palitan ang pangalan ng tab</string>
+    <string name="workspace_rename_name_label">Pasadyang pangalan</string>
+    <string name="workspace_rename_name_hint">Iwanang blangko para gamitin ang awtomatikong pangalan</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Naabot ang limitasyon ng mga tab</string>
+    <string name="workspace_limit_reached_message">Maaaring magkaroon ang mga libreng user ng hanggang %1$d bukas na tab sa bawat pagkakataon. Mag-upgrade sa Butler Pro para sa walang limitasyong mga tab!</string>
+    <string name="workspace_limit_pick_tabs_message">Pinapayagan ng libreng plan mo ang %1$d bukas na tab. Piliin ang mga hindi na kailangan at isara ang mga ito para magkaroon ng puwang.</string>
+    <string name="workspace_limit_no_slot_hint">Hindi makakapagbigay ng bakanteng puwang ang pagsasara ng mga tab sa ngayon.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Isara ang %d tab</item>
+        <item quantity="other">Isara ang %d na tab</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Pumili ng hindi bababa sa %d tab na isasara.</item>
+        <item quantity="other">Pumili ng hindi bababa sa %d na tab na isasara.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Binuksan ang %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Mga pagbabagong hindi na-save</string>
+    <string name="workspace_limit_blocker_busy">Abala sa ngayon</string>
+    <string name="workspace_limit_blocker_attention">Naghihintay sa iyo</string>
+    <string name="workspace_limit_blocker_loading">Naglo-load pa</string>
+    <string name="workspace_limit_blocker_awaiting_result">Tapusin muna ang pagpili sa bukas na dialog</string>
+    <string name="workspace_limit_blocker_unavailable">Hindi maisara sa ngayon</string>
+    <string name="workspace_limit_stacked_content_desc">Isinasara rin ng pagsasara ng tab na ito ang nakapatong dito</string>
+    <string name="workspace_limit_pro_description">Magbukas ng kahit gaano karaming tab.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d na item</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Pagbabalik mula sa basurahan</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Ibalik ang %d item mula sa basurahan.</item>
+        <item quantity="other">Ibalik ang %d na item mula sa basurahan.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">Naibalik ang %d item</item>
+        <item quantity="other">Naibalik ang %d na item</item>
+    </plurals>
+</resources>

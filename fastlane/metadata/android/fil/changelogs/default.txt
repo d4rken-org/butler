@@ -1,0 +1,5 @@
+Mga pag-aayos ng bug at maliliit na pagpapahusay para manatiling mabilis at hindi sagabal ang pamamahala ng file sa device.
+
+Mga pagbabago sa bersyong ito: butler.darken.eu/changelog
+
+May nasira o kakaiba ang takbo matapos mag-update? Ipaalam sa akin sa Mga Setting > Suporta. Iisang tao lang ang gumagawa ng proyekto, kaya maaaring matagalan nang kaunti ang sagot, pero binabasa ang bawat ulat.

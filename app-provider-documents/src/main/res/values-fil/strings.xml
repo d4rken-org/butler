@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Mas malawak na pag-access sa device</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Device</string>
+    <string name="documents_connection_device_summary">Lokal na storage ng device</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Filesystem ng root</string>
+    <string name="provider_documents_storage_internal_label">Internal na storage</string>
+    <string name="provider_documents_storage_sd_card_label">SD card</string>
+    <string name="provider_documents_storage_saf_label">Lokasyon ng SAF</string>
+    <string name="provider_documents_storage_free_suffix">bakante</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">Kailangan ng root access para ma-browse ang lokasyong ito. Paganahin ang root access sa mga setting ng Butler app.</string>
+    <string name="provider_documents_error_requires_adb">Kailangan ng ADB access para ma-browse ang lokasyong ito. Paganahin ito sa Pag-setup ng Butler.</string>
+    <string name="provider_documents_error_requires_storage">Kailangan ng pahintulot sa storage para ma-browse ang lokasyong ito. Magbigay ng pahintulot sa storage sa mga setting ng Butler app.</string>
+    <string name="provider_documents_error_requires_permissions">Kailangan ng mga karagdagang pahintulot para ma-browse ang lokasyong ito. Tingnan ang mga setting ng Butler app.</string>
+    <string name="provider_documents_error_generic">Hindi ma-access ang lokasyong ito. Tingnan ang Butler app para sa mga opsyon sa pag-access.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Tagapagbigay ng mga dokumento</string>
+    <string name="provider_documents_settings_subtitle">Pagsasama sa mga panlabas na app</string>
+    <string name="provider_documents_settings_category_integration_label">Pagsasama</string>
+    <string name="provider_documents_enabled_title">Paganahin ang tagapagbigay ng mga dokumento</string>
+    <string name="provider_documents_enabled_desc">Payagan ang ibang app na mag-access ng mga file sa pamamagitan ng Butler gamit ang tagapili ng file ng Android</string>
+</resources>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">தேடல்</string>
+    <string name="searcher_subtitle">கோப்புகளையும் உள்ளடக்கத்தையும் கண்டுபிடியுங்கள்</string>
+    <!-- Tab subtitle listing the search locations -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">தேடல் அமைப்புகள்</string>
+    <string name="searcher_settings_search_category">தேடல்</string>
+    <string name="searcher_settings_history">தேடல் வரலாறு</string>
+    <string name="searcher_settings_save_history_title">தேடல் வரலாற்றைச் சேமி</string>
+    <string name="searcher_settings_save_history_subtitle">முந்தைய தேடல்களை நினைவில் வைத்திரு</string>
+    <string name="searcher_settings_max_history_label">அதிகபட்ச வரலாற்றுப் பதிவுகள்</string>
+    <string name="searcher_settings_max_history_subtitle">சேமிக்கப்பட்ட தேடல்களின் அதிகபட்ச எண்ணிக்கை</string>
+    <string name="searcher_settings_max_history_input_label">பதிவுகளின் எண்ணிக்கை (1–500)</string>
+    <string name="searcher_settings_clear_history_title">தேடல் வரலாற்றை அழி</string>
+    <string name="searcher_settings_clear_history_subtitle">சேமிக்கப்பட்ட அனைத்துத் தேடல்களையும் அகற்று (%1$d)</string>
+    <string name="searcher_settings_search_performance">செயல்திறன்</string>
+    <string name="searcher_settings_max_results_title">அதிகபட்ச தேடல் முடிவுகள்</string>
+    <string name="searcher_settings_max_results_subtitle">ஒவ்வொரு தேடலிலும் கிடைக்கும் முடிவுகளின் எண்ணிக்கையை வரம்பிடு.</string>
+    <string name="searcher_settings_content_search_category">உள்ளடக்கத் தேடல்</string>
+    <string name="searcher_settings_include_binaries_title">இருமக் கோப்புகளைச் சேர்</string>
+    <string name="searcher_settings_include_binaries_subtitle">இருமக் கோப்புகளின் உள்ளடக்கத்தைத் தேடு (மெதுவாக இருக்கலாம்; தொடர்பற்ற முடிவுகளும் கிடைக்கலாம்)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">சமீபத்திய தேடல்கள்</string>
+    <string name="searcher_placeholder_search">கோப்புகளையும் கோப்புறைகளையும் தேடு</string>
+    <string name="searcher_placeholder_filename">கோப்புப் பெயர்</string>
+    <string name="searcher_placeholder_content">உள்ளடக்கம்</string>
+    <string name="searcher_search_error">தேடல் பிழை</string>
+    <string name="searcher_no_paths_hint">தேடல் இருப்பிடங்களைச் சேர்க்க + ஐத் தட்டுங்கள்</string>
+    <string name="searcher_add_path_action">இருப்பிடத்தைச் சேர்</string>
+    <string name="searcher_add_folder_action">கோப்புறை…</string>
+    <string name="searcher_multipath_show_fewer_action">குறைவாகக் காட்டு</string>
+    <string name="searcher_empty_state_title">தேடல் பாதைகள் அமைக்கப்படவில்லை</string>
+    <string name="searcher_empty_state_description">உங்கள் கோப்புகளில் தேட சேமிப்பக இருப்பிடங்களைச் சேருங்கள்</string>
+    <string name="searcher_add_default_paths_action">இயல்புநிலை தேடல் பாதைகளைச் சேர்</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">விருப்பங்கள்</string>
+    <string name="searcher_option_case_sensitive_label">பெரிய/சிறிய எழுத்து வேறுபாடு</string>
+    <string name="searcher_option_case_sensitive_desc">பெரிய/சிறிய எழுத்து வேறுபாட்டுடன் தேடல்</string>
+    <string name="searcher_option_whole_word_label">முழுச் சொல்</string>
+    <string name="searcher_option_whole_word_desc">முழுச் சொல் தேடல்</string>
+    <string name="searcher_option_regex_label">சீரான கோவை (regex)</string>
+    <string name="searcher_option_regex_desc">சீரான கோவை (regex) மூலம் தேடல்</string>
+    <string name="searcher_option_search_content_label">உள்ளடக்கத்தைத் தேடு</string>
+    <string name="searcher_option_search_content_desc">கோப்புகளின் உள்ளடக்கத்தைத் தேடு</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">வார்ப்புருக்கள்</string>
+    <string name="searcher_templates_card_title">விரைவுத் தேடல் வார்ப்புருக்கள்</string>
+    <string name="searcher_template_large_files">பெரிய கோப்புகள்</string>
+    <string name="searcher_template_large_files_desc">100 MB ஐவிடப் பெரிய கோப்புகள்</string>
+    <string name="searcher_template_recent_files">சமீபத்திய கோப்புகள்</string>
+    <string name="searcher_template_recent_files_desc">கடந்த 7 நாட்களில் மாற்றப்பட்டவை</string>
+    <string name="searcher_template_old_files">பழைய கோப்புகள்</string>
+    <string name="searcher_template_old_files_desc">ஓராண்டுக்கும் மேலாக மாற்றப்படாதவை</string>
+    <string name="searcher_template_images">படங்கள்</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">காணொளிகள்</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">ஒலி</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">ஆவணங்கள்</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">காப்பகங்கள்</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APK-கள்</string>
+    <string name="searcher_template_apks_desc">Android செயலித் தொகுப்புகள்</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d வார்ப்புரு</item>
+        <item quantity="other">%d வார்ப்புருக்கள்</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">வடிகட்டு</string>
+    <string name="searcher_filter_add_action">வடிகட்டியைச் சேர்</string>
+    <string name="searcher_filter_title">தேடல் வடிகட்டிகள்</string>
+    <string name="searcher_filter_size_section">கோப்பு அளவு</string>
+    <string name="searcher_filter_size_min">குறைந்தபட்ச அளவு</string>
+    <string name="searcher_filter_size_max">அதிகபட்ச அளவு</string>
+    <string name="searcher_filter_date_section">மாற்றப்பட்ட தேதி</string>
+    <string name="searcher_filter_date_after">இதற்குப் பிறகு மாற்றப்பட்டவை</string>
+    <string name="searcher_filter_date_before">இதற்கு முன்பு மாற்றப்பட்டவை</string>
+    <string name="searcher_filter_date_any">எந்த நேரமும்</string>
+    <string name="searcher_filter_date_24h">கடந்த 24 மணிநேரம்</string>
+    <string name="searcher_filter_date_7d">கடந்த 7 நாட்கள்</string>
+    <string name="searcher_filter_date_30d">கடந்த 30 நாட்கள்</string>
+    <string name="searcher_filter_date_90d">கடந்த 90 நாட்கள்</string>
+    <string name="searcher_filter_date_1y">கடந்த ஓராண்டு</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">விட அதிகம்</string>
+    <string name="searcher_filter_comparator_greater_or_equal">அதிகம் அல்லது சமம்</string>
+    <string name="searcher_filter_comparator_less_than">விடக் குறைவு</string>
+    <string name="searcher_filter_comparator_less_or_equal">குறைவு அல்லது சமம்</string>
+    <string name="searcher_filter_comparator_equal">சமம்</string>
+    <string name="searcher_filter_size_value_label">அளவு</string>
+    <string name="searcher_filter_size_at_least">குறைந்தது</string>
+    <string name="searcher_filter_size_at_most">அதிகபட்சம்</string>
+    <string name="searcher_filter_size_value_hint">எ.கா. 10 MB</string>
+    <string name="searcher_filter_size_format_help">அலகுடன் (KB, MB, GB) ஓர் எண்ணை உள்ளிடுங்கள். அலகில்லாத எண் MB ஆகக் கருதப்படும்.</string>
+    <string name="searcher_filter_size_format_error">செல்லாத அளவு — எண்ணையும் அலகையும் பயன்படுத்துங்கள், எ.கா. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">தேதி</string>
+    <string name="searcher_filter_date_direction_after">பிறகு</string>
+    <string name="searcher_filter_date_direction_before">முன்பு</string>
+    <string name="searcher_filter_type_label">வகை</string>
+    <string name="searcher_filter_type_files">கோப்புகள்</string>
+    <string name="searcher_filter_type_directories">கோப்புறைகள்</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">வரலாற்றிலிருந்து அகற்று</string>
+    <string name="searcher_history_clear_all_action">அனைத்தையும் அழி</string>
+    <string name="searcher_history_clear_dialog_title">தேடல் வரலாற்றை அழி</string>
+    <string name="searcher_history_clear_dialog_message">இது சேமிக்கப்பட்ட தேடல் வரலாறு முழுவதையும் அகற்றும். இந்தச் செயலைச் செயல்தவிர்க்க முடியாது.</string>
+    <string name="searcher_history_clear_confirm_action">அழி</string>
+    <string name="searcher_history_cleared_success">தேடல் வரலாறு அழிக்கப்பட்டது</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">முடிவுகள் இல்லை</item>
+        <item quantity="one">%d முடிவு</item>
+        <item quantity="other">%d முடிவுகள்</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">மேலும் %d ஐக் காட்டு</item>
+        <item quantity="other">மேலும் %d ஐக் காட்டு</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">தேடுகிறது</string>
+    <string name="searcher_progress_action_searched">தேடப்பட்டது</string>
+    <string name="searcher_progress_status_completed_with_errors">பிழைகளுடன் முடிந்தது</string>
+    <string name="searcher_result_limit_reached">முடிவுகளின் வரம்பை எட்டியது</string>
+    <string name="searcher_progress_items_partial">சில உருப்படிகளை முழுமையாகத் தேட முடியவில்லை</string>
+    <string name="searcher_progress_clear_action">அழி</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d தோல்வி</item>
+        <item quantity="other">%d தோல்விகள்</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">%d உருப்படியை அணுக முடியவில்லை</item>
+        <item quantity="other">%d உருப்படிகளை அணுக முடியவில்லை</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…மேலும் %d</item>
+        <item quantity="other">…மேலும் %d</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet -->
+    <string name="searcher_access_sheet_body_unlockable">Android இந்த இருப்பிடங்களைப் பாதுகாக்கிறது. கூடுதல் அணுகலை வழங்கினால் Butler இவற்றில் தேட முடியும்.</string>
+    <string name="searcher_access_sheet_body_protected">Android இந்த இருப்பிடங்களைப் பாதுகாக்கிறது. இந்தச் சாதனத்தில் அணுகலை வழங்க வழியில்லை.</string>
+    <string name="searcher_access_sheet_unlock_action">அணுகலைத் திற</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d இருப்பிடம்</item>
+        <item quantity="other">%d இருப்பிடங்கள்</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d ஸ்கேன் செய்யப்பட்டது</item>
+        <item quantity="other">%d ஸ்கேன் செய்யப்பட்டன</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d கண்டுபிடிக்கப்பட்டது</item>
+        <item quantity="other">%d கண்டுபிடிக்கப்பட்டன</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">பொருத்தத்தைச் சுற்றியுள்ள உரை</string>
+    <string name="searcher_match_line_label">வரி %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">திற</string>
+    <string name="searcher_action_open_in_tab">புதிய தாவலில் திற</string>
+    <string name="searcher_action_open_with">இதன் மூலம் திற</string>
+    <string name="searcher_action_open_in_editor">திருத்தியில் திற</string>
+    <string name="searcher_action_open_in_explorer">கோப்பு உலாவியில் திற</string>
+    <string name="searcher_action_install">நிறுவு</string>
+    <string name="searcher_action_copy">நகலெடு</string>
+    <string name="searcher_action_cut">வெட்டு</string>
+    <string name="searcher_action_delete">நீக்கு</string>
+    <string name="searcher_action_copy_path">பாதையை நகலெடு</string>
+    <string name="searcher_action_properties">பண்புகள்</string>
+    <string name="searcher_action_select_all">அனைத்தையும் தேர்ந்தெடு</string>
+    <string name="searcher_action_deselect_all">அனைத்துத் தேர்வுகளையும் நீக்கு</string>
+    <string name="searcher_action_sort">வரிசைப்படுத்து</string>
+    <string name="searcher_action_view">தளவமைப்பு</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">இதன்படி வரிசைப்படுத்து</string>
+    <string name="searcher_sort_mode_name_label">பெயர்</string>
+    <string name="searcher_sort_mode_size_label">அளவு</string>
+    <string name="searcher_sort_mode_modified_label">மாற்றப்பட்ட தேதி</string>
+    <string name="searcher_sort_mode_created_label">உருவாக்கப்பட்ட தேதி</string>
+    <string name="searcher_sort_mode_path_label">பாதை</string>
+    <string name="searcher_sort_descending_label">இறங்கு வரிசை</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">உருப்படிகள் எவ்வாறு அடுக்கப்படுகின்றன, எவ்வளவு விவரங்களைக் காட்டுகின்றன</string>
+    <string name="searcher_view_mode_list_label">பட்டியல்</string>
+    <string name="searcher_view_mode_grid_label">கட்டம்</string>
+    <string name="searcher_view_density_compact_label">நெருக்கமானது</string>
+    <string name="searcher_view_density_comfortable_label">வசதியானது</string>
+    <string name="searcher_view_density_detailed_label">விரிவானது</string>
+    <string name="searcher_view_detail_modified_label">மாற்றப்பட்டது</string>
+    <string name="searcher_view_set_default_action">இயல்புநிலையாக அமை</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">சில இருப்பிடங்களில் தேட கூடுதல் அமைவாக்கம் தேவை.</string>
+</resources>

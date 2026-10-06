@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Butler FOSS ضروری ہے</string>
+
+    <string name="upgrade_prompt_title">Butler اپ گریڈ کریں</string>
+    <string name="upgrade_prompt_body">اضافی خصوصیات دستیاب کریں اور مالی معاون بن کر ترقی کا سلسلہ جاری رکھنے میں مدد دیں!</string>
+    <string name="upgrade_prompt_upgrade_action">اپ گریڈ کریں</string>
+
+    <string name="upgrade_screen_title">Butler اپ گریڈ کریں</string>
+    <string name="upgrade_screen_preamble">Butler میں کوئی اشتہارات نہیں ہیں اور یہ صارفین کا ڈیٹا فروخت نہیں کرتا۔ اس کی ترقی کا سلسلہ صرف آپ کی بدولت جاری رہ سکتا ہے۔</string>
+    <string name="upgrade_screen_how_title">مدد کیسے کریں</string>
+    <string name="upgrade_screen_how_body">مالی معاون بنیں اور ترقی میں تعاون کریں! تمام اضافی خصوصیات فعال کرنے اور میرا GitHub Sponsors پروفائل کھولنے کے لیے نیچے دیا گیا بٹن دبائیں۔</string>
+
+    <string name="upgrade_screen_sponsor_action">ترقی کی مالی معاونت کریں</string>
+    <string name="upgrade_screen_sponsor_action_hint">اس کا متبادل اشتہارات، تجزیات اور Google Play ہیں 🙁۔</string>
+    <string name="upgrade_screen_thanks_toast">اوپن سورس کی ترقی میں تعاون کا شکریہ ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">اتنی جلدی واپسی؟ آپ کا تعاون Butler کو زندہ رکھتا ہے — براہ کرم تھوڑا وقت نکال کر مالی معاونت کا صفحہ دیکھیں۔</string>
+    <string name="upgrade_screen_sponsor_open_failed">مالی معاونت کا صفحہ نہیں کھل سکا۔ اسے براؤزر میں کھولنے کی کوشش کریں۔</string>
+
+    <string name="upgrade_screen_status_free_title">آپ کے پاس مفت ورژن ہے</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS مکمل طور پر اوپن سورس ہے۔ ترقی میں تعاون کر کے اضافی خصوصیات دستیاب کریں۔</string>
+    <string name="upgrade_screen_status_free_action">اپ گریڈ کے اختیارات دیکھیں</string>
+    <string name="upgrade_screen_status_upgraded_title">آپ معاون ہیں</string>
+    <string name="upgrade_screen_status_upgraded_body">اوپن سورس کی ترقی میں تعاون کا شکریہ ❤️ تمام اضافی خصوصیات دستیاب ہیں۔</string>
+    <string name="upgrade_screen_supporter_since">%s سے معاون</string>
+    <string name="upgrade_screen_recurring_title">یہ سلسلہ جاری رکھیں</string>
+    <string name="upgrade_screen_recurring_body">Butler کی تیاری میرے فارغ وقت میں ہوتی ہے۔ باقاعدہ عطیہ اسے زندہ رکھنے میں مدد دیتا ہے۔</string>
+    <string name="upgrade_screen_recurring_action">باقاعدہ مالی معاون بنیں</string>
+
+    <string name="upgrade_benefits_title">اپ گریڈ کے فوائد</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• لامحدود ٹیب اور کارروائیاں\n• ڈیزائن، انداز اور ظاہری شکل اپنی پسند کے مطابق بنائیں\n• ہر ٹول کے لیے اضافی اختیارات اور خصوصیات\n• نئی خصوصیات تک ابتدائی رسائی\n• ایک پُرجوش ڈویلپر 🧙\nاور بھی بہت کچھ…</string>
+</resources>

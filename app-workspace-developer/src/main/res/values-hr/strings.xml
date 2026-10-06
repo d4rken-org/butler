@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Razvoj</string>
+    <string name="developer_title">Razvojni alati</string>
+    <string name="developer_subtitle">Alati za razvoj</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">Sustav</string>
+    <string name="developer_tab_options">Opcije</string>
+    <string name="developer_tab_workspaces">Radni prostori</string>
+    <string name="developer_tab_logs">Zapisnici</string>
+    <string name="developer_tab_testdata">Testni podaci</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Opcije otklanjanja pogrešaka</string>
+    <string name="developer_options_debug_mode">Način otklanjanja pogrešaka</string>
+    <string name="developer_options_debug_mode_desc">Omogući detaljno zapisivanje</string>
+    <string name="developer_options_trace_mode">Način praćenja</string>
+    <string name="developer_options_trace_mode_desc">Omogući zapisivanje na razini praćenja</string>
+    <string name="developer_options_floating_log">Plutajuća ploča zapisnika</string>
+    <string name="developer_options_floating_log_desc">Prikaži pomični sloj zapisnika na svim zaslonima</string>
+    <string name="developer_options_services_header">Testovi servisa</string>
+    <string name="developer_options_root_test_action">Testiraj root pristup</string>
+    <string name="developer_options_root_installed_label">Instalirano</string>
+    <string name="developer_options_root_available_label">Dostupno</string>
+    <string name="developer_options_root_base_check_label">Osnovna provjera</string>
+    <string name="developer_options_shizuku_test_action">Testiraj ADB pristup</string>
+    <string name="developer_options_shizuku_installed_label">Instalirano</string>
+    <string name="developer_options_shizuku_granted_label">Dozvola</string>
+    <string name="developer_options_shizuku_compatible_label">Kompatibilno</string>
+    <string name="developer_options_shizuku_service_label">Servis</string>
+    <string name="developer_options_test_running">Testiranje…</string>
+    <string name="developer_options_result_yes">Da</string>
+    <string name="developer_options_result_no">Ne</string>
+    <string name="developer_options_result_unknown">Nepoznato</string>
+    <string name="developer_options_visibility_header">Vidljivost</string>
+    <string name="developer_options_hide_mode">Sakrij razvojni način</string>
+    <string name="developer_options_hide_mode_desc">Dodirni verziju 7 puta u Postavkama za ponovno uključivanje.</string>
+    <string name="developer_options_hide_action">Sakrij</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Uređaj</string>
+    <string name="developer_system_device_model">Model</string>
+    <string name="developer_system_device_manufacturer">Proizvođač</string>
+    <string name="developer_system_device_api">Razina API-ja</string>
+    <string name="developer_system_build_header">Izgradnja</string>
+    <string name="developer_system_build_version">Verzija</string>
+    <string name="developer_system_build_code">Kod verzije</string>
+    <string name="developer_system_build_flavor">Varijanta</string>
+    <string name="developer_system_build_type">Vrsta izgradnje</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Memorija</string>
+    <string name="developer_system_memory_available">Dostupno</string>
+    <string name="developer_system_memory_total">Ukupno</string>
+    <string name="developer_system_storage_header">Pohrana</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">Broj radnih prostora: %d</string>
+    <string name="developer_workspaces_empty">Nema radnih prostora</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Očisti</string>
+    <string name="developer_logs_pause">Pauziraj</string>
+    <string name="developer_logs_resume">Nastavi</string>
+    <string name="developer_logs_empty">Nema zapisnika</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Ciljne putanje</string>
+    <string name="developer_testdata_no_paths">Nisu odabrane ciljne putanje. Dodaj putanje za generiranje testnih podataka.</string>
+    <string name="developer_testdata_add_path_action">Dodaj putanju</string>
+    <string name="developer_testdata_options_header">Opcije generiranja</string>
+    <string name="developer_testdata_large_files">Velike datoteke</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Ugniježđena struktura</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 mapa, ~1100 datoteka</string>
+    <string name="developer_testdata_text_files">Tekstne datoteke za Uređivač</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Generiraj</string>
+    <string name="developer_testdata_generating">Generiranje…</string>
+    <string name="developer_testdata_history_header">Ogledni zapisi povijesti</string>
+    <string name="developer_testdata_history_desc">Dodaje ~25 izmišljenih zapisa operacija za razdoblje od danas → prije 30 dana, s različitim vrstama/ishodima/izvorima/putanjama. Unosi ih izravno u bazu podataka povijesti; sigurno je ponovno dodirnuti.</string>
+    <string name="developer_testdata_history_generate_action">Generiraj oglednu povijest</string>
+    <string name="developer_testdata_progress">%1$s od %2$s</string>
+    <string name="developer_testdata_complete">Testni podaci generirani na:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Generiraj velike datoteke</string>
+    <string name="developer_operation_large_files_desc">Stvaranje testnih datoteka u %1$s</string>
+    <string name="developer_operation_large_files_creating">Stvaranje %1$s</string>
+
+    <string name="developer_operation_nested_title">Generiraj ugniježđenu strukturu</string>
+    <string name="developer_operation_nested_desc">Stvaranje hijerarhije mapa u %1$s</string>
+    <string name="developer_operation_nested_starting">Pokretanje ugniježđene strukture…</string>
+    <string name="developer_operation_nested_creating">Stvaranje %1$s</string>
+    <string name="developer_operation_nested_files_created">Broj stvorenih datoteka: %1$d</string>
+
+    <string name="developer_operation_text_files_title">Generiraj tekstne datoteke</string>
+    <string name="developer_operation_text_files_desc">Stvaranje tekstnih datoteka u %1$s</string>
+    <string name="developer_operation_text_files_creating">Stvaranje %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d stvorena datoteka</item>
+        <item quantity="few">%d stvorene datoteke</item>
+        <item quantity="other">%d stvorenih datoteka</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d mapa</item>
+        <item quantity="few">%d mape</item>
+        <item quantity="other">%d mapa</item>
+    </plurals>
+</resources>

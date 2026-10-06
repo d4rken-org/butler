@@ -1,0 +1,112 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Sletter elementer</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Kopierer elementer</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Flytter elementer</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Scanner…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">Filen findes allerede</string>
+    <string name="path_action_folder_exists_title">Mappen findes allerede</string>
+    <string name="path_action_file_exists_description">En fil med navnet \"%1$s\" findes allerede på \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">En mappe med navnet \"%1$s\" findes allerede på \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">Filen er væk</string>
+    <string name="path_action_not_found_description">\"%1$s\" er blevet slettet, omdøbt eller flyttet et andet sted hen.</string>
+
+    <string name="path_action_permission_denied_title">Adgang nægtet</string>
+    <string name="path_action_permission_denied_description">Kan ikke få adgang til \"%1$s\" på \"%2$s\" på grund af utilstrækkelige tilladelser.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Kan ikke få adgang til \"%1$s\" på \"%2$s\". Ingen metode er tilgængelig til at udføre denne handling.</string>
+    <string name="path_action_permission_denied_readonly_description">Kan ikke få adgang til \"%1$s\" på \"%2$s\". Filsystemet er skrivebeskyttet.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Kan ikke få adgang til \"%1$s\" på \"%2$s\". Systemet afviste handlingen.</string>
+
+    <string name="path_action_insufficient_space_title">Ikke nok plads</string>
+    <string name="path_action_insufficient_space_description">Der er ikke nok ledig lagerplads til at kopiere \"%1$s\" fra \"%2$s\".</string>
+
+    <string name="path_action_unknown_error_title">Handlingen mislykkedes</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">Erstatning ikke fuldført</string>
+    <string name="path_action_data_kept_new_data_description">Butler kunne ikke færdiggøre skrivningen af \"%1$s\". Dine nye data er gemt i samme mappe under navnet \"%2$s\". Omdøb filen for at gendanne dine data, eller slet den for at kassere dem.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler kunne ikke færdiggøre skrivningen af \"%1$s\". Den tidligere fil er uændret. Dine nye data er gemt i samme mappe under navnet \"%2$s\". Omdøb filen for at gendanne dine data, eller slet den for at kassere dem.</string>
+    <string name="path_action_data_kept_both_description">Butler kunne ikke færdiggøre skrivningen af \"%1$s\". Intet gik tabt: Den tidligere fil er gemt i samme mappe under navnet \"%2$s\", og dine nye data under navnet \"%3$s\". Omdøb den fil, du vil beholde.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler kunne ikke færdiggøre skrivningen af \"%1$s\" og kunne ikke kontrollere, om \"%2$s\" stadig er der. En ufuldstændig kopi kan være gemt i samme mappe under navnet \"%3$s\". Sammenlign begge filer, før du sletter nogen af dem.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler kunne ikke færdiggøre flytningen af \"%1$s\" og kan ikke afgøre, om filen blev flyttet ud af sin mappe. Dine data er enten gemt i den mappe under navnet \"%2$s\" eller allerede på \"%3$s\". Kontroller begge steder, før du sletter nogen af filerne.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler kunne ikke færdiggøre skrivningen af \"%1$s\" og kan ikke afgøre, hvor din fil endte. Det er en af tre filer i den mappe: selve \"%1$s\", \"%2$s\" eller \"%3$s\". Kontroller alle tre, før du sletter nogen af dem.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler kunne ikke færdiggøre skrivningen af \"%1$s\" og kan ikke afgøre, hvor din fil endte. Det er en af to filer i den mappe: selve \"%1$s\" eller \"%2$s\". Kontroller begge, før du sletter nogen af dem.</string>
+
+    <string name="path_action_trash_size_limit_title">Elementerne er for store til papirkurven</string>
+    <string name="path_action_trash_size_limit_description">%1$d elementer på i alt %2$s overskrider papirkurvens størrelsesgrænse (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">Kunne ikke flytte til papirkurven</string>
+    <string name="path_action_trash_move_failed_description">%1$d elementer kunne ikke flyttes til papirkurven.</string>
+
+    <string name="path_action_trash_not_supported_title">Papirkurv understøttes ikke</string>
+    <string name="path_action_trash_not_supported_description">%1$d elementer ligger på et lager, der ikke understøtter papirkurven.</string>
+
+    <string name="path_action_archive_password_title">Adgangskode påkrævet</string>
+    <string name="path_action_archive_password_description">\"%1$s\" er krypteret. Indtast adgangskoden for at læse indholdet.</string>
+    <string name="path_action_archive_password_wrong_description">Adgangskoden til \"%1$s\" var forkert. Prøv igen.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Kan ikke nå serveren</string>
+    <string name="smb_error_unreachable_description">Butler kunne ikke nå \"%1$s\". Kontroller, at enheden er på samme netværk, og at serveren er tændt.</string>
+    <string name="smb_error_auth_title">Login mislykkedes</string>
+    <string name="smb_error_auth_description">\"%1$s\" afviste brugernavnet eller adgangskoden.</string>
+    <string name="smb_error_share_access_denied_title">Ingen adgang til denne deling</string>
+    <string name="smb_error_share_access_denied_description">Denne konto har ikke tilladelse til at bruge \"%1$s\" på \"%2$s\". Kontroller delingens tilladelser på serveren.</string>
+    <string name="smb_error_share_not_found_title">Deling ikke fundet</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" findes ikke på \"%2$s\".</string>
+    <string name="smb_error_dialect_title">Serveren er for gammel</string>
+    <string name="smb_error_dialect_description">\"%1$s\" tilbyder kun SMB1, som er usikkert og ikke understøttes. Aktiver SMB2 eller nyere på serveren.</string>
+    <string name="smb_error_credential_unavailable_title">Login påkrævet</string>
+    <string name="smb_error_credential_unavailable_description">Den gemte adgangskode til dette netværkslager kan ikke længere læses. Indtast den igen for at oprette forbindelse igen.</string>
+    <string name="smb_error_pro_required_title">Netværksdelinger kræver Butler Pro</string>
+    <string name="smb_error_pro_required_description">At gennemse netværksdelinger er en del af Butler Pro. Det er gratis at tilføje, teste og fjerne placeringer.</string>
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Beskyttet app-pakke</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" er krypteret og kan kun installeres af den app, der oprettede den.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">APK-sætformat understøttes ikke</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" er et bundletool-APK-sæt. Butler kan ikke afgøre, hvilken af varianterne der passer til denne enhed.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Ingen app at installere</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" indeholder ingen APK, der kan installeres.</string>
+
+    <string name="app_install_error_session_title">Installationen mislykkedes</string>
+    <string name="app_install_error_session_description">Systemet afviste installationen: %1$s</string>
+
+    <string name="app_install_error_busy_title">En anden installation er i gang</string>
+    <string name="app_install_error_busy_description">\"%1$s\" er stadig ved at blive installeret. Bekræft eller annuller den installation, før du starter en ny.</string>
+
+    <string name="app_install_error_no_elevation_title">Ingen forhøjet adgang</string>
+    <string name="app_install_error_no_elevation_description">Root- eller ADB-adgang er ikke tilgængelig i øjeblikket.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Bekræftelse påkrævet</string>
+    <string name="app_install_confirm_pending_description">Android kræver, at du bekræfter installationen af \"%1$s\", før den kan fuldføres.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android kræver, at du bekræfter denne installation, før den kan fuldføres.</string>
+    <string name="app_install_confirm_pending_action">Bekræft installation</string>
+    <string name="app_install_confirm_pending_reason">Installationsprogrammet venter på din bekræftelse</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Bekræftelse påkrævet</string>
+    <string name="app_uninstall_confirm_pending_description">Android kræver, at du bekræfter fjernelsen af \"%1$s\", før den kan fuldføres.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android kræver, at du bekræfter denne fjernelse, før den kan fuldføres.</string>
+    <string name="app_uninstall_confirm_pending_action">Bekræft fjernelse</string>
+    <string name="app_uninstall_confirm_pending_reason">Android venter på din bekræftelse</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Fjernelse af denne app for en anden bruger kræver root- eller ADB-adgang</string>
+    <string name="app_uninstall_no_result">Android rapporterede ikke noget resultat</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Filhandling afbrudt</string>
+    <string name="service_connection_lost_error_message">Tjenesten til filhandlinger stoppede uventet. Prøv igen.</string>
+</resources>

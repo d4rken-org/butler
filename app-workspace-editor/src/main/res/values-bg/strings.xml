@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Редактор</string>
+    <string name="editor_subtitle">Редактирай текстови файлове</string>
+    <string name="editor_settings_title">Настройки на редактора</string>
+    <string name="editor_settings_show_line_numbers_title">Показване на номерата на редовете</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Показвай номерата на редовете в редактора.</string>
+    <string name="editor_settings_word_wrap_title">Пренасяне на редовете</string>
+    <string name="editor_settings_word_wrap_subtitle">Пренасяй дългите редове, за да се поберат в ширината на екрана.</string>
+    <string name="editor_settings_syntax_highlighting_title">Оцветяване на синтаксиса</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Оцветявай кода в поддържаните файлове (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Размер на шрифта</string>
+    <string name="editor_settings_font_size_subtitle">Размер на текста в редактора</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Ширина на табулацията</string>
+    <string name="editor_settings_tab_size_subtitle">Брой интервали, които заема знакът за табулация</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Отвори</string>
+    <string name="editor_action_save">Запази</string>
+    <string name="editor_action_save_as">Запази като…</string>
+    <string name="editor_action_close">Затвори</string>
+    <string name="editor_action_undo">Отмени</string>
+    <string name="editor_action_redo">Повтори</string>
+    <string name="editor_action_search">Търси</string>
+    <string name="editor_action_go_to_line">Отиди на ред</string>
+    <string name="editor_action_dismiss">Скрий</string>
+    <string name="editor_action_previous">Предишен</string>
+    <string name="editor_action_next">Следващ</string>
+    <string name="editor_action_copy">Копирай</string>
+    <string name="editor_action_cut">Изрежи</string>
+    <string name="editor_action_copy_to_butler_clipboard">Копирай в клипборда на Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">Изрежи в клипборда на Butler</string>
+    <string name="editor_action_paste">Постави</string>
+    <string name="editor_action_select_all">Избери всичко</string>
+    <string name="editor_action_delete">Изтрий</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Да се презапише ли файлът?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s вече съществува. Текущото му съдържание ще бъде заменено.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Презапиши</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Намерено е резервно копие от прекъснато запазване:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Редактирането като текст не се поддържа</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Много дълги редове</string>
+    <string name="editor_long_lines_banner_message">Много дългите редове се съкращават при показване; пълното съдържание се съхранява и се запазва във файла.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Покажи следващата част от реда</string>
+    <string name="editor_line_truncated_marker_previous_action">Покажи предишната част от реда</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Файлът вече не е наличен</string>
+    <string name="editor_backing_lost_banner_message">Може да е преместен или изтрит. Този изглед е само за четене — отвори го отново или го затвори.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Файлът липсва, но има резервно копие</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" липсва, но прекъснато запазване е оставило това: %2$s. Най-вероятно съдържанието ти все още е в него.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Файлът на диска е променен</string>
+    <string name="editor_external_change_banner_message">Друго приложение е променило този файл.</string>
+    <string name="editor_external_change_reload_action">Зареди отново</string>
+    <string name="editor_external_change_keep_action">Продължи да редактираш</string>
+    <string name="editor_error_external_change">Този файл е променен от друго приложение. Зареди файла отново, за да продължиш.</string>
+    <string name="editor_dialog_reload_confirm_title">Да се зареди ли файлът отново?</string>
+    <string name="editor_dialog_reload_confirm_message">Повторното зареждане отхвърля незапазените ти промени и показва текущото съдържание на файла на диска.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d ред</item>
+        <item quantity="other">%1$d реда</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d знак</item>
+        <item quantity="other">%1$d знака</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Избрани: %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dр. · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Зареждане на файл…</string>
+    <string name="editor_saving">Запазване…</string>
+    <string name="editor_action_cancel_loading">Отмени</string>
+    <string name="editor_progress_opening">Отваряне на файл…</string>
+    <string name="editor_progress_saving">Запазване на файл…</string>
+    <string name="editor_progress_building_index">Изграждане на индекс на файла…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Неизвестна грешка</string>
+    <string name="editor_error_read_only">Този файл е само за четене и не може да бъде променян.</string>
+    <string name="editor_error_save_integrity_label">Запазването е прекъснато</string>
+    <string name="editor_error_save_integrity">Запазването е прекъснато и файлът на диска може да е непълен. Зареди файла отново, преди да продължиш да редактираш.</string>
+    <string name="editor_error_clipboard_too_large_label">Избраният текст е твърде голям</string>
+    <string name="editor_error_clipboard_too_large">Избраният текст е твърде голям за копиране (ограничение: %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Файлът е твърде голям</string>
+    <string name="editor_error_paste_too_large">Този файл е твърде голям за поставяне (максимум: %1$s).</string>
+    <string name="editor_error_paste_binary_label">Не е текстов файл</string>
+    <string name="editor_error_paste_binary">Съдържанието на този файл не може да бъде поставено като текст.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d от %2$d резултат</item>
+        <item quantity="other">%1$d от %2$d резултата</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d от %2$d+ резултата</string>
+    <string name="editor_search_too_many_matches_label">Твърде много съвпадения</string>
+    <string name="editor_search_too_many_matches">Повече от %1$d съвпадения или твърде голям обем съвпадащ текст — стесни търсенето, за да замениш всички съвпадения.</string>
+    <string name="editor_search_placeholder">Търсене…</string>
+    <string name="editor_search_previous">Предишен резултат</string>
+    <string name="editor_search_next">Следващ резултат</string>
+    <string name="editor_search_case_sensitive_label">Различаване на малки и главни букви</string>
+    <string name="editor_search_regex_label">Регулярен израз</string>
+    <string name="editor_search_whole_word_label">Цяла дума</string>
+    <string name="editor_search_options_label">Опции за търсене</string>
+    <string name="editor_search_replace_label">Замяна</string>
+    <string name="editor_search_replace_toggle">Покажи или скрий замяната</string>
+    <string name="editor_search_replace_placeholder">Замени с…</string>
+    <string name="editor_search_replace_one_action">Замени</string>
+    <string name="editor_search_replace_all_action">Всички</string>
+    <string name="editor_search_replaced_not_undoable">%1$d замени (обемът е твърде голям за отмяна)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d замяна</item>
+        <item quantity="other">%1$d замени</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Отиди на ред</string>
+    <string name="editor_dialog_go_to_line_label">Номер на ред (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Отиди</string>
+    <string name="editor_dialog_action_cancel">Отмени</string>
+    <string name="editor_dialog_close_confirm_title">Незапазени промени</string>
+    <string name="editor_dialog_close_confirm_message">Имаш незапазени промени. Да се отхвърлят ли?</string>
+    <string name="editor_dialog_close_confirm_discard">Отхвърли</string>
+    <string name="editor_dialog_large_delete_confirm_title">Да се редактира ли избраният текст с голям обем?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Избраният текст е твърде голям, за да може промяната да бъде отменена. Да се продължи ли въпреки това?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Продължи</string>
+    <string name="editor_encoding_dialog_title">Кодировка</string>
+    <string name="editor_encoding_dialog_message">Отвори файла отново с друга кодировка. Незапазените промени се отхвърлят; нередактираните байтове остават непроменени при запазване.</string>
+    <string name="editor_infobar_read_only">Само за четене</string>
+    <string name="editor_line_ending_mixed">Смесени</string>
+    <string name="editor_line_ending_dialog_title">Краища на редовете</string>
+    <string name="editor_line_ending_dialog_message">Преобразувай всички знаци за нов ред и запази файла, включително незапазените промени. Историята за отмяна се изчиства.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Без заглавие</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Автоматично запазване</string>
+    <string name="editor_settings_autosave_enabled_title">Включване на автоматичното запазване</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Автоматично запазвай промените след период на неактивност.</string>
+    <string name="editor_settings_autosave_interval_title">Интервал за автоматично запазване</string>
+    <string name="editor_settings_autosave_interval_subtitle">Време за изчакване след последната промяна преди запазване.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Интервал за автоматично запазване</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Клипборд</string>
+    <string name="editor_settings_clipboard_behavior_title">Клипборд на Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Управлявай как копираният текст се запазва в клипборда на Butler.</string>
+    <string name="editor_settings_clipboard_system_only">Само системният клипборд</string>
+    <string name="editor_settings_clipboard_system_only_desc">Копирай само в системния клипборд</string>
+    <string name="editor_settings_clipboard_butler_always">Винаги добавяй в Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Запазвай и в клипборда на Butler за поставяне между работни пространства</string>
+    <string name="editor_settings_clipboard_ask">Питай всеки път</string>
+    <string name="editor_settings_clipboard_ask_desc">Питай, преди да добавиш в клипборда на Butler</string>
+</resources>

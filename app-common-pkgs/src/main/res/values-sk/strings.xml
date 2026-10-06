@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">Neplatný zoznam aplikácií</string>
+    <string name="pkgrepo_invalid_inventory_error_description">Systém poskytol aplikácii Butler neplatný zoznam nainštalovaných aplikácií.</string>
+</resources>

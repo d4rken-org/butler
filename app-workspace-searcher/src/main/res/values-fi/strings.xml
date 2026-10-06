@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Haku</string>
+    <string name="searcher_subtitle">Etsi tiedostoja ja sisältöä</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Hakuasetukset</string>
+    <string name="searcher_settings_search_category">Haku</string>
+    <string name="searcher_settings_history">Hakuhistoria</string>
+    <string name="searcher_settings_save_history_title">Tallenna hakuhistoria</string>
+    <string name="searcher_settings_save_history_subtitle">Muista aiemmat haut</string>
+    <string name="searcher_settings_max_history_label">Historiamerkintöjen enimmäismäärä</string>
+    <string name="searcher_settings_max_history_subtitle">Tallennettujen hakujen enimmäismäärä</string>
+    <string name="searcher_settings_max_history_input_label">Merkintöjen määrä (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Tyhjennä hakuhistoria</string>
+    <string name="searcher_settings_clear_history_subtitle">Poista kaikki tallennetut haut (%1$d)</string>
+    <string name="searcher_settings_search_performance">Suorituskyky</string>
+    <string name="searcher_settings_max_results_title">Hakutulosten enimmäismäärä</string>
+    <string name="searcher_settings_max_results_subtitle">Rajoita kunkin haun palauttamien tulosten määrää.</string>
+    <string name="searcher_settings_content_search_category">Sisältöhaku</string>
+    <string name="searcher_settings_include_binaries_title">Sisällytä binääritiedostot</string>
+    <string name="searcher_settings_include_binaries_subtitle">Etsi binääritiedostojen sisällöstä (voi olla hidasta ja tuottaa epäolennaisia tuloksia)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Viimeisimmät haut</string>
+    <string name="searcher_placeholder_search">Etsi tiedostoja ja kansioita</string>
+    <string name="searcher_placeholder_filename">Tiedostonimi</string>
+    <string name="searcher_placeholder_content">Sisältö</string>
+    <string name="searcher_search_error">Hakuvirhe</string>
+    <string name="searcher_no_paths_hint">Lisää hakusijainteja napauttamalla +</string>
+    <string name="searcher_add_path_action">Lisää sijainti</string>
+    <string name="searcher_add_folder_action">Kansio…</string>
+    <string name="searcher_multipath_show_fewer_action">Näytä vähemmän</string>
+    <string name="searcher_empty_state_title">Hakupolkuja ei ole määritetty</string>
+    <string name="searcher_empty_state_description">Lisää tallennussijainteja, joista tiedostojasi etsitään</string>
+    <string name="searcher_add_default_paths_action">Lisää oletushakupolut</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Valinnat</string>
+    <string name="searcher_option_case_sensitive_label">Erota kirjainkoko</string>
+    <string name="searcher_option_case_sensitive_desc">Haku erottaa isot ja pienet kirjaimet</string>
+    <string name="searcher_option_whole_word_label">Koko sana</string>
+    <string name="searcher_option_whole_word_desc">Etsi kokonaisia sanoja</string>
+    <string name="searcher_option_regex_label">Säännöllinen lauseke</string>
+    <string name="searcher_option_regex_desc">Haku säännöllisellä lausekkeella</string>
+    <string name="searcher_option_search_content_label">Etsi sisällöstä</string>
+    <string name="searcher_option_search_content_desc">Etsi tiedostojen sisällöstä</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Mallit</string>
+    <string name="searcher_templates_card_title">Pikahaun mallit</string>
+    <string name="searcher_template_large_files">Suuret tiedostot</string>
+    <string name="searcher_template_large_files_desc">Yli 100 MB:n tiedostot</string>
+    <string name="searcher_template_recent_files">Viimeksi muokatut tiedostot</string>
+    <string name="searcher_template_recent_files_desc">Muokattu viimeisten 7 päivän aikana</string>
+    <string name="searcher_template_old_files">Vanhat tiedostot</string>
+    <string name="searcher_template_old_files_desc">Ei muokattu yli vuoteen</string>
+    <string name="searcher_template_images">Kuvat</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Videot</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Ääni</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Asiakirjat</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Arkistot</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APK-tiedostot</string>
+    <string name="searcher_template_apks_desc">Android-sovelluspaketit</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d malli</item>
+        <item quantity="other">%d mallia</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Suodata</string>
+    <string name="searcher_filter_add_action">Lisää suodatin</string>
+    <string name="searcher_filter_title">Hakusuodattimet</string>
+    <string name="searcher_filter_size_section">Tiedoston koko</string>
+    <string name="searcher_filter_size_min">Vähimmäiskoko</string>
+    <string name="searcher_filter_size_max">Enimmäiskoko</string>
+    <string name="searcher_filter_date_section">Muokkauspäivä</string>
+    <string name="searcher_filter_date_after">Muokattu tämän jälkeen</string>
+    <string name="searcher_filter_date_before">Muokattu ennen tätä</string>
+    <string name="searcher_filter_date_any">Milloin tahansa</string>
+    <string name="searcher_filter_date_24h">Viimeiset 24 tuntia</string>
+    <string name="searcher_filter_date_7d">Viimeiset 7 päivää</string>
+    <string name="searcher_filter_date_30d">Viimeiset 30 päivää</string>
+    <string name="searcher_filter_date_90d">Viimeiset 90 päivää</string>
+    <string name="searcher_filter_date_1y">Viimeinen vuosi</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">suurempi kuin</string>
+    <string name="searcher_filter_comparator_greater_or_equal">suurempi tai yhtä suuri kuin</string>
+    <string name="searcher_filter_comparator_less_than">pienempi kuin</string>
+    <string name="searcher_filter_comparator_less_or_equal">pienempi tai yhtä suuri kuin</string>
+    <string name="searcher_filter_comparator_equal">yhtä suuri kuin</string>
+    <string name="searcher_filter_size_value_label">Koko</string>
+    <string name="searcher_filter_size_at_least">Vähintään</string>
+    <string name="searcher_filter_size_at_most">Enintään</string>
+    <string name="searcher_filter_size_value_hint">esim. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Anna luku ja yksikkö (KB, MB, GB). Pelkkä luku tulkitaan megatavuiksi (MB).</string>
+    <string name="searcher_filter_size_format_error">Virheellinen koko — anna luku ja yksikkö, esim. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Päivämäärä</string>
+    <string name="searcher_filter_date_direction_after">Jälkeen</string>
+    <string name="searcher_filter_date_direction_before">Ennen</string>
+    <string name="searcher_filter_type_label">Tyyppi</string>
+    <string name="searcher_filter_type_files">Tiedostot</string>
+    <string name="searcher_filter_type_directories">Hakemistot</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Poista historiasta</string>
+    <string name="searcher_history_clear_all_action">Tyhjennä kaikki</string>
+    <string name="searcher_history_clear_dialog_title">Tyhjennä hakuhistoria</string>
+    <string name="searcher_history_clear_dialog_message">Tämä poistaa koko tallennetun hakuhistorian. Toimintoa ei voi kumota.</string>
+    <string name="searcher_history_clear_confirm_action">Tyhjennä</string>
+    <string name="searcher_history_cleared_success">Hakuhistoria tyhjennetty</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="one">%d tulos</item>
+        <item quantity="other">%d tulosta</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">Näytä %d lisää</item>
+        <item quantity="other">Näytä %d lisää</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Etsitään</string>
+    <string name="searcher_progress_action_searched">Haku tehty</string>
+    <string name="searcher_progress_status_completed_with_errors">Valmis, mutta virheitä ilmeni</string>
+    <string name="searcher_result_limit_reached">Tulosten enimmäismäärä saavutettu</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Kaikkia kohteita ei voitu tutkia kokonaan</string>
+    <string name="searcher_progress_clear_action">Tyhjennä</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d epäonnistui</item>
+        <item quantity="other">%d epäonnistui</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">%d kohteeseen ei päästy</item>
+        <item quantity="other">%d kohteeseen ei päästy</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…ja %d muuta</item>
+        <item quantity="other">…ja %d muuta</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android suojaa näitä sijainteja. Lisäkäyttöoikeuksien avulla Butler voi etsiä niistä.</string>
+    <string name="searcher_access_sheet_body_protected">Android suojaa näitä sijainteja. Tällä laitteella niihin ei voi myöntää käyttöoikeutta.</string>
+    <string name="searcher_access_sheet_unlock_action">Salli pääsy</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d sijainti</item>
+        <item quantity="other">%d sijaintia</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">Tarkistettu: %d</item>
+        <item quantity="other">Tarkistettu: %d</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">Löytynyt: %d</item>
+        <item quantity="other">Löytynyt: %d</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Osumaa ympäröivä teksti</string>
+    <string name="searcher_match_line_label">Rivi %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Avaa</string>
+    <string name="searcher_action_open_in_tab">Avaa uudessa välilehdessä</string>
+    <string name="searcher_action_open_with">Avaa sovelluksella</string>
+    <string name="searcher_action_open_in_editor">Avaa muokkaimessa</string>
+    <string name="searcher_action_open_in_explorer">Avaa tiedostonhallinnassa</string>
+    <string name="searcher_action_install">Asenna</string>
+    <string name="searcher_action_copy">Kopioi</string>
+    <string name="searcher_action_cut">Leikkaa</string>
+    <string name="searcher_action_delete">Poista</string>
+    <string name="searcher_action_copy_path">Kopioi polku</string>
+    <string name="searcher_action_properties">Ominaisuudet</string>
+    <string name="searcher_action_select_all">Valitse kaikki</string>
+    <string name="searcher_action_deselect_all">Poista kaikki valinnat</string>
+    <string name="searcher_action_sort">Lajittele</string>
+    <string name="searcher_action_view">Asettelu</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Lajitteluperuste</string>
+    <string name="searcher_sort_mode_name_label">Nimi</string>
+    <string name="searcher_sort_mode_size_label">Koko</string>
+    <string name="searcher_sort_mode_modified_label">Muokkauspäivä</string>
+    <string name="searcher_sort_mode_created_label">Luontipäivä</string>
+    <string name="searcher_sort_mode_path_label">Polku</string>
+    <string name="searcher_sort_descending_label">Laskeva järjestys</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Kohteiden järjestely ja näytettävien tietojen määrä</string>
+    <string name="searcher_view_mode_list_label">Luettelo</string>
+    <string name="searcher_view_mode_grid_label">Ruudukko</string>
+    <string name="searcher_view_density_compact_label">Tiivis</string>
+    <string name="searcher_view_density_comfortable_label">Väljä</string>
+    <string name="searcher_view_density_detailed_label">Yksityiskohtainen</string>
+    <string name="searcher_view_detail_modified_label">Muokattu</string>
+    <string name="searcher_view_set_default_action">Aseta oletukseksi</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Joistakin sijainneista etsiminen vaatii lisämäärityksiä.</string>
+</resources>

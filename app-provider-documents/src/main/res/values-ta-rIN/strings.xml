@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">மேம்பட்ட சாதன அணுகல்</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">சாதனம்</string>
+    <string name="documents_connection_device_summary">சாதனத்தின் உள்ளூர் சேமிப்பகம்</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Root கோப்பு முறைமை</string>
+    <string name="provider_documents_storage_internal_label">உள் சேமிப்பகம்</string>
+    <string name="provider_documents_storage_sd_card_label">SD அட்டை</string>
+    <string name="provider_documents_storage_saf_label">SAF இருப்பிடம்</string>
+    <string name="provider_documents_storage_free_suffix">காலியிடம்</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">இந்த இருப்பிடத்தில் உலாவ Root அணுகல் தேவை. Butler செயலியின் அமைப்புகளில் Root அணுகலை இயக்குங்கள்.</string>
+    <string name="provider_documents_error_requires_adb">இந்த இருப்பிடத்தில் உலாவ ADB அணுகல் தேவை. Butler இன் அனுமதி அமைவாக்கத்தில் அதை இயக்குங்கள்.</string>
+    <string name="provider_documents_error_requires_storage">இந்த இருப்பிடத்தில் உலாவ சேமிப்பக அனுமதி தேவை. Butler செயலியின் அமைப்புகளில் சேமிப்பக அனுமதியை வழங்குங்கள்.</string>
+    <string name="provider_documents_error_requires_permissions">இந்த இருப்பிடத்தில் உலாவ கூடுதல் அனுமதிகள் தேவை. Butler செயலியின் அமைப்புகளைச் சரிபாருங்கள்.</string>
+    <string name="provider_documents_error_generic">இந்த இருப்பிடத்தை அணுக முடியவில்லை. அணுகல் விருப்பங்களுக்கு Butler செயலியைப் பாருங்கள்.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">ஆவண வழங்கி</string>
+    <string name="provider_documents_settings_subtitle">பிற செயலிகளுடன் ஒருங்கிணைப்பு</string>
+    <string name="provider_documents_settings_category_integration_label">ஒருங்கிணைப்பு</string>
+    <string name="provider_documents_enabled_title">ஆவண வழங்கியை இயக்கவும்</string>
+    <string name="provider_documents_enabled_desc">Android இன் கோப்புத் தேர்வியைப் பயன்படுத்தி Butler வழியாகக் கோப்புகளை அணுக பிற செயலிகளை அனுமதிக்கவும்</string>
+</resources>

@@ -1,0 +1,685 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Tiedostonhallinta</string>
+    <string name="explorer_subtitle">Selaa tiedostoja ja hakemistoja</string>
+    <string name="explorer_settings_title">Tiedostonhallinnan asetukset</string>
+    <string name="explorer_settings_file_display">Tiedostojen näyttö</string>
+    <string name="explorer_settings_filter_regex_title">Edistynyt jokerimerkkihaku</string>
+    <string name="explorer_settings_filter_regex_desc">Käytä säännöllisiä lausekkeita sisällytys- ja poissulkusuodattimissa.</string>
+    <string name="explorer_settings_navigation">Navigointi</string>
+    <string name="explorer_settings_back_button_title">Navigointi Takaisin-painikkeella</string>
+    <string name="explorer_settings_back_button_desc">Siirry historiassa Takaisin-painikkeella tai -eleellä.</string>
+    <string name="explorer_settings_trash_category">Roskakori</string>
+    <string name="explorer_settings_trash_enabled_title">Ota roskakori käyttöön</string>
+    <string name="explorer_settings_trash_enabled_desc">Siirrä poistetut tiedostot roskakoriin pysyvän poistamisen sijaan</string>
+    <string name="explorer_settings_trash_auto_delete_title">Poista automaattisesti, kun on kulunut</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Poista kohteet automaattisesti, kun ne ovat olleet roskakorissa tämän ajan</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d päivää</string>
+    <string name="explorer_settings_trash_max_size_title">Enimmäiskoko tallennussijaintia kohti</string>
+    <string name="explorer_settings_trash_max_size_summary">Kuinka paljon tilaa roskakori saa käyttää kussakin tallennussijainnissa</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Automaattisen poiston aikaväli</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Enimmäiskoko tallennussijaintia kohti</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Otetaanko roskakori käyttöön?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Toisin kuin tietokoneiden käyttöjärjestelmissä, Androidissa ei ole sisäänrakennettua roskakoria. Butler toteuttaa sen välimuistikansionsa avulla.\n\nMuista:\n• Laitteesi tallennustilan ilmaisin ei näytä vapautunutta tilaa ennen kuin kohteet on poistettu pysyvästi\n• Jos laitteesi tallennustila käy vähiin, Android voi tyhjentää sovellusten välimuisteja ja poistaa samalla roskakorissa olevat tiedostot</string>
+    <string name="explorer_settings_trash_enable_action">Ota käyttöön</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">Tiedosto</string>
+    <string name="explorer_file_symlink_content_desc">Symbolinen linkki</string>
+    <string name="explorer_file_folder_content_desc">Kansio</string>
+    <string name="explorer_file_peek_content_desc">Ladataan tiedoston tietoja</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Pikakuvake</string>
+    <string name="explorer_file_storage_local_label">Paikallinen</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Vain lukuoikeus</string>
+    <string name="explorer_file_storage_saf_write_only_label">Vain kirjoitusoikeus</string>
+    <string name="explorer_file_storage_saf_no_access_label">Ei käyttöoikeutta</string>
+    <string name="explorer_file_storage_saf_uri_label">SAF-puun URI</string>
+    <string name="explorer_file_storage_size_format">%1$s • yhteensä %2$s • vapaana %3$s</string>
+    <string name="explorer_file_broken_link_label">Rikkinäinen linkki</string>
+    <string name="explorer_file_items_count">%1$d kohdetta</string>
+    <string name="explorer_file_empty">Tyhjä</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · osittainen</string>
+    <string name="explorer_sizes_estimate_description">Arvioitu Androidin tallennustilan kokonaismääristä. Jos tiedostoja ei voi lukea, niiden kokoa arvioidaan käytetyn tallennustilan perusteella. Mukana voi olla myös Androidin hallitsemia piilotiedostoja. Muiden lukukelvottomien sijaintien koot jäävät tuntemattomiksi.</string>
+    <string name="explorer_sizes_estimate_coverage">Android/data-kansion kokoa ei voitu arvioida, koska tallennustilan muita osia ei voitu mitata kokonaan.</string>
+    <string name="explorer_sizes_estimate_unavailable">Androidin tallennustilatilastot eivät olleet saatavilla. Mitatut koot näytetään silti.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Androidin tallennustilan kokonaismäärät eivät vastanneet tarkistuksen tuloksia. Mitatut koot näytetään silti.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Valitse kansio</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="one">Valitse kansio (%d)</item>
+        <item quantity="other">Valitse kansiot (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Valitse tiedosto</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="one">Valitse tiedosto (%d)</item>
+        <item quantity="other">Valitse tiedostot (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="one">Valitse kohde (%d)</item>
+        <item quantity="other">Valitse kohteet (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Valitse tämä kansio</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">Valitse %d</item>
+        <item quantity="other">Valitse %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Tallenna tiedosto</string>
+    <string name="explorer_picker_save_here_action">Tallenna tähän</string>
+    <string name="explorer_picker_save_as_filename_label">Tiedostonimi</string>
+    <string name="explorer_picker_save_as_filename_hint">Anna tiedostonimi</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Päivitä näkymä</string>
+    <string name="explorer_action_calculate_sizes">Laske koot</string>
+    <string name="explorer_action_sort">Lajittele</string>
+    <string name="explorer_action_filter">Suodata</string>
+    <string name="explorer_action_view">Asettelu</string>
+    <string name="explorer_action_create">Luo</string>
+    <string name="explorer_action_rename">Nimeä uudelleen</string>
+    <string name="explorer_action_copy">Kopioi</string>
+    <string name="explorer_action_cut">Leikkaa</string>
+    <string name="explorer_action_delete">Poista</string>
+    <string name="explorer_action_select_all">Valitse kaikki</string>
+    <string name="explorer_action_deselect_all">Poista kaikki valinnat</string>
+    <string name="explorer_action_compress">Pakkaa</string>
+    <string name="explorer_action_extract">Pura</string>
+    <string name="explorer_action_add_location">Lisää sijainti</string>
+    <string name="explorer_action_info">Tiedot</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Tiedot</string>
+    <string name="explorer_info_name_label">Nimi</string>
+    <string name="explorer_info_path_label">Polku</string>
+    <string name="explorer_info_type_label">Tyyppi</string>
+    <string name="explorer_info_type_file">Tiedosto</string>
+    <string name="explorer_info_type_directory">Hakemisto</string>
+    <string name="explorer_info_size_label">Koko</string>
+    <string name="explorer_info_modified_label">Muokattu</string>
+    <string name="explorer_info_created_label">Luotu</string>
+    <string name="explorer_info_permissions_label">Käyttöoikeudet</string>
+    <string name="explorer_info_owner_label">Omistaja</string>
+    <string name="explorer_info_child_count_label">Kohteet</string>
+    <string name="explorer_info_symlink_target_label">Kohde</string>
+    <string name="explorer_info_symlink_status_label">Tila</string>
+    <string name="explorer_info_symlink_broken">Rikkinäinen linkki</string>
+    <string name="explorer_info_unknown">Tuntematon</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Poistettu</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Käyttöoikeudet</string>
+    <string name="explorer_info_saf_granted_label">Myönnetty</string>
+    <string name="explorer_info_saf_permission_read">Luku</string>
+    <string name="explorer_info_saf_permission_write">Kirjoitus</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Palvelin</string>
+    <string name="explorer_info_network_port_label">Portti</string>
+    <string name="explorer_info_network_share_label">Jako</string>
+    <string name="explorer_info_network_folder_label">Kansio</string>
+    <string name="explorer_info_network_address_label">Osoite</string>
+    <string name="explorer_info_network_status_label">Tila</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Kirjautuminen</string>
+    <string name="explorer_info_network_domain_label">Toimialue</string>
+    <string name="explorer_info_network_password_label">Salasana</string>
+    <string name="explorer_info_network_password_show_action">Näytä salasana</string>
+    <string name="explorer_info_network_password_hide_action">Piilota salasana</string>
+    <string name="explorer_info_network_password_missing">Puuttuu, kirjaudu uudelleen</string>
+    <string name="explorer_info_network_password_locked">Tallennettu, mutta tämä laite ei voi avata sen salausta</string>
+    <string name="explorer_info_network_added_label">Lisätty</string>
+    <string name="explorer_info_network_updated_label">Päivitetty</string>
+    <string name="explorer_info_network_last_seen_label">Viimeksi nähty</string>
+    <string name="explorer_info_network_last_seen_never">Ei koskaan</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Valitut</string>
+    <string name="explorer_info_files_label">Tiedostot</string>
+    <string name="explorer_info_directories_label">Hakemistot</string>
+    <string name="explorer_info_total_size_label">Kokonaiskoko</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Sijainnit</string>
+    <string name="explorer_info_shortcuts_label">Pikakuvakkeet</string>
+    <string name="explorer_info_total_capacity_label">Kokonaiskapasiteetti</string>
+    <string name="explorer_info_used_space_label">Käytetty tila</string>
+    <string name="explorer_info_free_space_label">Vapaa tila</string>
+    <string name="explorer_info_usage_label">Käyttö</string>
+    <string name="explorer_info_device_storage_total_label">Laitteen tallennustila</string>
+    <string name="explorer_info_device_storage_used_label">Käytössä</string>
+    <string name="explorer_info_device_storage_free_label">Vapaana</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Aloitus</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Aseta aloitussijainniksi</string>
+    <string name="explorer_breadcrumb_copy_path_action">Kopioi polku</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Polku kopioitu leikepöydälle</string>
+    <string name="explorer_navigation_device">Laite</string>
+    <string name="explorer_navigation_network">Verkko</string>
+    <string name="explorer_navigation_recent">Viimeaikaiset</string>
+    <string name="explorer_navigation_recent_desc">Laitteelle hiljattain ilmestyneet tiedostot</string>
+    <string name="explorer_navigation_trash">Roskakori</string>
+    <string name="explorer_navigation_trash_desc">Palauta poistetut tiedostot</string>
+    <string name="explorer_navigation_trash_nested_desc">Roskakorissa olevan kansion sisällä</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Ei poistettuja kohteita</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d kohde</item>
+        <item quantity="other">%d kohdetta</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Palauta</string>
+    <string name="explorer_trash_restore_selected_action">Palauta valitut</string>
+    <string name="explorer_trash_delete_permanently_action">Poista pysyvästi</string>
+    <string name="explorer_trash_delete_selected_action">Poista valitut</string>
+    <string name="explorer_trash_empty_trash_action">Tyhjennä roskakori</string>
+    <string name="explorer_trash_empty_confirm">Tyhjennetäänkö roskakori?</string>
+    <string name="explorer_trash_empty_message">Kaikki roskakorin kohteet poistetaan pysyvästi. Tätä toimintoa ei voi kumota.</string>
+    <string name="explorer_trash_empty_confirm_action">Tyhjennä roskakori</string>
+    <string name="explorer_trash_restore_desc">Palauta alkuperäiseen sijaintiin</string>
+    <string name="explorer_trash_item_unavailable">Kohde ei ole saatavilla</string>
+    <string name="explorer_trash_delete_warning">Tätä toimintoa ei voi kumota</string>
+    <string name="explorer_trash_disabled_warning">Roskakori ei ole käytössä</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Ladataan roskakorissa olevan kansion sisältöä…</string>
+    <string name="explorer_trash_nested_restore_action">Palauta alkuperäiseen sijaintiin</string>
+    <string name="explorer_trash_nested_delete_action">Poista pysyvästi</string>
+    <string name="explorer_trash_nested_restore_conflict">Alkuperäisessä sijainnissa on jo tiedosto</string>
+    <string name="explorer_trash_nested_parent_missing">Yläkohdetta ei enää ole roskakorissa</string>
+    <string name="explorer_trash_nested_path_missing">Polkua ei enää ole</string>
+    <string name="explorer_trash_error_items_not_found">Kohteita ei löytynyt roskakorista</string>
+    <string name="explorer_trash_error_restore_failed">Kohteiden palauttaminen epäonnistui</string>
+    <string name="explorer_trash_error_delete_failed">Kohteiden poistaminen epäonnistui</string>
+    <string name="explorer_trash_nested_error_restore_failed">Kohteen %1$s palauttaminen epäonnistui</string>
+    <string name="explorer_trash_nested_error_delete_failed">Kohteen %1$s poistaminen epäonnistui</string>
+
+    <string name="explorer_navigation_root">Juurihakemisto</string>
+    <string name="explorer_navigation_rom">Järjestelmän ROM</string>
+    <string name="explorer_navigation_internal_storage">Sisäinen julkinen tallennustila</string>
+    <string name="explorer_navigation_external_storage">Ulkoinen julkinen tallennustila</string>
+
+    <string name="explorer_loader_progress_directory_loading">Selataan sijaintia %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Tarkistetaan käyttöoikeuksia</string>
+    <string name="explorer_loader_progress_directory_filesystem">Haetaan tiedostojärjestelmän tietoja</string>
+    <string name="explorer_loader_progress_directory_content">Ladataan kansion sisältöä</string>
+    <string name="explorer_loader_progress_directory_content_details">Ladataan sisällön tietoja</string>
+    <string name="explorer_loader_progress_directory_content_extended">Ladataan sisällön lisätietoja</string>
+
+    <string name="explorer_loader_progress_device_loading">Ladataan laitteen tietoja</string>
+    <string name="explorer_loader_progress_device_locations">Ladataan tallennussijainteja</string>
+
+    <string name="explorer_loader_progress_network_loading">Ladataan verkkotallennustilaa</string>
+
+    <string name="explorer_loader_progress_home_loading">Ladataan aloitusnäkymää</string>
+    <string name="explorer_loader_progress_trash_loading">Ladataan roskakoria…</string>
+    <string name="explorer_loader_progress_recent_loading">Ladataan viimeaikaisia tiedostoja…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d pikakuvake</item>
+        <item quantity="other">%d pikakuvaketta</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d sijainti</item>
+        <item quantity="other">%d sijaintia</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d piilotettu</item>
+        <item quantity="other">%d piilotettua</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s vapaana</string>
+    <string name="explorer_infobar_loading">Ladataan…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Luo uusi kohde</string>
+    <string name="explorer_dialog_rename_title">Nimeä uudelleen</string>
+    <string name="explorer_dialog_name_label">Nimi</string>
+    <string name="explorer_dialog_type_label">Tyyppi</string>
+    <string name="explorer_dialog_type_folder">Kansio</string>
+    <string name="explorer_dialog_type_file">Tiedosto</string>
+    <string name="explorer_dialog_create_text_file_title">Luo tiedosto tekstistä</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Esikatselu</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d merkkiä</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Lisää tallennussijainti</string>
+    <string name="explorer_add_device_storage_desc">Myönnä Butlerille Storage Access Frameworkin (SAF) avulla pääsy muihin tallennussijainteihin, kuten USB-asemiin, sovellusten virtuaalisiin kansioihin ja muihin kohteisiin.</string>
+    <string name="explorer_add_device_storage_continue">Jatka</string>
+    <string name="explorer_add_device_storage_cancel">Peruuta</string>
+    <string name="explorer_add_device_storage_suggestions_title">Sovellukset, joissa on tallennustilaa</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Avaa tämän sovelluksen kansion</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Poista sijainti</string>
+    <string name="explorer_device_remove_confirmation_title">Poistetaanko tallennussijainti?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">Poistetaanko %1$d tallennussijainti?</item>
+        <item quantity="other">Poistetaanko %1$d tallennussijaintia?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Tämä peruuttaa Butlerin käyttöoikeuden tähän sijaintiin. Tiedostojasi ei poisteta.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d verkkosijainti</item>
+        <item quantity="other">%d verkkosijaintia</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Verkko</string>
+    <string name="explorer_network_add_location_action">Lisää verkkotallennustila</string>
+    <string name="explorer_network_edit_location_action">Muokkaa verkkotallennustilaa</string>
+    <string name="explorer_network_remove_location_action">Poista verkkotallennustila</string>
+    <string name="explorer_network_sign_in_required_label">Kirjautuminen vaaditaan</string>
+    <string name="explorer_network_status_checking_label">Tarkistetaan…</string>
+    <string name="explorer_network_status_available_label">Saatavilla</string>
+    <string name="explorer_network_status_unavailable_label">Ei saatavilla</string>
+    <string name="explorer_network_status_unavailable_since_format">Ei saatavilla (%1$s)</string>
+    <string name="explorer_network_empty_title">Ei vielä verkkotallennustilaa</string>
+    <string name="explorer_network_empty_caption">Lisää Windows-jako tai NAS-kansio, niin voit selata sitä täällä.</string>
+    <string name="explorer_network_form_pro_notice">Sijainnin lisääminen ja testaaminen on ilmaista. Sen selaamiseen tarvitset Butler Pron.</string>
+    <string name="explorer_network_upgrade_hint_saved">Tallennettu. Verkkotallennustilan selaamiseen tarvitset Butler Pron.</string>
+    <string name="explorer_network_upgrade_hint_locked">Verkkotallennustilan selaamiseen tarvitset Butler Pron.</string>
+    <string name="explorer_network_remove_confirmation_title">Poistetaanko verkkotallennustila?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">Poistetaanko %1$d verkkotallennustila?</item>
+        <item quantity="other">Poistetaanko %1$d verkkotallennustilaa?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler unohtaa palvelimen tiedot ja tallennetun salasanan. Palvelimelta ei poisteta mitään.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Lisää verkkotallennustila</string>
+    <string name="explorer_network_form_edit_title">Muokkaa verkkotallennustilaa</string>
+    <string name="explorer_network_form_label_label">Nimi (valinnainen)</string>
+    <string name="explorer_network_form_host_label">Palvelimen osoite</string>
+    <string name="explorer_network_form_host_hint">nas.local tai 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Portti</string>
+    <string name="explorer_network_form_share_label">Jako</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Jaon sisäinen kansio (valinnainen)</string>
+    <string name="explorer_network_form_auth_guest">Vieras</string>
+    <string name="explorer_network_form_auth_password">Käyttäjänimi ja salasana</string>
+    <string name="explorer_network_form_username_label">Käyttäjänimi</string>
+    <string name="explorer_network_form_domain_label">Toimialue (valinnainen)</string>
+    <string name="explorer_network_form_password_label">Salasana</string>
+    <string name="explorer_network_form_password_kept_hint">Jätä tyhjäksi, jos haluat säilyttää tallennetun salasanan</string>
+    <string name="explorer_network_form_remember_label">Muista salasana</string>
+    <string name="explorer_network_form_remember_hint">Tallennetaan salattuna vain tälle laitteelle</string>
+    <string name="explorer_network_form_test_and_save_action">Testaa ja tallenna</string>
+    <string name="explorer_network_form_testing">Yhdistetään…</string>
+    <string name="explorer_network_form_error_host_blank">Anna palvelimen osoite</string>
+    <string name="explorer_network_form_error_host_not_bare">Anna vain palvelimen osoite ilman protokollatunnistetta tai polkua</string>
+    <string name="explorer_network_form_error_host_malformed">Tämä ei ole kelvollinen palvelimen osoite</string>
+    <string name="explorer_network_form_error_port">Anna portti väliltä 1–65535</string>
+    <string name="explorer_network_form_error_share_blank">Anna jaon nimi</string>
+    <string name="explorer_network_form_error_share_not_single">Anna vain jaon nimi, syötä alikansiot alla</string>
+    <string name="explorer_network_form_error_share_malformed">Tämä ei ole kelvollinen jaon nimi</string>
+    <string name="explorer_network_form_error_base_path">Tätä kansiopolkua ei voi käyttää</string>
+    <string name="explorer_network_form_error_username_blank">Anna käyttäjänimi</string>
+    <string name="explorer_network_form_error_password_required">Anna salasana uudelleen, jos haluat muuttaa käyttäjänimeä tai toimialuetta</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Nimeä sijainti</string>
+    <string name="explorer_location_name_label">Sijainnin nimi</string>
+    <string name="explorer_location_name_hint">Jätä tyhjäksi, jos haluat käyttää oletusnimeä</string>
+    <string name="explorer_location_rename_action">Nimeä sijainti uudelleen</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Lisätty viimeisen päivän aikana</item>
+        <item quantity="other">Lisätty viimeisten %d päivän aikana</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Ei mitään uutta täällä</string>
+    <string name="explorer_recent_empty_message">Laitteelle ilmestyvät tiedostot näkyvät täällä</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Tämä kansio on tyhjä</string>
+    <string name="explorer_empty_search_title">Ei hakutuloksia</string>
+    <string name="explorer_empty_search_caption">Kokeile toista hakusanaa</string>
+    <string name="explorer_empty_folder_label">Tyhjä kansio</string>
+    <string name="explorer_empty_filtered_title">Ei vastaavia kohteita</string>
+    <string name="explorer_empty_filtered_caption">Kokeile muuttaa suodattimia</string>
+    <string name="explorer_empty_hidden_title">Täällä on vain piilotettuja kohteita</string>
+    <string name="explorer_empty_hidden_caption">Tämä välilehti piilottaa kohteet, joiden nimi alkaa pisteellä</string>
+    <string name="explorer_empty_show_hidden_action">Näytä piilotetut kohteet</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Ei enää näytettävää</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Sekä piilotetut kohteet että suodattimesi sulkevat pois osan tästä kansiosta</string>
+    <string name="explorer_empty_clear_filters_action">Tyhjennä suodattimet</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Piilotetut kohteet ja suodattimet sulkevat pois kaiken täällä</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Saat ne takaisin näkyviin näyttämällä piilotetut kohteet ja tyhjentämällä tämän välilehden suodattimet</string>
+    <string name="explorer_empty_show_all_action">Näytä kaikki kohteet</string>
+    <string name="explorer_path_not_found_title">Tätä kansiota ei enää ole</string>
+    <string name="explorer_path_not_found_caption">Se on poistettu, nimetty uudelleen tai siirretty muualle.</string>
+    <string name="explorer_path_not_found_back_action">Palaa takaisin</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Ladataan…</string>
+    <string name="explorer_file_peek_loading_text">Ladataan…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Ei mitään nähtävää… jatka matkaa 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Tämä kansio on dieetillä</string>
+    <string name="explorer_empty_folder_caption_3">Jopa tiedostot lähtivät tänään aikaisin kotiin</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe lakkasi toimimasta</string>
+    <string name="explorer_empty_folder_caption_5">Tiedostot leikkivät piilosta</string>
+    <string name="explorer_empty_folder_caption_6">404: Tiedostoja ei löytynyt</string>
+    <string name="explorer_empty_folder_caption_7">Tällä kansiolla on luottamusongelmia</string>
+    <string name="explorer_empty_folder_caption_8">Tiedostot lähtivät lomalle ilmoittamatta</string>
+    <string name="explorer_empty_folder_caption_9">Tyhjä kuin sieluni… mutta paremmin järjestyksessä</string>
+    <string name="explorer_empty_folder_caption_10">Aavikon tuulessa vierivien pensaiden digitaalinen vastine</string>
+    <string name="explorer_empty_folder_caption_11">Tiedostot pitävät turvaväliä</string>
+    <string name="explorer_empty_folder_caption_12">Tämä kansio harjoittaa minimalismia</string>
+    <string name="explorer_empty_folder_caption_13">Joku unohti ruokkia tiedostot</string>
+    <string name="explorer_empty_folder_caption_14">Tiedostot ovat poistuneet rakennuksesta</string>
+    <string name="explorer_empty_folder_caption_15">Tyhjempi kuin poliitikon lupaus</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Lajitteluperuste</string>
+    <string name="explorer_sort_mode_name_label">Nimi</string>
+    <string name="explorer_sort_mode_size_label">Koko</string>
+    <string name="explorer_sort_mode_modified_label">Muokkauspäivä</string>
+    <string name="explorer_sort_mode_created_label">Luontipäivä</string>
+    <string name="explorer_sort_descending_label">Laskeva järjestys</string>
+    <string name="explorer_sort_scope_label">Käytä kohteissa</string>
+    <string name="explorer_sort_scope_all_folders">Kaikki kansiot</string>
+    <string name="explorer_sort_scope_this_folder">Tämä kansio</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Tämä kansio ja alikansiot</string>
+    <string name="explorer_sort_scope_use_default_here">Käytä oletusta täällä</string>
+    <string name="explorer_sort_only_this_tab_label">Vain tälle välilehdelle</string>
+    <string name="explorer_sort_inherited_notice">Lajiteltu sijainnille %1$s tallennetun säännön mukaan</string>
+    <string name="explorer_sort_suppressed_notice">Tämä ohittaa sijainnille %1$s tallennetun säännön</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Tämä välilehti käyttää omaa oletuslajittelujärjestystään</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Tyhjennä</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Kansioiden koot</string>
+    <string name="explorer_sizes_sheet_label_calculated">Laskettu</string>
+    <string name="explorer_sizes_sheet_label_folders">Kansiot</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Lukukelvottomat sijainnit</string>
+    <string name="explorer_sizes_sheet_problems_more">Lisäksi %1$d muuta, joita ei ole lueteltu</string>
+    <string name="explorer_sizes_sheet_recalculate">Laske uudelleen</string>
+    <string name="explorer_sizes_sheet_discard">Hylkää koot</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Miten kohteet asetellaan ja kuinka paljon tietoja niistä näytetään</string>
+    <string name="explorer_view_mode_list_label">Luettelo</string>
+    <string name="explorer_view_mode_grid_label">Ruudukko</string>
+    <string name="explorer_view_density_compact_label">Tiivis</string>
+    <string name="explorer_view_density_comfortable_label">Väljä</string>
+    <string name="explorer_view_density_detailed_label">Yksityiskohtainen</string>
+    <string name="explorer_view_show_hidden_label">Näytä piilotetut tiedostot</string>
+    <string name="explorer_view_set_default_action">Aseta oletukseksi</string>
+    <string name="explorer_view_detail_created_label">Luotu</string>
+    <string name="explorer_view_detail_modified_label">Muokattu</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Kansioiden lajittelusäännöt</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Yksittäisille kansioille tallentamasi lajitteluasetukset</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Tyhjennetäänkö kansioiden lajittelusäännöt?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Kaikki kansiot palaavat oletuslajittelujärjestykseen. Välilehdet, joilla on oma lajitteluasetus, säilyttävät sen. Tätä toimintoa ei voi kumota.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Tyhjennä kaikki</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Tiedostotyyppi</string>
+    <string name="explorer_filter_type_all">Kaikki</string>
+    <string name="explorer_filter_type_files">Vain tiedostot</string>
+    <string name="explorer_filter_type_folders">Vain kansiot</string>
+    <string name="explorer_filter_include_label">Sisällytettävä kuvio</string>
+    <string name="explorer_filter_include_placeholder_simple">esim. loma, raportti, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">esim. .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Poissuljettava kuvio</string>
+    <string name="explorer_filter_exclude_placeholder_simple">esim. tmp, cache, vanha</string>
+    <string name="explorer_filter_exclude_placeholder_regex">esim. ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Ota säännölliset lausekkeet käyttöön asetuksissa</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Käyttöoikeus tarvitaan</string>
+    <string name="explorer_permission_generic_description">Butler tarvitsee lisäkäyttöoikeuden tämän sijainnin selaamiseen.</string>
+    <string name="explorer_permission_setup_action">Avaa käyttöoikeuksien määritys</string>
+    <string name="explorer_grant_access_action">Myönnä käyttöoikeus</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Toiminnot</string>
+    <string name="explorer_file_info_type_label">Tyyppi</string>
+    <string name="explorer_file_info_size_label">Koko</string>
+    <string name="explorer_file_info_modified_label">Muokattu</string>
+    <string name="explorer_file_action_install">Asenna</string>
+    <string name="explorer_file_action_install_subtitle">Asenna tämä sovellus laitteellesi</string>
+    <string name="explorer_file_action_open">Avaa</string>
+    <string name="explorer_file_action_open_subtitle">Katsele täällä, Takaisin-painike palauttaa tähän kansioon</string>
+    <string name="explorer_file_action_open_in_tab">Avaa uudella välilehdellä</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Katsele Butlerissa omalla välilehdellään</string>
+    <string name="explorer_file_action_open_in_editor">Avaa muokkaimessa</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Muokkaa uudella välilehdellä</string>
+    <string name="explorer_file_action_open_with">Avaa sovelluksella</string>
+    <string name="explorer_file_action_open_with_subtitle">Valitse ulkoinen sovellus avaamiseen</string>
+    <string name="explorer_file_action_share">Jaa</string>
+    <string name="explorer_file_action_share_subtitle">Jaa asennettujen sovellusten kautta</string>
+    <string name="explorer_file_action_copy">Kopioi</string>
+    <string name="explorer_file_action_copy_subtitle">Kopioi leikepöydälle liittämistä varten</string>
+    <string name="explorer_file_action_cut">Leikkaa</string>
+    <string name="explorer_file_action_cut_subtitle">Siirrä leikepöydälle liittämistä varten</string>
+    <string name="explorer_file_action_rename">Nimeä uudelleen</string>
+    <string name="explorer_file_action_rename_subtitle">Muuta tiedoston nimeä</string>
+    <string name="explorer_file_action_delete">Poista</string>
+    <string name="explorer_file_action_delete_subtitle">Poista tämä tiedosto pysyvästi</string>
+    <string name="explorer_file_action_move_to_trash">Siirrä roskakoriin</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Siirrä tiedosto roskakoriin</string>
+    <string name="explorer_file_action_properties">Ominaisuudet</string>
+    <string name="explorer_file_action_properties_subtitle">Näytä tiedoston yksityiskohtaiset tiedot</string>
+    <string name="explorer_file_action_extract">Pura</string>
+    <string name="explorer_file_action_extract_subtitle">Pura arkiston sisältö kansioon</string>
+    <string name="explorer_file_action_show_in_folder">Näytä kansiossa</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Avaa kansio, jossa tämä tiedosto on</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">%d tiedosto luotu.</item>
+        <item quantity="other">%d tiedostoa luotu.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">%d hakemisto luotu.</item>
+        <item quantity="other">%d hakemistoa luotu.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Kopiointi</string>
+    <string name="explorer_operation_copy_description_single">Kopioi \"%1$s\" sijainnista \"%2$s\" sijaintiin \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">Kopioi %1$d kohde sijaintiin \"%2$s\".</item>
+        <item quantity="other">Kopioi %1$d kohdetta sijaintiin \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%d tiedosto kopioitu.</item>
+        <item quantity="other">%d tiedostoa kopioitu.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%d hakemisto kopioitu.</item>
+        <item quantity="other">%d hakemistoa kopioitu.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">%s kopioitu.</item>
+        <item quantity="other">%s kopioitu.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Purkaminen</string>
+    <string name="explorer_operation_extract_description">Pura \"%1$s\" sijaintiin \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Paikallinen kopiointi</string>
+    <string name="explorer_operation_download_copy_description">Kopioi \"%1$s\" sijaintiin \"%2$s\" paikallista selaamista varten.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">%d tiedosto purettu.</item>
+        <item quantity="other">%d tiedostoa purettu.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">%s purettu.</item>
+        <item quantity="other">%s purettu.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Pakkaaminen</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">Pakkaa %1$d kohde arkistoon \"%2$s\".</item>
+        <item quantity="other">Pakkaa %1$d kohdetta arkistoon \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">%d tiedosto pakattu.</item>
+        <item quantity="other">%d tiedostoa pakattu.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Luo arkisto</string>
+    <string name="explorer_compress_dialog_name_label">Arkiston nimi</string>
+    <string name="explorer_compress_dialog_format_label">Muoto</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Avautuu millä tahansa laitteella. Voidaan suojata salasanalla.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Pienempi, kun tiedostoja on paljon. Ei salasanasuojausta.</string>
+    <string name="explorer_compress_dialog_create_action">Luo</string>
+    <string name="explorer_compress_dialog_level_label">Pakkaustaso</string>
+    <string name="explorer_compress_dialog_level_fast">Nopea</string>
+    <string name="explorer_compress_dialog_level_normal">Normaali</string>
+    <string name="explorer_compress_dialog_level_best">Paras</string>
+    <string name="explorer_compress_dialog_password_label">Salasana (valinnainen)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Vahvista salasana</string>
+    <string name="explorer_compress_dialog_password_mismatch">Salasanat eivät täsmää</string>
+    <string name="explorer_compress_dialog_password_weak">Heikko salasana</string>
+    <string name="explorer_compress_dialog_password_notice">Tiedostojen sisältö salataan, tiedostonimiä ei.</string>
+    <string name="explorer_compress_dialog_password_show">Näytä salasana</string>
+    <string name="explorer_compress_dialog_password_hide">Piilota salasana</string>
+    <string name="explorer_compress_dialog_overwrite_title">Korvataanko arkisto?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" on jo olemassa ja korvataan.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Korvaa</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">Pudotetaanko %1$d kohde?</item>
+        <item quantity="other">Pudotetaanko %1$d kohdetta?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">Kopioidaanko vai siirretäänkö %1$d kohde sijaintiin \"%2$s\"?</item>
+        <item quantity="other">Kopioidaanko vai siirretäänkö %1$d kohdetta sijaintiin \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">Kopioidaanko %1$d kohde sijaintiin \"%2$s\"?</item>
+        <item quantity="other">Kopioidaanko %1$d kohdetta sijaintiin \"%2$s\"?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Siirretäänkö roskakoriin?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">Siirretäänkö %1$d kohde roskakoriin?</item>
+        <item quantity="other">Siirretäänkö %1$d kohdetta roskakoriin?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Siirtäminen</string>
+    <string name="explorer_operation_move_description_single">Siirrä \"%1$s\" sijainnista \"%2$s\" sijaintiin \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">Siirrä %1$d kohde sijaintiin \"%2$s\".</item>
+        <item quantity="other">Siirrä %1$d kohdetta sijaintiin \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%d tiedosto siirretty.</item>
+        <item quantity="other">%d tiedostoa siirretty.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%d hakemisto siirretty.</item>
+        <item quantity="other">%d hakemistoa siirretty.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">%s siirretty.</item>
+        <item quantity="other">%s siirretty.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Kansion luonti</string>
+    <string name="explorer_operation_create_description_directory">Luo kansio \"%1$s\" sijaintiin \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Tiedoston luonti</string>
+    <string name="explorer_operation_create_description_file">Luo tiedosto \"%1$s\" sijaintiin \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Tekstitiedoston luonti</string>
+    <string name="explorer_operation_create_text_file_description">Luo \"%1$s\" tekstikatkelmasta</string>
+    <string name="explorer_operation_calculate_sizes_title">Kokojen laskenta</string>
+    <string name="explorer_operation_calculate_sizes_description">Laske kansioiden koot sijainnissa \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$d kohde tarkistettu</item>
+        <item quantity="other">%1$d kohdetta tarkistettu</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Laskettu %1$d kansion koot.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">Laskettu %1$d kansion koot, %2$d sijaintia ei voitu lukea.</item>
+        <item quantity="other">Laskettu %1$d kansion koot, %2$d sijaintia ei voitu lukea.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Sijainnin \"%1$s\" kansiokoot hylättiin, koska se muuttui laskennan aikana.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Navigointi epäonnistui</string>
+    <string name="explorer_aborted_dialog_title">Toiminto keskeytetty</string>
+    <string name="explorer_aborted_dialog_message">Lataaminen peruutettiin ennen kuin mitään voitiin näyttää.</string>
+    <string name="explorer_archive_unbrowsable_title">Arkistoa ei voi selata täällä</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" on tallennustilassa, joka tukee vain peräkkäistä lukemista, mutta arkiston selaaminen vaatii satunnaisen lukupääsyn. Pura arkisto täällä tai lataa paikallinen kopio selaamista varten.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Pura arkisto</string>
+    <string name="explorer_archive_unbrowsable_download_action">Lataa paikallinen kopio</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (erityiskäyttöoikeus)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (erityiskäyttöoikeus)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android rajoittaa pääsyä tähän kansioon. Myönnä käyttöoikeus kansionvalitsimella.</string>
+    <string name="explorer_permission_multiple_options_description">Voit myöntää käyttöoikeuden Androidin kansionvalitsimella tai ottaa käyttöön root- tai ADB-käyttöoikeuden, jolloin pääset nopeammin kaikkiin rajoitettuihin kansioihin.</string>
+    <string name="explorer_permission_multiple_options_root_description">Voit myöntää käyttöoikeuden Androidin kansionvalitsimella tai ottaa käyttöön root-käyttöoikeuden, jolloin pääset kaikkiin rajoitettuihin kansioihin.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Voit myöntää käyttöoikeuden Androidin kansionvalitsimella tai ottaa käyttöön ADB-käyttöoikeuden, jolloin pääset nopeammin rajoitettuihin kansioihin.</string>
+    <string name="explorer_permission_setup_both_description">Tämä kansio vaatii korotetut käyttöoikeudet. Määritä root- tai ADB-käyttöoikeus käyttöoikeuksien määrityksessä.</string>
+    <string name="explorer_permission_setup_shizuku_description">Tämä kansio vaatii korotetut käyttöoikeudet ADB:n kautta. Määritä ADB-käyttöoikeus käyttöoikeuksien määrityksessä.</string>
+    <string name="explorer_permission_setup_root_description">Tämä kansio vaatii root-käyttöoikeuden. Määritä root käyttöoikeuksien määrityksessä, jos laitteesi on rootattu.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Myönnä käyttöoikeus tähän kansioon Androidin kansionvalitsimella.</string>
+    <string name="explorer_permission_option_picker_action">Avaa SAF-valitsin</string>
+
+    <string name="explorer_permission_option_setup_title">Täydet käyttöoikeudet</string>
+    <string name="explorer_permission_option_setup_description">Määritä root- tai ADB-käyttöoikeus, jotta pääset nopeammin kaikkiin rajoitettuihin kansioihin.</string>
+    <string name="explorer_permission_option_setup_root_description">Määritä root-käyttöoikeus, jotta pääset tähän kansioon ja muihin rajoitettuihin kansioihin.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Määritä ADB-käyttöoikeus tämän kansion avaamiseen.</string>
+    <string name="explorer_permission_option_setup_action">Määritä</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Tallennustilan käyttöoikeus</string>
+    <string name="explorer_permission_option_storage_description">Myönnä Butlerille lupa käyttää laitteesi tallennustilassa olevia tiedostoja.</string>
+    <string name="explorer_permission_option_storage_action">Myönnä käyttöoikeus</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Suosikit</string>
+    <string name="explorer_action_add_to_favorites">Lisää suosikkeihin</string>
+    <string name="explorer_action_remove_from_favorites">Poista suosikeista</string>
+    <string name="explorer_favorites_select_action">Valitse</string>
+    <string name="explorer_favorites_unavailable_subtitle">Ei käytettävissä</string>
+    <string name="explorer_favorites_unavailable_toast">Suosikki ei ole käytettävissä</string>
+    <string name="explorer_favorites_added_message">Lisätty %1$s suosikkeihin</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">Lisätty %1$d kohde suosikkeihin</item>
+        <item quantity="other">Lisätty %1$d kohdetta suosikkeihin</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">Poistettu %1$s suosikeista</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">Poistettu %1$d kohde suosikeista</item>
+        <item quantity="other">Poistettu %1$d kohdetta suosikeista</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Nimeä suosikki uudelleen</string>
+    <string name="explorer_favorites_rename_hint">Suosikin nimi</string>
+    <string name="explorer_favorites_rename_description">Vain suosikkimerkinnän nimi muuttuu, itse kansio säilyttää nimensä.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">Tämä välilehti ohittaa lajittelujärjestyksen %1$d kansiossa</item>
+        <item quantity="other">Tämä välilehti ohittaa lajittelujärjestyksen %1$d kansiossa</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d kansio</item>
+        <item quantity="other">%1$d kansiota</item>
+    </plurals>
+</resources>

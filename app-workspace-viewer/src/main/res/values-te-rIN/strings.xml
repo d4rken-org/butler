@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">దీనితో తెరవండి</string>
+    <string name="viewer_image_content_description">చిత్రం %1$s</string>
+    <string name="viewer_toolbar_folder_label">ఫోల్డర్</string>
+    <string name="viewer_back_action">వెనుకకు</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">మునుపటి ఫైల్</string>
+    <string name="viewer_next_file_action">తదుపరి ఫైల్</string>
+    <string name="viewer_open_location_action">స్థానాన్ని తెరవండి</string>
+    <string name="viewer_clipboard_copied">%1$s కాపీ చేయబడింది. ఎక్స్‌ప్లోరర్ ట్యాబ్‌లో పేస్ట్ చేయండి.</string>
+    <string name="viewer_clipboard_cut">%1$s కట్ చేయబడింది. దాన్ని తరలించడానికి ఎక్స్‌ప్లోరర్ ట్యాబ్‌లో పేస్ట్ చేయండి.</string>
+    <string name="viewer_share_failed_label">ఈ ఫైల్‌ను షేర్ చేయలేకపోయాము</string>
+    <string name="viewer_share_failed_description">%1$sను మరో యాప్‌కు అందించలేము. రూట్ లేదా ADB యాక్సెస్ అవసరమయ్యే ఫైళ్లతో, అలాగే ఇక ఉనికిలో లేని ఫైళ్లతో ఇలా జరుగుతుంది.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">పరిమాణం</string>
+    <string name="viewer_info_modified_label">సవరించబడింది</string>
+    <string name="viewer_info_created_label">సృష్టించబడింది</string>
+    <string name="viewer_info_format_label">ఫార్మాట్</string>
+    <string name="viewer_info_dimensions_label">కొలతలు</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">అనుమతులు</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">యజమాని</string>
+    <string name="viewer_info_caption_label">షేర్ చేసిన సందేశం</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">అన్ని వివరాలను చూపండి</string>
+    <string name="viewer_info_collapse_action">వివరాలను దాచండి</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">ముందస్తు వీక్షణ · 1 పేజీ</string>
+    <string name="viewer_pdf_page_indicator">%2$d పేజీల్లో %1$dవ పేజీ</string>
+    <string name="viewer_pdf_page_previous">మునుపటి పేజీ</string>
+    <string name="viewer_pdf_page_next">తదుపరి పేజీ</string>
+    <string name="viewer_pdf_page_error">%1$dవ పేజీని చూపించలేకపోయాము.</string>
+    <string name="viewer_pdf_page_content_description">%1$s యొక్క PDF ముందస్తు వీక్షణ, %3$d పేజీల్లో %2$dవ పేజీ</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">ఈ ఫైల్ రకానికి ఇంకా మద్దతు లేదు</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">ఇది ఒక ఆర్కైవ్</string>
+    <string name="viewer_browse_archive_action">కంటెంట్‌ను బ్రౌజ్ చేయండి</string>
+    <string name="viewer_archive_needs_copy_msg">మీ పరికరంలో ఒక కాపీని సేవ్ చేయండి, అప్పుడు Butler దానిలోని కంటెంట్‌ను బ్రౌజ్ చేయగలదు.</string>
+    <string name="viewer_archive_nested_msg">ఈ ఆర్కైవ్ మరో ఆర్కైవ్‌లో ఉంది. దానిలోని కంటెంట్‌ను బ్రౌజ్ చేయడానికి ముందుగా దాన్ని ఎక్స్‌ట్రాక్ట్ చేయండి.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">వెర్షన్</string>
+    <string name="viewer_apk_min_sdk_label">కనిష్ఠ SDK</string>
+    <string name="viewer_apk_target_sdk_label">లక్ష్య SDK</string>
+    <string name="viewer_apk_installed_label">ఇన్‌స్టాల్ చేయబడింది</string>
+    <string name="viewer_apk_not_installed_value">ఇన్‌స్టాల్ చేయబడలేదు</string>
+    <string name="viewer_apk_installed_unknown_value">తనిఖీ చేయలేకపోయాము</string>
+    <string name="viewer_apk_installed_older_hint">ఈ ఫైల్ కంటే పాతది</string>
+    <string name="viewer_apk_installed_newer_hint">ఈ ఫైల్ కంటే కొత్తది</string>
+    <string name="viewer_apk_permissions_header">అనుమతులు (%1$d)</string>
+    <string name="viewer_apk_signing_header">సంతకం సర్టిఫికేట్‌లు</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">ఇన్‌స్టాల్ చేయండి</string>
+    <string name="viewer_bundle_format_label">బండిల్ ఫార్మాట్</string>
+    <string name="viewer_bundle_splits_label">లోపల ఉన్న APKలు</string>
+    <string name="viewer_bundle_expansion_files_hint">యాప్ ఇన్‌స్టాల్ చేసిన తర్వాత ఉంచే విస్తరణ ఫైళ్లు ఇందులో ఉన్నాయి.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">విస్తరణ ఫైళ్లను ఉంచడానికి రూట్ లేదా ADB యాక్సెస్ అవసరం. అది లేకపోయినా యాప్ ఇన్‌స్టాల్ అవుతుంది, కానీ దాని విస్తరణ ఫైళ్లు మాత్రం తరలించబడవు.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">%1$s యాప్ చిహ్నం</string>
+    <string name="viewer_apk_icon_show_action">చిహ్నాన్ని చూపండి</string>
+    <string name="viewer_apk_icon_save_action">చిహ్నాన్ని సేవ్ చేయండి</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">చిహ్నం %1$sగా సేవ్ చేయబడింది</string>
+    <string name="viewer_apk_icon_overwrite_title">ఫైల్‌ను భర్తీ చేయాలా?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s ఇప్పటికే ఈ ఫోల్డర్‌లో ఉంది. చిహ్నాన్ని సేవ్ చేస్తే అది భర్తీ చేయబడుతుంది.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">భర్తీ చేయండి</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">ఫైల్ మారింది</string>
+    <string name="viewer_external_change_message">పరికరంలోని ఈ ఫైల్ మారింది. దాన్ని మళ్లీ లోడ్ చేయడానికి రిఫ్రెష్ చేయండి.</string>
+    <string name="viewer_external_change_gone_title">ఫైల్ ఇక లేదు</string>
+    <string name="viewer_external_change_gone_message">ఈ ఫైల్ తొలగించబడింది లేదా ఇక యాక్సెస్ చేయలేము.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">ఈ ఫైల్‌ను చూపించలేము</string>
+    <string name="viewer_error_not_a_file_label">ఫైల్ కాదు</string>
+    <string name="viewer_error_not_a_file_description">%1$s ఒక సాధారణ ఫైల్ కాదు.</string>
+    <string name="viewer_error_broken_symlink_label">పనిచేయని షార్ట్‌కట్</string>
+    <string name="viewer_error_broken_symlink_description">%1$s ఇక ఉనికిలో లేని దాన్ని సూచిస్తోంది.</string>
+    <string name="viewer_error_undecodable_label">దెబ్బతిన్న చిత్రం</string>
+    <string name="viewer_error_undecodable_description">%1$sను డీకోడ్ చేయలేకపోయాము. ఫైల్ అసంపూర్తిగా లేదా దెబ్బతిని ఉండవచ్చు.</string>
+    <string name="viewer_error_file_gone_label">ఫైల్ కనుగొనబడలేదు</string>
+    <string name="viewer_error_file_gone_description">%1$s ఇక లేదు. దాన్ని తరలించి, పేరు మార్చి లేదా తొలగించి ఉండవచ్చు.</string>
+    <string name="viewer_error_empty_file_label">ఖాళీ ఫైల్</string>
+    <string name="viewer_error_empty_file_description">%1$s ఖాళీగా ఉంది, చూపించడానికి ఏమీ లేదు.</string>
+    <string name="viewer_error_apk_unreadable_label">చదవలేని APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$sను Android యాప్ ప్యాకేజీగా పార్స్ చేయలేకపోయాము.</string>
+    <string name="viewer_error_icon_unavailable_label">చిహ్నం లేదు</string>
+    <string name="viewer_error_icon_unavailable_description">%1$s యాప్ చిహ్నాన్ని చదవలేకపోయాము.</string>
+    <string name="viewer_error_icon_target_notfile_label">ఈ పేరు ఇప్పటికే వాడుకలో ఉంది</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s ఇప్పటికే ఇక్కడ ఉంది, అది సాధారణ ఫైల్ కాదు కాబట్టి దాన్ని భర్తీ చేయలేము.</string>
+    <string name="viewer_error_icon_target_appeared_label">ఫైల్ సృష్టించబడింది</string>
+    <string name="viewer_error_icon_target_appeared_description">ఎక్కడ సేవ్ చేయాలో మీరు ఎంచుకుంటున్నప్పుడు %1$s సృష్టించబడింది. ఏదీ ఓవర్‌రైట్ చేయబడలేదు, మళ్లీ ప్రయత్నించండి.</string>
+    <string name="viewer_error_content_unreadable_label">ఈ ఫైల్‌ను చదవలేము</string>
+    <string name="viewer_error_content_unreadable_description">%1$sను షేర్ చేసిన యాప్ ఇక దాన్ని చదవడానికి Butlerను అనుమతించడం లేదు. ఆ యాప్ నుంచి దాన్ని మళ్లీ షేర్ చేయండి.</string>
+    <string name="viewer_save_copy_action">ఒక కాపీని సేవ్ చేయండి…</string>
+    <string name="viewer_open_in_editor_action">ఎడిటర్‌లో తెరవండి</string>
+    <string name="viewer_text_truncated_bytes">ముందస్తు వీక్షణ ఈ ఫైల్‌లోని మొదటి %1$sకు మాత్రమే పరిమితం.</string>
+    <string name="viewer_text_truncated_lines">ముందస్తు వీక్షణ ఈ ఫైల్‌లోని మొదటి %1$s పంక్తులకు మాత్రమే పరిమితం.</string>
+    <string name="viewer_text_truncated_width">ఈ ముందస్తు వీక్షణలో పొడవైన పంక్తులు కుదించబడతాయి.</string>
+    <string name="viewer_text_unreadable_label">ఈ ఫైల్‌ను చదవలేకపోయాము</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">వ్యూయర్</string>
+    <string name="viewer_settings_show_next_after_delete_title">తొలగించిన తర్వాత తదుపరి ఫైల్‌ను చూపండి</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">ఫోల్డర్ నుంచి తెరిచిన ఫైల్‌ను తొలగించిన తర్వాత, వ్యూయర్‌ను మూసివేయకుండా ఆ ఫోల్డర్‌లోని తదుపరి ఫైల్‌ను చూపండి.</string>
+</resources>

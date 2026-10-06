@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">بگ رپورٹس</string>
+    <string name="bugreport_workspace_subtitle">کریش اور خرابی کی رپورٹس</string>
+
+    <string name="bugreport_empty_title">کوئی رپورٹ نہیں</string>
+    <string name="bugreport_empty_subtitle">کریش اور خرابی کی رپورٹس یہاں دکھائی دیں گی۔ کچھ بھی خودکار طور پر نہیں بھیجا جاتا۔</string>
+
+    <string name="bugreport_type_crash">کریش</string>
+    <string name="bugreport_type_report">رپورٹ</string>
+    <string name="bugreport_type_recording">ریکارڈنگ</string>
+
+    <string name="bugreport_record_action">ڈیبگ لاگ ریکارڈ کریں</string>
+    <string name="bugreport_record_short_action">ریکارڈ کریں</string>
+    <string name="bugreport_stop_action">ریکارڈنگ روکیں</string>
+    <string name="bugreport_stop_short_action">روکیں</string>
+    <string name="bugreport_recording_ongoing_label">ریکارڈنگ جاری ہے…</string>
+
+    <string name="bugreport_recording_short_title">ریکارڈنگ بہت مختصر ہے</string>
+    <string name="bugreport_recording_short_message">یہ ریکارڈنگ صرف چند سیکنڈ کی ہے اور ممکن ہے اس میں مفید معلومات نہ ہوں۔ پھر بھی اسے روک دیں؟</string>
+    <string name="bugreport_recording_short_keep_action">ریکارڈنگ جاری رکھیں</string>
+
+    <string name="bugreport_rename_action">نام بدلیں</string>
+    <string name="bugreport_rename_dialog_title">اس رپورٹ کا نام رکھیں</string>
+    <string name="bugreport_rename_name_label">نام</string>
+    <string name="bugreport_rename_name_hint">فہرست میں اور شیئر کی جانے والی فائل کے نام میں دکھایا جاتا ہے</string>
+
+    <string name="bugreport_share_action">شیئر کریں</string>
+    <string name="bugreport_delete_action">حذف کریں</string>
+    <string name="bugreport_delete_all_action">سب حذف کریں</string>
+    <string name="bugreport_delete_all_confirm_title">تمام ڈیبگ لاگز حذف کریں؟</string>
+    <string name="bugreport_delete_all_confirm_message">اس سے ڈیبگ لاگ کے تمام ریکارڈ شدہ سیشن مستقل طور پر حذف ہو جائیں گے۔ جاری ریکارڈنگز متاثر نہیں ہوں گی۔</string>
+    <string name="bugreport_delete_confirm_title">یہ رپورٹ حذف کریں؟</string>
+    <string name="bugreport_delete_confirm_message">اس سے یہ رپورٹ اور اس کا لاگ مستقل طور پر حذف ہو جائیں گے۔</string>
+    <string name="bugreport_cancel_action">منسوخ کریں</string>
+
+    <string name="bugreport_share_chooser_title">بگ رپورٹ شیئر کریں</string>
+    <string name="bugreport_share_consent_title">رپورٹ شیئر کریں؟</string>
+    <string name="bugreport_share_consent_message">اس رپورٹ میں ایپ کے لاگز شامل ہیں جن میں فائلوں کے نام، راستے، اور ایپ اور آلے کی معلومات ہو سکتی ہیں۔ اسے صرف ان لوگوں کے ساتھ شیئر کریں جن پر آپ کو بھروسا ہے۔</string>
+
+    <string name="bugreport_detail_back_action">واپس</string>
+    <string name="bugreport_detail_section_error">خرابی</string>
+    <string name="bugreport_detail_section_log">حالیہ لاگ</string>
+    <string name="bugreport_detail_field_type">قسم</string>
+    <string name="bugreport_detail_field_time">وقت</string>
+    <string name="bugreport_detail_field_app_version">ایپ کا ورژن</string>
+    <string name="bugreport_detail_field_device">آلہ</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">بلڈ</string>
+    <string name="bugreport_detail_field_error_class">خرابی کی قسم</string>
+    <string name="bugreport_detail_field_thread">تھریڈ</string>
+    <string name="bugreport_detail_log_truncated">%2$d میں سے آخری %1$d سطریں</string>
+    <string name="bugreport_detail_log_count">%1$d سطریں</string>
+    <string name="bugreport_detail_log_empty">کوئی لاگ ریکارڈ نہیں ہوا</string>
+    <string name="bugreport_detail_log_error">لاگ لوڈ نہیں ہو سکا</string>
+</resources>

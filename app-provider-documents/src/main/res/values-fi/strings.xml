@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Laajennettu pääsy laitteeseen</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Laite</string>
+    <string name="documents_connection_device_summary">Paikallisen laitteen tallennustila</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Juuritiedostojärjestelmä</string>
+    <string name="provider_documents_storage_internal_label">Sisäinen tallennustila</string>
+    <string name="provider_documents_storage_sd_card_label">SD-kortti</string>
+    <string name="provider_documents_storage_saf_label">SAF-sijainti</string>
+    <string name="provider_documents_storage_free_suffix">vapaana</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">Tämän sijainnin selaaminen vaatii root-käyttöoikeuden. Ota root-käyttöoikeus käyttöön Butler-sovelluksen asetuksissa.</string>
+    <string name="provider_documents_error_requires_adb">Tämän sijainnin selaaminen vaatii ADB-käyttöoikeuden. Ota se käyttöön Butlerin käyttöoikeuksien määrityksessä.</string>
+    <string name="provider_documents_error_requires_storage">Tämän sijainnin selaaminen vaatii tallennustilan käyttöoikeuden. Myönnä tallennustilan käyttöoikeus Butler-sovelluksen asetuksissa.</string>
+    <string name="provider_documents_error_requires_permissions">Tämän sijainnin selaaminen vaatii lisäkäyttöoikeuksia. Tarkista Butler-sovelluksen asetukset.</string>
+    <string name="provider_documents_error_generic">Tähän sijaintiin ei pääse. Tarkista käyttömahdollisuudet Butler-sovelluksesta.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Asiakirjapalvelu</string>
+    <string name="provider_documents_settings_subtitle">Integrointi muihin sovelluksiin</string>
+    <string name="provider_documents_settings_category_integration_label">Integrointi</string>
+    <string name="provider_documents_enabled_title">Ota asiakirjapalvelu käyttöön</string>
+    <string name="provider_documents_enabled_desc">Salli muiden sovellusten käyttää tiedostoja Butlerin kautta Androidin tiedostovalitsimella</string>
+</resources>

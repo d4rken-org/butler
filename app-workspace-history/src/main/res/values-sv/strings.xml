@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">Historik</string>
+    <string name="history_workspace_subtitle">Senaste filåtgärderna</string>
+    <string name="history_workspace_title_scoped">Historik: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">Historik: Misslyckade</string>
+    <string name="history_workspace_title_outcome_partial">Historik: Delvis slutförda</string>
+    <string name="history_workspace_title_outcome_cancelled">Historik: Avbrutna</string>
+    <string name="history_workspace_title_outcome_completed">Historik: Slutförda</string>
+    <string name="history_workspace_title_kind_copy">Historik: Kopiera</string>
+    <string name="history_workspace_title_kind_move">Historik: Flytta</string>
+    <string name="history_workspace_title_kind_delete">Historik: Radera</string>
+    <string name="history_workspace_title_kind_create_file">Historik: Skapa fil</string>
+    <string name="history_workspace_title_kind_create_folder">Historik: Skapa mapp</string>
+    <string name="history_workspace_title_kind_save">Historik: Spara</string>
+    <string name="history_workspace_title_kind_compress">Historik: Komprimera</string>
+    <string name="history_workspace_title_kind_extract">Historik: Packa upp</string>
+    <string name="history_workspace_title_filtered">Historik (filtrerad)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">Historik: %1$d sökväg</item>
+        <item quantity="other">Historik: %1$d sökvägar</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Alla</string>
+    <string name="history_filter_outcome_completed">Slutförda</string>
+    <string name="history_filter_outcome_partial">Delvis slutförda</string>
+    <string name="history_filter_outcome_failed">Misslyckade</string>
+    <string name="history_filter_outcome_cancelled">Avbrutna</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Kopiera</string>
+    <string name="history_filter_kind_move">Flytta</string>
+    <string name="history_filter_kind_delete">Radera</string>
+    <string name="history_filter_kind_create_file">Skapa fil</string>
+    <string name="history_filter_kind_create_folder">Skapa mapp</string>
+    <string name="history_filter_kind_save">Spara</string>
+    <string name="history_filter_kind_compress">Komprimera</string>
+    <string name="history_filter_kind_extract">Packa upp</string>
+    <string name="history_filter_kind_enable">Aktivera</string>
+    <string name="history_filter_kind_disable">Inaktivera</string>
+    <string name="history_filter_kind_force_stop">Tvångsstoppa</string>
+    <string name="history_filter_kind_uninstall">Avinstallera</string>
+    <string name="history_filter_kind_clear_data">Rensa data</string>
+    <string name="history_filter_kind_components">Komponenter</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Ange sökvägsfilter…</string>
+    <string name="history_path_scope_clear_action">Rensa sökvägsfilter</string>
+    <string name="history_path_scope_dialog_title">Filtrera efter sökväg</string>
+    <string name="history_path_scope_dialog_description">Visa endast åtgärder som påverkar den här sökvägen eller något under den.</string>
+    <string name="history_path_scope_dialog_input_label">Sökväg</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Välj mapp…</string>
+    <string name="history_path_scope_dialog_apply_action">Tillämpa</string>
+    <string name="history_path_scope_dialog_cancel_action">Avbryt</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Idag</string>
+    <string name="history_group_yesterday">Igår</string>
+    <string name="history_group_this_week">Den här veckan</string>
+    <string name="history_group_this_month">Den här månaden</string>
+    <string name="history_group_older">Äldre</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Bytte namn på</string>
+    <string name="history_entry_intent_paste_copy">Klistrade in</string>
+    <string name="history_entry_intent_paste_move">Klistrade in (flytt)</string>
+    <string name="history_entry_intent_drop_copy">Släppte (kopiering)</string>
+    <string name="history_entry_intent_drop_move">Släppte (flytt)</string>
+    <string name="history_entry_intent_enable_components">Aktiverade komponenter i</string>
+    <string name="history_entry_intent_disable_components">Inaktiverade komponenter i</string>
+    <string name="history_entry_kind_copy">Kopierade</string>
+    <string name="history_entry_kind_move">Flyttade</string>
+    <string name="history_entry_kind_delete">Raderade</string>
+    <string name="history_entry_kind_create_file">Skapade fil</string>
+    <string name="history_entry_kind_create_folder">Skapade mapp</string>
+    <string name="history_entry_kind_save">Sparade</string>
+    <string name="history_entry_kind_compress">Komprimerade</string>
+    <string name="history_entry_kind_extract">Packade upp</string>
+    <string name="history_entry_kind_restore">Återställde</string>
+    <string name="history_entry_kind_install">Installerade</string>
+    <string name="history_entry_kind_enable">Aktiverade</string>
+    <string name="history_entry_kind_disable">Inaktiverade</string>
+    <string name="history_entry_kind_force_stop">Tvångsstoppade</string>
+    <string name="history_entry_kind_uninstall">Avinstallerade</string>
+    <string name="history_entry_kind_clear_data">Rensade data för</string>
+    <string name="history_entry_kind_components">Ändrade komponenter i</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d sökväg</item>
+        <item quantity="other">%d sökvägar</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">De första %1$d av %2$d berörda sökvägarna</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Startad</string>
+    <string name="history_detail_label_completed">Slutförd</string>
+    <string name="history_detail_label_duration">Varaktighet</string>
+    <string name="history_detail_label_outcome">Resultat</string>
+    <string name="history_detail_label_origin">Ursprung</string>
+    <string name="history_detail_label_error">Fel</string>
+    <string name="history_detail_label_paths">Berörda sökvägar</string>
+    <string name="history_detail_label_partial_errors">Fel per objekt</string>
+    <string name="history_detail_copy_path_action">Kopiera sökväg</string>
+    <string name="history_detail_paths_empty">Inga berörda sökvägar registrerade.</string>
+    <string name="history_detail_label_attempted_paths">Sökvägar där åtgärden försöktes</string>
+    <string name="history_detail_label_packages">Berörda appar</string>
+    <string name="history_detail_packages_empty">Inga berörda appar registrerade.</string>
+    <string name="history_detail_paths_truncated_callout">Visar de första %1$d av %2$d berörda sökvägarna.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Visar de första %1$d av %2$d sökvägar där åtgärden försöktes.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">Åtgärden misslyckades för %1$d objekt.</item>
+        <item quantity="other">Åtgärden misslyckades för %1$d objekt.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Filutforskare</string>
+    <string name="history_origin_searcher">Sökning</string>
+    <string name="history_origin_saver">Spara som</string>
+    <string name="history_origin_developer">Utvecklare</string>
+    <string name="history_origin_viewer">Visare</string>
+    <string name="history_origin_apps">Appar</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Ingen historik än</string>
+    <string name="history_empty_subtitle">Filåtgärder visas här när du använder Butler.</string>
+    <string name="history_empty_filtered_title">Inga träffar</string>
+    <string name="history_empty_filtered_subtitle">Inga historikposter matchar det aktuella filtret.</string>
+    <string name="history_empty_filtered_reset_action">Återställ filter</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Återställ filter</string>
+    <string name="history_toolbar_reset_filter_content_description">Återställ filter</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">De första %1$d av %2$d berörda sökvägarna</string>
+    <string name="history_add_filter_action">Lägg till filter</string>
+    <string name="history_add_filter_sheet_title">Lägg till filter</string>
+    <string name="history_add_filter_section_outcome">Resultat</string>
+    <string name="history_add_filter_section_kind">Typ</string>
+    <string name="history_add_filter_section_path_scope">Sökvägsfilter</string>
+    <string name="history_add_filter_add_path_action">Lägg till sökväg…</string>
+    <string name="history_path_scope_remove_action">Ta bort</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d post</item>
+        <item quantity="other">%1$d poster</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%1$d av %2$d visas</item>
+        <item quantity="other">%1$d av %2$d visas</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">Historik</string>
+    <string name="history_settings_save_history_title">Spara historik</string>
+    <string name="history_settings_save_history_subtitle">Registrera slutförda filåtgärder.</string>
+    <string name="history_settings_max_history_label">Max antal historikposter</string>
+    <string name="history_settings_max_history_subtitle">Äldre poster tas bort när den här gränsen överskrids.</string>
+    <string name="history_settings_max_history_input_label">Maximalt antal poster</string>
+    <string name="history_settings_clear_history_title">Rensa historik</string>
+    <string name="history_settings_clear_history_subtitle">Ta bort alla sparade poster (%1$d).</string>
+    <string name="history_clear_dialog_title">Rensa historiken?</string>
+    <string name="history_clear_dialog_message">Tar bort alla poster från databasen för åtgärdshistorik. Detta kan inte ångras.</string>
+    <string name="history_clear_confirm_action">Rensa</string>
+    <string name="history_cleared_success">Historiken rensad</string>
+    <string name="history_workspace_title_kind_restore">Återställningar</string>
+    <string name="history_filter_kind_restore">Återställ</string>
+    <string name="history_workspace_title_kind_install">Historik: Installera</string>
+    <string name="history_filter_kind_install">Installera</string>
+    <string name="history_workspace_title_kind_enable">Historik: Aktivera</string>
+    <string name="history_workspace_title_kind_disable">Historik: Inaktivera</string>
+    <string name="history_workspace_title_kind_force_stop">Historik: Tvångsstoppa</string>
+    <string name="history_workspace_title_kind_uninstall">Historik: Avinstallera</string>
+    <string name="history_workspace_title_kind_clear_data">Historik: Rensa data</string>
+    <string name="history_workspace_title_kind_components">Historik: Komponenter</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Markera alla</string>
+    <string name="history_action_deselect_all">Avmarkera alla</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Radera %1$d post</item>
+        <item quantity="other">Radera %1$d poster</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Endast historikposterna tas bort, själva filerna påverkas inte.</string>
+    <string name="history_pro_dialog_message">Att dela flera historikposter samtidigt ingår i uppgraderingen. Att dela en enskild post och radera poster är fortfarande gratis.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Resultat</string>
+    <string name="history_share_label_kind">Typ</string>
+    <string name="history_share_label_origin">Ursprung</string>
+    <string name="history_share_label_summary">Sammanfattning</string>
+    <string name="history_share_label_completed">Slutförd</string>
+    <string name="history_share_label_duration">Varaktighet</string>
+    <string name="history_share_label_error">Fel</string>
+    <string name="history_share_label_failed_items">Misslyckade objekt</string>
+    <string name="history_share_label_paths">Berörda sökvägar (%1$d)</string>
+    <string name="history_share_label_packages">Berörda appar (%1$d)</string>
+    <string name="history_share_paths_more">… och %1$d till</string>
+    <string name="history_share_truncated">… och %1$d ytterligare poster som inte tagits med</string>
+</resources>

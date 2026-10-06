@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Editor</string>
+    <string name="editor_subtitle">Úprava textových súborov</string>
+    <string name="editor_settings_title">Nastavenia editora</string>
+    <string name="editor_settings_show_line_numbers_title">Zobraziť čísla riadkov</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Zobraziť čísla riadkov v editore.</string>
+    <string name="editor_settings_word_wrap_title">Zalamovanie riadkov</string>
+    <string name="editor_settings_word_wrap_subtitle">Zalamovať dlhé riadky podľa šírky obrazovky.</string>
+    <string name="editor_settings_syntax_highlighting_title">Zvýrazňovanie syntaxe</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Farebne zvýrazňovať kód v podporovaných súboroch (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Veľkosť písma</string>
+    <string name="editor_settings_font_size_subtitle">Veľkosť textu v editore</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Šírka tabulátora</string>
+    <string name="editor_settings_tab_size_subtitle">Počet medzier, ktoré zaberá znak tabulátora</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Otvoriť</string>
+    <string name="editor_action_save">Uložiť</string>
+    <string name="editor_action_save_as">Uložiť ako…</string>
+    <string name="editor_action_close">Zavrieť</string>
+    <string name="editor_action_undo">Vrátiť späť</string>
+    <string name="editor_action_redo">Zopakovať</string>
+    <string name="editor_action_search">Vyhľadať</string>
+    <string name="editor_action_go_to_line">Prejsť na riadok</string>
+    <string name="editor_action_dismiss">Skryť</string>
+    <string name="editor_action_previous">Predchádzajúci</string>
+    <string name="editor_action_next">Ďalší</string>
+    <string name="editor_action_copy">Kopírovať</string>
+    <string name="editor_action_cut">Vystrihnúť</string>
+    <string name="editor_action_copy_to_butler_clipboard">Kopírovať do schránky Butler</string>
+    <string name="editor_action_cut_to_butler_clipboard">Vystrihnúť do schránky Butler</string>
+    <string name="editor_action_paste">Prilepiť</string>
+    <string name="editor_action_select_all">Vybrať všetko</string>
+    <string name="editor_action_delete">Odstrániť</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Prepísať súbor?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s už existuje. Jeho aktuálny obsah bude nahradený.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Prepísať</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Našla sa záloha z prerušeného ukladania:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Úprava ako text nie je podporovaná</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Veľmi dlhé riadky</string>
+    <string name="editor_long_lines_banner_message">Veľmi dlhé riadky sa pri zobrazení skracujú; celý obsah sa zachová a uloží.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Zobraziť ďalšiu časť riadka</string>
+    <string name="editor_line_truncated_marker_previous_action">Zobraziť predchádzajúcu časť riadka</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Súbor už nie je dostupný</string>
+    <string name="editor_backing_lost_banner_message">Možno bol presunutý alebo odstránený. Toto zobrazenie je len na čítanie — znova ho otvor alebo ho zavri.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Súbor chýba, ale záloha zostala</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" chýba, ale po prerušenom ukladaní zostalo toto: %2$s. Tvoj obsah je s najväčšou pravdepodobnosťou stále v ňom.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Súbor na disku sa zmenil</string>
+    <string name="editor_external_change_banner_message">Iná aplikácia upravila tento súbor.</string>
+    <string name="editor_external_change_reload_action">Znova načítať</string>
+    <string name="editor_external_change_keep_action">Pokračovať v úpravách</string>
+    <string name="editor_error_external_change">Tento súbor zmenila iná aplikácia. Ak chceš pokračovať, znova načítaj súbor.</string>
+    <string name="editor_dialog_reload_confirm_title">Znova načítať súbor?</string>
+    <string name="editor_dialog_reload_confirm_message">Opätovné načítanie zahodí tvoje neuložené zmeny a zobrazí aktuálny obsah súboru na disku.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d riadok</item>
+        <item quantity="few">%1$d riadky</item>
+        <item quantity="many">%1$d riadka</item>
+        <item quantity="other">%1$d riadkov</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d znak</item>
+        <item quantity="few">%1$d znaky</item>
+        <item quantity="many">%1$d znaku</item>
+        <item quantity="other">%1$d znakov</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Vybrané: %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$d r. · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Načítavanie súboru…</string>
+    <string name="editor_saving">Ukladanie…</string>
+    <string name="editor_action_cancel_loading">Zrušiť</string>
+    <string name="editor_progress_opening">Otváranie súboru…</string>
+    <string name="editor_progress_saving">Ukladanie súboru…</string>
+    <string name="editor_progress_building_index">Vytváranie indexu súboru…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Neznáma chyba</string>
+    <string name="editor_error_read_only">Tento súbor je len na čítanie a nedá sa zmeniť.</string>
+    <string name="editor_error_save_integrity_label">Ukladanie prerušené</string>
+    <string name="editor_error_save_integrity">Ukladanie bolo prerušené a súbor na disku môže byť neúplný. Pred ďalšími úpravami súbor znova načítaj.</string>
+    <string name="editor_error_clipboard_too_large_label">Výber je príliš veľký</string>
+    <string name="editor_error_clipboard_too_large">Výber je príliš veľký na kopírovanie (limit %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Súbor je príliš veľký</string>
+    <string name="editor_error_paste_too_large">Tento súbor je príliš veľký na prilepenie (maximum %1$s).</string>
+    <string name="editor_error_paste_binary_label">Nie je to textový súbor</string>
+    <string name="editor_error_paste_binary">Obsah tohto súboru sa nedá prilepiť ako text.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d z %2$d výsledku</item>
+        <item quantity="few">%1$d z %2$d výsledkov</item>
+        <item quantity="many">%1$d z %2$d výsledku</item>
+        <item quantity="other">%1$d z %2$d výsledkov</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d z %2$d+ výsledkov</string>
+    <string name="editor_search_too_many_matches_label">Príliš veľa zhôd</string>
+    <string name="editor_search_too_many_matches">Viac ako %1$d zhôd alebo príliš veľa zhodného textu — zúž vyhľadávanie, aby sa dali nahradiť všetky zhody.</string>
+    <string name="editor_search_placeholder">Vyhľadať…</string>
+    <string name="editor_search_previous">Predchádzajúci výsledok</string>
+    <string name="editor_search_next">Ďalší výsledok</string>
+    <string name="editor_search_case_sensitive_label">Rozlišovať veľké a malé písmená</string>
+    <string name="editor_search_regex_label">Regulárny výraz</string>
+    <string name="editor_search_whole_word_label">Celé slovo</string>
+    <string name="editor_search_options_label">Možnosti vyhľadávania</string>
+    <string name="editor_search_replace_label">Nahradiť</string>
+    <string name="editor_search_replace_toggle">Prepnúť nahrádzanie</string>
+    <string name="editor_search_replace_placeholder">Nahradiť za…</string>
+    <string name="editor_search_replace_one_action">Nahradiť</string>
+    <string name="editor_search_replace_all_action">Všetky</string>
+    <string name="editor_search_replaced_not_undoable">Nahradené: %1$d (príliš veľký rozsah na vrátenie späť)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">Nahradené: %1$d</item>
+        <item quantity="few">Nahradené: %1$d</item>
+        <item quantity="many">Nahradené: %1$d</item>
+        <item quantity="other">Nahradené: %1$d</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Prejsť na riadok</string>
+    <string name="editor_dialog_go_to_line_label">Číslo riadka (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Prejsť</string>
+    <string name="editor_dialog_action_cancel">Zrušiť</string>
+    <string name="editor_dialog_close_confirm_title">Neuložené zmeny</string>
+    <string name="editor_dialog_close_confirm_message">Máš neuložené zmeny. Zahodiť ich?</string>
+    <string name="editor_dialog_close_confirm_discard">Zahodiť</string>
+    <string name="editor_dialog_large_delete_confirm_title">Upraviť veľký výber?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Tento výber je príliš veľký na vrátenie úprav späť. Napriek tomu pokračovať?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Pokračovať</string>
+    <string name="editor_encoding_dialog_title">Kódovanie</string>
+    <string name="editor_encoding_dialog_message">Znova otvoriť súbor s iným kódovaním. Neuložené zmeny sa zahodia; neupravené bajty zostanú pri ukladaní nezmenené.</string>
+    <string name="editor_infobar_read_only">Len na čítanie</string>
+    <string name="editor_line_ending_mixed">Zmiešané</string>
+    <string name="editor_line_ending_dialog_title">Konce riadkov</string>
+    <string name="editor_line_ending_dialog_message">Previesť všetky zalomenia riadkov a uložiť súbor vrátane neuložených zmien. História úprav na vrátenie späť sa vymaže.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Bez názvu</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Automatické ukladanie</string>
+    <string name="editor_settings_autosave_enabled_title">Zapnúť automatické ukladanie</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Automaticky ukladať zmeny po určitom čase nečinnosti.</string>
+    <string name="editor_settings_autosave_interval_title">Interval automatického ukladania</string>
+    <string name="editor_settings_autosave_interval_subtitle">Čas čakania od poslednej úpravy po uloženie.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Interval automatického ukladania</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Schránka</string>
+    <string name="editor_settings_clipboard_behavior_title">Schránka Butler</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Urči, ako sa kópie textu ukladajú do schránky Butler.</string>
+    <string name="editor_settings_clipboard_system_only">Len systémová schránka</string>
+    <string name="editor_settings_clipboard_system_only_desc">Kopírovať len do systémovej schránky</string>
+    <string name="editor_settings_clipboard_butler_always">Vždy pridať do Butlera</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Uložiť aj do schránky Butler na prilepenie medzi pracovnými priestormi</string>
+    <string name="editor_settings_clipboard_ask">Vždy sa opýtať</string>
+    <string name="editor_settings_clipboard_ask_desc">Opýtať sa pred pridaním do schránky Butler</string>
+</resources>

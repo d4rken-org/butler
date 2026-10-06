@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Novo</string>
+    <string name="workspace_templates_choose_title">Novo separador</string>
+    <string name="workspace_templates_choose_subtitle">Seleciona um tipo de separador. Como posso ajudar?</string>
+    <string name="workspace_templates_name_tab_action">Dar um nome a este separador</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Escolhe uma ferramenta</string>
+    <string name="tour_templates_picker_body">Este é o seletor de separadores. Escolhe o que este separador deve ser. Ao escolheres uma ferramenta, este separador transforma-se nela.</string>
+    <string name="tour_templates_butler_button_title">Os teus separadores estão aqui</string>
+    <string name="tour_templates_butler_button_body">Toca no botão Butler para abrir o menu de separadores: criar um novo separador, fechar o atual ou abrir o gestor completo de separadores. Mantém-no premido para aceder diretamente ao gestor de separadores.</string>
+</resources>

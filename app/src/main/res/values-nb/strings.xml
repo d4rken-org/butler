@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_welcome_title">Velkommen til Butler</string>
+    <string name="onboarding_welcome_message">Faner for filer.\nBla gjennom, søk og rediger — alt på én gang.</string>
+    <string name="onboarding_welcome_subtitle">Åpen kildekode. Ingen reklame. Ingen sporing.\nFilutforskeren du fortjener.</string>
+    <string name="onboarding_welcome_action">Begynn å utforske</string>
+    <string name="onboarding_beta_title">Form fremtiden</string>
+    <string name="onboarding_beta_message">Dette er en betaversjon for testing. Fortsett med humor og en reserveplan. Meld fra om problemer du støter på.</string>
+    <string name="onboarding_beta_action">Jeg frykter ingenting</string>
+    <string name="onboarding_beta_feature_early_access_title">Tidlig tilgang</string>
+    <string name="onboarding_beta_feature_early_access_description">Prøv de nyeste funksjonene før alle andre.</string>
+    <string name="onboarding_beta_feature_influence_title">Direkte innflytelse</string>
+    <string name="onboarding_beta_feature_influence_description">Tilbakemeldingene dine former utviklingen av Butler.</string>
+    <string name="onboarding_beta_feature_feedback_title">Drevet av fellesskapet</string>
+    <string name="onboarding_beta_feature_feedback_description">Bli med i et fellesskap av erfarne brukere som forbedrer Butler.</string>
+    <string name="onboarding_privacy_title">Personvern og data</string>
+    <string name="onboarding_privacy_message">Butler har ingen reklame og selger ikke brukerdata. Personvernet ditt er viktig for meg.</string>
+    <string name="onboarding_privacy_read_action">Les personvernerklæringen</string>
+    <string name="onboarding_privacy_action">Godta</string>
+    <string name="onboarding_skip_action">Hopp over</string>
+    <string name="onboarding_progress_step">%1$d av %2$d</string>
+
+    <string name="onboarding_workspaces_title">Arbeid i faner</string>
+    <string name="onboarding_workspaces_message">Åpne flere faner og bytt mellom dem — akkurat som i nettleseren din.</string>
+    <string name="onboarding_workspaces_action">Fortsett</string>
+    <string name="onboarding_workspaces_hint">Ha flere faner åpne samtidig.</string>
+    <string name="onboarding_workspaces_explorer_title">Filutforsker</string>
+    <string name="onboarding_workspaces_explorer_description">Bla gjennom filene dine.</string>
+    <string name="onboarding_workspaces_searcher_title">Søk</string>
+    <string name="onboarding_workspaces_searcher_description">Finn ting.</string>
+    <string name="onboarding_workspaces_editor_title">Tekstredigering</string>
+    <string name="onboarding_workspaces_editor_description">Rediger filer.</string>
+    <string name="onboarding_workspaces_apps_description">Administrer appene dine.</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">Ny filutforsker</string>
+    <string name="shortcut_explorer_new_long">Opprett ny filutforskerfane</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">Snarveier</string>
+    <string name="shortcuts_settings_subtitle">Konfigurer snarveier i appstarteren</string>
+    <string name="shortcuts_settings_enabled_title">Aktiver snarveier</string>
+    <string name="shortcuts_settings_enabled_subtitle">Vis ofte brukte elementer i appstarteren</string>
+    <string name="shortcuts_settings_auto_remember_title">Husk besøkte stier</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Legg automatisk til ofte besøkte stier som snarveier</string>
+    <string name="shortcuts_settings_last_accessed_title">Sist åpnet</string>
+    <string name="shortcuts_settings_max_count_title">Maksimalt antall snarveier</string>
+    <string name="shortcuts_settings_max_count_summary">Maksimalt antall snarveier som vises i appstarteren</string>
+    <string name="shortcuts_settings_min_access_title">Minste antall åpninger</string>
+    <string name="shortcuts_settings_min_access_summary">Antall ganger en sti må åpnes før den blir en snarvei</string>
+    <string name="shortcuts_settings_current_title">Gjeldende snarveier</string>
+    <string name="shortcuts_settings_current_subtitle">%d registrerte snarveier</string>
+    <string name="shortcuts_settings_clear_title">Tøm snarveihistorikk</string>
+    <string name="shortcuts_settings_clear_subtitle">Fjern alle registrerte snarveier</string>
+    <string name="shortcuts_settings_clear_confirm_title">Tømme snarveihistorikken?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Dette vil fjerne alle registrerte snarveier. Bokmerker beholdes.</string>
+    <string name="shortcuts_settings_cleared_message">Snarveihistorikken er tømt</string>
+    <string name="shortcuts_settings_max_dialog_title">Maksimalt antall snarveier</string>
+    <string name="shortcuts_settings_max_dialog_message">Antall snarveier som skal vises i appstarteren (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Minste antall åpninger</string>
+    <string name="shortcuts_settings_min_dialog_message">Hvor mange ganger en sti må åpnes før den vises som en snarvei (1–10)</string>
+
+    <string name="setup_usagestats_title">Bruksstatistikk</string>
+    <string name="setup_shizuku_card_title">ADB-tilgang</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Varslingstilgang</string>
+    <string name="setup_manage_storage_card_title">Administrer ekstern lagring</string>
+    <string name="setup_inventory_card_title">Appoversikt</string>
+
+    <string name="setup_title">Oppsett av tillatelser</string>
+    <string name="setup_settings_description">Konfigurer apptillatelser og funksjoner.</string>
+    <string name="setup_help_description">Hjelp</string>
+
+    <string name="setup_root_description">Gir tilgang til systemfiler og beskyttede mapper for avansert filbehandling. Frigjør hele potensialet til Butler, inkludert tilgang til appdata og systemendringer. Enheten må være rootet.</string>
+    <string name="setup_shizuku_description">Et alternativ til root som gir privilegerte filoperasjoner gjennom et sikkert API. Gir tilgang til begrensede mapper uten tradisjonell root. Krever at Porter eller Shizuku er installert og kjører.</string>
+    <string name="setup_notification_description">Viser oppdateringer om filoperasjoner, bakgrunnsoppgaver og overføringsfremdrift. Holder deg informert når operasjoner fullføres eller det oppstår feil.</string>
+    <string name="setup_usagestats_description">Analyserer appers lagringsbruk for å finne store filer og hjelpe deg med å bruke plassen effektivt. Alle data blir på enheten din og overføres aldri.</string>
+    <string name="setup_storage_description">Full tilgang til all lagringsplass på enheten for raske filoperasjoner og behandling av flere elementer samtidig. Gir omfattende filbehandling uten gjentatte forespørsler om tillatelser.</string>
+    <string name="setup_inventory_description">Se alle installerte apper for funksjoner som APK-uttrekking og lagringsanalyse. Kreves på Android 11+ for å vise hele applisten.</string>
+
+    <string name="setup_grant_access_label">Gi tilgang</string>
+    <string name="setup_access_granted_label">Tilgang gitt</string>
+    <string name="setup_use_root_label">Bruk root hvis tilgjengelig</string>
+    <string name="setup_use_shizuku_label">Bruk ADB-tilgang hvis tilgjengelig</string>
+
+    <string name="setup_status_checking">Sjekker…</string>
+    <string name="setup_status_completed">Konfigurert</string>
+    <string name="setup_status_required">Påkrevd</string>
+    <string name="setup_status_optional">Valgfritt</string>
+    <string name="setup_status_connected">Tilkoblet</string>
+    <string name="setup_status_not_connected">Ikke tilkoblet</string>
+    <string name="setup_status_not_installed">Ikke installert</string>
+    <string name="setup_status_connecting">Kobler til…</string>
+    <string name="setup_status_connection_failed">Tilkobling mislyktes</string>
+    <string name="setup_status_unavailable">Utilgjengelig</string>
+    <string name="setup_status_permission_denied">Tillatelse nektet</string>
+    <string name="setup_adb_status_manager_update_required">Oppdatering kreves</string>
+    <string name="setup_adb_status_butler_update_required">Oppdatering av Butler kreves</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_connected_via">Tilkoblet via %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_not_allowed_yet">Ikke tillatt av %1$s ennå</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". Shown when that app no longer asks, so access has to be changed there. -->
+    <string name="setup_adb_status_denied_in">Nektet i %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_open_manager_action">Åpne %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_install_manager_action">Installer %1$s</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">Feilsøkingsvarsler</string>
+    <string name="debug_log_consent_title">Feilsøkingslogg</string>
+    <string name="debug_log_consent_explanation">Denne funksjonen registrerer alt appen gjør i en fil som kan deles. Filen som opprettes, inneholder sensitiv informasjon (f.eks. filnavn og installerte apper). Del den bare med noen du stoler på (f.eks. en utvikler som feilsøker et problem).</string>
+    <string name="debug_log_recording_progress">Tar opp feilsøkingslogg</string>
+    <string name="debug_log_record_action">Ta opp</string>
+    <string name="debug_log_record_full_action">Ta opp feilsøkingslogg</string>
+    <string name="debug_log_stop_action">Stopp opptak</string>
+    <string name="debug_log_screen_title">Opptak av feilsøkingslogg</string>
+    <string name="debug_log_screen_sensitive_information_message">Filen som opprettes, inneholder sensitiv informasjon (f.eks. filnavn og installerte apper). Del den bare med noen du stoler på.</string>
+    <string name="debug_log_screen_session_path_label">Sti til feilsøkingsøkt</string>
+    <string name="debug_log_screen_log_files_label">Loggfiler</string>
+    <string name="debug_log_screen_log_files_ready">Loggfilene er klare (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Forkast</string>
+    <string name="debug_log_file_label">Loggfil fra opptak</string>
+    <string name="debug_banner_label">OPPTAK</string>
+    <string name="debug_banner_label_expanded">Tar opp loggfil</string>
+    <string name="debug_banner_stop_action">Stopp</string>
+    <string name="debug_banner_view_action">Vis</string>
+    <string name="debug_banner_explanation">Tar opp appaktivitet. Stopp når du er ferdig, og del deretter loggen når du melder fra om feil.</string>
+    <string name="debug_log_short_recording_title">Opptaket er svært kort</string>
+    <string name="debug_log_short_recording_message">Feilsøkingslogger registrerer det som skjer mens opptaket pågår. Start opptaket, gjenskap problemet og stopp deretter. Dette opptaket inneholder kanskje ikke nyttig informasjon.</string>
+    <string name="debug_log_short_recording_keep_action">Fortsett opptaket</string>
+
+    <string name="debug_logview_screen_title">Loggviser</string>
+    <string name="debug_logview_pause_action">Pause (frys visningen)</string>
+    <string name="debug_logview_resume_action">Fortsett</string>
+    <string name="debug_logview_copy_action">Kopier logg</string>
+    <string name="debug_logview_collapse_action">Trekk sammen</string>
+    <string name="debug_logview_close_action">Lukk loggpanel</string>
+    <string name="debug_logview_resize_action">Endre størrelse</string>
+    <string name="debug_logview_more_action">Flere valg</string>
+    <string name="debug_logview_level_action">Loggnivå</string>
+    <string name="debug_logview_clear_action">Tøm buffer</string>
+    <string name="debug_logview_search_action">Søk</string>
+    <string name="debug_logview_search_clear_action">Tøm søk</string>
+    <string name="debug_logview_search_close_action">Lukk søk</string>
+    <string name="debug_logview_search_prev_action">Forrige treff</string>
+    <string name="debug_logview_search_next_action">Neste treff</string>
+    <string name="debug_logview_jump_to_bottom_action">Hopp til nyeste</string>
+    <string name="debug_logview_paused_msg">På pause — visningen er frosset</string>
+    <string name="debug_logview_paused_new_msg">På pause — nye linjer siden: %1$d</string>
+    <string name="debug_logview_copied_msg">Loggen er kopiert til utklippstavlen</string>
+    <string name="debug_logview_copied_truncated_msg">De siste %1$d linjene er kopiert til utklippstavlen</string>
+    <string name="debug_logview_share_label">Del logg</string>
+
+    <string name="settings_label">Innstillinger</string>
+    <string name="settings_category_tools_label">Verktøy</string>
+    <string name="settings_category_other_label">Annet</string>
+    <string name="settings_category_integration_label">Integrasjon</string>
+    <string name="general_settings_label">Generelt</string>
+    <string name="general_settings_desc">Generelle justeringer som påvirker hele appen.</string>
+    <string name="settings_category_ui_label">Brukergrensesnitt</string>
+    <string name="ui_mascot_suit_setting_label">Butlers dress</string>
+    <string name="ui_mascot_suit_setting_explanation">Fargen Butlers antrekk er sydd i.</string>
+    <string name="ui_theme_mode_setting_label">Temamodus</string>
+    <string name="ui_theme_mode_setting_explanation">Modusen som brukes for appens tema (f.eks. natt eller dag).</string>
+    <string name="ui_theme_style_setting_label">Temastil</string>
+    <string name="ui_theme_style_setting_explanation">Fargestilen som brukes for appens tema.</string>
+    <string name="ui_theme_color_setting_label">Temafarge</string>
+    <string name="ui_theme_color_setting_explanation">Fargepaletten som brukes for appens tema.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Material You henter fargene fra bakgrunnsbildet ditt</string>
+    <string name="ui_theme_color_value_system">Systemfarger</string>
+    <string name="ui_language_override_label">Appspråk</string>
+    <string name="ui_language_override_desc">Velg et annet språk for Butler, uavhengig av systemets standardspråk.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Unngå skjermutskjæring</string>
+    <string name="ui_display_cutout_avoid_setting_description">Holder grensesnittet unna kamerautskjæringen. Slå det av for å bruke mer av skjermen, men da kan deler av grensesnittet havne bak utskjæringen.</string>
+
+    <string name="previews_settings_title">Forhåndsvisninger</string>
+    <string name="previews_settings_subtitle">Administrer hurtigbuffere for bildeforhåndsvisning.</string>
+
+    <string name="tour_settings_reset_title">Tilbakestill omvisninger</string>
+    <string name="tour_settings_reset_subtitle">Vis omvisningene igjen, også dem du hoppet over eller deaktiverte.</string>
+    <string name="tour_settings_reset_done">Omvisningene er tilbakestilt.</string>
+
+    <string name="storage_settings_title">Lagring</string>
+    <string name="storage_settings_subtitle">Administrer Butlers hurtigbuffere, lagring og papirkurv.</string>
+    <string name="storage_category_previews_label">Forhåndsvisninger</string>
+    <string name="storage_previews_disk_cache_title">Diskhurtigbuffer</string>
+    <string name="storage_previews_memory_cache_title">Minnehurtigbuffer</string>
+    <string name="storage_previews_max_size_title">Maksimal hurtigbufferstørrelse</string>
+    <string name="storage_clear_disk_confirm_title">Tømme diskhurtigbufferen?</string>
+    <string name="storage_clear_disk_confirm_message">Dette vil fjerne alle forhåndsvisningsbilder i hurtigbufferen. De opprettes på nytt ved behov.</string>
+    <string name="storage_clear_memory_confirm_title">Tømme minnehurtigbufferen?</string>
+    <string name="storage_clear_memory_confirm_message">Dette vil fjerne forhåndsvisningsbilder i hurtigbufferen fra minnet. De opprettes på nytt ved behov.</string>
+    <string name="storage_clear_all_confirm_title">Tømme alle hurtigbuffere?</string>
+    <string name="storage_clear_all_confirm_message">Dette vil tømme både disk- og minnehurtigbufferen for forhåndsvisningsbilder.</string>
+    <string name="storage_clear_all_previews_action">Tøm alle hurtigbuffere for forhåndsvisning</string>
+    <string name="storage_clear_all_subtitle">Fjern alle hurtigbuffere for forhåndsvisning</string>
+    <string name="storage_cache_cleared_message">Hurtigbufferen er tømt</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">Se etter oppdateringer</string>
+    <string name="updater_check_enabled_setting_description">La Butler sjekke på nettet om en ny versjon er tilgjengelig.</string>
+    <string name="motd_check_enabled_setting_title">Se etter kunngjøringer</string>
+    <string name="motd_check_enabled_setting_description">La Butler hente viktige meldinger fra utvikleren.</string>
+    <string name="motd_card_header">Kunngjøring</string>
+
+    <string name="confirm_exit_setting_title">Bekreft avslutning</string>
+    <string name="confirm_exit_setting_description">Vis en bekreftelsesdialog når du avslutter appen.</string>
+    <string name="confirm_exit_dialog_title">Avslutt Butler</string>
+    <string name="confirm_exit_dialog_message">Dette vil lukke appen og gå tilbake til startskjermen din.</string>
+    <string name="confirm_exit_dialog_exit">Avslutt</string>
+    <string name="confirm_exit_dialog_cancel">Avbryt</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Ikke spør igjen</string>
+
+    <string name="settings_support_category_help_label">Få hjelp</string>
+    <string name="settings_support_label">Brukerstøtte</string>
+    <string name="settings_support_description">Les dokumentasjon, meld fra om problemer, snakk med andre eller ta opp feilsøkingslogger.</string>
+    <string name="settings_support_wiki_label">Dokumentasjon</string>
+    <string name="settings_support_wiki_description">Lær å bruke Butler effektivt.</string>
+    <string name="settings_support_issue_tracker_description">Et offentlig saksregister for feilrapporter og funksjonsønsker.</string>
+    <string name="settings_support_issue_tracker_label">Saksregister</string>
+    <string name="settings_support_debuglog_label">Feilsøkingslogg</string>
+    <string name="settings_support_debuglog_desc">Registrer alt appen gjør i en tekstfil du kan dele.</string>
+    <string name="settings_support_debuglog_recording_desc">Tar opp feilsøkingsinformasjon nå. Trykk for å stoppe opptaket.</string>
+    <string name="settings_support_debuglog_path">Loggsti: %1$s</string>
+    <string name="settings_support_bugreports_label">Feilrapporter</string>
+    <string name="settings_support_bugreports_desc">Se krasjrapporter, ta opp feilsøkingslogger og del dem med meg.</string>
+    <string name="support_contact_report_type_crash">Krasjrapport</string>
+    <string name="support_contact_report_type_reported">Feilrapport</string>
+    <string name="support_contact_report_type_recording">Opptak</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Et sted å være sammen og stille spørsmål.</string>
+
+    <string name="settings_acknowledgements_label">Anerkjennelser</string>
+    <string name="settings_acknowledgements_description">Bidragsytere, lisenser og en spesiell takk.</string>
+    <string name="settings_acks_translation_header">Oversettelse</string>
+    <string name="settings_acks_translators_title">Oversettere</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Oversett Butler</string>
+    <string name="settings_acks_translate_desc">Hjelp med å oversette Butler til språket ditt.</string>
+
+    <string name="settings_acks_thanks_header">Takk</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">For å støtte oversettelse av prosjekter med åpen kildekode.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Takk for ikonet, maskotdesignene og animasjonene.</string>
+    <string name="settings_licenses_label">Lisenser</string>
+
+    <!-- Workspace Status Card -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d fane</item>
+        <item quantity="other">%1$d faner</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d operasjon</item>
+        <item quantity="other">%1$d operasjoner</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d krever oppmerksomhet</item>
+        <item quantity="other">%1$d krever oppmerksomhet</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d med ulagrede endringer</item>
+        <item quantity="other">%1$d med ulagrede endringer</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d på pause</item>
+        <item quantity="other">%1$d på pause</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">Vis alle faner</string>
+    <string name="workspace_status_filter_operations_desc">Filtrer etter faner med operasjoner</string>
+    <string name="workspace_status_filter_attention_desc">Filtrer etter faner som krever oppmerksomhet</string>
+    <string name="workspace_status_filter_paused_desc">Filtrer etter faner på pause</string>
+    <string name="workspace_status_filter_unsaved_desc">Filtrer etter faner med ulagrede endringer</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Programmeringsspråket Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">En rask avhengighetsinjektor for Android og Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Kjør Java- og Kotlin-kode som root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Enkel kjøring av Kotlin JVM-kode med root ved hjelp av korutiner. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Gir Android-apper ADB-tilgang gjennom Shizuku-API-ene, med valgfri støtte for root. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Bruk system-API-er direkte med adb/root-privilegier fra vanlige apper gjennom en Java-prosess startet med app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Airbnbs Lottie for Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Android-roboten er gjengitt eller endret fra verk laget og delt av Google og brukes i henhold til vilkårene i lisensen Creative Commons 3.0 Attribution.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Androids moderne verktøysett for å bygge plattformtilpassede brukergrensesnitt. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpack-biblioteker</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation og andre AndroidX-biblioteker. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin-utvidelser</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Bibliotekene Coroutines og Serialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Bibliotek for bildelasting basert på Kotlin-korutiner. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Kryptografiske primitiver for SMB-autentisering, signering og kryptering. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Square-biblioteker</string>
+    <string name="acknowledgement_square_libraries_subtitle">Nettverksbibliotekene Retrofit, OkHttp og OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Hjelpeverktøy for Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Dra og slipp for LazyColumn i Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Bibliotek for semantisk versjonering i Kotlin. (MIT-lisens)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Diagrammer og grafer for Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Personvernerklæring</string>
+    <string name="settings_privacy_policy_desc">Ansvarlig håndtering av data.</string>
+
+    <string name="changelog_label">Endringslogg</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Butlers oppgraderingsstatus</string>
+    <string name="upgrade_status_free">Status: Gratis</string>
+    <string name="upgrade_status_pro">Status: Pro</string>
+    <string name="upgrade_status_foss">Status: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD-kort</string>
+    <string name="storage_area_public_label">Offentlig lagring</string>
+    <string name="storage_area_public_app_data_label">Offentlige appdata</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">Fanebehandling</string>
+    <string name="workspace_manager_empty_title">Ingen faner</string>
+    <string name="workspace_manager_empty_subtitle">Opprett din første fane for å komme i gang</string>
+
+    <!-- Workspace > Empty Content -->
+    <string name="workspace_empty_create_action">Opprett fane</string>
+    <string name="workspace_empty_create_hint">Arbeid parallelt: Opprett en fane og gjør den til et verktøy du velger selv.</string>
+    <string name="workspace_empty_settings_action">Åpne innstillinger</string>
+    <string name="workspace_empty_settings_hint">Tilpass Butler slik du vil ha det. Juster hvordan verktøyene oppfører seg.</string>
+    <string name="workspace_classic_empty_tabs_closed">Ingen åpne faner. Klar når du er.</string>
+    <string name="workspace_classic_empty_tip">Tips: Trykk på «Opprett fane» og velg et verktøy — Filutforsker, Søk, Tekstredigering og mer.</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">Begynn med en fane</string>
+    <string name="tour_first_tab_body">Butler arbeider i faner, som en nettleser: Hver fane er et eget verktøy — Filutforsker, Søk, Tekstredigering og mer. Opprett din første fane.</string>
+    <string name="tour_manager_fab_title">Raske snarveier</string>
+    <string name="tour_manager_fab_body">Trykk her for snarveier til verktøyene du bruker mest, og for å lukke alle faner på én gang.</string>
+    <string name="tour_manager_reorder_title">Endre rekkefølgen på fanene</string>
+    <string name="tour_manager_reorder_body">Trykk og hold på tittellinjen til en fane, og dra den dit du vil. Dette er rekkefølgen fanene vises i alle andre steder.</string>
+    <string name="tour_manager_select_title">Arbeid med flere faner</string>
+    <string name="tour_manager_select_body">Trykk og hold på forhåndsvisningen av en fane for å begynne å velge faner. Trykk deretter på resten og lukk eller sett alle på pause i én omgang.</string>
+    <string name="tour_manager_new_tab_title">Start en ny fane</string>
+    <string name="tour_manager_new_tab_body">Trykk på dette kortet for å velge et hvilket som helst verktøy til en ny fane.</string>
+    <string name="tour_swipe_switch_title">Sveip mellom faner</string>
+    <string name="tour_swipe_switch_body">Sveip til venstre eller høyre hvor som helst på siden for å bytte mellom de åpne fanene dine.</string>
+    <string name="tour_swipe_create_title">Sveip for å starte en fane</string>
+    <string name="tour_swipe_create_body">Sveip forbi den siste fanen, så tilbyr Butler deg en ny.</string>
+    <string name="tour_swipe_panes_title">Mer enn én fane om gangen</string>
+    <string name="tour_swipe_panes_body">På en større skjerm eller i liggende retning viser Butler flere faner side om side. Innstillingene for ruteoppsett under Faner bestemmer når det skjer.</string>
+    <string name="tour_panes_rail_title">Alle fanene dine</string>
+    <string name="tour_panes_rail_body">Alle åpne faner ligger her. Trykk på en og velg hvilken rute den skal vises i. Trykk og hold på en fane, og dra den for å endre rekkefølgen.</string>
+    <string name="tour_panes_divider_title">Endre størrelsen på rutene</string>
+    <string name="tour_panes_divider_body">Dra dette skillet for å gi én rute mer plass.</string>
+    <string name="tour_panes_layout_title">Endre plasseringen</string>
+    <string name="tour_panes_layout_body">Trykk på Butler-knappen og velg Ruteoppsett for å flytte om på rutene. Faneinnstillingene fester et ruteoppsett for hver skjermretning.</string>
+
+    <string name="workspace_creating_placeholder">Oppretter fane…</string>
+    <string name="workspace_ondemand_swipe_title">Sveip for å opprette en ny fane</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">Rute %1$d er klar for innhold</string>
+    <string name="workspace_adaptive_add_action">Legg til fane</string>
+
+    <string name="workspace_badge_tip_title">Tips: Indikatorer på faneknappen</string>
+    <string name="workspace_badge_open_workspaces">Antall åpne faner</string>
+    <string name="workspace_badge_active_operations">Aktive operasjoner (filkopiering, søk osv.)</string>
+    <string name="workspace_badge_attention_items">Elementer som krever oppmerksomhet (mislykkede eller ventende operasjoner, utilgjengelige filer)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">Lukk</string>
+    <string name="workspace_manager_selection_count">%1$d valgt</string>
+    <string name="workspace_manager_selection_select_all">Velg alle</string>
+    <string name="workspace_manager_selection_pause_action">Sett valgte på pause</string>
+    <string name="workspace_manager_selection_close_action">Lukk valgte</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Avslutt valgmodus</string>
+    <string name="workspace_manager_selection_clear_content_desc">Fjern valg</string>
+    <string name="workspace_manager_select_all_tabs_desc">Velg alle faner</string>
+    <string name="workspace_manager_new_tab_card_title">Ny fane</string>
+    <string name="workspace_row_select_content_desc">Velg fane</string>
+    <string name="general_cancel_action">Avbryt</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">Raske snarveier</string>
+    <string name="workspace_fab_close_shortcuts">Lukk snarveier</string>
+    <string name="workspace_fab_close_all">Lukk alle faner</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">Tilordne til rute %1$d</string>
+    <string name="workspace_pane_show_action">Vis</string>
+    <string name="workspace_pane_menu_action">Vis fanevalg</string>
+    <string name="workspace_pane_close_action">Lukk</string>
+    <string name="workspace_pane_unassign_action">Fjern fra rute</string>
+    <string name="workspace_dragging_description">Drar</string>
+    <string name="workspace_pane_current_description">I rute %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">Lukk fane</string>
+    <string name="workspace_row_more_options_content_desc">Flere valg</string>
+    <string name="workspace_row_operations_running_content_desc">Arbeider</string>
+    <string name="workspace_row_operations_pending_content_desc">Arbeid venter</string>
+    <string name="workspace_row_pause_action">Pause</string>
+    <string name="workspace_row_resume_action">Fortsett</string>
+    <string name="workspace_row_stacked_content_desc">Stablet på denne fanen</string>
+    <string name="workspace_row_unsaved_content_desc">Ulagrede endringer</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">Konfigurer hvordan fanene oppfører seg.</string>
+    <string name="explorer_settings_subtitle">Konfigurer hvordan filutforskeren oppfører seg.</string>
+    <string name="searcher_settings_subtitle">Konfigurer hvordan søk oppfører seg.</string>
+    <string name="editor_settings_subtitle">Konfigurer hvordan tekstredigeringen oppfører seg.</string>
+    <string name="viewer_settings_subtitle">Konfigurer hvordan filviseren oppfører seg.</string>
+    <string name="history_settings_subtitle">Oppbevaring og tømming av operasjonshistorikk.</string>
+    <string name="clipboard_settings_subtitle">Konfigurer hvordan utklippstavlen oppfører seg.</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">Lagre som…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">Åpne i Butler</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">Rediger tekst</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">Fil uten navn</string>
+    <string name="external_open_action_view">Vis</string>
+    <string name="external_open_action_edit">Rediger som tekst</string>
+    <string name="external_open_action_show_in_explorer">Vis i filutforskeren</string>
+    <string name="external_open_action_save">Lagre som…</string>
+    <string name="external_open_failed_label">Kunne ikke åpne filen</string>
+    <string name="external_open_failed_description">Butler kunne ikke åpne \"%1$s\".</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">Aktivere utviklermodus?</string>
+    <string name="settings_developer_mode_unlock_message">Dette låser opp avanserte diagnoseverktøy for feilsøking og testing.</string>
+    <string name="settings_developer_mode_unlock_action">Aktiver</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">%d trinn unna utviklermodus</item>
+        <item quantity="other">%d trinn unna utviklermodus</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">Kontakt utvikleren</string>
+    <string name="support_contact_description">Fyll ut et skjema for å sende meg en e-post.</string>
+    <string name="support_contact_no_email_app">Fant ingen e-postapp</string>
+    <string name="support_contact_category_label">Kategori</string>
+    <string name="support_contact_category_question">Spørsmål</string>
+    <string name="support_contact_category_feature">Funksjonsønske</string>
+    <string name="support_contact_category_bug">Feilrapport</string>
+    <string name="support_contact_workspace_label">Relatert område</string>
+    <string name="support_contact_workspace_general">Generelt</string>
+    <string name="support_contact_workspace_explorer">Filutforsker</string>
+    <string name="support_contact_workspace_searcher">Søk</string>
+    <string name="support_contact_workspace_editor">Tekstredigering</string>
+    <string name="support_contact_description_label">Beskrivelse</string>
+    <string name="support_contact_description_question_hint">Beskriv spørsmålet ditt i detalj. Vær konkret (minst 20 ord).</string>
+    <string name="support_contact_description_feature_hint">Beskriv funksjonen du ønsker deg. Vær konkret (minst 20 ord).</string>
+    <string name="support_contact_description_bug_hint">Beskriv hva som skjedde og hvordan problemet kan gjenskapes. Vær konkret (minst 20 ord).</string>
+    <string name="support_contact_expected_label">Forventet oppførsel</string>
+    <string name="support_contact_expected_hint">Beskriv hva du forventet skulle skje (minst 10 ord).</string>
+    <string name="support_contact_word_count">Minst %1$d ord</string>
+    <string name="support_contact_debuglog_label">Feilsøkingslogg</string>
+    <string name="support_contact_debuglog_empty">Fant ingen feilsøkingslogger. Ta opp en først.</string>
+    <string name="support_contact_debuglog_picker_hint">Legg ved en eksisterende feilsøkingslogg, eller ta opp en ny.</string>
+    <string name="support_contact_send_action">Åpne e-postapp</string>
+    <string name="support_contact_welcome">Jeg leser hver melding selv og gjør mitt beste for å svare, men siden jeg jobber med dette alene, kan det ta litt tid. Takk for tålmodigheten.</string>
+    <string name="support_contact_footer">Meldingen din sendes via e-post. Informasjon om enheten og oppsettet legges ved automatisk. Du kan legge ved skjermbilder eller en video i e-posten.\n\nNoen deler av e-posten vil være på engelsk, slik at jeg lett kan forstå den.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">Lagring av feilsøkingslogger</string>
+    <string name="support_debuglog_storage_description">%1$d loggøkter, %2$s</string>
+    <string name="support_debuglog_storage_empty">Ingen lagrede feilsøkingslogger</string>
+    <string name="support_debuglog_delete_action">Slett alle feilsøkingslogger</string>
+    <string name="support_debuglog_delete_description">Fjern alle feilsøkingsloggfiler fra opptak</string>
+    <string name="support_debuglog_delete_confirm_title">Slette alle feilsøkingslogger?</string>
+    <string name="support_debuglog_delete_confirm_message">Dette vil slette alle feilsøkingsloggøkter fra opptak permanent. Aktive opptak påvirkes ikke.</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">Stopp opptak</string>
+    <string name="settings_support_debuglog_record_action">Ta opp feilsøkingslogg</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">Feilsøkingsloggøkter</string>
+    <string name="support_debuglog_sessions_desc">Administrer feilsøkingsloggøkter fra opptak</string>
+    <string name="support_debuglog_sessions_empty">Ingen feilsøkingsloggøkter</string>
+    <string name="support_debuglog_session_recording">Tar opp…</string>
+    <string name="support_debuglog_session_compressing">Komprimerer…</string>
+    <string name="support_debuglog_session_failed_empty_log">Mislyktes: tom logg</string>
+    <string name="support_debuglog_session_failed_missing_log">Mislyktes: manglende logg</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Mislyktes: skadet arkiv</string>
+    <string name="support_debuglog_session_failed_zip_failed">Mislyktes: komprimeringsfeil</string>
+    <string name="support_debuglog_session_delete_title">Slette feilsøkingsøkten?</string>
+    <string name="support_debuglog_session_delete_message">Dette vil slette denne feilsøkingsloggøkten permanent.</string>
+    <string name="support_debuglog_clear_action">Tøm alle</string>
+    <string name="support_debuglog_clear_confirm_message">Slette alle lagrede feilsøkingsloggøkter?</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butler-feilsøkingslogg - %1$s</string>
+    <string name="debug_log_screen_subtitle">Eksporter feilsøkingsinformasjon for å finne feil</string>
+    <string name="debug_log_screen_sensitive_information_title">Sensitiv informasjon</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">Sendte du meldingen?</string>
+    <string name="support_contact_sent_message">Hvis meldingen ble sendt, slettes den vedlagte feilsøkingsloggen for å spare plass. Hvis ikke, kan du beholde den og prøve igjen senere.</string>
+    <string name="support_contact_debuglog_zip_error">Kunne ikke klargjøre feilsøkingsloggen som vedlegg</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">Fremdrift for filoperasjoner</string>
+    <string name="ops_notification_channel_progress_desc">Løpende fremdrift for kopiering, flytting og sletting</string>
+    <string name="ops_notification_channel_attention_name">Varsler om filoperasjoner</string>
+    <string name="ops_notification_channel_attention_desc">Operasjoner som krever oppmerksomheten din eller har mislyktes</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d filoperasjon kjører</item>
+        <item quantity="other">%1$d filoperasjoner kjører</item>
+    </plurals>
+    <string name="ops_notification_state_queued">I kø…</string>
+    <string name="ops_notification_state_cancelling">Avbryter…</string>
+    <string name="ops_notification_state_attention_title">Handling kreves</string>
+    <string name="ops_notification_state_attention_text">En konflikt krever oppmerksomheten din — trykk for å løse den</string>
+    <string name="ops_notification_result_failed_title">Operasjonen mislyktes</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">Vil du legge igjen en anmeldelse av Butler? ❤️</string>
+    <string name="review_app_dismiss_action">Kanskje senere</string>
+    <string name="review_app_review_action">Skriv anmeldelse</string>
+</resources>

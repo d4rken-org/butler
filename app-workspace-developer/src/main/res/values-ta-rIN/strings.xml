@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">உருவாக்குநர்</string>
+    <string name="developer_title">உருவாக்குநர் கருவிகள்</string>
+    <string name="developer_subtitle">மென்பொருள் உருவாக்க உதவிக் கருவிகள்</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">கணினி அமைப்பு</string>
+    <string name="developer_tab_options">விருப்பங்கள்</string>
+    <string name="developer_tab_workspaces">பணிப்பரப்புகள்</string>
+    <string name="developer_tab_logs">பதிவுகள்</string>
+    <string name="developer_tab_testdata">சோதனைத் தரவு</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">பிழைத்திருத்த விருப்பங்கள்</string>
+    <string name="developer_options_debug_mode">பிழைத்திருத்தப் பயன்முறை</string>
+    <string name="developer_options_debug_mode_desc">விரிவான பதிவுகளை இயக்கவும்</string>
+    <string name="developer_options_trace_mode">சுவடு பயன்முறை</string>
+    <string name="developer_options_trace_mode_desc">சுவடு நிலைப் பதிவுகளை இயக்கவும்</string>
+    <string name="developer_options_floating_log">மிதக்கும் பதிவுப் பலகம்</string>
+    <string name="developer_options_floating_log_desc">எல்லாத் திரைகளிலும் இழுத்து நகர்த்தக்கூடிய பதிவுப் பலகத்தை மேலடுக்காகக் காட்டவும்</string>
+    <string name="developer_options_services_header">சேவைச் சோதனைகள்</string>
+    <string name="developer_options_root_test_action">Root ஐச் சோதிக்கவும்</string>
+    <string name="developer_options_root_installed_label">நிறுவப்பட்டது</string>
+    <string name="developer_options_root_available_label">கிடைக்கிறது</string>
+    <string name="developer_options_root_base_check_label">அடிப்படைச் சரிபார்ப்பு</string>
+    <string name="developer_options_shizuku_test_action">ADB அணுகலைச் சோதிக்கவும்</string>
+    <string name="developer_options_shizuku_installed_label">நிறுவப்பட்டது</string>
+    <string name="developer_options_shizuku_granted_label">அனுமதி</string>
+    <string name="developer_options_shizuku_compatible_label">இணக்கமானது</string>
+    <string name="developer_options_shizuku_service_label">சேவை</string>
+    <string name="developer_options_test_running">சோதிக்கிறது…</string>
+    <string name="developer_options_result_yes">ஆம்</string>
+    <string name="developer_options_result_no">இல்லை</string>
+    <string name="developer_options_result_unknown">தெரியவில்லை</string>
+    <string name="developer_options_visibility_header">காட்சிநிலை</string>
+    <string name="developer_options_hide_mode">உருவாக்குநர் பயன்முறையை மறைக்கவும்</string>
+    <string name="developer_options_hide_mode_desc">மீண்டும் இயக்க, அமைப்புகளில் பதிப்பை 7 முறை தட்டவும்.</string>
+    <string name="developer_options_hide_action">மறைக்கவும்</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">சாதனம்</string>
+    <string name="developer_system_device_model">மாடல்</string>
+    <string name="developer_system_device_manufacturer">உற்பத்தியாளர்</string>
+    <string name="developer_system_device_api">API நிலை</string>
+    <string name="developer_system_build_header">கட்டமைப்பு</string>
+    <string name="developer_system_build_version">பதிப்பு</string>
+    <string name="developer_system_build_code">பதிப்புக் குறியீடு</string>
+    <string name="developer_system_build_flavor">வகைப்பிரிவு</string>
+    <string name="developer_system_build_type">கட்டமைப்பு வகை</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">நினைவகம்</string>
+    <string name="developer_system_memory_available">கிடைக்கிறது</string>
+    <string name="developer_system_memory_total">மொத்தம்</string>
+    <string name="developer_system_storage_header">சேமிப்பகம்</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d பணிப்பரப்புகள்</string>
+    <string name="developer_workspaces_empty">பணிப்பரப்புகள் இல்லை</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">அழிக்கவும்</string>
+    <string name="developer_logs_pause">இடைநிறுத்தவும்</string>
+    <string name="developer_logs_resume">தொடரவும்</string>
+    <string name="developer_logs_empty">பதிவுகள் இல்லை</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">இலக்குப் பாதைகள்</string>
+    <string name="developer_testdata_no_paths">இலக்குப் பாதைகள் எதுவும் தேர்ந்தெடுக்கப்படவில்லை. சோதனைத் தரவை உருவாக்கப் பாதைகளைச் சேர்க்கவும்.</string>
+    <string name="developer_testdata_add_path_action">பாதையைச் சேர்க்கவும்</string>
+    <string name="developer_testdata_options_header">உருவாக்க விருப்பங்கள்</string>
+    <string name="developer_testdata_large_files">பெரிய கோப்புகள்</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">அடுக்கமைப்பு</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 கோப்புறைகள், ~1100 கோப்புகள்</string>
+    <string name="developer_testdata_text_files">திருத்திக்கான உரைக் கோப்புகள்</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">உருவாக்கவும்</string>
+    <string name="developer_testdata_generating">உருவாக்குகிறது…</string>
+    <string name="developer_testdata_history_header">மாதிரி வரலாற்றுப் பதிவுகள்</string>
+    <string name="developer_testdata_history_desc">இன்று → 30 நாட்களுக்கு முன்பு வரையிலான காலப்பகுதிக்கு ~25 போலிச் செயல்பாட்டுப் பதிவுகளைச் சேர்க்கும். அவற்றில் பல்வேறு வகைகள், முடிவுகள், மூலங்கள் மற்றும் பாதைகள் இடம்பெறும். வரலாற்றுத் தரவுத்தளத்தில் நேரடியாகச் சேர்க்கும்; மீண்டும் தட்டுவது பாதுகாப்பானது.</string>
+    <string name="developer_testdata_history_generate_action">மாதிரி வரலாற்றை உருவாக்கவும்</string>
+    <string name="developer_testdata_progress">%2$s இல் %1$s</string>
+    <string name="developer_testdata_complete">சோதனைத் தரவு உருவாக்கப்பட்ட இடம்:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">பெரிய கோப்புகளை உருவாக்கவும்</string>
+    <string name="developer_operation_large_files_desc">%1$s இல் சோதனைக் கோப்புகளை உருவாக்குகிறது</string>
+    <string name="developer_operation_large_files_creating">%1$s ஐ உருவாக்குகிறது</string>
+
+    <string name="developer_operation_nested_title">அடுக்கமைப்பை உருவாக்கவும்</string>
+    <string name="developer_operation_nested_desc">%1$s இல் கோப்புறைப் படிநிலையை உருவாக்குகிறது</string>
+    <string name="developer_operation_nested_starting">அடுக்கமைப்பைத் தொடங்குகிறது…</string>
+    <string name="developer_operation_nested_creating">%1$s ஐ உருவாக்குகிறது</string>
+    <string name="developer_operation_nested_files_created">%1$d கோப்புகள் உருவாக்கப்பட்டன</string>
+
+    <string name="developer_operation_text_files_title">உரைக் கோப்புகளை உருவாக்கவும்</string>
+    <string name="developer_operation_text_files_desc">%1$s இல் உரைக் கோப்புகளை உருவாக்குகிறது</string>
+    <string name="developer_operation_text_files_creating">%1$s ஐ உருவாக்குகிறது</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d கோப்பு உருவாக்கப்பட்டது</item>
+        <item quantity="other">%d கோப்புகள் உருவாக்கப்பட்டன</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d கோப்புறை</item>
+        <item quantity="other">%d கோப்புறைகள்</item>
+    </plurals>
+</resources>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Mga ulat ng bug</string>
+    <string name="bugreport_workspace_subtitle">Mga ulat ng pag-crash at error</string>
+
+    <string name="bugreport_empty_title">Walang ulat</string>
+    <string name="bugreport_empty_subtitle">Lilitaw rito ang mga ulat ng pag-crash at error. Walang awtomatikong ipinapadala.</string>
+
+    <string name="bugreport_type_crash">Pag-crash</string>
+    <string name="bugreport_type_report">Ulat</string>
+    <string name="bugreport_type_recording">Pagre-record</string>
+
+    <string name="bugreport_record_action">I-record ang log ng pag-debug</string>
+    <string name="bugreport_record_short_action">I-record</string>
+    <string name="bugreport_stop_action">Ihinto ang pagre-record</string>
+    <string name="bugreport_stop_short_action">Ihinto</string>
+    <string name="bugreport_recording_ongoing_label">Nagre-record…</string>
+
+    <string name="bugreport_recording_short_title">Napakaikli ng pagre-record</string>
+    <string name="bugreport_recording_short_message">Ilang segundo lang ang tagal ng pagre-record na ito at maaaring wala itong kapaki-pakinabang na impormasyon. Ihinto pa rin?</string>
+    <string name="bugreport_recording_short_keep_action">Ipagpatuloy ang pagre-record</string>
+
+    <string name="bugreport_rename_action">Palitan ang pangalan</string>
+    <string name="bugreport_rename_dialog_title">Pangalanan ang ulat na ito</string>
+    <string name="bugreport_rename_name_label">Pangalan</string>
+    <string name="bugreport_rename_name_hint">Ipinapakita sa listahan at sa pangalan ng ibinahaging file</string>
+
+    <string name="bugreport_share_action">Ibahagi</string>
+    <string name="bugreport_delete_action">Tanggalin</string>
+    <string name="bugreport_delete_all_action">Tanggalin lahat</string>
+    <string name="bugreport_delete_all_confirm_title">Tanggalin ang lahat ng log ng pag-debug?</string>
+    <string name="bugreport_delete_all_confirm_message">Permanenteng tatanggalin ang lahat ng na-record na sesyon ng log ng pag-debug. Hindi maaapektuhan ang mga kasalukuyang pagre-record.</string>
+    <string name="bugreport_delete_confirm_title">Tanggalin ang ulat na ito?</string>
+    <string name="bugreport_delete_confirm_message">Permanenteng tatanggalin ang ulat na ito at ang log nito.</string>
+    <string name="bugreport_cancel_action">Kanselahin</string>
+
+    <string name="bugreport_share_chooser_title">Ibahagi ang ulat ng bug</string>
+    <string name="bugreport_share_consent_title">Ibahagi ang ulat?</string>
+    <string name="bugreport_share_consent_message">Kasama sa ulat na ito ang mga log ng app na maaaring maglaman ng mga pangalan at path ng file, at impormasyon tungkol sa app at device. Ibahagi lang ito sa mga taong pinagkakatiwalaan mo.</string>
+
+    <string name="bugreport_detail_back_action">Bumalik</string>
+    <string name="bugreport_detail_section_error">Error</string>
+    <string name="bugreport_detail_section_log">Kamakailang log</string>
+    <string name="bugreport_detail_field_type">Uri</string>
+    <string name="bugreport_detail_field_time">Oras</string>
+    <string name="bugreport_detail_field_app_version">Bersyon ng app</string>
+    <string name="bugreport_detail_field_device">Device</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">Uri ng error</string>
+    <string name="bugreport_detail_field_thread">Thread</string>
+    <string name="bugreport_detail_log_truncated">huling %1$d sa %2$d na linya</string>
+    <string name="bugreport_detail_log_count">%1$d na linya</string>
+    <string name="bugreport_detail_log_empty">Walang naitalang log</string>
+    <string name="bugreport_detail_log_error">Hindi ma-load ang log</string>
+</resources>

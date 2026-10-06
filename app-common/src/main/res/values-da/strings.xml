@@ -1,0 +1,303 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">En filhåndterer ud over det sædvanlige</string>
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Butlers appikon</string>
+    <string name="butler_mascot_description">Butlers maskot</string>
+    <string name="butler_mascot_animation_random_description">Butlers maskot udfører forskellige animationer</string>
+    <string name="butler_mascot_animation_wink_description">Butlers maskot blinker med det ene øje</string>
+    <string name="butler_mascot_animation_greeting_description">Butlers maskot vinker hej</string>
+    <string name="butler_mascot_animation_hatoff_description">Butlers maskot løfter respektfuldt på hatten</string>
+    <string name="butler_mascot_animation_drink_description">Butlers maskot drikker</string>
+    <string name="butler_mascot_animation_moustache_description">Butlers maskot stryger sit overskæg</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Butlers maskot lukker øjnene for at sove</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Butlers maskot snorker</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Butlers maskot vågner</string>
+    <string name="butler_mascot_animation_cameo_description">SD Maids maskot gæsteoptræder</string>
+
+    <string name="slogan_general_message_0">Til din tjeneste.</string>
+    <string name="slogan_general_message_1">Alt på sin plads.</string>
+    <string name="slogan_general_message_2">Orden, ikke kaos.</string>
+    <string name="slogan_general_message_3">Henter dine filer.</string>
+    <string name="slogan_general_message_4">Alle dine filer på række.</string>
+    <string name="slogan_general_message_5">Altid velordnet.</string>
+    <string name="slogan_general_message_6">Filer fundet i en fart!</string>
+    <string name="slogan_general_message_7">Nem adgang.</string>
+    <string name="slogan_general_message_8">Dine filer bliver aldrig væk.</string>
+    <string name="slogan_general_message_9">Med mange kasketter på.</string>
+    <string name="slogan_newyear_message_0">Samme procedure som hvert år.</string>
+    <string name="slogan_xmas_message_0">Tjekker filerne to gange.</string>
+    <string name="slogan_xmas_message_1">På listen over de artige.</string>
+    <string name="slogan_halloween_message_0">Bøh-tler til din tjeneste.</string>
+    <string name="slogan_halloween_message_1">Ingen numre, kun filer.</string>
+    <string name="slogan_stpatricks_message_0">Føler du dig heldig?</string>
+    <string name="slogan_stpatricks_message_1">Finder din gryde med guld.</string>
+    <string name="slogan_aprilfools_message_0">Ingen narrestreger.</string>
+    <string name="slogan_aprilfools_message_1">Seriøst velordnet.</string>
+    <string name="slogan_oktoberfest_message_0">Skål for dine filer!</string>
+    <string name="slogan_oktoberfest_message_1">Filer på fad.</string>
+
+    <string name="general_share_action">Del</string>
+    <string name="general_share_single_title">Del %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Del %d fil</item>
+        <item quantity="other">Del %d filer</item>
+    </plurals>
+    <string name="general_done_action">Færdig</string>
+    <string name="general_copy_action">Kopiér</string>
+    <string name="general_cut_action">Klip</string>
+    <string name="general_move_action">Flyt</string>
+    <string name="general_paste_action">Indsæt</string>
+    <string name="general_apply_action">Anvend</string>
+    <string name="general_open_action">Åbn</string>
+    <string name="general_cancel_action">Annuller</string>
+    <string name="general_close_action">Luk</string>
+    <string name="general_confirm_action">Bekræft</string>
+    <string name="general_reset_action">Nulstil</string>
+    <string name="general_save_action">Gem</string>
+    <string name="general_edit_action">Rediger</string>
+    <string name="general_na_label">Ikke relevant</string>
+    <string name="general_dialog_a11y_label">Dialog</string>
+    <string name="general_dismiss_action">Luk</string>
+    <string name="general_read_more_action">Læs mere</string>
+    <string name="general_mark_as_read_action">Markér som læst</string>
+    <string name="general_back_action">Tilbage</string>
+    <string name="general_navigate_up_action">Gå et niveau op</string>
+    <string name="general_error_label">Fejl</string>
+    <string name="general_error_unknown_label">Ukendt fejl</string>
+    <string name="general_error_invalid_input_label">Ugyldigt input</string>
+    <string name="general_share_error_action">Del fejl</string>
+    <string name="general_error_report_subject">%1$s fejlrapport (%2$s)</string>
+    <string name="general_error_report_consent_title">Del fejlrapport?</string>
+    <string name="general_error_report_consent_message">Rapporten indeholder fejlen og den stacktrace, den genererede, appens seneste log samt oplysninger om dens tilstand: filnavne og stier, søgeforespørgsler, pakkenavne, URI’er, netværks- og SMB-værtsnavne, oplysninger om din enhed og build samt et anonymt installations-id. Del den kun med personer, du stoler på.</string>
+    <string name="general_error_report_consent_confirm">Del rapport</string>
+    <string name="general_privacy_policy_action">Privatlivspolitik</string>
+    <string name="general_bug_report_subject">%1$s fejlrapport (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">%1$s fejlrapport: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Beskriv her, hvad der skete.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Beskriv, hvad du forventede i stedet.)</string>
+    <string name="general_duration_input_label">Varighed</string>
+    <string name="general_size_input_label">Størrelse</string>
+    <string name="general_upgrade_action">Opgrader</string>
+    <string name="general_refresh_action">Genindlæs</string>
+    <string name="general_clear_action">Ryd</string>
+    <string name="general_expand_action">Fold ud</string>
+    <string name="general_collapse_action">Fold sammen</string>
+    <string name="general_completed_label">Fuldført</string>
+    <string name="general_cancelled_label">Annulleret</string>
+    <string name="general_searching_label">Søger</string>
+    <string name="general_searching_ellipsis">Søger…</string>
+    <string name="general_progress_loading">Indlæser</string>
+    <string name="general_progress_loading_egg_0">Stadig hurtigere end en iPhone</string>
+    <string name="general_progress_loading_egg_1">Downloader mere RAM</string>
+    <string name="general_progress_loading_egg_2">Forventet tid: Snart™</string>
+    <string name="general_progress_loading_egg_3">CPU’en holder kaffepause</string>
+    <string name="general_progress_loading_egg_4">Venter på data fra Pepe Silvia</string>
+    <string name="general_progress_loading_egg_5">Turbo-encabulatoren starter</string>
+    <string name="general_progress_loading_egg_6">Rækker smørret videre</string>
+    <string name="general_progress_loading_egg_7">Nå. Hvordan går det?</string>
+    <string name="general_progress_loading_egg_8">Bipper bip bop</string>
+    <string name="general_progress_loading_egg_9">Bufferer livsvalg</string>
+    <string name="general_progress_loading_egg_10">Fremmaner Cthulhu</string>
+    <string name="general_progress_loading_egg_11">Det her er helt fint</string>
+    <string name="general_progress_loading_egg_12">Vent venligst</string>
+    <string name="general_progress_loading_egg_13">Du sidder i det mindste ikke i telefonkø</string>
+    <string name="general_progress_loading_egg_14">Påføres direkte på panden</string>
+
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%ds</item>
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%dmin</item>
+        <item quantity="other">%dmin</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dt</item>
+        <item quantity="other">%dt</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dd</item>
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d sekund</item>
+        <item quantity="other">%d sekunder</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d minut</item>
+        <item quantity="other">%d minutter</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d time</item>
+        <item quantity="other">%d timer</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d dag</item>
+        <item quantity="other">%d dage</item>
+    </plurals>
+
+    <string name="general_view_action">Vis</string>
+    <string name="general_delete_action">Slet</string>
+    <string name="general_show_details_action">Vis detaljer</string>
+    <string name="general_hide_details_action">Skjul detaljer</string>
+
+    <string name="general_delete_confirmation_title">Bekræft sletning</string>
+    <string name="general_delete_confirmation_message_x">Slet \"%s\"?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Slet %d valgte elementer?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">Slettede %d element.</item>
+        <item quantity="other">Slettede %d elementer.</item>
+    </plurals>
+
+    <string name="general_create_action">Opret</string>
+    <string name="general_rename_action">Omdøb</string>
+    <string name="general_retry_action">Prøv igen</string>
+    <string name="general_open_setup_action">Åbn opsætning</string>
+    <string name="general_grant_usage_stats_action">Giv adgang til brugsdata</string>
+    <string name="general_grant_storage_permission_action">Giv tilladelse til lageradgang</string>
+    <string name="general_grant_all_files_access_action">Tillad adgang til alle filer</string>
+
+    <string name="general_result_user_cancel_msg">Brugeren har annulleret handlingen.</string>
+
+    <string name="general_path_label">Sti</string>
+    <string name="general_filename_validation_error">Navnet indeholder ugyldige tegn: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d af %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d af %2$d</string>
+
+    <string name="file_type_symbolic_link">Link</string>
+    <string name="file_type_directory">Mappe</string>
+    <string name="file_type_file">Fil</string>
+    <string name="file_type_unknown">Ukendt</string>
+
+    <string name="common_mimetype_image">Billede</string>
+    <string name="common_mimetype_video">Video</string>
+    <string name="common_mimetype_audio">Lyd</string>
+    <string name="common_mimetype_text_plain">Ren tekst</string>
+    <string name="common_mimetype_text">Tekstdokument</string>
+    <string name="common_mimetype_pdf">PDF-dokument</string>
+    <string name="common_mimetype_document">Dokument</string>
+    <string name="common_mimetype_archive">Arkiv</string>
+    <string name="common_mimetype_apk">Android-pakke</string>
+    <string name="common_mimetype_json">JSON-fil</string>
+    <string name="common_mimetype_xml">XML-fil</string>
+    <string name="common_mimetype_unknown">Ukendt type</string>
+
+    <string name="general_rom_type_auto_label">Automatisk (standard)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s element/s</item>
+        <item quantity="other">%s elementer/s</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/s</item>
+        <item quantity="other">%s/s</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Forkert type: Forventede %1$s, men fik %2$s.</string>
+    <string name="general_error_cant_access_msg">Kan ikke få adgang til %s.</string>
+    <string name="general_error_archive_not_seekable_msg">%s kan ikke gennemses direkte: Lageret, det ligger på, understøtter kun sekventiel læsning, men dette arkivformat kræver vilkårlig adgang.</string>
+    <string name="general_error_root_unavailable">Root-adgang er ikke tilgængelig.</string>
+    <string name="general_error_elevated_access_required">Denne handling kræver udvidede adgangsrettigheder. Konfigurer root- eller ADB-adgang i opsætningen.</string>
+    <string name="general_error_no_compatible_app_found_msg">Ingen kompatibel app fundet til at håndtere denne anmodning.</string>
+    <string name="general_error_ipc_deadobject_title">Forbindelsen til tjenesten er afbrudt</string>
+    <string name="general_error_ipc_deadobject_description">Forbindelsen til en kritisk tjeneste (f.eks. Magisk eller en anden systemtjeneste) blev uventet afbrudt. Genstart din enhed. Hvis problemet fortsætter, kan du tjekke for opdateringer eller kontakte mig, så jeg kan rette det.</string>
+
+    <string name="ui_theme_mode_dark_label">Mørk</string>
+    <string name="ui_theme_mode_light_label">Lys</string>
+    <string name="ui_theme_mode_system_label">System</string>
+    <string name="ui_theme_style_default_label">Standard</string>
+    <string name="ui_theme_style_medium_contrast_label">Mellem kontrast</string>
+    <string name="ui_theme_style_high_contrast_label">Høj kontrast</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Grøn</string>
+    <string name="ui_theme_color_blue_label">Blå</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Tilpasset</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Tonalt fokus</string>
+    <string name="ui_theme_palette_neutral_label">Neutral</string>
+    <string name="ui_theme_palette_vibrant_label">Livlig</string>
+    <string name="ui_theme_palette_expressive_label">Udtryksfuld</string>
+    <string name="ui_theme_palette_rainbow_label">Regnbue</string>
+    <string name="ui_theme_palette_fruitsalad_label">Frugtsalat</string>
+    <string name="ui_theme_palette_monochrome_label">Monokrom</string>
+    <string name="ui_theme_palette_fidelity_label">Farvetroskab</string>
+    <string name="ui_theme_palette_content_label">Indhold</string>
+
+    <string name="ui_theme_custom_dialog_title">Tilpasset tema</string>
+    <string name="ui_theme_custom_seed_label">Grundfarve</string>
+    <string name="ui_theme_custom_palette_label">Paletstil</string>
+    <string name="ui_theme_custom_default_action">Standard</string>
+
+    <string name="ui_mascot_suit_dialog_title">Butlers jakkesæt</string>
+    <string name="ui_mascot_suit_default_action">Standard</string>
+    <string name="ui_mascot_suit_hue_label">Farvetone</string>
+    <string name="ui_mascot_suit_saturation_label">Mætning</string>
+    <string name="ui_mascot_suit_brightness_label">Lysstyrke</string>
+    <string name="ui_mascot_suit_value_description">Jakkesættets farve %s</string>
+
+    <string name="setup_usagestats_title">Brugsstatistik</string>
+    <string name="setup_shizuku_card_title">ADB-adgang</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Adgang til notifikationer</string>
+    <string name="setup_manage_storage_card_title">Administrer eksternt lager</string>
+    <string name="setup_inventory_card_title">Appoversigt</string>
+
+    <string name="setup_required_card_title">Opsætning påkrævet</string>
+    <string name="setup_required_card_body">Yderligere opsætning er nødvendig for at udføre denne handling.</string>
+    <string name="setup_required_card_setup_action">Åbn opsætning</string>
+
+    <string name="common_open_tabs_confirmation_title">Åbn flere faner?</string>
+    <string name="common_open_tabs_confirmation_message">Dette åbner %1$d faner.</string>
+    <string name="common_open_tabs_success">Åbnede %1$d faner</string>
+    <string name="common_open_tabs_success_with_skipped">Åbnede %1$d faner (%2$d elementer sprunget over)</string>
+
+    <string name="general_tab_close_confirmation_title">Luk fanen?</string>
+    <string name="general_tab_close_confirmation_message">Vil du lukke \"%1$s\"?</string>
+    <string name="general_tab_close_unsaved_title">Ændringer, der ikke er gemt</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" har ændringer, der ikke er gemt. Luk og kassér dem?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" og %2$d andre har ændringer, der ikke er gemt. Luk og kassér dem?</string>
+    <string name="general_discard_action">Kassér</string>
+    <string name="general_tab_close_goto_action">Gå til fanen</string>
+
+    <string name="general_press_back_again_to_exit">Tryk på tilbage igen for at afslutte</string>
+
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d valgt</item>
+        <item quantity="other">%d valgt</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d mappe</item>
+        <item quantity="other">%1$d mapper</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d fil</item>
+        <item quantity="other">%1$d filer</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Vælg alle mapper</string>
+    <string name="common_select_all_files_action">Vælg alle filer</string>
+    <string name="general_undo_action">Fortryd</string>
+
+    <string name="tour_action_next">Næste</string>
+    <string name="tour_action_previous">Forrige</string>
+    <string name="tour_action_cancel">Spring over</string>
+    <string name="tour_confirm_title">Spring rundvisningen over?</string>
+    <string name="tour_confirm_message">Du kan til enhver tid aktivere rundvisninger igen i indstillingerne.</string>
+    <string name="tour_confirm_continue">Fortsæt rundvisningen</string>
+    <string name="tour_confirm_dont_show_this_tour">Vis ikke denne rundvisning</string>
+    <string name="tour_confirm_disable_all">Deaktiver alle rundvisninger</string>
+
+    <string name="common_tip_multiple_panes">Brug flere ruder til at sammenligne filer side om side.</string>
+    <string name="common_tip_different_folders">Åbn forskellige mapper i hver rude for nem filhåndtering.</string>
+    <string name="common_tip_switch_layouts">Skift layout for ruderne under Layout i Butler-menuen.</string>
+    <string name="common_tip_elevated_access">Aktiver root- eller ADB-adgang i opsætningen for at udføre avancerede filhandlinger.</string>
+    <string name="common_tip_breadcrumb_home">Tryk længe på et led i stinavigationen i filhåndtereren for at indstille det som din hjemmemappe.</string>
+</resources>

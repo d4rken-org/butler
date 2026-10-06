@@ -1,0 +1,313 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">ایک شاندار فائل ایکسپلورر</string>
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Butler ایپ کا آئیکن</string>
+    <string name="butler_mascot_description">Butler کا علامتی کردار</string>
+    <string name="butler_mascot_animation_random_description">Butler کا علامتی کردار مختلف حرکات کرتے ہوئے</string>
+    <string name="butler_mascot_animation_wink_description">Butler کا علامتی کردار آنکھ مارتے ہوئے</string>
+    <string name="butler_mascot_animation_greeting_description">Butler کا علامتی کردار ہاتھ ہلا کر سلام کرتے ہوئے</string>
+    <string name="butler_mascot_animation_hatoff_description">Butler کا علامتی کردار احتراماً ٹوپی جھکاتے ہوئے</string>
+    <string name="butler_mascot_animation_drink_description">Butler کا علامتی کردار مشروب پیتے ہوئے</string>
+    <string name="butler_mascot_animation_moustache_description">Butler کا علامتی کردار مونچھوں پر ہاتھ پھیرتے ہوئے</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Butler کا علامتی کردار سونے کے لیے آنکھیں بند کرتے ہوئے</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Butler کا علامتی کردار خراٹے لیتے ہوئے</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Butler کا علامتی کردار نیند سے جاگتے ہوئے</string>
+    <string name="butler_mascot_animation_cameo_description">SD Maid کا علامتی کردار بطور مہمان نمودار ہوتے ہوئے</string>
+
+    <string name="slogan_general_message_0">آپ کی خدمت میں۔</string>
+    <string name="slogan_general_message_1">ہر چیز اپنی جگہ پر۔</string>
+    <string name="slogan_general_message_2">ترتیب، نہ کہ افراتفری۔</string>
+    <string name="slogan_general_message_3">آپ کی فائلیں لاتے ہوئے۔</string>
+    <string name="slogan_general_message_4">آپ کی تمام فائلیں قطار میں۔</string>
+    <string name="slogan_general_message_5">ہمیشہ منظم۔</string>
+    <string name="slogan_general_message_6">فائلیں، جھٹ سے مل گئیں!</string>
+    <string name="slogan_general_message_7">رسائی اب آسان۔</string>
+    <string name="slogan_general_message_8">آپ کی فائلیں کبھی گم نہیں ہوں گی۔</string>
+    <string name="slogan_general_message_9">کئی ذمہ داریاں، ایک ساتھ۔</string>
+    <string name="slogan_newyear_message_0">ہر سال کی طرح وہی طریقہ۔</string>
+    <string name="slogan_xmas_message_0">فائلوں کی دو بار جانچ۔</string>
+    <string name="slogan_xmas_message_1">اچھے بچوں کی فہرست میں۔</string>
+    <string name="slogan_halloween_message_0">ڈراؤنا Butler آپ کی خدمت میں۔</string>
+    <string name="slogan_halloween_message_1">کوئی شرارت نہیں، بس فائلیں۔</string>
+    <string name="slogan_stpatricks_message_0">قسمت ساتھ دے رہی ہے؟</string>
+    <string name="slogan_stpatricks_message_1">آپ کا سونے کا خزانہ تلاش کرتے ہوئے۔</string>
+    <string name="slogan_aprilfools_message_0">کوئی مذاق نہیں۔</string>
+    <string name="slogan_aprilfools_message_1">واقعی منظم۔</string>
+    <string name="slogan_oktoberfest_message_0">آپ کی فائلوں کے نام جام!</string>
+    <string name="slogan_oktoberfest_message_1">فائلیں، بس ایک اشارے پر۔</string>
+
+    <string name="general_share_action">شیئر کریں</string>
+    <string name="general_share_single_title">%s شیئر کریں</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">%d فائل شیئر کریں</item>
+        <item quantity="other">%d فائلیں شیئر کریں</item>
+    </plurals>
+    <string name="general_done_action">ہو گیا</string>
+    <string name="general_copy_action">کاپی کریں</string>
+    <string name="general_cut_action">کاٹیں</string>
+    <string name="general_move_action">منتقل کریں</string>
+    <string name="general_paste_action">پیسٹ کریں</string>
+    <string name="general_apply_action">لاگو کریں</string>
+    <string name="general_open_action">کھولیں</string>
+    <string name="general_cancel_action">منسوخ کریں</string>
+    <string name="general_close_action">بند کریں</string>
+    <string name="general_confirm_action">تصدیق کریں</string>
+    <string name="general_reset_action">ازسرنو ترتیب دیں</string>
+    <string name="general_save_action">محفوظ کریں</string>
+    <string name="general_edit_action">ترمیم کریں</string>
+    <string name="general_na_label">لاگو نہیں</string>
+    <string name="general_dialog_a11y_label">مکالمہ</string>
+    <string name="general_dismiss_action">ہٹا دیں</string>
+    <string name="general_read_more_action">مزید پڑھیں</string>
+    <string name="general_mark_as_read_action">پڑھا ہوا نشان زد کریں</string>
+    <string name="general_back_action">واپس</string>
+    <string name="general_navigate_up_action">اوپر کی سطح پر جائیں</string>
+    <string name="general_error_label">خرابی</string>
+    <string name="general_error_unknown_label">نامعلوم خرابی</string>
+    <string name="general_error_invalid_input_label">غلط اندراج</string>
+    <string name="general_share_error_action">خرابی شیئر کریں</string>
+    <string name="general_error_report_subject">%1$s کی خرابی کی رپورٹ (%2$s)</string>
+    <string name="general_error_report_consent_title">خرابی کی رپورٹ شیئر کریں؟</string>
+    <string name="general_error_report_consent_message">اس رپورٹ میں خرابی اور اس سے پیدا ہونے والا اسٹیک ٹریس، ایپ کا حالیہ لاگ، اور اس وقت کی حالت کی تفصیلات شامل ہیں: فائلوں کے نام اور راستے، تلاش کے استفسارات، پیکیج کے نام، URIs، نیٹ ورک اور SMB ہوسٹ کے نام، آپ کے آلے اور بلڈ کی معلومات، اور ایک گمنام انسٹالیشن ID۔ اسے صرف ان لوگوں کے ساتھ شیئر کریں جن پر آپ کو بھروسا ہے۔</string>
+    <string name="general_error_report_consent_confirm">رپورٹ شیئر کریں</string>
+    <string name="general_privacy_policy_action">رازداری کی پالیسی</string>
+    <string name="general_bug_report_subject">%1$s کی بگ رپورٹ (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">%1$s کی بگ رپورٹ: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(یہاں بتائیں کہ کیا ہوا۔)</string>
+    <string name="general_bug_report_body_expected_prompt">(بتائیں کہ اس کے بجائے آپ کو کیا توقع تھی۔)</string>
+    <string name="general_duration_input_label">دورانیہ</string>
+    <string name="general_size_input_label">حجم</string>
+    <string name="general_upgrade_action">اپ گریڈ کریں</string>
+    <string name="general_refresh_action">تازہ کریں</string>
+    <string name="general_clear_action">صاف کریں</string>
+    <string name="general_expand_action">پھیلائیں</string>
+    <string name="general_collapse_action">سمیٹیں</string>
+    <string name="general_completed_label">مکمل</string>
+    <string name="general_cancelled_label">منسوخ</string>
+    <string name="general_searching_label">تلاش جاری ہے</string>
+    <string name="general_searching_ellipsis">تلاش جاری ہے…</string>
+    <string name="general_progress_loading">لوڈ ہو رہا ہے</string>
+    <string name="general_progress_loading_egg_0">اب بھی iPhone سے تیز</string>
+    <string name="general_progress_loading_egg_1">مزید RAM ڈاؤن لوڈ ہو رہی ہے</string>
+    <string name="general_progress_loading_egg_2">متوقع وقت: جلد™</string>
+    <string name="general_progress_loading_egg_3">CPU کافی پینے کے وقفے پر ہے</string>
+    <string name="general_progress_loading_egg_4">Pepe Silvia سے ڈیٹا کا انتظار ہے</string>
+    <string name="general_progress_loading_egg_5">ٹربو انکیبیولیٹر شروع ہو رہا ہے</string>
+    <string name="general_progress_loading_egg_6">مکھن آگے بڑھاتے ہوئے</string>
+    <string name="general_progress_loading_egg_7">تو۔ آپ کا کیا حال ہے؟</string>
+    <string name="general_progress_loading_egg_8">بیپ بوپ باپ کی آوازیں</string>
+    <string name="general_progress_loading_egg_9">زندگی کے فیصلے بفر ہو رہے ہیں</string>
+    <string name="general_progress_loading_egg_10">Cthulhu کو بلاتے ہوئے</string>
+    <string name="general_progress_loading_egg_11">سب ٹھیک ہے</string>
+    <string name="general_progress_loading_egg_12">ذرا انتظار کریں</string>
+    <string name="general_progress_loading_egg_13">کم از کم آپ فون پر انتظار میں نہیں ہیں</string>
+    <string name="general_progress_loading_egg_14">براہ راست ماتھے پر لگائیں</string>
+
+    <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%d ملی سیکنڈ</item>
+        <item quantity="other">%d ملی سیکنڈ</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%d سیکنڈ</item>
+        <item quantity="other">%d سیکنڈ</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%d منٹ</item>
+        <item quantity="other">%d منٹ</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%d گھنٹہ</item>
+        <item quantity="other">%d گھنٹے</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%d دن</item>
+        <item quantity="other">%d دن</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d سیکنڈ</item>
+        <item quantity="other">%d سیکنڈ</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d منٹ</item>
+        <item quantity="other">%d منٹ</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d گھنٹہ</item>
+        <item quantity="other">%d گھنٹے</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d دن</item>
+        <item quantity="other">%d دن</item>
+    </plurals>
+
+    <string name="general_view_action">دیکھیں</string>
+    <string name="general_delete_action">حذف کریں</string>
+    <string name="general_show_details_action">تفصیلات دکھائیں</string>
+    <string name="general_hide_details_action">تفصیلات چھپائیں</string>
+
+    <string name="general_delete_confirmation_title">حذف کرنے کی تصدیق</string>
+    <string name="general_delete_confirmation_message_x">\"%s\" حذف کریں؟</string>
+    <string name="general_delete_confirmation_message_selected_x_items">%d منتخب اشیا حذف کریں؟</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">%d شے حذف کر دی گئی۔</item>
+        <item quantity="other">%d اشیا حذف کر دی گئیں۔</item>
+    </plurals>
+
+    <string name="general_create_action">بنائیں</string>
+    <string name="general_rename_action">نام بدلیں</string>
+    <string name="general_retry_action">دوبارہ کوشش کریں</string>
+    <string name="general_open_setup_action">سیٹ اپ کھولیں</string>
+    <string name="general_grant_usage_stats_action">استعمال کی معلومات تک رسائی دیں</string>
+    <string name="general_grant_storage_permission_action">اسٹوریج کی اجازت دیں</string>
+    <string name="general_grant_all_files_access_action">تمام فائلوں تک رسائی کی اجازت دیں</string>
+
+    <string name="general_result_user_cancel_msg">صارف نے یہ کارروائی منسوخ کر دی ہے۔</string>
+
+    <string name="general_path_label">راستہ</string>
+    <string name="general_filename_validation_error">نام میں نامعتبر حروف ہیں: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%2$d میں سے %1$d: %3$s</string>
+    <string name="common_x_of_y_label">%2$d میں سے %1$d</string>
+
+    <string name="file_type_symbolic_link">لنک</string>
+    <string name="file_type_directory">ڈائریکٹری</string>
+    <string name="file_type_file">فائل</string>
+    <string name="file_type_unknown">نامعلوم</string>
+
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">تصویر</string>
+    <string name="common_mimetype_video">ویڈیو</string>
+    <string name="common_mimetype_audio">آڈیو</string>
+    <string name="common_mimetype_text_plain">سادہ متن</string>
+    <string name="common_mimetype_text">متنی دستاویز</string>
+    <string name="common_mimetype_pdf">PDF دستاویز</string>
+    <string name="common_mimetype_document">دستاویز</string>
+    <string name="common_mimetype_archive">آرکائیو</string>
+    <string name="common_mimetype_apk">Android پیکیج</string>
+    <string name="common_mimetype_json">JSON فائل</string>
+    <string name="common_mimetype_xml">XML فائل</string>
+    <string name="common_mimetype_unknown">نامعلوم قسم</string>
+
+    <string name="general_rom_type_auto_label">خودکار (طے شدہ)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s شے/سیکنڈ</item>
+        <item quantity="other">%s اشیا/سیکنڈ</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/سیکنڈ</item>
+        <item quantity="other">%s/سیکنڈ</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">قسم میں عدم مطابقت: %1$s درکار تھا، مگر %2$s ملا۔</string>
+    <string name="general_error_cant_access_msg">%s تک رسائی ممکن نہیں۔</string>
+    <string name="general_error_archive_not_seekable_msg">%s کو براہ راست براؤز نہیں کیا جا سکتا: جس اسٹوریج پر یہ موجود ہے وہ صرف ترتیب وار پڑھنے کی سہولت دیتا ہے، جبکہ اس آرکائیو فارمیٹ کے لیے کسی بھی مقام تک براہ راست رسائی درکار ہے۔</string>
+    <string name="general_error_root_unavailable">روٹ رسائی دستیاب نہیں ہے۔</string>
+    <string name="general_error_elevated_access_required">اس کارروائی کے لیے اعلیٰ اختیارات والی رسائی درکار ہے۔ سیٹ اپ میں روٹ یا ADB رسائی ترتیب دیں۔</string>
+    <string name="general_error_no_compatible_app_found_msg">اس درخواست کو پورا کرنے کے لیے کوئی مطابقت رکھنے والی ایپ نہیں ملی۔</string>
+    <string name="general_error_ipc_deadobject_title">سروس کا کنکشن منقطع ہو گیا</string>
+    <string name="general_error_ipc_deadobject_description">ایک اہم سروس (مثلاً Magisk یا کسی اور سسٹم سطح کی سروس) سے کنکشن غیر متوقع طور پر منقطع ہو گیا۔ براہ کرم اپنا آلہ دوبارہ شروع کریں۔ اگر مسئلہ برقرار رہے تو اپ ڈیٹس دیکھیں یا مجھ سے رابطہ کریں تاکہ اسے درست کیا جا سکے۔</string>
+
+    <string name="ui_theme_mode_dark_label">تاریک</string>
+    <string name="ui_theme_mode_light_label">روشن</string>
+    <string name="ui_theme_mode_system_label">سسٹم</string>
+    <string name="ui_theme_style_default_label">طے شدہ</string>
+    <string name="ui_theme_style_medium_contrast_label">درمیانہ تضاد</string>
+    <string name="ui_theme_style_high_contrast_label">زیادہ تضاد</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">سبز</string>
+    <string name="ui_theme_color_blue_label">نیلا</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">حسب ضرورت</string>
+
+    <string name="ui_theme_palette_tonalspot_label">رنگی جھلک</string>
+    <string name="ui_theme_palette_neutral_label">غیر جانب دار</string>
+    <string name="ui_theme_palette_vibrant_label">شوخ</string>
+    <string name="ui_theme_palette_expressive_label">اظہار بھرے</string>
+    <string name="ui_theme_palette_rainbow_label">قوس قزح</string>
+    <string name="ui_theme_palette_fruitsalad_label">پھلوں کا سلاد</string>
+    <string name="ui_theme_palette_monochrome_label">یک رنگ</string>
+    <string name="ui_theme_palette_fidelity_label">اصل رنگ سے مطابقت</string>
+    <string name="ui_theme_palette_content_label">مواد</string>
+
+    <string name="ui_theme_custom_dialog_title">حسب ضرورت تھیم</string>
+    <string name="ui_theme_custom_seed_label">بنیادی رنگ</string>
+    <string name="ui_theme_custom_palette_label">رنگوں کے مجموعے کا انداز</string>
+    <string name="ui_theme_custom_default_action">طے شدہ</string>
+
+    <string name="ui_mascot_suit_dialog_title">Butler کا سوٹ</string>
+    <string name="ui_mascot_suit_default_action">طے شدہ</string>
+    <string name="ui_mascot_suit_hue_label">رنگت</string>
+    <string name="ui_mascot_suit_saturation_label">رنگ کی گہرائی</string>
+    <string name="ui_mascot_suit_brightness_label">چمک</string>
+    <string name="ui_mascot_suit_value_description">سوٹ کا رنگ %s</string>
+
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">استعمال کے اعداد و شمار</string>
+    <string name="setup_shizuku_card_title">ADB رسائی</string>
+    <string name="setup_root_card_title">روٹ</string>
+    <string name="setup_notification_title">اطلاعات تک رسائی</string>
+    <string name="setup_manage_storage_card_title">بیرونی اسٹوریج کا انتظام</string>
+    <string name="setup_inventory_card_title">ایپس کی فہرست</string>
+
+    <!-- Common permission strings -->
+    <string name="setup_required_card_title">سیٹ اپ درکار ہے</string>
+    <string name="setup_required_card_body">اس کارروائی کے لیے اضافی سیٹ اپ درکار ہے۔</string>
+    <string name="setup_required_card_setup_action">سیٹ اپ کھولیں</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">متعدد ٹیب کھولیں؟</string>
+    <string name="common_open_tabs_confirmation_message">اس سے %1$d ٹیب کھلیں گے۔</string>
+    <string name="common_open_tabs_success">%1$d ٹیب کھول دیے گئے</string>
+    <string name="common_open_tabs_success_with_skipped">%1$d ٹیب کھول دیے گئے (%2$d اشیا چھوڑ دی گئیں)</string>
+
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">ٹیب بند کریں؟</string>
+    <string name="general_tab_close_confirmation_message">کیا واقعی \"%1$s\" بند کرنا ہے؟</string>
+    <string name="general_tab_close_unsaved_title">محفوظ نہ کی گئی تبدیلیاں</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" میں محفوظ نہ کی گئی تبدیلیاں ہیں۔ بند کر کے انہیں ضائع کر دیں؟</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" اور مزید %2$d ٹیب میں محفوظ نہ کی گئی تبدیلیاں ہیں۔ بند کر کے انہیں ضائع کر دیں؟</string>
+    <string name="general_discard_action">ضائع کریں</string>
+    <string name="general_tab_close_goto_action">ٹیب پر جائیں</string>
+
+    <!-- Exit app -->
+    <string name="general_press_back_again_to_exit">باہر نکلنے کے لیے واپس کا بٹن دوبارہ دبائیں</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d منتخب</item>
+        <item quantity="other">%d منتخب</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d فولڈر</item>
+        <item quantity="other">%1$d فولڈر</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d فائل</item>
+        <item quantity="other">%1$d فائلیں</item>
+    </plurals>
+    <string name="common_select_all_folders_action">تمام فولڈر منتخب کریں</string>
+    <string name="common_select_all_files_action">تمام فائلیں منتخب کریں</string>
+    <string name="general_undo_action">واپس پلٹائیں</string>
+
+    <!-- Guided tours -->
+    <string name="tour_action_next">اگلا</string>
+    <string name="tour_action_previous">پچھلا</string>
+    <string name="tour_action_cancel">چھوڑ دیں</string>
+    <string name="tour_confirm_title">رہنمائی چھوڑ دیں؟</string>
+    <string name="tour_confirm_message">ترتیبات سے کسی بھی وقت رہنمائی دوبارہ فعال کی جا سکتی ہے۔</string>
+    <string name="tour_confirm_continue">رہنمائی جاری رکھیں</string>
+    <string name="tour_confirm_dont_show_this_tour">یہ رہنمائی نہ دکھائیں</string>
+    <string name="tour_confirm_disable_all">تمام رہنمائی غیر فعال کریں</string>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">فائلوں کا ساتھ ساتھ موازنہ کرنے کے لیے متعدد پینل استعمال کریں۔</string>
+    <string name="common_tip_different_folders">فائلوں کے آسان انتظام کے لیے ہر پینل میں الگ فولڈر کھولیں۔</string>
+    <string name="common_tip_switch_layouts">Butler مینو میں لے آؤٹ سے پینلوں کی ترتیب بدلیں۔</string>
+    <string name="common_tip_elevated_access">فائلوں کی جدید کارروائیوں کے لیے سیٹ اپ میں روٹ یا ADB رسائی فعال کریں۔</string>
+    <string name="common_tip_breadcrumb_home">ایکسپلورر کے راستے کے کسی حصے کو اپنی ہوم ڈائریکٹری بنانے کے لیے اسے دیر تک دبائیں۔</string>
+</resources>

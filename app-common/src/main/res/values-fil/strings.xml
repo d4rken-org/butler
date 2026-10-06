@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Pambihirang tagapamahala ng mga file</string>
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Icon ng Butler app</string>
+    <string name="butler_mascot_description">Maskot ng Butler</string>
+    <string name="butler_mascot_animation_random_description">Maskot ng Butler na gumagawa ng iba’t ibang galaw</string>
+    <string name="butler_mascot_animation_wink_description">Maskot ng Butler na kumikindat</string>
+    <string name="butler_mascot_animation_greeting_description">Maskot ng Butler na kumakaway bilang pagbati</string>
+    <string name="butler_mascot_animation_hatoff_description">Maskot ng Butler na magalang na nagtataas ng sumbrero</string>
+    <string name="butler_mascot_animation_drink_description">Maskot ng Butler na umiinom</string>
+    <string name="butler_mascot_animation_moustache_description">Maskot ng Butler na hinahaplos ang bigote</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Maskot ng Butler na pumipikit para matulog</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Maskot ng Butler na humihilik</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Maskot ng Butler na gumigising</string>
+    <string name="butler_mascot_animation_cameo_description">Maskot ng SD Maid na espesyal na panauhin</string>
+
+    <string name="slogan_general_message_0">Handang maglingkod.</string>
+    <string name="slogan_general_message_1">Lahat nasa tamang lugar.</string>
+    <string name="slogan_general_message_2">Kaayusan, hindi kaguluhan.</string>
+    <string name="slogan_general_message_3">Kinukuha ang mga file mo.</string>
+    <string name="slogan_general_message_4">Nakahilera ang lahat ng file mo.</string>
+    <string name="slogan_general_message_5">Laging maayos.</string>
+    <string name="slogan_general_message_6">Mga file, agad nahanap!</string>
+    <string name="slogan_general_message_7">Pinadaling pag-access.</string>
+    <string name="slogan_general_message_8">Hindi mawawala ang mga file mo.</string>
+    <string name="slogan_general_message_9">Maraming kayang gampanan.</string>
+    <string name="slogan_newyear_message_0">Gaya ng ginagawa bawat taon.</string>
+    <string name="slogan_xmas_message_0">Dobleng pagsusuri ng mga file.</string>
+    <string name="slogan_xmas_message_1">Nasa listahan ng mababait.</string>
+    <string name="slogan_halloween_message_0">Butler na nakakatakot, handang maglingkod.</string>
+    <string name="slogan_halloween_message_1">Walang panloloko, puro file lang.</string>
+    <string name="slogan_stpatricks_message_0">Sinusuwerte ba?</string>
+    <string name="slogan_stpatricks_message_1">Hinahanap ang palayok mong puno ng ginto.</string>
+    <string name="slogan_aprilfools_message_0">Walang lokohan.</string>
+    <string name="slogan_aprilfools_message_1">Seryoso sa kaayusan.</string>
+    <string name="slogan_oktoberfest_message_0">Tagay para sa mga file mo!</string>
+    <string name="slogan_oktoberfest_message_1">Mga file na laging handang ihain.</string>
+
+    <string name="general_share_action">Ibahagi</string>
+    <string name="general_share_single_title">Ibahagi ang %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Ibahagi ang %d file</item>
+        <item quantity="other">Ibahagi ang %d na file</item>
+    </plurals>
+    <string name="general_done_action">Tapos na</string>
+    <string name="general_copy_action">Kopyahin</string>
+    <string name="general_cut_action">Gupitin</string>
+    <string name="general_move_action">Ilipat</string>
+    <string name="general_paste_action">Idikit</string>
+    <string name="general_apply_action">Ilapat</string>
+    <string name="general_open_action">Buksan</string>
+    <string name="general_cancel_action">Kanselahin</string>
+    <string name="general_close_action">Isara</string>
+    <string name="general_confirm_action">Kumpirmahin</string>
+    <string name="general_reset_action">I-reset</string>
+    <string name="general_save_action">I-save</string>
+    <string name="general_edit_action">I-edit</string>
+    <string name="general_na_label">N/A</string>
+    <string name="general_dialog_a11y_label">Dialog</string>
+    <string name="general_dismiss_action">Alisin</string>
+    <string name="general_read_more_action">Magbasa pa</string>
+    <string name="general_mark_as_read_action">Markahang nabasa na</string>
+    <string name="general_back_action">Bumalik</string>
+    <string name="general_navigate_up_action">Pumunta sa mas mataas na antas</string>
+    <string name="general_error_label">Error</string>
+    <string name="general_error_unknown_label">Hindi kilalang error</string>
+    <string name="general_error_invalid_input_label">Hindi wastong input</string>
+    <string name="general_share_error_action">Ibahagi ang error</string>
+    <string name="general_error_report_subject">Ulat ng error sa %1$s (%2$s)</string>
+    <string name="general_error_report_consent_title">Ibahagi ang ulat ng error?</string>
+    <string name="general_error_report_consent_message">Kasama sa ulat ang error at ang stack trace na nalikha nito, ang mga kamakailang log ng app, at mga detalye tungkol sa kalagayan nito: mga pangalan at path ng file, mga query sa paghahanap, mga pangalan ng package, mga URI, mga pangalan ng host ng network at SMB, impormasyon ng device at build, at isang di-nagpapakilalang ID ng pag-install. Ibahagi lang ito sa mga taong pinagkakatiwalaan mo.</string>
+    <string name="general_error_report_consent_confirm">Ibahagi ang ulat</string>
+    <string name="general_privacy_policy_action">Patakaran sa privacy</string>
+    <string name="general_bug_report_subject">Ulat ng bug sa %1$s (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">Ulat ng bug sa %1$s: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Ilarawan dito ang nangyari.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Ilarawan ang inaasahan mong mangyari.)</string>
+    <string name="general_duration_input_label">Tagal</string>
+    <string name="general_size_input_label">Laki</string>
+    <string name="general_upgrade_action">Mag-upgrade</string>
+    <string name="general_refresh_action">I-refresh</string>
+    <string name="general_clear_action">Burahin</string>
+    <string name="general_expand_action">Palawakin</string>
+    <string name="general_collapse_action">Paliitin</string>
+    <string name="general_completed_label">Nakumpleto</string>
+    <string name="general_cancelled_label">Nakansela</string>
+    <string name="general_searching_label">Naghahanap</string>
+    <string name="general_searching_ellipsis">Naghahanap…</string>
+    <string name="general_progress_loading">Naglo-load</string>
+    <string name="general_progress_loading_egg_0">Mas mabilis pa rin kaysa sa iPhone</string>
+    <string name="general_progress_loading_egg_1">Nagda-download ng dagdag na RAM</string>
+    <string name="general_progress_loading_egg_2">Tantiyang pagdating: Malapit na™</string>
+    <string name="general_progress_loading_egg_3">Nagkakape muna ang CPU</string>
+    <string name="general_progress_loading_egg_4">Naghihintay ng data mula kay Pepe Silvia</string>
+    <string name="general_progress_loading_egg_5">Nagsisimula na ang turbo encabulator</string>
+    <string name="general_progress_loading_egg_6">Inaabot ang mantikilya</string>
+    <string name="general_progress_loading_egg_7">O. Kumusta naman?</string>
+    <string name="general_progress_loading_egg_8">Tumutunog ng bip bup bap</string>
+    <string name="general_progress_loading_egg_9">Bina-buffer ang mga pasya sa buhay</string>
+    <string name="general_progress_loading_egg_10">Tinatawag si Cthulhu</string>
+    <string name="general_progress_loading_egg_11">Ayos lang ito</string>
+    <string name="general_progress_loading_egg_12">Sandali lang</string>
+    <string name="general_progress_loading_egg_13">Buti na lang hindi ka nakapila sa telepono</string>
+    <string name="general_progress_loading_egg_14">Direktang ipahid sa noo</string>
+
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%ds</item>
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%dm</item>
+        <item quantity="other">%dm</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dh</item>
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dd</item>
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d segundo</item>
+        <item quantity="other">%d na segundo</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d minuto</item>
+        <item quantity="other">%d na minuto</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d oras</item>
+        <item quantity="other">%d na oras</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d araw</item>
+        <item quantity="other">%d na araw</item>
+    </plurals>
+
+    <string name="general_view_action">Tingnan</string>
+    <string name="general_delete_action">Tanggalin</string>
+    <string name="general_show_details_action">Ipakita ang mga detalye</string>
+    <string name="general_hide_details_action">Itago ang mga detalye</string>
+
+    <string name="general_delete_confirmation_title">Kumpirmahin ang pagtanggal</string>
+    <string name="general_delete_confirmation_message_x">Tanggalin ang \"%s\"?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Tanggalin ang %d napiling item?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">Natanggal ang %d item.</item>
+        <item quantity="other">Natanggal ang %d na item.</item>
+    </plurals>
+
+    <string name="general_create_action">Gumawa</string>
+    <string name="general_rename_action">Palitan ang pangalan</string>
+    <string name="general_retry_action">Subukan muli</string>
+    <string name="general_open_setup_action">Buksan ang Pag-setup</string>
+    <string name="general_grant_usage_stats_action">Payagan ang pag-access sa paggamit</string>
+    <string name="general_grant_storage_permission_action">Magbigay ng pahintulot sa storage</string>
+    <string name="general_grant_all_files_access_action">Payagan ang pag-access sa lahat ng file</string>
+
+    <string name="general_result_user_cancel_msg">Kinansela ng user ang operasyon.</string>
+
+    <string name="general_path_label">Path</string>
+    <string name="general_filename_validation_error">May mga hindi wastong character sa pangalan: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d sa %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d sa %2$d</string>
+
+    <string name="file_type_symbolic_link">Link</string>
+    <string name="file_type_directory">Direktoryo</string>
+    <string name="file_type_file">File</string>
+    <string name="file_type_unknown">Hindi kilala</string>
+
+    <string name="common_mimetype_image">Larawan</string>
+    <string name="common_mimetype_video">Video</string>
+    <string name="common_mimetype_audio">Audio</string>
+    <string name="common_mimetype_text_plain">Payak na teksto</string>
+    <string name="common_mimetype_text">Dokumentong teksto</string>
+    <string name="common_mimetype_pdf">Dokumentong PDF</string>
+    <string name="common_mimetype_document">Dokumento</string>
+    <string name="common_mimetype_archive">Archive</string>
+    <string name="common_mimetype_apk">Package ng Android</string>
+    <string name="common_mimetype_json">File na JSON</string>
+    <string name="common_mimetype_xml">File na XML</string>
+    <string name="common_mimetype_unknown">Hindi kilalang uri</string>
+
+    <string name="general_rom_type_auto_label">Awtomatiko (default)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s item/s</item>
+        <item quantity="other">%s na item/s</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/s</item>
+        <item quantity="other">%s/s</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Hindi tugmang uri: Kailangan ang %1$s, pero %2$s ang nakuha.</string>
+    <string name="general_error_cant_access_msg">Hindi ma-access ang %s.</string>
+    <string name="general_error_archive_not_seekable_msg">Hindi direktang ma-browse ang %s: sunod-sunod na pagbasa lang ang sinusuportahan ng storage na kinalalagyan nito, pero kailangan ng format ng archive na ito ang random access.</string>
+    <string name="general_error_root_unavailable">Hindi available ang root access.</string>
+    <string name="general_error_elevated_access_required">Kailangan ng mas mataas na antas ng access para sa operasyong ito. I-configure ang root o ADB access sa Pag-setup.</string>
+    <string name="general_error_no_compatible_app_found_msg">Walang nakitang angkop na app para sa kahilingang ito.</string>
+    <string name="general_error_ipc_deadobject_title">Nawala ang koneksyon sa serbisyo</string>
+    <string name="general_error_ipc_deadobject_description">Hindi inaasahang nawala ang koneksyon sa isang mahalagang serbisyo (hal. Magisk o ibang serbisyo sa antas ng system). I-reboot ang device. Kung nagpapatuloy ang problema, tingnan kung may mga update o makipag-ugnayan sa akin para maayos ko ito.</string>
+
+    <string name="ui_theme_mode_dark_label">Madilim</string>
+    <string name="ui_theme_mode_light_label">Maliwanag</string>
+    <string name="ui_theme_mode_system_label">System</string>
+    <string name="ui_theme_style_default_label">Default</string>
+    <string name="ui_theme_style_medium_contrast_label">Katamtamang contrast</string>
+    <string name="ui_theme_style_high_contrast_label">Mataas na contrast</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Berde</string>
+    <string name="ui_theme_color_blue_label">Asul</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Pasadya</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Batik ng tono</string>
+    <string name="ui_theme_palette_neutral_label">Neutral</string>
+    <string name="ui_theme_palette_vibrant_label">Matingkad</string>
+    <string name="ui_theme_palette_expressive_label">Mapagpahayag</string>
+    <string name="ui_theme_palette_rainbow_label">Bahaghari</string>
+    <string name="ui_theme_palette_fruitsalad_label">Salad ng prutas</string>
+    <string name="ui_theme_palette_monochrome_label">Iisang kulay</string>
+    <string name="ui_theme_palette_fidelity_label">Tapat sa orihinal</string>
+    <string name="ui_theme_palette_content_label">Nilalaman</string>
+
+    <string name="ui_theme_custom_dialog_title">Pasadyang tema</string>
+    <string name="ui_theme_custom_seed_label">Batayang kulay</string>
+    <string name="ui_theme_custom_palette_label">Estilo ng paleta</string>
+    <string name="ui_theme_custom_default_action">Default</string>
+
+    <string name="ui_mascot_suit_dialog_title">Kasuotan ni Butler</string>
+    <string name="ui_mascot_suit_default_action">Default</string>
+    <string name="ui_mascot_suit_hue_label">Tono ng kulay</string>
+    <string name="ui_mascot_suit_saturation_label">Tindi ng kulay</string>
+    <string name="ui_mascot_suit_brightness_label">Liwanag</string>
+    <string name="ui_mascot_suit_value_description">Kulay ng kasuotan: %s</string>
+
+    <string name="setup_usagestats_title">Estadistika ng paggamit</string>
+    <string name="setup_shizuku_card_title">Pag-access sa ADB</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Pag-access sa mga notification</string>
+    <string name="setup_manage_storage_card_title">Pamahalaan ang external storage</string>
+    <string name="setup_inventory_card_title">Imbentaryo ng mga app</string>
+
+    <string name="setup_required_card_title">Kailangan ng pag-setup</string>
+    <string name="setup_required_card_body">Kailangan ng karagdagang pag-setup para maisagawa ang operasyong ito.</string>
+    <string name="setup_required_card_setup_action">Buksan ang pag-setup</string>
+
+    <string name="common_open_tabs_confirmation_title">Magbukas ng maraming tab?</string>
+    <string name="common_open_tabs_confirmation_message">Magbubukas ito ng %1$d tab.</string>
+    <string name="common_open_tabs_success">Nagbukas ng %1$d tab</string>
+    <string name="common_open_tabs_success_with_skipped">Nagbukas ng %1$d tab (nilaktawan ang %2$d item)</string>
+
+    <string name="general_tab_close_confirmation_title">Isara ang tab?</string>
+    <string name="general_tab_close_confirmation_message">Talaga bang isasara ang \"%1$s\"?</string>
+    <string name="general_tab_close_unsaved_title">Mga pagbabagong hindi na-save</string>
+    <string name="general_tab_close_unsaved_message">May mga pagbabagong hindi na-save sa \"%1$s\". Isara at itapon ang mga ito?</string>
+    <string name="general_tab_close_unsaved_message_multiple">May mga pagbabagong hindi na-save sa \"%1$s\" at %2$d pang tab. Isara at itapon ang mga ito?</string>
+    <string name="general_discard_action">Itapon</string>
+    <string name="general_tab_close_goto_action">Pumunta sa tab</string>
+
+    <string name="general_press_back_again_to_exit">Pindutin muli ang Bumalik para lumabas</string>
+
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d napili</item>
+        <item quantity="other">%d na napili</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d folder</item>
+        <item quantity="other">%1$d na folder</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d file</item>
+        <item quantity="other">%1$d na file</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Piliin ang lahat ng folder</string>
+    <string name="common_select_all_files_action">Piliin ang lahat ng file</string>
+    <string name="general_undo_action">I-undo</string>
+
+    <string name="tour_action_next">Susunod</string>
+    <string name="tour_action_previous">Nakaraan</string>
+    <string name="tour_action_cancel">Laktawan</string>
+    <string name="tour_confirm_title">Laktawan ang paglilibot?</string>
+    <string name="tour_confirm_message">Maaaring muling paganahin ang mga paglilibot anumang oras sa Mga Setting.</string>
+    <string name="tour_confirm_continue">Ipagpatuloy ang paglilibot</string>
+    <string name="tour_confirm_dont_show_this_tour">Huwag ipakita ang paglilibot na ito</string>
+    <string name="tour_confirm_disable_all">I-disable ang lahat ng paglilibot</string>
+
+    <string name="common_tip_multiple_panes">Gumamit ng maraming panel para paghambingin ang mga file nang magkatabi.</string>
+    <string name="common_tip_different_folders">Magbukas ng iba’t ibang folder sa bawat panel para madaling pamahalaan ang mga file.</string>
+    <string name="common_tip_switch_layouts">Palitan ang ayos ng mga panel mula sa Layout sa menu ng Butler.</string>
+    <string name="common_tip_elevated_access">Paganahin ang root o ADB access sa Pag-setup para sa mga advanced na operasyon sa file.</string>
+    <string name="common_tip_breadcrumb_home">Pindutin nang matagal ang isang bahagi ng path sa Explorer para itakda ito bilang home directory.</string>
+</resources>

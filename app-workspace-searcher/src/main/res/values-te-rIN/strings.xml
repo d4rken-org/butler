@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">శోధన</string>
+    <string name="searcher_subtitle">ఫైళ్లు మరియు కంటెంట్‌ను కనుగొనండి</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">శోధన సెట్టింగ్‌లు</string>
+    <string name="searcher_settings_search_category">శోధన</string>
+    <string name="searcher_settings_history">శోధన చరిత్ర</string>
+    <string name="searcher_settings_save_history_title">శోధన చరిత్రను సేవ్ చేయండి</string>
+    <string name="searcher_settings_save_history_subtitle">మునుపటి శోధనలను గుర్తుంచుకోండి</string>
+    <string name="searcher_settings_max_history_label">చరిత్రలో గరిష్ఠ నమోదులు</string>
+    <string name="searcher_settings_max_history_subtitle">సేవ్ చేసిన శోధనల గరిష్ఠ సంఖ్య</string>
+    <string name="searcher_settings_max_history_input_label">నమోదుల సంఖ్య (1–500)</string>
+    <string name="searcher_settings_clear_history_title">శోధన చరిత్రను క్లియర్ చేయండి</string>
+    <string name="searcher_settings_clear_history_subtitle">సేవ్ చేసిన అన్ని శోధనలను తీసివేయండి (%1$d)</string>
+    <string name="searcher_settings_search_performance">పనితీరు</string>
+    <string name="searcher_settings_max_results_title">గరిష్ఠ శోధన ఫలితాలు</string>
+    <string name="searcher_settings_max_results_subtitle">ప్రతి శోధనలో వచ్చే ఫలితాల సంఖ్యను పరిమితం చేయండి.</string>
+    <string name="searcher_settings_content_search_category">కంటెంట్ శోధన</string>
+    <string name="searcher_settings_include_binaries_title">బైనరీ ఫైళ్లను చేర్చండి</string>
+    <string name="searcher_settings_include_binaries_subtitle">బైనరీ ఫైళ్ల కంటెంట్‌లో వెతకండి (నెమ్మదిగా ఉండవచ్చు, సంబంధం లేని ఫలితాలు రావచ్చు)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">ఇటీవలి శోధనలు</string>
+    <string name="searcher_placeholder_search">ఫైళ్లు మరియు ఫోల్డర్‌లను వెతకండి</string>
+    <string name="searcher_placeholder_filename">ఫైల్ పేరు</string>
+    <string name="searcher_placeholder_content">కంటెంట్</string>
+    <string name="searcher_search_error">శోధనలో లోపం</string>
+    <string name="searcher_no_paths_hint">శోధన స్థానాలను జోడించడానికి + నొక్కండి</string>
+    <string name="searcher_add_path_action">స్థానాన్ని జోడించండి</string>
+    <string name="searcher_add_folder_action">ఫోల్డర్…</string>
+    <string name="searcher_multipath_show_fewer_action">తక్కువ చూపండి</string>
+    <string name="searcher_empty_state_title">శోధన పాత్‌లు సెట్ చేయలేదు</string>
+    <string name="searcher_empty_state_description">మీ ఫైళ్లలో వెతకడానికి నిల్వ స్థానాలను జోడించండి</string>
+    <string name="searcher_add_default_paths_action">డిఫాల్ట్ శోధన పాత్‌లను జోడించండి</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">ఎంపికలు</string>
+    <string name="searcher_option_case_sensitive_label">పెద్ద/చిన్న అక్షరాల తేడా</string>
+    <string name="searcher_option_case_sensitive_desc">పెద్ద/చిన్న అక్షరాల తేడాను బట్టి శోధన</string>
+    <string name="searcher_option_whole_word_label">పూర్తి పదం</string>
+    <string name="searcher_option_whole_word_desc">పూర్తి పదంతో శోధన</string>
+    <string name="searcher_option_regex_label">రెగ్యులర్ ఎక్స్‌ప్రెషన్</string>
+    <string name="searcher_option_regex_desc">రెగ్యులర్ ఎక్స్‌ప్రెషన్‌తో శోధన</string>
+    <string name="searcher_option_search_content_label">కంటెంట్‌లో వెతకండి</string>
+    <string name="searcher_option_search_content_desc">ఫైళ్ల కంటెంట్‌లో వెతకండి</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">టెంప్లేట్‌లు</string>
+    <string name="searcher_templates_card_title">త్వరిత శోధన టెంప్లేట్‌లు</string>
+    <string name="searcher_template_large_files">పెద్ద ఫైళ్లు</string>
+    <string name="searcher_template_large_files_desc">100 MB కంటే పెద్ద ఫైళ్లు</string>
+    <string name="searcher_template_recent_files">ఇటీవలి ఫైళ్లు</string>
+    <string name="searcher_template_recent_files_desc">గత 7 రోజుల్లో సవరించినవి</string>
+    <string name="searcher_template_old_files">పాత ఫైళ్లు</string>
+    <string name="searcher_template_old_files_desc">ఏడాదికి పైగా సవరించనివి</string>
+    <string name="searcher_template_images">చిత్రాలు</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">వీడియోలు</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">ఆడియో</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">పత్రాలు</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">ఆర్కైవ్‌లు</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APKలు</string>
+    <string name="searcher_template_apks_desc">Android అప్లికేషన్ ప్యాకేజీలు</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d టెంప్లేట్</item>
+        <item quantity="other">%d టెంప్లేట్‌లు</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">ఫిల్టర్ చేయండి</string>
+    <string name="searcher_filter_add_action">ఫిల్టర్‌ను జోడించండి</string>
+    <string name="searcher_filter_title">శోధన ఫిల్టర్‌లు</string>
+    <string name="searcher_filter_size_section">ఫైల్ పరిమాణం</string>
+    <string name="searcher_filter_size_min">కనిష్ఠ పరిమాణం</string>
+    <string name="searcher_filter_size_max">గరిష్ఠ పరిమాణం</string>
+    <string name="searcher_filter_date_section">సవరించిన తేదీ</string>
+    <string name="searcher_filter_date_after">ఈ తేదీ తర్వాత సవరించినవి</string>
+    <string name="searcher_filter_date_before">ఈ తేదీకి ముందు సవరించినవి</string>
+    <string name="searcher_filter_date_any">ఏ సమయంలోనైనా</string>
+    <string name="searcher_filter_date_24h">గత 24 గంటలు</string>
+    <string name="searcher_filter_date_7d">గత 7 రోజులు</string>
+    <string name="searcher_filter_date_30d">గత 30 రోజులు</string>
+    <string name="searcher_filter_date_90d">గత 90 రోజులు</string>
+    <string name="searcher_filter_date_1y">గత 365 రోజులు</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">కంటే ఎక్కువ</string>
+    <string name="searcher_filter_comparator_greater_or_equal">ఎక్కువ లేదా సమానం</string>
+    <string name="searcher_filter_comparator_less_than">కంటే తక్కువ</string>
+    <string name="searcher_filter_comparator_less_or_equal">తక్కువ లేదా సమానం</string>
+    <string name="searcher_filter_comparator_equal">సమానం</string>
+    <string name="searcher_filter_size_value_label">పరిమాణం</string>
+    <string name="searcher_filter_size_at_least">కనీసం</string>
+    <string name="searcher_filter_size_at_most">గరిష్ఠంగా</string>
+    <string name="searcher_filter_size_value_hint">ఉదా. 10 MB</string>
+    <string name="searcher_filter_size_format_help">యూనిట్‌తో (KB, MB, GB) సంఖ్యను నమోదు చేయండి. యూనిట్ లేని సంఖ్యను MBగా పరిగణిస్తాము.</string>
+    <string name="searcher_filter_size_format_error">చెల్లని పరిమాణం — సంఖ్య మరియు యూనిట్‌ను ఉపయోగించండి, ఉదా. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">తేదీ</string>
+    <string name="searcher_filter_date_direction_after">ఈ తేదీ తర్వాత:</string>
+    <string name="searcher_filter_date_direction_before">ఈ తేదీకి ముందు:</string>
+    <string name="searcher_filter_type_label">రకం</string>
+    <string name="searcher_filter_type_files">ఫైళ్లు</string>
+    <string name="searcher_filter_type_directories">డైరెక్టరీలు</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">చరిత్ర నుంచి తీసివేయండి</string>
+    <string name="searcher_history_clear_all_action">అన్నీ క్లియర్ చేయండి</string>
+    <string name="searcher_history_clear_dialog_title">శోధన చరిత్రను క్లియర్ చేయండి</string>
+    <string name="searcher_history_clear_dialog_message">దీంతో సేవ్ చేసిన శోధన చరిత్ర అంతా తొలగించబడుతుంది. ఈ చర్యను వెనక్కి తీసుకోలేరు.</string>
+    <string name="searcher_history_clear_confirm_action">క్లియర్ చేయండి</string>
+    <string name="searcher_history_cleared_success">శోధన చరిత్ర క్లియర్ చేయబడింది</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="zero">ఫలితాలు లేవు</item>
+        <item quantity="one">%d ఫలితం</item>
+        <item quantity="other">%d ఫలితాలు</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">మరో %d చూపండి</item>
+        <item quantity="other">మరో %d చూపండి</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">వెతుకుతున్న</string>
+    <string name="searcher_progress_action_searched">శోధించిన</string>
+    <string name="searcher_progress_status_completed_with_errors">లోపాలతో పూర్తయింది</string>
+    <string name="searcher_result_limit_reached">ఫలితాల పరిమితిని చేరుకుంది</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">కొన్ని అంశాలలో పూర్తిగా వెతకలేకపోయాము</string>
+    <string name="searcher_progress_clear_action">క్లియర్ చేయండి</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d విఫలమైంది</item>
+        <item quantity="other">%d విఫలమయ్యాయి</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">%d అంశాన్ని యాక్సెస్ చేయలేకపోయాము</item>
+        <item quantity="other">%d అంశాలను యాక్సెస్ చేయలేకపోయాము</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…ఇంకా %d</item>
+        <item quantity="other">…ఇంకా %d</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android ఈ స్థానాలను రక్షిస్తుంది. అదనపు యాక్సెస్ ఇస్తే Butler వాటిలో వెతకగలదు.</string>
+    <string name="searcher_access_sheet_body_protected">Android ఈ స్థానాలను రక్షిస్తుంది. ఈ పరికరంలో యాక్సెస్ ఇవ్వడానికి మార్గం లేదు.</string>
+    <string name="searcher_access_sheet_unlock_action">యాక్సెస్‌ను అన్‌లాక్ చేయండి</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d స్థానం</item>
+        <item quantity="other">%d స్థానాలు</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d స్కాన్ చేయబడింది</item>
+        <item quantity="other">%d స్కాన్ చేయబడ్డాయి</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d దొరికింది</item>
+        <item quantity="other">%d దొరికాయి</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">సరిపోలిక సందర్భం</string>
+    <string name="searcher_match_line_label">పంక్తి %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">తెరవండి</string>
+    <string name="searcher_action_open_in_tab">కొత్త ట్యాబ్‌లో తెరవండి</string>
+    <string name="searcher_action_open_with">దీనితో తెరవండి</string>
+    <string name="searcher_action_open_in_editor">ఎడిటర్‌లో తెరవండి</string>
+    <string name="searcher_action_open_in_explorer">ఎక్స్‌ప్లోరర్‌లో తెరవండి</string>
+    <string name="searcher_action_install">ఇన్‌స్టాల్ చేయండి</string>
+    <string name="searcher_action_copy">కాపీ చేయండి</string>
+    <string name="searcher_action_cut">కట్ చేయండి</string>
+    <string name="searcher_action_delete">తొలగించండి</string>
+    <string name="searcher_action_copy_path">పాత్‌ను కాపీ చేయండి</string>
+    <string name="searcher_action_properties">లక్షణాలు</string>
+    <string name="searcher_action_select_all">అన్నీ ఎంచుకోండి</string>
+    <string name="searcher_action_deselect_all">అన్నింటి ఎంపికను తీసివేయండి</string>
+    <string name="searcher_action_sort">క్రమబద్ధీకరించండి</string>
+    <string name="searcher_action_view">లేఅవుట్</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">దీని ఆధారంగా క్రమబద్ధీకరించండి</string>
+    <string name="searcher_sort_mode_name_label">పేరు</string>
+    <string name="searcher_sort_mode_size_label">పరిమాణం</string>
+    <string name="searcher_sort_mode_modified_label">సవరించిన తేదీ</string>
+    <string name="searcher_sort_mode_created_label">సృష్టించిన తేదీ</string>
+    <string name="searcher_sort_mode_path_label">పాత్</string>
+    <string name="searcher_sort_descending_label">అవరోహణ క్రమం</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">అంశాలను అమర్చే విధానం, అవి చూపే వివరాల స్థాయి</string>
+    <string name="searcher_view_mode_list_label">జాబితా</string>
+    <string name="searcher_view_mode_grid_label">గ్రిడ్</string>
+    <string name="searcher_view_density_compact_label">కాంపాక్ట్</string>
+    <string name="searcher_view_density_comfortable_label">సౌకర్యవంతం</string>
+    <string name="searcher_view_density_detailed_label">వివరంగా</string>
+    <string name="searcher_view_detail_modified_label">సవరించబడింది</string>
+    <string name="searcher_view_set_default_action">డిఫాల్ట్‌గా సెట్ చేయండి</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">కొన్ని స్థానాలలో వెతకడానికి అదనపు సెటప్ అవసరం.</string>
+</resources>

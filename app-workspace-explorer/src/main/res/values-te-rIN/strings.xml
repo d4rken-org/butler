@@ -1,0 +1,688 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">ఎక్స్‌ప్లోరర్</string>
+    <string name="explorer_subtitle">ఫైళ్లు మరియు డైరెక్టరీలను బ్రౌజ్ చేయండి</string>
+    <string name="explorer_settings_title">ఎక్స్‌ప్లోరర్ సెట్టింగ్‌లు</string>
+    <string name="explorer_settings_file_display">ఫైళ్ల ప్రదర్శన</string>
+    <string name="explorer_settings_filter_regex_title">అధునాతన వైల్డ్‌కార్డ్ సరిపోలిక</string>
+    <string name="explorer_settings_filter_regex_desc">చేర్చే/మినహాయించే ఫిల్టర్‌లలో regex నమూనాలను ఉపయోగించండి.</string>
+    <string name="explorer_settings_navigation">నావిగేషన్</string>
+    <string name="explorer_settings_back_button_title">వెనుకకు బటన్‌తో నావిగేషన్</string>
+    <string name="explorer_settings_back_button_desc">వెనుకకు బటన్/సంజ్ఞతో చరిత్రలోని స్థానాలకు వెళ్లండి.</string>
+    <string name="explorer_settings_trash_category">ట్రాష్</string>
+    <string name="explorer_settings_trash_enabled_title">ట్రాష్‌ను ప్రారంభించండి</string>
+    <string name="explorer_settings_trash_enabled_desc">తొలగించిన ఫైళ్లను శాశ్వతంగా తొలగించే బదులు ట్రాష్‌కు తరలించండి</string>
+    <string name="explorer_settings_trash_auto_delete_title">ఈ వ్యవధి తర్వాత ఆటోమేటిక్‌గా తొలగించండి</string>
+    <string name="explorer_settings_trash_auto_delete_summary">ట్రాష్‌లో ఇంత సమయం ఉన్న తర్వాత అంశాలను ఆటోమేటిక్‌గా తొలగించండి</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d రోజులు</string>
+    <string name="explorer_settings_trash_max_size_title">ప్రతి నిల్వకు గరిష్ఠ పరిమాణం</string>
+    <string name="explorer_settings_trash_max_size_summary">ప్రతి నిల్వ స్థానంలో ట్రాష్ ఉపయోగించగల స్థలం</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">ఆటోమేటిక్ తొలగింపు వ్యవధి</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">ప్రతి నిల్వకు గరిష్ఠ పరిమాణం</string>
+    <string name="explorer_settings_trash_enable_dialog_title">ట్రాష్‌ను ప్రారంభించాలా?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">డెస్క్‌టాప్ సిస్టమ్‌ల మాదిరిగా Androidలో అంతర్నిర్మిత ట్రాష్ ఉండదు. Butler తన కాష్ ఫోల్డర్‌ను ఉపయోగించి ట్రాష్‌ను అందిస్తుంది.\n\nగుర్తుంచుకోండి:\n• అంశాలను శాశ్వతంగా తొలగించే వరకు మీ పరికరంలోని నిల్వ సూచిక ఖాళీ అయిన స్థలాన్ని చూపదు\n• మీ పరికరంలో నిల్వ స్థలం తగ్గితే, Android యాప్ కాష్‌లను క్లియర్ చేయవచ్చు. దాంతో ట్రాష్‌లోని ఫైళ్లు తొలగించబడతాయి</string>
+    <string name="explorer_settings_trash_enable_action">ప్రారంభించండి</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">ఫైల్</string>
+    <string name="explorer_file_symlink_content_desc">సింబాలిక్ లింక్</string>
+    <string name="explorer_file_folder_content_desc">ఫోల్డర్</string>
+    <string name="explorer_file_peek_content_desc">ఫైల్ సమాచారం లోడ్ అవుతోంది</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">షార్ట్‌కట్</string>
+    <string name="explorer_file_storage_local_label">స్థానికం</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">చదవడానికి మాత్రమే యాక్సెస్</string>
+    <string name="explorer_file_storage_saf_write_only_label">రాయడానికి మాత్రమే యాక్సెస్</string>
+    <string name="explorer_file_storage_saf_no_access_label">యాక్సెస్ లేదు</string>
+    <string name="explorer_file_storage_saf_uri_label">SAF ట్రీ URI</string>
+    <string name="explorer_file_storage_size_format">%1$s • మొత్తం %2$s • ఖాళీ %3$s</string>
+    <string name="explorer_file_broken_link_label">పనిచేయని లింక్</string>
+    <string name="explorer_file_items_count">%1$d అంశాలు</string>
+    <string name="explorer_file_empty">ఖాళీ</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · పాక్షికం</string>
+    <string name="explorer_sizes_estimate_description">Android మొత్తం నిల్వ గణాంకాల ఆధారంగా అంచనా వేయబడింది. చదవలేని ఫైళ్ల కోసం, అవి ఆక్రమించిన నిల్వను ఫైల్ పరిమాణానికి అంచనాగా ఉపయోగిస్తాము. Android నిర్వహించే దాచిన ఫైళ్లు కూడా ఇందులో ఉండవచ్చు. ఇతర చదవలేని స్థానాల పరిమాణం తెలియదు.</string>
+    <string name="explorer_sizes_estimate_coverage">నిల్వలోని ఇతర భాగాలను పూర్తిగా కొలవలేకపోవడంతో Android/data పరిమాణాన్ని అంచనా వేయలేకపోయాము.</string>
+    <string name="explorer_sizes_estimate_unavailable">Android నిల్వ గణాంకాలు అందుబాటులో లేవు. కొలిచిన పరిమాణాలు మాత్రం చూపబడుతున్నాయి.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Android మొత్తం నిల్వ గణాంకాలు స్కాన్ ఫలితాలతో సరిపోలలేదు. కొలిచిన పరిమాణాలు మాత్రం చూపబడుతున్నాయి.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">ఫోల్డర్‌ను ఎంచుకోండి</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="zero">ఫోల్డర్‌లను ఎంచుకోండి</item>
+        <item quantity="one">ఫోల్డర్‌ను ఎంచుకోండి (%d)</item>
+        <item quantity="other">ఫోల్డర్‌లను ఎంచుకోండి (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">ఫైల్‌ను ఎంచుకోండి</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="zero">ఫైళ్లను ఎంచుకోండి</item>
+        <item quantity="one">ఫైల్‌ను ఎంచుకోండి (%d)</item>
+        <item quantity="other">ఫైళ్లను ఎంచుకోండి (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="zero">అంశాలను ఎంచుకోండి</item>
+        <item quantity="one">అంశాన్ని ఎంచుకోండి (%d)</item>
+        <item quantity="other">అంశాలను ఎంచుకోండి (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">ఈ ఫోల్డర్‌ను ఎంచుకోండి</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">%d ఎంచుకోండి</item>
+        <item quantity="other">%d ఎంచుకోండి</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">ఫైల్‌ను సేవ్ చేయండి</string>
+    <string name="explorer_picker_save_here_action">ఇక్కడ సేవ్ చేయండి</string>
+    <string name="explorer_picker_save_as_filename_label">ఫైల్ పేరు</string>
+    <string name="explorer_picker_save_as_filename_hint">ఫైల్ పేరును నమోదు చేయండి</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">రిఫ్రెష్ చేయండి</string>
+    <string name="explorer_action_calculate_sizes">పరిమాణాలను లెక్కించండి</string>
+    <string name="explorer_action_sort">క్రమబద్ధీకరించండి</string>
+    <string name="explorer_action_filter">ఫిల్టర్ చేయండి</string>
+    <string name="explorer_action_view">లేఅవుట్</string>
+    <string name="explorer_action_create">సృష్టించండి</string>
+    <string name="explorer_action_rename">పేరు మార్చండి</string>
+    <string name="explorer_action_copy">కాపీ చేయండి</string>
+    <string name="explorer_action_cut">కట్ చేయండి</string>
+    <string name="explorer_action_delete">తొలగించండి</string>
+    <string name="explorer_action_select_all">అన్నీ ఎంచుకోండి</string>
+    <string name="explorer_action_deselect_all">అన్నింటి ఎంపికను తీసివేయండి</string>
+    <string name="explorer_action_compress">కంప్రెస్ చేయండి</string>
+    <string name="explorer_action_extract">ఎక్స్‌ట్రాక్ట్ చేయండి</string>
+    <string name="explorer_action_add_location">స్థానాన్ని జోడించండి</string>
+    <string name="explorer_action_info">సమాచారం</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">సమాచారం</string>
+    <string name="explorer_info_name_label">పేరు</string>
+    <string name="explorer_info_path_label">పాత్</string>
+    <string name="explorer_info_type_label">రకం</string>
+    <string name="explorer_info_type_file">ఫైల్</string>
+    <string name="explorer_info_type_directory">డైరెక్టరీ</string>
+    <string name="explorer_info_size_label">పరిమాణం</string>
+    <string name="explorer_info_modified_label">సవరించబడింది</string>
+    <string name="explorer_info_created_label">సృష్టించబడింది</string>
+    <string name="explorer_info_permissions_label">అనుమతులు</string>
+    <string name="explorer_info_owner_label">యజమాని</string>
+    <string name="explorer_info_child_count_label">అంశాలు</string>
+    <string name="explorer_info_symlink_target_label">గమ్యం</string>
+    <string name="explorer_info_symlink_status_label">స్థితి</string>
+    <string name="explorer_info_symlink_broken">పనిచేయని లింక్</string>
+    <string name="explorer_info_unknown">తెలియదు</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">తొలగించబడింది</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">అనుమతులు</string>
+    <string name="explorer_info_saf_granted_label">ఇవ్వబడింది</string>
+    <string name="explorer_info_saf_permission_read">చదవడం</string>
+    <string name="explorer_info_saf_permission_write">రాయడం</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">సర్వర్</string>
+    <string name="explorer_info_network_port_label">పోర్ట్</string>
+    <string name="explorer_info_network_share_label">షేర్</string>
+    <string name="explorer_info_network_folder_label">ఫోల్డర్</string>
+    <string name="explorer_info_network_address_label">చిరునామా</string>
+    <string name="explorer_info_network_status_label">స్థితి</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">సైన్ ఇన్</string>
+    <string name="explorer_info_network_domain_label">డొమైన్</string>
+    <string name="explorer_info_network_password_label">పాస్‌వర్డ్</string>
+    <string name="explorer_info_network_password_show_action">పాస్‌వర్డ్‌ను చూపండి</string>
+    <string name="explorer_info_network_password_hide_action">పాస్‌వర్డ్‌ను దాచండి</string>
+    <string name="explorer_info_network_password_missing">లేదు, మళ్లీ సైన్ ఇన్ చేయండి</string>
+    <string name="explorer_info_network_password_locked">నిల్వ చేయబడింది, కానీ ఈ పరికరం దాన్ని అన్‌లాక్ చేయలేకపోతుంది</string>
+    <string name="explorer_info_network_added_label">జోడించబడింది</string>
+    <string name="explorer_info_network_updated_label">అప్‌డేట్ చేయబడింది</string>
+    <string name="explorer_info_network_last_seen_label">చివరిసారి కనిపించింది</string>
+    <string name="explorer_info_network_last_seen_never">ఎప్పుడూ లేదు</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">ఎంచుకున్నవి</string>
+    <string name="explorer_info_files_label">ఫైళ్లు</string>
+    <string name="explorer_info_directories_label">డైరెక్టరీలు</string>
+    <string name="explorer_info_total_size_label">మొత్తం పరిమాణం</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">స్థానాలు</string>
+    <string name="explorer_info_shortcuts_label">షార్ట్‌కట్‌లు</string>
+    <string name="explorer_info_total_capacity_label">మొత్తం సామర్థ్యం</string>
+    <string name="explorer_info_used_space_label">ఉపయోగించిన స్థలం</string>
+    <string name="explorer_info_free_space_label">ఖాళీ స్థలం</string>
+    <string name="explorer_info_usage_label">వినియోగం</string>
+    <string name="explorer_info_device_storage_total_label">పరికర నిల్వ</string>
+    <string name="explorer_info_device_storage_used_label">ఉపయోగించినది</string>
+    <string name="explorer_info_device_storage_free_label">ఖాళీ</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">హోమ్</string>
+    <string name="explorer_breadcrumb_set_as_home_action">హోమ్‌గా సెట్ చేయండి</string>
+    <string name="explorer_breadcrumb_copy_path_action">పాత్‌ను కాపీ చేయండి</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">పాత్ క్లిప్‌బోర్డ్‌కు కాపీ చేయబడింది</string>
+    <string name="explorer_navigation_device">పరికరం</string>
+    <string name="explorer_navigation_network">నెట్‌వర్క్</string>
+    <string name="explorer_navigation_recent">ఇటీవల</string>
+    <string name="explorer_navigation_recent_desc">ఈ పరికరంలో ఇటీవల కనిపించిన ఫైళ్లు</string>
+    <string name="explorer_navigation_trash">ట్రాష్</string>
+    <string name="explorer_navigation_trash_desc">తొలగించిన ఫైళ్లను తిరిగి పొందండి</string>
+    <string name="explorer_navigation_trash_nested_desc">ట్రాష్‌లోని ఫోల్డర్ లోపల</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">తొలగించిన అంశాలు లేవు</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d అంశం</item>
+        <item quantity="other">%d అంశాలు</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">పునరుద్ధరించండి</string>
+    <string name="explorer_trash_restore_selected_action">ఎంచుకున్నవి పునరుద్ధరించండి</string>
+    <string name="explorer_trash_delete_permanently_action">శాశ్వతంగా తొలగించండి</string>
+    <string name="explorer_trash_delete_selected_action">ఎంచుకున్నవి తొలగించండి</string>
+    <string name="explorer_trash_empty_trash_action">ట్రాష్‌ను ఖాళీ చేయండి</string>
+    <string name="explorer_trash_empty_confirm">ట్రాష్‌ను ఖాళీ చేయాలా?</string>
+    <string name="explorer_trash_empty_message">ట్రాష్‌లోని అన్ని అంశాలు శాశ్వతంగా తొలగించబడతాయి. ఈ చర్యను వెనక్కి తీసుకోలేరు.</string>
+    <string name="explorer_trash_empty_confirm_action">ట్రాష్‌ను ఖాళీ చేయండి</string>
+    <string name="explorer_trash_restore_desc">అసలు స్థానానికి పునరుద్ధరించండి</string>
+    <string name="explorer_trash_item_unavailable">అంశం అందుబాటులో లేదు</string>
+    <string name="explorer_trash_delete_warning">ఈ చర్యను వెనక్కి తీసుకోలేరు</string>
+    <string name="explorer_trash_disabled_warning">ట్రాష్ నిలిపివేయబడింది</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">ట్రాష్‌లోని ఫోల్డర్ కంటెంట్ లోడ్ అవుతోంది…</string>
+    <string name="explorer_trash_nested_restore_action">అసలు స్థానానికి పునరుద్ధరించండి</string>
+    <string name="explorer_trash_nested_delete_action">శాశ్వతంగా తొలగించండి</string>
+    <string name="explorer_trash_nested_restore_conflict">అసలు స్థానంలో ఫైల్ ఇప్పటికే ఉంది</string>
+    <string name="explorer_trash_nested_parent_missing">మాతృ అంశం ఇక ట్రాష్‌లో లేదు</string>
+    <string name="explorer_trash_nested_path_missing">పాత్ ఇక లేదు</string>
+    <string name="explorer_trash_error_items_not_found">ట్రాష్‌లో అంశాలు దొరకలేదు</string>
+    <string name="explorer_trash_error_restore_failed">అంశాలను పునరుద్ధరించలేకపోయాము</string>
+    <string name="explorer_trash_error_delete_failed">అంశాలను తొలగించలేకపోయాము</string>
+    <string name="explorer_trash_nested_error_restore_failed">%1$sను పునరుద్ధరించలేకపోయాము</string>
+    <string name="explorer_trash_nested_error_delete_failed">%1$sను తొలగించలేకపోయాము</string>
+
+    <string name="explorer_navigation_root">రూట్ డైరెక్టరీ</string>
+    <string name="explorer_navigation_rom">సిస్టమ్ ROM</string>
+    <string name="explorer_navigation_internal_storage">అంతర్గత పబ్లిక్ నిల్వ</string>
+    <string name="explorer_navigation_external_storage">బాహ్య పబ్లిక్ నిల్వ</string>
+
+    <string name="explorer_loader_progress_directory_loading">%sను బ్రౌజ్ చేస్తోంది</string>
+    <string name="explorer_loader_progress_directory_permissions">అనుమతులను తనిఖీ చేస్తోంది</string>
+    <string name="explorer_loader_progress_directory_filesystem">ఫైల్ సిస్టమ్ సమాచారాన్ని పొందుతోంది</string>
+    <string name="explorer_loader_progress_directory_content">ఫోల్డర్ కంటెంట్ లోడ్ అవుతోంది</string>
+    <string name="explorer_loader_progress_directory_content_details">కంటెంట్ వివరాలు లోడ్ అవుతున్నాయి</string>
+    <string name="explorer_loader_progress_directory_content_extended">కంటెంట్ అదనపు వివరాలు లోడ్ అవుతున్నాయి</string>
+
+    <string name="explorer_loader_progress_device_loading">పరికరం లోడ్ అవుతోంది</string>
+    <string name="explorer_loader_progress_device_locations">నిల్వ స్థానాలు లోడ్ అవుతున్నాయి</string>
+
+    <string name="explorer_loader_progress_network_loading">నెట్‌వర్క్ నిల్వ లోడ్ అవుతోంది</string>
+
+    <string name="explorer_loader_progress_home_loading">హోమ్ లోడ్ అవుతోంది</string>
+    <string name="explorer_loader_progress_trash_loading">ట్రాష్ లోడ్ అవుతోంది…</string>
+    <string name="explorer_loader_progress_recent_loading">ఇటీవలి ఫైళ్లు లోడ్ అవుతున్నాయి…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d షార్ట్‌కట్</item>
+        <item quantity="other">%d షార్ట్‌కట్‌లు</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d స్థానం</item>
+        <item quantity="other">%d స్థానాలు</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d దాచబడింది</item>
+        <item quantity="other">%d దాచబడ్డాయి</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s ఖాళీ</string>
+    <string name="explorer_infobar_loading">లోడ్ అవుతోంది…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">కొత్త అంశాన్ని సృష్టించండి</string>
+    <string name="explorer_dialog_rename_title">పేరు మార్చండి</string>
+    <string name="explorer_dialog_name_label">పేరు</string>
+    <string name="explorer_dialog_type_label">రకం</string>
+    <string name="explorer_dialog_type_folder">ఫోల్డర్</string>
+    <string name="explorer_dialog_type_file">ఫైల్</string>
+    <string name="explorer_dialog_create_text_file_title">వచనం నుంచి ఫైల్‌ను సృష్టించండి</string>
+    <string name="explorer_dialog_create_text_file_preview_label">ముందస్తు వీక్షణ</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d అక్షరాలు</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">నిల్వ స్థానాన్ని జోడించండి</string>
+    <string name="explorer_add_device_storage_desc">USB డ్రైవ్‌లు, వర్చువల్ యాప్ ఫోల్డర్‌లు వంటి అదనపు నిల్వ స్థానాలకు Butler యాక్సెస్‌ను ఇవ్వడానికి Storage Access Framework (SAF) ఉపయోగించండి.</string>
+    <string name="explorer_add_device_storage_continue">కొనసాగించండి</string>
+    <string name="explorer_add_device_storage_cancel">రద్దు చేయండి</string>
+    <string name="explorer_add_device_storage_suggestions_title">నిల్వ ఉన్న యాప్‌లు</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">ఈ యాప్ ఫోల్డర్‌ను తెరుస్తుంది</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">స్థానాన్ని తీసివేయండి</string>
+    <string name="explorer_device_remove_confirmation_title">నిల్వ స్థానాన్ని తీసివేయాలా?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">%1$d నిల్వ స్థానాన్ని తీసివేయాలా?</item>
+        <item quantity="other">%1$d నిల్వ స్థానాలను తీసివేయాలా?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">దీంతో ఈ స్థానానికి Butler యాక్సెస్ రద్దవుతుంది. మీ ఫైళ్లు తొలగించబడవు.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d నెట్‌వర్క్ స్థానం</item>
+        <item quantity="other">%d నెట్‌వర్క్ స్థానాలు</item>
+    </plurals>
+    <string name="explorer_network_storage_label">నెట్‌వర్క్</string>
+    <string name="explorer_network_add_location_action">నెట్‌వర్క్ నిల్వను జోడించండి</string>
+    <string name="explorer_network_edit_location_action">నెట్‌వర్క్ నిల్వను సవరించండి</string>
+    <string name="explorer_network_remove_location_action">నెట్‌వర్క్ నిల్వను తీసివేయండి</string>
+    <string name="explorer_network_sign_in_required_label">సైన్ ఇన్ అవసరం</string>
+    <string name="explorer_network_status_checking_label">తనిఖీ చేస్తోంది…</string>
+    <string name="explorer_network_status_available_label">అందుబాటులో ఉంది</string>
+    <string name="explorer_network_status_unavailable_label">అందుబాటులో లేదు</string>
+    <string name="explorer_network_status_unavailable_since_format">అందుబాటులో లేదు (%1$s)</string>
+    <string name="explorer_network_empty_title">ఇంకా నెట్‌వర్క్ నిల్వ లేదు</string>
+    <string name="explorer_network_empty_caption">ఇక్కడ బ్రౌజ్ చేయడానికి Windows షేర్ లేదా NAS ఫోల్డర్‌ను జోడించండి.</string>
+    <string name="explorer_network_form_pro_notice">స్థానాన్ని జోడించడం, పరీక్షించడం ఉచితం. దాన్ని బ్రౌజ్ చేయడానికి Butler Pro అవసరం.</string>
+    <string name="explorer_network_upgrade_hint_saved">సేవ్ చేయబడింది. నెట్‌వర్క్ నిల్వను బ్రౌజ్ చేయడానికి Butler Pro అవసరం.</string>
+    <string name="explorer_network_upgrade_hint_locked">నెట్‌వర్క్ నిల్వను బ్రౌజ్ చేయడానికి Butler Pro అవసరం.</string>
+    <string name="explorer_network_remove_confirmation_title">నెట్‌వర్క్ నిల్వను తీసివేయాలా?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">%1$d నెట్‌వర్క్ నిల్వను తీసివేయాలా?</item>
+        <item quantity="other">%1$d నెట్‌వర్క్ నిల్వలను తీసివేయాలా?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler సర్వర్ వివరాలను, సేవ్ చేసిన పాస్‌వర్డ్‌ను మర్చిపోతుంది. సర్వర్‌లో ఏదీ తొలగించబడదు.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">నెట్‌వర్క్ నిల్వను జోడించండి</string>
+    <string name="explorer_network_form_edit_title">నెట్‌వర్క్ నిల్వను సవరించండి</string>
+    <string name="explorer_network_form_label_label">పేరు (ఐచ్ఛికం)</string>
+    <string name="explorer_network_form_host_label">సర్వర్ చిరునామా</string>
+    <string name="explorer_network_form_host_hint">nas.local లేదా 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">పోర్ట్</string>
+    <string name="explorer_network_form_share_label">షేర్</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">షేర్‌లోని ఫోల్డర్ (ఐచ్ఛికం)</string>
+    <string name="explorer_network_form_auth_guest">అతిథి</string>
+    <string name="explorer_network_form_auth_password">వినియోగదారు పేరు మరియు పాస్‌వర్డ్</string>
+    <string name="explorer_network_form_username_label">వినియోగదారు పేరు</string>
+    <string name="explorer_network_form_domain_label">డొమైన్ (ఐచ్ఛికం)</string>
+    <string name="explorer_network_form_password_label">పాస్‌వర్డ్</string>
+    <string name="explorer_network_form_password_kept_hint">సేవ్ చేసిన పాస్‌వర్డ్‌ను ఉంచడానికి ఖాళీగా వదిలేయండి</string>
+    <string name="explorer_network_form_remember_label">పాస్‌వర్డ్‌ను గుర్తుంచుకోండి</string>
+    <string name="explorer_network_form_remember_hint">ఈ పరికరంలో మాత్రమే ఎన్‌క్రిప్ట్ చేసి నిల్వ చేయబడుతుంది</string>
+    <string name="explorer_network_form_test_and_save_action">పరీక్షించి సేవ్ చేయండి</string>
+    <string name="explorer_network_form_testing">కనెక్ట్ అవుతోంది…</string>
+    <string name="explorer_network_form_error_host_blank">సర్వర్ చిరునామాను నమోదు చేయండి</string>
+    <string name="explorer_network_form_error_host_not_bare">స్కీమ్ లేదా పాత్ లేకుండా సర్వర్ చిరునామాను మాత్రమే నమోదు చేయండి</string>
+    <string name="explorer_network_form_error_host_malformed">ఇది చెల్లుబాటు అయ్యే సర్వర్ చిరునామా కాదు</string>
+    <string name="explorer_network_form_error_port">1 నుంచి 65535 మధ్య పోర్ట్‌ను నమోదు చేయండి</string>
+    <string name="explorer_network_form_error_share_blank">షేర్ పేరును నమోదు చేయండి</string>
+    <string name="explorer_network_form_error_share_not_single">షేర్ పేరును మాత్రమే నమోదు చేయండి, ఉపఫోల్డర్‌లను కింద నమోదు చేయండి</string>
+    <string name="explorer_network_form_error_share_malformed">ఇది చెల్లుబాటు అయ్యే షేర్ పేరు కాదు</string>
+    <string name="explorer_network_form_error_base_path">ఈ ఫోల్డర్ పాత్‌ను ఉపయోగించలేము</string>
+    <string name="explorer_network_form_error_username_blank">వినియోగదారు పేరును నమోదు చేయండి</string>
+    <string name="explorer_network_form_error_password_required">వినియోగదారు పేరు లేదా డొమైన్‌ను మార్చడానికి పాస్‌వర్డ్‌ను మళ్లీ నమోదు చేయండి</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">స్థానానికి పేరు పెట్టండి</string>
+    <string name="explorer_location_name_label">స్థానం పేరు</string>
+    <string name="explorer_location_name_hint">డిఫాల్ట్ పేరును ఉపయోగించడానికి ఖాళీగా వదిలేయండి</string>
+    <string name="explorer_location_rename_action">స్థానం పేరు మార్చండి</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">గత 24 గంటల్లో జోడించబడినవి</item>
+        <item quantity="other">గత %d రోజుల్లో జోడించబడినవి</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">ఇక్కడ కొత్తగా ఏమీ లేదు</string>
+    <string name="explorer_recent_empty_message">ఈ పరికరంలో కనిపించే ఫైళ్లు ఇక్కడ చూపబడతాయి</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">ఈ ఫోల్డర్ ఖాళీగా ఉంది</string>
+    <string name="explorer_empty_search_title">శోధన ఫలితాలు లేవు</string>
+    <string name="explorer_empty_search_caption">మరో పదంతో వెతికి చూడండి</string>
+    <string name="explorer_empty_folder_label">ఖాళీ ఫోల్డర్</string>
+    <string name="explorer_empty_filtered_title">సరిపోలే అంశాలు లేవు</string>
+    <string name="explorer_empty_filtered_caption">మీ ఫిల్టర్‌లను మార్చి చూడండి</string>
+    <string name="explorer_empty_hidden_title">ఇక్కడ దాచిన అంశాలు మాత్రమే ఉన్నాయి</string>
+    <string name="explorer_empty_hidden_caption">పేరు చుక్కతో మొదలయ్యే అంశాలను ఈ ట్యాబ్ దాచుతుంది</string>
+    <string name="explorer_empty_show_hidden_action">దాచిన అంశాలను చూపండి</string>
+    <string name="explorer_empty_hidden_or_filtered_title">చూపడానికి ఏమీ మిగలలేదు</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">దాచిన అంశాలు, మీ ఫిల్టర్‌లు ఈ ఫోల్డర్‌లోని వేర్వేరు భాగాలను మినహాయిస్తున్నాయి</string>
+    <string name="explorer_empty_clear_filters_action">ఫిల్టర్‌లను క్లియర్ చేయండి</string>
+    <string name="explorer_empty_hidden_and_filtered_title">దాచిన అంశాలు, ఫిల్టర్‌ల వల్ల ఇక్కడ ఏమీ కనిపించడం లేదు</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">దాచిన అంశాలను చూపించి, ఈ ట్యాబ్ ఫిల్టర్‌లను క్లియర్ చేస్తే అవి మళ్లీ కనిపిస్తాయి</string>
+    <string name="explorer_empty_show_all_action">అన్ని అంశాలను చూపండి</string>
+    <string name="explorer_path_not_found_title">ఈ ఫోల్డర్ ఇక లేదు</string>
+    <string name="explorer_path_not_found_caption">ఇది తొలగించబడింది, పేరు మార్చబడింది లేదా మరో చోటికి తరలించబడింది.</string>
+    <string name="explorer_path_not_found_back_action">వెనుకకు వెళ్లండి</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">లోడ్ అవుతోంది…</string>
+    <string name="explorer_file_peek_loading_text">లోడ్ అవుతోంది…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">ఇక్కడ చూడటానికి ఏమీ లేదు… ముందుకు వెళ్లండి 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">ఈ ఫోల్డర్ డైట్ చేస్తోంది</string>
+    <string name="explorer_empty_folder_caption_3">ఈ రోజు ఫైళ్లు కూడా త్వరగా ఇంటికి వెళ్లిపోయాయి</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe పని చేయడం ఆపేసింది</string>
+    <string name="explorer_empty_folder_caption_5">ఫైళ్లు దాగుడుమూతలు ఆడుతున్నాయి</string>
+    <string name="explorer_empty_folder_caption_6">404: ఫైళ్లు దొరకలేదు</string>
+    <string name="explorer_empty_folder_caption_7">ఈ ఫోల్డర్‌కు ఎవరినీ నమ్మడం కష్టం</string>
+    <string name="explorer_empty_folder_caption_8">ఫైళ్లు చెప్పకుండా సెలవులకు వెళ్లిపోయాయి</string>
+    <string name="explorer_empty_folder_caption_9">నా మనసులా ఖాళీ… కానీ మరింత క్రమబద్ధంగా</string>
+    <string name="explorer_empty_folder_caption_10">నిర్జన ప్రదేశంలో గాలికి ఎగిరే ఎండు పొదలకు డిజిటల్ రూపం</string>
+    <string name="explorer_empty_folder_caption_11">ఫైళ్లు సామాజిక దూరం పాటిస్తున్నాయి</string>
+    <string name="explorer_empty_folder_caption_12">ఈ ఫోల్డర్ కొద్దితోనే సరిపెట్టుకుంటుంది</string>
+    <string name="explorer_empty_folder_caption_13">ఫైళ్లకు ఆహారం పెట్టడం ఎవరో మర్చిపోయారు</string>
+    <string name="explorer_empty_folder_caption_14">ఫైళ్లు భవనం వదిలి వెళ్లిపోయాయి</string>
+    <string name="explorer_empty_folder_caption_15">రాజకీయ నాయకుడి హామీ కంటే ఖాళీగా ఉంది</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">దీని ప్రకారం క్రమబద్ధీకరించండి</string>
+    <string name="explorer_sort_mode_name_label">పేరు</string>
+    <string name="explorer_sort_mode_size_label">పరిమాణం</string>
+    <string name="explorer_sort_mode_modified_label">సవరించిన తేదీ</string>
+    <string name="explorer_sort_mode_created_label">సృష్టించిన తేదీ</string>
+    <string name="explorer_sort_descending_label">అవరోహణ క్రమం</string>
+    <string name="explorer_sort_scope_label">వీటికి వర్తింపజేయండి</string>
+    <string name="explorer_sort_scope_all_folders">అన్ని ఫోల్డర్‌లు</string>
+    <string name="explorer_sort_scope_this_folder">ఈ ఫోల్డర్</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">ఈ ఫోల్డర్ మరియు ఉపఫోల్డర్‌లు</string>
+    <string name="explorer_sort_scope_use_default_here">ఇక్కడ డిఫాల్ట్‌ను ఉపయోగించండి</string>
+    <string name="explorer_sort_only_this_tab_label">ఈ ట్యాబ్‌కు మాత్రమే</string>
+    <string name="explorer_sort_inherited_notice">%1$s కోసం సేవ్ చేసిన నియమం ప్రకారం క్రమబద్ధీకరించబడింది</string>
+    <string name="explorer_sort_suppressed_notice">ఇది %1$s కోసం సేవ్ చేసిన నియమానికి బదులుగా వర్తిస్తుంది</string>
+    <string name="explorer_sort_tab_overrides_default_notice">ఈ ట్యాబ్ తన సొంత డిఫాల్ట్ క్రమాన్ని ఉపయోగిస్తుంది</string>
+    <string name="explorer_sort_tab_overrides_clear_action">క్లియర్ చేయండి</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">ఫోల్డర్ పరిమాణాలు</string>
+    <string name="explorer_sizes_sheet_label_calculated">లెక్కించబడింది</string>
+    <string name="explorer_sizes_sheet_label_folders">ఫోల్డర్‌లు</string>
+    <string name="explorer_sizes_sheet_label_unreadable">చదవలేని స్థానాలు</string>
+    <string name="explorer_sizes_sheet_problems_more">మరో %1$d జాబితాలో లేవు</string>
+    <string name="explorer_sizes_sheet_recalculate">మళ్లీ లెక్కించండి</string>
+    <string name="explorer_sizes_sheet_discard">పరిమాణాలను విస్మరించండి</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">అంశాలను అమర్చే విధానం, వాటిలో చూపే వివరాల పరిమాణం</string>
+    <string name="explorer_view_mode_list_label">జాబితా</string>
+    <string name="explorer_view_mode_grid_label">గ్రిడ్</string>
+    <string name="explorer_view_density_compact_label">కుదించినది</string>
+    <string name="explorer_view_density_comfortable_label">సౌకర్యవంతమైనది</string>
+    <string name="explorer_view_density_detailed_label">వివరాలతో</string>
+    <string name="explorer_view_show_hidden_label">దాచిన ఫైళ్లను చూపండి</string>
+    <string name="explorer_view_set_default_action">డిఫాల్ట్‌గా సెట్ చేయండి</string>
+    <string name="explorer_view_detail_created_label">సృష్టించబడింది</string>
+    <string name="explorer_view_detail_modified_label">సవరించబడింది</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">ఫోల్డర్ క్రమబద్ధీకరణ నియమాలు</string>
+    <string name="explorer_settings_folder_sort_rules_desc">వేర్వేరు ఫోల్డర్‌ల కోసం మీరు సేవ్ చేసిన క్రమబద్ధీకరణ సెట్టింగ్‌లు</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">ఫోల్డర్ క్రమబద్ధీకరణ నియమాలను క్లియర్ చేయాలా?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">అన్ని ఫోల్డర్‌లు తిరిగి డిఫాల్ట్ క్రమానికి మారతాయి. తమ సొంత ప్రత్యేక క్రమాన్ని ఉపయోగించే ట్యాబ్‌లు దాన్ని అలాగే ఉంచుకుంటాయి. ఈ చర్యను వెనక్కి తీసుకోలేరు.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">అన్నీ క్లియర్ చేయండి</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">ఫైల్ రకం</string>
+    <string name="explorer_filter_type_all">అన్నీ</string>
+    <string name="explorer_filter_type_files">ఫైళ్లు మాత్రమే</string>
+    <string name="explorer_filter_type_folders">ఫోల్డర్‌లు మాత్రమే</string>
+    <string name="explorer_filter_include_label">చేర్చే నమూనా</string>
+    <string name="explorer_filter_include_placeholder_simple">ఉదా., vacation, report, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">ఉదా., .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">మినహాయించే నమూనా</string>
+    <string name="explorer_filter_exclude_placeholder_simple">ఉదా., tmp, cache, old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">ఉదా., ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 సెట్టింగ్‌లలో regex నమూనాలను ప్రారంభించండి</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">అనుమతి అవసరం</string>
+    <string name="explorer_permission_generic_description">ఈ స్థానాన్ని బ్రౌజ్ చేయడానికి Butlerకు అదనపు అనుమతి అవసరం.</string>
+    <string name="explorer_permission_setup_action">సెటప్ తెరవండి</string>
+    <string name="explorer_grant_access_action">యాక్సెస్ ఇవ్వండి</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">చర్యలు</string>
+    <string name="explorer_file_info_type_label">రకం</string>
+    <string name="explorer_file_info_size_label">పరిమాణం</string>
+    <string name="explorer_file_info_modified_label">సవరించబడింది</string>
+    <string name="explorer_file_action_install">ఇన్‌స్టాల్ చేయండి</string>
+    <string name="explorer_file_action_install_subtitle">ఈ యాప్‌ను మీ పరికరంలో ఇన్‌స్టాల్ చేయండి</string>
+    <string name="explorer_file_action_open">తెరవండి</string>
+    <string name="explorer_file_action_open_subtitle">ఇక్కడ చూడండి, వెనుకకు వెళితే ఈ ఫోల్డర్‌కు తిరిగి వస్తారు</string>
+    <string name="explorer_file_action_open_in_tab">కొత్త ట్యాబ్‌లో తెరవండి</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Butlerలో ప్రత్యేక ట్యాబ్‌గా చూడండి</string>
+    <string name="explorer_file_action_open_in_editor">ఎడిటర్‌లో తెరవండి</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">కొత్త ట్యాబ్‌లో సవరించండి</string>
+    <string name="explorer_file_action_open_with">దీనితో తెరవండి</string>
+    <string name="explorer_file_action_open_with_subtitle">తెరవడానికి బాహ్య యాప్‌ను ఎంచుకోండి</string>
+    <string name="explorer_file_action_share">షేర్ చేయండి</string>
+    <string name="explorer_file_action_share_subtitle">ఇన్‌స్టాల్ చేసిన యాప్‌ల ద్వారా షేర్ చేయండి</string>
+    <string name="explorer_file_action_copy">కాపీ చేయండి</string>
+    <string name="explorer_file_action_copy_subtitle">పేస్ట్ చేయడానికి క్లిప్‌బోర్డ్‌కు కాపీ చేయండి</string>
+    <string name="explorer_file_action_cut">కట్ చేయండి</string>
+    <string name="explorer_file_action_cut_subtitle">పేస్ట్ చేయడానికి క్లిప్‌బోర్డ్‌కు తరలించండి</string>
+    <string name="explorer_file_action_rename">పేరు మార్చండి</string>
+    <string name="explorer_file_action_rename_subtitle">ఫైల్ పేరును మార్చండి</string>
+    <string name="explorer_file_action_delete">తొలగించండి</string>
+    <string name="explorer_file_action_delete_subtitle">ఈ ఫైల్‌ను శాశ్వతంగా తొలగించండి</string>
+    <string name="explorer_file_action_move_to_trash">ట్రాష్‌కు తరలించండి</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">ఫైల్‌ను ట్రాష్‌కు తరలించండి</string>
+    <string name="explorer_file_action_properties">లక్షణాలు</string>
+    <string name="explorer_file_action_properties_subtitle">ఫైల్ పూర్తి సమాచారాన్ని చూడండి</string>
+    <string name="explorer_file_action_extract">ఎక్స్‌ట్రాక్ట్ చేయండి</string>
+    <string name="explorer_file_action_extract_subtitle">ఆర్కైవ్ కంటెంట్‌ను ఫోల్డర్‌కు ఎక్స్‌ట్రాక్ట్ చేయండి</string>
+    <string name="explorer_file_action_show_in_folder">ఫోల్డర్‌లో చూపండి</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">ఈ ఫైల్ ఉన్న ఫోల్డర్‌ను తెరవండి</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">%d ఫైల్ సృష్టించబడింది.</item>
+        <item quantity="other">%d ఫైళ్లు సృష్టించబడ్డాయి.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">%d డైరెక్టరీ సృష్టించబడింది.</item>
+        <item quantity="other">%d డైరెక్టరీలు సృష్టించబడ్డాయి.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">కాపీ చర్య</string>
+    <string name="explorer_operation_copy_description_single">\"%1$s\"ను \"%2$s\" నుంచి \"%3$s\"కు కాపీ చేయండి.</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">%1$d అంశాన్ని \"%2$s\"కు కాపీ చేయండి.</item>
+        <item quantity="other">%1$d అంశాలను \"%2$s\"కు కాపీ చేయండి.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%d ఫైల్ కాపీ చేయబడింది.</item>
+        <item quantity="other">%d ఫైళ్లు కాపీ చేయబడ్డాయి.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%d డైరెక్టరీ కాపీ చేయబడింది.</item>
+        <item quantity="other">%d డైరెక్టరీలు కాపీ చేయబడ్డాయి.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">%s కాపీ చేయబడింది.</item>
+        <item quantity="other">%s కాపీ చేయబడింది.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">ఎక్స్‌ట్రాక్ట్ చర్య</string>
+    <string name="explorer_operation_extract_description">\"%1$s\"ను \"%2$s\"కు ఎక్స్‌ట్రాక్ట్ చేయండి.</string>
+    <string name="explorer_operation_download_copy_title">స్థానిక కాపీ చర్య</string>
+    <string name="explorer_operation_download_copy_description">స్థానికంగా బ్రౌజ్ చేయడానికి \"%1$s\"ను \"%2$s\"కు కాపీ చేయండి.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">%d ఫైల్ ఎక్స్‌ట్రాక్ట్ చేయబడింది.</item>
+        <item quantity="other">%d ఫైళ్లు ఎక్స్‌ట్రాక్ట్ చేయబడ్డాయి.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">%s ఎక్స్‌ట్రాక్ట్ చేయబడింది.</item>
+        <item quantity="other">%s ఎక్స్‌ట్రాక్ట్ చేయబడింది.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">కంప్రెస్ చర్య</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">%1$d అంశాన్ని \"%2$s\"లోకి కంప్రెస్ చేయండి.</item>
+        <item quantity="other">%1$d అంశాలను \"%2$s\"లోకి కంప్రెస్ చేయండి.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">%d ఫైల్ కంప్రెస్ చేయబడింది.</item>
+        <item quantity="other">%d ఫైళ్లు కంప్రెస్ చేయబడ్డాయి.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">ఆర్కైవ్‌ను సృష్టించండి</string>
+    <string name="explorer_compress_dialog_name_label">ఆర్కైవ్ పేరు</string>
+    <string name="explorer_compress_dialog_format_label">ఫార్మాట్</string>
+    <string name="explorer_compress_dialog_format_zip_hint">ఏ పరికరంలోనైనా తెరుచుకుంటుంది. పాస్‌వర్డ్‌తో రక్షించవచ్చు.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">చాలా ఫైళ్లకు పరిమాణం తగ్గుతుంది. పాస్‌వర్డ్ రక్షణ లేదు.</string>
+    <string name="explorer_compress_dialog_create_action">సృష్టించండి</string>
+    <string name="explorer_compress_dialog_level_label">కంప్రెషన్ స్థాయి</string>
+    <string name="explorer_compress_dialog_level_fast">వేగవంతం</string>
+    <string name="explorer_compress_dialog_level_normal">సాధారణం</string>
+    <string name="explorer_compress_dialog_level_best">ఉత్తమం</string>
+    <string name="explorer_compress_dialog_password_label">పాస్‌వర్డ్ (ఐచ్ఛికం)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">పాస్‌వర్డ్‌ను నిర్ధారించండి</string>
+    <string name="explorer_compress_dialog_password_mismatch">పాస్‌వర్డ్‌లు సరిపోలడం లేదు</string>
+    <string name="explorer_compress_dialog_password_weak">బలహీనమైన పాస్‌వర్డ్</string>
+    <string name="explorer_compress_dialog_password_notice">ఫైళ్ల కంటెంట్ ఎన్‌క్రిప్ట్ చేయబడుతుంది, ఫైల్ పేర్లు కాదు.</string>
+    <string name="explorer_compress_dialog_password_show">పాస్‌వర్డ్‌ను చూపండి</string>
+    <string name="explorer_compress_dialog_password_hide">పాస్‌వర్డ్‌ను దాచండి</string>
+    <string name="explorer_compress_dialog_overwrite_title">ఆర్కైవ్‌ను భర్తీ చేయాలా?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" ఇప్పటికే ఉంది, అది భర్తీ చేయబడుతుంది.</string>
+    <string name="explorer_compress_dialog_overwrite_action">భర్తీ చేయండి</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">%1$d అంశాన్ని ఇక్కడ వదలాలా?</item>
+        <item quantity="other">%1$d అంశాలను ఇక్కడ వదలాలా?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">%1$d అంశాన్ని \"%2$s\"కు కాపీ చేయాలా లేదా తరలించాలా?</item>
+        <item quantity="other">%1$d అంశాలను \"%2$s\"కు కాపీ చేయాలా లేదా తరలించాలా?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">%1$d అంశాన్ని \"%2$s\"కు కాపీ చేయాలా?</item>
+        <item quantity="other">%1$d అంశాలను \"%2$s\"కు కాపీ చేయాలా?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">ట్రాష్‌కు తరలించాలా?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">%1$d అంశాన్ని ట్రాష్‌కు తరలించాలా?</item>
+        <item quantity="other">%1$d అంశాలను ట్రాష్‌కు తరలించాలా?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">తరలింపు చర్య</string>
+    <string name="explorer_operation_move_description_single">\"%1$s\"ను \"%2$s\" నుంచి \"%3$s\"కు తరలించండి.</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">%1$d అంశాన్ని \"%2$s\"కు తరలించండి.</item>
+        <item quantity="other">%1$d అంశాలను \"%2$s\"కు తరలించండి.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%d ఫైల్ తరలించబడింది.</item>
+        <item quantity="other">%d ఫైళ్లు తరలించబడ్డాయి.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%d డైరెక్టరీ తరలించబడింది.</item>
+        <item quantity="other">%d డైరెక్టరీలు తరలించబడ్డాయి.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">%s తరలించబడింది.</item>
+        <item quantity="other">%s తరలించబడింది.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">ఫోల్డర్ సృష్టి</string>
+    <string name="explorer_operation_create_description_directory">\"%2$s\"లో \"%1$s\" ఫోల్డర్‌ను సృష్టించండి</string>
+    <string name="explorer_operation_create_title_file">ఫైల్ సృష్టి</string>
+    <string name="explorer_operation_create_description_file">\"%2$s\"లో \"%1$s\" ఫైల్‌ను సృష్టించండి</string>
+    <string name="explorer_operation_create_text_file_title">వచన ఫైల్ సృష్టి</string>
+    <string name="explorer_operation_create_text_file_description">వచన భాగం నుంచి \"%1$s\"ను సృష్టించండి</string>
+    <string name="explorer_operation_calculate_sizes_title">పరిమాణాల లెక్కింపు</string>
+    <string name="explorer_operation_calculate_sizes_description">\"%1$s\"లోని ఫోల్డర్ పరిమాణాలను లెక్కించండి.</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$d అంశం స్కాన్ చేయబడింది</item>
+        <item quantity="other">%1$d అంశాలు స్కాన్ చేయబడ్డాయి</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">%1$d ఫోల్డర్‌ల పరిమాణాలు లెక్కించబడ్డాయి.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">%1$d ఫోల్డర్‌ల పరిమాణాలు లెక్కించబడ్డాయి, %2$d స్థానాన్ని చదవలేకపోయాము.</item>
+        <item quantity="other">%1$d ఫోల్డర్‌ల పరిమాణాలు లెక్కించబడ్డాయి, %2$d స్థానాలను చదవలేకపోయాము.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">లెక్కించే సమయంలో \"%1$s\" మారడంతో దాని ఫోల్డర్ పరిమాణాలు విస్మరించబడ్డాయి.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">నావిగేషన్ విఫలమైంది</string>
+    <string name="explorer_aborted_dialog_title">చర్య నిలిపివేయబడింది</string>
+    <string name="explorer_aborted_dialog_message">ఏదైనా చూపేలోపు లోడింగ్ రద్దయింది.</string>
+    <string name="explorer_archive_unbrowsable_title">ఆర్కైవ్‌ను ఇక్కడ బ్రౌజ్ చేయలేము</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" ఉన్న నిల్వలో వరుసగా చదవడం మాత్రమే సాధ్యం, కానీ ఆర్కైవ్‌ను బ్రౌజ్ చేయడానికి ఏ స్థానాన్నైనా నేరుగా యాక్సెస్ చేయగలగాలి. ఆర్కైవ్‌ను ఇక్కడ ఎక్స్‌ట్రాక్ట్ చేయండి లేదా బ్రౌజ్ చేయడానికి స్థానిక కాపీని డౌన్‌లోడ్ చేయండి.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">ఆర్కైవ్‌ను ఎక్స్‌ట్రాక్ట్ చేయండి</string>
+    <string name="explorer_archive_unbrowsable_download_action">స్థానిక కాపీని డౌన్‌లోడ్ చేయండి</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (ప్రత్యేక యాక్సెస్)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (ప్రత్యేక యాక్సెస్)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">ఈ ఫోల్డర్‌కు యాక్సెస్‌ను Android పరిమితం చేస్తుంది. యాక్సెస్ ఇవ్వడానికి ఫోల్డర్ ఎంపిక సాధనాన్ని ఉపయోగించండి.</string>
+    <string name="explorer_permission_multiple_options_description">Android ఫోల్డర్ ఎంపిక సాధనంతో యాక్సెస్ ఇవ్వవచ్చు లేదా పరిమితులు ఉన్న అన్ని ఫోల్డర్‌లకు వేగంగా యాక్సెస్ పొందడానికి రూట్ లేదా ADB యాక్సెస్‌ను సెటప్ చేయవచ్చు.</string>
+    <string name="explorer_permission_multiple_options_root_description">Android ఫోల్డర్ ఎంపిక సాధనంతో యాక్సెస్ ఇవ్వవచ్చు లేదా పరిమితులు ఉన్న అన్ని ఫోల్డర్‌లకు యాక్సెస్ పొందడానికి రూట్‌ను సెటప్ చేయవచ్చు.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Android ఫోల్డర్ ఎంపిక సాధనంతో యాక్సెస్ ఇవ్వవచ్చు లేదా పరిమితులు ఉన్న ఫోల్డర్‌లకు వేగంగా యాక్సెస్ పొందడానికి ADB యాక్సెస్‌ను సెటప్ చేయవచ్చు.</string>
+    <string name="explorer_permission_setup_both_description">ఈ ఫోల్డర్‌కు అధిక అధికారాలతో యాక్సెస్ అవసరం. సెటప్‌లో రూట్ లేదా ADB యాక్సెస్‌ను సెటప్ చేయండి.</string>
+    <string name="explorer_permission_setup_shizuku_description">ఈ ఫోల్డర్‌కు ADB ద్వారా అధిక అధికారాలతో యాక్సెస్ అవసరం. సెటప్‌లో ADB యాక్సెస్‌ను కాన్ఫిగర్ చేయండి.</string>
+    <string name="explorer_permission_setup_root_description">ఈ ఫోల్డర్‌కు రూట్ యాక్సెస్ అవసరం. మీ పరికరం రూట్ చేయబడి ఉంటే సెటప్‌లో రూట్‌ను కాన్ఫిగర్ చేయండి.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">ఈ ఫోల్డర్‌కు యాక్సెస్ ఇవ్వడానికి Android ఫోల్డర్ ఎంపిక సాధనాన్ని ఉపయోగించండి.</string>
+    <string name="explorer_permission_option_picker_action">SAF ఎంపిక సాధనాన్ని తెరవండి</string>
+
+    <string name="explorer_permission_option_setup_title">పూర్తి యాక్సెస్</string>
+    <string name="explorer_permission_option_setup_description">పరిమితులు ఉన్న అన్ని ఫోల్డర్‌లకు వేగంగా యాక్సెస్ పొందడానికి రూట్ లేదా ADB యాక్సెస్‌ను కాన్ఫిగర్ చేయండి.</string>
+    <string name="explorer_permission_option_setup_root_description">ఈ ఫోల్డర్, ఇతర పరిమితులు ఉన్న ఫోల్డర్‌లను యాక్సెస్ చేయడానికి రూట్‌ను కాన్ఫిగర్ చేయండి.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">ఈ ఫోల్డర్‌ను తెరవడానికి ADB యాక్సెస్‌ను కాన్ఫిగర్ చేయండి.</string>
+    <string name="explorer_permission_option_setup_action">కాన్ఫిగర్ చేయండి</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">నిల్వ యాక్సెస్</string>
+    <string name="explorer_permission_option_storage_description">మీ పరికర నిల్వలోని ఫైళ్లను యాక్సెస్ చేయడానికి Butlerకు అనుమతి ఇవ్వండి.</string>
+    <string name="explorer_permission_option_storage_action">అనుమతి ఇవ్వండి</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders &amp; files -->
+    <string name="explorer_favorites_section_title">ఇష్టమైనవి</string>
+    <string name="explorer_action_add_to_favorites">ఇష్టమైనవాటికి జోడించండి</string>
+    <string name="explorer_action_remove_from_favorites">ఇష్టమైనవాటి నుంచి తీసివేయండి</string>
+    <string name="explorer_favorites_select_action">ఎంచుకోండి</string>
+    <string name="explorer_favorites_unavailable_subtitle">యాక్సెస్ చేయలేము</string>
+    <string name="explorer_favorites_unavailable_toast">ఇష్టమైన అంశాన్ని యాక్సెస్ చేయలేము</string>
+    <string name="explorer_favorites_added_message">%1$s ఇష్టమైనవాటికి జోడించబడింది</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">%1$d అంశం ఇష్టమైనవాటికి జోడించబడింది</item>
+        <item quantity="other">%1$d అంశాలు ఇష్టమైనవాటికి జోడించబడ్డాయి</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">%1$s ఇష్టమైనవాటి నుంచి తీసివేయబడింది</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">%1$d అంశం ఇష్టమైనవాటి నుంచి తీసివేయబడింది</item>
+        <item quantity="other">%1$d అంశాలు ఇష్టమైనవాటి నుంచి తీసివేయబడ్డాయి</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">ఇష్టమైన అంశం పేరు మార్చండి</string>
+    <string name="explorer_favorites_rename_hint">ఇష్టమైన అంశం పేరు</string>
+    <string name="explorer_favorites_rename_description">ఇష్టమైనవాటిలోని నమోదు పేరు మాత్రమే మారుతుంది, ఫోల్డర్ అసలు పేరు అలాగే ఉంటుంది.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">ఈ ట్యాబ్ క్రమం %1$d ఫోల్డర్‌లోని క్రమానికి బదులుగా వర్తిస్తుంది</item>
+        <item quantity="other">ఈ ట్యాబ్ క్రమం %1$d ఫోల్డర్‌లలోని క్రమానికి బదులుగా వర్తిస్తుంది</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d ఫోల్డర్</item>
+        <item quantity="other">%1$d ఫోల్డర్‌లు</item>
+    </plurals>
+</resources>

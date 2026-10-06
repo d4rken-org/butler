@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">అధునాతన పరికర యాక్సెస్</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">పరికరం</string>
+    <string name="documents_connection_device_summary">స్థానిక పరికర స్టోరేజ్</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">రూట్ ఫైల్ సిస్టమ్</string>
+    <string name="provider_documents_storage_internal_label">అంతర్గత స్టోరేజ్</string>
+    <string name="provider_documents_storage_sd_card_label">SD కార్డ్</string>
+    <string name="provider_documents_storage_saf_label">SAF స్థానం</string>
+    <string name="provider_documents_storage_free_suffix">ఖాళీ</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">ఈ స్థానంలోని ఫైళ్లను చూడటానికి రూట్ యాక్సెస్ అవసరం. Butler యాప్ సెట్టింగ్‌లలో రూట్ యాక్సెస్‌ను ప్రారంభించండి.</string>
+    <string name="provider_documents_error_requires_adb">ఈ స్థానంలోని ఫైళ్లను చూడటానికి ADB యాక్సెస్ అవసరం. Butler సెటప్‌లో దాన్ని ప్రారంభించండి.</string>
+    <string name="provider_documents_error_requires_storage">ఈ స్థానంలోని ఫైళ్లను చూడటానికి స్టోరేజ్ అనుమతి అవసరం. Butler యాప్ సెట్టింగ్‌లలో స్టోరేజ్ అనుమతిని ఇవ్వండి.</string>
+    <string name="provider_documents_error_requires_permissions">ఈ స్థానంలోని ఫైళ్లను చూడటానికి అదనపు అనుమతులు అవసరం. Butler యాప్ సెట్టింగ్‌లను తనిఖీ చేయండి.</string>
+    <string name="provider_documents_error_generic">ఈ స్థానాన్ని యాక్సెస్ చేయలేము. యాక్సెస్ ఎంపికల కోసం Butler యాప్‌ను తనిఖీ చేయండి.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">డాక్యుమెంట్ ప్రొవైడర్</string>
+    <string name="provider_documents_settings_subtitle">బాహ్య యాప్ అనుసంధానం</string>
+    <string name="provider_documents_settings_category_integration_label">అనుసంధానం</string>
+    <string name="provider_documents_enabled_title">డాక్యుమెంట్ ప్రొవైడర్‌ను ప్రారంభించండి</string>
+    <string name="provider_documents_enabled_desc">Android ఫైల్ పికర్‌ను ఉపయోగించి Butler ద్వారా ఫైళ్లను యాక్సెస్ చేయడానికి ఇతర యాప్‌లను అనుమతించండి</string>
+</resources>

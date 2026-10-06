@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Avaa sovelluksella</string>
+    <string name="viewer_image_content_description">Kuva %1$s</string>
+    <string name="viewer_toolbar_folder_label">Kansio</string>
+    <string name="viewer_back_action">Takaisin</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">Edellinen tiedosto</string>
+    <string name="viewer_next_file_action">Seuraava tiedosto</string>
+    <string name="viewer_open_location_action">Avaa sijainti</string>
+    <string name="viewer_clipboard_copied">%1$s kopioitu. Liitä se tiedostonhallinnan välilehdellä.</string>
+    <string name="viewer_clipboard_cut">%1$s leikattu. Siirrä se liittämällä tiedostonhallinnan välilehdellä.</string>
+    <string name="viewer_share_failed_label">Tätä tiedostoa ei voitu jakaa</string>
+    <string name="viewer_share_failed_description">Tiedostoa %1$s ei voi välittää toiselle sovellukselle. Näin käy tiedostoille, jotka vaativat root- tai ADB-käyttöoikeuden, sekä tiedostoille, joita ei enää ole.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Koko</string>
+    <string name="viewer_info_modified_label">Muokattu</string>
+    <string name="viewer_info_created_label">Luotu</string>
+    <string name="viewer_info_format_label">Muoto</string>
+    <string name="viewer_info_dimensions_label">Mitat</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Käyttöoikeudet</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Omistaja</string>
+    <string name="viewer_info_caption_label">Jaettu viesti</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Näytä kaikki tiedot</string>
+    <string name="viewer_info_collapse_action">Piilota tiedot</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">Esikatselu · 1 sivu</string>
+    <string name="viewer_pdf_page_indicator">Sivu %1$d/%2$d</string>
+    <string name="viewer_pdf_page_previous">Edellinen sivu</string>
+    <string name="viewer_pdf_page_next">Seuraava sivu</string>
+    <string name="viewer_pdf_page_error">Sivua %1$d ei voitu näyttää.</string>
+    <string name="viewer_pdf_page_content_description">Tiedoston %1$s PDF-esikatselu, sivu %2$d/%3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">Tätä tiedostotyyppiä ei vielä tueta</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">Tämä on arkisto</string>
+    <string name="viewer_browse_archive_action">Selaa sisältöä</string>
+    <string name="viewer_archive_needs_copy_msg">Tallenna kopio laitteellesi, niin Butler voi selata sen sisältöä.</string>
+    <string name="viewer_archive_nested_msg">Tämä arkisto on toisen arkiston sisällä. Pura se ensin, jotta voit selata sen sisältöä.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">Versio</string>
+    <string name="viewer_apk_min_sdk_label">SDK:n vähimmäisversio</string>
+    <string name="viewer_apk_target_sdk_label">SDK:n kohdeversio</string>
+    <string name="viewer_apk_installed_label">Asennettu</string>
+    <string name="viewer_apk_not_installed_value">Ei asennettu</string>
+    <string name="viewer_apk_installed_unknown_value">Ei voitu tarkistaa</string>
+    <string name="viewer_apk_installed_older_hint">Tätä tiedostoa vanhempi</string>
+    <string name="viewer_apk_installed_newer_hint">Tätä tiedostoa uudempi</string>
+    <string name="viewer_apk_permissions_header">Käyttöoikeudet (%1$d)</string>
+    <string name="viewer_apk_signing_header">Allekirjoitusvarmenteet</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">Asenna</string>
+    <string name="viewer_bundle_format_label">Paketin muoto</string>
+    <string name="viewer_bundle_splits_label">Paketin APK-tiedostot</string>
+    <string name="viewer_bundle_expansion_files_hint">Sisältää laajennustiedostoja, jotka sijoitetaan sovelluksen asennuksen jälkeen.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Laajennustiedostojen sijoittaminen vaatii root- tai ADB-käyttöoikeuden. Ilman sitä sovellus asentuu, mutta sen laajennustiedostoja ei sijoiteta.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">Sovelluksen %1$s kuvake</string>
+    <string name="viewer_apk_icon_show_action">Näytä kuvake</string>
+    <string name="viewer_apk_icon_save_action">Tallenna kuvake</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Kuvake tallennettu nimellä %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Korvataanko tiedosto?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s on jo olemassa tässä kansiossa. Kuvakkeen tallentaminen korvaa sen.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Korvaa</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">Tiedosto muuttui</string>
+    <string name="viewer_external_change_message">Tämä tiedosto muuttui laitteella. Lataa se uudelleen päivittämällä näkymä.</string>
+    <string name="viewer_external_change_gone_title">Tiedosto on kadonnut</string>
+    <string name="viewer_external_change_gone_message">Tämä tiedosto on poistettu tai siihen ei enää pääse käsiksi.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Tätä tiedostoa ei voi näyttää</string>
+    <string name="viewer_error_not_a_file_label">Ei ole tiedosto</string>
+    <string name="viewer_error_not_a_file_description">%1$s ei ole tavallinen tiedosto.</string>
+    <string name="viewer_error_broken_symlink_label">Rikkinäinen pikakuvake</string>
+    <string name="viewer_error_broken_symlink_description">%1$s osoittaa kohteeseen, jota ei enää ole.</string>
+    <string name="viewer_error_undecodable_label">Vioittunut kuva</string>
+    <string name="viewer_error_undecodable_description">Tiedoston %1$s kuvatietoja ei voitu tulkita. Tiedosto voi olla puutteellinen tai vioittunut.</string>
+    <string name="viewer_error_file_gone_label">Tiedostoa ei löydy</string>
+    <string name="viewer_error_file_gone_description">Tiedostoa %1$s ei enää ole. Se on voitu siirtää, nimetä uudelleen tai poistaa.</string>
+    <string name="viewer_error_empty_file_label">Tyhjä tiedosto</string>
+    <string name="viewer_error_empty_file_description">%1$s on tyhjä eikä sisällä mitään näytettävää.</string>
+    <string name="viewer_error_apk_unreadable_label">APK-tiedostoa ei voi lukea</string>
+    <string name="viewer_error_apk_unreadable_description">Tiedostoa %1$s ei voitu jäsentää Android-sovelluspakettina.</string>
+    <string name="viewer_error_icon_unavailable_label">Ei kuvaketta</string>
+    <string name="viewer_error_icon_unavailable_description">Sovelluksen %1$s kuvaketta ei voitu lukea.</string>
+    <string name="viewer_error_icon_target_notfile_label">Nimi on jo käytössä</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s on jo olemassa täällä eikä ole tavallinen tiedosto, joten sitä ei voi korvata.</string>
+    <string name="viewer_error_icon_target_appeared_label">Tiedosto ilmestyi</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s luotiin sillä aikaa, kun valitsit tallennuspaikkaa. Mitään ei korvattu. Yritä uudelleen.</string>
+    <string name="viewer_error_content_unreadable_label">Tätä tiedostoa ei voi lukea</string>
+    <string name="viewer_error_content_unreadable_description">Sovellus, joka jakoi tiedoston %1$s, ei enää anna Butlerin lukea sitä. Pyydä sovellusta jakamaan se uudelleen.</string>
+    <string name="viewer_save_copy_action">Tallenna kopio…</string>
+    <string name="viewer_open_in_editor_action">Avaa muokkaimessa</string>
+    <string name="viewer_text_truncated_bytes">Esikatselussa näkyy vain tiedoston ensimmäiset %1$s.</string>
+    <string name="viewer_text_truncated_lines">Esikatselussa näkyy vain tiedoston %1$s ensimmäistä riviä.</string>
+    <string name="viewer_text_truncated_width">Pitkiä rivejä lyhennetään tässä esikatselussa.</string>
+    <string name="viewer_text_unreadable_label">Tätä tiedostoa ei voitu lukea</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">Katselin</string>
+    <string name="viewer_settings_show_next_after_delete_title">Näytä seuraava tiedosto poistamisen jälkeen</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Kun poistat kansiosta avatun tiedoston, näytä kansion seuraava tiedosto katselimen sulkemisen sijaan.</string>
+</resources>

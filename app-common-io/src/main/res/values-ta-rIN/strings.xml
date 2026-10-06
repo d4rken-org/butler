@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">உருப்படிகளை நீக்குகிறது</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">உருப்படிகளை நகலெடுக்கிறது</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">உருப்படிகளை நகர்த்துகிறது</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">ஸ்கேன் செய்கிறது…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">கோப்பு ஏற்கெனவே உள்ளது</string>
+    <string name="path_action_folder_exists_title">கோப்புறை ஏற்கெனவே உள்ளது</string>
+    <string name="path_action_file_exists_description">\"%2$s\" இல் \"%1$s\" என்ற பெயரில் ஒரு கோப்பு ஏற்கெனவே உள்ளது.</string>
+    <string name="path_action_folder_exists_description">\"%2$s\" இல் \"%1$s\" என்ற பெயரில் ஒரு கோப்புறை ஏற்கெனவே உள்ளது.</string>
+
+    <string name="path_action_not_found_title">கோப்பு இனி இல்லை</string>
+    <string name="path_action_not_found_description">\"%1$s\" நீக்கப்பட்டது, மறுபெயரிடப்பட்டது அல்லது வேறு இடத்திற்கு நகர்த்தப்பட்டது.</string>
+
+    <string name="path_action_permission_denied_title">அனுமதி மறுக்கப்பட்டது</string>
+    <string name="path_action_permission_denied_description">போதுமான அனுமதிகள் இல்லாததால் \"%2$s\" இல் உள்ள \"%1$s\" ஐ அணுக முடியவில்லை.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">\"%2$s\" இல் உள்ள \"%1$s\" ஐ அணுக முடியவில்லை. இந்தச் செயல்பாட்டைச் செய்ய எந்த முறையும் கிடைக்கவில்லை.</string>
+    <string name="path_action_permission_denied_readonly_description">\"%2$s\" இல் உள்ள \"%1$s\" ஐ அணுக முடியவில்லை. கோப்பு முறைமை வாசிக்க மட்டுமே அனுமதிக்கிறது.</string>
+    <string name="path_action_permission_denied_not_permitted_description">\"%2$s\" இல் உள்ள \"%1$s\" ஐ அணுக முடியவில்லை. இந்தச் செயல்பாட்டை அமைப்பு மறுத்துவிட்டது.</string>
+
+    <string name="path_action_insufficient_space_title">போதுமான இடம் இல்லை</string>
+    <string name="path_action_insufficient_space_description">\"%2$s\" இலிருந்து \"%1$s\" ஐ நகலெடுக்கப் போதுமான சேமிப்பக இடம் இல்லை.</string>
+
+    <string name="path_action_unknown_error_title">செயல்பாடு தோல்வியடைந்தது</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">மாற்றீடு நிறைவடையவில்லை</string>
+    <string name="path_action_data_kept_new_data_description">\"%1$s\" ஐ எழுதி முடிக்க Butler ஆல் முடியவில்லை. உங்கள் புதிய தரவு அதே கோப்புறையில் \"%2$s\" என்ற பெயரில் பாதுகாக்கப்பட்டுள்ளது. அதை மீட்டெடுக்க மறுபெயரிடுங்கள், அல்லது வேண்டாமெனில் நீக்குங்கள்.</string>
+    <string name="path_action_data_kept_original_in_place_description">\"%1$s\" ஐ எழுதி முடிக்க Butler ஆல் முடியவில்லை; முந்தைய கோப்பு மாறாமல் உள்ளது. உங்கள் புதிய தரவு அதே கோப்புறையில் \"%2$s\" என்ற பெயரில் பாதுகாக்கப்பட்டுள்ளது. அதை மீட்டெடுக்க மறுபெயரிடுங்கள், அல்லது வேண்டாமெனில் நீக்குங்கள்.</string>
+    <string name="path_action_data_kept_both_description">\"%1$s\" ஐ எழுதி முடிக்க Butler ஆல் முடியவில்லை. எதுவும் இழக்கப்படவில்லை: முந்தைய கோப்பு அதே கோப்புறையில் \"%2$s\" என்ற பெயரிலும், உங்கள் புதிய தரவு \"%3$s\" என்ற பெயரிலும் பாதுகாக்கப்பட்டுள்ளன. நீங்கள் வைத்துக்கொள்ள விரும்பும் கோப்பை மறுபெயரிடுங்கள்.</string>
+    <string name="path_action_data_kept_maybe_partial_description">\"%1$s\" ஐ எழுதி முடிக்கவும், \"%2$s\" இன்னும் உள்ளதா எனச் சரிபார்க்கவும் Butler ஆல் முடியவில்லை. முழுமையடையாத நகல் அதே கோப்புறையில் \"%3$s\" என்ற பெயரில் இருக்கலாம். ஏதேனும் ஒன்றை நீக்குவதற்கு முன் இரண்டையும் ஒப்பிடுங்கள்.</string>
+    <string name="path_action_data_kept_intermediate_description">\"%1$s\" ஐ நகர்த்தி முடிக்க Butler ஆல் முடியவில்லை; அது இருந்த கோப்புறையை விட்டு நகர்ந்ததா என்பதும் தெரியவில்லை. உங்கள் தரவு அந்தக் கோப்புறையில் \"%2$s\" என்ற பெயரில் பாதுகாக்கப்பட்டுள்ளது, அல்லது ஏற்கெனவே \"%3$s\" இல் உள்ளது. ஏதேனும் ஒன்றை நீக்குவதற்கு முன் இரண்டையும் சரிபாருங்கள்.</string>
+    <string name="path_action_data_kept_uncertain_description">\"%1$s\" ஐ எழுதி முடிக்க Butler ஆல் முடியவில்லை; உங்கள் கோப்பு இறுதியில் எங்கு உள்ளது என்பதும் தெரியவில்லை. அந்தக் கோப்புறையில் உள்ள மூன்று கோப்புகளில் ஒன்றில் அது உள்ளது: \"%1$s\" கோப்பிலேயே, \"%2$s\" அல்லது \"%3$s\" இல். அவற்றில் எதையும் நீக்குவதற்கு முன் மூன்றையும் சரிபாருங்கள்.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">\"%1$s\" ஐ எழுதி முடிக்க Butler ஆல் முடியவில்லை; உங்கள் கோப்பு இறுதியில் எங்கு உள்ளது என்பதும் தெரியவில்லை. அந்தக் கோப்புறையில் உள்ள இரண்டு கோப்புகளில் ஒன்றில் அது உள்ளது: \"%1$s\" கோப்பிலேயே அல்லது \"%2$s\" இல். ஏதேனும் ஒன்றை நீக்குவதற்கு முன் இரண்டையும் சரிபாருங்கள்.</string>
+
+    <string name="path_action_trash_size_limit_title">உருப்படிகள் குப்பைத்தொட்டிக்கு மிகப் பெரியவை</string>
+    <string name="path_action_trash_size_limit_description">மொத்தம் %2$s அளவுள்ள %1$d உருப்படிகள் குப்பைத்தொட்டியின் அளவு வரம்பை (%3$s) மீறுகின்றன.</string>
+
+    <string name="path_action_trash_move_failed_title">குப்பைத்தொட்டிக்கு நகர்த்த முடியவில்லை</string>
+    <string name="path_action_trash_move_failed_description">%1$d உருப்படிகளைக் குப்பைத்தொட்டிக்கு நகர்த்த முடியவில்லை.</string>
+
+    <string name="path_action_trash_not_supported_title">குப்பைத்தொட்டி ஆதரிக்கப்படவில்லை</string>
+    <string name="path_action_trash_not_supported_description">%1$d உருப்படிகள் குப்பைத்தொட்டியை ஆதரிக்காத சேமிப்பகத்தில் உள்ளன.</string>
+
+    <string name="path_action_archive_password_title">கடவுச்சொல் தேவை</string>
+    <string name="path_action_archive_password_description">\"%1$s\" குறியாக்கம் செய்யப்பட்டுள்ளது. அதன் உள்ளடக்கத்தை வாசிக்கக் கடவுச்சொல்லை உள்ளிடுங்கள்.</string>
+    <string name="path_action_archive_password_wrong_description">\"%1$s\" க்கான கடவுச்சொல் தவறானது. மீண்டும் முயற்சியுங்கள்.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">சேவையகத்தைத் தொடர்புகொள்ள முடியவில்லை</string>
+    <string name="smb_error_unreachable_description">\"%1$s\" ஐ Butler ஆல் தொடர்புகொள்ள முடியவில்லை. சாதனம் அதே பிணையத்தில் உள்ளதா என்பதையும், சேவையகம் இயக்கப்பட்டுள்ளதா என்பதையும் சரிபாருங்கள்.</string>
+    <string name="smb_error_auth_title">உள்நுழைவு தோல்வியடைந்தது</string>
+    <string name="smb_error_auth_description">\"%1$s\" பயனர்பெயர் அல்லது கடவுச்சொல்லை நிராகரித்துவிட்டது.</string>
+    <string name="smb_error_share_access_denied_title">இந்தப் பகிர்வுக்கு அணுகல் இல்லை</string>
+    <string name="smb_error_share_access_denied_description">\"%2$s\" இல் உள்ள \"%1$s\" ஐப் பயன்படுத்த இந்தக் கணக்குக்கு அனுமதி இல்லை. சேவையகத்தில் பகிர்வின் அனுமதிகளைச் சரிபாருங்கள்.</string>
+    <string name="smb_error_share_not_found_title">பகிர்வு கிடைக்கவில்லை</string>
+    <string name="smb_error_share_not_found_description">\"%2$s\" இல் \"%1$s\" இல்லை.</string>
+    <string name="smb_error_dialect_title">சேவையகம் மிகவும் பழையது</string>
+    <string name="smb_error_dialect_description">\"%1$s\" SMB1 ஐ மட்டுமே வழங்குகிறது; அது பாதுகாப்பற்றது, ஆதரிக்கப்படாதது. சேவையகத்தில் SMB2 அல்லது அதைவிடப் புதிய பதிப்பை இயக்குங்கள்.</string>
+    <string name="smb_error_credential_unavailable_title">உள்நுழைவு தேவை</string>
+    <string name="smb_error_credential_unavailable_description">இந்தப் பிணையச் சேமிப்பகத்திற்குச் சேமிக்கப்பட்ட கடவுச்சொல்லை இனி வாசிக்க முடியாது. மீண்டும் இணைக்க அதை மறுபடியும் உள்ளிடுங்கள்.</string>
+    <string name="smb_error_pro_required_title">பிணையப் பகிர்வுகளுக்கு Butler Pro தேவை</string>
+    <string name="smb_error_pro_required_description">பிணையப் பகிர்வுகளில் உலாவுவது Butler Pro இன் ஒரு அம்சம். இருப்பிடங்களைச் சேர்ப்பது, சோதிப்பது மற்றும் அகற்றுவது இலவசம்.</string>
+
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">பாதுகாக்கப்பட்ட செயலித் தொகுப்பு</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" குறியாக்கம் செய்யப்பட்டுள்ளது; அதை உருவாக்கிய செயலியால் மட்டுமே அதை நிறுவ முடியும்.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">APK தொகுதி வடிவம் ஆதரிக்கப்படவில்லை</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" என்பது bundletool APK தொகுதி. அதன் மாறுபாடுகளில் எது இந்தச் சாதனத்திற்குப் பொருந்தும் என்பதை Butler ஆல் கண்டறிய முடியவில்லை.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">நிறுவுவதற்குச் செயலி இல்லை</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" இல் நிறுவக்கூடிய APK எதுவும் இல்லை.</string>
+
+    <string name="app_install_error_session_title">நிறுவல் தோல்வியடைந்தது</string>
+    <string name="app_install_error_session_description">நிறுவலை அமைப்பு நிராகரித்துவிட்டது: %1$s</string>
+
+    <string name="app_install_error_busy_title">மற்றொரு நிறுவல் நடந்துகொண்டிருக்கிறது</string>
+    <string name="app_install_error_busy_description">\"%1$s\" இன்னும் நிறுவப்பட்டுக்கொண்டிருக்கிறது. மற்றொரு நிறுவலைத் தொடங்குவதற்கு முன் அந்த நிறுவலை உறுதிசெய்யுங்கள் அல்லது ரத்துசெய்யுங்கள்.</string>
+
+    <string name="app_install_error_no_elevation_title">கூடுதல் அணுகல் இல்லை</string>
+    <string name="app_install_error_no_elevation_description">Root அல்லது ADB அணுகல் தற்போது கிடைக்கவில்லை.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">உறுதிப்படுத்தல் தேவை</string>
+    <string name="app_install_confirm_pending_description">\"%1$s\" இன் நிறுவலை முடிக்க, அதை நீங்கள் உறுதிசெய்ய வேண்டும் என Android கோருகிறது.</string>
+    <string name="app_install_confirm_pending_description_unnamed">இந்த நிறுவலை முடிக்க, அதை நீங்கள் உறுதிசெய்ய வேண்டும் என Android கோருகிறது.</string>
+    <string name="app_install_confirm_pending_action">நிறுவலை உறுதிசெய்</string>
+    <string name="app_install_confirm_pending_reason">நிறுவி உங்கள் உறுதிப்படுத்தலுக்காகக் காத்திருக்கிறது</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">உறுதிப்படுத்தல் தேவை</string>
+    <string name="app_uninstall_confirm_pending_description">\"%1$s\" ஐ அகற்றுவதை முடிக்க, அதை நீங்கள் உறுதிசெய்ய வேண்டும் என Android கோருகிறது.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">இந்த அகற்றலை முடிக்க, அதை நீங்கள் உறுதிசெய்ய வேண்டும் என Android கோருகிறது.</string>
+    <string name="app_uninstall_confirm_pending_action">அகற்றலை உறுதிசெய்</string>
+    <string name="app_uninstall_confirm_pending_reason">Android உங்கள் உறுதிப்படுத்தலுக்காகக் காத்திருக்கிறது</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">மற்றொரு பயனருக்காக இந்தச் செயலியை அகற்ற Root அல்லது ADB அணுகல் தேவை</string>
+    <string name="app_uninstall_no_result">Android முடிவைத் தெரிவிக்கவில்லை</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">கோப்புச் செயல்பாடு தடைபட்டது</string>
+    <string name="service_connection_lost_error_message">கோப்புச் செயல்பாட்டுச் சேவை எதிர்பாராமல் நின்றுவிட்டது. மீண்டும் முயற்சியுங்கள்.</string>
+</resources>
