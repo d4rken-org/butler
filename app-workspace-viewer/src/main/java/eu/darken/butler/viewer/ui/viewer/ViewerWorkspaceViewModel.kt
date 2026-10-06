@@ -17,6 +17,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorIncidentStore
+import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.MimeInfo
@@ -37,6 +38,7 @@ import eu.darken.butler.viewer.core.TextPreview
 import eu.darken.butler.viewer.core.TextPreviewLoader
 import eu.darken.butler.viewer.core.ViewerBrokenSymlinkException
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerContentUnreadableException
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerExternalChange
 import eu.darken.butler.viewer.core.ViewerFileInfo
@@ -164,7 +166,15 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 // a different source this tab was rebound to (caught where the state is composed).
                 onError = { error ->
                     if (attemptFlow.value == attempt) {
-                        renderErrorFlow.value = RenderFailure(source = source, error = error)
+                        // A grant that lapses after the load only surfaces here, at render time. It is
+                        // the same failure the workspace reports when the grant is already gone on load.
+                        val classified = when {
+                            source is ViewerSource.Streamed && error.causeChain.any { it is SecurityException } ->
+                                ViewerContentUnreadableException(source.displayName, error)
+
+                            else -> error
+                        }
+                        renderErrorFlow.value = RenderFailure(source = source, error = classified)
                     }
                 },
             )
