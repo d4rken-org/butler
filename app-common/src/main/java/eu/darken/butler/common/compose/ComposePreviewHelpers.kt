@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewWrapperProvider
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.Occasions
 import eu.darken.butler.common.compose.tour.LocalGuidedTourController
 import eu.darken.butler.common.compose.tour.NoOpGuidedTourAccess
 import eu.darken.butler.common.theming.ButlerRootSurface
@@ -77,7 +78,10 @@ fun PreviewWrapper(
         ButlerRootSurface {
             // LocalGuidedTourController has no default (a missing provider must fail loudly in the
             // real app), so anything previewed/tested outside MainActivity needs the no-op stand-in.
-            CompositionLocalProvider(LocalGuidedTourController provides NoOpGuidedTourAccess) {
+            CompositionLocalProvider(
+                LocalGuidedTourController provides NoOpGuidedTourAccess,
+                LocalMascotOccasion provides Occasions.Period.NONE,
+            ) {
                 content()
             }
         }

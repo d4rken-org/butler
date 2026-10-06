@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">لطفاً منتظر بمانید</string>
     <string name="general_progress_loading_egg_13">دست‌کم شما پشت خط معطل نیستید</string>
     <string name="general_progress_loading_egg_14">مستقیم روی پیشانی بمالید</string>
+    <string name="general_progress_loading_egg_halloween_0">در حال جن‌گیری حافظه‌ی نهان</string>
+    <string name="general_progress_loading_egg_halloween_1">در حال شمردن اسکلت‌های کمدتان</string>
+    <string name="general_progress_loading_egg_halloween_2">در حال کنده‌کاری کدو تنبل‌ها</string>
+    <string name="general_progress_loading_egg_halloween_3">در حال وارسی زیر تخت برای پردازه‌های زامبی</string>
+    <string name="general_progress_loading_egg_stpatricks_0">در حال دنبال کردن رنگین‌کمان تا خمره‌ی طلا</string>
+    <string name="general_progress_loading_egg_stpatricks_1">در حال جست‌وجوی شبدر چهاربرگ</string>
+    <string name="general_progress_loading_egg_stpatricks_2">در حال رشوه دادن به لپرکان‌ها</string>
+    <string name="general_progress_loading_egg_aprilfools_0">در حال بارگذاری. یا شاید هم نه؟</string>
+    <string name="general_progress_loading_egg_aprilfools_1">خاموش و روشن کردن دوباره</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">در حال آوردن پرتزل‌های بیشتر</string>
+    <string name="general_progress_loading_egg_xmas_0">در حال بررسی دوباره‌ی فهرست</string>
+    <string name="general_progress_loading_egg_xmas_1">در حال کادوپیچ کردن فایل‌هایتان</string>
+    <string name="general_progress_loading_egg_xmas_2">در حال باز کردن گره‌ی سیم‌های چراغ‌های رنگی</string>
+    <string name="general_progress_loading_egg_xmas_3">در حال غذا دادن به گوزن‌های شمالی</string>
+    <string name="general_progress_loading_egg_newyear_0">شمارش معکوس تا نیمه‌شب</string>
+    <string name="general_progress_loading_egg_newyear_1">در حال باز کردن شامپاین</string>
+    <string name="general_progress_loading_egg_newyear_2">در حال نوشتن قول‌هایی که کسی نگه نمی‌دارد</string>
+    <string name="general_progress_loading_egg_newyear_3">در حال بارگذاری سال نو</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

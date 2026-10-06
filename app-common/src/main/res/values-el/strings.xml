@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">Παρακαλώ περιμένετε</string>
     <string name="general_progress_loading_egg_13">Τουλάχιστον δεν είστε σε αναμονή</string>
     <string name="general_progress_loading_egg_14">Εφαρμόστε απευθείας στο μέτωπο</string>
+    <string name="general_progress_loading_egg_halloween_0">Εξορκισμός της κρυφής μνήμης</string>
+    <string name="general_progress_loading_egg_halloween_1">Μέτρημα των σκελετών στην ντουλάπα σου</string>
+    <string name="general_progress_loading_egg_halloween_2">Σκάλισμα των κολοκύθων</string>
+    <string name="general_progress_loading_egg_halloween_3">Έλεγχος κάτω από το κρεβάτι για διεργασίες ζόμπι</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Κυνηγώντας το ουράνιο τόξο ως το καζάνι με το χρυσάφι</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Αναζήτηση τετράφυλλου τριφυλλιού</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Δωροδοκία των λεπρεχόν</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Φόρτωση. Ή μήπως όχι;</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Κλείσιμο και ξανά άνοιγμα</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Φέρνουμε κι άλλα πρέτσελ</string>
+    <string name="general_progress_loading_egg_xmas_0">Έλεγχος της λίστας δύο φορές</string>
+    <string name="general_progress_loading_egg_xmas_1">Τύλιγμα των αρχείων σου για δώρο</string>
+    <string name="general_progress_loading_egg_xmas_2">Ξεμπλέκοντας τα λαμπάκια</string>
+    <string name="general_progress_loading_egg_xmas_3">Ταΐσμα των ταράνδων</string>
+    <string name="general_progress_loading_egg_newyear_0">Αντίστροφη μέτρηση για τα μεσάνυχτα</string>
+    <string name="general_progress_loading_egg_newyear_1">Άνοιγμα της σαμπάνιας</string>
+    <string name="general_progress_loading_egg_newyear_2">Συντάσσουμε πρωτοχρονιάτικες αποφάσεις που κανείς δεν θα τηρήσει</string>
+    <string name="general_progress_loading_egg_newyear_3">Φόρτωση της νέας χρονιάς</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

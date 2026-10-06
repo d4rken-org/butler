@@ -108,6 +108,24 @@
     <string name="general_progress_loading_egg_12">Будь ласка, зачекайте</string>
     <string name="general_progress_loading_egg_13">Принаймні ви не в черзі очікування</string>
     <string name="general_progress_loading_egg_14">Нанесіть прямо на лоб</string>
+    <string name="general_progress_loading_egg_halloween_0">Виганяємо духів із кешу</string>
+    <string name="general_progress_loading_egg_halloween_1">Рахуємо скелети у вашій шафі</string>
+    <string name="general_progress_loading_egg_halloween_2">Вирізаємо гарбузові ліхтарі</string>
+    <string name="general_progress_loading_egg_halloween_3">Шукаємо під ліжком процеси-зомбі</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Женемося за веселкою до горщика з золотом</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Шукаємо чотирилисту конюшину</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Підкуповуємо лепрехунів</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Завантаження. Чи ні?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Вимикаємо й вмикаємо знову</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Підвозимо ще крендельків</string>
+    <string name="general_progress_loading_egg_xmas_0">Двічі перевіряємо список</string>
+    <string name="general_progress_loading_egg_xmas_1">Пакуємо ваші файли в подарунки</string>
+    <string name="general_progress_loading_egg_xmas_2">Розплутуємо гірлянди</string>
+    <string name="general_progress_loading_egg_xmas_3">Годуємо оленів</string>
+    <string name="general_progress_loading_egg_newyear_0">Відлік до опівночі</string>
+    <string name="general_progress_loading_egg_newyear_1">Відкриваємо шампанське</string>
+    <string name="general_progress_loading_egg_newyear_2">Складаємо обіцянки, яких ніхто не дотримає</string>
+    <string name="general_progress_loading_egg_newyear_3">Завантажуємо новий рік</string>
 
     <!-- Формат тривалості -->
     <plurals name="common_duration_milliseconds_short">

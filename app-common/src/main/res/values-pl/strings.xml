@@ -109,6 +109,24 @@
     <string name="general_progress_loading_egg_12">Proszę czekać</string>
     <string name="general_progress_loading_egg_13">Przynajmniej ty nie czekasz na infolinii</string>
     <string name="general_progress_loading_egg_14">Nakładać bezpośrednio na czoło</string>
+    <string name="general_progress_loading_egg_halloween_0">Egzorcyzmowanie pamięci podręcznej</string>
+    <string name="general_progress_loading_egg_halloween_1">Liczenie szkieletów w twojej szafie</string>
+    <string name="general_progress_loading_egg_halloween_2">Wycinanie dyń</string>
+    <string name="general_progress_loading_egg_halloween_3">Zaglądanie pod łóżko w poszukiwaniu procesów zombie</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Gonienie tęczy w stronę garnca złota</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Szukanie czterolistnej koniczyny</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Przekupywanie leprechaunów</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Wczytywanie. A może nie?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Wyłączanie i włączanie jeszcze raz</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Donoszenie precli</string>
+    <string name="general_progress_loading_egg_xmas_0">Dwukrotne sprawdzanie listy</string>
+    <string name="general_progress_loading_egg_xmas_1">Pakowanie twoich plików na prezent</string>
+    <string name="general_progress_loading_egg_xmas_2">Rozplątywanie lampek choinkowych</string>
+    <string name="general_progress_loading_egg_xmas_3">Karmienie reniferów</string>
+    <string name="general_progress_loading_egg_newyear_0">Odliczanie do północy</string>
+    <string name="general_progress_loading_egg_newyear_1">Otwieranie szampana</string>
+    <string name="general_progress_loading_egg_newyear_2">Pisanie postanowień, których nikt nie dotrzyma</string>
+    <string name="general_progress_loading_egg_newyear_3">Wczytywanie nowego roku</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

@@ -109,6 +109,24 @@
     <string name="general_progress_loading_egg_12">Пожалуйста, подождите</string>
     <string name="general_progress_loading_egg_13">По крайней мере, вы не висите на линии</string>
     <string name="general_progress_loading_egg_14">Наносить прямо на лоб</string>
+    <string name="general_progress_loading_egg_halloween_0">Изгоняю духов из кэша</string>
+    <string name="general_progress_loading_egg_halloween_1">Пересчитываю скелеты в шкафу</string>
+    <string name="general_progress_loading_egg_halloween_2">Вырезаю тыквы</string>
+    <string name="general_progress_loading_egg_halloween_3">Проверяю под кроватью, нет ли зомби-процессов</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Гонюсь за радугой к горшку с золотом</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Ищу четырёхлистный клевер</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Подкупаю лепреконов</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Загрузка. Или нет?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Выключаю и включаю снова</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Подвожу ещё крендели</string>
+    <string name="general_progress_loading_egg_xmas_0">Проверяю список дважды</string>
+    <string name="general_progress_loading_egg_xmas_1">Упаковываю файлы в подарочную бумагу</string>
+    <string name="general_progress_loading_egg_xmas_2">Распутываю гирлянду</string>
+    <string name="general_progress_loading_egg_xmas_3">Кормлю оленей</string>
+    <string name="general_progress_loading_egg_newyear_0">Отсчитываю до полуночи</string>
+    <string name="general_progress_loading_egg_newyear_1">Открываю шампанское</string>
+    <string name="general_progress_loading_egg_newyear_2">Составляю планы на год, которые никто не выполнит</string>
+    <string name="general_progress_loading_egg_newyear_3">Загружаю новый год</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

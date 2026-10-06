@@ -107,6 +107,24 @@
     <string name="general_progress_loading_egg_12">Lütfen bekleyin</string>
     <string name="general_progress_loading_egg_13">En azından beklemede değilsin</string>
     <string name="general_progress_loading_egg_14">Doğrudan alına uygulayın</string>
+    <string name="general_progress_loading_egg_halloween_0">Önbellekten cinler çıkarılıyor</string>
+    <string name="general_progress_loading_egg_halloween_1">Dolabındaki iskeletler sayılıyor</string>
+    <string name="general_progress_loading_egg_halloween_2">Balkabakları oyuluyor</string>
+    <string name="general_progress_loading_egg_halloween_3">Yatağın altında zombi işlemler aranıyor</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Gökkuşağının ucundaki altın küpü kovalıyoruz</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Dört yapraklı yonca aranıyor</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Leprikonlara rüşvet veriliyor</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Yükleniyor. Yoksa yüklenmiyor mu?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Kapatıp yeniden açıyoruz</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Biraz daha pretzel getiriliyor</string>
+    <string name="general_progress_loading_egg_xmas_0">Liste iki kez kontrol ediliyor</string>
+    <string name="general_progress_loading_egg_xmas_1">Dosyaların paketleniyor</string>
+    <string name="general_progress_loading_egg_xmas_2">Yılbaşı ışıklarının dolaşan kabloları çözülüyor</string>
+    <string name="general_progress_loading_egg_xmas_3">Ren geyikleri besleniyor</string>
+    <string name="general_progress_loading_egg_newyear_0">Gece yarısına geri sayım yapılıyor</string>
+    <string name="general_progress_loading_egg_newyear_1">Şampanya patlatılıyor</string>
+    <string name="general_progress_loading_egg_newyear_2">Kimsenin tutmayacağı yeni yıl kararları yazılıyor</string>
+    <string name="general_progress_loading_egg_newyear_3">Yeni yıl yükleniyor</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

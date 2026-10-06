@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">Mohon tunggu</string>
     <string name="general_progress_loading_egg_13">Setidaknya Anda tidak sedang menunggu</string>
     <string name="general_progress_loading_egg_14">Oleskan langsung ke dahi</string>
+    <string name="general_progress_loading_egg_halloween_0">Mengusir hantu dari cache</string>
+    <string name="general_progress_loading_egg_halloween_1">Menghitung rahasia kelam di lemari Anda</string>
+    <string name="general_progress_loading_egg_halloween_2">Mengukir labu</string>
+    <string name="general_progress_loading_egg_halloween_3">Mengecek kolong kasur dari proses zombie</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Mengejar pelangi demi periuk emas</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Mencari semanggi berdaun empat</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Menyogok para leprechaun</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Memuat. Atau tidak?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Mematikan lalu menyalakannya lagi</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Mengambil pretzel lagi</string>
+    <string name="general_progress_loading_egg_xmas_0">Mengecek daftar dua kali</string>
+    <string name="general_progress_loading_egg_xmas_1">Membungkus berkas Anda</string>
+    <string name="general_progress_loading_egg_xmas_2">Mengurai lampu hias yang kusut</string>
+    <string name="general_progress_loading_egg_xmas_3">Memberi makan rusa kutub</string>
+    <string name="general_progress_loading_egg_newyear_0">Menghitung mundur menuju tengah malam</string>
+    <string name="general_progress_loading_egg_newyear_1">Membuka sampanye</string>
+    <string name="general_progress_loading_egg_newyear_2">Menyusun resolusi yang tak akan dijalankan</string>
+    <string name="general_progress_loading_egg_newyear_3">Memuat tahun baru</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

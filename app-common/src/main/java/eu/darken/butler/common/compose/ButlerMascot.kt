@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.getValue
@@ -64,11 +65,20 @@ import kotlin.time.Duration.Companion.seconds
  */
 val LocalMascotSuitColor: ProvidableCompositionLocal<Color?> = staticCompositionLocalOf { null }
 
+/**
+ * Pins the occasion the mascot dresses up for. Null follows the calendar; pin
+ * [Occasions.Period.NONE] wherever the run date must not change the render.
+ */
+val LocalMascotOccasion: ProvidableCompositionLocal<Occasions.Period?> = staticCompositionLocalOf { null }
+
+@Composable
+private fun mascotOccasion(): Occasions.Period = LocalMascotOccasion.current ?: Occasions.current()
+
 private const val ALPHA_OPAQUE = 0xFF000000.toInt()
 
 private fun Color.rgb(): Int = toArgb() and 0xFFFFFF
 
-private fun resolveHat(hat: ButlerMascotMode.Hat): Int? {
+private fun resolveHat(hat: ButlerMascotMode.Hat, occasion: Occasions.Period): Int? {
     return when (hat) {
         Hat.NO_HAT -> null
         Hat.PARTY -> R.drawable.mascot_hat_party
@@ -77,7 +87,7 @@ private fun resolveHat(hat: ButlerMascotMode.Hat): Int? {
         Hat.ST_PATRICKS -> R.drawable.mascot_hat_stpatricks
         Hat.APRIL_FOOLS -> R.drawable.mascot_hat_aprilfools
         Hat.OKTOBERFEST -> R.drawable.mascot_hat_oktoberfest
-        Hat.AUTO -> when (Occasions.current()) {
+        Hat.AUTO -> when (occasion) {
             Occasions.Period.HALLOWEEN -> R.drawable.mascot_hat_halloween
             Occasions.Period.ST_PATRICKS -> R.drawable.mascot_hat_stpatricks
             Occasions.Period.APRIL_FOOLS -> R.drawable.mascot_hat_aprilfools
@@ -113,29 +123,49 @@ private val randomCyclingSequences: List<List<Int>> = listOf(
 )
 
 
+private fun Context.rawText(@androidx.annotation.RawRes resId: Int): String =
+    resources.openRawResource(resId).bufferedReader().use { it.readText() }
+
 private suspend fun loadComposition(
     context: Context,
     @androidx.annotation.RawRes resId: Int,
     night: Boolean = false,
     suit: Color? = null,
+    prop: MascotProp? = null,
 ): LottieComposition? = withContext(Dispatchers.Default) {
-    if (!night && suit == null) return@withContext LottieCompositionFactory.fromRawResSync(context, resId).value
+    val outfit = mascotOutfit(night, suit)
+    val swap = prop?.takeIf { resId in MascotProp.DRINK_CLIPS }
+    if (outfit == null && swap == null) {
+        return@withContext LottieCompositionFactory.fromRawResSync(context, resId).value
+    }
 
     // Recoloring costs a read plus a pass over ~30KB of json, so ask the cache before paying it.
-    val name = context.resources.getResourceEntryName(resId)
-    val cacheKey = when (suit) {
-        null -> "${name}_night"
-        else -> "${name}_${if (night) "night" else "day"}_${"%06x".format(suit.rgb())}"
+    val cacheKey = buildString {
+        append(context.resources.getResourceEntryName(resId))
+        append(if (night) "_night" else "_day")
+        suit?.let { append("_%06x".format(it.rgb())) }
+        swap?.let { append("_${it.name.lowercase()}") }
     }
     val cached = LottieCompositionCache.getInstance().get(cacheKey)
     if (cached != null) return@withContext cached
 
-    val outfit = when (suit) {
-        null -> MascotPalette.NIGHT
-        else -> MascotPalette.ramp(suit.rgb(), night)
-    }
-    val json = context.resources.openRawResource(resId).bufferedReader().use { it.readText() }
-    LottieCompositionFactory.fromJsonStringSync(MascotPalette.recolor(json, outfit), cacheKey).value
+    val json = dressClip(context.rawText(resId), outfit, swap) { context.rawText(it) }
+    LottieCompositionFactory.fromJsonStringSync(json, cacheKey).value
+}
+
+/** The repaint a clip needs, or null when it plays in the colors it ships with. */
+internal fun mascotOutfit(night: Boolean, suit: Color?): Map<Int, Int>? = when {
+    suit != null -> MascotPalette.ramp(suit.rgb(), night)
+    night -> MascotPalette.NIGHT
+    else -> null
+}
+
+internal fun dressClip(clip: String, outfit: Map<Int, Int>?, prop: MascotProp?, readRaw: (Int) -> String): String {
+    var json = clip
+    if (outfit != null) json = MascotPalette.recolor(json, outfit)
+    // Last, so no outfit repaint can reach the prop's own colors
+    if (prop != null) json = MascotProp.swap(json, readRaw(prop.shapes), prop.steaming)
+    return json
 }
 
 /**
@@ -145,18 +175,29 @@ private suspend fun loadComposition(
 @Composable
 private fun isNight(): Boolean = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
-/** What the mascot wears while nobody picked a suit color, for the theme he is standing in. */
+private fun Occasions.Period.suitColor(): Color? = when (this) {
+    Occasions.Period.HALLOWEEN -> Color(0xFFB4530F)
+    else -> null
+}
+
+/** A picked color wins over the occasion's; null leaves him in the theme's own palette. */
 @Composable
-fun mascotDefaultSuitColor(): Color = Color(MascotPalette.suitColor(isNight()) or ALPHA_OPAQUE)
+private fun mascotSuitColor(): Color? = LocalMascotSuitColor.current ?: mascotOccasion().suitColor()
+
+/** What the mascot wears while nobody picked a suit color: the occasion's suit, else the theme's. */
+@Composable
+fun mascotDefaultSuitColor(): Color =
+    mascotOccasion().suitColor() ?: Color(MascotPalette.suitColor(isNight()) or ALPHA_OPAQUE)
 
 /** Butler's own clips, repainted for the dark theme. SD Maid's cameo is not his palette. */
 @Composable
 private fun rememberButlerComposition(@androidx.annotation.RawRes resId: Int): LottieComposition? {
     val context = LocalContext.current
     val night = isNight()
-    val suit = LocalMascotSuitColor.current
-    return produceState<LottieComposition?>(null, resId, night, suit) {
-        value = loadComposition(context, resId, night, suit)
+    val suit = mascotSuitColor()
+    val prop = MascotProp.forOccasion(mascotOccasion())
+    return produceState<LottieComposition?>(null, resId, night, suit, prop) {
+        value = loadComposition(context, resId, night, suit, prop)
     }.value
 }
 
@@ -173,7 +214,7 @@ private fun rememberButlerComposition(@androidx.annotation.RawRes resId: Int): L
 private fun mascotVector(@DrawableRes resId: Int): ImageVector {
     val context = LocalContext.current
     val night = isNight()
-    val suit = LocalMascotSuitColor.current
+    val suit = mascotSuitColor()
     val resources = remember(context, night, suit) {
         val config = Configuration(context.resources.configuration).apply {
             uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or when {
@@ -245,7 +286,7 @@ fun ButlerMascot(
     val showingCameo = cameoComposition != null && animatable.composition === cameoComposition
 
     // Butler's hat overlay is positioned for his head in a 512x512 frame, so it sits her visit out.
-    val hatDrawable = if (showingCameo) null else resolveHat(variant.hat)
+    val hatDrawable = if (showingCameo) null else resolveHat(variant.hat, mascotOccasion())
 
     Box(modifier = modifier) {
         when (variant) {
@@ -284,7 +325,8 @@ fun ButlerMascot(
                 is Animated.RandomCycling -> {
                     val context = LocalContext.current
                     val night = isNight()
-                    val suit = LocalMascotSuitColor.current
+                    val suit = mascotSuitColor()
+                    val prop = MascotProp.forOccasion(mascotOccasion())
 
                     // Butler's clips are pure vector, but SD Maid's is built from raster layers and
                     // loadComposition() drops those - she renders as a lone coffee cup. Composing her
@@ -300,7 +342,7 @@ fun ButlerMascot(
                         }
                     }
 
-                    LaunchedEffect(variant, userActivity, night, suit) {
+                    LaunchedEffect(variant, userActivity, night, suit, prop) {
                         val isUserActive = userActivity.isActive(MASCOT_IDLE_AFTER)
                         while (currentCoroutineContext().isActive) {
                             // A Lottie frame invalidates the whole Compose view, so an unattended
@@ -325,7 +367,7 @@ fun ButlerMascot(
                             if (!animated) {
                                 // Load on demand, one at a time - parsing all upfront saturates the CPU during startup
                                 for (resId in randomCyclingSequences.random()) {
-                                    val composition = loadComposition(context, resId, night, suit) ?: continue
+                                    val composition = loadComposition(context, resId, night, suit, prop) ?: continue
                                     animated = true
                                     animatable.animate(
                                         composition = composition,
@@ -642,5 +684,21 @@ private fun ButlerMascotOccasionHatsPreview() {
             Modifier.size(96.dp),
             variant = Static.Normal(hat = Hat.OKTOBERFEST),
         )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ButlerMascotOccasionDrinksPreview() {
+    Column {
+        Occasions.Period.entries.forEach { occasion ->
+            CompositionLocalProvider(LocalMascotOccasion provides occasion) {
+                ButlerMascot(
+                    Modifier.size(96.dp),
+                    variant = Animated.Drink(standalone = true),
+                )
+            }
+        }
     }
 }

@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">একটু অপেক্ষা করুন</string>
     <string name="general_progress_loading_egg_13">অন্তত ফোনে অপেক্ষা করতে হচ্ছে না</string>
     <string name="general_progress_loading_egg_14">সরাসরি কপালে লাগান</string>
+    <string name="general_progress_loading_egg_halloween_0">ক্যাশ থেকে ভূত তাড়াচ্ছি</string>
+    <string name="general_progress_loading_egg_halloween_1">আলমারির কঙ্কালগুলো গুনছি</string>
+    <string name="general_progress_loading_egg_halloween_2">কুমড়োয় ভূতুড়ে মুখ খোদাই করছি</string>
+    <string name="general_progress_loading_egg_halloween_3">খাটের নিচে জম্বি প্রসেস খুঁজছি</string>
+    <string name="general_progress_loading_egg_stpatricks_0">রামধনু ধরে সোনার হাঁড়ির খোঁজে ছুটছি</string>
+    <string name="general_progress_loading_egg_stpatricks_1">চার পাতার ক্লোভার খুঁজছি</string>
+    <string name="general_progress_loading_egg_stpatricks_2">লেপ্রেকন দের ঘুষ দিচ্ছি</string>
+    <string name="general_progress_loading_egg_aprilfools_0">লোড হচ্ছে। নাকি হচ্ছে না?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">বন্ধ করে আবার চালু করছি</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">আরও প্রেটজেল আনছি</string>
+    <string name="general_progress_loading_egg_xmas_0">তালিকাটা দুবার মিলিয়ে দেখছি</string>
+    <string name="general_progress_loading_egg_xmas_1">ফাইলগুলো গিফট র‍্যাপ করছি</string>
+    <string name="general_progress_loading_egg_xmas_2">পরীর আলোর জট ছাড়াচ্ছি</string>
+    <string name="general_progress_loading_egg_xmas_3">রেনডিয়ারকে খাওয়াচ্ছি</string>
+    <string name="general_progress_loading_egg_newyear_0">মধ্যরাতের কাউন্টডাউন চলছে</string>
+    <string name="general_progress_loading_egg_newyear_1">শ্যাম্পেনের কর্ক খুলছি</string>
+    <string name="general_progress_loading_egg_newyear_2">কেউ রাখবে না এমন সংকল্প লিখছি</string>
+    <string name="general_progress_loading_egg_newyear_3">নতুন বছর লোড হচ্ছে</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

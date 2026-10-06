@@ -105,6 +105,24 @@
     <string name="general_progress_loading_egg_12">請稍候</string>
     <string name="general_progress_loading_egg_13">至少你不用在電話上等待</string>
     <string name="general_progress_loading_egg_14">直接塗抹在額頭上</string>
+    <string name="general_progress_loading_egg_halloween_0">正在為快取驅魔</string>
+    <string name="general_progress_loading_egg_halloween_1">正在清點你衣櫃裡的骷髏</string>
+    <string name="general_progress_loading_egg_halloween_2">正在雕南瓜燈</string>
+    <string name="general_progress_loading_egg_halloween_3">正在檢查床底下有沒有殭屍行程</string>
+    <string name="general_progress_loading_egg_stpatricks_0">正在追著彩虹找金罐子</string>
+    <string name="general_progress_loading_egg_stpatricks_1">正在尋找四葉幸運草</string>
+    <string name="general_progress_loading_egg_stpatricks_2">正在賄賂小妖精</string>
+    <string name="general_progress_loading_egg_aprilfools_0">載入中。還是我其實沒有？</string>
+    <string name="general_progress_loading_egg_aprilfools_1">關掉再重新開啟</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">正在補貨更多德國結</string>
+    <string name="general_progress_loading_egg_xmas_0">正在把名單檢查兩遍</string>
+    <string name="general_progress_loading_egg_xmas_1">正在包裝你的檔案</string>
+    <string name="general_progress_loading_egg_xmas_2">正在解開打結的小彩燈</string>
+    <string name="general_progress_loading_egg_xmas_3">正在餵馴鹿吃飼料</string>
+    <string name="general_progress_loading_egg_newyear_0">正在倒數午夜鐘響</string>
+    <string name="general_progress_loading_egg_newyear_1">正在開香檳</string>
+    <string name="general_progress_loading_egg_newyear_2">正在擬定沒人會遵守的新年計畫</string>
+    <string name="general_progress_loading_egg_newyear_3">正在載入新的一年</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

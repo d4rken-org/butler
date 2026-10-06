@@ -105,6 +105,24 @@
     <string name="general_progress_loading_egg_12">잠시만 기다려 주세요</string>
     <string name="general_progress_loading_egg_13">그래도 대기 중은 아니잖아요</string>
     <string name="general_progress_loading_egg_14">이마에 바로 붙이세요</string>
+    <string name="general_progress_loading_egg_halloween_0">캐시를 퇴마하는 중</string>
+    <string name="general_progress_loading_egg_halloween_1">옷장 속 해골을 세는 중</string>
+    <string name="general_progress_loading_egg_halloween_2">호박을 조각하는 중</string>
+    <string name="general_progress_loading_egg_halloween_3">침대 밑에 좀비 프로세스가 없는지 확인하는 중</string>
+    <string name="general_progress_loading_egg_stpatricks_0">무지개를 따라 황금 항아리를 쫓는 중</string>
+    <string name="general_progress_loading_egg_stpatricks_1">네잎클로버를 찾는 중</string>
+    <string name="general_progress_loading_egg_stpatricks_2">레프러콘을 매수하는 중</string>
+    <string name="general_progress_loading_egg_aprilfools_0">로딩 중이에요. 아마도요?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">껐다가 다시 켜는 중</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">프레첼을 더 가져오는 중</string>
+    <string name="general_progress_loading_egg_xmas_0">명단을 두 번 확인하는 중</string>
+    <string name="general_progress_loading_egg_xmas_1">파일을 포장하는 중</string>
+    <string name="general_progress_loading_egg_xmas_2">꼬인 전구를 푸는 중</string>
+    <string name="general_progress_loading_egg_xmas_3">순록에게 먹이를 주는 중</string>
+    <string name="general_progress_loading_egg_newyear_0">자정까지 카운트다운하는 중</string>
+    <string name="general_progress_loading_egg_newyear_1">샴페인을 터뜨리는 중</string>
+    <string name="general_progress_loading_egg_newyear_2">아무도 안 지킬 새해 계획을 작성하는 중</string>
+    <string name="general_progress_loading_egg_newyear_3">새해를 불러오는 중</string>
 
     <!-- 시간 표시 형식 -->
     <plurals name="common_duration_milliseconds_short">
