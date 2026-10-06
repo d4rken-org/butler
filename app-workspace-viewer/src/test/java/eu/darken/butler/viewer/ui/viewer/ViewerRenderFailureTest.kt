@@ -11,6 +11,7 @@ import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.viewer.core.GatewayZoomableImageSource
 import eu.darken.butler.viewer.core.ViewerContent
+import eu.darken.butler.viewer.core.ViewerContentUnreadableException
 import eu.darken.butler.viewer.core.ViewerSettings
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.viewer.core.ViewerUndecodableImageException
@@ -22,6 +23,7 @@ import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -191,6 +193,91 @@ class ViewerRenderFailureTest : BaseTest() {
         onErrors.getValue(streamed)(boom)
 
         vm.readyState.content shouldBe ViewerContent.Failed(boom)
+    }
+
+    /**
+     * The sending app's read grant can lapse while the tab lives on, and the next resolve is then
+     * refused with a [SecurityException]. That is the lapsed grant the workspace reports on load.
+     */
+    @Test
+    fun `a stream whose read grant lapsed shows as unreadable`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        val denial = SecurityException("Permission Denial: reading uri requires grantUriPermission()")
+        onErrors.getValue(streamed)(denial)
+
+        val content = vm.readyState.content.shouldBeInstanceOf<ViewerContent.Failed>()
+        val error = content.error.shouldBeInstanceOf<ViewerContentUnreadableException>()
+        error.displayName shouldBe "photo.jpg"
+        (error.cause === denial) shouldBe true
+    }
+
+    @Test
+    fun `a wrapped grant denial from the stream shows as unreadable`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        val wrapped = IllegalStateException(
+            "load failed",
+            SecurityException("Permission Denial: reading uri requires grantUriPermission()"),
+        )
+        onErrors.getValue(streamed)(wrapped)
+
+        val content = vm.readyState.content.shouldBeInstanceOf<ViewerContent.Failed>()
+        val error = content.error.shouldBeInstanceOf<ViewerContentUnreadableException>()
+        error.displayName shouldBe "photo.jpg"
+        (error.cause === wrapped) shouldBe true
+    }
+
+    /** A saved file has no grant that could lapse, so its denial is shown as it is. */
+    @Test
+    fun `a security failure of a stored file is not classified as a lapsed grant`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        workspaces.value = makeWorkspace(stored)
+
+        val denial = SecurityException("Permission Denial: reading file")
+        onErrors.getValue(stored)(denial)
+
+        vm.readyState.content shouldBe ViewerContent.Failed(denial)
+    }
+
+    @Test
+    fun `sharing a lapsed grant hands over the incident it was frozen into`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        val denial = SecurityException("Permission Denial: reading uri requires grantUriPermission()")
+        onErrors.getValue(streamed)(denial)
+        val published = vm.readyState.content.shouldBeInstanceOf<ViewerContent.Failed>().error
+        published.shouldBeInstanceOf<ViewerContentUnreadableException>()
+
+        vm.shareError(published)
+
+        val incident = shared.single()
+        (incident.error === published) shouldBe true
+        (incident.error.cause === denial) shouldBe true
+        incident.context.containsKey("incident.frozenAtShare") shouldBe false
+        incident.occurredAtIsApproximate shouldBe false
+    }
+
+    @Test
+    fun `a grant denial from the source a retry replaced is dropped`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        // Captured first: the retry creates a new image source, which takes over this slot.
+        val stale = onErrors.getValue(streamed)
+        vm.retry()
+
+        val denial = SecurityException("Permission Denial: reading uri requires grantUriPermission()")
+        stale(denial)
+
+        vm.readyState.content shouldBe ViewerContent.Image(mime)
+        incidentStore.get(denial) shouldBe null
+        spooledLogs().size shouldBe 0
     }
 
     @Test
@@ -369,6 +456,21 @@ class ViewerRenderFailureTest : BaseTest() {
 
         vm.readyState.content shouldBe ViewerContent.Image(mime)
         // A failure the page never shows must not cost a store slot and a log trail either.
+        incidentStore.get(late) shouldBe null
+        spooledLogs().size shouldBe 0
+    }
+
+    @Test
+    fun `a late grant denial from the replaced stream cannot poison the saved file`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        workspaces.value = makeWorkspace(stored)
+
+        val late = SecurityException("Permission Denial: reading uri requires grantUriPermission()")
+        onErrors.getValue(streamed)(late)
+
+        vm.readyState.content shouldBe ViewerContent.Image(mime)
         incidentStore.get(late) shouldBe null
         spooledLogs().size shouldBe 0
     }
