@@ -105,6 +105,24 @@
     <string name="general_progress_loading_egg_12">กรุณารอสักครู่</string>
     <string name="general_progress_loading_egg_13">อย่างน้อยคุณก็ไม่ต้องรอสาย</string>
     <string name="general_progress_loading_egg_14">ทาตรงหน้าผากเลย</string>
+    <string name="general_progress_loading_egg_halloween_0">กำลังไล่ผีออกจากแคช</string>
+    <string name="general_progress_loading_egg_halloween_1">กำลังนับโครงกระดูกในตู้เสื้อผ้าของคุณ</string>
+    <string name="general_progress_loading_egg_halloween_2">กำลังแกะสลักฟักทอง</string>
+    <string name="general_progress_loading_egg_halloween_3">กำลังเช็กใต้เตียงหาโพรเซสซอมบี้</string>
+    <string name="general_progress_loading_egg_stpatricks_0">กำลังไล่ตามสายรุ้งไปหาหม้อทอง</string>
+    <string name="general_progress_loading_egg_stpatricks_1">กำลังหาโคลเวอร์สี่แฉก</string>
+    <string name="general_progress_loading_egg_stpatricks_2">กำลังติดสินบนเลพริคอน</string>
+    <string name="general_progress_loading_egg_aprilfools_0">กำลังโหลด หรือเปล่านะ</string>
+    <string name="general_progress_loading_egg_aprilfools_1">ปิดแล้วเปิดใหม่</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">กำลังไปเอาเพรทเซลมาเพิ่ม</string>
+    <string name="general_progress_loading_egg_xmas_0">กำลังเช็กลิสต์สองรอบ</string>
+    <string name="general_progress_loading_egg_xmas_1">กำลังห่อไฟล์ของคุณเป็นของขวัญ</string>
+    <string name="general_progress_loading_egg_xmas_2">กำลังแก้ไฟประดับที่พันกันยุ่ง</string>
+    <string name="general_progress_loading_egg_xmas_3">กำลังให้อาหารกวางเรนเดียร์</string>
+    <string name="general_progress_loading_egg_newyear_0">กำลังนับถอยหลังสู่เที่ยงคืน</string>
+    <string name="general_progress_loading_egg_newyear_1">กำลังเปิดแชมเปญ</string>
+    <string name="general_progress_loading_egg_newyear_2">กำลังร่างปณิธานปีใหม่ที่ไม่มีใครทำตาม</string>
+    <string name="general_progress_loading_egg_newyear_3">กำลังโหลดปีใหม่</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">
@@ -196,10 +214,10 @@
     <string name="general_error_cant_access_msg">ไม่สามารถเข้าถึง %s</string>
     <string name="general_error_archive_not_seekable_msg">ไม่สามารถเรียกดู %s ได้โดยตรง เนื่องจากที่เก็บข้อมูลที่ไฟล์นี้อยู่รองรับการอ่านแบบลำดับเท่านั้น แต่รูปแบบไฟล์บีบอัดนี้ต้องการการเข้าถึงแบบสุ่ม</string>
     <string name="general_error_root_unavailable">ไม่สามารถใช้สิทธิ์ root ได้</string>
-    <string name="general_error_elevated_access_required">การดำเนินการนี้ต้องใช้สิทธิ์ระดับสูง ตั้งค่า Root หรือ Shizuku ในการตั้งค่าเริ่มต้น</string>
+    <string name="general_error_elevated_access_required">การดำเนินการนี้ต้องใช้สิทธิ์ระดับสูง ตั้งค่า root หรือการเข้าถึง ADB ในการตั้งค่าเริ่มต้น</string>
     <string name="general_error_no_compatible_app_found_msg">ไม่พบแอปที่รองรับสำหรับคำขอนี้</string>
     <string name="general_error_ipc_deadobject_title">การเชื่อมต่อบริการหลุด</string>
-    <string name="general_error_ipc_deadobject_description">การเชื่อมต่อกับบริการสำคัญ (เช่น Magisk, Shizuku หรือบริการระดับระบบอื่น ๆ) ขาดหายไปอย่างไม่คาดคิด กรุณารีสตาร์ทอุปกรณ์ของคุณ หากปัญหายังคงอยู่ ให้ตรวจสอบการอัปเดตหรือติดต่อแจ้งปัญหาเพื่อรับการแก้ไข</string>
+    <string name="general_error_ipc_deadobject_description">การเชื่อมต่อกับบริการสำคัญ (เช่น Magisk หรือบริการระดับระบบอื่น ๆ) ขาดหายไปอย่างไม่คาดคิด กรุณารีสตาร์ทอุปกรณ์ของคุณ หากปัญหายังคงอยู่ ให้ตรวจสอบการอัปเดตหรือติดต่อแจ้งปัญหาเพื่อรับการแก้ไข</string>
 
     <string name="ui_theme_mode_dark_label">มืด</string>
     <string name="ui_theme_mode_light_label">สว่าง</string>
@@ -237,7 +255,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">สถิติการใช้งาน</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">การเข้าถึง ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">การเข้าถึงการแจ้งเตือน</string>
     <string name="setup_manage_storage_card_title">จัดการที่เก็บข้อมูลภายนอก</string>
@@ -293,7 +311,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">ใช้หลายพาเนลเพื่อเปรียบเทียบไฟล์แบบเคียงข้างกัน</string>
     <string name="common_tip_different_folders">เปิดโฟลเดอร์ต่างกันในแต่ละพาเนลเพื่อจัดการไฟล์ได้ง่ายขึ้น</string>
-    <string name="common_tip_switch_layouts">สลับรูปแบบพาเนลได้ในตัวจัดการการตั้งค่าแท็บ</string>
-    <string name="common_tip_elevated_access">เปิดใช้งาน root หรือ Shizuku ในการตั้งค่าเริ่มต้นเพื่อการดำเนินการไฟล์ขั้นสูง</string>
+    <string name="common_tip_switch_layouts">สลับรูปแบบพาเนลได้จาก เค้าโครง ในเมนู Butler</string>
+    <string name="common_tip_elevated_access">เปิดใช้งาน root หรือการเข้าถึง ADB ในการตั้งค่าเริ่มต้นเพื่อการดำเนินการไฟล์ขั้นสูง</string>
     <string name="common_tip_breadcrumb_home">กดค้างที่แถบเส้นทางในตัวจัดการไฟล์เพื่อตั้งเป็นไดเรกทอรีหลักของคุณ</string>
 </resources>

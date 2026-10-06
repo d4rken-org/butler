@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">ต้องมีสิทธิ์รูทเพื่อเรียกดูตำแหน่งนี้ เปิดใช้การเข้าถึงรูทในการตั้งค่าแอป Butler</string>
-    <string name="provider_documents_error_requires_adb">ต้องมีสิทธิ์ ADB/Shizuku เพื่อเรียกดูตำแหน่งนี้ เปิดใช้ Shizuku ในการตั้งค่าแอป Butler</string>
+    <string name="provider_documents_error_requires_adb">ต้องมีการเข้าถึง ADB เพื่อเรียกดูตำแหน่งนี้ เปิดใช้ในการตั้งค่าเริ่มต้นของ Butler</string>
     <string name="provider_documents_error_requires_storage">ต้องมีสิทธิ์ที่เก็บข้อมูลเพื่อเรียกดูตำแหน่งนี้ ให้สิทธิ์ที่เก็บข้อมูลในการตั้งค่าแอป Butler</string>
     <string name="provider_documents_error_requires_permissions">ต้องมีสิทธิ์เพิ่มเติมเพื่อเรียกดูตำแหน่งนี้ ตรวจสอบการตั้งค่าแอป Butler</string>
     <string name="provider_documents_error_generic">ไม่สามารถเข้าถึงตำแหน่งนี้ได้ ตรวจสอบแอป Butler สำหรับตัวเลือกการเข้าถึง</string>

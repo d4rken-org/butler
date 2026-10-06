@@ -33,6 +33,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -64,6 +66,7 @@ fun PatternField(
     onToggleWholeWord: () -> Unit,
     onToggleRegex: () -> Unit,
     extraMenuItems: (@Composable () -> Unit)? = null,
+    focusRequester: FocusRequester? = null,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val colors = MaterialTheme.colorScheme
@@ -105,7 +108,9 @@ fun PatternField(
                 textFieldValue = newValue
                 onTextChange(newValue.text)
             },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier),
             textStyle = MaterialTheme.typography.bodyMedium.copy(
                 color = colors.onSurface,
             ),

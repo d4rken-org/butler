@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">存取此位置需要根存取權限。在 Butler 應用程式設定中啟用根存取。</string>
-    <string name="provider_documents_error_requires_adb">存取此位置需要 ADB/Shizuku 存取權限。在 Butler 應用程式設定中啟用 Shizuku。</string>
+    <string name="provider_documents_error_requires_adb">存取此位置需要 ADB 存取權限。在 Butler 的設定中啟用。</string>
     <string name="provider_documents_error_requires_storage">存取此位置需要儲存空間權限。在 Butler 應用程式設定中授予儲存空間權限。</string>
     <string name="provider_documents_error_requires_permissions">存取此位置需要額外權限。檢查 Butler 應用程式設定。</string>
     <string name="provider_documents_error_generic">無法存取此位置。檢查 Butler 應用程式以取得存取選項。</string>

@@ -352,7 +352,7 @@
     <string name="workspace_settings_layout_mode_classic">经典</string>
     <string name="workspace_settings_layout_mode_classic_desc">一次显示一个窗格，不含标签页导航栏。</string>
     <string name="workspace_settings_layout_mode_adaptive">自适应</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">标签页导航栏加上屏幕能容纳的尽可能多的窗格。可在导航栏的 Butler 菜单中固定某种布局。</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">标签页导航栏加上屏幕能容纳的尽可能多的窗格。可在 Butler 菜单中固定某种布局。</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">自适应（%1$s）</string>
     <string name="workspace_settings_layout_mode_single_rail">单窗格带标签页导航栏</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">一个标签页窗格加上多窗格布局中的标签页导航栏。导航栏会占用屏幕的一部分。</string>
@@ -435,6 +435,18 @@
     </plurals>
     <string name="workspace_drag_decoration_breakdown">%1$s，%2$s</string>
 
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="other">打开 %d 个项目</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">在此查看</string>
+    <string name="workspace_open_selection_view_here_description">在此窗格上方的查看器中显示选定的文件。上一个和下一个只会在选择中切换。</string>
+    <string name="workspace_open_selection_view_in_tab_action">在新标签页中查看</string>
+    <string name="workspace_open_selection_view_in_tab_description">在单独的标签页中的查看器中显示选定的文件。上一个和下一个只会在选择中切换。</string>
+    <string name="workspace_open_selection_each_in_tab_action">在单独的标签页中打开每个</string>
+    <string name="workspace_open_selection_each_in_tab_description">在单独的标签页中打开每个选定的项目。文件夹以文件浏览器标签页的形式打开。</string>
+    <string name="workspace_open_selection_viewer_unavailable">文件夹无法在查看器中显示。</string>
+
     <!-- Restore operation -->
     <string name="workspace_operation_restore_title">回收站恢复</string>
     <plurals name="workspace_operation_restore_description">
@@ -443,4 +455,6 @@
     <plurals name="workspace_operation_restore_summary">
         <item quantity="other">已恢复 %d 个项目</item>
     </plurals>
+
+    <string name="workspace_layout_dialog_mode_adaptive_desc">标签页导航栏加上屏幕能容纳的尽可能多的窗格。</string>
 </resources>

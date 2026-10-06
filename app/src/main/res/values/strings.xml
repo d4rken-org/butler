@@ -98,6 +98,10 @@
     <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
     <string name="setup_adb_status_connected_via">Connected via %1$s</string>
     <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_not_allowed_yet">Not allowed by %1$s yet</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". Shown when that app no longer asks, so access has to be changed there. -->
+    <string name="setup_adb_status_denied_in">Denied in %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
     <string name="setup_adb_open_manager_action">Open %1$s</string>
     <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
     <string name="setup_adb_install_manager_action">Install %1$s</string>

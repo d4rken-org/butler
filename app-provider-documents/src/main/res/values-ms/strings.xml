@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Akses peranti lanjutan</string>
+    <string name="provider_documents_connection_device_title">Peranti</string>
+    <string name="documents_connection_device_summary">Storan peranti setempat</string>
+    <string name="provider_documents_storage_root_label">Sistem fail root</string>
+    <string name="provider_documents_storage_internal_label">Storan dalaman</string>
+    <string name="provider_documents_storage_sd_card_label">Kad SD</string>
+    <string name="provider_documents_storage_saf_label">Lokasi SAF</string>
+    <string name="provider_documents_storage_free_suffix">kosong</string>
+    <string name="provider_documents_error_requires_root">Akses root diperlukan untuk melayari lokasi ini. Aktifkan akses root dalam tetapan aplikasi Butler.</string>
+    <string name="provider_documents_error_requires_adb">Akses ADB diperlukan untuk melayari lokasi ini. Aktifkannya dalam persediaan Butler.</string>
+    <string name="provider_documents_error_requires_storage">Kebenaran storan diperlukan untuk melayari lokasi ini. Berikan kebenaran storan dalam tetapan aplikasi Butler.</string>
+    <string name="provider_documents_error_requires_permissions">Kebenaran tambahan diperlukan untuk melayari lokasi ini. Semak tetapan aplikasi Butler.</string>
+    <string name="provider_documents_error_generic">Tidak dapat mengakses lokasi ini. Semak aplikasi Butler untuk pilihan akses.</string>
+    <string name="provider_documents_settings_title">Penyedia Dokumen</string>
+    <string name="provider_documents_settings_subtitle">Integrasi aplikasi luaran</string>
+    <string name="provider_documents_settings_category_integration_label">Integrasi</string>
+    <string name="provider_documents_enabled_title">Aktifkan Penyedia Dokumen</string>
+    <string name="provider_documents_enabled_desc">Benarkan aplikasi lain mengakses fail melalui Butler menggunakan pemilih fail Android</string>
+</resources>

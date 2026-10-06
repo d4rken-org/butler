@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">ติดตั้งแล้ว</string>
     <string name="developer_options_root_available_label">พร้อมใช้งาน</string>
     <string name="developer_options_root_base_check_label">ตรวจสอบพื้นฐาน</string>
-    <string name="developer_options_shizuku_test_action">ทดสอบ Shizuku</string>
+    <string name="developer_options_shizuku_test_action">ทดสอบการเข้าถึง ADB</string>
     <string name="developer_options_shizuku_installed_label">ติดตั้งแล้ว</string>
     <string name="developer_options_shizuku_granted_label">สิทธิ์</string>
     <string name="developer_options_shizuku_compatible_label">เข้ากันได้</string>

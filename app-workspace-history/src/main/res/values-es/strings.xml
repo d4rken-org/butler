@@ -194,7 +194,7 @@
         <item quantity="other">¿Eliminar %1$d entradas?</item>
     </plurals>
     <string name="history_delete_dialog_message">Solo se eliminan los registros del historial, los archivos no se tocan.</string>
-    <string name="history_pro_dialog_message">Compartir y eliminar entradas del historial es parte de la actualización. Borrar todo el historial sigue siendo gratuito en la configuración del historial.</string>
+    <string name="history_pro_dialog_message">Compartir varias entradas del historial a la vez es parte de la actualización. Compartir una sola entrada y eliminar entradas sigue siendo gratis.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Resultado</string>

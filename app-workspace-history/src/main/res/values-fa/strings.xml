@@ -194,7 +194,7 @@
         <item quantity="other">حذف %1$d ورودی</item>
     </plurals>
     <string name="history_delete_dialog_message">فقط رکوردهای تاریخچه حذف می‌شوند، خود فایل‌ها تغییری نمی‌پذیرند.</string>
-    <string name="history_pro_dialog_message">اشتراک‌گذاری و حذف ورودی‌های تاریخچه بخشی از ارتقاء است. پاک کردن کل تاریخچه در تنظیمات تاریخچه رایگان می‌ماند.</string>
+    <string name="history_pro_dialog_message">اشتراک‌گذاری هم‌زمان چند ورودی تاریخچه بخشی از ارتقا است. اشتراک‌گذاری یک ورودی و حذف ورودی‌ها رایگان می‌ماند.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">نتیجه</string>

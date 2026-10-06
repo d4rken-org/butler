@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">Akses root diperlukan untuk menjelajahi lokasi ini. Aktifkan akses root di pengaturan aplikasi Butler.</string>
-    <string name="provider_documents_error_requires_adb">Akses ADB/Shizuku diperlukan untuk menjelajahi lokasi ini. Aktifkan Shizuku di pengaturan aplikasi Butler.</string>
+    <string name="provider_documents_error_requires_adb">Akses ADB diperlukan untuk menjelajahi lokasi ini. Aktifkan di pengaturan Butler.</string>
     <string name="provider_documents_error_requires_storage">Izin penyimpanan diperlukan untuk menjelajahi lokasi ini. Berikan izin di pengaturan aplikasi Butler.</string>
     <string name="provider_documents_error_requires_permissions">Izin tambahan diperlukan untuk menjelajahi lokasi ini. Periksa pengaturan aplikasi Butler.</string>
     <string name="provider_documents_error_generic">Tidak dapat mengakses lokasi ini. Periksa opsi akses di Butler.</string>

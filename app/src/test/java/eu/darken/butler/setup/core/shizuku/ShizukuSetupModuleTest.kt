@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import eu.darken.butler.common.adb.AdbSettings
 import eu.darken.butler.common.adb.shizuku.AdbAvailability
 import eu.darken.butler.common.adb.shizuku.AdbBackend
+import eu.darken.butler.common.adb.shizuku.AdbConnectionState
 import eu.darken.butler.common.adb.shizuku.AdbPermissionState
 import eu.darken.butler.common.adb.shizuku.AdbServer
 import eu.darken.butler.common.adb.shizuku.ShizukuManager
@@ -34,8 +35,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -56,7 +62,7 @@ class ShizukuSetupModuleTest : BaseTest() {
     private val rootManager: RootManager = mockk()
 
     private lateinit var useShizukuFlow: MutableStateFlow<Boolean?>
-    private lateinit var serverFlow: MutableStateFlow<AdbServer?>
+    private lateinit var connectionStateFlow: MutableStateFlow<AdbConnectionState>
     private lateinit var scope: CoroutineScope
     private var probeCount = 0
 
@@ -83,14 +89,17 @@ class ShizukuSetupModuleTest : BaseTest() {
     fun setup() {
         probeCount = 0
         useShizukuFlow = MutableStateFlow(true)
-        serverFlow = MutableStateFlow(null)
+        connectionStateFlow = MutableStateFlow(AdbConnectionState.Disconnected)
         scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 
         every { context.packageManager } returns packageManager
         val useShizukuValue = useShizukuFlow.asDataStoreValue()
         every { adbSettings.useShizuku } returns useShizukuValue
 
-        every { shizukuManager.shizukuBinder } returns serverFlow
+        every { shizukuManager.connectionState } returns connectionStateFlow
+        every { shizukuManager.shizukuBinder } returns connectionStateFlow.map {
+            (it as? AdbConnectionState.Connected)?.server
+        }
         every { shizukuManager.permissionState } returns flowOf(AdbPermissionState.Granted)
         every { shizukuManager.useShizuku } returns flowOf(false)
         coEvery { shizukuManager.availability() } returns AdbAvailability.Connected(AdbBackend.SHIZUKU, SHIZUKU.name)
@@ -134,6 +143,7 @@ class ShizukuSetupModuleTest : BaseTest() {
     }
 
     @Test fun `first subscription emits Loading then Result`() {
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
         val mod = module()
 
         val collector = mod.state.test(tag = "first", scope = scope)
@@ -165,6 +175,7 @@ class ShizukuSetupModuleTest : BaseTest() {
     }
 
     @Test fun `re-subscription still re-runs the probe in the background`() {
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
         val mod = module()
 
         val first = mod.state.test(tag = "first", scope = scope)
@@ -202,6 +213,7 @@ class ShizukuSetupModuleTest : BaseTest() {
     }
 
     @Test fun `refresh triggers a fresh probe`() {
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
         val mod = module()
 
         val collector = mod.state.test(tag = "refresh", scope = scope)
@@ -222,7 +234,7 @@ class ShizukuSetupModuleTest : BaseTest() {
         val collector = mod.state.test(tag = "basic", scope = scope)
         collector.awaitResult { !it.basicService }
 
-        serverFlow.value = server
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
         collector.awaitResult { it.basicService }
 
         runBlocking { collector.cancelAndJoin() }
@@ -247,7 +259,7 @@ class ShizukuSetupModuleTest : BaseTest() {
 
     @Test fun `an unreadable availability with a live connection is not reported as not installed`() {
         coEvery { shizukuManager.availability() } returns null
-        serverFlow.value = server
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
 
         val collector = module().state.test(tag = "live", scope = scope)
         val result = collector.awaitResult { it.basicService }
@@ -284,6 +296,7 @@ class ShizukuSetupModuleTest : BaseTest() {
     }
 
     @Test fun `a server too old for Butler maps to a manager update`() {
+        connectionStateFlow.value = AdbConnectionState.Incompatible(AdbBackend.PORTER, true, false)
         coEvery { shizukuManager.availability() } returns AdbAvailability.Incompatible(
             backend = AdbBackend.PORTER,
             packageName = PORTER.name,
@@ -301,6 +314,7 @@ class ShizukuSetupModuleTest : BaseTest() {
     }
 
     @Test fun `a client too old for the server maps to a Butler update`() {
+        connectionStateFlow.value = AdbConnectionState.Incompatible(AdbBackend.PORTER, false, true)
         coEvery { shizukuManager.availability() } returns AdbAvailability.Incompatible(
             backend = AdbBackend.PORTER,
             packageName = PORTER.name,
@@ -316,8 +330,9 @@ class ShizukuSetupModuleTest : BaseTest() {
     }
 
     @Test fun `a connected server whose manager is gone has no open target`() {
+        every { server.backend } returns AdbBackend.PORTER
         coEvery { shizukuManager.availability() } returns AdbAvailability.Connected(AdbBackend.PORTER, null)
-        serverFlow.value = server
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
 
         val collector = module().state.test(tag = "orphan", scope = scope)
         val result = collector.awaitResult { it.basicService }
@@ -331,6 +346,7 @@ class ShizukuSetupModuleTest : BaseTest() {
     }
 
     @Test fun `a denial from the server reaches the result`() {
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
         every { shizukuManager.permissionState } returns
             flowOf(AdbPermissionState.Denied(permanentlyDenied = true))
         coEvery { shizukuManager.getServiceState() } returns ShizukuServiceState.PermissionDenied
@@ -401,6 +417,26 @@ class ShizukuSetupModuleTest : BaseTest() {
         module().firstResult().pkg shouldBe SHIZUKU_PLUS
     }
 
+    @Test fun `an incompatible Shizuku server still opens its launchable sibling rather than Porter`() {
+        connectionStateFlow.value = AdbConnectionState.Incompatible(AdbBackend.SHIZUKU, true, false)
+        coEvery { shizukuManager.availability() } returns AdbAvailability.Incompatible(
+            AdbBackend.SHIZUKU, COMPAT_HUB.name, serverTooOld = true, clientTooOld = false,
+        )
+        coEvery { shizukuManager.getManagerIds(AdbBackend.SHIZUKU) } returns listOf(COMPAT_HUB, SHIZUKU_PLUS)
+        coEvery { shizukuManager.getManagerIds(AdbBackend.PORTER) } returns listOf(PORTER)
+        every { packageManager.getLaunchIntentForPackage(COMPAT_HUB.name) } returns null
+        every { packageManager.getLaunchIntentForPackage(SHIZUKU_PLUS.name) } returns mockk<Intent>()
+
+        module().firstResult().apply {
+            isCompatible shouldBe false
+            serverTooOld shouldBe true
+            backend shouldBe AdbBackend.SHIZUKU
+            pkg shouldBe SHIZUKU_PLUS
+        }
+        coVerify(exactly = 0) { shizukuManager.getManagerIds(AdbBackend.PORTER) }
+        coVerify(exactly = 0) { shizukuManager.getServiceState() }
+    }
+
     @Test fun `without any launchable manager the permission owner stays the open target`() {
         coEvery { shizukuManager.availability() } returns AdbAvailability.Connected(AdbBackend.SHIZUKU, COMPAT_HUB.name)
         coEvery { shizukuManager.getManagerIds(AdbBackend.SHIZUKU) } returns listOf(COMPAT_HUB, SHIZUKU_PLUS)
@@ -424,7 +460,7 @@ class ShizukuSetupModuleTest : BaseTest() {
         val collector = module().state.test(tag = "no-auto-prompt", scope = scope)
         collector.awaitResult { !it.basicService }
 
-        serverFlow.value = server
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
         collector.awaitResult { it.basicService }
         runBlocking { delay(300) }
 
@@ -436,7 +472,7 @@ class ShizukuSetupModuleTest : BaseTest() {
     /** Switches on with a connected manager that has not granted Butler, answering its prompt with [answer]. */
     private fun switchOnAsking(answer: suspend () -> AdbPermissionState): AtomicInteger {
         useShizukuFlow.value = null
-        serverFlow.value = server
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
         coEvery { shizukuManager.isGranted() } returns false
         val requests = AtomicInteger(0)
         coEvery { shizukuManager.requestPermission() } coAnswers {
@@ -492,7 +528,7 @@ class ShizukuSetupModuleTest : BaseTest() {
     }
 
     @Test fun `grant access asks and re-probes`() {
-        serverFlow.value = server
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
         coEvery { shizukuManager.isGranted() } returns false
         val mod = module()
         val collector = mod.state.test(tag = "grant", scope = scope)
@@ -510,7 +546,7 @@ class ShizukuSetupModuleTest : BaseTest() {
 
     @Test fun `grant access during a switch-on prompt joins it`() {
         useShizukuFlow.value = null
-        serverFlow.value = server
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
         coEvery { shizukuManager.isGranted() } returns false
         val answer = CompletableDeferred<AdbPermissionState>()
         val requests = AtomicInteger(0)
@@ -532,7 +568,7 @@ class ShizukuSetupModuleTest : BaseTest() {
     }
 
     @Test fun `grant access after an unanswered prompt asks again`() {
-        serverFlow.value = server
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
         val requests = AtomicInteger(0)
         coEvery { shizukuManager.requestPermission() } coAnswers {
             if (requests.incrementAndGet() == 1) awaitCancellation() else AdbPermissionState.Granted
@@ -544,6 +580,200 @@ class ShizukuSetupModuleTest : BaseTest() {
 
         runBlocking { mod.grantAccess() }
         requests.get() shouldBe 2
+    }
+
+    @Test fun `refusal arrival reason change departure and recovery update without refresh for every setting and backend`() = runTest {
+        scope.cancel()
+        scope = CoroutineScope(StandardTestDispatcher(testScheduler) + SupervisorJob())
+        val permission = MutableStateFlow<AdbPermissionState>(AdbPermissionState.Unknown)
+        every { shizukuManager.permissionState } returns permission
+
+        for (enabled in listOf(true, false, null)) {
+            for ((backend, target) in listOf(AdbBackend.PORTER to PORTER, AdbBackend.SHIZUKU to SHIZUKU_PLUS)) {
+                useShizukuFlow.value = enabled
+                connectionStateFlow.value = AdbConnectionState.Disconnected
+                permission.value = AdbPermissionState.Unknown
+                every { server.backend } returns backend
+                coEvery { shizukuManager.availability() } returns AdbAvailability.InstalledNotConnected(backend, target.name)
+                val beforeProbes = probeCount
+                val seen = mutableListOf<SetupModule.State>()
+                val job = launch { module().state.toList(seen) }
+                runCurrent()
+                fun latest() = seen.last().shouldBeInstanceOf<ShizukuSetupModule.Result>()
+                latest().isCompatible shouldBe true
+                latest().basicService shouldBe false
+
+                connectionStateFlow.value = AdbConnectionState.Incompatible(backend, true, false)
+                runCurrent()
+                latest().apply {
+                    isInstalled shouldBe true
+                    isCompatible shouldBe false
+                    serverTooOld shouldBe true
+                    clientTooOld shouldBe false
+                    this.backend shouldBe backend
+                    pkg shouldBe target
+                    permissionState shouldBe AdbPermissionState.Unknown
+                    basicService shouldBe false
+                }
+
+                connectionStateFlow.value = AdbConnectionState.Incompatible(backend, false, true)
+                runCurrent()
+                latest().apply {
+                    isCompatible shouldBe false
+                    serverTooOld shouldBe false
+                    clientTooOld shouldBe true
+                    this.backend shouldBe backend
+                    pkg shouldBe target
+                }
+                probeCount shouldBe beforeProbes
+
+                // Metadata can lag a departure; only the snapshot owns compatibility.
+                coEvery { shizukuManager.availability() } returns AdbAvailability.Incompatible(backend, target.name, false, true)
+                connectionStateFlow.value = AdbConnectionState.Disconnected
+                runCurrent()
+                latest().apply {
+                    isInstalled shouldBe true
+                    isCompatible shouldBe true
+                    serverTooOld shouldBe false
+                    clientTooOld shouldBe false
+                    basicService shouldBe false
+                }
+
+                connectionStateFlow.value = AdbConnectionState.Connected(server)
+                permission.value = AdbPermissionState.Granted
+                runCurrent()
+                latest().apply {
+                    isCompatible shouldBe true
+                    this.backend shouldBe backend
+                    pkg shouldBe target
+                    basicService shouldBe (enabled == true)
+                    permissionState shouldBe if (enabled == true) AdbPermissionState.Granted else AdbPermissionState.Unknown
+                    serviceState shouldBe if (enabled == true) ShizukuServiceState.Available else ShizukuServiceState.NotChecked
+                }
+                if (enabled != true) probeCount shouldBe beforeProbes
+                coVerify(exactly = 0) { shizukuManager.requestPermission() }
+                job.cancel()
+                runCurrent()
+            }
+        }
+    }
+
+    @Test fun `incompatible with unreadable metadata still reports installation and the correct update side`() = runTest {
+        scope.cancel()
+        scope = CoroutineScope(StandardTestDispatcher(testScheduler) + SupervisorJob())
+        coEvery { shizukuManager.availability() } returns null
+        for (enabled in listOf(true, false, null)) {
+            useShizukuFlow.value = enabled
+            for (backend in AdbBackend.entries) {
+                for (serverTooOld in listOf(true, false)) {
+                    connectionStateFlow.value = AdbConnectionState.Incompatible(backend, serverTooOld, !serverTooOld)
+                    val seen = mutableListOf<SetupModule.State>()
+                    val job = launch { module().state.toList(seen) }
+                    runCurrent()
+                    seen.last().shouldBeInstanceOf<ShizukuSetupModule.Result>().apply {
+                        isInstalled shouldBe true
+                        isCompatible shouldBe false
+                        this.backend shouldBe backend
+                        this.serverTooOld shouldBe serverTooOld
+                        clientTooOld shouldBe !serverTooOld
+                        pkg shouldBe null
+                        managerLabel shouldBe null
+                        basicService shouldBe false
+                        permissionState shouldBe AdbPermissionState.Unknown
+                    }
+                    job.cancel()
+                    runCurrent()
+                }
+            }
+        }
+        coVerify(exactly = 0) { shizukuManager.getServiceState() }
+        coVerify(exactly = 0) { shizukuManager.requestPermission() }
+    }
+
+    @Test fun `new state cancels an older suspended metadata probe in every setting`() = runTest {
+        scope.cancel()
+        scope = CoroutineScope(StandardTestDispatcher(testScheduler) + SupervisorJob())
+        for (enabled in listOf(true, false, null)) {
+            useShizukuFlow.value = enabled
+            connectionStateFlow.value = AdbConnectionState.Disconnected
+            var started = false
+            var cancelled = false
+            coEvery { shizukuManager.availability() } coAnswers {
+                started = true
+                try {
+                    awaitCancellation()
+                } finally {
+                    cancelled = true
+                }
+            }
+            val seen = mutableListOf<SetupModule.State>()
+            val job = launch { module().state.toList(seen) }
+            runCurrent()
+            started shouldBe true
+            seen.filterIsInstance<ShizukuSetupModule.Result>() shouldBe emptyList()
+
+            coEvery { shizukuManager.availability() } returns null
+            connectionStateFlow.value = AdbConnectionState.Incompatible(AdbBackend.PORTER, true, false)
+            runCurrent()
+            cancelled shouldBe true
+            val results = seen.filterIsInstance<ShizukuSetupModule.Result>()
+            results.isNotEmpty() shouldBe true
+            results.all { !it.isCompatible && it.isInstalled && it.serverTooOld } shouldBe true
+            job.cancel()
+            runCurrent()
+        }
+    }
+
+    @Test fun `a refused server cancels an older suspended service probe`() = runTest {
+        scope.cancel()
+        scope = CoroutineScope(StandardTestDispatcher(testScheduler) + SupervisorJob())
+        connectionStateFlow.value = AdbConnectionState.Connected(server)
+        var started = false
+        var cancelled = false
+        coEvery { shizukuManager.getServiceState() } coAnswers {
+            started = true
+            try {
+                awaitCancellation()
+            } finally {
+                cancelled = true
+            }
+        }
+        val seen = mutableListOf<SetupModule.State>()
+        val job = launch { module().state.toList(seen) }
+        runCurrent()
+        started shouldBe true
+        connectionStateFlow.value = AdbConnectionState.Incompatible(AdbBackend.SHIZUKU, false, true)
+        runCurrent()
+        cancelled shouldBe true
+        val results = seen.filterIsInstance<ShizukuSetupModule.Result>()
+        results.isNotEmpty() shouldBe true
+        results.all { !it.isCompatible && !it.ourService && it.clientTooOld } shouldBe true
+        job.cancel()
+    }
+
+    @Test fun `cached incompatible resubscription never emits a synthetic compatible result`() = runTest {
+        scope.cancel()
+        scope = CoroutineScope(StandardTestDispatcher(testScheduler) + SupervisorJob())
+        for (enabled in listOf(true, false, null)) {
+            useShizukuFlow.value = enabled
+            connectionStateFlow.value = AdbConnectionState.Incompatible(AdbBackend.PORTER, true, false)
+            val mod = module()
+            val first = mutableListOf<SetupModule.State>()
+            val firstJob = launch { mod.state.toList(first) }
+            runCurrent()
+            first.last().shouldBeInstanceOf<ShizukuSetupModule.Result>().isCompatible shouldBe false
+            firstJob.cancel()
+            runCurrent() // Stop the share and clear its replay buffer.
+
+            val second = mutableListOf<SetupModule.State>()
+            val secondJob = launch { mod.state.toList(second) }
+            runCurrent()
+            second.first().shouldBeInstanceOf<ShizukuSetupModule.Result>().isCompatible shouldBe false
+            second.size shouldBeGreaterThan 1 // Cached result followed by a fresh probe.
+            second.filterIsInstance<ShizukuSetupModule.Result>().all { !it.isCompatible && it.serverTooOld } shouldBe true
+            secondJob.cancel()
+            runCurrent()
+        }
     }
 
     companion object {

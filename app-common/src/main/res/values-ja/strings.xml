@@ -105,6 +105,24 @@
     <string name="general_progress_loading_egg_12">少々お待ちください</string>
     <string name="general_progress_loading_egg_13">少なくとも、保留にはされていません</string>
     <string name="general_progress_loading_egg_14">おでこに直接塗ってください</string>
+    <string name="general_progress_loading_egg_halloween_0">キャッシュをお祓い中</string>
+    <string name="general_progress_loading_egg_halloween_1">クローゼットの骸骨を数えています</string>
+    <string name="general_progress_loading_egg_halloween_2">カボチャをくり抜き中</string>
+    <string name="general_progress_loading_egg_halloween_3">ベッドの下にゾンビプロセスがいないか確認中</string>
+    <string name="general_progress_loading_egg_stpatricks_0">虹を追いかけて黄金の壺へ</string>
+    <string name="general_progress_loading_egg_stpatricks_1">四つ葉のクローバーを探しています</string>
+    <string name="general_progress_loading_egg_stpatricks_2">レプラコーンを買収中</string>
+    <string name="general_progress_loading_egg_aprilfools_0">読み込み中。……のはずですが？</string>
+    <string name="general_progress_loading_egg_aprilfools_1">電源を入れ直しています</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">プレッツェルを追加で調達中</string>
+    <string name="general_progress_loading_egg_xmas_0">リストを二度確認中</string>
+    <string name="general_progress_loading_egg_xmas_1">ファイルをラッピング中</string>
+    <string name="general_progress_loading_egg_xmas_2">イルミネーションのもつれをほどいています</string>
+    <string name="general_progress_loading_egg_xmas_3">トナカイにエサをあげています</string>
+    <string name="general_progress_loading_egg_newyear_0">午前0時までカウントダウン中</string>
+    <string name="general_progress_loading_egg_newyear_1">シャンパンを開けています</string>
+    <string name="general_progress_loading_egg_newyear_2">誰も守らない抱負を作成中</string>
+    <string name="general_progress_loading_egg_newyear_3">新年を読み込み中</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">
@@ -196,10 +214,10 @@
     <string name="general_error_cant_access_msg">%sにアクセスできません。</string>
     <string name="general_error_archive_not_seekable_msg">%sは直接閲覧できません。保存先のストレージが順次読み込みにしか対応していないため、このアーカイブ形式が必要とするランダムアクセスができません。</string>
     <string name="general_error_root_unavailable">Rootアクセスは利用できません。</string>
-    <string name="general_error_elevated_access_required">この操作には高度なアクセス権限が必要です。セットアップでRootまたはShizukuを設定してください。</string>
+    <string name="general_error_elevated_access_required">この操作には高度なアクセス権限が必要です。セットアップでRootまたはADB接続を設定してください。</string>
     <string name="general_error_no_compatible_app_found_msg">この操作に対応できるアプリが見つかりません。</string>
     <string name="general_error_ipc_deadobject_title">サービス接続が失われました</string>
-    <string name="general_error_ipc_deadobject_description">重要なサービス（Magisk、Shizuku、またはその他のシステムレベルのサービスなど）との接続が予期せず失われました。端末を再起動してください。問題が解決しない場合は、アップデートを確認するか、お問い合わせください。</string>
+    <string name="general_error_ipc_deadobject_description">重要なサービス（例えばMagiskなど）との接続が予期せず失われました。端末を再起動してください。問題が解決しない場合は、アップデートを確認するか、お問い合わせください。</string>
 
     <string name="ui_theme_mode_dark_label">ダーク</string>
     <string name="ui_theme_mode_light_label">ライト</string>
@@ -237,7 +255,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">使用状況の統計</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB接続</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">通知へのアクセス</string>
     <string name="setup_manage_storage_card_title">外部ストレージの管理</string>
@@ -293,7 +311,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">複数のペインを使うと、ファイルを並べて比較できます。</string>
     <string name="common_tip_different_folders">各ペインで異なるフォルダを開くと、ファイル管理が簡単になります。</string>
-    <string name="common_tip_switch_layouts">タブ設定の管理画面でペインレイアウトを切り替えられます。</string>
-    <string name="common_tip_elevated_access">セットアップでRootまたはShizukuを有効にすると、高度なファイル操作ができます。</string>
+    <string name="common_tip_switch_layouts">Butlerメニューの「レイアウト」からペインレイアウトを切り替えられます。</string>
+    <string name="common_tip_elevated_access">セットアップでRootまたはADB接続を有効にすると、高度なファイル操作ができます。</string>
     <string name="common_tip_breadcrumb_home">エクスプローラーのパンくずを長押しすると、ホームディレクトリに設定できます。</string>
 </resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Baharu</string>
+    <string name="workspace_templates_choose_title">Tab baharu</string>
+    <string name="workspace_templates_choose_subtitle">Pilih jenis tab. Bagaimana saya boleh membantu?</string>
+    <string name="workspace_templates_name_tab_action">Namakan tab ini</string>
+    <string name="tour_templates_picker_title">Pilih alat</string>
+    <string name="tour_templates_picker_body">Ini ialah pemilih tab, pilih fungsi tab ini. Memilih satu menukar tab ini menjadi alat itu.</string>
+    <string name="tour_templates_butler_button_title">Tab kamu ada di sini</string>
+    <string name="tour_templates_butler_button_body">Ketik butang Butler untuk menu tab: Cipta tab baharu, tutup tab semasa atau buka pengurus tab penuh. Tekan lama untuk terus ke pengurus tab.</string>
+</resources>

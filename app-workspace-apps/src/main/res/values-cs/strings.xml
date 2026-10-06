@@ -78,8 +78,8 @@
     <string name="apps_path_internal_data_label">Interní data</string>
     <string name="apps_path_external_data_label">Externí úložiště</string>
     <string name="apps_path_requires_root_label">Vyžaduje root</string>
-    <string name="apps_path_requires_shizuku_label">Vyžaduje Shizuku</string>
-    <string name="apps_path_requires_root_or_shizuku_label">Vyžaduje root nebo Shizuku</string>
+    <string name="apps_path_requires_shizuku_label">Vyžaduje přístup ADB</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Vyžaduje root nebo přístup ADB</string>
     <string name="apps_path_requires_access_label">Vyžaduje další přístup</string>
     <string name="apps_storage_breakdown_label">Rozpis úložiště</string>
     <string name="apps_storage_app_label">Aplikace</string>
@@ -240,7 +240,7 @@
     <string name="apps_components_copy_package_action">Kopírovat název balíčku</string>
     <string name="apps_components_action_enable">Povolit komponentu</string>
     <string name="apps_components_action_disable">Zakázat komponentu</string>
-    <string name="apps_components_action_requires_elevated">Vyžaduje root nebo Shizuku — klepnutím nastavíte</string>
+    <string name="apps_components_action_requires_elevated">Vyžaduje root nebo přístup ADB — klepnutím nastavíš</string>
     <string name="apps_components_confirm_enable_title">Povolit komponenty?</string>
     <string name="apps_components_confirm_disable_title">Zakázat komponenty?</string>
     <string name="apps_components_confirm_enable_message">Budou povoleny tyto komponenty:</string>

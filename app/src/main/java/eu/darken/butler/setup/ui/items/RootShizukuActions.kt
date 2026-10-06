@@ -82,7 +82,15 @@ fun RootShizukuActions(
                 AdbCardStatus.CONNECTED -> adbState?.managerName
                     ?.let { stringResource(R.string.setup_adb_status_connected_via, it) }
                     ?: stringResource(R.string.setup_status_connected)
-                AdbCardStatus.PERMISSION_DENIED -> stringResource(R.string.setup_status_permission_denied)
+                // The SDK cannot tell never asked, denied and revoked apart, so only the manager's
+                // own "never ask again" gets its own wording.
+                AdbCardStatus.PERMISSION_DENIED -> adbState?.managerName?.let { name ->
+                    if (adbState?.isPermanentlyDenied == true) {
+                        stringResource(R.string.setup_adb_status_denied_in, name)
+                    } else {
+                        stringResource(R.string.setup_adb_status_not_allowed_yet, name)
+                    }
+                } ?: stringResource(R.string.setup_status_permission_denied)
                 AdbCardStatus.CONNECTION_FAILED -> stringResource(R.string.setup_status_connection_failed)
                 AdbCardStatus.CONNECTING -> stringResource(R.string.setup_status_connecting)
                 AdbCardStatus.NOT_CONNECTED -> stringResource(R.string.setup_status_not_connected)

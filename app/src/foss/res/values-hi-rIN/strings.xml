@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Butler FOSS आवश्यक है</string>
+    <string name="upgrade_prompt_title">Butler अपग्रेड करें</string>
+    <string name="upgrade_prompt_body">अतिरिक्त सुविधाएँ अनलॉक करें और विकास जारी रखने में मदद के लिए संरक्षक बनें!</string>
+    <string name="upgrade_prompt_upgrade_action">अपग्रेड करें</string>
+    <string name="upgrade_screen_title">Butler अपग्रेड करें</string>
+    <string name="upgrade_screen_preamble">Butler में विज्ञापन नहीं हैं और यह उपयोगकर्ताओं का डेटा नहीं बेचता। आपके सहयोग से ही विकास जारी रह पाता है।</string>
+    <string name="upgrade_screen_how_title">मदद कैसे करें</string>
+    <string name="upgrade_screen_how_body">संरक्षक बनें और विकास को प्रायोजित करें! सभी अतिरिक्त सुविधाएँ चालू करने और मेरी GitHub Sponsors प्रोफ़ाइल खोलने के लिए नीचे का बटन दबाएँ।</string>
+    <string name="upgrade_screen_sponsor_action">विकास प्रायोजित करें</string>
+    <string name="upgrade_screen_sponsor_action_hint">दूसरा रास्ता विज्ञापन, ऐनलिटिक्स और Google Play है 🙁।</string>
+    <string name="upgrade_screen_thanks_toast">ओपन-सोर्स विकास में सहयोग के लिए धन्यवाद ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">इतनी जल्दी वापसी? आपके सहयोग से Butler चलता है — कृपया प्रायोजकों का पेज देखने के लिए थोड़ा समय निकालें।</string>
+    <string name="upgrade_screen_sponsor_open_failed">प्रायोजकों का पेज नहीं खुल सका। इसे ब्राउज़र में खोलकर देखें।</string>
+    <string name="upgrade_screen_status_free_title">मुफ़्त संस्करण चालू है</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS पूरी तरह ओपन-सोर्स है। विकास में सहयोग देकर अतिरिक्त सुविधाएँ अनलॉक करें।</string>
+    <string name="upgrade_screen_status_free_action">अपग्रेड के विकल्प देखें</string>
+    <string name="upgrade_screen_status_upgraded_title">आपका सहयोग मिल रहा है</string>
+    <string name="upgrade_screen_status_upgraded_body">ओपन-सोर्स विकास में सहयोग के लिए धन्यवाद ❤️ सभी अतिरिक्त सुविधाएँ अनलॉक हैं।</string>
+    <string name="upgrade_screen_supporter_since">%s से सहयोग जारी है</string>
+    <string name="upgrade_screen_recurring_title">इसे जारी रखें</string>
+    <string name="upgrade_screen_recurring_body">Butler का विकास मेरे खाली समय में होता है। नियमित दान से इसे जारी रखने में मदद मिलती है।</string>
+    <string name="upgrade_screen_recurring_action">नियमित प्रायोजक बनें</string>
+    <string name="upgrade_benefits_title">अपग्रेड के फ़ायदे</string>
+    <string name="upgrade_screen_benefits_body">• असीमित टैब और प्रक्रियाएँ\n• डिज़ाइन, अनुभव और रूप अपने अनुसार बदलें\n• हर टूल के लिए अतिरिक्त विकल्प और सुविधाएँ\n• नई सुविधाओं की शुरुआती पहुँच\n• एक उत्साहित डेवलपर 🧙\nऔर भी बहुत कुछ…</string>
+</resources>

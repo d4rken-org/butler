@@ -352,7 +352,7 @@
     <string name="workspace_settings_layout_mode_classic">คลาสสิก</string>
     <string name="workspace_settings_layout_mode_classic_desc">แสดงพาเนลเดียวทีละครั้ง ไม่มีรางแท็บ</string>
     <string name="workspace_settings_layout_mode_adaptive">อแดปทีฟ</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">รางแท็บพร้อมพาเนลมากเท่าที่หน้าจอรองรับ ปักหมุดเค้าโครงได้จากเมนู Butler ในราง</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">รางแท็บพร้อมพาเนลมากเท่าที่หน้าจอรองรับ ปักหมุดเค้าโครงได้จากเมนู Butler</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">อแดปทีฟ (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">เดี่ยวพร้อมรางแท็บ</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">พาเนลแท็บเดียวพร้อมรางแท็บของเค้าโครงหลายพาเนล รางจะใช้พื้นที่แถบหนึ่งของหน้าจอ</string>
@@ -443,4 +443,15 @@
     <plurals name="workspace_operation_restore_summary">
         <item quantity="other">กู้คืน %d รายการแล้ว</item>
     </plurals>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">รางแท็บพร้อมพาเนลมากเท่าที่หน้าจอรองรับ</string>
+    <string name="workspace_open_selection_each_in_tab_action">เปิดแต่ละรายการในแท็บของตัวเอง</string>
+    <string name="workspace_open_selection_each_in_tab_description">เปิดทุกรายการที่เลือกในแท็บแยกกัน โฟลเดอร์จะเปิดเป็นแท็บตัวจัดการไฟล์</string>
+    <plurals name="workspace_open_selection_title">
+        <item quantity="other">เปิด %d รายการ</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">ดูที่นี่</string>
+    <string name="workspace_open_selection_view_here_description">แสดงไฟล์ที่เลือกในตัวดูไฟล์ที่ซ้อนอยู่บนพาเนลนี้ ปุ่มก่อนหน้าและถัดไปจะวนเฉพาะในรายการที่คุณเลือก</string>
+    <string name="workspace_open_selection_view_in_tab_action">ดูในแท็บใหม่</string>
+    <string name="workspace_open_selection_view_in_tab_description">แสดงไฟล์ที่เลือกในตัวดูไฟล์ในแท็บของตัวเอง ปุ่มก่อนหน้าและถัดไปจะวนเฉพาะในรายการที่คุณเลือก</string>
+    <string name="workspace_open_selection_viewer_unavailable">ไม่สามารถแสดงโฟลเดอร์ในตัวดูไฟล์ได้</string>
 </resources>

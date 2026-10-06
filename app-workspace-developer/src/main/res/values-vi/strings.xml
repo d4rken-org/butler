@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">Đã cài đặt</string>
     <string name="developer_options_root_available_label">Có sẵn</string>
     <string name="developer_options_root_base_check_label">Kiểm tra cơ sở</string>
-    <string name="developer_options_shizuku_test_action">Kiểm tra Shizuku</string>
+    <string name="developer_options_shizuku_test_action">Kiểm tra quyền truy cập ADB</string>
     <string name="developer_options_shizuku_installed_label">Đã cài đặt</string>
     <string name="developer_options_shizuku_granted_label">Quyền hạn</string>
     <string name="developer_options_shizuku_compatible_label">Tương thích</string>

@@ -78,8 +78,8 @@
     <string name="apps_path_internal_data_label">داده‌های داخلی</string>
     <string name="apps_path_external_data_label">حافظهٔ خارجی</string>
     <string name="apps_path_requires_root_label">نیاز به root دارد</string>
-    <string name="apps_path_requires_shizuku_label">نیاز به Shizuku دارد</string>
-    <string name="apps_path_requires_root_or_shizuku_label">نیاز به root یا Shizuku دارد</string>
+    <string name="apps_path_requires_shizuku_label">نیاز به دسترسی ADB دارد</string>
+    <string name="apps_path_requires_root_or_shizuku_label">نیاز به دسترسی root یا ADB دارد</string>
     <string name="apps_path_requires_access_label">نیاز به دسترسی بیشتر دارد</string>
     <string name="apps_storage_breakdown_label">جزئیات حافظه</string>
     <string name="apps_storage_app_label">برنامه</string>
@@ -230,7 +230,7 @@
     <string name="apps_components_copy_package_action">کپی نام بسته</string>
     <string name="apps_components_action_enable">فعال‌سازی جزء</string>
     <string name="apps_components_action_disable">غیرفعال‌سازی جزء</string>
-    <string name="apps_components_action_requires_elevated">نیاز به root یا Shizuku دارد — برای راه‌اندازی ضربه بزنید</string>
+    <string name="apps_components_action_requires_elevated">نیاز به دسترسی root یا ADB دارد — برای راه‌اندازی ضربه بزنید</string>
     <string name="apps_components_confirm_enable_title">اجزا فعال شود؟</string>
     <string name="apps_components_confirm_disable_title">اجزا غیرفعال شود؟</string>
     <string name="apps_components_confirm_enable_message">اجزای زیر فعال خواهد شد:</string>

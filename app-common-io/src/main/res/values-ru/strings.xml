@@ -69,7 +69,7 @@
     <string name="smb_error_credential_unavailable_title">Требуется вход</string>
     <string name="smb_error_credential_unavailable_description">Сохранённый пароль для этого сетевого хранилища больше нельзя прочитать. Введите его снова, чтобы переподключиться.</string>
     <string name="smb_error_pro_required_title">Сетевые папки требуют Butler Pro</string>
-    <string name="smb_error_pro_required_description">Подключение к сетевым папкам входит в Butler Pro. Ваши сохранённые местоположения остаются в списке и могут быть удалены без него.</string>
+    <string name="smb_error_pro_required_description">Просмотр сетевых папок входит в Butler Pro. Добавлять, проверять и удалять расположения можно бесплатно.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Защищённый пакет приложения</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" зашифрован и может быть установлен только приложением, которое его создало.</string>
@@ -104,7 +104,7 @@
     <string name="app_uninstall_confirm_pending_reason">Android ждёт вашего подтверждения</string>
 
     <!-- App uninstall errors -->
-    <string name="app_uninstall_other_user_unsupported">Удаление этого приложения для другого пользователя требует root или Shizuku</string>
+    <string name="app_uninstall_other_user_unsupported">Удаление этого приложения для другого пользователя требует root или доступ ADB</string>
     <string name="app_uninstall_no_result">Android не сообщил результат</string>
 
     <!-- Service connection errors -->

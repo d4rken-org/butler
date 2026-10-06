@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="workspace_templates_tab_title">Új</string>
+    <string name="workspace_templates_choose_title">Új lap</string>
+    <string name="workspace_templates_choose_subtitle">Válassz laptípust. Miben segíthetek?</string>
+    <string name="workspace_templates_name_tab_action">Lap elnevezése</string>
+    <string name="tour_templates_picker_title">Válassz egy eszközt</string>
+    <string name="tour_templates_picker_body">Ez a lapválasztó: itt döntheted el, mi legyen ezen a lapon. A választott eszköz kerül a lap helyére.</string>
+    <string name="tour_templates_butler_button_title">Itt találod a lapjaidat</string>
+    <string name="tour_templates_butler_button_body">Koppints a Butler gombra a lapmenühöz: új lapot hozhatsz létre, bezárhatod az aktuálisat, vagy megnyithatod a teljes lapkezelőt. Hosszan megnyomva közvetlenül a lapkezelőhöz ugorhatsz.</string>
+</resources>

@@ -421,7 +421,7 @@
     <string name="workspace_settings_layout_mode_classic">Класичний</string>
     <string name="workspace_settings_layout_mode_classic_desc">Одна панель за раз, без рейки вкладок.</string>
     <string name="workspace_settings_layout_mode_adaptive">Адаптивний</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">Рейка вкладок плюс стільки панелей, скільки вміщує екран. Закріпіть розташування в меню Butler на рейці.</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Рейка вкладок плюс стільки панелей, скільки вміщує екран. Закріпи розташування в меню Butler.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Адаптивний (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Одна панель з рейкою вкладок</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">Одна панель вкладок плюс рейка вкладок із багатопанельних розташувань. Рейка займає смугу екрана.</string>
@@ -530,4 +530,18 @@
         <item quantity="many">%d елементів відновлено</item>
         <item quantity="other">%d елемента відновлено</item>
     </plurals>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Рейка вкладок плюс стільки панелей, скільки вміщує екран.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Відкрити кожен в окремій вкладці</string>
+    <string name="workspace_open_selection_each_in_tab_description">Відкриває кожен вибраний елемент в окремій вкладці. Теки відкриваються у вкладках файлового провідника.</string>
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Відкрити %d елемент</item>
+        <item quantity="few">Відкрити %d елементи</item>
+        <item quantity="many">Відкрити %d елементів</item>
+        <item quantity="other">Відкрити %d елемента</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Переглянути тут</string>
+    <string name="workspace_open_selection_view_here_description">Показує вибрані файли в переглядачі поверх цієї панелі. Кнопки «Попередній» і «Наступний» проходять лише по вибраному.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Переглянути в новій вкладці</string>
+    <string name="workspace_open_selection_view_in_tab_description">Показує вибрані файли в переглядачі в окремій вкладці. Кнопки «Попередній» і «Наступний» проходять лише по вибраному.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Теки не можна показати в переглядачі.</string>
 </resources>

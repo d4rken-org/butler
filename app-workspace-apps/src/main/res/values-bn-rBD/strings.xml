@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apps Workspace -->
+    <string name="apps_title">অ্যাপ</string>
+    <string name="apps_subtitle">ইনস্টল করা অ্যাপ্লিকেশন পরিচালনা করুন</string>
+
+    <!-- Filter Labels -->
+    <string name="apps_filter_app_type_label">অ্যাপের ধরন</string>
+    <string name="apps_filter_type_all">সব</string>
+    <string name="apps_filter_type_user">ব্যবহারকারীর অ্যাপ</string>
+    <string name="apps_filter_type_system">সিস্টেম অ্যাপ</string>
+    <string name="apps_filter_status_label">অবস্থা</string>
+    <string name="apps_filter_status_all">সব</string>
+    <string name="apps_filter_status_enabled">চালু</string>
+    <string name="apps_filter_status_disabled">বন্ধ</string>
+
+
+    <!-- Sort Options -->
+    <string name="apps_sort_mode_label">যেভাবে সাজাবেন</string>
+    <string name="apps_sort_mode_name_label">নাম</string>
+    <string name="apps_sort_mode_size_label">আকার</string>
+    <string name="apps_sort_mode_install_date_label">ইনস্টলের তারিখ</string>
+    <string name="apps_sort_mode_update_date_label">আপডেটের তারিখ</string>
+    <string name="apps_sort_mode_package_name_label">প্যাকেজের নাম</string>
+    <string name="apps_sort_descending_label">অবরোহ ক্রম</string>
+    <string name="apps_sort_mode_size_slowdown_hint">অ্যাপের আকার হিসাব করলে লোড হতে বেশি সময় লাগে</string>
+
+    <!-- Actions -->
+    <string name="apps_action_launch">চালু করুন</string>
+    <string name="apps_action_open_info">অ্যাপের তথ্য</string>
+    <string name="apps_action_disable">বন্ধ করুন</string>
+    <string name="apps_action_enable">সক্রিয় করুন</string>
+    <string name="apps_action_uninstall">আনইনস্টল করুন</string>
+    <string name="apps_action_clear_data">তথ্য মুছুন</string>
+    <string name="apps_action_export_apk">APK এক্সপোর্ট করুন</string>
+    <string name="apps_action_browse_path">পাথ ব্রাউজ করুন</string>
+    <string name="apps_action_share">তথ্য শেয়ার করুন</string>
+    <string name="apps_action_refresh">রিফ্রেশ করুন</string>
+    <string name="apps_action_sort">সাজান</string>
+    <string name="apps_action_filter">ফিল্টার</string>
+    <string name="apps_action_select_all">সব নির্বাচন করুন</string>
+    <string name="apps_action_deselect_all">সব অনির্বাচিত করুন</string>
+    <string name="apps_action_open_in_tab">ট্যাবে খুলুন</string>
+    <string name="apps_action_force_stop">জোর করে থামান</string>
+    <string name="apps_action_view">বিন্যাস</string>
+
+    <!-- View options -->
+    <string name="apps_view_sheet_subtitle">আইটেম কীভাবে সাজানো হবে ও কতটা বিস্তারিত দেখাবে</string>
+    <string name="apps_view_mode_list_label">তালিকা</string>
+    <string name="apps_view_mode_grid_label">গ্রিড</string>
+    <string name="apps_view_density_compact_label">সংক্ষিপ্ত</string>
+    <string name="apps_view_density_comfortable_label">স্বচ্ছন্দ</string>
+    <string name="apps_view_density_detailed_label">বিস্তারিত</string>
+    <string name="apps_view_set_default_action">ডিফল্ট করুন</string>
+    <string name="apps_view_detail_dates_label">ইনস্টল %1$s · আপডেট %2$s</string>
+
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">অ্যাপ্লিকেশন শুরু করুন</string>
+    <string name="apps_action_open_info_desc">সিস্টেমের বিস্তারিত তথ্য দেখুন</string>
+    <string name="apps_action_enable_desc">এই অ্যাপ্লিকেশন সক্রিয় করুন</string>
+    <string name="apps_action_disable_desc">এই অ্যাপ্লিকেশন বন্ধ করুন</string>
+    <string name="apps_action_uninstall_desc">এই অ্যাপ্লিকেশন সরান</string>
+    <string name="apps_action_export_apk_desc">স্টোরেজে APK ফাইল সংরক্ষণ করুন</string>
+    <string name="apps_action_share_desc">অ্যাপের বিস্তারিত টেক্সট হিসেবে শেয়ার করুন</string>
+    <string name="apps_action_force_stop_desc">অবিলম্বে অ্যাপ্লিকেশন থামান</string>
+    <string name="apps_action_clear_data_desc">অ্যাপের সব তথ্য ও সেটিংস মুছে ফেলুন</string>
+
+    <!-- App Info Labels -->
+    <string name="apps_package_name_label">প্যাকেজ</string>
+    <string name="apps_version_label">সংস্করণ</string>
+    <string name="apps_size_label">আকার</string>
+    <string name="apps_size_chip_desc">অ্যাপের আকার: %1$s</string>
+    <string name="apps_size_permission_hint">অ্যাপের আকার জানতে ব্যবহারের তথ্যের অ্যাক্সেস প্রয়োজন</string>
+    <string name="apps_size_permission_body">Android শুধু ব্যবহারের তথ্যের অ্যাক্সেস আছে এমন অ্যাপকে অ্যাপ, তথ্য ও ক্যাশের আকার জানায়। এই অ্যাপের স্টোরেজের ভাগ দেখতে অনুমতি দিন।</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">স্টোরেজের অবস্থান</string>
+    <string name="apps_path_internal_data_label">অভ্যন্তরীণ তথ্য</string>
+    <string name="apps_path_external_data_label">বাহ্যিক স্টোরেজ</string>
+    <string name="apps_path_requires_root_label">রুট প্রয়োজন</string>
+    <string name="apps_path_requires_shizuku_label">ADB অ্যাক্সেস প্রয়োজন</string>
+    <string name="apps_path_requires_root_or_shizuku_label">রুট বা ADB অ্যাক্সেস প্রয়োজন</string>
+    <string name="apps_path_requires_access_label">অতিরিক্ত অ্যাক্সেস প্রয়োজন</string>
+    <string name="apps_storage_breakdown_label">স্টোরেজের ভাগ</string>
+    <string name="apps_storage_app_label">অ্যাপ্লিকেশন</string>
+
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">সারসংক্ষেপ</string>
+    <string name="appdetails_tab_packageinfo_label">প্যাকেজের তথ্য</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">অ্যাপে ফিরে যান</string>
+    <string name="appdetails_close_action">বন্ধ করুন</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_title">প্যাকেজের তথ্য</string>
+    <string name="appdetails_packageinfo_view_action">প্যাকেজের বিস্তারিত দেখুন</string>
+    <string name="appdetails_packageinfo_unavailable_msg">অ্যাপের প্যাকেজের বিস্তারিত পড়া যায়নি।</string>
+    <string name="appdetails_packageinfo_permissions_header">অনুমতি (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">স্বাক্ষরের সনদ</string>
+    <string name="appdetails_packageinfo_package_label">প্যাকেজ</string>
+    <string name="appdetails_packageinfo_version_label">সংস্করণ</string>
+    <string name="appdetails_packageinfo_min_sdk_label">ন্যূনতম SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">লক্ষ্য SDK</string>
+
+    <!-- Empty States -->
+    <string name="apps_empty_no_apps">কোনো অ্যাপ পাওয়া যায়নি</string>
+    <string name="apps_empty_no_apps_desc">ফিল্টার পরিবর্তন করে দেখুন</string>
+    <string name="apps_empty_loading">অ্যাপ লোড হচ্ছে…</string>
+
+    <!-- Search -->
+    <string name="apps_search_hint">অ্যাপ খুঁজুন</string>
+
+    <!-- Multi-select -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">অ্যাপ নির্বাচন করুন</item>
+        <item quantity="one">%dটি নির্বাচিত</item>
+        <item quantity="other">%dটি নির্বাচিত</item>
+    </plurals>
+
+    <!-- Info Bar -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="one">%dটি ব্যবহারকারীর অ্যাপ</item>
+        <item quantity="other">%dটি ব্যবহারকারীর অ্যাপ</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="one">%dটি সিস্টেম অ্যাপ</item>
+        <item quantity="other">%dটি সিস্টেম অ্যাপ</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="one">%dটি নির্বাচিত</item>
+        <item quantity="other">%dটি নির্বাচিত</item>
+    </plurals>
+
+    <!-- App Details Sections -->
+    <string name="apps_details_section_actions">পদক্ষেপ</string>
+    <string name="apps_details_section_overview">সারসংক্ষেপ</string>
+    <string name="apps_details_section_storage">স্টোরেজ</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">আরও বিকল্প</string>
+
+    <!-- App Details package data -->
+    <string name="apps_details_pkgdata_error_title">অ্যাপের তথ্য লোড করা যায়নি</string>
+    <string name="apps_details_gone_title">অ্যাপ সরানো হয়েছে</string>
+    <string name="apps_details_gone_message">এই ডিভাইসে অ্যাপটি আর ইনস্টল করা নেই।</string>
+    <string name="apps_details_gone_close_action">বন্ধ করুন</string>
+    <string name="apps_details_uninstalled_title">এই ব্যবহারকারীর জন্য আনইনস্টল করা</string>
+    <string name="apps_details_uninstalled_message">এই ব্যবহারকারীর জন্য অ্যাপটি আর ইনস্টল করা নেই, তবে এর ফাইল ডিভাইসে আছে।</string>
+
+    <!-- App Details confirmations -->
+    <string name="apps_details_confirm_clear_data_title">অ্যাপের তথ্য মুছবেন?</string>
+    <string name="apps_details_confirm_clear_data_message">%1$s-এর সব তথ্য ও সেটিংস মুছে যাবে। এটি ফেরানো যাবে না।</string>
+    <string name="apps_details_confirm_uninstall_title">অ্যাপ আনইনস্টল করবেন?</string>
+    <string name="apps_details_confirm_uninstall_message">%1$s এই ডিভাইস থেকে সরানো হবে।</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">ধরন</string>
+    <string name="apps_type_system">সিস্টেম অ্যাপ</string>
+    <string name="apps_type_user">ব্যবহারকারীর অ্যাপ</string>
+    <string name="apps_status_label">অবস্থা</string>
+    <string name="apps_status_enabled">চালু</string>
+    <string name="apps_status_disabled">বন্ধ</string>
+    <string name="apps_installed_label">ইনস্টল</string>
+    <string name="apps_updated_label">সর্বশেষ আপডেট</string>
+    <string name="apps_target_sdk_label">লক্ষ্য SDK</string>
+    <string name="apps_min_sdk_label">ন্যূনতম SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">যা দিয়ে ইনস্টল হয়েছে</string>
+    <string name="apps_permissions_label">অনুমতি</string>
+    <string name="apps_permissions_count">%1$dটি অনুমতি</string>
+    <string name="apps_data_size_label">তথ্য</string>
+    <string name="apps_cache_size_label">ক্যাশ</string>
+    <string name="apps_total_size_label">মোট</string>
+
+    <!-- App Tags -->
+    <string name="apps_tag_system_label">সিস্টেম</string>
+    <string name="apps_tag_disabled_label">বন্ধ</string>
+    <string name="apps_tag_updated_label">আপডেট করা</string>
+    <string name="apps_tag_sideloaded_label">সাইডলোড করা</string>
+    <string name="apps_tag_split_label">বিভক্ত APK</string>
+    <string name="apps_tag_debug_label">ডিবাগ</string>
+    <string name="apps_tag_user_label">ব্যবহারকারী %1$d</string>
+
+    <!-- Filter Tags (virtual tags for filtering) -->
+    <string name="apps_filter_tag_enabled_label">চালু</string>
+    <string name="apps_filter_tag_user_app_label">ব্যবহারকারীর অ্যাপ</string>
+    <string name="apps_filter_include_label">মিলতে হবে (নির্বাচিত সব)</string>
+    <string name="apps_filter_exclude_label">মেলা যাবে না</string>
+    <string name="apps_filter_add_action">ফিল্টার</string>
+    <string name="apps_filter_hint">অন্তর্ভুক্ত করতে ট্যাপ করুন, বাদ দিতে আবার ট্যাপ করুন, সরাতে আরও একবার ট্যাপ করুন</string>
+    <plurals name="apps_filter_count">
+        <item quantity="one">%dটি ফিল্টার</item>
+        <item quantity="other">%dটি ফিল্টার</item>
+    </plurals>
+
+    <!-- Components Section -->
+    <string name="apps_details_section_components">কম্পোনেন্ট</string>
+    <string name="apps_components_activities_label">অ্যাক্টিভিটি</string>
+    <string name="apps_components_services_label">সেবা</string>
+    <string name="apps_components_receivers_label">ব্রডকাস্ট রিসিভার</string>
+    <string name="apps_components_providers_label">কনটেন্ট প্রোভাইডার</string>
+    <string name="apps_components_exported">এক্সপোর্ট করা</string>
+    <string name="apps_components_disabled">বন্ধ</string>
+    <string name="apps_components_empty">কোনো কম্পোনেন্ট পাওয়া যায়নি</string>
+    <string name="apps_components_no_matches">“%1$s”-এর সঙ্গে কোনো কম্পোনেন্ট মেলেনি</string>
+    <string name="apps_components_and_more">…এবং আরও %dটি</string>
+    <string name="apps_components_view_all_action">সব কম্পোনেন্ট দেখুন</string>
+    <string name="apps_components_loading">কম্পোনেন্ট লোড হচ্ছে…</string>
+    <string name="apps_components_error">কম্পোনেন্ট লোড করা যায়নি</string>
+    <string name="apps_components_launch_failed">অ্যাক্টিভিটি চালু করা যায়নি</string>
+    <string name="apps_components_kind_activity">অ্যাক্টিভিটি</string>
+    <string name="apps_components_kind_service">সেবা</string>
+    <string name="apps_components_kind_receiver">ব্রডকাস্ট রিসিভার</string>
+    <string name="apps_components_kind_provider">কনটেন্ট প্রোভাইডার</string>
+    <string name="apps_components_search_action">কম্পোনেন্ট খুঁজুন</string>
+    <string name="apps_components_search_hint">নাম বা প্যাকেজ খুঁজুন</string>
+    <string name="apps_components_state_label">অবস্থা</string>
+    <string name="apps_components_state_enabled">চালু</string>
+    <string name="apps_components_state_disabled">বন্ধ</string>
+    <string name="apps_components_field_type">ধরন</string>
+    <string name="apps_components_field_package">প্যাকেজ</string>
+    <string name="apps_components_field_permission">অনুমতি</string>
+    <string name="apps_components_field_write_permission">লেখার অনুমতি</string>
+    <string name="apps_components_field_authority">অথরিটি</string>
+    <string name="apps_components_field_process">প্রক্রিয়া</string>
+    <string name="apps_components_field_launch_mode">চালুর মোড</string>
+    <string name="apps_components_launch_action">চালু করুন</string>
+    <string name="apps_components_copy_name_action">কম্পোনেন্টের নাম কপি করুন</string>
+    <string name="apps_components_copy_package_action">প্যাকেজের নাম কপি করুন</string>
+    <string name="apps_components_action_enable">কম্পোনেন্ট সক্রিয় করুন</string>
+    <string name="apps_components_action_disable">কম্পোনেন্ট বন্ধ করুন</string>
+    <string name="apps_components_action_requires_elevated">রুট বা ADB অ্যাক্সেস প্রয়োজন — সেটআপ করতে ট্যাপ করুন</string>
+    <string name="apps_components_confirm_enable_title">কম্পোনেন্ট সক্রিয় করবেন?</string>
+    <string name="apps_components_confirm_disable_title">কম্পোনেন্ট বন্ধ করবেন?</string>
+    <string name="apps_components_confirm_enable_message">নিচের কম্পোনেন্টগুলো সক্রিয় হবে:</string>
+    <string name="apps_components_confirm_disable_message">নিচের কম্পোনেন্টগুলো বন্ধ হবে। এতে অ্যাপের কাজ ব্যাহত হতে পারে।</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="one">%dটি কম্পোনেন্ট নির্বাচিত</item>
+        <item quantity="other">%dটি কম্পোনেন্ট নির্বাচিত</item>
+    </plurals>
+
+    <!-- Package operations -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="one">অ্যাপ সক্রিয় করুন</item>
+        <item quantity="other">%dটি অ্যাপ সক্রিয় করুন</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="one">অ্যাপ বন্ধ করুন</item>
+        <item quantity="other">%dটি অ্যাপ বন্ধ করুন</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="one">অ্যাপ জোর করে থামান</item>
+        <item quantity="other">%dটি অ্যাপ জোর করে থামান</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="one">অ্যাপ আনইনস্টল করুন</item>
+        <item quantity="other">%dটি অ্যাপ আনইনস্টল করুন</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="one">অ্যাপের তথ্য মুছুন</item>
+        <item quantity="other">%dটি অ্যাপের তথ্য মুছুন</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="one">কম্পোনেন্ট সক্রিয় করুন</item>
+        <item quantity="other">%dটি কম্পোনেন্ট সক্রিয় করুন</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="one">কম্পোনেন্ট বন্ধ করুন</item>
+        <item quantity="other">%dটি কম্পোনেন্ট বন্ধ করুন</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="one">%dটি অ্যাপ</item>
+        <item quantity="other">%dটি অ্যাপ</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">%1$s সক্রিয় হয়েছে</string>
+    <string name="apps_operation_disable_summary">%1$s বন্ধ হয়েছে</string>
+    <string name="apps_operation_force_stop_summary">%1$s থামানো হয়েছে</string>
+    <string name="apps_operation_uninstall_summary">%1$s আনইনস্টল হয়েছে</string>
+    <string name="apps_operation_clear_data_summary">%1$s-এর তথ্য মোছা হয়েছে</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="one">%1$dটি কম্পোনেন্ট সক্রিয় হয়েছে</item>
+        <item quantity="other">%1$dটি কম্পোনেন্ট সক্রিয় হয়েছে</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="one">%1$dটি কম্পোনেন্ট বন্ধ হয়েছে</item>
+        <item quantity="other">%1$dটি কম্পোনেন্ট বন্ধ হয়েছে</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">%1$s-এর জন্য শেষ করা যায়নি</string>
+    <string name="apps_operation_single_declined_summary">%1$s অপসারণ প্রত্যাখ্যাত হয়েছে</string>
+    <string name="apps_operation_batch_summary">%2$dটির মধ্যে %1$dটি হয়েছে</string>
+    <!-- Quoted so the leading separator survives the resource parser -->
+    <string name="apps_operation_batch_summary_failed">" · %1$dটি ব্যর্থ"</string>
+    <string name="apps_operation_batch_summary_declined">" · %1$dটি প্রত্যাখ্যাত"</string>
+
+    <!-- Generic navigation -->
+    <string name="appdetails_back_generic_action">পেছনে</string>
+
+</resources>

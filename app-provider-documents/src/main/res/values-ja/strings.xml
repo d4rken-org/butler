@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">この場所にアクセスするにはroot権限が必要です。Butlerアプリの設定でroot権限を有効にしてください。</string>
-    <string name="provider_documents_error_requires_adb">この場所にアクセスするにはADB/Shizuku権限が必要です。Butlerアプリの設定でShizukuを有効にしてください。</string>
+    <string name="provider_documents_error_requires_adb">この場所を閲覧するにはADBアクセスが必要です。Butlerの設定で有効にしてください。</string>
     <string name="provider_documents_error_requires_storage">この場所にアクセスするにはストレージ権限が必要です。Butlerアプリの設定でストレージ権限を許可してください。</string>
     <string name="provider_documents_error_requires_permissions">この場所にアクセスするには追加の権限が必要です。Butlerアプリの設定を確認してください。</string>
     <string name="provider_documents_error_generic">この場所にアクセスできません。Butlerアプリでアクセスオプションを確認してください。</string>

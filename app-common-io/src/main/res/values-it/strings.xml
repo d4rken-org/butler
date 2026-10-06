@@ -69,7 +69,7 @@
     <string name="smb_error_credential_unavailable_title">Accesso richiesto</string>
     <string name="smb_error_credential_unavailable_description">La password salvata per questa archiviazione di rete non può più essere letta. Immettila di nuovo per ripristinare la connessione.</string>
     <string name="smb_error_pro_required_title">Le condivisioni di rete richiedono Butler Pro</string>
-    <string name="smb_error_pro_required_description">La connessione a condivisioni di rete fa parte di Butler Pro. I tuoi percorsi salvati rimangono elencati e possono essere rimossi senza di essa.</string>
+    <string name="smb_error_pro_required_description">Sfogliare le condivisioni di rete fa parte di Butler Pro. Aggiungere, verificare e rimuovere posizioni è gratuito.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Bundle app protetto</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" è crittografato e può essere installato solo dall’app che l’ha creato.</string>
@@ -104,7 +104,7 @@
     <string name="app_uninstall_confirm_pending_reason">Android è in attesa della tua conferma</string>
 
     <!-- App uninstall errors -->
-    <string name="app_uninstall_other_user_unsupported">La rimozione dell’app per un altro utente richiede root o Shizuku</string>
+    <string name="app_uninstall_other_user_unsupported">La rimozione dell’app per un altro utente richiede root o l’accesso ADB</string>
     <string name="app_uninstall_no_result">Android non ha fornito un risultato</string>
 
     <!-- Service connection errors -->

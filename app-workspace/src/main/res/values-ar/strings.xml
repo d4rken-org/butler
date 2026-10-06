@@ -467,7 +467,7 @@
     <string name="workspace_settings_layout_mode_classic">كلاسيكي</string>
     <string name="workspace_settings_layout_mode_classic_desc">جزء واحد في كل مرة، بدون شريط علامات التبويب.</string>
     <string name="workspace_settings_layout_mode_adaptive">تكيفي</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">شريط علامات تبويب مع أكبر عدد ممكن من الأجزاء التي تسعها الشاشة. ثبِّت تخطيطًا من قائمة Butler في الشريط.</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">شريط علامات تبويب مع أكبر عدد ممكن من الأجزاء التي تسعها الشاشة. ثبِّت تخطيطًا من قائمة Butler.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">تكيفي (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">مفرد مع شريط علامات التبويب</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">جزء علامة تبويب واحد بالإضافة إلى شريط علامات التبويب الخاص بالتخطيطات متعددة الأجزاء. يشغل الشريط شريطًا من الشاشة.</string>
@@ -588,4 +588,20 @@
         <item quantity="many">تم استعادة %d عنصرًا</item>
         <item quantity="other">تم استعادة %d عنصر</item>
     </plurals>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">شريط علامات تبويب مع أكبر عدد ممكن من الأجزاء التي تسعها الشاشة.</string>
+    <string name="workspace_open_selection_each_in_tab_action">فتح كل عنصر في علامة تبويب مستقلة</string>
+    <string name="workspace_open_selection_each_in_tab_description">يفتح كل عنصر محدد في علامة تبويب منفصلة. تُفتح المجلدات كعلامات تبويب لمتصفح الملفات.</string>
+    <plurals name="workspace_open_selection_title">
+        <item quantity="zero">فتح %d عنصر</item>
+        <item quantity="one">فتح عنصر واحد</item>
+        <item quantity="two">فتح عنصرين</item>
+        <item quantity="few">فتح %d عناصر</item>
+        <item quantity="many">فتح %d عنصرًا</item>
+        <item quantity="other">فتح %d عنصر</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">العرض هنا</string>
+    <string name="workspace_open_selection_view_here_description">يعرض الملفات المحددة في عارض فوق هذا الجزء. يتنقل السابق والتالي ضمن تحديدك فقط.</string>
+    <string name="workspace_open_selection_view_in_tab_action">العرض في علامة تبويب جديدة</string>
+    <string name="workspace_open_selection_view_in_tab_description">يعرض الملفات المحددة في عارض داخل علامة تبويب خاصة به. يتنقل السابق والتالي ضمن تحديدك فقط.</string>
+    <string name="workspace_open_selection_viewer_unavailable">لا يمكن عرض المجلدات في العارض.</string>
 </resources>

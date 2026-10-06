@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">Bitte warten</string>
     <string name="general_progress_loading_egg_13">Wenigstens keine Warteschleifenmusik</string>
     <string name="general_progress_loading_egg_14">Direkt auf die Stirn auftragen</string>
+    <string name="general_progress_loading_egg_halloween_0">Der Cache wird exorziert</string>
+    <string name="general_progress_loading_egg_halloween_1">Die Leichen im Keller werden gezählt</string>
+    <string name="general_progress_loading_egg_halloween_2">Kürbisse werden geschnitzt</string>
+    <string name="general_progress_loading_egg_halloween_3">Unterm Bett wird nach Zombie-Prozessen gesucht</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Dem Regenbogen zum Goldschatz wird hinterhergejagt</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Ein vierblättriges Kleeblatt wird gesucht</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Die Kobolde werden bestochen</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Lädt. Oder etwa nicht?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Aus- und wieder einschalten</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Neue Brezn werden geholt</string>
+    <string name="general_progress_loading_egg_xmas_0">Die Liste wird zweimal geprüft</string>
+    <string name="general_progress_loading_egg_xmas_1">Deine Dateien werden eingepackt</string>
+    <string name="general_progress_loading_egg_xmas_2">Die Lichterkette wird entknotet</string>
+    <string name="general_progress_loading_egg_xmas_3">Die Rentiere werden gefüttert</string>
+    <string name="general_progress_loading_egg_newyear_0">Countdown bis Mitternacht läuft</string>
+    <string name="general_progress_loading_egg_newyear_1">Der Sekt wird geköpft</string>
+    <string name="general_progress_loading_egg_newyear_2">Vorsätze werden entworfen, die eh keiner hält</string>
+    <string name="general_progress_loading_egg_newyear_3">Das neue Jahr wird geladen</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">
@@ -309,7 +327,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Nutze mehrere Bereiche, um Dateien nebeneinander zu vergleichen.</string>
     <string name="common_tip_different_folders">Öffne in jedem Bereich einen anderen Ordner, um Dateien einfach zu verwalten.</string>
-    <string name="common_tip_switch_layouts">Wechsle die Anordnung der Bereiche in den Tab-Einstellungen.</string>
+    <string name="common_tip_switch_layouts">Wechsle die Anordnung der Bereiche über Layout im Butler-Menü.</string>
     <string name="common_tip_elevated_access">Aktiviere Root-Zugriff oder ADB-Zugriff in der Einrichtung für erweiterte Dateivorgänge.</string>
     <string name="common_tip_breadcrumb_home">Halte einen Abschnitt der Pfadleiste im Explorer gedrückt, um ihn als Dein Startverzeichnis festzulegen.</string>
 </resources>

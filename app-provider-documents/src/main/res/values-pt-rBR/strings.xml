@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">Acesso root é necessário para navegar neste local. Ative-o nas configurações do Butler.</string>
-    <string name="provider_documents_error_requires_adb">Acesso ADB/Shizuku é necessário para navegar neste local. Ative o Shizuku nas configurações do Butler.</string>
+    <string name="provider_documents_error_requires_adb">Acesso ADB é necessário para navegar neste local. Ative-o na configuração do Butler.</string>
     <string name="provider_documents_error_requires_storage">Permissão de armazenamento é necessária para navegar neste local. Conceda-a nas configurações do Butler.</string>
     <string name="provider_documents_error_requires_permissions">Permissões adicionais são necessárias para navegar neste local. Verifique as configurações do Butler.</string>
     <string name="provider_documents_error_generic">Não foi possível acessar este local. Verifique as opções de acesso no Butler.</string>

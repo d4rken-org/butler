@@ -68,7 +68,7 @@
     <string name="smb_error_credential_unavailable_title">로그인 필요</string>
     <string name="smb_error_credential_unavailable_description">이 네트워크 저장공간의 저장된 암호를 더 이상 읽을 수 없습니다. 다시 입력하여 재연결하십시오.</string>
     <string name="smb_error_pro_required_title">네트워크 공유는 Butler Pro 필요</string>
-    <string name="smb_error_pro_required_description">네트워크 공유에 연결하는 것은 Butler Pro의 기능입니다. 저장된 위치는 목록에 유지되고 Pro 없이도 제거할 수 있습니다.</string>
+    <string name="smb_error_pro_required_description">네트워크 공유를 찾아보려면 Butler Pro가 필요합니다. 위치 추가, 테스트, 제거는 무료입니다.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">보호된 앱 번들</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" 앱 번들은 암호화되어 있으며 이를 만든 앱에서만 설치할 수 있습니다.</string>
@@ -103,7 +103,7 @@
     <string name="app_uninstall_confirm_pending_reason">Android가 확인을 대기 중입니다</string>
 
     <!-- App uninstall errors -->
-    <string name="app_uninstall_other_user_unsupported">다른 사용자를 위해 이 앱을 제거하려면 root 또는 Shizuku가 필요합니다</string>
+    <string name="app_uninstall_other_user_unsupported">다른 사용자를 위해 이 앱을 제거하려면 root 또는 ADB 접근이 필요합니다</string>
     <string name="app_uninstall_no_result">Android가 결과를 보고하지 않았습니다</string>
 
     <!-- Service connection errors -->

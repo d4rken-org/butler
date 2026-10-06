@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">ডেভেলপার</string>
+    <string name="developer_title">ডেভেলপার টুল</string>
+    <string name="developer_subtitle">উন্নয়নের সহায়ক টুল</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">সিস্টেম</string>
+    <string name="developer_tab_options">বিকল্প</string>
+    <string name="developer_tab_workspaces">ওয়ার্কস্পেস</string>
+    <string name="developer_tab_logs">লগ</string>
+    <string name="developer_tab_testdata">পরীক্ষার তথ্য</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">ডিবাগ বিকল্প</string>
+    <string name="developer_options_debug_mode">ডিবাগ মোড</string>
+    <string name="developer_options_debug_mode_desc">বিস্তারিত লগিং চালু করুন</string>
+    <string name="developer_options_trace_mode">ট্রেস মোড</string>
+    <string name="developer_options_trace_mode_desc">ট্রেস-স্তরের লগিং চালু করুন</string>
+    <string name="developer_options_floating_log">ভাসমান লগ প্যানেল</string>
+    <string name="developer_options_floating_log_desc">সব পর্দায় টেনে সরানো যায় এমন লগ ওভারলে দেখান</string>
+    <string name="developer_options_services_header">সেবা পরীক্ষা</string>
+    <string name="developer_options_root_test_action">রুট পরীক্ষা করুন</string>
+    <string name="developer_options_root_installed_label">ইনস্টল করা</string>
+    <string name="developer_options_root_available_label">পাওয়া যাচ্ছে</string>
+    <string name="developer_options_root_base_check_label">প্রাথমিক পরীক্ষা</string>
+    <string name="developer_options_shizuku_test_action">ADB অ্যাক্সেস পরীক্ষা করুন</string>
+    <string name="developer_options_shizuku_installed_label">ইনস্টল করা</string>
+    <string name="developer_options_shizuku_granted_label">অনুমতি</string>
+    <string name="developer_options_shizuku_compatible_label">সামঞ্জস্যপূর্ণ</string>
+    <string name="developer_options_shizuku_service_label">সেবা</string>
+    <string name="developer_options_test_running">পরীক্ষা হচ্ছে…</string>
+    <string name="developer_options_result_yes">হ্যাঁ</string>
+    <string name="developer_options_result_no">না</string>
+    <string name="developer_options_result_unknown">অজানা</string>
+    <string name="developer_options_visibility_header">দৃশ্যমানতা</string>
+    <string name="developer_options_hide_mode">ডেভেলপার মোড লুকান</string>
+    <string name="developer_options_hide_mode_desc">আবার চালু করতে সেটিংসে সংস্করণে ৭ বার ট্যাপ করুন।</string>
+    <string name="developer_options_hide_action">লুকান</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">ডিভাইস</string>
+    <string name="developer_system_device_model">মডেল</string>
+    <string name="developer_system_device_manufacturer">নির্মাতা</string>
+    <string name="developer_system_device_api">API স্তর</string>
+    <string name="developer_system_build_header">বিল্ড</string>
+    <string name="developer_system_build_version">সংস্করণ</string>
+    <string name="developer_system_build_code">সংস্করণ কোড</string>
+    <string name="developer_system_build_flavor">ফ্লেভার</string>
+    <string name="developer_system_build_type">বিল্ডের ধরন</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">মেমরি</string>
+    <string name="developer_system_memory_available">পাওয়া যাচ্ছে</string>
+    <string name="developer_system_memory_total">মোট</string>
+    <string name="developer_system_storage_header">স্টোরেজ</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%dটি ওয়ার্কস্পেস</string>
+    <string name="developer_workspaces_empty">কোনো ওয়ার্কস্পেস নেই</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">মুছুন</string>
+    <string name="developer_logs_pause">বিরতি দিন</string>
+    <string name="developer_logs_resume">আবার চালান</string>
+    <string name="developer_logs_empty">কোনো লগ নেই</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">লক্ষ্য পাথ</string>
+    <string name="developer_testdata_no_paths">কোনো লক্ষ্য পাথ বাছা হয়নি। পরীক্ষার তথ্য তৈরি করতে পাথ যোগ করুন।</string>
+    <string name="developer_testdata_add_path_action">পাথ যোগ করুন</string>
+    <string name="developer_testdata_options_header">তৈরির বিকল্প</string>
+    <string name="developer_testdata_large_files">বড় ফাইল</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">নেস্টেড কাঠামো</string>
+    <string name="developer_testdata_nested_structure_desc">প্রায় ১১০০টি ফোল্ডার, প্রায় ১১০০টি ফাইল</string>
+    <string name="developer_testdata_text_files">এডিটরের জন্য টেক্সট ফাইল</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">তৈরি করুন</string>
+    <string name="developer_testdata_generating">তৈরি হচ্ছে…</string>
+    <string name="developer_testdata_history_header">নমুনা ইতিহাসের এন্ট্রি</string>
+    <string name="developer_testdata_history_desc">আজ থেকে ৩০ দিন আগ পর্যন্ত নানা ধরন/ফলাফল/উৎস/পাথের প্রায় ২৫টি নকল কাজের এন্ট্রি যোগ করে। সরাসরি ইতিহাসের ডেটাবেসে যোগ হয়; আবার ট্যাপ করা নিরাপদ।</string>
+    <string name="developer_testdata_history_generate_action">নমুনা ইতিহাস তৈরি করুন</string>
+    <string name="developer_testdata_progress">%2$s-এর মধ্যে %1$s</string>
+    <string name="developer_testdata_complete">পরীক্ষার তথ্য তৈরি হয়েছে এখানে:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">বড় ফাইল তৈরি করুন</string>
+    <string name="developer_operation_large_files_desc">%1$s-এ পরীক্ষার ফাইল তৈরি হচ্ছে</string>
+    <string name="developer_operation_large_files_creating">%1$s তৈরি হচ্ছে</string>
+
+    <string name="developer_operation_nested_title">নেস্টেড কাঠামো তৈরি করুন</string>
+    <string name="developer_operation_nested_desc">%1$s-এ ফোল্ডারের স্তরবিন্যাস তৈরি হচ্ছে</string>
+    <string name="developer_operation_nested_starting">নেস্টেড কাঠামো শুরু হচ্ছে…</string>
+    <string name="developer_operation_nested_creating">%1$s তৈরি হচ্ছে</string>
+    <string name="developer_operation_nested_files_created">%1$dটি ফাইল তৈরি হয়েছে</string>
+
+    <string name="developer_operation_text_files_title">টেক্সট ফাইল তৈরি করুন</string>
+    <string name="developer_operation_text_files_desc">%1$s-এ টেক্সট ফাইল তৈরি হচ্ছে</string>
+    <string name="developer_operation_text_files_creating">%1$s তৈরি হচ্ছে</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%dটি ফাইল তৈরি হয়েছে</item>
+        <item quantity="other">%dটি ফাইল তৈরি হয়েছে</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%dটি ডিরেক্টরি</item>
+        <item quantity="other">%dটি ডিরেক্টরি</item>
+    </plurals>
+</resources>

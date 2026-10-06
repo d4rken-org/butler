@@ -534,4 +534,11 @@
     <string name="review_app_dismiss_action">Vielleicht später</string>
     <string name="review_app_review_action">Bewerten</string>
 
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_denied_in">Abgelehnt in %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">Von %1$s noch nicht erlaubt</string>
+    <string name="shortcuts_settings_max_count_summary">Maximale Anzahl der im Launcher angezeigten Verknüpfungen</string>
+    <string name="shortcuts_settings_min_access_summary">Wie oft ein Pfad aufgerufen werden muss, bevor er zur Verknüpfung wird</string>
+    <string name="viewer_settings_subtitle">Verhalten des Dateibetrachters einrichten.</string>
+    <string name="workspace_pane_menu_action">Tab-Optionen anzeigen</string>
 </resources>

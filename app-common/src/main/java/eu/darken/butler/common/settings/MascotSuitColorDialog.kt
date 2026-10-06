@@ -57,8 +57,8 @@ fun MascotSuitColorDialog(
         picked = picked,
         onPickedChange = { picked = it },
         onConfirm = {
-            // An untouched picker shows the current theme's default, not a choice. Storing that
-            // would pin this theme's suit onto the other one too, as the override spans both.
+            // With no existing selection, confirming an unchanged picker should preserve null,
+            // rather than turn the displayed fallback into an explicit color selection.
             val chosen = if (suitColor == null && picked == initial) null else picked.toRgb()
             onColorSelected(chosen)
         },

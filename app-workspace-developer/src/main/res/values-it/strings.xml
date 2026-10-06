@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">Installato</string>
     <string name="developer_options_root_available_label">Disponibile</string>
     <string name="developer_options_root_base_check_label">Controllo base</string>
-    <string name="developer_options_shizuku_test_action">Test Shizuku</string>
+    <string name="developer_options_shizuku_test_action">Test accesso ADB</string>
     <string name="developer_options_shizuku_installed_label">Installato</string>
     <string name="developer_options_shizuku_granted_label">Autorizzazione</string>
     <string name="developer_options_shizuku_compatible_label">Compatibile</string>

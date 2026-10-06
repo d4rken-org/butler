@@ -78,8 +78,8 @@
     <string name="apps_path_internal_data_label">Data internal</string>
     <string name="apps_path_external_data_label">Penyimpanan eksternal</string>
     <string name="apps_path_requires_root_label">Memerlukan root</string>
-    <string name="apps_path_requires_shizuku_label">Memerlukan Shizuku</string>
-    <string name="apps_path_requires_root_or_shizuku_label">Memerlukan root atau Shizuku</string>
+    <string name="apps_path_requires_shizuku_label">Memerlukan akses ADB</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Memerlukan akses root atau ADB</string>
     <string name="apps_path_requires_access_label">Memerlukan akses tambahan</string>
     <string name="apps_storage_breakdown_label">Rincian Penyimpanan</string>
     <string name="apps_storage_app_label">Aplikasi</string>
@@ -224,7 +224,7 @@
     <string name="apps_components_copy_package_action">Salin nama paket</string>
     <string name="apps_components_action_enable">Aktifkan komponen</string>
     <string name="apps_components_action_disable">Nonaktifkan komponen</string>
-    <string name="apps_components_action_requires_elevated">Memerlukan root atau Shizuku — ketuk untuk menyiapkan</string>
+    <string name="apps_components_action_requires_elevated">Memerlukan akses root atau ADB — ketuk untuk menyiapkan</string>
     <string name="apps_components_confirm_enable_title">Aktifkan komponen?</string>
     <string name="apps_components_confirm_disable_title">Nonaktifkan komponen?</string>
     <string name="apps_components_confirm_enable_message">Komponen berikut akan diaktifkan:</string>

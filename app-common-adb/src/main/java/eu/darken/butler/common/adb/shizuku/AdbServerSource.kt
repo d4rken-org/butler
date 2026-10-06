@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.Flow
  */
 internal interface AdbServerSource {
 
-    /** Null while no server is connected, and a new connection for every server that replaces one. */
-    val connection: Flow<AdbServerConnection?>
+    /** Live connection or refusal, including changes while no connection is held. */
+    val state: Flow<AdbConnectionState>
 
     fun current(): AdbServerConnection?
 

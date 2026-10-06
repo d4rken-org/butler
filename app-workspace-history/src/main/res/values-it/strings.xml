@@ -194,7 +194,7 @@
         <item quantity="other">Elimina %1$d elementi</item>
     </plurals>
     <string name="history_delete_dialog_message">Solo i record della cronologia vengono rimossi, i file stessi non vengono toccati.</string>
-    <string name="history_pro_dialog_message">La condivisione e l’eliminazione degli elementi della cronologia sono parte dell’upgrade. La cancellazione di tutta la cronologia rimane gratuita nelle impostazioni della cronologia.</string>
+    <string name="history_pro_dialog_message">La condivisione di più elementi della cronologia contemporaneamente fa parte dell’upgrade. La condivisione di un singolo elemento e l’eliminazione degli elementi restano gratuite.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Risultato</string>

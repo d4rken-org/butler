@@ -100,17 +100,16 @@ private fun HistoryEntry.toShareBlock(
         if (packages.isEmpty()) {
             append(context.getString(R.string.history_detail_packages_empty)).append('\n')
         } else {
-            append("**").append(context.getString(R.string.history_share_label_packages, packages.size)).append("**\n")
-            packages.forEach { outcome ->
-                append("- ").append(context.getString(outcome.status.labelRes)).append(": ")
-                append(singleLine(outcome.label))
-                append(" (").append(singleLine(outcome.packageName)).append(")").append('\n')
-                outcome.errorMessage?.takeIf { it.isNotBlank() }?.let {
-                    append("  ").append(singleLine(it)).append('\n')
-                }
-            }
+            appendPackages(context, packages)
         }
-    } else if (paths.isEmpty()) {
+        return@buildString
+    }
+
+    if (packages.isNotEmpty()) {
+        appendPackages(context, packages)
+        append('\n')
+    }
+    if (paths.isEmpty()) {
         append(context.getString(R.string.history_detail_paths_empty)).append('\n')
         val attempted = attemptedPaths?.paths.orEmpty()
         if (attempted.isNotEmpty()) {
@@ -145,6 +144,18 @@ private fun HistoryEntry.toShareBlock(
         }
     }
 }.trimEnd('\n')
+
+private fun StringBuilder.appendPackages(context: Context, packages: List<HistoryEntry.PackageOutcome>) {
+    append("**").append(context.getString(R.string.history_share_label_packages, packages.size)).append("**\n")
+    packages.forEach { outcome ->
+        append("- ").append(context.getString(outcome.status.labelRes)).append(": ")
+        append(singleLine(outcome.label))
+        append(" (").append(singleLine(outcome.packageName)).append(")").append('\n')
+        outcome.errorMessage?.takeIf { it.isNotBlank() }?.let {
+            append("  ").append(singleLine(it)).append('\n')
+        }
+    }
+}
 
 private fun Context.truncationNotice(remaining: Int): String =
     getString(R.string.history_share_truncated, remaining)

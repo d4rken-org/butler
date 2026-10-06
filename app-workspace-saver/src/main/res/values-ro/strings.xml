@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Salvează ca</string>
+    <string name="saver_preview_label">Previzualizare</string>
+    <string name="saver_loading">Se încarcă…</string>
+    <string name="saver_shared_from">Distribuit din %1$s</string>
+    <string name="saver_shared_generic">Distribuit către Butler</string>
+    <string name="saver_destination_label">Destinație</string>
+    <string name="saver_select_destination_hint">Alege dosarul de destinație</string>
+    <string name="saver_filename_label">Nume de fișier</string>
+    <string name="saver_save_action">Salvează</string>
+    <string name="saver_saving_progress">Se salvează…</string>
+    <string name="saver_success_message">Fișier salvat cu succes</string>
+    <string name="saver_open_saved_action">Deschide dosarul</string>
+    <string name="saver_retry_action">Reîncearcă</string>
+    <string name="saver_save_again_action">Salvează într-o locație nouă</string>
+    <string name="saver_close_tab_action">Închide fila</string>
+    <string name="saver_close_butler_action">Închide fila și revino</string>
+    <string name="saver_done_action">Gata</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Fișierul sursă nu mai este accesibil. Distribuie-l din nou.</item>
+        <item quantity="few">%1$d fișiere sursă nu mai sunt accesibile. Distribuie-le din nou.</item>
+        <item quantity="other">%1$d de fișiere sursă nu mai sunt accesibile. Distribuie-le din nou.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Fișierul sursă nu mai este accesibil</string>
+    <string name="saver_error_permission_denied">Permisiune refuzată</string>
+    <string name="saver_error_write_failed">Salvarea fișierului a eșuat</string>
+    <string name="saver_error_file_exists">Fișierul există deja</string>
+    <string name="saver_operation_title">Salvează fișiere</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Se salvează %1$d fișier în %2$s</item>
+        <item quantity="few">Se salvează %1$d fișiere în %2$s</item>
+        <item quantity="other">Se salvează %1$d de fișiere în %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Salvează %1$d fișier</item>
+        <item quantity="few">Salvează %1$d fișiere</item>
+        <item quantity="other">Salvează %1$d de fișiere</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d fișier salvat</item>
+        <item quantity="few">%1$d fișiere salvate</item>
+        <item quantity="other">%1$d de fișiere salvate</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d fișier cu eroare</item>
+        <item quantity="few">%1$d fișiere cu erori</item>
+        <item quantity="other">%1$d de fișiere cu erori</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d fișier omis</item>
+        <item quantity="few">%1$d fișiere omise</item>
+        <item quantity="other">%1$d de fișiere omise</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d din %2$d fișiere salvate</string>
+</resources>

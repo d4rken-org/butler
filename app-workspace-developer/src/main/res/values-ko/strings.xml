@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">설치됨</string>
     <string name="developer_options_root_available_label">사용 가능</string>
     <string name="developer_options_root_base_check_label">기본 확인</string>
-    <string name="developer_options_shizuku_test_action">Shizuku 테스트</string>
+    <string name="developer_options_shizuku_test_action">ADB 접근 테스트</string>
     <string name="developer_options_shizuku_installed_label">설치됨</string>
     <string name="developer_options_shizuku_granted_label">권한</string>
     <string name="developer_options_shizuku_compatible_label">호환성</string>

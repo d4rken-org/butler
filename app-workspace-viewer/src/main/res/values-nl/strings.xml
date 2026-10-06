@@ -110,4 +110,9 @@
     <string name="viewer_text_truncated_lines">Voorbeeld beperkt tot de eerste %1$s regels van dit bestand.</string>
     <string name="viewer_text_truncated_width">Lange regels zijn in dit voorbeeld ingekort.</string>
     <string name="viewer_text_unreadable_label">Dit bestand kon niet worden gelezen</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">Weergever</string>
+    <string name="viewer_settings_show_next_after_delete_title">Volgende bestand na verwijderen weergeven</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Als je een bestand uit een map verwijdert, toont Butler het volgende bestand in die map in plaats van de viewer te sluiten.</string>
 </resources>

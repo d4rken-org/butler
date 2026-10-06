@@ -45,7 +45,9 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Adicionar automaticamente caminhos visitados com frequência como atalhos</string>
     <string name="shortcuts_settings_last_accessed_title">Acessado por último</string>
     <string name="shortcuts_settings_max_count_title">Máximo de atalhos</string>
+    <string name="shortcuts_settings_max_count_summary">Número máximo de atalhos mostrados na tela inicial</string>
     <string name="shortcuts_settings_min_access_title">Acessos mínimos</string>
+    <string name="shortcuts_settings_min_access_summary">Número de vezes que um caminho deve ser aberto antes de se tornar um atalho</string>
     <string name="shortcuts_settings_current_title">Atalhos atuais</string>
     <string name="shortcuts_settings_current_subtitle">%d atalhos monitorados</string>
     <string name="shortcuts_settings_clear_title">Limpar histórico de atalhos</string>
@@ -59,7 +61,7 @@
     <string name="shortcuts_settings_min_dialog_message">Quantas vezes um caminho deve ser acessado antes de aparecer como atalho (1–10)</string>
 
     <string name="setup_usagestats_title">Estatísticas de uso</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Acesso ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Acesso a notificações</string>
     <string name="setup_manage_storage_card_title">Gerenciar armazenamento externo</string>
@@ -70,7 +72,7 @@
     <string name="setup_help_description">Ajuda</string>
 
     <string name="setup_root_description">Permite acesso a arquivos do sistema e diretórios protegidos para gerenciamento avançado de arquivos. Desbloqueia todo o potencial do Butler, incluindo acesso a dados de aplicativos e modificações do sistema. O dispositivo precisa ter root.</string>
-    <string name="setup_shizuku_description">Alternativa ao root que oferece operações de arquivo privilegiadas por meio de uma API segura. Permite acesso a diretórios restritos sem o root tradicional. Requer que o aplicativo Shizuku esteja instalado e em execução.</string>
+    <string name="setup_shizuku_description">Alternativa ao root que oferece operações de arquivo privilegiadas através de uma API segura. Permite acesso a diretórios restritos sem o root tradicional. Requer que o Porter ou o Shizuku estejam instalados e em execução.</string>
     <string name="setup_notification_description">Mostra atualizações de operações de arquivo, tarefas em segundo plano e progresso de transferências. Mantém você informado quando as operações são concluídas ou ocorrem erros.</string>
     <string name="setup_usagestats_description">Analisa o uso de armazenamento dos aplicativos para identificar arquivos grandes e ajudar a gerenciar o espaço de forma eficaz. Todos os dados permanecem no seu dispositivo e nunca são transmitidos.</string>
     <string name="setup_storage_description">Acesso completo a todo o armazenamento do dispositivo para operações de arquivo rápidas e processamento em lote. Permite um gerenciamento completo de arquivos sem solicitações de permissão repetidas.</string>
@@ -79,7 +81,7 @@
     <string name="setup_grant_access_label">Conceder acesso</string>
     <string name="setup_access_granted_label">Acesso concedido</string>
     <string name="setup_use_root_label">Usar root, se disponível</string>
-    <string name="setup_use_shizuku_label">Usar Shizuku, se disponível</string>
+    <string name="setup_use_shizuku_label">Usar acesso ADB, se disponível</string>
 
     <string name="setup_status_checking">Verificando…</string>
     <string name="setup_status_completed">Configurado</string>
@@ -91,6 +93,14 @@
     <string name="setup_status_connecting">Conectando…</string>
     <string name="setup_status_connection_failed">Falha na conexão</string>
     <string name="setup_status_unavailable">Indisponível</string>
+    <string name="setup_status_permission_denied">Permissão negada</string>
+    <string name="setup_adb_status_manager_update_required">Atualização necessária</string>
+    <string name="setup_adb_status_butler_update_required">Atualização do Butler necessária</string>
+    <string name="setup_adb_status_connected_via">Conectado via %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">Ainda não permitido por %1$s</string>
+    <string name="setup_adb_status_denied_in">Negado em %1$s</string>
+    <string name="setup_adb_open_manager_action">Abrir %1$s</string>
+    <string name="setup_adb_install_manager_action">Instalar %1$s</string>
 
     <!-- Debug Log -->
     <string name="debug_notification_channel_label">Notificações de depuração</string>
@@ -273,6 +283,8 @@
     <string name="acknowledgement_librootjava_subtitle">Execute código Java (e Kotlin) como root! (APACHE 2.0)</string>
     <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
     <string name="acknowledgement_librootkotlinx_subtitle">Execução facilitada de código Kotlin JVM com root usando coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Dá aos aplicativos do Android acesso ADB através das APIs do Shizuku, com suporte root opcional. (APACHE 2.0)</string>
     <string name="acknowledgement_shizuku_title">Shizuku</string>
     <string name="acknowledgement_shizuku_subtitle">Uso direto de APIs do sistema com privilégios de adb/root a partir de aplicativos normais, por meio de um processo Java iniciado com app_process. (APACHE 2.0)</string>
     <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
@@ -389,6 +401,7 @@
     <!-- Workspace Navigation Rail -->
     <string name="workspace_pane_assign_action">Atribuir ao painel %1$d</string>
     <string name="workspace_pane_show_action">Mostrar</string>
+    <string name="workspace_pane_menu_action">Mostrar opções da aba</string>
     <string name="workspace_pane_close_action">Fechar</string>
     <string name="workspace_pane_unassign_action">Remover do painel</string>
     <string name="workspace_dragging_description">Arrastando</string>
@@ -409,6 +422,7 @@
     <string name="explorer_settings_subtitle">Configurar o comportamento do explorador de arquivos.</string>
     <string name="searcher_settings_subtitle">Configurar o comportamento da pesquisa.</string>
     <string name="editor_settings_subtitle">Configurar o comportamento do editor de texto.</string>
+    <string name="viewer_settings_subtitle">Configurar o comportamento do visualizador de arquivos.</string>
     <string name="history_settings_subtitle">Retenção e limpeza do histórico de operações.</string>
     <string name="clipboard_settings_subtitle">Configurar o comportamento da área de transferência.</string>
 

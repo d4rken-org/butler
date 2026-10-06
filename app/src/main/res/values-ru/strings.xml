@@ -45,7 +45,9 @@
     <string name="shortcuts_settings_auto_remember_subtitle">Автоматически добавлять часто посещаемые пути как ярлыки</string>
     <string name="shortcuts_settings_last_accessed_title">Последний доступ</string>
     <string name="shortcuts_settings_max_count_title">Максимум ярлыков</string>
+    <string name="shortcuts_settings_max_count_summary">Максимальное количество ярлыков, отображаемых в меню запуска</string>
     <string name="shortcuts_settings_min_access_title">Минимум доступов</string>
+    <string name="shortcuts_settings_min_access_summary">Количество раз, которое путь должен быть открыт перед тем, как стать ярлыком</string>
     <string name="shortcuts_settings_current_title">Текущие ярлыки</string>
     <string name="shortcuts_settings_current_subtitle">%d ярлыков отслеживается</string>
     <string name="shortcuts_settings_clear_title">Очистить историю ярлыков</string>
@@ -59,7 +61,7 @@
     <string name="shortcuts_settings_min_dialog_message">Сколько раз путь должен быть доступен перед отображением в качестве ярлыка (1–10)</string>
 
     <string name="setup_usagestats_title">Статистика использования</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Доступ ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Доступ к уведомлениям</string>
     <string name="setup_manage_storage_card_title">Управление внешним хранилищем</string>
@@ -70,7 +72,7 @@
     <string name="setup_help_description">Справка</string>
 
     <string name="setup_root_description">Обеспечивает доступ к системным файлам и защищённым каталогам для продвинутого управления файлами. Раскрывает полный потенциал Butler, включая доступ к данным приложений и системные изменения. Устройство должно быть рутировано.</string>
-    <string name="setup_shizuku_description">Альтернатива root, обеспечивающая привилегированные файловые операции через безопасный API. Обеспечивает доступ к ограниченным каталогам без традиционного root. Требуется установка и запуск приложения Shizuku.</string>
+    <string name="setup_shizuku_description">Альтернатива root, которая предоставляет привилегированные файловые операции через безопасный API. Обеспечивает доступ к ограниченным каталогам без традиционного root. Требуется установка и запуск Porter или Shizuku.</string>
     <string name="setup_notification_description">Показывает обновления для файловых операций, фоновых задач и прогресса передачи. Держит вас в курсе, когда операции завершены или произошли ошибки.</string>
     <string name="setup_usagestats_description">Анализирует использование хранилища приложениями для выявления больших файлов и эффективного управления пространством. Все данные остаются на вашем устройстве и никогда не передаются.</string>
     <string name="setup_storage_description">Полный доступ ко всему хранилищу устройства для быстрых файловых операций и пакетной обработки. Обеспечивает полное управление файлами без повторных запросов разрешений.</string>
@@ -79,7 +81,7 @@
     <string name="setup_grant_access_label">Предоставить доступ</string>
     <string name="setup_access_granted_label">Доступ предоставлен</string>
     <string name="setup_use_root_label">Использовать root, если доступен</string>
-    <string name="setup_use_shizuku_label">Использовать Shizuku, если доступен</string>
+    <string name="setup_use_shizuku_label">Использовать доступ ADB, если доступен</string>
 
     <string name="setup_status_checking">Проверка…</string>
     <string name="setup_status_completed">Настроено</string>
@@ -91,6 +93,15 @@
     <string name="setup_status_connecting">Подключение…</string>
     <string name="setup_status_connection_failed">Ошибка подключения</string>
     <string name="setup_status_unavailable">Недоступно</string>
+    <string name="setup_status_permission_denied">Доступ запрещён</string>
+    <string name="setup_adb_status_manager_update_required">Требуется обновление</string>
+    <string name="setup_adb_status_butler_update_required">Требуется обновление Butler</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". (applies to the next 5 setup_adb_* strings taking %1$s) -->
+    <string name="setup_adb_status_connected_via">Подключено через %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">Пока не разрешено %1$s</string>
+    <string name="setup_adb_status_denied_in">Запрещено в %1$s</string>
+    <string name="setup_adb_open_manager_action">Открыть %1$s</string>
+    <string name="setup_adb_install_manager_action">Установить %1$s</string>
 
     <!-- Debug Log -->
     <string name="debug_notification_channel_label">Уведомления отладки</string>
@@ -283,6 +294,8 @@
     <string name="acknowledgement_librootjava_subtitle">Запускай код Java (и Kotlin) с root! (APACHE 2.0)</string>
     <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
     <string name="acknowledgement_librootkotlinx_subtitle">Запуск рутированного кода Kotlin JVM легко с корутинами. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Предоставляет Android-приложениям доступ ADB через API Shizuku с опциональной поддержкой root. (APACHE 2.0)</string>
     <string name="acknowledgement_shizuku_title">Shizuku</string>
     <string name="acknowledgement_shizuku_subtitle">Использование системных API напрямую с привилегиями adb/root из обычных приложений через процесс Java, запущенный с app_process. (APACHE 2.0)</string>
     <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
@@ -399,6 +412,7 @@
     <!-- Workspace Navigation Rail -->
     <string name="workspace_pane_assign_action">Назначить в область %1$d</string>
     <string name="workspace_pane_show_action">Показать</string>
+    <string name="workspace_pane_menu_action">Показать параметры вкладки</string>
     <string name="workspace_pane_close_action">Закрыть</string>
     <string name="workspace_pane_unassign_action">Удалить из области</string>
     <string name="workspace_dragging_description">Перетаскивание</string>
@@ -419,6 +433,7 @@
     <string name="explorer_settings_subtitle">Настроить поведение файлового обозревателя.</string>
     <string name="searcher_settings_subtitle">Настроить поведение поиска.</string>
     <string name="editor_settings_subtitle">Настроить поведение текстового редактора.</string>
+    <string name="viewer_settings_subtitle">Настроить поведение просмотрщика файлов.</string>
     <string name="history_settings_subtitle">Сохранение и очистка истории операций.</string>
     <string name="clipboard_settings_subtitle">Настроить поведение буфера обмена.</string>
 

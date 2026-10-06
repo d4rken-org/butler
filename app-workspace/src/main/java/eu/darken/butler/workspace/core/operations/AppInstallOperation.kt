@@ -86,17 +86,30 @@ class AppInstallOperation @AssistedInject constructor(
         when (val result = terminal) {
             is AppInstallEvent.Success -> {
                 log(tag, INFO) { "perform(): installed ${result.pkgId} via ${result.viaMode}" }
+                val summary = caString {
+                    val template = when {
+                        plan.obbEntries.isEmpty() || result.obbPlaced ->
+                            R.string.workspace_operation_install_summary_success
+
+                        else -> R.string.workspace_operation_install_summary_success_partial
+                    }
+                    it.getString(template, displayName)
+                }
                 send(
                     CompletedState(
                         startedAt = operationContext.startedAt,
-                        summary = caString {
-                            val template = when {
-                                plan.obbEntries.isEmpty() || result.obbPlaced ->
-                                    R.string.workspace_operation_install_summary_success
-
-                                else -> R.string.workspace_operation_install_summary_success_partial
-                            }
-                            it.getString(template, displayName)
+                        summary = summary,
+                        report = result.pkgId?.let {
+                            Operation.Report.Packages(
+                                summary = summary,
+                                outcomes = listOf(
+                                    Operation.Report.Packages.Outcome(
+                                        label = displayName.toCaString(),
+                                        packageName = it.name,
+                                        status = Operation.Report.Packages.Outcome.Status.DONE,
+                                    ),
+                                ),
+                            )
                         },
                     )
                 )

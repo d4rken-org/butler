@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,9 +28,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,6 +64,8 @@ import eu.darken.butler.workspace.ui.common.WorkspaceToolbarDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.modal.LocalLayerActive
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun SearchToolbarCard(
@@ -63,9 +74,14 @@ fun SearchToolbarCard(
     state: SearcherWorkspaceViewModel.State.Ready?,
     design: WorkspaceDesign,
     collapsedFraction: Float = 0f,
+    onExpand: () -> Unit = {},
+    isExpandHeld: Boolean = false,
     onAction: (SearcherPageAction) -> Unit,
 ) {
     val isCollapsed = collapsedFraction > 0.5f
+    // Set by tapping the collapsed row, consumed by the next expanded branch, which focuses only
+    // while the tap's expansion is still held (no user scroll in between)
+    var focusPending by remember { mutableStateOf(false) }
     val cardPadding by animateDpAsState(
         targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "cardPadding"
@@ -93,6 +109,10 @@ fun SearchToolbarCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable {
+                        focusPending = true
+                        onExpand()
+                    }
                     .padding(start = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -132,6 +152,21 @@ fun SearchToolbarCard(
                 )
             }
         } else {
+            val filenameFocusRequester = remember { FocusRequester() }
+            val layerActive = LocalLayerActive.current
+            // CutoutMode.Auto also composes this branch into a measure-only copy that is never placed
+            // (pinned by SearchToolbarCardTest), so only the placed copy may consume the pending focus.
+            var placed by remember { mutableStateOf(false) }
+            val currentExpandHeld by rememberUpdatedState(isExpandHeld)
+            val currentLayerActive by rememberUpdatedState(layerActive)
+            LaunchedEffect(Unit) {
+                snapshotFlow { placed }.first { it }
+                if (!focusPending) return@LaunchedEffect
+                focusPending = false
+                // The user may have moved to another pane while the bar was expanding
+                if (currentExpandHeld && currentLayerActive) filenameFocusRequester.requestFocus()
+            }
+
             // Expanded state - full interactive card with dual pattern fields
             Row(
                 modifier = Modifier
@@ -149,6 +184,7 @@ fun SearchToolbarCard(
                     Column {
                         // Filename pattern field
                         PatternField(
+                            modifier = Modifier.onPlaced { placed = true },
                             text = state?.filenameQuery.orEmpty(),
                             onTextChange = { onAction(SearcherPageAction.Search.UpdateFilenameQuery(it)) },
                             onSearch = { onAction(SearcherPageAction.Search.Explicit) },
@@ -174,6 +210,7 @@ fun SearchToolbarCard(
                                 )
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                             },
+                            focusRequester = filenameFocusRequester,
                         )
 
                         // Content pattern field (conditionally visible)

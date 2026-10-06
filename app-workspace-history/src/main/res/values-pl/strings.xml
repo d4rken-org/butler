@@ -208,7 +208,7 @@
         <item quantity="other">Usuń %1$d wpisy</item>
     </plurals>
     <string name="history_delete_dialog_message">Usuwane są tylko rekordy historii, sami pliki nie są modyfikowani.</string>
-    <string name="history_pro_dialog_message">Udostępnianie i usuwanie wpisów historii jest częścią ulepszenia. Czyszczenie całej historii pozostaje bezpłatne w ustawieniach historii.</string>
+    <string name="history_pro_dialog_message">Udostępnianie kilku wpisów historii naraz jest częścią ulepszenia. Udostępnianie pojedynczego wpisu i usuwanie wpisów pozostaje bezpłatne.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Wynik</string>

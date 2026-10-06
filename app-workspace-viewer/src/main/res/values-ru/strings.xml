@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">Предпросмотр ограничен первыми %1$s строками этого файла.</string>
     <string name="viewer_text_truncated_width">Длинные строки сокращены в этом предпросмотре.</string>
     <string name="viewer_text_unreadable_label">Этот файл невозможно было прочитать</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">После удаления файла, открытого из папки, показывать следующий файл из этой папки вместо закрытия просмотра.</string>
+    <string name="viewer_settings_show_next_after_delete_title">Показывать следующий файл после удаления</string>
+    <string name="viewer_settings_title">Просмотр</string>
 </resources>

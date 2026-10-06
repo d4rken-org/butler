@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">Παρακαλώ περιμένετε</string>
     <string name="general_progress_loading_egg_13">Τουλάχιστον δεν είστε σε αναμονή</string>
     <string name="general_progress_loading_egg_14">Εφαρμόστε απευθείας στο μέτωπο</string>
+    <string name="general_progress_loading_egg_halloween_0">Εξορκισμός της κρυφής μνήμης</string>
+    <string name="general_progress_loading_egg_halloween_1">Μέτρημα των σκελετών στην ντουλάπα σου</string>
+    <string name="general_progress_loading_egg_halloween_2">Σκάλισμα των κολοκύθων</string>
+    <string name="general_progress_loading_egg_halloween_3">Έλεγχος κάτω από το κρεβάτι για διεργασίες ζόμπι</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Κυνηγώντας το ουράνιο τόξο ως το καζάνι με το χρυσάφι</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Αναζήτηση τετράφυλλου τριφυλλιού</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Δωροδοκία των λεπρεχόν</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Φόρτωση. Ή μήπως όχι;</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Κλείσιμο και ξανά άνοιγμα</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Φέρνουμε κι άλλα πρέτσελ</string>
+    <string name="general_progress_loading_egg_xmas_0">Έλεγχος της λίστας δύο φορές</string>
+    <string name="general_progress_loading_egg_xmas_1">Τύλιγμα των αρχείων σου για δώρο</string>
+    <string name="general_progress_loading_egg_xmas_2">Ξεμπλέκοντας τα λαμπάκια</string>
+    <string name="general_progress_loading_egg_xmas_3">Ταΐσμα των ταράνδων</string>
+    <string name="general_progress_loading_egg_newyear_0">Αντίστροφη μέτρηση για τα μεσάνυχτα</string>
+    <string name="general_progress_loading_egg_newyear_1">Άνοιγμα της σαμπάνιας</string>
+    <string name="general_progress_loading_egg_newyear_2">Συντάσσουμε πρωτοχρονιάτικες αποφάσεις που κανείς δεν θα τηρήσει</string>
+    <string name="general_progress_loading_egg_newyear_3">Φόρτωση της νέας χρονιάς</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">
@@ -209,10 +227,10 @@
     <string name="general_error_cant_access_msg">Δεν είναι δυνατή η πρόσβαση σε %s.</string>
     <string name="general_error_archive_not_seekable_msg">Δεν είναι δυνατή η άμεση περιήγηση στο %s: ο αποθηκευτικός χώρος στον οποίο βρίσκεται υποστηρίζει μόνο διαδοχική ανάγνωση, ενώ αυτή η μορφή αρχείου συμπίεσης απαιτεί τυχαία πρόσβαση.</string>
     <string name="general_error_root_unavailable">Η πρόσβαση root δεν είναι διαθέσιμη.</string>
-    <string name="general_error_elevated_access_required">Αυτή η λειτουργία απαιτεί αυξημένα δικαιώματα πρόσβασης. Ρυθμίστε το Root ή το Shizuku στη Ρύθμιση.</string>
+    <string name="general_error_elevated_access_required">Αυτή η λειτουργία απαιτεί αυξημένα δικαιώματα πρόσβασης. Ρύθμισε το Root ή την πρόσβαση ADB στη Ρύθμιση.</string>
     <string name="general_error_no_compatible_app_found_msg">Δεν βρέθηκε συμβατή εφαρμογή για τον χειρισμό αυτού του αιτήματος.</string>
     <string name="general_error_ipc_deadobject_title">Απώλεια σύνδεσης υπηρεσίας</string>
-    <string name="general_error_ipc_deadobject_description">Η σύνδεση με μια κρίσιμη υπηρεσία (π.χ. Magisk, Shizuku ή άλλες υπηρεσίες συστήματος) χάθηκε απροσδόκητα. Κάντε επανεκκίνηση της συσκευής σας. Αν το πρόβλημα παραμένει, ελέγξτε για ενημερώσεις ή επικοινωνήστε ώστε να διορθωθεί.</string>
+    <string name="general_error_ipc_deadobject_description">Η σύνδεση με μια κρίσιμη υπηρεσία (π.χ. Magisk ή άλλη υπηρεσία επιπέδου συστήματος) χάθηκε απροσδόκητα. Κάνε επανεκκίνηση της συσκευής σου. Αν το πρόβλημα παραμένει, έλεγξε για ενημερώσεις ή επικοινώνησε μαζί μου για να το διορθώσω.</string>
 
     <string name="ui_theme_mode_dark_label">Σκούρο</string>
     <string name="ui_theme_mode_light_label">Φωτεινό</string>
@@ -250,7 +268,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">Στατιστικά χρήσης</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Πρόσβαση ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Πρόσβαση ειδοποιήσεων</string>
     <string name="setup_manage_storage_card_title">Διαχείριση εξωτερικού αποθηκευτικού χώρου</string>
@@ -309,7 +327,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Χρησιμοποιήστε πολλαπλά παράθυρα για να συγκρίνετε αρχεία δίπλα-δίπλα.</string>
     <string name="common_tip_different_folders">Ανοίξτε διαφορετικούς φακέλους σε κάθε παράθυρο για εύκολη διαχείριση αρχείων.</string>
-    <string name="common_tip_switch_layouts">Εναλλάξτε τις διατάξεις παραθύρων από τη διαχείριση ρυθμίσεων καρτέλας.</string>
-    <string name="common_tip_elevated_access">Ενεργοποιήστε το root ή το Shizuku στη Ρύθμιση για προηγμένες λειτουργίες αρχείων.</string>
+    <string name="common_tip_switch_layouts">Εναλλαγή διατάξεων τμημάτων από τη Διάταξη στο μενού Butler.</string>
+    <string name="common_tip_elevated_access">Ενεργοποίησε το root ή την πρόσβαση ADB στη Ρύθμιση για προηγμένες λειτουργίες αρχείων.</string>
     <string name="common_tip_breadcrumb_home">Πατήστε παρατεταμένα ένα στοιχείο διαδρομής στην Εξερεύνηση για να το ορίσετε ως αρχικό φάκελο.</string>
 </resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">नया</string>
+    <string name="workspace_templates_choose_title">नया टैब</string>
+    <string name="workspace_templates_choose_subtitle">टैब का प्रकार चुनें। किस तरह मदद की जाए?</string>
+    <string name="workspace_templates_name_tab_action">इस टैब को नाम दें</string>
+    <string name="tour_templates_picker_title">टूल चुनें</string>
+    <string name="tour_templates_picker_body">यह टैब पिकर है, चुनें कि इस टैब में क्या हो। कोई टूल चुनने पर यह टैब उसी टूल में बदल जाता है।</string>
+    <string name="tour_templates_butler_button_title">आपके टैब यहाँ हैं</string>
+    <string name="tour_templates_butler_button_body">टैब मेनू के लिए Butler बटन दबाएँ: नया टैब बनाएँ, मौजूदा टैब बंद करें या पूरा टैब प्रबंधक खोलें। सीधे टैब प्रबंधक पर जाने के लिए बटन देर तक दबाएँ।</string>
+</resources>

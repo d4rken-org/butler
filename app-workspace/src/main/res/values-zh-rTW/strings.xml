@@ -352,7 +352,7 @@
     <string name="workspace_settings_layout_mode_classic">經典</string>
     <string name="workspace_settings_layout_mode_classic_desc">一次一個窗格，不含分頁軌。</string>
     <string name="workspace_settings_layout_mode_adaptive">自適應</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">分頁軌加上螢幕可容納的窗格數量。可從分頁軌中的 Butler 選單釘選版面配置。</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">分頁軌加上螢幕可容納的窗格數量。可從 Butler 選單釘選版面配置。</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">自適應（%1$s）</string>
     <string name="workspace_settings_layout_mode_single_rail">單一窗格含分頁軌</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">一個分頁窗格，加上多窗格版面配置的分頁軌。分頁軌會佔用螢幕的一小條區域。</string>
@@ -443,4 +443,15 @@
     <plurals name="workspace_operation_restore_summary">
         <item quantity="other">已還原 %d 個項目</item>
     </plurals>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">分頁軌加上螢幕可容納的窗格數量。</string>
+    <string name="workspace_open_selection_each_in_tab_action">各以獨立分頁開啟</string>
+    <string name="workspace_open_selection_each_in_tab_description">將每個已選取的項目開啟在各自的分頁中。資料夾會以檔案總管分頁開啟。</string>
+    <plurals name="workspace_open_selection_title">
+        <item quantity="other">開啟 %d 個項目</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">在此檢視</string>
+    <string name="workspace_open_selection_view_here_description">在此窗格上方的檢視器中顯示已選取的檔案。上一個與下一個只會在你的選取項目中切換。</string>
+    <string name="workspace_open_selection_view_in_tab_action">在新分頁中檢視</string>
+    <string name="workspace_open_selection_view_in_tab_description">在獨立分頁的檢視器中顯示已選取的檔案。上一個與下一個只會在你的選取項目中切換。</string>
+    <string name="workspace_open_selection_viewer_unavailable">檢視器無法顯示資料夾。</string>
 </resources>

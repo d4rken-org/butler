@@ -222,7 +222,7 @@
         <item quantity="other">حذف %1$d إدخال</item>
     </plurals>
     <string name="history_delete_dialog_message">سيتم إزالة سجلات السجل فقط، والملفات نفسها لن تتأثر.</string>
-    <string name="history_pro_dialog_message">مشاركة وحذف إدخالات السجل جزء من الترقية. مسح السجل بالكامل يبقى مجانيًا في إعدادات السجل.</string>
+    <string name="history_pro_dialog_message">مشاركة عدة إدخالات من السجل دفعة واحدة جزء من الترقية. مشاركة إدخال واحد وحذف الإدخالات يبقيان مجانيين.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">النتيجة</string>

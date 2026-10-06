@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">Rootacces vereist om deze locatie in te zien. Schakel rootacces in in de Butler-app-instellingen.</string>
-    <string name="provider_documents_error_requires_adb">ADB/Shizuku-acces vereist om deze locatie in te zien. Schakel Shizuku in in de Butler-app-instellingen.</string>
+    <string name="provider_documents_error_requires_adb">ADB-toegang vereist om deze locatie in te zien. Schakel die in via de setup van Butler.</string>
     <string name="provider_documents_error_requires_storage">Opslagmachtiging vereist om deze locatie in te zien. Verleen opslagmachtiging in de Butler-app-instellingen.</string>
     <string name="provider_documents_error_requires_permissions">Aanvullende machtigingen vereist om deze locatie in te zien. Controleer de Butler-app-instellingen.</string>
     <string name="provider_documents_error_generic">Kan deze locatie niet benaderen. Controleer de Butler-app voor toegangsopties.</string>

@@ -7,15 +7,33 @@ import eu.darken.porter.sdk.Porter
 import eu.darken.porter.sdk.PorterAvailability
 import eu.darken.porter.sdk.PorterBackend
 import eu.darken.porter.sdk.PorterConnection
+import eu.darken.porter.sdk.PorterConnectionState
 import eu.darken.porter.sdk.UserServiceArgs
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 
-internal class PorterServerSource(private val context: Context) : AdbServerSource {
+internal class PorterServerSource(
+    private val context: Context,
+    private val porterState: StateFlow<PorterConnectionState> = Porter.state,
+) : AdbServerSource {
 
-    override val connection: Flow<AdbServerConnection?> = Porter.connection.map { it?.let(::PorterServerConnection) }
+    override val state: Flow<AdbConnectionState> = porterState.map { state ->
+        when (state) {
+            PorterConnectionState.Disconnected -> AdbConnectionState.Disconnected
+            is PorterConnectionState.Connected -> AdbConnectionState.Connected(
+                AdbServer(PorterServerConnection(state.connection)),
+            )
+            is PorterConnectionState.Incompatible -> AdbConnectionState.Incompatible(
+                backend = state.incompatibility.backend.toAdb(),
+                serverTooOld = state.incompatibility.serverTooOld,
+                clientTooOld = state.incompatibility.clientTooOld,
+            )
+        }
+    }
 
-    override fun current(): AdbServerConnection? = Porter.connection.value?.let(::PorterServerConnection)
+    override fun current(): AdbServerConnection? =
+        (porterState.value as? PorterConnectionState.Connected)?.connection?.let(::PorterServerConnection)
 
     override suspend fun availability(): AdbAvailability = when (val availability = Porter.availability(context)) {
         is PorterAvailability.NotInstalled -> AdbAvailability.NotInstalled

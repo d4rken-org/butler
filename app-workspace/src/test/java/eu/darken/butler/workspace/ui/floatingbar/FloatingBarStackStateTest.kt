@@ -1,7 +1,12 @@
 package eu.darken.butler.workspace.ui.floatingbar
 
+import androidx.compose.runtime.MonotonicFrameClock
 import androidx.compose.runtime.saveable.SaverScope
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import testhelpers.BaseTest
@@ -205,6 +210,98 @@ class FloatingBarStackStateTest : BaseTest() {
         state.registerBar(FloatingBarState(id = "toolbar", scrollBehavior = BarScrollBehavior.HideOnScroll))
 
         state.hasRegisteredBars shouldBe true
+    }
+
+    // endregion
+
+    // region Expanding a single bar
+
+    /** Hands out frames without waiting, so a spring runs to rest within one [advanceUntilIdle]. */
+    private class ImmediateFrameClock : MonotonicFrameClock {
+        private var frameTimeNanos = 0L
+
+        override suspend fun <R> withFrameNanos(onFrame: (Long) -> R): R {
+            frameTimeNanos += 16_000_000L
+            return onFrame(frameTimeNanos)
+        }
+    }
+
+    private class CollapsedStack(
+        val state: FloatingBarStackState,
+        val toolbar: FloatingBarState,
+        val progress: FloatingBarState,
+    )
+
+    private suspend fun TestScope.collapsedStack(): CollapsedStack {
+        val toolbar = FloatingBarState(id = "toolbar", scrollBehavior = BarScrollBehavior.CollapseOnScroll)
+        val progress = FloatingBarState(id = "progress", scrollBehavior = BarScrollBehavior.VanishOnScroll)
+        val state = FloatingBarStackState(position = BarPosition.TOP).apply {
+            animationScope = this@collapsedStack
+            registerBar(toolbar)
+            registerBar(progress)
+            applyCollapse(mapOf("toolbar" to 1f, "progress" to 1f))
+        }
+        return CollapsedStack(state, toolbar, progress)
+    }
+
+    private val scrollDown = Offset(0f, -40f)
+
+    @Test
+    fun `expanding a bar leaves the other bars of the stack collapsed`() = runTest(ImmediateFrameClock()) {
+        val stack = collapsedStack()
+
+        stack.toolbar.expand(this)
+        advanceUntilIdle()
+
+        stack.toolbar.scrollCollapsedFraction shouldBe 0f
+        stack.progress.scrollCollapsedFraction shouldBe 1f
+    }
+
+    @Test
+    fun `a fling that was already running does not collapse an expanded bar again`() = runTest(ImmediateFrameClock()) {
+        val stack = collapsedStack()
+        stack.toolbar.expand(this)
+        advanceUntilIdle()
+
+        repeat(5) { stack.state.nestedScrollConnection.onPreScroll(scrollDown, NestedScrollSource.SideEffect) }
+        advanceUntilIdle()
+
+        stack.toolbar.scrollCollapsedFraction shouldBe 0f
+        stack.progress.scrollCollapsedFraction shouldBe 1f
+    }
+
+    @Test
+    fun `the next user scroll collapses an expanded bar again`() = runTest(ImmediateFrameClock()) {
+        val stack = collapsedStack()
+        stack.toolbar.expand(this)
+        advanceUntilIdle()
+        stack.state.nestedScrollConnection.onPreScroll(scrollDown, NestedScrollSource.SideEffect)
+        advanceUntilIdle()
+
+        stack.state.nestedScrollConnection.onPreScroll(scrollDown, NestedScrollSource.UserInput)
+        advanceUntilIdle()
+
+        stack.toolbar.scrollCollapsedFraction shouldBe 1f
+    }
+
+    @Test
+    fun `expanding a bar that is already heading to expanded still holds it`() = runTest(ImmediateFrameClock()) {
+        val toolbar = FloatingBarState(id = "toolbar", scrollBehavior = BarScrollBehavior.CollapseOnScroll)
+        val state = FloatingBarStackState(position = BarPosition.TOP).apply {
+            animationScope = this@runTest
+            registerBar(toolbar)
+        }
+
+        toolbar.expand(this)
+        advanceUntilIdle()
+        toolbar.holdsExpansion shouldBe true
+
+        state.nestedScrollConnection.onPreScroll(scrollDown, NestedScrollSource.SideEffect)
+        advanceUntilIdle()
+        toolbar.scrollCollapsedFraction shouldBe 0f
+
+        state.nestedScrollConnection.onPreScroll(Offset(0f, 40f), NestedScrollSource.UserInput)
+        toolbar.holdsExpansion shouldBe false
     }
 
     // endregion

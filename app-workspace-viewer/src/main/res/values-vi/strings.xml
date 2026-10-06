@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">Xem trước giới hạn ở %1$s dòng đầu tiên của tệp này.</string>
     <string name="viewer_text_truncated_width">Các dòng dài được rút ngắn trong bản xem trước này.</string>
     <string name="viewer_text_unreadable_label">Không thể đọc tệp này</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Sau khi xóa một tệp được mở từ một thư mục, hiển thị tệp tiếp theo trong thư mục đó thay vì đóng trình xem.</string>
+    <string name="viewer_settings_show_next_after_delete_title">Hiện tệp tiếp theo sau khi xóa</string>
+    <string name="viewer_settings_title">Trình xem</string>
 </resources>

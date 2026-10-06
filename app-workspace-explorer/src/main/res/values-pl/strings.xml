@@ -687,9 +687,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android ogranicza dostęp do tego folderu. Użyj selektora folderów, aby przyznać dostęp.</string>
-    <string name="explorer_permission_multiple_options_description">Możesz przyznać dostęp za pomocą selektora folderów Androida lub skonfigurować Root/Shizuku dla szybszego dostępu do wszystkich ograniczonych folderów.</string>
-    <string name="explorer_permission_setup_both_description">Ten folder wymaga podwyższonego dostępu. Zainstaluj i skonfiguruj Root lub Shizuku w konfiguracji.</string>
-    <string name="explorer_permission_setup_shizuku_description">Ten folder wymaga podwyższonego dostępu przez Shizuku. Zainstaluj Shizuku Manager i skonfiguruj go w konfiguracji.</string>
+    <string name="explorer_permission_multiple_options_description">Możesz przyznać dostęp za pomocą selektora folderów Androida lub skonfigurować dostęp root albo ADB dla szybszego dostępu do wszystkich ograniczonych folderów.</string>
+    <string name="explorer_permission_setup_both_description">Ten folder wymaga podwyższonego dostępu. Skonfiguruj dostęp root lub ADB w konfiguracji.</string>
+    <string name="explorer_permission_setup_shizuku_description">Ten folder wymaga podwyższonego dostępu przez ADB. Skonfiguruj dostęp ADB w konfiguracji.</string>
     <string name="explorer_permission_setup_root_description">Ten folder wymaga dostępu Root. Skonfiguruj Root w konfiguracji, jeśli Twoje urządzenie ma roota.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -697,7 +697,7 @@
     <string name="explorer_permission_option_picker_action">Otwórz selektor SAF</string>
 
     <string name="explorer_permission_option_setup_title">Pełny dostęp</string>
-    <string name="explorer_permission_option_setup_description">Skonfiguruj Root lub Shizuku dla szybszego dostępu do wszystkich ograniczonych folderów.</string>
+    <string name="explorer_permission_option_setup_description">Skonfiguruj dostęp root lub ADB dla szybszego dostępu do wszystkich ograniczonych folderów.</string>
     <string name="explorer_permission_option_setup_action">Skonfiguruj</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -745,4 +745,13 @@
         <item quantity="many">%1$d folderów</item>
         <item quantity="other">%1$d folderu</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">Dodawanie i testowanie lokalizacji jest bezpłatne. Przeglądanie jej wymaga Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Przeglądanie magazynu sieciowego wymaga Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Zapisano. Przeglądanie magazynu sieciowego wymaga Butler Pro.</string>
+    <string name="explorer_permission_multiple_options_root_description">Możesz przyznać dostęp za pomocą selektora folderów Androida lub skonfigurować Root, aby uzyskać dostęp do wszystkich ograniczonych folderów.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Możesz przyznać dostęp za pomocą selektora folderów Androida lub skonfigurować dostęp ADB dla szybszego dostępu do ograniczonych folderów.</string>
+    <string name="explorer_permission_option_setup_root_description">Skonfiguruj Root, aby uzyskać dostęp do tego folderu i innych ograniczonych folderów.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Skonfiguruj dostęp ADB, aby otworzyć ten folder.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Automatycznie usuwaj elementy po upływie tego czasu w koszu</string>
+    <string name="explorer_settings_trash_max_size_summary">Ile miejsca kosz może zajmować w każdej lokalizacji magazynu</string>
 </resources>

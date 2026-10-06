@@ -59,7 +59,7 @@
     <string name="shortcuts_settings_min_dialog_message">عدد مرات الوصول إلى المسار قبل ظهوره كاختصار (1–10)</string>
 
     <string name="setup_usagestats_title">إحصاءات الاستخدام</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">وصول ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">الوصول إلى الإشعارات</string>
     <string name="setup_manage_storage_card_title">إدارة التخزين الخارجي</string>
@@ -70,7 +70,7 @@
     <string name="setup_help_description">مساعدة</string>
 
     <string name="setup_root_description">يتيح الوصول إلى ملفات النظام والأدلة المحمية لإدارة متقدمة للملفات. يفتح كامل إمكانات Butler بما في ذلك الوصول إلى بيانات التطبيقات وتعديلات النظام. يجب أن يكون الجهاز مروَّتًا (root).</string>
-    <string name="setup_shizuku_description">بديل لـ root يوفّر عمليات ملفات متميزة عبر واجهة برمجة تطبيقات آمنة. يتيح الوصول إلى الأدلة المقيَّدة دون الحاجة إلى root التقليدي. يتطلب تثبيت تطبيق Shizuku وتشغيله.</string>
+    <string name="setup_shizuku_description">بديل لـ root يوفر عمليات ملفات متميزة عبر واجهة برمجة تطبيقات آمنة. يتيح الوصول إلى الأدلة المقيدة دون الحاجة إلى root التقليدي. يتطلب تثبيت تطبيق Porter أو Shizuku وتشغيله.</string>
     <string name="setup_notification_description">يعرض التحديثات الخاصة بعمليات الملفات والمهام في الخلفية وتقدّم النقل. يبقيك على اطّلاع عند اكتمال العمليات أو حدوث أخطاء.</string>
     <string name="setup_usagestats_description">يحلّل استخدام التطبيقات للتخزين لتحديد الملفات الكبيرة والمساعدة في إدارة المساحة بفعالية. تبقى جميع البيانات على جهازك ولا تُرسَل مطلقًا.</string>
     <string name="setup_storage_description">وصول كامل إلى جميع مساحة تخزين الجهاز لعمليات ملفات سريعة ومعالجة دفعية. يتيح إدارة شاملة للملفات دون تكرار طلبات الإذن.</string>
@@ -79,7 +79,7 @@
     <string name="setup_grant_access_label">منح الوصول</string>
     <string name="setup_access_granted_label">تم منح الوصول</string>
     <string name="setup_use_root_label">استخدام root إذا كان متاحًا</string>
-    <string name="setup_use_shizuku_label">استخدام Shizuku إذا كان متاحًا</string>
+    <string name="setup_use_shizuku_label">استخدام وصول ADB إذا كان متاحًا</string>
 
     <string name="setup_status_checking">جارٍ التحقق…</string>
     <string name="setup_status_completed">مُهيَّأ</string>
@@ -91,6 +91,15 @@
     <string name="setup_status_connecting">جارٍ الاتصال…</string>
     <string name="setup_status_connection_failed">فشل الاتصال</string>
     <string name="setup_status_unavailable">غير متاح</string>
+    <string name="setup_status_permission_denied">تم رفض الإذن</string>
+
+    <string name="setup_adb_status_manager_update_required">التحديث مطلوب</string>
+    <string name="setup_adb_status_butler_update_required">مطلوب تحديث Butler</string>
+    <string name="setup_adb_status_connected_via">متصل عبر %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">لم يتم السماح به بواسطة %1$s حتى الآن</string>
+    <string name="setup_adb_status_denied_in">تم الرفض في %1$s</string>
+    <string name="setup_adb_open_manager_action">فتح %1$s</string>
+    <string name="setup_adb_install_manager_action">تثبيت %1$s</string>
 
     <!-- Debug Log -->
     <string name="debug_notification_channel_label">إشعارات التصحيح</string>
@@ -429,6 +438,7 @@
     <string name="explorer_settings_subtitle">تهيئة سلوك مستكشف الملفات.</string>
     <string name="searcher_settings_subtitle">تهيئة سلوك البحث.</string>
     <string name="editor_settings_subtitle">تهيئة سلوك محرر النصوص.</string>
+    <string name="viewer_settings_subtitle">تهيئة سلوك عارض الملفات.</string>
     <string name="history_settings_subtitle">الاحتفاظ بسجل العمليات ومسحه.</string>
     <string name="clipboard_settings_subtitle">تهيئة سلوك الحافظة.</string>
 
@@ -551,5 +561,10 @@
     <string name="review_app_body">هل تودّ ترك تقييم لـ Butler؟ ❤️</string>
     <string name="review_app_dismiss_action">ربما لاحقًا</string>
     <string name="review_app_review_action">تقييم</string>
+    <string name="acknowledgement_porter_subtitle">يمنح تطبيقات Android وصول ADB عبر واجهات Shizuku البرمجية، مع دعم اختياري لـ root. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="shortcuts_settings_max_count_summary">الحد الأقصى لعدد الاختصارات المعروضة في المشغّل</string>
+    <string name="shortcuts_settings_min_access_summary">عدد مرات فتح المسار قبل أن يصبح اختصارًا</string>
+    <string name="workspace_pane_menu_action">إظهار خيارات علامة التبويب</string>
 
 </resources>

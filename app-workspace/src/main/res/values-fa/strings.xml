@@ -375,7 +375,7 @@
     <string name="workspace_settings_layout_mode_classic">کلاسیک</string>
     <string name="workspace_settings_layout_mode_classic_desc">یک قاب در هر زمان، بدون نوار زبانه.</string>
     <string name="workspace_settings_layout_mode_adaptive">تطبیقی</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">نوار زبانه به‌همراه هر تعداد قابی که صفحه جا می‌دهد. یک چیدمان را از منوی Butler در نوار سنجاق کنید.</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">نوار زبانه به‌همراه هر تعداد قابی که صفحه جا می‌دهد. یک چیدمان را از منوی Butler سنجاق کنید.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">تطبیقی (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">تک‌قاب با نوار زبانه</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">یک قاب زبانه به‌همراه نوار زبانه چیدمان‌های چندقابی. نوار بخش نواری از صفحه را اشغال می‌کند.</string>
@@ -472,4 +472,16 @@
         <item quantity="one">%d مورد بازیابی شد</item>
         <item quantity="other">%d مورد بازیابی شد</item>
     </plurals>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">نوار زبانه به‌همراه هر تعداد قابی که صفحه جا می‌دهد.</string>
+    <string name="workspace_open_selection_each_in_tab_action">باز کردن هرکدام در زبانه جداگانه</string>
+    <string name="workspace_open_selection_each_in_tab_description">هر مورد انتخاب‌شده را در یک زبانه جداگانه باز می‌کند. پوشه‌ها به‌صورت زبانه مرورگر فایل باز می‌شوند.</string>
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">باز کردن %d مورد</item>
+        <item quantity="other">باز کردن %d مورد</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">نمایش اینجا</string>
+    <string name="workspace_open_selection_view_here_description">فایل‌های انتخاب‌شده را در یک نمایشگر روی همین قاب نشان می‌دهد. قبلی و بعدی فقط در میان موارد انتخاب‌شده شما حرکت می‌کنند.</string>
+    <string name="workspace_open_selection_view_in_tab_action">نمایش در زبانه جدید</string>
+    <string name="workspace_open_selection_view_in_tab_description">فایل‌های انتخاب‌شده را در یک نمایشگر در زبانه‌ای جداگانه نشان می‌دهد. قبلی و بعدی فقط در میان موارد انتخاب‌شده شما حرکت می‌کنند.</string>
+    <string name="workspace_open_selection_viewer_unavailable">پوشه‌ها را نمی‌توان در نمایشگر نشان داد.</string>
 </resources>

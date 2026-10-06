@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">已安裝</string>
     <string name="developer_options_root_available_label">可用</string>
     <string name="developer_options_root_base_check_label">基本檢查</string>
-    <string name="developer_options_shizuku_test_action">測試 Shizuku</string>
+    <string name="developer_options_shizuku_test_action">測試 ADB 存取</string>
     <string name="developer_options_shizuku_installed_label">已安裝</string>
     <string name="developer_options_shizuku_granted_label">權限</string>
     <string name="developer_options_shizuku_compatible_label">相容</string>

@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">이 위치를 찾으려면 루트 접근이 필요합니다. Butler 앱 설정에서 루트 접근을 활성화하세요.</string>
-    <string name="provider_documents_error_requires_adb">이 위치를 찾으려면 ADB/Shizuku 접근이 필요합니다. Butler 앱 설정에서 Shizuku를 활성화하세요.</string>
+    <string name="provider_documents_error_requires_adb">이 위치를 찾으려면 ADB 접근이 필요합니다. Butler 앱 설정에서 ADB 접근을 활성화하세요.</string>
     <string name="provider_documents_error_requires_storage">이 위치를 찾으려면 저장공간 권한이 필요합니다. Butler 앱 설정에서 저장공간 권한을 부여하세요.</string>
     <string name="provider_documents_error_requires_permissions">이 위치를 찾으려면 추가 권한이 필요합니다. Butler 앱 설정을 확인하세요.</string>
     <string name="provider_documents_error_generic">이 위치에 접근할 수 없습니다. Butler 앱에서 접근 옵션을 확인하세요.</string>

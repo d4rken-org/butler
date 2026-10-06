@@ -315,6 +315,18 @@
     <string name="workspace_open_tabs_confirmation_title">Buka beberapa tab?</string>
     <string name="workspace_open_tabs_confirmation_message">Ini akan membuka %1$d tab.</string>
 
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="other">Buka %d item</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Lihat di sini</string>
+    <string name="workspace_open_selection_view_here_description">Tampilkan file yang dipilih di penampil di atas panel ini. Tombol sebelumnya dan berikutnya hanya melalui pilihan Anda.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Lihat di tab baru</string>
+    <string name="workspace_open_selection_view_in_tab_description">Tampilkan file yang dipilih di penampil di tab tersendiri. Tombol sebelumnya dan berikutnya hanya melalui pilihan Anda.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Buka masing-masing di tab sendiri</string>
+    <string name="workspace_open_selection_each_in_tab_description">Buka setiap item yang dipilih di tab terpisah. Folder terbuka sebagai tab browser file.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Folder tidak dapat ditampilkan di penampil.</string>
+
     <!-- Open with (hand a file to another app) -->
     <string name="workspace_open_with_chooser_title">Buka dengan</string>
     <string name="workspace_open_with_no_app_label">Tidak ada aplikasi lain yang ditemukan</string>
@@ -352,7 +364,8 @@
     <string name="workspace_settings_layout_mode_classic">Klasik</string>
     <string name="workspace_settings_layout_mode_classic_desc">Satu panel dalam satu waktu, tanpa rel tab.</string>
     <string name="workspace_settings_layout_mode_adaptive">Adaptif</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">Rel tab ditambah sebanyak mungkin panel yang muat di layar. Sematkan tata letak dari menu Butler di rel.</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Rel tab ditambah sebanyak mungkin panel yang muat di layar. Sematkan tata letak dari menu Butler.</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Rel tab ditambah sebanyak mungkin panel yang muat di layar.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptif (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Tunggal dengan rel tab</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">Satu panel tab ditambah rel tab dari tata letak multi-panel. Rel mengambil sebagian kecil layar.</string>

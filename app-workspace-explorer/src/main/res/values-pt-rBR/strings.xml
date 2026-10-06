@@ -623,9 +623,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">O Android restringe o acesso a esta pasta. Use o seletor de pastas para conceder acesso.</string>
-    <string name="explorer_permission_multiple_options_description">Você pode conceder acesso usando o seletor de pastas do Android ou configurar Root/Shizuku para acesso mais rápido a todas as pastas restritas.</string>
-    <string name="explorer_permission_setup_both_description">Esta pasta requer acesso elevado. Instale e configure Root ou Shizuku na configuração.</string>
-    <string name="explorer_permission_setup_shizuku_description">Esta pasta requer acesso elevado via Shizuku. Instale o Shizuku Manager e configure na configuração.</string>
+    <string name="explorer_permission_multiple_options_description">Você pode conceder acesso usando o seletor de pastas do Android ou configurar acesso root ou ADB para acesso mais rápido a todas as pastas restritas.</string>
+    <string name="explorer_permission_setup_both_description">Esta pasta requer acesso elevado. Configure o acesso root ou ADB na configuração.</string>
+    <string name="explorer_permission_setup_shizuku_description">Esta pasta requer acesso elevado via ADB. Configure o acesso ADB na configuração.</string>
     <string name="explorer_permission_setup_root_description">Esta pasta requer acesso Root. Configure o Root na configuração se seu dispositivo tiver root.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -633,7 +633,7 @@
     <string name="explorer_permission_option_picker_action">Abrir seletor SAF</string>
 
     <string name="explorer_permission_option_setup_title">Acesso completo</string>
-    <string name="explorer_permission_option_setup_description">Configure Root ou Shizuku para acesso mais rápido a todas as pastas restritas.</string>
+    <string name="explorer_permission_option_setup_description">Configure o acesso root ou ADB para acesso mais rápido a todas as pastas restritas.</string>
     <string name="explorer_permission_option_setup_action">Configurar</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -673,4 +673,13 @@
         <item quantity="one">%1$d pasta</item>
         <item quantity="other">%1$d pastas</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">Adicionar e testar um local é grátis. Navegar nele requer o Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Navegar no armazenamento de rede requer o Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Salvo. Navegar no armazenamento de rede requer o Butler Pro.</string>
+    <string name="explorer_permission_multiple_options_root_description">Você pode conceder acesso usando o seletor de pastas do Android ou configurar o Root para acessar todas as pastas restritas.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Você pode conceder acesso usando o seletor de pastas do Android ou configurar o acesso ADB para acessar mais rápido as pastas restritas.</string>
+    <string name="explorer_permission_option_setup_root_description">Configure o Root para acessar esta pasta e outras pastas restritas.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Configure o acesso ADB para abrir esta pasta.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Exclui itens automaticamente depois deste tempo na lixeira</string>
+    <string name="explorer_settings_trash_max_size_summary">Quanto espaço a lixeira pode usar em cada local de armazenamento</string>
 </resources>

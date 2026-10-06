@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Nouă</string>
+    <string name="workspace_templates_choose_title">Filă nouă</string>
+    <string name="workspace_templates_choose_subtitle">Alege un tip de filă. Cu ce te pot ajuta?</string>
+    <string name="workspace_templates_name_tab_action">Denumește această filă</string>
+    <string name="tour_templates_picker_title">Alege un instrument</string>
+    <string name="tour_templates_picker_body">Acesta este selectorul de file: alege ce vrei să fie această filă. Alegerea o transformă în instrumentul respectiv.</string>
+    <string name="tour_templates_butler_button_title">Filele tale sunt aici</string>
+    <string name="tour_templates_butler_button_body">Atinge butonul Butler pentru meniul filelor: creează o filă nouă, închide-o pe cea curentă sau deschide managerul complet de file. Ține-l apăsat pentru a trece direct la managerul de file.</string>
+</resources>

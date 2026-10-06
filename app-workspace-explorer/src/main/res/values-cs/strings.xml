@@ -690,9 +690,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android omezuje přístup k této složce. Pro udělení přístupu použijte výběr složky.</string>
-    <string name="explorer_permission_multiple_options_description">Přístup můžete udělit pomocí výběru složky v systému Android, nebo nastavit Root/Shizuku pro rychlejší přístup ke všem omezeným složkám.</string>
-    <string name="explorer_permission_setup_both_description">Tato složka vyžaduje rozšířený přístup. V nastavení nainstalujte a nakonfigurujte Root nebo Shizuku.</string>
-    <string name="explorer_permission_setup_shizuku_description">Tato složka vyžaduje rozšířený přístup přes Shizuku. Nainstalujte Shizuku Manager a nakonfigurujte ho v nastavení.</string>
+    <string name="explorer_permission_multiple_options_description">Přístup můžeš udělit pomocí výběru složky v systému Android, nebo nastavit root či přístup ADB pro rychlejší přístup ke všem omezeným složkám.</string>
+    <string name="explorer_permission_setup_both_description">Tato složka vyžaduje rozšířený přístup. Nastav root nebo přístup ADB v nastavení.</string>
+    <string name="explorer_permission_setup_shizuku_description">Tato složka vyžaduje rozšířený přístup přes ADB. Nastav přístup ADB v nastavení.</string>
     <string name="explorer_permission_setup_root_description">Tato složka vyžaduje přístup Root. Pokud má vaše zařízení root, nakonfigurujte Root v nastavení.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -700,7 +700,7 @@
     <string name="explorer_permission_option_picker_action">Otevřít výběr SAF</string>
 
     <string name="explorer_permission_option_setup_title">Plný přístup</string>
-    <string name="explorer_permission_option_setup_description">Nakonfigurujte Root nebo Shizuku pro rychlejší přístup ke všem omezeným složkám.</string>
+    <string name="explorer_permission_option_setup_description">Nakonfiguruj root nebo přístup ADB pro rychlejší přístup ke všem omezeným složkám.</string>
     <string name="explorer_permission_option_setup_action">Nakonfigurovat</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -748,4 +748,13 @@
         <item quantity="many">%1$d složky</item>
         <item quantity="other">%1$d složek</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">Přidání a otestování umístění je zdarma. Procházení vyžaduje Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Procházení síťového úložiště vyžaduje Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Uloženo. Procházení síťového úložiště vyžaduje Butler Pro.</string>
+    <string name="explorer_permission_multiple_options_root_description">Přístup můžeš udělit pomocí výběru složky v systému Android, nebo nastavit Root pro přístup ke všem omezeným složkám.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Přístup můžeš udělit pomocí výběru složky v systému Android, nebo nastavit přístup ADB pro rychlejší přístup k omezeným složkám.</string>
+    <string name="explorer_permission_option_setup_root_description">Nakonfiguruj Root pro přístup k této složce a dalším omezeným složkám.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Nakonfiguruj přístup ADB pro otevření této složky.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Automaticky smazat položky po uplynutí této doby v koši</string>
+    <string name="explorer_settings_trash_max_size_summary">Kolik místa smí koš využít na každém úložišti</string>
 </resources>

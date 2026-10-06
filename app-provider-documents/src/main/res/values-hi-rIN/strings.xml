@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">डिवाइस की उन्नत पहुँच</string>
+    <string name="provider_documents_connection_device_title">डिवाइस</string>
+    <string name="documents_connection_device_summary">स्थानीय डिवाइस स्टोरेज</string>
+    <string name="provider_documents_storage_root_label">रूट फ़ाइल सिस्टम</string>
+    <string name="provider_documents_storage_internal_label">आंतरिक स्टोरेज</string>
+    <string name="provider_documents_storage_sd_card_label">SD कार्ड</string>
+    <string name="provider_documents_storage_saf_label">SAF स्थान</string>
+    <string name="provider_documents_storage_free_suffix">खाली</string>
+    <string name="provider_documents_error_requires_root">यह स्थान ब्राउज़ करने के लिए रूट ऐक्सेस आवश्यक है। Butler ऐप की सेटिंग में रूट ऐक्सेस चालू करें।</string>
+    <string name="provider_documents_error_requires_adb">यह स्थान ब्राउज़ करने के लिए ADB ऐक्सेस आवश्यक है। इसे Butler के सेटअप में चालू करें।</string>
+    <string name="provider_documents_error_requires_storage">यह स्थान ब्राउज़ करने के लिए स्टोरेज की अनुमति आवश्यक है। Butler ऐप की सेटिंग में स्टोरेज की अनुमति दें।</string>
+    <string name="provider_documents_error_requires_permissions">यह स्थान ब्राउज़ करने के लिए अतिरिक्त अनुमतियाँ आवश्यक हैं। Butler ऐप की सेटिंग जाँचें।</string>
+    <string name="provider_documents_error_generic">इस स्थान की पहुँच नहीं मिल रही। पहुँच के विकल्पों के लिए Butler ऐप देखें।</string>
+    <string name="provider_documents_settings_title">दस्तावेज़ प्रदाता</string>
+    <string name="provider_documents_settings_subtitle">बाहरी ऐप से एकीकरण</string>
+    <string name="provider_documents_settings_category_integration_label">एकीकरण</string>
+    <string name="provider_documents_enabled_title">दस्तावेज़ प्रदाता चालू करें</string>
+    <string name="provider_documents_enabled_desc">दूसरे ऐप को Android के फ़ाइल पिकर से Butler के ज़रिए फ़ाइलों की पहुँच दें</string>
+</resources>

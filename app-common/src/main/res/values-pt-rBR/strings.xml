@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">Aguarde, por favor</string>
     <string name="general_progress_loading_egg_13">Pelo menos você não está em espera</string>
     <string name="general_progress_loading_egg_14">Aplique diretamente na testa</string>
+    <string name="general_progress_loading_egg_halloween_0">Exorcizando o cache</string>
+    <string name="general_progress_loading_egg_halloween_1">Contando os esqueletos no seu armário</string>
+    <string name="general_progress_loading_egg_halloween_2">Esculpindo as abóboras</string>
+    <string name="general_progress_loading_egg_halloween_3">Olhando embaixo da cama atrás de processos zumbis</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Perseguindo o arco-íris até o pote de ouro</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Procurando um trevo de quatro folhas</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Subornando os leprechauns</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Carregando. Ou será que não?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Desligando e ligando de novo</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Buscando mais pretzels</string>
+    <string name="general_progress_loading_egg_xmas_0">Conferindo a lista duas vezes</string>
+    <string name="general_progress_loading_egg_xmas_1">Embrulhando seus arquivos</string>
+    <string name="general_progress_loading_egg_xmas_2">Desembaraçando o pisca-pisca</string>
+    <string name="general_progress_loading_egg_xmas_3">Alimentando as renas</string>
+    <string name="general_progress_loading_egg_newyear_0">Contagem regressiva para a meia-noite</string>
+    <string name="general_progress_loading_egg_newyear_1">Estourando o champanhe</string>
+    <string name="general_progress_loading_egg_newyear_2">Escrevendo resoluções que ninguém vai cumprir</string>
+    <string name="general_progress_loading_egg_newyear_3">Carregando o ano novo</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">
@@ -209,10 +227,10 @@
     <string name="general_error_cant_access_msg">Não é possível acessar %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s não pode ser navegado diretamente: o armazenamento em que está só oferece suporte a leitura sequencial, mas esse formato de arquivo compactado exige acesso aleatório.</string>
     <string name="general_error_root_unavailable">O acesso root não está disponível.</string>
-    <string name="general_error_elevated_access_required">Esta operação exige acesso elevado. Configure o Root ou o Shizuku em Configuração.</string>
+    <string name="general_error_elevated_access_required">Esta operação exige acesso elevado. Configure root ou acesso ADB em Configuração.</string>
     <string name="general_error_no_compatible_app_found_msg">Nenhum app compatível encontrado para atender a essa solicitação.</string>
     <string name="general_error_ipc_deadobject_title">Conexão com o serviço perdida</string>
-    <string name="general_error_ipc_deadobject_description">A conexão com um serviço essencial (por exemplo, Magisk, Shizuku ou outros serviços do sistema) foi perdida inesperadamente. Reinicie o dispositivo. Se o problema persistir, procure por atualizações ou entre em contato comigo para que eu possa corrigir.</string>
+    <string name="general_error_ipc_deadobject_description">A conexão com um serviço essencial (por exemplo, Magisk ou outro serviço no nível do sistema) foi perdida inesperadamente. Reinicie o dispositivo. Se o problema persistir, procure por atualizações ou entre em contato comigo para que eu possa corrigir.</string>
 
     <string name="ui_theme_mode_dark_label">Escuro</string>
     <string name="ui_theme_mode_light_label">Claro</string>
@@ -250,7 +268,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">Estatísticas de uso</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Acesso ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Acesso a notificações</string>
     <string name="setup_manage_storage_card_title">Gerenciar armazenamento externo</string>
@@ -309,7 +327,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Use vários painéis para comparar arquivos lado a lado.</string>
     <string name="common_tip_different_folders">Abra pastas diferentes em cada painel para facilitar o gerenciamento de arquivos.</string>
-    <string name="common_tip_switch_layouts">Alterne entre layouts de painel no gerenciador de configurações da aba.</string>
-    <string name="common_tip_elevated_access">Ative o root ou o Shizuku em Configuração para operações avançadas de arquivos.</string>
+    <string name="common_tip_switch_layouts">Alterne layouts de painéis a partir de Layout no menu Butler.</string>
+    <string name="common_tip_elevated_access">Ative acesso root ou ADB em Configuração para operações avançadas de arquivos.</string>
     <string name="common_tip_breadcrumb_home">Toque e segure em um item da trilha de navegação do Explorador para defini-lo como seu diretório inicial.</string>
 </resources>

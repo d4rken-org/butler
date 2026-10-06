@@ -59,7 +59,7 @@
     <string name="shortcuts_settings_min_dialog_message">Bir yolun kısayol olarak görünmeden önce kaç kez erişilmesi gerektiği (1–10)</string>
 
     <string name="setup_usagestats_title">Kullanım istatistikleri</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB erişimi</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Bildirim erişimi</string>
     <string name="setup_manage_storage_card_title">Harici depolamayı yönet</string>
@@ -70,7 +70,7 @@
     <string name="setup_help_description">Yardım</string>
 
     <string name="setup_root_description">Gelişmiş dosya yönetimi için sistem dosyalarına ve korumalı dizinlere erişimi etkinleştirir. Uygulama verisi erişimi ve sistem değişiklikleri dahil olmak üzere Butler\'ın tüm potansiyelinin kilidini açar. Cihazın root\'lu olması gerekir.</string>
-    <string name="setup_shizuku_description">Güvenli bir API üzerinden ayrıcalıklı dosya işlemleri sağlayan root alternatifi. Geleneksel root olmadan kısıtlı dizinlere erişim sağlar. Shizuku uygulamasının kurulu ve çalışıyor olmasını gerektirir.</string>
+    <string name="setup_shizuku_description">Güvenli bir API üzerinden ayrıcalıklı dosya işlemleri sağlayan root alternatifi. Geleneksel root olmadan kısıtlı dizinlere erişim sağlar. Porter veya Shizuku\'nun kurulu ve çalışıyor olmasını gerektirir.</string>
     <string name="setup_notification_description">Dosya işlemleri, arka plan görevleri ve aktarım ilerlemesi için güncellemeler gösterir. İşlemler tamamlandığında veya hata oluştuğunda sizi bilgilendirir.</string>
     <string name="setup_usagestats_description">Büyük dosyaları belirlemek ve alanı etkili şekilde yönetmek için uygulama depolama kullanımını analiz eder. Tüm veriler cihazınızda kalır ve asla iletilmez.</string>
     <string name="setup_storage_description">Hızlı dosya işlemleri ve toplu işleme için tüm cihaz depolamasına tam erişim. Tekrarlanan izin istemleri olmadan kapsamlı dosya yönetimi sağlar.</string>
@@ -79,7 +79,7 @@
     <string name="setup_grant_access_label">Erişim ver</string>
     <string name="setup_access_granted_label">Erişim verildi</string>
     <string name="setup_use_root_label">Mevcutsa root kullan</string>
-    <string name="setup_use_shizuku_label">Mevcutsa Shizuku kullan</string>
+    <string name="setup_use_shizuku_label">Mevcutsa ADB erişimini kullan</string>
 
     <string name="setup_status_checking">Kontrol ediliyor…</string>
     <string name="setup_status_completed">Yapılandırıldı</string>
@@ -523,5 +523,19 @@
     <string name="review_app_body">Butler\'a bir değerlendirme bırakmak ister misiniz? ❤️</string>
     <string name="review_app_dismiss_action">Belki sonra</string>
     <string name="review_app_review_action">Değerlendir</string>
+    <string name="acknowledgement_porter_subtitle">Android uygulamalarına Shizuku API\'leri üzerinden ADB erişimi sağlar, isteğe bağlı root desteğiyle. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="setup_adb_install_manager_action">%1$s uygulamasını yükle</string>
+    <string name="setup_adb_open_manager_action">%1$s uygulamasını aç</string>
+    <string name="setup_adb_status_butler_update_required">Butler güncellemesi gerekli</string>
+    <string name="setup_adb_status_connected_via">%1$s üzerinden bağlandı</string>
+    <string name="setup_adb_status_denied_in">%1$s içinde reddedildi</string>
+    <string name="setup_adb_status_manager_update_required">Güncelleme gerekli</string>
+    <string name="setup_adb_status_not_allowed_yet">%1$s tarafından henüz izin verilmedi</string>
+    <string name="setup_status_permission_denied">İzin reddedildi</string>
+    <string name="shortcuts_settings_max_count_summary">Başlatıcıda gösterilecek maksimum kısayol sayısı</string>
+    <string name="shortcuts_settings_min_access_summary">Bir yolun kısayol olmadan önce kaç kez açılması gerektiği</string>
+    <string name="viewer_settings_subtitle">Dosya görüntüleyici davranışını yapılandır.</string>
+    <string name="workspace_pane_menu_action">Sekme seçeneklerini göster</string>
 
 </resources>

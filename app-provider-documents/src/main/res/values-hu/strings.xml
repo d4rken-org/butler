@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Speciális hozzáférés az eszközhöz</string>
+    <string name="provider_documents_connection_device_title">Eszköz</string>
+    <string name="documents_connection_device_summary">Az eszköz helyi tárhelye</string>
+    <string name="provider_documents_storage_root_label">Gyökérfájlrendszer</string>
+    <string name="provider_documents_storage_internal_label">Belső tárhely</string>
+    <string name="provider_documents_storage_sd_card_label">SD-kártya</string>
+    <string name="provider_documents_storage_saf_label">SAF-hely</string>
+    <string name="provider_documents_storage_free_suffix">szabad</string>
+    <string name="provider_documents_error_requires_root">A hely böngészéséhez root-hozzáférés szükséges. Engedélyezd a root-hozzáférést a Butler beállításaiban.</string>
+    <string name="provider_documents_error_requires_adb">A hely böngészéséhez ADB-hozzáférés szükséges. Engedélyezd a Butler kezdeti beállításában.</string>
+    <string name="provider_documents_error_requires_storage">A hely böngészéséhez tárhelyengedély szükséges. Add meg a tárhelyengedélyt a Butler beállításaiban.</string>
+    <string name="provider_documents_error_requires_permissions">A hely böngészéséhez további engedélyek szükségesek. Ellenőrizd a Butler beállításait.</string>
+    <string name="provider_documents_error_generic">A hely nem érhető el. A hozzáférési lehetőségeket a Butlerben találod.</string>
+    <string name="provider_documents_settings_title">Dokumentumszolgáltató</string>
+    <string name="provider_documents_settings_subtitle">Integráció külső alkalmazásokkal</string>
+    <string name="provider_documents_settings_category_integration_label">Integráció</string>
+    <string name="provider_documents_enabled_title">Dokumentumszolgáltató engedélyezése</string>
+    <string name="provider_documents_enabled_desc">Más alkalmazások hozzáférhetnek a fájlokhoz a Butleren keresztül, az Android fájlválasztójával</string>
+</resources>

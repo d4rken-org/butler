@@ -623,9 +623,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android bu klasöre erişimi kısıtlıyor. Erişim vermek için klasör seçiciyi kullanın.</string>
-    <string name="explorer_permission_multiple_options_description">Erişimi Android\'in klasör seçicisini kullanarak verebilir veya tüm kısıtlı klasörlere daha hızlı erişim için Root/Shizuku kurabilirsiniz.</string>
-    <string name="explorer_permission_setup_both_description">Bu klasör yükseltilmiş erişim gerektiriyor. Kurulumda Root veya Shizuku\'yu yükleyip yapılandırın.</string>
-    <string name="explorer_permission_setup_shizuku_description">Bu klasör Shizuku aracılığıyla yükseltilmiş erişim gerektiriyor. Shizuku Manager\'ı yükleyin ve kurulumda yapılandırın.</string>
+    <string name="explorer_permission_multiple_options_description">Erişimi Android\'in klasör seçicisini kullanarak verebilir veya tüm kısıtlı klasörlere daha hızlı erişim için root ya da ADB erişimini kurabilirsiniz.</string>
+    <string name="explorer_permission_setup_both_description">Bu klasör yükseltilmiş erişim gerektiriyor. Kurulumda root veya ADB erişimini yapılandırın.</string>
+    <string name="explorer_permission_setup_shizuku_description">Bu klasör ADB üzerinden yükseltilmiş erişim gerektiriyor. Kurulumda ADB erişimini yapılandırın.</string>
     <string name="explorer_permission_setup_root_description">Bu klasör Root erişimi gerektiriyor. Cihazınız root\'luysa kurulumda Root\'u yapılandırın.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -633,7 +633,7 @@
     <string name="explorer_permission_option_picker_action">SAF seçiciyi aç</string>
 
     <string name="explorer_permission_option_setup_title">Tam erişim</string>
-    <string name="explorer_permission_option_setup_description">Tüm kısıtlı klasörlere daha hızlı erişim için Root veya Shizuku\'yu yapılandırın.</string>
+    <string name="explorer_permission_option_setup_description">Tüm kısıtlı klasörlere daha hızlı erişim için root veya ADB erişimini yapılandırın.</string>
     <string name="explorer_permission_option_setup_action">Yapılandır</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -673,4 +673,13 @@
         <item quantity="one">%1$d klasör</item>
         <item quantity="other">%1$d klasör</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">Konum eklemek ve test etmek ücretsizdir. Göz atmak için Butler Pro gerekir.</string>
+    <string name="explorer_network_upgrade_hint_locked">Ağ depolamasına göz atmak için Butler Pro gerekir.</string>
+    <string name="explorer_network_upgrade_hint_saved">Kaydedildi. Ağ depolamasına göz atmak için Butler Pro gerekir.</string>
+    <string name="explorer_permission_multiple_options_root_description">Erişimi Android\'in klasör seçicisini kullanarak verebilir veya tüm kısıtlı klasörlere erişim için Root\'u kurabilirsiniz.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Erişimi Android\'in klasör seçicisini kullanarak verebilir veya kısıtlı klasörlere daha hızlı erişim için ADB erişimini kurabilirsiniz.</string>
+    <string name="explorer_permission_option_setup_root_description">Bu klasöre ve diğer kısıtlı klasörlere erişmek için Root\'u yapılandırın.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Bu klasörü açmak için ADB erişimini yapılandırın.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Öğeler çöp kutusunda bu kadar süre kaldıktan sonra otomatik olarak silinir</string>
+    <string name="explorer_settings_trash_max_size_summary">Çöp kutusunun her depolama konumunda kullanabileceği alan</string>
 </resources>

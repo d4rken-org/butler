@@ -61,6 +61,8 @@ class ShizukuSetupCardStatusTest : ComposeTest() {
             context.getString(R.string.setup_adb_status_manager_update_required),
             context.getString(R.string.setup_status_connected),
             context.getString(R.string.setup_status_permission_denied),
+            context.getString(R.string.setup_adb_status_not_allowed_yet, "Porter"),
+            context.getString(R.string.setup_adb_status_denied_in, "Porter"),
             context.getString(R.string.setup_status_connection_failed),
             context.getString(R.string.setup_status_connecting),
             context.getString(R.string.setup_status_not_connected),
@@ -120,26 +122,24 @@ class ShizukuSetupCardStatusTest : ComposeTest() {
     }
 
     @Test
-    fun `a denied permission`() {
-        render(
-            NOT_CONNECTED.copy(
-                permissionState = AdbPermissionState.Denied(permanentlyDenied = false),
-                basicService = true,
-                serviceState = ShizukuServiceState.PermissionDenied,
-            )
-        )
+    fun `a denied permission says the manager has not allowed Butler yet`() {
+        render(DENIED)
 
-        assertStatus(R.string.setup_status_permission_denied)
+        assertStatus(R.string.setup_adb_status_not_allowed_yet, "Porter")
+        composeTestRule.onAllNodesWithText(context.getString(R.string.setup_status_permission_denied))
+            .assertCountEquals(0)
     }
 
     @Test
-    fun `a permanently denied permission`() {
-        render(
-            NOT_CONNECTED.copy(
-                permissionState = AdbPermissionState.Denied(permanentlyDenied = true),
-                basicService = true,
-            )
-        )
+    fun `a permanently denied permission names the manager to change it in`() {
+        render(DENIED.copy(permissionState = AdbPermissionState.Denied(permanentlyDenied = true)))
+
+        assertStatus(R.string.setup_adb_status_denied_in, "Porter")
+    }
+
+    @Test
+    fun `a denied permission without a manager name falls back to the generic line`() {
+        render(DENIED.copy(pkg = null, managerLabel = null, backend = null))
 
         assertStatus(R.string.setup_status_permission_denied)
     }
@@ -177,6 +177,11 @@ class ShizukuSetupCardStatusTest : ComposeTest() {
             permissionState = AdbPermissionState.Granted,
             basicService = true,
             serviceState = ShizukuServiceState.Available,
+        )
+        private val DENIED = NOT_CONNECTED.copy(
+            permissionState = AdbPermissionState.Denied(permanentlyDenied = false),
+            basicService = true,
+            serviceState = ShizukuServiceState.PermissionDenied,
         )
     }
 }

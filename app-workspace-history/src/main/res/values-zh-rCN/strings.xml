@@ -187,7 +187,7 @@
         <item quantity="other">删除 %1$d 个条目</item>
     </plurals>
     <string name="history_delete_dialog_message">仅删除历史记录，文件本身不会被修改。</string>
-    <string name="history_pro_dialog_message">分享和删除历史条目是升级的一部分。在历史设置中清除整个历史仍然是免费的。</string>
+    <string name="history_pro_dialog_message">一次分享多个历史条目是升级的一部分。分享单个条目和删除条目仍然是免费的。</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">结果</string>

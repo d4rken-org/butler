@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.DataUsage
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.InstallMobile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -46,6 +47,7 @@ fun OperationDetailsSheet(
     onCancel: (() -> Unit)? = null,
     onShareError: (() -> Unit)? = null,
     onHandleIssue: (() -> Unit)? = null,
+    onLaunchApp: (() -> Unit)? = null,
     onShowInHistory: (() -> Unit)? = null,
 ) {
     PaneScopedBottomSheet(
@@ -60,6 +62,7 @@ fun OperationDetailsSheet(
             onCancel = onCancel,
             onShareError = onShareError,
             onHandleIssue = onHandleIssue,
+            onLaunchApp = onLaunchApp,
             onShowInHistory = onShowInHistory,
         )
     }
@@ -71,6 +74,7 @@ private fun OperationDetailsContent(
     onCancel: (() -> Unit)? = null,
     onShareError: (() -> Unit)? = null,
     onHandleIssue: (() -> Unit)? = null,
+    onLaunchApp: (() -> Unit)? = null,
     onShowInHistory: (() -> Unit)? = null,
 ) {
     Column(
@@ -160,6 +164,7 @@ private fun OperationDetailsContent(
             is OperationDisplay.State.Running -> onCancel != null
             is OperationDisplay.State.Failed -> onShareError != null
             is OperationDisplay.State.Waiting -> onHandleIssue != null
+            is OperationDisplay.State.Completed -> onLaunchApp != null
             else -> false
         }
 
@@ -169,6 +174,7 @@ private fun OperationDetailsContent(
                 onCancel = onCancel,
                 onShareError = onShareError,
                 onHandleIssue = onHandleIssue,
+                onLaunchApp = onLaunchApp,
                 onShowInHistory = onShowInHistory,
             )
         }
@@ -454,5 +460,38 @@ private fun OperationDetailsSheetCompletedWithPackagesPreview() {
             startedAt = Clock.System.now() - 1.minutes,
         ),
         onDismiss = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationDetailsSheetCompletedInstallPreview() {
+    OperationDetailsSheet(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "App installation".toCaString(),
+            description = "Install \"Notes\".".toCaString(),
+            icon = Icons.TwoTone.InstallMobile,
+            state = OperationDisplay.State.Completed(
+                summary = "Notes was installed.".toCaString(),
+                completedAt = Clock.System.now(),
+                report = Operation.Report.Packages(
+                    summary = "Notes was installed.".toCaString(),
+                    outcomes = listOf(
+                        Operation.Report.Packages.Outcome(
+                            label = "Notes".toCaString(),
+                            packageName = "com.example.notes",
+                            status = Operation.Report.Packages.Outcome.Status.DONE,
+                        ),
+                    ),
+                ),
+            ),
+            kind = Operation.Metadata.Kind.INSTALL,
+            startedAt = Clock.System.now() - 1.minutes,
+        ),
+        onDismiss = {},
+        onLaunchApp = {},
+        onShowInHistory = {},
     )
 }

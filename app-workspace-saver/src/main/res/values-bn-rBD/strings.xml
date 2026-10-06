@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">নতুন নামে সংরক্ষণ</string>
+    <string name="saver_preview_label">প্রিভিউ</string>
+    <string name="saver_loading">লোড হচ্ছে…</string>
+    <string name="saver_shared_from">%1$s থেকে শেয়ার করা</string>
+    <string name="saver_shared_generic">Butler-এর সঙ্গে শেয়ার করা</string>
+    <string name="saver_destination_label">গন্তব্য</string>
+    <string name="saver_select_destination_hint">গন্তব্য ফোল্ডার বাছুন</string>
+    <string name="saver_filename_label">ফাইলের নাম</string>
+    <string name="saver_save_action">সংরক্ষণ করুন</string>
+    <string name="saver_saving_progress">সংরক্ষণ হচ্ছে…</string>
+    <string name="saver_success_message">ফাইল সফলভাবে সংরক্ষিত হয়েছে</string>
+    <string name="saver_open_saved_action">ডিরেক্টরি খুলুন</string>
+    <string name="saver_retry_action">আবার চেষ্টা করুন</string>
+    <string name="saver_save_again_action">নতুন অবস্থানে সংরক্ষণ করুন</string>
+    <string name="saver_close_tab_action">ট্যাব বন্ধ করুন</string>
+    <string name="saver_close_butler_action">ট্যাব বন্ধ করে ফিরে যান</string>
+    <string name="saver_done_action">হয়েছে</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">উৎস ফাইল আর অ্যাক্সেস করা যাচ্ছে না। আবার শেয়ার করুন।</item>
+        <item quantity="other">%1$dটি উৎস ফাইল আর অ্যাক্সেস করা যাচ্ছে না। আবার শেয়ার করুন।</item>
+    </plurals>
+    <string name="saver_error_source_expired">উৎস ফাইল আর অ্যাক্সেস করা যাচ্ছে না</string>
+    <string name="saver_error_permission_denied">অনুমতি প্রত্যাখ্যাত</string>
+    <string name="saver_error_write_failed">ফাইল সংরক্ষণ ব্যর্থ হয়েছে</string>
+    <string name="saver_error_file_exists">ফাইল আগে থেকেই আছে</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">ফাইল সংরক্ষণ করুন</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">%2$s-এ %1$dটি ফাইল সংরক্ষণ হচ্ছে</item>
+        <item quantity="other">%2$s-এ %1$dটি ফাইল সংরক্ষণ হচ্ছে</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">%1$dটি ফাইল সংরক্ষণ করুন</item>
+        <item quantity="other">%1$dটি ফাইল সংরক্ষণ করুন</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$dটি ফাইল সংরক্ষিত হয়েছে</item>
+        <item quantity="other">%1$dটি ফাইল সংরক্ষিত হয়েছে</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$dটি ফাইল ব্যর্থ হয়েছে</item>
+        <item quantity="other">%1$dটি ফাইল ব্যর্থ হয়েছে</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$dটি ফাইল বাদ দেওয়া হয়েছে</item>
+        <item quantity="other">%1$dটি ফাইল বাদ দেওয়া হয়েছে</item>
+    </plurals>
+    <string name="saver_partial_success">%2$dটির মধ্যে %1$dটি ফাইল সংরক্ষিত হয়েছে</string>
+</resources>

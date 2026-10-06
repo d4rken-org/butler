@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">Please hold</string>
     <string name="general_progress_loading_egg_13">At least you\'re not on hold</string>
     <string name="general_progress_loading_egg_14">Apply directly to the forehead</string>
+    <string name="general_progress_loading_egg_halloween_0">Exorcising the cache</string>
+    <string name="general_progress_loading_egg_halloween_1">Counting the skeletons in your closet</string>
+    <string name="general_progress_loading_egg_halloween_2">Carving the pumpkins</string>
+    <string name="general_progress_loading_egg_halloween_3">Checking under the bed for zombie processes</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Chasing the rainbow to the pot of gold</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Searching for a four-leaf clover</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Bribing the leprechauns</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Loading. Or am I?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Turning it off and on again</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Fetching more pretzels</string>
+    <string name="general_progress_loading_egg_xmas_0">Checking the list twice</string>
+    <string name="general_progress_loading_egg_xmas_1">Wrapping your files</string>
+    <string name="general_progress_loading_egg_xmas_2">Untangling the fairy lights</string>
+    <string name="general_progress_loading_egg_xmas_3">Feeding the reindeer</string>
+    <string name="general_progress_loading_egg_newyear_0">Counting down to midnight</string>
+    <string name="general_progress_loading_egg_newyear_1">Popping the champagne</string>
+    <string name="general_progress_loading_egg_newyear_2">Drafting resolutions nobody will keep</string>
+    <string name="general_progress_loading_egg_newyear_3">Loading the new year</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

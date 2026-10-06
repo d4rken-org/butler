@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">Een ogenblik geduld</string>
     <string name="general_progress_loading_egg_13">Gelukkig, je staat niet in de wacht</string>
     <string name="general_progress_loading_egg_14">Direct op het voorhoofd aanbrengen</string>
+    <string name="general_progress_loading_egg_halloween_0">De cache wordt uitgedreven</string>
+    <string name="general_progress_loading_egg_halloween_1">De lijken in je kast worden geteld</string>
+    <string name="general_progress_loading_egg_halloween_2">Pompoenen uithollen</string>
+    <string name="general_progress_loading_egg_halloween_3">Onder het bed kijken naar zombieprocessen</string>
+    <string name="general_progress_loading_egg_stpatricks_0">De regenboog achterna naar de pot goud</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Zoeken naar een klavertje vier</string>
+    <string name="general_progress_loading_egg_stpatricks_2">De kabouters omkopen</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Laden. Of toch niet?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Uit- en weer aanzetten</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Meer pretzels halen</string>
+    <string name="general_progress_loading_egg_xmas_0">De lijst twee keer controleren</string>
+    <string name="general_progress_loading_egg_xmas_1">Je bestanden worden ingepakt</string>
+    <string name="general_progress_loading_egg_xmas_2">De kerstverlichting ontwarren</string>
+    <string name="general_progress_loading_egg_xmas_3">De rendieren voeren</string>
+    <string name="general_progress_loading_egg_newyear_0">Aftellen tot middernacht</string>
+    <string name="general_progress_loading_egg_newyear_1">De champagne ontkurken</string>
+    <string name="general_progress_loading_egg_newyear_2">Goede voornemens opstellen die niemand haalt</string>
+    <string name="general_progress_loading_egg_newyear_3">Het nieuwe jaar wordt geladen</string>
 
     <!-- Duurweergave -->
     <plurals name="common_duration_milliseconds_short">
@@ -209,10 +227,10 @@
     <string name="general_error_cant_access_msg">Geen toegang tot %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s kan niet direct worden doorbladerd: de opslag waarop het bestand zich bevindt ondersteunt alleen sequentieel lezen, maar dit archiefformaat vereist willekeurige toegang.</string>
     <string name="general_error_root_unavailable">Root-toegang is niet beschikbaar.</string>
-    <string name="general_error_elevated_access_required">Deze bewerking vereist verhoogde toegang. Configureer Root of Shizuku in Setup.</string>
+    <string name="general_error_elevated_access_required">Deze bewerking vereist verhoogde toegang. Configureer root of ADB-toegang in Setup.</string>
     <string name="general_error_no_compatible_app_found_msg">Geen geschikte app gevonden om dit verzoek af te handelen.</string>
     <string name="general_error_ipc_deadobject_title">Verbinding met service verbroken</string>
-    <string name="general_error_ipc_deadobject_description">De verbinding met een essentiële service (bijvoorbeeld Magisk, Shizuku of een andere systeemservice) is onverwacht verbroken. Start je apparaat opnieuw op. Blijft het probleem bestaan, controleer dan op updates of meld het probleem.</string>
+    <string name="general_error_ipc_deadobject_description">De verbinding met een essentiële service (bijvoorbeeld Magisk of een ander systeemservice) is onverwacht verbroken. Start je apparaat opnieuw op. Blijft het probleem bestaan, controleer op updates of neem contact met mij op zodat ik het kan repareren.</string>
 
     <string name="ui_theme_mode_dark_label">Donker</string>
     <string name="ui_theme_mode_light_label">Licht</string>
@@ -250,7 +268,7 @@
 
     <!-- Setup-moduletypen -->
     <string name="setup_usagestats_title">Gebruiksstatistieken</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB-toegang</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Toegang tot meldingen</string>
     <string name="setup_manage_storage_card_title">Externe opslag beheren</string>
@@ -309,7 +327,7 @@
     <!-- Butler-tips -->
     <string name="common_tip_multiple_panes">Gebruik meerdere deelvensters om bestanden naast elkaar te vergelijken.</string>
     <string name="common_tip_different_folders">Open verschillende mappen in elk deelvenster voor eenvoudig bestandsbeheer.</string>
-    <string name="common_tip_switch_layouts">Wissel tussen indelingen van deelvensters via het tabbladbeheer.</string>
-    <string name="common_tip_elevated_access">Schakel Root of Shizuku in via Setup voor geavanceerde bestandsbewerkingen.</string>
+    <string name="common_tip_switch_layouts">Wissel indelingen van deelvensters via Indeling in het Butler-menu.</string>
+    <string name="common_tip_elevated_access">Schakel root of ADB-toegang in via Setup voor geavanceerde bestandsbewerkingen.</string>
     <string name="common_tip_breadcrumb_home">Houd een item in het kruimelpad van Verkenner ingedrukt om het als startmap in te stellen.</string>
 </resources>

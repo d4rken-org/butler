@@ -187,7 +187,7 @@
         <item quantity="other">항목 %1$d건 삭제하시겠습니까?</item>
     </plurals>
     <string name="history_delete_dialog_message">기록만 제거되며 파일 자체는 삭제되지 않습니다.</string>
-    <string name="history_pro_dialog_message">기록 공유 및 삭제는 업그레이드의 일부입니다. 전체 기록 지우기는 기록 설정에서 무료로 제공됩니다.</string>
+    <string name="history_pro_dialog_message">여러 기록 항목을 한 번에 공유하는 기능은 업그레이드에 포함됩니다. 항목 하나 공유와 항목 삭제는 계속 무료입니다.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">결과</string>

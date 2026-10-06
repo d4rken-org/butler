@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">Mohon tunggu</string>
     <string name="general_progress_loading_egg_13">Setidaknya Anda tidak sedang menunggu</string>
     <string name="general_progress_loading_egg_14">Oleskan langsung ke dahi</string>
+    <string name="general_progress_loading_egg_halloween_0">Mengusir hantu dari cache</string>
+    <string name="general_progress_loading_egg_halloween_1">Menghitung rahasia kelam di lemari Anda</string>
+    <string name="general_progress_loading_egg_halloween_2">Mengukir labu</string>
+    <string name="general_progress_loading_egg_halloween_3">Mengecek kolong kasur dari proses zombie</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Mengejar pelangi demi periuk emas</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Mencari semanggi berdaun empat</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Menyogok para leprechaun</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Memuat. Atau tidak?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Mematikan lalu menyalakannya lagi</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Mengambil pretzel lagi</string>
+    <string name="general_progress_loading_egg_xmas_0">Mengecek daftar dua kali</string>
+    <string name="general_progress_loading_egg_xmas_1">Membungkus berkas Anda</string>
+    <string name="general_progress_loading_egg_xmas_2">Mengurai lampu hias yang kusut</string>
+    <string name="general_progress_loading_egg_xmas_3">Memberi makan rusa kutub</string>
+    <string name="general_progress_loading_egg_newyear_0">Menghitung mundur menuju tengah malam</string>
+    <string name="general_progress_loading_egg_newyear_1">Membuka sampanye</string>
+    <string name="general_progress_loading_egg_newyear_2">Menyusun resolusi yang tak akan dijalankan</string>
+    <string name="general_progress_loading_egg_newyear_3">Memuat tahun baru</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">
@@ -197,10 +215,10 @@
     <string name="general_error_cant_access_msg">Tidak dapat mengakses %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s tidak dapat dijelajahi secara langsung: penyimpanan tempatnya berada hanya mendukung pembacaan berurutan, tetapi format arsip ini memerlukan akses acak.</string>
     <string name="general_error_root_unavailable">Akses root tidak tersedia.</string>
-    <string name="general_error_elevated_access_required">Operasi ini memerlukan akses tingkat lanjut. Konfigurasikan Root atau Shizuku di Penyiapan.</string>
+    <string name="general_error_elevated_access_required">Operasi ini memerlukan akses tingkat lanjut. Konfigurasikan Root atau akses ADB di Penyiapan.</string>
     <string name="general_error_no_compatible_app_found_msg">Tidak ditemukan aplikasi yang kompatibel untuk menangani permintaan ini.</string>
     <string name="general_error_ipc_deadobject_title">Koneksi layanan terputus</string>
-    <string name="general_error_ipc_deadobject_description">Koneksi ke layanan penting (misalnya Magisk, Shizuku, atau layanan tingkat sistem lainnya) terputus secara tak terduga. Silakan mulai ulang perangkat Anda. Jika masalah ini berlanjut, periksa pembaruan atau hubungi saya agar dapat saya perbaiki.</string>
+    <string name="general_error_ipc_deadobject_description">Koneksi ke layanan penting (misalnya Magisk atau layanan tingkat sistem lainnya) terputus secara tak terduga. Silakan mulai ulang perangkat Anda. Jika masalah ini berlanjut, periksa pembaruan atau hubungi saya agar dapat saya perbaiki.</string>
 
     <string name="ui_theme_mode_dark_label">Gelap</string>
     <string name="ui_theme_mode_light_label">Terang</string>
@@ -238,7 +256,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">Statistik penggunaan</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Akses ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Akses notifikasi</string>
     <string name="setup_manage_storage_card_title">Kelola penyimpanan eksternal</string>
@@ -294,7 +312,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Gunakan beberapa panel untuk membandingkan berkas secara berdampingan.</string>
     <string name="common_tip_different_folders">Buka folder berbeda di setiap panel untuk memudahkan pengelolaan berkas.</string>
-    <string name="common_tip_switch_layouts">Beralih antar tata letak panel di pengelola pengaturan tab.</string>
-    <string name="common_tip_elevated_access">Aktifkan root atau Shizuku di Penyiapan untuk operasi berkas tingkat lanjut.</string>
+    <string name="common_tip_switch_layouts">Beralih tata letak panel dari Layout di menu Butler.</string>
+    <string name="common_tip_elevated_access">Aktifkan root atau akses ADB di Penyiapan untuk operasi berkas tingkat lanjut.</string>
     <string name="common_tip_breadcrumb_home">Tekan lama breadcrumb Explorer untuk menjadikannya direktori beranda Anda.</string>
 </resources>

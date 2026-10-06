@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">এডিটর</string>
+    <string name="editor_subtitle">টেক্সট ফাইল সম্পাদনা করুন</string>
+    <string name="editor_settings_title">এডিটরের সেটিংস</string>
+    <string name="editor_settings_show_line_numbers_title">লাইন নম্বর দেখান</string>
+    <string name="editor_settings_show_line_numbers_subtitle">এডিটরে লাইন নম্বর দেখান।</string>
+    <string name="editor_settings_word_wrap_title">লাইন মোড়ানো</string>
+    <string name="editor_settings_word_wrap_subtitle">পর্দার প্রস্থে ধরাতে দীর্ঘ লাইন মোড়ান।</string>
+    <string name="editor_settings_syntax_highlighting_title">সিনট্যাক্স হাইলাইটিং</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">সমর্থিত ফাইলে কোড রঙিন করুন (JavaScript, Bash, Markdown, JSON)।</string>
+    <string name="editor_settings_font_size_title">ফন্টের আকার</string>
+    <string name="editor_settings_font_size_subtitle">এডিটরে টেক্সটের আকার</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">ট্যাবের প্রস্থ</string>
+    <string name="editor_settings_tab_size_subtitle">একটি ট্যাব অক্ষর যতটি স্পেস জুড়ে থাকে</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">খুলুন</string>
+    <string name="editor_action_save">সংরক্ষণ করুন</string>
+    <string name="editor_action_save_as">নতুন নামে সংরক্ষণ করুন…</string>
+    <string name="editor_action_close">বন্ধ করুন</string>
+    <string name="editor_action_undo">পূর্বাবস্থায় ফেরান</string>
+    <string name="editor_action_redo">আবার করুন</string>
+    <string name="editor_action_search">খুঁজুন</string>
+    <string name="editor_action_go_to_line">লাইনে যান</string>
+    <string name="editor_action_dismiss">সরিয়ে দিন</string>
+    <string name="editor_action_previous">আগের</string>
+    <string name="editor_action_next">পরের</string>
+    <string name="editor_action_copy">কপি করুন</string>
+    <string name="editor_action_cut">কাট করুন</string>
+    <string name="editor_action_copy_to_butler_clipboard">Butler ক্লিপবোর্ডে কপি করুন</string>
+    <string name="editor_action_cut_to_butler_clipboard">Butler ক্লিপবোর্ডে কাট করুন</string>
+    <string name="editor_action_paste">পেস্ট করুন</string>
+    <string name="editor_action_select_all">সব নির্বাচন করুন</string>
+    <string name="editor_action_delete">মুছে ফেলুন</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">ফাইলের ওপর লিখবেন?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s আগে থেকেই আছে। এর বর্তমান বিষয়বস্তু প্রতিস্থাপিত হবে।</string>
+    <string name="editor_dialog_save_as_overwrite_action">ওপর লিখুন</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">বাধাগ্রস্ত সংরক্ষণ থেকে একটি ব্যাকআপ পাওয়া গেছে:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">টেক্সট হিসেবে সম্পাদনা সমর্থিত নয়</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">খুব দীর্ঘ লাইন</string>
+    <string name="editor_long_lines_banner_message">দেখানোর জন্য খুব দীর্ঘ লাইন ছোট করা হয়; সম্পূর্ণ বিষয়বস্তু অক্ষত থাকে এবং সংরক্ষিত হয়।</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">লাইনের পরের অংশ দেখান</string>
+    <string name="editor_line_truncated_marker_previous_action">লাইনের আগের অংশ দেখান</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">ফাইল আর পাওয়া যাচ্ছে না</string>
+    <string name="editor_backing_lost_banner_message">এটি সরানো বা মুছে ফেলা হয়ে থাকতে পারে। এই দৃশ্য শুধু পড়া যায় — আবার খুলুন বা বন্ধ করুন।</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">ফাইল নেই, তবে ব্যাকআপ আছে</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" নেই, তবে বাধাগ্রস্ত সংরক্ষণ থেকে এটি রয়ে গেছে: %2$s। আপনার বিষয়বস্তু খুব সম্ভবত এতে এখনো আছে।</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">ডিস্কে ফাইল বদলেছে</string>
+    <string name="editor_external_change_banner_message">অন্য অ্যাপ এই ফাইল পরিবর্তন করেছে।</string>
+    <string name="editor_external_change_reload_action">আবার লোড করুন</string>
+    <string name="editor_external_change_keep_action">সম্পাদনা চালিয়ে যান</string>
+    <string name="editor_error_external_change">অন্য অ্যাপ এই ফাইল বদলেছে। চালিয়ে যেতে ফাইল আবার লোড করুন।</string>
+    <string name="editor_dialog_reload_confirm_title">ফাইল আবার লোড করবেন?</string>
+    <string name="editor_dialog_reload_confirm_message">আবার লোড করলে আপনার অসংরক্ষিত পরিবর্তন বাতিল হবে এবং ডিস্কে থাকা বর্তমান বিষয়বস্তু দেখাবে।</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$dটি লাইন</item>
+        <item quantity="other">%1$dটি লাইন</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$dটি অক্ষর</item>
+        <item quantity="other">%1$dটি অক্ষর</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">নির্বাচিত %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$d লাইন · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">ফাইল লোড হচ্ছে…</string>
+    <string name="editor_saving">সংরক্ষণ হচ্ছে…</string>
+    <string name="editor_action_cancel_loading">বাতিল করুন</string>
+    <string name="editor_progress_opening">ফাইল খোলা হচ্ছে…</string>
+    <string name="editor_progress_saving">ফাইল সংরক্ষণ হচ্ছে…</string>
+    <string name="editor_progress_building_index">ফাইলের সূচি তৈরি হচ্ছে…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">অজানা ত্রুটি</string>
+    <string name="editor_error_read_only">এই ফাইল শুধু পড়া যায়, পরিবর্তন করা যায় না।</string>
+    <string name="editor_error_save_integrity_label">সংরক্ষণ বাধাগ্রস্ত হয়েছে</string>
+    <string name="editor_error_save_integrity">সংরক্ষণ বাধাগ্রস্ত হয়েছে এবং ডিস্কের ফাইল অসম্পূর্ণ হতে পারে। আরও সম্পাদনার আগে ফাইল আবার লোড করুন।</string>
+    <string name="editor_error_clipboard_too_large_label">নির্বাচন বেশি বড়</string>
+    <string name="editor_error_clipboard_too_large">নির্বাচিত অংশ কপি করার জন্য বেশি বড় (সীমা %1$s)।</string>
+    <string name="editor_error_paste_too_large_label">ফাইল বেশি বড়</string>
+    <string name="editor_error_paste_too_large">এই ফাইল পেস্ট করার জন্য বেশি বড় (সর্বোচ্চ %1$s)।</string>
+    <string name="editor_error_paste_binary_label">টেক্সট ফাইল নয়</string>
+    <string name="editor_error_paste_binary">এই ফাইলের বিষয়বস্তু টেক্সট হিসেবে পেস্ট করা যায় না।</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%2$dটি ফলাফলের মধ্যে %1$d</item>
+        <item quantity="other">%2$dটি ফলাফলের মধ্যে %1$d</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%2$d+ ফলাফলের মধ্যে %1$d</string>
+    <string name="editor_search_too_many_matches_label">অনেক বেশি মিল</string>
+    <string name="editor_search_too_many_matches">%1$dটির বেশি মিল বা মেলা টেক্সট বেশি বড় — সব প্রতিস্থাপন করতে খোঁজ সীমিত করুন।</string>
+    <string name="editor_search_placeholder">খুঁজুন…</string>
+    <string name="editor_search_previous">আগের ফলাফল</string>
+    <string name="editor_search_next">পরের ফলাফল</string>
+    <string name="editor_search_case_sensitive_label">বড়-ছোট অক্ষর আলাদা</string>
+    <string name="editor_search_regex_label">রেগুলার এক্সপ্রেশন</string>
+    <string name="editor_search_whole_word_label">সম্পূর্ণ শব্দ</string>
+    <string name="editor_search_options_label">খোঁজের বিকল্প</string>
+    <string name="editor_search_replace_label">প্রতিস্থাপন</string>
+    <string name="editor_search_replace_toggle">প্রতিস্থাপন চালু/বন্ধ করুন</string>
+    <string name="editor_search_replace_placeholder">যা দিয়ে প্রতিস্থাপন করবেন…</string>
+    <string name="editor_search_replace_one_action">প্রতিস্থাপন করুন</string>
+    <string name="editor_search_replace_all_action">সব</string>
+    <string name="editor_search_replaced_not_undoable">%1$dটি প্রতিস্থাপিত (ফেরানোর জন্য বেশি বড়)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$dটি প্রতিস্থাপিত</item>
+        <item quantity="other">%1$dটি প্রতিস্থাপিত</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">লাইনে যান</string>
+    <string name="editor_dialog_go_to_line_label">লাইন নম্বর (1-%1$d)</string>
+    <string name="editor_dialog_action_go">যান</string>
+    <string name="editor_dialog_action_cancel">বাতিল করুন</string>
+    <string name="editor_dialog_close_confirm_title">অসংরক্ষিত পরিবর্তন</string>
+    <string name="editor_dialog_close_confirm_message">আপনার অসংরক্ষিত পরিবর্তন আছে। বাতিল করে দেবেন?</string>
+    <string name="editor_dialog_close_confirm_discard">বাতিল করে দিন</string>
+    <string name="editor_dialog_large_delete_confirm_title">বড় নির্বাচিত অংশ সম্পাদনা করবেন?</string>
+    <string name="editor_dialog_large_delete_confirm_message">এই নির্বাচন ফেরানোর জন্য বেশি বড়। তবু চালিয়ে যাবেন?</string>
+    <string name="editor_dialog_large_delete_confirm_action">চালিয়ে যান</string>
+    <string name="editor_encoding_dialog_title">এনকোডিং</string>
+    <string name="editor_encoding_dialog_message">আলাদা এনকোডিং দিয়ে ফাইল আবার খুলুন। অসংরক্ষিত পরিবর্তন বাতিল হবে; সংরক্ষণের সময় অসম্পাদিত বাইট অপরিবর্তিত থাকে।</string>
+    <string name="editor_infobar_read_only">শুধু পড়া যায়</string>
+    <string name="editor_line_ending_mixed">মিশ্র</string>
+    <string name="editor_line_ending_dialog_title">লাইনের সমাপ্তি</string>
+    <string name="editor_line_ending_dialog_message">সব লাইন বিরতি রূপান্তর করে অসংরক্ষিত পরিবর্তনসহ ফাইল সংরক্ষণ করুন। পূর্বাবস্থায় ফেরানোর ইতিহাস মোছা হবে।</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">শিরোনামহীন</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">স্বয়ংক্রিয় সংরক্ষণ</string>
+    <string name="editor_settings_autosave_enabled_title">স্বয়ংক্রিয় সংরক্ষণ চালু করুন</string>
+    <string name="editor_settings_autosave_enabled_subtitle">কিছুক্ষণ নিষ্ক্রিয় থাকার পরে স্বয়ংক্রিয়ভাবে পরিবর্তন সংরক্ষণ করুন।</string>
+    <string name="editor_settings_autosave_interval_title">স্বয়ংক্রিয় সংরক্ষণের বিরতি</string>
+    <string name="editor_settings_autosave_interval_subtitle">শেষ সম্পাদনার পরে সংরক্ষণের আগে অপেক্ষার সময়।</string>
+    <string name="editor_settings_autosave_interval_dialog_title">স্বয়ংক্রিয় সংরক্ষণের বিরতি</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">ক্লিপবোর্ড</string>
+    <string name="editor_settings_clipboard_behavior_title">Butler ক্লিপবোর্ড</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">টেক্সট কপি Butler-এর ক্লিপবোর্ডে কীভাবে রাখা হবে নিয়ন্ত্রণ করুন।</string>
+    <string name="editor_settings_clipboard_system_only">শুধু সিস্টেম</string>
+    <string name="editor_settings_clipboard_system_only_desc">শুধু সিস্টেম ক্লিপবোর্ডে কপি করুন</string>
+    <string name="editor_settings_clipboard_butler_always">সবসময় Butler-এ যোগ করুন</string>
+    <string name="editor_settings_clipboard_butler_always_desc">অন্য ওয়ার্কস্পেসে পেস্ট করার জন্য Butler-এর ক্লিপবোর্ডেও রাখুন</string>
+    <string name="editor_settings_clipboard_ask">প্রতিবার জিজ্ঞাসা করুন</string>
+    <string name="editor_settings_clipboard_ask_desc">Butler-এর ক্লিপবোর্ডে যোগ করার আগে জিজ্ঞাসা করুন</string>
+</resources>

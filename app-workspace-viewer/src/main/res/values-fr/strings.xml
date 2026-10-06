@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">L’aperçu est limité aux premières %1$s lignes de ce fichier.</string>
     <string name="viewer_text_truncated_width">Les lignes longues sont raccourcies dans cet aperçu.</string>
     <string name="viewer_text_unreadable_label">Ce fichier n’a pas pu être lu</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Après la suppression d’un fichier ouvert depuis un dossier, afficher le fichier suivant de ce dossier au lieu de fermer la visionneuse.</string>
+    <string name="viewer_settings_show_next_after_delete_title">Afficher le fichier suivant après une suppression</string>
+    <string name="viewer_settings_title">Visionneuse</string>
 </resources>

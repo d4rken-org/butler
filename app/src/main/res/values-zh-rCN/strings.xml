@@ -45,7 +45,9 @@
     <string name="shortcuts_settings_auto_remember_subtitle">自动将常访问的路径添加为快捷方式</string>
     <string name="shortcuts_settings_last_accessed_title">最近访问</string>
     <string name="shortcuts_settings_max_count_title">最大快捷方式数量</string>
+    <string name="shortcuts_settings_max_count_summary">启动器中显示的最大快捷方式数量</string>
     <string name="shortcuts_settings_min_access_title">最小访问次数</string>
+    <string name="shortcuts_settings_min_access_summary">路径需被打开多少次才会成为快捷方式</string>
     <string name="shortcuts_settings_current_title">当前快捷方式</string>
     <string name="shortcuts_settings_current_subtitle">已跟踪 %d 个快捷方式</string>
     <string name="shortcuts_settings_clear_title">清除快捷方式历史</string>
@@ -59,7 +61,7 @@
     <string name="shortcuts_settings_min_dialog_message">路径需被访问多少次才会显示为快捷方式（1–10）</string>
 
     <string name="setup_usagestats_title">使用情况统计</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB 访问权限</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">通知访问权限</string>
     <string name="setup_manage_storage_card_title">管理所有文件的权限</string>
@@ -70,7 +72,7 @@
     <string name="setup_help_description">帮助</string>
 
     <string name="setup_root_description">启用对系统文件和受保护目录的访问，以进行高级文件管理。解锁 Butler 的全部潜力，包括应用数据访问和系统修改。设备需要已获取 root 权限。</string>
-    <string name="setup_shizuku_description">root 的替代方案，通过安全 API 提供特权文件操作。无需传统 root 即可访问受限目录。需要安装并运行 Shizuku 应用。</string>
+    <string name="setup_shizuku_description">root 的替代方案，通过安全 API 提供特权文件操作。无需传统 root 即可访问受限目录。需要安装并运行 Porter 或 Shizuku。</string>
     <string name="setup_notification_description">显示文件操作、后台任务和传输进度的更新。让您在操作完成或发生错误时及时知晓。</string>
     <string name="setup_usagestats_description">分析应用存储占用，帮助识别大文件并有效管理空间。所有数据均保留在您的设备上，绝不会被传输。</string>
     <string name="setup_storage_description">完全访问设备所有存储，实现快速文件操作和批量处理。无需反复弹出权限提示即可进行全面的文件管理。</string>
@@ -79,7 +81,7 @@
     <string name="setup_grant_access_label">授予访问权限</string>
     <string name="setup_access_granted_label">已授予访问权限</string>
     <string name="setup_use_root_label">如果可用则使用 root</string>
-    <string name="setup_use_shizuku_label">如果可用则使用 Shizuku</string>
+    <string name="setup_use_shizuku_label">如果可用则使用 ADB 访问权限</string>
 
     <string name="setup_status_checking">检查中…</string>
     <string name="setup_status_completed">已配置</string>
@@ -91,6 +93,15 @@
     <string name="setup_status_connecting">连接中…</string>
     <string name="setup_status_connection_failed">连接失败</string>
     <string name="setup_status_unavailable">不可用</string>
+    <string name="setup_status_permission_denied">权限被拒绝</string>
+    <string name="setup_adb_status_manager_update_required">需要更新</string>
+    <string name="setup_adb_status_butler_update_required">需要更新 Butler</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". (applies to the next 5 setup_adb_* strings taking %1$s) -->
+    <string name="setup_adb_status_connected_via">通过 %1$s 连接</string>
+    <string name="setup_adb_status_not_allowed_yet">尚未被 %1$s 允许</string>
+    <string name="setup_adb_status_denied_in">在 %1$s 中被拒绝</string>
+    <string name="setup_adb_open_manager_action">打开 %1$s</string>
+    <string name="setup_adb_install_manager_action">安装 %1$s</string>
 
     <!-- Debug Log -->
     <string name="debug_notification_channel_label">调试通知</string>
@@ -404,6 +415,7 @@
     <string name="explorer_settings_subtitle">配置文件管理行为。</string>
     <string name="searcher_settings_subtitle">配置搜索行为。</string>
     <string name="editor_settings_subtitle">配置文本编辑器行为。</string>
+    <string name="viewer_settings_subtitle">配置文件查看器行为。</string>
     <string name="history_settings_subtitle">操作历史的保留和清除。</string>
     <string name="clipboard_settings_subtitle">配置剪贴板行为。</string>
 
@@ -516,5 +528,8 @@
     <string name="review_app_body">您愿意给 Butler 留下评价吗？❤️</string>
     <string name="review_app_dismiss_action">以后再说</string>
     <string name="review_app_review_action">评价</string>
+    <string name="acknowledgement_porter_subtitle">通过 Shizuku API 为 Android 应用提供 ADB 访问权限，并可选支持 root。(APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="workspace_pane_menu_action">显示标签页选项</string>
 
 </resources>

@@ -626,9 +626,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android restringe el acceso a esta carpeta. Usa el selector de carpetas para conceder acceso.</string>
-    <string name="explorer_permission_multiple_options_description">Puedes conceder acceso mediante el selector de carpetas de Android o configurar Root/Shizuku para un acceso más rápido a todas las carpetas restringidas.</string>
-    <string name="explorer_permission_setup_both_description">Esta carpeta requiere acceso elevado. Instala y configura Root o Shizuku en la configuración.</string>
-    <string name="explorer_permission_setup_shizuku_description">Esta carpeta requiere acceso elevado mediante Shizuku. Instala Shizuku Manager y configúralo en la configuración.</string>
+    <string name="explorer_permission_multiple_options_description">Puedes conceder acceso mediante el selector de carpetas de Android o configurar root o el acceso a ADB para un acceso más rápido a todas las carpetas restringidas.</string>
+    <string name="explorer_permission_setup_both_description">Esta carpeta requiere acceso elevado. Configura root o el acceso a ADB en Configuración.</string>
+    <string name="explorer_permission_setup_shizuku_description">Esta carpeta requiere acceso elevado mediante ADB. Configura el acceso a ADB en Configuración.</string>
     <string name="explorer_permission_setup_root_description">Esta carpeta requiere acceso Root. Configura Root en la configuración si tu dispositivo tiene root.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -636,7 +636,7 @@
     <string name="explorer_permission_option_picker_action">Abrir selector SAF</string>
 
     <string name="explorer_permission_option_setup_title">Acceso completo</string>
-    <string name="explorer_permission_option_setup_description">Configura Root o Shizuku para un acceso más rápido a todas las carpetas restringidas.</string>
+    <string name="explorer_permission_option_setup_description">Configura root o el acceso a ADB para un acceso más rápido a todas las carpetas restringidas.</string>
     <string name="explorer_permission_option_setup_action">Configurar</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -676,4 +676,13 @@
         <item quantity="one">%1$d carpeta</item>
         <item quantity="other">%1$d carpetas</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">Agregar y probar una ubicación es gratis. Explorarla requiere Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Explorar el almacenamiento de red requiere Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Guardado. Explorar el almacenamiento de red requiere Butler Pro.</string>
+    <string name="explorer_permission_multiple_options_root_description">Puedes conceder acceso mediante el selector de carpetas de Android o configurar Root para acceder a todas las carpetas restringidas.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Puedes conceder acceso mediante el selector de carpetas de Android o configurar el acceso a ADB para un acceso más rápido a las carpetas restringidas.</string>
+    <string name="explorer_permission_option_setup_root_description">Configura Root para acceder a esta carpeta y a otras carpetas restringidas.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Configura el acceso a ADB para abrir esta carpeta.</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Elimina automáticamente los elementos tras este tiempo en la papelera</string>
+    <string name="explorer_settings_trash_max_size_summary">Cuánto espacio puede usar la papelera en cada ubicación de almacenamiento</string>
 </resources>

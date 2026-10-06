@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">Terinstal</string>
     <string name="developer_options_root_available_label">Tersedia</string>
     <string name="developer_options_root_base_check_label">Pemeriksaan dasar</string>
-    <string name="developer_options_shizuku_test_action">Tes Shizuku</string>
+    <string name="developer_options_shizuku_test_action">Tes akses ADB</string>
     <string name="developer_options_shizuku_installed_label">Terinstal</string>
     <string name="developer_options_shizuku_granted_label">Izin</string>
     <string name="developer_options_shizuku_compatible_label">Kompatibel</string>

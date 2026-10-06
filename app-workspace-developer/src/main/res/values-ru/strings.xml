@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">Установлено</string>
     <string name="developer_options_root_available_label">Доступно</string>
     <string name="developer_options_root_base_check_label">Базовая проверка</string>
-    <string name="developer_options_shizuku_test_action">Тест Shizuku</string>
+    <string name="developer_options_shizuku_test_action">Тест доступа ADB</string>
     <string name="developer_options_shizuku_installed_label">Установлено</string>
     <string name="developer_options_shizuku_granted_label">Разрешение</string>
     <string name="developer_options_shizuku_compatible_label">Совместимо</string>

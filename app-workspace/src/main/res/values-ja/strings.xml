@@ -315,6 +315,18 @@
     <string name="workspace_open_tabs_confirmation_title">複数のタブを開きますか。</string>
     <string name="workspace_open_tabs_confirmation_message">%1$d個のタブを開きます。</string>
 
+    <!-- 選択項目を開く -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="other">%d個の項目を開く</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">ここで表示</string>
+    <string name="workspace_open_selection_view_here_description">選択したファイルを、このペインの上にビューアーで表示します。前後の移動は選択した項目内のみになります。</string>
+    <string name="workspace_open_selection_view_in_tab_action">新しいタブで表示</string>
+    <string name="workspace_open_selection_view_in_tab_description">選択したファイルを、新しいタブのビューアーに表示します。前後の移動は選択した項目内のみになります。</string>
+    <string name="workspace_open_selection_each_in_tab_action">それぞれを個別のタブで開く</string>
+    <string name="workspace_open_selection_each_in_tab_description">選択した項目をそれぞれ別のタブで開きます。フォルダはファイルブラウザータブで開きます。</string>
+    <string name="workspace_open_selection_viewer_unavailable">フォルダはビューアーで表示できません。</string>
+
     <!-- 他のアプリで開く -->
     <string name="workspace_open_with_chooser_title">アプリで開く</string>
     <string name="workspace_open_with_no_app_label">ほかのアプリが見つかりません</string>
@@ -352,7 +364,8 @@
     <string name="workspace_settings_layout_mode_classic">クラシック</string>
     <string name="workspace_settings_layout_mode_classic_desc">タブレールなしで、一度に1つのペインを表示します。</string>
     <string name="workspace_settings_layout_mode_adaptive">アダプティブ</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">タブレールに加えて、画面に収まるだけのペインを表示します。レール内のButlerメニューからレイアウトを固定できます。</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">タブレールに加えて、画面に収まるだけのペインを表示します。Butlerメニューからレイアウトを固定できます。</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">タブレールに加えて、画面に収まるだけのペインを表示します。</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">アダプティブ（%1$s）</string>
     <string name="workspace_settings_layout_mode_single_rail">シングル＋タブレール</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">1つのタブペインと、マルチペインレイアウトのタブレールを組み合わせます。レールは画面の一部を占めます。</string>

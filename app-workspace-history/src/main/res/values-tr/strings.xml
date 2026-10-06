@@ -194,7 +194,7 @@
         <item quantity="other">Sil %1$d giriş</item>
     </plurals>
     <string name="history_delete_dialog_message">Yalnızca geçmiş kayıtları kaldırılır, dosyaların kendileri dokunulmaz.</string>
-    <string name="history_pro_dialog_message">Geçmiş girişlerini paylaşmak ve silmek yükseltmenin bir parçasıdır. Tüm geçmişin temizlenmesi geçmiş ayarlarında ücretsiz kalır.</string>
+    <string name="history_pro_dialog_message">Birden fazla geçmiş girişini aynı anda paylaşmak yükseltmenin bir parçasıdır. Tek bir girişi paylaşmak ve girişleri silmek ücretsiz kalır.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Sonuç</string>

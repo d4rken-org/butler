@@ -58,7 +58,7 @@
     <string name="shortcuts_settings_min_dialog_message">Πόσες φορές πρέπει να γίνει πρόσβαση σε μια διαδρομή πριν εμφανιστεί ως συντόμευση (1–10)</string>
 
     <string name="setup_usagestats_title">Στατιστικά χρήσης</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Πρόσβαση ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Πρόσβαση σε ειδοποιήσεις</string>
     <string name="setup_manage_storage_card_title">Διαχείριση εξωτερικού αποθηκευτικού χώρου</string>
@@ -69,7 +69,7 @@
     <string name="setup_help_description">Βοήθεια</string>
 
     <string name="setup_root_description">Ενεργοποιεί την πρόσβαση σε αρχεία συστήματος και προστατευμένους καταλόγους για προηγμένη διαχείριση αρχείων. Ξεκλειδώνει όλες τις δυνατότητες του Butler, συμπεριλαμβανομένης της πρόσβασης σε δεδομένα εφαρμογών και τροποποιήσεων συστήματος. Η συσκευή πρέπει να έχει γίνει root.</string>
-    <string name="setup_shizuku_description">Εναλλακτική του root που παρέχει προνομιακές λειτουργίες αρχείων μέσω ασφαλούς API. Επιτρέπει πρόσβαση σε περιορισμένους καταλόγους χωρίς παραδοσιακό root. Απαιτεί την εγκατάσταση και εκτέλεση της εφαρμογής Shizuku.</string>
+    <string name="setup_shizuku_description">Εναλλακτική του root που παρέχει προνομιακές λειτουργίες αρχείων μέσω ασφαλούς API. Επιτρέπει πρόσβαση σε περιορισμένους καταλόγους χωρίς παραδοσιακό root. Απαιτεί την εγκατάσταση και εκτέλεση του Porter ή του Shizuku.</string>
     <string name="setup_notification_description">Εμφανίζει ενημερώσεις για λειτουργίες αρχείων, εργασίες παρασκηνίου και πρόοδο μεταφοράς. Σας κρατά ενήμερους όταν οι λειτουργίες ολοκληρώνονται ή προκύπτουν σφάλματα.</string>
     <string name="setup_usagestats_description">Αναλύει τη χρήση αποθηκευτικού χώρου των εφαρμογών για τον εντοπισμό μεγάλων αρχείων και τη βοήθεια στην αποτελεσματική διαχείριση χώρου. Όλα τα δεδομένα παραμένουν στη συσκευή σας και δεν μεταδίδονται ποτέ.</string>
     <string name="setup_storage_description">Πλήρης πρόσβαση σε όλο τον αποθηκευτικό χώρο της συσκευής για γρήγορες λειτουργίες αρχείων και μαζική επεξεργασία. Επιτρέπει ολοκληρωμένη διαχείριση αρχείων χωρίς επαναλαμβανόμενες προτροπές δικαιωμάτων.</string>
@@ -78,7 +78,7 @@
     <string name="setup_grant_access_label">Παραχώρηση πρόσβασης</string>
     <string name="setup_access_granted_label">Η πρόσβαση παραχωρήθηκε</string>
     <string name="setup_use_root_label">Χρήση root όπου είναι διαθέσιμο</string>
-    <string name="setup_use_shizuku_label">Χρήση Shizuku όπου είναι διαθέσιμο</string>
+    <string name="setup_use_shizuku_label">Χρήση πρόσβασης ADB όπου είναι διαθέσιμη</string>
 
     <string name="setup_status_checking">Έλεγχος…</string>
     <string name="setup_status_completed">Ρυθμισμένο</string>
@@ -522,5 +522,20 @@
     <string name="review_app_body">Θα θέλατε να αφήσετε μια αξιολόγηση για το Butler; ❤️</string>
     <string name="review_app_dismiss_action">Ίσως αργότερα</string>
     <string name="review_app_review_action">Αξιολόγηση</string>
+
+    <string name="setup_status_permission_denied">Άδεια απορρίφθηκε</string>
+    <string name="setup_adb_status_manager_update_required">Απαιτείται ενημέρωση</string>
+    <string name="setup_adb_status_butler_update_required">Απαιτείται ενημέρωση του Butler</string>
+    <string name="setup_adb_status_connected_via">Συνδεδεμένο μέσω %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">Δεν επιτρέπεται ακόμα από το %1$s</string>
+    <string name="setup_adb_status_denied_in">Απορρίφθηκε στο %1$s</string>
+    <string name="setup_adb_open_manager_action">Άνοιγμα %1$s</string>
+    <string name="setup_adb_install_manager_action">Εγκατάσταση %1$s</string>
+    <string name="shortcuts_settings_max_count_summary">Μέγιστος αριθμός συντομεύσεων που εμφανίζονται στην αρχική οθόνη</string>
+    <string name="shortcuts_settings_min_access_summary">Πόσες φορές πρέπει να ανοιχθεί μια διαδρομή πριν γίνει συντόμευση</string>
+    <string name="viewer_settings_subtitle">Διαμόρφωση συμπεριφοράς προβολέα αρχείων.</string>
+    <string name="workspace_pane_menu_action">Εμφάνιση επιλογών καρτέλας</string>
+    <string name="acknowledgement_porter_subtitle">Παρέχει σε εφαρμογές Android πρόσβαση ADB μέσω των API του Shizuku, με προαιρετική υποστήριξη root. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
 
 </resources>

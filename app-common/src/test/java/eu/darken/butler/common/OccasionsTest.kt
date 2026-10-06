@@ -45,12 +45,12 @@ class OccasionsTest : BaseTest() {
     }
 
     @Test
-    fun `HALLOWEEN period is Oct 28-31`() {
-        Occasions.current(LocalDate.of(2024, 10, 27)) shouldBe Period.NONE
-        Occasions.current(LocalDate.of(2024, 10, 28)) shouldBe Period.HALLOWEEN
-        Occasions.current(LocalDate.of(2024, 10, 29)) shouldBe Period.HALLOWEEN
-        Occasions.current(LocalDate.of(2024, 10, 30)) shouldBe Period.HALLOWEEN
-        Occasions.current(LocalDate.of(2024, 10, 31)) shouldBe Period.HALLOWEEN
+    fun `HALLOWEEN period is Oct 24-31`() {
+        Occasions.current(LocalDate.of(2024, 10, 23)) shouldBe Period.NONE
+        (24..31).forEach { day ->
+            Occasions.current(LocalDate.of(2024, 10, day)) shouldBe Period.HALLOWEEN
+        }
+        Occasions.current(LocalDate.of(2024, 11, 1)) shouldBe Period.NONE
     }
 
     @Test

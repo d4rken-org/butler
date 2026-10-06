@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">Pro procházení tohoto umístění je vyžadován přístup root. Povolte přístup root v nastavení aplikace Butler.</string>
-    <string name="provider_documents_error_requires_adb">Pro procházení tohoto umístění je vyžadován přístup ADB/Shizuku. Povolte Shizuku v nastavení aplikace Butler.</string>
+    <string name="provider_documents_error_requires_adb">Pro procházení tohoto umístění je vyžadován přístup ADB. Povol ho v nastavení aplikace Butler.</string>
     <string name="provider_documents_error_requires_storage">Pro procházení tohoto umístění je vyžadováno oprávnění úložiště. Udělte oprávnění úložiště v nastavení aplikace Butler.</string>
     <string name="provider_documents_error_requires_permissions">Pro procházení tohoto umístění jsou vyžadována další oprávnění. Zkontrolujte nastavení aplikace Butler.</string>
     <string name="provider_documents_error_generic">Nelze získat přístup k tomuto umístění. Zkontrolujte aplikaci Butler pro možnosti přístupu.</string>

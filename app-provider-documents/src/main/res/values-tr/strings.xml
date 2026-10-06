@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">Bu konuma göz atmak için root erişimi gerekiyor. Butler uygulaması ayarlarında root erişimini etkinleştirin.</string>
-    <string name="provider_documents_error_requires_adb">Bu konuma göz atmak için ADB/Shizuku erişimi gerekiyor. Butler uygulaması ayarlarında Shizuku\'yu etkinleştirin.</string>
+    <string name="provider_documents_error_requires_adb">Bu konuma göz atmak için ADB erişimi gerekiyor. Butler\'ın kurulumunda etkinleştirin.</string>
     <string name="provider_documents_error_requires_storage">Bu konuma göz atmak için depolama izni gerekiyor. Butler uygulaması ayarlarında depolama izni verin.</string>
     <string name="provider_documents_error_requires_permissions">Bu konuma göz atmak için ek izinler gerekiyor. Butler uygulaması ayarlarını kontrol edin.</string>
     <string name="provider_documents_error_generic">Bu konuma erişilemiyor. Erişim seçenekleri için Butler uygulamasını kontrol edin.</string>

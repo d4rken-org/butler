@@ -107,6 +107,24 @@
     <string name="general_progress_loading_egg_12">Lütfen bekleyin</string>
     <string name="general_progress_loading_egg_13">En azından beklemede değilsin</string>
     <string name="general_progress_loading_egg_14">Doğrudan alına uygulayın</string>
+    <string name="general_progress_loading_egg_halloween_0">Önbellekten cinler çıkarılıyor</string>
+    <string name="general_progress_loading_egg_halloween_1">Dolabındaki iskeletler sayılıyor</string>
+    <string name="general_progress_loading_egg_halloween_2">Balkabakları oyuluyor</string>
+    <string name="general_progress_loading_egg_halloween_3">Yatağın altında zombi işlemler aranıyor</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Gökkuşağının ucundaki altın küpü kovalıyoruz</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Dört yapraklı yonca aranıyor</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Leprikonlara rüşvet veriliyor</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Yükleniyor. Yoksa yüklenmiyor mu?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Kapatıp yeniden açıyoruz</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Biraz daha pretzel getiriliyor</string>
+    <string name="general_progress_loading_egg_xmas_0">Liste iki kez kontrol ediliyor</string>
+    <string name="general_progress_loading_egg_xmas_1">Dosyaların paketleniyor</string>
+    <string name="general_progress_loading_egg_xmas_2">Yılbaşı ışıklarının dolaşan kabloları çözülüyor</string>
+    <string name="general_progress_loading_egg_xmas_3">Ren geyikleri besleniyor</string>
+    <string name="general_progress_loading_egg_newyear_0">Gece yarısına geri sayım yapılıyor</string>
+    <string name="general_progress_loading_egg_newyear_1">Şampanya patlatılıyor</string>
+    <string name="general_progress_loading_egg_newyear_2">Kimsenin tutmayacağı yeni yıl kararları yazılıyor</string>
+    <string name="general_progress_loading_egg_newyear_3">Yeni yıl yükleniyor</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">
@@ -210,10 +228,10 @@
     <string name="general_error_cant_access_msg">%s içine erişilemiyor.</string>
     <string name="general_error_archive_not_seekable_msg">%s doğrudan gezinilemiyor: bulunduğu depolama yalnızca sıralı okumayı destekliyor, ancak bu arşiv biçimi rastgele erişim gerektiriyor.</string>
     <string name="general_error_root_unavailable">Root erişimi kullanılamıyor.</string>
-    <string name="general_error_elevated_access_required">Bu işlem yükseltilmiş erişim gerektiriyor. Kurulum\'da Root veya Shizuku\'yu yapılandırın.</string>
+    <string name="general_error_elevated_access_required">Bu işlem yükseltilmiş erişim gerektiriyor. Kurulum\'da root veya ADB erişimini yapılandırın.</string>
     <string name="general_error_no_compatible_app_found_msg">Bu isteği işleyecek uyumlu bir uygulama bulunamadı.</string>
     <string name="general_error_ipc_deadobject_title">Hizmet bağlantısı koptu</string>
-    <string name="general_error_ipc_deadobject_description">Kritik bir hizmetle (ör. Magisk, Shizuku veya diğer sistem düzeyi hizmetler) olan bağlantı beklenmedik şekilde koptu. Lütfen cihazınızı yeniden başlatın. Sorun devam ederse güncellemeleri kontrol edin veya düzeltebilmem için benimle iletişime geçin.</string>
+    <string name="general_error_ipc_deadobject_description">Kritik bir hizmetle (ör. Magisk veya başka bir sistem düzeyi hizmet) olan bağlantı beklenmedik şekilde koptu. Lütfen cihazınızı yeniden başlatın. Sorun devam ederse güncellemeleri kontrol edin veya düzeltebilmem için benimle iletişime geçin.</string>
 
     <string name="ui_theme_mode_dark_label">Koyu</string>
     <string name="ui_theme_mode_light_label">Açık</string>
@@ -251,7 +269,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">Kullanım istatistikleri</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB erişimi</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Bildirim erişimi</string>
     <string name="setup_manage_storage_card_title">Harici depolamayı yönet</string>
@@ -310,7 +328,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Dosyaları yan yana karşılaştırmak için birden fazla bölme kullanın.</string>
     <string name="common_tip_different_folders">Kolay dosya yönetimi için her bölmede farklı klasörler açın.</string>
-    <string name="common_tip_switch_layouts">Bölme düzenleri arasında sekme ayarları yöneticisinden geçiş yapın.</string>
-    <string name="common_tip_elevated_access">Gelişmiş dosya işlemleri için Kurulum\'da root veya Shizuku\'yu etkinleştirin.</string>
+    <string name="common_tip_switch_layouts">Butler menüsündeki Düzen seçeneğinden bölme düzenlerini değiştirin.</string>
+    <string name="common_tip_elevated_access">Gelişmiş dosya işlemleri için Kurulum\'da root veya ADB erişimini etkinleştirin.</string>
     <string name="common_tip_breadcrumb_home">Bir Explorer breadcrumb\'ını ana dizininiz olarak ayarlamak için uzun basın.</string>
 </resources>

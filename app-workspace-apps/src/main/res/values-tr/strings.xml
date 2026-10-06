@@ -78,8 +78,8 @@
     <string name="apps_path_internal_data_label">Dahili veri</string>
     <string name="apps_path_external_data_label">Harici depolama</string>
     <string name="apps_path_requires_root_label">Root gerektirir</string>
-    <string name="apps_path_requires_shizuku_label">Shizuku gerektirir</string>
-    <string name="apps_path_requires_root_or_shizuku_label">Root veya Shizuku gerektirir</string>
+    <string name="apps_path_requires_shizuku_label">ADB erişimi gerektirir</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Root veya ADB erişimi gerektirir</string>
     <string name="apps_path_requires_access_label">Ek erişim gerektirir</string>
     <string name="apps_storage_breakdown_label">Depolama Dağılımı</string>
     <string name="apps_storage_app_label">Uygulama</string>
@@ -229,7 +229,7 @@
     <string name="apps_components_copy_package_action">Paket adını kopyala</string>
     <string name="apps_components_action_enable">Bileşeni etkinleştir</string>
     <string name="apps_components_action_disable">Bileşeni devre dışı bırak</string>
-    <string name="apps_components_action_requires_elevated">Root veya Shizuku gerektirir — kurmak için dokun</string>
+    <string name="apps_components_action_requires_elevated">Root veya ADB erişimi gerektirir — kurmak için dokun</string>
     <string name="apps_components_confirm_enable_title">Bileşenler etkinleştirilsin mi?</string>
     <string name="apps_components_confirm_disable_title">Bileşenler devre dışı bırakılsın mı?</string>
     <string name="apps_components_confirm_enable_message">Aşağıdaki bileşenler etkinleştirilecek:</string>

@@ -68,7 +68,7 @@
     <string name="smb_error_credential_unavailable_title">Cần đăng nhập</string>
     <string name="smb_error_credential_unavailable_description">Mật khẩu đã lưu cho bộ nhớ mạng này không thể được đọc nữa. Nhập lại để kết nối lại.</string>
     <string name="smb_error_pro_required_title">Chia sẻ mạng yêu cầu Butler Pro</string>
-    <string name="smb_error_pro_required_description">Kết nối với chia sẻ mạng là một phần của Butler Pro. Các vị trí đã lưu của bạn vẫn hiển thị trong danh sách và có thể được xóa mà không cần nó.</string>
+    <string name="smb_error_pro_required_description">Duyệt chia sẻ mạng là một phần của Butler Pro. Thêm, kiểm tra và xóa vị trí là miễn phí.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Gói ứng dụng được bảo vệ</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" được mã hóa và chỉ có thể được cài đặt bởi ứng dụng đã tạo nó.</string>
@@ -103,7 +103,7 @@
     <string name="app_uninstall_confirm_pending_reason">Android đang chờ xác nhận của bạn</string>
 
     <!-- App uninstall errors -->
-    <string name="app_uninstall_other_user_unsupported">Xóa ứng dụng này cho người dùng khác cần quyền root hoặc Shizuku</string>
+    <string name="app_uninstall_other_user_unsupported">Xóa ứng dụng này cho người dùng khác cần quyền truy cập root hoặc ADB</string>
     <string name="app_uninstall_no_result">Android không báo cáo kết quả</string>
 
     <!-- Service connection errors -->

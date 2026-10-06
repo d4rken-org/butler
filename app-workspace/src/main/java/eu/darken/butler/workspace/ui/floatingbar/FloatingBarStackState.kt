@@ -61,7 +61,7 @@ class FloatingBarStackState(
     initialImeExtraPx: Float = 0f,
     initialEstimatedContentPaddingPx: Float = 0f,
 ) {
-    // Make these mutableState so derivedStateOf can observe changes when updateConfig() is called
+    // Make these mutableState so readers of contentPaddingPx observe changes when updateConfig() is called
     private var defaultSpacingPx by mutableFloatStateOf(initialDefaultSpacingPx)
     private var edgePaddingPx by mutableFloatStateOf(initialEdgePaddingPx)
     private var contentGapPx by mutableFloatStateOf(initialContentGapPx)
@@ -79,32 +79,36 @@ class FloatingBarStackState(
     /**
      * Total content padding in pixels, calculated from system bar inset + all visible bars.
      * Clamped to non-negative to handle bounce animation overshoot.
+     *
+     * Computed on every read so the reader's own snapshot observation records the bar states
+     * directly (pinned by FloatingBarContentPaddingCollapseTest).
      */
-    val contentPaddingPx: Float by derivedStateOf {
-        // Start with system bar inset (status bar for TOP, nav bar for BOTTOM) plus any IME extra
-        var totalHeight = systemBarInsetPx + imeExtraPx + edgePaddingPx
+    val contentPaddingPx: Float
+        get() {
+            // Start with system bar inset (status bar for TOP, nav bar for BOTTOM) plus any IME extra
+            var totalHeight = systemBarInsetPx + imeExtraPx + edgePaddingPx
 
-        if (barStates.isEmpty()) {
-            // Use estimate before bars register (first frame / screenshot rendering)
-            return@derivedStateOf if (estimatedContentPaddingPx > 0f) estimatedContentPaddingPx else totalHeight
-        }
+            if (barStates.isEmpty()) {
+                // Use estimate before bars register (first frame / screenshot rendering)
+                return if (estimatedContentPaddingPx > 0f) estimatedContentPaddingPx else totalHeight
+            }
 
-        // Spacing only counts between visible bars; a hidden trailing bar must not leave a gap
-        val lastPresentIndex = barStates.indexOfLast { it.visibilityFraction > 0f || it.visible }
-        barStates.forEachIndexed { index, bar ->
-            if (bar.visibilityFraction > 0f || bar.visible) {
-                totalHeight += bar.effectiveHeight
-                if (index < lastPresentIndex) {
-                    totalHeight += defaultSpacingPx * bar.layoutPresence
+            // Spacing only counts between visible bars; a hidden trailing bar must not leave a gap
+            val lastPresentIndex = barStates.indexOfLast { it.visibilityFraction > 0f || it.visible }
+            barStates.forEachIndexed { index, bar ->
+                if (bar.visibilityFraction > 0f || bar.visible) {
+                    totalHeight += bar.effectiveHeight
+                    if (index < lastPresentIndex) {
+                        totalHeight += defaultSpacingPx * bar.layoutPresence
+                    }
                 }
             }
+            // Add content gap after the last visible bar
+            if (lastPresentIndex >= 0) {
+                totalHeight += contentGapPx
+            }
+            return totalHeight.coerceAtLeast(0f)
         }
-        // Add content gap after the last visible bar
-        if (lastPresentIndex >= 0) {
-            totalHeight += contentGapPx
-        }
-        totalHeight.coerceAtLeast(0f)
-    }
 
     /**
      * Whether any bar has registered yet. Bars register during composition, so a stack is briefly
@@ -150,6 +154,8 @@ class FloatingBarStackState(
      */
     val nestedScrollConnection: NestedScrollConnection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+            if (source == NestedScrollSource.UserInput) barStates.forEach { it.holdsExpansion = false }
+
             val delta = available.y
             if (abs(delta) <= SCROLL_THRESHOLD) return Offset.Zero
 
@@ -164,6 +170,9 @@ class FloatingBarStackState(
                     delta > 0 -> 0f // Scrolling up -> show/expand
                     else -> null
                 }
+
+                // Only non-user deltas get here with the hold still set, user input released it above
+                if (targetFraction == 1f && barState.holdsExpansion) return@forEach
 
                 if (targetFraction != null) {
                     when (barState.scrollBehavior) {

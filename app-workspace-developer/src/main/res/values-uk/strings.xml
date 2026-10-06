@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">Встановлено</string>
     <string name="developer_options_root_available_label">Доступно</string>
     <string name="developer_options_root_base_check_label">Базова перевірка</string>
-    <string name="developer_options_shizuku_test_action">Тестувати Shizuku</string>
+    <string name="developer_options_shizuku_test_action">Перевірити доступ до ADB</string>
     <string name="developer_options_shizuku_installed_label">Встановлено</string>
     <string name="developer_options_shizuku_granted_label">Дозвіл</string>
     <string name="developer_options_shizuku_compatible_label">Сумісно</string>

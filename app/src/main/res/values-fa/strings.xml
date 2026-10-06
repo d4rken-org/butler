@@ -58,7 +58,7 @@
     <string name="shortcuts_settings_min_dialog_message">مسیر باید چند بار باز شود تا به‌عنوان میان‌بر نمایش داده شود (۱ تا ۱۰)</string>
 
     <string name="setup_usagestats_title">آمار مصرف</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">دسترسی ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">دسترسی به اعلان‌ها</string>
     <string name="setup_manage_storage_card_title">مدیریت حافظه خارجی</string>
@@ -69,7 +69,7 @@
     <string name="setup_help_description">راهنما</string>
 
     <string name="setup_root_description">دسترسی به فایل‌های سیستمی و پوشه‌های محافظت‌شده را برای مدیریت پیشرفته فایل فراهم می‌کند. تمام قابلیت‌های Butler از جمله دسترسی به داده‌های برنامه‌ها و تغییرات سیستمی را باز می‌کند. دستگاه باید روت شده باشد.</string>
-    <string name="setup_shizuku_description">جایگزینی برای Root که عملیات فایلی ممتاز را از طریق یک API امن فراهم می‌کند. دسترسی به پوشه‌های محدودشده را بدون روت سنتی امکان‌پذیر می‌سازد. نیازمند نصب و اجرای برنامه Shizuku است.</string>
+    <string name="setup_shizuku_description">جایگزینی برای Root که عملیات فایلی ممتاز را از طریق یک API امن فراهم می‌کند. دسترسی به پوشه‌های محدودشده را بدون روت سنتی امکان‌پذیر می‌سازد. نیازمند نصب و اجرای Porter یا Shizuku است.</string>
     <string name="setup_notification_description">به‌روزرسانی‌های عملیات فایلی، وظایف پس‌زمینه و پیشرفت انتقال را نمایش می‌دهد. شما را از پایان عملیات یا بروز خطاها مطلع می‌کند.</string>
     <string name="setup_usagestats_description">مصرف حافظه برنامه‌ها را تحلیل می‌کند تا فایل‌های بزرگ را شناسایی و مدیریت فضا را تسهیل کند. همه داده‌ها روی دستگاه شما باقی می‌مانند و هرگز ارسال نمی‌شوند.</string>
     <string name="setup_storage_description">دسترسی کامل به کل حافظه دستگاه برای عملیات فایلی سریع و پردازش دسته‌ای. مدیریت کامل فایل را بدون درخواست مکرر مجوز امکان‌پذیر می‌سازد.</string>
@@ -78,7 +78,7 @@
     <string name="setup_grant_access_label">اعطای دسترسی</string>
     <string name="setup_access_granted_label">دسترسی اعطا شد</string>
     <string name="setup_use_root_label">استفاده از Root در صورت وجود</string>
-    <string name="setup_use_shizuku_label">استفاده از Shizuku در صورت وجود</string>
+    <string name="setup_use_shizuku_label">استفاده از دسترسی ADB در صورت وجود</string>
 
     <string name="setup_status_checking">در حال بررسی…</string>
     <string name="setup_status_completed">پیکربندی شده</string>
@@ -90,6 +90,14 @@
     <string name="setup_status_connecting">در حال اتصال…</string>
     <string name="setup_status_connection_failed">اتصال ناموفق بود</string>
     <string name="setup_status_unavailable">در دسترس نیست</string>
+    <string name="setup_status_permission_denied">سلب مجوز</string>
+    <string name="setup_adb_status_manager_update_required">بروزرسانی الزامی است</string>
+    <string name="setup_adb_status_butler_update_required">بروزرسانی Butler الزامی است</string>
+    <string name="setup_adb_status_connected_via">متصل از طریق %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">%1$s هنوز اجازه نداده است</string>
+    <string name="setup_adb_status_denied_in">سلب‌شده در %1$s</string>
+    <string name="setup_adb_open_manager_action">باز کردن %1$s</string>
+    <string name="setup_adb_install_manager_action">نصب %1$s</string>
 
     <!-- گزارش اشکال‌زدایی -->
     <string name="debug_notification_channel_label">اعلان‌های اشکال‌زدایی</string>
@@ -408,6 +416,7 @@
     <string name="explorer_settings_subtitle">پیکربندی رفتار کاوشگر فایل.</string>
     <string name="searcher_settings_subtitle">پیکربندی رفتار جستجو.</string>
     <string name="editor_settings_subtitle">پیکربندی رفتار ویرایشگر متن.</string>
+    <string name="viewer_settings_subtitle">پیکربندی رفتار نمایشگر فایل.</string>
     <string name="history_settings_subtitle">نگهداری و پاک‌سازی تاریخچه عملیات.</string>
     <string name="clipboard_settings_subtitle">پیکربندی رفتار کلیپ‌بورد.</string>
 
@@ -522,5 +531,10 @@
     <string name="review_app_body">آیا مایلید برای Butler نظر ثبت کنید؟ ❤️</string>
     <string name="review_app_dismiss_action">شاید بعداً</string>
     <string name="review_app_review_action">ثبت نظر</string>
+    <string name="acknowledgement_porter_subtitle">از طریق APIهای Shizuku به برنامه‌های Android دسترسی ADB می‌دهد، با پشتیبانی اختیاری از Root. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="shortcuts_settings_max_count_summary">حداکثر تعداد میان‌برهایی که در لانچر نمایش داده می‌شوند</string>
+    <string name="shortcuts_settings_min_access_summary">تعداد دفعاتی که یک مسیر باید باز شود تا به میان‌بر تبدیل شود</string>
+    <string name="workspace_pane_menu_action">نمایش گزینه‌های زبانه</string>
 
 </resources>

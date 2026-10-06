@@ -352,7 +352,7 @@
     <string name="workspace_settings_layout_mode_classic">Cổ điển</string>
     <string name="workspace_settings_layout_mode_classic_desc">Từng khung một, không có thanh thẻ.</string>
     <string name="workspace_settings_layout_mode_adaptive">Thích ứng</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">Thanh thẻ cùng số khung tối đa mà màn hình có thể chứa. Ghim một bố cục từ menu Butler trên thanh.</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Thanh thẻ cùng số khung tối đa mà màn hình có thể chứa. Ghim một bố cục từ menu Butler.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Thích ứng (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Đơn kèm thanh thẻ</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">Một khung thẻ cùng thanh thẻ của các bố cục nhiều khung. Thanh chiếm một dải trên màn hình.</string>
@@ -443,4 +443,15 @@
     <plurals name="workspace_operation_restore_summary">
         <item quantity="other">Đã khôi phục %d mục</item>
     </plurals>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Thanh thẻ cùng số khung tối đa mà màn hình có thể chứa.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Mở từng mục trong thẻ riêng</string>
+    <string name="workspace_open_selection_each_in_tab_description">Mở mọi mục đã chọn trong các thẻ riêng biệt. Thư mục được mở dưới dạng thẻ Trình duyệt tệp.</string>
+    <plurals name="workspace_open_selection_title">
+        <item quantity="other">Mở %d mục</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Xem tại đây</string>
+    <string name="workspace_open_selection_view_here_description">Hiển thị các tệp đã chọn trong trình xem phía trên khung này. Nút trước và tiếp theo chỉ duyệt qua các mục bạn đã chọn.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Xem trong thẻ mới</string>
+    <string name="workspace_open_selection_view_in_tab_description">Hiển thị các tệp đã chọn trong trình xem ở một thẻ riêng. Nút trước và tiếp theo chỉ duyệt qua các mục bạn đã chọn.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Không thể hiển thị thư mục trong trình xem.</string>
 </resources>

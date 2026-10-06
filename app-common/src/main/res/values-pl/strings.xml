@@ -109,6 +109,24 @@
     <string name="general_progress_loading_egg_12">Proszę czekać</string>
     <string name="general_progress_loading_egg_13">Przynajmniej ty nie czekasz na infolinii</string>
     <string name="general_progress_loading_egg_14">Nakładać bezpośrednio na czoło</string>
+    <string name="general_progress_loading_egg_halloween_0">Egzorcyzmowanie pamięci podręcznej</string>
+    <string name="general_progress_loading_egg_halloween_1">Liczenie szkieletów w twojej szafie</string>
+    <string name="general_progress_loading_egg_halloween_2">Wycinanie dyń</string>
+    <string name="general_progress_loading_egg_halloween_3">Zaglądanie pod łóżko w poszukiwaniu procesów zombie</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Gonienie tęczy w stronę garnca złota</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Szukanie czterolistnej koniczyny</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Przekupywanie leprechaunów</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Wczytywanie. A może nie?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Wyłączanie i włączanie jeszcze raz</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Donoszenie precli</string>
+    <string name="general_progress_loading_egg_xmas_0">Dwukrotne sprawdzanie listy</string>
+    <string name="general_progress_loading_egg_xmas_1">Pakowanie twoich plików na prezent</string>
+    <string name="general_progress_loading_egg_xmas_2">Rozplątywanie lampek choinkowych</string>
+    <string name="general_progress_loading_egg_xmas_3">Karmienie reniferów</string>
+    <string name="general_progress_loading_egg_newyear_0">Odliczanie do północy</string>
+    <string name="general_progress_loading_egg_newyear_1">Otwieranie szampana</string>
+    <string name="general_progress_loading_egg_newyear_2">Pisanie postanowień, których nikt nie dotrzyma</string>
+    <string name="general_progress_loading_egg_newyear_3">Wczytywanie nowego roku</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">
@@ -236,10 +254,10 @@
     <string name="general_error_cant_access_msg">Nie można uzyskać dostępu do %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s nie można przeglądać bezpośrednio: nośnik, na którym się znajduje, obsługuje tylko odczyt sekwencyjny, a ten format archiwum wymaga dostępu swobodnego.</string>
     <string name="general_error_root_unavailable">Dostęp root jest niedostępny.</string>
-    <string name="general_error_elevated_access_required">Ta operacja wymaga podwyższonych uprawnień. Skonfiguruj Root lub Shizuku w Konfiguracji.</string>
+    <string name="general_error_elevated_access_required">Ta operacja wymaga podwyższonych uprawnień. Skonfiguruj dostęp root lub ADB w Konfiguracji.</string>
     <string name="general_error_no_compatible_app_found_msg">Nie znaleziono zgodnej aplikacji do obsługi tego żądania.</string>
     <string name="general_error_ipc_deadobject_title">Utracono połączenie z usługą</string>
-    <string name="general_error_ipc_deadobject_description">Połączenie z krytyczną usługą (np. Magisk, Shizuku lub inną usługą systemową) zostało nieoczekiwanie utracone. Uruchom ponownie urządzenie. Jeśli problem nie ustąpi, sprawdź dostępność aktualizacji lub skontaktuj się ze mną, żebym mógł to naprawić.</string>
+    <string name="general_error_ipc_deadobject_description">Połączenie z krytyczną usługą (np. Magisk lub inną usługą systemową) zostało nieoczekiwanie utracone. Uruchom ponownie urządzenie. Jeśli problem nie ustąpi, sprawdź dostępność aktualizacji lub skontaktuj się ze mną, żebym to naprawić.</string>
 
     <string name="ui_theme_mode_dark_label">Ciemny</string>
     <string name="ui_theme_mode_light_label">Jasny</string>
@@ -277,7 +295,7 @@
 
     <!-- Setup module types -->
     <string name="setup_usagestats_title">Statystyki użycia</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Dostęp ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Dostęp do powiadomień</string>
     <string name="setup_manage_storage_card_title">Zarządzanie pamięcią zewnętrzną</string>
@@ -342,7 +360,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Użyj wielu paneli, aby porównywać pliki obok siebie.</string>
     <string name="common_tip_different_folders">Otwieraj różne foldery w każdym panelu, by łatwiej zarządzać plikami.</string>
-    <string name="common_tip_switch_layouts">Przełączaj układy paneli w menedżerze ustawień kart.</string>
-    <string name="common_tip_elevated_access">Włącz root lub Shizuku w Konfiguracji, aby korzystać z zaawansowanych operacji na plikach.</string>
+    <string name="common_tip_switch_layouts">Przełączaj układy paneli za pomocą Układu w menu Butlera.</string>
+    <string name="common_tip_elevated_access">Włącz dostęp root lub ADB w Konfiguracji, aby korzystać z zaawansowanych operacji na plikach.</string>
     <string name="common_tip_breadcrumb_home">Naciśnij i przytrzymaj element ścieżki w Eksploratorze, aby ustawić go jako katalog domowy.</string>
 </resources>

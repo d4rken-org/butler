@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">インストール済み</string>
     <string name="developer_options_root_available_label">利用可能</string>
     <string name="developer_options_root_base_check_label">ベースチェック</string>
-    <string name="developer_options_shizuku_test_action">Shizukuをテスト</string>
+    <string name="developer_options_shizuku_test_action">ADBアクセスをテスト</string>
     <string name="developer_options_shizuku_installed_label">インストール済み</string>
     <string name="developer_options_shizuku_granted_label">権限</string>
     <string name="developer_options_shizuku_compatible_label">互換性</string>

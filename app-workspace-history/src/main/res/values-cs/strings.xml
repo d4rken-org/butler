@@ -208,7 +208,7 @@
         <item quantity="other">Smazat %1$d záznamů?</item>
     </plurals>
     <string name="history_delete_dialog_message">Budou odstraněny pouze záznamy v historii, samotné soubory se netknou.</string>
-    <string name="history_pro_dialog_message">Sdílení a mazání záznamů v historii jsou součástí upgrade. Vymazání celé historie zůstává v nastavení zdarma.</string>
+    <string name="history_pro_dialog_message">Sdílení více záznamů historie najednou je součástí upgradu. Sdílení jednoho záznamu a mazání záznamů zůstává zdarma.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Výsledek</string>

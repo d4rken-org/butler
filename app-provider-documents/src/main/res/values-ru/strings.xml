@@ -17,7 +17,7 @@
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">Для просмотра этого расположения требуется доступ root. Включите доступ root в параметрах приложения Butler.</string>
-    <string name="provider_documents_error_requires_adb">Для просмотра этого расположения требуется доступ ADB/Shizuku. Включите Shizuku в параметрах приложения Butler.</string>
+    <string name="provider_documents_error_requires_adb">Для просмотра этого расположения требуется доступ ADB. Включи его в настройке Butler.</string>
     <string name="provider_documents_error_requires_storage">Для просмотра этого расположения требуется разрешение на доступ к хранилищу. Предоставьте разрешение на доступ к хранилищу в параметрах приложения Butler.</string>
     <string name="provider_documents_error_requires_permissions">Для просмотра этого расположения требуются дополнительные разрешения. Проверьте параметры приложения Butler.</string>
     <string name="provider_documents_error_generic">Не удаётся получить доступ к этому расположению. Проверьте параметры доступа в приложении Butler.</string>

@@ -68,7 +68,7 @@
     <string name="smb_error_credential_unavailable_title">ต้องการเข้าสู่ระบบ</string>
     <string name="smb_error_credential_unavailable_description">ไม่สามารถอ่านรหัสผ่านที่บันทึกไว้สำหรับที่เก็บข้อมูลเครือข่ายนี้ได้อีกต่อไป ป้อนอีกครั้งเพื่อเชื่อมต่ออีกครั้ง</string>
     <string name="smb_error_pro_required_title">การแชร์เครือข่ายต้องใช้ Butler Pro</string>
-    <string name="smb_error_pro_required_description">การเชื่อมต่อกับการแชร์เครือข่ายเป็นส่วนหนึ่งของ Butler Pro ตำแหน่งที่บันทึกไว้ของคุณยังคงแสดงอยู่และสามารถลบได้โดยไม่ต้องใช้</string>
+    <string name="smb_error_pro_required_description">การเรียกดูการแชร์เครือข่ายเป็นส่วนหนึ่งของ Butler Pro ส่วนการเพิ่ม ทดสอบ และลบตำแหน่งนั้นฟรี</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">แพคเกจแอปที่ป้องกัน</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" เข้ารหัสและสามารถติดตั้งได้โดยแอปที่สร้างเท่านั้น</string>
@@ -103,7 +103,7 @@
     <string name="app_uninstall_confirm_pending_reason">Android รอการยืนยันของคุณ</string>
 
     <!-- App uninstall errors -->
-    <string name="app_uninstall_other_user_unsupported">การลบแอปนี้สำหรับผู้ใช้อื่นต้องใช้ root หรือ Shizuku</string>
+    <string name="app_uninstall_other_user_unsupported">การลบแอปนี้สำหรับผู้ใช้อื่นต้องใช้ root หรือการเข้าถึง ADB</string>
     <string name="app_uninstall_no_result">Android ไม่ได้รายงานผลลัพธ์</string>
 
     <!-- Service connection errors -->

@@ -31,7 +31,7 @@ object Occasions {
         val month = today.monthValue
         val day = today.dayOfMonth
         return when {
-            month == 10 && day in 28..31 -> Period.HALLOWEEN
+            month == 10 && day in 24..31 -> Period.HALLOWEEN
             month == 3 && day == 17 -> Period.ST_PATRICKS
             month == 4 && day == 1 -> Period.APRIL_FOOLS
             isInOktoberfestRange(today) -> Period.OKTOBERFEST

@@ -208,7 +208,7 @@
         <item quantity="other">Видалити %1$d записів</item>
     </plurals>
     <string name="history_delete_dialog_message">Видаляються лише записи історії, самі файли не чіпаються.</string>
-    <string name="history_pro_dialog_message">Спільний доступ та видалення записів історії — частина оновлення. Очищення всієї історії залишається безплатним у параметрах історії.</string>
+    <string name="history_pro_dialog_message">Поділитися кількома записами історії одночасно можна в межах оновлення. Поділитися одним записом і видаляти записи можна безплатно.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Результат</string>

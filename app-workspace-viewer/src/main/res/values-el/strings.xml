@@ -110,4 +110,7 @@
     <string name="viewer_text_truncated_lines">Η προεπισκόπηση περιορίζεται στις πρώτες %1$s γραμμές αυτού του αρχείου.</string>
     <string name="viewer_text_truncated_width">Οι μεγάλες γραμμές συντέμνονται σε αυτήν την προεπισκόπηση.</string>
     <string name="viewer_text_unreadable_label">Αυτό το αρχείο δεν μπορούσε να διαβαστεί</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Μετά τη διαγραφή ενός αρχείου που άνοιξε από φάκελο, εμφάνιση του επόμενου αρχείου του φακέλου αντί για κλείσιμο του προβολέα.</string>
+    <string name="viewer_settings_show_next_after_delete_title">Εμφάνιση επόμενου αρχείου μετά τη διαγραφή</string>
+    <string name="viewer_settings_title">Προβολέας</string>
 </resources>

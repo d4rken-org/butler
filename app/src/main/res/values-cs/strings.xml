@@ -58,7 +58,7 @@
     <string name="shortcuts_settings_min_dialog_message">Kolikrát musí být cesta použita, než se zobrazí jako zástupce (1–10)</string>
 
     <string name="setup_usagestats_title">Statistiky používání</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">Přístup ADB</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Přístup k oznámením</string>
     <string name="setup_manage_storage_card_title">Správa externího úložiště</string>
@@ -69,7 +69,7 @@
     <string name="setup_help_description">Nápověda</string>
 
     <string name="setup_root_description">Umožňuje přístup k systémovým souborům a chráněným složkám pro pokročilou správu souborů. Odemyká plný potenciál Butlera včetně přístupu k datům aplikací a systémových úprav. Zařízení musí mít root.</string>
-    <string name="setup_shizuku_description">Alternativa k rootu, která poskytuje privilegované operace se soubory prostřednictvím zabezpečeného API. Umožňuje přístup k omezeným složkám bez tradičního rootu. Vyžaduje nainstalovanou a spuštěnou aplikaci Shizuku.</string>
+    <string name="setup_shizuku_description">Alternativa k rootu, která poskytuje privilegované operace se soubory prostřednictvím zabezpečeného API. Umožňuje přístup k omezeným složkám bez tradičního rootu. Vyžaduje nainstalovanou a spuštěnou aplikaci Porter nebo Shizuku.</string>
     <string name="setup_notification_description">Zobrazuje aktualizace o operacích se soubory, úlohách na pozadí a průběhu přenosu. Informuje vás o dokončení operací nebo chybách.</string>
     <string name="setup_usagestats_description">Analyzuje využití úložiště aplikacemi, aby pomohla najít velké soubory a efektivně spravovat prostor. Veškerá data zůstávají ve vašem zařízení a nikdy se neodesílají.</string>
     <string name="setup_storage_description">Plný přístup ke všemu úložišti zařízení pro rychlé operace se soubory a dávkové zpracování. Umožňuje komplexní správu souborů bez opakovaných žádostí o oprávnění.</string>
@@ -78,7 +78,7 @@
     <string name="setup_grant_access_label">Udělit přístup</string>
     <string name="setup_access_granted_label">Přístup udělen</string>
     <string name="setup_use_root_label">Použít root, pokud je dostupný</string>
-    <string name="setup_use_shizuku_label">Použít Shizuku, pokud je dostupné</string>
+    <string name="setup_use_shizuku_label">Použít přístup ADB, pokud je dostupný</string>
 
     <string name="setup_status_checking">Kontroluje se…</string>
     <string name="setup_status_completed">Nastaveno</string>
@@ -536,5 +536,19 @@
     <string name="review_app_body">Chtěli byste Butlerovi zanechat recenzi? ❤️</string>
     <string name="review_app_dismiss_action">Možná později</string>
     <string name="review_app_review_action">Napsat recenzi</string>
+    <string name="acknowledgement_porter_subtitle">Poskytuje aplikacím pro Android přístup ADB prostřednictvím API Shizuku, volitelně s podporou rootu. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="setup_adb_install_manager_action">Nainstalovat %1$s</string>
+    <string name="setup_adb_open_manager_action">Otevřít %1$s</string>
+    <string name="setup_adb_status_butler_update_required">Vyžaduje aktualizaci Butlera</string>
+    <string name="setup_adb_status_connected_via">Připojeno přes %1$s</string>
+    <string name="setup_adb_status_denied_in">Zamítnuto v %1$s</string>
+    <string name="setup_adb_status_manager_update_required">Vyžaduje aktualizaci</string>
+    <string name="setup_adb_status_not_allowed_yet">Zatím nepovoleno v %1$s</string>
+    <string name="setup_status_permission_denied">Oprávnění zamítnuto</string>
+    <string name="shortcuts_settings_max_count_summary">Maximální počet zástupců zobrazených ve spouštěči</string>
+    <string name="shortcuts_settings_min_access_summary">Kolikrát musí být cesta otevřena, než se stane zástupcem</string>
+    <string name="viewer_settings_subtitle">Nastavit chování prohlížeče souborů.</string>
+    <string name="workspace_pane_menu_action">Zobrazit možnosti karty</string>
 
 </resources>

@@ -31,6 +31,7 @@ class HistoryShareTextTest : BaseTest() {
 
     private fun entry(
         id: String = "entry",
+        kind: Operation.Metadata.Kind = Operation.Metadata.Kind.COPY,
         title: String = "Copy 5 items",
         description: String = "5 items to /backup",
         summary: String? = null,
@@ -46,9 +47,10 @@ class HistoryShareTextTest : BaseTest() {
                 change = Operation.Report.Paths.PathChange.Change.ADDED,
             ),
         ),
+        packages: List<HistoryEntry.PackageOutcome> = emptyList(),
     ) = HistoryEntry(
         id = id,
-        kind = Operation.Metadata.Kind.COPY,
+        kind = kind,
         intent = null,
         originType = HistoryEntry.OriginType.EXPLORER,
         originWorkspaceId = "ws",
@@ -65,6 +67,7 @@ class HistoryShareTextTest : BaseTest() {
         partialErrorCount = partialErrorCount,
         pathsTruncated = pathsTruncated,
         paths = paths,
+        packages = packages,
     )
 
     private fun share(
@@ -234,6 +237,68 @@ class HistoryShareTextTest : BaseTest() {
 
         text shouldContain "No affected apps recorded."
         text shouldNotContain "No affected paths recorded."
+    }
+
+    private fun installEntry(packages: List<HistoryEntry.PackageOutcome>) = entry(
+        kind = Operation.Metadata.Kind.INSTALL,
+        title = "Install app",
+        description = "notes-1.4.2.apk",
+        affectedPathsCount = 0,
+        paths = emptyList(),
+        packages = packages,
+    )
+
+    private val installedApk = OperationHistoryRepo.AttemptedPaths(
+        paths = listOf("/storage/emulated/0/Download/notes-1.4.2.apk"),
+        totalCount = 1,
+    )
+
+    @Test
+    fun `an install entry lists the installed app before its apk path`() {
+        val text = share(
+            entries = listOf(
+                installEntry(
+                    listOf(
+                        HistoryEntry.PackageOutcome(
+                            label = "Notes",
+                            packageName = "com.example.notes",
+                            status = Operation.Report.Packages.Outcome.Status.DONE,
+                            errorMessage = null,
+                        ),
+                    )
+                )
+            ),
+            attemptedPaths = installedApk,
+        )
+
+        text shouldContain "**Affected apps (1)**\n- Done: Notes (com.example.notes)\n\nNo affected paths recorded.\n"
+        text shouldContain "**Attempted paths**\n- `/storage/emulated/0/Download/notes-1.4.2.apk`"
+    }
+
+    @Test
+    fun `an install entry without package rows still lists its apk path`() {
+        val text = share(entries = listOf(installEntry(emptyList())), attemptedPaths = installedApk)
+
+        text shouldNotContain "Affected apps"
+        text shouldNotContain "No affected apps recorded."
+        text shouldContain "No affected paths recorded."
+        text shouldContain "- `/storage/emulated/0/Download/notes-1.4.2.apk`"
+    }
+
+    @Test
+    fun `a package entry without outcomes shows no path section`() {
+        val text = share(
+            entries = listOf(
+                entry(kind = Operation.Metadata.Kind.UNINSTALL, affectedPathsCount = 0, paths = emptyList())
+            ),
+            attemptedPaths = installedApk,
+        )
+
+        text shouldContain "No affected apps recorded."
+        text shouldNotContain "Affected apps ("
+        text shouldNotContain "No affected paths recorded."
+        text shouldNotContain "Attempted paths"
+        text shouldNotContain "notes-1.4.2.apk`"
     }
 
     @Test

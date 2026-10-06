@@ -156,9 +156,10 @@ fun HistoryEntryDetailsBottomSheet(
                 )
             }
 
-            if (entry.kind.isPackageKind) {
+            if (entry.kind.isPackageKind || entry.packages.isNotEmpty()) {
                 PackagesSection(entry.packages)
-            } else {
+            }
+            if (!entry.kind.isPackageKind) {
                 PathsSection(
                     entry = entry,
                     attemptedPaths = attemptedPaths,
@@ -472,6 +473,48 @@ private fun HistoryEntryDetailsBottomSheetPackagesPreview() {
                 ),
             ),
         ),
+        bottomInset = 0.dp,
+        onDismiss = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryEntryDetailsBottomSheetInstallPreview() {
+    val now = Clock.System.now()
+    HistoryEntryDetailsBottomSheet(
+        entry = HistoryEntry(
+            id = "install",
+            kind = Operation.Metadata.Kind.INSTALL,
+            intent = null,
+            originType = HistoryEntry.OriginType.EXPLORER,
+            originWorkspaceId = "abc",
+            title = "Install app",
+            description = "notes-1.4.2.apk",
+            summary = "Installed Notes",
+            startedAt = now - 9.seconds,
+            completedAt = now - 3.seconds,
+            duration = 6.seconds,
+            outcome = HistoryOutcome.COMPLETED,
+            errorMessage = null,
+            errorClass = null,
+            affectedPathsCount = 0,
+            partialErrorCount = 0,
+            pathsTruncated = false,
+            paths = emptyList(),
+            packages = listOf(
+                HistoryEntry.PackageOutcome(
+                    label = "Notes",
+                    packageName = "com.example.notes",
+                    status = Operation.Report.Packages.Outcome.Status.DONE,
+                    errorMessage = null,
+                ),
+            ),
+            primaryPath = "/storage/emulated/0/Download/notes-1.4.2.apk",
+        ),
+        attemptedPaths = listOf("/storage/emulated/0/Download/notes-1.4.2.apk"),
+        attemptedPathsTotal = 1,
         bottomInset = 0.dp,
         onDismiss = {},
     )

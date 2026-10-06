@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Acces avansat la dispozitiv</string>
+    <string name="provider_documents_connection_device_title">Dispozitiv</string>
+    <string name="documents_connection_device_summary">Stocarea locală a dispozitivului</string>
+    <string name="provider_documents_storage_root_label">Sistem de fișiere rădăcină</string>
+    <string name="provider_documents_storage_internal_label">Stocare internă</string>
+    <string name="provider_documents_storage_sd_card_label">Card SD</string>
+    <string name="provider_documents_storage_saf_label">Locație SAF</string>
+    <string name="provider_documents_storage_free_suffix">liber</string>
+    <string name="provider_documents_error_requires_root">Este necesar acces root pentru a explora această locație. Activează accesul root în setările aplicației Butler.</string>
+    <string name="provider_documents_error_requires_adb">Este necesar acces ADB pentru a explora această locație. Activează-l în configurarea Butler.</string>
+    <string name="provider_documents_error_requires_storage">Este necesară permisiunea de stocare pentru a explora această locație. Acordă permisiunea de stocare în setările aplicației Butler.</string>
+    <string name="provider_documents_error_requires_permissions">Sunt necesare permisiuni suplimentare pentru a explora această locație. Verifică setările aplicației Butler.</string>
+    <string name="provider_documents_error_generic">Nu se poate accesa această locație. Verifică opțiunile de acces în aplicația Butler.</string>
+    <string name="provider_documents_settings_title">Furnizor de documente</string>
+    <string name="provider_documents_settings_subtitle">Integrare cu aplicații externe</string>
+    <string name="provider_documents_settings_category_integration_label">Integrare</string>
+    <string name="provider_documents_enabled_title">Activează furnizorul de documente</string>
+    <string name="provider_documents_enabled_desc">Permite altor aplicații să acceseze fișiere prin Butler folosind selectorul de fișiere Android</string>
+</resources>

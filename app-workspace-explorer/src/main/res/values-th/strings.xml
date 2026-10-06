@@ -594,9 +594,9 @@
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android จำกัดการเข้าถึงโฟลเดอร์นี้ ใช้ตัวเลือกโฟลเดอร์เพื่อให้สิทธิ์เข้าถึง</string>
-    <string name="explorer_permission_multiple_options_description">คุณสามารถให้สิทธิ์เข้าถึงผ่านตัวเลือกโฟลเดอร์ของ Android หรือตั้งค่า Root/Shizuku เพื่อเข้าถึงโฟลเดอร์ที่ถูกจำกัดทั้งหมดได้เร็วขึ้น</string>
-    <string name="explorer_permission_setup_both_description">โฟลเดอร์นี้ต้องการสิทธิ์ระดับสูง ติดตั้งและตั้งค่า Root หรือ Shizuku ในหน้าตั้งค่า</string>
-    <string name="explorer_permission_setup_shizuku_description">โฟลเดอร์นี้ต้องการสิทธิ์ระดับสูงผ่าน Shizuku ติดตั้ง Shizuku Manager และตั้งค่าในหน้าตั้งค่า</string>
+    <string name="explorer_permission_multiple_options_description">คุณสามารถให้สิทธิ์เข้าถึงผ่านตัวเลือกโฟลเดอร์ของ Android หรือตั้งค่า root หรือการเข้าถึง ADB เพื่อเข้าถึงโฟลเดอร์ที่ถูกจำกัดทั้งหมดได้เร็วขึ้น</string>
+    <string name="explorer_permission_setup_both_description">โฟลเดอร์นี้ต้องการสิทธิ์ระดับสูง ตั้งค่า root หรือการเข้าถึง ADB ในหน้าตั้งค่า</string>
+    <string name="explorer_permission_setup_shizuku_description">โฟลเดอร์นี้ต้องการสิทธิ์ระดับสูงผ่าน ADB ตั้งค่าการเข้าถึง ADB ในหน้าตั้งค่า</string>
     <string name="explorer_permission_setup_root_description">โฟลเดอร์นี้ต้องการสิทธิ์ Root ตั้งค่า Root ในหน้าตั้งค่าหากอุปกรณ์ของคุณรูทแล้ว</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
@@ -604,7 +604,7 @@
     <string name="explorer_permission_option_picker_action">เปิดตัวเลือก SAF</string>
 
     <string name="explorer_permission_option_setup_title">การเข้าถึงแบบเต็ม</string>
-    <string name="explorer_permission_option_setup_description">ตั้งค่า Root หรือ Shizuku เพื่อเข้าถึงโฟลเดอร์ที่ถูกจำกัดทั้งหมดได้เร็วขึ้น</string>
+    <string name="explorer_permission_option_setup_description">ตั้งค่า root หรือการเข้าถึง ADB เพื่อเข้าถึงโฟลเดอร์ที่ถูกจำกัดทั้งหมดได้เร็วขึ้น</string>
     <string name="explorer_permission_option_setup_action">ตั้งค่า</string>
 
     <!-- Permission Request Card - Storage Access Option -->
@@ -640,4 +640,13 @@
     <plurals name="explorer_settings_folder_sort_rules_value">
         <item quantity="other">%1$d โฟลเดอร์</item>
     </plurals>
+    <string name="explorer_network_form_pro_notice">การเพิ่มและทดสอบตำแหน่งนั้นฟรี ส่วนการเรียกดูต้องใช้ Butler Pro</string>
+    <string name="explorer_network_upgrade_hint_locked">การเรียกดูที่เก็บข้อมูลเครือข่ายต้องใช้ Butler Pro</string>
+    <string name="explorer_network_upgrade_hint_saved">บันทึกแล้ว การเรียกดูที่เก็บข้อมูลเครือข่ายต้องใช้ Butler Pro</string>
+    <string name="explorer_permission_multiple_options_root_description">คุณสามารถให้สิทธิ์เข้าถึงผ่านตัวเลือกโฟลเดอร์ของ Android หรือตั้งค่า Root เพื่อเข้าถึงโฟลเดอร์ที่ถูกจำกัดทั้งหมด</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">คุณสามารถให้สิทธิ์เข้าถึงผ่านตัวเลือกโฟลเดอร์ของ Android หรือตั้งค่าการเข้าถึง ADB เพื่อเข้าถึงโฟลเดอร์ที่ถูกจำกัดได้เร็วขึ้น</string>
+    <string name="explorer_permission_option_setup_root_description">ตั้งค่า Root เพื่อเข้าถึงโฟลเดอร์นี้และโฟลเดอร์อื่นที่ถูกจำกัด</string>
+    <string name="explorer_permission_option_setup_shizuku_description">ตั้งค่าการเข้าถึง ADB เพื่อเปิดโฟลเดอร์นี้</string>
+    <string name="explorer_settings_trash_auto_delete_summary">ลบรายการโดยอัตโนมัติหลังจากอยู่ในถังขยะครบระยะเวลานี้</string>
+    <string name="explorer_settings_trash_max_size_summary">พื้นที่สูงสุดที่ถังขยะใช้ได้ในแต่ละที่เก็บข้อมูล</string>
 </resources>

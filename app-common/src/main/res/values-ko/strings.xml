@@ -105,6 +105,24 @@
     <string name="general_progress_loading_egg_12">잠시만 기다려 주세요</string>
     <string name="general_progress_loading_egg_13">그래도 대기 중은 아니잖아요</string>
     <string name="general_progress_loading_egg_14">이마에 바로 붙이세요</string>
+    <string name="general_progress_loading_egg_halloween_0">캐시를 퇴마하는 중</string>
+    <string name="general_progress_loading_egg_halloween_1">옷장 속 해골을 세는 중</string>
+    <string name="general_progress_loading_egg_halloween_2">호박을 조각하는 중</string>
+    <string name="general_progress_loading_egg_halloween_3">침대 밑에 좀비 프로세스가 없는지 확인하는 중</string>
+    <string name="general_progress_loading_egg_stpatricks_0">무지개를 따라 황금 항아리를 쫓는 중</string>
+    <string name="general_progress_loading_egg_stpatricks_1">네잎클로버를 찾는 중</string>
+    <string name="general_progress_loading_egg_stpatricks_2">레프러콘을 매수하는 중</string>
+    <string name="general_progress_loading_egg_aprilfools_0">로딩 중이에요. 아마도요?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">껐다가 다시 켜는 중</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">프레첼을 더 가져오는 중</string>
+    <string name="general_progress_loading_egg_xmas_0">명단을 두 번 확인하는 중</string>
+    <string name="general_progress_loading_egg_xmas_1">파일을 포장하는 중</string>
+    <string name="general_progress_loading_egg_xmas_2">꼬인 전구를 푸는 중</string>
+    <string name="general_progress_loading_egg_xmas_3">순록에게 먹이를 주는 중</string>
+    <string name="general_progress_loading_egg_newyear_0">자정까지 카운트다운하는 중</string>
+    <string name="general_progress_loading_egg_newyear_1">샴페인을 터뜨리는 중</string>
+    <string name="general_progress_loading_egg_newyear_2">아무도 안 지킬 새해 계획을 작성하는 중</string>
+    <string name="general_progress_loading_egg_newyear_3">새해를 불러오는 중</string>
 
     <!-- 시간 표시 형식 -->
     <plurals name="common_duration_milliseconds_short">
@@ -196,10 +214,10 @@
     <string name="general_error_cant_access_msg">%s에 접근할 수 없습니다.</string>
     <string name="general_error_archive_not_seekable_msg">%s 파일은 직접 탐색할 수 없습니다. 저장 위치가 순차 읽기만 지원하는데, 이 압축 형식은 임의 접근이 필요합니다.</string>
     <string name="general_error_root_unavailable">Root 접근을 사용할 수 없습니다.</string>
-    <string name="general_error_elevated_access_required">이 작업에는 상위 권한이 필요합니다. 설정에서 Root 또는 Shizuku를 구성하세요.</string>
+    <string name="general_error_elevated_access_required">이 작업에는 상위 권한이 필요합니다. 설정에서 Root 또는 ADB 접근을 구성하세요.</string>
     <string name="general_error_no_compatible_app_found_msg">이 요청을 처리할 수 있는 앱을 찾을 수 없습니다.</string>
     <string name="general_error_ipc_deadobject_title">서비스 연결 끊김</string>
-    <string name="general_error_ipc_deadobject_description">중요한 서비스(Magisk, Shizuku 등 시스템 수준 서비스)와의 연결이 예기치 않게 끊어졌습니다. 기기를 재부팅해 주세요. 문제가 계속되면 업데이트를 확인하거나 문의해 주세요.</string>
+    <string name="general_error_ipc_deadobject_description">중요한 서비스(예: Magisk 또는 기타 시스템 수준 서비스)와의 연결이 예기치 않게 끊어졌습니다. 기기를 재부팅해 주세요. 계속 문제가 발생하면 업데이트를 확인하거나 저에게 연락해서 고쳐지도록 하세요.</string>
 
     <string name="ui_theme_mode_dark_label">다크</string>
     <string name="ui_theme_mode_light_label">라이트</string>
@@ -237,7 +255,7 @@
 
     <!-- 설정 모듈 유형 -->
     <string name="setup_usagestats_title">사용 통계</string>
-    <string name="setup_shizuku_card_title">Shizuku</string>
+    <string name="setup_shizuku_card_title">ADB 접근</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">알림 접근</string>
     <string name="setup_manage_storage_card_title">외부 저장공간 관리</string>
@@ -293,7 +311,7 @@
     <!-- Butler 팁 -->
     <string name="common_tip_multiple_panes">여러 창을 사용해 파일을 나란히 비교해 보세요.</string>
     <string name="common_tip_different_folders">각 창에 다른 폴더를 열어 파일을 쉽게 관리하세요.</string>
-    <string name="common_tip_switch_layouts">탭 설정 관리자에서 창 레이아웃을 전환할 수 있습니다.</string>
-    <string name="common_tip_elevated_access">고급 파일 작업을 위해 설정에서 Root 또는 Shizuku를 활성화하세요.</string>
+    <string name="common_tip_switch_layouts">Butler 메뉴의 레이아웃에서 창 레이아웃을 전환하세요.</string>
+    <string name="common_tip_elevated_access">고급 파일 작업을 위해 설정에서 Root 또는 ADB 접근을 활성화하세요.</string>
     <string name="common_tip_breadcrumb_home">탐색기 경로 표시줄을 길게 눌러 홈 폴더로 설정하세요.</string>
 </resources>

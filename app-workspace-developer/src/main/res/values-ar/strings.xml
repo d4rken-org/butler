@@ -24,7 +24,7 @@
     <string name="developer_options_root_installed_label">مثبت</string>
     <string name="developer_options_root_available_label">متاح</string>
     <string name="developer_options_root_base_check_label">الفحص الأساسي</string>
-    <string name="developer_options_shizuku_test_action">اختبر Shizuku</string>
+    <string name="developer_options_shizuku_test_action">اختبر وصول ADB</string>
     <string name="developer_options_shizuku_installed_label">مثبت</string>
     <string name="developer_options_shizuku_granted_label">الإذن</string>
     <string name="developer_options_shizuku_compatible_label">متوافق</string>

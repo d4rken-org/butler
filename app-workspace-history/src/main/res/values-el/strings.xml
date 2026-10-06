@@ -194,7 +194,7 @@
         <item quantity="other">Διαγραφή %1$d καταχωρήσεων</item>
     </plurals>
     <string name="history_delete_dialog_message">Αφαιρούνται μόνο τα αρχεία ιστορικού, τα ίδια τα αρχεία δεν επηρεάζονται.</string>
-    <string name="history_pro_dialog_message">Η κοινοποίηση και η διαγραφή καταχωρήσεων ιστορικού αποτελούν μέρος της αναβάθμισης. Η διαγραφή ολόκληρου του ιστορικού παραμένει δωρεάν στις ρυθμίσεις ιστορικού.</string>
+    <string name="history_pro_dialog_message">Η κοινοποίηση πολλών καταχωρήσεων ιστορικού ταυτόχρονα αποτελεί μέρος της αναβάθμισης. Η κοινοποίηση μίας καταχώρησης και η διαγραφή καταχωρήσεων παραμένουν δωρεάν.</string>
 
     <!-- Shared text -->
     <string name="history_share_label_outcome">Αποτέλεσμα</string>

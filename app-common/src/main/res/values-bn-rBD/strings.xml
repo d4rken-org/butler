@@ -1,0 +1,333 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">অসাধারণ ফাইল এক্সপ্লোরার</string>
+    <!-- Upgraded app title. %1$s is the app name, %2$s the tier qualifier ("Pro" or "FOSS", depending on the build). Reorder or repunctuate for your language; both placeholders must appear exactly once. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Butler অ্যাপের আইকন</string>
+    <string name="butler_mascot_description">Butler ম্যাসকট</string>
+    <string name="butler_mascot_animation_random_description">Butler ম্যাসকটের বিভিন্ন অ্যানিমেশন</string>
+    <string name="butler_mascot_animation_wink_description">Butler ম্যাসকট চোখ টিপছে</string>
+    <string name="butler_mascot_animation_greeting_description">Butler ম্যাসকট হাত নেড়ে শুভেচ্ছা জানাচ্ছে</string>
+    <string name="butler_mascot_animation_hatoff_description">Butler ম্যাসকট সম্মান জানিয়ে টুপি নামাচ্ছে</string>
+    <string name="butler_mascot_animation_drink_description">Butler ম্যাসকট পান করছে</string>
+    <string name="butler_mascot_animation_moustache_description">Butler ম্যাসকট গোঁফে হাত বোলাচ্ছে</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Butler ম্যাসকট ঘুমানোর জন্য চোখ বন্ধ করছে</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Butler ম্যাসকট নাক ডাকছে</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Butler ম্যাসকট ঘুম থেকে উঠছে</string>
+    <string name="butler_mascot_animation_cameo_description">SD Maid ম্যাসকট অতিথি হিসেবে হাজির</string>
+
+    <string name="slogan_general_message_0">আপনার সেবায়।</string>
+    <string name="slogan_general_message_1">সবকিছু নিজের জায়গায়।</string>
+    <string name="slogan_general_message_2">শৃঙ্খলা, বিশৃঙ্খলা নয়।</string>
+    <string name="slogan_general_message_3">আপনার ফাইল আনছি।</string>
+    <string name="slogan_general_message_4">আপনার সব ফাইল সারিবদ্ধ।</string>
+    <string name="slogan_general_message_5">সবসময় গোছানো।</string>
+    <string name="slogan_general_message_6">ফাইল খুঁজে পান দ্রুত!</string>
+    <string name="slogan_general_message_7">সহজেই অ্যাক্সেস।</string>
+    <string name="slogan_general_message_8">আপনার ফাইল হারাতে দেব না।</string>
+    <string name="slogan_general_message_9">একসঙ্গে নানা দায়িত্বে।</string>
+    <string name="slogan_newyear_message_0">প্রতি বছরের মতো একই আয়োজন।</string>
+    <string name="slogan_xmas_message_0">ফাইল দুবার পরীক্ষা করছি।</string>
+    <string name="slogan_xmas_message_1">ভালোদের তালিকায়।</string>
+    <string name="slogan_halloween_message_0">ভূতুড়ে Butler আপনার সেবায়।</string>
+    <string name="slogan_halloween_message_1">চালাকি নয়, শুধু ফাইল।</string>
+    <string name="slogan_stpatricks_message_0">ভাগ্যবান মনে হচ্ছে?</string>
+    <string name="slogan_stpatricks_message_1">আপনার সোনার খনি খুঁজছি।</string>
+    <string name="slogan_aprilfools_message_0">কোনো বোকামি নয়।</string>
+    <string name="slogan_aprilfools_message_1">সত্যিই গোছানো।</string>
+    <string name="slogan_oktoberfest_message_0">আপনার ফাইলের জন্য উল্লাস!</string>
+    <string name="slogan_oktoberfest_message_1">চাইলেই ফাইল হাজির।</string>
+
+    <string name="general_share_action">শেয়ার করুন</string>
+    <string name="general_share_single_title">%s শেয়ার করুন</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">%dটি ফাইল শেয়ার করুন</item>
+        <item quantity="other">%dটি ফাইল শেয়ার করুন</item>
+    </plurals>
+    <string name="general_done_action">হয়েছে</string>
+    <string name="general_copy_action">কপি করুন</string>
+    <string name="general_cut_action">কাট করুন</string>
+    <string name="general_move_action">সরান</string>
+    <string name="general_paste_action">পেস্ট করুন</string>
+    <string name="general_apply_action">প্রয়োগ করুন</string>
+    <string name="general_open_action">খুলুন</string>
+    <string name="general_cancel_action">বাতিল করুন</string>
+    <string name="general_close_action">বন্ধ করুন</string>
+    <string name="general_confirm_action">নিশ্চিত করুন</string>
+    <string name="general_reset_action">রিসেট করুন</string>
+    <string name="general_save_action">সংরক্ষণ করুন</string>
+    <string name="general_edit_action">সম্পাদনা করুন</string>
+    <string name="general_na_label">প্রযোজ্য নয়</string>
+    <!-- Announced by screen readers when a dialog opens -->
+    <string name="general_dialog_a11y_label">ডায়ালগ</string>
+    <string name="general_dismiss_action">সরিয়ে দিন</string>
+    <string name="general_read_more_action">আরও পড়ুন</string>
+    <string name="general_mark_as_read_action">পড়া হয়েছে হিসেবে চিহ্নিত করুন</string>
+    <string name="general_back_action">পেছনে</string>
+    <string name="general_navigate_up_action">ওপরের স্তরে যান</string>
+    <string name="general_error_label">ত্রুটি</string>
+    <string name="general_error_unknown_label">অজানা ত্রুটি</string>
+    <string name="general_error_invalid_input_label">অবৈধ ইনপুট</string>
+    <string name="general_share_error_action">ত্রুটি শেয়ার করুন</string>
+    <string name="general_error_report_subject">%1$s ত্রুটির রিপোর্ট (%2$s)</string>
+    <string name="general_error_report_consent_title">ত্রুটির রিপোর্ট শেয়ার করবেন?</string>
+    <string name="general_error_report_consent_message">রিপোর্টে ত্রুটি ও তার স্ট্যাক ট্রেস, অ্যাপের সাম্প্রতিক লগ এবং সেই সময়ের অবস্থা থাকে: ফাইলের নাম ও পাথ, সার্চ কোয়েরি, প্যাকেজের নাম, URI, নেটওয়ার্ক ও SMB হোস্টের নাম, আপনার ডিভাইস ও বিল্ডের তথ্য এবং একটি নামবিহীন ইনস্টল আইডি। শুধু বিশ্বস্ত ব্যক্তিদের সঙ্গে শেয়ার করুন।</string>
+    <string name="general_error_report_consent_confirm">রিপোর্ট শেয়ার করুন</string>
+    <string name="general_privacy_policy_action">গোপনীয়তা নীতি</string>
+    <string name="general_bug_report_subject">%1$s বাগ রিপোর্ট (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">%1$s বাগ রিপোর্ট: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(এখানে কী হয়েছে তা লিখুন।)</string>
+    <string name="general_bug_report_body_expected_prompt">(এর বদলে কী আশা করেছিলেন তা লিখুন।)</string>
+    <string name="general_duration_input_label">সময়কাল</string>
+    <string name="general_size_input_label">আকার</string>
+    <string name="general_upgrade_action">আপগ্রেড করুন</string>
+    <string name="general_refresh_action">রিফ্রেশ করুন</string>
+    <string name="general_clear_action">মুছুন</string>
+    <string name="general_expand_action">প্রসারিত করুন</string>
+    <string name="general_collapse_action">সংকুচিত করুন</string>
+    <string name="general_completed_label">সম্পন্ন</string>
+    <string name="general_cancelled_label">বাতিল হয়েছে</string>
+    <string name="general_searching_label">খোঁজা হচ্ছে</string>
+    <string name="general_searching_ellipsis">খোঁজা হচ্ছে…</string>
+    <string name="general_progress_loading">লোড হচ্ছে</string>
+    <string name="general_progress_loading_egg_0">এখনো iPhone-এর চেয়ে দ্রুত</string>
+    <string name="general_progress_loading_egg_1">আরও RAM ডাউনলোড করছি</string>
+    <string name="general_progress_loading_egg_2">সম্ভাব্য সময়: শীঘ্রই™</string>
+    <string name="general_progress_loading_egg_3">CPU এখন কফির বিরতিতে</string>
+    <string name="general_progress_loading_egg_4">Pepe Silvia-র তথ্যের অপেক্ষায়</string>
+    <string name="general_progress_loading_egg_5">টার্বো এনক্যাবুলেটর চালু হচ্ছে</string>
+    <string name="general_progress_loading_egg_6">মাখন এগিয়ে দিচ্ছি</string>
+    <string name="general_progress_loading_egg_7">তা, কেমন আছেন?</string>
+    <string name="general_progress_loading_egg_8">বিপ বুপ বপ</string>
+    <string name="general_progress_loading_egg_9">জীবনের সিদ্ধান্ত বাফার হচ্ছে</string>
+    <string name="general_progress_loading_egg_10">Cthulhu-কে ডাকছি</string>
+    <string name="general_progress_loading_egg_11">সব ঠিক আছে</string>
+    <string name="general_progress_loading_egg_12">একটু অপেক্ষা করুন</string>
+    <string name="general_progress_loading_egg_13">অন্তত ফোনে অপেক্ষা করতে হচ্ছে না</string>
+    <string name="general_progress_loading_egg_14">সরাসরি কপালে লাগান</string>
+    <string name="general_progress_loading_egg_halloween_0">ক্যাশ থেকে ভূত তাড়াচ্ছি</string>
+    <string name="general_progress_loading_egg_halloween_1">আলমারির কঙ্কালগুলো গুনছি</string>
+    <string name="general_progress_loading_egg_halloween_2">কুমড়োয় ভূতুড়ে মুখ খোদাই করছি</string>
+    <string name="general_progress_loading_egg_halloween_3">খাটের নিচে জম্বি প্রসেস খুঁজছি</string>
+    <string name="general_progress_loading_egg_stpatricks_0">রামধনু ধরে সোনার হাঁড়ির খোঁজে ছুটছি</string>
+    <string name="general_progress_loading_egg_stpatricks_1">চার পাতার ক্লোভার খুঁজছি</string>
+    <string name="general_progress_loading_egg_stpatricks_2">লেপ্রেকন দের ঘুষ দিচ্ছি</string>
+    <string name="general_progress_loading_egg_aprilfools_0">লোড হচ্ছে। নাকি হচ্ছে না?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">বন্ধ করে আবার চালু করছি</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">আরও প্রেটজেল আনছি</string>
+    <string name="general_progress_loading_egg_xmas_0">তালিকাটা দুবার মিলিয়ে দেখছি</string>
+    <string name="general_progress_loading_egg_xmas_1">ফাইলগুলো গিফট র‍্যাপ করছি</string>
+    <string name="general_progress_loading_egg_xmas_2">পরীর আলোর জট ছাড়াচ্ছি</string>
+    <string name="general_progress_loading_egg_xmas_3">রেনডিয়ারকে খাওয়াচ্ছি</string>
+    <string name="general_progress_loading_egg_newyear_0">মধ্যরাতের কাউন্টডাউন চলছে</string>
+    <string name="general_progress_loading_egg_newyear_1">শ্যাম্পেনের কর্ক খুলছি</string>
+    <string name="general_progress_loading_egg_newyear_2">কেউ রাখবে না এমন সংকল্প লিখছি</string>
+    <string name="general_progress_loading_egg_newyear_3">নতুন বছর লোড হচ্ছে</string>
+
+    <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%d মি.সে.</item>
+        <item quantity="other">%d মি.সে.</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%d সে.</item>
+        <item quantity="other">%d সে.</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%d মি.</item>
+        <item quantity="other">%d মি.</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%d ঘ.</item>
+        <item quantity="other">%d ঘ.</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%d দি.</item>
+        <item quantity="other">%d দি.</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d সেকেন্ড</item>
+        <item quantity="other">%d সেকেন্ড</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d মিনিট</item>
+        <item quantity="other">%d মিনিট</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d ঘণ্টা</item>
+        <item quantity="other">%d ঘণ্টা</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d দিন</item>
+        <item quantity="other">%d দিন</item>
+    </plurals>
+
+    <string name="general_view_action">দেখুন</string>
+    <string name="general_delete_action">মুছে ফেলুন</string>
+    <string name="general_show_details_action">বিস্তারিত দেখান</string>
+    <string name="general_hide_details_action">বিস্তারিত লুকান</string>
+
+    <string name="general_delete_confirmation_title">মুছে ফেলা নিশ্চিত করুন</string>
+    <string name="general_delete_confirmation_message_x">\"%s\" মুছে ফেলবেন?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">নির্বাচিত %dটি আইটেম মুছে ফেলবেন?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">%dটি আইটেম মুছে ফেলা হয়েছে।</item>
+        <item quantity="other">%dটি আইটেম মুছে ফেলা হয়েছে।</item>
+    </plurals>
+
+    <string name="general_create_action">তৈরি করুন</string>
+    <string name="general_rename_action">নাম বদলান</string>
+    <string name="general_retry_action">আবার চেষ্টা করুন</string>
+    <string name="general_open_setup_action">সেটআপ খুলুন</string>
+    <string name="general_grant_usage_stats_action">ব্যবহারের তথ্যের অ্যাক্সেস দিন</string>
+    <string name="general_grant_storage_permission_action">স্টোরেজের অনুমতি দিন</string>
+    <string name="general_grant_all_files_access_action">সব ফাইলের অ্যাক্সেস দিন</string>
+
+    <string name="general_result_user_cancel_msg">ব্যবহারকারী কাজটি বাতিল করেছেন।</string>
+
+    <string name="general_path_label">পাথ</string>
+    <string name="general_filename_validation_error">নামে অবৈধ অক্ষর আছে: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%2$dটির মধ্যে %1$d: %3$s</string>
+    <string name="common_x_of_y_label">%2$dটির মধ্যে %1$d</string>
+
+    <string name="file_type_symbolic_link">লিংক</string>
+    <string name="file_type_directory">ডিরেক্টরি</string>
+    <string name="file_type_file">ফাইল</string>
+    <string name="file_type_unknown">অজানা</string>
+
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">ছবি</string>
+    <string name="common_mimetype_video">ভিডিও</string>
+    <string name="common_mimetype_audio">অডিও</string>
+    <string name="common_mimetype_text_plain">সাধারণ টেক্সট</string>
+    <string name="common_mimetype_text">টেক্সট ডকুমেন্ট</string>
+    <string name="common_mimetype_pdf">PDF ডকুমেন্ট</string>
+    <string name="common_mimetype_document">ডকুমেন্ট</string>
+    <string name="common_mimetype_archive">আর্কাইভ</string>
+    <string name="common_mimetype_apk">Android প্যাকেজ</string>
+    <string name="common_mimetype_json">JSON ফাইল</string>
+    <string name="common_mimetype_xml">XML ফাইল</string>
+    <string name="common_mimetype_unknown">অজানা ধরন</string>
+
+    <string name="general_rom_type_auto_label">স্বয়ংক্রিয় (ডিফল্ট)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s আইটেম/সে.</item>
+        <item quantity="other">%s আইটেম/সে.</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/সে.</item>
+        <item quantity="other">%s/সে.</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">ধরন মিলছে না: %1$s চেয়েছিল, কিন্তু %2$s পাওয়া গেছে।</string>
+    <string name="general_error_cant_access_msg">%s অ্যাক্সেস করা যাচ্ছে না।</string>
+    <string name="general_error_archive_not_seekable_msg">%s সরাসরি ব্রাউজ করা যাচ্ছে না: এর স্টোরেজ শুধু ধারাবাহিকভাবে পড়তে দেয়, কিন্তু এই আর্কাইভ ফরম্যাটে যেকোনো অবস্থান থেকে পড়ার সুবিধা প্রয়োজন।</string>
+    <string name="general_error_root_unavailable">রুট অ্যাক্সেস পাওয়া যাচ্ছে না।</string>
+    <string name="general_error_elevated_access_required">এই কাজের জন্য উচ্চতর অ্যাক্সেস প্রয়োজন। সেটআপে রুট বা ADB অ্যাক্সেস কনফিগার করুন।</string>
+    <string name="general_error_no_compatible_app_found_msg">এই অনুরোধের জন্য উপযুক্ত কোনো অ্যাপ পাওয়া যায়নি।</string>
+    <string name="general_error_ipc_deadobject_title">সেবার সংযোগ বিচ্ছিন্ন হয়েছে</string>
+    <string name="general_error_ipc_deadobject_description">একটি গুরুত্বপূর্ণ সেবার (যেমন Magisk বা অন্য সিস্টেম-স্তরের সেবা) সংযোগ অপ্রত্যাশিতভাবে বিচ্ছিন্ন হয়েছে। ডিভাইস রিবুট করুন। সমস্যা থাকলে আপডেট দেখুন বা আমার সঙ্গে যোগাযোগ করুন, যাতে এটি ঠিক করতে পারি।</string>
+
+    <string name="ui_theme_mode_dark_label">ডার্ক</string>
+    <string name="ui_theme_mode_light_label">লাইট</string>
+    <string name="ui_theme_mode_system_label">সিস্টেম</string>
+    <string name="ui_theme_style_default_label">ডিফল্ট</string>
+    <string name="ui_theme_style_medium_contrast_label">মাঝারি কনট্রাস্ট</string>
+    <string name="ui_theme_style_high_contrast_label">উচ্চ কনট্রাস্ট</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">সবুজ</string>
+    <string name="ui_theme_color_blue_label">নীল</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">কাস্টম</string>
+
+    <string name="ui_theme_palette_tonalspot_label">টোনাল স্পট</string>
+    <string name="ui_theme_palette_neutral_label">নিরপেক্ষ</string>
+    <string name="ui_theme_palette_vibrant_label">প্রাণবন্ত</string>
+    <string name="ui_theme_palette_expressive_label">অভিব্যক্তিপূর্ণ</string>
+    <string name="ui_theme_palette_rainbow_label">রংধনু</string>
+    <string name="ui_theme_palette_fruitsalad_label">ফলের সালাদ</string>
+    <string name="ui_theme_palette_monochrome_label">একরঙা</string>
+    <string name="ui_theme_palette_fidelity_label">রঙের বিশ্বস্ততা</string>
+    <string name="ui_theme_palette_content_label">কনটেন্ট</string>
+
+    <string name="ui_theme_custom_dialog_title">কাস্টম থিম</string>
+    <string name="ui_theme_custom_seed_label">মূল রং</string>
+    <string name="ui_theme_custom_palette_label">প্যালেটের ধরন</string>
+    <string name="ui_theme_custom_default_action">ডিফল্ট</string>
+
+    <string name="ui_mascot_suit_dialog_title">Butler-এর স্যুট</string>
+    <string name="ui_mascot_suit_default_action">ডিফল্ট</string>
+    <string name="ui_mascot_suit_hue_label">বর্ণ</string>
+    <string name="ui_mascot_suit_saturation_label">রঙের তীব্রতা</string>
+    <string name="ui_mascot_suit_brightness_label">উজ্জ্বলতা</string>
+    <string name="ui_mascot_suit_value_description">স্যুটের রং %s</string>
+
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">ব্যবহারের পরিসংখ্যান</string>
+    <string name="setup_shizuku_card_title">ADB অ্যাক্সেস</string>
+    <string name="setup_root_card_title">রুট</string>
+    <string name="setup_notification_title">নোটিফিকেশনের অ্যাক্সেস</string>
+    <string name="setup_manage_storage_card_title">বাহ্যিক স্টোরেজ পরিচালনা</string>
+    <string name="setup_inventory_card_title">অ্যাপের তালিকা</string>
+
+    <!-- Common permission strings -->
+    <string name="setup_required_card_title">সেটআপ প্রয়োজন</string>
+    <string name="setup_required_card_body">এই কাজ করতে অতিরিক্ত সেটআপ প্রয়োজন।</string>
+    <string name="setup_required_card_setup_action">সেটআপ খুলুন</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">একাধিক ট্যাব খুলবেন?</string>
+    <string name="common_open_tabs_confirmation_message">এতে %1$dটি ট্যাব খুলবে।</string>
+    <string name="common_open_tabs_success">%1$dটি ট্যাব খোলা হয়েছে</string>
+    <string name="common_open_tabs_success_with_skipped">%1$dটি ট্যাব খোলা হয়েছে (%2$dটি আইটেম বাদ দেওয়া হয়েছে)</string>
+
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">ট্যাব বন্ধ করবেন?</string>
+    <string name="general_tab_close_confirmation_message">আপনি কি \"%1$s\" বন্ধ করতে চান?</string>
+    <string name="general_tab_close_unsaved_title">অসংরক্ষিত পরিবর্তন</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\"-এ অসংরক্ষিত পরিবর্তন আছে। বন্ধ করে সেগুলো বাতিল করবেন?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" এবং আরও %2$dটিতে অসংরক্ষিত পরিবর্তন আছে। বন্ধ করে সেগুলো বাতিল করবেন?</string>
+    <string name="general_discard_action">বাতিল করে দিন</string>
+    <string name="general_tab_close_goto_action">ট্যাবে যান</string>
+
+    <!-- Exit app -->
+    <string name="general_press_back_again_to_exit">বের হতে আবার পেছনের বোতাম চাপুন</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%dটি নির্বাচিত</item>
+        <item quantity="other">%dটি নির্বাচিত</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$dটি ফোল্ডার</item>
+        <item quantity="other">%1$dটি ফোল্ডার</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$dটি ফাইল</item>
+        <item quantity="other">%1$dটি ফাইল</item>
+    </plurals>
+    <string name="common_select_all_folders_action">সব ফোল্ডার নির্বাচন করুন</string>
+    <string name="common_select_all_files_action">সব ফাইল নির্বাচন করুন</string>
+    <string name="general_undo_action">পূর্বাবস্থায় ফেরান</string>
+
+    <!-- Guided tours -->
+    <string name="tour_action_next">পরবর্তী</string>
+    <string name="tour_action_previous">আগের</string>
+    <string name="tour_action_cancel">এড়িয়ে যান</string>
+    <string name="tour_confirm_title">পরিচিতি এড়িয়ে যাবেন?</string>
+    <string name="tour_confirm_message">সেটিংস থেকে যেকোনো সময় পরিচিতি আবার চালু করতে পারবেন।</string>
+    <string name="tour_confirm_continue">পরিচিতি চালিয়ে যান</string>
+    <string name="tour_confirm_dont_show_this_tour">এই পরিচিতি দেখাবেন না</string>
+    <string name="tour_confirm_disable_all">সব পরিচিতি বন্ধ করুন</string>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">পাশাপাশি ফাইল তুলনা করতে একাধিক প্যান ব্যবহার করুন।</string>
+    <string name="common_tip_different_folders">সহজে ফাইল পরিচালনা করতে প্রতিটি প্যানে আলাদা ফোল্ডার খুলুন।</string>
+    <string name="common_tip_switch_layouts">Butler মেনুর বিন্যাস থেকে প্যানের বিন্যাস বদলান।</string>
+    <string name="common_tip_elevated_access">উন্নত ফাইলের কাজের জন্য সেটআপে রুট বা ADB অ্যাক্সেস চালু করুন।</string>
+    <string name="common_tip_breadcrumb_home">এক্সপ্লোরারের ব্রেডক্রাম্বে দীর্ঘক্ষণ চেপে ধরে সেটিকে হোম ডিরেক্টরি হিসেবে নির্ধারণ করুন।</string>
+</resources>

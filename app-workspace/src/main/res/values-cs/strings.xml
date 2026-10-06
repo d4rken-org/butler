@@ -421,7 +421,7 @@
     <string name="workspace_settings_layout_mode_classic">Klasické</string>
     <string name="workspace_settings_layout_mode_classic_desc">Vždy jeden panel, bez lišty karet.</string>
     <string name="workspace_settings_layout_mode_adaptive">Adaptivní</string>
-    <string name="workspace_settings_layout_mode_adaptive_desc">Lišta karet a tolik panelů, kolik se vejde na obrazovku. Rozložení připnete v nabídce Butler na liště.</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Lišta karet a tolik panelů, kolik se vejde na obrazovku. Rozložení připneš v nabídce Butler.</string>
     <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptivní (%1$s)</string>
     <string name="workspace_settings_layout_mode_single_rail">Jeden panel s lištou karet</string>
     <string name="workspace_settings_layout_mode_single_rail_desc">Jeden panel karet a lišta karet z vícepanelových rozložení. Lišta zabírá pruh obrazovky.</string>
@@ -530,4 +530,18 @@
         <item quantity="many">%d položky obnoveno</item>
         <item quantity="other">%d položek obnoveno</item>
     </plurals>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Lišta karet a tolik panelů, kolik se vejde na obrazovku.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Otevřít každou na vlastní kartě</string>
+    <string name="workspace_open_selection_each_in_tab_description">Otevře každou vybranou položku na samostatné kartě. Složky se otevřou na kartách průzkumníka souborů.</string>
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Otevřít %d položku</item>
+        <item quantity="few">Otevřít %d položky</item>
+        <item quantity="many">Otevřít %d položky</item>
+        <item quantity="other">Otevřít %d položek</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Zobrazit zde</string>
+    <string name="workspace_open_selection_view_here_description">Zobrazí vybrané soubory v prohlížeči nad tímto panelem. Předchozí a další procházejí jen tvůj výběr.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Zobrazit na nové kartě</string>
+    <string name="workspace_open_selection_view_in_tab_description">Zobrazí vybrané soubory v prohlížeči na vlastní kartě. Předchozí a další procházejí jen tvůj výběr.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Složky nelze zobrazit v prohlížeči.</string>
 </resources>
