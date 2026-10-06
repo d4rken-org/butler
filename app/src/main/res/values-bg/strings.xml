@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_welcome_title">Butler те приветства</string>
+    <string name="onboarding_welcome_message">Раздели за файлове.\nПреглеждай, търси и редактирай — едновременно.</string>
+    <string name="onboarding_welcome_subtitle">С отворен код. Без реклами. Без проследяване.\nФайловият мениджър, който заслужаваш.</string>
+    <string name="onboarding_welcome_action">Започни да разглеждаш</string>
+    <string name="onboarding_beta_title">Оформи бъдещето</string>
+    <string name="onboarding_beta_message">Това е бета (тестова) версия. Продължи с чувство за хумор и резервен план. Моля, докладвай проблемите, които срещнеш.</string>
+    <string name="onboarding_beta_action">Нищо не ме плаши</string>
+    <string name="onboarding_beta_feature_early_access_title">Ранен достъп</string>
+    <string name="onboarding_beta_feature_early_access_description">Изпробвай най-новите функции преди всички останали.</string>
+    <string name="onboarding_beta_feature_influence_title">Пряко влияние</string>
+    <string name="onboarding_beta_feature_influence_description">Твоята обратна връзка насочва развитието на Butler.</string>
+    <string name="onboarding_beta_feature_feedback_title">Движен от общността</string>
+    <string name="onboarding_beta_feature_feedback_description">Присъедини се към общност от опитни потребители, които подобряват Butler.</string>
+    <string name="onboarding_privacy_title">Поверителност и данни</string>
+    <string name="onboarding_privacy_message">Butler няма реклами и не продава потребителски данни. Твоята поверителност е важна за мен.</string>
+    <string name="onboarding_privacy_read_action">Прочети политиката за поверителност</string>
+    <string name="onboarding_privacy_action">Приеми</string>
+    <string name="onboarding_skip_action">Пропусни</string>
+    <string name="onboarding_progress_step">%1$d от %2$d</string>
+
+    <string name="onboarding_workspaces_title">Работи в раздели</string>
+    <string name="onboarding_workspaces_message">Отвори няколко раздела и превключвай между тях — точно като в уеб браузъра си.</string>
+    <string name="onboarding_workspaces_action">Продължи</string>
+    <string name="onboarding_workspaces_hint">Дръж няколко раздела отворени едновременно.</string>
+    <string name="onboarding_workspaces_explorer_title">Файлов мениджър</string>
+    <string name="onboarding_workspaces_explorer_description">Разглеждай файловете си.</string>
+    <string name="onboarding_workspaces_searcher_title">Търсене</string>
+    <string name="onboarding_workspaces_searcher_description">Намери каквото търсиш.</string>
+    <string name="onboarding_workspaces_editor_title">Редактор</string>
+    <string name="onboarding_workspaces_editor_description">Редактирай файлове.</string>
+    <string name="onboarding_workspaces_apps_description">Управлявай приложенията си.</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">Нов файлов мениджър</string>
+    <string name="shortcut_explorer_new_long">Създай нов раздел с файлов мениджър</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">Преки пътища</string>
+    <string name="shortcuts_settings_subtitle">Настрой преките пътища в стартовия екран</string>
+    <string name="shortcuts_settings_enabled_title">Активиране на преките пътища</string>
+    <string name="shortcuts_settings_enabled_subtitle">Показвай често използваните елементи в стартовия екран</string>
+    <string name="shortcuts_settings_auto_remember_title">Запомняне на посетените пътища</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Автоматично добавяй често посещаваните пътища като преки пътища</string>
+    <string name="shortcuts_settings_last_accessed_title">Последен достъп</string>
+    <string name="shortcuts_settings_max_count_title">Максимален брой преки пътища</string>
+    <string name="shortcuts_settings_max_count_summary">Максимален брой преки пътища, показвани в стартовия екран</string>
+    <string name="shortcuts_settings_min_access_title">Минимален брой отваряния</string>
+    <string name="shortcuts_settings_min_access_summary">Колко пъти трябва да се отвори даден път, преди да стане пряк път</string>
+    <string name="shortcuts_settings_current_title">Текущи преки пътища</string>
+    <string name="shortcuts_settings_current_subtitle">Следени преки пътища: %d</string>
+    <string name="shortcuts_settings_clear_title">Изчистване на историята на преките пътища</string>
+    <string name="shortcuts_settings_clear_subtitle">Премахни всички следени преки пътища</string>
+    <string name="shortcuts_settings_clear_confirm_title">Да се изчисти ли историята на преките пътища?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Това ще премахне всички следени преки пътища. Отметките ще бъдат запазени.</string>
+    <string name="shortcuts_settings_cleared_message">Историята на преките пътища е изчистена</string>
+    <string name="shortcuts_settings_max_dialog_title">Максимален брой преки пътища</string>
+    <string name="shortcuts_settings_max_dialog_message">Брой преки пътища за показване в стартовия екран (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Минимален брой отваряния</string>
+    <string name="shortcuts_settings_min_dialog_message">Колко пъти трябва да се отвори даден път, преди да се появи като пряк път (1–10)</string>
+
+    <string name="setup_usagestats_title">Статистика за използването</string>
+    <string name="setup_shizuku_card_title">ADB достъп</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Достъп до известия</string>
+    <string name="setup_manage_storage_card_title">Управление на външното хранилище</string>
+    <string name="setup_inventory_card_title">Списък с приложения</string>
+
+    <string name="setup_title">Настройка на разрешенията</string>
+    <string name="setup_settings_description">Настрой разрешенията и функциите на приложението.</string>
+    <string name="setup_help_description">Помощ</string>
+
+    <string name="setup_root_description">Позволява достъп до системни файлове и защитени директории за разширено управление на файлове. Отключва пълния потенциал на Butler, включително достъп до данните на приложенията и промени в системата. Устройството трябва да има root достъп.</string>
+    <string name="setup_shizuku_description">Алтернатива на root, която осигурява привилегировани файлови операции чрез сигурен API. Позволява достъп до ограничени директории без традиционен root достъп. Изисква инсталиран и работещ Porter или Shizuku.</string>
+    <string name="setup_notification_description">Показва актуална информация за файлови операции, фонови задачи и напредъка на прехвърлянията. Уведомява те, когато операциите завършат или възникнат грешки.</string>
+    <string name="setup_usagestats_description">Анализира използването на хранилището от приложенията, за да открие големи файлове и да помогне за ефективно управление на пространството. Всички данни остават на устройството ти и никога не се изпращат.</string>
+    <string name="setup_storage_description">Пълен достъп до цялото хранилище на устройството за бързи файлови операции и групова обработка. Позволява цялостно управление на файловете без повтарящи се заявки за разрешение.</string>
+    <string name="setup_inventory_description">Преглеждай всички инсталирани приложения за функции като извличане на APK и анализ на хранилището. Изисква се в Android 11+, за да се вижда пълният списък с приложения.</string>
+
+    <string name="setup_grant_access_label">Разреши достъп</string>
+    <string name="setup_access_granted_label">Достъпът е разрешен</string>
+    <string name="setup_use_root_label">Използвай root, ако е наличен</string>
+    <string name="setup_use_shizuku_label">Използвай ADB достъп, ако е наличен</string>
+
+    <string name="setup_status_checking">Проверка…</string>
+    <string name="setup_status_completed">Настроено</string>
+    <string name="setup_status_required">Задължително</string>
+    <string name="setup_status_optional">По избор</string>
+    <string name="setup_status_connected">Свързано</string>
+    <string name="setup_status_not_connected">Не е свързано</string>
+    <string name="setup_status_not_installed">Не е инсталирано</string>
+    <string name="setup_status_connecting">Свързване…</string>
+    <string name="setup_status_connection_failed">Свързването е неуспешно</string>
+    <string name="setup_status_unavailable">Недостъпно</string>
+    <string name="setup_status_permission_denied">Разрешението е отказано</string>
+    <string name="setup_adb_status_manager_update_required">Необходима е актуализация</string>
+    <string name="setup_adb_status_butler_update_required">Необходима е актуализация на Butler</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_connected_via">Свързано чрез %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_not_allowed_yet">Достъпът все още не е разрешен от %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". Shown when that app no longer asks, so access has to be changed there. -->
+    <string name="setup_adb_status_denied_in">Достъпът е отказан в %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_open_manager_action">Отвори %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_install_manager_action">Инсталирай %1$s</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">Известия за отстраняване на грешки</string>
+    <string name="debug_log_consent_title">Диагностичен журнал</string>
+    <string name="debug_log_consent_explanation">Тази функция записва всичко, което приложението прави, във файл, който може да се споделя. Създаденият файл съдържа чувствителна информация (напр. имена на файлове и инсталирани приложения). Споделяй го само с хора, на които имаш доверие (напр. разработчик, който отстранява проблем).</string>
+    <string name="debug_log_recording_progress">Записване на диагностичен журнал</string>
+    <string name="debug_log_record_action">Записвай</string>
+    <string name="debug_log_record_full_action">Запиши диагностичен журнал</string>
+    <string name="debug_log_stop_action">Спри записа</string>
+    <string name="debug_log_screen_title">Запис на диагностичен журнал</string>
+    <string name="debug_log_screen_sensitive_information_message">Създаденият файл съдържа чувствителна информация (напр. имена на файлове и инсталирани приложения). Споделяй го само с хора, на които имаш доверие.</string>
+    <string name="debug_log_screen_session_path_label">Път на диагностичната сесия</string>
+    <string name="debug_log_screen_log_files_label">Файлове на журнала</string>
+    <string name="debug_log_screen_log_files_ready">Файловете на журнала са готови (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Отхвърли</string>
+    <string name="debug_log_file_label">Записан файл на журнала</string>
+    <string name="debug_banner_label">ЗАП</string>
+    <string name="debug_banner_label_expanded">Записване на журнал</string>
+    <string name="debug_banner_stop_action">Спри</string>
+    <string name="debug_banner_view_action">Прегледай</string>
+    <string name="debug_banner_explanation">Записва се дейността на приложението. Спри, когато приключиш, и сподели журнала при докладване на дефекти.</string>
+    <string name="debug_log_short_recording_title">Записът е много кратък</string>
+    <string name="debug_log_short_recording_message">Диагностичните журнали улавят какво се случва, докато записът е активен. Започни запис, възпроизведи проблема и после спри. Този запис може да не съдържа полезна информация.</string>
+    <string name="debug_log_short_recording_keep_action">Продължи записа</string>
+
+    <string name="debug_logview_screen_title">Преглед на журнала</string>
+    <string name="debug_logview_pause_action">Пауза (замразяване на изгледа)</string>
+    <string name="debug_logview_resume_action">Продължи</string>
+    <string name="debug_logview_copy_action">Копирай журнала</string>
+    <string name="debug_logview_collapse_action">Свий</string>
+    <string name="debug_logview_close_action">Затвори панела на журнала</string>
+    <string name="debug_logview_resize_action">Промени размера</string>
+    <string name="debug_logview_more_action">Още опции</string>
+    <string name="debug_logview_level_action">Ниво на журнала</string>
+    <string name="debug_logview_clear_action">Изчисти буфера</string>
+    <string name="debug_logview_search_action">Търси</string>
+    <string name="debug_logview_search_clear_action">Изчисти търсенето</string>
+    <string name="debug_logview_search_close_action">Затвори търсенето</string>
+    <string name="debug_logview_search_prev_action">Предишно съвпадение</string>
+    <string name="debug_logview_search_next_action">Следващо съвпадение</string>
+    <string name="debug_logview_jump_to_bottom_action">Отиди до най-новото</string>
+    <string name="debug_logview_paused_msg">На пауза — изгледът е замразен</string>
+    <string name="debug_logview_paused_new_msg">На пауза — нови редове оттогава: %1$d</string>
+    <string name="debug_logview_copied_msg">Журналът е копиран в клипборда</string>
+    <string name="debug_logview_copied_truncated_msg">Последните %1$d реда са копирани в клипборда</string>
+    <string name="debug_logview_share_label">Сподели журнала</string>
+
+    <string name="settings_label">Настройки</string>
+    <string name="settings_category_tools_label">Инструменти</string>
+    <string name="settings_category_other_label">Други</string>
+    <string name="settings_category_integration_label">Интеграция</string>
+    <string name="general_settings_label">Общи</string>
+    <string name="general_settings_desc">Общи настройки, които засягат цялото приложение.</string>
+    <string name="settings_category_ui_label">Потребителски интерфейс</string>
+    <string name="ui_mascot_suit_setting_label">Костюмът на Butler</string>
+    <string name="ui_mascot_suit_setting_explanation">Цветът, от който е ушит тоалетът на Butler.</string>
+    <string name="ui_theme_mode_setting_label">Режим на темата</string>
+    <string name="ui_theme_mode_setting_explanation">Режимът за оформяне на приложението (напр. нощен или дневен).</string>
+    <string name="ui_theme_style_setting_label">Стил на темата</string>
+    <string name="ui_theme_style_setting_explanation">Цветовият стил за оформяне на приложението.</string>
+    <string name="ui_theme_color_setting_label">Цвят на темата</string>
+    <string name="ui_theme_color_setting_explanation">Цветовата палитра за оформяне на приложението.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Цветовете се определят от Material You според тапета ти</string>
+    <string name="ui_theme_color_value_system">Системни цветове</string>
+    <string name="ui_language_override_label">Език на приложението</string>
+    <string name="ui_language_override_desc">Избери различен език за Butler, независимо от езика по подразбиране на системата ти.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Избягване на изреза на екрана</string>
+    <string name="ui_display_cutout_avoid_setting_description">Държи интерфейса извън изреза за камерата. Изключи тази настройка, за да използваш повече от екрана, но тогава части от интерфейса може да останат зад изреза.</string>
+
+    <string name="previews_settings_title">Визуализации</string>
+    <string name="previews_settings_subtitle">Управлявай кешовете за визуализации на изображения.</string>
+
+    <string name="tour_settings_reset_title">Нулиране на въвеждащите обиколки</string>
+    <string name="tour_settings_reset_subtitle">Покажи отново въвеждащите обиколки, включително пропуснатите или изключените.</string>
+    <string name="tour_settings_reset_done">Въвеждащите обиколки са нулирани.</string>
+
+    <string name="storage_settings_title">Хранилище</string>
+    <string name="storage_settings_subtitle">Управлявай кешовете, хранилището и кошчето на Butler.</string>
+    <string name="storage_category_previews_label">Визуализации</string>
+    <string name="storage_previews_disk_cache_title">Кеш на диска</string>
+    <string name="storage_previews_memory_cache_title">Кеш в паметта</string>
+    <string name="storage_previews_max_size_title">Максимален размер на кеша</string>
+    <string name="storage_clear_disk_confirm_title">Да се изчисти ли кешът на диска?</string>
+    <string name="storage_clear_disk_confirm_message">Това ще премахне всички кеширани визуализации на изображения. Те ще бъдат създадени отново при нужда.</string>
+    <string name="storage_clear_memory_confirm_title">Да се изчисти ли кешът в паметта?</string>
+    <string name="storage_clear_memory_confirm_message">Това ще премахне кешираните визуализации на изображения от паметта. Те ще бъдат създадени отново при нужда.</string>
+    <string name="storage_clear_all_confirm_title">Да се изчистят ли всички кешове?</string>
+    <string name="storage_clear_all_confirm_message">Това ще изчисти кешовете на диска и в паметта за визуализации на изображения.</string>
+    <string name="storage_clear_all_previews_action">Изчисти всички кешове за визуализации</string>
+    <string name="storage_clear_all_subtitle">Премахни всички кешове за визуализации</string>
+    <string name="storage_cache_cleared_message">Кешът е изчистен</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">Проверка за актуализации</string>
+    <string name="updater_check_enabled_setting_description">Позволи на Butler да проверява онлайн дали е налична нова версия.</string>
+    <string name="motd_check_enabled_setting_title">Проверка за съобщения</string>
+    <string name="motd_check_enabled_setting_description">Позволи на Butler да получава важни съобщения от разработчика.</string>
+    <string name="motd_card_header">Съобщение</string>
+
+    <string name="confirm_exit_setting_title">Потвърждение при изход</string>
+    <string name="confirm_exit_setting_description">Показвай диалог за потвърждение при излизане от приложението.</string>
+    <string name="confirm_exit_dialog_title">Изход от Butler</string>
+    <string name="confirm_exit_dialog_message">Това ще затвори приложението и ще те върне на началния екран.</string>
+    <string name="confirm_exit_dialog_exit">Излез</string>
+    <string name="confirm_exit_dialog_cancel">Отмени</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Не питай отново</string>
+
+    <string name="settings_support_category_help_label">Получи помощ</string>
+    <string name="settings_support_label">Поддръжка</string>
+    <string name="settings_support_description">Прочети документацията, докладвай проблеми, общувай с други или записвай диагностични журнали.</string>
+    <string name="settings_support_wiki_label">Документация</string>
+    <string name="settings_support_wiki_description">Научи как да използваш Butler ефективно.</string>
+    <string name="settings_support_issue_tracker_description">Публична система за докладване на дефекти и заявки за нови функции.</string>
+    <string name="settings_support_issue_tracker_label">Проследяване на проблеми</string>
+    <string name="settings_support_debuglog_label">Диагностичен журнал</string>
+    <string name="settings_support_debuglog_desc">Запиши всичко, което приложението прави, в текстов файл, който можеш да споделиш.</string>
+    <string name="settings_support_debuglog_recording_desc">В момента се записва диагностична информация. Докосни, за да спреш записа.</string>
+    <string name="settings_support_debuglog_path">Път на журнала: %1$s</string>
+    <string name="settings_support_bugreports_label">Доклади за дефекти</string>
+    <string name="settings_support_bugreports_desc">Преглеждай доклади за сривове, записвай диагностични журнали и ги споделяй с мен.</string>
+    <string name="support_contact_report_type_crash">Доклад за срив</string>
+    <string name="support_contact_report_type_reported">Доклад за дефект</string>
+    <string name="support_contact_report_type_recording">Запис</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Място за разговори и въпроси.</string>
+
+    <string name="settings_acknowledgements_label">Благодарности</string>
+    <string name="settings_acknowledgements_description">Заслуги, лицензи и специални благодарности.</string>
+    <string name="settings_acks_translation_header">Превод</string>
+    <string name="settings_acks_translators_title">Преводачи</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Преведи Butler</string>
+    <string name="settings_acks_translate_desc">Помогни с превода на Butler на твоя език.</string>
+
+    <string name="settings_acks_thanks_header">Благодарности</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">За подкрепата на преводите на проекти с отворен код.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Благодаря за иконата, дизайна на талисмана и анимациите.</string>
+    <string name="settings_licenses_label">Лицензи</string>
+
+    <!-- Workspace Status Card -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d раздел</item>
+        <item quantity="other">%1$d раздела</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d операция</item>
+        <item quantity="other">%1$d операции</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d изисква внимание</item>
+        <item quantity="other">%1$d изискват внимание</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d с незапазени промени</item>
+        <item quantity="other">%1$d с незапазени промени</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d на пауза</item>
+        <item quantity="other">%1$d на пауза</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">Покажи всички раздели</string>
+    <string name="workspace_status_filter_operations_desc">Филтрирай по раздели с операции</string>
+    <string name="workspace_status_filter_attention_desc">Филтрирай по раздели, изискващи внимание</string>
+    <string name="workspace_status_filter_paused_desc">Филтрирай по раздели на пауза</string>
+    <string name="workspace_status_filter_unsaved_desc">Филтрирай по раздели с незапазени промени</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Езикът за програмиране Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Бърза библиотека за внедряване на зависимости за Android и Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Изпълнявай Java (и Kotlin) код с root права! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Лесно изпълнение на Kotlin JVM код с root права чрез корутини. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Дава на приложенията за Android ADB достъп чрез API на Shizuku, с възможност за поддръжка на root. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Директно използване на системните API с adb/root права от обикновени приложения чрез Java процес, стартиран с app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Lottie на Airbnb за Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Роботът Android е възпроизведен или променен от творба, създадена и споделена от Google, и се използва съгласно условията на лиценза Creative Commons 3.0 Attribution.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Съвременният набор от инструменти на Android за изграждане на нативен потребителски интерфейс. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Библиотеки Jetpack</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation и други библиотеки AndroidX. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Разширения за Kotlin</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Библиотеките Coroutines и Serialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Библиотека за зареждане на изображения, базирана на Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Криптографски примитиви за SMB удостоверяване, подписване и шифроване. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Библиотеки Square</string>
+    <string name="acknowledgement_square_libraries_subtitle">Мрежовите библиотеки Retrofit, OkHttp и OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Помощни инструменти за Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Плъзгане и пускане за LazyColumn в Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Библиотека за семантично версиониране за Kotlin. (Лиценз MIT)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Диаграми и графики за Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Политика за поверителност</string>
+    <string name="settings_privacy_policy_desc">Отговорно обработване на данните.</string>
+
+    <string name="changelog_label">Списък с промените</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Статус на надстройката на Butler</string>
+    <string name="upgrade_status_free">Статус: Безплатна версия</string>
+    <string name="upgrade_status_pro">Статус: Pro</string>
+    <string name="upgrade_status_foss">Статус: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD карта</string>
+    <string name="storage_area_public_label">Общо хранилище</string>
+    <string name="storage_area_public_app_data_label">Общодостъпни данни на приложенията</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">Управление на разделите</string>
+    <string name="workspace_manager_empty_title">Няма раздели</string>
+    <string name="workspace_manager_empty_subtitle">Създай първия си раздел, за да започнеш</string>
+
+    <!-- Workspace > Empty Content -->
+    <string name="workspace_empty_create_action">Създай раздел</string>
+    <string name="workspace_empty_create_hint">Работи паралелно: създай раздел и го превърни в инструмент по твой избор.</string>
+    <string name="workspace_empty_settings_action">Отвори настройките</string>
+    <string name="workspace_empty_settings_hint">Персонализирай Butler по свой вкус. Настрой поведението на инструментите.</string>
+    <string name="workspace_classic_empty_tabs_closed">Няма отворени раздели. Започни, когато пожелаеш.</string>
+    <string name="workspace_classic_empty_tip">Съвет: докосни „Създай раздел“ и избери инструмент — Файлов мениджър, Търсене, Редактор и други.</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">Започни с раздел</string>
+    <string name="tour_first_tab_body">Butler работи с раздели, като браузър: всеки е самостоятелен инструмент — Файлов мениджър, Търсене, Редактор и други. Създай първия си раздел.</string>
+    <string name="tour_manager_fab_title">Бързи преки пътища</string>
+    <string name="tour_manager_fab_body">Докосни тук за преки пътища към най-често използваните инструменти и за затваряне на всички раздели наведнъж.</string>
+    <string name="tour_manager_reorder_title">Пренареди разделите си</string>
+    <string name="tour_manager_reorder_body">Натисни и задръж заглавната лента на раздел, после го плъзни където искаш. В този ред разделите ти се показват навсякъде другаде.</string>
+    <string name="tour_manager_select_title">Работи с няколко раздела</string>
+    <string name="tour_manager_select_body">Натисни и задръж визуализацията на раздел, за да започнеш да избираш раздели. После докосни останалите и ги затвори или постави на пауза наведнъж.</string>
+    <string name="tour_manager_new_tab_title">Започни нов раздел</string>
+    <string name="tour_manager_new_tab_body">Докосни тази карта, за да избереш инструмент за нов раздел.</string>
+    <string name="tour_swipe_switch_title">Превключвай разделите с плъзгане</string>
+    <string name="tour_swipe_switch_body">Плъзни наляво или надясно където и да е на страницата, за да преминаваш между отворените раздели.</string>
+    <string name="tour_swipe_create_title">Плъзни, за да започнеш раздел</string>
+    <string name="tour_swipe_create_body">Плъзни отвъд последния си раздел и Butler ще ти предложи нов.</string>
+    <string name="tour_swipe_panes_title">Няколко раздела едновременно</string>
+    <string name="tour_swipe_panes_body">На по-голям екран или в хоризонтална ориентация Butler показва няколко раздела един до друг. Настройките за подредба в „Раздели“ определят кога става това.</string>
+    <string name="tour_panes_rail_title">Всичките ти раздели</string>
+    <string name="tour_panes_rail_body">Всеки отворен раздел е тук. Докосни някой и избери в кой панел да отиде. Натисни и задръж раздел, после го плъзни, за да промениш подредбата.</string>
+    <string name="tour_panes_divider_title">Промени размера на панелите</string>
+    <string name="tour_panes_divider_body">Плъзни този разделител, за да дадеш повече място на един от панелите.</string>
+    <string name="tour_panes_layout_title">Промени подредбата</string>
+    <string name="tour_panes_layout_body">Докосни бутона Butler и избери „Подредба“, за да пренаредиш панелите. Настройките за разделите задават подредба за всяка ориентация.</string>
+
+    <string name="workspace_creating_placeholder">Създаване на раздел…</string>
+    <string name="workspace_ondemand_swipe_title">Плъзни, за да създадеш нов раздел</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">Панел %1$d е готов за съдържание</string>
+    <string name="workspace_adaptive_add_action">Добави раздел</string>
+
+    <string name="workspace_badge_tip_title">Съвет: индикатори на бутона за разделите</string>
+    <string name="workspace_badge_open_workspaces">Брой отворени раздели</string>
+    <string name="workspace_badge_active_operations">Активни операции (копиране на файлове, търсения и др.)</string>
+    <string name="workspace_badge_attention_items">Елементи, изискващи внимание (неуспешни или изчакващи операции, недостъпни файлове)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">Скрий</string>
+    <string name="workspace_manager_selection_count">Избрани: %1$d</string>
+    <string name="workspace_manager_selection_select_all">Избери всички</string>
+    <string name="workspace_manager_selection_pause_action">Постави избраните на пауза</string>
+    <string name="workspace_manager_selection_close_action">Затвори избраните</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Излез от режима за избор</string>
+    <string name="workspace_manager_selection_clear_content_desc">Изчисти избора</string>
+    <string name="workspace_manager_select_all_tabs_desc">Избери всички раздели</string>
+    <string name="workspace_manager_new_tab_card_title">Нов раздел</string>
+    <string name="workspace_row_select_content_desc">Избери раздел</string>
+    <string name="general_cancel_action">Отмени</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">Бързи преки пътища</string>
+    <string name="workspace_fab_close_shortcuts">Затвори преките пътища</string>
+    <string name="workspace_fab_close_all">Затвори всички раздели</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">Постави в панел %1$d</string>
+    <string name="workspace_pane_show_action">Покажи</string>
+    <string name="workspace_pane_menu_action">Покажи опциите на раздела</string>
+    <string name="workspace_pane_close_action">Затвори</string>
+    <string name="workspace_pane_unassign_action">Премахни от панела</string>
+    <string name="workspace_dragging_description">Плъзгане</string>
+    <string name="workspace_pane_current_description">В панел %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">Затвори раздела</string>
+    <string name="workspace_row_more_options_content_desc">Още опции</string>
+    <string name="workspace_row_operations_running_content_desc">Работи</string>
+    <string name="workspace_row_operations_pending_content_desc">Чакаща работа</string>
+    <string name="workspace_row_pause_action">Пауза</string>
+    <string name="workspace_row_resume_action">Продължи</string>
+    <string name="workspace_row_stacked_content_desc">В стека на този раздел</string>
+    <string name="workspace_row_unsaved_content_desc">Незапазени промени</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">Настрой поведението на разделите.</string>
+    <string name="explorer_settings_subtitle">Настрой поведението на файловия мениджър.</string>
+    <string name="searcher_settings_subtitle">Настрой поведението на търсенето.</string>
+    <string name="editor_settings_subtitle">Настрой поведението на текстовия редактор.</string>
+    <string name="viewer_settings_subtitle">Настрой поведението на инструмента за преглед на файлове.</string>
+    <string name="history_settings_subtitle">Съхраняване и изчистване на историята на операциите.</string>
+    <string name="clipboard_settings_subtitle">Настрой поведението на клипборда.</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">Запази като…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">Отвори в Butler</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">Редактирай текст</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">Файл без име</string>
+    <string name="external_open_action_view">Прегледай</string>
+    <string name="external_open_action_edit">Редактирай като текст</string>
+    <string name="external_open_action_show_in_explorer">Покажи във файловия мениджър</string>
+    <string name="external_open_action_save">Запази като…</string>
+    <string name="external_open_failed_label">Файлът не може да се отвори</string>
+    <string name="external_open_failed_description">Butler не успя да отвори \"%1$s\".</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">Да се активира ли режимът за разработчици?</string>
+    <string name="settings_developer_mode_unlock_message">Това отключва разширени диагностични инструменти за отстраняване на проблеми и тестване.</string>
+    <string name="settings_developer_mode_unlock_action">Активирай</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">Остава %d стъпка до режима за разработчици</item>
+        <item quantity="other">Остават %d стъпки до режима за разработчици</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">Свържи се с разработчика</string>
+    <string name="support_contact_description">Попълни формуляр, за да ми изпратиш имейл.</string>
+    <string name="support_contact_no_email_app">Не е намерено приложение за имейл</string>
+    <string name="support_contact_category_label">Категория</string>
+    <string name="support_contact_category_question">Въпрос</string>
+    <string name="support_contact_category_feature">Заявка за функция</string>
+    <string name="support_contact_category_bug">Доклад за дефект</string>
+    <string name="support_contact_workspace_label">Свързана област</string>
+    <string name="support_contact_workspace_general">Общи</string>
+    <string name="support_contact_workspace_explorer">Файлов мениджър</string>
+    <string name="support_contact_workspace_searcher">Търсене</string>
+    <string name="support_contact_workspace_editor">Редактор</string>
+    <string name="support_contact_description_label">Описание</string>
+    <string name="support_contact_description_question_hint">Опиши въпроса си подробно. Моля, дай конкретни подробности (поне 20 думи).</string>
+    <string name="support_contact_description_feature_hint">Опиши функцията, която искаш да видиш. Моля, дай конкретни подробности (поне 20 думи).</string>
+    <string name="support_contact_description_bug_hint">Опиши какво се случи и как да се възпроизведе проблемът. Моля, дай конкретни подробности (поне 20 думи).</string>
+    <string name="support_contact_expected_label">Очаквано поведение</string>
+    <string name="support_contact_expected_hint">Опиши какво очакваше да се случи (поне 10 думи).</string>
+    <string name="support_contact_word_count">Поне %1$d думи</string>
+    <string name="support_contact_debuglog_label">Диагностичен журнал</string>
+    <string name="support_contact_debuglog_empty">Не са намерени диагностични журнали. Първо запиши такъв.</string>
+    <string name="support_contact_debuglog_picker_hint">Прикачи съществуващ диагностичен журнал или запиши нов.</string>
+    <string name="support_contact_send_action">Отвори приложението за имейл</string>
+    <string name="support_contact_welcome">Чета лично всяко съобщение и правя всичко възможно да отговоря, но тъй като работя по това самостоятелно, може да отнеме малко време. Благодаря за търпението.</string>
+    <string name="support_contact_footer">Съобщението ти ще бъде изпратено по имейл. Информация за устройството и настройките се прикача автоматично. Можеш да прикачиш екранни снимки или видео към имейла.\n\nНякои части от имейла ще бъдат на английски, за да мога лесно да го разбера.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">Хранилище за диагностични журнали</string>
+    <string name="support_debuglog_storage_description">Сесии на журнала: %1$d, %2$s</string>
+    <string name="support_debuglog_storage_empty">Няма съхранени диагностични журнали</string>
+    <string name="support_debuglog_delete_action">Изтрий всички диагностични журнали</string>
+    <string name="support_debuglog_delete_description">Премахни всички записани файлове на диагностични журнали</string>
+    <string name="support_debuglog_delete_confirm_title">Да се изтрият ли всички диагностични журнали?</string>
+    <string name="support_debuglog_delete_confirm_message">Това ще изтрие безвъзвратно всички записани сесии на диагностични журнали. Активните записи няма да бъдат засегнати.</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">Спри записа</string>
+    <string name="settings_support_debuglog_record_action">Запиши диагностичен журнал</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">Сесии на диагностични журнали</string>
+    <string name="support_debuglog_sessions_desc">Управлявай записаните сесии на диагностични журнали</string>
+    <string name="support_debuglog_sessions_empty">Няма сесии на диагностични журнали</string>
+    <string name="support_debuglog_session_recording">Записване…</string>
+    <string name="support_debuglog_session_compressing">Компресиране…</string>
+    <string name="support_debuglog_session_failed_empty_log">Неуспешно: празен журнал</string>
+    <string name="support_debuglog_session_failed_missing_log">Неуспешно: липсващ журнал</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Неуспешно: повреден архив</string>
+    <string name="support_debuglog_session_failed_zip_failed">Неуспешно: грешка при компресиране</string>
+    <string name="support_debuglog_session_delete_title">Да се изтрие ли диагностичната сесия?</string>
+    <string name="support_debuglog_session_delete_message">Това ще изтрие безвъзвратно тази сесия на диагностичен журнал.</string>
+    <string name="support_debuglog_clear_action">Изчисти всички</string>
+    <string name="support_debuglog_clear_confirm_message">Да се изтрият ли всички съхранени сесии на диагностични журнали?</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Диагностичен журнал на Butler - %1$s</string>
+    <string name="debug_log_screen_subtitle">Експортирай диагностична информация за отстраняване на проблеми</string>
+    <string name="debug_log_screen_sensitive_information_title">Чувствителна информация</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">Изпрати ли съобщението?</string>
+    <string name="support_contact_sent_message">Ако съобщението е изпратено, прикаченият диагностичен журнал ще бъде изтрит, за да се освободи място. Ако не е, можеш да го запазиш и да опиташ отново по-късно.</string>
+    <string name="support_contact_debuglog_zip_error">Неуспешно подготвяне на прикачения диагностичен журнал</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">Напредък на файловите операции</string>
+    <string name="ops_notification_channel_progress_desc">Текущ напредък на операциите за копиране, преместване и изтриване</string>
+    <string name="ops_notification_channel_attention_name">Сигнали за файлови операции</string>
+    <string name="ops_notification_channel_attention_desc">Операции, които изискват вниманието ти или са неуспешни</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">Изпълнява се %1$d файлова операция</item>
+        <item quantity="other">Изпълняват се %1$d файлови операции</item>
+    </plurals>
+    <string name="ops_notification_state_queued">На опашка…</string>
+    <string name="ops_notification_state_cancelling">Отмяна…</string>
+    <string name="ops_notification_state_attention_title">Необходимо е действие</string>
+    <string name="ops_notification_state_attention_text">Конфликт изисква вниманието ти — докосни, за да го разрешиш</string>
+    <string name="ops_notification_result_failed_title">Операцията е неуспешна</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">Искаш ли да оставиш отзив за Butler? ❤️</string>
+    <string name="review_app_dismiss_action">Може би по-късно</string>
+    <string name="review_app_review_action">Остави отзив</string>
+</resources>

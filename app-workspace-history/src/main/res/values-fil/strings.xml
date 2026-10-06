@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">Kasaysayan</string>
+    <string name="history_workspace_subtitle">Mga kamakailang operasyon sa file</string>
+    <string name="history_workspace_title_scoped">Kasaysayan: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">Kasaysayan: Nabigo</string>
+    <string name="history_workspace_title_outcome_partial">Kasaysayan: Bahagyang nakumpleto</string>
+    <string name="history_workspace_title_outcome_cancelled">Kasaysayan: Nakansela</string>
+    <string name="history_workspace_title_outcome_completed">Kasaysayan: Nakumpleto</string>
+    <string name="history_workspace_title_kind_copy">Kasaysayan: Kopyahin</string>
+    <string name="history_workspace_title_kind_move">Kasaysayan: Ilipat</string>
+    <string name="history_workspace_title_kind_delete">Kasaysayan: Tanggalin</string>
+    <string name="history_workspace_title_kind_create_file">Kasaysayan: Gumawa ng file</string>
+    <string name="history_workspace_title_kind_create_folder">Kasaysayan: Gumawa ng folder</string>
+    <string name="history_workspace_title_kind_save">Kasaysayan: I-save</string>
+    <string name="history_workspace_title_kind_compress">Kasaysayan: I-compress</string>
+    <string name="history_workspace_title_kind_extract">Kasaysayan: I-extract</string>
+    <string name="history_workspace_title_filtered">Kasaysayan (may filter)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">Kasaysayan: %1$d path</item>
+        <item quantity="other">Kasaysayan: %1$d na path</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Lahat</string>
+    <string name="history_filter_outcome_completed">Nakumpleto</string>
+    <string name="history_filter_outcome_partial">Bahagyang nakumpleto</string>
+    <string name="history_filter_outcome_failed">Nabigo</string>
+    <string name="history_filter_outcome_cancelled">Nakansela</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Kopyahin</string>
+    <string name="history_filter_kind_move">Ilipat</string>
+    <string name="history_filter_kind_delete">Tanggalin</string>
+    <string name="history_filter_kind_create_file">Gumawa ng file</string>
+    <string name="history_filter_kind_create_folder">Gumawa ng folder</string>
+    <string name="history_filter_kind_save">I-save</string>
+    <string name="history_filter_kind_compress">I-compress</string>
+    <string name="history_filter_kind_extract">I-extract</string>
+    <string name="history_filter_kind_enable">Paganahin</string>
+    <string name="history_filter_kind_disable">I-disable</string>
+    <string name="history_filter_kind_force_stop">Sapilitang ihinto</string>
+    <string name="history_filter_kind_uninstall">I-uninstall</string>
+    <string name="history_filter_kind_clear_data">Burahin ang data</string>
+    <string name="history_filter_kind_components">Mga component</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Itakda ang saklaw ng path…</string>
+    <string name="history_path_scope_clear_action">Alisin ang saklaw ng path</string>
+    <string name="history_path_scope_dialog_title">I-filter ayon sa path</string>
+    <string name="history_path_scope_dialog_description">Ipakita lang ang mga operasyong nakakaapekto sa path na ito o sa mga file at folder sa ilalim nito.</string>
+    <string name="history_path_scope_dialog_input_label">Path</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Pumili ng folder…</string>
+    <string name="history_path_scope_dialog_apply_action">Ilapat</string>
+    <string name="history_path_scope_dialog_cancel_action">Kanselahin</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Ngayong araw</string>
+    <string name="history_group_yesterday">Kahapon</string>
+    <string name="history_group_this_week">Ngayong linggo</string>
+    <string name="history_group_this_month">Ngayong buwan</string>
+    <string name="history_group_older">Mas matagal na</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Pinalitan ang pangalan</string>
+    <string name="history_entry_intent_paste_copy">Idinikit</string>
+    <string name="history_entry_intent_paste_move">Idinikit (paglipat)</string>
+    <string name="history_entry_intent_drop_copy">Binitiwan (pagkopya)</string>
+    <string name="history_entry_intent_drop_move">Binitiwan (paglipat)</string>
+    <string name="history_entry_intent_enable_components">Pinagana ang mga component ng</string>
+    <string name="history_entry_intent_disable_components">Na-disable ang mga component ng</string>
+    <string name="history_entry_kind_copy">Kinopya</string>
+    <string name="history_entry_kind_move">Inilipat</string>
+    <string name="history_entry_kind_delete">Tinanggal</string>
+    <string name="history_entry_kind_create_file">Gumawa ng file</string>
+    <string name="history_entry_kind_create_folder">Gumawa ng folder</string>
+    <string name="history_entry_kind_save">Na-save</string>
+    <string name="history_entry_kind_compress">Na-compress</string>
+    <string name="history_entry_kind_extract">Na-extract</string>
+    <string name="history_entry_kind_restore">Naibalik</string>
+    <string name="history_entry_kind_install">Na-install</string>
+    <string name="history_entry_kind_enable">Pinagana</string>
+    <string name="history_entry_kind_disable">Na-disable</string>
+    <string name="history_entry_kind_force_stop">Sapilitang inihinto</string>
+    <string name="history_entry_kind_uninstall">Na-uninstall</string>
+    <string name="history_entry_kind_clear_data">Binura ang data ng</string>
+    <string name="history_entry_kind_components">Binago ang mga component ng</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d path</item>
+        <item quantity="other">%d na path</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">Unang %1$d sa %2$d na apektadong path</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Nagsimula</string>
+    <string name="history_detail_label_completed">Nakumpleto</string>
+    <string name="history_detail_label_duration">Tagal</string>
+    <string name="history_detail_label_outcome">Resulta</string>
+    <string name="history_detail_label_origin">Pinagmulan</string>
+    <string name="history_detail_label_error">Error</string>
+    <string name="history_detail_label_paths">Mga apektadong path</string>
+    <string name="history_detail_label_partial_errors">Mga pagkabigo sa bawat item</string>
+    <string name="history_detail_copy_path_action">Kopyahin ang path</string>
+    <string name="history_detail_paths_empty">Walang naitalang apektadong path.</string>
+    <string name="history_detail_label_attempted_paths">Mga path na sinubukang iproseso</string>
+    <string name="history_detail_label_packages">Mga apektadong app</string>
+    <string name="history_detail_packages_empty">Walang naitalang apektadong app.</string>
+    <string name="history_detail_paths_truncated_callout">Ipinapakita ang unang %1$d sa %2$d na apektadong path.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Ipinapakita ang unang %1$d sa %2$d na path na sinubukang iproseso.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">Nabigo ang %1$d item sa operasyong ito.</item>
+        <item quantity="other">Nabigo ang %1$d na item sa operasyong ito.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Explorer</string>
+    <string name="history_origin_searcher">Paghahanap</string>
+    <string name="history_origin_saver">I-save bilang</string>
+    <string name="history_origin_developer">Developer</string>
+    <string name="history_origin_viewer">Tagatingin</string>
+    <string name="history_origin_apps">Mga app</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Wala pang kasaysayan</string>
+    <string name="history_empty_subtitle">Lilitaw rito ang mga operasyon sa file habang ginagamit ang Butler.</string>
+    <string name="history_empty_filtered_title">Walang tumugma</string>
+    <string name="history_empty_filtered_subtitle">Walang tala sa kasaysayan na tumutugma sa kasalukuyang filter.</string>
+    <string name="history_empty_filtered_reset_action">I-reset ang filter</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">I-reset ang filter</string>
+    <string name="history_toolbar_reset_filter_content_description">I-reset ang mga filter</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">Unang %1$d sa %2$d na apektadong path</string>
+    <string name="history_add_filter_action">Magdagdag ng filter</string>
+    <string name="history_add_filter_sheet_title">Magdagdag ng filter</string>
+    <string name="history_add_filter_section_outcome">Resulta</string>
+    <string name="history_add_filter_section_kind">Uri</string>
+    <string name="history_add_filter_section_path_scope">Saklaw ng path</string>
+    <string name="history_add_filter_add_path_action">Magdagdag ng path…</string>
+    <string name="history_path_scope_remove_action">Alisin</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d tala</item>
+        <item quantity="other">%1$d na tala</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%1$d sa %2$d ang ipinapakita</item>
+        <item quantity="other">%1$d sa %2$d ang ipinapakita</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">Kasaysayan</string>
+    <string name="history_settings_save_history_title">I-save ang kasaysayan</string>
+    <string name="history_settings_save_history_subtitle">Itala ang mga nakumpletong operasyon sa file.</string>
+    <string name="history_settings_max_history_label">Pinakamaraming tala sa kasaysayan</string>
+    <string name="history_settings_max_history_subtitle">Inaalis ang mga mas lumang tala kapag lumampas sa limitasyong ito.</string>
+    <string name="history_settings_max_history_input_label">Pinakamaraming tala</string>
+    <string name="history_settings_clear_history_title">Burahin ang kasaysayan</string>
+    <string name="history_settings_clear_history_subtitle">Alisin ang lahat ng nakaimbak na tala (%1$d).</string>
+    <string name="history_clear_dialog_title">Burahin ang kasaysayan?</string>
+    <string name="history_clear_dialog_message">Aalisin ang lahat ng tala sa database ng kasaysayan ng mga operasyon. Hindi na ito mababawi.</string>
+    <string name="history_clear_confirm_action">Burahin</string>
+    <string name="history_cleared_success">Nabura ang kasaysayan</string>
+    <string name="history_workspace_title_kind_restore">Mga pagpapanumbalik</string>
+    <string name="history_filter_kind_restore">Ibalik</string>
+    <string name="history_workspace_title_kind_install">Kasaysayan: I-install</string>
+    <string name="history_filter_kind_install">I-install</string>
+    <string name="history_workspace_title_kind_enable">Kasaysayan: Paganahin</string>
+    <string name="history_workspace_title_kind_disable">Kasaysayan: I-disable</string>
+    <string name="history_workspace_title_kind_force_stop">Kasaysayan: Sapilitang ihinto</string>
+    <string name="history_workspace_title_kind_uninstall">Kasaysayan: I-uninstall</string>
+    <string name="history_workspace_title_kind_clear_data">Kasaysayan: Burahin ang data</string>
+    <string name="history_workspace_title_kind_components">Kasaysayan: Mga component</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Piliin lahat</string>
+    <string name="history_action_deselect_all">Alisin ang lahat ng pagpili</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Tanggalin ang %1$d tala</item>
+        <item quantity="other">Tanggalin ang %1$d na tala</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Mga tala lang sa kasaysayan ang aalisin; hindi gagalawin ang mga file mismo.</string>
+    <string name="history_pro_dialog_message">Bahagi ng upgrade ang pagbabahagi ng maraming tala sa kasaysayan nang sabay-sabay. Libre pa rin ang pagbabahagi ng isang tala at pagtanggal ng mga tala.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Resulta</string>
+    <string name="history_share_label_kind">Uri</string>
+    <string name="history_share_label_origin">Pinagmulan</string>
+    <string name="history_share_label_summary">Buod</string>
+    <string name="history_share_label_completed">Nakumpleto</string>
+    <string name="history_share_label_duration">Tagal</string>
+    <string name="history_share_label_error">Error</string>
+    <string name="history_share_label_failed_items">Mga nabigong item</string>
+    <string name="history_share_label_paths">Mga apektadong path (%1$d)</string>
+    <string name="history_share_label_packages">Mga apektadong app (%1$d)</string>
+    <string name="history_share_paths_more">… at %1$d pa</string>
+    <string name="history_share_truncated">… at %1$d pang tala na hindi kasama</string>
+</resources>

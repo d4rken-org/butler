@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">செல்லாத செயலிப் பட்டியல்</string>
+    <string name="pkgrepo_invalid_inventory_error_description">நிறுவப்பட்ட செயலிகளின் செல்லாத பட்டியலை அமைப்பு Butler-க்கு வழங்கியது.</string>
+</resources>

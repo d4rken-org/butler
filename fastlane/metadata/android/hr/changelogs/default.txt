@@ -1,0 +1,5 @@
+Ispravci pogrešaka i manja poboljšanja kako bi upravljanje datotekama na tvom uređaju ostalo brzo i nenametljivo.
+
+Što se promijenilo u ovoj verziji: butler.darken.eu/changelog
+
+Nešto ne radi ili se čudno ponaša nakon ažuriranja? Javi mi putem izbornika Postavke > Podrška. Na projektu radi samo jedna osoba pa odgovor može malo potrajati, ali svaka se prijava pročita.

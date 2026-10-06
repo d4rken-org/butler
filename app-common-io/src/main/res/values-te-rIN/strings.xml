@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">అంశాలు తొలగించబడుతున్నాయి</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">అంశాలు కాపీ అవుతున్నాయి</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">అంశాలు తరలించబడుతున్నాయి</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">స్కాన్ అవుతోంది…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">ఫైల్ ఇప్పటికే ఉంది</string>
+    <string name="path_action_folder_exists_title">ఫోల్డర్ ఇప్పటికే ఉంది</string>
+    <string name="path_action_file_exists_description">\"%2$s\" వద్ద \"%1$s\" పేరుతో ఫైల్ ఇప్పటికే ఉంది.</string>
+    <string name="path_action_folder_exists_description">\"%2$s\" వద్ద \"%1$s\" పేరుతో ఫోల్డర్ ఇప్పటికే ఉంది.</string>
+
+    <string name="path_action_not_found_title">ఫైల్ ఇక లేదు</string>
+    <string name="path_action_not_found_description">\"%1$s\" తొలగించబడింది, దాని పేరు మార్చబడింది లేదా మరో చోటికి తరలించబడింది.</string>
+
+    <string name="path_action_permission_denied_title">అనుమతి నిరాకరించబడింది</string>
+    <string name="path_action_permission_denied_description">తగిన అనుమతులు లేనందున \"%2$s\" వద్ద ఉన్న \"%1$s\"ను యాక్సెస్ చేయలేము.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">\"%2$s\" వద్ద ఉన్న \"%1$s\"ను యాక్సెస్ చేయలేము. ఈ చర్యను నిర్వహించడానికి ఏ పద్ధతీ అందుబాటులో లేదు.</string>
+    <string name="path_action_permission_denied_readonly_description">\"%2$s\" వద్ద ఉన్న \"%1$s\"ను యాక్సెస్ చేయలేము. ఈ ఫైల్ సిస్టమ్‌లో చదవడం మాత్రమే సాధ్యం.</string>
+    <string name="path_action_permission_denied_not_permitted_description">\"%2$s\" వద్ద ఉన్న \"%1$s\"ను యాక్సెస్ చేయలేము. సిస్టమ్ ఈ చర్యను నిరాకరించింది.</string>
+
+    <string name="path_action_insufficient_space_title">తగినంత స్థలం లేదు</string>
+    <string name="path_action_insufficient_space_description">\"%2$s\" నుంచి \"%1$s\"ను కాపీ చేయడానికి తగినంత నిల్వ స్థలం లేదు.</string>
+
+    <string name="path_action_unknown_error_title">చర్య విఫలమైంది</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">భర్తీ పూర్తి కాలేదు</string>
+    <string name="path_action_data_kept_new_data_description">Butler \"%1$s\"కు రాయడం పూర్తి చేయలేకపోయింది. మీ కొత్త డేటా అదే ఫోల్డర్‌లో \"%2$s\" పేరుతో ఉంది. దాన్ని తిరిగి పొందడానికి దాని పేరు మార్చండి లేదా వద్దనుకుంటే తొలగించండి.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler \"%1$s\"కు రాయడం పూర్తి చేయలేకపోయింది. మునుపటి ఫైల్ మారలేదు. మీ కొత్త డేటా అదే ఫోల్డర్‌లో \"%2$s\" పేరుతో ఉంది. దాన్ని తిరిగి పొందడానికి దాని పేరు మార్చండి లేదా వద్దనుకుంటే తొలగించండి.</string>
+    <string name="path_action_data_kept_both_description">Butler \"%1$s\"కు రాయడం పూర్తి చేయలేకపోయింది. ఏదీ పోయలేదు: మునుపటి ఫైల్ అదే ఫోల్డర్‌లో \"%2$s\" పేరుతో, మీ కొత్త డేటా \"%3$s\" పేరుతో ఉన్నాయి. మీరు ఉంచాలనుకున్న దాని పేరు మార్చండి.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler \"%1$s\"కు రాయడం పూర్తి చేయలేకపోయింది. \"%2$s\" ఇంకా ఉందో లేదో కూడా తనిఖీ చేయలేకపోయింది. అసంపూర్తిగా ఉన్న కాపీ అదే ఫోల్డర్‌లో \"%3$s\" పేరుతో ఉండవచ్చు. ఏదైనా తొలగించే ముందు రెండింటినీ పోల్చి చూడండి.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler \"%1$s\"ను తరలించడం పూర్తి చేయలేకపోయింది. అది దాని ఫోల్డర్‌ నుంచి బయటకు తరలించబడిందో లేదో తెలియదు. మీ డేటా ఆ ఫోల్డర్‌లో \"%2$s\" పేరుతో ఉంది లేదా ఇప్పటికే \"%3$s\" వద్ద ఉంది. ఏదైనా తొలగించే ముందు రెండు చోట్లా తనిఖీ చేయండి.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler \"%1$s\"కు రాయడం పూర్తి చేయలేకపోయింది. మీ ఫైల్ చివరికి ఎక్కడ ఉందో తెలియదు. అది ఆ ఫోల్డర్‌లోని మూడు ఫైళ్లలో ఒకటి: \"%1$s\" ఫైల్, \"%2$s\" లేదా \"%3$s\". వాటిలో ఏదైనా తొలగించే ముందు మూడింటినీ తనిఖీ చేయండి.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler \"%1$s\"కు రాయడం పూర్తి చేయలేకపోయింది. మీ ఫైల్ చివరికి ఎక్కడ ఉందో తెలియదు. అది ఆ ఫోల్డర్‌లోని రెండు ఫైళ్లలో ఒకటి: \"%1$s\" ఫైల్ లేదా \"%2$s\". ఏదైనా తొలగించే ముందు రెండింటినీ తనిఖీ చేయండి.</string>
+
+    <string name="path_action_trash_size_limit_title">అంశాలు ట్రాష్‌కు చాలా పెద్దవి</string>
+    <string name="path_action_trash_size_limit_description">మొత్తం %2$s పరిమాణం ఉన్న %1$d అంశాలు ట్రాష్ పరిమాణ పరిమితిని (%3$s) మించుతున్నాయి.</string>
+
+    <string name="path_action_trash_move_failed_title">ట్రాష్‌కు తరలించడం విఫలమైంది</string>
+    <string name="path_action_trash_move_failed_description">%1$d అంశాలను ట్రాష్‌కు తరలించలేకపోయింది.</string>
+
+    <string name="path_action_trash_not_supported_title">ట్రాష్‌కు మద్దతు లేదు</string>
+    <string name="path_action_trash_not_supported_description">%1$d అంశాలు ట్రాష్‌కు మద్దతు లేని నిల్వలో ఉన్నాయి.</string>
+
+    <string name="path_action_archive_password_title">పాస్‌వర్డ్ అవసరం</string>
+    <string name="path_action_archive_password_description">\"%1$s\" ఎన్‌క్రిప్ట్ చేయబడింది. దానిలోని కంటెంట్‌ను చదవడానికి పాస్‌వర్డ్‌ను నమోదు చేయండి.</string>
+    <string name="path_action_archive_password_wrong_description">\"%1$s\" కోసం ఇచ్చిన పాస్‌వర్డ్ తప్పు. మళ్లీ ప్రయత్నించండి.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">సర్వర్‌ను చేరుకోలేము</string>
+    <string name="smb_error_unreachable_description">Butler \"%1$s\"ను చేరుకోలేకపోయింది. పరికరం అదే నెట్‌వర్క్‌లో ఉందో, సర్వర్ ఆన్‌లో ఉందో తనిఖీ చేయండి.</string>
+    <string name="smb_error_auth_title">సైన్ ఇన్ విఫలమైంది</string>
+    <string name="smb_error_auth_description">\"%1$s\" వినియోగదారు పేరు లేదా పాస్‌వర్డ్‌ను నిరాకరించింది.</string>
+    <string name="smb_error_share_access_denied_title">ఈ షేర్‌కు యాక్సెస్ లేదు</string>
+    <string name="smb_error_share_access_denied_description">ఈ ఖాతాకు \"%2$s\"లోని \"%1$s\"ను ఉపయోగించడానికి అనుమతి లేదు. సర్వర్‌లో షేర్ అనుమతులను తనిఖీ చేయండి.</string>
+    <string name="smb_error_share_not_found_title">షేర్ కనుగొనబడలేదు</string>
+    <string name="smb_error_share_not_found_description">\"%2$s\"లో \"%1$s\" లేదు.</string>
+    <string name="smb_error_dialect_title">సర్వర్ చాలా పాతది</string>
+    <string name="smb_error_dialect_description">\"%1$s\" SMB1ను మాత్రమే అందిస్తుంది. అది సురక్షితం కాదు, దానికి మద్దతు కూడా లేదు. సర్వర్‌లో SMB2 లేదా కొత్త వెర్షన్‌ను ఎనేబుల్ చేయండి.</string>
+    <string name="smb_error_credential_unavailable_title">సైన్ ఇన్ అవసరం</string>
+    <string name="smb_error_credential_unavailable_description">ఈ నెట్‌వర్క్ నిల్వ కోసం సేవ్ చేసిన పాస్‌వర్డ్‌ను ఇక చదవలేము. మళ్లీ కనెక్ట్ కావడానికి దాన్ని తిరిగి నమోదు చేయండి.</string>
+    <string name="smb_error_pro_required_title">నెట్‌వర్క్ షేర్‌లకు Butler Pro అవసరం</string>
+    <string name="smb_error_pro_required_description">నెట్‌వర్క్ షేర్‌లను బ్రౌజ్ చేయడం Butler Proలో భాగం. స్థానాలను జోడించడం, పరీక్షించడం, తీసివేయడం ఉచితం.</string>
+
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">రక్షిత యాప్ బండిల్</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" ఎన్‌క్రిప్ట్ చేయబడింది. దాన్ని సృష్టించిన యాప్ మాత్రమే దాన్ని ఇన్‌స్టాల్ చేయగలదు.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">APK సెట్ ఫార్మాట్‌కు మద్దతు లేదు</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" ఒక bundletool APK సెట్. దానిలోని ఏ వేరియంట్ ఈ పరికరానికి సరిపోతుందో Butler గుర్తించలేకపోతుంది.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">ఇన్‌స్టాల్ చేయడానికి యాప్ లేదు</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\"లో ఇన్‌స్టాల్ చేయగల APK ఏదీ లేదు.</string>
+
+    <string name="app_install_error_session_title">ఇన్‌స్టాలేషన్ విఫలమైంది</string>
+    <string name="app_install_error_session_description">సిస్టమ్ ఇన్‌స్టాలేషన్‌ను నిరాకరించింది: %1$s</string>
+
+    <string name="app_install_error_busy_title">మరో ఇన్‌స్టాలేషన్ జరుగుతోంది</string>
+    <string name="app_install_error_busy_description">\"%1$s\" ఇంకా ఇన్‌స్టాల్ అవుతోంది. మరో ఇన్‌స్టాలేషన్ ప్రారంభించే ముందు ఆ ఇన్‌స్టాలేషన్‌ను నిర్ధారించండి లేదా రద్దు చేయండి.</string>
+
+    <string name="app_install_error_no_elevation_title">అధిక అధికారాలతో యాక్సెస్ లేదు</string>
+    <string name="app_install_error_no_elevation_description">రూట్ లేదా ADB యాక్సెస్ ప్రస్తుతం అందుబాటులో లేదు.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">నిర్ధారణ అవసరం</string>
+    <string name="app_install_confirm_pending_description">\"%1$s\" ఇన్‌స్టాలేషన్‌ను పూర్తి చేయడానికి ముందుగా మీరు దాన్ని నిర్ధారించాలని Android కోరుతోంది.</string>
+    <string name="app_install_confirm_pending_description_unnamed">ఈ ఇన్‌స్టాలేషన్‌ను పూర్తి చేయడానికి ముందుగా మీరు దాన్ని నిర్ధారించాలని Android కోరుతోంది.</string>
+    <string name="app_install_confirm_pending_action">ఇన్‌స్టాలేషన్‌ను నిర్ధారించండి</string>
+    <string name="app_install_confirm_pending_reason">ఇన్‌స్టాలర్ మీ నిర్ధారణ కోసం వేచి ఉంది</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">నిర్ధారణ అవసరం</string>
+    <string name="app_uninstall_confirm_pending_description">\"%1$s\" తీసివేతను పూర్తి చేయడానికి ముందుగా మీరు దాన్ని నిర్ధారించాలని Android కోరుతోంది.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">ఈ తీసివేతను పూర్తి చేయడానికి ముందుగా మీరు దాన్ని నిర్ధారించాలని Android కోరుతోంది.</string>
+    <string name="app_uninstall_confirm_pending_action">తీసివేతను నిర్ధారించండి</string>
+    <string name="app_uninstall_confirm_pending_reason">Android మీ నిర్ధారణ కోసం వేచి ఉంది</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">మరో వినియోగదారు కోసం ఈ యాప్‌ను తీసివేయడానికి రూట్ లేదా ADB యాక్సెస్ అవసరం</string>
+    <string name="app_uninstall_no_result">Android ఫలితాన్ని తెలియజేయలేదు</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">ఫైల్ చర్యకు అంతరాయం కలిగింది</string>
+    <string name="service_connection_lost_error_message">ఫైల్ చర్యల సేవ అనుకోకుండా ఆగిపోయింది. దయచేసి మళ్లీ ప్రయత్నించండి.</string>
+</resources>

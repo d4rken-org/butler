@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Hlásenia chýb</string>
+    <string name="bugreport_workspace_subtitle">Hlásenia pádov a chýb</string>
+
+    <string name="bugreport_empty_title">Žiadne hlásenia</string>
+    <string name="bugreport_empty_subtitle">Tu sa zobrazia hlásenia pádov a chýb. Nič sa neodosiela automaticky.</string>
+
+    <string name="bugreport_type_crash">Pád</string>
+    <string name="bugreport_type_report">Hlásenie</string>
+    <string name="bugreport_type_recording">Záznam</string>
+
+    <string name="bugreport_record_action">Zaznamenávať denník ladenia</string>
+    <string name="bugreport_record_short_action">Zaznamenávať</string>
+    <string name="bugreport_stop_action">Zastaviť zaznamenávanie</string>
+    <string name="bugreport_stop_short_action">Zastaviť</string>
+    <string name="bugreport_recording_ongoing_label">Zaznamenávanie…</string>
+
+    <string name="bugreport_recording_short_title">Záznam je veľmi krátky</string>
+    <string name="bugreport_recording_short_message">Tento záznam trvá len niekoľko sekúnd a nemusí obsahovať užitočné informácie. Napriek tomu zastaviť zaznamenávanie?</string>
+    <string name="bugreport_recording_short_keep_action">Pokračovať v zaznamenávaní</string>
+
+    <string name="bugreport_rename_action">Premenovať</string>
+    <string name="bugreport_rename_dialog_title">Pomenuj toto hlásenie</string>
+    <string name="bugreport_rename_name_label">Názov</string>
+    <string name="bugreport_rename_name_hint">Zobrazuje sa v zozname a v názve zdieľaného súboru</string>
+
+    <string name="bugreport_share_action">Zdieľať</string>
+    <string name="bugreport_delete_action">Odstrániť</string>
+    <string name="bugreport_delete_all_action">Odstrániť všetko</string>
+    <string name="bugreport_delete_all_confirm_title">Odstrániť všetky denníky ladenia?</string>
+    <string name="bugreport_delete_all_confirm_message">Týmto sa natrvalo odstránia všetky relácie zaznamenávania denníka ladenia. Prebiehajúce zaznamenávanie zostane nedotknuté.</string>
+    <string name="bugreport_delete_confirm_title">Odstrániť toto hlásenie?</string>
+    <string name="bugreport_delete_confirm_message">Týmto sa natrvalo odstráni toto hlásenie aj jeho denník.</string>
+    <string name="bugreport_cancel_action">Zrušiť</string>
+
+    <string name="bugreport_share_chooser_title">Zdieľať hlásenie chyby</string>
+    <string name="bugreport_share_consent_title">Zdieľať hlásenie?</string>
+    <string name="bugreport_share_consent_message">Toto hlásenie obsahuje denníky aplikácie, ktoré môžu obsahovať názvy súborov, cesty a informácie o aplikácii a zariadení. Zdieľaj ho len s ľuďmi, ktorým dôveruješ.</string>
+
+    <string name="bugreport_detail_back_action">Späť</string>
+    <string name="bugreport_detail_section_error">Chyba</string>
+    <string name="bugreport_detail_section_log">Posledné záznamy denníka</string>
+    <string name="bugreport_detail_field_type">Typ</string>
+    <string name="bugreport_detail_field_time">Čas</string>
+    <string name="bugreport_detail_field_app_version">Verzia aplikácie</string>
+    <string name="bugreport_detail_field_device">Zariadenie</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Zostava</string>
+    <string name="bugreport_detail_field_error_class">Typ chyby</string>
+    <string name="bugreport_detail_field_thread">Vlákno</string>
+    <string name="bugreport_detail_log_truncated">posledné riadky: %1$d z %2$d</string>
+    <string name="bugreport_detail_log_count">Počet riadkov: %1$d</string>
+    <string name="bugreport_detail_log_empty">Denník nebol zaznamenaný</string>
+    <string name="bugreport_detail_log_error">Nepodarilo sa načítať denník</string>
+</resources>

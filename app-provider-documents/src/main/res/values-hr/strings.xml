@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Napredni pristup uređaju</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Uređaj</string>
+    <string name="documents_connection_device_summary">Lokalna pohrana uređaja</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Korijenski datotečni sustav</string>
+    <string name="provider_documents_storage_internal_label">Unutarnja pohrana</string>
+    <string name="provider_documents_storage_sd_card_label">SD kartica</string>
+    <string name="provider_documents_storage_saf_label">SAF lokacija</string>
+    <string name="provider_documents_storage_free_suffix">slobodno</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">Za pregledavanje ove lokacije potreban je root pristup. Omogući root pristup u postavkama aplikacije Butler.</string>
+    <string name="provider_documents_error_requires_adb">Za pregledavanje ove lokacije potreban je ADB pristup. Omogući ga pri postavljanju Butlera.</string>
+    <string name="provider_documents_error_requires_storage">Za pregledavanje ove lokacije potrebna je dozvola za pohranu. Dodijeli dozvolu za pohranu u postavkama aplikacije Butler.</string>
+    <string name="provider_documents_error_requires_permissions">Za pregledavanje ove lokacije potrebne su dodatne dozvole. Provjeri postavke aplikacije Butler.</string>
+    <string name="provider_documents_error_generic">Nije moguće pristupiti ovoj lokaciji. Provjeri mogućnosti pristupa u aplikaciji Butler.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Pružatelj dokumenata</string>
+    <string name="provider_documents_settings_subtitle">Integracija s vanjskim aplikacijama</string>
+    <string name="provider_documents_settings_category_integration_label">Integracija</string>
+    <string name="provider_documents_enabled_title">Omogući pružatelja dokumenata</string>
+    <string name="provider_documents_enabled_desc">Dopusti drugim aplikacijama pristup datotekama putem Butlera uz Androidov birač datoteka</string>
+</resources>

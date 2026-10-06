@@ -1,0 +1,685 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">கோப்பு உலாவி</string>
+    <string name="explorer_subtitle">கோப்புகளையும் கோப்புறைகளையும் உலாவுங்கள்</string>
+    <string name="explorer_settings_title">கோப்பு உலாவி அமைப்புகள்</string>
+    <string name="explorer_settings_file_display">கோப்புக் காட்சி</string>
+    <string name="explorer_settings_filter_regex_title">மேம்பட்ட வைல்ட்கார்டு பொருத்தம்</string>
+    <string name="explorer_settings_filter_regex_desc">சேர்க்கும்/விலக்கும் வடிகட்டிகளில் regex வடிவங்களைப் பயன்படுத்துங்கள்.</string>
+    <string name="explorer_settings_navigation">வழிசெலுத்தல்</string>
+    <string name="explorer_settings_back_button_title">பின் செல்லும் பொத்தான் வழிசெலுத்தல்</string>
+    <string name="explorer_settings_back_button_desc">பின் செல்லும் பொத்தான்/சைகை மூலம் வரலாற்றில் வழிசெல்லுங்கள்.</string>
+    <string name="explorer_settings_trash_category">குப்பைத்தொட்டி</string>
+    <string name="explorer_settings_trash_enabled_title">குப்பைத்தொட்டியை இயக்கு</string>
+    <string name="explorer_settings_trash_enabled_desc">நீக்கப்படும் கோப்புகளை நிரந்தரமாக நீக்குவதற்குப் பதிலாகக் குப்பைத்தொட்டிக்கு நகர்த்து</string>
+    <string name="explorer_settings_trash_auto_delete_title">இந்தக் காலத்திற்குப் பிறகு தானாக நீக்கு</string>
+    <string name="explorer_settings_trash_auto_delete_summary">குப்பைத்தொட்டியில் இவ்வளவு நேரம் இருந்த பிறகு உருப்படிகளைத் தானாக நீக்கு</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d நாட்கள்</string>
+    <string name="explorer_settings_trash_max_size_title">ஒவ்வொரு சேமிப்பகத்திற்கும் அதிகபட்ச அளவு</string>
+    <string name="explorer_settings_trash_max_size_summary">ஒவ்வொரு சேமிப்பக இருப்பிடத்திலும் குப்பைத்தொட்டி பயன்படுத்தக்கூடிய இடத்தின் அளவு</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">தானாக நீக்கும் கால அளவு</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">ஒவ்வொரு சேமிப்பகத்திற்கும் அதிகபட்ச அளவு</string>
+    <string name="explorer_settings_trash_enable_dialog_title">குப்பைத்தொட்டியை இயக்கவா?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">கணினிகளைப் போல Android இல் உள்ளமைந்த குப்பைத்தொட்டி இல்லை. Butler தனது தற்காலிகச் சேமிப்புக் கோப்புறையைப் பயன்படுத்தி ஒன்றை வழங்குகிறது.\n\nநினைவில் கொள்ளுங்கள்:\n• உருப்படிகள் நிரந்தரமாக நீக்கப்படும் வரை உங்கள் சாதனத்தின் சேமிப்பகக் காட்டி விடுவிக்கப்பட்ட இடத்தைக் காட்டாது\n• உங்கள் சாதனத்தில் சேமிப்பக இடம் குறைந்தால், Android செயலிகளின் தற்காலிகச் சேமிப்புகளை அழிக்கலாம்; இதனால் குப்பைத்தொட்டியில் உள்ள கோப்புகள் நீக்கப்படும்</string>
+    <string name="explorer_settings_trash_enable_action">இயக்கு</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">கோப்பு</string>
+    <string name="explorer_file_symlink_content_desc">குறியீட்டு இணைப்பு</string>
+    <string name="explorer_file_folder_content_desc">கோப்புறை</string>
+    <string name="explorer_file_peek_content_desc">கோப்புத் தகவலை ஏற்றுகிறது</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">குறுக்குவழி</string>
+    <string name="explorer_file_storage_local_label">உள்ளூர்</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">வாசிக்க மட்டும் அணுகல்</string>
+    <string name="explorer_file_storage_saf_write_only_label">எழுத மட்டும் அணுகல்</string>
+    <string name="explorer_file_storage_saf_no_access_label">அணுகல் இல்லை</string>
+    <string name="explorer_file_storage_saf_uri_label">SAF மர URI</string>
+    <string name="explorer_file_storage_size_format">%1$s • மொத்தம் %2$s • காலியிடம் %3$s</string>
+    <string name="explorer_file_broken_link_label">முறிந்த இணைப்பு</string>
+    <string name="explorer_file_items_count">%1$d உருப்படிகள்</string>
+    <string name="explorer_file_empty">காலி</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · பகுதியளவு</string>
+    <string name="explorer_sizes_estimate_description">Android சேமிப்பக மொத்த அளவுகளிலிருந்து மதிப்பிடப்பட்டது. வாசிக்க முடியாத கோப்புகளுக்கு, அவை பயன்படுத்தும் சேமிப்பக இடம் கோப்பின் அளவாக மதிப்பிடப்படுகிறது. Android நிர்வகிக்கும் மறைக்கப்பட்ட கோப்புகளும் இதில் இருக்கலாம். வாசிக்க முடியாத மற்ற இருப்பிடங்களின் அளவு தெரியாது.</string>
+    <string name="explorer_sizes_estimate_coverage">சேமிப்பகத்தின் மற்ற பகுதிகளை முழுமையாக அளவிட முடியாததால் Android/data அளவை மதிப்பிட முடியவில்லை.</string>
+    <string name="explorer_sizes_estimate_unavailable">Android சேமிப்பகப் புள்ளிவிவரங்கள் கிடைக்கவில்லை. அளவிடப்பட்ட அளவுகள் தொடர்ந்து காட்டப்படுகின்றன.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Android சேமிப்பக மொத்த அளவுகள் ஸ்கேன் முடிவுகளுடன் பொருந்தவில்லை. அளவிடப்பட்ட அளவுகள் தொடர்ந்து காட்டப்படுகின்றன.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">கோப்புறையைத் தேர்ந்தெடு</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="one">கோப்புறையைத் தேர்ந்தெடு (%d)</item>
+        <item quantity="other">கோப்புறைகளைத் தேர்ந்தெடு (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">கோப்பைத் தேர்ந்தெடு</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="one">கோப்பைத் தேர்ந்தெடு (%d)</item>
+        <item quantity="other">கோப்புகளைத் தேர்ந்தெடு (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="one">உருப்படியைத் தேர்ந்தெடு (%d)</item>
+        <item quantity="other">உருப்படிகளைத் தேர்ந்தெடு (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">இந்தக் கோப்புறையைத் தேர்ந்தெடு</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">%d ஐத் தேர்ந்தெடு</item>
+        <item quantity="other">%d ஐத் தேர்ந்தெடு</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">கோப்பைச் சேமி</string>
+    <string name="explorer_picker_save_here_action">இங்கே சேமி</string>
+    <string name="explorer_picker_save_as_filename_label">கோப்புப் பெயர்</string>
+    <string name="explorer_picker_save_as_filename_hint">கோப்புப் பெயரை உள்ளிடுங்கள்</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">புதுப்பி</string>
+    <string name="explorer_action_calculate_sizes">அளவுகளைக் கணக்கிடு</string>
+    <string name="explorer_action_sort">வரிசைப்படுத்து</string>
+    <string name="explorer_action_filter">வடிகட்டு</string>
+    <string name="explorer_action_view">தளவமைப்பு</string>
+    <string name="explorer_action_create">உருவாக்கு</string>
+    <string name="explorer_action_rename">மறுபெயரிடு</string>
+    <string name="explorer_action_copy">நகலெடு</string>
+    <string name="explorer_action_cut">வெட்டு</string>
+    <string name="explorer_action_delete">நீக்கு</string>
+    <string name="explorer_action_select_all">அனைத்தையும் தேர்ந்தெடு</string>
+    <string name="explorer_action_deselect_all">அனைத்துத் தேர்வுகளையும் நீக்கு</string>
+    <string name="explorer_action_compress">சுருக்கு</string>
+    <string name="explorer_action_extract">பிரித்தெடு</string>
+    <string name="explorer_action_add_location">இருப்பிடத்தைச் சேர்</string>
+    <string name="explorer_action_info">தகவல்</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">தகவல்</string>
+    <string name="explorer_info_name_label">பெயர்</string>
+    <string name="explorer_info_path_label">பாதை</string>
+    <string name="explorer_info_type_label">வகை</string>
+    <string name="explorer_info_type_file">கோப்பு</string>
+    <string name="explorer_info_type_directory">கோப்புறை</string>
+    <string name="explorer_info_size_label">அளவு</string>
+    <string name="explorer_info_modified_label">மாற்றப்பட்டது</string>
+    <string name="explorer_info_created_label">உருவாக்கப்பட்டது</string>
+    <string name="explorer_info_permissions_label">அனுமதிகள்</string>
+    <string name="explorer_info_owner_label">உரிமையாளர்</string>
+    <string name="explorer_info_child_count_label">உருப்படிகள்</string>
+    <string name="explorer_info_symlink_target_label">இலக்கு</string>
+    <string name="explorer_info_symlink_status_label">நிலை</string>
+    <string name="explorer_info_symlink_broken">முறிந்த இணைப்பு</string>
+    <string name="explorer_info_unknown">தெரியாதது</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">நீக்கப்பட்டது</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">அனுமதிகள்</string>
+    <string name="explorer_info_saf_granted_label">வழங்கப்பட்டது</string>
+    <string name="explorer_info_saf_permission_read">வாசித்தல்</string>
+    <string name="explorer_info_saf_permission_write">எழுதுதல்</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">சேவையகம்</string>
+    <string name="explorer_info_network_port_label">போர்ட்</string>
+    <string name="explorer_info_network_share_label">பகிர்வு</string>
+    <string name="explorer_info_network_folder_label">கோப்புறை</string>
+    <string name="explorer_info_network_address_label">முகவரி</string>
+    <string name="explorer_info_network_status_label">நிலை</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">உள்நுழைவு</string>
+    <string name="explorer_info_network_domain_label">டொமைன்</string>
+    <string name="explorer_info_network_password_label">கடவுச்சொல்</string>
+    <string name="explorer_info_network_password_show_action">கடவுச்சொல்லைக் காட்டு</string>
+    <string name="explorer_info_network_password_hide_action">கடவுச்சொல்லை மறை</string>
+    <string name="explorer_info_network_password_missing">கடவுச்சொல் இல்லை, மீண்டும் உள்நுழையுங்கள்</string>
+    <string name="explorer_info_network_password_locked">சேமிக்கப்பட்டுள்ளது, ஆனால் இந்தச் சாதனத்தால் அதன் பூட்டைத் திறக்க முடியாது</string>
+    <string name="explorer_info_network_added_label">சேர்க்கப்பட்டது</string>
+    <string name="explorer_info_network_updated_label">புதுப்பிக்கப்பட்டது</string>
+    <string name="explorer_info_network_last_seen_label">கடைசியாகக் காணப்பட்டது</string>
+    <string name="explorer_info_network_last_seen_never">இதுவரை இல்லை</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">தேர்ந்தெடுத்தவை</string>
+    <string name="explorer_info_files_label">கோப்புகள்</string>
+    <string name="explorer_info_directories_label">கோப்புறைகள்</string>
+    <string name="explorer_info_total_size_label">மொத்த அளவு</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">இருப்பிடங்கள்</string>
+    <string name="explorer_info_shortcuts_label">குறுக்குவழிகள்</string>
+    <string name="explorer_info_total_capacity_label">மொத்தக் கொள்ளளவு</string>
+    <string name="explorer_info_used_space_label">பயன்படுத்திய இடம்</string>
+    <string name="explorer_info_free_space_label">காலியிடம்</string>
+    <string name="explorer_info_usage_label">பயன்பாடு</string>
+    <string name="explorer_info_device_storage_total_label">சாதனச் சேமிப்பகம்</string>
+    <string name="explorer_info_device_storage_used_label">பயன்படுத்தியது</string>
+    <string name="explorer_info_device_storage_free_label">காலி</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">முகப்பு</string>
+    <string name="explorer_breadcrumb_set_as_home_action">முகப்பாக அமை</string>
+    <string name="explorer_breadcrumb_copy_path_action">பாதையை நகலெடு</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">பாதை கிளிப்போர்டுக்கு நகலெடுக்கப்பட்டது</string>
+    <string name="explorer_navigation_device">சாதனம்</string>
+    <string name="explorer_navigation_network">பிணையம்</string>
+    <string name="explorer_navigation_recent">சமீபத்தியவை</string>
+    <string name="explorer_navigation_recent_desc">இந்தச் சாதனத்தில் சமீபத்தில் தோன்றிய கோப்புகள்</string>
+    <string name="explorer_navigation_trash">குப்பைத்தொட்டி</string>
+    <string name="explorer_navigation_trash_desc">நீக்கப்பட்ட கோப்புகளை மீட்டெடு</string>
+    <string name="explorer_navigation_trash_nested_desc">குப்பைத்தொட்டியில் உள்ள கோப்புறைக்குள்</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">நீக்கப்பட்ட உருப்படிகள் இல்லை</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d உருப்படி</item>
+        <item quantity="other">%d உருப்படிகள்</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">மீட்டெடு</string>
+    <string name="explorer_trash_restore_selected_action">தேர்ந்தெடுத்தவற்றை மீட்டெடு</string>
+    <string name="explorer_trash_delete_permanently_action">நிரந்தரமாக நீக்கு</string>
+    <string name="explorer_trash_delete_selected_action">தேர்ந்தெடுத்தவற்றை நீக்கு</string>
+    <string name="explorer_trash_empty_trash_action">குப்பைத்தொட்டியைக் காலியாக்கு</string>
+    <string name="explorer_trash_empty_confirm">குப்பைத்தொட்டியைக் காலியாக்கவா?</string>
+    <string name="explorer_trash_empty_message">குப்பைத்தொட்டியில் உள்ள அனைத்து உருப்படிகளும் நிரந்தரமாக நீக்கப்படும். இந்தச் செயலைச் செயல்தவிர்க்க முடியாது.</string>
+    <string name="explorer_trash_empty_confirm_action">குப்பைத்தொட்டியைக் காலியாக்கு</string>
+    <string name="explorer_trash_restore_desc">அசல் இருப்பிடத்திற்கு மீட்டெடு</string>
+    <string name="explorer_trash_item_unavailable">உருப்படி கிடைக்கவில்லை</string>
+    <string name="explorer_trash_delete_warning">இந்தச் செயலைச் செயல்தவிர்க்க முடியாது</string>
+    <string name="explorer_trash_disabled_warning">குப்பைத்தொட்டி முடக்கப்பட்டுள்ளது</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">குப்பைத்தொட்டியில் உள்ள கோப்புறையின் உள்ளடக்கத்தை ஏற்றுகிறது…</string>
+    <string name="explorer_trash_nested_restore_action">அசல் இருப்பிடத்திற்கு மீட்டெடு</string>
+    <string name="explorer_trash_nested_delete_action">நிரந்தரமாக நீக்கு</string>
+    <string name="explorer_trash_nested_restore_conflict">அசல் இருப்பிடத்தில் கோப்பு ஏற்கெனவே உள்ளது</string>
+    <string name="explorer_trash_nested_parent_missing">தாய் உருப்படி இனி குப்பைத்தொட்டியில் இல்லை</string>
+    <string name="explorer_trash_nested_path_missing">பாதை இனி இல்லை</string>
+    <string name="explorer_trash_error_items_not_found">குப்பைத்தொட்டியில் உருப்படிகள் கிடைக்கவில்லை</string>
+    <string name="explorer_trash_error_restore_failed">உருப்படிகளை மீட்டெடுக்க முடியவில்லை</string>
+    <string name="explorer_trash_error_delete_failed">உருப்படிகளை நீக்க முடியவில்லை</string>
+    <string name="explorer_trash_nested_error_restore_failed">%1$s ஐ மீட்டெடுக்க முடியவில்லை</string>
+    <string name="explorer_trash_nested_error_delete_failed">%1$s ஐ நீக்க முடியவில்லை</string>
+
+    <string name="explorer_navigation_root">மூலக் கோப்புறை</string>
+    <string name="explorer_navigation_rom">அமைப்பு ROM</string>
+    <string name="explorer_navigation_internal_storage">உள் பொதுச் சேமிப்பகம்</string>
+    <string name="explorer_navigation_external_storage">வெளிப்புறப் பொதுச் சேமிப்பகம்</string>
+
+    <string name="explorer_loader_progress_directory_loading">%s ஐ உலாவுகிறது</string>
+    <string name="explorer_loader_progress_directory_permissions">அனுமதிகளைச் சரிபார்க்கிறது</string>
+    <string name="explorer_loader_progress_directory_filesystem">கோப்பு முறைமைத் தகவலைப் பெறுகிறது</string>
+    <string name="explorer_loader_progress_directory_content">கோப்புறையின் உள்ளடக்கத்தை ஏற்றுகிறது</string>
+    <string name="explorer_loader_progress_directory_content_details">உள்ளடக்க விவரங்களை ஏற்றுகிறது</string>
+    <string name="explorer_loader_progress_directory_content_extended">கூடுதல் உள்ளடக்க விவரங்களை ஏற்றுகிறது</string>
+
+    <string name="explorer_loader_progress_device_loading">சாதனத்தை ஏற்றுகிறது</string>
+    <string name="explorer_loader_progress_device_locations">சேமிப்பக இருப்பிடங்களை ஏற்றுகிறது</string>
+
+    <string name="explorer_loader_progress_network_loading">பிணையச் சேமிப்பகத்தை ஏற்றுகிறது</string>
+
+    <string name="explorer_loader_progress_home_loading">முகப்பை ஏற்றுகிறது</string>
+    <string name="explorer_loader_progress_trash_loading">குப்பைத்தொட்டியை ஏற்றுகிறது…</string>
+    <string name="explorer_loader_progress_recent_loading">சமீபத்திய கோப்புகளை ஏற்றுகிறது…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d குறுக்குவழி</item>
+        <item quantity="other">%d குறுக்குவழிகள்</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d இருப்பிடம்</item>
+        <item quantity="other">%d இருப்பிடங்கள்</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d மறைக்கப்பட்டது</item>
+        <item quantity="other">%d மறைக்கப்பட்டன</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s காலியிடம்</string>
+    <string name="explorer_infobar_loading">ஏற்றுகிறது…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">புதிய உருப்படியை உருவாக்கு</string>
+    <string name="explorer_dialog_rename_title">மறுபெயரிடு</string>
+    <string name="explorer_dialog_name_label">பெயர்</string>
+    <string name="explorer_dialog_type_label">வகை</string>
+    <string name="explorer_dialog_type_folder">கோப்புறை</string>
+    <string name="explorer_dialog_type_file">கோப்பு</string>
+    <string name="explorer_dialog_create_text_file_title">உரையிலிருந்து கோப்பை உருவாக்கு</string>
+    <string name="explorer_dialog_create_text_file_preview_label">முன்னோட்டம்</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d எழுத்துகள்</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">சேமிப்பக இருப்பிடத்தைச் சேர்</string>
+    <string name="explorer_add_device_storage_desc">USB இயக்கிகள், மெய்நிகர் செயலிக் கோப்புறைகள் போன்ற கூடுதல் சேமிப்பக இருப்பிடங்களை Butler அணுக அனுமதிக்க Storage Access Framework (SAF) ஐப் பயன்படுத்துங்கள்.</string>
+    <string name="explorer_add_device_storage_continue">தொடர்</string>
+    <string name="explorer_add_device_storage_cancel">ரத்துசெய்</string>
+    <string name="explorer_add_device_storage_suggestions_title">சேமிப்பகம் கொண்ட செயலிகள்</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">இந்தச் செயலியின் கோப்புறையைத் திறக்கும்</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">இருப்பிடத்தை அகற்று</string>
+    <string name="explorer_device_remove_confirmation_title">சேமிப்பக இருப்பிடத்தை அகற்றவா?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">%1$d சேமிப்பக இருப்பிடத்தை அகற்றவா?</item>
+        <item quantity="other">%1$d சேமிப்பக இருப்பிடங்களை அகற்றவா?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">இது இந்த இருப்பிடத்திற்கான Butler இன் அணுகல் அனுமதியைத் திரும்பப் பெறும். உங்கள் கோப்புகள் நீக்கப்படாது.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d பிணைய இருப்பிடம்</item>
+        <item quantity="other">%d பிணைய இருப்பிடங்கள்</item>
+    </plurals>
+    <string name="explorer_network_storage_label">பிணையம்</string>
+    <string name="explorer_network_add_location_action">பிணையச் சேமிப்பகத்தைச் சேர்</string>
+    <string name="explorer_network_edit_location_action">பிணையச் சேமிப்பகத்தைத் திருத்து</string>
+    <string name="explorer_network_remove_location_action">பிணையச் சேமிப்பகத்தை அகற்று</string>
+    <string name="explorer_network_sign_in_required_label">உள்நுழைவு தேவை</string>
+    <string name="explorer_network_status_checking_label">சரிபார்க்கிறது…</string>
+    <string name="explorer_network_status_available_label">கிடைக்கிறது</string>
+    <string name="explorer_network_status_unavailable_label">கிடைக்கவில்லை</string>
+    <string name="explorer_network_status_unavailable_since_format">கிடைக்கவில்லை (%1$s)</string>
+    <string name="explorer_network_empty_title">இன்னும் பிணையச் சேமிப்பகம் இல்லை</string>
+    <string name="explorer_network_empty_caption">Windows பகிர்வு அல்லது NAS கோப்புறையை இங்கே உலாவ அதைச் சேர்க்கவும்.</string>
+    <string name="explorer_network_form_pro_notice">இருப்பிடத்தைச் சேர்ப்பதும் சோதிப்பதும் இலவசம். அதை உலாவ Butler Pro தேவை.</string>
+    <string name="explorer_network_upgrade_hint_saved">சேமிக்கப்பட்டது. பிணையச் சேமிப்பகத்தை உலாவ Butler Pro தேவை.</string>
+    <string name="explorer_network_upgrade_hint_locked">பிணையச் சேமிப்பகத்தை உலாவ Butler Pro தேவை.</string>
+    <string name="explorer_network_remove_confirmation_title">பிணையச் சேமிப்பகத்தை அகற்றவா?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">%1$d பிணையச் சேமிப்பகத்தை அகற்றவா?</item>
+        <item quantity="other">%1$d பிணையச் சேமிப்பகங்களை அகற்றவா?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">சேவையக விவரங்களையும் சேமித்த கடவுச்சொல்லையும் Butler மறந்துவிடும். சேவையகத்தில் எதுவும் நீக்கப்படாது.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">பிணையச் சேமிப்பகத்தைச் சேர்</string>
+    <string name="explorer_network_form_edit_title">பிணையச் சேமிப்பகத்தைத் திருத்து</string>
+    <string name="explorer_network_form_label_label">பெயர் (விருப்பத்தேர்வு)</string>
+    <string name="explorer_network_form_host_label">சேவையக முகவரி</string>
+    <string name="explorer_network_form_host_hint">nas.local அல்லது 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">போர்ட்</string>
+    <string name="explorer_network_form_share_label">பகிர்வு</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">பகிர்வுக்குள் உள்ள கோப்புறை (விருப்பத்தேர்வு)</string>
+    <string name="explorer_network_form_auth_guest">விருந்தினர்</string>
+    <string name="explorer_network_form_auth_password">பயனர்பெயரும் கடவுச்சொல்லும்</string>
+    <string name="explorer_network_form_username_label">பயனர்பெயர்</string>
+    <string name="explorer_network_form_domain_label">டொமைன் (விருப்பத்தேர்வு)</string>
+    <string name="explorer_network_form_password_label">கடவுச்சொல்</string>
+    <string name="explorer_network_form_password_kept_hint">சேமித்த கடவுச்சொல்லை வைத்திருக்க காலியாக விடுங்கள்</string>
+    <string name="explorer_network_form_remember_label">கடவுச்சொல்லை நினைவில் கொள்</string>
+    <string name="explorer_network_form_remember_hint">இந்தச் சாதனத்தில் மட்டும் குறியாக்கம் செய்து சேமிக்கப்படும்</string>
+    <string name="explorer_network_form_test_and_save_action">சோதித்துச் சேமி</string>
+    <string name="explorer_network_form_testing">இணைக்கிறது…</string>
+    <string name="explorer_network_form_error_host_blank">சேவையக முகவரியை உள்ளிடுங்கள்</string>
+    <string name="explorer_network_form_error_host_not_bare">நெறிமுறை முன்னொட்டு அல்லது பாதை இல்லாமல் சேவையக முகவரியை மட்டும் உள்ளிடுங்கள்</string>
+    <string name="explorer_network_form_error_host_malformed">இது செல்லுபடியாகும் சேவையக முகவரி அல்ல</string>
+    <string name="explorer_network_form_error_port">1 முதல் 65535 வரையிலான போர்ட்டை உள்ளிடுங்கள்</string>
+    <string name="explorer_network_form_error_share_blank">பகிர்வுப் பெயரை உள்ளிடுங்கள்</string>
+    <string name="explorer_network_form_error_share_not_single">பகிர்வுப் பெயரை மட்டும் உள்ளிடுங்கள்; துணைக் கோப்புறைகளை கீழே குறிப்பிடுங்கள்</string>
+    <string name="explorer_network_form_error_share_malformed">இது செல்லுபடியாகும் பகிர்வுப் பெயர் அல்ல</string>
+    <string name="explorer_network_form_error_base_path">இந்தக் கோப்புறைப் பாதையைப் பயன்படுத்த முடியாது</string>
+    <string name="explorer_network_form_error_username_blank">பயனர்பெயரை உள்ளிடுங்கள்</string>
+    <string name="explorer_network_form_error_password_required">பயனர்பெயர் அல்லது டொமைனை மாற்ற கடவுச்சொல்லை மீண்டும் உள்ளிடுங்கள்</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">இருப்பிடத்திற்குப் பெயரிடு</string>
+    <string name="explorer_location_name_label">இருப்பிடப் பெயர்</string>
+    <string name="explorer_location_name_hint">இயல்புநிலைப் பெயரைப் பயன்படுத்த காலியாக விடுங்கள்</string>
+    <string name="explorer_location_rename_action">இருப்பிடத்திற்கு மறுபெயரிடு</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">கடந்த நாளில் சேர்க்கப்பட்டவை</item>
+        <item quantity="other">கடந்த %d நாட்களில் சேர்க்கப்பட்டவை</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">இங்கே புதிதாக எதுவும் இல்லை</string>
+    <string name="explorer_recent_empty_message">இந்தச் சாதனத்தில் தோன்றும் கோப்புகள் இங்கே காட்டப்படும்</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">இந்தக் கோப்புறை காலியாக உள்ளது</string>
+    <string name="explorer_empty_search_title">தேடல் முடிவுகள் இல்லை</string>
+    <string name="explorer_empty_search_caption">வேறு தேடல் சொல்லை முயற்சி செய்யுங்கள்</string>
+    <string name="explorer_empty_folder_label">காலிக் கோப்புறை</string>
+    <string name="explorer_empty_filtered_title">பொருந்தும் உருப்படிகள் இல்லை</string>
+    <string name="explorer_empty_filtered_caption">வடிகட்டிகளை மாற்றிப் பாருங்கள்</string>
+    <string name="explorer_empty_hidden_title">இங்கே மறைக்கப்பட்ட உருப்படிகள் மட்டுமே உள்ளன</string>
+    <string name="explorer_empty_hidden_caption">புள்ளியுடன் தொடங்கும் பெயர்களைக் கொண்ட உருப்படிகளை இந்தத் தாவல் மறைக்கிறது</string>
+    <string name="explorer_empty_show_hidden_action">மறைக்கப்பட்ட உருப்படிகளைக் காட்டு</string>
+    <string name="explorer_empty_hidden_or_filtered_title">காட்டுவதற்கு எதுவும் மீதமில்லை</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">மறைக்கப்பட்ட உருப்படிகளும் உங்கள் வடிகட்டிகளும் இந்தக் கோப்புறையின் தலா ஒரு பகுதியை விலக்குகின்றன</string>
+    <string name="explorer_empty_clear_filters_action">வடிகட்டிகளை அழி</string>
+    <string name="explorer_empty_hidden_and_filtered_title">மறைக்கப்பட்ட உருப்படிகளும் வடிகட்டிகளும் இங்குள்ள அனைத்தையும் விலக்குகின்றன</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">மறைக்கப்பட்ட உருப்படிகளைக் காட்டி, இந்தத் தாவலின் வடிகட்டிகளை அழித்தால் அவை மீண்டும் தெரியும்</string>
+    <string name="explorer_empty_show_all_action">அனைத்து உருப்படிகளையும் காட்டு</string>
+    <string name="explorer_path_not_found_title">இந்தக் கோப்புறை இனி இல்லை</string>
+    <string name="explorer_path_not_found_caption">இது நீக்கப்பட்டது, மறுபெயரிடப்பட்டது அல்லது வேறொரு இடத்திற்கு நகர்த்தப்பட்டது.</string>
+    <string name="explorer_path_not_found_back_action">பின் செல்</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">ஏற்றுகிறது…</string>
+    <string name="explorer_file_peek_loading_text">ஏற்றுகிறது…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">இங்கே பார்க்க எதுவுமில்லை… அடுத்த இடத்திற்குச் செல்லுங்கள் 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">இந்தக் கோப்புறை உணவுக் கட்டுப்பாட்டில் உள்ளது</string>
+    <string name="explorer_empty_folder_caption_3">கோப்புகள்கூட இன்று சீக்கிரமே வீட்டிற்குச் சென்றுவிட்டன</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe வேலை செய்வதை நிறுத்திவிட்டது</string>
+    <string name="explorer_empty_folder_caption_5">கோப்புகள் கண்ணாமூச்சி விளையாடுகின்றன</string>
+    <string name="explorer_empty_folder_caption_6">404: கோப்புகள் கிடைக்கவில்லை</string>
+    <string name="explorer_empty_folder_caption_7">இந்தக் கோப்புறை யாரையும் நம்பத் தயங்குகிறது</string>
+    <string name="explorer_empty_folder_caption_8">கோப்புகள் சொல்லாமல் விடுமுறைக்குச் சென்றுவிட்டன</string>
+    <string name="explorer_empty_folder_caption_9">என் ஆன்மாவைப் போல காலி… ஆனால் இன்னும் ஒழுங்காக</string>
+    <string name="explorer_empty_folder_caption_10">காற்றில் தூசி மட்டுமே பறக்கும் வெறிச்சோடிய இடத்தின் டிஜிட்டல் வடிவம்</string>
+    <string name="explorer_empty_folder_caption_11">கோப்புகள் சமூக இடைவெளியைக் கடைப்பிடிக்கின்றன</string>
+    <string name="explorer_empty_folder_caption_12">இந்தக் கோப்புறை குறைவானதே போதும் என வாழ்கிறது</string>
+    <string name="explorer_empty_folder_caption_13">கோப்புகளுக்கு உணவளிக்க யாரோ மறந்துவிட்டார்கள்</string>
+    <string name="explorer_empty_folder_caption_14">கோப்புகள் கட்டிடத்தை விட்டு வெளியேறிவிட்டன</string>
+    <string name="explorer_empty_folder_caption_15">அரசியல்வாதியின் வாக்குறுதியைவிட வெறுமையானது</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">வரிசைப்படுத்தும் அடிப்படை</string>
+    <string name="explorer_sort_mode_name_label">பெயர்</string>
+    <string name="explorer_sort_mode_size_label">அளவு</string>
+    <string name="explorer_sort_mode_modified_label">மாற்றிய தேதி</string>
+    <string name="explorer_sort_mode_created_label">உருவாக்கிய தேதி</string>
+    <string name="explorer_sort_descending_label">இறங்கு வரிசை</string>
+    <string name="explorer_sort_scope_label">பயன்படுத்தும் இடம்</string>
+    <string name="explorer_sort_scope_all_folders">அனைத்துக் கோப்புறைகள்</string>
+    <string name="explorer_sort_scope_this_folder">இந்தக் கோப்புறை</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">இந்தக் கோப்புறையும் துணைக் கோப்புறைகளும்</string>
+    <string name="explorer_sort_scope_use_default_here">இங்கே இயல்புநிலையைப் பயன்படுத்து</string>
+    <string name="explorer_sort_only_this_tab_label">இந்தத் தாவலுக்கு மட்டும்</string>
+    <string name="explorer_sort_inherited_notice">%1$s க்குச் சேமித்த விதிப்படி வரிசைப்படுத்தப்பட்டது</string>
+    <string name="explorer_sort_suppressed_notice">இது %1$s க்குச் சேமித்த விதிக்குப் பதிலாகப் பயன்படுத்தப்படும்</string>
+    <string name="explorer_sort_tab_overrides_default_notice">இந்தத் தாவல் தனது சொந்த இயல்புநிலை வரிசையைப் பயன்படுத்துகிறது</string>
+    <string name="explorer_sort_tab_overrides_clear_action">அழி</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">கோப்புறை அளவுகள்</string>
+    <string name="explorer_sizes_sheet_label_calculated">கணக்கிடப்பட்டது</string>
+    <string name="explorer_sizes_sheet_label_folders">கோப்புறைகள்</string>
+    <string name="explorer_sizes_sheet_label_unreadable">வாசிக்க முடியாத இருப்பிடங்கள்</string>
+    <string name="explorer_sizes_sheet_problems_more">மேலும் %1$d பட்டியலிடப்படவில்லை</string>
+    <string name="explorer_sizes_sheet_recalculate">மீண்டும் கணக்கிடு</string>
+    <string name="explorer_sizes_sheet_discard">அளவுகளைக் கைவிடு</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">உருப்படிகள் எவ்வாறு அடுக்கப்படுகின்றன, எவ்வளவு விவரங்களைக் காட்டுகின்றன</string>
+    <string name="explorer_view_mode_list_label">பட்டியல்</string>
+    <string name="explorer_view_mode_grid_label">கட்டம்</string>
+    <string name="explorer_view_density_compact_label">நெருக்கமானது</string>
+    <string name="explorer_view_density_comfortable_label">வசதியானது</string>
+    <string name="explorer_view_density_detailed_label">விரிவானது</string>
+    <string name="explorer_view_show_hidden_label">மறைக்கப்பட்ட கோப்புகளைக் காட்டு</string>
+    <string name="explorer_view_set_default_action">இயல்புநிலையாக அமை</string>
+    <string name="explorer_view_detail_created_label">உருவாக்கப்பட்டது</string>
+    <string name="explorer_view_detail_modified_label">மாற்றப்பட்டது</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">கோப்புறை வரிசைப்படுத்தல் விதிகள்</string>
+    <string name="explorer_settings_folder_sort_rules_desc">தனித்தனிக் கோப்புறைகளுக்குச் சேமித்த வரிசைப்படுத்தல் அமைப்புகள்</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">கோப்புறை வரிசைப்படுத்தல் விதிகளை அழிக்கவா?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">அனைத்துக் கோப்புறைகளும் இயல்புநிலை வரிசைக்குத் திரும்பும். சொந்த வரிசைப்படுத்தல் மாற்றத்தைக் கொண்ட தாவல்கள் அதை வைத்திருக்கும். இந்தச் செயலைச் செயல்தவிர்க்க முடியாது.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">அனைத்தையும் அழி</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">கோப்பு வகை</string>
+    <string name="explorer_filter_type_all">அனைத்தும்</string>
+    <string name="explorer_filter_type_files">கோப்புகள் மட்டும்</string>
+    <string name="explorer_filter_type_folders">கோப்புறைகள் மட்டும்</string>
+    <string name="explorer_filter_include_label">சேர்க்கும் வடிவம்</string>
+    <string name="explorer_filter_include_placeholder_simple">எ.கா., vacation, report, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">எ.கா., .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">விலக்கும் வடிவம்</string>
+    <string name="explorer_filter_exclude_placeholder_simple">எ.கா., tmp, cache, old</string>
+    <string name="explorer_filter_exclude_placeholder_regex">எ.கா., ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 அமைப்புகளில் regex வடிவங்களை இயக்குங்கள்</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">அனுமதி தேவை</string>
+    <string name="explorer_permission_generic_description">இந்த இருப்பிடத்தை உலாவ Butler க்குக் கூடுதல் அனுமதி தேவை.</string>
+    <string name="explorer_permission_setup_action">அமைவாக்கத்தைத் திற</string>
+    <string name="explorer_grant_access_action">அணுகலை வழங்கு</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">செயல்கள்</string>
+    <string name="explorer_file_info_type_label">வகை</string>
+    <string name="explorer_file_info_size_label">அளவு</string>
+    <string name="explorer_file_info_modified_label">மாற்றப்பட்டது</string>
+    <string name="explorer_file_action_install">நிறுவு</string>
+    <string name="explorer_file_action_install_subtitle">இந்தச் செயலியை உங்கள் சாதனத்தில் நிறுவுங்கள்</string>
+    <string name="explorer_file_action_open">திற</string>
+    <string name="explorer_file_action_open_subtitle">இங்கே பார்க்கலாம்; பின் சென்றால் இந்தக் கோப்புறைக்குத் திரும்பலாம்</string>
+    <string name="explorer_file_action_open_in_tab">புதிய தாவலில் திற</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Butler இல் தனித் தாவலாகப் பார்க்கலாம்</string>
+    <string name="explorer_file_action_open_in_editor">திருத்தியில் திற</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">புதிய தாவலில் திருத்தலாம்</string>
+    <string name="explorer_file_action_open_with">இதன் மூலம் திற</string>
+    <string name="explorer_file_action_open_with_subtitle">திறப்பதற்கு வெளிப்புறச் செயலியைத் தேர்ந்தெடுங்கள்</string>
+    <string name="explorer_file_action_share">பகிர்</string>
+    <string name="explorer_file_action_share_subtitle">நிறுவப்பட்ட செயலிகள் மூலம் பகிரலாம்</string>
+    <string name="explorer_file_action_copy">நகலெடு</string>
+    <string name="explorer_file_action_copy_subtitle">ஒட்டுவதற்காக கிளிப்போர்டுக்கு நகலெடு</string>
+    <string name="explorer_file_action_cut">வெட்டு</string>
+    <string name="explorer_file_action_cut_subtitle">ஒட்டுவதற்காக கிளிப்போர்டுக்கு நகர்த்து</string>
+    <string name="explorer_file_action_rename">மறுபெயரிடு</string>
+    <string name="explorer_file_action_rename_subtitle">கோப்புப் பெயரை மாற்று</string>
+    <string name="explorer_file_action_delete">நீக்கு</string>
+    <string name="explorer_file_action_delete_subtitle">இந்தக் கோப்பை நிரந்தரமாக நீக்கு</string>
+    <string name="explorer_file_action_move_to_trash">குப்பைத்தொட்டிக்கு நகர்த்து</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">கோப்பைக் குப்பைத்தொட்டிக்கு நகர்த்து</string>
+    <string name="explorer_file_action_properties">பண்புகள்</string>
+    <string name="explorer_file_action_properties_subtitle">விரிவான கோப்புத் தகவலைப் பார்</string>
+    <string name="explorer_file_action_extract">பிரித்தெடு</string>
+    <string name="explorer_file_action_extract_subtitle">காப்பகத்தின் உள்ளடக்கங்களைக் கோப்புறைக்குப் பிரித்தெடு</string>
+    <string name="explorer_file_action_show_in_folder">கோப்புறையில் காட்டு</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">இந்தக் கோப்பு உள்ள கோப்புறையைத் திற</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">%d கோப்பு உருவாக்கப்பட்டது.</item>
+        <item quantity="other">%d கோப்புகள் உருவாக்கப்பட்டன.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">%d கோப்புறை உருவாக்கப்பட்டது.</item>
+        <item quantity="other">%d கோப்புறைகள் உருவாக்கப்பட்டன.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">நகலெடுக்கும் செயல்பாடு</string>
+    <string name="explorer_operation_copy_description_single">\"%2$s\" இலிருந்து \"%1$s\" ஐ \"%3$s\" க்கு நகலெடு.</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">%1$d உருப்படியை \"%2$s\" க்கு நகலெடு.</item>
+        <item quantity="other">%1$d உருப்படிகளை \"%2$s\" க்கு நகலெடு.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">%d கோப்பு நகலெடுக்கப்பட்டது.</item>
+        <item quantity="other">%d கோப்புகள் நகலெடுக்கப்பட்டன.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">%d கோப்புறை நகலெடுக்கப்பட்டது.</item>
+        <item quantity="other">%d கோப்புறைகள் நகலெடுக்கப்பட்டன.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">%s நகலெடுக்கப்பட்டது.</item>
+        <item quantity="other">%s நகலெடுக்கப்பட்டது.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">பிரித்தெடுக்கும் செயல்பாடு</string>
+    <string name="explorer_operation_extract_description">\"%1$s\" ஐ \"%2$s\" க்குப் பிரித்தெடு.</string>
+    <string name="explorer_operation_download_copy_title">உள்ளூர் நகலெடுக்கும் செயல்பாடு</string>
+    <string name="explorer_operation_download_copy_description">உள்ளூரில் உலாவ \"%1$s\" ஐ \"%2$s\" க்கு நகலெடு.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">%d கோப்பு பிரித்தெடுக்கப்பட்டது.</item>
+        <item quantity="other">%d கோப்புகள் பிரித்தெடுக்கப்பட்டன.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">%s பிரித்தெடுக்கப்பட்டது.</item>
+        <item quantity="other">%s பிரித்தெடுக்கப்பட்டது.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">சுருக்கும் செயல்பாடு</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">%1$d உருப்படியை \"%2$s\" ஆகச் சுருக்கு.</item>
+        <item quantity="other">%1$d உருப்படிகளை \"%2$s\" ஆகச் சுருக்கு.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">%d கோப்பு சுருக்கப்பட்டது.</item>
+        <item quantity="other">%d கோப்புகள் சுருக்கப்பட்டன.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">காப்பகத்தை உருவாக்கு</string>
+    <string name="explorer_compress_dialog_name_label">காப்பகப் பெயர்</string>
+    <string name="explorer_compress_dialog_format_label">வடிவம்</string>
+    <string name="explorer_compress_dialog_format_zip_hint">எந்தச் சாதனத்திலும் திறக்கலாம். கடவுச்சொல் மூலம் பாதுகாக்கலாம்.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">பல கோப்புகளுக்கு அளவு குறைவாக இருக்கும். கடவுச்சொல் பாதுகாப்பு இல்லை.</string>
+    <string name="explorer_compress_dialog_create_action">உருவாக்கு</string>
+    <string name="explorer_compress_dialog_level_label">சுருக்க நிலை</string>
+    <string name="explorer_compress_dialog_level_fast">வேகமானது</string>
+    <string name="explorer_compress_dialog_level_normal">வழக்கமானது</string>
+    <string name="explorer_compress_dialog_level_best">சிறந்தது</string>
+    <string name="explorer_compress_dialog_password_label">கடவுச்சொல் (விருப்பத்தேர்வு)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">கடவுச்சொல்லை உறுதிசெய்</string>
+    <string name="explorer_compress_dialog_password_mismatch">கடவுச்சொற்கள் பொருந்தவில்லை</string>
+    <string name="explorer_compress_dialog_password_weak">பலவீனமான கடவுச்சொல்</string>
+    <string name="explorer_compress_dialog_password_notice">கோப்புகளின் உள்ளடக்கங்கள் குறியாக்கம் செய்யப்படும்; கோப்புப் பெயர்கள் குறியாக்கம் செய்யப்படாது.</string>
+    <string name="explorer_compress_dialog_password_show">கடவுச்சொல்லைக் காட்டு</string>
+    <string name="explorer_compress_dialog_password_hide">கடவுச்சொல்லை மறை</string>
+    <string name="explorer_compress_dialog_overwrite_title">காப்பகத்தை மாற்றீடு செய்யவா?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" ஏற்கெனவே உள்ளது; அது மாற்றீடு செய்யப்படும்.</string>
+    <string name="explorer_compress_dialog_overwrite_action">மாற்றீடு செய்</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">%1$d உருப்படியை இங்கே விடவா?</item>
+        <item quantity="other">%1$d உருப்படிகளை இங்கே விடவா?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">%1$d உருப்படியை \"%2$s\" க்கு நகலெடுக்கவா அல்லது நகர்த்தவா?</item>
+        <item quantity="other">%1$d உருப்படிகளை \"%2$s\" க்கு நகலெடுக்கவா அல்லது நகர்த்தவா?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">%1$d உருப்படியை \"%2$s\" க்கு நகலெடுக்கவா?</item>
+        <item quantity="other">%1$d உருப்படிகளை \"%2$s\" க்கு நகலெடுக்கவா?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">குப்பைத்தொட்டிக்கு நகர்த்தவா?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">%1$d உருப்படியைக் குப்பைத்தொட்டிக்கு நகர்த்தவா?</item>
+        <item quantity="other">%1$d உருப்படிகளைக் குப்பைத்தொட்டிக்கு நகர்த்தவா?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">நகர்த்தும் செயல்பாடு</string>
+    <string name="explorer_operation_move_description_single">\"%2$s\" இலிருந்து \"%1$s\" ஐ \"%3$s\" க்கு நகர்த்து.</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">%1$d உருப்படியை \"%2$s\" க்கு நகர்த்து.</item>
+        <item quantity="other">%1$d உருப்படிகளை \"%2$s\" க்கு நகர்த்து.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">%d கோப்பு நகர்த்தப்பட்டது.</item>
+        <item quantity="other">%d கோப்புகள் நகர்த்தப்பட்டன.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">%d கோப்புறை நகர்த்தப்பட்டது.</item>
+        <item quantity="other">%d கோப்புறைகள் நகர்த்தப்பட்டன.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">%s நகர்த்தப்பட்டது.</item>
+        <item quantity="other">%s நகர்த்தப்பட்டது.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">கோப்புறை உருவாக்கம்</string>
+    <string name="explorer_operation_create_description_directory">\"%2$s\" இல் \"%1$s\" கோப்புறையை உருவாக்கு</string>
+    <string name="explorer_operation_create_title_file">கோப்பு உருவாக்கம்</string>
+    <string name="explorer_operation_create_description_file">\"%2$s\" இல் \"%1$s\" கோப்பை உருவாக்கு</string>
+    <string name="explorer_operation_create_text_file_title">உரைக் கோப்பு உருவாக்கம்</string>
+    <string name="explorer_operation_create_text_file_description">உரைத் துணுக்கிலிருந்து \"%1$s\" ஐ உருவாக்கு</string>
+    <string name="explorer_operation_calculate_sizes_title">அளவுக் கணக்கீடு</string>
+    <string name="explorer_operation_calculate_sizes_description">\"%1$s\" இல் உள்ள கோப்புறைகளின் அளவுகளைக் கணக்கிடு.</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">%1$d உருப்படி ஸ்கேன் செய்யப்பட்டது</item>
+        <item quantity="other">%1$d உருப்படிகள் ஸ்கேன் செய்யப்பட்டன</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">%1$d கோப்புறைகளின் அளவுகள் கணக்கிடப்பட்டன.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">%1$d கோப்புறைகளின் அளவுகள் கணக்கிடப்பட்டன; %2$d இருப்பிடத்தை வாசிக்க முடியவில்லை.</item>
+        <item quantity="other">%1$d கோப்புறைகளின் அளவுகள் கணக்கிடப்பட்டன; %2$d இருப்பிடங்களை வாசிக்க முடியவில்லை.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">கணக்கிடும்போது \"%1$s\" மாறியதால் அதன் கோப்புறை அளவுகள் கைவிடப்பட்டன.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">வழிசெலுத்தல் தோல்வியடைந்தது</string>
+    <string name="explorer_aborted_dialog_title">செயல்பாடு நிறுத்தப்பட்டது</string>
+    <string name="explorer_aborted_dialog_message">எதையும் காட்டுவதற்கு முன்பே ஏற்றுதல் ரத்துசெய்யப்பட்டது.</string>
+    <string name="explorer_archive_unbrowsable_title">காப்பகத்தை இங்கே உலாவ முடியாது</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" இருக்கும் சேமிப்பகம் வரிசையாக வாசிப்பதை மட்டுமே ஆதரிக்கிறது; ஆனால் காப்பகத்தை உலாவ எந்த இடத்தையும் நேரடியாக அணுகும் வசதி தேவை. காப்பகத்தை இங்கே பிரித்தெடுக்கவும் அல்லது அதை உலாவ உள்ளூர் நகலைப் பதிவிறக்கவும்.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">காப்பகத்தைப் பிரித்தெடு</string>
+    <string name="explorer_archive_unbrowsable_download_action">உள்ளூர் நகலைப் பதிவிறக்கு</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (சிறப்பு அணுகல்)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (சிறப்பு அணுகல்)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">இந்தக் கோப்புறைக்கான அணுகலை Android கட்டுப்படுத்துகிறது. அணுகலை வழங்க கோப்புறைத் தேர்வியைப் பயன்படுத்துங்கள்.</string>
+    <string name="explorer_permission_multiple_options_description">Android இன் கோப்புறைத் தேர்வியைப் பயன்படுத்தி அணுகலை வழங்கலாம் அல்லது கட்டுப்படுத்தப்பட்ட அனைத்துக் கோப்புறைகளையும் வேகமாக அணுக Root அல்லது ADB அணுகலை அமைக்கலாம்.</string>
+    <string name="explorer_permission_multiple_options_root_description">Android இன் கோப்புறைத் தேர்வியைப் பயன்படுத்தி அணுகலை வழங்கலாம் அல்லது கட்டுப்படுத்தப்பட்ட அனைத்துக் கோப்புறைகளையும் அணுக Root ஐ அமைக்கலாம்.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Android இன் கோப்புறைத் தேர்வியைப் பயன்படுத்தி அணுகலை வழங்கலாம் அல்லது கட்டுப்படுத்தப்பட்ட கோப்புறைகளை வேகமாக அணுக ADB அணுகலை அமைக்கலாம்.</string>
+    <string name="explorer_permission_setup_both_description">இந்தக் கோப்புறைக்கு உயர்நிலை அணுகல் தேவை. அமைவாக்கத்தில் Root அல்லது ADB அணுகலை அமைக்கவும்.</string>
+    <string name="explorer_permission_setup_shizuku_description">இந்தக் கோப்புறைக்கு ADB மூலம் உயர்நிலை அணுகல் தேவை. அமைவாக்கத்தில் ADB அணுகலை அமைக்கவும்.</string>
+    <string name="explorer_permission_setup_root_description">இந்தக் கோப்புறைக்கு Root அணுகல் தேவை. உங்கள் சாதனம் ரூட் செய்யப்பட்டிருந்தால் அமைவாக்கத்தில் Root ஐ அமைக்கவும்.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">இந்தக் கோப்புறைக்கான அணுகலை வழங்க Android இன் கோப்புறைத் தேர்வியைப் பயன்படுத்துங்கள்.</string>
+    <string name="explorer_permission_option_picker_action">SAF தேர்வியைத் திற</string>
+
+    <string name="explorer_permission_option_setup_title">முழு அணுகல்</string>
+    <string name="explorer_permission_option_setup_description">கட்டுப்படுத்தப்பட்ட அனைத்துக் கோப்புறைகளையும் வேகமாக அணுக Root அல்லது ADB அணுகலை அமைக்கவும்.</string>
+    <string name="explorer_permission_option_setup_root_description">இந்தக் கோப்புறையையும் மற்ற கட்டுப்படுத்தப்பட்ட கோப்புறைகளையும் அணுக Root ஐ அமைக்கவும்.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">இந்தக் கோப்புறையைத் திறக்க ADB அணுகலை அமைக்கவும்.</string>
+    <string name="explorer_permission_option_setup_action">அமை</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">சேமிப்பக அணுகல்</string>
+    <string name="explorer_permission_option_storage_description">உங்கள் சாதனச் சேமிப்பகத்தில் உள்ள கோப்புகளை அணுக Butler க்கு அனுமதி வழங்குங்கள்.</string>
+    <string name="explorer_permission_option_storage_action">அனுமதி வழங்கு</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">பிடித்தவை</string>
+    <string name="explorer_action_add_to_favorites">பிடித்தவற்றில் சேர்</string>
+    <string name="explorer_action_remove_from_favorites">பிடித்தவற்றிலிருந்து அகற்று</string>
+    <string name="explorer_favorites_select_action">தேர்ந்தெடு</string>
+    <string name="explorer_favorites_unavailable_subtitle">அணுக முடியவில்லை</string>
+    <string name="explorer_favorites_unavailable_toast">பிடித்த உருப்படியை அணுக முடியவில்லை</string>
+    <string name="explorer_favorites_added_message">%1$s பிடித்தவற்றில் சேர்க்கப்பட்டது</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">%1$d உருப்படி பிடித்தவற்றில் சேர்க்கப்பட்டது</item>
+        <item quantity="other">%1$d உருப்படிகள் பிடித்தவற்றில் சேர்க்கப்பட்டன</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">%1$s பிடித்தவற்றிலிருந்து அகற்றப்பட்டது</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">%1$d உருப்படி பிடித்தவற்றிலிருந்து அகற்றப்பட்டது</item>
+        <item quantity="other">%1$d உருப்படிகள் பிடித்தவற்றிலிருந்து அகற்றப்பட்டன</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">பிடித்த உருப்படிக்கு மறுபெயரிடு</string>
+    <string name="explorer_favorites_rename_hint">பிடித்த உருப்படியின் பெயர்</string>
+    <string name="explorer_favorites_rename_description">பிடித்தவற்றில் உள்ள பதிவு மட்டுமே மறுபெயரிடப்படும்; கோப்புறை தனது பெயரை வைத்திருக்கும்.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">இந்தத் தாவல் %1$d கோப்புறையின் வரிசைக்குப் பதிலாகத் தனது வரிசையைப் பயன்படுத்துகிறது</item>
+        <item quantity="other">இந்தத் தாவல் %1$d கோப்புறைகளின் வரிசைக்குப் பதிலாகத் தனது வரிசையைப் பயன்படுத்துகிறது</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d கோப்புறை</item>
+        <item quantity="other">%1$d கோப்புறைகள்</item>
+    </plurals>
+</resources>

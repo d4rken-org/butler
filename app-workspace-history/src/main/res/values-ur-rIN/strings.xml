@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">سرگزشت</string>
+    <string name="history_workspace_subtitle">فائلوں پر حالیہ کارروائیاں</string>
+    <string name="history_workspace_title_scoped">سرگزشت: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">سرگزشت: ناکام</string>
+    <string name="history_workspace_title_outcome_partial">سرگزشت: جزوی</string>
+    <string name="history_workspace_title_outcome_cancelled">سرگزشت: منسوخ</string>
+    <string name="history_workspace_title_outcome_completed">سرگزشت: مکمل</string>
+    <string name="history_workspace_title_kind_copy">سرگزشت: کاپی</string>
+    <string name="history_workspace_title_kind_move">سرگزشت: منتقلی</string>
+    <string name="history_workspace_title_kind_delete">سرگزشت: حذف</string>
+    <string name="history_workspace_title_kind_create_file">سرگزشت: فائل بنانا</string>
+    <string name="history_workspace_title_kind_create_folder">سرگزشت: فولڈر بنانا</string>
+    <string name="history_workspace_title_kind_save">سرگزشت: محفوظ کرنا</string>
+    <string name="history_workspace_title_kind_compress">سرگزشت: کمپریس کرنا</string>
+    <string name="history_workspace_title_kind_extract">سرگزشت: نکالنا</string>
+    <string name="history_workspace_title_filtered">سرگزشت (فلٹر شدہ)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">سرگزشت: %1$d راستہ</item>
+        <item quantity="other">سرگزشت: %1$d راستے</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">تمام</string>
+    <string name="history_filter_outcome_completed">مکمل</string>
+    <string name="history_filter_outcome_partial">جزوی</string>
+    <string name="history_filter_outcome_failed">ناکام</string>
+    <string name="history_filter_outcome_cancelled">منسوخ</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">کاپی</string>
+    <string name="history_filter_kind_move">منتقلی</string>
+    <string name="history_filter_kind_delete">حذف</string>
+    <string name="history_filter_kind_create_file">فائل بنانا</string>
+    <string name="history_filter_kind_create_folder">فولڈر بنانا</string>
+    <string name="history_filter_kind_save">محفوظ کرنا</string>
+    <string name="history_filter_kind_compress">کمپریس کرنا</string>
+    <string name="history_filter_kind_extract">نکالنا</string>
+    <string name="history_filter_kind_enable">فعال کرنا</string>
+    <string name="history_filter_kind_disable">غیر فعال کرنا</string>
+    <string name="history_filter_kind_force_stop">زبردستی روکنا</string>
+    <string name="history_filter_kind_uninstall">اَن انسٹال کرنا</string>
+    <string name="history_filter_kind_clear_data">ڈیٹا صاف کرنا</string>
+    <string name="history_filter_kind_components">اجزا</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">راستے کی حد مقرر کریں…</string>
+    <string name="history_path_scope_clear_action">راستے کی حد ہٹائیں</string>
+    <string name="history_path_scope_dialog_title">راستے کے لحاظ سے فلٹر کریں</string>
+    <string name="history_path_scope_dialog_description">صرف وہ کارروائیاں دکھائیں جو اس راستے یا اس کے اندر موجود راستوں کو متاثر کرتی ہیں۔</string>
+    <string name="history_path_scope_dialog_input_label">راستہ</string>
+    <string name="history_path_scope_dialog_pick_folder_action">فولڈر منتخب کریں…</string>
+    <string name="history_path_scope_dialog_apply_action">لاگو کریں</string>
+    <string name="history_path_scope_dialog_cancel_action">منسوخ کریں</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">آج</string>
+    <string name="history_group_yesterday">کل</string>
+    <string name="history_group_this_week">اس ہفتے</string>
+    <string name="history_group_this_month">اس مہینے</string>
+    <string name="history_group_older">پرانے</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">کا نام بدلا گیا</string>
+    <string name="history_entry_intent_paste_copy">پیسٹ کیا گیا</string>
+    <string name="history_entry_intent_paste_move">پیسٹ کیا گیا (منتقلی)</string>
+    <string name="history_entry_intent_drop_copy">ڈراپ کیا گیا (کاپی)</string>
+    <string name="history_entry_intent_drop_move">ڈراپ کیا گیا (منتقلی)</string>
+    <string name="history_entry_intent_enable_components">کے اجزا فعال کیے گئے</string>
+    <string name="history_entry_intent_disable_components">کے اجزا غیر فعال کیے گئے</string>
+    <string name="history_entry_kind_copy">کاپی کیا گیا</string>
+    <string name="history_entry_kind_move">منتقل کیا گیا</string>
+    <string name="history_entry_kind_delete">حذف کیا گیا</string>
+    <string name="history_entry_kind_create_file">فائل بنائی گئی</string>
+    <string name="history_entry_kind_create_folder">فولڈر بنایا گیا</string>
+    <string name="history_entry_kind_save">محفوظ کیا گیا</string>
+    <string name="history_entry_kind_compress">کمپریس کیا گیا</string>
+    <string name="history_entry_kind_extract">نکالا گیا</string>
+    <string name="history_entry_kind_restore">بحال کیا گیا</string>
+    <string name="history_entry_kind_install">انسٹال کیا گیا</string>
+    <string name="history_entry_kind_enable">فعال کیا گیا</string>
+    <string name="history_entry_kind_disable">غیر فعال کیا گیا</string>
+    <string name="history_entry_kind_force_stop">زبردستی روکا گیا</string>
+    <string name="history_entry_kind_uninstall">اَن انسٹال کیا گیا</string>
+    <string name="history_entry_kind_clear_data">کا ڈیٹا صاف کیا گیا</string>
+    <string name="history_entry_kind_components">کے اجزا بدلے گئے</string>
+    <!-- Row headline: file or folder followed by what happened, for natural Urdu order -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%2$s  %1$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d راستہ</item>
+        <item quantity="other">%d راستے</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">%2$d متاثرہ راستوں میں سے پہلے %1$d</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">شروع ہوا</string>
+    <string name="history_detail_label_completed">مکمل ہوا</string>
+    <string name="history_detail_label_duration">دورانیہ</string>
+    <string name="history_detail_label_outcome">نتیجہ</string>
+    <string name="history_detail_label_origin">ماخذ</string>
+    <string name="history_detail_label_error">خرابی</string>
+    <string name="history_detail_label_paths">متاثرہ راستے</string>
+    <string name="history_detail_label_partial_errors">اشیا کی انفرادی ناکامیاں</string>
+    <string name="history_detail_copy_path_action">راستہ کاپی کریں</string>
+    <string name="history_detail_paths_empty">کوئی متاثرہ راستہ درج نہیں ہوا۔</string>
+    <string name="history_detail_label_attempted_paths">وہ راستے جن پر کارروائی کی کوشش ہوئی</string>
+    <string name="history_detail_label_packages">متاثرہ ایپس</string>
+    <string name="history_detail_packages_empty">کوئی متاثرہ ایپ درج نہیں ہوئی۔</string>
+    <string name="history_detail_paths_truncated_callout">%2$d متاثرہ راستوں میں سے پہلے %1$d دکھائے جا رہے ہیں۔</string>
+    <string name="history_detail_attempted_paths_truncated_callout">جن %2$d راستوں پر کارروائی کی کوشش ہوئی، ان میں سے پہلے %1$d دکھائے جا رہے ہیں۔</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">اس کارروائی کے دوران %1$d شے پر کارروائی ناکام ہوئی۔</item>
+        <item quantity="other">اس کارروائی کے دوران %1$d اشیا پر کارروائی ناکام ہوئی۔</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">ایکسپلورر</string>
+    <string name="history_origin_searcher">تلاش</string>
+    <string name="history_origin_saver">اس نام سے محفوظ کریں</string>
+    <string name="history_origin_developer">ڈویلپر</string>
+    <string name="history_origin_viewer">ویوئر</string>
+    <string name="history_origin_apps">ایپس</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ملی سیکنڈ</string>
+    <string name="history_duration_seconds">%1$.1f سیکنڈ</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">ابھی کوئی سرگزشت نہیں</string>
+    <string name="history_empty_subtitle">Butler استعمال کرنے کے ساتھ فائلوں پر کی گئی کارروائیاں یہاں دکھائی دیں گی۔</string>
+    <string name="history_empty_filtered_title">کوئی مماثلت نہیں</string>
+    <string name="history_empty_filtered_subtitle">سرگزشت کا کوئی اندراج موجودہ فلٹر سے میل نہیں کھاتا۔</string>
+    <string name="history_empty_filtered_reset_action">فلٹر ری سیٹ کریں</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">فلٹر ری سیٹ کریں</string>
+    <string name="history_toolbar_reset_filter_content_description">فلٹرز ری سیٹ کریں</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">%2$d متاثرہ راستوں میں سے پہلے %1$d</string>
+    <string name="history_add_filter_action">فلٹر شامل کریں</string>
+    <string name="history_add_filter_sheet_title">فلٹر شامل کریں</string>
+    <string name="history_add_filter_section_outcome">نتیجہ</string>
+    <string name="history_add_filter_section_kind">قسم</string>
+    <string name="history_add_filter_section_path_scope">راستے کی حد</string>
+    <string name="history_add_filter_add_path_action">راستہ شامل کریں…</string>
+    <string name="history_path_scope_remove_action">ہٹائیں</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d اندراج</item>
+        <item quantity="other">%1$d اندراجات</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%2$d میں سے %1$d دکھایا گیا</item>
+        <item quantity="other">%2$d میں سے %1$d دکھائے گئے</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">سرگزشت</string>
+    <string name="history_settings_save_history_title">سرگزشت محفوظ کریں</string>
+    <string name="history_settings_save_history_subtitle">فائلوں پر مکمل ہونے والی کارروائیاں درج کریں۔</string>
+    <string name="history_settings_max_history_label">سرگزشت کی اشیا کی زیادہ سے زیادہ تعداد</string>
+    <string name="history_settings_max_history_subtitle">اس حد سے تجاوز ہونے پر پرانے اندراجات ہٹا دیے جاتے ہیں۔</string>
+    <string name="history_settings_max_history_input_label">اندراجات کی زیادہ سے زیادہ تعداد</string>
+    <string name="history_settings_clear_history_title">سرگزشت صاف کریں</string>
+    <string name="history_settings_clear_history_subtitle">تمام محفوظ شدہ اندراجات ہٹائیں (%1$d)۔</string>
+    <string name="history_clear_dialog_title">سرگزشت صاف کریں؟</string>
+    <string name="history_clear_dialog_message">کارروائیوں کی سرگزشت کے ڈیٹابیس سے تمام اندراجات ہٹا دیے جائیں گے۔ یہ عمل واپس نہیں ہو سکتا۔</string>
+    <string name="history_clear_confirm_action">صاف کریں</string>
+    <string name="history_cleared_success">سرگزشت صاف کر دی گئی</string>
+    <string name="history_workspace_title_kind_restore">بحالی</string>
+    <string name="history_filter_kind_restore">بحال کرنا</string>
+    <string name="history_workspace_title_kind_install">سرگزشت: انسٹال کرنا</string>
+    <string name="history_filter_kind_install">انسٹال کرنا</string>
+    <string name="history_workspace_title_kind_enable">سرگزشت: فعال کرنا</string>
+    <string name="history_workspace_title_kind_disable">سرگزشت: غیر فعال کرنا</string>
+    <string name="history_workspace_title_kind_force_stop">سرگزشت: زبردستی روکنا</string>
+    <string name="history_workspace_title_kind_uninstall">سرگزشت: اَن انسٹال کرنا</string>
+    <string name="history_workspace_title_kind_clear_data">سرگزشت: ڈیٹا صاف کرنا</string>
+    <string name="history_workspace_title_kind_components">سرگزشت: اجزا</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">سب منتخب کریں</string>
+    <string name="history_action_deselect_all">سب کا انتخاب ختم کریں</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">%1$d اندراج حذف کریں</item>
+        <item quantity="other">%1$d اندراجات حذف کریں</item>
+    </plurals>
+    <string name="history_delete_dialog_message">صرف سرگزشت کے ریکارڈ ہٹائے جائیں گے، فائلوں میں کوئی تبدیلی نہیں کی جائے گی۔</string>
+    <string name="history_pro_dialog_message">سرگزشت کے کئی اندراجات ایک ساتھ شیئر کرنا اپ گریڈ کا حصہ ہے۔ ایک اندراج شیئر کرنا اور اندراجات حذف کرنا مفت رہے گا۔</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">نتیجہ</string>
+    <string name="history_share_label_kind">قسم</string>
+    <string name="history_share_label_origin">ماخذ</string>
+    <string name="history_share_label_summary">خلاصہ</string>
+    <string name="history_share_label_completed">مکمل ہوا</string>
+    <string name="history_share_label_duration">دورانیہ</string>
+    <string name="history_share_label_error">خرابی</string>
+    <string name="history_share_label_failed_items">ناکام اشیا</string>
+    <string name="history_share_label_paths">متاثرہ راستے (%1$d)</string>
+    <string name="history_share_label_packages">متاثرہ ایپس (%1$d)</string>
+    <string name="history_share_paths_more">… اور مزید %1$d</string>
+    <string name="history_share_truncated">… اور مزید %1$d اندراجات شامل نہیں کیے گئے</string>
+</resources>

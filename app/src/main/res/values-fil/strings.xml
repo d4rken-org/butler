@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_welcome_title">Maligayang pagdating sa Butler</string>
+    <string name="onboarding_welcome_message">Mga tab para sa mga file.\nMag-browse, maghanap, at mag-edit — nang sabay-sabay.</string>
+    <string name="onboarding_welcome_subtitle">Open source. Walang ad. Walang pagsubaybay.\nAng file explorer na nararapat sa iyo.</string>
+    <string name="onboarding_welcome_action">Simulang mag-browse</string>
+    <string name="onboarding_beta_title">Hubugin ang hinaharap</string>
+    <string name="onboarding_beta_message">Ito ay beta (pansubok) na build. Magpatuloy nang handang tumawa at may reserbang plano. Pakiiulat ang mga isyung makatagpo mo.</string>
+    <string name="onboarding_beta_action">Wala akong kinatatakutan</string>
+    <string name="onboarding_beta_feature_early_access_title">Maagang pag-access</string>
+    <string name="onboarding_beta_feature_early_access_description">Subukan ang mga pinakabagong feature bago ang iba.</string>
+    <string name="onboarding_beta_feature_influence_title">Direktang epekto</string>
+    <string name="onboarding_beta_feature_influence_description">Hinuhubog ng iyong feedback ang pagbuo ng Butler.</string>
+    <string name="onboarding_beta_feature_feedback_title">Pinapatakbo ng komunidad</string>
+    <string name="onboarding_beta_feature_feedback_description">Sumali sa komunidad ng mga bihasang gumagamit na nagpapahusay sa Butler.</string>
+    <string name="onboarding_privacy_title">Privacy at data</string>
+    <string name="onboarding_privacy_message">Walang patalastas ang Butler at hindi ito nagbebenta ng data ng gumagamit. Mahalaga sa akin ang iyong privacy.</string>
+    <string name="onboarding_privacy_read_action">Basahin ang patakaran sa privacy</string>
+    <string name="onboarding_privacy_action">Tanggapin</string>
+    <string name="onboarding_skip_action">Laktawan</string>
+    <string name="onboarding_progress_step">%1$d sa %2$d</string>
+
+    <string name="onboarding_workspaces_title">Gumawa sa mga tab</string>
+    <string name="onboarding_workspaces_message">Magbukas ng maraming tab at lumipat sa pagitan ng mga ito — tulad ng sa iyong web browser.</string>
+    <string name="onboarding_workspaces_action">Magpatuloy</string>
+    <string name="onboarding_workspaces_hint">Panatilihing bukas ang maraming tab nang sabay-sabay.</string>
+    <string name="onboarding_workspaces_explorer_title">Explorer</string>
+    <string name="onboarding_workspaces_explorer_description">I-browse ang iyong mga file.</string>
+    <string name="onboarding_workspaces_searcher_title">Paghahanap</string>
+    <string name="onboarding_workspaces_searcher_description">Hanapin ang kailangan.</string>
+    <string name="onboarding_workspaces_editor_title">Editor</string>
+    <string name="onboarding_workspaces_editor_description">Mag-edit ng mga file.</string>
+    <string name="onboarding_workspaces_apps_description">Pamahalaan ang iyong mga app.</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">Bagong explorer</string>
+    <string name="shortcut_explorer_new_long">Gumawa ng bagong explorer tab</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">Mga shortcut</string>
+    <string name="shortcuts_settings_subtitle">I-configure ang mga shortcut sa launcher</string>
+    <string name="shortcuts_settings_enabled_title">Paganahin ang mga shortcut</string>
+    <string name="shortcuts_settings_enabled_subtitle">Ipakita sa launcher ang mga madalas gamiting item</string>
+    <string name="shortcuts_settings_auto_remember_title">Tandaan ang mga binisitang path</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Awtomatikong idagdag bilang mga shortcut ang mga madalas bisitahing path</string>
+    <string name="shortcuts_settings_last_accessed_title">Huling na-access</string>
+    <string name="shortcuts_settings_max_count_title">Pinakamaraming shortcut</string>
+    <string name="shortcuts_settings_max_count_summary">Pinakamaraming shortcut na ipapakita sa launcher</string>
+    <string name="shortcuts_settings_min_access_title">Pinakamababang bilang ng pag-access</string>
+    <string name="shortcuts_settings_min_access_summary">Ilang beses kailangang buksan ang isang path bago ito maging shortcut</string>
+    <string name="shortcuts_settings_current_title">Mga kasalukuyang shortcut</string>
+    <string name="shortcuts_settings_current_subtitle">%d na shortcut ang sinusubaybayan</string>
+    <string name="shortcuts_settings_clear_title">Burahin ang kasaysayan ng mga shortcut</string>
+    <string name="shortcuts_settings_clear_subtitle">Alisin ang lahat ng sinusubaybayang shortcut</string>
+    <string name="shortcuts_settings_clear_confirm_title">Burahin ang kasaysayan ng mga shortcut?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Aalisin nito ang lahat ng sinusubaybayang shortcut. Pananatilihin ang mga bookmark.</string>
+    <string name="shortcuts_settings_cleared_message">Nabura na ang kasaysayan ng mga shortcut</string>
+    <string name="shortcuts_settings_max_dialog_title">Pinakamaraming shortcut</string>
+    <string name="shortcuts_settings_max_dialog_message">Bilang ng mga shortcut na ipapakita sa launcher (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Pinakamababang bilang ng pag-access</string>
+    <string name="shortcuts_settings_min_dialog_message">Ilang beses kailangang i-access ang isang path bago lumitaw bilang shortcut (1–10)</string>
+
+    <string name="setup_usagestats_title">Mga istatistika ng paggamit</string>
+    <string name="setup_shizuku_card_title">Pag-access sa ADB</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Pag-access sa mga notification</string>
+    <string name="setup_manage_storage_card_title">Pamahalaan ang panlabas na storage</string>
+    <string name="setup_inventory_card_title">Imbentaryo ng mga app</string>
+
+    <string name="setup_title">Pag-setup ng mga pahintulot</string>
+    <string name="setup_settings_description">I-configure ang mga pahintulot at feature ng app.</string>
+    <string name="setup_help_description">Tulong</string>
+
+    <string name="setup_root_description">Nagbibigay ng pag-access sa mga file ng system at protektadong direktoryo para sa mas advanced na pamamahala ng mga file. Binubuksan ang buong kakayahan ng Butler, kabilang ang pag-access sa data ng app at pagbabago sa system. Kailangang naka-root ang device.</string>
+    <string name="setup_shizuku_description">Alternatibo sa root na nagbibigay ng mga pribilehiyadong operasyon sa file sa pamamagitan ng ligtas na API. Nagbibigay ng pag-access sa mga pinaghihigpitang direktoryo nang walang tradisyonal na root. Kailangang naka-install at tumatakbo ang Porter o Shizuku.</string>
+    <string name="setup_notification_description">Nagpapakita ng mga update sa mga operasyon sa file, gawain sa background, at progreso ng paglilipat. Ipinapaalam kung nakumpleto na ang mga operasyon o may naganap na error.</string>
+    <string name="setup_usagestats_description">Sinusuri ang paggamit ng storage ng mga app upang matukoy ang malalaking file at makatulong sa mahusay na pamamahala ng espasyo. Lahat ng data ay nananatili sa iyong device at hindi kailanman ipinapadala.</string>
+    <string name="setup_storage_description">Buong pag-access sa lahat ng storage ng device para sa mabilis na mga operasyon sa file at maramihang pagproseso. Nagbibigay-daan sa komprehensibong pamamahala ng mga file nang walang paulit-ulit na paghingi ng pahintulot.</string>
+    <string name="setup_inventory_description">Makita ang lahat ng naka-install na app para sa mga feature tulad ng pagkuha ng APK at pagsusuri ng storage. Kailangan sa Android 11+ para makita ang buong listahan ng app.</string>
+
+    <string name="setup_grant_access_label">Payagan ang pag-access</string>
+    <string name="setup_access_granted_label">Pinayagan ang pag-access</string>
+    <string name="setup_use_root_label">Gamitin ang root kung available</string>
+    <string name="setup_use_shizuku_label">Gamitin ang pag-access sa ADB kung available</string>
+
+    <string name="setup_status_checking">Sinusuri…</string>
+    <string name="setup_status_completed">Na-configure na</string>
+    <string name="setup_status_required">Kailangan</string>
+    <string name="setup_status_optional">Opsyonal</string>
+    <string name="setup_status_connected">Nakakonekta</string>
+    <string name="setup_status_not_connected">Hindi nakakonekta</string>
+    <string name="setup_status_not_installed">Hindi naka-install</string>
+    <string name="setup_status_connecting">Kumokonekta…</string>
+    <string name="setup_status_connection_failed">Nabigo ang koneksyon</string>
+    <string name="setup_status_unavailable">Hindi available</string>
+    <string name="setup_status_permission_denied">Tinanggihan ang pahintulot</string>
+    <string name="setup_adb_status_manager_update_required">Kailangan ng update</string>
+    <string name="setup_adb_status_butler_update_required">Kailangan ng update sa Butler</string>
+    <!-- %1$s is the name of the app that provides ADB access. -->
+    <string name="setup_adb_status_connected_via">Nakakonekta sa pamamagitan ng %1$s</string>
+    <string name="setup_adb_status_not_allowed_yet">Hindi pa pinapayagan ng %1$s</string>
+    <string name="setup_adb_status_denied_in">Tinanggihan sa %1$s</string>
+    <string name="setup_adb_open_manager_action">Buksan ang %1$s</string>
+    <string name="setup_adb_install_manager_action">I-install ang %1$s</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">Mga notification ng pag-debug</string>
+    <string name="debug_log_consent_title">Log ng pag-debug</string>
+    <string name="debug_log_consent_explanation">Itinatala ng feature na ito ang lahat ng ginagawa ng app sa isang file na maaaring ibahagi. May sensitibong impormasyon ang nalikhang file (hal. mga pangalan ng file at naka-install na app). Ibahagi lamang ito sa mga pinagkakatiwalaan (hal. developer na nagsisiyasat ng isyu).</string>
+    <string name="debug_log_recording_progress">Itinatala ang log ng pag-debug</string>
+    <string name="debug_log_record_action">Itala</string>
+    <string name="debug_log_record_full_action">Itala ang log ng pag-debug</string>
+    <string name="debug_log_stop_action">Ihinto ang pagtatala</string>
+    <string name="debug_log_screen_title">Tagatala ng log ng pag-debug</string>
+    <string name="debug_log_screen_sensitive_information_message">May sensitibong impormasyon ang nalikhang file (hal. mga pangalan ng file at naka-install na app). Ibahagi lamang ito sa mga pinagkakatiwalaan.</string>
+    <string name="debug_log_screen_session_path_label">Path ng sesyon ng pag-debug</string>
+    <string name="debug_log_screen_log_files_label">Mga log file</string>
+    <string name="debug_log_screen_log_files_ready">Handa na ang mga log file (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Itapon</string>
+    <string name="debug_log_file_label">Naitalang log file</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">Itinatala ang log file</string>
+    <string name="debug_banner_stop_action">Ihinto</string>
+    <string name="debug_banner_view_action">Tingnan</string>
+    <string name="debug_banner_explanation">Itinatala ang aktibidad ng app. Ihinto kapag tapos na, at ibahagi ang log kapag nag-uulat ng mga bug.</string>
+    <string name="debug_log_short_recording_title">Napakaikli ng pagtatala</string>
+    <string name="debug_log_short_recording_message">Kinukuha ng mga log ng pag-debug ang nangyayari habang aktibo ang pagtatala. Simulan ang pagtatala, ulitin ang isyu, at ihinto. Maaaring walang kapaki-pakinabang na impormasyon ang naitalang ito.</string>
+    <string name="debug_log_short_recording_keep_action">Ipagpatuloy ang pagtatala</string>
+
+    <string name="debug_logview_screen_title">Tagatingin ng log</string>
+    <string name="debug_logview_pause_action">I-pause (huwag baguhin ang display)</string>
+    <string name="debug_logview_resume_action">Ipagpatuloy</string>
+    <string name="debug_logview_copy_action">Kopyahin ang log</string>
+    <string name="debug_logview_collapse_action">Paliitin</string>
+    <string name="debug_logview_close_action">Isara ang panel ng log</string>
+    <string name="debug_logview_resize_action">Baguhin ang laki</string>
+    <string name="debug_logview_more_action">Higit pang opsyon</string>
+    <string name="debug_logview_level_action">Antas ng log</string>
+    <string name="debug_logview_clear_action">Burahin ang buffer</string>
+    <string name="debug_logview_search_action">Maghanap</string>
+    <string name="debug_logview_search_clear_action">Burahin ang paghahanap</string>
+    <string name="debug_logview_search_close_action">Isara ang paghahanap</string>
+    <string name="debug_logview_search_prev_action">Nakaraang tugma</string>
+    <string name="debug_logview_search_next_action">Susunod na tugma</string>
+    <string name="debug_logview_jump_to_bottom_action">Pumunta sa pinakabago</string>
+    <string name="debug_logview_paused_msg">Naka-pause — hindi nagbabago ang display</string>
+    <string name="debug_logview_paused_new_msg">Naka-pause — %1$d na bagong linya mula noon</string>
+    <string name="debug_logview_copied_msg">Nakopya ang log sa clipboard</string>
+    <string name="debug_logview_copied_truncated_msg">Nakopya sa clipboard ang huling %1$d na linya</string>
+    <string name="debug_logview_share_label">Ibahagi ang log</string>
+
+    <string name="settings_label">Mga setting</string>
+    <string name="settings_category_tools_label">Mga tool</string>
+    <string name="settings_category_other_label">Iba pa</string>
+    <string name="settings_category_integration_label">Integrasyon</string>
+    <string name="general_settings_label">Pangkalahatan</string>
+    <string name="general_settings_desc">Mga pangkalahatang pagsasaayos na nakakaapekto sa buong app.</string>
+    <string name="settings_category_ui_label">Interface ng gumagamit</string>
+    <string name="ui_mascot_suit_setting_label">Kasuotan ni Butler</string>
+    <string name="ui_mascot_suit_setting_explanation">Ang kulay ng telang ginamit sa kasuotan ni Butler.</string>
+    <string name="ui_theme_mode_setting_label">Mode ng tema</string>
+    <string name="ui_theme_mode_setting_explanation">Ang mode na ginagamit sa tema ng app (hal. gabi o araw).</string>
+    <string name="ui_theme_style_setting_label">Estilo ng tema</string>
+    <string name="ui_theme_style_setting_explanation">Ang estilo ng kulay na ginagamit sa tema ng app.</string>
+    <string name="ui_theme_color_setting_label">Kulay ng tema</string>
+    <string name="ui_theme_color_setting_explanation">Ang paleta ng kulay na ginagamit sa tema ng app.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Ibinibigay ng Material You ang mga kulay mula sa iyong wallpaper</string>
+    <string name="ui_theme_color_value_system">Mga kulay ng system</string>
+    <string name="ui_language_override_label">Wika ng app</string>
+    <string name="ui_language_override_desc">Pumili ng ibang wika para sa Butler, hiwalay sa default na wika ng iyong system.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Iwasan ang cutout ng display</string>
+    <string name="ui_display_cutout_avoid_setting_description">Inilalayo ang interface sa cutout ng camera. I-off ito para magamit ang mas malaking bahagi ng screen, pero maaaring matakpan ng cutout ang ilang bahagi ng interface.</string>
+
+    <string name="previews_settings_title">Mga preview</string>
+    <string name="previews_settings_subtitle">Pamahalaan ang mga cache ng preview ng larawan.</string>
+
+    <string name="tour_settings_reset_title">I-reset ang mga gabay na paglilibot</string>
+    <string name="tour_settings_reset_subtitle">Ipakitang muli ang mga gabay na paglilibot, kabilang ang mga nilaktawan o hindi pinagana.</string>
+    <string name="tour_settings_reset_done">Na-reset na ang mga gabay na paglilibot.</string>
+
+    <string name="storage_settings_title">Storage</string>
+    <string name="storage_settings_subtitle">Pamahalaan ang mga cache, storage, at basurahan ng Butler.</string>
+    <string name="storage_category_previews_label">Mga preview</string>
+    <string name="storage_previews_disk_cache_title">Cache sa disk</string>
+    <string name="storage_previews_memory_cache_title">Cache sa memory</string>
+    <string name="storage_previews_max_size_title">Pinakamalaking sukat ng cache</string>
+    <string name="storage_clear_disk_confirm_title">Burahin ang cache sa disk?</string>
+    <string name="storage_clear_disk_confirm_message">Aalisin nito ang lahat ng naka-cache na larawan ng preview. Muli silang lilikhain kapag kailangan.</string>
+    <string name="storage_clear_memory_confirm_title">Burahin ang cache sa memory?</string>
+    <string name="storage_clear_memory_confirm_message">Aalisin nito sa memory ang mga naka-cache na larawan ng preview. Muli silang lilikhain kapag kailangan.</string>
+    <string name="storage_clear_all_confirm_title">Burahin ang lahat ng cache?</string>
+    <string name="storage_clear_all_confirm_message">Buburahin nito ang mga cache sa disk at memory para sa mga larawan ng preview.</string>
+    <string name="storage_clear_all_previews_action">Burahin ang lahat ng cache ng preview</string>
+    <string name="storage_clear_all_subtitle">Alisin ang lahat ng cache ng preview</string>
+    <string name="storage_cache_cleared_message">Nabura na ang cache</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">Tingnan kung may mga update</string>
+    <string name="updater_check_enabled_setting_description">Payagan ang Butler na tingnan online kung may bagong bersyon.</string>
+    <string name="motd_check_enabled_setting_title">Tingnan ang mga anunsyo</string>
+    <string name="motd_check_enabled_setting_description">Payagan ang Butler na kunin ang mahahalagang mensahe mula sa developer.</string>
+    <string name="motd_card_header">Anunsyo</string>
+
+    <string name="confirm_exit_setting_title">Kumpirmahin ang paglabas</string>
+    <string name="confirm_exit_setting_description">Magpakita ng dialog ng pagkumpirma kapag lalabas sa app.</string>
+    <string name="confirm_exit_dialog_title">Lumabas sa Butler</string>
+    <string name="confirm_exit_dialog_message">Isasara nito ang app at ibabalik ka sa iyong home screen.</string>
+    <string name="confirm_exit_dialog_exit">Lumabas</string>
+    <string name="confirm_exit_dialog_cancel">Kanselahin</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Huwag nang itanong muli</string>
+
+    <string name="settings_support_category_help_label">Humingi ng tulong</string>
+    <string name="settings_support_label">Suporta</string>
+    <string name="settings_support_description">Basahin ang dokumentasyon, mag-ulat ng mga isyu, makipag-chat sa iba, o magtala ng mga log ng pag-debug.</string>
+    <string name="settings_support_wiki_label">Dokumentasyon</string>
+    <string name="settings_support_wiki_description">Alamin kung paano gamitin nang mahusay ang Butler.</string>
+    <string name="settings_support_issue_tracker_description">Pampublikong tagasubaybay ng isyu para sa mga ulat ng bug at kahilingan para sa feature.</string>
+    <string name="settings_support_issue_tracker_label">Tagasubaybay ng isyu</string>
+    <string name="settings_support_debuglog_label">Log ng pag-debug</string>
+    <string name="settings_support_debuglog_desc">Itala ang lahat ng ginagawa ng app sa isang text file na maaari mong ibahagi.</string>
+    <string name="settings_support_debuglog_recording_desc">Kasalukuyang nagtatala ng impormasyon ng pag-debug. I-tap upang ihinto ang pagtatala.</string>
+    <string name="settings_support_debuglog_path">Path ng log: %1$s</string>
+    <string name="settings_support_bugreports_label">Mga ulat ng bug</string>
+    <string name="settings_support_bugreports_desc">Tingnan ang mga ulat ng pag-crash, magtala ng mga log ng pag-debug, at ibahagi ang mga ito sa akin.</string>
+    <string name="support_contact_report_type_crash">Ulat ng pag-crash</string>
+    <string name="support_contact_report_type_reported">Ulat ng bug</string>
+    <string name="support_contact_report_type_recording">Pagtatala</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Lugar para makipagkuwentuhan at magtanong.</string>
+
+    <string name="settings_acknowledgements_label">Mga pagkilala</string>
+    <string name="settings_acknowledgements_description">Mga kredito, lisensya, at espesyal na pasasalamat.</string>
+    <string name="settings_acks_translation_header">Pagsasalin</string>
+    <string name="settings_acks_translators_title">Mga tagasalin</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Isalin ang Butler</string>
+    <string name="settings_acks_translate_desc">Tumulong na isalin ang Butler sa iyong wika.</string>
+
+    <string name="settings_acks_thanks_header">Pasasalamat</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">Sa pagsuporta sa pagsasalin ng mga open-source na proyekto.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Salamat sa icon, mga disenyo ng maskot, at mga animation.</string>
+    <string name="settings_licenses_label">Mga lisensya</string>
+
+    <!-- Workspace Status Card -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d tab</item>
+        <item quantity="other">%1$d na tab</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d operasyon</item>
+        <item quantity="other">%1$d na operasyon</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d nangangailangan ng pansin</item>
+        <item quantity="other">%1$d na nangangailangan ng pansin</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d hindi na-save</item>
+        <item quantity="other">%1$d na hindi na-save</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d naka-pause</item>
+        <item quantity="other">%1$d na naka-pause</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">Ipakita ang lahat ng tab</string>
+    <string name="workspace_status_filter_operations_desc">I-filter ayon sa mga tab na may operasyon</string>
+    <string name="workspace_status_filter_attention_desc">I-filter ayon sa mga tab na nangangailangan ng pansin</string>
+    <string name="workspace_status_filter_paused_desc">I-filter ayon sa mga naka-pause na tab</string>
+    <string name="workspace_status_filter_unsaved_desc">I-filter ayon sa mga tab na may mga pagbabagong hindi na-save</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Ang programming language na Kotlin. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Mabilis na dependency injector para sa Android at Java. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Magpatakbo ng Java (at Kotlin) code bilang root! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Pinadaling pagpapatakbo ng Kotlin JVM code bilang root gamit ang mga coroutine. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Nagbibigay sa mga Android app ng pag-access sa ADB sa pamamagitan ng mga Shizuku API, na may opsyonal na suporta sa root. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Direktang paggamit ng mga API ng system na may mga pribilehiyo ng adb/root mula sa mga karaniwang app, sa pamamagitan ng prosesong Java na sinimulan gamit ang app_process. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Lottie ng Airbnb para sa Android. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Ang robot ng Android ay kinopya o binago mula sa gawang nilikha at ibinahagi ng Google, at ginagamit alinsunod sa mga tuntuning inilalarawan sa Creative Commons 3.0 Attribution License.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Ang makabagong toolkit ng Android para sa pagbuo ng native na UI. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Mga library ng Jetpack</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation at iba pang library ng AndroidX. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Mga extension ng Kotlin</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Mga library ng Coroutines at Serialization. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Library sa pag-load ng larawan na gumagamit ng Kotlin Coroutines. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Mga batayang cryptographic na operasyon para sa authentication, paglagda, at pag-encrypt ng SMB. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Mga library ng Square</string>
+    <string name="acknowledgement_square_libraries_subtitle">Mga library sa networking na Retrofit, OkHttp, at OkIO. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Mga utility para sa Jetpack Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Pag-drag at pag-drop para sa LazyColumn sa Compose. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Library para sa semantic versioning sa Kotlin. (Lisensyang MIT)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Mga chart at graph para sa Jetpack Compose. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Patakaran sa privacy</string>
+    <string name="settings_privacy_policy_desc">Responsableng paghawak ng data.</string>
+
+    <string name="changelog_label">Talaan ng mga pagbabago</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Katayuan ng pag-upgrade ng Butler</string>
+    <string name="upgrade_status_free">Katayuan: Libre</string>
+    <string name="upgrade_status_pro">Katayuan: Pro</string>
+    <string name="upgrade_status_foss">Katayuan: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD card</string>
+    <string name="storage_area_public_label">Pampublikong storage</string>
+    <string name="storage_area_public_app_data_label">Pampublikong data ng app</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">Tagapamahala ng mga tab</string>
+    <string name="workspace_manager_empty_title">Walang tab</string>
+    <string name="workspace_manager_empty_subtitle">Gumawa ng iyong unang tab upang magsimula</string>
+
+    <!-- Workspace > Empty Content -->
+    <string name="workspace_empty_create_action">Gumawa ng tab</string>
+    <string name="workspace_empty_create_hint">Gumawa nang sabay-sabay: Gumawa ng tab at gawin itong kasangkapang gusto mo.</string>
+    <string name="workspace_empty_settings_action">Buksan ang mga setting</string>
+    <string name="workspace_empty_settings_hint">Iangkop ang Butler sa iyong gusto. Ayusin kung paano gumagana ang mga kasangkapan.</string>
+    <string name="workspace_classic_empty_tabs_closed">Walang bukas na tab. Handa kapag handa ka na.</string>
+    <string name="workspace_classic_empty_tip">Tip: I-tap ang “Gumawa ng tab” at pumili ng kasangkapan — Explorer, Paghahanap, Editor, at iba pa.</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">Magsimula sa isang tab</string>
+    <string name="tour_first_tab_body">Gumagana ang Butler sa mga tab, tulad ng browser: bawat isa ay may sariling kasangkapan — Explorer, Paghahanap, Editor, at iba pa. Gumawa ng iyong unang tab.</string>
+    <string name="tour_manager_fab_title">Mga mabilisang shortcut</string>
+    <string name="tour_manager_fab_body">I-tap ito para sa mga shortcut sa mga kasangkapang pinakamadalas mong gamitin, at upang isara ang lahat ng tab nang sabay-sabay.</string>
+    <string name="tour_manager_reorder_title">Ayusin ang pagkakasunod ng iyong mga tab</string>
+    <string name="tour_manager_reorder_body">Pindutin nang matagal ang title bar ng isang tab, at i-drag ito sa gusto mong lugar. Ito ang magiging pagkakasunod ng mga tab sa lahat ng iba pang lugar.</string>
+    <string name="tour_manager_select_title">Gumawa sa ilang tab</string>
+    <string name="tour_manager_select_body">Pindutin nang matagal ang preview ng isang tab upang simulan ang pagpili ng mga tab. Pagkatapos, i-tap ang iba at isara o i-pause silang lahat nang sabay-sabay.</string>
+    <string name="tour_manager_new_tab_title">Magsimula ng bagong tab</string>
+    <string name="tour_manager_new_tab_body">I-tap ang card na ito upang pumili ng anumang kasangkapan para sa bagong tab.</string>
+    <string name="tour_swipe_switch_title">Mag-swipe sa pagitan ng mga tab</string>
+    <string name="tour_swipe_switch_body">Mag-swipe pakaliwa o pakanan saanman sa pahina upang lumipat sa pagitan ng iyong mga bukas na tab.</string>
+    <string name="tour_swipe_create_title">Mag-swipe upang magsimula ng tab</string>
+    <string name="tour_swipe_create_body">Mag-swipe lampas sa iyong huling tab at mag-aalok ang Butler ng bago.</string>
+    <string name="tour_swipe_panes_title">Higit sa isang tab sa isang pagkakataon</string>
+    <string name="tour_swipe_panes_body">Sa mas malaking screen, o kapag nakapahalang, nagpapakita ang Butler ng ilang tab nang magkakatabi. Itinatakda ng mga setting ng layout sa ilalim ng Mga tab kung kailan ito mangyayari.</string>
+    <string name="tour_panes_rail_title">Lahat ng iyong tab</string>
+    <string name="tour_panes_rail_body">Nandito ang bawat bukas na tab. I-tap ang isa at piliin ang panel na paglalagyan nito. Pindutin nang matagal ang isang tab at i-drag ito upang baguhin ang pagkakasunod.</string>
+    <string name="tour_panes_divider_title">Baguhin ang laki ng mga panel</string>
+    <string name="tour_panes_divider_body">I-drag ang panghating ito upang bigyan ng mas malaking espasyo ang isang panel.</string>
+    <string name="tour_panes_layout_title">Baguhin ang pagkakaayos</string>
+    <string name="tour_panes_layout_body">I-tap ang button ng Butler at piliin ang Layout upang ayusin muli ang mga panel. Itinatakda ng mga setting ng Mga tab ang nakapirming layout para sa bawat oryentasyon.</string>
+
+    <string name="workspace_creating_placeholder">Gumagawa ng tab…</string>
+    <string name="workspace_ondemand_swipe_title">Mag-swipe upang gumawa ng bagong tab</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">Handa na ang panel %1$d para sa nilalaman</string>
+    <string name="workspace_adaptive_add_action">Magdagdag ng tab</string>
+
+    <string name="workspace_badge_tip_title">Tip: Mga indicator sa button ng tab</string>
+    <string name="workspace_badge_open_workspaces">Bilang ng mga bukas na tab</string>
+    <string name="workspace_badge_active_operations">Mga aktibong operasyon (pagkopya ng file, paghahanap, atbp.)</string>
+    <string name="workspace_badge_attention_items">Mga item na nangangailangan ng pansin (nabigo o naghihintay na mga operasyon, mga file na hindi maabot)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">Alisin</string>
+    <string name="workspace_manager_selection_count">%1$d ang napili</string>
+    <string name="workspace_manager_selection_select_all">Piliin lahat</string>
+    <string name="workspace_manager_selection_pause_action">I-pause ang napili</string>
+    <string name="workspace_manager_selection_close_action">Isara ang napili</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Lumabas sa mode ng pagpili</string>
+    <string name="workspace_manager_selection_clear_content_desc">Alisin ang pagpili</string>
+    <string name="workspace_manager_select_all_tabs_desc">Piliin ang lahat ng tab</string>
+    <string name="workspace_manager_new_tab_card_title">Bagong tab</string>
+    <string name="workspace_row_select_content_desc">Piliin ang tab</string>
+    <string name="general_cancel_action">Kanselahin</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">Mga mabilisang shortcut</string>
+    <string name="workspace_fab_close_shortcuts">Isara ang mga shortcut</string>
+    <string name="workspace_fab_close_all">Isara ang lahat ng tab</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">Italaga sa panel %1$d</string>
+    <string name="workspace_pane_show_action">Ipakita</string>
+    <string name="workspace_pane_menu_action">Ipakita ang mga opsyon ng tab</string>
+    <string name="workspace_pane_close_action">Isara</string>
+    <string name="workspace_pane_unassign_action">Alisin sa panel</string>
+    <string name="workspace_dragging_description">Dina-drag</string>
+    <string name="workspace_pane_current_description">Nasa panel %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">Isara ang tab</string>
+    <string name="workspace_row_more_options_content_desc">Higit pang opsyon</string>
+    <string name="workspace_row_operations_running_content_desc">Gumagana</string>
+    <string name="workspace_row_operations_pending_content_desc">Nakabinbing gawain</string>
+    <string name="workspace_row_pause_action">I-pause</string>
+    <string name="workspace_row_resume_action">Ipagpatuloy</string>
+    <string name="workspace_row_stacked_content_desc">Nakasalansan sa tab na ito</string>
+    <string name="workspace_row_unsaved_content_desc">Mga pagbabagong hindi na-save</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">I-configure kung paano gumagana ang mga tab.</string>
+    <string name="explorer_settings_subtitle">I-configure kung paano gumagana ang file explorer.</string>
+    <string name="searcher_settings_subtitle">I-configure kung paano gumagana ang paghahanap.</string>
+    <string name="editor_settings_subtitle">I-configure kung paano gumagana ang text editor.</string>
+    <string name="viewer_settings_subtitle">I-configure kung paano gumagana ang tagatingin ng file.</string>
+    <string name="history_settings_subtitle">Pagpapanatili at pagbura ng kasaysayan ng mga operasyon.</string>
+    <string name="clipboard_settings_subtitle">I-configure kung paano gumagana ang clipboard.</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">I-save bilang…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">Buksan sa Butler</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">I-edit ang teksto</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">File na walang pangalan</string>
+    <string name="external_open_action_view">Tingnan</string>
+    <string name="external_open_action_edit">I-edit bilang teksto</string>
+    <string name="external_open_action_show_in_explorer">Ipakita sa Explorer</string>
+    <string name="external_open_action_save">I-save bilang…</string>
+    <string name="external_open_failed_label">Hindi mabuksan ang file</string>
+    <string name="external_open_failed_description">Hindi mabuksan ng Butler ang \"%1$s\".</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">Paganahin ang Developer Mode?</string>
+    <string name="settings_developer_mode_unlock_message">Binubuksan nito ang mga advanced na kasangkapang diagnostic para sa pagsisiyasat ng problema at pagsubok.</string>
+    <string name="settings_developer_mode_unlock_action">Paganahin</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">%d hakbang na lang bago ang Developer Mode</item>
+        <item quantity="other">%d na hakbang na lang bago ang Developer Mode</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">Makipag-ugnayan sa developer</string>
+    <string name="support_contact_description">Punan ang form upang magpadala sa akin ng email.</string>
+    <string name="support_contact_no_email_app">Walang nahanap na email app</string>
+    <string name="support_contact_category_label">Kategorya</string>
+    <string name="support_contact_category_question">Tanong</string>
+    <string name="support_contact_category_feature">Kahilingan para sa feature</string>
+    <string name="support_contact_category_bug">Ulat ng bug</string>
+    <string name="support_contact_workspace_label">Kaugnay na bahagi</string>
+    <string name="support_contact_workspace_general">Pangkalahatan</string>
+    <string name="support_contact_workspace_explorer">Explorer</string>
+    <string name="support_contact_workspace_searcher">Paghahanap</string>
+    <string name="support_contact_workspace_editor">Editor</string>
+    <string name="support_contact_description_label">Paglalarawan</string>
+    <string name="support_contact_description_question_hint">Ilarawan nang detalyado ang iyong tanong. Pakilinaw nang husto (hindi bababa sa 20 salita).</string>
+    <string name="support_contact_description_feature_hint">Ilarawan ang feature na gusto mong makita. Pakilinaw nang husto (hindi bababa sa 20 salita).</string>
+    <string name="support_contact_description_bug_hint">Ilarawan ang nangyari at kung paano mauulit ang isyu. Pakilinaw nang husto (hindi bababa sa 20 salita).</string>
+    <string name="support_contact_expected_label">Inaasahang paggana</string>
+    <string name="support_contact_expected_hint">Ilarawan kung ano ang inaasahan mong mangyari (hindi bababa sa 10 salita).</string>
+    <string name="support_contact_word_count">Hindi bababa sa %1$d salita</string>
+    <string name="support_contact_debuglog_label">Log ng pag-debug</string>
+    <string name="support_contact_debuglog_empty">Walang nahanap na log ng pag-debug. Magtala muna ng isa.</string>
+    <string name="support_contact_debuglog_picker_hint">Mag-attach ng dati nang log ng pag-debug, o magtala ng bago.</string>
+    <string name="support_contact_send_action">Buksan ang email app</string>
+    <string name="support_contact_welcome">Ako mismo ang nagbabasa ng bawat mensahe at sinisikap kong sumagot, pero dahil mag-isa kong ginagawa ito, maaaring matagalan nang kaunti. Salamat sa iyong pasensya.</string>
+    <string name="support_contact_footer">Ipapadala ang iyong mensahe sa pamamagitan ng email. Awtomatikong naka-attach ang impormasyon ng device at setup. Maaari kang mag-attach ng mga screenshot o video sa email.\n\nNasa Ingles ang ilang bahagi ng email para madali ko itong maunawaan.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">Storage ng log ng pag-debug</string>
+    <string name="support_debuglog_storage_description">%1$d na sesyon ng log, %2$s</string>
+    <string name="support_debuglog_storage_empty">Walang nakaimbak na log ng pag-debug</string>
+    <string name="support_debuglog_delete_action">Burahin ang lahat ng log ng pag-debug</string>
+    <string name="support_debuglog_delete_description">Alisin ang lahat ng naitalang log file ng pag-debug</string>
+    <string name="support_debuglog_delete_confirm_title">Burahin ang lahat ng log ng pag-debug?</string>
+    <string name="support_debuglog_delete_confirm_message">Permanenteng buburahin nito ang lahat ng naitalang sesyon ng log ng pag-debug. Hindi maaapektuhan ang mga aktibong pagtatala.</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">Ihinto ang pagtatala</string>
+    <string name="settings_support_debuglog_record_action">Itala ang log ng pag-debug</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">Mga sesyon ng log ng pag-debug</string>
+    <string name="support_debuglog_sessions_desc">Pamahalaan ang mga naitalang sesyon ng log ng pag-debug</string>
+    <string name="support_debuglog_sessions_empty">Walang sesyon ng log ng pag-debug</string>
+    <string name="support_debuglog_session_recording">Nagtatala…</string>
+    <string name="support_debuglog_session_compressing">Kino-compress…</string>
+    <string name="support_debuglog_session_failed_empty_log">Nabigo: walang laman ang log</string>
+    <string name="support_debuglog_session_failed_missing_log">Nabigo: nawawala ang log</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Nabigo: sira ang archive</string>
+    <string name="support_debuglog_session_failed_zip_failed">Nabigo: error sa pag-compress</string>
+    <string name="support_debuglog_session_delete_title">Burahin ang sesyon ng pag-debug?</string>
+    <string name="support_debuglog_session_delete_message">Permanenteng buburahin nito ang sesyong ito ng log ng pag-debug.</string>
+    <string name="support_debuglog_clear_action">Burahin lahat</string>
+    <string name="support_debuglog_clear_confirm_message">Burahin ang lahat ng nakaimbak na sesyon ng log ng pag-debug?</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Log ng pag-debug ng Butler - %1$s</string>
+    <string name="debug_log_screen_subtitle">I-export ang impormasyon ng pag-debug para sa pagsisiyasat ng problema</string>
+    <string name="debug_log_screen_sensitive_information_title">Sensitibong impormasyon</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">Naipadala mo ba ang mensahe?</string>
+    <string name="support_contact_sent_message">Kung naipadala ang mensahe, buburahin ang naka-attach na log ng pag-debug upang makatipid ng espasyo. Kung hindi, maaari mo itong panatilihin at subukang muli sa ibang pagkakataon.</string>
+    <string name="support_contact_debuglog_zip_error">Nabigong ihanda ang attachment na log ng pag-debug</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">Progreso ng operasyon sa file</string>
+    <string name="ops_notification_channel_progress_desc">Kasalukuyang progreso ng mga operasyon sa pagkopya, paglipat, at pagbura</string>
+    <string name="ops_notification_channel_attention_name">Mga alerto ng operasyon sa file</string>
+    <string name="ops_notification_channel_attention_desc">Mga operasyong nangangailangan ng iyong pansin o nabigo</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d operasyon sa file ang isinasagawa</item>
+        <item quantity="other">%1$d na operasyon sa file ang isinasagawa</item>
+    </plurals>
+    <string name="ops_notification_state_queued">Nakapila…</string>
+    <string name="ops_notification_state_cancelling">Kinakansela…</string>
+    <string name="ops_notification_state_attention_title">Kailangan ng aksyon</string>
+    <string name="ops_notification_state_attention_text">May salungatang nangangailangan ng iyong pansin — i-tap upang lutasin</string>
+    <string name="ops_notification_result_failed_title">Nabigo ang operasyon</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">Gusto mo bang magbigay ng review sa Butler? ❤️</string>
+    <string name="review_app_dismiss_action">Sa ibang pagkakataon</string>
+    <string name="review_app_review_action">Magbigay ng review</string>
+</resources>

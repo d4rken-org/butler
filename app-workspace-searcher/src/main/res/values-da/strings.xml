@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Søgning</string>
+    <string name="searcher_subtitle">Find filer og indhold</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Søgeindstillinger</string>
+    <string name="searcher_settings_search_category">Søgning</string>
+    <string name="searcher_settings_history">Søgehistorik</string>
+    <string name="searcher_settings_save_history_title">Gem søgehistorik</string>
+    <string name="searcher_settings_save_history_subtitle">Husk tidligere søgninger</string>
+    <string name="searcher_settings_max_history_label">Maksimalt antal historikposter</string>
+    <string name="searcher_settings_max_history_subtitle">Maksimalt antal gemte søgninger</string>
+    <string name="searcher_settings_max_history_input_label">Antal poster (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Ryd søgehistorik</string>
+    <string name="searcher_settings_clear_history_subtitle">Fjern alle gemte søgninger (%1$d)</string>
+    <string name="searcher_settings_search_performance">Ydeevne</string>
+    <string name="searcher_settings_max_results_title">Maksimalt antal søgeresultater</string>
+    <string name="searcher_settings_max_results_subtitle">Begræns antallet af resultater pr. søgning.</string>
+    <string name="searcher_settings_content_search_category">Indholdssøgning</string>
+    <string name="searcher_settings_include_binaries_title">Medtag binære filer</string>
+    <string name="searcher_settings_include_binaries_subtitle">Søg i indholdet af binære filer (kan være langsomt og give irrelevante resultater)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Seneste søgninger</string>
+    <string name="searcher_placeholder_search">Søg efter filer og mapper</string>
+    <string name="searcher_placeholder_filename">Filnavn</string>
+    <string name="searcher_placeholder_content">Indhold</string>
+    <string name="searcher_search_error">Søgefejl</string>
+    <string name="searcher_no_paths_hint">Tryk på + for at tilføje søgeplaceringer</string>
+    <string name="searcher_add_path_action">Tilføj placering</string>
+    <string name="searcher_add_folder_action">Mappe…</string>
+    <string name="searcher_multipath_show_fewer_action">Vis færre</string>
+    <string name="searcher_empty_state_title">Ingen søgestier er konfigureret</string>
+    <string name="searcher_empty_state_description">Tilføj lagerplaceringer for at søge i dine filer</string>
+    <string name="searcher_add_default_paths_action">Tilføj standardsøgestier</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Indstillinger</string>
+    <string name="searcher_option_case_sensitive_label">Skeln mellem store og små bogstaver</string>
+    <string name="searcher_option_case_sensitive_desc">Søgning, der skelner mellem store og små bogstaver</string>
+    <string name="searcher_option_whole_word_label">Hele ord</string>
+    <string name="searcher_option_whole_word_desc">Søg efter hele ord</string>
+    <string name="searcher_option_regex_label">Regulært udtryk</string>
+    <string name="searcher_option_regex_desc">Søg med regulære udtryk</string>
+    <string name="searcher_option_search_content_label">Søg i indhold</string>
+    <string name="searcher_option_search_content_desc">Søg i filernes indhold</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Skabeloner</string>
+    <string name="searcher_templates_card_title">Skabeloner til hurtig søgning</string>
+    <string name="searcher_template_large_files">Store filer</string>
+    <string name="searcher_template_large_files_desc">Filer over 100 MB</string>
+    <string name="searcher_template_recent_files">Seneste filer</string>
+    <string name="searcher_template_recent_files_desc">Ændret inden for de seneste 7 dage</string>
+    <string name="searcher_template_old_files">Gamle filer</string>
+    <string name="searcher_template_old_files_desc">Ikke ændret i over et år</string>
+    <string name="searcher_template_images">Billeder</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Videoer</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Lyd</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Dokumenter</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Arkiver</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APK-filer</string>
+    <string name="searcher_template_apks_desc">Android-apppakker</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d skabelon</item>
+        <item quantity="other">%d skabeloner</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Filter</string>
+    <string name="searcher_filter_add_action">Tilføj filter</string>
+    <string name="searcher_filter_title">Søgefiltre</string>
+    <string name="searcher_filter_size_section">Filstørrelse</string>
+    <string name="searcher_filter_size_min">Minimal størrelse</string>
+    <string name="searcher_filter_size_max">Maksimal størrelse</string>
+    <string name="searcher_filter_date_section">Ændringsdato</string>
+    <string name="searcher_filter_date_after">Ændret efter</string>
+    <string name="searcher_filter_date_before">Ændret før</string>
+    <string name="searcher_filter_date_any">Når som helst</string>
+    <string name="searcher_filter_date_24h">Seneste 24 timer</string>
+    <string name="searcher_filter_date_7d">Seneste 7 dage</string>
+    <string name="searcher_filter_date_30d">Seneste 30 dage</string>
+    <string name="searcher_filter_date_90d">Seneste 90 dage</string>
+    <string name="searcher_filter_date_1y">Seneste år</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">større end</string>
+    <string name="searcher_filter_comparator_greater_or_equal">større end eller lig med</string>
+    <string name="searcher_filter_comparator_less_than">mindre end</string>
+    <string name="searcher_filter_comparator_less_or_equal">mindre end eller lig med</string>
+    <string name="searcher_filter_comparator_equal">lig med</string>
+    <string name="searcher_filter_size_value_label">Størrelse</string>
+    <string name="searcher_filter_size_at_least">Mindst</string>
+    <string name="searcher_filter_size_at_most">Højst</string>
+    <string name="searcher_filter_size_value_hint">f.eks. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Indtast et tal med en enhed (KB, MB, GB). Et tal uden enhed tolkes som MB.</string>
+    <string name="searcher_filter_size_format_error">Ugyldig størrelse — brug et tal og en enhed, f.eks. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Dato</string>
+    <string name="searcher_filter_date_direction_after">Efter</string>
+    <string name="searcher_filter_date_direction_before">Før</string>
+    <string name="searcher_filter_type_label">Type</string>
+    <string name="searcher_filter_type_files">Filer</string>
+    <string name="searcher_filter_type_directories">Mapper</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Fjern fra historik</string>
+    <string name="searcher_history_clear_all_action">Ryd alt</string>
+    <string name="searcher_history_clear_dialog_title">Ryd søgehistorik</string>
+    <string name="searcher_history_clear_dialog_message">Dette fjerner al gemt søgehistorik. Handlingen kan ikke fortrydes.</string>
+    <string name="searcher_history_clear_confirm_action">Ryd</string>
+    <string name="searcher_history_cleared_success">Søgehistorik ryddet</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="one">%d resultat</item>
+        <item quantity="other">%d resultater</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">Vis %d flere</item>
+        <item quantity="other">Vis %d flere</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Søger</string>
+    <string name="searcher_progress_action_searched">Gennemsøgt</string>
+    <string name="searcher_progress_status_completed_with_errors">Fuldført med fejl</string>
+    <string name="searcher_result_limit_reached">Resultatgrænse nået</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Nogle elementer kunne ikke gennemsøges fuldt ud</string>
+    <string name="searcher_progress_clear_action">Ryd</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d mislykkedes</item>
+        <item quantity="other">%d mislykkedes</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">Kunne ikke få adgang til %d element</item>
+        <item quantity="other">Kunne ikke få adgang til %d elementer</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…og %d flere</item>
+        <item quantity="other">…og %d flere</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android beskytter disse placeringer. Yderligere adgang giver Butler mulighed for at søge i dem.</string>
+    <string name="searcher_access_sheet_body_protected">Android beskytter disse placeringer. Det er ikke muligt at give adgang på denne enhed.</string>
+    <string name="searcher_access_sheet_unlock_action">Lås op for adgang</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d placering</item>
+        <item quantity="other">%d placeringer</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d scannet</item>
+        <item quantity="other">%d scannet</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d fundet</item>
+        <item quantity="other">%d fundet</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Kontekst for match</string>
+    <string name="searcher_match_line_label">Linje %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Åbn</string>
+    <string name="searcher_action_open_in_tab">Åbn i ny fane</string>
+    <string name="searcher_action_open_with">Åbn med</string>
+    <string name="searcher_action_open_in_editor">Åbn i tekstredigering</string>
+    <string name="searcher_action_open_in_explorer">Åbn i filhåndtereren</string>
+    <string name="searcher_action_install">Installer</string>
+    <string name="searcher_action_copy">Kopiér</string>
+    <string name="searcher_action_cut">Klip</string>
+    <string name="searcher_action_delete">Slet</string>
+    <string name="searcher_action_copy_path">Kopiér sti</string>
+    <string name="searcher_action_properties">Egenskaber</string>
+    <string name="searcher_action_select_all">Vælg alle</string>
+    <string name="searcher_action_deselect_all">Fravælg alle</string>
+    <string name="searcher_action_sort">Sortér</string>
+    <string name="searcher_action_view">Layout</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Sortér efter</string>
+    <string name="searcher_sort_mode_name_label">Navn</string>
+    <string name="searcher_sort_mode_size_label">Størrelse</string>
+    <string name="searcher_sort_mode_modified_label">Ændringsdato</string>
+    <string name="searcher_sort_mode_created_label">Oprettelsesdato</string>
+    <string name="searcher_sort_mode_path_label">Sti</string>
+    <string name="searcher_sort_descending_label">Faldende rækkefølge</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Hvordan elementer arrangeres, og hvor mange detaljer de viser</string>
+    <string name="searcher_view_mode_list_label">Liste</string>
+    <string name="searcher_view_mode_grid_label">Gitter</string>
+    <string name="searcher_view_density_compact_label">Kompakt</string>
+    <string name="searcher_view_density_comfortable_label">Luftig</string>
+    <string name="searcher_view_density_detailed_label">Detaljeret</string>
+    <string name="searcher_view_detail_modified_label">Ændret</string>
+    <string name="searcher_view_set_default_action">Indstil som standard</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Yderligere opsætning er nødvendig for at søge i nogle placeringer.</string>
+</resources>

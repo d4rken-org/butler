@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Butler Pro தேவை</string>
+
+    <string name="upgrade_prompt_title">Butler ஐ மேம்படுத்துங்கள்</string>
+    <string name="upgrade_prompt_body">Butler Pro சிறந்த முடிவுகளையும், அதிக அம்சங்களையும், மேம்பட்ட பயன்பாட்டுக்கான விருப்பங்களையும் வழங்குகிறது.</string>
+    <string name="upgrade_prompt_upgrade_action">மேம்படுத்து</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"). -->
+    <string name="upgrade_screen_title_template">%1$s ஐப் பெறுங்கள்</string>
+    <string name="upgrade_screen_preamble">Butler இல் விளம்பரங்கள் இல்லை; பயனர் தரவை விற்பதும் இல்லை. எனது பணிக்கு நீங்கள்தான் நிதி வழங்குகிறீர்கள் ❤️.</string>
+
+    <string name="upgrade_screen_how_title">விருப்பங்கள்</string>
+    <string name="upgrade_screen_subscription_trial_action">14 நாள் இலவசச் சோதனையைத் தொடங்கு</string>
+    <string name="upgrade_screen_subscription_action">சந்தா செலுத்து</string>
+    <string name="upgrade_screen_iap_action">ஒருமுறை வாங்குதல்</string>
+    <string name="upgrade_screen_restore_purchase_action">வாங்கியதை மீட்டெடு</string>
+    <string name="upgrade_screen_restore_banner_title">ஏற்கெனவே Pro வாங்கிவிட்டீர்களா?</string>
+    <string name="upgrade_screen_restore_banner_body">இந்தச் சாதனத்தில் முன்பு Pro க்கு மேம்படுத்தியிருப்பதாகத் தெரிகிறது. அதை மீண்டும் திறக்க, வாங்கியதை மீட்டெடுங்கள்.</string>
+    <string name="upgrade_screen_restore_checked_message">Butler இப்போதுதான் Google Play மூலம் சரிபார்த்தது. ஆனால் இந்தச் செயலிக்கு Google Play பயன்படுத்தும் கணக்கில் Pro வாங்கியிருப்பதை உறுதிசெய்ய முடியவில்லை.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Google Play மூலம் செய்த சரிபார்ப்பு உரிய நேரத்தில் முடியவில்லை. எனவே நீங்கள் வாங்கியதன் நிலை இன்னும் தெரியவில்லை. உங்கள் கணக்கில் எதுவும் மாறவில்லை.</string>
+    <string name="upgrade_screen_restore_contact_hint">இன்னும் சிக்கல் உள்ளதா? வாங்குவதற்குப் பயன்படுத்திய மின்னஞ்சல் முகவரியிலிருந்து தொடர்புகொள்ளுங்கள்; உங்கள் Google Play ஆர்டர் எண்ணையும் சேர்க்கவும்.</string>
+    <string name="upgrade_screen_contact_support_action">உதவிக்குத் தொடர்புகொள்</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Play Store ஒத்திசைவுக்கு நேரம் ஆகலாம். சாதனத்தை மறுதொடக்கம் செய்யுங்கள், Google Play தற்காலிகச் சேமிப்பை அழியுங்கள் அல்லது சற்றுக் காத்திருங்கள்.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">பல கணக்குகள் Google Play இல் குழப்பத்தை ஏற்படுத்தலாம். மற்ற கணக்குகளிலிருந்து வெளியேறுங்கள் அல்லது Google Play இணையதளம் வழியாக நிறுவுங்கள். இவ்வாறு நிறுவுவது குறிப்பிட்ட கணக்குடன் இணைக்கப்படுவதை உறுதிசெய்யும்.</string>
+    <string name="upgrade_screen_restore_success_message">நீங்கள் வாங்கியது மீட்டெடுக்கப்பட்டது ❤️</string>
+    <string name="upgrade_screen_restore_status_title">நிலை தவறாகத் தெரிகிறதா?</string>
+    <string name="upgrade_screen_restore_status_body">நீங்கள் வாங்கியதை Google Play மூலம் மீண்டும் சரிபாருங்கள். சாதனத்தை மாற்றிய பிறகு அல்லது Google கணக்கை மாற்றியிருந்தால் இது உதவலாம்.</string>
+
+    <string name="upgrade_screen_offers_or">அல்லது</string>
+
+    <string name="upgrade_screen_offers_title">மேம்படுத்தல் விருப்பங்கள்</string>
+    <string name="upgrade_screen_offers_body">இரண்டு விருப்பங்களும் ஒரே Pro அம்சங்களைத்தான் திறக்கும் — உங்களுக்கு ஏற்ற விலையுள்ளதைத் தேர்ந்தெடுங்கள்.</string>
+    <string name="upgrade_screen_offers_unavailable_title">விலைகள் கிடைக்கவில்லை</string>
+    <string name="upgrade_screen_offers_unavailable_message">Google Play இலிருந்து மேம்படுத்தல் விருப்பங்களை Butler ஆல் ஏற்ற முடியவில்லை. இது பெரும்பாலும் தற்காலிகமானது — சிறிது நேரத்தில் மீண்டும் முயற்சியுங்கள்.</string>
+    <string name="upgrade_screen_subscription_offer_title">ஆண்டுச் சந்தா</string>
+    <string name="upgrade_screen_subscription_offer_body">14 நாள் இலவசச் சோதனையுடன் தொடங்கும். அதன் பிறகு ஆண்டுக்கு ஒருமுறை கட்டணம் வசூலிக்கப்படும். எப்போது வேண்டுமானாலும் ரத்துசெய்யலாம்.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">ஆண்டுக்கு ஒருமுறை கட்டணம் வசூலிக்கப்படும். எப்போது வேண்டுமானாலும் ரத்துசெய்யலாம்.</string>
+    <string name="upgrade_screen_iap_offer_title">ஒருமுறை வாங்கு</string>
+    <string name="upgrade_screen_iap_offer_body">ஒருமுறை பணம் செலுத்தினால், நிரந்தரமாக உங்களுடையது. சந்தா இல்லை.</string>
+    <string name="upgrade_screen_restore_body">மீட்டெடுப்பது, தற்போதைய கணக்கில் இந்தச் செயலிக்காக வாங்கியவற்றை மீண்டும் சரிபார்க்கும்படி Google Play ஐக் கேட்கும்.</string>
+
+    <string name="upgrade_screen_owned_hero_title">உங்களிடம் Butler Pro உள்ளது!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">ஒருமுறை வாங்கியதற்கு நன்றி — இனி நிரந்தரமாகப் பயன்படுத்தலாம் ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">சந்தா செலுத்தியதற்கு நன்றி ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">ஒருமுறை வாங்குதல்</string>
+    <string name="upgrade_screen_owned_iap_body">நிரந்தர Pro மேம்படுத்தல் உங்களிடம் உள்ளது.</string>
+    <string name="upgrade_screen_owned_sub_title">சந்தா</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">உங்கள் சந்தா செயலில் உள்ளது; தானாகவே புதுப்பிக்கப்படும்.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">உங்கள் சந்தா செயலில் உள்ளது; ஆனால் புதுப்பிக்கப்படாதபடி அமைக்கப்பட்டுள்ளது. தற்போதைய காலம் முடியும் வரை Pro தொடர்ந்து கிடைக்கும்.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">நீங்கள் ஒருமுறை வாங்கியிருந்தாலும், உங்கள் சந்தா இன்னும் புதுப்பிக்கப்படுகிறது. இருமுறை பணம் செலுத்துவதைத் தவிர்க்க Google Play இல் சந்தாவை ரத்துசெய்யுங்கள்.</string>
+    <string name="upgrade_screen_manage_subscription_action">சந்தாவை நிர்வகி</string>
+
+    <string name="upgrade_screen_switch_locked_note">முதலில் \"சந்தாவை நிர்வகி\" மூலம் புதுப்பித்தலை ரத்துசெய்யுங்கள். இல்லாவிட்டால் இரண்டுக்கும் கட்டணம் வசூலிக்கப்படும்.</string>
+    <string name="upgrade_screen_switch_purchase_note">உங்கள் சந்தா புதுப்பிக்கப்படாது — இப்போது இருமுறை கட்டணம் வசூலிக்கப்படும் கவலையின்றி ஒருமுறை வாங்கலாம்.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">சந்தா இன்னும் செயலில் உள்ளது</string>
+    <string name="upgrade_screen_sub_still_renewing_message">உங்கள் சந்தா இன்னும் புதுப்பிக்கப்படும்படி அமைக்கப்பட்டுள்ளது. இரண்டுக்கும் கட்டணம் வசூலிக்கப்படாமல் இருக்க, முதலில் Google Play இல் புதுப்பித்தலை ரத்துசெய்யுங்கள். பிறகு ஒருமுறை வாங்குங்கள்.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">சரிபார்க்க முடியவில்லை</string>
+    <string name="upgrade_screen_purchase_check_failed_message">நீங்கள் வாங்கியதன் நிலையை Google Play மூலம் Butler ஆல் உறுதிசெய்ய முடியவில்லை. எனவே இருமுறை கட்டணம் வசூலிக்கப்படுவதைத் தவிர்க்க வாங்கும் செயல்முறை நிறுத்தப்பட்டது. சிறிது நேரத்தில் மீண்டும் முயற்சியுங்கள்.</string>
+
+    <string name="upgrade_screen_pending_card_title">கட்டணம் நிலுவையில் உள்ளது</string>
+    <string name="upgrade_screen_pending_card_body">Google Play இன்னும் உங்கள் கட்டணத்தைச் செயலாக்குகிறது. கட்டணம் வெற்றிகரமாகச் செலுத்தப்பட்டதும் Pro தானாகவே திறக்கப்படும். சில கட்டண முறைகளில் சிறிது நேரம் ஆகலாம். நீங்கள் வேறு எதுவும் செய்ய வேண்டியதில்லை.</string>
+    <string name="upgrade_screen_pending_dialog_message">கட்டணம் நிலுவையில் உள்ள ஒரு வாங்குதலை Google Play கண்டறிந்துள்ளது; அதை இன்னும் செயலாக்குகிறது. கட்டணம் வெற்றிகரமாகச் செலுத்தப்பட்டதும் Pro தானாகவே திறக்கப்படும்.</string>
+
+    <string name="upgrade_screen_grace_title">நீங்கள் வாங்கியது உறுதிசெய்யப்படுகிறது</string>
+    <string name="upgrade_screen_grace_body_short">உங்கள் Pro நிலையை உறுதிசெய்ய Google Play க்குச் சிறிது நேரம் ஆகிறது. உங்களுக்கு இன்னும் முழு அணுகல் உள்ளது.</string>
+    <string name="upgrade_screen_grace_body">உங்கள் Pro நிலையை Google Play இன்னும் மீண்டும் உறுதிசெய்யவில்லை. இப்போதைக்கு உங்களுக்கு அணுகல் உள்ளது. இது தவறாகத் தெரிந்தால், வாங்கியதை மீட்டெடுக்க முயற்சியுங்கள்.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">ஏற்கெனவே வாங்கிவிட்டீர்களா?</string>
+    <string name="upgrades_gplay_already_owned_error_description">இந்த மேம்படுத்தல் ஏற்கெனவே உங்களிடம் இருப்பதாக Google Play தெரிவிக்கிறது. ஆனால் அதைத் தானாக மீட்டெடுக்க முடியவில்லை. முதலில் வாங்குவதற்குப் பயன்படுத்திய Google கணக்கில் உள்நுழைந்திருப்பதை உறுதிசெய்யுங்கள். பிறகு \"வாங்கியதை மீட்டெடு\" என்பதை முயற்சியுங்கள்.</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play கிடைக்கவில்லை</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler ஆல் Google Play உடன் இணைக்க முடியவில்லை. Google Play நிறுவப்பட்டு, சமீபத்திய பதிப்பில் உள்ளதா? உங்கள் Google கணக்கில் உள்நுழைந்துள்ளீர்களா? Google Play செயலியின் தற்காலிகச் சேமிப்பை அழித்து, உங்கள் சாதனத்தை மறுதொடக்கம் செய்ய முயற்சியுங்கள்.</string>
+    <string name="upgrades_gplay_not_installed_message">Google Play ஐத் திறக்க முடியவில்லை. இந்தச் சாதனத்தில் அது இல்லாமல் இருக்கலாம், முடக்கப்பட்டிருக்கலாம் அல்லது கட்டுப்படுத்தப்பட்டிருக்கலாம்.</string>
+    <string name="upgrades_gplay_billing_error_label">Google Play சிக்கல்</string>
+    <string name="upgrades_gplay_billing_error_description">Google Play உடன் தொடர்புகொள்ளும்போது ஏதோ தவறு ஏற்பட்டது. பிறகு மீண்டும் முயற்சியுங்கள் அல்லது உங்கள் சாதனத்தை மறுதொடக்கம் செய்யுங்கள்.\n\nவிவரங்கள்: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Google Play பிழை</string>
+    <string name="upgrades_gplay_internal_error_description">Google Play இல் ஓர் உள் பிழை ஏற்பட்டது. பின்வருவனவற்றை முயற்சியுங்கள்:\n\n• உங்கள் சாதனத்தை மறுதொடக்கம் செய்யுங்கள்\n• Google Play Store தற்காலிகச் சேமிப்பை அழியுங்கள்\n• பிறகு மீண்டும் முயற்சியுங்கள்</string>
+    <string name="upgrades_gplay_network_error_title">இணைப்புப் பிழை</string>
+    <string name="upgrades_gplay_network_error_description">Butler ஆல் Google Play ஐ அணுக முடியவில்லை. உங்கள் இணைய இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சியுங்கள்.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">விருப்பம் கிடைக்கவில்லை</string>
+    <string name="upgrades_gplay_offer_unavailable_description">இந்த மேம்படுத்தல் விருப்பத்தை Google Play தற்போது உங்கள் கணக்கிற்கு வழங்கவில்லை. பிறகு மீண்டும் முயற்சியுங்கள் அல்லது Google Play Store ஐப் பாருங்கள்.</string>
+    <string name="upgrades_no_purchases_found_check_account">வாங்கியவை எதுவும் கிடைக்கவில்லை. சரியான கணக்கைப் பயன்படுத்துகிறீர்களா?</string>
+
+    <string name="upgrade_benefits_title">மேம்படுத்தலின் நன்மைகள்</string>
+    <!-- Keep the feature-row markers. -->
+    <string name="upgrade_screen_benefits_body">• வரம்பற்ற தாவல்களும் செயல்பாடுகளும்\n• வடிவமைப்பு, பயன்படுத்தும் உணர்வு, தோற்றம் ஆகியவற்றை விருப்பப்படி மாற்றலாம்\n• ஒவ்வொரு கருவிக்கும் கூடுதல் விருப்பங்களும் அம்சங்களும்\n• புதிய அம்சங்களுக்கான முன்கூட்டிய அணுகல்\n• ஊக்கமுள்ள உருவாக்குநர் 🧙\nமேலும் பல…</string>
+</resources>

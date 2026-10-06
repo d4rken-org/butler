@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Доклади за дефекти</string>
+    <string name="bugreport_workspace_subtitle">Доклади за сривове и грешки</string>
+
+    <string name="bugreport_empty_title">Няма доклади</string>
+    <string name="bugreport_empty_subtitle">Докладите за сривове и грешки ще се появяват тук. Нищо не се изпраща автоматично.</string>
+
+    <string name="bugreport_type_crash">Срив</string>
+    <string name="bugreport_type_report">Доклад</string>
+    <string name="bugreport_type_recording">Запис</string>
+
+    <string name="bugreport_record_action">Запиши диагностичен журнал</string>
+    <string name="bugreport_record_short_action">Запиши</string>
+    <string name="bugreport_stop_action">Спри записа</string>
+    <string name="bugreport_stop_short_action">Спри</string>
+    <string name="bugreport_recording_ongoing_label">Записва се…</string>
+
+    <string name="bugreport_recording_short_title">Записът е много кратък</string>
+    <string name="bugreport_recording_short_message">Този запис е дълъг само няколко секунди и може да не съдържа полезна информация. Да се спре ли въпреки това?</string>
+    <string name="bugreport_recording_short_keep_action">Продължи записа</string>
+
+    <string name="bugreport_rename_action">Преименувай</string>
+    <string name="bugreport_rename_dialog_title">Дай име на този доклад</string>
+    <string name="bugreport_rename_name_label">Име</string>
+    <string name="bugreport_rename_name_hint">Показва се в списъка и в името на споделяния файл</string>
+
+    <string name="bugreport_share_action">Сподели</string>
+    <string name="bugreport_delete_action">Изтрий</string>
+    <string name="bugreport_delete_all_action">Изтрий всички</string>
+    <string name="bugreport_delete_all_confirm_title">Да се изтрият ли всички диагностични журнали?</string>
+    <string name="bugreport_delete_all_confirm_message">Това ще изтрие безвъзвратно всички записани сесии на диагностични журнали. Активните записи няма да бъдат засегнати.</string>
+    <string name="bugreport_delete_confirm_title">Да се изтрие ли този доклад?</string>
+    <string name="bugreport_delete_confirm_message">Това ще изтрие безвъзвратно този доклад и неговия журнал.</string>
+    <string name="bugreport_cancel_action">Отмени</string>
+
+    <string name="bugreport_share_chooser_title">Сподели доклад за дефект</string>
+    <string name="bugreport_share_consent_title">Да се сподели ли докладът?</string>
+    <string name="bugreport_share_consent_message">Този доклад включва журнали на приложението, които може да съдържат имена и пътища на файлове, както и информация за приложението и устройството. Споделяй го само с хора, на които имаш доверие.</string>
+
+    <string name="bugreport_detail_back_action">Назад</string>
+    <string name="bugreport_detail_section_error">Грешка</string>
+    <string name="bugreport_detail_section_log">Последни записи в журнала</string>
+    <string name="bugreport_detail_field_type">Тип</string>
+    <string name="bugreport_detail_field_time">Време</string>
+    <string name="bugreport_detail_field_app_version">Версия на приложението</string>
+    <string name="bugreport_detail_field_device">Устройство</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Компилация</string>
+    <string name="bugreport_detail_field_error_class">Тип грешка</string>
+    <string name="bugreport_detail_field_thread">Нишка</string>
+    <string name="bugreport_detail_log_truncated">последните %1$d от %2$d реда</string>
+    <string name="bugreport_detail_log_count">%1$d реда</string>
+    <string name="bugreport_detail_log_empty">Няма записан журнал</string>
+    <string name="bugreport_detail_log_error">Журналът не може да се зареди</string>
+</resources>

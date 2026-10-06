@@ -1,0 +1,721 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Preglednik datoteka</string>
+    <string name="explorer_subtitle">Pregledavaj datoteke i mape</string>
+    <string name="explorer_settings_title">Postavke preglednika datoteka</string>
+    <string name="explorer_settings_file_display">Prikaz datoteka</string>
+    <string name="explorer_settings_filter_regex_title">Napredno podudaranje zamjenskih znakova</string>
+    <string name="explorer_settings_filter_regex_desc">Upotrijebi regularne izraze u filtrima za uključivanje i isključivanje.</string>
+    <string name="explorer_settings_navigation">Navigacija</string>
+    <string name="explorer_settings_back_button_title">Navigacija tipkom Natrag</string>
+    <string name="explorer_settings_back_button_desc">Kreći se kroz povijest tipkom ili gestom za povratak.</string>
+    <string name="explorer_settings_trash_category">Smeće</string>
+    <string name="explorer_settings_trash_enabled_title">Omogući smeće</string>
+    <string name="explorer_settings_trash_enabled_desc">Premjesti izbrisane datoteke u smeće umjesto da ih trajno izbrišeš</string>
+    <string name="explorer_settings_trash_auto_delete_title">Automatski izbriši nakon</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Automatski izbriši stavke nakon ovoliko vremena u smeću</string>
+    <string name="explorer_settings_trash_auto_delete_value">Broj dana: %d</string>
+    <string name="explorer_settings_trash_max_size_title">Najveća veličina po lokaciji pohrane</string>
+    <string name="explorer_settings_trash_max_size_summary">Koliko prostora smeće smije zauzeti na svakoj lokaciji pohrane</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Razdoblje do automatskog brisanja</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Najveća veličina po lokaciji pohrane</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Omogućiti smeće?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Za razliku od sustava na računalima, Android nema ugrađeno smeće. Butler ga omogućuje pomoću svoje mape predmemorije.\n\nImaj na umu:\n• Pokazatelj pohrane na tvojem uređaju neće prikazati oslobođeni prostor dok se stavke trajno ne izbrišu\n• Ako na uređaju ponestane prostora, Android može očistiti predmemorije aplikacija i tako ukloniti datoteke iz smeća</string>
+    <string name="explorer_settings_trash_enable_action">Omogući</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">Datoteka</string>
+    <string name="explorer_file_symlink_content_desc">Simbolička poveznica</string>
+    <string name="explorer_file_folder_content_desc">Mapa</string>
+    <string name="explorer_file_peek_content_desc">Učitavanje informacija o datoteci</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Prečac</string>
+    <string name="explorer_file_storage_local_label">Lokalno</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Pristup samo za čitanje</string>
+    <string name="explorer_file_storage_saf_write_only_label">Pristup samo za pisanje</string>
+    <string name="explorer_file_storage_saf_no_access_label">Nema pristupa</string>
+    <string name="explorer_file_storage_saf_uri_label">URI SAF stabla</string>
+    <string name="explorer_file_storage_size_format">%1$s • %2$s ukupno • %3$s slobodno</string>
+    <string name="explorer_file_broken_link_label">Neispravna poveznica</string>
+    <string name="explorer_file_items_count">Stavke: %1$d</string>
+    <string name="explorer_file_empty">Prazno</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · djelomično</string>
+    <string name="explorer_sizes_estimate_description">Procjena na temelju ukupnih podataka o Androidovoj pohrani. Za nečitljive datoteke zauzeti prostor služi kao procjena veličine datoteke. Mogu biti uključene i skrivene datoteke kojima upravlja Android. Ostale nečitljive lokacije ostaju nepoznate.</string>
+    <string name="explorer_sizes_estimate_coverage">Nije bilo moguće procijeniti Android/data jer ostale dijelove pohrane nije bilo moguće potpuno izmjeriti.</string>
+    <string name="explorer_sizes_estimate_unavailable">Androidova statistika pohrane nije bila dostupna. Izmjerene veličine i dalje su prikazane.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Androidovi ukupni podaci o pohrani nisu se podudarali s rezultatima skeniranja. Izmjerene veličine i dalje su prikazane.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Odaberi mapu</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="one">Odaberi %d mapu</item>
+        <item quantity="few">Odaberi %d mape</item>
+        <item quantity="other">Odaberi %d mapa</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Odaberi datoteku</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="one">Odaberi %d datoteku</item>
+        <item quantity="few">Odaberi %d datoteke</item>
+        <item quantity="other">Odaberi %d datoteka</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="one">Odaberi %d stavku</item>
+        <item quantity="few">Odaberi %d stavke</item>
+        <item quantity="other">Odaberi %d stavki</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Odaberi ovu mapu</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">Odaberi %d</item>
+        <item quantity="few">Odaberi %d</item>
+        <item quantity="other">Odaberi %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Spremi datoteku</string>
+    <string name="explorer_picker_save_here_action">Spremi ovdje</string>
+    <string name="explorer_picker_save_as_filename_label">Naziv datoteke</string>
+    <string name="explorer_picker_save_as_filename_hint">Unesi naziv datoteke</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Osvježi</string>
+    <string name="explorer_action_calculate_sizes">Izračunaj veličine</string>
+    <string name="explorer_action_sort">Razvrstaj</string>
+    <string name="explorer_action_filter">Filtriraj</string>
+    <string name="explorer_action_view">Raspored</string>
+    <string name="explorer_action_create">Stvori</string>
+    <string name="explorer_action_rename">Preimenuj</string>
+    <string name="explorer_action_copy">Kopiraj</string>
+    <string name="explorer_action_cut">Izreži</string>
+    <string name="explorer_action_delete">Izbriši</string>
+    <string name="explorer_action_select_all">Odaberi sve</string>
+    <string name="explorer_action_deselect_all">Poništi odabir svih stavki</string>
+    <string name="explorer_action_compress">Komprimiraj</string>
+    <string name="explorer_action_extract">Raspakiraj</string>
+    <string name="explorer_action_add_location">Dodaj lokaciju</string>
+    <string name="explorer_action_info">Informacije</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Informacije</string>
+    <string name="explorer_info_name_label">Naziv</string>
+    <string name="explorer_info_path_label">Putanja</string>
+    <string name="explorer_info_type_label">Vrsta</string>
+    <string name="explorer_info_type_file">Datoteka</string>
+    <string name="explorer_info_type_directory">Mapa</string>
+    <string name="explorer_info_size_label">Veličina</string>
+    <string name="explorer_info_modified_label">Izmijenjeno</string>
+    <string name="explorer_info_created_label">Stvoreno</string>
+    <string name="explorer_info_permissions_label">Dozvole</string>
+    <string name="explorer_info_owner_label">Vlasnik</string>
+    <string name="explorer_info_child_count_label">Stavke</string>
+    <string name="explorer_info_symlink_target_label">Cilj</string>
+    <string name="explorer_info_symlink_status_label">Stanje</string>
+    <string name="explorer_info_symlink_broken">Neispravna poveznica</string>
+    <string name="explorer_info_unknown">Nepoznato</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Izbrisano</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Dozvole</string>
+    <string name="explorer_info_saf_granted_label">Odobreno</string>
+    <string name="explorer_info_saf_permission_read">Čitanje</string>
+    <string name="explorer_info_saf_permission_write">Pisanje</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Poslužitelj</string>
+    <string name="explorer_info_network_port_label">Port</string>
+    <string name="explorer_info_network_share_label">Dijeljena mapa</string>
+    <string name="explorer_info_network_folder_label">Mapa</string>
+    <string name="explorer_info_network_address_label">Adresa</string>
+    <string name="explorer_info_network_status_label">Stanje</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Prijava</string>
+    <string name="explorer_info_network_domain_label">Domena</string>
+    <string name="explorer_info_network_password_label">Lozinka</string>
+    <string name="explorer_info_network_password_show_action">Prikaži lozinku</string>
+    <string name="explorer_info_network_password_hide_action">Sakrij lozinku</string>
+    <string name="explorer_info_network_password_missing">Nedostaje, prijavi se ponovno</string>
+    <string name="explorer_info_network_password_locked">Spremljena, ali je ovaj uređaj ne može otključati</string>
+    <string name="explorer_info_network_added_label">Dodano</string>
+    <string name="explorer_info_network_updated_label">Ažurirano</string>
+    <string name="explorer_info_network_last_seen_label">Posljednja dostupnost</string>
+    <string name="explorer_info_network_last_seen_never">Nikad</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Odabrano</string>
+    <string name="explorer_info_files_label">Datoteke</string>
+    <string name="explorer_info_directories_label">Mape</string>
+    <string name="explorer_info_total_size_label">Ukupna veličina</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Lokacije</string>
+    <string name="explorer_info_shortcuts_label">Prečaci</string>
+    <string name="explorer_info_total_capacity_label">Ukupni kapacitet</string>
+    <string name="explorer_info_used_space_label">Zauzeti prostor</string>
+    <string name="explorer_info_free_space_label">Slobodni prostor</string>
+    <string name="explorer_info_usage_label">Iskorištenost</string>
+    <string name="explorer_info_device_storage_total_label">Pohrana uređaja</string>
+    <string name="explorer_info_device_storage_used_label">Zauzeto</string>
+    <string name="explorer_info_device_storage_free_label">Slobodno</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Početna</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Postavi kao početnu</string>
+    <string name="explorer_breadcrumb_copy_path_action">Kopiraj putanju</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Putanja je kopirana u međuspremnik</string>
+    <string name="explorer_navigation_device">Uređaj</string>
+    <string name="explorer_navigation_network">Mreža</string>
+    <string name="explorer_navigation_recent">Nedavno</string>
+    <string name="explorer_navigation_recent_desc">Datoteke koje su se nedavno pojavile na ovom uređaju</string>
+    <string name="explorer_navigation_trash">Smeće</string>
+    <string name="explorer_navigation_trash_desc">Vrati izbrisane datoteke</string>
+    <string name="explorer_navigation_trash_nested_desc">Unutar mape u smeću</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Nema izbrisanih stavki</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d stavka</item>
+        <item quantity="few">%d stavke</item>
+        <item quantity="other">%d stavki</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Vrati</string>
+    <string name="explorer_trash_restore_selected_action">Vrati odabrano</string>
+    <string name="explorer_trash_delete_permanently_action">Trajno izbriši</string>
+    <string name="explorer_trash_delete_selected_action">Izbriši odabrano</string>
+    <string name="explorer_trash_empty_trash_action">Isprazni smeće</string>
+    <string name="explorer_trash_empty_confirm">Isprazniti smeće?</string>
+    <string name="explorer_trash_empty_message">Sve stavke u smeću trajno će se izbrisati. Ovu radnju nije moguće poništiti.</string>
+    <string name="explorer_trash_empty_confirm_action">Isprazni smeće</string>
+    <string name="explorer_trash_restore_desc">Vrati na izvornu lokaciju</string>
+    <string name="explorer_trash_item_unavailable">Stavka nije dostupna</string>
+    <string name="explorer_trash_delete_warning">Ovu radnju nije moguće poništiti</string>
+    <string name="explorer_trash_disabled_warning">Smeće je onemogućeno</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Učitavanje sadržaja mape u smeću…</string>
+    <string name="explorer_trash_nested_restore_action">Vrati na izvornu lokaciju</string>
+    <string name="explorer_trash_nested_delete_action">Trajno izbriši</string>
+    <string name="explorer_trash_nested_restore_conflict">Datoteka već postoji na izvornoj lokaciji</string>
+    <string name="explorer_trash_nested_parent_missing">Nadređena stavka više ne postoji u smeću</string>
+    <string name="explorer_trash_nested_path_missing">Putanja više ne postoji</string>
+    <string name="explorer_trash_error_items_not_found">Stavke nisu pronađene u smeću</string>
+    <string name="explorer_trash_error_restore_failed">Vraćanje stavki nije uspjelo</string>
+    <string name="explorer_trash_error_delete_failed">Brisanje stavki nije uspjelo</string>
+    <string name="explorer_trash_nested_error_restore_failed">Vraćanje nije uspjelo: %1$s</string>
+    <string name="explorer_trash_nested_error_delete_failed">Brisanje nije uspjelo: %1$s</string>
+
+    <string name="explorer_navigation_root">Korijenska mapa</string>
+    <string name="explorer_navigation_rom">Sistemski ROM</string>
+    <string name="explorer_navigation_internal_storage">Unutarnja javna pohrana</string>
+    <string name="explorer_navigation_external_storage">Vanjska javna pohrana</string>
+
+    <string name="explorer_loader_progress_directory_loading">Pregledavanje: %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Provjera dozvola</string>
+    <string name="explorer_loader_progress_directory_filesystem">Dohvaćanje informacija o datotečnom sustavu</string>
+    <string name="explorer_loader_progress_directory_content">Učitavanje sadržaja mape</string>
+    <string name="explorer_loader_progress_directory_content_details">Učitavanje pojedinosti o sadržaju</string>
+    <string name="explorer_loader_progress_directory_content_extended">Učitavanje proširenih pojedinosti o sadržaju</string>
+
+    <string name="explorer_loader_progress_device_loading">Učitavanje uređaja</string>
+    <string name="explorer_loader_progress_device_locations">Učitavanje lokacija pohrane</string>
+
+    <string name="explorer_loader_progress_network_loading">Učitavanje mrežne pohrane</string>
+
+    <string name="explorer_loader_progress_home_loading">Učitavanje početne</string>
+    <string name="explorer_loader_progress_trash_loading">Učitavanje smeća…</string>
+    <string name="explorer_loader_progress_recent_loading">Učitavanje nedavnih datoteka…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d prečac</item>
+        <item quantity="few">%d prečaca</item>
+        <item quantity="other">%d prečaca</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d lokacija</item>
+        <item quantity="few">%d lokacije</item>
+        <item quantity="other">%d lokacija</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d skrivena stavka</item>
+        <item quantity="few">%d skrivene stavke</item>
+        <item quantity="other">%d skrivenih stavki</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s slobodno</string>
+    <string name="explorer_infobar_loading">Učitavanje…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Stvori novu stavku</string>
+    <string name="explorer_dialog_rename_title">Preimenuj</string>
+    <string name="explorer_dialog_name_label">Naziv</string>
+    <string name="explorer_dialog_type_label">Vrsta</string>
+    <string name="explorer_dialog_type_folder">Mapa</string>
+    <string name="explorer_dialog_type_file">Datoteka</string>
+    <string name="explorer_dialog_create_text_file_title">Stvori datoteku iz teksta</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Pregled</string>
+    <string name="explorer_dialog_create_text_file_size_label">Broj znakova: %1$d</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Dodaj lokaciju pohrane</string>
+    <string name="explorer_add_device_storage_desc">Upotrijebi Storage Access Framework (SAF) da Butleru odobriš pristup dodatnim lokacijama pohrane, poput USB pogona, virtualnih mapa aplikacija i drugih.</string>
+    <string name="explorer_add_device_storage_continue">Nastavi</string>
+    <string name="explorer_add_device_storage_cancel">Odustani</string>
+    <string name="explorer_add_device_storage_suggestions_title">Aplikacije s pohranom</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Otvara mapu ove aplikacije</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Ukloni lokaciju</string>
+    <string name="explorer_device_remove_confirmation_title">Ukloniti lokaciju pohrane?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">Ukloniti %1$d lokaciju pohrane?</item>
+        <item quantity="few">Ukloniti %1$d lokacije pohrane?</item>
+        <item quantity="other">Ukloniti %1$d lokacija pohrane?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Time se Butleru ukida pristup ovoj lokaciji. Tvoje se datoteke neće izbrisati.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d mrežna lokacija</item>
+        <item quantity="few">%d mrežne lokacije</item>
+        <item quantity="other">%d mrežnih lokacija</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Mreža</string>
+    <string name="explorer_network_add_location_action">Dodaj mrežnu pohranu</string>
+    <string name="explorer_network_edit_location_action">Uredi mrežnu pohranu</string>
+    <string name="explorer_network_remove_location_action">Ukloni mrežnu pohranu</string>
+    <string name="explorer_network_sign_in_required_label">Potrebna je prijava</string>
+    <string name="explorer_network_status_checking_label">Provjera…</string>
+    <string name="explorer_network_status_available_label">Dostupno</string>
+    <string name="explorer_network_status_unavailable_label">Nedostupno</string>
+    <string name="explorer_network_status_unavailable_since_format">Nedostupno (%1$s)</string>
+    <string name="explorer_network_empty_title">Još nema mrežne pohrane</string>
+    <string name="explorer_network_empty_caption">Dodaj dijeljenu mapu iz Windowsa ili mapu s NAS-a da je ovdje pregledavaš.</string>
+    <string name="explorer_network_form_pro_notice">Dodavanje i testiranje lokacije besplatni su. Za pregledavanje je potreban Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Spremljeno. Za pregledavanje mrežne pohrane potreban je Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">Za pregledavanje mrežne pohrane potreban je Butler Pro.</string>
+    <string name="explorer_network_remove_confirmation_title">Ukloniti mrežnu pohranu?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">Ukloniti %1$d lokaciju mrežne pohrane?</item>
+        <item quantity="few">Ukloniti %1$d lokacije mrežne pohrane?</item>
+        <item quantity="other">Ukloniti %1$d lokacija mrežne pohrane?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler zaboravlja podatke o poslužitelju i spremljenu lozinku. Ništa se na poslužitelju ne briše.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Dodaj mrežnu pohranu</string>
+    <string name="explorer_network_form_edit_title">Uredi mrežnu pohranu</string>
+    <string name="explorer_network_form_label_label">Naziv (neobavezno)</string>
+    <string name="explorer_network_form_host_label">Adresa poslužitelja</string>
+    <string name="explorer_network_form_host_hint">nas.local ili 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Port</string>
+    <string name="explorer_network_form_share_label">Dijeljena mapa</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Mapa unutar dijeljene mape (neobavezno)</string>
+    <string name="explorer_network_form_auth_guest">Gost</string>
+    <string name="explorer_network_form_auth_password">Korisničko ime i lozinka</string>
+    <string name="explorer_network_form_username_label">Korisničko ime</string>
+    <string name="explorer_network_form_domain_label">Domena (neobavezno)</string>
+    <string name="explorer_network_form_password_label">Lozinka</string>
+    <string name="explorer_network_form_password_kept_hint">Ostavi prazno da zadržiš spremljenu lozinku</string>
+    <string name="explorer_network_form_remember_label">Zapamti lozinku</string>
+    <string name="explorer_network_form_remember_hint">Pohranjuje se šifrirano samo na ovom uređaju</string>
+    <string name="explorer_network_form_test_and_save_action">Testiraj i spremi</string>
+    <string name="explorer_network_form_testing">Povezivanje…</string>
+    <string name="explorer_network_form_error_host_blank">Unesi adresu poslužitelja</string>
+    <string name="explorer_network_form_error_host_not_bare">Unesi samo adresu poslužitelja, bez sheme ili putanje</string>
+    <string name="explorer_network_form_error_host_malformed">Ovo nije valjana adresa poslužitelja</string>
+    <string name="explorer_network_form_error_port">Unesi port između 1 i 65535</string>
+    <string name="explorer_network_form_error_share_blank">Unesi naziv dijeljene mape</string>
+    <string name="explorer_network_form_error_share_not_single">Unesi samo naziv dijeljene mape, a podmape navedi ispod</string>
+    <string name="explorer_network_form_error_share_malformed">Ovo nije valjan naziv dijeljene mape</string>
+    <string name="explorer_network_form_error_base_path">Ova se putanja mape ne može upotrijebiti</string>
+    <string name="explorer_network_form_error_username_blank">Unesi korisničko ime</string>
+    <string name="explorer_network_form_error_password_required">Ponovno unesi lozinku da promijeniš korisničko ime ili domenu</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Imenuj lokaciju</string>
+    <string name="explorer_location_name_label">Naziv lokacije</string>
+    <string name="explorer_location_name_hint">Ostavi prazno za zadani naziv</string>
+    <string name="explorer_location_rename_action">Preimenuj lokaciju</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Dodano u posljednji %d dan</item>
+        <item quantity="few">Dodano u posljednja %d dana</item>
+        <item quantity="other">Dodano u posljednjih %d dana</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Ovdje nema ničeg novog</string>
+    <string name="explorer_recent_empty_message">Datoteke koje se pojave na ovom uređaju prikazuju se ovdje</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Ova je mapa prazna</string>
+    <string name="explorer_empty_search_title">Nema rezultata pretraživanja</string>
+    <string name="explorer_empty_search_caption">Pokušaj s drugim pojmom za pretraživanje</string>
+    <string name="explorer_empty_folder_label">Prazna mapa</string>
+    <string name="explorer_empty_filtered_title">Nema podudarnih stavki</string>
+    <string name="explorer_empty_filtered_caption">Pokušaj prilagoditi filtre</string>
+    <string name="explorer_empty_hidden_title">Ovdje su samo skrivene stavke</string>
+    <string name="explorer_empty_hidden_caption">Ova kartica skriva stavke čiji naziv počinje točkom</string>
+    <string name="explorer_empty_show_hidden_action">Prikaži skrivene stavke</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Nema više ničeg za prikaz</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Skrivene stavke i tvoji filtri isključuju svaki svoj dio ove mape</string>
+    <string name="explorer_empty_clear_filters_action">Očisti filtre</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Skrivene stavke i filtri ovdje isključuju sve</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Prikaz skrivenih stavki i čišćenje filtara ove kartice ponovno će ih prikazati</string>
+    <string name="explorer_empty_show_all_action">Prikaži sve stavke</string>
+    <string name="explorer_path_not_found_title">Ove mape više nema</string>
+    <string name="explorer_path_not_found_caption">Izbrisana je, preimenovana ili premještena drugamo.</string>
+    <string name="explorer_path_not_found_back_action">Vrati se</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Učitavanje…</string>
+    <string name="explorer_file_peek_loading_text">Učitavanje…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Ovdje nema ničeg za vidjeti… samo nastavi 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Ova je mapa na dijeti</string>
+    <string name="explorer_empty_folder_caption_3">Čak su i datoteke danas ranije otišle kući</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe je prestao raditi</string>
+    <string name="explorer_empty_folder_caption_5">Datoteke se igraju skrivača</string>
+    <string name="explorer_empty_folder_caption_6">404: Datoteke nisu pronađene</string>
+    <string name="explorer_empty_folder_caption_7">Ova mapa ima problema s povjerenjem</string>
+    <string name="explorer_empty_folder_caption_8">Datoteke su otišle na odmor bez najave</string>
+    <string name="explorer_empty_folder_caption_9">Prazna poput moje duše… ali urednija</string>
+    <string name="explorer_empty_folder_caption_10">Digitalna verzija pustoši</string>
+    <string name="explorer_empty_folder_caption_11">Datoteke drže socijalnu distancu</string>
+    <string name="explorer_empty_folder_caption_12">Ova mapa prakticira minimalizam</string>
+    <string name="explorer_empty_folder_caption_13">Netko je zaboravio nahraniti datoteke</string>
+    <string name="explorer_empty_folder_caption_14">Datoteke su napustile zgradu</string>
+    <string name="explorer_empty_folder_caption_15">Praznija od obećanja političara</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Razvrstaj prema</string>
+    <string name="explorer_sort_mode_name_label">Naziv</string>
+    <string name="explorer_sort_mode_size_label">Veličina</string>
+    <string name="explorer_sort_mode_modified_label">Datum izmjene</string>
+    <string name="explorer_sort_mode_created_label">Datum stvaranja</string>
+    <string name="explorer_sort_descending_label">Silazni redoslijed</string>
+    <string name="explorer_sort_scope_label">Primijeni na</string>
+    <string name="explorer_sort_scope_all_folders">Sve mape</string>
+    <string name="explorer_sort_scope_this_folder">Ovu mapu</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Ovu mapu i podmape</string>
+    <string name="explorer_sort_scope_use_default_here">Ovdje upotrijebi zadano</string>
+    <string name="explorer_sort_only_this_tab_label">Samo za ovu karticu</string>
+    <string name="explorer_sort_inherited_notice">Razvrstano prema pravilu spremljenom za %1$s</string>
+    <string name="explorer_sort_suppressed_notice">Ovo nadjačava pravilo spremljeno za %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Ova kartica koristi vlastiti zadani redoslijed razvrstavanja</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Očisti</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Veličine mapa</string>
+    <string name="explorer_sizes_sheet_label_calculated">Izračunato</string>
+    <string name="explorer_sizes_sheet_label_folders">Mape</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Nečitljive lokacije</string>
+    <string name="explorer_sizes_sheet_problems_more">Dodatne lokacije koje nisu navedene: %1$d</string>
+    <string name="explorer_sizes_sheet_recalculate">Ponovno izračunaj</string>
+    <string name="explorer_sizes_sheet_discard">Odbaci veličine</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Kako su stavke raspoređene i koliko pojedinosti prikazuju</string>
+    <string name="explorer_view_mode_list_label">Popis</string>
+    <string name="explorer_view_mode_grid_label">Mreža</string>
+    <string name="explorer_view_density_compact_label">Zbijeno</string>
+    <string name="explorer_view_density_comfortable_label">Prostrano</string>
+    <string name="explorer_view_density_detailed_label">Detaljno</string>
+    <string name="explorer_view_show_hidden_label">Prikaži skrivene datoteke</string>
+    <string name="explorer_view_set_default_action">Postavi kao zadano</string>
+    <string name="explorer_view_detail_created_label">Stvoreno</string>
+    <string name="explorer_view_detail_modified_label">Izmijenjeno</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Pravila razvrstavanja mapa</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Postavke razvrstavanja spremljene za pojedine mape</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Očistiti pravila razvrstavanja mapa?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Sve se mape vraćaju na zadani redoslijed razvrstavanja. Kartice s vlastitim prilagođenim razvrstavanjem zadržavaju ga. Ovu radnju nije moguće poništiti.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Očisti sve</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Vrsta datoteke</string>
+    <string name="explorer_filter_type_all">Sve</string>
+    <string name="explorer_filter_type_files">Samo datoteke</string>
+    <string name="explorer_filter_type_folders">Samo mape</string>
+    <string name="explorer_filter_include_label">Uzorak za uključivanje</string>
+    <string name="explorer_filter_include_placeholder_simple">npr. odmor, izvješće, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">npr. .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Uzorak za isključivanje</string>
+    <string name="explorer_filter_exclude_placeholder_simple">npr. tmp, cache, staro</string>
+    <string name="explorer_filter_exclude_placeholder_regex">npr. ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Omogući regularne izraze u postavkama</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Potrebna je dozvola</string>
+    <string name="explorer_permission_generic_description">Butler treba dodatnu dozvolu za pregledavanje ove lokacije.</string>
+    <string name="explorer_permission_setup_action">Otvori početno postavljanje</string>
+    <string name="explorer_grant_access_action">Odobri pristup</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Radnje</string>
+    <string name="explorer_file_info_type_label">Vrsta</string>
+    <string name="explorer_file_info_size_label">Veličina</string>
+    <string name="explorer_file_info_modified_label">Izmijenjeno</string>
+    <string name="explorer_file_action_install">Instaliraj</string>
+    <string name="explorer_file_action_install_subtitle">Instaliraj ovu aplikaciju na svoj uređaj</string>
+    <string name="explorer_file_action_open">Otvori</string>
+    <string name="explorer_file_action_open_subtitle">Prikaži ovdje, Natrag te vraća u ovu mapu</string>
+    <string name="explorer_file_action_open_in_tab">Otvori u novoj kartici</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Prikaži u Butleru kao zasebnu karticu</string>
+    <string name="explorer_file_action_open_in_editor">Otvori u uređivaču</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Uredi u novoj kartici</string>
+    <string name="explorer_file_action_open_with">Otvori pomoću</string>
+    <string name="explorer_file_action_open_with_subtitle">Odaberi vanjsku aplikaciju za otvaranje</string>
+    <string name="explorer_file_action_share">Podijeli</string>
+    <string name="explorer_file_action_share_subtitle">Podijeli putem instaliranih aplikacija</string>
+    <string name="explorer_file_action_copy">Kopiraj</string>
+    <string name="explorer_file_action_copy_subtitle">Kopiraj u međuspremnik za lijepljenje</string>
+    <string name="explorer_file_action_cut">Izreži</string>
+    <string name="explorer_file_action_cut_subtitle">Premjesti u međuspremnik za lijepljenje</string>
+    <string name="explorer_file_action_rename">Preimenuj</string>
+    <string name="explorer_file_action_rename_subtitle">Promijeni naziv datoteke</string>
+    <string name="explorer_file_action_delete">Izbriši</string>
+    <string name="explorer_file_action_delete_subtitle">Trajno ukloni ovu datoteku</string>
+    <string name="explorer_file_action_move_to_trash">Premjesti u smeće</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Premjesti datoteku u smeće</string>
+    <string name="explorer_file_action_properties">Svojstva</string>
+    <string name="explorer_file_action_properties_subtitle">Prikaži detaljne informacije o datoteci</string>
+    <string name="explorer_file_action_extract">Raspakiraj</string>
+    <string name="explorer_file_action_extract_subtitle">Raspakiraj sadržaj arhive u mapu</string>
+    <string name="explorer_file_action_show_in_folder">Prikaži u mapi</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Otvori mapu u kojoj se nalazi ova datoteka</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">Stvoreno: %d datoteka.</item>
+        <item quantity="few">Stvoreno: %d datoteke.</item>
+        <item quantity="other">Stvoreno: %d datoteka.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">Stvoreno: %d mapa.</item>
+        <item quantity="few">Stvoreno: %d mape.</item>
+        <item quantity="other">Stvoreno: %d mapa.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Kopiranje datoteka</string>
+    <string name="explorer_operation_copy_description_single">Kopiraj \"%1$s\" iz \"%2$s\" u \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">Kopiraj %1$d stavku u \"%2$s\".</item>
+        <item quantity="few">Kopiraj %1$d stavke u \"%2$s\".</item>
+        <item quantity="other">Kopiraj %1$d stavki u \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">Kopirano: %d datoteka.</item>
+        <item quantity="few">Kopirano: %d datoteke.</item>
+        <item quantity="other">Kopirano: %d datoteka.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">Kopirano: %d mapa.</item>
+        <item quantity="few">Kopirano: %d mape.</item>
+        <item quantity="other">Kopirano: %d mapa.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">Kopirano: %s.</item>
+        <item quantity="few">Kopirano: %s.</item>
+        <item quantity="other">Kopirano: %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Raspakiravanje arhive</string>
+    <string name="explorer_operation_extract_description">Raspakiraj \"%1$s\" u \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Lokalno kopiranje</string>
+    <string name="explorer_operation_download_copy_description">Kopiraj \"%1$s\" u \"%2$s\" za lokalno pregledavanje.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">Raspakirano: %d datoteka.</item>
+        <item quantity="few">Raspakirano: %d datoteke.</item>
+        <item quantity="other">Raspakirano: %d datoteka.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">Raspakirano: %s.</item>
+        <item quantity="few">Raspakirano: %s.</item>
+        <item quantity="other">Raspakirano: %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Komprimiranje datoteka</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">Komprimiraj %1$d stavku u \"%2$s\".</item>
+        <item quantity="few">Komprimiraj %1$d stavke u \"%2$s\".</item>
+        <item quantity="other">Komprimiraj %1$d stavki u \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">Komprimirano: %d datoteka.</item>
+        <item quantity="few">Komprimirano: %d datoteke.</item>
+        <item quantity="other">Komprimirano: %d datoteka.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Stvori arhivu</string>
+    <string name="explorer_compress_dialog_name_label">Naziv arhive</string>
+    <string name="explorer_compress_dialog_format_label">Format</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Otvara se na svakom uređaju. Može se zaštititi lozinkom.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">Manja arhiva za velik broj datoteka. Bez zaštite lozinkom.</string>
+    <string name="explorer_compress_dialog_create_action">Stvori</string>
+    <string name="explorer_compress_dialog_level_label">Razina kompresije</string>
+    <string name="explorer_compress_dialog_level_fast">Brza</string>
+    <string name="explorer_compress_dialog_level_normal">Uobičajena</string>
+    <string name="explorer_compress_dialog_level_best">Najbolja</string>
+    <string name="explorer_compress_dialog_password_label">Lozinka (neobavezno)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Potvrdi lozinku</string>
+    <string name="explorer_compress_dialog_password_mismatch">Lozinke se ne podudaraju</string>
+    <string name="explorer_compress_dialog_password_weak">Slaba lozinka</string>
+    <string name="explorer_compress_dialog_password_notice">Sadržaj datoteka je šifriran, ali nazivi datoteka nisu.</string>
+    <string name="explorer_compress_dialog_password_show">Prikaži lozinku</string>
+    <string name="explorer_compress_dialog_password_hide">Sakrij lozinku</string>
+    <string name="explorer_compress_dialog_overwrite_title">Zamijeniti arhivu?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" već postoji i zamijenit će se.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Zamijeni</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">Ispustiti %1$d stavku?</item>
+        <item quantity="few">Ispustiti %1$d stavke?</item>
+        <item quantity="other">Ispustiti %1$d stavki?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">Kopirati ili premjestiti %1$d stavku u \"%2$s\"?</item>
+        <item quantity="few">Kopirati ili premjestiti %1$d stavke u \"%2$s\"?</item>
+        <item quantity="other">Kopirati ili premjestiti %1$d stavki u \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">Kopirati %1$d stavku u \"%2$s\"?</item>
+        <item quantity="few">Kopirati %1$d stavke u \"%2$s\"?</item>
+        <item quantity="other">Kopirati %1$d stavki u \"%2$s\"?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Premjestiti u smeće?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">Premjestiti %1$d stavku u smeće?</item>
+        <item quantity="few">Premjestiti %1$d stavke u smeće?</item>
+        <item quantity="other">Premjestiti %1$d stavki u smeće?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Premještanje datoteka</string>
+    <string name="explorer_operation_move_description_single">Premjesti \"%1$s\" iz \"%2$s\" u \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">Premjesti %1$d stavku u \"%2$s\".</item>
+        <item quantity="few">Premjesti %1$d stavke u \"%2$s\".</item>
+        <item quantity="other">Premjesti %1$d stavki u \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">Premješteno: %d datoteka.</item>
+        <item quantity="few">Premješteno: %d datoteke.</item>
+        <item quantity="other">Premješteno: %d datoteka.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">Premješteno: %d mapa.</item>
+        <item quantity="few">Premješteno: %d mape.</item>
+        <item quantity="other">Premješteno: %d mapa.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">Premješteno: %s.</item>
+        <item quantity="few">Premješteno: %s.</item>
+        <item quantity="other">Premješteno: %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Stvaranje mape</string>
+    <string name="explorer_operation_create_description_directory">Stvori mapu \"%1$s\" na \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Stvaranje datoteke</string>
+    <string name="explorer_operation_create_description_file">Stvori datoteku \"%1$s\" na \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Stvaranje tekstne datoteke</string>
+    <string name="explorer_operation_create_text_file_description">Stvori \"%1$s\" iz isječka teksta</string>
+    <string name="explorer_operation_calculate_sizes_title">Izračun veličina</string>
+    <string name="explorer_operation_calculate_sizes_description">Izračunaj veličine mapa u \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">Skenirano: %1$d stavka</item>
+        <item quantity="few">Skenirano: %1$d stavke</item>
+        <item quantity="other">Skenirano: %1$d stavki</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Broj mapa čije su veličine izračunate: %1$d.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">Broj mapa čije su veličine izračunate: %1$d. Nije bilo moguće pročitati %2$d lokaciju.</item>
+        <item quantity="few">Broj mapa čije su veličine izračunate: %1$d. Nije bilo moguće pročitati %2$d lokacije.</item>
+        <item quantity="other">Broj mapa čije su veličine izračunate: %1$d. Nije bilo moguće pročitati %2$d lokacija.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Veličine mapa za \"%1$s\" odbačene su jer se sadržaj promijenio tijekom izračuna.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Navigacija nije uspjela</string>
+    <string name="explorer_aborted_dialog_title">Operacija je prekinuta</string>
+    <string name="explorer_aborted_dialog_message">Učitavanje je otkazano prije nego što se išta moglo prikazati.</string>
+    <string name="explorer_archive_unbrowsable_title">Arhivu ovdje nije moguće pregledavati</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" nalazi se na pohrani koja podržava samo slijedno čitanje, ali pregledavanje arhive zahtijeva nasumičan pristup. Raspakiraj arhivu ovdje ili preuzmi lokalnu kopiju da je pregledavaš.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Raspakiraj arhivu</string>
+    <string name="explorer_archive_unbrowsable_download_action">Preuzmi lokalnu kopiju</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (poseban pristup)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (poseban pristup)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android ograničava pristup ovoj mapi. Upotrijebi alat za odabir mapa da odobriš pristup.</string>
+    <string name="explorer_permission_multiple_options_description">Možeš odobriti pristup Androidovim alatom za odabir mapa ili postaviti root ili ADB pristup za brži pristup svim ograničenim mapama.</string>
+    <string name="explorer_permission_multiple_options_root_description">Možeš odobriti pristup Androidovim alatom za odabir mapa ili postaviti Root za pristup svim ograničenim mapama.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Možeš odobriti pristup Androidovim alatom za odabir mapa ili postaviti ADB pristup za brži pristup ograničenim mapama.</string>
+    <string name="explorer_permission_setup_both_description">Ova mapa zahtijeva pristup s višim ovlastima. Postavi root ili ADB pristup u početnom postavljanju.</string>
+    <string name="explorer_permission_setup_shizuku_description">Ova mapa zahtijeva pristup s višim ovlastima putem ADB-a. Konfiguriraj ADB pristup u početnom postavljanju.</string>
+    <string name="explorer_permission_setup_root_description">Ova mapa zahtijeva Root pristup. Konfiguriraj Root u početnom postavljanju ako tvoj uređaj ima root pristup.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Upotrijebi Androidov alat za odabir mapa da odobriš pristup ovoj mapi.</string>
+    <string name="explorer_permission_option_picker_action">Otvori SAF alat za odabir</string>
+
+    <string name="explorer_permission_option_setup_title">Potpun pristup</string>
+    <string name="explorer_permission_option_setup_description">Konfiguriraj root ili ADB pristup za brži pristup svim ograničenim mapama.</string>
+    <string name="explorer_permission_option_setup_root_description">Konfiguriraj Root za pristup ovoj i drugim ograničenim mapama.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Konfiguriraj ADB pristup za otvaranje ove mape.</string>
+    <string name="explorer_permission_option_setup_action">Konfiguriraj</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Pristup pohrani</string>
+    <string name="explorer_permission_option_storage_description">Odobri Butleru pristup datotekama u pohrani svojeg uređaja.</string>
+    <string name="explorer_permission_option_storage_action">Odobri dozvolu</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Favoriti</string>
+    <string name="explorer_action_add_to_favorites">Dodaj u favorite</string>
+    <string name="explorer_action_remove_from_favorites">Ukloni iz favorita</string>
+    <string name="explorer_favorites_select_action">Odaberi</string>
+    <string name="explorer_favorites_unavailable_subtitle">Nije dostupno</string>
+    <string name="explorer_favorites_unavailable_toast">Favorit nije dostupan</string>
+    <string name="explorer_favorites_added_message">Dodano u favorite: %1$s</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">Dodano u favorite: %1$d stavka</item>
+        <item quantity="few">Dodano u favorite: %1$d stavke</item>
+        <item quantity="other">Dodano u favorite: %1$d stavki</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">Uklonjeno iz favorita: %1$s</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">Uklonjeno iz favorita: %1$d stavka</item>
+        <item quantity="few">Uklonjeno iz favorita: %1$d stavke</item>
+        <item quantity="other">Uklonjeno iz favorita: %1$d stavki</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Preimenuj favorit</string>
+    <string name="explorer_favorites_rename_hint">Naziv favorita</string>
+    <string name="explorer_favorites_rename_description">Preimenuje se samo unos u tvojim favoritima, a sama mapa zadržava svoj naziv.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">Ova kartica nadjačava redoslijed razvrstavanja za %1$d mapu</item>
+        <item quantity="few">Ova kartica nadjačava redoslijed razvrstavanja za %1$d mape</item>
+        <item quantity="other">Ova kartica nadjačava redoslijed razvrstavanja za %1$d mapa</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d mapa</item>
+        <item quantity="few">%1$d mape</item>
+        <item quantity="other">%1$d mapa</item>
+    </plurals>
+</resources>

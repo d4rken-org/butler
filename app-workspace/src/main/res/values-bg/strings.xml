@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Клипборд</string>
+    <string name="clipboard_clear_all">Изчисти всичко</string>
+    <string name="clipboard_paste">Постави</string>
+    <string name="clipboard_open_in_explorer">Отвори във файловия мениджър</string>
+    <string name="clipboard_copy">Копирай</string>
+    <string name="clipboard_cut">Изрежи</string>
+    <string name="clipboard_origin">Произход: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Копирай %d елемент</item>
+        <item quantity="other">Копирай %d елемента</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d елемент от %s</item>
+        <item quantity="other">%d елемента от %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Изрежи %d елемент</item>
+        <item quantity="other">Изрежи %d елемента</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d елемент от %s</item>
+        <item quantity="other">%d елемента от %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d местоположение</item>
+        <item quantity="other">%d местоположения</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d елемент от %2$s</item>
+        <item quantity="other">%1$d елемента от %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d елемент от %2$s</item>
+        <item quantity="other">%1$d елемента от %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Текстов откъс</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d знак</item>
+        <item quantity="other">%1$d знака</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Постави като файл</string>
+    <string name="clipboard_text_info_characters">Знаци</string>
+    <string name="clipboard_text_info_lines">Редове</string>
+    <string name="clipboard_text_info_content">Съдържание</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Общ преглед</string>
+    <string name="clipboard_info_operation">Операция</string>
+    <string name="clipboard_info_items">Елементи</string>
+    <string name="clipboard_info_source">Източник</string>
+    <string name="clipboard_info_sources">Източници</string>
+    <string name="clipboard_info_workspace">Работно пространство</string>
+    <string name="clipboard_info_workspace_closed">Затворено</string>
+    <string name="clipboard_info_time">Време</string>
+    <string name="clipboard_info_items_with_count">Елементи (%1$d)</string>
+    <string name="clipboard_info_actions">Действия</string>
+    <string name="clipboard_info_go_to_source">Отиди до източника</string>
+    <string name="clipboard_info_go_to_first_source">Отиди до първия източник</string>
+    <string name="clipboard_info_remove">Премахни от клипборда</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Клипборд</string>
+    <string name="clipboard_settings_remove_on_paste_title">Премахване при поставяне</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Премахвай копираните елементи от клипборда след поставяне</string>
+    <string name="clipboard_settings_max_items_title">Максимален брой елементи</string>
+    <string name="clipboard_settings_max_items_desc">Максимален брой елементи в клипборда</string>
+
+    <string name="workspace_explorer_label">Файлов мениджър</string>
+    <string name="workspace_searcher_label">Търсене</string>
+    <string name="workspace_editor_label">Редактор</string>
+    <string name="workspace_templates_label">Шаблони</string>
+    <string name="workspace_apps_label">Приложения</string>
+    <string name="workspace_appdetails_label">Подробности за приложението</string>
+    <string name="workspace_saver_label">Запази като</string>
+    <string name="workspace_developer_label">Разработчик</string>
+    <string name="workspace_history_label">История</string>
+    <string name="workspace_bugreport_label">Доклади за дефекти</string>
+    <string name="workspace_viewer_label">Преглед</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Снимки</string>
+    <string name="workspace_searcher_target_videos">Видеоклипове</string>
+    <string name="workspace_searcher_target_music">Музика</string>
+    <string name="workspace_searcher_target_downloads">Изтегляния</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Повече</string>
+    <string name="workspace_expand_less_action">По-малко</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Раздели и работни пространства</string>
+    <string name="workspace_button_menu_new_workspace_format">Ново: %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Нов раздел</string>
+    <string name="workspace_button_menu_category_recent">Наскоро</string>
+    <string name="workspace_button_menu_category_other">Други</string>
+    <string name="workspace_button_menu_category_current_tab">Този раздел</string>
+    <string name="workspace_button_menu_manager_action">Управление на разделите</string>
+    <string name="workspace_button_menu_layout_action">Подредба</string>
+    <string name="workspace_button_menu_close_current_action">Затвори текущия раздел</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Затвори текущия раздел (%d работно пространство)</item>
+        <item quantity="other">Затвори текущия раздел (%d работни пространства)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Настройки</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Да се затворят ли всички раздели?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Това ще затвори %1$d отворен раздел. Това действие не може да бъде отменено.</item>
+        <item quantity="other">Това ще затвори всички %1$d отворени раздела. Това действие не може да бъде отменено.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Затвори всички</string>
+    <string name="workspace_manager_close_all_unsaved_warning">В някои раздели има незапазени промени, които ще бъдат изгубени.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Отхвърли всички</string>
+    <string name="workspace_manager_close_selected_title">Да се затворят ли избраните раздели?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Това ще затвори %1$d избран раздел. Това действие не може да бъде отменено.</item>
+        <item quantity="other">Това ще затвори %1$d избрани раздела. Това действие не може да бъде отменено.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">Затвори избраните</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">В някои избрани раздели има незапазени промени, които ще бъдат изгубени.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Отхвърли избраните</string>
+    <string name="workspace_manager_pause_partial_title">Да се поставят ли разделите на пауза?</string>
+    <string name="workspace_manager_pause_partial_message">%1$d от %2$d избрани раздела могат да бъдат поставени на пауза. Останалите се използват, съдържат незапазени промени или са отворени в момента.</string>
+    <string name="workspace_manager_pause_partial_action">Постави %1$d на пауза</string>
+    <string name="general_cancel_action">Отмени</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Операции</string>
+    <string name="operations_clear_completed">Изчисти завършените</string>
+    <string name="operations_state_queued">На опашка</string>
+    <string name="operations_state_running">Изпълнява се</string>
+    <string name="operations_state_waiting">Изчакване на въвеждане</string>
+    <string name="operations_state_successful">Успешно</string>
+    <string name="operations_state_failed">Неуспешно</string>
+    <string name="operations_state_cancelled">Отменено</string>
+    <string name="operations_state_cancelling">Отмяна…</string>
+    <string name="operations_cancel_operation">Отмени операцията</string>
+    <string name="operations_cancel_dialog_title">Да се отмени ли операцията?</string>
+    <string name="operations_cancel_dialog_message">Наистина ли искаш да отмениш тази операция?</string>
+    <string name="operations_cancel_dialog_warning">Отмяната може да остави файловете в несъгласувано състояние.</string>
+    <string name="operations_details_started_at">Начало</string>
+    <string name="operations_details_completed_at">Край</string>
+    <string name="operations_details_duration">Продължителност</string>
+    <string name="operations_details_duration_not_started">Не е започнала</string>
+    <string name="operations_details_progress">Напредък</string>
+    <string name="operations_details_error">Подробности за грешката</string>
+    <string name="operations_details_actions">Действия</string>
+    <string name="operations_details_overview">Общ преглед</string>
+    <string name="operations_details_handle_issue">Разреши проблема</string>
+    <string name="operations_details_open_app_action">Отвори приложението</string>
+    <string name="operations_details_show_in_history_action">Покажи в историята</string>
+    <string name="operations_details_status">Състояние</string>
+    <string name="operations_details_result">Резултат</string>
+    <string name="operations_details_destination_folder">Целева папка</string>
+    <string name="operations_details_destination_path">Целеви път</string>
+    <string name="operations_details_affected_paths_with_count">Засегнати пътища (%d)</string>
+    <string name="operations_details_problems_with_count">Проблеми (%d)</string>
+    <string name="operations_details_problems_more">Непоказани: още %d</string>
+    <string name="workspace_operation_packages_section_title">Приложения</string>
+    <string name="workspace_operation_package_status_done">Готово</string>
+    <string name="workspace_operation_package_status_failed">Неуспешно</string>
+    <string name="workspace_operation_package_status_declined">Отказано</string>
+    <string name="operations_details_section_expand">Разгъни %1$s</string>
+    <string name="operations_details_section_collapse">Свий %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Графика на производителността</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Да се изтрие ли елементът?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Да се изтрие ли %1$d елемент?</item>
+        <item quantity="other">Да се изтрият ли %1$d елемента?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Този елемент ще бъде изтрит безвъзвратно:</string>
+    <string name="workspace_dialog_delete_message_multiple">Тези елементи ще бъдат изтрити безвъзвратно:</string>
+    <string name="workspace_dialog_delete_more_items">… и още %1$d</string>
+    <string name="workspace_dialog_delete_warning">Това действие не може да бъде отменено.</string>
+    <string name="workspace_dialog_delete_permanently_action">Изтрий безвъзвратно</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Вместо това изтрий безвъзвратно</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Някои елементи не могат да бъдат преместени в кошчето и ще бъдат обработени отделно.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Да се премести ли в кошчето?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Да се премести ли %1$d елемент в кошчето?</item>
+        <item quantity="other">Да се преместят ли %1$d елемента в кошчето?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Този елемент ще бъде преместен в кошчето:</string>
+    <string name="workspace_dialog_trash_message_multiple">Тези елементи ще бъдат преместени в кошчето:</string>
+    <string name="workspace_dialog_trash_hint">Ще ги намериш в местоположението „Кошче“</string>
+    <string name="workspace_dialog_move_to_trash_action">Премести</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">Брой избрани: %d</item>
+        <item quantity="other">Брой избрани: %d</item>
+    </plurals>
+    <string name="workspace_action_more">Още действия</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Изтриване на файлове</string>
+    <string name="workspace_operation_delete_description_single">Изтрий \"%1$s\" от \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Изтрий %1$d елемент от \"%2$s\".</item>
+        <item quantity="other">Изтрий %1$d елемента от \"%2$s\".</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Инсталиране на приложение</string>
+    <string name="workspace_operation_install_description">Инсталирай \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">Четене на пакета…</string>
+    <string name="workspace_operation_install_progress_extracting">Разопаковане…</string>
+    <string name="workspace_operation_install_progress_writing">Предаване на файловете на инсталатора…</string>
+    <string name="workspace_operation_install_progress_committing">Завършване на инсталирането…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Поставяне на файловете за разширение…</string>
+    <string name="workspace_operation_install_summary_success">%1$s е инсталирано.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s е инсталирано, но файловете му за разширение не можаха да бъдат поставени.</string>
+    <string name="workspace_install_unknown_sources_required">Butler се нуждае от разрешение за инсталиране на приложения. Дай го в настройките, които току-що се отвориха, и опитай отново.</string>
+    <string name="workspace_install_obb_failed">Приложението е инсталирано, но файловете му за разширение не можаха да бъдат поставени: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">Изтрит е %1$d файл.</item>
+        <item quantity="other">Изтрити са %1$d файла.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">Изтрита е %1$d директория.</item>
+        <item quantity="other">Изтрити са %1$d директории.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">Пропуснат е %1$d елемент.</item>
+        <item quantity="other">Пропуснати са %1$d елемента.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">Освободени са %1$s.</item>
+        <item quantity="other">Освободени са %1$s.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Преместване в кошчето…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d файл е преместен в кошчето.</item>
+        <item quantity="other">%1$d файла са преместени в кошчето.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d директория е преместена в кошчето.</item>
+        <item quantity="other">%1$d директории са преместени в кошчето.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">Освобождаване с %1$s/с.</string>
+    <string name="workspace_operation_progress_bytes_freed">Освободени са %1$s.</string>
+    <string name="workspace_operation_progress_time_remaining">Остават %1$s.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Информация</string>
+    <string name="workspace_file_info_name_label">Име</string>
+    <string name="workspace_file_info_path_label">Път</string>
+    <string name="workspace_file_info_type_label">Тип</string>
+    <string name="workspace_file_info_type_file">Файл</string>
+    <string name="workspace_file_info_type_directory">Директория</string>
+    <string name="workspace_file_info_type_symlink">Символна връзка</string>
+    <string name="workspace_file_info_type_unknown">Неизвестен</string>
+    <string name="workspace_file_info_size_label">Размер</string>
+    <string name="workspace_file_info_modified_label">Променен</string>
+    <string name="workspace_file_info_created_label">Създаден</string>
+    <string name="workspace_file_info_permissions_label">Права за достъп</string>
+    <string name="workspace_file_info_owner_label">Собственик</string>
+    <string name="workspace_file_info_child_count_label">Елементи</string>
+    <string name="workspace_file_info_symlink_target_label">Цел</string>
+    <string name="workspace_file_info_unknown">Неизвестно</string>
+    <string name="workspace_file_info_copy_action">Копирай в клипборда</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Избрани</string>
+    <string name="workspace_file_info_files_label">Файлове</string>
+    <string name="workspace_file_info_directories_label">Директории</string>
+    <string name="workspace_file_info_total_size_label">Общ размер</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Тази операция още не е започнала.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Събиране на данни за производителността…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Няма достатъчно данни за производителността на тази операция, за да се начертае графика.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Няма данни за производителността на тази операция.</string>
+    <string name="workspace_operation_performance_window_seconds">Последните %1$d с</string>
+    <string name="workspace_operation_performance_window_minutes">Последните %1$d мин</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">елемента/с</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Покажи техническите подробности</string>
+    <string name="workspace_error_hide_details_action">Скрий техническите подробности</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Инициализиране на раздела</string>
+    <string name="workspace_error_subtitle">Възникна неочаквана грешка</string>
+    <string name="workspace_close_tab_action">Затвори раздела</string>
+    <string name="workspace_paused_body">Този раздел е на пауза, за да пести памет и батерия. Възобнови го, за да продължиш.</string>
+    <string name="workspace_paused_error_body">Този раздел не можа да бъде възобновен.</string>
+    <string name="workspace_paused_resume_action">Възобнови</string>
+    <string name="workspace_paused_label">На пауза</string>
+    <string name="workspace_paused_content_label">Съдържание на раздела</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Съществуващ файл</string>
+    <string name="workspace_issue_collision_existing_folder_label">Съществуваща папка</string>
+    <string name="workspace_issue_collision_new_file">Входящ файл</string>
+    <string name="workspace_issue_collision_new_folder">Входяща папка</string>
+    <string name="workspace_issue_collision_overwrite">Замени</string>
+    <string name="workspace_issue_collision_merge">Обедини</string>
+    <string name="workspace_issue_common_source_file">Изходен файл</string>
+    <string name="workspace_issue_common_destination_file">Цел</string>
+    <string name="workspace_issue_common_skip">Пропусни</string>
+    <string name="workspace_issue_common_rename">Преименувай</string>
+    <string name="workspace_issue_common_rename_new">Преименувай новия</string>
+    <string name="workspace_issue_common_rename_existing">Преименувай съществуващия</string>
+    <string name="workspace_issue_common_cancel">Отмени</string>
+    <string name="workspace_issue_common_delete_permanently">Изтрий безвъзвратно</string>
+    <string name="workspace_issue_archive_password_label">Парола</string>
+    <string name="workspace_issue_archive_password_unlock">Отключи</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Елементи с неуспешно преместване</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… и още %1$d елемента</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Засегнати елементи</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… и още %1$d елемента</string>
+    <string name="workspace_issue_apply_all">Приложи за всички останали проблеми</string>
+    <string name="workspace_issue_rename_new_name">Ново име</string>
+    <string name="workspace_issue_rename_dialog_title_new">Преименувай входящия файл</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Преименувай съществуващия файл</string>
+    <string name="workspace_issue_type_folder">Папка</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Да се отворят ли няколко раздела?</string>
+    <string name="workspace_open_tabs_confirmation_message">Това ще отвори %1$d раздела.</string>
+
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Отвори %d елемент</item>
+        <item quantity="other">Отвори %d елемента</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Прегледай тук</string>
+    <string name="workspace_open_selection_view_here_description">Показва избраните файлове в прозорец за преглед върху този панел. Предишен и следващ преминават само през избраните файлове.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Прегледай в нов раздел</string>
+    <string name="workspace_open_selection_view_in_tab_description">Показва избраните файлове в прозорец за преглед в отделен раздел. Предишен и следващ преминават само през избраните файлове.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Отвори всеки в отделен раздел</string>
+    <string name="workspace_open_selection_each_in_tab_description">Отваря всеки избран елемент в отделен раздел. Папките се отварят като раздели на файловия мениджър.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Папките не могат да бъдат показани в прозореца за преглед.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Отвори с</string>
+    <string name="workspace_open_with_no_app_label">Не е намерено друго приложение</string>
+    <string name="workspace_open_with_no_app_description">Нито едно друго инсталирано приложение не може да отвори %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Отворен е %1$d раздел</item>
+        <item quantity="other">Отворени са %1$d раздела</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Не може да се затвори: в %1$d раздел още се изпълнява операция</item>
+        <item quantity="other">Не могат да се затворят: в %1$d раздела още се изпълняват операции</item>
+    </plurals>
+
+    <!-- Workspace > Settings -->
+    <string name="workspace_settings_title">Раздели</string>
+    <string name="workspace_settings_navigation">Навигация</string>
+    <string name="workspace_settings_swipe_gestures_title">Жестове с плъзгане</string>
+    <string name="workspace_settings_swipe_gestures_desc">Плъзни наляво или надясно, за да превключваш между разделите.</string>
+    <string name="workspace_settings_ondemand_creation_title">Автоматично създаване на раздели</string>
+    <string name="workspace_settings_ondemand_creation_desc">Автоматично създавай нов раздел при плъзгане след последния раздел.</string>
+    <string name="workspace_settings_newtab_type_title">Тип на новия раздел</string>
+    <string name="workspace_settings_newtab_type_desc">Работно пространство, което се отваря при плъзгане след последния раздел, добавяне на раздел в празен панел или създаване на първия раздел.</string>
+    <string name="workspace_settings_newtab_type_ask">Питай всеки път</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Показвай избора на тип за всеки нов раздел.</string>
+    <string name="workspace_settings_live_preview_title">Прегледи в реално време</string>
+    <string name="workspace_settings_live_preview_desc">Показвай съдържанието на разделите в реално време в управлението на разделите.</string>
+    <string name="workspace_settings_other">Други</string>
+    <string name="workspace_settings_layout_title">Подредба</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Подредба при портретна ориентация</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Избери подредбата на разделите при портретна ориентация.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Подредба при пейзажна ориентация</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Избери подредбата на разделите при пейзажна ориентация.</string>
+    <string name="workspace_settings_layout_mode_auto">Автоматична</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Класическа на малки екрани, лента с раздели и панели на големи.</string>
+    <string name="workspace_settings_layout_mode_classic">Класическа</string>
+    <string name="workspace_settings_layout_mode_classic_desc">По един панел наведнъж, без лента с раздели.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Адаптивна</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Лента с раздели и толкова панели, колкото се побират на екрана. Закрепи подредба от менюто на Butler.</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Лента с раздели и толкова панели, колкото се побират на екрана.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Адаптивна (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Един панел с лента с раздели</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Един панел за раздел плюс лентата с раздели от подредбите с няколко панела. Лентата заема ивица от екрана.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Два вертикални панела</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Два панела един до друг (ляво/дясно).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Два хоризонтални панела</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Два панела един над друг (горе/долу).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Три панела, голям вляво</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Един голям панел вляво, два по-малки един над друг вдясно.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Три панела, голям вдясно</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Два по-малки панела един над друг вляво, един голям вдясно.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Мрежа с четири панела</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Четири панела в мрежа 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Щракване за фокусиране</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Първото щракване върху нефокусиран панел само го фокусира, а нефокусираните панели не реагират на показалеца на мишката. Изключи, за да взаимодействаш с тях директно.</string>
+
+    <string name="workspace_settings_rail_button_title">Бутон Butler</string>
+    <string name="workspace_settings_rail_button_desc">Избери къде да стои бутонът Butler в лентата с раздели.</string>
+    <string name="workspace_settings_rail_button_leading">Начало</string>
+    <string name="workspace_settings_rail_button_leading_desc">Преди разделите при портретна ориентация, над тях при пейзажна.</string>
+    <string name="workspace_settings_rail_button_trailing">Край</string>
+    <string name="workspace_settings_rail_button_trailing_desc">След разделите при портретна ориентация, под тях при пейзажна. В обсега на палеца за използване с една ръка.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Сесия</string>
+    <string name="workspace_settings_session_restore_title">Възстановяване на разделите при стартиране</string>
+    <string name="workspace_settings_session_restore_desc">Автоматично възстановявай предишните отворени раздели при стартиране на приложението.</string>
+    <string name="workspace_settings_autopause_title">Пауза на неактивните раздели</string>
+    <string name="workspace_settings_autopause_desc">Разделите, които не са били преглеждани от известно време, се поставят на пауза, за да пестят памет и батерия. Отварянето на раздел го възобновява.</string>
+    <string name="workspace_settings_autopause_delay_title">Пауза след</string>
+    <string name="workspace_settings_autopause_delay_desc">Колко време разделът остава извън полезрението, преди да бъде поставен на пауза.</string>
+    <string name="workspace_settings_undoclose_title">Отмяна на затварянето на раздели</string>
+    <string name="workspace_settings_undoclose_desc">При затваряне на раздел за няколко секунди се предлага възможност да го върнеш.</string>
+    <string name="workspace_settings_session_data_title">Данни за сесията</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d раздел • %2$s</item>
+        <item quantity="other">%1$d раздела • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">Затворен е \"%1$s\"</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Неуспешно възстановяване на сесията</string>
+    <string name="workspace_session_restoration_error_description">Предишната ти сесия с раздели не можа да бъде възстановена. Причината може да е дефект, който ще бъде поправен в бъдеща актуализация.\n\nМожеш да изчистиш запазената сесия, за да продължиш да използваш Butler, или да изчакаш актуализация.</string>
+    <string name="workspace_session_restoration_error_clear_action">Изчисти сесията</string>
+    <string name="workspace_session_restoration_error_report_action">Докладвай проблема</string>
+    <string name="workspace_session_restoration_error_confirm_title">Да се изчисти ли сесията?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Това ще изтрие безвъзвратно запазената ти сесия с раздели. Това действие не може да бъде отменено.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Преименувай раздела</string>
+    <string name="workspace_rename_name_label">Персонализирано име</string>
+    <string name="workspace_rename_name_hint">Остави празно, за да се използва автоматичното име</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Достигнат е лимитът на разделите</string>
+    <string name="workspace_limit_reached_message">При безплатно използване могат да бъдат отворени до %1$d раздела едновременно. Надстрой до Butler Pro за неограничен брой раздели!</string>
+    <string name="workspace_limit_pick_tabs_message">Безплатният ти план позволява %1$d отворени раздела. Избери тези, които вече не ти трябват, и ги затвори, за да освободиш място.</string>
+    <string name="workspace_limit_no_slot_hint">Затварянето на раздели няма да освободи място за нов раздел в момента.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Затвори %d раздел</item>
+        <item quantity="other">Затвори %d раздела</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Избери поне %d раздел за затваряне.</item>
+        <item quantity="other">Избери поне %d раздела за затваряне.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Отворено е %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Незапазени промени</string>
+    <string name="workspace_limit_blocker_busy">Зает в момента</string>
+    <string name="workspace_limit_blocker_attention">Изчаква те</string>
+    <string name="workspace_limit_blocker_loading">Още се зарежда</string>
+    <string name="workspace_limit_blocker_awaiting_result">Първо завърши избора в отворения прозорец</string>
+    <string name="workspace_limit_blocker_unavailable">Не може да се затвори в момента</string>
+    <string name="workspace_limit_stacked_content_desc">Затварянето на този раздел затваря и съдържанието, насложено върху него</string>
+    <string name="workspace_limit_pro_description">Отваряй толкова раздели, колкото искаш.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d елемент</item>
+        <item quantity="other">%1$d елемента</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Възстановяване от кошчето</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Възстанови %d елемент от кошчето.</item>
+        <item quantity="other">Възстанови %d елемента от кошчето.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">Възстановен е %d елемент</item>
+        <item quantity="other">Възстановени са %d елемента</item>
+    </plurals>
+</resources>

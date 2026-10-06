@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apps Workspace -->
+    <string name="apps_title">Apps</string>
+    <string name="apps_subtitle">Administrer installerede apps</string>
+
+    <!-- Filter Labels -->
+    <string name="apps_filter_app_type_label">Apptype</string>
+    <string name="apps_filter_type_all">Alle</string>
+    <string name="apps_filter_type_user">Brugerapps</string>
+    <string name="apps_filter_type_system">Systemapps</string>
+    <string name="apps_filter_status_label">Status</string>
+    <string name="apps_filter_status_all">Alle</string>
+    <string name="apps_filter_status_enabled">Aktiveret</string>
+    <string name="apps_filter_status_disabled">Deaktiveret</string>
+
+    <!-- Sort Options -->
+    <string name="apps_sort_mode_label">Sortér efter</string>
+    <string name="apps_sort_mode_name_label">Navn</string>
+    <string name="apps_sort_mode_size_label">Størrelse</string>
+    <string name="apps_sort_mode_install_date_label">Installationsdato</string>
+    <string name="apps_sort_mode_update_date_label">Opdateringsdato</string>
+    <string name="apps_sort_mode_package_name_label">Pakkenavn</string>
+    <string name="apps_sort_descending_label">Faldende rækkefølge</string>
+    <string name="apps_sort_mode_size_slowdown_hint">Beregning af appstørrelser gør indlæsningen langsommere</string>
+
+    <!-- Actions -->
+    <string name="apps_action_launch">Start</string>
+    <string name="apps_action_open_info">Appoplysninger</string>
+    <string name="apps_action_disable">Deaktiver</string>
+    <string name="apps_action_enable">Aktiver</string>
+    <string name="apps_action_uninstall">Afinstaller</string>
+    <string name="apps_action_clear_data">Ryd data</string>
+    <string name="apps_action_export_apk">Eksportér APK</string>
+    <string name="apps_action_browse_path">Gennemse sti</string>
+    <string name="apps_action_share">Del oplysninger</string>
+    <string name="apps_action_refresh">Genindlæs</string>
+    <string name="apps_action_sort">Sortér</string>
+    <string name="apps_action_filter">Filter</string>
+    <string name="apps_action_select_all">Vælg alle</string>
+    <string name="apps_action_deselect_all">Fravælg alle</string>
+    <string name="apps_action_open_in_tab">Åbn i fane</string>
+    <string name="apps_action_force_stop">Tving til at stoppe</string>
+    <string name="apps_action_view">Layout</string>
+
+    <!-- View options -->
+    <string name="apps_view_sheet_subtitle">Hvordan elementer er arrangeret, og hvor mange detaljer de viser</string>
+    <string name="apps_view_mode_list_label">Liste</string>
+    <string name="apps_view_mode_grid_label">Gitter</string>
+    <string name="apps_view_density_compact_label">Kompakt</string>
+    <string name="apps_view_density_comfortable_label">Luftig</string>
+    <string name="apps_view_density_detailed_label">Detaljeret</string>
+    <string name="apps_view_set_default_action">Angiv som standard</string>
+    <string name="apps_view_detail_dates_label">Installeret %1$s · Opdateret %2$s</string>
+
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">Start appen</string>
+    <string name="apps_action_open_info_desc">Se detaljerede systemoplysninger</string>
+    <string name="apps_action_enable_desc">Aktiver denne app</string>
+    <string name="apps_action_disable_desc">Deaktiver denne app</string>
+    <string name="apps_action_uninstall_desc">Fjern denne app</string>
+    <string name="apps_action_export_apk_desc">Gem APK-filen på lageret</string>
+    <string name="apps_action_share_desc">Del appoplysninger som tekst</string>
+    <string name="apps_action_force_stop_desc">Stop appen med det samme</string>
+    <string name="apps_action_clear_data_desc">Slet alle appdata og indstillinger</string>
+
+    <!-- App Info Labels -->
+    <string name="apps_package_name_label">Pakke</string>
+    <string name="apps_version_label">Version</string>
+    <string name="apps_size_label">Størrelse</string>
+    <string name="apps_size_chip_desc">Appstørrelse: %1$s</string>
+    <string name="apps_size_permission_hint">Appstørrelser kræver adgang til brugsdata</string>
+    <string name="apps_size_permission_body">Android oplyser kun størrelsen på apps, data og cache til apps, der har tilladelsen Adgang til brugsdata. Giv tilladelsen for at se, hvordan denne apps lagerforbrug er fordelt.</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">Lagerplaceringer</string>
+    <string name="apps_path_internal_data_label">Interne data</string>
+    <string name="apps_path_external_data_label">Eksternt lager</string>
+    <string name="apps_path_requires_root_label">Kræver root</string>
+    <string name="apps_path_requires_shizuku_label">Kræver ADB-adgang</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Kræver root- eller ADB-adgang</string>
+    <string name="apps_path_requires_access_label">Kræver yderligere adgang</string>
+    <string name="apps_storage_breakdown_label">Fordeling af lagerforbrug</string>
+    <string name="apps_storage_app_label">App</string>
+
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">Oversigt</string>
+    <string name="appdetails_tab_packageinfo_label">Pakkeoplysninger</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">Tilbage til apps</string>
+    <string name="appdetails_close_action">Luk</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_title">Pakkeoplysninger</string>
+    <string name="appdetails_packageinfo_view_action">Se pakkedetaljer</string>
+    <string name="appdetails_packageinfo_unavailable_msg">Appens pakkedetaljer kunne ikke læses.</string>
+    <string name="appdetails_packageinfo_permissions_header">Tilladelser (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">Signeringscertifikater</string>
+    <string name="appdetails_packageinfo_package_label">Pakke</string>
+    <string name="appdetails_packageinfo_version_label">Version</string>
+    <string name="appdetails_packageinfo_min_sdk_label">Minimum-SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">Mål-SDK</string>
+
+    <!-- Empty States -->
+    <string name="apps_empty_no_apps">Ingen apps fundet</string>
+    <string name="apps_empty_no_apps_desc">Prøv at justere dine filtre</string>
+    <string name="apps_empty_loading">Indlæser apps…</string>
+
+    <!-- Search -->
+    <string name="apps_search_hint">Søg efter apps</string>
+
+    <!-- Multi-select -->
+    <plurals name="apps_selected_count">
+        <item quantity="one">%d valgt</item>
+        <item quantity="other">%d valgt</item>
+    </plurals>
+
+    <!-- Info Bar -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="one">%d brugerapp</item>
+        <item quantity="other">%d brugerapps</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="one">%d systemapp</item>
+        <item quantity="other">%d systemapps</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="one">%d valgt</item>
+        <item quantity="other">%d valgt</item>
+    </plurals>
+
+    <!-- App Details Sections -->
+    <string name="apps_details_section_actions">Handlinger</string>
+    <string name="apps_details_section_overview">Oversigt</string>
+    <string name="apps_details_section_storage">Lager</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">Flere muligheder</string>
+
+    <!-- App Details package data -->
+    <string name="apps_details_pkgdata_error_title">Kunne ikke indlæse appdata</string>
+    <string name="apps_details_gone_title">App fjernet</string>
+    <string name="apps_details_gone_message">Denne app er ikke længere installeret på denne enhed.</string>
+    <string name="apps_details_gone_close_action">Luk</string>
+    <string name="apps_details_uninstalled_title">Afinstalleret for denne bruger</string>
+    <string name="apps_details_uninstalled_message">Appen er ikke længere installeret for denne bruger, men dens filer er stadig på enheden.</string>
+
+    <!-- App Details confirmations -->
+    <string name="apps_details_confirm_clear_data_title">Ryd appdata?</string>
+    <string name="apps_details_confirm_clear_data_message">Alle data og indstillinger for %1$s bliver slettet. Handlingen kan ikke fortrydes.</string>
+    <string name="apps_details_confirm_uninstall_title">Afinstaller app?</string>
+    <string name="apps_details_confirm_uninstall_message">%1$s bliver fjernet fra denne enhed.</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">Type</string>
+    <string name="apps_type_system">Systemapp</string>
+    <string name="apps_type_user">Brugerapp</string>
+    <string name="apps_status_label">Status</string>
+    <string name="apps_status_enabled">Aktiveret</string>
+    <string name="apps_status_disabled">Deaktiveret</string>
+    <string name="apps_installed_label">Installeret</string>
+    <string name="apps_updated_label">Senest opdateret</string>
+    <string name="apps_target_sdk_label">Mål-SDK</string>
+    <string name="apps_min_sdk_label">Minimum-SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">Installeret af</string>
+    <string name="apps_permissions_label">Tilladelser</string>
+    <string name="apps_permissions_count">%1$d tilladelser</string>
+    <string name="apps_data_size_label">Data</string>
+    <string name="apps_cache_size_label">Cache</string>
+    <string name="apps_total_size_label">I alt</string>
+
+    <!-- App Tags -->
+    <string name="apps_tag_system_label">System</string>
+    <string name="apps_tag_disabled_label">Deaktiveret</string>
+    <string name="apps_tag_updated_label">Opdateret</string>
+    <string name="apps_tag_sideloaded_label">Installeret uden om appbutikken</string>
+    <string name="apps_tag_split_label">Opdelt APK</string>
+    <string name="apps_tag_debug_label">Debug</string>
+    <string name="apps_tag_user_label">Bruger %1$d</string>
+
+    <!-- Filter Tags (virtual tags for filtering) -->
+    <string name="apps_filter_tag_enabled_label">Aktiveret</string>
+    <string name="apps_filter_tag_user_app_label">Brugerapp</string>
+    <string name="apps_filter_include_label">Skal matche (alle valgte)</string>
+    <string name="apps_filter_exclude_label">Må ikke matche</string>
+    <string name="apps_filter_add_action">Filter</string>
+    <string name="apps_filter_hint">Tryk for at inkludere, tryk igen for at ekskludere, og tryk endnu en gang for at fjerne</string>
+    <plurals name="apps_filter_count">
+        <item quantity="one">%d filter</item>
+        <item quantity="other">%d filtre</item>
+    </plurals>
+
+    <!-- Components Section -->
+    <string name="apps_details_section_components">Komponenter</string>
+    <string name="apps_components_activities_label">Aktiviteter</string>
+    <string name="apps_components_services_label">Tjenester</string>
+    <string name="apps_components_receivers_label">Broadcastmodtagere</string>
+    <string name="apps_components_providers_label">Indholdsudbydere</string>
+    <string name="apps_components_exported">Eksporteret</string>
+    <string name="apps_components_disabled">Deaktiveret</string>
+    <string name="apps_components_empty">Ingen komponenter fundet</string>
+    <string name="apps_components_no_matches">Ingen komponenter matcher “%1$s”</string>
+    <string name="apps_components_and_more">…og %d flere</string>
+    <string name="apps_components_view_all_action">Se alle komponenter</string>
+    <string name="apps_components_loading">Indlæser komponenter…</string>
+    <string name="apps_components_error">Kunne ikke indlæse komponenter</string>
+    <string name="apps_components_launch_failed">Kunne ikke starte aktiviteten</string>
+    <string name="apps_components_kind_activity">Aktivitet</string>
+    <string name="apps_components_kind_service">Tjeneste</string>
+    <string name="apps_components_kind_receiver">Broadcastmodtager</string>
+    <string name="apps_components_kind_provider">Indholdsudbyder</string>
+    <string name="apps_components_search_action">Søg efter komponenter</string>
+    <string name="apps_components_search_hint">Søg efter navn eller pakke</string>
+    <string name="apps_components_state_label">Tilstand</string>
+    <string name="apps_components_state_enabled">Aktiveret</string>
+    <string name="apps_components_state_disabled">Deaktiveret</string>
+    <string name="apps_components_field_type">Type</string>
+    <string name="apps_components_field_package">Pakke</string>
+    <string name="apps_components_field_permission">Tilladelse</string>
+    <string name="apps_components_field_write_permission">Skrivetilladelse</string>
+    <string name="apps_components_field_authority">Autoritet</string>
+    <string name="apps_components_field_process">Proces</string>
+    <string name="apps_components_field_launch_mode">Starttilstand</string>
+    <string name="apps_components_launch_action">Start</string>
+    <string name="apps_components_copy_name_action">Kopiér komponentnavn</string>
+    <string name="apps_components_copy_package_action">Kopiér pakkenavn</string>
+    <string name="apps_components_action_enable">Aktiver komponent</string>
+    <string name="apps_components_action_disable">Deaktiver komponent</string>
+    <string name="apps_components_action_requires_elevated">Kræver root- eller ADB-adgang — tryk for at konfigurere</string>
+    <string name="apps_components_confirm_enable_title">Aktiver komponenter?</string>
+    <string name="apps_components_confirm_disable_title">Deaktiver komponenter?</string>
+    <string name="apps_components_confirm_enable_message">Følgende komponenter bliver aktiveret:</string>
+    <string name="apps_components_confirm_disable_message">Følgende komponenter bliver deaktiveret. Det kan få appen til at holde op med at fungere.</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="one">%d komponent valgt</item>
+        <item quantity="other">%d komponenter valgt</item>
+    </plurals>
+
+    <!-- Package operations -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="one">Aktiver app</item>
+        <item quantity="other">Aktiver %d apps</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="one">Deaktiver app</item>
+        <item quantity="other">Deaktiver %d apps</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="one">Tving app til at stoppe</item>
+        <item quantity="other">Tving %d apps til at stoppe</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="one">Afinstaller app</item>
+        <item quantity="other">Afinstaller %d apps</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="one">Ryd appdata</item>
+        <item quantity="other">Ryd data for %d apps</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="one">Aktiver komponent</item>
+        <item quantity="other">Aktiver %d komponenter</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="one">Deaktiver komponent</item>
+        <item quantity="other">Deaktiver %d komponenter</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="one">%d app</item>
+        <item quantity="other">%d apps</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">%1$s aktiveret</string>
+    <string name="apps_operation_disable_summary">%1$s deaktiveret</string>
+    <string name="apps_operation_force_stop_summary">%1$s stoppet</string>
+    <string name="apps_operation_uninstall_summary">%1$s afinstalleret</string>
+    <string name="apps_operation_clear_data_summary">Data for %1$s ryddet</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="one">%1$d komponent aktiveret</item>
+        <item quantity="other">%1$d komponenter aktiveret</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="one">%1$d komponent deaktiveret</item>
+        <item quantity="other">%1$d komponenter deaktiveret</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">Kunne ikke fuldføre for %1$s</string>
+    <string name="apps_operation_single_declined_summary">Fjernelse af %1$s afvist</string>
+    <string name="apps_operation_batch_summary">%1$d af %2$d færdige</string>
+    <!-- Quoted so the leading separator survives the resource parser -->
+    <string name="apps_operation_batch_summary_failed">" · %1$d mislykkedes"</string>
+    <string name="apps_operation_batch_summary_declined">" · %1$d afvist"</string>
+
+    <!-- Generic navigation -->
+    <string name="appdetails_back_generic_action">Tilbage</string>
+</resources>

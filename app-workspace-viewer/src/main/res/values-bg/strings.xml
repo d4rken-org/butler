@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Отвори с</string>
+    <string name="viewer_image_content_description">Изображение %1$s</string>
+    <string name="viewer_toolbar_folder_label">Папка</string>
+    <string name="viewer_back_action">Назад</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">Предишен файл</string>
+    <string name="viewer_next_file_action">Следващ файл</string>
+    <string name="viewer_open_location_action">Отвори местоположението</string>
+    <string name="viewer_clipboard_copied">%1$s е копиран. Постави го в раздел на файловия мениджър.</string>
+    <string name="viewer_clipboard_cut">%1$s е изрязан. Постави го в раздел на файловия мениджър, за да го преместиш.</string>
+    <string name="viewer_share_failed_label">Този файл не можа да бъде споделен</string>
+    <string name="viewer_share_failed_description">%1$s не може да бъде предаден на друго приложение. Това се случва с файлове, които изискват достъп чрез root или ADB, както и с файлове, които вече не съществуват.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Размер</string>
+    <string name="viewer_info_modified_label">Промяна</string>
+    <string name="viewer_info_created_label">Създаване</string>
+    <string name="viewer_info_format_label">Формат</string>
+    <string name="viewer_info_dimensions_label">Размери</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Разрешения</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Собственик</string>
+    <string name="viewer_info_caption_label">Споделено съобщение</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Покажи всички подробности</string>
+    <string name="viewer_info_collapse_action">Скрий подробностите</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">Преглед · 1 страница</string>
+    <string name="viewer_pdf_page_indicator">Страница %1$d от %2$d</string>
+    <string name="viewer_pdf_page_previous">Предишна страница</string>
+    <string name="viewer_pdf_page_next">Следваща страница</string>
+    <string name="viewer_pdf_page_error">Страница %1$d не можа да бъде показана.</string>
+    <string name="viewer_pdf_page_content_description">Преглед на PDF %1$s, страница %2$d от %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">Този тип файл все още не се поддържа</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">Това е архив</string>
+    <string name="viewer_browse_archive_action">Разгледай съдържанието</string>
+    <string name="viewer_archive_needs_copy_msg">Запази копие на устройството си, за да може Butler да разгледа съдържанието.</string>
+    <string name="viewer_archive_nested_msg">Този архив се намира в друг архив. Първо го разархивирай, за да разгледаш съдържанието.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">Версия</string>
+    <string name="viewer_apk_min_sdk_label">Минимален SDK</string>
+    <string name="viewer_apk_target_sdk_label">Целеви SDK</string>
+    <string name="viewer_apk_installed_label">Инсталирано</string>
+    <string name="viewer_apk_not_installed_value">Не е инсталирано</string>
+    <string name="viewer_apk_installed_unknown_value">Проверката не бе възможна</string>
+    <string name="viewer_apk_installed_older_hint">По-стара от тази във файла</string>
+    <string name="viewer_apk_installed_newer_hint">По-нова от тази във файла</string>
+    <string name="viewer_apk_permissions_header">Разрешения (%1$d)</string>
+    <string name="viewer_apk_signing_header">Сертификати за подписване</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">Инсталирай</string>
+    <string name="viewer_bundle_format_label">Формат на пакета</string>
+    <string name="viewer_bundle_splits_label">APK файлове вътре</string>
+    <string name="viewer_bundle_expansion_files_hint">Съдържа файлове за разширение, които се поставят след инсталирането на приложението.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Поставянето на файлове за разширение изисква достъп чрез root или ADB. Без него приложението се инсталира, но файловете му за разширение не се поставят.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">Икона на приложението %1$s</string>
+    <string name="viewer_apk_icon_show_action">Покажи иконата</string>
+    <string name="viewer_apk_icon_save_action">Запази иконата</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Иконата е запазена като %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Да се замени ли файлът?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s вече съществува в тази папка. Запазването на иконата ще го замени.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Замени</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">Файлът е променен</string>
+    <string name="viewer_external_change_message">Този файл е променен на устройството. Опресни, за да го заредиш отново.</string>
+    <string name="viewer_external_change_gone_title">Файлът вече липсва</string>
+    <string name="viewer_external_change_gone_message">Този файл е изтрит или вече не е достъпен.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Този файл не може да бъде показан</string>
+    <string name="viewer_error_not_a_file_label">Не е файл</string>
+    <string name="viewer_error_not_a_file_description">%1$s не е обикновен файл.</string>
+    <string name="viewer_error_broken_symlink_label">Невалиден пряк път</string>
+    <string name="viewer_error_broken_symlink_description">%1$s сочи към нещо, което вече не съществува.</string>
+    <string name="viewer_error_undecodable_label">Повредено изображение</string>
+    <string name="viewer_error_undecodable_description">%1$s не можа да бъде декодиран. Файлът може да е непълен или повреден.</string>
+    <string name="viewer_error_file_gone_label">Файлът не е намерен</string>
+    <string name="viewer_error_file_gone_description">%1$s вече не съществува. Може да е преместен, преименуван или изтрит.</string>
+    <string name="viewer_error_empty_file_label">Празен файл</string>
+    <string name="viewer_error_empty_file_description">%1$s е празен и няма какво да се покаже.</string>
+    <string name="viewer_error_apk_unreadable_label">Нечетим APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s не можа да бъде разчетен като пакет на приложение за Android.</string>
+    <string name="viewer_error_icon_unavailable_label">Няма икона</string>
+    <string name="viewer_error_icon_unavailable_description">Иконата на приложението %1$s не можа да бъде прочетена.</string>
+    <string name="viewer_error_icon_target_notfile_label">Името вече е заето</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s вече съществува тук и не е обикновен файл, затова не може да бъде заменен.</string>
+    <string name="viewer_error_icon_target_appeared_label">Появи се файл</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s е създаден, докато избираше къде да запазиш. Нищо не е презаписано, опитай отново.</string>
+    <string name="viewer_error_content_unreadable_label">Този файл не може да бъде прочетен</string>
+    <string name="viewer_error_content_unreadable_description">Приложението, което сподели %1$s, вече не позволява на Butler да го чете. Поискай от това приложение да го сподели отново.</string>
+    <string name="viewer_save_copy_action">Запази копие…</string>
+    <string name="viewer_open_in_editor_action">Отвори в редактора</string>
+    <string name="viewer_text_truncated_bytes">Прегледът е ограничен до първите %1$s от този файл.</string>
+    <string name="viewer_text_truncated_lines">Прегледът е ограничен до първите %1$s реда от този файл.</string>
+    <string name="viewer_text_truncated_width">Дългите редове са съкратени в този преглед.</string>
+    <string name="viewer_text_unreadable_label">Този файл не можа да бъде прочетен</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">Преглед</string>
+    <string name="viewer_settings_show_next_after_delete_title">Показвай следващия файл след изтриване</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">След изтриване на файл, отворен от папка, показвай следващия файл в тази папка, вместо да затваряш прозореца за преглед.</string>
+</resources>

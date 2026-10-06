@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apps Workspace -->
+    <string name="apps_title">యాప్‌లు</string>
+    <string name="apps_subtitle">ఇన్‌స్టాల్ చేసిన యాప్‌లను నిర్వహించండి</string>
+
+    <!-- Filter Labels -->
+    <string name="apps_filter_app_type_label">యాప్ రకం</string>
+    <string name="apps_filter_type_all">అన్నీ</string>
+    <string name="apps_filter_type_user">వినియోగదారు యాప్‌లు</string>
+    <string name="apps_filter_type_system">సిస్టమ్ యాప్‌లు</string>
+    <string name="apps_filter_status_label">స్థితి</string>
+    <string name="apps_filter_status_all">అన్నీ</string>
+    <string name="apps_filter_status_enabled">ఎనేబుల్ చేయబడింది</string>
+    <string name="apps_filter_status_disabled">డిసేబుల్ చేయబడింది</string>
+
+    <!-- Sort Options -->
+    <string name="apps_sort_mode_label">దీని ప్రకారం క్రమబద్ధీకరించండి</string>
+    <string name="apps_sort_mode_name_label">పేరు</string>
+    <string name="apps_sort_mode_size_label">పరిమాణం</string>
+    <string name="apps_sort_mode_install_date_label">ఇన్‌స్టాల్ చేసిన తేదీ</string>
+    <string name="apps_sort_mode_update_date_label">అప్‌డేట్ చేసిన తేదీ</string>
+    <string name="apps_sort_mode_package_name_label">ప్యాకేజీ పేరు</string>
+    <string name="apps_sort_descending_label">అవరోహణ క్రమం</string>
+    <string name="apps_sort_mode_size_slowdown_hint">యాప్ పరిమాణాలను లెక్కించడం వల్ల లోడ్ అవడానికి ఎక్కువ సమయం పడుతుంది</string>
+
+    <!-- Actions -->
+    <string name="apps_action_launch">తెరవండి</string>
+    <string name="apps_action_open_info">యాప్ సమాచారం</string>
+    <string name="apps_action_disable">డిసేబుల్ చేయండి</string>
+    <string name="apps_action_enable">ఎనేబుల్ చేయండి</string>
+    <string name="apps_action_uninstall">అన్‌ఇన్‌స్టాల్ చేయండి</string>
+    <string name="apps_action_clear_data">డేటాను తొలగించండి</string>
+    <string name="apps_action_export_apk">APKని ఎగుమతి చేయండి</string>
+    <string name="apps_action_browse_path">పాత్‌ను బ్రౌజ్ చేయండి</string>
+    <string name="apps_action_share">సమాచారాన్ని షేర్ చేయండి</string>
+    <string name="apps_action_refresh">రిఫ్రెష్ చేయండి</string>
+    <string name="apps_action_sort">క్రమబద్ధీకరించండి</string>
+    <string name="apps_action_filter">ఫిల్టర్ చేయండి</string>
+    <string name="apps_action_select_all">అన్నీ ఎంచుకోండి</string>
+    <string name="apps_action_deselect_all">అన్నింటి ఎంపికను తీసివేయండి</string>
+    <string name="apps_action_open_in_tab">ట్యాబ్‌లో తెరవండి</string>
+    <string name="apps_action_force_stop">బలవంతంగా ఆపండి</string>
+    <string name="apps_action_view">లేఅవుట్</string>
+
+    <!-- View options -->
+    <string name="apps_view_sheet_subtitle">అంశాలను ఎలా అమర్చాలి, ఎంత వివరంగా చూపాలి</string>
+    <string name="apps_view_mode_list_label">జాబితా</string>
+    <string name="apps_view_mode_grid_label">గ్రిడ్</string>
+    <string name="apps_view_density_compact_label">కుదించినది</string>
+    <string name="apps_view_density_comfortable_label">సౌకర్యవంతమైనది</string>
+    <string name="apps_view_density_detailed_label">వివరాలతో</string>
+    <string name="apps_view_set_default_action">డిఫాల్ట్‌గా సెట్ చేయండి</string>
+    <string name="apps_view_detail_dates_label">ఇన్‌స్టాల్: %1$s · అప్‌డేట్: %2$s</string>
+
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">యాప్‌ను ప్రారంభించండి</string>
+    <string name="apps_action_open_info_desc">వివరణాత్మక సిస్టమ్ సమాచారాన్ని చూడండి</string>
+    <string name="apps_action_enable_desc">ఈ యాప్‌ను ఎనేబుల్ చేయండి</string>
+    <string name="apps_action_disable_desc">ఈ యాప్‌ను డిసేబుల్ చేయండి</string>
+    <string name="apps_action_uninstall_desc">ఈ యాప్‌ను తీసివేయండి</string>
+    <string name="apps_action_export_apk_desc">APK ఫైల్‌ను నిల్వలో సేవ్ చేయండి</string>
+    <string name="apps_action_share_desc">యాప్ వివరాలను వచనంగా షేర్ చేయండి</string>
+    <string name="apps_action_force_stop_desc">యాప్‌ను వెంటనే ఆపండి</string>
+    <string name="apps_action_clear_data_desc">యాప్ డేటా, సెట్టింగ్‌లన్నింటినీ తొలగించండి</string>
+
+    <!-- App Info Labels -->
+    <string name="apps_package_name_label">ప్యాకేజీ</string>
+    <string name="apps_version_label">వెర్షన్</string>
+    <string name="apps_size_label">పరిమాణం</string>
+    <string name="apps_size_chip_desc">యాప్ పరిమాణం: %1$s</string>
+    <string name="apps_size_permission_hint">యాప్ పరిమాణాలకు వినియోగ సమాచారానికి యాక్సెస్ అవసరం</string>
+    <string name="apps_size_permission_body">వినియోగ సమాచారానికి యాక్సెస్ అనుమతి ఉన్న యాప్‌లకు మాత్రమే Android యాప్, డేటా, కాష్ పరిమాణాలను తెలియజేస్తుంది. ఈ యాప్ నిల్వ వివరాలను విడివిడిగా చూడటానికి ఆ అనుమతి ఇవ్వండి.</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">నిల్వ స్థానాలు</string>
+    <string name="apps_path_internal_data_label">అంతర్గత డేటా</string>
+    <string name="apps_path_external_data_label">బాహ్య నిల్వ</string>
+    <string name="apps_path_requires_root_label">రూట్ అవసరం</string>
+    <string name="apps_path_requires_shizuku_label">ADB యాక్సెస్ అవసరం</string>
+    <string name="apps_path_requires_root_or_shizuku_label">రూట్ లేదా ADB యాక్సెస్ అవసరం</string>
+    <string name="apps_path_requires_access_label">అదనపు యాక్సెస్ అవసరం</string>
+    <string name="apps_storage_breakdown_label">నిల్వ వివరాలు</string>
+    <string name="apps_storage_app_label">యాప్</string>
+
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">అవలోకనం</string>
+    <string name="appdetails_tab_packageinfo_label">ప్యాకేజీ సమాచారం</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">యాప్‌లకు తిరిగి వెళ్లండి</string>
+    <string name="appdetails_close_action">మూసివేయండి</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_title">ప్యాకేజీ సమాచారం</string>
+    <string name="appdetails_packageinfo_view_action">ప్యాకేజీ వివరాలను చూడండి</string>
+    <string name="appdetails_packageinfo_unavailable_msg">యాప్ ప్యాకేజీ వివరాలను చదవలేకపోయింది.</string>
+    <string name="appdetails_packageinfo_permissions_header">అనుమతులు (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">సంతకం ధృవపత్రాలు</string>
+    <string name="appdetails_packageinfo_package_label">ప్యాకేజీ</string>
+    <string name="appdetails_packageinfo_version_label">వెర్షన్</string>
+    <string name="appdetails_packageinfo_min_sdk_label">కనీస SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">లక్ష్య SDK</string>
+
+    <!-- Empty States -->
+    <string name="apps_empty_no_apps">యాప్‌లు కనుగొనబడలేదు</string>
+    <string name="apps_empty_no_apps_desc">ఫిల్టర్‌లను మార్చి చూడండి</string>
+    <string name="apps_empty_loading">యాప్‌లు లోడ్ అవుతున్నాయి…</string>
+
+    <!-- Search -->
+    <string name="apps_search_hint">యాప్‌లను వెతకండి</string>
+
+    <!-- Multi-select -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">యాప్‌లను ఎంచుకోండి</item>
+        <item quantity="one">%d ఎంచుకోబడింది</item>
+        <item quantity="other">%d ఎంచుకోబడ్డాయి</item>
+    </plurals>
+
+    <!-- Info Bar -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="one">%d వినియోగదారు యాప్</item>
+        <item quantity="other">%d వినియోగదారు యాప్‌లు</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="one">%d సిస్టమ్ యాప్</item>
+        <item quantity="other">%d సిస్టమ్ యాప్‌లు</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="one">%d ఎంచుకోబడింది</item>
+        <item quantity="other">%d ఎంచుకోబడ్డాయి</item>
+    </plurals>
+
+    <!-- App Details Sections -->
+    <string name="apps_details_section_actions">చర్యలు</string>
+    <string name="apps_details_section_overview">అవలోకనం</string>
+    <string name="apps_details_section_storage">నిల్వ</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">మరిన్ని ఎంపికలు</string>
+
+    <!-- App Details package data -->
+    <string name="apps_details_pkgdata_error_title">యాప్ డేటాను లోడ్ చేయలేకపోయింది</string>
+    <string name="apps_details_gone_title">యాప్ తీసివేయబడింది</string>
+    <string name="apps_details_gone_message">ఈ యాప్ ఇకపై ఈ పరికరంలో ఇన్‌స్టాల్ అయి లేదు.</string>
+    <string name="apps_details_gone_close_action">మూసివేయండి</string>
+    <string name="apps_details_uninstalled_title">ఈ వినియోగదారు కోసం అన్‌ఇన్‌స్టాల్ చేయబడింది</string>
+    <string name="apps_details_uninstalled_message">ఈ వినియోగదారు కోసం యాప్ ఇకపై ఇన్‌స్టాల్ అయి లేదు, కానీ దాని ఫైళ్లు ఇంకా పరికరంలో ఉన్నాయి.</string>
+
+    <!-- App Details confirmations -->
+    <string name="apps_details_confirm_clear_data_title">యాప్ డేటాను తొలగించాలా?</string>
+    <string name="apps_details_confirm_clear_data_message">%1$s డేటా, సెట్టింగ్‌లన్నీ తొలగించబడతాయి. ఈ చర్యను రద్దు చేయలేరు.</string>
+    <string name="apps_details_confirm_uninstall_title">యాప్‌ను అన్‌ఇన్‌స్టాల్ చేయాలా?</string>
+    <string name="apps_details_confirm_uninstall_message">%1$s ఈ పరికరం నుండి తీసివేయబడుతుంది.</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">రకం</string>
+    <string name="apps_type_system">సిస్టమ్ యాప్</string>
+    <string name="apps_type_user">వినియోగదారు యాప్</string>
+    <string name="apps_status_label">స్థితి</string>
+    <string name="apps_status_enabled">ఎనేబుల్ చేయబడింది</string>
+    <string name="apps_status_disabled">డిసేబుల్ చేయబడింది</string>
+    <string name="apps_installed_label">ఇన్‌స్టాల్ చేసిన తేదీ</string>
+    <string name="apps_updated_label">చివరిగా అప్‌డేట్ చేసిన తేదీ</string>
+    <string name="apps_target_sdk_label">లక్ష్య SDK</string>
+    <string name="apps_min_sdk_label">కనీస SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">ఇన్‌స్టాల్ చేసినది</string>
+    <string name="apps_permissions_label">అనుమతులు</string>
+    <string name="apps_permissions_count">%1$d అనుమతులు</string>
+    <string name="apps_data_size_label">డేటా</string>
+    <string name="apps_cache_size_label">కాష్</string>
+    <string name="apps_total_size_label">మొత్తం</string>
+
+    <!-- App Tags -->
+    <string name="apps_tag_system_label">సిస్టమ్</string>
+    <string name="apps_tag_disabled_label">డిసేబుల్ చేయబడింది</string>
+    <string name="apps_tag_updated_label">అప్‌డేట్ చేయబడింది</string>
+    <string name="apps_tag_sideloaded_label">సైడ్‌లోడ్ చేయబడింది</string>
+    <string name="apps_tag_split_label">స్ప్లిట్ APK</string>
+    <string name="apps_tag_debug_label">డీబగ్</string>
+    <string name="apps_tag_user_label">వినియోగదారు %1$d</string>
+
+    <!-- Filter Tags (virtual tags for filtering) -->
+    <string name="apps_filter_tag_enabled_label">ఎనేబుల్ చేయబడింది</string>
+    <string name="apps_filter_tag_user_app_label">వినియోగదారు యాప్</string>
+    <string name="apps_filter_include_label">సరిపోలాలి (ఎంచుకున్న అన్నింటితో)</string>
+    <string name="apps_filter_exclude_label">సరిపోలకూడదు</string>
+    <string name="apps_filter_add_action">ఫిల్టర్ చేయండి</string>
+    <string name="apps_filter_hint">చేర్చడానికి తాకండి, మినహాయించడానికి మళ్లీ తాకండి, తీసివేయడానికి మరోసారి తాకండి</string>
+    <plurals name="apps_filter_count">
+        <item quantity="one">%d ఫిల్టర్</item>
+        <item quantity="other">%d ఫిల్టర్‌లు</item>
+    </plurals>
+
+    <!-- Components Section -->
+    <string name="apps_details_section_components">కాంపోనెంట్‌లు</string>
+    <string name="apps_components_activities_label">యాక్టివిటీలు</string>
+    <string name="apps_components_services_label">సేవలు</string>
+    <string name="apps_components_receivers_label">బ్రాడ్‌కాస్ట్ రిసీవర్‌లు</string>
+    <string name="apps_components_providers_label">కంటెంట్ ప్రొవైడర్‌లు</string>
+    <string name="apps_components_exported">ఎక్స్‌పోర్ట్ చేయబడింది</string>
+    <string name="apps_components_disabled">డిసేబుల్ చేయబడింది</string>
+    <string name="apps_components_empty">కాంపోనెంట్‌లు కనుగొనబడలేదు</string>
+    <string name="apps_components_no_matches">“%1$s”కు సరిపోలే కాంపోనెంట్‌లు లేవు</string>
+    <string name="apps_components_and_more">…మరో %d ఉన్నాయి</string>
+    <string name="apps_components_view_all_action">అన్ని కాంపోనెంట్‌లను చూడండి</string>
+    <string name="apps_components_loading">కాంపోనెంట్‌లు లోడ్ అవుతున్నాయి…</string>
+    <string name="apps_components_error">కాంపోనెంట్‌లను లోడ్ చేయలేకపోయింది</string>
+    <string name="apps_components_launch_failed">యాక్టివిటీని ప్రారంభించలేకపోయింది</string>
+    <string name="apps_components_kind_activity">యాక్టివిటీ</string>
+    <string name="apps_components_kind_service">సేవ</string>
+    <string name="apps_components_kind_receiver">బ్రాడ్‌కాస్ట్ రిసీవర్</string>
+    <string name="apps_components_kind_provider">కంటెంట్ ప్రొవైడర్</string>
+    <string name="apps_components_search_action">కాంపోనెంట్‌లను వెతకండి</string>
+    <string name="apps_components_search_hint">పేరు లేదా ప్యాకేజీని వెతకండి</string>
+    <string name="apps_components_state_label">స్థితి</string>
+    <string name="apps_components_state_enabled">ఎనేబుల్ చేయబడింది</string>
+    <string name="apps_components_state_disabled">డిసేబుల్ చేయబడింది</string>
+    <string name="apps_components_field_type">రకం</string>
+    <string name="apps_components_field_package">ప్యాకేజీ</string>
+    <string name="apps_components_field_permission">అనుమతి</string>
+    <string name="apps_components_field_write_permission">రాయడానికి అనుమతి</string>
+    <string name="apps_components_field_authority">అథారిటీ</string>
+    <string name="apps_components_field_process">ప్రాసెస్</string>
+    <string name="apps_components_field_launch_mode">ప్రారంభించే విధానం</string>
+    <string name="apps_components_launch_action">ప్రారంభించండి</string>
+    <string name="apps_components_copy_name_action">కాంపోనెంట్ పేరును కాపీ చేయండి</string>
+    <string name="apps_components_copy_package_action">ప్యాకేజీ పేరును కాపీ చేయండి</string>
+    <string name="apps_components_action_enable">కాంపోనెంట్‌ను ఎనేబుల్ చేయండి</string>
+    <string name="apps_components_action_disable">కాంపోనెంట్‌ను డిసేబుల్ చేయండి</string>
+    <string name="apps_components_action_requires_elevated">రూట్ లేదా ADB యాక్సెస్ అవసరం — సెటప్ చేయడానికి తాకండి</string>
+    <string name="apps_components_confirm_enable_title">కాంపోనెంట్‌లను ఎనేబుల్ చేయాలా?</string>
+    <string name="apps_components_confirm_disable_title">కాంపోనెంట్‌లను డిసేబుల్ చేయాలా?</string>
+    <string name="apps_components_confirm_enable_message">కింది కాంపోనెంట్‌లు ఎనేబుల్ చేయబడతాయి:</string>
+    <string name="apps_components_confirm_disable_message">కింది కాంపోనెంట్‌లు డిసేబుల్ చేయబడతాయి. దీనివల్ల యాప్ సరిగ్గా పనిచేయకపోవచ్చు.</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="one">%d కాంపోనెంట్ ఎంచుకోబడింది</item>
+        <item quantity="other">%d కాంపోనెంట్‌లు ఎంచుకోబడ్డాయి</item>
+    </plurals>
+
+    <!-- Package operations -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="one">యాప్‌ను ఎనేబుల్ చేయండి</item>
+        <item quantity="other">%d యాప్‌లను ఎనేబుల్ చేయండి</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="one">యాప్‌ను డిసేబుల్ చేయండి</item>
+        <item quantity="other">%d యాప్‌లను డిసేబుల్ చేయండి</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="one">యాప్‌ను బలవంతంగా ఆపండి</item>
+        <item quantity="other">%d యాప్‌లను బలవంతంగా ఆపండి</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="one">యాప్‌ను అన్‌ఇన్‌స్టాల్ చేయండి</item>
+        <item quantity="other">%d యాప్‌లను అన్‌ఇన్‌స్టాల్ చేయండి</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="one">యాప్ డేటాను తొలగించండి</item>
+        <item quantity="other">%d యాప్‌ల డేటాను తొలగించండి</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="one">కాంపోనెంట్‌ను ఎనేబుల్ చేయండి</item>
+        <item quantity="other">%d కాంపోనెంట్‌లను ఎనేబుల్ చేయండి</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="one">కాంపోనెంట్‌ను డిసేబుల్ చేయండి</item>
+        <item quantity="other">%d కాంపోనెంట్‌లను డిసేబుల్ చేయండి</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="one">%d యాప్</item>
+        <item quantity="other">%d యాప్‌లు</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">%1$s ఎనేబుల్ చేయబడింది</string>
+    <string name="apps_operation_disable_summary">%1$s డిసేబుల్ చేయబడింది</string>
+    <string name="apps_operation_force_stop_summary">%1$s ఆపబడింది</string>
+    <string name="apps_operation_uninstall_summary">%1$s అన్‌ఇన్‌స్టాల్ చేయబడింది</string>
+    <string name="apps_operation_clear_data_summary">%1$s డేటా తొలగించబడింది</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="one">%1$d కాంపోనెంట్ ఎనేబుల్ చేయబడింది</item>
+        <item quantity="other">%1$d కాంపోనెంట్‌లు ఎనేబుల్ చేయబడ్డాయి</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="one">%1$d కాంపోనెంట్ డిసేబుల్ చేయబడింది</item>
+        <item quantity="other">%1$d కాంపోనెంట్‌లు డిసేబుల్ చేయబడ్డాయి</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">%1$s కోసం పూర్తి చేయలేకపోయింది</string>
+    <string name="apps_operation_single_declined_summary">%1$s తీసివేత తిరస్కరించబడింది</string>
+    <string name="apps_operation_batch_summary">%2$dలో %1$d పూర్తయ్యాయి</string>
+    <!-- Quoted so the leading separator survives the resource parser -->
+    <string name="apps_operation_batch_summary_failed">" · %1$d విఫలమయ్యాయి"</string>
+    <string name="apps_operation_batch_summary_declined">" · %1$d తిరస్కరించబడ్డాయి"</string>
+
+    <!-- Generic navigation -->
+    <string name="appdetails_back_generic_action">వెనుకకు</string>
+</resources>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">ఇలా సేవ్ చేయండి</string>
+    <string name="saver_preview_label">ముందస్తు వీక్షణ</string>
+    <string name="saver_loading">లోడ్ అవుతోంది…</string>
+    <string name="saver_shared_from">%1$s నుంచి షేర్ చేయబడింది</string>
+    <string name="saver_shared_generic">Butlerతో షేర్ చేయబడింది</string>
+    <string name="saver_destination_label">గమ్యం</string>
+    <string name="saver_select_destination_hint">గమ్య ఫోల్డర్‌ను ఎంచుకోండి</string>
+    <string name="saver_filename_label">ఫైల్ పేరు</string>
+    <string name="saver_save_action">సేవ్ చేయండి</string>
+    <string name="saver_saving_progress">సేవ్ అవుతోంది…</string>
+    <string name="saver_success_message">ఫైల్ విజయవంతంగా సేవ్ అయింది</string>
+    <string name="saver_open_saved_action">డైరెక్టరీని తెరవండి</string>
+    <string name="saver_retry_action">మళ్లీ ప్రయత్నించండి</string>
+    <string name="saver_save_again_action">కొత్త స్థానంలో సేవ్ చేయండి</string>
+    <string name="saver_close_tab_action">ట్యాబ్‌ను మూసివేయండి</string>
+    <string name="saver_close_butler_action">ట్యాబ్‌ను మూసివేసి తిరిగి వెళ్లండి</string>
+    <string name="saver_done_action">పూర్తయింది</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">మూల ఫైల్‌ను ఇక యాక్సెస్ చేయలేరు. దయచేసి మళ్లీ షేర్ చేయండి.</item>
+        <item quantity="other">%1$d మూల ఫైళ్లను ఇక యాక్సెస్ చేయలేరు. దయచేసి మళ్లీ షేర్ చేయండి.</item>
+    </plurals>
+    <string name="saver_error_source_expired">మూల ఫైల్‌ను ఇక యాక్సెస్ చేయలేరు</string>
+    <string name="saver_error_permission_denied">అనుమతి నిరాకరించబడింది</string>
+    <string name="saver_error_write_failed">ఫైల్‌ను సేవ్ చేయలేకపోయాము</string>
+    <string name="saver_error_file_exists">ఫైల్ ఇప్పటికే ఉంది</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">ఫైళ్లను సేవ్ చేయండి</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">%1$d ఫైల్‌ను %2$sలో సేవ్ చేస్తోంది</item>
+        <item quantity="other">%1$d ఫైళ్లను %2$sలో సేవ్ చేస్తోంది</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">%1$d ఫైల్‌ను సేవ్ చేయండి</item>
+        <item quantity="other">%1$d ఫైళ్లను సేవ్ చేయండి</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d ఫైల్ సేవ్ అయింది</item>
+        <item quantity="other">%1$d ఫైళ్లు సేవ్ అయ్యాయి</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d ఫైల్ విఫలమైంది</item>
+        <item quantity="other">%1$d ఫైళ్లు విఫలమయ్యాయి</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d ఫైల్ దాటవేయబడింది</item>
+        <item quantity="other">%1$d ఫైళ్లు దాటవేయబడ్డాయి</item>
+    </plurals>
+    <string name="saver_partial_success">%2$d ఫైళ్లలో %1$d సేవ్ అయ్యాయి</string>
+</resources>

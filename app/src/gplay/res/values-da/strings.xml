@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Kræver Butler Pro</string>
+
+    <string name="upgrade_prompt_title">Opgrader Butler</string>
+    <string name="upgrade_prompt_body">Butler Pro giver bedre resultater, flere funktioner og muligheder for avancerede brugere.</string>
+    <string name="upgrade_prompt_upgrade_action">Opgrader</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"). -->
+    <string name="upgrade_screen_title_template">Få %1$s</string>
+    <string name="upgrade_screen_preamble">Butler har ingen reklamer og sælger ikke brugerdata. Mit arbejde finansieres af dig ❤️.</string>
+
+    <string name="upgrade_screen_how_title">Muligheder</string>
+    <string name="upgrade_screen_subscription_trial_action">Start gratis prøveperiode på 14 dage</string>
+    <string name="upgrade_screen_subscription_action">Abonner</string>
+    <string name="upgrade_screen_iap_action">Engangskøb</string>
+    <string name="upgrade_screen_restore_purchase_action">Gendan køb</string>
+    <string name="upgrade_screen_restore_banner_title">Har du allerede købt Pro?</string>
+    <string name="upgrade_screen_restore_banner_body">Det ser ud til, at du tidligere har opgraderet til Pro på denne enhed. Gendan dit køb for at låse Pro op igen.</string>
+    <string name="upgrade_screen_restore_checked_message">Butler har lige tjekket med Google Play, men kunne ikke bekræfte noget Pro-køb for den konto, som Google Play bruger til denne app.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Kontrollen hos Google Play blev ikke færdig i tide, så status for dit køb er stadig ukendt. Intet er ændret på din konto.</string>
+    <string name="upgrade_screen_restore_contact_hint">Stadig problemer? Kontakt mig fra den e-mailadresse, du brugte til købet, og angiv dit Google Play-ordrenummer.</string>
+    <string name="upgrade_screen_contact_support_action">Kontakt support</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Synkronisering med Play Store kan tage tid. Prøv at genstarte, rydde Google Plays cache eller blot vente.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">Flere konti kan forvirre Google Play. Log ud af andre konti, eller installer via Google Plays websted, som sikrer tilknytning til en bestemt konto.</string>
+    <string name="upgrade_screen_restore_success_message">Dit køb blev gendannet ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Ser status forkert ud?</string>
+    <string name="upgrade_screen_restore_status_body">Kontrollér dit køb hos Google Play igen. Det kan hjælpe, hvis du har skiftet enhed eller Google-konto.</string>
+
+    <string name="upgrade_screen_offers_or">eller</string>
+
+    <string name="upgrade_screen_offers_title">Muligheder for opgradering</string>
+    <string name="upgrade_screen_offers_body">Begge muligheder låser op for præcis de samme Pro-funktioner — vælg den betalingsform, der passer dig.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Priser ikke tilgængelige</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler kunne ikke hente mulighederne for opgradering fra Google Play. Det er ofte midlertidigt — prøv igen om lidt.</string>
+    <string name="upgrade_screen_subscription_offer_title">Årligt abonnement</string>
+    <string name="upgrade_screen_subscription_offer_body">Starter med en gratis prøveperiode på 14 dage, derefter betaler du én gang om året. Du kan opsige når som helst.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Du betaler én gang om året. Du kan opsige når som helst.</string>
+    <string name="upgrade_screen_iap_offer_title">Køb én gang</string>
+    <string name="upgrade_screen_iap_offer_body">Betal én gang, og behold det for altid. Intet abonnement.</string>
+    <string name="upgrade_screen_restore_body">Ved gendannelse bliver Google Play bedt om at kontrollere denne apps køb igen for den aktuelle konto.</string>
+
+    <string name="upgrade_screen_owned_hero_title">Du har Butler Pro!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Tak for dit engangskøb — du har adgang for altid ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Tak, fordi du abonnerer ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">Engangskøb</string>
+    <string name="upgrade_screen_owned_iap_body">Du ejer den permanente Pro-opgradering.</string>
+    <string name="upgrade_screen_owned_sub_title">Abonnement</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Dit abonnement er aktivt og fornyes automatisk.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Dit abonnement er aktivt, men indstillet til ikke at blive fornyet. Du beholder Pro, indtil den aktuelle periode slutter.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">Du har foretaget engangskøbet, men dit abonnement bliver stadig fornyet. Opsig det i Google Play for at undgå at betale dobbelt.</string>
+    <string name="upgrade_screen_manage_subscription_action">Administrer abonnement</string>
+
+    <string name="upgrade_screen_switch_locked_note">Stop først fornyelsen via \"Administrer abonnement\", ellers bliver du opkrævet for begge dele.</string>
+    <string name="upgrade_screen_switch_purchase_note">Dit abonnement bliver ikke fornyet — du kan trygt foretage engangskøbet nu.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Abonnement stadig aktivt</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Dit abonnement er stadig indstillet til at blive fornyet. Stop først fornyelsen i Google Play, så du ikke bliver opkrævet for begge dele, og foretag derefter engangskøbet.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">Kunne ikke bekræfte</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler kunne ikke bekræfte status for dit køb hos Google Play, så købet blev stoppet for at undgå at opkræve dig dobbelt. Prøv igen om lidt.</string>
+
+    <string name="upgrade_screen_pending_card_title">Afventer betaling</string>
+    <string name="upgrade_screen_pending_card_body">Google Play behandler stadig din betaling. Pro låses automatisk op, når betalingen går igennem. Nogle betalingsmetoder kan tage lidt tid. Du behøver ikke gøre mere.</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play fandt et køb med en afventende betaling og behandler det stadig. Pro låses automatisk op, når betalingen går igennem.</string>
+
+    <string name="upgrade_screen_grace_title">Bekræfter dit køb</string>
+    <string name="upgrade_screen_grace_body_short">Google Play bruger lidt tid på at bekræfte din Pro-status. Du har stadig fuld adgang.</string>
+    <string name="upgrade_screen_grace_body">Google Play har stadig ikke bekræftet din Pro-status igen. Du har stadig adgang indtil videre. Hvis det ser forkert ud, så prøv at gendanne dit køb.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">Allerede købt?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play oplyser, at du allerede ejer denne opgradering, men den kunne ikke gendannes automatisk. Sørg for, at du er logget ind med den Google-konto, der blev brugt til det oprindelige køb, og prøv derefter \"Gendan køb\".</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play er ikke tilgængelig</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler kan ikke oprette forbindelse til Google Play. Er Google Play installeret og opdateret? Er du logget ind på din Google-konto? Prøv at rydde Google Play-appens cache og genstarte din enhed.</string>
+    <string name="upgrades_gplay_not_installed_message">Kunne ikke åbne Google Play. Det kan være fraværende, deaktiveret eller begrænset på denne enhed.</string>
+    <string name="upgrades_gplay_billing_error_label">Problem med Google Play</string>
+    <string name="upgrades_gplay_billing_error_description">Noget gik galt under kommunikationen med Google Play. Prøv igen senere, eller genstart din enhed.\n\nDetaljer: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Fejl i Google Play</string>
+    <string name="upgrades_gplay_internal_error_description">Der opstod en intern fejl i Google Play. Prøv følgende:\n\n• Genstart din enhed\n• Ryd Google Play Stores cache\n• Prøv igen senere</string>
+    <string name="upgrades_gplay_network_error_title">Forbindelsesfejl</string>
+    <string name="upgrades_gplay_network_error_description">Butler kunne ikke få forbindelse til Google Play. Kontrollér din internetforbindelse, og prøv igen.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Tilbud ikke tilgængeligt</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play tilbyder i øjeblikket ikke denne opgraderingsmulighed til din konto. Prøv igen senere, eller tjek Google Play Store.</string>
+    <string name="upgrades_no_purchases_found_check_account">Ingen køb fundet. Bruger du den rigtige konto?</string>
+
+    <string name="upgrade_benefits_title">Fordele ved opgradering</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Ubegrænset antal faner og handlinger\n• Tilpas design, oplevelse og udseende\n• Ekstra muligheder og funktioner til hvert værktøj\n• Tidlig adgang til nye funktioner\n• En motiveret udvikler 🧙\nog mere…</string>
+</resources>

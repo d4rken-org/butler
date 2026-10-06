@@ -1,0 +1,685 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explorer -->
+    <string name="explorer_title">Файлов мениджър</string>
+    <string name="explorer_subtitle">Разглеждай файлове и директории</string>
+    <string name="explorer_settings_title">Настройки на файловия мениджър</string>
+    <string name="explorer_settings_file_display">Показване на файловете</string>
+    <string name="explorer_settings_filter_regex_title">Разширено съпоставяне със заместващи символи</string>
+    <string name="explorer_settings_filter_regex_desc">Използвай регулярни изрази във филтрите за включване и изключване.</string>
+    <string name="explorer_settings_navigation">Навигация</string>
+    <string name="explorer_settings_back_button_title">Навигация с бутона „Назад“</string>
+    <string name="explorer_settings_back_button_desc">Преминавай през историята с бутона или жеста за връщане назад.</string>
+    <string name="explorer_settings_trash_category">Кошче</string>
+    <string name="explorer_settings_trash_enabled_title">Включи кошчето</string>
+    <string name="explorer_settings_trash_enabled_desc">Премествай изтритите файлове в кошчето, вместо да ги изтриваш безвъзвратно</string>
+    <string name="explorer_settings_trash_auto_delete_title">Автоматично изтриване след</string>
+    <string name="explorer_settings_trash_auto_delete_summary">Автоматично изтривай елементите след толкова време в кошчето</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d дни</string>
+    <string name="explorer_settings_trash_max_size_title">Максимален размер за всяко хранилище</string>
+    <string name="explorer_settings_trash_max_size_summary">Колко място може да използва кошчето във всяко местоположение за съхранение</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Срок за автоматично изтриване</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Максимален размер за всяко хранилище</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Да се включи ли кошчето?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">За разлика от настолните системи, Android няма вградено кошче. Butler осигурява такова чрез папката си за кеш.\n\nИмай предвид:\n• Индикаторът за хранилището на устройството ти няма да отрази освободеното място, докато елементите не бъдат изтрити безвъзвратно\n• Ако свободното място на устройството ти намалее, Android може да изчисти кеша на приложенията и да премахне файловете в кошчето</string>
+    <string name="explorer_settings_trash_enable_action">Включи</string>
+
+    <!-- File Row Content Descriptions -->
+    <string name="explorer_file_regular_content_desc">Файл</string>
+    <string name="explorer_file_symlink_content_desc">Символна връзка</string>
+    <string name="explorer_file_folder_content_desc">Папка</string>
+    <string name="explorer_file_peek_content_desc">Зареждане на информация за файла</string>
+
+    <!-- File Row UI Strings -->
+    <string name="explorer_file_shortcut_label">Пряк път</string>
+    <string name="explorer_file_storage_local_label">Локално</string>
+    <string name="explorer_file_storage_saf_label">SAF</string>
+    <string name="explorer_file_storage_saf_read_only_label">Достъп само за четене</string>
+    <string name="explorer_file_storage_saf_write_only_label">Достъп само за запис</string>
+    <string name="explorer_file_storage_saf_no_access_label">Без достъп</string>
+    <string name="explorer_file_storage_saf_uri_label">URI на дървото в SAF</string>
+    <string name="explorer_file_storage_size_format">%1$s • общо %2$s • свободни %3$s</string>
+    <string name="explorer_file_broken_link_label">Невалидна връзка</string>
+    <string name="explorer_file_items_count">%1$d елемента</string>
+    <string name="explorer_file_empty">Празно</string>
+    <string name="explorer_file_size_partial">≥ %1$s</string>
+    <string name="explorer_file_size_estimated">≈ %1$s</string>
+    <string name="explorer_file_size_estimated_partial">≈ %1$s · частично</string>
+    <string name="explorer_sizes_estimate_description">Приблизителна оценка въз основа на общите данни за хранилището на Android. За файлове, които не могат да бъдат прочетени, заетото място се използва като оценка на размера им. Може да са включени и скрити файлове, управлявани от Android. Другите местоположения, които не могат да бъдат прочетени, остават с неизвестен размер.</string>
+    <string name="explorer_sizes_estimate_coverage">Размерът на Android/data не можа да бъде оценен, защото други части на хранилището не можаха да бъдат измерени напълно.</string>
+    <string name="explorer_sizes_estimate_unavailable">Статистиката на Android за хранилището не беше достъпна. Измерените размери все пак се показват.</string>
+    <string name="explorer_sizes_estimate_inconsistent">Общите данни на Android за хранилището не съвпаднаха със сканирането. Измерените размери все пак се показват.</string>
+
+    <!-- Picker Mode -->
+    <string name="explorer_picker_select_directory_title">Избери папка</string>
+    <plurals name="explorer_picker_select_directories">
+        <item quantity="one">Избери папка (%d)</item>
+        <item quantity="other">Избери папки (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_file_title">Избери файл</string>
+    <plurals name="explorer_picker_select_files">
+        <item quantity="one">Избери файл (%d)</item>
+        <item quantity="other">Избери файлове (%d)</item>
+    </plurals>
+    <plurals name="explorer_picker_select_items">
+        <item quantity="one">Избери елемент (%d)</item>
+        <item quantity="other">Избери елементи (%d)</item>
+    </plurals>
+    <string name="explorer_picker_select_this_folder_action">Избери тази папка</string>
+    <plurals name="explorer_picker_select_count_action">
+        <item quantity="one">Избери %d</item>
+        <item quantity="other">Избери %d</item>
+    </plurals>
+    <string name="explorer_picker_save_as_title">Запази файл</string>
+    <string name="explorer_picker_save_here_action">Запази тук</string>
+    <string name="explorer_picker_save_as_filename_label">Име на файла</string>
+    <string name="explorer_picker_save_as_filename_hint">Въведи име на файла</string>
+
+    <!-- Explorer Actions -->
+    <string name="explorer_action_refresh">Опресни</string>
+    <string name="explorer_action_calculate_sizes">Изчисли размерите</string>
+    <string name="explorer_action_sort">Сортирай</string>
+    <string name="explorer_action_filter">Филтрирай</string>
+    <string name="explorer_action_view">Подредба</string>
+    <string name="explorer_action_create">Създай</string>
+    <string name="explorer_action_rename">Преименувай</string>
+    <string name="explorer_action_copy">Копирай</string>
+    <string name="explorer_action_cut">Изрежи</string>
+    <string name="explorer_action_delete">Изтрий</string>
+    <string name="explorer_action_select_all">Избери всички</string>
+    <string name="explorer_action_deselect_all">Премахни избора на всички</string>
+    <string name="explorer_action_compress">Компресирай</string>
+    <string name="explorer_action_extract">Разархивирай</string>
+    <string name="explorer_action_add_location">Добави местоположение</string>
+    <string name="explorer_action_info">Информация</string>
+
+    <!-- Item Info -->
+    <string name="explorer_info_title">Информация</string>
+    <string name="explorer_info_name_label">Име</string>
+    <string name="explorer_info_path_label">Път</string>
+    <string name="explorer_info_type_label">Тип</string>
+    <string name="explorer_info_type_file">Файл</string>
+    <string name="explorer_info_type_directory">Директория</string>
+    <string name="explorer_info_size_label">Размер</string>
+    <string name="explorer_info_modified_label">Промяна</string>
+    <string name="explorer_info_created_label">Създаване</string>
+    <string name="explorer_info_permissions_label">Разрешения</string>
+    <string name="explorer_info_owner_label">Собственик</string>
+    <string name="explorer_info_child_count_label">Елементи</string>
+    <string name="explorer_info_symlink_target_label">Цел</string>
+    <string name="explorer_info_symlink_status_label">Състояние</string>
+    <string name="explorer_info_symlink_broken">Невалидна връзка</string>
+    <string name="explorer_info_unknown">Неизвестно</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Изтриване</string>
+
+    <!-- SAF Info -->
+    <string name="explorer_info_saf_uri_label">URI</string>
+    <string name="explorer_info_saf_permissions_label">Разрешения</string>
+    <string name="explorer_info_saf_granted_label">Предоставяне</string>
+    <string name="explorer_info_saf_permission_read">Четене</string>
+    <string name="explorer_info_saf_permission_write">Запис</string>
+
+    <!-- Network Info -->
+    <string name="explorer_info_network_server_label">Сървър</string>
+    <string name="explorer_info_network_port_label">Порт</string>
+    <string name="explorer_info_network_share_label">Споделен ресурс</string>
+    <string name="explorer_info_network_folder_label">Папка</string>
+    <string name="explorer_info_network_address_label">Адрес</string>
+    <string name="explorer_info_network_status_label">Състояние</string>
+    <string name="explorer_info_network_type_value">SMB</string>
+    <string name="explorer_info_network_auth_label">Вход</string>
+    <string name="explorer_info_network_domain_label">Домейн</string>
+    <string name="explorer_info_network_password_label">Парола</string>
+    <string name="explorer_info_network_password_show_action">Покажи паролата</string>
+    <string name="explorer_info_network_password_hide_action">Скрий паролата</string>
+    <string name="explorer_info_network_password_missing">Липсва, влез отново</string>
+    <string name="explorer_info_network_password_locked">Запазена е, но това устройство не може да я отключи</string>
+    <string name="explorer_info_network_added_label">Добавяне</string>
+    <string name="explorer_info_network_updated_label">Обновяване</string>
+    <string name="explorer_info_network_last_seen_label">Последно откриване</string>
+    <string name="explorer_info_network_last_seen_never">Никога</string>
+
+    <!-- Multiple Items Info -->
+    <string name="explorer_info_selected_label">Избрани</string>
+    <string name="explorer_info_files_label">Файлове</string>
+    <string name="explorer_info_directories_label">Директории</string>
+    <string name="explorer_info_total_size_label">Общ размер</string>
+
+    <!-- Device/Home View Info -->
+    <string name="explorer_info_locations_label">Местоположения</string>
+    <string name="explorer_info_shortcuts_label">Преки пътища</string>
+    <string name="explorer_info_total_capacity_label">Общ капацитет</string>
+    <string name="explorer_info_used_space_label">Заето място</string>
+    <string name="explorer_info_free_space_label">Свободно място</string>
+    <string name="explorer_info_usage_label">Използване</string>
+    <string name="explorer_info_device_storage_total_label">Хранилище на устройството</string>
+    <string name="explorer_info_device_storage_used_label">Заето</string>
+    <string name="explorer_info_device_storage_free_label">Свободно</string>
+
+    <!-- Navigation -->
+    <string name="explorer_navigation_home">Начало</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Задай като начало</string>
+    <string name="explorer_breadcrumb_copy_path_action">Копирай пътя</string>
+    <string name="explorer_breadcrumb_copy_path_confirmation">Пътят е копиран в клипборда</string>
+    <string name="explorer_navigation_device">Устройство</string>
+    <string name="explorer_navigation_network">Мрежа</string>
+    <string name="explorer_navigation_recent">Скорошни</string>
+    <string name="explorer_navigation_recent_desc">Файлове, появили се наскоро на това устройство</string>
+    <string name="explorer_navigation_trash">Кошче</string>
+    <string name="explorer_navigation_trash_desc">Възстанови изтрити файлове</string>
+    <string name="explorer_navigation_trash_nested_desc">В папка от кошчето</string>
+
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">Няма изтрити елементи</string>
+    <plurals name="explorer_trash_item_count">
+        <item quantity="one">%d елемент</item>
+        <item quantity="other">%d елемента</item>
+    </plurals>
+    <string name="explorer_trash_restore_action">Възстанови</string>
+    <string name="explorer_trash_restore_selected_action">Възстанови избраните</string>
+    <string name="explorer_trash_delete_permanently_action">Изтрий безвъзвратно</string>
+    <string name="explorer_trash_delete_selected_action">Изтрий избраните</string>
+    <string name="explorer_trash_empty_trash_action">Изпразни кошчето</string>
+    <string name="explorer_trash_empty_confirm">Да се изпразни ли кошчето?</string>
+    <string name="explorer_trash_empty_message">Всички елементи в кошчето ще бъдат изтрити безвъзвратно. Това действие не може да бъде отменено.</string>
+    <string name="explorer_trash_empty_confirm_action">Изпразни кошчето</string>
+    <string name="explorer_trash_restore_desc">Възстанови в първоначалното местоположение</string>
+    <string name="explorer_trash_item_unavailable">Елементът е недостъпен</string>
+    <string name="explorer_trash_delete_warning">Това действие не може да бъде отменено</string>
+    <string name="explorer_trash_disabled_warning">Кошчето е изключено</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Зареждане на съдържанието на папката в кошчето…</string>
+    <string name="explorer_trash_nested_restore_action">Възстанови в първоначалното местоположение</string>
+    <string name="explorer_trash_nested_delete_action">Изтрий безвъзвратно</string>
+    <string name="explorer_trash_nested_restore_conflict">В първоначалното местоположение вече има файл</string>
+    <string name="explorer_trash_nested_parent_missing">Родителският елемент вече не съществува в кошчето</string>
+    <string name="explorer_trash_nested_path_missing">Пътят вече не съществува</string>
+    <string name="explorer_trash_error_items_not_found">Елементите не са намерени в кошчето</string>
+    <string name="explorer_trash_error_restore_failed">Възстановяването на елементите е неуспешно</string>
+    <string name="explorer_trash_error_delete_failed">Изтриването на елементите е неуспешно</string>
+    <string name="explorer_trash_nested_error_restore_failed">Възстановяването на %1$s е неуспешно</string>
+    <string name="explorer_trash_nested_error_delete_failed">Изтриването на %1$s е неуспешно</string>
+
+    <string name="explorer_navigation_root">Коренова директория</string>
+    <string name="explorer_navigation_rom">Системен ROM</string>
+    <string name="explorer_navigation_internal_storage">Вътрешно публично хранилище</string>
+    <string name="explorer_navigation_external_storage">Външно публично хранилище</string>
+
+    <string name="explorer_loader_progress_directory_loading">Разглеждане на %s</string>
+    <string name="explorer_loader_progress_directory_permissions">Проверка на разрешенията</string>
+    <string name="explorer_loader_progress_directory_filesystem">Получаване на информация за файловата система</string>
+    <string name="explorer_loader_progress_directory_content">Зареждане на съдържанието на папката</string>
+    <string name="explorer_loader_progress_directory_content_details">Зареждане на подробности за съдържанието</string>
+    <string name="explorer_loader_progress_directory_content_extended">Зареждане на разширени подробности за съдържанието</string>
+
+    <string name="explorer_loader_progress_device_loading">Зареждане на устройството</string>
+    <string name="explorer_loader_progress_device_locations">Зареждане на местоположенията за съхранение</string>
+
+    <string name="explorer_loader_progress_network_loading">Зареждане на мрежовото хранилище</string>
+
+    <string name="explorer_loader_progress_home_loading">Зареждане на началото</string>
+    <string name="explorer_loader_progress_trash_loading">Зареждане на кошчето…</string>
+    <string name="explorer_loader_progress_recent_loading">Зареждане на скорошните файлове…</string>
+
+    <!-- InfoBar -->
+    <plurals name="explorer_infobar_shortcuts_count">
+        <item quantity="one">%d пряк път</item>
+        <item quantity="other">%d преки пътя</item>
+    </plurals>
+    <plurals name="explorer_infobar_location_count">
+        <item quantity="one">%d местоположение</item>
+        <item quantity="other">%d местоположения</item>
+    </plurals>
+    <plurals name="explorer_infobar_hidden_count">
+        <item quantity="one">%d скрит</item>
+        <item quantity="other">%d скрити</item>
+    </plurals>
+    <string name="explorer_infobar_storage_free">%1$s свободни</string>
+    <string name="explorer_infobar_loading">Зареждане…</string>
+
+    <!-- Dialogs -->
+    <string name="explorer_dialog_create_title">Създай нов елемент</string>
+    <string name="explorer_dialog_rename_title">Преименувай</string>
+    <string name="explorer_dialog_name_label">Име</string>
+    <string name="explorer_dialog_type_label">Тип</string>
+    <string name="explorer_dialog_type_folder">Папка</string>
+    <string name="explorer_dialog_type_file">Файл</string>
+    <string name="explorer_dialog_create_text_file_title">Създай файл от текст</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Предварителен преглед</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d знака</string>
+
+    <!-- Add Device Storage Dialog -->
+    <string name="explorer_add_device_storage_title">Добави местоположение за съхранение</string>
+    <string name="explorer_add_device_storage_desc">Използвай Storage Access Framework (SAF), за да дадеш на Butler достъп до допълнителни местоположения за съхранение, като USB устройства, виртуални папки на приложения и други.</string>
+    <string name="explorer_add_device_storage_continue">Продължи</string>
+    <string name="explorer_add_device_storage_cancel">Отмени</string>
+    <string name="explorer_add_device_storage_suggestions_title">Приложения с хранилище</string>
+    <string name="explorer_add_device_storage_suggestion_desc_direct">Отваря папката на това приложение</string>
+
+    <!-- Device Storage Actions -->
+    <string name="explorer_device_action_remove_location">Премахни местоположението</string>
+    <string name="explorer_device_remove_confirmation_title">Да се премахне ли местоположението за съхранение?</string>
+    <plurals name="explorer_device_remove_confirmation_title_multiple">
+        <item quantity="one">Да се премахне ли %1$d местоположение за съхранение?</item>
+        <item quantity="other">Да се премахнат ли %1$d местоположения за съхранение?</item>
+    </plurals>
+    <string name="explorer_device_remove_confirmation_message">Това ще отнеме достъпа на Butler до това местоположение. Файловете ти няма да бъдат изтрити.</string>
+
+    <!-- Network Storage -->
+    <plurals name="explorer_network_location_count">
+        <item quantity="one">%d мрежово местоположение</item>
+        <item quantity="other">%d мрежови местоположения</item>
+    </plurals>
+    <string name="explorer_network_storage_label">Мрежа</string>
+    <string name="explorer_network_add_location_action">Добави мрежово хранилище</string>
+    <string name="explorer_network_edit_location_action">Редактирай мрежовото хранилище</string>
+    <string name="explorer_network_remove_location_action">Премахни мрежовото хранилище</string>
+    <string name="explorer_network_sign_in_required_label">Необходим е вход</string>
+    <string name="explorer_network_status_checking_label">Проверка…</string>
+    <string name="explorer_network_status_available_label">Достъпно</string>
+    <string name="explorer_network_status_unavailable_label">Недостъпно</string>
+    <string name="explorer_network_status_unavailable_since_format">Недостъпно (%1$s)</string>
+    <string name="explorer_network_empty_title">Все още няма мрежово хранилище</string>
+    <string name="explorer_network_empty_caption">Добави споделен ресурс от Windows или папка на NAS, за да ги разглеждаш тук.</string>
+    <string name="explorer_network_form_pro_notice">Добавянето и тестването на местоположение са безплатни. За разглеждането му е необходим Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_saved">Запазено. За разглеждане на мрежово хранилище е необходим Butler Pro.</string>
+    <string name="explorer_network_upgrade_hint_locked">За разглеждане на мрежово хранилище е необходим Butler Pro.</string>
+    <string name="explorer_network_remove_confirmation_title">Да се премахне ли мрежовото хранилище?</string>
+    <plurals name="explorer_network_remove_confirmation_title_multiple">
+        <item quantity="one">Да се премахне ли %1$d мрежово хранилище?</item>
+        <item quantity="other">Да се премахнат ли %1$d мрежови хранилища?</item>
+    </plurals>
+    <string name="explorer_network_remove_confirmation_message">Butler забравя данните за сървъра и запазената парола. Нищо на сървъра не се изтрива.</string>
+
+    <!-- Network Storage Form -->
+    <string name="explorer_network_form_add_title">Добави мрежово хранилище</string>
+    <string name="explorer_network_form_edit_title">Редактирай мрежовото хранилище</string>
+    <string name="explorer_network_form_label_label">Име (незадължително)</string>
+    <string name="explorer_network_form_host_label">Адрес на сървъра</string>
+    <string name="explorer_network_form_host_hint">nas.local или 192.168.1.10</string>
+    <string name="explorer_network_form_port_label">Порт</string>
+    <string name="explorer_network_form_share_label">Споделен ресурс</string>
+    <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_base_path_label">Папка в споделения ресурс (незадължително)</string>
+    <string name="explorer_network_form_auth_guest">Гост</string>
+    <string name="explorer_network_form_auth_password">Потребителско име и парола</string>
+    <string name="explorer_network_form_username_label">Потребителско име</string>
+    <string name="explorer_network_form_domain_label">Домейн (незадължително)</string>
+    <string name="explorer_network_form_password_label">Парола</string>
+    <string name="explorer_network_form_password_kept_hint">Остави празно, за да запазиш съхранената парола</string>
+    <string name="explorer_network_form_remember_label">Запомни паролата</string>
+    <string name="explorer_network_form_remember_hint">Съхранява се шифрована само на това устройство</string>
+    <string name="explorer_network_form_test_and_save_action">Тествай и запази</string>
+    <string name="explorer_network_form_testing">Свързване…</string>
+    <string name="explorer_network_form_error_host_blank">Въведи адрес на сървъра</string>
+    <string name="explorer_network_form_error_host_not_bare">Въведи само адреса на сървъра, без схема или път</string>
+    <string name="explorer_network_form_error_host_malformed">Това не е валиден адрес на сървър</string>
+    <string name="explorer_network_form_error_port">Въведи порт между 1 и 65535</string>
+    <string name="explorer_network_form_error_share_blank">Въведи име на споделения ресурс</string>
+    <string name="explorer_network_form_error_share_not_single">Въведи само името на споделения ресурс, а подпапките посочи по-долу</string>
+    <string name="explorer_network_form_error_share_malformed">Това не е валидно име на споделен ресурс</string>
+    <string name="explorer_network_form_error_base_path">Този път до папка не може да се използва</string>
+    <string name="explorer_network_form_error_username_blank">Въведи потребителско име</string>
+    <string name="explorer_network_form_error_password_required">Въведи паролата отново, за да промениш потребителското име или домейна</string>
+
+    <!-- Location Naming -->
+    <string name="explorer_location_name_title">Дай име на местоположението</string>
+    <string name="explorer_location_name_label">Име на местоположението</string>
+    <string name="explorer_location_name_hint">Остави празно, за да използваш името по подразбиране</string>
+    <string name="explorer_location_rename_action">Преименувай местоположението</string>
+
+    <!-- Recent -->
+    <plurals name="explorer_recent_window_subtitle">
+        <item quantity="one">Добавени през последния ден</item>
+        <item quantity="other">Добавени през последните %d дни</item>
+    </plurals>
+    <string name="explorer_recent_empty_title">Нищо ново тук</string>
+    <string name="explorer_recent_empty_message">Файловете, които се появяват на това устройство, се показват тук</string>
+
+    <!-- Empty States -->
+    <string name="explorer_empty_folder_title">Тази папка е празна</string>
+    <string name="explorer_empty_search_title">Няма резултати от търсенето</string>
+    <string name="explorer_empty_search_caption">Опитай с друга дума за търсене</string>
+    <string name="explorer_empty_folder_label">Празна папка</string>
+    <string name="explorer_empty_filtered_title">Няма съответстващи елементи</string>
+    <string name="explorer_empty_filtered_caption">Опитай да промениш филтрите си</string>
+    <string name="explorer_empty_hidden_title">Тук има само скрити елементи</string>
+    <string name="explorer_empty_hidden_caption">Този раздел скрива елементи, чието име започва с точка</string>
+    <string name="explorer_empty_show_hidden_action">Покажи скритите елементи</string>
+    <string name="explorer_empty_hidden_or_filtered_title">Няма повече елементи за показване</string>
+    <string name="explorer_empty_hidden_or_filtered_caption">Скритите елементи и филтрите ти изключват различни части от съдържанието на тази папка</string>
+    <string name="explorer_empty_clear_filters_action">Изчисти филтрите</string>
+    <string name="explorer_empty_hidden_and_filtered_title">Скритите елементи и филтрите изключват всичко тук</string>
+    <string name="explorer_empty_hidden_and_filtered_caption">Покажи скритите елементи и изчисти филтрите на този раздел, за да ги видиш отново</string>
+    <string name="explorer_empty_show_all_action">Покажи всички елементи</string>
+    <string name="explorer_path_not_found_title">Тази папка вече я няма</string>
+    <string name="explorer_path_not_found_caption">Тя е изтрита, преименувана или преместена другаде.</string>
+    <string name="explorer_path_not_found_back_action">Върни се назад</string>
+
+    <!-- Status Messages -->
+    <string name="explorer_loading">Зареждане…</string>
+    <string name="explorer_file_peek_loading_text">Зареждане…</string>
+
+    <!-- Empty Folder Captions -->
+    <string name="explorer_empty_folder_caption_1">Тук няма нищо за гледане… продължавай 🕵️</string>
+    <string name="explorer_empty_folder_caption_2">Тази папка е на диета</string>
+    <string name="explorer_empty_folder_caption_3">Дори файловете се прибраха рано днес</string>
+    <string name="explorer_empty_folder_caption_4">Folder.exe спря да работи</string>
+    <string name="explorer_empty_folder_caption_5">Файловете играят на криеница</string>
+    <string name="explorer_empty_folder_caption_6">404: Файловете не са намерени</string>
+    <string name="explorer_empty_folder_caption_7">Тази папка трудно се доверява</string>
+    <string name="explorer_empty_folder_caption_8">Файловете отидоха на почивка без предупреждение</string>
+    <string name="explorer_empty_folder_caption_9">Празна като душата ми… но по-подредена</string>
+    <string name="explorer_empty_folder_caption_10">Дигиталният еквивалент на пустош с търкалящи се храсти</string>
+    <string name="explorer_empty_folder_caption_11">Файловете спазват социална дистанция</string>
+    <string name="explorer_empty_folder_caption_12">Тази папка практикува минимализъм</string>
+    <string name="explorer_empty_folder_caption_13">Някой е забравил да нахрани файловете</string>
+    <string name="explorer_empty_folder_caption_14">Файловете напуснаха сградата</string>
+    <string name="explorer_empty_folder_caption_15">По-празна от обещание на политик</string>
+
+    <!-- Sort Options -->
+    <string name="explorer_sort_mode_label">Сортиране по</string>
+    <string name="explorer_sort_mode_name_label">Име</string>
+    <string name="explorer_sort_mode_size_label">Размер</string>
+    <string name="explorer_sort_mode_modified_label">Дата на промяна</string>
+    <string name="explorer_sort_mode_created_label">Дата на създаване</string>
+    <string name="explorer_sort_descending_label">Низходящ ред</string>
+    <string name="explorer_sort_scope_label">Приложи към</string>
+    <string name="explorer_sort_scope_all_folders">Всички папки</string>
+    <string name="explorer_sort_scope_this_folder">Тази папка</string>
+    <string name="explorer_sort_scope_this_folder_and_subfolders">Тази папка и подпапките</string>
+    <string name="explorer_sort_scope_use_default_here">Използвай подредбата по подразбиране тук</string>
+    <string name="explorer_sort_only_this_tab_label">Само за този раздел</string>
+    <string name="explorer_sort_inherited_notice">Сортиране по правило, запазено за %1$s</string>
+    <string name="explorer_sort_suppressed_notice">Това замества правилото, запазено за %1$s</string>
+    <string name="explorer_sort_tab_overrides_default_notice">Този раздел използва собствен ред на сортиране по подразбиране</string>
+    <string name="explorer_sort_tab_overrides_clear_action">Изчисти</string>
+
+    <!-- Folder Sizes -->
+    <string name="explorer_sizes_sheet_title">Размери на папките</string>
+    <string name="explorer_sizes_sheet_label_calculated">Изчислено</string>
+    <string name="explorer_sizes_sheet_label_folders">Папки</string>
+    <string name="explorer_sizes_sheet_label_unreadable">Местоположения, които не могат да бъдат прочетени</string>
+    <string name="explorer_sizes_sheet_problems_more">Непоказани: още %1$d</string>
+    <string name="explorer_sizes_sheet_recalculate">Изчисли отново</string>
+    <string name="explorer_sizes_sheet_discard">Отхвърли размерите</string>
+
+    <!-- View Options -->
+    <string name="explorer_view_sheet_subtitle">Как са подредени елементите и колко подробности показват</string>
+    <string name="explorer_view_mode_list_label">Списък</string>
+    <string name="explorer_view_mode_grid_label">Мрежа</string>
+    <string name="explorer_view_density_compact_label">Компактно</string>
+    <string name="explorer_view_density_comfortable_label">Удобно</string>
+    <string name="explorer_view_density_detailed_label">Подробно</string>
+    <string name="explorer_view_show_hidden_label">Покажи скритите файлове</string>
+    <string name="explorer_view_set_default_action">Задай по подразбиране</string>
+    <string name="explorer_view_detail_created_label">Създаване</string>
+    <string name="explorer_view_detail_modified_label">Промяна</string>
+
+    <!-- Folder Sort Rules -->
+    <string name="explorer_settings_folder_sort_rules_title">Правила за сортиране на папки</string>
+    <string name="explorer_settings_folder_sort_rules_desc">Настройки за сортиране, запазени от теб за отделни папки</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_title">Да се изчистят ли правилата за сортиране на папки?</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_message">Всички папки се връщат към реда на сортиране по подразбиране. Разделите със собствена подредба я запазват. Това действие не може да бъде отменено.</string>
+    <string name="explorer_settings_folder_sort_rules_clear_confirm_action">Изчисти всички</string>
+
+    <!-- Filter Options -->
+    <string name="explorer_filter_file_type_label">Тип файл</string>
+    <string name="explorer_filter_type_all">Всички</string>
+    <string name="explorer_filter_type_files">Само файлове</string>
+    <string name="explorer_filter_type_folders">Само папки</string>
+    <string name="explorer_filter_include_label">Шаблон за включване</string>
+    <string name="explorer_filter_include_placeholder_simple">напр. почивка, доклад, IMG</string>
+    <string name="explorer_filter_include_placeholder_regex">напр. .*\\.txt$, ^IMG_.*</string>
+    <string name="explorer_filter_exclude_label">Шаблон за изключване</string>
+    <string name="explorer_filter_exclude_placeholder_simple">напр. tmp, cache, старо</string>
+    <string name="explorer_filter_exclude_placeholder_regex">напр. ^\\., .*\\.tmp$, .*\\.bak$</string>
+    <string name="explorer_filter_regex_hint">💡 Включи регулярните изрази в настройките</string>
+
+    <!-- Permission Messages -->
+    <string name="explorer_permission_required_title">Необходимо е разрешение</string>
+    <string name="explorer_permission_generic_description">Butler се нуждае от допълнително разрешение, за да разглежда това местоположение.</string>
+    <string name="explorer_permission_setup_action">Отвори настройването</string>
+    <string name="explorer_grant_access_action">Разреши достъп</string>
+
+    <!-- File Options -->
+    <string name="explorer_file_options_actions">Действия</string>
+    <string name="explorer_file_info_type_label">Тип</string>
+    <string name="explorer_file_info_size_label">Размер</string>
+    <string name="explorer_file_info_modified_label">Промяна</string>
+    <string name="explorer_file_action_install">Инсталирай</string>
+    <string name="explorer_file_action_install_subtitle">Инсталирай това приложение на устройството си</string>
+    <string name="explorer_file_action_open">Отвори</string>
+    <string name="explorer_file_action_open_subtitle">Преглед тук, връщането назад води в тази папка</string>
+    <string name="explorer_file_action_open_in_tab">Отвори в нов раздел</string>
+    <string name="explorer_file_action_open_in_tab_subtitle">Преглед в Butler като отделен раздел</string>
+    <string name="explorer_file_action_open_in_editor">Отвори в редактора</string>
+    <string name="explorer_file_action_open_in_editor_subtitle">Редактирай в нов раздел</string>
+    <string name="explorer_file_action_open_with">Отвори с</string>
+    <string name="explorer_file_action_open_with_subtitle">Избери външно приложение за отваряне</string>
+    <string name="explorer_file_action_share">Сподели</string>
+    <string name="explorer_file_action_share_subtitle">Сподели чрез инсталираните приложения</string>
+    <string name="explorer_file_action_copy">Копирай</string>
+    <string name="explorer_file_action_copy_subtitle">Копирай в клипборда за поставяне</string>
+    <string name="explorer_file_action_cut">Изрежи</string>
+    <string name="explorer_file_action_cut_subtitle">Премести в клипборда за поставяне</string>
+    <string name="explorer_file_action_rename">Преименувай</string>
+    <string name="explorer_file_action_rename_subtitle">Промени името на файла</string>
+    <string name="explorer_file_action_delete">Изтрий</string>
+    <string name="explorer_file_action_delete_subtitle">Премахни този файл безвъзвратно</string>
+    <string name="explorer_file_action_move_to_trash">Премести в кошчето</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Премести файла в кошчето</string>
+    <string name="explorer_file_action_properties">Свойства</string>
+    <string name="explorer_file_action_properties_subtitle">Прегледай подробната информация за файла</string>
+    <string name="explorer_file_action_extract">Разархивирай</string>
+    <string name="explorer_file_action_extract_subtitle">Разархивирай съдържанието на архива в папка</string>
+    <string name="explorer_file_action_show_in_folder">Покажи в папката</string>
+    <string name="explorer_file_action_show_in_folder_subtitle">Отвори папката, в която се намира този файл</string>
+
+    <!-- Operations -->
+    <plurals name="explorer_operation_report_files_created">
+        <item quantity="one">Създаден е %d файл.</item>
+        <item quantity="other">Създадени са %d файла.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_created">
+        <item quantity="one">Създадена е %d директория.</item>
+        <item quantity="other">Създадени са %d директории.</item>
+    </plurals>
+
+    <string name="explorer_operation_copy_title">Копиране</string>
+    <string name="explorer_operation_copy_description_single">Копирай \"%1$s\" от \"%2$s\" в \"%3$s\".</string>
+    <plurals name="explorer_operation_copy_description">
+        <item quantity="one">Копирай %1$d елемент в \"%2$s\".</item>
+        <item quantity="other">Копирай %1$d елемента в \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_copied">
+        <item quantity="one">Копиран е %d файл.</item>
+        <item quantity="other">Копирани са %d файла.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_copied">
+        <item quantity="one">Копирана е %d директория.</item>
+        <item quantity="other">Копирани са %d директории.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_copied">
+        <item quantity="one">Копирани са %s.</item>
+        <item quantity="other">Копирани са %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_extract_title">Разархивиране</string>
+    <string name="explorer_operation_extract_description">Разархивирай \"%1$s\" в \"%2$s\".</string>
+    <string name="explorer_operation_download_copy_title">Създаване на локално копие</string>
+    <string name="explorer_operation_download_copy_description">Копирай \"%1$s\" в \"%2$s\" за локално разглеждане.</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">Разархивиран е %d файл.</item>
+        <item quantity="other">Разархивирани са %d файла.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">Разархивирани са %s.</item>
+        <item quantity="other">Разархивирани са %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Компресиране</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">Компресирай %1$d елемент в \"%2$s\".</item>
+        <item quantity="other">Компресирай %1$d елемента в \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">Компресиран е %d файл.</item>
+        <item quantity="other">Компресирани са %d файла.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Създай архив</string>
+    <string name="explorer_compress_dialog_name_label">Име на архива</string>
+    <string name="explorer_compress_dialog_format_label">Формат</string>
+    <string name="explorer_compress_dialog_format_zip_hint">Отваря се на всяко устройство. Може да бъде защитен с парола.</string>
+    <string name="explorer_compress_dialog_format_targz_hint">По-малък размер при много файлове. Без защита с парола.</string>
+    <string name="explorer_compress_dialog_create_action">Създай</string>
+    <string name="explorer_compress_dialog_level_label">Ниво на компресия</string>
+    <string name="explorer_compress_dialog_level_fast">Бързо</string>
+    <string name="explorer_compress_dialog_level_normal">Нормално</string>
+    <string name="explorer_compress_dialog_level_best">Най-добро</string>
+    <string name="explorer_compress_dialog_password_label">Парола (незадължително)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Потвърди паролата</string>
+    <string name="explorer_compress_dialog_password_mismatch">Паролите не съвпадат</string>
+    <string name="explorer_compress_dialog_password_weak">Слаба парола</string>
+    <string name="explorer_compress_dialog_password_notice">Съдържанието на файловете е шифровано, но имената им не са.</string>
+    <string name="explorer_compress_dialog_password_show">Покажи паролата</string>
+    <string name="explorer_compress_dialog_password_hide">Скрий паролата</string>
+    <string name="explorer_compress_dialog_overwrite_title">Да се замени ли архивът?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" вече съществува и ще бъде заменен.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Замени</string>
+
+    <!-- Drop dialog (items dragged in from another pane) -->
+    <plurals name="explorer_drop_dialog_title">
+        <item quantity="one">Да се пусне ли %1$d елемент?</item>
+        <item quantity="other">Да се пуснат ли %1$d елемента?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message">
+        <item quantity="one">Да се копира или премести ли %1$d елемент в \"%2$s\"?</item>
+        <item quantity="other">Да се копират или преместят ли %1$d елемента в \"%2$s\"?</item>
+    </plurals>
+    <plurals name="explorer_drop_dialog_message_copy_only">
+        <item quantity="one">Да се копира ли %1$d елемент в \"%2$s\"?</item>
+        <item quantity="other">Да се копират ли %1$d елемента в \"%2$s\"?</item>
+    </plurals>
+
+    <!-- Trash drop dialog (items dragged onto the Trash view) -->
+    <string name="explorer_trash_drop_confirmation_title">Да се премести ли в кошчето?</string>
+    <plurals name="explorer_trash_drop_confirmation_message">
+        <item quantity="one">Да се премести ли %1$d елемент в кошчето?</item>
+        <item quantity="other">Да се преместят ли %1$d елемента в кошчето?</item>
+    </plurals>
+
+    <string name="explorer_operation_move_title">Преместване</string>
+    <string name="explorer_operation_move_description_single">Премести \"%1$s\" от \"%2$s\" в \"%3$s\".</string>
+    <plurals name="explorer_operation_move_description">
+        <item quantity="one">Премести %1$d елемент в \"%2$s\".</item>
+        <item quantity="other">Премести %1$d елемента в \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_moved">
+        <item quantity="one">Преместен е %d файл.</item>
+        <item quantity="other">Преместени са %d файла.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_directories_moved">
+        <item quantity="one">Преместена е %d директория.</item>
+        <item quantity="other">Преместени са %d директории.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_moved">
+        <item quantity="one">Преместени са %s.</item>
+        <item quantity="other">Преместени са %s.</item>
+    </plurals>
+
+    <string name="explorer_operation_create_title_directory">Създаване на папка</string>
+    <string name="explorer_operation_create_description_directory">Създай папка \"%1$s\" в \"%2$s\"</string>
+    <string name="explorer_operation_create_title_file">Създаване на файл</string>
+    <string name="explorer_operation_create_description_file">Създай файл \"%1$s\" в \"%2$s\"</string>
+    <string name="explorer_operation_create_text_file_title">Създаване на текстов файл</string>
+    <string name="explorer_operation_create_text_file_description">Създай \"%1$s\" от текстов откъс</string>
+    <string name="explorer_operation_calculate_sizes_title">Изчисляване на размерите</string>
+    <string name="explorer_operation_calculate_sizes_description">Изчисли размерите на папките в \"%1$s\".</string>
+    <plurals name="explorer_operation_calculate_sizes_progress">
+        <item quantity="one">Сканиран е %1$d елемент</item>
+        <item quantity="other">Сканирани са %1$d елемента</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary">Изчислени са размерите на %1$d папки.</string>
+    <plurals name="explorer_operation_calculate_sizes_summary_partial">
+        <item quantity="one">Изчислени са размерите на %1$d папки, %2$d местоположение не можа да бъде прочетено.</item>
+        <item quantity="other">Изчислени са размерите на %1$d папки, %2$d местоположения не можаха да бъдат прочетени.</item>
+    </plurals>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">Размерите на папките за \"%1$s\" бяха отхвърлени поради промени по време на изчислението.</string>
+
+    <!-- Navigation Error Messages -->
+    <string name="explorer_navigation_error_title">Навигацията е неуспешна</string>
+    <string name="explorer_aborted_dialog_title">Операцията е прекъсната</string>
+    <string name="explorer_aborted_dialog_message">Зареждането беше отменено, преди да може да се покаже нещо.</string>
+    <string name="explorer_archive_unbrowsable_title">Архивът не може да се разглежда тук</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" е в хранилище, което поддържа само последователно четене, а разглеждането на архив изисква произволен достъп. Разархивирай архива тук или изтегли локално копие, за да го разгледаш.</string>
+    <string name="explorer_archive_unbrowsable_extract_action">Разархивирай архива</string>
+    <string name="explorer_archive_unbrowsable_download_action">Изтегли локално копие</string>
+
+    <!-- SAF Location Auto-Labels -->
+    <string name="explorer_saf_location_android_data_label">Android/data (специален достъп)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (специален достъп)</string>
+
+    <!-- Permission Request Card Explanations -->
+    <string name="explorer_permission_saf_workaround_description">Android ограничава достъпа до тази папка. Използвай инструмента за избор на папка, за да разрешиш достъп.</string>
+    <string name="explorer_permission_multiple_options_description">Можеш да разрешиш достъп чрез инструмента на Android за избор на папка или да настроиш root или ADB достъп за по-бърз достъп до всички ограничени папки.</string>
+    <string name="explorer_permission_multiple_options_root_description">Можеш да разрешиш достъп чрез инструмента на Android за избор на папка или да настроиш Root за достъп до всички ограничени папки.</string>
+    <string name="explorer_permission_multiple_options_shizuku_description">Можеш да разрешиш достъп чрез инструмента на Android за избор на папка или да настроиш ADB достъп за по-бърз достъп до ограничените папки.</string>
+    <string name="explorer_permission_setup_both_description">Тази папка изисква привилегирован достъп. Настрой root или ADB достъп в настройването.</string>
+    <string name="explorer_permission_setup_shizuku_description">Тази папка изисква привилегирован достъп чрез ADB. Конфигурирай ADB достъпа в настройването.</string>
+    <string name="explorer_permission_setup_root_description">Тази папка изисква Root достъп. Конфигурирай Root в настройването, ако устройството ти има root права.</string>
+
+    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_description">Използвай инструмента на Android за избор на папка, за да разрешиш достъп до тази папка.</string>
+    <string name="explorer_permission_option_picker_action">Отвори инструмента за избор чрез SAF</string>
+
+    <string name="explorer_permission_option_setup_title">Пълен достъп</string>
+    <string name="explorer_permission_option_setup_description">Конфигурирай root или ADB достъп за по-бърз достъп до всички ограничени папки.</string>
+    <string name="explorer_permission_option_setup_root_description">Конфигурирай Root за достъп до тази папка и други ограничени папки.</string>
+    <string name="explorer_permission_option_setup_shizuku_description">Конфигурирай ADB достъп, за да отвориш тази папка.</string>
+    <string name="explorer_permission_option_setup_action">Конфигурирай</string>
+
+    <!-- Permission Request Card - Storage Access Option -->
+    <string name="explorer_permission_option_storage_title">Достъп до хранилището</string>
+    <string name="explorer_permission_option_storage_description">Дай на Butler разрешение за достъп до файловете в хранилището на устройството ти.</string>
+    <string name="explorer_permission_option_storage_action">Дай разрешение</string>
+
+    <!-- Open in new tabs action -->
+    <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
+    <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Любими</string>
+    <string name="explorer_action_add_to_favorites">Добави в любими</string>
+    <string name="explorer_action_remove_from_favorites">Премахни от любими</string>
+    <string name="explorer_favorites_select_action">Избери</string>
+    <string name="explorer_favorites_unavailable_subtitle">Няма достъп</string>
+    <string name="explorer_favorites_unavailable_toast">Няма достъп до любимия елемент</string>
+    <string name="explorer_favorites_added_message">%1$s е добавен в любими</string>
+    <plurals name="explorer_favorites_added_multiple_message">
+        <item quantity="one">Добавен е %1$d елемент в любими</item>
+        <item quantity="other">Добавени са %1$d елемента в любими</item>
+    </plurals>
+    <string name="explorer_favorites_removed_message">%1$s е премахнат от любими</string>
+    <plurals name="explorer_favorites_removed_multiple_message">
+        <item quantity="one">Премахнат е %1$d елемент от любими</item>
+        <item quantity="other">Премахнати са %1$d елемента от любими</item>
+    </plurals>
+    <string name="explorer_favorites_rename_title">Преименувай любимия елемент</string>
+    <string name="explorer_favorites_rename_hint">Име на любимия елемент</string>
+    <string name="explorer_favorites_rename_description">Преименува се само записът в любими, а самата папка запазва името си.</string>
+    <plurals name="explorer_sort_tab_overrides_notice">
+        <item quantity="one">Този раздел замества реда на сортиране в %1$d папка</item>
+        <item quantity="other">Този раздел замества реда на сортиране в %1$d папки</item>
+    </plurals>
+    <plurals name="explorer_settings_folder_sort_rules_value">
+        <item quantity="one">%1$d папка</item>
+        <item quantity="other">%1$d папки</item>
+    </plurals>
+</resources>

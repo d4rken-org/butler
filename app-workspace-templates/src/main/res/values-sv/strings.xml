@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Ny</string>
+    <string name="workspace_templates_choose_title">Ny flik</string>
+    <string name="workspace_templates_choose_subtitle">Välj en fliktyp. Hur kan jag hjälpa till?</string>
+    <string name="workspace_templates_name_tab_action">Ge den här fliken ett namn</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Välj ett verktyg</string>
+    <string name="tour_templates_picker_body">Det här är flikväljaren. Välj vad den här fliken ska vara. När du väljer ett verktyg blir fliken det verktyget.</string>
+    <string name="tour_templates_butler_button_title">Dina flikar finns här</string>
+    <string name="tour_templates_butler_button_body">Tryck på Butler-knappen för att öppna flikmenyn: skapa en ny flik, stäng den aktuella eller öppna hela flikhanteraren. Håll knappen intryckt för att gå direkt till flikhanteraren.</string>
+</resources>

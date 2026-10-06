@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Programador</string>
+    <string name="developer_title">Ferramentas de programação</string>
+    <string name="developer_subtitle">Utilitários de desenvolvimento</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">Sistema</string>
+    <string name="developer_tab_options">Opções</string>
+    <string name="developer_tab_workspaces">Áreas de trabalho</string>
+    <string name="developer_tab_logs">Registos</string>
+    <string name="developer_tab_testdata">Dados de teste</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Opções de depuração</string>
+    <string name="developer_options_debug_mode">Modo de depuração</string>
+    <string name="developer_options_debug_mode_desc">Ativar registos detalhados</string>
+    <string name="developer_options_trace_mode">Modo de rastreio</string>
+    <string name="developer_options_trace_mode_desc">Ativar registos ao nível de rastreio</string>
+    <string name="developer_options_floating_log">Painel flutuante de registos</string>
+    <string name="developer_options_floating_log_desc">Mostrar uma sobreposição de registos que pode ser arrastada em todos os ecrãs</string>
+    <string name="developer_options_services_header">Testes de serviços</string>
+    <string name="developer_options_root_test_action">Testar root</string>
+    <string name="developer_options_root_installed_label">Instalado</string>
+    <string name="developer_options_root_available_label">Disponível</string>
+    <string name="developer_options_root_base_check_label">Verificação básica</string>
+    <string name="developer_options_shizuku_test_action">Testar acesso ADB</string>
+    <string name="developer_options_shizuku_installed_label">Instalado</string>
+    <string name="developer_options_shizuku_granted_label">Permissão</string>
+    <string name="developer_options_shizuku_compatible_label">Compatível</string>
+    <string name="developer_options_shizuku_service_label">Serviço</string>
+    <string name="developer_options_test_running">A testar…</string>
+    <string name="developer_options_result_yes">Sim</string>
+    <string name="developer_options_result_no">Não</string>
+    <string name="developer_options_result_unknown">Desconhecido</string>
+    <string name="developer_options_visibility_header">Visibilidade</string>
+    <string name="developer_options_hide_mode">Ocultar modo de programador</string>
+    <string name="developer_options_hide_mode_desc">Toca na versão 7 vezes nas Definições para voltar a ativar.</string>
+    <string name="developer_options_hide_action">Ocultar</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Dispositivo</string>
+    <string name="developer_system_device_model">Modelo</string>
+    <string name="developer_system_device_manufacturer">Fabricante</string>
+    <string name="developer_system_device_api">Nível da API</string>
+    <string name="developer_system_build_header">Compilação</string>
+    <string name="developer_system_build_version">Versão</string>
+    <string name="developer_system_build_code">Código da versão</string>
+    <string name="developer_system_build_flavor">Variante</string>
+    <string name="developer_system_build_type">Tipo de compilação</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Memória</string>
+    <string name="developer_system_memory_available">Disponível</string>
+    <string name="developer_system_memory_total">Total</string>
+    <string name="developer_system_storage_header">Armazenamento</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d áreas de trabalho</string>
+    <string name="developer_workspaces_empty">Sem áreas de trabalho</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Limpar</string>
+    <string name="developer_logs_pause">Pausar</string>
+    <string name="developer_logs_resume">Retomar</string>
+    <string name="developer_logs_empty">Sem registos</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Caminhos de destino</string>
+    <string name="developer_testdata_no_paths">Não foram selecionados caminhos de destino. Adiciona caminhos para gerar dados de teste.</string>
+    <string name="developer_testdata_add_path_action">Adicionar caminho</string>
+    <string name="developer_testdata_options_header">Opções de geração</string>
+    <string name="developer_testdata_large_files">Ficheiros grandes</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Estrutura aninhada</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 pastas, ~1100 ficheiros</string>
+    <string name="developer_testdata_text_files">Ficheiros de texto para o Editor</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Gerar</string>
+    <string name="developer_testdata_generating">A gerar…</string>
+    <string name="developer_testdata_history_header">Entradas de exemplo no histórico</string>
+    <string name="developer_testdata_history_desc">Preenche cerca de 25 entradas fictícias de operações entre hoje → há 30 dias, com vários tipos/resultados/origens/caminhos. Insere diretamente na base de dados do histórico; podes voltar a tocar sem problemas.</string>
+    <string name="developer_testdata_history_generate_action">Gerar histórico de exemplo</string>
+    <string name="developer_testdata_progress">%1$s de %2$s</string>
+    <string name="developer_testdata_complete">Dados de teste gerados em:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Gerar ficheiros grandes</string>
+    <string name="developer_operation_large_files_desc">A criar ficheiros de teste em %1$s</string>
+    <string name="developer_operation_large_files_creating">A criar %1$s</string>
+
+    <string name="developer_operation_nested_title">Gerar estrutura aninhada</string>
+    <string name="developer_operation_nested_desc">A criar uma hierarquia de pastas em %1$s</string>
+    <string name="developer_operation_nested_starting">A iniciar a estrutura aninhada…</string>
+    <string name="developer_operation_nested_creating">A criar %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d ficheiros criados</string>
+
+    <string name="developer_operation_text_files_title">Gerar ficheiros de texto</string>
+    <string name="developer_operation_text_files_desc">A criar ficheiros de texto em %1$s</string>
+    <string name="developer_operation_text_files_creating">A criar %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d ficheiro criado</item>
+        <item quantity="many">%d ficheiros criados</item>
+        <item quantity="other">%d ficheiros criados</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d pasta</item>
+        <item quantity="many">%d pastas</item>
+        <item quantity="other">%d pastas</item>
+    </plurals>
+</resources>

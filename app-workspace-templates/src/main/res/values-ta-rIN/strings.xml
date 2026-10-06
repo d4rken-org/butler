@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">புதியது</string>
+    <string name="workspace_templates_choose_title">புதிய தாவல்</string>
+    <string name="workspace_templates_choose_subtitle">தாவல் வகையைத் தேர்ந்தெடுக்கவும். நான் எப்படி உதவலாம்?</string>
+    <string name="workspace_templates_name_tab_action">இந்தத் தாவலுக்குப் பெயரிடு</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">ஒரு கருவியைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="tour_templates_picker_body">இது தாவல் தேர்வி. இந்தத் தாவல் எந்தக் கருவியாக இருக்க வேண்டும் என்பதைத் தேர்ந்தெடுக்கவும். தேர்ந்தெடுத்ததும் இந்தத் தாவல் அந்தக் கருவியாக மாறும்.</string>
+    <string name="tour_templates_butler_button_title">உங்கள் தாவல்கள் இங்கே இருக்கும்</string>
+    <string name="tour_templates_butler_button_body">தாவல் பட்டியைத் திறக்க Butler பொத்தானைத் தட்டவும்: புதிய தாவலை உருவாக்கலாம், தற்போதைய தாவலை மூடலாம் அல்லது முழுத் தாவல் மேலாளரைத் திறக்கலாம். தாவல் மேலாளருக்கு நேரடியாகச் செல்ல அதை நீண்ட நேரம் அழுத்தவும்.</string>
+</resources>

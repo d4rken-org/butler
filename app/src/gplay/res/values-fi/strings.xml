@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Vaatii Butler Pro -version</string>
+
+    <string name="upgrade_prompt_title">Siirry Butler Pro -versioon</string>
+    <string name="upgrade_prompt_body">Butler Pro tarjoaa parempia tuloksia, enemmän ominaisuuksia ja vaihtoehtoja tehokäyttäjille.</string>
+    <string name="upgrade_prompt_upgrade_action">Siirry Pro-versioon</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">Hanki %1$s</string>
+    <string name="upgrade_screen_preamble">Butlerissa ei ole mainoksia, eikä se myy käyttäjätietoja. Sinä rahoitat työni ❤️.</string>
+
+    <string name="upgrade_screen_how_title">Vaihtoehdot</string>
+    <string name="upgrade_screen_subscription_trial_action">Aloita maksuton 14 päivän kokeilu</string>
+    <string name="upgrade_screen_subscription_action">Tilaa</string>
+    <string name="upgrade_screen_iap_action">Kertaostos</string>
+    <string name="upgrade_screen_restore_purchase_action">Palauta ostos</string>
+    <string name="upgrade_screen_restore_banner_title">Ostitko jo Pro-version?</string>
+    <string name="upgrade_screen_restore_banner_body">Näyttää siltä, että olet aiemmin hankkinut Pro-version tällä laitteella. Palauta ostoksesi ottaaksesi sen jälleen käyttöön.</string>
+    <string name="upgrade_screen_restore_checked_message">Butler tarkisti juuri ostoksesi Google Playsta, mutta Pro-ostosta ei voitu vahvistaa tilille, jota Google Play käyttää tässä sovelluksessa.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Tarkistus Google Playsta ei valmistunut ajoissa, joten ostoksesi tila on yhä tuntematon. Tililläsi ei ole tapahtunut muutoksia.</string>
+    <string name="upgrade_screen_restore_contact_hint">Eikö vieläkään onnistu? Ota yhteyttä ostoksen tekemiseen käyttämästäsi sähköpostiosoitteesta ja liitä mukaan Google Play -tilausnumerosi.</string>
+    <string name="upgrade_screen_contact_support_action">Ota yhteyttä tukeen</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Play Store -kaupan synkronointi voi viedä aikaa. Kokeile käynnistää laite uudelleen, tyhjentää Google Playn välimuisti tai vain odottaa.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">Useat tilit voivat hämmentää Google Playta. Kirjaudu ulos muilta tileiltä tai asenna sovellus Google Playn verkkosivuston kautta, jolloin se yhdistetään tiettyyn tiliin.</string>
+    <string name="upgrade_screen_restore_success_message">Ostoksesi palautettiin ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Näyttääkö tila väärältä?</string>
+    <string name="upgrade_screen_restore_status_body">Tarkista ostoksesi uudelleen Google Playsta. Tämä voi auttaa laitteen vaihtamisen jälkeen tai jos vaihdoit Google-tiliä.</string>
+
+    <string name="upgrade_screen_offers_or">tai</string>
+
+    <string name="upgrade_screen_offers_title">Pro-version hankintavaihtoehdot</string>
+    <string name="upgrade_screen_offers_body">Molemmat vaihtoehdot avaavat täsmälleen samat Pro-ominaisuudet — valitse sinulle sopiva hinnoittelu.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Hinnat eivät ole saatavilla</string>
+    <string name="upgrade_screen_offers_unavailable_message">Butler ei voinut ladata Pro-version hankintavaihtoehtoja Google Playsta. Tämä on usein tilapäistä — yritä hetken kuluttua uudelleen.</string>
+    <string name="upgrade_screen_subscription_offer_title">Vuositilaus</string>
+    <string name="upgrade_screen_subscription_offer_body">Alkaa maksuttomalla 14 päivän kokeilulla, jonka jälkeen laskutetaan kerran vuodessa. Voit perua milloin tahansa.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Laskutetaan kerran vuodessa. Voit perua milloin tahansa.</string>
+    <string name="upgrade_screen_iap_offer_title">Osta kerran</string>
+    <string name="upgrade_screen_iap_offer_body">Maksa kerran, saat sen pysyvästi. Ei tilausta.</string>
+    <string name="upgrade_screen_restore_body">Palauttaminen pyytää Google Playta tarkistamaan uudelleen tämän sovelluksen ostokset nykyiselle tilille.</string>
+
+    <string name="upgrade_screen_owned_hero_title">Sinulla on Butler Pro!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Kiitos kertaostoksesta — Pro on pysyvästi käytössäsi ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Kiitos tilauksesta ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">Kertaostos</string>
+    <string name="upgrade_screen_owned_iap_body">Omistat pysyvän Pro-version.</string>
+    <string name="upgrade_screen_owned_sub_title">Tilaus</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Tilauksesi on voimassa ja uusiutuu automaattisesti.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Tilauksesi on voimassa, mutta se ei uusiudu. Pro pysyy käytössä nykyisen jakson loppuun asti.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">Omistat kertaostoksen, mutta tilauksesi uusiutuu yhä. Peru se Google Playssa, jotta et maksa kahdesti.</string>
+    <string name="upgrade_screen_manage_subscription_action">Hallinnoi tilausta</string>
+
+    <string name="upgrade_screen_switch_locked_note">Peru ensin uusiminen valitsemalla \"Hallinnoi tilausta\", muuten sinua veloitetaan molemmista.</string>
+    <string name="upgrade_screen_switch_purchase_note">Tilauksesi ei uusiudu — voit nyt tehdä kertaostoksen turvallisesti.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Tilaus yhä voimassa</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Tilauksesi uusiutuu yhä. Peru ensin uusiminen Google Playssa, jotta sinua ei veloiteta molemmista, ja tee sitten kertaostos.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">Vahvistaminen epäonnistui</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Butler ei voinut vahvistaa ostoksesi tilaa Google Playsta, joten ostaminen keskeytettiin kaksinkertaisen veloituksen välttämiseksi. Yritä hetken kuluttua uudelleen.</string>
+
+    <string name="upgrade_screen_pending_card_title">Maksu odottaa</string>
+    <string name="upgrade_screen_pending_card_body">Google Play käsittelee vielä maksuasi. Pro avautuu automaattisesti, kun maksu on mennyt läpi. Joillakin maksutavoilla tämä voi kestää hetken. Sinun ei tarvitse tehdä muuta.</string>
+    <string name="upgrade_screen_pending_dialog_message">Google Play löysi ostoksen, jonka maksu odottaa, ja käsittelee sitä vielä. Pro avautuu automaattisesti, kun maksu on mennyt läpi.</string>
+
+    <string name="upgrade_screen_grace_title">Vahvistetaan ostostasi</string>
+    <string name="upgrade_screen_grace_body_short">Google Play tarvitsee hetken Pro-tilasi vahvistamiseen. Kaikki ominaisuudet ovat yhä käytössäsi.</string>
+    <string name="upgrade_screen_grace_body">Google Play ei ole vieläkään vahvistanut Pro-tilaasi uudelleen. Voit toistaiseksi jatkaa käyttöä. Jos tämä näyttää väärältä, kokeile palauttaa ostoksesi.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">Ostitko jo?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play ilmoittaa, että omistat jo tämän Pro-version, mutta sitä ei voitu palauttaa automaattisesti. Varmista, että olet kirjautunut alkuperäiseen ostokseen käytetyllä Google-tilillä, ja kokeile sitten toimintoa \"Palauta ostos\".</string>
+    <string name="upgrades_gplay_unavailable_error_title">Google Play ei ole saatavilla</string>
+    <string name="upgrades_gplay_unavailable_error_description">Butler ei saa yhteyttä Google Playhin. Onko Google Play asennettu ja ajan tasalla? Oletko kirjautunut Google-tilillesi? Kokeile tyhjentää Google Play -sovelluksen välimuisti ja käynnistää laitteesi uudelleen.</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can't open Google Play's app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Google Playta ei voitu avata. Se saattaa puuttua, olla poistettu käytöstä tai sen käyttöä voi olla rajoitettu tällä laitteella.</string>
+    <string name="upgrades_gplay_billing_error_label">Google Play -ongelma</string>
+    <string name="upgrades_gplay_billing_error_description">Jokin meni pieleen yhteydessä Google Playhin. Yritä myöhemmin uudelleen tai käynnistä laitteesi uudelleen.\n\nTiedot: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Google Play -virhe</string>
+    <string name="upgrades_gplay_internal_error_description">Google Playssa tapahtui sisäinen virhe. Kokeile seuraavia:\n\n• Käynnistä laitteesi uudelleen\n• Tyhjennä Google Play Store -kaupan välimuisti\n• Yritä myöhemmin uudelleen</string>
+    <string name="upgrades_gplay_network_error_title">Yhteysvirhe</string>
+    <string name="upgrades_gplay_network_error_description">Butler ei saanut yhteyttä Google Playhin. Tarkista internetyhteytesi ja yritä uudelleen.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Tarjous ei ole saatavilla</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Google Play ei tällä hetkellä tarjoa tätä Pro-version hankintavaihtoehtoa tilillesi. Yritä myöhemmin uudelleen tai tarkista Google Play Store -kauppa.</string>
+    <string name="upgrades_no_purchases_found_check_account">Ostoksia ei löytynyt. Käytätkö oikeaa tiliä?</string>
+
+    <string name="upgrade_benefits_title">Pro-version edut</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Rajattomasti välilehtiä ja toimintoja\n• Mukauta muotoilua, käyttötuntumaa ja ulkoasua\n• Lisää vaihtoehtoja ja ominaisuuksia jokaiseen työkaluun\n• Uudet ominaisuudet ennakkokäyttöön\n• Motivoitunut kehittäjä 🧙\nja paljon muuta…</string>
+</resources>

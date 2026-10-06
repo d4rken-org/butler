@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Kræver Butler FOSS</string>
+
+    <string name="upgrade_prompt_title">Opgrader Butler</string>
+    <string name="upgrade_prompt_body">Lås op for flere funktioner, og bliv sponsor for at støtte den fortsatte udvikling!</string>
+    <string name="upgrade_prompt_upgrade_action">Opgrader</string>
+
+    <string name="upgrade_screen_title">Opgrader Butler</string>
+    <string name="upgrade_screen_preamble">Butler har ingen reklamer og sælger ikke brugerdata. Den fortsatte udvikling er kun mulig takket være dig.</string>
+    <string name="upgrade_screen_how_title">Sådan kan du hjælpe</string>
+    <string name="upgrade_screen_how_body">Bliv sponsor og støt udviklingen! Tryk på knappen nedenfor for at aktivere alle ekstra funktioner og åbne min GitHub Sponsors-profil.</string>
+
+    <string name="upgrade_screen_sponsor_action">Støt udviklingen</string>
+    <string name="upgrade_screen_sponsor_action_hint">Alternativet er reklamer, analyseværktøjer og Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Tak, fordi du støtter udvikling af åben kildekode ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Allerede tilbage? Din støtte holder Butler i live — brug gerne et øjeblik på at se sponsorsiden.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Kunne ikke åbne sponsorsiden. Prøv at åbne den i en browser i stedet.</string>
+
+    <string name="upgrade_screen_status_free_title">Du bruger den gratis version</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS er helt og holdent åben kildekode. Lås op for de ekstra funktioner ved at støtte udviklingen.</string>
+    <string name="upgrade_screen_status_free_action">Se muligheder for opgradering</string>
+    <string name="upgrade_screen_status_upgraded_title">Du støtter udviklingen</string>
+    <string name="upgrade_screen_status_upgraded_body">Tak, fordi du støtter udvikling af åben kildekode ❤️ Alle ekstra funktioner er låst op.</string>
+    <string name="upgrade_screen_supporter_since">Støtter siden %s</string>
+    <string name="upgrade_screen_recurring_title">Hold det i gang</string>
+    <string name="upgrade_screen_recurring_body">Jeg udvikler Butler i min fritid. En fast donation hjælper med at holde appen i live.</string>
+    <string name="upgrade_screen_recurring_action">Bliv fast sponsor</string>
+
+    <string name="upgrade_benefits_title">Fordele ved opgradering</string>
+    <!-- Linjer, der starter med "•" (eller "-"), vises som funktionsrækker med flueben;
+         linjer uden markør vises som almindelig fodnotetekst. Bevar markørerne. -->
+    <string name="upgrade_screen_benefits_body">• Ubegrænset antal faner og handlinger\n• Tilpas design, oplevelse og udseende\n• Ekstra muligheder og funktioner til hvert værktøj\n• Tidlig adgang til nye funktioner\n• En motiveret udvikler 🧙\nog mere…</string>
+</resources>

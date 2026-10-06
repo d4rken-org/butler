@@ -1,0 +1,57 @@
+Butler er en filhåndteringsapp til Android bygget op omkring faner. Gennemse, søg, vis og rediger filer på hele dit lager med flere ruder og root-adgang, når du har brug for det.
+
+Det er den filhåndteringsapp til Android, jeg altid har ønsket mig, så jeg byggede den. Hurtig, privat og open source.
+
+Butler virker med internt lager, SD-kort og USB OTG-drev samt netværksdelinger med Butler Pro. Og med alle filtyper, ikke kun de medier, dit galleri viser dig.
+
+<b>Faner og arbejdsområder</b>
+- Gennemse filer i faner, og kør Butlers værktøjer parallelt.
+- Organiser faner med fanehåndteringen, og opret nye fra fanevælgeren.
+- Flere ruder på telefoner og tablets med træk og slip mellem ruderne.
+- Fastgør favoritter, og tilføj flere lagerplaceringer.
+
+<b>Filhandlinger</b>
+- Kopier, flyt, omdøb og slet med overførselshastigheder og ydelsesgrafer, mens handlingerne kører.
+- Understøttelse af papirkurv, så sletninger kan fortrydes.
+- Åbn arkiver som mapper: Gennemse ZIP, TAR og APK-pakker direkte uden først at pakke dem ud.
+- Opret og udpak ZIP-arkiver, også krypterede.
+- Handlinger kører videre, når du forlader appen, med status og en annulleringsknap i notifikationen.
+- En handlingshistorik viser, hvad der blev kørt, hvad der lykkedes, og hvad der mislykkedes.
+
+<b>Netværksdelinger (Butler Pro)</b>
+- Opret forbindelse til Windows-delinger og NAS-mapper via SMB, og gennemse dem som ethvert andet lager.
+- Kopier og flyt filer mellem din enhed og serveren i begge retninger.
+- Log ind som gæst eller med brugernavn og adgangskode, der kun gemmes krypteret på din enhed.
+- Det er gratis at tilføje en deling og teste forbindelsen. At gennemse den kræver opgradering til Butler Pro.
+
+<b>Søgning og tekst</b>
+- Søg efter filnavn og i filindhold med understøttelse af regulære udtryk (regex).
+- En teksteditor, der forbliver hurtig med meget store filer.
+
+<b>Visning af filer</b>
+- Vis billeder, og blad gennem PDF'er uden at forlade Butler.
+- Fildetaljer helt ned til størrelse, dimensioner, tilladelser og ejer.
+- Beregn mappestørrelser efter behov for at se, hvad der faktisk fylder på dit lager.
+- Alt, som Butler ikke selv viser, sendes videre til den app, der kan.
+
+<b>Apps og APK'er</b>
+- Apphåndtering: Gennemse installerede apps, deaktiver dem, eksporter APK'er, ryd appdata og afinstaller.
+- Modtag, undersøg og åbn APK-filer. Installation sker via Androids systeminstallationsprogram.
+
+<b>Virker med dine andre apps</b>
+- Butler vises i andre apps' filvælgere, så du kan bruge Butler, når du åbner eller gemmer en fil.
+- Del en fil til Butler fra enhver app, og vælg præcis, hvor den skal gemmes, og hvilket navn den skal have.
+- Delt tekst åbnes direkte i Butlers editor.
+
+<b>Adgang og udseende</b>
+- Root eller Shizuku til de steder, Android normalt holder låst.
+- Material You-tema med dynamiske farver, mørk tilstand og en AMOLED-indstilling.
+
+<b>Privatliv</b>
+Ingen sporing. Ingen analyse-SDK'er, ingen konto, ingen cloud. Nedbruds- og fejlrapporter bliver på din enhed, medmindre du vælger at sende en. Open source.
+
+Butler beder om "Adgang til alle filer", fordi en filhåndteringsapp skal kunne tilgå hele dit lager. Alt foregår på din enhed.
+
+Appen er reklamefri. Nogle funktioner kræver en betalt opgradering.
+
+Butler er en filhåndteringsapp, filudforsker og teksteditor til Android.

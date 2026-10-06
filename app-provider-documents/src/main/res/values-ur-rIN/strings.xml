@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">آلے تک جدید رسائی</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">آلہ</string>
+    <string name="documents_connection_device_summary">آلے کا مقامی اسٹوریج</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">روٹ فائل سسٹم</string>
+    <string name="provider_documents_storage_internal_label">اندرونی اسٹوریج</string>
+    <string name="provider_documents_storage_sd_card_label">SD کارڈ</string>
+    <string name="provider_documents_storage_saf_label">SAF مقام</string>
+    <string name="provider_documents_storage_free_suffix">خالی</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">اس مقام کو براؤز کرنے کے لیے روٹ رسائی درکار ہے۔ Butler ایپ کی ترتیبات میں روٹ رسائی فعال کریں۔</string>
+    <string name="provider_documents_error_requires_adb">اس مقام کو براؤز کرنے کے لیے ADB رسائی درکار ہے۔ Butler کے سیٹ اپ میں اسے فعال کریں۔</string>
+    <string name="provider_documents_error_requires_storage">اس مقام کو براؤز کرنے کے لیے اسٹوریج کی اجازت درکار ہے۔ Butler ایپ کی ترتیبات میں اسٹوریج کی اجازت دیں۔</string>
+    <string name="provider_documents_error_requires_permissions">اس مقام کو براؤز کرنے کے لیے اضافی اجازتیں درکار ہیں۔ Butler ایپ کی ترتیبات دیکھیں۔</string>
+    <string name="provider_documents_error_generic">اس مقام تک رسائی ممکن نہیں ہے۔ رسائی کے اختیارات کے لیے Butler ایپ دیکھیں۔</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">دستاویز فراہم کنندہ</string>
+    <string name="provider_documents_settings_subtitle">بیرونی ایپس کے ساتھ انضمام</string>
+    <string name="provider_documents_settings_category_integration_label">انضمام</string>
+    <string name="provider_documents_enabled_title">دستاویز فراہم کنندہ فعال کریں</string>
+    <string name="provider_documents_enabled_desc">دیگر ایپس کو Android کے فائل چننے والے ٹول کے ذریعے Butler سے فائلوں تک رسائی کی اجازت دیں</string>
+</resources>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Relatórios de falhas</string>
+    <string name="bugreport_workspace_subtitle">Relatórios de encerramentos inesperados e erros</string>
+
+    <string name="bugreport_empty_title">Sem relatórios</string>
+    <string name="bugreport_empty_subtitle">Os relatórios de encerramentos inesperados e erros aparecerão aqui. Nada é enviado automaticamente.</string>
+
+    <string name="bugreport_type_crash">Encerramento inesperado</string>
+    <string name="bugreport_type_report">Relatório</string>
+    <string name="bugreport_type_recording">Gravação</string>
+
+    <string name="bugreport_record_action">Gravar registo de depuração</string>
+    <string name="bugreport_record_short_action">Gravar</string>
+    <string name="bugreport_stop_action">Parar gravação</string>
+    <string name="bugreport_stop_short_action">Parar</string>
+    <string name="bugreport_recording_ongoing_label">A gravar…</string>
+
+    <string name="bugreport_recording_short_title">A gravação é muito curta</string>
+    <string name="bugreport_recording_short_message">Esta gravação tem apenas alguns segundos e pode não conter informações úteis. Parar mesmo assim?</string>
+    <string name="bugreport_recording_short_keep_action">Continuar a gravar</string>
+
+    <string name="bugreport_rename_action">Mudar o nome</string>
+    <string name="bugreport_rename_dialog_title">Dar um nome a este relatório</string>
+    <string name="bugreport_rename_name_label">Nome</string>
+    <string name="bugreport_rename_name_hint">Apresentado na lista e no nome do ficheiro partilhado</string>
+
+    <string name="bugreport_share_action">Partilhar</string>
+    <string name="bugreport_delete_action">Eliminar</string>
+    <string name="bugreport_delete_all_action">Eliminar tudo</string>
+    <string name="bugreport_delete_all_confirm_title">Eliminar todos os registos de depuração?</string>
+    <string name="bugreport_delete_all_confirm_message">Isto irá eliminar permanentemente todas as sessões gravadas de registos de depuração. As gravações em curso não serão afetadas.</string>
+    <string name="bugreport_delete_confirm_title">Eliminar este relatório?</string>
+    <string name="bugreport_delete_confirm_message">Isto irá eliminar permanentemente este relatório e o respetivo registo.</string>
+    <string name="bugreport_cancel_action">Cancelar</string>
+
+    <string name="bugreport_share_chooser_title">Partilhar relatório de falha</string>
+    <string name="bugreport_share_consent_title">Partilhar relatório?</string>
+    <string name="bugreport_share_consent_message">Este relatório inclui registos da aplicação que podem conter nomes de ficheiros, caminhos e informações sobre a aplicação e o dispositivo. Partilha-o apenas com pessoas em quem confias.</string>
+
+    <string name="bugreport_detail_back_action">Voltar</string>
+    <string name="bugreport_detail_section_error">Erro</string>
+    <string name="bugreport_detail_section_log">Registo recente</string>
+    <string name="bugreport_detail_field_type">Tipo</string>
+    <string name="bugreport_detail_field_time">Hora</string>
+    <string name="bugreport_detail_field_app_version">Versão da aplicação</string>
+    <string name="bugreport_detail_field_device">Dispositivo</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Compilação</string>
+    <string name="bugreport_detail_field_error_class">Tipo de erro</string>
+    <string name="bugreport_detail_field_thread">Thread</string>
+    <string name="bugreport_detail_log_truncated">últimas %1$d de %2$d linhas</string>
+    <string name="bugreport_detail_log_count">%1$d linhas</string>
+    <string name="bugreport_detail_log_empty">Nenhum registo capturado</string>
+    <string name="bugreport_detail_log_error">Não foi possível carregar o registo</string>
+</resources>

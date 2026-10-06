@@ -1,0 +1,5 @@
+Virhekorjauksia ja pieniä parannuksia, jotta laitteesi tiedostojen hallinta pysyy nopeana eikä tule tiellesi.
+
+Tämän version muutokset: butler.darken.eu/changelog
+
+Menikö jokin rikki tai toimiiko oudosti päivityksen jälkeen? Kerro siitä kohdassa Asetukset > Tuki. Tämä on yhden ihmisen projekti, joten vastauksessa voi kestää hetki, mutta jokainen raportti luetaan.

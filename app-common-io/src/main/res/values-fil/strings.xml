@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Tinatanggal ang mga item</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Kinokopya ang mga item</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Inililipat ang mga item</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Nagsa-scan…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">May file na</string>
+    <string name="path_action_folder_exists_title">May folder na</string>
+    <string name="path_action_file_exists_description">May file nang pinangalanang \"%1$s\" sa \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">May folder nang pinangalanang \"%1$s\" sa \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">Wala na ang file</string>
+    <string name="path_action_not_found_description">Tinanggal ang \"%1$s\", pinalitan ang pangalan, o inilipat sa ibang lugar.</string>
+
+    <string name="path_action_permission_denied_title">Tinanggihan ang pahintulot</string>
+    <string name="path_action_permission_denied_description">Hindi ma-access ang \"%1$s\" sa \"%2$s\" dahil kulang ang mga pahintulot.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Hindi ma-access ang \"%1$s\" sa \"%2$s\". Walang magagamit na paraan para maisagawa ang operasyong ito.</string>
+    <string name="path_action_permission_denied_readonly_description">Hindi ma-access ang \"%1$s\" sa \"%2$s\". Para sa pagbasa lang ang file system.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Hindi ma-access ang \"%1$s\" sa \"%2$s\". Tinanggihan ng system ang operasyon.</string>
+
+    <string name="path_action_insufficient_space_title">Kulang ang espasyo</string>
+    <string name="path_action_insufficient_space_description">Kulang ang magagamit na espasyo sa storage para kopyahin ang \"%1$s\" mula sa \"%2$s\".</string>
+
+    <string name="path_action_unknown_error_title">Nabigo ang operasyon</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">Hindi natapos ang pagpapalit</string>
+    <string name="path_action_data_kept_new_data_description">Hindi natapos ng Butler ang pagsulat sa \"%1$s\". Nananatili ang bagong data mo sa parehong folder sa pangalang \"%2$s\". Palitan ang pangalan nito para mabawi ito, o tanggalin ito para itapon ito.</string>
+    <string name="path_action_data_kept_original_in_place_description">Hindi natapos ng Butler ang pagsulat sa \"%1$s\", hindi nabago ang dating file. Nananatili ang bagong data mo sa parehong folder sa pangalang \"%2$s\". Palitan ang pangalan nito para mabawi ito, o tanggalin ito para itapon ito.</string>
+    <string name="path_action_data_kept_both_description">Hindi natapos ng Butler ang pagsulat sa \"%1$s\". Walang nawala: nananatili ang dating file sa parehong folder sa pangalang \"%2$s\" at ang bagong data mo sa pangalang \"%3$s\". Palitan ang pangalan ng gusto mong panatilihin.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Hindi natapos ng Butler ang pagsulat sa \"%1$s\" at hindi nito masuri kung naroon pa ang \"%2$s\". Maaaring may hindi kumpletong kopya sa parehong folder sa pangalang \"%3$s\". Paghambingin ang dalawa bago tanggalin ang alinman.</string>
+    <string name="path_action_data_kept_intermediate_description">Hindi natapos ng Butler ang paglipat ng \"%1$s\" at hindi nito matiyak kung nakaalis ito sa folder nito. Nananatili ang data mo sa folder na iyon sa pangalang \"%2$s\", o nasa \"%3$s\" na ito. Suriin ang dalawa bago tanggalin ang alinman.</string>
+    <string name="path_action_data_kept_uncertain_description">Hindi natapos ng Butler ang pagsulat sa \"%1$s\" at hindi nito matiyak kung saan napunta ang file mo. Isa ito sa tatlong file sa folder na iyon: ang \"%1$s\" mismo, \"%2$s\", o \"%3$s\". Suriin ang tatlo bago tanggalin ang alinman sa mga ito.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Hindi natapos ng Butler ang pagsulat sa \"%1$s\" at hindi nito matiyak kung saan napunta ang file mo. Isa ito sa dalawang file sa folder na iyon: ang \"%1$s\" mismo o \"%2$s\". Suriin ang dalawa bago tanggalin ang alinman.</string>
+
+    <string name="path_action_trash_size_limit_title">Masyadong malaki ang mga item para sa Basurahan</string>
+    <string name="path_action_trash_size_limit_description">Lampas sa limitasyon ng laki ng basurahan (%3$s) ang %1$d na item na may kabuuang laki na %2$s.</string>
+
+    <string name="path_action_trash_move_failed_title">Hindi nailipat sa Basurahan</string>
+    <string name="path_action_trash_move_failed_description">Hindi nailipat sa basurahan ang %1$d na item.</string>
+
+    <string name="path_action_trash_not_supported_title">Hindi sinusuportahan ang basurahan</string>
+    <string name="path_action_trash_not_supported_description">Nasa storage na hindi sumusuporta sa basurahan ang %1$d na item.</string>
+
+    <string name="path_action_archive_password_title">Kailangan ng password</string>
+    <string name="path_action_archive_password_description">Naka-encrypt ang \"%1$s\". Ilagay ang password para mabasa ang laman nito.</string>
+    <string name="path_action_archive_password_wrong_description">Mali ang password para sa \"%1$s\". Subukan muli.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Hindi makontak ang server</string>
+    <string name="smb_error_unreachable_description">Hindi makontak ng Butler ang \"%1$s\". Tiyaking nasa parehong network ang device at nakabukas ang server.</string>
+    <string name="smb_error_auth_title">Nabigo ang pag-sign in</string>
+    <string name="smb_error_auth_description">Tinanggihan ng \"%1$s\" ang username o password.</string>
+    <string name="smb_error_share_access_denied_title">Walang access sa share na ito</string>
+    <string name="smb_error_share_access_denied_description">Hindi pinapayagan ang account na ito na gamitin ang \"%1$s\" sa \"%2$s\". Suriin ang mga pahintulot ng share sa server.</string>
+    <string name="smb_error_share_not_found_title">Hindi makita ang share</string>
+    <string name="smb_error_share_not_found_description">Walang \"%1$s\" sa \"%2$s\".</string>
+    <string name="smb_error_dialect_title">Masyadong luma ang server</string>
+    <string name="smb_error_dialect_description">SMB1 lang ang iniaalok ng \"%1$s\", na hindi ligtas at hindi sinusuportahan. Paganahin ang SMB2 o mas bago sa server.</string>
+    <string name="smb_error_credential_unavailable_title">Kailangang mag-sign in</string>
+    <string name="smb_error_credential_unavailable_description">Hindi na mabasa ang naka-save na password para sa storage sa network na ito. Ilagay ito muli para muling kumonekta.</string>
+    <string name="smb_error_pro_required_title">Kailangan ng Butler Pro para sa mga share sa network</string>
+    <string name="smb_error_pro_required_description">Bahagi ng Butler Pro ang pag-browse ng mga share sa network. Libre ang pagdagdag, pagsubok, at pag-alis ng mga lokasyon.</string>
+
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Protektadong bundle ng app</string>
+    <string name="app_install_error_protected_bundle_description">Naka-encrypt ang \"%1$s\" at ang app lang na gumawa nito ang makakapag-install nito.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">Hindi sinusuportahan ang format ng APK set</string>
+    <string name="app_install_error_unsupported_apk_set_description">Isang bundletool APK set ang \"%1$s\". Hindi matukoy ng Butler kung alin sa mga variant nito ang angkop sa device na ito.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Walang app na mai-install</string>
+    <string name="app_install_error_unsupported_bundle_description">Walang APK na mai-install sa loob ng \"%1$s\".</string>
+
+    <string name="app_install_error_session_title">Nabigo ang pag-install</string>
+    <string name="app_install_error_session_description">Tinanggihan ng system ang pag-install: %1$s</string>
+
+    <string name="app_install_error_busy_title">May iba pang pag-install na isinasagawa</string>
+    <string name="app_install_error_busy_description">Ini-install pa ang \"%1$s\". Kumpirmahin o kanselahin ang pag-install na iyon bago magsimula ng panibago.</string>
+
+    <string name="app_install_error_no_elevation_title">Walang mas mataas na antas ng access</string>
+    <string name="app_install_error_no_elevation_description">Kasalukuyang hindi available ang root o ADB access.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Kailangan ng kumpirmasyon</string>
+    <string name="app_install_confirm_pending_description">Kailangang kumpirmahin ang pag-install ng \"%1$s\" sa Android bago ito matapos.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Kailangang kumpirmahin ang pag-install na ito sa Android bago ito matapos.</string>
+    <string name="app_install_confirm_pending_action">Kumpirmahin ang pag-install</string>
+    <string name="app_install_confirm_pending_reason">Naghihintay ang installer ng kumpirmasyon mo</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Kailangan ng kumpirmasyon</string>
+    <string name="app_uninstall_confirm_pending_description">Kailangang kumpirmahin ang pag-alis ng \"%1$s\" sa Android bago ito matapos.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Kailangang kumpirmahin ang pag-alis na ito sa Android bago ito matapos.</string>
+    <string name="app_uninstall_confirm_pending_action">Kumpirmahin ang pag-alis</string>
+    <string name="app_uninstall_confirm_pending_reason">Naghihintay ang Android ng kumpirmasyon mo</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Kailangan ng root o ADB access para alisin ang app na ito para sa ibang user</string>
+    <string name="app_uninstall_no_result">Walang iniulat na resulta ang Android</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Naputol ang operasyon sa file</string>
+    <string name="service_connection_lost_error_message">Hindi inaasahang huminto ang serbisyo para sa mga operasyon sa file. Subukan muli.</string>
+</resources>

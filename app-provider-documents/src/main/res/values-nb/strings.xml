@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Avansert tilgang til enheten</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Enhet</string>
+    <string name="documents_connection_device_summary">Lokal lagring på enheten</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Rotfilsystem</string>
+    <string name="provider_documents_storage_internal_label">Intern lagring</string>
+    <string name="provider_documents_storage_sd_card_label">SD-kort</string>
+    <string name="provider_documents_storage_saf_label">SAF-lagringssted</string>
+    <string name="provider_documents_storage_free_suffix">ledig</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">Du trenger root-tilgang for å bla gjennom dette lagringsstedet. Aktiver root-tilgang i innstillingene i Butler.</string>
+    <string name="provider_documents_error_requires_adb">Du trenger ADB-tilgang for å bla gjennom dette lagringsstedet. Aktiver den i oppsettet i Butler.</string>
+    <string name="provider_documents_error_requires_storage">Du trenger lagringstillatelse for å bla gjennom dette lagringsstedet. Gi lagringstillatelse i innstillingene i Butler.</string>
+    <string name="provider_documents_error_requires_permissions">Du trenger flere tillatelser for å bla gjennom dette lagringsstedet. Sjekk innstillingene i Butler.</string>
+    <string name="provider_documents_error_generic">Kan ikke få tilgang til dette lagringsstedet. Sjekk tilgangsalternativene i Butler.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Dokumentleverandør</string>
+    <string name="provider_documents_settings_subtitle">Integrasjon med andre apper</string>
+    <string name="provider_documents_settings_category_integration_label">Integrasjon</string>
+    <string name="provider_documents_enabled_title">Aktiver dokumentleverandør</string>
+    <string name="provider_documents_enabled_desc">La andre apper få tilgang til filer gjennom Butler med Androids filvelger</string>
+</resources>

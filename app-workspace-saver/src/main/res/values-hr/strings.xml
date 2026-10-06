@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Spremi kao</string>
+    <string name="saver_preview_label">Pretpregled</string>
+    <string name="saver_loading">Učitavanje…</string>
+    <string name="saver_shared_from">Podijeljeno iz %1$s</string>
+    <string name="saver_shared_generic">Podijeljeno s Butlerom</string>
+    <string name="saver_destination_label">Odredište</string>
+    <string name="saver_select_destination_hint">Odaberi odredišnu mapu</string>
+    <string name="saver_filename_label">Naziv datoteke</string>
+    <string name="saver_save_action">Spremi</string>
+    <string name="saver_saving_progress">Spremanje…</string>
+    <string name="saver_success_message">Datoteka je uspješno spremljena</string>
+    <string name="saver_open_saved_action">Otvori mapu</string>
+    <string name="saver_retry_action">Pokušaj ponovno</string>
+    <string name="saver_save_again_action">Spremi na novu lokaciju</string>
+    <string name="saver_close_tab_action">Zatvori karticu</string>
+    <string name="saver_close_butler_action">Zatvori karticu i vrati se</string>
+    <string name="saver_done_action">Gotovo</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">%1$d izvorna datoteka više nije dostupna. Podijeli je ponovno.</item>
+        <item quantity="few">%1$d izvorne datoteke više nisu dostupne. Podijeli ih ponovno.</item>
+        <item quantity="other">%1$d izvornih datoteka više nije dostupno. Podijeli ih ponovno.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Izvorna datoteka više nije dostupna</string>
+    <string name="saver_error_permission_denied">Pristup je odbijen</string>
+    <string name="saver_error_write_failed">Spremanje datoteke nije uspjelo</string>
+    <string name="saver_error_file_exists">Datoteka već postoji</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Spremi datoteke</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Sprema se %1$d datoteka u %2$s</item>
+        <item quantity="few">Spremaju se %1$d datoteke u %2$s</item>
+        <item quantity="other">Sprema se %1$d datoteka u %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Spremi %1$d datoteku</item>
+        <item quantity="few">Spremi %1$d datoteke</item>
+        <item quantity="other">Spremi %1$d datoteka</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d datoteka spremljena</item>
+        <item quantity="few">%1$d datoteke spremljene</item>
+        <item quantity="other">%1$d datoteka spremljeno</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d datoteka nije spremljena</item>
+        <item quantity="few">%1$d datoteke nisu spremljene</item>
+        <item quantity="other">%1$d datoteka nije spremljeno</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d datoteka preskočena</item>
+        <item quantity="few">%1$d datoteke preskočene</item>
+        <item quantity="other">%1$d datoteka preskočeno</item>
+    </plurals>
+    <string name="saver_partial_success">Spremljene datoteke: %1$d od %2$d</string>
+</resources>

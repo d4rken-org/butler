@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">اس نام سے محفوظ کریں</string>
+    <string name="saver_preview_label">پیش منظر</string>
+    <string name="saver_loading">لوڈ ہو رہا ہے…</string>
+    <string name="saver_shared_from">%1$s سے شیئر کیا گیا</string>
+    <string name="saver_shared_generic">Butler کے ساتھ شیئر کیا گیا</string>
+    <string name="saver_destination_label">محفوظ کرنے کا مقام</string>
+    <string name="saver_select_destination_hint">محفوظ کرنے کے لیے فولڈر منتخب کریں</string>
+    <string name="saver_filename_label">فائل کا نام</string>
+    <string name="saver_save_action">محفوظ کریں</string>
+    <string name="saver_saving_progress">محفوظ کیا جا رہا ہے…</string>
+    <string name="saver_success_message">فائل کامیابی سے محفوظ ہو گئی</string>
+    <string name="saver_open_saved_action">ڈائریکٹری کھولیں</string>
+    <string name="saver_retry_action">دوبارہ کوشش کریں</string>
+    <string name="saver_save_again_action">نئے مقام پر محفوظ کریں</string>
+    <string name="saver_close_tab_action">ٹیب بند کریں</string>
+    <string name="saver_close_butler_action">ٹیب بند کر کے واپس جائیں</string>
+    <string name="saver_done_action">ہو گیا</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">اصل فائل تک اب رسائی نہیں ہے۔ براہ کرم دوبارہ شیئر کریں۔</item>
+        <item quantity="other">%1$d اصل فائلوں تک اب رسائی نہیں ہے۔ براہ کرم دوبارہ شیئر کریں۔</item>
+    </plurals>
+    <string name="saver_error_source_expired">اصل فائل تک اب رسائی نہیں ہے</string>
+    <string name="saver_error_permission_denied">اجازت نہیں دی گئی</string>
+    <string name="saver_error_write_failed">فائل محفوظ نہیں ہو سکی</string>
+    <string name="saver_error_file_exists">فائل پہلے سے موجود ہے</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">فائلیں محفوظ کریں</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">%1$d فائل %2$s میں محفوظ ہو رہی ہے</item>
+        <item quantity="other">%1$d فائلیں %2$s میں محفوظ ہو رہی ہیں</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">%1$d فائل محفوظ کریں</item>
+        <item quantity="other">%1$d فائلیں محفوظ کریں</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d فائل محفوظ ہو گئی</item>
+        <item quantity="other">%1$d فائلیں محفوظ ہو گئیں</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d فائل محفوظ نہ ہو سکی</item>
+        <item quantity="other">%1$d فائلیں محفوظ نہ ہو سکیں</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d فائل چھوڑ دی گئی</item>
+        <item quantity="other">%1$d فائلیں چھوڑ دی گئیں</item>
+    </plurals>
+    <string name="saver_partial_success">%2$d فائلوں میں سے %1$d محفوظ ہو گئیں</string>
+</resources>

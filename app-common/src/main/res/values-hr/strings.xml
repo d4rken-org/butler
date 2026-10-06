@@ -1,0 +1,327 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Izniman preglednik datoteka</string>
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Ikona aplikacije Butler</string>
+    <string name="butler_mascot_description">Maskota aplikacije Butler</string>
+    <string name="butler_mascot_animation_random_description">Maskota aplikacije Butler izvodi razne animacije</string>
+    <string name="butler_mascot_animation_wink_description">Maskota aplikacije Butler namiguje</string>
+    <string name="butler_mascot_animation_greeting_description">Maskota aplikacije Butler maše u znak pozdrava</string>
+    <string name="butler_mascot_animation_hatoff_description">Maskota aplikacije Butler s poštovanjem podiže šešir</string>
+    <string name="butler_mascot_animation_drink_description">Maskota aplikacije Butler pije</string>
+    <string name="butler_mascot_animation_moustache_description">Maskota aplikacije Butler gladi brkove</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Maskota aplikacije Butler zatvara oči prije spavanja</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Maskota aplikacije Butler hrče</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Maskota aplikacije Butler se budi</string>
+    <string name="butler_mascot_animation_cameo_description">Maskota aplikacije SD Maid pojavljuje se kao gost</string>
+
+    <string name="slogan_general_message_0">Tebi na usluzi.</string>
+    <string name="slogan_general_message_1">Sve na svojem mjestu.</string>
+    <string name="slogan_general_message_2">Red, a ne kaos.</string>
+    <string name="slogan_general_message_3">Dohvaćam tvoje datoteke.</string>
+    <string name="slogan_general_message_4">Sve tvoje datoteke na okupu.</string>
+    <string name="slogan_general_message_5">Uvijek uredno.</string>
+    <string name="slogan_general_message_6">Datoteke pronađene u tren oka!</string>
+    <string name="slogan_general_message_7">Pristup bez muke.</string>
+    <string name="slogan_general_message_8">Tvoje se datoteke nikad neće izgubiti.</string>
+    <string name="slogan_general_message_9">U mnogim ulogama.</string>
+    <string name="slogan_newyear_message_0">Isti postupak kao i svake godine.</string>
+    <string name="slogan_xmas_message_0">Dvaput provjeravam datoteke.</string>
+    <string name="slogan_xmas_message_1">Na popisu dobrih.</string>
+    <string name="slogan_halloween_message_0">Butler ti je na usluzi, bu!</string>
+    <string name="slogan_halloween_message_1">Bez smicalica, samo datoteke.</string>
+    <string name="slogan_stpatricks_message_0">Osjećaš li da te prati sreća?</string>
+    <string name="slogan_stpatricks_message_1">Tražim tvoj ćup zlata.</string>
+    <string name="slogan_aprilfools_message_0">Bez zafrkancije.</string>
+    <string name="slogan_aprilfools_message_1">Ozbiljno uredno.</string>
+    <string name="slogan_oktoberfest_message_0">Živjele tvoje datoteke!</string>
+    <string name="slogan_oktoberfest_message_1">Datoteke na točenje.</string>
+
+    <string name="general_share_action">Podijeli</string>
+    <string name="general_share_single_title">Podijeli %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Podijeli %d datoteku</item>
+        <item quantity="few">Podijeli %d datoteke</item>
+        <item quantity="other">Podijeli %d datoteka</item>
+    </plurals>
+    <string name="general_done_action">Gotovo</string>
+    <string name="general_copy_action">Kopiraj</string>
+    <string name="general_cut_action">Izreži</string>
+    <string name="general_move_action">Premjesti</string>
+    <string name="general_paste_action">Zalijepi</string>
+    <string name="general_apply_action">Primijeni</string>
+    <string name="general_open_action">Otvori</string>
+    <string name="general_cancel_action">Odustani</string>
+    <string name="general_close_action">Zatvori</string>
+    <string name="general_confirm_action">Potvrdi</string>
+    <string name="general_reset_action">Vrati na početno</string>
+    <string name="general_save_action">Spremi</string>
+    <string name="general_edit_action">Uredi</string>
+    <string name="general_na_label">Nije primjenjivo</string>
+    <string name="general_dialog_a11y_label">Dijaloški okvir</string>
+    <string name="general_dismiss_action">Zatvori</string>
+    <string name="general_read_more_action">Pročitaj više</string>
+    <string name="general_mark_as_read_action">Označi kao pročitano</string>
+    <string name="general_back_action">Natrag</string>
+    <string name="general_navigate_up_action">Idi na višu razinu</string>
+    <string name="general_error_label">Pogreška</string>
+    <string name="general_error_unknown_label">Nepoznata pogreška</string>
+    <string name="general_error_invalid_input_label">Neispravan unos</string>
+    <string name="general_share_error_action">Podijeli pogrešku</string>
+    <string name="general_error_report_subject">%1$s Izvješće o pogrešci (%2$s)</string>
+    <string name="general_error_report_consent_title">Podijeliti izvješće o pogrešci?</string>
+    <string name="general_error_report_consent_message">Izvješće sadrži pogrešku i trag stoga koji je ona proizvela, nedavne zapise dnevnika aplikacije i pojedinosti o stanju u kojem se nalazila: nazive i putanje datoteka, upite za pretraživanje, nazive paketa, URI-je, nazive mrežnih i SMB poslužitelja, podatke o tvojem uređaju i međuverziji te anonimni ID instalacije. Podijeli ga samo s osobama kojima vjeruješ.</string>
+    <string name="general_error_report_consent_confirm">Podijeli izvješće</string>
+    <string name="general_privacy_policy_action">Pravila privatnosti</string>
+    <string name="general_bug_report_subject">%1$s Izvješće o programskoj pogrešci (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">%1$s Izvješće o programskoj pogrešci: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Ovdje opiši što se dogodilo.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Opiši što se trebalo dogoditi umjesto toga.)</string>
+    <string name="general_duration_input_label">Trajanje</string>
+    <string name="general_size_input_label">Veličina</string>
+    <string name="general_upgrade_action">Nadogradi</string>
+    <string name="general_refresh_action">Osvježi</string>
+    <string name="general_clear_action">Očisti</string>
+    <string name="general_expand_action">Proširi</string>
+    <string name="general_collapse_action">Sažmi</string>
+    <string name="general_completed_label">Dovršeno</string>
+    <string name="general_cancelled_label">Otkazano</string>
+    <string name="general_searching_label">Pretraživanje</string>
+    <string name="general_searching_ellipsis">Pretraživanje…</string>
+    <string name="general_progress_loading">Učitavanje</string>
+    <string name="general_progress_loading_egg_0">I dalje brže od iPhonea</string>
+    <string name="general_progress_loading_egg_1">Preuzimanje dodatnog RAM-a</string>
+    <string name="general_progress_loading_egg_2">Očekivani završetak: Uskoro™</string>
+    <string name="general_progress_loading_egg_3">CPU je na pauzi za kavu</string>
+    <string name="general_progress_loading_egg_4">Čekanje podataka od Pepe Silvije</string>
+    <string name="general_progress_loading_egg_5">Pokretanje turbo enkabulatora</string>
+    <string name="general_progress_loading_egg_6">Dodavanje maslaca</string>
+    <string name="general_progress_loading_egg_7">Dakle. Kako se držiš?</string>
+    <string name="general_progress_loading_egg_8">Bip bip, bup bap</string>
+    <string name="general_progress_loading_egg_9">Međuspremanje životnih odluka</string>
+    <string name="general_progress_loading_egg_10">Prizivanje Cthulhua</string>
+    <string name="general_progress_loading_egg_11">Sve je u redu</string>
+    <string name="general_progress_loading_egg_12">Pričekaj</string>
+    <string name="general_progress_loading_egg_13">Barem ne čekaš na telefonskoj liniji</string>
+    <string name="general_progress_loading_egg_14">Nanesi izravno na čelo</string>
+
+    <!-- Trajanje -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dms</item>
+        <item quantity="few">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%ds</item>
+        <item quantity="few">%ds</item>
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%dmin</item>
+        <item quantity="few">%dmin</item>
+        <item quantity="other">%dmin</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dh</item>
+        <item quantity="few">%dh</item>
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dd</item>
+        <item quantity="few">%dd</item>
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d sekunda</item>
+        <item quantity="few">%d sekunde</item>
+        <item quantity="other">%d sekundi</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d minuta</item>
+        <item quantity="few">%d minute</item>
+        <item quantity="other">%d minuta</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d sat</item>
+        <item quantity="few">%d sata</item>
+        <item quantity="other">%d sati</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d dan</item>
+        <item quantity="few">%d dana</item>
+        <item quantity="other">%d dana</item>
+    </plurals>
+
+    <string name="general_view_action">Prikaži</string>
+    <string name="general_delete_action">Izbriši</string>
+    <string name="general_show_details_action">Prikaži pojedinosti</string>
+    <string name="general_hide_details_action">Sakrij pojedinosti</string>
+
+    <string name="general_delete_confirmation_title">Potvrdi brisanje</string>
+    <string name="general_delete_confirmation_message_x">Izbrisati \"%s\"?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Izbrisati odabrane stavke (%d)?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">Izbrisano: %d stavka.</item>
+        <item quantity="few">Izbrisano: %d stavke.</item>
+        <item quantity="other">Izbrisano: %d stavki.</item>
+    </plurals>
+
+    <string name="general_create_action">Stvori</string>
+    <string name="general_rename_action">Preimenuj</string>
+    <string name="general_retry_action">Pokušaj ponovno</string>
+    <string name="general_open_setup_action">Otvori početno postavljanje</string>
+    <string name="general_grant_usage_stats_action">Odobri pristup podacima o upotrebi</string>
+    <string name="general_grant_storage_permission_action">Odobri pristup pohrani</string>
+    <string name="general_grant_all_files_access_action">Dopusti pristup svim datotekama</string>
+
+    <string name="general_result_user_cancel_msg">Operacija je otkazana na zahtjev korisnika.</string>
+
+    <string name="general_path_label">Putanja</string>
+    <string name="general_filename_validation_error">Naziv sadrži nedopuštene znakove: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d od %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d od %2$d</string>
+
+    <string name="file_type_symbolic_link">Poveznica</string>
+    <string name="file_type_directory">Mapa</string>
+    <string name="file_type_file">Datoteka</string>
+    <string name="file_type_unknown">Nepoznato</string>
+
+    <!-- Nazivi vrsta MIME -->
+    <string name="common_mimetype_image">Slika</string>
+    <string name="common_mimetype_video">Video</string>
+    <string name="common_mimetype_audio">Zvuk</string>
+    <string name="common_mimetype_text_plain">Običan tekst</string>
+    <string name="common_mimetype_text">Tekstni dokument</string>
+    <string name="common_mimetype_pdf">PDF dokument</string>
+    <string name="common_mimetype_document">Dokument</string>
+    <string name="common_mimetype_archive">Arhiva</string>
+    <string name="common_mimetype_apk">Android paket</string>
+    <string name="common_mimetype_json">JSON datoteka</string>
+    <string name="common_mimetype_xml">XML datoteka</string>
+    <string name="common_mimetype_unknown">Nepoznata vrsta</string>
+
+    <string name="general_rom_type_auto_label">Automatski (zadano)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s stavka/s</item>
+        <item quantity="few">%s stavke/s</item>
+        <item quantity="other">%s stavki/s</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/s</item>
+        <item quantity="few">%s/s</item>
+        <item quantity="other">%s/s</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Nepodudaranje vrsta: očekivano %1$s, dobiveno %2$s.</string>
+    <string name="general_error_cant_access_msg">Nije moguće pristupiti: %s.</string>
+    <string name="general_error_archive_not_seekable_msg">Nije moguće izravno pregledavati %s: pohrana na kojoj se nalazi podržava samo slijedno čitanje, a ovaj format arhive zahtijeva nasumičan pristup.</string>
+    <string name="general_error_root_unavailable">Root pristup nije dostupan.</string>
+    <string name="general_error_elevated_access_required">Ova operacija zahtijeva pristup s višim ovlastima. Konfiguriraj root ili ADB pristup u početnom postavljanju.</string>
+    <string name="general_error_no_compatible_app_found_msg">Nije pronađena kompatibilna aplikacija za obradu ovog zahtjeva.</string>
+    <string name="general_error_ipc_deadobject_title">Veza s uslugom je prekinuta</string>
+    <string name="general_error_ipc_deadobject_description">Veza s ključnom uslugom (npr. Magiskom ili drugom uslugom na razini sustava) neočekivano je prekinuta. Ponovno pokreni uređaj. Ako se problem nastavi, provjeri ima li ažuriranja ili mi se javi da ga mogu riješiti.</string>
+
+    <string name="ui_theme_mode_dark_label">Tamna</string>
+    <string name="ui_theme_mode_light_label">Svijetla</string>
+    <string name="ui_theme_mode_system_label">Prema sustavu</string>
+    <string name="ui_theme_style_default_label">Zadano</string>
+    <string name="ui_theme_style_medium_contrast_label">Srednji kontrast</string>
+    <string name="ui_theme_style_high_contrast_label">Visoki kontrast</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Zelena</string>
+    <string name="ui_theme_color_blue_label">Plava</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Prilagođena</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Tonski naglasak</string>
+    <string name="ui_theme_palette_neutral_label">Neutralna</string>
+    <string name="ui_theme_palette_vibrant_label">Živopisna</string>
+    <string name="ui_theme_palette_expressive_label">Izražajna</string>
+    <string name="ui_theme_palette_rainbow_label">Duga</string>
+    <string name="ui_theme_palette_fruitsalad_label">Voćna salata</string>
+    <string name="ui_theme_palette_monochrome_label">Jednobojna</string>
+    <string name="ui_theme_palette_fidelity_label">Vjernost</string>
+    <string name="ui_theme_palette_content_label">Sadržaj</string>
+
+    <string name="ui_theme_custom_dialog_title">Prilagođena tema</string>
+    <string name="ui_theme_custom_seed_label">Osnovna boja</string>
+    <string name="ui_theme_custom_palette_label">Stil palete</string>
+    <string name="ui_theme_custom_default_action">Zadano</string>
+
+    <string name="ui_mascot_suit_dialog_title">Butlerovo odijelo</string>
+    <string name="ui_mascot_suit_default_action">Zadano</string>
+    <string name="ui_mascot_suit_hue_label">Nijansa</string>
+    <string name="ui_mascot_suit_saturation_label">Zasićenost</string>
+    <string name="ui_mascot_suit_brightness_label">Svjetlina</string>
+    <string name="ui_mascot_suit_value_description">Boja odijela %s</string>
+
+    <!-- Vrste početnog postavljanja -->
+    <string name="setup_usagestats_title">Statistika upotrebe</string>
+    <string name="setup_shizuku_card_title">ADB pristup</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Pristup obavijestima</string>
+    <string name="setup_manage_storage_card_title">Upravljanje vanjskom pohranom</string>
+    <string name="setup_inventory_card_title">Popis aplikacija</string>
+
+    <!-- Dozvole -->
+    <string name="setup_required_card_title">Potrebno je početno postavljanje</string>
+    <string name="setup_required_card_body">Za izvođenje ove operacije potrebno je dodatno postavljanje.</string>
+    <string name="setup_required_card_setup_action">Otvori početno postavljanje</string>
+
+    <!-- Otvaranje novih kartica -->
+    <string name="common_open_tabs_confirmation_title">Otvoriti više kartica?</string>
+    <string name="common_open_tabs_confirmation_message">Broj kartica koje će se otvoriti: %1$d.</string>
+    <string name="common_open_tabs_success">Otvorene kartice: %1$d</string>
+    <string name="common_open_tabs_success_with_skipped">Otvorene kartice: %1$d (preskočene stavke: %2$d)</string>
+
+    <!-- Zatvaranje kartice -->
+    <string name="general_tab_close_confirmation_title">Zatvoriti karticu?</string>
+    <string name="general_tab_close_confirmation_message">Želiš li doista zatvoriti \"%1$s\"?</string>
+    <string name="general_tab_close_unsaved_title">Nespremljene promjene</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" ima nespremljene promjene. Zatvoriti i odbaciti ih?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" i još %2$d imaju nespremljene promjene. Zatvoriti i odbaciti ih?</string>
+    <string name="general_discard_action">Odbaci</string>
+    <string name="general_tab_close_goto_action">Idi na karticu</string>
+
+    <string name="general_press_back_again_to_exit">Ponovno pritisni Natrag za izlaz</string>
+
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">Odabrano: %d</item>
+        <item quantity="few">Odabrano: %d</item>
+        <item quantity="other">Odabrano: %d</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d mapa</item>
+        <item quantity="few">%1$d mape</item>
+        <item quantity="other">%1$d mapa</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d datoteka</item>
+        <item quantity="few">%1$d datoteke</item>
+        <item quantity="other">%1$d datoteka</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Odaberi sve mape</string>
+    <string name="common_select_all_files_action">Odaberi sve datoteke</string>
+    <string name="general_undo_action">Poništi</string>
+
+    <!-- Obilasci s vodičem -->
+    <string name="tour_action_next">Dalje</string>
+    <string name="tour_action_previous">Prethodno</string>
+    <string name="tour_action_cancel">Preskoči</string>
+    <string name="tour_confirm_title">Preskočiti obilazak?</string>
+    <string name="tour_confirm_message">Obilaske možeš u bilo kojem trenutku ponovno omogućiti u postavkama.</string>
+    <string name="tour_confirm_continue">Nastavi obilazak</string>
+    <string name="tour_confirm_dont_show_this_tour">Ne prikazuj ovaj obilazak</string>
+    <string name="tour_confirm_disable_all">Onemogući sve obilaske</string>
+
+    <!-- Butlerovi savjeti -->
+    <string name="common_tip_multiple_panes">Upotrijebi više okana za usporedbu datoteka jednih pokraj drugih.</string>
+    <string name="common_tip_different_folders">Otvori različite mape u svakom oknu radi lakšeg upravljanja datotekama.</string>
+    <string name="common_tip_switch_layouts">Promijeni raspored okana putem stavke Raspored u Butlerovu izborniku.</string>
+    <string name="common_tip_elevated_access">Omogući root ili ADB pristup u početnom postavljanju za napredne operacije s datotekama.</string>
+    <string name="common_tip_breadcrumb_home">Dugim pritiskom na dio navigacijske putanje u pregledniku postavi ga kao početnu mapu.</string>
+</resources>

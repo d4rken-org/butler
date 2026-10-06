@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Запази като</string>
+    <string name="saver_preview_label">Предварителен преглед</string>
+    <string name="saver_loading">Зареждане…</string>
+    <string name="saver_shared_from">Споделено от %1$s</string>
+    <string name="saver_shared_generic">Споделено с Butler</string>
+    <string name="saver_destination_label">Местоназначение</string>
+    <string name="saver_select_destination_hint">Избери целева папка</string>
+    <string name="saver_filename_label">Име на файла</string>
+    <string name="saver_save_action">Запази</string>
+    <string name="saver_saving_progress">Запазване…</string>
+    <string name="saver_success_message">Файлът е запазен успешно</string>
+    <string name="saver_open_saved_action">Отвори директорията</string>
+    <string name="saver_retry_action">Опитай отново</string>
+    <string name="saver_save_again_action">Запази на ново местоположение</string>
+    <string name="saver_close_tab_action">Затвори раздела</string>
+    <string name="saver_close_butler_action">Затвори раздела и се върни</string>
+    <string name="saver_done_action">Готово</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Изходният файл вече не е достъпен. Моля, сподели го отново.</item>
+        <item quantity="other">%1$d изходни файла вече не са достъпни. Моля, сподели ги отново.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Изходният файл вече не е достъпен</string>
+    <string name="saver_error_permission_denied">Разрешението е отказано</string>
+    <string name="saver_error_write_failed">Неуспешно запазване на файла</string>
+    <string name="saver_error_file_exists">Файлът вече съществува</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Запази файлове</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Запазване на %1$d файл в %2$s</item>
+        <item quantity="other">Запазване на %1$d файла в %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Запази %1$d файл</item>
+        <item quantity="other">Запази %1$d файла</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d файл е запазен</item>
+        <item quantity="other">%1$d файла са запазени</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">Неуспешно запазване на %1$d файл</item>
+        <item quantity="other">Неуспешно запазване на %1$d файла</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d файл е пропуснат</item>
+        <item quantity="other">%1$d файла са пропуснати</item>
+    </plurals>
+    <string name="saver_partial_success">Запазени са %1$d от %2$d файла</string>
+</resources>

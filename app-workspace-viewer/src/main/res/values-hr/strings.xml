@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Otvori pomoću</string>
+    <string name="viewer_image_content_description">Slika %1$s</string>
+    <string name="viewer_toolbar_folder_label">Mapa</string>
+    <string name="viewer_back_action">Natrag</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">Prethodna datoteka</string>
+    <string name="viewer_next_file_action">Sljedeća datoteka</string>
+    <string name="viewer_open_location_action">Otvori lokaciju</string>
+    <string name="viewer_clipboard_copied">Kopirano: %1$s. Zalijepi u karticu preglednika datoteka.</string>
+    <string name="viewer_clipboard_cut">Izrezano: %1$s. Zalijepi u karticu preglednika datoteka za premještanje.</string>
+    <string name="viewer_share_failed_label">Ovu datoteku nije bilo moguće podijeliti</string>
+    <string name="viewer_share_failed_description">%1$s nije moguće predati drugoj aplikaciji. To se događa s datotekama koje zahtijevaju root ili ADB pristup i s datotekama koje više ne postoje.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Veličina</string>
+    <string name="viewer_info_modified_label">Izmijenjeno</string>
+    <string name="viewer_info_created_label">Stvoreno</string>
+    <string name="viewer_info_format_label">Format</string>
+    <string name="viewer_info_dimensions_label">Dimenzije</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Dozvole</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Vlasnik</string>
+    <string name="viewer_info_caption_label">Podijeljena poruka</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Prikaži sve pojedinosti</string>
+    <string name="viewer_info_collapse_action">Sakrij pojedinosti</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">Pretpregled · 1 stranica</string>
+    <string name="viewer_pdf_page_indicator">Stranica %1$d od %2$d</string>
+    <string name="viewer_pdf_page_previous">Prethodna stranica</string>
+    <string name="viewer_pdf_page_next">Sljedeća stranica</string>
+    <string name="viewer_pdf_page_error">Stranicu %1$d nije bilo moguće prikazati.</string>
+    <string name="viewer_pdf_page_content_description">Pretpregled PDF-a %1$s, stranica %2$d od %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">Ova vrsta datoteke još nije podržana</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">Ovo je arhiva</string>
+    <string name="viewer_browse_archive_action">Pregledaj sadržaj</string>
+    <string name="viewer_archive_needs_copy_msg">Spremi kopiju na svoj uređaj pa Butler može pregledati njezin sadržaj.</string>
+    <string name="viewer_archive_nested_msg">Ova se arhiva nalazi unutar druge arhive. Najprije je raspakiraj da pregledaš njezin sadržaj.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">Verzija</string>
+    <string name="viewer_apk_min_sdk_label">Minimalni SDK</string>
+    <string name="viewer_apk_target_sdk_label">Ciljni SDK</string>
+    <string name="viewer_apk_installed_label">Instalirano</string>
+    <string name="viewer_apk_not_installed_value">Nije instalirano</string>
+    <string name="viewer_apk_installed_unknown_value">Provjera nije uspjela</string>
+    <string name="viewer_apk_installed_older_hint">Starija verzija od one u ovoj datoteci</string>
+    <string name="viewer_apk_installed_newer_hint">Novija verzija od one u ovoj datoteci</string>
+    <string name="viewer_apk_permissions_header">Dozvole (%1$d)</string>
+    <string name="viewer_apk_signing_header">Certifikati za potpisivanje</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">Instaliraj</string>
+    <string name="viewer_bundle_format_label">Format paketa</string>
+    <string name="viewer_bundle_splits_label">APK-ovi u paketu</string>
+    <string name="viewer_bundle_expansion_files_hint">Sadrži datoteke proširenja koje se postavljaju nakon instalacije aplikacije.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Za postavljanje datoteka proširenja potreban je root ili ADB pristup. Bez njega aplikacija se instalira, ali njezine datoteke proširenja ostaju nepostavljene.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">Ikona aplikacije %1$s</string>
+    <string name="viewer_apk_icon_show_action">Prikaži ikonu</string>
+    <string name="viewer_apk_icon_save_action">Spremi ikonu</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Ikona je spremljena kao %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Zamijeniti datoteku?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s već postoji u ovoj mapi. Spremanjem ikone ta će se datoteka zamijeniti.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Zamijeni</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">Datoteka je izmijenjena</string>
+    <string name="viewer_external_change_message">Ova je datoteka izmijenjena na uređaju. Osvježi prikaz da je ponovno učitaš.</string>
+    <string name="viewer_external_change_gone_title">Datoteke više nema</string>
+    <string name="viewer_external_change_gone_message">Ova je datoteka izbrisana ili joj više nije moguće pristupiti.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Ovu datoteku nije moguće prikazati</string>
+    <string name="viewer_error_not_a_file_label">Nije datoteka</string>
+    <string name="viewer_error_not_a_file_description">%1$s nije obična datoteka.</string>
+    <string name="viewer_error_broken_symlink_label">Neispravan prečac</string>
+    <string name="viewer_error_broken_symlink_description">%1$s upućuje na nešto što više ne postoji.</string>
+    <string name="viewer_error_undecodable_label">Oštećena slika</string>
+    <string name="viewer_error_undecodable_description">%1$s nije bilo moguće dekodirati. Datoteka je možda nepotpuna ili oštećena.</string>
+    <string name="viewer_error_file_gone_label">Datoteka nije pronađena</string>
+    <string name="viewer_error_file_gone_description">%1$s više ne postoji. Možda je premještena, preimenovana ili izbrisana.</string>
+    <string name="viewer_error_empty_file_label">Prazna datoteka</string>
+    <string name="viewer_error_empty_file_description">%1$s je prazna i nema sadržaja za prikaz.</string>
+    <string name="viewer_error_apk_unreadable_label">Nečitljiv APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s nije bilo moguće obraditi kao paket aplikacije za Android.</string>
+    <string name="viewer_error_icon_unavailable_label">Nema ikone</string>
+    <string name="viewer_error_icon_unavailable_description">Ikonu aplikacije %1$s nije bilo moguće pročitati.</string>
+    <string name="viewer_error_icon_target_notfile_label">Naziv je već zauzet</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s već postoji ovdje i nije obična datoteka pa je nije moguće zamijeniti.</string>
+    <string name="viewer_error_icon_target_appeared_label">Datoteka se pojavila</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s je stvorena tijekom odabira mjesta za spremanje. Ništa nije prepisano, pokušaj ponovno.</string>
+    <string name="viewer_error_content_unreadable_label">Ovu datoteku nije moguće pročitati</string>
+    <string name="viewer_error_content_unreadable_description">Aplikacija koja je podijelila %1$s više ne dopušta Butleru da je čita. Zatraži od te aplikacije da je ponovno podijeli.</string>
+    <string name="viewer_save_copy_action">Spremi kopiju…</string>
+    <string name="viewer_open_in_editor_action">Otvori u uređivaču</string>
+    <string name="viewer_text_truncated_bytes">Pretpregled je ograničen na prvih %1$s ove datoteke.</string>
+    <string name="viewer_text_truncated_lines">Broj prikazanih početnih redaka ove datoteke ograničen je na %1$s.</string>
+    <string name="viewer_text_truncated_width">Dugi retci skraćeni su u ovom pretpregledu.</string>
+    <string name="viewer_text_unreadable_label">Ovu datoteku nije bilo moguće pročitati</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">Prikazivač</string>
+    <string name="viewer_settings_show_next_after_delete_title">Prikaži sljedeću datoteku nakon brisanja</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Nakon brisanja datoteke otvorene iz mape prikaži sljedeću datoteku u toj mapi umjesto zatvaranja prikazivača.</string>
+</resources>

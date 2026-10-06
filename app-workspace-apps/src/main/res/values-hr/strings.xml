@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apps Workspace -->
+    <string name="apps_title">Aplikacije</string>
+    <string name="apps_subtitle">Upravljaj instaliranim aplikacijama</string>
+
+    <!-- Filter Labels -->
+    <string name="apps_filter_app_type_label">Vrsta aplikacije</string>
+    <string name="apps_filter_type_all">Sve</string>
+    <string name="apps_filter_type_user">Korisničke aplikacije</string>
+    <string name="apps_filter_type_system">Sistemske aplikacije</string>
+    <string name="apps_filter_status_label">Stanje</string>
+    <string name="apps_filter_status_all">Sve</string>
+    <string name="apps_filter_status_enabled">Omogućene</string>
+    <string name="apps_filter_status_disabled">Onemogućene</string>
+
+    <!-- Sort Options -->
+    <string name="apps_sort_mode_label">Razvrstaj prema</string>
+    <string name="apps_sort_mode_name_label">Naziv</string>
+    <string name="apps_sort_mode_size_label">Veličina</string>
+    <string name="apps_sort_mode_install_date_label">Datum instalacije</string>
+    <string name="apps_sort_mode_update_date_label">Datum ažuriranja</string>
+    <string name="apps_sort_mode_package_name_label">Naziv paketa</string>
+    <string name="apps_sort_descending_label">Silazni redoslijed</string>
+    <string name="apps_sort_mode_size_slowdown_hint">Izračun veličina aplikacija usporava učitavanje</string>
+
+    <!-- Actions -->
+    <string name="apps_action_launch">Pokreni</string>
+    <string name="apps_action_open_info">Informacije o aplikaciji</string>
+    <string name="apps_action_disable">Onemogući</string>
+    <string name="apps_action_enable">Omogući</string>
+    <string name="apps_action_uninstall">Deinstaliraj</string>
+    <string name="apps_action_clear_data">Izbriši podatke</string>
+    <string name="apps_action_export_apk">Izvezi APK</string>
+    <string name="apps_action_browse_path">Pregledaj putanju</string>
+    <string name="apps_action_share">Podijeli informacije</string>
+    <string name="apps_action_refresh">Osvježi</string>
+    <string name="apps_action_sort">Razvrstaj</string>
+    <string name="apps_action_filter">Filtriraj</string>
+    <string name="apps_action_select_all">Odaberi sve</string>
+    <string name="apps_action_deselect_all">Poništi odabir svih stavki</string>
+    <string name="apps_action_open_in_tab">Otvori u kartici</string>
+    <string name="apps_action_force_stop">Prisilno zaustavi</string>
+    <string name="apps_action_view">Raspored</string>
+
+    <!-- View options -->
+    <string name="apps_view_sheet_subtitle">Kako su stavke raspoređene i koliko pojedinosti prikazuju</string>
+    <string name="apps_view_mode_list_label">Popis</string>
+    <string name="apps_view_mode_grid_label">Mreža</string>
+    <string name="apps_view_density_compact_label">Zbijeno</string>
+    <string name="apps_view_density_comfortable_label">Prostrano</string>
+    <string name="apps_view_density_detailed_label">Detaljno</string>
+    <string name="apps_view_set_default_action">Postavi kao zadano</string>
+    <string name="apps_view_detail_dates_label">Instalirano %1$s · Ažurirano %2$s</string>
+
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">Pokreni aplikaciju</string>
+    <string name="apps_action_open_info_desc">Prikaži detaljne informacije o sustavu</string>
+    <string name="apps_action_enable_desc">Omogući ovu aplikaciju</string>
+    <string name="apps_action_disable_desc">Onemogući ovu aplikaciju</string>
+    <string name="apps_action_uninstall_desc">Ukloni ovu aplikaciju</string>
+    <string name="apps_action_export_apk_desc">Spremi APK datoteku u pohranu</string>
+    <string name="apps_action_share_desc">Podijeli pojedinosti o aplikaciji kao tekst</string>
+    <string name="apps_action_force_stop_desc">Odmah zaustavi aplikaciju</string>
+    <string name="apps_action_clear_data_desc">Izbriši sve podatke i postavke aplikacije</string>
+
+    <!-- App Info Labels -->
+    <string name="apps_package_name_label">Paket</string>
+    <string name="apps_version_label">Verzija</string>
+    <string name="apps_size_label">Veličina</string>
+    <string name="apps_size_chip_desc">Veličina aplikacije: %1$s</string>
+    <string name="apps_size_permission_hint">Za veličine aplikacija potreban je pristup podacima o upotrebi</string>
+    <string name="apps_size_permission_body">Android prijavljuje veličine aplikacije, podataka i predmemorije samo aplikacijama koje imaju dozvolu za pristup podacima o upotrebi. Odobri je za prikaz raspodjele pohrane ove aplikacije.</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">Lokacije pohrane</string>
+    <string name="apps_path_internal_data_label">Unutarnji podaci</string>
+    <string name="apps_path_external_data_label">Vanjska pohrana</string>
+    <string name="apps_path_requires_root_label">Potreban je root pristup</string>
+    <string name="apps_path_requires_shizuku_label">Potreban je ADB pristup</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Potreban je root ili ADB pristup</string>
+    <string name="apps_path_requires_access_label">Potreban je dodatni pristup</string>
+    <string name="apps_storage_breakdown_label">Raspodjela pohrane</string>
+    <string name="apps_storage_app_label">Aplikacija</string>
+
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">Pregled</string>
+    <string name="appdetails_tab_packageinfo_label">Informacije o paketu</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">Natrag na aplikacije</string>
+    <string name="appdetails_close_action">Zatvori</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_title">Informacije o paketu</string>
+    <string name="appdetails_packageinfo_view_action">Prikaži pojedinosti o paketu</string>
+    <string name="appdetails_packageinfo_unavailable_msg">Nije moguće pročitati pojedinosti o paketu aplikacije.</string>
+    <string name="appdetails_packageinfo_permissions_header">Dozvole (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">Certifikati za potpisivanje</string>
+    <string name="appdetails_packageinfo_package_label">Paket</string>
+    <string name="appdetails_packageinfo_version_label">Verzija</string>
+    <string name="appdetails_packageinfo_min_sdk_label">Najniži SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">Ciljni SDK</string>
+
+    <!-- Empty States -->
+    <string name="apps_empty_no_apps">Nisu pronađene aplikacije</string>
+    <string name="apps_empty_no_apps_desc">Pokušaj prilagoditi filtre</string>
+    <string name="apps_empty_loading">Učitavanje aplikacija…</string>
+
+    <!-- Search -->
+    <string name="apps_search_hint">Pretraži aplikacije</string>
+
+    <!-- Multi-select -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">Odaberi aplikacije</item>
+        <item quantity="one">Odabrano: %d</item>
+        <item quantity="few">Odabrano: %d</item>
+        <item quantity="other">Odabrano: %d</item>
+    </plurals>
+
+    <!-- Info Bar -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="one">%d korisnička aplikacija</item>
+        <item quantity="few">%d korisničke aplikacije</item>
+        <item quantity="other">%d korisničkih aplikacija</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="one">%d sistemska aplikacija</item>
+        <item quantity="few">%d sistemske aplikacije</item>
+        <item quantity="other">%d sistemskih aplikacija</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="one">Odabrano: %d</item>
+        <item quantity="few">Odabrano: %d</item>
+        <item quantity="other">Odabrano: %d</item>
+    </plurals>
+
+    <!-- App Details Sections -->
+    <string name="apps_details_section_actions">Radnje</string>
+    <string name="apps_details_section_overview">Pregled</string>
+    <string name="apps_details_section_storage">Pohrana</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">Više mogućnosti</string>
+
+    <!-- App Details package data -->
+    <string name="apps_details_pkgdata_error_title">Nije moguće učitati podatke aplikacije</string>
+    <string name="apps_details_gone_title">Aplikacija je uklonjena</string>
+    <string name="apps_details_gone_message">Ova aplikacija više nije instalirana na ovom uređaju.</string>
+    <string name="apps_details_gone_close_action">Zatvori</string>
+    <string name="apps_details_uninstalled_title">Deinstalirano za ovog korisnika</string>
+    <string name="apps_details_uninstalled_message">Aplikacija više nije instalirana za ovog korisnika, ali njezine su datoteke još na uređaju.</string>
+
+    <!-- App Details confirmations -->
+    <string name="apps_details_confirm_clear_data_title">Izbrisati podatke aplikacije?</string>
+    <string name="apps_details_confirm_clear_data_message">Svi podaci i postavke aplikacije %1$s bit će izbrisani. Ovu radnju nije moguće poništiti.</string>
+    <string name="apps_details_confirm_uninstall_title">Deinstalirati aplikaciju?</string>
+    <string name="apps_details_confirm_uninstall_message">Aplikacija %1$s bit će uklonjena s ovog uređaja.</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">Vrsta</string>
+    <string name="apps_type_system">Sistemska aplikacija</string>
+    <string name="apps_type_user">Korisnička aplikacija</string>
+    <string name="apps_status_label">Stanje</string>
+    <string name="apps_status_enabled">Omogućeno</string>
+    <string name="apps_status_disabled">Onemogućeno</string>
+    <string name="apps_installed_label">Instalirano</string>
+    <string name="apps_updated_label">Posljednje ažuriranje</string>
+    <string name="apps_target_sdk_label">Ciljni SDK</string>
+    <string name="apps_min_sdk_label">Najniži SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">Instalacijski program</string>
+    <string name="apps_permissions_label">Dozvole</string>
+    <string name="apps_permissions_count">Broj dozvola: %1$d</string>
+    <string name="apps_data_size_label">Podaci</string>
+    <string name="apps_cache_size_label">Predmemorija</string>
+    <string name="apps_total_size_label">Ukupno</string>
+
+    <!-- App Tags -->
+    <string name="apps_tag_system_label">Sistemska</string>
+    <string name="apps_tag_disabled_label">Onemogućena</string>
+    <string name="apps_tag_updated_label">Ažurirana</string>
+    <string name="apps_tag_sideloaded_label">Instalirana izvan trgovine</string>
+    <string name="apps_tag_split_label">Podijeljeni APK</string>
+    <string name="apps_tag_debug_label">Za otklanjanje pogrešaka</string>
+    <string name="apps_tag_user_label">Korisnik %1$d</string>
+
+    <!-- Filter Tags (virtual tags for filtering) -->
+    <string name="apps_filter_tag_enabled_label">Omogućena</string>
+    <string name="apps_filter_tag_user_app_label">Korisnička aplikacija</string>
+    <string name="apps_filter_include_label">Mora odgovarati (svim odabranima)</string>
+    <string name="apps_filter_exclude_label">Ne smije odgovarati</string>
+    <string name="apps_filter_add_action">Filtriraj</string>
+    <string name="apps_filter_hint">Dodirni za uključivanje, ponovno za isključivanje i još jednom za uklanjanje</string>
+    <plurals name="apps_filter_count">
+        <item quantity="one">%d filtar</item>
+        <item quantity="few">%d filtra</item>
+        <item quantity="other">%d filtara</item>
+    </plurals>
+
+    <!-- Components Section -->
+    <string name="apps_details_section_components">Komponente</string>
+    <string name="apps_components_activities_label">Aktivnosti</string>
+    <string name="apps_components_services_label">Servisi</string>
+    <string name="apps_components_receivers_label">Primatelji emitiranih poruka</string>
+    <string name="apps_components_providers_label">Pružatelji sadržaja</string>
+    <string name="apps_components_exported">Dostupno drugim aplikacijama</string>
+    <string name="apps_components_disabled">Onemogućeno</string>
+    <string name="apps_components_empty">Nisu pronađene komponente</string>
+    <string name="apps_components_no_matches">Nijedna komponenta ne odgovara pojmu „%1$s”</string>
+    <string name="apps_components_and_more">…i još %d</string>
+    <string name="apps_components_view_all_action">Prikaži sve komponente</string>
+    <string name="apps_components_loading">Učitavanje komponenti…</string>
+    <string name="apps_components_error">Nije moguće učitati komponente</string>
+    <string name="apps_components_launch_failed">Nije moguće pokrenuti aktivnost</string>
+    <string name="apps_components_kind_activity">Aktivnost</string>
+    <string name="apps_components_kind_service">Servis</string>
+    <string name="apps_components_kind_receiver">Primatelj emitiranih poruka</string>
+    <string name="apps_components_kind_provider">Pružatelj sadržaja</string>
+    <string name="apps_components_search_action">Pretraži komponente</string>
+    <string name="apps_components_search_hint">Pretraži naziv ili paket</string>
+    <string name="apps_components_state_label">Stanje</string>
+    <string name="apps_components_state_enabled">Omogućeno</string>
+    <string name="apps_components_state_disabled">Onemogućeno</string>
+    <string name="apps_components_field_type">Vrsta</string>
+    <string name="apps_components_field_package">Paket</string>
+    <string name="apps_components_field_permission">Dozvola</string>
+    <string name="apps_components_field_write_permission">Dozvola za pisanje</string>
+    <string name="apps_components_field_authority">Autoritet</string>
+    <string name="apps_components_field_process">Proces</string>
+    <string name="apps_components_field_launch_mode">Način pokretanja</string>
+    <string name="apps_components_launch_action">Pokreni</string>
+    <string name="apps_components_copy_name_action">Kopiraj naziv komponente</string>
+    <string name="apps_components_copy_package_action">Kopiraj naziv paketa</string>
+    <string name="apps_components_action_enable">Omogući komponentu</string>
+    <string name="apps_components_action_disable">Onemogući komponentu</string>
+    <string name="apps_components_action_requires_elevated">Potreban je root ili ADB pristup — dodirni za postavljanje</string>
+    <string name="apps_components_confirm_enable_title">Omogućiti komponente?</string>
+    <string name="apps_components_confirm_disable_title">Onemogućiti komponente?</string>
+    <string name="apps_components_confirm_enable_message">Sljedeće će komponente biti omogućene:</string>
+    <string name="apps_components_confirm_disable_message">Sljedeće će komponente biti onemogućene. To može poremetiti rad aplikacije.</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="one">Odabrana je %d komponenta</item>
+        <item quantity="few">Odabrane su %d komponente</item>
+        <item quantity="other">Odabrano je %d komponenti</item>
+    </plurals>
+
+    <!-- Package operations -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="one">Omogući %d aplikaciju</item>
+        <item quantity="few">Omogući %d aplikacije</item>
+        <item quantity="other">Omogući %d aplikacija</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="one">Onemogući %d aplikaciju</item>
+        <item quantity="few">Onemogući %d aplikacije</item>
+        <item quantity="other">Onemogući %d aplikacija</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="one">Prisilno zaustavi %d aplikaciju</item>
+        <item quantity="few">Prisilno zaustavi %d aplikacije</item>
+        <item quantity="other">Prisilno zaustavi %d aplikacija</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="one">Deinstaliraj %d aplikaciju</item>
+        <item quantity="few">Deinstaliraj %d aplikacije</item>
+        <item quantity="other">Deinstaliraj %d aplikacija</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="one">Izbriši podatke %d aplikacije</item>
+        <item quantity="few">Izbriši podatke %d aplikacije</item>
+        <item quantity="other">Izbriši podatke %d aplikacija</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="one">Omogući %d komponentu</item>
+        <item quantity="few">Omogući %d komponente</item>
+        <item quantity="other">Omogući %d komponenti</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="one">Onemogući %d komponentu</item>
+        <item quantity="few">Onemogući %d komponente</item>
+        <item quantity="other">Onemogući %d komponenti</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="one">%d aplikacija</item>
+        <item quantity="few">%d aplikacije</item>
+        <item quantity="other">%d aplikacija</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">Omogućeno: %1$s</string>
+    <string name="apps_operation_disable_summary">Onemogućeno: %1$s</string>
+    <string name="apps_operation_force_stop_summary">Zaustavljeno: %1$s</string>
+    <string name="apps_operation_uninstall_summary">Deinstalirano: %1$s</string>
+    <string name="apps_operation_clear_data_summary">Izbrisani podaci: %1$s</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="one">Omogućena je %1$d komponenta</item>
+        <item quantity="few">Omogućene su %1$d komponente</item>
+        <item quantity="other">Omogućeno je %1$d komponenti</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="one">Onemogućena je %1$d komponenta</item>
+        <item quantity="few">Onemogućene su %1$d komponente</item>
+        <item quantity="other">Onemogućeno je %1$d komponenti</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">Nije moguće dovršiti za %1$s</string>
+    <string name="apps_operation_single_declined_summary">Uklanjanje odbijeno: %1$s</string>
+    <string name="apps_operation_batch_summary">Dovršeno: %1$d od %2$d</string>
+    <!-- Quoted so the leading separator survives the resource parser -->
+    <string name="apps_operation_batch_summary_failed">" · Neuspješno: %1$d"</string>
+    <string name="apps_operation_batch_summary_declined">" · Odbijeno: %1$d"</string>
+
+    <!-- Generic navigation -->
+    <string name="appdetails_back_generic_action">Natrag</string>
+</resources>

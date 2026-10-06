@@ -1,0 +1,4 @@
+<resources>
+    <string name="pkgrepo_invalid_inventory_error_title">Virheellinen sovellusluettelo</string>
+    <string name="pkgrepo_invalid_inventory_error_description">Järjestelmä antoi Butlerille virheellisen luettelon asennetuista sovelluksista.</string>
+</resources>

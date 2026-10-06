@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">História</string>
+    <string name="history_workspace_subtitle">Nedávne operácie so súbormi</string>
+    <string name="history_workspace_title_scoped">História: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">História: Neúspešné</string>
+    <string name="history_workspace_title_outcome_partial">História: Čiastočné</string>
+    <string name="history_workspace_title_outcome_cancelled">História: Zrušené</string>
+    <string name="history_workspace_title_outcome_completed">História: Dokončené</string>
+    <string name="history_workspace_title_kind_copy">História: Kopírovanie</string>
+    <string name="history_workspace_title_kind_move">História: Presúvanie</string>
+    <string name="history_workspace_title_kind_delete">História: Odstraňovanie</string>
+    <string name="history_workspace_title_kind_create_file">História: Vytvorenie súboru</string>
+    <string name="history_workspace_title_kind_create_folder">História: Vytvorenie priečinka</string>
+    <string name="history_workspace_title_kind_save">História: Ukladanie</string>
+    <string name="history_workspace_title_kind_compress">História: Komprimovanie</string>
+    <string name="history_workspace_title_kind_extract">História: Rozbaľovanie</string>
+    <string name="history_workspace_title_filtered">História (filtrovaná)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">História: %1$d cesta</item>
+        <item quantity="few">História: %1$d cesty</item>
+        <item quantity="many">História: %1$d cesty</item>
+        <item quantity="other">História: %1$d ciest</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Všetky</string>
+    <string name="history_filter_outcome_completed">Dokončené</string>
+    <string name="history_filter_outcome_partial">Čiastočné</string>
+    <string name="history_filter_outcome_failed">Neúspešné</string>
+    <string name="history_filter_outcome_cancelled">Zrušené</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Kopírovanie</string>
+    <string name="history_filter_kind_move">Presúvanie</string>
+    <string name="history_filter_kind_delete">Odstraňovanie</string>
+    <string name="history_filter_kind_create_file">Vytvorenie súboru</string>
+    <string name="history_filter_kind_create_folder">Vytvorenie priečinka</string>
+    <string name="history_filter_kind_save">Ukladanie</string>
+    <string name="history_filter_kind_compress">Komprimovanie</string>
+    <string name="history_filter_kind_extract">Rozbaľovanie</string>
+    <string name="history_filter_kind_enable">Povolenie</string>
+    <string name="history_filter_kind_disable">Zakázanie</string>
+    <string name="history_filter_kind_force_stop">Vynútené zastavenie</string>
+    <string name="history_filter_kind_uninstall">Odinštalovanie</string>
+    <string name="history_filter_kind_clear_data">Vymazanie údajov</string>
+    <string name="history_filter_kind_components">Komponenty</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Nastaviť rozsah ciest…</string>
+    <string name="history_path_scope_clear_action">Zrušiť rozsah ciest</string>
+    <string name="history_path_scope_dialog_title">Filtrovať podľa cesty</string>
+    <string name="history_path_scope_dialog_description">Zobraziť iba operácie, ktoré sa týkajú tejto cesty alebo jej podradených položiek.</string>
+    <string name="history_path_scope_dialog_input_label">Cesta</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Vybrať priečinok…</string>
+    <string name="history_path_scope_dialog_apply_action">Použiť</string>
+    <string name="history_path_scope_dialog_cancel_action">Zrušiť</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Dnes</string>
+    <string name="history_group_yesterday">Včera</string>
+    <string name="history_group_this_week">Tento týždeň</string>
+    <string name="history_group_this_month">Tento mesiac</string>
+    <string name="history_group_older">Staršie</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Premenované</string>
+    <string name="history_entry_intent_paste_copy">Prilepené</string>
+    <string name="history_entry_intent_paste_move">Prilepené (presunutie)</string>
+    <string name="history_entry_intent_drop_copy">Vložené pretiahnutím (kopírovanie)</string>
+    <string name="history_entry_intent_drop_move">Vložené pretiahnutím (presunutie)</string>
+    <string name="history_entry_intent_enable_components">Povolené komponenty aplikácie</string>
+    <string name="history_entry_intent_disable_components">Zakázané komponenty aplikácie</string>
+    <string name="history_entry_kind_copy">Skopírované</string>
+    <string name="history_entry_kind_move">Presunuté</string>
+    <string name="history_entry_kind_delete">Odstránené</string>
+    <string name="history_entry_kind_create_file">Vytvorený súbor</string>
+    <string name="history_entry_kind_create_folder">Vytvorený priečinok</string>
+    <string name="history_entry_kind_save">Uložené</string>
+    <string name="history_entry_kind_compress">Komprimované</string>
+    <string name="history_entry_kind_extract">Rozbalené</string>
+    <string name="history_entry_kind_restore">Obnovené</string>
+    <string name="history_entry_kind_install">Nainštalované</string>
+    <string name="history_entry_kind_enable">Povolené</string>
+    <string name="history_entry_kind_disable">Zakázané</string>
+    <string name="history_entry_kind_force_stop">Vynútené zastavenie</string>
+    <string name="history_entry_kind_uninstall">Odinštalované</string>
+    <string name="history_entry_kind_clear_data">Vymazané údaje aplikácie</string>
+    <string name="history_entry_kind_components">Zmenené komponenty aplikácie</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d cesta</item>
+        <item quantity="few">%d cesty</item>
+        <item quantity="many">%d cesty</item>
+        <item quantity="other">%d ciest</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">Prvých %1$d z %2$d dotknutých ciest</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Začiatok</string>
+    <string name="history_detail_label_completed">Dokončenie</string>
+    <string name="history_detail_label_duration">Trvanie</string>
+    <string name="history_detail_label_outcome">Výsledok</string>
+    <string name="history_detail_label_origin">Pôvod</string>
+    <string name="history_detail_label_error">Chyba</string>
+    <string name="history_detail_label_paths">Dotknuté cesty</string>
+    <string name="history_detail_label_partial_errors">Zlyhania jednotlivých položiek</string>
+    <string name="history_detail_copy_path_action">Kopírovať cestu</string>
+    <string name="history_detail_paths_empty">Nie sú zaznamenané žiadne dotknuté cesty.</string>
+    <string name="history_detail_label_attempted_paths">Cesty s pokusom o operáciu</string>
+    <string name="history_detail_label_packages">Dotknuté aplikácie</string>
+    <string name="history_detail_packages_empty">Nie sú zaznamenané žiadne dotknuté aplikácie.</string>
+    <string name="history_detail_paths_truncated_callout">Zobrazuje sa prvých %1$d z %2$d dotknutých ciest.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Zobrazuje sa prvých %1$d z %2$d ciest s pokusom o operáciu.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">Počas tejto operácie zlyhala %1$d položka.</item>
+        <item quantity="few">Počas tejto operácie zlyhali %1$d položky.</item>
+        <item quantity="many">Počas tejto operácie zlyhali položky (počet: %1$d).</item>
+        <item quantity="other">Počas tejto operácie zlyhalo %1$d položiek.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Prieskumník</string>
+    <string name="history_origin_searcher">Vyhľadávanie</string>
+    <string name="history_origin_saver">Uložiť ako</string>
+    <string name="history_origin_developer">Vývojár</string>
+    <string name="history_origin_viewer">Prehliadač</string>
+    <string name="history_origin_apps">Aplikácie</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Zatiaľ žiadna história</string>
+    <string name="history_empty_subtitle">Pri používaní aplikácie Butler sa tu budú zobrazovať operácie so súbormi.</string>
+    <string name="history_empty_filtered_title">Žiadne zhody</string>
+    <string name="history_empty_filtered_subtitle">Aktuálnemu filtru nezodpovedajú žiadne záznamy histórie.</string>
+    <string name="history_empty_filtered_reset_action">Obnoviť filter</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Obnoviť filter</string>
+    <string name="history_toolbar_reset_filter_content_description">Obnoviť filtre</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">Prvých %1$d z %2$d dotknutých ciest</string>
+    <string name="history_add_filter_action">Pridať filter</string>
+    <string name="history_add_filter_sheet_title">Pridať filter</string>
+    <string name="history_add_filter_section_outcome">Výsledok</string>
+    <string name="history_add_filter_section_kind">Druh</string>
+    <string name="history_add_filter_section_path_scope">Rozsah ciest</string>
+    <string name="history_add_filter_add_path_action">Pridať cestu…</string>
+    <string name="history_path_scope_remove_action">Odstrániť</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d záznam</item>
+        <item quantity="few">%1$d záznamy</item>
+        <item quantity="many">%1$d záznamu</item>
+        <item quantity="other">%1$d záznamov</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">Zobrazené: %1$d z %2$d</item>
+        <item quantity="few">Zobrazené: %1$d z %2$d</item>
+        <item quantity="many">Zobrazené: %1$d z %2$d</item>
+        <item quantity="other">Zobrazené: %1$d z %2$d</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="few">(%1$d)</item>
+        <item quantity="many">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">História</string>
+    <string name="history_settings_save_history_title">Ukladať históriu</string>
+    <string name="history_settings_save_history_subtitle">Zaznamenávať dokončené operácie so súbormi.</string>
+    <string name="history_settings_max_history_label">Maximálny počet položiek histórie</string>
+    <string name="history_settings_max_history_subtitle">Po prekročení tohto limitu sa staršie záznamy odstránia.</string>
+    <string name="history_settings_max_history_input_label">Maximálny počet záznamov</string>
+    <string name="history_settings_clear_history_title">Vymazať históriu</string>
+    <string name="history_settings_clear_history_subtitle">Odstrániť všetky uložené záznamy (%1$d).</string>
+    <string name="history_clear_dialog_title">Vymazať históriu?</string>
+    <string name="history_clear_dialog_message">Odstránia sa všetky záznamy z databázy histórie operácií. Túto akciu nemožno vrátiť späť.</string>
+    <string name="history_clear_confirm_action">Vymazať</string>
+    <string name="history_cleared_success">História vymazaná</string>
+    <string name="history_workspace_title_kind_restore">Obnovenia</string>
+    <string name="history_filter_kind_restore">Obnovenie</string>
+    <string name="history_workspace_title_kind_install">História: Inštalovanie</string>
+    <string name="history_filter_kind_install">Inštalovanie</string>
+    <string name="history_workspace_title_kind_enable">História: Povolenie</string>
+    <string name="history_workspace_title_kind_disable">História: Zakázanie</string>
+    <string name="history_workspace_title_kind_force_stop">História: Vynútené zastavenie</string>
+    <string name="history_workspace_title_kind_uninstall">História: Odinštalovanie</string>
+    <string name="history_workspace_title_kind_clear_data">História: Vymazanie údajov</string>
+    <string name="history_workspace_title_kind_components">História: Komponenty</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Vybrať všetko</string>
+    <string name="history_action_deselect_all">Zrušiť celý výber</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Odstrániť %1$d záznam</item>
+        <item quantity="few">Odstrániť %1$d záznamy</item>
+        <item quantity="many">Odstrániť záznamy (počet: %1$d)</item>
+        <item quantity="other">Odstrániť %1$d záznamov</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Odstránia sa iba záznamy histórie, samotné súbory zostanú nezmenené.</string>
+    <string name="history_pro_dialog_message">Zdieľanie viacerých záznamov histórie naraz je súčasťou rozšírenia. Zdieľanie jedného záznamu a odstraňovanie záznamov zostávajú bezplatné.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Výsledok</string>
+    <string name="history_share_label_kind">Druh</string>
+    <string name="history_share_label_origin">Pôvod</string>
+    <string name="history_share_label_summary">Súhrn</string>
+    <string name="history_share_label_completed">Dokončenie</string>
+    <string name="history_share_label_duration">Trvanie</string>
+    <string name="history_share_label_error">Chyba</string>
+    <string name="history_share_label_failed_items">Neúspešné položky</string>
+    <string name="history_share_label_paths">Dotknuté cesty (%1$d)</string>
+    <string name="history_share_label_packages">Dotknuté aplikácie (%1$d)</string>
+    <string name="history_share_paths_more">… a ďalšie: %1$d</string>
+    <string name="history_share_truncated">… a ďalšie nezahrnuté záznamy: %1$d</string>
+</resources>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">இதனுடன் திற</string>
+    <string name="viewer_image_content_description">படம் %1$s</string>
+    <string name="viewer_toolbar_folder_label">கோப்புறை</string>
+    <string name="viewer_back_action">பின் செல்</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">முந்தைய கோப்பு</string>
+    <string name="viewer_next_file_action">அடுத்த கோப்பு</string>
+    <string name="viewer_open_location_action">இருப்பிடத்தைத் திற</string>
+    <string name="viewer_clipboard_copied">%1$s நகலெடுக்கப்பட்டது. கோப்பு உலாவித் தாவலில் அதை ஒட்டுங்கள்.</string>
+    <string name="viewer_clipboard_cut">%1$s வெட்டப்பட்டது. அதை நகர்த்த, கோப்பு உலாவித் தாவலில் ஒட்டுங்கள்.</string>
+    <string name="viewer_share_failed_label">இந்தக் கோப்பைப் பகிர முடியவில்லை</string>
+    <string name="viewer_share_failed_description">%1$s ஐ மற்றொரு செயலிக்கு வழங்க முடியாது. Root அல்லது ADB அணுகல் தேவைப்படும் கோப்புகளிலும், இனி இல்லாத கோப்புகளிலும் இவ்வாறு நிகழும்.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">அளவு</string>
+    <string name="viewer_info_modified_label">மாற்றப்பட்டது</string>
+    <string name="viewer_info_created_label">உருவாக்கப்பட்டது</string>
+    <string name="viewer_info_format_label">வடிவம்</string>
+    <string name="viewer_info_dimensions_label">பரிமாணங்கள்</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">அனுமதிகள்</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">உரிமையாளர்</string>
+    <string name="viewer_info_caption_label">பகிரப்பட்ட செய்தி</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">அனைத்து விவரங்களையும் காட்டு</string>
+    <string name="viewer_info_collapse_action">விவரங்களை மறை</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">முன்னோட்டம் · 1 பக்கம்</string>
+    <string name="viewer_pdf_page_indicator">%2$d பக்கங்களில் %1$d ஆம் பக்கம்</string>
+    <string name="viewer_pdf_page_previous">முந்தைய பக்கம்</string>
+    <string name="viewer_pdf_page_next">அடுத்த பக்கம்</string>
+    <string name="viewer_pdf_page_error">%1$d ஆம் பக்கத்தைக் காட்ட முடியவில்லை.</string>
+    <string name="viewer_pdf_page_content_description">%1$s இன் PDF முன்னோட்டம், %3$d பக்கங்களில் %2$d ஆம் பக்கம்</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">இந்தக் கோப்பு வகை இன்னும் ஆதரிக்கப்படவில்லை</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">இது ஒரு காப்பகம்</string>
+    <string name="viewer_browse_archive_action">உள்ளடக்கத்தை உலாவு</string>
+    <string name="viewer_archive_needs_copy_msg">உங்கள் சாதனத்தில் ஒரு நகலைச் சேமியுங்கள். பிறகு Butler அதன் உள்ளடக்கத்தை உலாவ முடியும்.</string>
+    <string name="viewer_archive_nested_msg">இந்தக் காப்பகம் மற்றொரு காப்பகத்திற்குள் உள்ளது. அதன் உள்ளடக்கத்தை உலாவ, முதலில் அதைப் பிரித்தெடுங்கள்.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">பதிப்பு</string>
+    <string name="viewer_apk_min_sdk_label">குறைந்தபட்ச SDK</string>
+    <string name="viewer_apk_target_sdk_label">இலக்கு SDK</string>
+    <string name="viewer_apk_installed_label">நிறுவப்பட்டது</string>
+    <string name="viewer_apk_not_installed_value">நிறுவப்படவில்லை</string>
+    <string name="viewer_apk_installed_unknown_value">சரிபார்க்க முடியவில்லை</string>
+    <string name="viewer_apk_installed_older_hint">இந்தக் கோப்பைவிடப் பழையது</string>
+    <string name="viewer_apk_installed_newer_hint">இந்தக் கோப்பைவிடப் புதியது</string>
+    <string name="viewer_apk_permissions_header">அனுமதிகள் (%1$d)</string>
+    <string name="viewer_apk_signing_header">கையொப்பச் சான்றிதழ்கள்</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">நிறுவு</string>
+    <string name="viewer_bundle_format_label">தொகுப்பின் வடிவம்</string>
+    <string name="viewer_bundle_splits_label">உள்ளே உள்ள APKகள்</string>
+    <string name="viewer_bundle_expansion_files_hint">செயலியை நிறுவிய பிறகு வைக்கப்படும் விரிவாக்கக் கோப்புகள் உள்ளன.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">விரிவாக்கக் கோப்புகளை வைக்க Root அல்லது ADB அணுகல் தேவை. அது இல்லாவிட்டால் செயலி நிறுவப்படும், ஆனால் அதன் விரிவாக்கக் கோப்புகள் வைக்கப்படாமல் இருக்கும்.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">%1$s இன் செயலிச் சின்னம்</string>
+    <string name="viewer_apk_icon_show_action">சின்னத்தைக் காட்டு</string>
+    <string name="viewer_apk_icon_save_action">சின்னத்தைச் சேமி</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">சின்னம் %1$s ஆகச் சேமிக்கப்பட்டது</string>
+    <string name="viewer_apk_icon_overwrite_title">கோப்பை மாற்றவா?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s ஏற்கனவே இந்தக் கோப்புறையில் உள்ளது. சின்னத்தைச் சேமித்தால் அந்தக் கோப்பு மாற்றப்படும்.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">மாற்று</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">கோப்பு மாற்றப்பட்டுள்ளது</string>
+    <string name="viewer_external_change_message">சாதனத்தில் இந்தக் கோப்பு மாற்றப்பட்டுள்ளது. அதை மீண்டும் ஏற்ற புதுப்பியுங்கள்.</string>
+    <string name="viewer_external_change_gone_title">கோப்பு இனி இல்லை</string>
+    <string name="viewer_external_change_gone_message">இந்தக் கோப்பு நீக்கப்பட்டது அல்லது அதை இனி அணுக முடியவில்லை.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">இந்தக் கோப்பைக் காட்ட முடியவில்லை</string>
+    <string name="viewer_error_not_a_file_label">கோப்பு அல்ல</string>
+    <string name="viewer_error_not_a_file_description">%1$s ஒரு சாதாரண கோப்பு அல்ல.</string>
+    <string name="viewer_error_broken_symlink_label">முறிந்த குறுக்குவழி</string>
+    <string name="viewer_error_broken_symlink_description">%1$s இனி இல்லாத ஒன்றைச் சுட்டுகிறது.</string>
+    <string name="viewer_error_undecodable_label">சேதமடைந்த படம்</string>
+    <string name="viewer_error_undecodable_description">%1$s ஐ டிகோடு செய்ய முடியவில்லை. கோப்பு முழுமையற்றதாகவோ சேதமடைந்ததாகவோ இருக்கலாம்.</string>
+    <string name="viewer_error_file_gone_label">கோப்பு கிடைக்கவில்லை</string>
+    <string name="viewer_error_file_gone_description">%1$s இனி இல்லை. அது நகர்த்தப்பட்டிருக்கலாம், மறுபெயரிடப்பட்டிருக்கலாம் அல்லது நீக்கப்பட்டிருக்கலாம்.</string>
+    <string name="viewer_error_empty_file_label">காலியான கோப்பு</string>
+    <string name="viewer_error_empty_file_description">%1$s காலியாக உள்ளது; காட்டுவதற்கு எதுவும் இல்லை.</string>
+    <string name="viewer_error_apk_unreadable_label">வாசிக்க முடியாத APK</string>
+    <string name="viewer_error_apk_unreadable_description">%1$s ஐ Android செயலித் தொகுப்பாகப் பகுத்தறிய முடியவில்லை.</string>
+    <string name="viewer_error_icon_unavailable_label">சின்னம் இல்லை</string>
+    <string name="viewer_error_icon_unavailable_description">%1$s இன் செயலிச் சின்னத்தை வாசிக்க முடியவில்லை.</string>
+    <string name="viewer_error_icon_target_notfile_label">பெயர் ஏற்கனவே பயன்பாட்டில் உள்ளது</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s ஏற்கனவே இங்கே உள்ளது; அது சாதாரண கோப்பு அல்ல என்பதால் அதை மாற்ற முடியாது.</string>
+    <string name="viewer_error_icon_target_appeared_label">கோப்பு உருவாகியுள்ளது</string>
+    <string name="viewer_error_icon_target_appeared_description">சேமிக்கும் இடத்தை நீங்கள் தேர்ந்தெடுத்துக்கொண்டிருந்தபோது %1$s உருவாக்கப்பட்டது. எதுவும் மேலெழுதப்படவில்லை; மீண்டும் முயலுங்கள்.</string>
+    <string name="viewer_error_content_unreadable_label">இந்தக் கோப்பை வாசிக்க முடியவில்லை</string>
+    <string name="viewer_error_content_unreadable_description">%1$s ஐப் பகிர்ந்த செயலி, அதை வாசிக்க Butler ஐ இனி அனுமதிக்கவில்லை. அந்தச் செயலியிலிருந்து அதை மீண்டும் பகிருங்கள்.</string>
+    <string name="viewer_save_copy_action">ஒரு நகலைச் சேமி…</string>
+    <string name="viewer_open_in_editor_action">திருத்தியில் திற</string>
+    <string name="viewer_text_truncated_bytes">முன்னோட்டம் இந்தக் கோப்பின் முதல் %1$s அளவிற்கு மட்டுமே காட்டப்படுகிறது.</string>
+    <string name="viewer_text_truncated_lines">முன்னோட்டம் இந்தக் கோப்பின் முதல் %1$s வரிகளுக்கு மட்டுமே காட்டப்படுகிறது.</string>
+    <string name="viewer_text_truncated_width">இந்த முன்னோட்டத்தில் நீண்ட வரிகள் சுருக்கப்படுகின்றன.</string>
+    <string name="viewer_text_unreadable_label">இந்தக் கோப்பை வாசிக்க முடியவில்லை</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">பார்வையாளர்</string>
+    <string name="viewer_settings_show_next_after_delete_title">நீக்கிய பிறகு அடுத்த கோப்பைக் காட்டு</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">கோப்புறையிலிருந்து திறந்த கோப்பை நீக்கிய பிறகு, பார்வையாளரை மூடுவதற்குப் பதிலாக அந்தக் கோப்புறையில் உள்ள அடுத்த கோப்பைக் காட்டு.</string>
+</resources>

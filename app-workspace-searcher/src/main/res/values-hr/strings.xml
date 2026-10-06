@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searcher_title">Pretraživanje</string>
+    <string name="searcher_subtitle">Pronađi datoteke i sadržaj</string>
+    <!-- Tab subtitle listing the search locations, e.g. "Downloads, Photos +3" -->
+    <string name="searcher_workspace_targets_overflow">%1$s +%2$d</string>
+    <string name="searcher_settings_title">Postavke pretraživanja</string>
+    <string name="searcher_settings_search_category">Pretraživanje</string>
+    <string name="searcher_settings_history">Povijest pretraživanja</string>
+    <string name="searcher_settings_save_history_title">Spremi povijest pretraživanja</string>
+    <string name="searcher_settings_save_history_subtitle">Zapamti prethodna pretraživanja</string>
+    <string name="searcher_settings_max_history_label">Najveći broj zapisa u povijesti</string>
+    <string name="searcher_settings_max_history_subtitle">Najveći broj spremljenih pretraživanja</string>
+    <string name="searcher_settings_max_history_input_label">Broj zapisa (1–500)</string>
+    <string name="searcher_settings_clear_history_title">Izbriši povijest pretraživanja</string>
+    <string name="searcher_settings_clear_history_subtitle">Ukloni sva spremljena pretraživanja (%1$d)</string>
+    <string name="searcher_settings_search_performance">Performanse</string>
+    <string name="searcher_settings_max_results_title">Najveći broj rezultata pretraživanja</string>
+    <string name="searcher_settings_max_results_subtitle">Ograniči broj rezultata po pretraživanju.</string>
+    <string name="searcher_settings_content_search_category">Pretraživanje sadržaja</string>
+    <string name="searcher_settings_include_binaries_title">Uključi binarne datoteke</string>
+    <string name="searcher_settings_include_binaries_subtitle">Pretraži sadržaj binarnih datoteka (može biti sporo i dati nevažne rezultate)</string>
+
+    <!-- Searcher UI -->
+    <string name="searcher_recent_searches">Nedavna pretraživanja</string>
+    <string name="searcher_placeholder_search">Pretraži datoteke i mape</string>
+    <string name="searcher_placeholder_filename">Naziv datoteke</string>
+    <string name="searcher_placeholder_content">Sadržaj</string>
+    <string name="searcher_search_error">Pogreška pri pretraživanju</string>
+    <string name="searcher_no_paths_hint">Dodirni + za dodavanje lokacija za pretraživanje</string>
+    <string name="searcher_add_path_action">Dodaj lokaciju</string>
+    <string name="searcher_add_folder_action">Mapa…</string>
+    <string name="searcher_multipath_show_fewer_action">Prikaži manje</string>
+    <string name="searcher_empty_state_title">Nisu postavljene putanje za pretraživanje</string>
+    <string name="searcher_empty_state_description">Dodaj lokacije pohrane za pretraživanje svojih datoteka</string>
+    <string name="searcher_add_default_paths_action">Dodaj zadane putanje za pretraživanje</string>
+
+    <!-- Search Options -->
+    <string name="searcher_options_action">Mogućnosti</string>
+    <string name="searcher_option_case_sensitive_label">Razlikuj velika i mala slova</string>
+    <string name="searcher_option_case_sensitive_desc">Pretraživanje uz razlikovanje velikih i malih slova</string>
+    <string name="searcher_option_whole_word_label">Cijela riječ</string>
+    <string name="searcher_option_whole_word_desc">Pretraživanje cijelih riječi</string>
+    <string name="searcher_option_regex_label">Regularni izraz</string>
+    <string name="searcher_option_regex_desc">Pretraživanje regularnim izrazom</string>
+    <string name="searcher_option_search_content_label">Pretraži sadržaj</string>
+    <string name="searcher_option_search_content_desc">Pretraži sadržaj datoteka</string>
+
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Predlošci</string>
+    <string name="searcher_templates_card_title">Predlošci za brzo pretraživanje</string>
+    <string name="searcher_template_large_files">Velike datoteke</string>
+    <string name="searcher_template_large_files_desc">Datoteke veće od 100 MB</string>
+    <string name="searcher_template_recent_files">Nedavne datoteke</string>
+    <string name="searcher_template_recent_files_desc">Izmijenjene u posljednjih 7 dana</string>
+    <string name="searcher_template_old_files">Stare datoteke</string>
+    <string name="searcher_template_old_files_desc">Nisu izmijenjene više od godinu dana</string>
+    <string name="searcher_template_images">Slike</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Videozapisi</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Zvuk</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Dokumenti</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Arhive</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APK datoteke</string>
+    <string name="searcher_template_apks_desc">Paketi aplikacija za Android</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d predložak</item>
+        <item quantity="few">%d predloška</item>
+        <item quantity="other">%d predložaka</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Filtriraj</string>
+    <string name="searcher_filter_add_action">Dodaj filtar</string>
+    <string name="searcher_filter_title">Filtri pretraživanja</string>
+    <string name="searcher_filter_size_section">Veličina datoteke</string>
+    <string name="searcher_filter_size_min">Najmanja veličina</string>
+    <string name="searcher_filter_size_max">Najveća veličina</string>
+    <string name="searcher_filter_date_section">Datum izmjene</string>
+    <string name="searcher_filter_date_after">Izmijenjeno nakon</string>
+    <string name="searcher_filter_date_before">Izmijenjeno prije</string>
+    <string name="searcher_filter_date_any">Bilo kada</string>
+    <string name="searcher_filter_date_24h">Posljednja 24 sata</string>
+    <string name="searcher_filter_date_7d">Posljednjih 7 dana</string>
+    <string name="searcher_filter_date_30d">Posljednjih 30 dana</string>
+    <string name="searcher_filter_date_90d">Posljednjih 90 dana</string>
+    <string name="searcher_filter_date_1y">Posljednjih godinu dana</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">veće od</string>
+    <string name="searcher_filter_comparator_greater_or_equal">veće ili jednako</string>
+    <string name="searcher_filter_comparator_less_than">manje od</string>
+    <string name="searcher_filter_comparator_less_or_equal">manje ili jednako</string>
+    <string name="searcher_filter_comparator_equal">jednako</string>
+    <string name="searcher_filter_size_value_label">Veličina</string>
+    <string name="searcher_filter_size_at_least">Najmanje</string>
+    <string name="searcher_filter_size_at_most">Najviše</string>
+    <string name="searcher_filter_size_value_hint">npr. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Unesi broj s jedinicom (KB, MB, GB). Broj bez jedinice tumači se kao MB.</string>
+    <string name="searcher_filter_size_format_error">Neispravna veličina — upotrijebi broj i jedinicu, npr. 10 MB.</string>
+    <string name="searcher_filter_date_value_label">Datum</string>
+    <string name="searcher_filter_date_direction_after">Nakon</string>
+    <string name="searcher_filter_date_direction_before">Prije</string>
+    <string name="searcher_filter_type_label">Vrsta</string>
+    <string name="searcher_filter_type_files">Datoteke</string>
+    <string name="searcher_filter_type_directories">Mape</string>
+
+    <!-- Search history actions -->
+    <string name="searcher_history_remove_action">Ukloni iz povijesti</string>
+    <string name="searcher_history_clear_all_action">Izbriši sve</string>
+    <string name="searcher_history_clear_dialog_title">Izbriši povijest pretraživanja</string>
+    <string name="searcher_history_clear_dialog_message">Time će se ukloniti sva spremljena povijest pretraživanja. Ovu radnju nije moguće poništiti.</string>
+    <string name="searcher_history_clear_confirm_action">Izbriši</string>
+    <string name="searcher_history_cleared_success">Povijest pretraživanja je izbrisana</string>
+
+    <plurals name="searcher_history_result_count">
+        <item quantity="one">%d rezultat</item>
+        <item quantity="few">%d rezultata</item>
+        <item quantity="other">%d rezultata</item>
+    </plurals>
+
+    <plurals name="searcher_multipath_show_more_action">
+        <item quantity="one">Prikaži još %d</item>
+        <item quantity="few">Prikaži još %d</item>
+        <item quantity="other">Prikaži još %d</item>
+    </plurals>
+
+    <!-- Search progress -->
+    <string name="searcher_progress_action_searching">Pretraživanje:</string>
+    <string name="searcher_progress_action_searched">Pretraženo:</string>
+    <string name="searcher_progress_status_completed_with_errors">Dovršeno s pogreškama</string>
+    <string name="searcher_result_limit_reached">Dosegnuto je ograničenje broja rezultata</string>
+    <!-- Banner: some individual items inside a searched location could not be read (e.g. permission denied) -->
+    <string name="searcher_progress_items_partial">Neke stavke nije bilo moguće potpuno pretražiti</string>
+    <string name="searcher_progress_clear_action">Očisti</string>
+
+    <plurals name="searcher_progress_failed_count">
+        <item quantity="one">%d neuspjela</item>
+        <item quantity="few">%d neuspjele</item>
+        <item quantity="other">%d neuspjelih</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_inaccessible_count">
+        <item quantity="one">Pristup nije uspio za %d stavku</item>
+        <item quantity="few">Pristup nije uspio za %d stavke</item>
+        <item quantity="other">Pristup nije uspio za %d stavki</item>
+    </plurals>
+
+    <plurals name="searcher_progress_inaccessible_more">
+        <item quantity="one">…i još %d</item>
+        <item quantity="few">…i još %d</item>
+        <item quantity="other">…i još %d</item>
+    </plurals>
+
+    <!-- Access-errors detail sheet (opened from the "N items couldn't be accessed" line) -->
+    <string name="searcher_access_sheet_body_unlockable">Android štiti ove lokacije. Dodatni pristup omogućuje Butleru da ih pretražuje.</string>
+    <string name="searcher_access_sheet_body_protected">Android štiti ove lokacije. Na ovom uređaju nije moguće odobriti pristup.</string>
+    <string name="searcher_access_sheet_unlock_action">Otključaj pristup</string>
+
+    <plurals name="searcher_progress_locations_count">
+        <item quantity="one">%d lokacija</item>
+        <item quantity="few">%d lokacije</item>
+        <item quantity="other">%d lokacija</item>
+    </plurals>
+
+    <plurals name="searcher_progress_items_scanned_count">
+        <item quantity="one">%d pregledana stavka</item>
+        <item quantity="few">%d pregledane stavke</item>
+        <item quantity="other">%d pregledanih stavki</item>
+    </plurals>
+
+    <plurals name="searcher_progress_results_found_count">
+        <item quantity="one">%d pronađen rezultat</item>
+        <item quantity="few">%d pronađena rezultata</item>
+        <item quantity="other">%d pronađenih rezultata</item>
+    </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_context_label">Kontekst podudaranja</string>
+    <string name="searcher_match_line_label">Redak %1$d: %2$s</string>
+
+    <!-- Action strings -->
+    <string name="searcher_action_open">Otvori</string>
+    <string name="searcher_action_open_in_tab">Otvori u novoj kartici</string>
+    <string name="searcher_action_open_with">Otvori pomoću</string>
+    <string name="searcher_action_open_in_editor">Otvori u uređivaču</string>
+    <string name="searcher_action_open_in_explorer">Otvori u pregledniku datoteka</string>
+    <string name="searcher_action_install">Instaliraj</string>
+    <string name="searcher_action_copy">Kopiraj</string>
+    <string name="searcher_action_cut">Izreži</string>
+    <string name="searcher_action_delete">Izbriši</string>
+    <string name="searcher_action_copy_path">Kopiraj putanju</string>
+    <string name="searcher_action_properties">Svojstva</string>
+    <string name="searcher_action_select_all">Odaberi sve</string>
+    <string name="searcher_action_deselect_all">Poništi odabir svih stavki</string>
+    <string name="searcher_action_sort">Razvrstaj</string>
+    <string name="searcher_action_view">Raspored</string>
+
+    <!-- Sort options -->
+    <string name="searcher_sort_mode_label">Razvrstaj po</string>
+    <string name="searcher_sort_mode_name_label">Naziv</string>
+    <string name="searcher_sort_mode_size_label">Veličina</string>
+    <string name="searcher_sort_mode_modified_label">Datum izmjene</string>
+    <string name="searcher_sort_mode_created_label">Datum stvaranja</string>
+    <string name="searcher_sort_mode_path_label">Putanja</string>
+    <string name="searcher_sort_descending_label">Silazni redoslijed</string>
+
+    <!-- View options -->
+    <string name="searcher_view_sheet_subtitle">Raspored stavki i količina prikazanih pojedinosti</string>
+    <string name="searcher_view_mode_list_label">Popis</string>
+    <string name="searcher_view_mode_grid_label">Mreža</string>
+    <string name="searcher_view_density_compact_label">Zbijeno</string>
+    <string name="searcher_view_density_comfortable_label">Prozračno</string>
+    <string name="searcher_view_density_detailed_label">Detaljno</string>
+    <string name="searcher_view_detail_modified_label">Izmijenjeno</string>
+    <string name="searcher_view_set_default_action">Postavi kao zadano</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Za pretraživanje nekih lokacija potrebno je dodatno postavljanje.</string>
+</resources>

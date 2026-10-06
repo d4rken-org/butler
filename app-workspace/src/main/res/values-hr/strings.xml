@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Međuspremnik</string>
+    <string name="clipboard_clear_all">Očisti sve</string>
+    <string name="clipboard_paste">Zalijepi</string>
+    <string name="clipboard_open_in_explorer">Otvori u pregledniku datoteka</string>
+    <string name="clipboard_copy">Kopiraj</string>
+    <string name="clipboard_cut">Izreži</string>
+    <string name="clipboard_origin">Podrijetlo: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Kopiraj %d stavku</item>
+        <item quantity="few">Kopiraj %d stavke</item>
+        <item quantity="other">Kopiraj %d stavki</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d stavka iz %s</item>
+        <item quantity="few">%d stavke iz %s</item>
+        <item quantity="other">%d stavki iz %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Izreži %d stavku</item>
+        <item quantity="few">Izreži %d stavke</item>
+        <item quantity="other">Izreži %d stavki</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d stavka iz %s</item>
+        <item quantity="few">%d stavke iz %s</item>
+        <item quantity="other">%d stavki iz %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d lokacija</item>
+        <item quantity="few">%d lokacije</item>
+        <item quantity="other">%d lokacija</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d stavka iz %2$s</item>
+        <item quantity="few">%1$d stavke iz %2$s</item>
+        <item quantity="other">%1$d stavki iz %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d stavka iz %2$s</item>
+        <item quantity="few">%1$d stavke iz %2$s</item>
+        <item quantity="other">%1$d stavki iz %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Isječak teksta</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d znak</item>
+        <item quantity="few">%1$d znaka</item>
+        <item quantity="other">%1$d znakova</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Zalijepi kao datoteku</string>
+    <string name="clipboard_text_info_characters">Znakovi</string>
+    <string name="clipboard_text_info_lines">Redci</string>
+    <string name="clipboard_text_info_content">Sadržaj</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Pregled</string>
+    <string name="clipboard_info_operation">Operacija</string>
+    <string name="clipboard_info_items">Stavke</string>
+    <string name="clipboard_info_source">Izvor</string>
+    <string name="clipboard_info_sources">Izvori</string>
+    <string name="clipboard_info_workspace">Radni prostor</string>
+    <string name="clipboard_info_workspace_closed">Zatvoren</string>
+    <string name="clipboard_info_time">Vrijeme</string>
+    <string name="clipboard_info_items_with_count">Stavke (%1$d)</string>
+    <string name="clipboard_info_actions">Radnje</string>
+    <string name="clipboard_info_go_to_source">Idi na izvor</string>
+    <string name="clipboard_info_go_to_first_source">Idi na prvi izvor</string>
+    <string name="clipboard_info_remove">Ukloni iz međuspremnika</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Međuspremnik</string>
+    <string name="clipboard_settings_remove_on_paste_title">Ukloni nakon lijepljenja</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Ukloni kopirane stavke iz međuspremnika nakon lijepljenja</string>
+    <string name="clipboard_settings_max_items_title">Najviše stavki</string>
+    <string name="clipboard_settings_max_items_desc">Najveći broj stavki u međuspremniku</string>
+
+    <string name="workspace_explorer_label">Preglednik datoteka</string>
+    <string name="workspace_searcher_label">Pretraživanje</string>
+    <string name="workspace_editor_label">Uređivač</string>
+    <string name="workspace_templates_label">Predlošci</string>
+    <string name="workspace_apps_label">Aplikacije</string>
+    <string name="workspace_appdetails_label">Pojedinosti o aplikaciji</string>
+    <string name="workspace_saver_label">Spremi kao</string>
+    <string name="workspace_developer_label">Razvojni alati</string>
+    <string name="workspace_history_label">Povijest</string>
+    <string name="workspace_bugreport_label">Izvješća o programskim pogreškama</string>
+    <string name="workspace_viewer_label">Prikazivač</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Fotografije</string>
+    <string name="workspace_searcher_target_videos">Videozapisi</string>
+    <string name="workspace_searcher_target_music">Glazba</string>
+    <string name="workspace_searcher_target_downloads">Preuzimanja</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Više</string>
+    <string name="workspace_expand_less_action">Manje</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Kartice i radni prostori</string>
+    <string name="workspace_button_menu_new_workspace_format">Novo: %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Nova kartica</string>
+    <string name="workspace_button_menu_category_recent">Nedavno</string>
+    <string name="workspace_button_menu_category_other">Ostalo</string>
+    <string name="workspace_button_menu_category_current_tab">Ova kartica</string>
+    <string name="workspace_button_menu_manager_action">Upravitelj kartica</string>
+    <string name="workspace_button_menu_layout_action">Raspored</string>
+    <string name="workspace_button_menu_close_current_action">Zatvori trenutačnu karticu</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Zatvori trenutačnu karticu (%d radni prostor)</item>
+        <item quantity="few">Zatvori trenutačnu karticu (%d radna prostora)</item>
+        <item quantity="other">Zatvori trenutačnu karticu (%d radnih prostora)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Postavke</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Zatvoriti sve kartice?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Zatvorit će se %1$d otvorena kartica. Ovu radnju nije moguće poništiti.</item>
+        <item quantity="few">Zatvorit će se sve %1$d otvorene kartice. Ovu radnju nije moguće poništiti.</item>
+        <item quantity="other">Zatvorit će se svih %1$d otvorenih kartica. Ovu radnju nije moguće poništiti.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Zatvori sve</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Neke kartice imaju nespremljene promjene koje će se izgubiti.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Odbaci sve</string>
+    <string name="workspace_manager_close_selected_title">Zatvoriti odabrane kartice?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Zatvorit će se %1$d odabrana kartica. Ovu radnju nije moguće poništiti.</item>
+        <item quantity="few">Zatvorit će se %1$d odabrane kartice. Ovu radnju nije moguće poništiti.</item>
+        <item quantity="other">Zatvorit će se %1$d odabranih kartica. Ovu radnju nije moguće poništiti.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">Zatvori odabrane</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Neke odabrane kartice imaju nespremljene promjene koje će se izgubiti.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Odbaci odabrane</string>
+    <string name="workspace_manager_pause_partial_title">Pauzirati kartice?</string>
+    <string name="workspace_manager_pause_partial_message">Moguće je pauzirati %1$d od %2$d odabranih kartica. Ostale su u upotrebi, imaju nespremljene promjene ili su trenutačno otvorene.</string>
+    <string name="workspace_manager_pause_partial_action">Pauziraj %1$d</string>
+    <string name="general_cancel_action">Odustani</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Operacije</string>
+    <string name="operations_clear_completed">Očisti dovršene</string>
+    <string name="operations_state_queued">U redu čekanja</string>
+    <string name="operations_state_running">U tijeku</string>
+    <string name="operations_state_waiting">Čekanje unosa</string>
+    <string name="operations_state_successful">Uspješno</string>
+    <string name="operations_state_failed">Neuspješno</string>
+    <string name="operations_state_cancelled">Otkazano</string>
+    <string name="operations_state_cancelling">Otkazivanje…</string>
+    <string name="operations_cancel_operation">Otkaži operaciju</string>
+    <string name="operations_cancel_dialog_title">Otkazati operaciju?</string>
+    <string name="operations_cancel_dialog_message">Želiš li doista otkazati ovu operaciju?</string>
+    <string name="operations_cancel_dialog_warning">Otkazivanje može ostaviti datoteke u nedosljednom stanju.</string>
+    <string name="operations_details_started_at">Početak</string>
+    <string name="operations_details_completed_at">Završetak</string>
+    <string name="operations_details_duration">Trajanje</string>
+    <string name="operations_details_duration_not_started">Nije započeto</string>
+    <string name="operations_details_progress">Napredak</string>
+    <string name="operations_details_error">Pojedinosti o pogrešci</string>
+    <string name="operations_details_actions">Radnje</string>
+    <string name="operations_details_overview">Pregled</string>
+    <string name="operations_details_handle_issue">Riješi problem</string>
+    <string name="operations_details_open_app_action">Otvori aplikaciju</string>
+    <string name="operations_details_show_in_history_action">Prikaži u povijesti</string>
+    <string name="operations_details_status">Stanje</string>
+    <string name="operations_details_result">Rezultat</string>
+    <string name="operations_details_destination_folder">Odredišna mapa</string>
+    <string name="operations_details_destination_path">Odredišna putanja</string>
+    <string name="operations_details_affected_paths_with_count">Obuhvaćene putanje (%d)</string>
+    <string name="operations_details_problems_with_count">Problemi (%d)</string>
+    <string name="operations_details_problems_more">Dodatni problemi koji nisu navedeni: %d</string>
+    <string name="workspace_operation_packages_section_title">Aplikacije</string>
+    <string name="workspace_operation_package_status_done">Gotovo</string>
+    <string name="workspace_operation_package_status_failed">Neuspješno</string>
+    <string name="workspace_operation_package_status_declined">Odbijeno</string>
+    <string name="operations_details_section_expand">Proširi %1$s</string>
+    <string name="operations_details_section_collapse">Sažmi %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Grafikon performansi</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Izbrisati stavku?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Izbrisati %1$d stavku?</item>
+        <item quantity="few">Izbrisati %1$d stavke?</item>
+        <item quantity="other">Izbrisati %1$d stavki?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Ova će se stavka trajno izbrisati:</string>
+    <string name="workspace_dialog_delete_message_multiple">Ove će se stavke trajno izbrisati:</string>
+    <string name="workspace_dialog_delete_more_items">… i još %1$d</string>
+    <string name="workspace_dialog_delete_warning">Ovu radnju nije moguće poništiti.</string>
+    <string name="workspace_dialog_delete_permanently_action">Trajno izbriši</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Umjesto toga trajno izbriši</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Neke stavke nije moguće premjestiti u smeće i obradit će se zasebno.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Premjestiti u smeće?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Premjestiti %1$d stavku u smeće?</item>
+        <item quantity="few">Premjestiti %1$d stavke u smeće?</item>
+        <item quantity="other">Premjestiti %1$d stavki u smeće?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Ova će se stavka premjestiti u smeće:</string>
+    <string name="workspace_dialog_trash_message_multiple">Ove će se stavke premjestiti u smeće:</string>
+    <string name="workspace_dialog_trash_hint">Pronađi ih na lokaciji Smeće</string>
+    <string name="workspace_dialog_move_to_trash_action">Premjesti</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">Odabrano: %d</item>
+        <item quantity="few">Odabrano: %d</item>
+        <item quantity="other">Odabrano: %d</item>
+    </plurals>
+    <string name="workspace_action_more">Više radnji</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Brisanje datoteka</string>
+    <string name="workspace_operation_delete_description_single">Izbriši \"%1$s\" iz \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Izbriši %1$d stavku iz \"%2$s\".</item>
+        <item quantity="few">Izbriši %1$d stavke iz \"%2$s\".</item>
+        <item quantity="other">Izbriši %1$d stavki iz \"%2$s\".</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Instalacija aplikacije</string>
+    <string name="workspace_operation_install_description">Instaliraj \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">Čitanje paketa…</string>
+    <string name="workspace_operation_install_progress_extracting">Raspakiravanje…</string>
+    <string name="workspace_operation_install_progress_writing">Predavanje datoteka programu za instalaciju…</string>
+    <string name="workspace_operation_install_progress_committing">Završavanje instalacije…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Smještanje datoteka proširenja…</string>
+    <string name="workspace_operation_install_summary_success">Instalirano: %1$s.</string>
+    <string name="workspace_operation_install_summary_success_partial">Instalirano: %1$s, ali datoteke proširenja nije bilo moguće smjestiti.</string>
+    <string name="workspace_install_unknown_sources_required">Butler treba dozvolu za instalaciju aplikacija. Odobri je u postavkama koje su se upravo otvorile, a zatim pokušaj ponovno.</string>
+    <string name="workspace_install_obb_failed">Aplikacija je instalirana, ali datoteke proširenja nije bilo moguće smjestiti: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">Izbrisano: %1$d datoteka.</item>
+        <item quantity="few">Izbrisano: %1$d datoteke.</item>
+        <item quantity="other">Izbrisano: %1$d datoteka.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">Izbrisano: %1$d mapa.</item>
+        <item quantity="few">Izbrisano: %1$d mape.</item>
+        <item quantity="other">Izbrisano: %1$d mapa.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">Preskočeno: %1$d stavka.</item>
+        <item quantity="few">Preskočeno: %1$d stavke.</item>
+        <item quantity="other">Preskočeno: %1$d stavki.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">Oslobođeno: %1$s.</item>
+        <item quantity="few">Oslobođeno: %1$s.</item>
+        <item quantity="other">Oslobođeno: %1$s.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Premještanje u smeće…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">Premješteno u smeće: %1$d datoteka.</item>
+        <item quantity="few">Premješteno u smeće: %1$d datoteke.</item>
+        <item quantity="other">Premješteno u smeće: %1$d datoteka.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">Premješteno u smeće: %1$d mapa.</item>
+        <item quantity="few">Premješteno u smeće: %1$d mape.</item>
+        <item quantity="other">Premješteno u smeće: %1$d mapa.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">Oslobođeno: %1$s/s.</string>
+    <string name="workspace_operation_progress_bytes_freed">Oslobođeno: %1$s.</string>
+    <string name="workspace_operation_progress_time_remaining">Preostalo: %1$s.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Informacije</string>
+    <string name="workspace_file_info_name_label">Naziv</string>
+    <string name="workspace_file_info_path_label">Putanja</string>
+    <string name="workspace_file_info_type_label">Vrsta</string>
+    <string name="workspace_file_info_type_file">Datoteka</string>
+    <string name="workspace_file_info_type_directory">Mapa</string>
+    <string name="workspace_file_info_type_symlink">Simbolička poveznica</string>
+    <string name="workspace_file_info_type_unknown">Nepoznato</string>
+    <string name="workspace_file_info_size_label">Veličina</string>
+    <string name="workspace_file_info_modified_label">Izmijenjeno</string>
+    <string name="workspace_file_info_created_label">Stvoreno</string>
+    <string name="workspace_file_info_permissions_label">Dozvole</string>
+    <string name="workspace_file_info_owner_label">Vlasnik</string>
+    <string name="workspace_file_info_child_count_label">Stavke</string>
+    <string name="workspace_file_info_symlink_target_label">Cilj</string>
+    <string name="workspace_file_info_unknown">Nepoznato</string>
+    <string name="workspace_file_info_copy_action">Kopiraj u međuspremnik</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Odabrano</string>
+    <string name="workspace_file_info_files_label">Datoteke</string>
+    <string name="workspace_file_info_directories_label">Mape</string>
+    <string name="workspace_file_info_total_size_label">Ukupna veličina</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Ova operacija još nije započela.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Prikupljanje podataka o performansama…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Nema dovoljno podataka o performansama ove operacije za prikaz grafikona.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Podaci o performansama nisu dostupni za ovu operaciju.</string>
+    <string name="workspace_operation_performance_window_seconds">Posljednjih %1$d s</string>
+    <string name="workspace_operation_performance_window_minutes">Posljednjih %1$d min</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">stavki/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Prikaži tehničke pojedinosti</string>
+    <string name="workspace_error_hide_details_action">Sakrij tehničke pojedinosti</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Priprema kartice</string>
+    <string name="workspace_error_subtitle">Došlo je do neočekivane pogreške</string>
+    <string name="workspace_close_tab_action">Zatvori karticu</string>
+    <string name="workspace_paused_body">Ova je kartica pauzirana radi uštede memorije i baterije. Nastavi je za daljnji rad.</string>
+    <string name="workspace_paused_error_body">Nije bilo moguće nastaviti ovu karticu.</string>
+    <string name="workspace_paused_resume_action">Nastavi</string>
+    <string name="workspace_paused_label">Pauzirano</string>
+    <string name="workspace_paused_content_label">Sadržaj kartice</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Postojeća datoteka</string>
+    <string name="workspace_issue_collision_existing_folder_label">Postojeća mapa</string>
+    <string name="workspace_issue_collision_new_file">Dolazna datoteka</string>
+    <string name="workspace_issue_collision_new_folder">Dolazna mapa</string>
+    <string name="workspace_issue_collision_overwrite">Zamijeni</string>
+    <string name="workspace_issue_collision_merge">Spoji</string>
+    <string name="workspace_issue_common_source_file">Izvorna datoteka</string>
+    <string name="workspace_issue_common_destination_file">Odredište</string>
+    <string name="workspace_issue_common_skip">Preskoči</string>
+    <string name="workspace_issue_common_rename">Preimenuj</string>
+    <string name="workspace_issue_common_rename_new">Preimenuj novu</string>
+    <string name="workspace_issue_common_rename_existing">Preimenuj postojeću</string>
+    <string name="workspace_issue_common_cancel">Odustani</string>
+    <string name="workspace_issue_common_delete_permanently">Trajno izbriši</string>
+    <string name="workspace_issue_archive_password_label">Lozinka</string>
+    <string name="workspace_issue_archive_password_unlock">Otključaj</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Neuspjele stavke</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… i još stavki: %1$d</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Obuhvaćene stavke</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… i još stavki: %1$d</string>
+    <string name="workspace_issue_apply_all">Primijeni na sve preostale probleme</string>
+    <string name="workspace_issue_rename_new_name">Novi naziv</string>
+    <string name="workspace_issue_rename_dialog_title_new">Preimenuj dolaznu datoteku</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Preimenuj postojeću datoteku</string>
+    <string name="workspace_issue_type_folder">Mapa</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Otvoriti više kartica?</string>
+    <string name="workspace_open_tabs_confirmation_message">Broj kartica koje će se otvoriti: %1$d.</string>
+
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Otvori %d stavku</item>
+        <item quantity="few">Otvori %d stavke</item>
+        <item quantity="other">Otvori %d stavki</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Prikaži ovdje</string>
+    <string name="workspace_open_selection_view_here_description">Prikazuje odabrane datoteke u prikazivaču iznad ovog okna. Prethodno i sljedeće prolaze samo kroz tvoj odabir.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Prikaži u novoj kartici</string>
+    <string name="workspace_open_selection_view_in_tab_description">Prikazuje odabrane datoteke u prikazivaču u zasebnoj kartici. Prethodno i sljedeće prolaze samo kroz tvoj odabir.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Otvori svaku u zasebnoj kartici</string>
+    <string name="workspace_open_selection_each_in_tab_description">Otvara svaku odabranu stavku u zasebnoj kartici. Mape se otvaraju kao kartice preglednika datoteka.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Mape nije moguće prikazati u prikazivaču.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Otvori pomoću</string>
+    <string name="workspace_open_with_no_app_label">Nije pronađena druga aplikacija</string>
+    <string name="workspace_open_with_no_app_description">Nijedna druga instalirana aplikacija ne može otvoriti %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Otvoreno: %1$d kartica</item>
+        <item quantity="few">Otvoreno: %1$d kartice</item>
+        <item quantity="other">Otvoreno: %1$d kartica</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Nije moguće zatvoriti: %1$d kartica još ima operaciju u tijeku</item>
+        <item quantity="few">Nije moguće zatvoriti: %1$d kartice još imaju operacije u tijeku</item>
+        <item quantity="other">Nije moguće zatvoriti: %1$d kartica još ima operacije u tijeku</item>
+    </plurals>
+
+    <!-- Workspace > Settings -->
+    <string name="workspace_settings_title">Kartice</string>
+    <string name="workspace_settings_navigation">Navigacija</string>
+    <string name="workspace_settings_swipe_gestures_title">Geste povlačenja</string>
+    <string name="workspace_settings_swipe_gestures_desc">Povuci ulijevo ili udesno za prebacivanje između kartica.</string>
+    <string name="workspace_settings_ondemand_creation_title">Automatsko stvaranje kartica</string>
+    <string name="workspace_settings_ondemand_creation_desc">Automatski stvori novu karticu pri povlačenju iza posljednje kartice.</string>
+    <string name="workspace_settings_newtab_type_title">Vrsta nove kartice</string>
+    <string name="workspace_settings_newtab_type_desc">Radni prostor koji se otvara pri povlačenju iza posljednje kartice, dodavanju kartice u prazno okno ili stvaranju prve kartice.</string>
+    <string name="workspace_settings_newtab_type_ask">Pitaj svaki put</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Prikaži odabir vrste kartice za svaku novu karticu.</string>
+    <string name="workspace_settings_live_preview_title">Pregledi uživo</string>
+    <string name="workspace_settings_live_preview_desc">Prikaži sadržaj kartica uživo u upravitelju kartica.</string>
+    <string name="workspace_settings_other">Ostalo</string>
+    <string name="workspace_settings_layout_title">Raspored</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Raspored u okomitom položaju</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Odaberi raspored kartica u okomitom položaju.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Raspored u vodoravnom položaju</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Odaberi raspored kartica u vodoravnom položaju.</string>
+    <string name="workspace_settings_layout_mode_auto">Automatski</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Klasični raspored na malim zaslonima, traka kartica s oknima na velikima.</string>
+    <string name="workspace_settings_layout_mode_classic">Klasični</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Jedno okno odjednom, bez trake kartica.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Prilagodljivi</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Traka kartica i onoliko okana koliko stane na zaslon. Prikvači raspored iz Butlerova izbornika.</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Traka kartica i onoliko okana koliko stane na zaslon.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Prilagodljivi (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Jedno okno s trakom kartica</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Jedno okno kartice uz traku kartica iz rasporeda s više okana. Traka zauzima dio zaslona.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Dva okna jedno pokraj drugog</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Dva okna jedno pokraj drugog (lijevo/desno).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Dva okna jedno iznad drugog</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Dva okna jedno iznad drugog (gore/dolje).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Tri okna, veliko lijevo</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Jedno veliko okno lijevo, dva manja jedno iznad drugog desno.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Tri okna, veliko desno</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Dva manja okna jedno iznad drugog lijevo, jedno veliko okno desno.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Mreža s četiri okna</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Četiri okna u mreži 2×2.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Klikni za fokus</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Prvi klik na okno bez fokusa samo mu daje fokus, a okna bez fokusa ne reagiraju na pokazivač miša. Isključi za izravnu interakciju s njima.</string>
+
+    <string name="workspace_settings_rail_button_title">Butlerova tipka</string>
+    <string name="workspace_settings_rail_button_desc">Odaberi položaj Butlerove tipke na traci kartica.</string>
+    <string name="workspace_settings_rail_button_leading">Početak</string>
+    <string name="workspace_settings_rail_button_leading_desc">Prije kartica u okomitom položaju, iznad njih u vodoravnom.</string>
+    <string name="workspace_settings_rail_button_trailing">Kraj</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Nakon kartica u okomitom položaju, ispod njih u vodoravnom. U dosegu palca za korištenje jednom rukom.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Sesija</string>
+    <string name="workspace_settings_session_restore_title">Vrati kartice pri pokretanju</string>
+    <string name="workspace_settings_session_restore_desc">Automatski vrati prethodno otvorene kartice pri pokretanju aplikacije.</string>
+    <string name="workspace_settings_autopause_title">Pauziraj neaktivne kartice</string>
+    <string name="workspace_settings_autopause_desc">Kartice koje neko vrijeme ne gledaš pauziraju se radi uštede memorije i baterije. Otvaranjem kartice nastavlja se njezin rad.</string>
+    <string name="workspace_settings_autopause_delay_title">Pauziraj nakon</string>
+    <string name="workspace_settings_autopause_delay_desc">Koliko dugo kartica ostaje izvan vidokruga prije pauziranja.</string>
+    <string name="workspace_settings_undoclose_title">Poništi zatvaranje kartica</string>
+    <string name="workspace_settings_undoclose_desc">Nakon zatvaranja kartice nekoliko je sekundi dostupna mogućnost njezina vraćanja.</string>
+    <string name="workspace_settings_session_data_title">Podaci sesije</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d kartica • %2$s</item>
+        <item quantity="few">%1$d kartice • %2$s</item>
+        <item quantity="other">%1$d kartica • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">Zatvoreno: \"%1$s\"</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Vraćanje sesije nije uspjelo</string>
+    <string name="workspace_session_restoration_error_description">Nije bilo moguće vratiti tvoju prethodnu sesiju kartica. Uzrok može biti programska pogreška koja će se ispraviti u budućem ažuriranju.\n\nMožeš očistiti spremljenu sesiju i nastaviti koristiti Butler ili pričekati ažuriranje.</string>
+    <string name="workspace_session_restoration_error_clear_action">Očisti sesiju</string>
+    <string name="workspace_session_restoration_error_report_action">Prijavi problem</string>
+    <string name="workspace_session_restoration_error_confirm_title">Očistiti sesiju?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Time će se trajno izbrisati tvoja spremljena sesija kartica. Ovu radnju nije moguće poništiti.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Preimenuj karticu</string>
+    <string name="workspace_rename_name_label">Prilagođeni naziv</string>
+    <string name="workspace_rename_name_hint">Ostavi prazno za automatski naziv</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Dosegnut je najveći broj kartica</string>
+    <string name="workspace_limit_reached_message">U besplatnoj verziji može biti otvoreno najviše %1$d kartica odjednom. Nadogradi na Butler Pro za neograničen broj kartica!</string>
+    <string name="workspace_limit_pick_tabs_message">Tvoj besplatni plan dopušta %1$d otvorenih kartica. Odaberi one koje ti više ne trebaju i zatvori ih da oslobodiš prostor.</string>
+    <string name="workspace_limit_no_slot_hint">Zatvaranje kartica trenutačno neće osloboditi mjesto.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Zatvori %d karticu</item>
+        <item quantity="few">Zatvori %d kartice</item>
+        <item quantity="other">Zatvori %d kartica</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Odaberi barem %d karticu za zatvaranje.</item>
+        <item quantity="few">Odaberi barem %d kartice za zatvaranje.</item>
+        <item quantity="other">Odaberi barem %d kartica za zatvaranje.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Otvoreno: %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Nespremljene promjene</string>
+    <string name="workspace_limit_blocker_busy">Trenutačno zauzeto</string>
+    <string name="workspace_limit_blocker_attention">Čeka tebe</string>
+    <string name="workspace_limit_blocker_loading">Još se učitava</string>
+    <string name="workspace_limit_blocker_awaiting_result">Najprije dovrši odabir u otvorenom dijalogu</string>
+    <string name="workspace_limit_blocker_unavailable">Trenutačno nije moguće zatvoriti</string>
+    <string name="workspace_limit_stacked_content_desc">Zatvaranjem ove kartice zatvara se i ono što je otvoreno iznad nje</string>
+    <string name="workspace_limit_pro_description">Otvori koliko god kartica želiš.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d stavka</item>
+        <item quantity="few">%1$d stavke</item>
+        <item quantity="other">%1$d stavki</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Vraćanje iz smeća</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Vrati %d stavku iz smeća.</item>
+        <item quantity="few">Vrati %d stavke iz smeća.</item>
+        <item quantity="other">Vrati %d stavki iz smeća.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">Vraćeno: %d stavka</item>
+        <item quantity="few">Vraćeno: %d stavke</item>
+        <item quantity="other">Vraćeno: %d stavki</item>
+    </plurals>
+</resources>

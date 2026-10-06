@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DocumentsProvider Root (Level 1) -->
+    <string name="provider_documents_root_butler_title">Butler</string>
+    <string name="provider_documents_root_butler_summary">Разширен достъп до устройството</string>
+
+    <!-- Connection Types (Level 2) -->
+    <string name="provider_documents_connection_device_title">Устройство</string>
+    <string name="documents_connection_device_summary">Локално хранилище на устройството</string>
+
+    <!-- Storage Locations (Level 3) - Phase 1 -->
+    <string name="provider_documents_storage_root_label">Коренова файлова система</string>
+    <string name="provider_documents_storage_internal_label">Вътрешно хранилище</string>
+    <string name="provider_documents_storage_sd_card_label">SD карта</string>
+    <string name="provider_documents_storage_saf_label">Местоположение чрез SAF</string>
+    <string name="provider_documents_storage_free_suffix">свободни</string>
+
+    <!-- Error Messages - Phase 1 -->
+    <string name="provider_documents_error_requires_root">За разглеждане на това местоположение е нужен root достъп. Включи root достъпа в настройките на приложението Butler.</string>
+    <string name="provider_documents_error_requires_adb">За разглеждане на това местоположение е нужен достъп чрез ADB. Включи го при настройването на Butler.</string>
+    <string name="provider_documents_error_requires_storage">За разглеждане на това местоположение е нужно разрешение за достъп до хранилището. Предостави разрешение за достъп до хранилището в настройките на приложението Butler.</string>
+    <string name="provider_documents_error_requires_permissions">За разглеждане на това местоположение са нужни допълнителни разрешения. Провери настройките на приложението Butler.</string>
+    <string name="provider_documents_error_generic">Няма достъп до това местоположение. Провери възможностите за достъп в приложението Butler.</string>
+
+    <!-- Settings -->
+    <string name="provider_documents_settings_title">Доставчик на документи</string>
+    <string name="provider_documents_settings_subtitle">Интеграция с външни приложения</string>
+    <string name="provider_documents_settings_category_integration_label">Интеграция</string>
+    <string name="provider_documents_enabled_title">Включи доставчика на документи</string>
+    <string name="provider_documents_enabled_desc">Позволи на други приложения да имат достъп до файлове чрез Butler, като използват инструмента за избор на файлове на Android</string>
+</resources>

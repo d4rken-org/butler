@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Buksan gamit ang</string>
+    <string name="viewer_image_content_description">Larawan %1$s</string>
+    <string name="viewer_toolbar_folder_label">Folder</string>
+    <string name="viewer_back_action">Bumalik</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">Nakaraang file</string>
+    <string name="viewer_next_file_action">Susunod na file</string>
+    <string name="viewer_open_location_action">Buksan ang lokasyon</string>
+    <string name="viewer_clipboard_copied">Nakopya ang %1$s. Idikit ito sa isang tab ng Explorer.</string>
+    <string name="viewer_clipboard_cut">Nagupit ang %1$s. Idikit ito sa isang tab ng Explorer para ilipat ito.</string>
+    <string name="viewer_share_failed_label">Hindi maibahagi ang file na ito</string>
+    <string name="viewer_share_failed_description">Hindi maipasa ang %1$s sa ibang app. Nangyayari ito sa mga file na nangangailangan ng root o ADB access, at sa mga file na wala na.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Laki</string>
+    <string name="viewer_info_modified_label">Binago</string>
+    <string name="viewer_info_created_label">Ginawa</string>
+    <string name="viewer_info_format_label">Format</string>
+    <string name="viewer_info_dimensions_label">Mga dimensyon</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Mga pahintulot</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">May-ari</string>
+    <string name="viewer_info_caption_label">Ibinahaging mensahe</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Ipakita ang lahat ng detalye</string>
+    <string name="viewer_info_collapse_action">Itago ang mga detalye</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">Paunang tingin · 1 pahina</string>
+    <string name="viewer_pdf_page_indicator">Pahina %1$d ng %2$d</string>
+    <string name="viewer_pdf_page_previous">Nakaraang pahina</string>
+    <string name="viewer_pdf_page_next">Susunod na pahina</string>
+    <string name="viewer_pdf_page_error">Hindi maipakita ang pahina %1$d.</string>
+    <string name="viewer_pdf_page_content_description">Paunang tingin sa PDF na %1$s, pahina %2$d ng %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">Hindi pa sinusuportahan ang ganitong uri ng file</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">Archive ito</string>
+    <string name="viewer_browse_archive_action">I-browse ang nilalaman</string>
+    <string name="viewer_archive_needs_copy_msg">Mag-save ng kopya sa device para ma-browse ng Butler ang laman nito.</string>
+    <string name="viewer_archive_nested_msg">Nasa loob ng ibang archive ang archive na ito. I-extract muna ito para ma-browse ang laman nito.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">Bersyon</string>
+    <string name="viewer_apk_min_sdk_label">Pinakamababang SDK</string>
+    <string name="viewer_apk_target_sdk_label">Target na SDK</string>
+    <string name="viewer_apk_installed_label">Naka-install</string>
+    <string name="viewer_apk_not_installed_value">Hindi naka-install</string>
+    <string name="viewer_apk_installed_unknown_value">Hindi masuri</string>
+    <string name="viewer_apk_installed_older_hint">Mas luma kaysa sa file na ito</string>
+    <string name="viewer_apk_installed_newer_hint">Mas bago kaysa sa file na ito</string>
+    <string name="viewer_apk_permissions_header">Mga pahintulot (%1$d)</string>
+    <string name="viewer_apk_signing_header">Mga sertipiko ng paglagda</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">I-install</string>
+    <string name="viewer_bundle_format_label">Format ng bundle</string>
+    <string name="viewer_bundle_splits_label">Mga APK sa loob</string>
+    <string name="viewer_bundle_expansion_files_hint">May mga expansion file na inilalagay pagkatapos ma-install ang app.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Kailangan ng root o ADB access para mailagay ang mga expansion file. Kung wala nito, mai-install ang app pero maiiwan ang mga expansion file nito.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">Icon ng app na %1$s</string>
+    <string name="viewer_apk_icon_show_action">Ipakita ang icon</string>
+    <string name="viewer_apk_icon_save_action">I-save ang icon</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Na-save ang icon bilang %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Palitan ang file?</string>
+    <string name="viewer_apk_icon_overwrite_message">May %1$s na sa folder na ito. Papalitan ito kapag na-save ang icon.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Palitan</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">Nagbago ang file</string>
+    <string name="viewer_external_change_message">Nagbago ang file na ito sa device. I-refresh para i-load itong muli.</string>
+    <string name="viewer_external_change_gone_title">Wala na ang file</string>
+    <string name="viewer_external_change_gone_message">Natanggal ang file na ito o hindi na ito ma-access.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Hindi maipakita ang file na ito</string>
+    <string name="viewer_error_not_a_file_label">Hindi isang file</string>
+    <string name="viewer_error_not_a_file_description">Hindi isang regular na file ang %1$s.</string>
+    <string name="viewer_error_broken_symlink_label">Sirang shortcut</string>
+    <string name="viewer_error_broken_symlink_description">Tumuturo ang %1$s sa isang bagay na wala na.</string>
+    <string name="viewer_error_undecodable_label">Sirang larawan</string>
+    <string name="viewer_error_undecodable_description">Hindi ma-decode ang %1$s. Maaaring hindi kumpleto o sira ang file.</string>
+    <string name="viewer_error_file_gone_label">Hindi nahanap ang file</string>
+    <string name="viewer_error_file_gone_description">Wala na ang %1$s. Maaaring nailipat, napalitan ng pangalan o natanggal ito.</string>
+    <string name="viewer_error_empty_file_label">File na walang laman</string>
+    <string name="viewer_error_empty_file_description">Walang laman ang %1$s at walang maipapakita.</string>
+    <string name="viewer_error_apk_unreadable_label">Hindi mabasang APK</string>
+    <string name="viewer_error_apk_unreadable_description">Hindi ma-parse ang %1$s bilang package ng Android app.</string>
+    <string name="viewer_error_icon_unavailable_label">Walang icon</string>
+    <string name="viewer_error_icon_unavailable_description">Hindi mabasa ang icon ng app na %1$s.</string>
+    <string name="viewer_error_icon_target_notfile_label">Ginagamit na ang pangalan</string>
+    <string name="viewer_error_icon_target_notfile_description">May %1$s na rito at hindi ito regular na file, kaya hindi ito mapapalitan.</string>
+    <string name="viewer_error_icon_target_appeared_label">May lumitaw na file</string>
+    <string name="viewer_error_icon_target_appeared_description">Nagawa ang %1$s habang pumipili ng lokasyon para sa pag-save. Walang napatungan, subukan muli.</string>
+    <string name="viewer_error_content_unreadable_label">Hindi mabasa ang file na ito</string>
+    <string name="viewer_error_content_unreadable_description">Hindi na pinapayagan ng app na nagbahagi ng %1$s ang Butler na basahin ito. Hilingin sa app na iyon na ibahagi itong muli.</string>
+    <string name="viewer_save_copy_action">Mag-save ng kopya…</string>
+    <string name="viewer_open_in_editor_action">Buksan sa editor</string>
+    <string name="viewer_text_truncated_bytes">Limitado ang paunang tingin sa unang %1$s ng file na ito.</string>
+    <string name="viewer_text_truncated_lines">Limitado ang paunang tingin sa unang %1$s na linya ng file na ito.</string>
+    <string name="viewer_text_truncated_width">Pinaikli ang mahahabang linya sa paunang tingin na ito.</string>
+    <string name="viewer_text_unreadable_label">Hindi mabasa ang file na ito</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">Tagatingin</string>
+    <string name="viewer_settings_show_next_after_delete_title">Ipakita ang susunod na file pagkatapos magtanggal</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Pagkatapos tanggalin ang file na binuksan mula sa isang folder, ipakita ang susunod na file sa folder na iyon sa halip na isara ang tagatingin.</string>
+</resources>

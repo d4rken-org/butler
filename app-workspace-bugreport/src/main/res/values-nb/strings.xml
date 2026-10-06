@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Feilrapporter</string>
+    <string name="bugreport_workspace_subtitle">Krasj- og feilrapporter</string>
+
+    <string name="bugreport_empty_title">Ingen rapporter</string>
+    <string name="bugreport_empty_subtitle">Krasj- og feilrapporter vises her. Ingenting sendes automatisk.</string>
+
+    <string name="bugreport_type_crash">Krasj</string>
+    <string name="bugreport_type_report">Rapport</string>
+    <string name="bugreport_type_recording">Opptak</string>
+
+    <string name="bugreport_record_action">Ta opp feilsøkingslogg</string>
+    <string name="bugreport_record_short_action">Ta opp</string>
+    <string name="bugreport_stop_action">Stopp opptak</string>
+    <string name="bugreport_stop_short_action">Stopp</string>
+    <string name="bugreport_recording_ongoing_label">Tar opp…</string>
+
+    <string name="bugreport_recording_short_title">Opptaket er svært kort</string>
+    <string name="bugreport_recording_short_message">Dette opptaket er bare noen få sekunder langt og inneholder kanskje ikke nyttig informasjon. Stoppe det likevel?</string>
+    <string name="bugreport_recording_short_keep_action">Fortsett opptaket</string>
+
+    <string name="bugreport_rename_action">Gi nytt navn</string>
+    <string name="bugreport_rename_dialog_title">Gi denne rapporten et navn</string>
+    <string name="bugreport_rename_name_label">Navn</string>
+    <string name="bugreport_rename_name_hint">Vises i listen og i navnet på den delte filen</string>
+
+    <string name="bugreport_share_action">Del</string>
+    <string name="bugreport_delete_action">Slett</string>
+    <string name="bugreport_delete_all_action">Slett alle</string>
+    <string name="bugreport_delete_all_confirm_title">Slette alle feilsøkingslogger?</string>
+    <string name="bugreport_delete_all_confirm_message">Dette sletter alle opptaksøkter med feilsøkingslogger permanent. Aktive opptak blir ikke berørt.</string>
+    <string name="bugreport_delete_confirm_title">Slette denne rapporten?</string>
+    <string name="bugreport_delete_confirm_message">Dette sletter denne rapporten og loggen permanent.</string>
+    <string name="bugreport_cancel_action">Avbryt</string>
+
+    <string name="bugreport_share_chooser_title">Del feilrapport</string>
+    <string name="bugreport_share_consent_title">Dele rapport?</string>
+    <string name="bugreport_share_consent_message">Denne rapporten inneholder applogger som kan inneholde filnavn, stier og informasjon om appen og enheten. Del den bare med folk du stoler på.</string>
+
+    <string name="bugreport_detail_back_action">Tilbake</string>
+    <string name="bugreport_detail_section_error">Feil</string>
+    <string name="bugreport_detail_section_log">Nylig logg</string>
+    <string name="bugreport_detail_field_type">Type</string>
+    <string name="bugreport_detail_field_time">Tid</string>
+    <string name="bugreport_detail_field_app_version">Appversjon</string>
+    <string name="bugreport_detail_field_device">Enhet</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Bygg</string>
+    <string name="bugreport_detail_field_error_class">Feiltype</string>
+    <string name="bugreport_detail_field_thread">Tråd</string>
+    <string name="bugreport_detail_log_truncated">siste %1$d av %2$d linjer</string>
+    <string name="bugreport_detail_log_count">%1$d linjer</string>
+    <string name="bugreport_detail_log_empty">Ingen logg registrert</string>
+    <string name="bugreport_detail_log_error">Kunne ikke laste inn loggen</string>
+</resources>

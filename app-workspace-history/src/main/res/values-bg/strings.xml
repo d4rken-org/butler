@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">История</string>
+    <string name="history_workspace_subtitle">Скорошни файлови операции</string>
+    <string name="history_workspace_title_scoped">История: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">История: Неуспешни</string>
+    <string name="history_workspace_title_outcome_partial">История: Частично завършени</string>
+    <string name="history_workspace_title_outcome_cancelled">История: Отменени</string>
+    <string name="history_workspace_title_outcome_completed">История: Завършени</string>
+    <string name="history_workspace_title_kind_copy">История: Копиране</string>
+    <string name="history_workspace_title_kind_move">История: Преместване</string>
+    <string name="history_workspace_title_kind_delete">История: Изтриване</string>
+    <string name="history_workspace_title_kind_create_file">История: Създаване на файл</string>
+    <string name="history_workspace_title_kind_create_folder">История: Създаване на папка</string>
+    <string name="history_workspace_title_kind_save">История: Запазване</string>
+    <string name="history_workspace_title_kind_compress">История: Компресиране</string>
+    <string name="history_workspace_title_kind_extract">История: Разархивиране</string>
+    <string name="history_workspace_title_filtered">История (филтрирана)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">История: %1$d път</item>
+        <item quantity="other">История: %1$d пътя</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Всички</string>
+    <string name="history_filter_outcome_completed">Завършени</string>
+    <string name="history_filter_outcome_partial">Частично завършени</string>
+    <string name="history_filter_outcome_failed">Неуспешни</string>
+    <string name="history_filter_outcome_cancelled">Отменени</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Копиране</string>
+    <string name="history_filter_kind_move">Преместване</string>
+    <string name="history_filter_kind_delete">Изтриване</string>
+    <string name="history_filter_kind_create_file">Създаване на файл</string>
+    <string name="history_filter_kind_create_folder">Създаване на папка</string>
+    <string name="history_filter_kind_save">Запазване</string>
+    <string name="history_filter_kind_compress">Компресиране</string>
+    <string name="history_filter_kind_extract">Разархивиране</string>
+    <string name="history_filter_kind_enable">Активиране</string>
+    <string name="history_filter_kind_disable">Деактивиране</string>
+    <string name="history_filter_kind_force_stop">Принудително спиране</string>
+    <string name="history_filter_kind_uninstall">Деинсталиране</string>
+    <string name="history_filter_kind_clear_data">Изчистване на данните</string>
+    <string name="history_filter_kind_components">Компоненти</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Задай обхват по път…</string>
+    <string name="history_path_scope_clear_action">Изчисти обхвата по път</string>
+    <string name="history_path_scope_dialog_title">Филтриране по път</string>
+    <string name="history_path_scope_dialog_description">Показвай само операции, засягащи този път или вложените в него пътища.</string>
+    <string name="history_path_scope_dialog_input_label">Път</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Избери папка…</string>
+    <string name="history_path_scope_dialog_apply_action">Приложи</string>
+    <string name="history_path_scope_dialog_cancel_action">Отмени</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Днес</string>
+    <string name="history_group_yesterday">Вчера</string>
+    <string name="history_group_this_week">Тази седмица</string>
+    <string name="history_group_this_month">Този месец</string>
+    <string name="history_group_older">По-стари</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Преименувано</string>
+    <string name="history_entry_intent_paste_copy">Поставено</string>
+    <string name="history_entry_intent_paste_move">Поставено (преместване)</string>
+    <string name="history_entry_intent_drop_copy">Пуснато (копиране)</string>
+    <string name="history_entry_intent_drop_move">Пуснато (преместване)</string>
+    <string name="history_entry_intent_enable_components">Активирани компоненти на</string>
+    <string name="history_entry_intent_disable_components">Деактивирани компоненти на</string>
+    <string name="history_entry_kind_copy">Копирано</string>
+    <string name="history_entry_kind_move">Преместено</string>
+    <string name="history_entry_kind_delete">Изтрито</string>
+    <string name="history_entry_kind_create_file">Създаден файл</string>
+    <string name="history_entry_kind_create_folder">Създадена папка</string>
+    <string name="history_entry_kind_save">Запазено</string>
+    <string name="history_entry_kind_compress">Компресирано</string>
+    <string name="history_entry_kind_extract">Разархивирано</string>
+    <string name="history_entry_kind_restore">Възстановено</string>
+    <string name="history_entry_kind_install">Инсталирано</string>
+    <string name="history_entry_kind_enable">Активирано</string>
+    <string name="history_entry_kind_disable">Деактивирано</string>
+    <string name="history_entry_kind_force_stop">Принудително спряно</string>
+    <string name="history_entry_kind_uninstall">Деинсталирано</string>
+    <string name="history_entry_kind_clear_data">Изчистени данни на</string>
+    <string name="history_entry_kind_components">Променени компоненти на</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d път</item>
+        <item quantity="other">%d пътя</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">Първите %1$d от %2$d засегнати пътя</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Начало</string>
+    <string name="history_detail_label_completed">Край</string>
+    <string name="history_detail_label_duration">Продължителност</string>
+    <string name="history_detail_label_outcome">Резултат</string>
+    <string name="history_detail_label_origin">Произход</string>
+    <string name="history_detail_label_error">Грешка</string>
+    <string name="history_detail_label_paths">Засегнати пътища</string>
+    <string name="history_detail_label_partial_errors">Неуспешна обработка по елементи</string>
+    <string name="history_detail_copy_path_action">Копирай пътя</string>
+    <string name="history_detail_paths_empty">Няма записани засегнати пътища.</string>
+    <string name="history_detail_label_attempted_paths">Пътища с опит за обработка</string>
+    <string name="history_detail_label_packages">Засегнати приложения</string>
+    <string name="history_detail_packages_empty">Няма записани засегнати приложения.</string>
+    <string name="history_detail_paths_truncated_callout">Показани са първите %1$d от %2$d засегнати пътя.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Показани са първите %1$d от %2$d пътя с опит за обработка.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">Обработката на %1$d елемент беше неуспешна по време на тази операция.</item>
+        <item quantity="other">Обработката на %1$d елемента беше неуспешна по време на тази операция.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Файлов мениджър</string>
+    <string name="history_origin_searcher">Търсене</string>
+    <string name="history_origin_saver">Запази като</string>
+    <string name="history_origin_developer">Разработчик</string>
+    <string name="history_origin_viewer">Преглед</string>
+    <string name="history_origin_apps">Приложения</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d мс</string>
+    <string name="history_duration_seconds">%1$.1f с</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Все още няма история</string>
+    <string name="history_empty_subtitle">Файловите операции ще се появяват тук, докато използваш Butler.</string>
+    <string name="history_empty_filtered_title">Няма съвпадения</string>
+    <string name="history_empty_filtered_subtitle">Няма записи в историята, съответстващи на текущия филтър.</string>
+    <string name="history_empty_filtered_reset_action">Нулирай филтъра</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Нулирай филтъра</string>
+    <string name="history_toolbar_reset_filter_content_description">Нулирай филтрите</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">Първите %1$d от %2$d засегнати пътя</string>
+    <string name="history_add_filter_action">Добави филтър</string>
+    <string name="history_add_filter_sheet_title">Добави филтър</string>
+    <string name="history_add_filter_section_outcome">Резултат</string>
+    <string name="history_add_filter_section_kind">Вид</string>
+    <string name="history_add_filter_section_path_scope">Обхват по път</string>
+    <string name="history_add_filter_add_path_action">Добави път…</string>
+    <string name="history_path_scope_remove_action">Премахни</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d запис</item>
+        <item quantity="other">%1$d записа</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">Показани: %1$d от %2$d</item>
+        <item quantity="other">Показани: %1$d от %2$d</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">История</string>
+    <string name="history_settings_save_history_title">Запазване на историята</string>
+    <string name="history_settings_save_history_subtitle">Записвай завършените файлови операции.</string>
+    <string name="history_settings_max_history_label">Максимален брой записи в историята</string>
+    <string name="history_settings_max_history_subtitle">По-старите записи се премахват при надвишаване на този лимит.</string>
+    <string name="history_settings_max_history_input_label">Максимален брой записи</string>
+    <string name="history_settings_clear_history_title">Изчистване на историята</string>
+    <string name="history_settings_clear_history_subtitle">Премахни всички съхранени записи (%1$d).</string>
+    <string name="history_clear_dialog_title">Да се изчисти ли историята?</string>
+    <string name="history_clear_dialog_message">Премахва всички записи от базата данни с историята на операциите. Това действие не може да бъде отменено.</string>
+    <string name="history_clear_confirm_action">Изчисти</string>
+    <string name="history_cleared_success">Историята е изчистена</string>
+    <string name="history_workspace_title_kind_restore">Възстановявания</string>
+    <string name="history_filter_kind_restore">Възстановяване</string>
+    <string name="history_workspace_title_kind_install">История: Инсталиране</string>
+    <string name="history_filter_kind_install">Инсталиране</string>
+    <string name="history_workspace_title_kind_enable">История: Активиране</string>
+    <string name="history_workspace_title_kind_disable">История: Деактивиране</string>
+    <string name="history_workspace_title_kind_force_stop">История: Принудително спиране</string>
+    <string name="history_workspace_title_kind_uninstall">История: Деинсталиране</string>
+    <string name="history_workspace_title_kind_clear_data">История: Изчистване на данните</string>
+    <string name="history_workspace_title_kind_components">История: Компоненти</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Избери всички</string>
+    <string name="history_action_deselect_all">Премахни избора на всички</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Изтрий %1$d запис</item>
+        <item quantity="other">Изтрий %1$d записа</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Премахват се само записите в историята, а самите файлове остават непокътнати.</string>
+    <string name="history_pro_dialog_message">Споделянето на няколко записа от историята наведнъж е част от платената надстройка. Споделянето на един запис и изтриването на записи остават безплатни.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Резултат</string>
+    <string name="history_share_label_kind">Вид</string>
+    <string name="history_share_label_origin">Произход</string>
+    <string name="history_share_label_summary">Обобщение</string>
+    <string name="history_share_label_completed">Край</string>
+    <string name="history_share_label_duration">Продължителност</string>
+    <string name="history_share_label_error">Грешка</string>
+    <string name="history_share_label_failed_items">Елементи с неуспешна обработка</string>
+    <string name="history_share_label_paths">Засегнати пътища (%1$d)</string>
+    <string name="history_share_label_packages">Засегнати приложения (%1$d)</string>
+    <string name="history_share_paths_more">… и още %1$d</string>
+    <string name="history_share_truncated">… и още %1$d невключени записа</string>
+</resources>

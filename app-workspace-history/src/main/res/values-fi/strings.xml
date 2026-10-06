@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">Historia</string>
+    <string name="history_workspace_subtitle">Viimeisimmät tiedostotoiminnot</string>
+    <string name="history_workspace_title_scoped">Historia: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">Historia: Epäonnistuneet</string>
+    <string name="history_workspace_title_outcome_partial">Historia: Osittain onnistuneet</string>
+    <string name="history_workspace_title_outcome_cancelled">Historia: Perutut</string>
+    <string name="history_workspace_title_outcome_completed">Historia: Valmistuneet</string>
+    <string name="history_workspace_title_kind_copy">Historia: Kopiointi</string>
+    <string name="history_workspace_title_kind_move">Historia: Siirto</string>
+    <string name="history_workspace_title_kind_delete">Historia: Poisto</string>
+    <string name="history_workspace_title_kind_create_file">Historia: Tiedoston luonti</string>
+    <string name="history_workspace_title_kind_create_folder">Historia: Kansion luonti</string>
+    <string name="history_workspace_title_kind_save">Historia: Tallennus</string>
+    <string name="history_workspace_title_kind_compress">Historia: Pakkaus</string>
+    <string name="history_workspace_title_kind_extract">Historia: Purkaminen</string>
+    <string name="history_workspace_title_filtered">Historia (suodatettu)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">Historia: %1$d polku</item>
+        <item quantity="other">Historia: %1$d polkua</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">Kaikki</string>
+    <string name="history_filter_outcome_completed">Valmistuneet</string>
+    <string name="history_filter_outcome_partial">Osittain onnistuneet</string>
+    <string name="history_filter_outcome_failed">Epäonnistuneet</string>
+    <string name="history_filter_outcome_cancelled">Perutut</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Kopiointi</string>
+    <string name="history_filter_kind_move">Siirto</string>
+    <string name="history_filter_kind_delete">Poisto</string>
+    <string name="history_filter_kind_create_file">Tiedoston luonti</string>
+    <string name="history_filter_kind_create_folder">Kansion luonti</string>
+    <string name="history_filter_kind_save">Tallennus</string>
+    <string name="history_filter_kind_compress">Pakkaus</string>
+    <string name="history_filter_kind_extract">Purkaminen</string>
+    <string name="history_filter_kind_enable">Käyttöönotto</string>
+    <string name="history_filter_kind_disable">Käytöstä poistaminen</string>
+    <string name="history_filter_kind_force_stop">Pakotettu pysäytys</string>
+    <string name="history_filter_kind_uninstall">Asennuksen poisto</string>
+    <string name="history_filter_kind_clear_data">Tietojen tyhjennys</string>
+    <string name="history_filter_kind_components">Komponentit</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Aseta polkurajaus…</string>
+    <string name="history_path_scope_clear_action">Poista polkurajaus</string>
+    <string name="history_path_scope_dialog_title">Suodata polun mukaan</string>
+    <string name="history_path_scope_dialog_description">Näytä vain toiminnot, jotka vaikuttavat tähän polkuun tai sen alla oleviin kohteisiin.</string>
+    <string name="history_path_scope_dialog_input_label">Polku</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Valitse kansio…</string>
+    <string name="history_path_scope_dialog_apply_action">Käytä</string>
+    <string name="history_path_scope_dialog_cancel_action">Peruuta</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Tänään</string>
+    <string name="history_group_yesterday">Eilen</string>
+    <string name="history_group_this_week">Tällä viikolla</string>
+    <string name="history_group_this_month">Tässä kuussa</string>
+    <string name="history_group_older">Vanhemmat</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Nimetty uudelleen</string>
+    <string name="history_entry_intent_paste_copy">Liitetty</string>
+    <string name="history_entry_intent_paste_move">Liitetty (siirto)</string>
+    <string name="history_entry_intent_drop_copy">Pudotettu (kopiointi)</string>
+    <string name="history_entry_intent_drop_move">Pudotettu (siirto)</string>
+    <string name="history_entry_intent_enable_components">Komponentit otettu käyttöön:</string>
+    <string name="history_entry_intent_disable_components">Komponentit poistettu käytöstä:</string>
+    <string name="history_entry_kind_copy">Kopioitu</string>
+    <string name="history_entry_kind_move">Siirretty</string>
+    <string name="history_entry_kind_delete">Poistettu</string>
+    <string name="history_entry_kind_create_file">Luotu tiedosto</string>
+    <string name="history_entry_kind_create_folder">Luotu kansio</string>
+    <string name="history_entry_kind_save">Tallennettu</string>
+    <string name="history_entry_kind_compress">Pakattu</string>
+    <string name="history_entry_kind_extract">Purettu</string>
+    <string name="history_entry_kind_restore">Palautettu</string>
+    <string name="history_entry_kind_install">Asennettu</string>
+    <string name="history_entry_kind_enable">Otettu käyttöön</string>
+    <string name="history_entry_kind_disable">Poistettu käytöstä</string>
+    <string name="history_entry_kind_force_stop">Pysäytetty pakotetusti</string>
+    <string name="history_entry_kind_uninstall">Asennus poistettu:</string>
+    <string name="history_entry_kind_clear_data">Tiedot tyhjennetty:</string>
+    <string name="history_entry_kind_components">Komponentteja muutettu:</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d polku</item>
+        <item quantity="other">%d polkua</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">Ensimmäiset %1$d polkua yhteensä %2$d kohdepolusta</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Aloitettu</string>
+    <string name="history_detail_label_completed">Valmistunut</string>
+    <string name="history_detail_label_duration">Kesto</string>
+    <string name="history_detail_label_outcome">Tulos</string>
+    <string name="history_detail_label_origin">Alkuperä</string>
+    <string name="history_detail_label_error">Virhe</string>
+    <string name="history_detail_label_paths">Toiminnon kohdepolut</string>
+    <string name="history_detail_label_partial_errors">Kohdekohtaiset epäonnistumiset</string>
+    <string name="history_detail_copy_path_action">Kopioi polku</string>
+    <string name="history_detail_paths_empty">Toiminnon kohdepolkuja ei ole tallennettu.</string>
+    <string name="history_detail_label_attempted_paths">Polut, joita yritettiin käsitellä</string>
+    <string name="history_detail_label_packages">Toiminnon kohdesovellukset</string>
+    <string name="history_detail_packages_empty">Toiminnon kohdesovelluksia ei ole tallennettu.</string>
+    <string name="history_detail_paths_truncated_callout">Näytetään ensimmäiset %1$d polkua yhteensä %2$d kohdepolusta.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">Näytetään ensimmäiset %1$d polkua yhteensä %2$d polusta, joita yritettiin käsitellä.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">%1$d kohteen käsittely epäonnistui tämän toiminnon aikana.</item>
+        <item quantity="other">%1$d kohteen käsittely epäonnistui tämän toiminnon aikana.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Tiedostonhallinta</string>
+    <string name="history_origin_searcher">Haku</string>
+    <string name="history_origin_saver">Tallenna nimellä</string>
+    <string name="history_origin_developer">Kehittäjä</string>
+    <string name="history_origin_viewer">Katselin</string>
+    <string name="history_origin_apps">Sovellukset</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">Ei vielä historiaa</string>
+    <string name="history_empty_subtitle">Tiedostotoiminnot näkyvät täällä, kun käytät Butleria.</string>
+    <string name="history_empty_filtered_title">Ei vastaavia merkintöjä</string>
+    <string name="history_empty_filtered_subtitle">Mikään historiamerkintä ei vastaa nykyistä suodatinta.</string>
+    <string name="history_empty_filtered_reset_action">Nollaa suodatin</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">Nollaa suodatin</string>
+    <string name="history_toolbar_reset_filter_content_description">Nollaa suodattimet</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">Ensimmäiset %1$d polkua yhteensä %2$d kohdepolusta</string>
+    <string name="history_add_filter_action">Lisää suodatin</string>
+    <string name="history_add_filter_sheet_title">Lisää suodatin</string>
+    <string name="history_add_filter_section_outcome">Tulos</string>
+    <string name="history_add_filter_section_kind">Tyyppi</string>
+    <string name="history_add_filter_section_path_scope">Polkurajaus</string>
+    <string name="history_add_filter_add_path_action">Lisää polku…</string>
+    <string name="history_path_scope_remove_action">Poista</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d merkintä</item>
+        <item quantity="other">%1$d merkintää</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">Näytetään %1$d / %2$d</item>
+        <item quantity="other">Näytetään %1$d / %2$d</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">Historia</string>
+    <string name="history_settings_save_history_title">Tallenna historia</string>
+    <string name="history_settings_save_history_subtitle">Tallenna valmistuneet tiedostotoiminnot.</string>
+    <string name="history_settings_max_history_label">Historiamerkintöjen enimmäismäärä</string>
+    <string name="history_settings_max_history_subtitle">Vanhemmat merkinnät poistetaan, kun tämä raja ylittyy.</string>
+    <string name="history_settings_max_history_input_label">Merkintöjen enimmäismäärä</string>
+    <string name="history_settings_clear_history_title">Tyhjennä historia</string>
+    <string name="history_settings_clear_history_subtitle">Poista kaikki tallennetut merkinnät (%1$d).</string>
+    <string name="history_clear_dialog_title">Tyhjennetäänkö historia?</string>
+    <string name="history_clear_dialog_message">Poistaa kaikki merkinnät toimintahistorian tietokannasta. Tätä ei voi kumota.</string>
+    <string name="history_clear_confirm_action">Tyhjennä</string>
+    <string name="history_cleared_success">Historia tyhjennetty</string>
+    <string name="history_workspace_title_kind_restore">Palautukset</string>
+    <string name="history_filter_kind_restore">Palautus</string>
+    <string name="history_workspace_title_kind_install">Historia: Asennus</string>
+    <string name="history_filter_kind_install">Asennus</string>
+    <string name="history_workspace_title_kind_enable">Historia: Käyttöönotto</string>
+    <string name="history_workspace_title_kind_disable">Historia: Käytöstä poistaminen</string>
+    <string name="history_workspace_title_kind_force_stop">Historia: Pakotettu pysäytys</string>
+    <string name="history_workspace_title_kind_uninstall">Historia: Asennuksen poisto</string>
+    <string name="history_workspace_title_kind_clear_data">Historia: Tietojen tyhjennys</string>
+    <string name="history_workspace_title_kind_components">Historia: Komponentit</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">Valitse kaikki</string>
+    <string name="history_action_deselect_all">Poista kaikki valinnat</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">Poista %1$d merkintä</item>
+        <item quantity="other">Poista %1$d merkintää</item>
+    </plurals>
+    <string name="history_delete_dialog_message">Vain historiamerkinnät poistetaan. Itse tiedostoihin ei kosketa.</string>
+    <string name="history_pro_dialog_message">Usean historiamerkinnän jakaminen kerralla kuuluu lisäominaisuuksiin. Yksittäisen merkinnän jakaminen ja merkintöjen poistaminen pysyvät ilmaisina.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">Tulos</string>
+    <string name="history_share_label_kind">Tyyppi</string>
+    <string name="history_share_label_origin">Alkuperä</string>
+    <string name="history_share_label_summary">Yhteenveto</string>
+    <string name="history_share_label_completed">Valmistunut</string>
+    <string name="history_share_label_duration">Kesto</string>
+    <string name="history_share_label_error">Virhe</string>
+    <string name="history_share_label_failed_items">Epäonnistuneet kohteet</string>
+    <string name="history_share_label_paths">Toiminnon kohdepolut (%1$d)</string>
+    <string name="history_share_label_packages">Toiminnon kohdesovellukset (%1$d)</string>
+    <string name="history_share_paths_more">… ja %1$d muuta</string>
+    <string name="history_share_truncated">… ja %1$d muuta merkintää, joita ei sisällytetty</string>
+</resources>

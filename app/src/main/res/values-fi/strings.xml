@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_welcome_title">Tervetuloa Butleriin</string>
+    <string name="onboarding_welcome_message">Välilehdet tiedostoille.\nSelaa, etsi ja muokkaa — kaikki yhtä aikaa.</string>
+    <string name="onboarding_welcome_subtitle">Avoin lähdekoodi. Ei mainoksia. Ei seurantaa.\nTiedostonhallinta, jonka ansaitset.</string>
+    <string name="onboarding_welcome_action">Aloita selailu</string>
+    <string name="onboarding_beta_title">Muovaa tulevaisuutta</string>
+    <string name="onboarding_beta_message">Tämä on beta- eli testiversio. Pidä huumorintaju ja varasuunnitelma mukana. Ilmoita kohtaamistasi ongelmista.</string>
+    <string name="onboarding_beta_action">En pelkää mitään</string>
+    <string name="onboarding_beta_feature_early_access_title">Ennakkokäyttö</string>
+    <string name="onboarding_beta_feature_early_access_description">Kokeile uusimpia ominaisuuksia ennen muita.</string>
+    <string name="onboarding_beta_feature_influence_title">Suora vaikutus</string>
+    <string name="onboarding_beta_feature_influence_description">Palautteesi ohjaa Butlerin kehitystä.</string>
+    <string name="onboarding_beta_feature_feedback_title">Yhteisön voimin</string>
+    <string name="onboarding_beta_feature_feedback_description">Liity Butlerin parantamiseen keskittyvään tehokäyttäjien yhteisöön.</string>
+    <string name="onboarding_privacy_title">Yksityisyys ja tiedot</string>
+    <string name="onboarding_privacy_message">Butlerissa ei ole mainoksia, eikä se myy käyttäjätietoja. Yksityisyytesi on minulle tärkeää.</string>
+    <string name="onboarding_privacy_read_action">Lue tietosuojakäytäntö</string>
+    <string name="onboarding_privacy_action">Hyväksy</string>
+    <string name="onboarding_skip_action">Ohita</string>
+    <string name="onboarding_progress_step">%1$d/%2$d</string>
+
+    <string name="onboarding_workspaces_title">Työskentele välilehdillä</string>
+    <string name="onboarding_workspaces_message">Avaa useita välilehtiä ja vaihda niiden välillä — aivan kuten verkkoselaimessasi.</string>
+    <string name="onboarding_workspaces_action">Jatka</string>
+    <string name="onboarding_workspaces_hint">Pidä useita välilehtiä auki samanaikaisesti.</string>
+    <string name="onboarding_workspaces_explorer_title">Tiedostonhallinta</string>
+    <string name="onboarding_workspaces_explorer_description">Selaa tiedostojasi.</string>
+    <string name="onboarding_workspaces_searcher_title">Haku</string>
+    <string name="onboarding_workspaces_searcher_description">Löydä etsimäsi.</string>
+    <string name="onboarding_workspaces_editor_title">Muokkain</string>
+    <string name="onboarding_workspaces_editor_description">Muokkaa tiedostoja.</string>
+    <string name="onboarding_workspaces_apps_description">Hallitse sovelluksiasi.</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">Uusi tiedostonhallinta</string>
+    <string name="shortcut_explorer_new_long">Luo uusi tiedostonhallintavälilehti</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">Pikakuvakkeet</string>
+    <string name="shortcuts_settings_subtitle">Määritä aloitusnäytön pikakuvakkeet</string>
+    <string name="shortcuts_settings_enabled_title">Ota pikakuvakkeet käyttöön</string>
+    <string name="shortcuts_settings_enabled_subtitle">Näytä usein käytetyt kohteet aloitusnäytössä</string>
+    <string name="shortcuts_settings_auto_remember_title">Muista käydyt polut</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">Lisää usein käytetyt polut automaattisesti pikakuvakkeiksi</string>
+    <string name="shortcuts_settings_last_accessed_title">Viimeksi käytetty</string>
+    <string name="shortcuts_settings_max_count_title">Pikakuvakkeiden enimmäismäärä</string>
+    <string name="shortcuts_settings_max_count_summary">Aloitusnäytössä näytettävien pikakuvakkeiden enimmäismäärä</string>
+    <string name="shortcuts_settings_min_access_title">Käyttökertojen vähimmäismäärä</string>
+    <string name="shortcuts_settings_min_access_summary">Kuinka monta kertaa polku on avattava ennen kuin siitä tulee pikakuvake</string>
+    <string name="shortcuts_settings_current_title">Nykyiset pikakuvakkeet</string>
+    <string name="shortcuts_settings_current_subtitle">%d pikakuvaketta seurannassa</string>
+    <string name="shortcuts_settings_clear_title">Tyhjennä pikakuvakehistoria</string>
+    <string name="shortcuts_settings_clear_subtitle">Poista kaikki seuratut pikakuvakkeet</string>
+    <string name="shortcuts_settings_clear_confirm_title">Tyhjennetäänkö pikakuvakehistoria?</string>
+    <string name="shortcuts_settings_clear_confirm_message">Tämä poistaa kaikki seuratut pikakuvakkeet. Kirjanmerkit säilytetään.</string>
+    <string name="shortcuts_settings_cleared_message">Pikakuvakehistoria tyhjennetty</string>
+    <string name="shortcuts_settings_max_dialog_title">Pikakuvakkeiden enimmäismäärä</string>
+    <string name="shortcuts_settings_max_dialog_message">Aloitusnäytössä näytettävien pikakuvakkeiden määrä (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">Käyttökertojen vähimmäismäärä</string>
+    <string name="shortcuts_settings_min_dialog_message">Kuinka monta kertaa polkua on käytettävä ennen kuin se näkyy pikakuvakkeena (1–10)</string>
+
+    <string name="setup_usagestats_title">Käyttötilastot</string>
+    <string name="setup_shizuku_card_title">ADB-käyttöoikeus</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Ilmoitusten käyttöoikeus</string>
+    <string name="setup_manage_storage_card_title">Ulkoisen tallennustilan hallinta</string>
+    <string name="setup_inventory_card_title">Sovellusluettelo</string>
+
+    <string name="setup_title">Käyttöoikeuksien määritys</string>
+    <string name="setup_settings_description">Määritä sovelluksen käyttöoikeudet ja ominaisuudet.</string>
+    <string name="setup_help_description">Ohje</string>
+
+    <string name="setup_root_description">Mahdollistaa järjestelmätiedostojen ja suojattujen hakemistojen käytön edistynyttä tiedostonhallintaa varten. Ota käyttöön Butlerin kaikki mahdollisuudet, kuten sovellustietojen käyttö ja järjestelmän muokkaus. Laitteessa on oltava root-oikeudet.</string>
+    <string name="setup_shizuku_description">Vaihtoehto root-oikeuksille: tarjoaa korotetut käyttöoikeudet tiedostotoimintoihin turvallisen API-rajapinnan kautta. Mahdollistaa rajoitettujen hakemistojen käytön ilman perinteisiä root-oikeuksia. Edellyttää, että Porter tai Shizuku on asennettu ja käynnissä.</string>
+    <string name="setup_notification_description">Näyttää tiedostotoimintojen ja taustatehtävien tilapäivitykset sekä siirtojen edistymisen. Ilmoittaa, kun toiminnot valmistuvat tai tapahtuu virheitä.</string>
+    <string name="setup_usagestats_description">Analysoi sovellusten tallennustilan käyttöä suurten tiedostojen tunnistamiseksi ja tilan tehokkaan hallinnan tueksi. Kaikki tiedot pysyvät laitteellasi, eikä niitä koskaan lähetetä.</string>
+    <string name="setup_storage_description">Täysi käyttöoikeus laitteen kaikkeen tallennustilaan nopeita tiedostotoimintoja ja eräkäsittelyä varten. Mahdollistaa kattavan tiedostonhallinnan ilman toistuvia käyttöoikeuspyyntöjä.</string>
+    <string name="setup_inventory_description">Näe kaikki asennetut sovellukset esimerkiksi APK-tiedostojen poimintaa ja tallennustilan analysointia varten. Vaaditaan Android 11:ssä ja uudemmissa koko sovellusluettelon näyttämiseen.</string>
+
+    <string name="setup_grant_access_label">Myönnä käyttöoikeus</string>
+    <string name="setup_access_granted_label">Käyttöoikeus myönnetty</string>
+    <string name="setup_use_root_label">Käytä root-oikeuksia, jos saatavilla</string>
+    <string name="setup_use_shizuku_label">Käytä ADB-käyttöoikeutta, jos saatavilla</string>
+
+    <string name="setup_status_checking">Tarkistetaan…</string>
+    <string name="setup_status_completed">Määritetty</string>
+    <string name="setup_status_required">Vaaditaan</string>
+    <string name="setup_status_optional">Valinnainen</string>
+    <string name="setup_status_connected">Yhdistetty</string>
+    <string name="setup_status_not_connected">Ei yhdistetty</string>
+    <string name="setup_status_not_installed">Ei asennettu</string>
+    <string name="setup_status_connecting">Yhdistetään…</string>
+    <string name="setup_status_connection_failed">Yhteys epäonnistui</string>
+    <string name="setup_status_unavailable">Ei saatavilla</string>
+    <string name="setup_status_permission_denied">Käyttöoikeus evätty</string>
+    <string name="setup_adb_status_manager_update_required">Päivitys vaaditaan</string>
+    <string name="setup_adb_status_butler_update_required">Butlerin päivitys vaaditaan</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_connected_via">Yhdistetty sovelluksen %1$s kautta</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_not_allowed_yet">Sovellus %1$s ei ole vielä sallinut käyttöä</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". Shown when that app no longer asks, so access has to be changed there. -->
+    <string name="setup_adb_status_denied_in">Käyttö evätty sovelluksessa %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_open_manager_action">Avaa %1$s</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_install_manager_action">Asenna %1$s</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">Vianmääritysilmoitukset</string>
+    <string name="debug_log_consent_title">Vianmääritysloki</string>
+    <string name="debug_log_consent_explanation">Tämä ominaisuus tallentaa kaiken sovelluksen toiminnan jaettavaan tiedostoon. Luotu tiedosto sisältää arkaluonteisia tietoja (esimerkiksi tiedostojen nimiä ja asennettuja sovelluksia). Jaa se vain luotettaville tahoille (esimerkiksi ongelmaa selvittävälle kehittäjälle).</string>
+    <string name="debug_log_recording_progress">Tallennetaan vianmäärityslokia</string>
+    <string name="debug_log_record_action">Tallenna</string>
+    <string name="debug_log_record_full_action">Tallenna vianmääritysloki</string>
+    <string name="debug_log_stop_action">Lopeta tallennus</string>
+    <string name="debug_log_screen_title">Vianmäärityslokin tallennin</string>
+    <string name="debug_log_screen_sensitive_information_message">Luotu tiedosto sisältää arkaluonteisia tietoja (esimerkiksi tiedostojen nimiä ja asennettuja sovelluksia). Jaa se vain luotettaville tahoille.</string>
+    <string name="debug_log_screen_session_path_label">Vianmääritysistunnon polku</string>
+    <string name="debug_log_screen_log_files_label">Lokitiedostot</string>
+    <string name="debug_log_screen_log_files_ready">Lokitiedostot valmiina (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">Hylkää</string>
+    <string name="debug_log_file_label">Tallennettu lokitiedosto</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">Tallennetaan lokitiedostoa</string>
+    <string name="debug_banner_stop_action">Lopeta</string>
+    <string name="debug_banner_view_action">Näytä</string>
+    <string name="debug_banner_explanation">Tallennetaan sovelluksen toimintaa. Lopeta, kun olet valmis, ja jaa loki ilmoittaessasi virheistä.</string>
+    <string name="debug_log_short_recording_title">Tallennus on hyvin lyhyt</string>
+    <string name="debug_log_short_recording_message">Vianmäärityslokit tallentavat tapahtumat tallennuksen ollessa käynnissä. Aloita tallennus, toista ongelma ja lopeta sitten tallennus. Tämä tallennus ei ehkä sisällä hyödyllisiä tietoja.</string>
+    <string name="debug_log_short_recording_keep_action">Jatka tallennusta</string>
+
+    <string name="debug_logview_screen_title">Lokikatselin</string>
+    <string name="debug_logview_pause_action">Keskeytä (pysäytä näkymä)</string>
+    <string name="debug_logview_resume_action">Jatka</string>
+    <string name="debug_logview_copy_action">Kopioi loki</string>
+    <string name="debug_logview_collapse_action">Supista</string>
+    <string name="debug_logview_close_action">Sulje lokipaneeli</string>
+    <string name="debug_logview_resize_action">Muuta kokoa</string>
+    <string name="debug_logview_more_action">Lisää vaihtoehtoja</string>
+    <string name="debug_logview_level_action">Lokitaso</string>
+    <string name="debug_logview_clear_action">Tyhjennä puskuri</string>
+    <string name="debug_logview_search_action">Hae</string>
+    <string name="debug_logview_search_clear_action">Tyhjennä haku</string>
+    <string name="debug_logview_search_close_action">Sulje haku</string>
+    <string name="debug_logview_search_prev_action">Edellinen osuma</string>
+    <string name="debug_logview_search_next_action">Seuraava osuma</string>
+    <string name="debug_logview_jump_to_bottom_action">Siirry uusimpaan</string>
+    <string name="debug_logview_paused_msg">Keskeytetty — näkymä pysäytetty</string>
+    <string name="debug_logview_paused_new_msg">Keskeytetty — %1$d uutta riviä sen jälkeen</string>
+    <string name="debug_logview_copied_msg">Loki kopioitu leikepöydälle</string>
+    <string name="debug_logview_copied_truncated_msg">Viimeiset %1$d riviä kopioitu leikepöydälle</string>
+    <string name="debug_logview_share_label">Jaa loki</string>
+
+    <string name="settings_label">Asetukset</string>
+    <string name="settings_category_tools_label">Työkalut</string>
+    <string name="settings_category_other_label">Muut</string>
+    <string name="settings_category_integration_label">Integrointi</string>
+    <string name="general_settings_label">Yleiset</string>
+    <string name="general_settings_desc">Yleiset säädöt, jotka vaikuttavat koko sovellukseen.</string>
+    <string name="settings_category_ui_label">Käyttöliittymä</string>
+    <string name="ui_mascot_suit_setting_label">Butlerin puku</string>
+    <string name="ui_mascot_suit_setting_explanation">Väri, josta Butlerin asu räätälöidään.</string>
+    <string name="ui_theme_mode_setting_label">Teeman tila</string>
+    <string name="ui_theme_mode_setting_explanation">Sovelluksen teeman tila (esimerkiksi yö tai päivä).</string>
+    <string name="ui_theme_style_setting_label">Teeman tyyli</string>
+    <string name="ui_theme_style_setting_explanation">Sovelluksen teemassa käytettävä värityyli.</string>
+    <string name="ui_theme_color_setting_label">Teeman väri</string>
+    <string name="ui_theme_color_setting_explanation">Sovelluksen teemassa käytettävä väripaletti.</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Material You määrittää värit taustakuvasi perusteella</string>
+    <string name="ui_theme_color_value_system">Järjestelmän värit</string>
+    <string name="ui_language_override_label">Sovelluksen kieli</string>
+    <string name="ui_language_override_desc">Valitse Butlerille eri kieli järjestelmäsi oletuskielestä riippumatta.</string>
+    <string name="ui_display_cutout_avoid_setting_title">Vältä näytön lovea</string>
+    <string name="ui_display_cutout_avoid_setting_description">Pitää käyttöliittymän poissa kameran loven kohdalta. Poista asetus käytöstä, jos haluat käyttää suurempaa osaa näytöstä. Tällöin osa käyttöliittymästä voi kuitenkin jäädä loven taakse.</string>
+
+    <string name="previews_settings_title">Esikatselut</string>
+    <string name="previews_settings_subtitle">Hallitse kuvien esikatseluvälimuisteja.</string>
+
+    <string name="tour_settings_reset_title">Nollaa opastukset</string>
+    <string name="tour_settings_reset_subtitle">Näytä opastukset uudelleen, myös ohitetut tai käytöstä poistetut.</string>
+    <string name="tour_settings_reset_done">Opastukset on nollattu.</string>
+
+    <string name="storage_settings_title">Tallennustila</string>
+    <string name="storage_settings_subtitle">Hallitse Butlerin välimuisteja, tallennustilaa ja roskakoria.</string>
+    <string name="storage_category_previews_label">Esikatselut</string>
+    <string name="storage_previews_disk_cache_title">Levyvälimuisti</string>
+    <string name="storage_previews_memory_cache_title">Muistivälimuisti</string>
+    <string name="storage_previews_max_size_title">Välimuistin enimmäiskoko</string>
+    <string name="storage_clear_disk_confirm_title">Tyhjennetäänkö levyvälimuisti?</string>
+    <string name="storage_clear_disk_confirm_message">Tämä poistaa kaikki välimuistiin tallennetut esikatselukuvat. Ne luodaan uudelleen tarvittaessa.</string>
+    <string name="storage_clear_memory_confirm_title">Tyhjennetäänkö muistivälimuisti?</string>
+    <string name="storage_clear_memory_confirm_message">Tämä poistaa välimuistiin tallennetut esikatselukuvat muistista. Ne luodaan uudelleen tarvittaessa.</string>
+    <string name="storage_clear_all_confirm_title">Tyhjennetäänkö kaikki välimuistit?</string>
+    <string name="storage_clear_all_confirm_message">Tämä tyhjentää esikatselukuvien levy- ja muistivälimuistit.</string>
+    <string name="storage_clear_all_previews_action">Tyhjennä kaikki esikatseluvälimuistit</string>
+    <string name="storage_clear_all_subtitle">Poista kaikki esikatseluvälimuistit</string>
+    <string name="storage_cache_cleared_message">Välimuisti tyhjennetty</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">Tarkista päivitykset</string>
+    <string name="updater_check_enabled_setting_description">Salli Butlerin tarkistaa verkosta, onko uusi versio saatavilla.</string>
+    <string name="motd_check_enabled_setting_title">Tarkista tiedotteet</string>
+    <string name="motd_check_enabled_setting_description">Salli Butlerin hakea tärkeitä viestejä kehittäjältä.</string>
+    <string name="motd_card_header">Tiedote</string>
+
+    <string name="confirm_exit_setting_title">Vahvista poistuminen</string>
+    <string name="confirm_exit_setting_description">Näytä vahvistusikkuna sovelluksesta poistuttaessa.</string>
+    <string name="confirm_exit_dialog_title">Poistu Butlerista</string>
+    <string name="confirm_exit_dialog_message">Tämä sulkee sovelluksen ja palauttaa sinut aloitusnäyttöön.</string>
+    <string name="confirm_exit_dialog_exit">Poistu</string>
+    <string name="confirm_exit_dialog_cancel">Peruuta</string>
+    <string name="confirm_exit_dialog_dont_ask_again">Älä kysy uudelleen</string>
+
+    <string name="settings_support_category_help_label">Hae apua</string>
+    <string name="settings_support_label">Tuki</string>
+    <string name="settings_support_description">Lue ohjeita, ilmoita ongelmista, juttele muiden kanssa tai tallenna vianmäärityslokeja.</string>
+    <string name="settings_support_wiki_label">Ohjeet</string>
+    <string name="settings_support_wiki_description">Opi käyttämään Butleria tehokkaasti.</string>
+    <string name="settings_support_issue_tracker_description">Julkinen seurantajärjestelmä vikailmoituksille ja ominaisuustoiveille.</string>
+    <string name="settings_support_issue_tracker_label">Ongelmien seuranta</string>
+    <string name="settings_support_debuglog_label">Vianmääritysloki</string>
+    <string name="settings_support_debuglog_desc">Tallenna kaikki sovelluksen toiminta jaettavaan tekstitiedostoon.</string>
+    <string name="settings_support_debuglog_recording_desc">Vianmääritystietoja tallennetaan parhaillaan. Lopeta tallennus napauttamalla.</string>
+    <string name="settings_support_debuglog_path">Lokin polku: %1$s</string>
+    <string name="settings_support_bugreports_label">Virheraportit</string>
+    <string name="settings_support_bugreports_desc">Katsele kaatumisraportteja, tallenna vianmäärityslokeja ja jaa niitä kanssani.</string>
+    <string name="support_contact_report_type_crash">Kaatumisraportti</string>
+    <string name="support_contact_report_type_reported">Vikailmoitus</string>
+    <string name="support_contact_report_type_recording">Tallennus</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">Paikka yhdessäololle ja kysymyksille.</string>
+
+    <string name="settings_acknowledgements_label">Kiitokset</string>
+    <string name="settings_acknowledgements_description">Tekijät, lisenssit ja erityiskiitokset.</string>
+    <string name="settings_acks_translation_header">Käännös</string>
+    <string name="settings_acks_translators_title">Kääntäjät</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Käännä Butler</string>
+    <string name="settings_acks_translate_desc">Auta kääntämään Butler omalle kielellesi.</string>
+
+    <string name="settings_acks_thanks_header">Kiitos</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">Avoimen lähdekoodin projektien kääntämisen tukemisesta.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Kiitos kuvakkeesta, maskottien suunnittelusta ja animaatioista.</string>
+    <string name="settings_licenses_label">Lisenssit</string>
+
+    <!-- Workspace Status Card -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d välilehti</item>
+        <item quantity="other">%1$d välilehteä</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d toiminto</item>
+        <item quantity="other">%1$d toimintoa</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d vaatii huomiota</item>
+        <item quantity="other">%1$d vaatii huomiota</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d tallentamatta</item>
+        <item quantity="other">%1$d tallentamatta</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d keskeytetty</item>
+        <item quantity="other">%1$d keskeytetty</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">Näytä kaikki välilehdet</string>
+    <string name="workspace_status_filter_operations_desc">Suodata välilehdet, joilla on toimintoja</string>
+    <string name="workspace_status_filter_attention_desc">Suodata huomiota vaativat välilehdet</string>
+    <string name="workspace_status_filter_paused_desc">Suodata keskeytetyt välilehdet</string>
+    <string name="workspace_status_filter_unsaved_desc">Suodata välilehdet, joilla on tallentamattomia muutoksia</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Kotlin-ohjelmointikieli. (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Nopea riippuvuusinjektori Androidille ja Javalle. (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Suorita Java- ja Kotlin-koodia root-oikeuksilla! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">Suorita Kotlin JVM -koodia root-oikeuksilla helposti korutiinien avulla. (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">Antaa Android-sovelluksille ADB-käyttöoikeuden Shizuku-rajapintojen kautta ja tukee valinnaisesti root-oikeuksia. (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">Käyttää järjestelmän API-rajapintoja suoraan adb/root-oikeuksilla tavallisista sovelluksista app_process-komennolla käynnistetyn Java-prosessin kautta. (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Airbnb:n Lottie Androidille. (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Android-robotti on toisinnettu tai muokattu Googlen luomasta ja jakamasta teoksesta, ja sitä käytetään Creative Commons 3.0 Attribution License -lisenssin ehtojen mukaisesti.</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">Androidin moderni työkalupakki natiivikäyttöliittymien rakentamiseen. (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpack-kirjastot</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation ja muut AndroidX-kirjastot. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin-laajennukset</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Coroutines- ja Serialization-kirjastot. (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Kuvien latauskirjasto, joka pohjautuu Kotlin Coroutines -kirjastoon. (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Salausprimitiivit SMB-todennukseen, allekirjoitukseen ja salaukseen. (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Square-kirjastot</string>
+    <string name="acknowledgement_square_libraries_subtitle">Retrofit-, OkHttp- ja OkIO-verkkokirjastot. (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Aputyökaluja Jetpack Composelle. (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Vedä ja pudota -toiminto Composen LazyColumn-komponentille. (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Semanttisen versionumeroinnin kirjasto Kotlinille. (MIT-lisenssi)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Kaavioita ja kuvaajia Jetpack Composelle. (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">Tietosuojakäytäntö</string>
+    <string name="settings_privacy_policy_desc">Vastuullista tietojen käsittelyä.</string>
+
+    <string name="changelog_label">Muutosloki</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Butlerin lisäominaisuuksien tila</string>
+    <string name="upgrade_status_free">Tila: Ilmainen</string>
+    <string name="upgrade_status_pro">Tila: Pro</string>
+    <string name="upgrade_status_foss">Tila: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD-kortti</string>
+    <string name="storage_area_public_label">Julkinen tallennustila</string>
+    <string name="storage_area_public_app_data_label">Julkiset sovellustiedot</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">Välilehtien hallinta</string>
+    <string name="workspace_manager_empty_title">Ei välilehtiä</string>
+    <string name="workspace_manager_empty_subtitle">Aloita luomalla ensimmäinen välilehtesi</string>
+
+    <!-- Workspace > Empty Content -->
+    <string name="workspace_empty_create_action">Luo välilehti</string>
+    <string name="workspace_empty_create_hint">Työskentele rinnakkain: luo välilehti ja tee siitä haluamasi työkalu.</string>
+    <string name="workspace_empty_settings_action">Avaa asetukset</string>
+    <string name="workspace_empty_settings_hint">Mukauta Butler mieleiseksesi. Säädä työkalujen toimintaa.</string>
+    <string name="workspace_classic_empty_tabs_closed">Ei avoimia välilehtiä. Valmiina, kun sinäkin olet.</string>
+    <string name="workspace_classic_empty_tip">Vinkki: napauta ”Luo välilehti” ja valitse työkalu — Tiedostonhallinta, Haku, Muokkain tai jokin muu.</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">Aloita välilehdestä</string>
+    <string name="tour_first_tab_body">Butler toimii välilehdillä kuten selain: jokainen on oma työkalunsa — Tiedostonhallinta, Haku, Muokkain ja monet muut. Luo ensimmäinen välilehtesi.</string>
+    <string name="tour_manager_fab_title">Pikavalinnat</string>
+    <string name="tour_manager_fab_body">Napauta tästä päästäksesi nopeasti eniten käyttämiisi työkaluihin tai sulkeaksesi kaikki välilehdet kerralla.</string>
+    <string name="tour_manager_reorder_title">Järjestä välilehtesi uudelleen</string>
+    <string name="tour_manager_reorder_body">Paina välilehden otsikkopalkkia pitkään ja vedä se sitten haluamaasi paikkaan. Välilehdet näkyvät tässä järjestyksessä myös kaikkialla muualla.</string>
+    <string name="tour_manager_select_title">Käsittele useita välilehtiä</string>
+    <string name="tour_manager_select_body">Aloita välilehtien valinta painamalla välilehden esikatselua pitkään. Napauta sitten loput ja sulje tai keskeytä ne kaikki kerralla.</string>
+    <string name="tour_manager_new_tab_title">Aloita uusi välilehti</string>
+    <string name="tour_manager_new_tab_body">Napauta tätä korttia valitaksesi minkä tahansa työkalun uudelle välilehdelle.</string>
+    <string name="tour_swipe_switch_title">Vaihda välilehteä pyyhkäisemällä</string>
+    <string name="tour_swipe_switch_body">Pyyhkäise vasemmalle tai oikealle missä tahansa sivulla siirtyäksesi avoimien välilehtiesi välillä.</string>
+    <string name="tour_swipe_create_title">Aloita välilehti pyyhkäisemällä</string>
+    <string name="tour_swipe_create_body">Pyyhkäise viimeisen välilehtesi ohi, niin Butler tarjoaa sinulle uuden.</string>
+    <string name="tour_swipe_panes_title">Useampi välilehti kerrallaan</string>
+    <string name="tour_swipe_panes_body">Suuremmalla näytöllä tai vaaka-asennossa Butler näyttää useita välilehtiä rinnakkain. Välilehtien asetteluasetukset määräävät, milloin näin tapahtuu.</string>
+    <string name="tour_panes_rail_title">Kaikki välilehtesi</string>
+    <string name="tour_panes_rail_body">Kaikki avoimet välilehdet ovat tässä. Napauta välilehteä ja valitse ruutu, johon se sijoitetaan. Muuta järjestystä painamalla välilehteä pitkään ja vetämällä sitä.</string>
+    <string name="tour_panes_divider_title">Muuta ruutujen kokoa</string>
+    <string name="tour_panes_divider_body">Vedä tätä jakajaa antaaksesi yhdelle ruudulle enemmän tilaa.</string>
+    <string name="tour_panes_layout_title">Muuta asettelua</string>
+    <string name="tour_panes_layout_body">Napauta Butler-painiketta ja valitse Asettelu järjestääksesi ruudut uudelleen. Välilehtien asetuksissa voit kiinnittää asettelun kullekin näytön asennolle.</string>
+
+    <string name="workspace_creating_placeholder">Luodaan välilehteä…</string>
+    <string name="workspace_ondemand_swipe_title">Luo uusi välilehti pyyhkäisemällä</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">Ruutu %1$d on valmis sisällölle</string>
+    <string name="workspace_adaptive_add_action">Lisää välilehti</string>
+
+    <string name="workspace_badge_tip_title">Vinkki: välilehtipainikkeen ilmaisimet</string>
+    <string name="workspace_badge_open_workspaces">Avoimien välilehtien määrä</string>
+    <string name="workspace_badge_active_operations">Käynnissä olevat toiminnot (tiedostojen kopiointi, haut jne.)</string>
+    <string name="workspace_badge_attention_items">Huomiota vaativat kohteet (epäonnistuneet tai odottavat toiminnot, tiedostot, joihin ei saada yhteyttä)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">Sulje</string>
+    <string name="workspace_manager_selection_count">%1$d valittu</string>
+    <string name="workspace_manager_selection_select_all">Valitse kaikki</string>
+    <string name="workspace_manager_selection_pause_action">Keskeytä valitut</string>
+    <string name="workspace_manager_selection_close_action">Sulje valitut</string>
+    <string name="workspace_manager_selection_cancel_content_desc">Poistu valintatilasta</string>
+    <string name="workspace_manager_selection_clear_content_desc">Tyhjennä valinta</string>
+    <string name="workspace_manager_select_all_tabs_desc">Valitse kaikki välilehdet</string>
+    <string name="workspace_manager_new_tab_card_title">Uusi välilehti</string>
+    <string name="workspace_row_select_content_desc">Valitse välilehti</string>
+    <string name="general_cancel_action">Peruuta</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">Pikavalinnat</string>
+    <string name="workspace_fab_close_shortcuts">Sulje pikavalinnat</string>
+    <string name="workspace_fab_close_all">Sulje kaikki välilehdet</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">Sijoita ruutuun %1$d</string>
+    <string name="workspace_pane_show_action">Näytä</string>
+    <string name="workspace_pane_menu_action">Näytä välilehden vaihtoehdot</string>
+    <string name="workspace_pane_close_action">Sulje</string>
+    <string name="workspace_pane_unassign_action">Poista ruudusta</string>
+    <string name="workspace_dragging_description">Vedetään</string>
+    <string name="workspace_pane_current_description">Ruudussa %1$d</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">Sulje välilehti</string>
+    <string name="workspace_row_more_options_content_desc">Lisää vaihtoehtoja</string>
+    <string name="workspace_row_operations_running_content_desc">Työskentelee</string>
+    <string name="workspace_row_operations_pending_content_desc">Työtä odottamassa</string>
+    <string name="workspace_row_pause_action">Keskeytä</string>
+    <string name="workspace_row_resume_action">Jatka</string>
+    <string name="workspace_row_stacked_content_desc">Pinottu tälle välilehdelle</string>
+    <string name="workspace_row_unsaved_content_desc">Tallentamattomia muutoksia</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">Määritä välilehtien toiminta.</string>
+    <string name="explorer_settings_subtitle">Määritä tiedostonhallinnan toiminta.</string>
+    <string name="searcher_settings_subtitle">Määritä haun toiminta.</string>
+    <string name="editor_settings_subtitle">Määritä tekstimuokkaimen toiminta.</string>
+    <string name="viewer_settings_subtitle">Määritä tiedostokatselimen toiminta.</string>
+    <string name="history_settings_subtitle">Toimintohistorian säilyttäminen ja tyhjentäminen.</string>
+    <string name="clipboard_settings_subtitle">Määritä leikepöydän toiminta.</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">Tallenna nimellä…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">Avaa Butlerissa</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">Muokkaa tekstiä</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">Nimetön tiedosto</string>
+    <string name="external_open_action_view">Näytä</string>
+    <string name="external_open_action_edit">Muokkaa tekstinä</string>
+    <string name="external_open_action_show_in_explorer">Näytä tiedostonhallinnassa</string>
+    <string name="external_open_action_save">Tallenna nimellä…</string>
+    <string name="external_open_failed_label">Tiedostoa ei voitu avata</string>
+    <string name="external_open_failed_description">Butler ei voinut avata tiedostoa \"%1$s\".</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">Otetaanko kehittäjätila käyttöön?</string>
+    <string name="settings_developer_mode_unlock_message">Tämä avaa edistyneet diagnostiikkatyökalut vianmääritystä ja testausta varten.</string>
+    <string name="settings_developer_mode_unlock_action">Ota käyttöön</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">%d askel kehittäjätilaan</item>
+        <item quantity="other">%d askelta kehittäjätilaan</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">Ota yhteyttä kehittäjään</string>
+    <string name="support_contact_description">Täytä lomake lähettääksesi minulle sähköpostia.</string>
+    <string name="support_contact_no_email_app">Sähköpostisovellusta ei löytynyt</string>
+    <string name="support_contact_category_label">Luokka</string>
+    <string name="support_contact_category_question">Kysymys</string>
+    <string name="support_contact_category_feature">Ominaisuustoive</string>
+    <string name="support_contact_category_bug">Vikailmoitus</string>
+    <string name="support_contact_workspace_label">Aihealue</string>
+    <string name="support_contact_workspace_general">Yleinen</string>
+    <string name="support_contact_workspace_explorer">Tiedostonhallinta</string>
+    <string name="support_contact_workspace_searcher">Haku</string>
+    <string name="support_contact_workspace_editor">Muokkain</string>
+    <string name="support_contact_description_label">Kuvaus</string>
+    <string name="support_contact_description_question_hint">Kuvaile kysymyksesi yksityiskohtaisesti. Ole täsmällinen (vähintään 20 sanaa).</string>
+    <string name="support_contact_description_feature_hint">Kuvaile toivomasi ominaisuus. Ole täsmällinen (vähintään 20 sanaa).</string>
+    <string name="support_contact_description_bug_hint">Kuvaile, mitä tapahtui ja miten ongelman voi toistaa. Ole täsmällinen (vähintään 20 sanaa).</string>
+    <string name="support_contact_expected_label">Odotettu toiminta</string>
+    <string name="support_contact_expected_hint">Kuvaile, mitä odotit tapahtuvan (vähintään 10 sanaa).</string>
+    <string name="support_contact_word_count">Vähintään %1$d sanaa</string>
+    <string name="support_contact_debuglog_label">Vianmääritysloki</string>
+    <string name="support_contact_debuglog_empty">Vianmäärityslokeja ei löytynyt. Tallenna ensin yksi.</string>
+    <string name="support_contact_debuglog_picker_hint">Liitä olemassa oleva vianmääritysloki tai tallenna uusi.</string>
+    <string name="support_contact_send_action">Avaa sähköpostisovellus</string>
+    <string name="support_contact_welcome">Luen jokaisen viestin itse ja yritän parhaani mukaan vastata, mutta koska työskentelen tämän parissa yksin, se voi kestää hetken. Kiitos kärsivällisyydestäsi.</string>
+    <string name="support_contact_footer">Viestisi lähetetään sähköpostitse. Laitteen ja asetusten tiedot liitetään automaattisesti. Voit liittää sähköpostiin kuvakaappauksia tai videon.\n\nOsa sähköpostista on englanniksi, jotta ymmärrän sen helposti.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">Vianmäärityslokien tallennustila</string>
+    <string name="support_debuglog_storage_description">%1$d loki-istuntoa, %2$s</string>
+    <string name="support_debuglog_storage_empty">Ei tallennettuja vianmäärityslokeja</string>
+    <string name="support_debuglog_delete_action">Poista kaikki vianmäärityslokit</string>
+    <string name="support_debuglog_delete_description">Poista kaikki tallennetut vianmäärityslokitiedostot</string>
+    <string name="support_debuglog_delete_confirm_title">Poistetaanko kaikki vianmäärityslokit?</string>
+    <string name="support_debuglog_delete_confirm_message">Tämä poistaa pysyvästi kaikki tallennetut vianmääritysloki-istunnot. Käynnissä oleviin tallennuksiin ei vaikuteta.</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">Lopeta tallennus</string>
+    <string name="settings_support_debuglog_record_action">Tallenna vianmääritysloki</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">Vianmääritysloki-istunnot</string>
+    <string name="support_debuglog_sessions_desc">Hallitse tallennettuja vianmääritysloki-istuntoja</string>
+    <string name="support_debuglog_sessions_empty">Ei vianmääritysloki-istuntoja</string>
+    <string name="support_debuglog_session_recording">Tallennetaan…</string>
+    <string name="support_debuglog_session_compressing">Pakataan…</string>
+    <string name="support_debuglog_session_failed_empty_log">Epäonnistui: tyhjä loki</string>
+    <string name="support_debuglog_session_failed_missing_log">Epäonnistui: loki puuttuu</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">Epäonnistui: vioittunut arkisto</string>
+    <string name="support_debuglog_session_failed_zip_failed">Epäonnistui: pakkausvirhe</string>
+    <string name="support_debuglog_session_delete_title">Poistetaanko vianmääritysistunto?</string>
+    <string name="support_debuglog_session_delete_message">Tämä poistaa pysyvästi tämän vianmääritysloki-istunnon.</string>
+    <string name="support_debuglog_clear_action">Tyhjennä kaikki</string>
+    <string name="support_debuglog_clear_confirm_message">Poistetaanko kaikki tallennetut vianmääritysloki-istunnot?</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butlerin vianmääritysloki - %1$s</string>
+    <string name="debug_log_screen_subtitle">Vie vianmääritystiedot ongelmien selvittämistä varten</string>
+    <string name="debug_log_screen_sensitive_information_title">Arkaluonteiset tiedot</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">Lähetitkö viestin?</string>
+    <string name="support_contact_sent_message">Jos viesti lähetettiin, liitetty vianmääritysloki poistetaan tilan säästämiseksi. Jos et lähettänyt viestiä, voit säilyttää lokin ja yrittää myöhemmin uudelleen.</string>
+    <string name="support_contact_debuglog_zip_error">Vianmäärityslokiliitteen valmistelu epäonnistui</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">Tiedostotoimintojen edistyminen</string>
+    <string name="ops_notification_channel_progress_desc">Kopiointi-, siirto- ja poistotoimintojen edistyminen</string>
+    <string name="ops_notification_channel_attention_name">Tiedostotoimintojen hälytykset</string>
+    <string name="ops_notification_channel_attention_desc">Huomiotasi vaativat tai epäonnistuneet toiminnot</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d tiedostotoiminto käynnissä</item>
+        <item quantity="other">%1$d tiedostotoimintoa käynnissä</item>
+    </plurals>
+    <string name="ops_notification_state_queued">Jonossa…</string>
+    <string name="ops_notification_state_cancelling">Peruutetaan…</string>
+    <string name="ops_notification_state_attention_title">Toimenpide vaaditaan</string>
+    <string name="ops_notification_state_attention_text">Ristiriita vaatii huomiotasi — ratkaise se napauttamalla</string>
+    <string name="ops_notification_result_failed_title">Toiminto epäonnistui</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">Haluaisitko jättää Butlerille arvostelun? ❤️</string>
+    <string name="review_app_dismiss_action">Ehkä myöhemmin</string>
+    <string name="review_app_review_action">Arvostele</string>
+</resources>

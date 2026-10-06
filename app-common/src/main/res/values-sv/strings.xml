@@ -1,0 +1,303 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Filutforskare i särklass</string>
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Butlers appikon</string>
+    <string name="butler_mascot_description">Butlers maskot</string>
+    <string name="butler_mascot_animation_random_description">Butlers maskot med olika animationer</string>
+    <string name="butler_mascot_animation_wink_description">Butlers maskot blinkar med ena ögat</string>
+    <string name="butler_mascot_animation_greeting_description">Butlers maskot vinkar och hälsar</string>
+    <string name="butler_mascot_animation_hatoff_description">Butlers maskot lyfter artigt på hatten</string>
+    <string name="butler_mascot_animation_drink_description">Butlers maskot dricker</string>
+    <string name="butler_mascot_animation_moustache_description">Butlers maskot stryker mustaschen</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Butlers maskot blundar för att sova</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Butlers maskot snarkar</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Butlers maskot vaknar</string>
+    <string name="butler_mascot_animation_cameo_description">SD Maids maskot gör ett gästspel</string>
+
+    <string name="slogan_general_message_0">Till din tjänst.</string>
+    <string name="slogan_general_message_1">Var sak på sin plats.</string>
+    <string name="slogan_general_message_2">Ordning, inte kaos.</string>
+    <string name="slogan_general_message_3">Hämtar dina filer.</string>
+    <string name="slogan_general_message_4">Alla dina filer på rad.</string>
+    <string name="slogan_general_message_5">Ordning och reda, alltid.</string>
+    <string name="slogan_general_message_6">Hitta filer i ett nafs!</string>
+    <string name="slogan_general_message_7">Enkel åtkomst.</string>
+    <string name="slogan_general_message_8">Dina filer försvinner aldrig.</string>
+    <string name="slogan_general_message_9">Många hattar, många roller.</string>
+    <string name="slogan_newyear_message_0">Samma procedur som varje år.</string>
+    <string name="slogan_xmas_message_0">Kollar filerna en extra gång.</string>
+    <string name="slogan_xmas_message_1">På tomtens snällista.</string>
+    <string name="slogan_halloween_message_0">Bu-tler till din tjänst.</string>
+    <string name="slogan_halloween_message_1">Inget bus, bara filer.</string>
+    <string name="slogan_stpatricks_message_0">Känner du dig tursam?</string>
+    <string name="slogan_stpatricks_message_1">Hittar din kruka med guld.</string>
+    <string name="slogan_aprilfools_message_0">Inget trams här.</string>
+    <string name="slogan_aprilfools_message_1">Ordning och reda på allvar.</string>
+    <string name="slogan_oktoberfest_message_0">Skål för dina filer!</string>
+    <string name="slogan_oktoberfest_message_1">Filer på fat.</string>
+
+    <string name="general_share_action">Dela</string>
+    <string name="general_share_single_title">Dela %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Dela %d fil</item>
+        <item quantity="other">Dela %d filer</item>
+    </plurals>
+    <string name="general_done_action">Klart</string>
+    <string name="general_copy_action">Kopiera</string>
+    <string name="general_cut_action">Klipp ut</string>
+    <string name="general_move_action">Flytta</string>
+    <string name="general_paste_action">Klistra in</string>
+    <string name="general_apply_action">Tillämpa</string>
+    <string name="general_open_action">Öppna</string>
+    <string name="general_cancel_action">Avbryt</string>
+    <string name="general_close_action">Stäng</string>
+    <string name="general_confirm_action">Bekräfta</string>
+    <string name="general_reset_action">Återställ</string>
+    <string name="general_save_action">Spara</string>
+    <string name="general_edit_action">Redigera</string>
+    <string name="general_na_label">Ej tillämpligt</string>
+    <string name="general_dialog_a11y_label">Dialog</string>
+    <string name="general_dismiss_action">Stäng</string>
+    <string name="general_read_more_action">Läs mer</string>
+    <string name="general_mark_as_read_action">Markera som läst</string>
+    <string name="general_back_action">Tillbaka</string>
+    <string name="general_navigate_up_action">Gå upp en nivå</string>
+    <string name="general_error_label">Fel</string>
+    <string name="general_error_unknown_label">Okänt fel</string>
+    <string name="general_error_invalid_input_label">Ogiltig inmatning</string>
+    <string name="general_share_error_action">Dela felrapport</string>
+    <string name="general_error_report_subject">%1$s felrapport (%2$s)</string>
+    <string name="general_error_report_consent_title">Dela felrapport?</string>
+    <string name="general_error_report_consent_message">Rapporten innehåller felet och stackspårningen som det gav upphov till, appens senaste loggar och uppgifter om appens tillstånd: filnamn och sökvägar, sökfrågor, paketnamn, URI:er, värdnamn för nätverk och SMB, enhets- och bygginformation samt ett anonymt installations-ID. Dela den bara med personer du litar på.</string>
+    <string name="general_error_report_consent_confirm">Dela rapport</string>
+    <string name="general_privacy_policy_action">Integritetspolicy</string>
+    <string name="general_bug_report_subject">%1$s buggrapport (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">%1$s buggrapport: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Beskriv vad som hände här.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Beskriv vad du förväntade dig i stället.)</string>
+    <string name="general_duration_input_label">Varaktighet</string>
+    <string name="general_size_input_label">Storlek</string>
+    <string name="general_upgrade_action">Uppgradera</string>
+    <string name="general_refresh_action">Uppdatera</string>
+    <string name="general_clear_action">Rensa</string>
+    <string name="general_expand_action">Expandera</string>
+    <string name="general_collapse_action">Fäll ihop</string>
+    <string name="general_completed_label">Slutfört</string>
+    <string name="general_cancelled_label">Avbrutet</string>
+    <string name="general_searching_label">Söker</string>
+    <string name="general_searching_ellipsis">Söker…</string>
+    <string name="general_progress_loading">Läser in</string>
+    <string name="general_progress_loading_egg_0">Fortfarande snabbare än en iPhone</string>
+    <string name="general_progress_loading_egg_1">Laddar ner mer RAM</string>
+    <string name="general_progress_loading_egg_2">Beräknad klartid: Snart™</string>
+    <string name="general_progress_loading_egg_3">Processorn tar en fikapaus</string>
+    <string name="general_progress_loading_egg_4">Väntar på data från Pepe Silvia</string>
+    <string name="general_progress_loading_egg_5">Turboencabulatorn startar</string>
+    <string name="general_progress_loading_egg_6">Räcker över smöret</string>
+    <string name="general_progress_loading_egg_7">Så. Hur går det för dig?</string>
+    <string name="general_progress_loading_egg_8">Piper blipp blopp</string>
+    <string name="general_progress_loading_egg_9">Buffrar livsval</string>
+    <string name="general_progress_loading_egg_10">Frammanar Cthulhu</string>
+    <string name="general_progress_loading_egg_11">Det här är helt okej</string>
+    <string name="general_progress_loading_egg_12">Var god vänta</string>
+    <string name="general_progress_loading_egg_13">Du slipper åtminstone telefonkön</string>
+    <string name="general_progress_loading_egg_14">Applicera direkt på pannan</string>
+
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%ds</item>
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%dmin</item>
+        <item quantity="other">%dmin</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dh</item>
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dd</item>
+        <item quantity="other">%dd</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d sekund</item>
+        <item quantity="other">%d sekunder</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d minut</item>
+        <item quantity="other">%d minuter</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d timme</item>
+        <item quantity="other">%d timmar</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d dag</item>
+        <item quantity="other">%d dagar</item>
+    </plurals>
+
+    <string name="general_view_action">Visa</string>
+    <string name="general_delete_action">Radera</string>
+    <string name="general_show_details_action">Visa detaljer</string>
+    <string name="general_hide_details_action">Dölj detaljer</string>
+
+    <string name="general_delete_confirmation_title">Bekräfta radering</string>
+    <string name="general_delete_confirmation_message_x">Radera \"%s\"?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Radera %d markerade objekt?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">Raderade %d objekt.</item>
+        <item quantity="other">Raderade %d objekt.</item>
+    </plurals>
+
+    <string name="general_create_action">Skapa</string>
+    <string name="general_rename_action">Byt namn</string>
+    <string name="general_retry_action">Försök igen</string>
+    <string name="general_open_setup_action">Öppna konfiguration</string>
+    <string name="general_grant_usage_stats_action">Tillåt åtkomst till användningsdata</string>
+    <string name="general_grant_storage_permission_action">Ge lagringsbehörighet</string>
+    <string name="general_grant_all_files_access_action">Tillåt åtkomst till alla filer</string>
+
+    <string name="general_result_user_cancel_msg">Användaren har avbrutit åtgärden.</string>
+
+    <string name="general_path_label">Sökväg</string>
+    <string name="general_filename_validation_error">Namnet innehåller ogiltiga tecken: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d av %2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d av %2$d</string>
+
+    <string name="file_type_symbolic_link">Länk</string>
+    <string name="file_type_directory">Katalog</string>
+    <string name="file_type_file">Fil</string>
+    <string name="file_type_unknown">Okänd</string>
+
+    <string name="common_mimetype_image">Bild</string>
+    <string name="common_mimetype_video">Video</string>
+    <string name="common_mimetype_audio">Ljud</string>
+    <string name="common_mimetype_text_plain">Oformaterad text</string>
+    <string name="common_mimetype_text">Textdokument</string>
+    <string name="common_mimetype_pdf">PDF-dokument</string>
+    <string name="common_mimetype_document">Dokument</string>
+    <string name="common_mimetype_archive">Arkiv</string>
+    <string name="common_mimetype_apk">Android-paket</string>
+    <string name="common_mimetype_json">JSON-fil</string>
+    <string name="common_mimetype_xml">XML-fil</string>
+    <string name="common_mimetype_unknown">Okänd typ</string>
+
+    <string name="general_rom_type_auto_label">Automatiskt (standard)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s objekt/s</item>
+        <item quantity="other">%s objekt/s</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/s</item>
+        <item quantity="other">%s/s</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Typen stämmer inte: förväntade %1$s, men fick %2$s.</string>
+    <string name="general_error_cant_access_msg">Kan inte komma åt %s.</string>
+    <string name="general_error_archive_not_seekable_msg">Det går inte att bläddra direkt i %s: lagringen där arkivet finns stöder bara sekventiell läsning, men det här arkivformatet kräver direkt åtkomst till valfria delar.</string>
+    <string name="general_error_root_unavailable">Rootåtkomst är inte tillgänglig.</string>
+    <string name="general_error_elevated_access_required">Den här åtgärden kräver utökad åtkomst. Konfigurera root- eller ADB-åtkomst i konfigurationen.</string>
+    <string name="general_error_no_compatible_app_found_msg">Ingen kompatibel app hittades som kan hantera den här begäran.</string>
+    <string name="general_error_ipc_deadobject_title">Anslutningen till tjänsten bröts</string>
+    <string name="general_error_ipc_deadobject_description">Anslutningen till en kritisk tjänst (t.ex. Magisk eller en annan tjänst på systemnivå) bröts oväntat. Starta om din enhet. Om problemet kvarstår kan du söka efter uppdateringar eller kontakta mig så att jag kan åtgärda det.</string>
+
+    <string name="ui_theme_mode_dark_label">Mörkt</string>
+    <string name="ui_theme_mode_light_label">Ljust</string>
+    <string name="ui_theme_mode_system_label">System</string>
+    <string name="ui_theme_style_default_label">Standard</string>
+    <string name="ui_theme_style_medium_contrast_label">Medelhög kontrast</string>
+    <string name="ui_theme_style_high_contrast_label">Hög kontrast</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Grön</string>
+    <string name="ui_theme_color_blue_label">Blå</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Anpassad</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Tonaccent</string>
+    <string name="ui_theme_palette_neutral_label">Neutral</string>
+    <string name="ui_theme_palette_vibrant_label">Livfull</string>
+    <string name="ui_theme_palette_expressive_label">Uttrycksfull</string>
+    <string name="ui_theme_palette_rainbow_label">Regnbåge</string>
+    <string name="ui_theme_palette_fruitsalad_label">Fruktsallad</string>
+    <string name="ui_theme_palette_monochrome_label">Monokrom</string>
+    <string name="ui_theme_palette_fidelity_label">Färgtrogen</string>
+    <string name="ui_theme_palette_content_label">Innehåll</string>
+
+    <string name="ui_theme_custom_dialog_title">Anpassat tema</string>
+    <string name="ui_theme_custom_seed_label">Grundfärg</string>
+    <string name="ui_theme_custom_palette_label">Palettstil</string>
+    <string name="ui_theme_custom_default_action">Standard</string>
+
+    <string name="ui_mascot_suit_dialog_title">Butlers kostym</string>
+    <string name="ui_mascot_suit_default_action">Standard</string>
+    <string name="ui_mascot_suit_hue_label">Nyans</string>
+    <string name="ui_mascot_suit_saturation_label">Mättnad</string>
+    <string name="ui_mascot_suit_brightness_label">Ljusstyrka</string>
+    <string name="ui_mascot_suit_value_description">Kostymfärg %s</string>
+
+    <string name="setup_usagestats_title">Användningsstatistik</string>
+    <string name="setup_shizuku_card_title">ADB-åtkomst</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Aviseringsåtkomst</string>
+    <string name="setup_manage_storage_card_title">Hantera extern lagring</string>
+    <string name="setup_inventory_card_title">Appförteckning</string>
+
+    <string name="setup_required_card_title">Konfiguration krävs</string>
+    <string name="setup_required_card_body">Ytterligare konfiguration krävs för att utföra den här åtgärden.</string>
+    <string name="setup_required_card_setup_action">Öppna konfiguration</string>
+
+    <string name="common_open_tabs_confirmation_title">Öppna flera flikar?</string>
+    <string name="common_open_tabs_confirmation_message">Detta öppnar %1$d flikar.</string>
+    <string name="common_open_tabs_success">Öppnade %1$d flikar</string>
+    <string name="common_open_tabs_success_with_skipped">Öppnade %1$d flikar (%2$d objekt hoppades över)</string>
+
+    <string name="general_tab_close_confirmation_title">Stäng flik?</string>
+    <string name="general_tab_close_confirmation_message">Vill du verkligen stänga \"%1$s\"?</string>
+    <string name="general_tab_close_unsaved_title">Osparade ändringar</string>
+    <string name="general_tab_close_unsaved_message">\"%1$s\" har osparade ändringar. Stäng och kasta ändringarna?</string>
+    <string name="general_tab_close_unsaved_message_multiple">\"%1$s\" och %2$d till har osparade ändringar. Stäng och kasta ändringarna?</string>
+    <string name="general_discard_action">Kasta</string>
+    <string name="general_tab_close_goto_action">Gå till flik</string>
+
+    <string name="general_press_back_again_to_exit">Tryck på Tillbaka igen för att avsluta</string>
+
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d markerat</item>
+        <item quantity="other">%d markerade</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d mapp</item>
+        <item quantity="other">%1$d mappar</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d fil</item>
+        <item quantity="other">%1$d filer</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Markera alla mappar</string>
+    <string name="common_select_all_files_action">Markera alla filer</string>
+    <string name="general_undo_action">Ångra</string>
+
+    <string name="tour_action_next">Nästa</string>
+    <string name="tour_action_previous">Föregående</string>
+    <string name="tour_action_cancel">Hoppa över</string>
+    <string name="tour_confirm_title">Hoppa över rundturen?</string>
+    <string name="tour_confirm_message">Du kan när som helst aktivera rundturerna igen i inställningarna.</string>
+    <string name="tour_confirm_continue">Fortsätt rundturen</string>
+    <string name="tour_confirm_dont_show_this_tour">Visa inte den här rundturen</string>
+    <string name="tour_confirm_disable_all">Inaktivera alla rundturer</string>
+
+    <string name="common_tip_multiple_panes">Använd flera paneler för att jämföra filer sida vid sida.</string>
+    <string name="common_tip_different_folders">Öppna olika mappar i varje panel för enkel filhantering.</string>
+    <string name="common_tip_switch_layouts">Byt panellayout via Layout i Butler-menyn.</string>
+    <string name="common_tip_elevated_access">Aktivera root- eller ADB-åtkomst i konfigurationen för avancerade filåtgärder.</string>
+    <string name="common_tip_breadcrumb_home">Tryck länge på en del av sökvägen i Filutforskaren för att ange den som din hemkatalog.</string>
+</resources>

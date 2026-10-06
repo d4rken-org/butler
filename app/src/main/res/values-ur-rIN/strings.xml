@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_welcome_title">Butler میں خوش آمدید</string>
+    <string name="onboarding_welcome_message">فائلوں کے لیے ٹیب۔\nبراؤز کریں، تلاش کریں اور ترمیم کریں — سب ایک ساتھ۔</string>
+    <string name="onboarding_welcome_subtitle">اوپن سورس۔ اشتہارات سے پاک۔ کوئی ٹریکنگ نہیں۔\nوہ فائل ایکسپلورر جس کے آپ حق دار ہیں۔</string>
+    <string name="onboarding_welcome_action">فائلیں دیکھنا شروع کریں</string>
+    <string name="onboarding_beta_title">مستقبل کو شکل دیں</string>
+    <string name="onboarding_beta_message">یہ بیٹا (آزمائشی) بلڈ ہے۔ خوش مزاجی اور ایک متبادل منصوبے کے ساتھ آگے بڑھیں۔ سامنے آنے والے مسائل کی رپورٹ ضرور دیں۔</string>
+    <string name="onboarding_beta_action">مجھے کسی چیز کا ڈر نہیں</string>
+    <string name="onboarding_beta_feature_early_access_title">ابتدائی رسائی</string>
+    <string name="onboarding_beta_feature_early_access_description">سب سے پہلے جدید ترین خصوصیات آزمائیں۔</string>
+    <string name="onboarding_beta_feature_influence_title">براہ راست اثر</string>
+    <string name="onboarding_beta_feature_influence_description">آپ کی رائے Butler کی ترقی کو سمت دیتی ہے۔</string>
+    <string name="onboarding_beta_feature_feedback_title">برادری کی کاوش</string>
+    <string name="onboarding_beta_feature_feedback_description">Butler کو بہتر بنانے والے تجربہ کار صارفین کی برادری میں شامل ہوں۔</string>
+    <string name="onboarding_privacy_title">رازداری اور ڈیٹا</string>
+    <string name="onboarding_privacy_message">Butler میں کوئی اشتہارات نہیں ہیں اور یہ صارفین کا ڈیٹا فروخت نہیں کرتا۔ آپ کی رازداری میرے لیے اہم ہے۔</string>
+    <string name="onboarding_privacy_read_action">رازداری کی پالیسی پڑھیں</string>
+    <string name="onboarding_privacy_action">قبول کریں</string>
+    <string name="onboarding_skip_action">چھوڑ دیں</string>
+    <string name="onboarding_progress_step">%2$d میں سے %1$d</string>
+
+    <string name="onboarding_workspaces_title">ٹیب میں کام کریں</string>
+    <string name="onboarding_workspaces_message">کئی ٹیب کھولیں اور ان کے درمیان بدلتے رہیں — بالکل اپنے ویب براؤزر کی طرح۔</string>
+    <string name="onboarding_workspaces_action">جاری رکھیں</string>
+    <string name="onboarding_workspaces_hint">کئی ٹیب بیک وقت کھلے رکھیں۔</string>
+    <string name="onboarding_workspaces_explorer_title">ایکسپلورر</string>
+    <string name="onboarding_workspaces_explorer_description">اپنی فائلیں براؤز کریں۔</string>
+    <string name="onboarding_workspaces_searcher_title">تلاش</string>
+    <string name="onboarding_workspaces_searcher_description">چیزیں ڈھونڈیں۔</string>
+    <string name="onboarding_workspaces_editor_title">ایڈیٹر</string>
+    <string name="onboarding_workspaces_editor_description">فائلوں میں ترمیم کریں۔</string>
+    <string name="onboarding_workspaces_apps_description">اپنی ایپس کا انتظام کریں۔</string>
+
+    <!-- Explorer Shortcuts -->
+    <string name="shortcut_explorer_new_short">نیا ایکسپلورر</string>
+    <string name="shortcut_explorer_new_long">نیا ایکسپلورر ٹیب بنائیں</string>
+
+    <!-- Shortcuts Settings -->
+    <string name="shortcuts_settings_title">شارٹ کٹس</string>
+    <string name="shortcuts_settings_subtitle">لانچر کے شارٹ کٹس ترتیب دیں</string>
+    <string name="shortcuts_settings_enabled_title">شارٹ کٹس فعال کریں</string>
+    <string name="shortcuts_settings_enabled_subtitle">لانچر میں اکثر استعمال ہونے والی اشیا دکھائیں</string>
+    <string name="shortcuts_settings_auto_remember_title">کھولے گئے راستے یاد رکھیں</string>
+    <string name="shortcuts_settings_auto_remember_subtitle">اکثر کھولے جانے والے راستے خودکار طور پر شارٹ کٹس میں شامل کریں</string>
+    <string name="shortcuts_settings_last_accessed_title">آخری رسائی</string>
+    <string name="shortcuts_settings_max_count_title">شارٹ کٹس کی زیادہ سے زیادہ تعداد</string>
+    <string name="shortcuts_settings_max_count_summary">لانچر میں دکھائے جانے والے شارٹ کٹس کی زیادہ سے زیادہ تعداد</string>
+    <string name="shortcuts_settings_min_access_title">رسائی کی کم سے کم تعداد</string>
+    <string name="shortcuts_settings_min_access_summary">شارٹ کٹ بننے سے پہلے کسی راستے کو کتنی بار کھولنا ضروری ہے</string>
+    <string name="shortcuts_settings_current_title">موجودہ شارٹ کٹس</string>
+    <string name="shortcuts_settings_current_subtitle">%d شارٹ کٹس کا ریکارڈ رکھا گیا ہے</string>
+    <string name="shortcuts_settings_clear_title">شارٹ کٹس کی سرگزشت صاف کریں</string>
+    <string name="shortcuts_settings_clear_subtitle">ریکارڈ میں موجود تمام شارٹ کٹس ہٹائیں</string>
+    <string name="shortcuts_settings_clear_confirm_title">شارٹ کٹس کی سرگزشت صاف کریں؟</string>
+    <string name="shortcuts_settings_clear_confirm_message">اس سے ریکارڈ میں موجود تمام شارٹ کٹس ہٹ جائیں گے۔ بُک مارکس برقرار رہیں گے۔</string>
+    <string name="shortcuts_settings_cleared_message">شارٹ کٹس کی سرگزشت صاف کر دی گئی</string>
+    <string name="shortcuts_settings_max_dialog_title">شارٹ کٹس کی زیادہ سے زیادہ تعداد</string>
+    <string name="shortcuts_settings_max_dialog_message">لانچر میں دکھائے جانے والے شارٹ کٹس کی تعداد (1–4)</string>
+    <string name="shortcuts_settings_min_dialog_title">رسائی کی کم سے کم تعداد</string>
+    <string name="shortcuts_settings_min_dialog_message">شارٹ کٹ کے طور پر ظاہر ہونے سے پہلے کسی راستے تک کتنی بار رسائی ضروری ہے (1–10)</string>
+
+    <string name="setup_usagestats_title">استعمال کے اعداد و شمار</string>
+    <string name="setup_shizuku_card_title">ADB رسائی</string>
+    <string name="setup_root_card_title">روٹ</string>
+    <string name="setup_notification_title">اطلاعات کی رسائی</string>
+    <string name="setup_manage_storage_card_title">بیرونی اسٹوریج کا انتظام</string>
+    <string name="setup_inventory_card_title">ایپس کی فہرست</string>
+
+    <string name="setup_title">اجازتوں کا سیٹ اپ</string>
+    <string name="setup_settings_description">ایپ کی اجازتیں اور خصوصیات ترتیب دیں۔</string>
+    <string name="setup_help_description">مدد</string>
+
+    <string name="setup_root_description">جدید فائل انتظام کے لیے سسٹم فائلوں اور محفوظ ڈائریکٹریوں تک رسائی فراہم کرتا ہے۔ ایپس کے ڈیٹا تک رسائی اور سسٹم میں تبدیلیوں سمیت Butler کی تمام صلاحیتیں دستیاب کرتا ہے۔ آلے کا روٹ ہونا ضروری ہے۔</string>
+    <string name="setup_shizuku_description">روٹ کا متبادل جو محفوظ API کے ذریعے اعلیٰ اختیارات والی فائل کارروائیاں فراہم کرتا ہے۔ روایتی روٹ کے بغیر محدود ڈائریکٹریوں تک رسائی دیتا ہے۔ Porter یا Shizuku کا انسٹال ہونا اور چلنا ضروری ہے۔</string>
+    <string name="setup_notification_description">فائل کارروائیوں، پس منظر کے کاموں اور منتقلی کی پیش رفت کی اطلاعات دکھاتا ہے۔ کارروائیاں مکمل ہونے یا خرابی آنے پر آپ کو آگاہ رکھتا ہے۔</string>
+    <string name="setup_usagestats_description">بڑی فائلوں کی شناخت اور جگہ کے مؤثر انتظام کے لیے ایپس کے اسٹوریج استعمال کا تجزیہ کرتا ہے۔ تمام ڈیٹا آپ کے آلے پر ہی رہتا ہے اور کبھی بھیجا نہیں جاتا۔</string>
+    <string name="setup_storage_description">تیز فائل کارروائیوں اور اجتماعی پروسیسنگ کے لیے آلے کے تمام اسٹوریج تک مکمل رسائی۔ بار بار اجازت مانگے بغیر جامع فائل انتظام ممکن بناتا ہے۔</string>
+    <string name="setup_inventory_description">APK نکالنے اور اسٹوریج کے تجزیے جیسی خصوصیات کے لیے تمام انسٹال شدہ ایپس دیکھیں۔ Android 11+ پر ایپس کی مکمل فہرست دیکھنے کے لیے ضروری ہے۔</string>
+
+    <string name="setup_grant_access_label">رسائی دیں</string>
+    <string name="setup_access_granted_label">رسائی دے دی گئی</string>
+    <string name="setup_use_root_label">دستیاب ہو تو روٹ استعمال کریں</string>
+    <string name="setup_use_shizuku_label">دستیاب ہو تو ADB رسائی استعمال کریں</string>
+
+    <string name="setup_status_checking">جانچ جاری ہے…</string>
+    <string name="setup_status_completed">ترتیب دے دی گئی</string>
+    <string name="setup_status_required">ضروری</string>
+    <string name="setup_status_optional">اختیاری</string>
+    <string name="setup_status_connected">منسلک</string>
+    <string name="setup_status_not_connected">منسلک نہیں</string>
+    <string name="setup_status_not_installed">انسٹال نہیں</string>
+    <string name="setup_status_connecting">کنکشن قائم ہو رہا ہے…</string>
+    <string name="setup_status_connection_failed">کنکشن ناکام</string>
+    <string name="setup_status_unavailable">دستیاب نہیں</string>
+    <string name="setup_status_permission_denied">اجازت نہیں دی گئی</string>
+    <string name="setup_adb_status_manager_update_required">اپ ڈیٹ ضروری ہے</string>
+    <string name="setup_adb_status_butler_update_required">Butler کی اپ ڈیٹ ضروری ہے</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_connected_via">%1$s کے ذریعے منسلک</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_status_not_allowed_yet">%1$s نے ابھی اجازت نہیں دی</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". Shown when that app no longer asks, so access has to be changed there. -->
+    <string name="setup_adb_status_denied_in">%1$s میں اجازت مسترد کر دی گئی</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_open_manager_action">%1$s کھولیں</string>
+    <!-- %1$s is the name of the app that provides ADB access, e.g. "Porter" or "Shizuku". -->
+    <string name="setup_adb_install_manager_action">%1$s انسٹال کریں</string>
+
+    <!-- Debug Log -->
+    <string name="debug_notification_channel_label">ڈیبگ اطلاعات</string>
+    <string name="debug_log_consent_title">ڈیبگ لاگ</string>
+    <string name="debug_log_consent_explanation">یہ خصوصیت ایپ کی ہر سرگرمی ایک ایسی فائل میں ریکارڈ کرتی ہے جسے شیئر کیا جا سکتا ہے۔ تیار شدہ فائل میں حساس معلومات ہوتی ہیں (مثلاً فائلوں کے نام اور انسٹال شدہ ایپس)۔ اسے صرف قابلِ اعتماد افراد کے ساتھ شیئر کریں (مثلاً مسئلہ حل کرنے والا ڈویلپر)۔</string>
+    <string name="debug_log_recording_progress">ڈیبگ لاگ ریکارڈ ہو رہا ہے</string>
+    <string name="debug_log_record_action">ریکارڈ کریں</string>
+    <string name="debug_log_record_full_action">ڈیبگ لاگ ریکارڈ کریں</string>
+    <string name="debug_log_stop_action">ریکارڈنگ روکیں</string>
+    <string name="debug_log_screen_title">ڈیبگ لاگ ریکارڈر</string>
+    <string name="debug_log_screen_sensitive_information_message">تیار شدہ فائل میں حساس معلومات ہوتی ہیں (مثلاً فائلوں کے نام اور انسٹال شدہ ایپس)۔ اسے صرف قابلِ اعتماد افراد کے ساتھ شیئر کریں۔</string>
+    <string name="debug_log_screen_session_path_label">ڈیبگ سیشن کا راستہ</string>
+    <string name="debug_log_screen_log_files_label">لاگ فائلیں</string>
+    <string name="debug_log_screen_log_files_ready">لاگ فائلیں تیار ہیں (ZIP: %1$s)</string>
+    <string name="debug_log_screen_discard_action">ضائع کریں</string>
+    <string name="debug_log_file_label">ریکارڈ شدہ لاگ فائل</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">لاگ فائل ریکارڈ ہو رہی ہے</string>
+    <string name="debug_banner_stop_action">روکیں</string>
+    <string name="debug_banner_view_action">دیکھیں</string>
+    <string name="debug_banner_explanation">ایپ کی سرگرمی ریکارڈ ہو رہی ہے۔ کام مکمل ہونے پر روکیں، پھر بگ کی رپورٹ دیتے وقت لاگ شیئر کریں۔</string>
+    <string name="debug_log_short_recording_title">ریکارڈنگ بہت مختصر ہے</string>
+    <string name="debug_log_short_recording_message">ڈیبگ لاگز ریکارڈنگ جاری ہونے کے دوران پیش آنے والی سرگرمیاں محفوظ کرتے ہیں۔ ریکارڈنگ شروع کریں، مسئلہ دوبارہ پیدا کریں، پھر روکیں۔ اس ریکارڈنگ میں مفید معلومات شاید نہ ہوں۔</string>
+    <string name="debug_log_short_recording_keep_action">ریکارڈنگ جاری رکھیں</string>
+
+    <string name="debug_logview_screen_title">لاگ ویوئر</string>
+    <string name="debug_logview_pause_action">موقوف کریں (ڈسپلے روکیں)</string>
+    <string name="debug_logview_resume_action">دوبارہ جاری کریں</string>
+    <string name="debug_logview_copy_action">لاگ کاپی کریں</string>
+    <string name="debug_logview_collapse_action">سمیٹیں</string>
+    <string name="debug_logview_close_action">لاگ پینل بند کریں</string>
+    <string name="debug_logview_resize_action">سائز بدلیں</string>
+    <string name="debug_logview_more_action">مزید اختیارات</string>
+    <string name="debug_logview_level_action">لاگ کی سطح</string>
+    <string name="debug_logview_clear_action">بفر صاف کریں</string>
+    <string name="debug_logview_search_action">تلاش</string>
+    <string name="debug_logview_search_clear_action">تلاش صاف کریں</string>
+    <string name="debug_logview_search_close_action">تلاش بند کریں</string>
+    <string name="debug_logview_search_prev_action">پچھلا مماثل نتیجہ</string>
+    <string name="debug_logview_search_next_action">اگلا مماثل نتیجہ</string>
+    <string name="debug_logview_jump_to_bottom_action">تازہ ترین پر جائیں</string>
+    <string name="debug_logview_paused_msg">موقوف — ڈسپلے رکا ہوا ہے</string>
+    <string name="debug_logview_paused_new_msg">موقوف — اس کے بعد %1$d نئی سطریں</string>
+    <string name="debug_logview_copied_msg">لاگ کلپ بورڈ پر کاپی کر دیا گیا</string>
+    <string name="debug_logview_copied_truncated_msg">آخری %1$d سطریں کلپ بورڈ پر کاپی کر دی گئیں</string>
+    <string name="debug_logview_share_label">لاگ شیئر کریں</string>
+
+    <string name="settings_label">ترتیبات</string>
+    <string name="settings_category_tools_label">ٹولز</string>
+    <string name="settings_category_other_label">دیگر</string>
+    <string name="settings_category_integration_label">انضمام</string>
+    <string name="general_settings_label">عمومی</string>
+    <string name="general_settings_desc">عمومی تبدیلیاں جو پوری ایپ پر اثر ڈالتی ہیں۔</string>
+    <string name="settings_category_ui_label">صارف انٹرفیس</string>
+    <string name="ui_mascot_suit_setting_label">Butler کا سوٹ</string>
+    <string name="ui_mascot_suit_setting_explanation">وہ رنگ جس سے Butler کا لباس تیار ہوتا ہے۔</string>
+    <string name="ui_theme_mode_setting_label">تھیم موڈ</string>
+    <string name="ui_theme_mode_setting_explanation">ایپ کی تھیم کے لیے استعمال ہونے والا موڈ (مثلاً رات یا دن)۔</string>
+    <string name="ui_theme_style_setting_label">تھیم کا انداز</string>
+    <string name="ui_theme_style_setting_explanation">ایپ کی تھیم کے لیے استعمال ہونے والا رنگوں کا انداز۔</string>
+    <string name="ui_theme_color_setting_label">تھیم کا رنگ</string>
+    <string name="ui_theme_color_setting_explanation">ایپ کی تھیم کے لیے استعمال ہونے والا رنگوں کا مجموعہ۔</string>
+    <string name="ui_theme_color_setting_disabled_materialyou">Material You آپ کے وال پیپر سے رنگ فراہم کرتا ہے</string>
+    <string name="ui_theme_color_value_system">سسٹم کے رنگ</string>
+    <string name="ui_language_override_label">ایپ کی زبان</string>
+    <string name="ui_language_override_desc">سسٹم کی طے شدہ زبان سے الگ، Butler کے لیے کوئی دوسری زبان منتخب کریں۔</string>
+    <string name="ui_display_cutout_avoid_setting_title">ڈسپلے کے کٹ آؤٹ سے بچیں</string>
+    <string name="ui_display_cutout_avoid_setting_description">انٹرفیس کو کیمرے کے کٹ آؤٹ سے دور رکھتا ہے۔ اسکرین کا زیادہ حصہ استعمال کرنے کے لیے اسے بند کریں، لیکن پھر انٹرفیس کے کچھ حصے کٹ آؤٹ کے پیچھے آ سکتے ہیں۔</string>
+
+    <string name="previews_settings_title">پیش منظر</string>
+    <string name="previews_settings_subtitle">تصاویر کے پیش منظر کیش کا انتظام کریں۔</string>
+
+    <string name="tour_settings_reset_title">رہنمائی کے دورے ازسرنو ترتیب دیں</string>
+    <string name="tour_settings_reset_subtitle">رہنمائی کے دورے دوبارہ دکھائیں، بشمول وہ جنہیں آپ نے چھوڑ دیا یا غیر فعال کیا تھا۔</string>
+    <string name="tour_settings_reset_done">رہنمائی کے دورے ازسرنو ترتیب دے دیے گئے ہیں۔</string>
+
+    <string name="storage_settings_title">اسٹوریج</string>
+    <string name="storage_settings_subtitle">Butler کے کیش، اسٹوریج اور ردی کی ٹوکری کا انتظام کریں۔</string>
+    <string name="storage_category_previews_label">پیش منظر</string>
+    <string name="storage_previews_disk_cache_title">ڈسک کیش</string>
+    <string name="storage_previews_memory_cache_title">میموری کیش</string>
+    <string name="storage_previews_max_size_title">کیش کا زیادہ سے زیادہ حجم</string>
+    <string name="storage_clear_disk_confirm_title">ڈسک کیش صاف کریں؟</string>
+    <string name="storage_clear_disk_confirm_message">اس سے کیش میں محفوظ تمام پیش منظر تصاویر ہٹ جائیں گی۔ ضرورت کے مطابق یہ دوبارہ تیار ہو جائیں گی۔</string>
+    <string name="storage_clear_memory_confirm_title">میموری کیش صاف کریں؟</string>
+    <string name="storage_clear_memory_confirm_message">اس سے کیش میں محفوظ پیش منظر تصاویر میموری سے ہٹ جائیں گی۔ ضرورت کے مطابق یہ دوبارہ تیار ہو جائیں گی۔</string>
+    <string name="storage_clear_all_confirm_title">تمام کیش صاف کریں؟</string>
+    <string name="storage_clear_all_confirm_message">اس سے پیش منظر تصاویر کے ڈسک اور میموری دونوں کیش صاف ہو جائیں گے۔</string>
+    <string name="storage_clear_all_previews_action">پیش منظر کے تمام کیش صاف کریں</string>
+    <string name="storage_clear_all_subtitle">پیش منظر کے تمام کیش ہٹائیں</string>
+    <string name="storage_cache_cleared_message">کیش صاف کر دیا گیا</string>
+    <string name="storage_size_50mb">50 MB</string>
+    <string name="storage_size_250mb">250 MB</string>
+    <string name="storage_size_512mb">512 MB</string>
+    <string name="storage_size_1gb">1 GB</string>
+
+    <string name="updater_check_enabled_setting_title">اپ ڈیٹس کی جانچ کریں</string>
+    <string name="updater_check_enabled_setting_description">Butler کو آن لائن جانچنے دیں کہ نیا ورژن دستیاب ہے یا نہیں۔</string>
+    <string name="motd_check_enabled_setting_title">اعلانات کی جانچ کریں</string>
+    <string name="motd_check_enabled_setting_description">Butler کو ڈویلپر کے اہم پیغامات حاصل کرنے دیں۔</string>
+    <string name="motd_card_header">اعلان</string>
+
+    <string name="confirm_exit_setting_title">باہر نکلنے کی تصدیق</string>
+    <string name="confirm_exit_setting_description">ایپ سے باہر نکلتے وقت تصدیقی مکالمہ دکھائیں۔</string>
+    <string name="confirm_exit_dialog_title">Butler سے باہر نکلیں</string>
+    <string name="confirm_exit_dialog_message">اس سے ایپ بند ہو جائے گی اور ہوم اسکرین دوبارہ کھل جائے گی۔</string>
+    <string name="confirm_exit_dialog_exit">باہر نکلیں</string>
+    <string name="confirm_exit_dialog_cancel">منسوخ کریں</string>
+    <string name="confirm_exit_dialog_dont_ask_again">دوبارہ نہ پوچھیں</string>
+
+    <string name="settings_support_category_help_label">مدد حاصل کریں</string>
+    <string name="settings_support_label">معاونت</string>
+    <string name="settings_support_description">دستاویزات پڑھیں، مسائل کی رپورٹ دیں، دوسروں سے بات کریں یا ڈیبگ لاگز ریکارڈ کریں۔</string>
+    <string name="settings_support_wiki_label">دستاویزات</string>
+    <string name="settings_support_wiki_description">Butler کا مؤثر استعمال سیکھیں۔</string>
+    <string name="settings_support_issue_tracker_description">بگ رپورٹس اور خصوصیات کی درخواستوں کے لیے عوامی مسئلہ ٹریکر۔</string>
+    <string name="settings_support_issue_tracker_label">مسئلہ ٹریکر</string>
+    <string name="settings_support_debuglog_label">ڈیبگ لاگ</string>
+    <string name="settings_support_debuglog_desc">ایپ کی ہر سرگرمی ایک ٹیکسٹ فائل میں ریکارڈ کریں جسے آپ شیئر کر سکیں۔</string>
+    <string name="settings_support_debuglog_recording_desc">اس وقت ڈیبگ معلومات ریکارڈ ہو رہی ہیں۔ ریکارڈنگ روکنے کے لیے ٹیپ کریں۔</string>
+    <string name="settings_support_debuglog_path">لاگ کا راستہ: %1$s</string>
+    <string name="settings_support_bugreports_label">بگ رپورٹس</string>
+    <string name="settings_support_bugreports_desc">کریش رپورٹس دیکھیں، ڈیبگ لاگز ریکارڈ کریں اور میرے ساتھ شیئر کریں۔</string>
+    <string name="support_contact_report_type_crash">کریش رپورٹ</string>
+    <string name="support_contact_report_type_reported">بگ رپورٹ</string>
+    <string name="support_contact_report_type_recording">ریکارڈنگ</string>
+    <string name="settings_support_discord_label">Discord</string>
+    <string name="settings_support_discord_description">گپ شپ کرنے اور سوال پوچھنے کی جگہ۔</string>
+
+    <string name="settings_acknowledgements_label">اعترافِ خدمات</string>
+    <string name="settings_acknowledgements_description">خدمات کا اعتراف، لائسنس اور خصوصی شکریہ۔</string>
+    <string name="settings_acks_translation_header">ترجمہ</string>
+    <string name="settings_acks_translators_title">مترجمین</string>
+    <string name="settings_acks_translators_people">Person1;Person2(optional@email.com)</string>
+    <string name="settings_acks_translate_title">Butler کا ترجمہ کریں</string>
+    <string name="settings_acks_translate_desc">Butler کو اپنی زبان میں ترجمہ کرنے میں مدد کریں۔</string>
+
+    <string name="settings_acks_thanks_header">شکریہ</string>
+    <string name="settings_acks_crowdin_title">crowdin.com</string>
+    <string name="settings_acks_crowdin_desc">اوپن سورس منصوبوں کے ترجمے میں تعاون کے لیے۔</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">آئیکن، علامتی کردار کے ڈیزائن اور اینیمیشنز کے لیے شکریہ۔</string>
+    <string name="settings_licenses_label">لائسنس</string>
+
+    <!-- Workspace Status Card -->
+    <plurals name="workspace_status_tab_count">
+        <item quantity="one">%1$d ٹیب</item>
+        <item quantity="other">%1$d ٹیب</item>
+    </plurals>
+    <plurals name="workspace_status_operation_count">
+        <item quantity="one">%1$d کارروائی</item>
+        <item quantity="other">%1$d کارروائیاں</item>
+    </plurals>
+    <plurals name="workspace_status_attention_count">
+        <item quantity="one">%1$d کو توجہ درکار</item>
+        <item quantity="other">%1$d کو توجہ درکار</item>
+    </plurals>
+    <plurals name="workspace_status_unsaved_count">
+        <item quantity="one">%1$d محفوظ نہیں</item>
+        <item quantity="other">%1$d محفوظ نہیں</item>
+    </plurals>
+    <plurals name="workspace_status_paused_count">
+        <item quantity="one">%1$d موقوف</item>
+        <item quantity="other">%1$d موقوف</item>
+    </plurals>
+    <string name="workspace_status_filter_tabs_desc">تمام ٹیب دکھائیں</string>
+    <string name="workspace_status_filter_operations_desc">کارروائیوں والے ٹیب کے مطابق فلٹر کریں</string>
+    <string name="workspace_status_filter_attention_desc">توجہ طلب ٹیب کے مطابق فلٹر کریں</string>
+    <string name="workspace_status_filter_paused_desc">موقوف ٹیب کے مطابق فلٹر کریں</string>
+    <string name="workspace_status_filter_unsaved_desc">محفوظ نہ کی گئی تبدیلیوں والے ٹیب کے مطابق فلٹر کریں</string>
+
+    <!-- Acknowledgements -->
+    <string name="acknowledgement_android_title">Android</string>
+    <string name="acknowledgement_android_subtitle">Android اوپن سورس منصوبہ (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_title">Kotlin</string>
+    <string name="acknowledgement_kotlin_subtitle">Kotlin پروگرامنگ زبان۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_dagger_title">Dagger</string>
+    <string name="acknowledgement_dagger_subtitle">Android اور Java کے لیے تیز رفتار ڈیپنڈنسی انجیکٹر۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_librootjava_title">libRootJava</string>
+    <string name="acknowledgement_librootjava_subtitle">Java (اور Kotlin) کوڈ روٹ کے طور پر چلائیں! (APACHE 2.0)</string>
+    <string name="acknowledgement_librootkotlinx_title">librootkotlinx</string>
+    <string name="acknowledgement_librootkotlinx_subtitle">کوروٹینز کے ساتھ روٹ اختیارات والا Kotlin JVM کوڈ چلانا آسان۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_porter_title">Porter</string>
+    <string name="acknowledgement_porter_subtitle">اختیاری روٹ سپورٹ کے ساتھ Shizuku APIs کے ذریعے Android ایپس کو ADB رسائی دیتا ہے۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_shizuku_title">Shizuku</string>
+    <string name="acknowledgement_shizuku_subtitle">app_process سے شروع کیے گئے Java پراسیس کے ذریعے عام ایپس سے adb/root اختیارات کے ساتھ سسٹم APIs کا براہ راست استعمال۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_material_design_icons_title">Material Design Icons</string>
+    <string name="acknowledgement_material_design_icons_subtitle">materialdesignicons.com (SIL Open Font License 1.1 / Attribution 4.0 International)</string>
+    <string name="acknowledgement_lottie_title">Lottie</string>
+    <string name="acknowledgement_lottie_subtitle">Android کے لیے Airbnb کا Lottie۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_android_robot_title">Android</string>
+    <string name="acknowledgement_android_robot_subtitle">Android روبوٹ، Google کے تخلیق کردہ اور شیئر کیے گئے کام کی نقل یا ترمیم شدہ شکل ہے اور Creative Commons 3.0 Attribution License میں بیان کردہ شرائط کے مطابق استعمال کیا گیا ہے۔</string>
+    <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
+    <string name="acknowledgement_jetpack_compose_subtitle">نیٹو UI بنانے کے لیے Android کا جدید ٹول کٹ۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpack لائبریریاں</string>
+    <string name="acknowledgement_jetpack_libraries_subtitle">Room، WorkManager، DataStore، Navigation اور دیگر AndroidX لائبریریاں۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin ایکسٹینشنز</string>
+    <string name="acknowledgement_kotlin_extensions_subtitle">Coroutines اور Serialization لائبریریاں۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_coil_title">Coil</string>
+    <string name="acknowledgement_coil_subtitle">Kotlin Coroutines پر مبنی تصاویر لوڈ کرنے کی لائبریری۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
+    <string name="acknowledgement_bouncycastle_subtitle">SMB کی توثیق، دستخط اور خفیہ کاری کے لیے بنیادی کرپٹوگرافک اجزا۔ (MIT)</string>
+    <string name="acknowledgement_square_libraries_title">Square لائبریریاں</string>
+    <string name="acknowledgement_square_libraries_subtitle">Retrofit، OkHttp اور OkIO نیٹ ورکنگ لائبریریاں۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_accompanist_title">Accompanist</string>
+    <string name="acknowledgement_accompanist_subtitle">Jetpack Compose کے لیے معاون ٹولز۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_reorderable_title">Reorderable</string>
+    <string name="acknowledgement_reorderable_subtitle">Compose میں LazyColumn کے لیے ڈریگ اینڈ ڈراپ۔ (APACHE 2.0)</string>
+    <string name="acknowledgement_semver_title">SemVer</string>
+    <string name="acknowledgement_semver_subtitle">Kotlin کے لیے سیمنٹک ورژننگ لائبریری۔ (MIT License)</string>
+    <string name="acknowledgement_vico_title">Vico</string>
+    <string name="acknowledgement_vico_subtitle">Jetpack Compose کے لیے چارٹس اور گراف۔ (APACHE 2.0)</string>
+
+    <string name="settings_privacy_policy_label">رازداری کی پالیسی</string>
+    <string name="settings_privacy_policy_desc">ڈیٹا کا ذمہ دارانہ استعمال۔</string>
+
+    <string name="changelog_label">تبدیلیوں کی فہرست</string>
+
+    <!-- Upgrade Status -->
+    <string name="settings_upgrade_status_label">Butler کی اپ گریڈ حالت</string>
+    <string name="upgrade_status_free">حالت: مفت</string>
+    <string name="upgrade_status_pro">حالت: Pro</string>
+    <string name="upgrade_status_foss">حالت: FOSS</string>
+
+    <string name="storage_area_sdcard_label">SD کارڈ</string>
+    <string name="storage_area_public_label">عوامی اسٹوریج</string>
+    <string name="storage_area_public_app_data_label">ایپس کا عوامی ڈیٹا</string>
+
+    <!-- Workspace -->
+    <!-- Workspace > Manager -->
+    <string name="workspace_manager_title">ٹیب مینیجر</string>
+    <string name="workspace_manager_empty_title">کوئی ٹیب نہیں</string>
+    <string name="workspace_manager_empty_subtitle">شروع کرنے کے لیے اپنا پہلا ٹیب بنائیں</string>
+
+    <!-- Workspace > Empty Content -->
+    <string name="workspace_empty_create_action">ٹیب بنائیں</string>
+    <string name="workspace_empty_create_hint">ساتھ ساتھ کام کریں: ٹیب بنائیں اور اسے اپنی پسند کے ٹول میں بدل دیں۔</string>
+    <string name="workspace_empty_settings_action">ترتیبات کھولیں</string>
+    <string name="workspace_empty_settings_hint">Butler کو اپنی پسند کے مطابق بنائیں۔ ٹولز کے کام کرنے کا طریقہ بدلیں۔</string>
+    <string name="workspace_classic_empty_tabs_closed">کوئی ٹیب کھلا نہیں۔ جب آپ چاہیں، شروع کریں۔</string>
+    <string name="workspace_classic_empty_tip">مشورہ: “ٹیب بنائیں” پر ٹیپ کریں اور کوئی ٹول چنیں — ایکسپلورر، تلاش، ایڈیٹر اور بہت کچھ۔</string>
+
+    <!-- Workspace > Guided tour -->
+    <string name="tour_first_tab_title">ایک ٹیب سے شروع کریں</string>
+    <string name="tour_first_tab_body">Butler براؤزر کی طرح ٹیب میں کام کرتا ہے: ہر ٹیب ایک الگ ٹول ہے — ایکسپلورر، تلاش، ایڈیٹر اور بہت کچھ۔ اپنا پہلا ٹیب بنائیں۔</string>
+    <string name="tour_manager_fab_title">فوری شارٹ کٹس</string>
+    <string name="tour_manager_fab_body">اپنے اکثر استعمال ہونے والے ٹولز کے شارٹ کٹس کے لیے اور تمام ٹیب ایک ساتھ بند کرنے کے لیے یہاں ٹیپ کریں۔</string>
+    <string name="tour_manager_reorder_title">ٹیب کی ترتیب بدلیں</string>
+    <string name="tour_manager_reorder_body">ٹیب کے عنوان کی پٹی کو دبا کر رکھیں، پھر اسے اپنی پسند کی جگہ کھینچیں۔ باقی ہر جگہ بھی آپ کے ٹیب اسی ترتیب میں نظر آئیں گے۔</string>
+    <string name="tour_manager_select_title">کئی ٹیب پر کام کریں</string>
+    <string name="tour_manager_select_body">ٹیب منتخب کرنا شروع کرنے کے لیے کسی ٹیب کے پیش منظر کو دبا کر رکھیں۔ پھر باقی ٹیب پر ٹیپ کریں اور سب کو ایک ساتھ بند یا موقوف کریں۔</string>
+    <string name="tour_manager_new_tab_title">نیا ٹیب شروع کریں</string>
+    <string name="tour_manager_new_tab_body">نئے ٹیب کے لیے کوئی بھی ٹول چننے کے لیے اس کارڈ پر ٹیپ کریں۔</string>
+    <string name="tour_swipe_switch_title">ٹیب کے درمیان سوائپ کریں</string>
+    <string name="tour_swipe_switch_body">کھلے ٹیب کے درمیان جانے کے لیے صفحے پر کہیں بھی دائیں یا بائیں سوائپ کریں۔</string>
+    <string name="tour_swipe_create_title">ٹیب شروع کرنے کے لیے سوائپ کریں</string>
+    <string name="tour_swipe_create_body">آخری ٹیب سے آگے سوائپ کریں تو Butler آپ کو نیا ٹیب پیش کرے گا۔</string>
+    <string name="tour_swipe_panes_title">ایک وقت میں ایک سے زیادہ ٹیب</string>
+    <string name="tour_swipe_panes_body">بڑی اسکرین یا افقی رخ میں Butler کئی ٹیب ساتھ ساتھ دکھاتا ہے۔ ٹیب کی لے آؤٹ ترتیبات طے کرتی ہیں کہ ایسا کب ہو۔</string>
+    <string name="tour_panes_rail_title">آپ کے تمام ٹیب</string>
+    <string name="tour_panes_rail_body">ہر کھلا ٹیب یہاں ہوتا ہے۔ کسی ٹیب پر ٹیپ کریں اور چنیں کہ وہ کس پین میں جائے۔ ترتیب بدلنے کے لیے ٹیب کو دبا کر رکھیں، پھر کھینچیں۔</string>
+    <string name="tour_panes_divider_title">پین کا سائز بدلیں</string>
+    <string name="tour_panes_divider_body">کسی پین کو زیادہ جگہ دینے کے لیے اس تقسیم کنندہ کو کھینچیں۔</string>
+    <string name="tour_panes_layout_title">ترتیب بدلیں</string>
+    <string name="tour_panes_layout_body">پین کی ترتیب بدلنے کے لیے Butler بٹن پر ٹیپ کریں اور لے آؤٹ چنیں۔ ٹیب کی ترتیبات ہر اسکرین رخ کے لیے ایک لے آؤٹ مقرر کرتی ہیں۔</string>
+
+    <string name="workspace_creating_placeholder">ٹیب بن رہا ہے…</string>
+    <string name="workspace_ondemand_swipe_title">نیا ٹیب بنانے کے لیے سوائپ کریں</string>
+
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">پین %1$d مواد کے لیے تیار ہے</string>
+    <string name="workspace_adaptive_add_action">ٹیب شامل کریں</string>
+
+    <string name="workspace_badge_tip_title">مشورہ: ٹیب بٹن کے اشارے</string>
+    <string name="workspace_badge_open_workspaces">کھلے ٹیب کی تعداد</string>
+    <string name="workspace_badge_active_operations">جاری کارروائیاں (فائلوں کی کاپی، تلاش وغیرہ)</string>
+    <string name="workspace_badge_attention_items">توجہ طلب اشیا (ناکام یا منتظر کارروائیاں، ناقابلِ رسائی فائلیں)</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_dismiss_content_desc">ہٹا دیں</string>
+    <string name="workspace_manager_selection_count">%1$d منتخب</string>
+    <string name="workspace_manager_selection_select_all">سب منتخب کریں</string>
+    <string name="workspace_manager_selection_pause_action">منتخب ٹیب موقوف کریں</string>
+    <string name="workspace_manager_selection_close_action">منتخب ٹیب بند کریں</string>
+    <string name="workspace_manager_selection_cancel_content_desc">انتخاب کے موڈ سے نکلیں</string>
+    <string name="workspace_manager_selection_clear_content_desc">انتخاب صاف کریں</string>
+    <string name="workspace_manager_select_all_tabs_desc">تمام ٹیب منتخب کریں</string>
+    <string name="workspace_manager_new_tab_card_title">نیا ٹیب</string>
+    <string name="workspace_row_select_content_desc">ٹیب منتخب کریں</string>
+    <string name="general_cancel_action">منسوخ کریں</string>
+
+    <!-- Workspace Manager FAB -->
+    <string name="workspace_fab_quick_shortcuts">فوری شارٹ کٹس</string>
+    <string name="workspace_fab_close_shortcuts">شارٹ کٹس بند کریں</string>
+    <string name="workspace_fab_close_all">تمام ٹیب بند کریں</string>
+
+    <!-- Workspace Navigation Rail -->
+    <string name="workspace_pane_assign_action">پین %1$d میں رکھیں</string>
+    <string name="workspace_pane_show_action">دکھائیں</string>
+    <string name="workspace_pane_menu_action">ٹیب کے اختیارات دکھائیں</string>
+    <string name="workspace_pane_close_action">بند کریں</string>
+    <string name="workspace_pane_unassign_action">پین سے ہٹائیں</string>
+    <string name="workspace_dragging_description">کھینچا جا رہا ہے</string>
+    <string name="workspace_pane_current_description">پین %1$d میں</string>
+
+    <!-- Workspace Manager Row -->
+    <string name="workspace_row_close_content_desc">ٹیب بند کریں</string>
+    <string name="workspace_row_more_options_content_desc">مزید اختیارات</string>
+    <string name="workspace_row_operations_running_content_desc">کام جاری ہے</string>
+    <string name="workspace_row_operations_pending_content_desc">کام زیرِ التوا ہے</string>
+    <string name="workspace_row_pause_action">موقوف کریں</string>
+    <string name="workspace_row_resume_action">دوبارہ جاری کریں</string>
+    <string name="workspace_row_stacked_content_desc">اس ٹیب پر تہہ میں رکھا گیا</string>
+    <string name="workspace_row_unsaved_content_desc">محفوظ نہ کی گئی تبدیلیاں</string>
+
+    <!-- Settings Index -->
+    <string name="workspace_settings_subtitle">ٹیب کے کام کرنے کا طریقہ ترتیب دیں۔</string>
+    <string name="explorer_settings_subtitle">فائل ایکسپلورر کے کام کرنے کا طریقہ ترتیب دیں۔</string>
+    <string name="searcher_settings_subtitle">تلاش کا طریقہ ترتیب دیں۔</string>
+    <string name="editor_settings_subtitle">ٹیکسٹ ایڈیٹر کے کام کرنے کا طریقہ ترتیب دیں۔</string>
+    <string name="viewer_settings_subtitle">فائل ویوئر کے کام کرنے کا طریقہ ترتیب دیں۔</string>
+    <string name="history_settings_subtitle">کارروائیوں کی سرگزشت رکھنے اور صاف کرنے کی ترتیبات۔</string>
+    <string name="clipboard_settings_subtitle">کلپ بورڈ کے کام کرنے کا طریقہ ترتیب دیں۔</string>
+
+    <!-- Saver Share Target -->
+    <string name="saver_share_label">اس نام سے محفوظ کریں…</string>
+
+    <!-- Single-file Share Target -->
+    <string name="share_receive_label">Butler میں کھولیں</string>
+
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">متن میں ترمیم کریں</string>
+
+    <!-- Open with: a file another app handed to Butler -->
+    <string name="external_open_unknown_file_title">بے نام فائل</string>
+    <string name="external_open_action_view">دیکھیں</string>
+    <string name="external_open_action_edit">متن کے طور پر ترمیم کریں</string>
+    <string name="external_open_action_show_in_explorer">ایکسپلورر میں دکھائیں</string>
+    <string name="external_open_action_save">اس نام سے محفوظ کریں…</string>
+    <string name="external_open_failed_label">فائل نہیں کھل سکی</string>
+    <string name="external_open_failed_description">Butler \"%1$s\" نہیں کھول سکا۔</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">ڈویلپر موڈ فعال کریں؟</string>
+    <string name="settings_developer_mode_unlock_message">اس سے مسائل حل کرنے اور آزمائش کے لیے جدید تشخیصی ٹولز دستیاب ہو جائیں گے۔</string>
+    <string name="settings_developer_mode_unlock_action">فعال کریں</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">ڈویلپر موڈ تک %d قدم باقی</item>
+        <item quantity="other">ڈویلپر موڈ تک %d قدم باقی</item>
+    </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">ڈویلپر سے رابطہ کریں</string>
+    <string name="support_contact_description">مجھے ای میل بھیجنے کے لیے فارم پُر کریں۔</string>
+    <string name="support_contact_no_email_app">کوئی ای میل ایپ نہیں ملی</string>
+    <string name="support_contact_category_label">زمرہ</string>
+    <string name="support_contact_category_question">سوال</string>
+    <string name="support_contact_category_feature">خصوصیت کی درخواست</string>
+    <string name="support_contact_category_bug">بگ رپورٹ</string>
+    <string name="support_contact_workspace_label">متعلقہ شعبہ</string>
+    <string name="support_contact_workspace_general">عمومی</string>
+    <string name="support_contact_workspace_explorer">ایکسپلورر</string>
+    <string name="support_contact_workspace_searcher">تلاش</string>
+    <string name="support_contact_workspace_editor">ایڈیٹر</string>
+    <string name="support_contact_description_label">تفصیل</string>
+    <string name="support_contact_description_question_hint">اپنا سوال تفصیل سے بیان کریں۔ براہ کرم واضح بات کریں (کم از کم 20 الفاظ)۔</string>
+    <string name="support_contact_description_feature_hint">وہ خصوصیت بیان کریں جو آپ دیکھنا چاہیں۔ براہ کرم واضح بات کریں (کم از کم 20 الفاظ)۔</string>
+    <string name="support_contact_description_bug_hint">بیان کریں کہ کیا ہوا اور مسئلہ دوبارہ کیسے پیدا کیا جا سکتا ہے۔ براہ کرم واضح بات کریں (کم از کم 20 الفاظ)۔</string>
+    <string name="support_contact_expected_label">متوقع رویہ</string>
+    <string name="support_contact_expected_hint">بیان کریں کہ آپ کو کیا ہونے کی توقع تھی (کم از کم 10 الفاظ)۔</string>
+    <string name="support_contact_word_count">کم از کم %1$d الفاظ</string>
+    <string name="support_contact_debuglog_label">ڈیبگ لاگ</string>
+    <string name="support_contact_debuglog_empty">کوئی ڈیبگ لاگ نہیں ملا۔ پہلے ایک ریکارڈ کریں۔</string>
+    <string name="support_contact_debuglog_picker_hint">موجودہ ڈیبگ لاگ منسلک کریں یا نیا ریکارڈ کریں۔</string>
+    <string name="support_contact_send_action">ای میل ایپ کھولیں</string>
+    <string name="support_contact_welcome">ہر پیغام خود پڑھنا اور جواب دینے کی پوری کوشش کرنا میرا معمول ہے، لیکن چونکہ یہ کام اکیلے میرے ذمے ہے، اس لیے کچھ وقت لگ سکتا ہے۔ آپ کے صبر کا شکریہ۔</string>
+    <string name="support_contact_footer">آپ کا پیغام ای میل کے ذریعے بھیجا جائے گا۔ آلے اور سیٹ اپ کی معلومات خودکار طور پر منسلک ہوتی ہیں۔ ای میل کے ساتھ اسکرین شاٹس یا ویڈیو بھی منسلک کیے جا سکتے ہیں۔\n\nای میل کے کچھ حصے انگریزی میں ہوں گے تاکہ مجھے سمجھنے میں آسانی ہو۔</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">ڈیبگ لاگ اسٹوریج</string>
+    <string name="support_debuglog_storage_description">%1$d لاگ سیشن، %2$s</string>
+    <string name="support_debuglog_storage_empty">کوئی ڈیبگ لاگ محفوظ نہیں</string>
+    <string name="support_debuglog_delete_action">تمام ڈیبگ لاگز حذف کریں</string>
+    <string name="support_debuglog_delete_description">تمام ریکارڈ شدہ ڈیبگ لاگ فائلیں ہٹائیں</string>
+    <string name="support_debuglog_delete_confirm_title">تمام ڈیبگ لاگز حذف کریں؟</string>
+    <string name="support_debuglog_delete_confirm_message">اس سے تمام ریکارڈ شدہ ڈیبگ لاگ سیشن مستقل طور پر حذف ہو جائیں گے۔ جاری ریکارڈنگز متاثر نہیں ہوں گی۔</string>
+
+    <!-- Support: Debug Log Actions -->
+    <string name="settings_support_debuglog_stop_action">ریکارڈنگ روکیں</string>
+    <string name="settings_support_debuglog_record_action">ڈیبگ لاگ ریکارڈ کریں</string>
+
+    <!-- Support: Debug Sessions Bottom Sheet -->
+    <string name="support_debuglog_sessions_label">ڈیبگ لاگ سیشن</string>
+    <string name="support_debuglog_sessions_desc">ریکارڈ شدہ ڈیبگ لاگ سیشن کا انتظام کریں</string>
+    <string name="support_debuglog_sessions_empty">کوئی ڈیبگ لاگ سیشن نہیں</string>
+    <string name="support_debuglog_session_recording">ریکارڈنگ جاری ہے…</string>
+    <string name="support_debuglog_session_compressing">کمپریس ہو رہا ہے…</string>
+    <string name="support_debuglog_session_failed_empty_log">ناکام: لاگ خالی ہے</string>
+    <string name="support_debuglog_session_failed_missing_log">ناکام: لاگ موجود نہیں</string>
+    <string name="support_debuglog_session_failed_corrupt_zip">ناکام: آرکائیو خراب ہے</string>
+    <string name="support_debuglog_session_failed_zip_failed">ناکام: کمپریشن میں خرابی</string>
+    <string name="support_debuglog_session_delete_title">ڈیبگ سیشن حذف کریں؟</string>
+    <string name="support_debuglog_session_delete_message">اس سے یہ ڈیبگ لاگ سیشن مستقل طور پر حذف ہو جائے گا۔</string>
+    <string name="support_debuglog_clear_action">سب صاف کریں</string>
+    <string name="support_debuglog_clear_confirm_message">تمام محفوظ ڈیبگ لاگ سیشن حذف کریں؟</string>
+
+    <!-- Debug Log Screen -->
+    <string name="debug_log_share_subject">Butler ڈیبگ لاگ - %1$s</string>
+    <string name="debug_log_screen_subtitle">مسئلہ حل کرنے کے لیے ڈیبگ معلومات برآمد کریں</string>
+    <string name="debug_log_screen_sensitive_information_title">حساس معلومات</string>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_sent_title">کیا آپ نے پیغام بھیج دیا؟</string>
+    <string name="support_contact_sent_message">اگر پیغام بھیج دیا گیا ہے تو جگہ بچانے کے لیے منسلک ڈیبگ لاگ حذف کر دیا جائے گا۔ اگر نہیں، تو اسے رکھنے اور بعد میں دوبارہ کوشش کرنے کا اختیار ہے۔</string>
+    <string name="support_contact_debuglog_zip_error">ڈیبگ لاگ کا منسلکہ تیار نہیں ہو سکا</string>
+
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">فائل کارروائی کی پیش رفت</string>
+    <string name="ops_notification_channel_progress_desc">کاپی، منتقلی اور حذف کی کارروائیوں کی جاری پیش رفت</string>
+    <string name="ops_notification_channel_attention_name">فائل کارروائی کے انتباہات</string>
+    <string name="ops_notification_channel_attention_desc">وہ کارروائیاں جو آپ کی توجہ چاہتی ہیں یا ناکام ہو گئی ہیں</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d فائل کارروائی جاری ہے</item>
+        <item quantity="other">%1$d فائل کارروائیاں جاری ہیں</item>
+    </plurals>
+    <string name="ops_notification_state_queued">قطار میں ہے…</string>
+    <string name="ops_notification_state_cancelling">منسوخ ہو رہی ہے…</string>
+    <string name="ops_notification_state_attention_title">اقدام ضروری ہے</string>
+    <string name="ops_notification_state_attention_text">ایک تعارض آپ کی توجہ چاہتا ہے — حل کرنے کے لیے ٹیپ کریں</string>
+    <string name="ops_notification_result_failed_title">کارروائی ناکام</string>
+
+    <!-- Review prompt -->
+    <string name="review_app_body">کیا آپ Butler کے لیے تبصرہ دینا پسند کریں؟ ❤️</string>
+    <string name="review_app_dismiss_action">شاید بعد میں</string>
+    <string name="review_app_review_action">تبصرہ دیں</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_templates_tab_title">Bago</string>
+    <string name="workspace_templates_choose_title">Bagong tab</string>
+    <string name="workspace_templates_choose_subtitle">Pumili ng uri ng tab. Paano ako makakatulong?</string>
+    <string name="workspace_templates_name_tab_action">Pangalanan ang tab na ito</string>
+
+    <!-- Guided tour -->
+    <string name="tour_templates_picker_title">Pumili ng kasangkapan</string>
+    <string name="tour_templates_picker_body">Ito ang tagapili ng tab. Piliin kung ano ang magiging tab na ito. Kapag pumili ng isa, magiging kasangkapang iyon ang tab na ito.</string>
+    <string name="tour_templates_butler_button_title">Narito ang iyong mga tab</string>
+    <string name="tour_templates_butler_button_body">I-tap ang pindutan ng Butler para sa menu ng mga tab: Gumawa ng bagong tab, isara ang kasalukuyan, o buksan ang buong tagapamahala ng mga tab. Pindutin ito nang matagal para direktang pumunta sa tagapamahala ng mga tab.</string>
+</resources>

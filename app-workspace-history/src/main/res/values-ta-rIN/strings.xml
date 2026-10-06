@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">வரலாறு</string>
+    <string name="history_workspace_subtitle">சமீபத்திய கோப்புச் செயல்பாடுகள்</string>
+    <string name="history_workspace_title_scoped">வரலாறு: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">வரலாறு: தோல்வியடைந்தது</string>
+    <string name="history_workspace_title_outcome_partial">வரலாறு: பகுதியளவு</string>
+    <string name="history_workspace_title_outcome_cancelled">வரலாறு: ரத்துசெய்யப்பட்டது</string>
+    <string name="history_workspace_title_outcome_completed">வரலாறு: முடிந்தது</string>
+    <string name="history_workspace_title_kind_copy">வரலாறு: நகலெடுத்தல்</string>
+    <string name="history_workspace_title_kind_move">வரலாறு: நகர்த்துதல்</string>
+    <string name="history_workspace_title_kind_delete">வரலாறு: நீக்குதல்</string>
+    <string name="history_workspace_title_kind_create_file">வரலாறு: கோப்பு உருவாக்குதல்</string>
+    <string name="history_workspace_title_kind_create_folder">வரலாறு: கோப்புறை உருவாக்குதல்</string>
+    <string name="history_workspace_title_kind_save">வரலாறு: சேமித்தல்</string>
+    <string name="history_workspace_title_kind_compress">வரலாறு: சுருக்குதல்</string>
+    <string name="history_workspace_title_kind_extract">வரலாறு: பிரித்தெடுத்தல்</string>
+    <string name="history_workspace_title_filtered">வரலாறு (வடிகட்டப்பட்டது)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">வரலாறு: %1$d பாதை</item>
+        <item quantity="other">வரலாறு: %1$d பாதைகள்</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">அனைத்தும்</string>
+    <string name="history_filter_outcome_completed">முடிந்தது</string>
+    <string name="history_filter_outcome_partial">பகுதியளவு</string>
+    <string name="history_filter_outcome_failed">தோல்வியடைந்தது</string>
+    <string name="history_filter_outcome_cancelled">ரத்துசெய்யப்பட்டது</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">நகலெடுத்தல்</string>
+    <string name="history_filter_kind_move">நகர்த்துதல்</string>
+    <string name="history_filter_kind_delete">நீக்குதல்</string>
+    <string name="history_filter_kind_create_file">கோப்பு உருவாக்குதல்</string>
+    <string name="history_filter_kind_create_folder">கோப்புறை உருவாக்குதல்</string>
+    <string name="history_filter_kind_save">சேமித்தல்</string>
+    <string name="history_filter_kind_compress">சுருக்குதல்</string>
+    <string name="history_filter_kind_extract">பிரித்தெடுத்தல்</string>
+    <string name="history_filter_kind_enable">இயக்குதல்</string>
+    <string name="history_filter_kind_disable">முடக்குதல்</string>
+    <string name="history_filter_kind_force_stop">கட்டாயமாக நிறுத்துதல்</string>
+    <string name="history_filter_kind_uninstall">நிறுவலை நீக்குதல்</string>
+    <string name="history_filter_kind_clear_data">தரவை அழித்தல்</string>
+    <string name="history_filter_kind_components">கூறுகள்</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">பாதை வரம்பை அமை…</string>
+    <string name="history_path_scope_clear_action">பாதை வரம்பை நீக்கு</string>
+    <string name="history_path_scope_dialog_title">பாதையின்படி வடிகட்டு</string>
+    <string name="history_path_scope_dialog_description">இந்தப் பாதையையோ அதன் கீழுள்ள கோப்புகள் மற்றும் கோப்புறைகளையோ பாதிக்கும் செயல்பாடுகளை மட்டும் காட்டும்.</string>
+    <string name="history_path_scope_dialog_input_label">பாதை</string>
+    <string name="history_path_scope_dialog_pick_folder_action">கோப்புறையைத் தேர்ந்தெடு…</string>
+    <string name="history_path_scope_dialog_apply_action">பயன்படுத்து</string>
+    <string name="history_path_scope_dialog_cancel_action">ரத்துசெய்</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">இன்று</string>
+    <string name="history_group_yesterday">நேற்று</string>
+    <string name="history_group_this_week">இந்த வாரம்</string>
+    <string name="history_group_this_month">இந்த மாதம்</string>
+    <string name="history_group_older">பழையவை</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">மறுபெயரிடப்பட்டது</string>
+    <string name="history_entry_intent_paste_copy">ஒட்டப்பட்டது</string>
+    <string name="history_entry_intent_paste_move">ஒட்டப்பட்டது (நகர்த்துதல்)</string>
+    <string name="history_entry_intent_drop_copy">இழுத்து விடப்பட்டது (நகலெடுத்தல்)</string>
+    <string name="history_entry_intent_drop_move">இழுத்து விடப்பட்டது (நகர்த்துதல்)</string>
+    <string name="history_entry_intent_enable_components">கூறுகள் இயக்கப்பட்ட செயலி:</string>
+    <string name="history_entry_intent_disable_components">கூறுகள் முடக்கப்பட்ட செயலி:</string>
+    <string name="history_entry_kind_copy">நகலெடுக்கப்பட்டது</string>
+    <string name="history_entry_kind_move">நகர்த்தப்பட்டது</string>
+    <string name="history_entry_kind_delete">நீக்கப்பட்டது</string>
+    <string name="history_entry_kind_create_file">கோப்பு உருவாக்கப்பட்டது</string>
+    <string name="history_entry_kind_create_folder">கோப்புறை உருவாக்கப்பட்டது</string>
+    <string name="history_entry_kind_save">சேமிக்கப்பட்டது</string>
+    <string name="history_entry_kind_compress">சுருக்கப்பட்டது</string>
+    <string name="history_entry_kind_extract">பிரித்தெடுக்கப்பட்டது</string>
+    <string name="history_entry_kind_restore">மீட்டெடுக்கப்பட்டது</string>
+    <string name="history_entry_kind_install">நிறுவப்பட்டது</string>
+    <string name="history_entry_kind_enable">இயக்கப்பட்டது</string>
+    <string name="history_entry_kind_disable">முடக்கப்பட்டது</string>
+    <string name="history_entry_kind_force_stop">கட்டாயமாக நிறுத்தப்பட்டது</string>
+    <string name="history_entry_kind_uninstall">நிறுவல் நீக்கப்பட்டது</string>
+    <string name="history_entry_kind_clear_data">தரவு அழிக்கப்பட்ட செயலி:</string>
+    <string name="history_entry_kind_components">கூறுகள் மாற்றப்பட்ட செயலி:</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d பாதை</item>
+        <item quantity="other">%d பாதைகள்</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">பாதிக்கப்பட்ட %2$d பாதைகளில் முதல் %1$d</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">தொடங்கியது</string>
+    <string name="history_detail_label_completed">முடிந்தது</string>
+    <string name="history_detail_label_duration">கால அளவு</string>
+    <string name="history_detail_label_outcome">முடிவு</string>
+    <string name="history_detail_label_origin">மூலம்</string>
+    <string name="history_detail_label_error">பிழை</string>
+    <string name="history_detail_label_paths">பாதிக்கப்பட்ட பாதைகள்</string>
+    <string name="history_detail_label_partial_errors">ஒவ்வொரு உருப்படியின் தோல்விகள்</string>
+    <string name="history_detail_copy_path_action">பாதையை நகலெடு</string>
+    <string name="history_detail_paths_empty">பாதிக்கப்பட்ட பாதைகள் எதுவும் பதிவுசெய்யப்படவில்லை.</string>
+    <string name="history_detail_label_attempted_paths">முயற்சி செய்யப்பட்ட பாதைகள்</string>
+    <string name="history_detail_label_packages">பாதிக்கப்பட்ட செயலிகள்</string>
+    <string name="history_detail_packages_empty">பாதிக்கப்பட்ட செயலிகள் எதுவும் பதிவுசெய்யப்படவில்லை.</string>
+    <string name="history_detail_paths_truncated_callout">பாதிக்கப்பட்ட %2$d பாதைகளில் முதல் %1$d காட்டப்படுகின்றன.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">முயற்சி செய்யப்பட்ட %2$d பாதைகளில் முதல் %1$d காட்டப்படுகின்றன.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">இந்தச் செயல்பாட்டின்போது %1$d உருப்படி தோல்வியடைந்தது.</item>
+        <item quantity="other">இந்தச் செயல்பாட்டின்போது %1$d உருப்படிகள் தோல்வியடைந்தன.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">கோப்பு உலாவி</string>
+    <string name="history_origin_searcher">தேடல்</string>
+    <string name="history_origin_saver">வேறாகச் சேமி</string>
+    <string name="history_origin_developer">உருவாக்குநர்</string>
+    <string name="history_origin_viewer">பார்வையாளர்</string>
+    <string name="history_origin_apps">செயலிகள்</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">இன்னும் வரலாறு இல்லை</string>
+    <string name="history_empty_subtitle">Butler ஐப் பயன்படுத்தும்போது கோப்புச் செயல்பாடுகள் இங்கே தோன்றும்.</string>
+    <string name="history_empty_filtered_title">பொருத்தங்கள் இல்லை</string>
+    <string name="history_empty_filtered_subtitle">தற்போதைய வடிகட்டிக்குப் பொருந்தும் வரலாற்றுப் பதிவுகள் எதுவும் இல்லை.</string>
+    <string name="history_empty_filtered_reset_action">வடிகட்டியை மீட்டமை</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">வடிகட்டியை மீட்டமை</string>
+    <string name="history_toolbar_reset_filter_content_description">வடிகட்டிகளை மீட்டமை</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">பாதிக்கப்பட்ட %2$d பாதைகளில் முதல் %1$d</string>
+    <string name="history_add_filter_action">வடிகட்டியைச் சேர்</string>
+    <string name="history_add_filter_sheet_title">வடிகட்டியைச் சேர்</string>
+    <string name="history_add_filter_section_outcome">முடிவு</string>
+    <string name="history_add_filter_section_kind">வகை</string>
+    <string name="history_add_filter_section_path_scope">பாதை வரம்பு</string>
+    <string name="history_add_filter_add_path_action">பாதையைச் சேர்…</string>
+    <string name="history_path_scope_remove_action">அகற்று</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d பதிவு</item>
+        <item quantity="other">%1$d பதிவுகள்</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%2$d இல் %1$d காட்டப்படுகிறது</item>
+        <item quantity="other">%2$d இல் %1$d காட்டப்படுகின்றன</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">வரலாறு</string>
+    <string name="history_settings_save_history_title">வரலாற்றைச் சேமி</string>
+    <string name="history_settings_save_history_subtitle">முடிந்த கோப்புச் செயல்பாடுகளைப் பதிவுசெய்யும்.</string>
+    <string name="history_settings_max_history_label">அதிகபட்ச வரலாற்று உருப்படிகள்</string>
+    <string name="history_settings_max_history_subtitle">இந்த வரம்பை மீறும்போது பழைய பதிவுகள் அகற்றப்படும்.</string>
+    <string name="history_settings_max_history_input_label">அதிகபட்ச பதிவுகள்</string>
+    <string name="history_settings_clear_history_title">வரலாற்றை அழி</string>
+    <string name="history_settings_clear_history_subtitle">சேமிக்கப்பட்ட அனைத்துப் பதிவுகளையும் (%1$d) அகற்றும்.</string>
+    <string name="history_clear_dialog_title">வரலாற்றை அழிக்கவா?</string>
+    <string name="history_clear_dialog_message">செயல்பாட்டு வரலாற்றுத் தரவுத்தளத்திலிருந்து அனைத்துப் பதிவுகளையும் அகற்றும். இந்தச் செயலைச் செயல்தவிர்க்க முடியாது.</string>
+    <string name="history_clear_confirm_action">அழி</string>
+    <string name="history_cleared_success">வரலாறு அழிக்கப்பட்டது</string>
+    <string name="history_workspace_title_kind_restore">மீட்டெடுத்தல்கள்</string>
+    <string name="history_filter_kind_restore">மீட்டெடுத்தல்</string>
+    <string name="history_workspace_title_kind_install">வரலாறு: நிறுவுதல்</string>
+    <string name="history_filter_kind_install">நிறுவுதல்</string>
+    <string name="history_workspace_title_kind_enable">வரலாறு: இயக்குதல்</string>
+    <string name="history_workspace_title_kind_disable">வரலாறு: முடக்குதல்</string>
+    <string name="history_workspace_title_kind_force_stop">வரலாறு: கட்டாயமாக நிறுத்துதல்</string>
+    <string name="history_workspace_title_kind_uninstall">வரலாறு: நிறுவலை நீக்குதல்</string>
+    <string name="history_workspace_title_kind_clear_data">வரலாறு: தரவை அழித்தல்</string>
+    <string name="history_workspace_title_kind_components">வரலாறு: கூறுகள்</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">அனைத்தையும் தேர்ந்தெடு</string>
+    <string name="history_action_deselect_all">அனைத்துத் தேர்வுகளையும் நீக்கு</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">%1$d பதிவை நீக்கு</item>
+        <item quantity="other">%1$d பதிவுகளை நீக்கு</item>
+    </plurals>
+    <string name="history_delete_dialog_message">வரலாற்றுப் பதிவுகள் மட்டுமே அகற்றப்படும்; கோப்புகளில் எந்த மாற்றமும் செய்யப்படாது.</string>
+    <string name="history_pro_dialog_message">பல வரலாற்றுப் பதிவுகளை ஒரே நேரத்தில் பகிர்வது மேம்படுத்தலின் ஒரு பகுதியாகும். ஒரு பதிவைப் பகிர்வதும் பதிவுகளை நீக்குவதும் தொடர்ந்து இலவசம்.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">முடிவு</string>
+    <string name="history_share_label_kind">வகை</string>
+    <string name="history_share_label_origin">மூலம்</string>
+    <string name="history_share_label_summary">சுருக்கம்</string>
+    <string name="history_share_label_completed">முடிந்தது</string>
+    <string name="history_share_label_duration">கால அளவு</string>
+    <string name="history_share_label_error">பிழை</string>
+    <string name="history_share_label_failed_items">தோல்வியடைந்த உருப்படிகள்</string>
+    <string name="history_share_label_paths">பாதிக்கப்பட்ட பாதைகள் (%1$d)</string>
+    <string name="history_share_label_packages">பாதிக்கப்பட்ட செயலிகள் (%1$d)</string>
+    <string name="history_share_paths_more">… மேலும் %1$d</string>
+    <string name="history_share_truncated">… மேலும் %1$d பதிவுகள் சேர்க்கப்படவில்லை</string>
+</resources>

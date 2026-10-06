@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Lagre som</string>
+    <string name="saver_preview_label">Forhåndsvisning</string>
+    <string name="saver_loading">Laster…</string>
+    <string name="saver_shared_from">Delt fra %1$s</string>
+    <string name="saver_shared_generic">Delt med Butler</string>
+    <string name="saver_destination_label">Mål</string>
+    <string name="saver_select_destination_hint">Velg målmappe</string>
+    <string name="saver_filename_label">Filnavn</string>
+    <string name="saver_save_action">Lagre</string>
+    <string name="saver_saving_progress">Lagrer…</string>
+    <string name="saver_success_message">Filen ble lagret</string>
+    <string name="saver_open_saved_action">Åpne mappe</string>
+    <string name="saver_retry_action">Prøv igjen</string>
+    <string name="saver_save_again_action">Lagre på ny plassering</string>
+    <string name="saver_close_tab_action">Lukk fane</string>
+    <string name="saver_close_butler_action">Lukk fanen og gå tilbake</string>
+    <string name="saver_done_action">Ferdig</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Kildefilen er ikke lenger tilgjengelig. Del den på nytt.</item>
+        <item quantity="other">%1$d kildefiler er ikke lenger tilgjengelige. Del dem på nytt.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Kildefilen er ikke lenger tilgjengelig</string>
+    <string name="saver_error_permission_denied">Tilgang nektet</string>
+    <string name="saver_error_write_failed">Kunne ikke lagre filen</string>
+    <string name="saver_error_file_exists">Filen finnes allerede</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Lagre filer</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Lagrer %1$d fil til %2$s</item>
+        <item quantity="other">Lagrer %1$d filer til %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Lagre %1$d fil</item>
+        <item quantity="other">Lagre %1$d filer</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d fil lagret</item>
+        <item quantity="other">%1$d filer lagret</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d fil kunne ikke lagres</item>
+        <item quantity="other">%1$d filer kunne ikke lagres</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d fil hoppet over</item>
+        <item quantity="other">%1$d filer hoppet over</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d av %2$d filer lagret</string>
+</resources>

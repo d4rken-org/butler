@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Utvecklare</string>
+    <string name="developer_title">Utvecklarverktyg</string>
+    <string name="developer_subtitle">Verktyg för utveckling</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">System</string>
+    <string name="developer_tab_options">Alternativ</string>
+    <string name="developer_tab_workspaces">Arbetsytor</string>
+    <string name="developer_tab_logs">Loggar</string>
+    <string name="developer_tab_testdata">Testdata</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Felsökningsalternativ</string>
+    <string name="developer_options_debug_mode">Felsökningsläge</string>
+    <string name="developer_options_debug_mode_desc">Aktivera detaljerad loggning</string>
+    <string name="developer_options_trace_mode">Spårningsläge</string>
+    <string name="developer_options_trace_mode_desc">Aktivera loggning på spårningsnivå</string>
+    <string name="developer_options_floating_log">Flytande loggpanel</string>
+    <string name="developer_options_floating_log_desc">Visa en flyttbar loggpanel ovanpå alla skärmar</string>
+    <string name="developer_options_services_header">Tjänsttester</string>
+    <string name="developer_options_root_test_action">Testa rootåtkomst</string>
+    <string name="developer_options_root_installed_label">Installerat</string>
+    <string name="developer_options_root_available_label">Tillgängligt</string>
+    <string name="developer_options_root_base_check_label">Grundkontroll</string>
+    <string name="developer_options_shizuku_test_action">Testa ADB-åtkomst</string>
+    <string name="developer_options_shizuku_installed_label">Installerat</string>
+    <string name="developer_options_shizuku_granted_label">Behörighet</string>
+    <string name="developer_options_shizuku_compatible_label">Kompatibelt</string>
+    <string name="developer_options_shizuku_service_label">Tjänst</string>
+    <string name="developer_options_test_running">Testar…</string>
+    <string name="developer_options_result_yes">Ja</string>
+    <string name="developer_options_result_no">Nej</string>
+    <string name="developer_options_result_unknown">Okänt</string>
+    <string name="developer_options_visibility_header">Synlighet</string>
+    <string name="developer_options_hide_mode">Dölj utvecklarläget</string>
+    <string name="developer_options_hide_mode_desc">Tryck på versionen 7 gånger i Inställningar för att aktivera det igen.</string>
+    <string name="developer_options_hide_action">Dölj</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Enhet</string>
+    <string name="developer_system_device_model">Modell</string>
+    <string name="developer_system_device_manufacturer">Tillverkare</string>
+    <string name="developer_system_device_api">API-nivå</string>
+    <string name="developer_system_build_header">Bygge</string>
+    <string name="developer_system_build_version">Version</string>
+    <string name="developer_system_build_code">Versionskod</string>
+    <string name="developer_system_build_flavor">Variant</string>
+    <string name="developer_system_build_type">Byggtyp</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Minne</string>
+    <string name="developer_system_memory_available">Tillgängligt</string>
+    <string name="developer_system_memory_total">Totalt</string>
+    <string name="developer_system_storage_header">Lagring</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d arbetsytor</string>
+    <string name="developer_workspaces_empty">Inga arbetsytor</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Rensa</string>
+    <string name="developer_logs_pause">Pausa</string>
+    <string name="developer_logs_resume">Återuppta</string>
+    <string name="developer_logs_empty">Inga loggar</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Målsökvägar</string>
+    <string name="developer_testdata_no_paths">Inga målsökvägar har valts. Lägg till sökvägar för att generera testdata.</string>
+    <string name="developer_testdata_add_path_action">Lägg till sökväg</string>
+    <string name="developer_testdata_options_header">Genereringsalternativ</string>
+    <string name="developer_testdata_large_files">Stora filer</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Nästlad struktur</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 mappar, ~1100 filer</string>
+    <string name="developer_testdata_text_files">Textfiler för redigeraren</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Generera</string>
+    <string name="developer_testdata_generating">Genererar…</string>
+    <string name="developer_testdata_history_header">Exempelposter i historiken</string>
+    <string name="developer_testdata_history_desc">Skapar ~25 fiktiva åtgärdsposter från idag → 30 dagar tillbaka, med blandade typer/resultat/ursprung/sökvägar. Infogas direkt i historikdatabasen; du kan tryggt trycka igen.</string>
+    <string name="developer_testdata_history_generate_action">Generera exempelhistorik</string>
+    <string name="developer_testdata_progress">%1$s av %2$s</string>
+    <string name="developer_testdata_complete">Testdata genererades i:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Generera stora filer</string>
+    <string name="developer_operation_large_files_desc">Skapar testfiler i %1$s</string>
+    <string name="developer_operation_large_files_creating">Skapar %1$s</string>
+
+    <string name="developer_operation_nested_title">Generera nästlad struktur</string>
+    <string name="developer_operation_nested_desc">Skapar mapphierarki i %1$s</string>
+    <string name="developer_operation_nested_starting">Startar nästlad struktur…</string>
+    <string name="developer_operation_nested_creating">Skapar %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d filer skapade</string>
+
+    <string name="developer_operation_text_files_title">Generera textfiler</string>
+    <string name="developer_operation_text_files_desc">Skapar textfiler i %1$s</string>
+    <string name="developer_operation_text_files_creating">Skapar %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d fil skapad</item>
+        <item quantity="other">%d filer skapade</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d katalog</item>
+        <item quantity="other">%d kataloger</item>
+    </plurals>
+</resources>

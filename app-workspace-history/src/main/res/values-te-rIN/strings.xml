@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">చరిత్ర</string>
+    <string name="history_workspace_subtitle">ఇటీవలి ఫైల్ చర్యలు</string>
+    <string name="history_workspace_title_scoped">చరిత్ర: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">చరిత్ర: విఫలమైనవి</string>
+    <string name="history_workspace_title_outcome_partial">చరిత్ర: పాక్షికంగా పూర్తయినవి</string>
+    <string name="history_workspace_title_outcome_cancelled">చరిత్ర: రద్దయినవి</string>
+    <string name="history_workspace_title_outcome_completed">చరిత్ర: పూర్తయినవి</string>
+    <string name="history_workspace_title_kind_copy">చరిత్ర: కాపీ</string>
+    <string name="history_workspace_title_kind_move">చరిత్ర: తరలింపు</string>
+    <string name="history_workspace_title_kind_delete">చరిత్ర: తొలగింపు</string>
+    <string name="history_workspace_title_kind_create_file">చరిత్ర: ఫైల్ సృష్టి</string>
+    <string name="history_workspace_title_kind_create_folder">చరిత్ర: ఫోల్డర్ సృష్టి</string>
+    <string name="history_workspace_title_kind_save">చరిత్ర: సేవ్</string>
+    <string name="history_workspace_title_kind_compress">చరిత్ర: కంప్రెస్</string>
+    <string name="history_workspace_title_kind_extract">చరిత్ర: ఎక్స్‌ట్రాక్ట్</string>
+    <string name="history_workspace_title_filtered">చరిత్ర (ఫిల్టర్ చేసినది)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">చరిత్ర: %1$d పాత్</item>
+        <item quantity="other">చరిత్ర: %1$d పాత్‌లు</item>
+    </plurals>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">అన్నీ</string>
+    <string name="history_filter_outcome_completed">పూర్తయినవి</string>
+    <string name="history_filter_outcome_partial">పాక్షికంగా పూర్తయినవి</string>
+    <string name="history_filter_outcome_failed">విఫలమైనవి</string>
+    <string name="history_filter_outcome_cancelled">రద్దయినవి</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">కాపీ</string>
+    <string name="history_filter_kind_move">తరలింపు</string>
+    <string name="history_filter_kind_delete">తొలగింపు</string>
+    <string name="history_filter_kind_create_file">ఫైల్ సృష్టి</string>
+    <string name="history_filter_kind_create_folder">ఫోల్డర్ సృష్టి</string>
+    <string name="history_filter_kind_save">సేవ్</string>
+    <string name="history_filter_kind_compress">కంప్రెస్</string>
+    <string name="history_filter_kind_extract">ఎక్స్‌ట్రాక్ట్</string>
+    <string name="history_filter_kind_enable">ఎనేబుల్</string>
+    <string name="history_filter_kind_disable">డిసేబుల్</string>
+    <string name="history_filter_kind_force_stop">బలవంతంగా ఆపడం</string>
+    <string name="history_filter_kind_uninstall">అన్‌ఇన్‌స్టాల్</string>
+    <string name="history_filter_kind_clear_data">డేటా తొలగింపు</string>
+    <string name="history_filter_kind_components">కాంపోనెంట్‌లు</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">పాత్ పరిధిని సెట్ చేయండి…</string>
+    <string name="history_path_scope_clear_action">పాత్ పరిధిని తీసివేయండి</string>
+    <string name="history_path_scope_dialog_title">పాత్ ప్రకారం ఫిల్టర్ చేయండి</string>
+    <string name="history_path_scope_dialog_description">ఈ పాత్‌ను లేదా దాని కింద ఉన్న పాత్‌లను ప్రభావితం చేసే చర్యలను మాత్రమే చూపండి.</string>
+    <string name="history_path_scope_dialog_input_label">పాత్</string>
+    <string name="history_path_scope_dialog_pick_folder_action">ఫోల్డర్‌ను ఎంచుకోండి…</string>
+    <string name="history_path_scope_dialog_apply_action">వర్తింపజేయండి</string>
+    <string name="history_path_scope_dialog_cancel_action">రద్దు చేయండి</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">ఈరోజు</string>
+    <string name="history_group_yesterday">నిన్న</string>
+    <string name="history_group_this_week">ఈ వారం</string>
+    <string name="history_group_this_month">ఈ నెల</string>
+    <string name="history_group_older">పాతవి</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">పేరు మార్చబడింది</string>
+    <string name="history_entry_intent_paste_copy">పేస్ట్ చేయబడింది</string>
+    <string name="history_entry_intent_paste_move">పేస్ట్ చేయబడింది (తరలింపు)</string>
+    <string name="history_entry_intent_drop_copy">డ్రాప్ చేయబడింది (కాపీ)</string>
+    <string name="history_entry_intent_drop_move">డ్రాప్ చేయబడింది (తరలింపు)</string>
+    <string name="history_entry_intent_enable_components">కాంపోనెంట్‌లు ఎనేబుల్ చేయబడిన యాప్</string>
+    <string name="history_entry_intent_disable_components">కాంపోనెంట్‌లు డిసేబుల్ చేయబడిన యాప్</string>
+    <string name="history_entry_kind_copy">కాపీ చేయబడింది</string>
+    <string name="history_entry_kind_move">తరలించబడింది</string>
+    <string name="history_entry_kind_delete">తొలగించబడింది</string>
+    <string name="history_entry_kind_create_file">ఫైల్ సృష్టించబడింది</string>
+    <string name="history_entry_kind_create_folder">ఫోల్డర్ సృష్టించబడింది</string>
+    <string name="history_entry_kind_save">సేవ్ చేయబడింది</string>
+    <string name="history_entry_kind_compress">కంప్రెస్ చేయబడింది</string>
+    <string name="history_entry_kind_extract">ఎక్స్‌ట్రాక్ట్ చేయబడింది</string>
+    <string name="history_entry_kind_restore">పునరుద్ధరించబడింది</string>
+    <string name="history_entry_kind_install">ఇన్‌స్టాల్ చేయబడింది</string>
+    <string name="history_entry_kind_enable">ఎనేబుల్ చేయబడింది</string>
+    <string name="history_entry_kind_disable">డిసేబుల్ చేయబడింది</string>
+    <string name="history_entry_kind_force_stop">బలవంతంగా ఆపబడింది</string>
+    <string name="history_entry_kind_uninstall">అన్‌ఇన్‌స్టాల్ చేయబడింది</string>
+    <string name="history_entry_kind_clear_data">డేటా తొలగించబడిన యాప్</string>
+    <string name="history_entry_kind_components">కాంపోనెంట్‌లు మార్చబడిన యాప్</string>
+    <!-- Row headline: what happened, followed by the file or folder it happened to -->
+    <!-- Quoted so the double space survives the resource parser -->
+    <string name="history_entry_headline_format">"%1$s  %2$s"</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d పాత్</item>
+        <item quantity="other">%d పాత్‌లు</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">ప్రభావిత %2$d పాత్‌లలో మొదటి %1$d</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">ప్రారంభమైంది</string>
+    <string name="history_detail_label_completed">పూర్తయింది</string>
+    <string name="history_detail_label_duration">వ్యవధి</string>
+    <string name="history_detail_label_outcome">ఫలితం</string>
+    <string name="history_detail_label_origin">మూలం</string>
+    <string name="history_detail_label_error">లోపం</string>
+    <string name="history_detail_label_paths">ప్రభావిత పాత్‌లు</string>
+    <string name="history_detail_label_partial_errors">అంశాలవారీ వైఫల్యాలు</string>
+    <string name="history_detail_copy_path_action">పాత్‌ను కాపీ చేయండి</string>
+    <string name="history_detail_paths_empty">ప్రభావిత పాత్‌లు నమోదు కాలేదు.</string>
+    <string name="history_detail_label_attempted_paths">ప్రయత్నించిన పాత్‌లు</string>
+    <string name="history_detail_label_packages">ప్రభావిత యాప్‌లు</string>
+    <string name="history_detail_packages_empty">ప్రభావిత యాప్‌లు నమోదు కాలేదు.</string>
+    <string name="history_detail_paths_truncated_callout">ప్రభావిత %2$d పాత్‌లలో మొదటి %1$d చూపబడుతున్నాయి.</string>
+    <string name="history_detail_attempted_paths_truncated_callout">ప్రయత్నించిన %2$d పాత్‌లలో మొదటి %1$d చూపబడుతున్నాయి.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">ఈ చర్యలో %1$d అంశం విఫలమైంది.</item>
+        <item quantity="other">ఈ చర్యలో %1$d అంశాలు విఫలమయ్యాయి.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">ఎక్స్‌ప్లోరర్</string>
+    <string name="history_origin_searcher">శోధన</string>
+    <string name="history_origin_saver">ఇలా సేవ్ చేయండి</string>
+    <string name="history_origin_developer">డెవలపర్</string>
+    <string name="history_origin_viewer">వ్యూయర్</string>
+    <string name="history_origin_apps">యాప్‌లు</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">ఇంకా చరిత్ర లేదు</string>
+    <string name="history_empty_subtitle">Butlerను ఉపయోగిస్తున్నప్పుడు ఫైల్ చర్యలు ఇక్కడ కనిపిస్తాయి.</string>
+    <string name="history_empty_filtered_title">సరిపోలేవి లేవు</string>
+    <string name="history_empty_filtered_subtitle">ప్రస్తుత ఫిల్టర్‌కు సరిపోలే చరిత్ర నమోదులు లేవు.</string>
+    <string name="history_empty_filtered_reset_action">ఫిల్టర్‌ను రీసెట్ చేయండి</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_reset_filter_action">ఫిల్టర్‌ను రీసెట్ చేయండి</string>
+    <string name="history_toolbar_reset_filter_content_description">ఫిల్టర్‌లను రీసెట్ చేయండి</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">ప్రభావిత %2$d పాత్‌లలో మొదటి %1$d</string>
+    <string name="history_add_filter_action">ఫిల్టర్‌ను జోడించండి</string>
+    <string name="history_add_filter_sheet_title">ఫిల్టర్‌ను జోడించండి</string>
+    <string name="history_add_filter_section_outcome">ఫలితం</string>
+    <string name="history_add_filter_section_kind">రకం</string>
+    <string name="history_add_filter_section_path_scope">పాత్ పరిధి</string>
+    <string name="history_add_filter_add_path_action">పాత్‌ను జోడించండి…</string>
+    <string name="history_path_scope_remove_action">తీసివేయండి</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d నమోదు</item>
+        <item quantity="other">%1$d నమోదులు</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%2$dలో %1$d చూపబడింది</item>
+        <item quantity="other">%2$dలో %1$d చూపబడ్డాయి</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="history_settings_title">చరిత్ర</string>
+    <string name="history_settings_save_history_title">చరిత్రను సేవ్ చేయండి</string>
+    <string name="history_settings_save_history_subtitle">పూర్తయిన ఫైల్ చర్యలను నమోదు చేయండి.</string>
+    <string name="history_settings_max_history_label">గరిష్ఠ చరిత్ర అంశాలు</string>
+    <string name="history_settings_max_history_subtitle">ఈ పరిమితి దాటితే పాత నమోదులు తొలగించబడతాయి.</string>
+    <string name="history_settings_max_history_input_label">గరిష్ఠ నమోదులు</string>
+    <string name="history_settings_clear_history_title">చరిత్రను తొలగించండి</string>
+    <string name="history_settings_clear_history_subtitle">నిల్వ చేసిన అన్ని నమోదులను తొలగించండి (%1$d).</string>
+    <string name="history_clear_dialog_title">చరిత్రను తొలగించాలా?</string>
+    <string name="history_clear_dialog_message">చర్యల చరిత్ర డేటాబేస్ నుంచి అన్ని నమోదులు తొలగించబడతాయి. ఈ చర్యను వెనక్కి తీసుకోలేరు.</string>
+    <string name="history_clear_confirm_action">తొలగించండి</string>
+    <string name="history_cleared_success">చరిత్ర తొలగించబడింది</string>
+    <string name="history_workspace_title_kind_restore">పునరుద్ధరణలు</string>
+    <string name="history_filter_kind_restore">పునరుద్ధరణ</string>
+    <string name="history_workspace_title_kind_install">చరిత్ర: ఇన్‌స్టాల్</string>
+    <string name="history_filter_kind_install">ఇన్‌స్టాల్</string>
+    <string name="history_workspace_title_kind_enable">చరిత్ర: ఎనేబుల్</string>
+    <string name="history_workspace_title_kind_disable">చరిత్ర: డిసేబుల్</string>
+    <string name="history_workspace_title_kind_force_stop">చరిత్ర: బలవంతంగా ఆపడం</string>
+    <string name="history_workspace_title_kind_uninstall">చరిత్ర: అన్‌ఇన్‌స్టాల్</string>
+    <string name="history_workspace_title_kind_clear_data">చరిత్ర: డేటా తొలగింపు</string>
+    <string name="history_workspace_title_kind_components">చరిత్ర: కాంపోనెంట్‌లు</string>
+
+    <!-- Selection actions -->
+    <string name="history_action_select_all">అన్నీ ఎంచుకోండి</string>
+    <string name="history_action_deselect_all">అన్నింటి ఎంపికను తీసివేయండి</string>
+    <plurals name="history_delete_dialog_title">
+        <item quantity="one">%1$d నమోదును తొలగించండి</item>
+        <item quantity="other">%1$d నమోదులను తొలగించండి</item>
+    </plurals>
+    <string name="history_delete_dialog_message">చరిత్ర నమోదులు మాత్రమే తొలగించబడతాయి, ఫైళ్లలో ఎలాంటి మార్పు జరగదు.</string>
+    <string name="history_pro_dialog_message">ఒకేసారి పలు చరిత్ర నమోదులను షేర్ చేయడం అప్‌గ్రేడ్‌లో భాగం. ఒక్క నమోదును షేర్ చేయడం, నమోదులను తొలగించడం ఉచితంగానే ఉంటాయి.</string>
+
+    <!-- Shared text -->
+    <string name="history_share_label_outcome">ఫలితం</string>
+    <string name="history_share_label_kind">రకం</string>
+    <string name="history_share_label_origin">మూలం</string>
+    <string name="history_share_label_summary">సారాంశం</string>
+    <string name="history_share_label_completed">పూర్తయింది</string>
+    <string name="history_share_label_duration">వ్యవధి</string>
+    <string name="history_share_label_error">లోపం</string>
+    <string name="history_share_label_failed_items">విఫలమైన అంశాలు</string>
+    <string name="history_share_label_paths">ప్రభావిత పాత్‌లు (%1$d)</string>
+    <string name="history_share_label_packages">ప్రభావిత యాప్‌లు (%1$d)</string>
+    <string name="history_share_paths_more">… ఇంకా %1$d</string>
+    <string name="history_share_truncated">… ఇంకా %1$d నమోదులు చేర్చబడలేదు</string>
+</resources>

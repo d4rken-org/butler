@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_title">Muokkain</string>
+    <string name="editor_subtitle">Muokkaa tekstitiedostoja</string>
+    <string name="editor_settings_title">Muokkaimen asetukset</string>
+    <string name="editor_settings_show_line_numbers_title">Näytä rivinumerot</string>
+    <string name="editor_settings_show_line_numbers_subtitle">Näytä rivinumerot muokkaimessa.</string>
+    <string name="editor_settings_word_wrap_title">Rivitys</string>
+    <string name="editor_settings_word_wrap_subtitle">Rivitä pitkät rivit näytön leveyteen sopiviksi.</string>
+    <string name="editor_settings_syntax_highlighting_title">Syntaksin korostus</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Väritä koodi tuetuissa tiedostoissa (JavaScript, Bash, Markdown, JSON).</string>
+    <string name="editor_settings_font_size_title">Fonttikoko</string>
+    <string name="editor_settings_font_size_subtitle">Tekstin koko muokkaimessa</string>
+    <string name="editor_settings_font_size_value">%1$d sp</string>
+    <string name="editor_settings_tab_size_title">Sarkaimen leveys</string>
+    <string name="editor_settings_tab_size_subtitle">Sarkainmerkin leveys välilyönteinä</string>
+
+    <!-- Editor tab page -->
+    <string name="editor_action_open">Avaa</string>
+    <string name="editor_action_save">Tallenna</string>
+    <string name="editor_action_save_as">Tallenna nimellä…</string>
+    <string name="editor_action_close">Sulje</string>
+    <string name="editor_action_undo">Kumoa</string>
+    <string name="editor_action_redo">Tee uudelleen</string>
+    <string name="editor_action_search">Etsi</string>
+    <string name="editor_action_go_to_line">Siirry riville</string>
+    <string name="editor_action_dismiss">Piilota</string>
+    <string name="editor_action_previous">Edellinen</string>
+    <string name="editor_action_next">Seuraava</string>
+    <string name="editor_action_copy">Kopioi</string>
+    <string name="editor_action_cut">Leikkaa</string>
+    <string name="editor_action_copy_to_butler_clipboard">Kopioi Butlerin leikepöydälle</string>
+    <string name="editor_action_cut_to_butler_clipboard">Leikkaa Butlerin leikepöydälle</string>
+    <string name="editor_action_paste">Liitä</string>
+    <string name="editor_action_select_all">Valitse kaikki</string>
+    <string name="editor_action_delete">Poista</string>
+
+    <!-- Save-As overwrite confirmation -->
+    <string name="editor_dialog_save_as_overwrite_title">Korvataanko tiedosto?</string>
+    <string name="editor_dialog_save_as_overwrite_message">%1$s on jo olemassa. Sen nykyinen sisältö korvataan.</string>
+    <string name="editor_dialog_save_as_overwrite_action">Korvaa</string>
+
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">Keskeytyneestä tallennuksesta löytyi varmuuskopio:\n%1$s</string>
+
+    <!-- Binary file notice -->
+    <string name="editor_binary_banner_message">Muokkaamista tekstinä ei tueta</string>
+
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Erittäin pitkiä rivejä</string>
+    <string name="editor_long_lines_banner_message">Erittäin pitkät rivit näytetään lyhennettyinä. Koko sisältö säilytetään ja tallennetaan.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Näytä rivin seuraava osa</string>
+    <string name="editor_line_truncated_marker_previous_action">Näytä rivin edellinen osa</string>
+
+    <!-- Backing-file-lost notice -->
+    <string name="editor_backing_lost_banner_title">Tiedosto ei ole enää saatavilla</string>
+    <string name="editor_backing_lost_banner_message">Se on ehkä siirretty tai poistettu. Tämä näkymä on vain luku -tilassa — avaa se uudelleen tai sulje se.</string>
+
+    <!-- Interrupted-save recovery notice -->
+    <string name="editor_error_save_artifacts_label">Tiedosto on kadonnut, mutta varmuuskopio on jäljellä</string>
+    <string name="editor_error_save_artifacts_description">\"%1$s\" puuttuu, mutta keskeytyneestä tallennuksesta jäi tämä: %2$s. Sisältösi on todennäköisesti yhä siinä.</string>
+
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">Tallennettu tiedosto on muuttunut</string>
+    <string name="editor_external_change_banner_message">Toinen sovellus muokkasi tätä tiedostoa.</string>
+    <string name="editor_external_change_reload_action">Lataa uudelleen</string>
+    <string name="editor_external_change_keep_action">Jatka muokkaamista</string>
+    <string name="editor_error_external_change">Toinen sovellus muutti tätä tiedostoa. Lataa tiedosto uudelleen jatkaaksesi.</string>
+    <string name="editor_dialog_reload_confirm_title">Ladataanko tiedosto uudelleen?</string>
+    <string name="editor_dialog_reload_confirm_message">Uudelleenlataus hylkää tallentamattomat muutoksesi ja näyttää tallennetun tiedoston nykyisen sisällön.</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d rivi</item>
+        <item quantity="other">%1$d riviä</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d merkki</item>
+        <item quantity="other">%1$d merkkiä</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Valittu %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$d r · %2$s</string>
+
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Ladataan tiedostoa…</string>
+    <string name="editor_saving">Tallennetaan…</string>
+    <string name="editor_action_cancel_loading">Peruuta</string>
+    <string name="editor_progress_opening">Avataan tiedostoa…</string>
+    <string name="editor_progress_saving">Tallennetaan tiedostoa…</string>
+    <string name="editor_progress_building_index">Luodaan tiedoston indeksiä…</string>
+
+    <!-- Editor UI elements -->
+    <string name="editor_error_unknown">Tuntematon virhe</string>
+    <string name="editor_error_read_only">Tämä tiedosto on vain luku -tilassa, eikä sitä voi muuttaa.</string>
+    <string name="editor_error_save_integrity_label">Tallennus keskeytyi</string>
+    <string name="editor_error_save_integrity">Tallennus keskeytyi, ja tallennettu tiedosto saattaa olla puutteellinen. Lataa tiedosto uudelleen ennen kuin jatkat muokkaamista.</string>
+    <string name="editor_error_clipboard_too_large_label">Valinta on liian suuri</string>
+    <string name="editor_error_clipboard_too_large">Valinta on liian suuri kopioitavaksi (raja %1$s).</string>
+    <string name="editor_error_paste_too_large_label">Tiedosto on liian suuri</string>
+    <string name="editor_error_paste_too_large">Tämä tiedosto on liian suuri liitettäväksi (enintään %1$s).</string>
+    <string name="editor_error_paste_binary_label">Ei tekstitiedosto</string>
+    <string name="editor_error_paste_binary">Tämän tiedoston sisältöä ei voi liittää tekstinä.</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d / %2$d tulos</item>
+        <item quantity="other">%1$d / %2$d tulosta</item>
+    </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d / %2$d+ tulosta</string>
+    <string name="editor_search_too_many_matches_label">Liian monta osumaa</string>
+    <string name="editor_search_too_many_matches">Yli %1$d osumaa tai liikaa osumiin sisältyvää tekstiä — rajaa hakua, jotta voit korvata kaikki.</string>
+    <string name="editor_search_placeholder">Etsi…</string>
+    <string name="editor_search_previous">Edellinen tulos</string>
+    <string name="editor_search_next">Seuraava tulos</string>
+    <string name="editor_search_case_sensitive_label">Erota isot ja pienet kirjaimet</string>
+    <string name="editor_search_regex_label">Säännöllinen lauseke</string>
+    <string name="editor_search_whole_word_label">Koko sana</string>
+    <string name="editor_search_options_label">Hakuasetukset</string>
+    <string name="editor_search_replace_label">Korvaa</string>
+    <string name="editor_search_replace_toggle">Näytä tai piilota korvaustoiminto</string>
+    <string name="editor_search_replace_placeholder">Korvaava teksti…</string>
+    <string name="editor_search_replace_one_action">Korvaa</string>
+    <string name="editor_search_replace_all_action">Kaikki</string>
+    <string name="editor_search_replaced_not_undoable">%1$d korvattu (liian suuri kumottavaksi)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d korvattu</item>
+        <item quantity="other">%1$d korvattu</item>
+    </plurals>
+
+    <!-- Editor dialogs -->
+    <string name="editor_dialog_go_to_line_title">Siirry riville</string>
+    <string name="editor_dialog_go_to_line_label">Rivinumero (1-%1$d)</string>
+    <string name="editor_dialog_action_go">Siirry</string>
+    <string name="editor_dialog_action_cancel">Peruuta</string>
+    <string name="editor_dialog_close_confirm_title">Tallentamattomia muutoksia</string>
+    <string name="editor_dialog_close_confirm_message">Sinulla on tallentamattomia muutoksia. Hylätäänkö ne?</string>
+    <string name="editor_dialog_close_confirm_discard">Hylkää</string>
+    <string name="editor_dialog_large_delete_confirm_title">Muokataanko suurta valintaa?</string>
+    <string name="editor_dialog_large_delete_confirm_message">Tämä valinta on liian suuri kumottavaksi. Jatketaanko silti?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Jatka</string>
+    <string name="editor_encoding_dialog_title">Merkistökoodaus</string>
+    <string name="editor_encoding_dialog_message">Avaa tiedosto uudelleen toisella merkistökoodauksella. Tallentamattomat muutokset hylätään. Muokkaamattomat tavut säilyvät ennallaan tallennettaessa.</string>
+    <string name="editor_infobar_read_only">Vain luku</string>
+    <string name="editor_line_ending_mixed">Sekalaiset</string>
+    <string name="editor_line_ending_dialog_title">Rivinvaihdot</string>
+    <string name="editor_line_ending_dialog_message">Muunna kaikki rivinvaihdot ja tallenna tiedosto, myös tallentamattomat muutokset. Kumoamishistoria tyhjennetään.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+
+    <!-- Editor File Names -->
+    <string name="editor_file_untitled">Nimetön</string>
+
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Automaattinen tallennus</string>
+    <string name="editor_settings_autosave_enabled_title">Ota automaattinen tallennus käyttöön</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Tallenna muutokset automaattisesti, kun muokkaamisessa on ollut tauko.</string>
+    <string name="editor_settings_autosave_interval_title">Automaattisen tallennuksen viive</string>
+    <string name="editor_settings_autosave_interval_subtitle">Odotusaika viimeisestä muokkauksesta tallennukseen.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Automaattisen tallennuksen viive</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Leikepöytä</string>
+    <string name="editor_settings_clipboard_behavior_title">Butlerin leikepöytä</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Valitse, miten tekstikopiot tallennetaan Butlerin leikepöydälle.</string>
+    <string name="editor_settings_clipboard_system_only">Vain järjestelmä</string>
+    <string name="editor_settings_clipboard_system_only_desc">Kopioi vain järjestelmän leikepöydälle</string>
+    <string name="editor_settings_clipboard_butler_always">Lisää aina Butleriin</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Tallenna myös Butlerin leikepöydälle, jotta voit liittää tekstin eri työtiloihin</string>
+    <string name="editor_settings_clipboard_ask">Kysy joka kerta</string>
+    <string name="editor_settings_clipboard_ask_desc">Kysy ennen lisäämistä Butlerin leikepöydälle</string>
+</resources>

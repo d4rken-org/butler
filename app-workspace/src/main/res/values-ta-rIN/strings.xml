@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">கிளிப்போர்டு</string>
+    <string name="clipboard_clear_all">அனைத்தையும் அழி</string>
+    <string name="clipboard_paste">ஒட்டு</string>
+    <string name="clipboard_open_in_explorer">கோப்பு உலாவியில் திற</string>
+    <string name="clipboard_copy">நகலெடு</string>
+    <string name="clipboard_cut">வெட்டு</string>
+    <string name="clipboard_origin">மூலம்: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">%d உருப்படியை நகலெடு</item>
+        <item quantity="other">%d உருப்படிகளை நகலெடு</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d உருப்படி, %s இலிருந்து</item>
+        <item quantity="other">%d உருப்படிகள், %s இலிருந்து</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">%d உருப்படியை வெட்டு</item>
+        <item quantity="other">%d உருப்படிகளை வெட்டு</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d உருப்படி, %s இலிருந்து</item>
+        <item quantity="other">%d உருப்படிகள், %s இலிருந்து</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d இருப்பிடம்</item>
+        <item quantity="other">%d இருப்பிடங்கள்</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d உருப்படி, %2$s இலிருந்து</item>
+        <item quantity="other">%1$d உருப்படிகள், %2$s இலிருந்து</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d உருப்படி, %2$s இலிருந்து</item>
+        <item quantity="other">%1$d உருப்படிகள், %2$s இலிருந்து</item>
+    </plurals>
+    <string name="clipboard_text_title">உரைத் துணுக்கு</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d எழுத்து</item>
+        <item quantity="other">%1$d எழுத்துகள்</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">கோப்பாக ஒட்டு</string>
+    <string name="clipboard_text_info_characters">எழுத்துகள்</string>
+    <string name="clipboard_text_info_lines">வரிகள்</string>
+    <string name="clipboard_text_info_content">உள்ளடக்கம்</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">கண்ணோட்டம்</string>
+    <string name="clipboard_info_operation">செயல்பாடு</string>
+    <string name="clipboard_info_items">உருப்படிகள்</string>
+    <string name="clipboard_info_source">மூலம்</string>
+    <string name="clipboard_info_sources">மூலங்கள்</string>
+    <string name="clipboard_info_workspace">பணிப்பரப்பு</string>
+    <string name="clipboard_info_workspace_closed">மூடப்பட்டது</string>
+    <string name="clipboard_info_time">நேரம்</string>
+    <string name="clipboard_info_items_with_count">உருப்படிகள் (%1$d)</string>
+    <string name="clipboard_info_actions">செயல்கள்</string>
+    <string name="clipboard_info_go_to_source">மூலத்திற்குச் செல்</string>
+    <string name="clipboard_info_go_to_first_source">முதல் மூலத்திற்குச் செல்</string>
+    <string name="clipboard_info_remove">கிளிப்போர்டிலிருந்து அகற்று</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">கிளிப்போர்டு</string>
+    <string name="clipboard_settings_remove_on_paste_title">ஒட்டியதும் அகற்று</string>
+    <string name="clipboard_settings_remove_on_paste_desc">நகலெடுத்த உருப்படிகளை ஒட்டிய பிறகு கிளிப்போர்டிலிருந்து அகற்று</string>
+    <string name="clipboard_settings_max_items_title">அதிகபட்ச உருப்படிகள்</string>
+    <string name="clipboard_settings_max_items_desc">கிளிப்போர்டில் இருக்கக்கூடிய உருப்படிகளின் அதிகபட்ச எண்ணிக்கை</string>
+
+    <string name="workspace_explorer_label">கோப்பு உலாவி</string>
+    <string name="workspace_searcher_label">தேடல்</string>
+    <string name="workspace_editor_label">திருத்தி</string>
+    <string name="workspace_templates_label">வார்ப்புருக்கள்</string>
+    <string name="workspace_apps_label">செயலிகள்</string>
+    <string name="workspace_appdetails_label">செயலி விவரங்கள்</string>
+    <string name="workspace_saver_label">வேறாகச் சேமி</string>
+    <string name="workspace_developer_label">உருவாக்குநர்</string>
+    <string name="workspace_history_label">வரலாறு</string>
+    <string name="workspace_bugreport_label">மென்பொருள் பிழை அறிக்கைகள்</string>
+    <string name="workspace_viewer_label">பார்வையாளர்</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">புகைப்படங்கள்</string>
+    <string name="workspace_searcher_target_videos">காணொளிகள்</string>
+    <string name="workspace_searcher_target_music">இசை</string>
+    <string name="workspace_searcher_target_downloads">பதிவிறக்கங்கள்</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">மேலும்</string>
+    <string name="workspace_expand_less_action">குறைவாக</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">தாவல்களும் பணிப்பரப்புகளும்</string>
+    <string name="workspace_button_menu_new_workspace_format">புதிய %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">புதிய தாவல்</string>
+    <string name="workspace_button_menu_category_recent">சமீபத்தில்</string>
+    <string name="workspace_button_menu_category_other">மற்றவை</string>
+    <string name="workspace_button_menu_category_current_tab">இந்தத் தாவல்</string>
+    <string name="workspace_button_menu_manager_action">தாவல் மேலாளர்</string>
+    <string name="workspace_button_menu_layout_action">தளவமைப்பு</string>
+    <string name="workspace_button_menu_close_current_action">தற்போதைய தாவலை மூடு</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">தற்போதைய தாவலை மூடு (%d பணிப்பரப்பு)</item>
+        <item quantity="other">தற்போதைய தாவலை மூடு (%d பணிப்பரப்புகள்)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">அமைப்புகள்</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">அனைத்துத் தாவல்களையும் மூடவா?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">இது திறந்திருக்கும் %1$d தாவலை மூடும். இந்தச் செயலைச் செயல்தவிர்க்க முடியாது.</item>
+        <item quantity="other">இது திறந்திருக்கும் %1$d தாவல்களையும் மூடும். இந்தச் செயலைச் செயல்தவிர்க்க முடியாது.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">அனைத்தையும் மூடு</string>
+    <string name="workspace_manager_close_all_unsaved_warning">சில தாவல்களில் சேமிக்கப்படாத மாற்றங்கள் உள்ளன. அவை இழக்கப்படும்.</string>
+    <string name="workspace_manager_close_all_unsaved_action">அனைத்தையும் கைவிடு</string>
+    <string name="workspace_manager_close_selected_title">தேர்ந்தெடுத்த தாவல்களை மூடவா?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">இது தேர்ந்தெடுத்த %1$d தாவலை மூடும். இந்தச் செயலைச் செயல்தவிர்க்க முடியாது.</item>
+        <item quantity="other">இது தேர்ந்தெடுத்த %1$d தாவல்களை மூடும். இந்தச் செயலைச் செயல்தவிர்க்க முடியாது.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">தேர்ந்தெடுத்தவற்றை மூடு</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">தேர்ந்தெடுத்த சில தாவல்களில் சேமிக்கப்படாத மாற்றங்கள் உள்ளன. அவை இழக்கப்படும்.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">தேர்ந்தெடுத்தவற்றைக் கைவிடு</string>
+    <string name="workspace_manager_pause_partial_title">தாவல்களை இடைநிறுத்தவா?</string>
+    <string name="workspace_manager_pause_partial_message">தேர்ந்தெடுத்த %2$d தாவல்களில் %1$d தாவல்களை இடைநிறுத்தலாம். மற்றவை பயன்பாட்டில் உள்ளன, சேமிக்கப்படாத மாற்றங்களைக் கொண்டுள்ளன அல்லது தற்போது திறந்துள்ளன.</string>
+    <string name="workspace_manager_pause_partial_action">%1$d தாவல்களை இடைநிறுத்து</string>
+    <string name="general_cancel_action">ரத்துசெய்</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">செயல்பாடுகள்</string>
+    <string name="operations_clear_completed">முடிந்தவற்றை அழி</string>
+    <string name="operations_state_queued">வரிசையில் உள்ளது</string>
+    <string name="operations_state_running">இயங்குகிறது</string>
+    <string name="operations_state_waiting">உள்ளீட்டுக்காகக் காத்திருக்கிறது</string>
+    <string name="operations_state_successful">வெற்றியடைந்தது</string>
+    <string name="operations_state_failed">தோல்வியடைந்தது</string>
+    <string name="operations_state_cancelled">ரத்துசெய்யப்பட்டது</string>
+    <string name="operations_state_cancelling">ரத்துசெய்கிறது…</string>
+    <string name="operations_cancel_operation">செயல்பாட்டை ரத்துசெய்</string>
+    <string name="operations_cancel_dialog_title">செயல்பாட்டை ரத்துசெய்யவா?</string>
+    <string name="operations_cancel_dialog_message">இந்தச் செயல்பாட்டை ரத்துசெய்ய விரும்புகிறீர்களா?</string>
+    <string name="operations_cancel_dialog_warning">ரத்துசெய்தால் கோப்புகள் சீரற்ற நிலையில் விடப்படலாம்.</string>
+    <string name="operations_details_started_at">தொடங்கியது</string>
+    <string name="operations_details_completed_at">முடிந்தது</string>
+    <string name="operations_details_duration">கால அளவு</string>
+    <string name="operations_details_duration_not_started">தொடங்கவில்லை</string>
+    <string name="operations_details_progress">முன்னேற்றம்</string>
+    <string name="operations_details_error">பிழை விவரங்கள்</string>
+    <string name="operations_details_actions">செயல்கள்</string>
+    <string name="operations_details_overview">கண்ணோட்டம்</string>
+    <string name="operations_details_handle_issue">சிக்கலைக் கையாளு</string>
+    <string name="operations_details_open_app_action">செயலியைத் திற</string>
+    <string name="operations_details_show_in_history_action">வரலாற்றில் காட்டு</string>
+    <string name="operations_details_status">நிலை</string>
+    <string name="operations_details_result">முடிவு</string>
+    <string name="operations_details_destination_folder">இலக்குக் கோப்புறை</string>
+    <string name="operations_details_destination_path">இலக்குப் பாதை</string>
+    <string name="operations_details_affected_paths_with_count">பாதிக்கப்பட்ட பாதைகள் (%d)</string>
+    <string name="operations_details_problems_with_count">சிக்கல்கள் (%d)</string>
+    <string name="operations_details_problems_more">மேலும் %d சிக்கல்கள் பட்டியலிடப்படவில்லை</string>
+    <string name="workspace_operation_packages_section_title">செயலிகள்</string>
+    <string name="workspace_operation_package_status_done">முடிந்தது</string>
+    <string name="workspace_operation_package_status_failed">தோல்வியடைந்தது</string>
+    <string name="workspace_operation_package_status_declined">மறுக்கப்பட்டது</string>
+    <string name="operations_details_section_expand">%1$s ஐ விரிவாக்கு</string>
+    <string name="operations_details_section_collapse">%1$s ஐச் சுருக்கு</string>
+    <string name="workspace_operations_performance_graph_label">செயல்திறன் வரைபடம்</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">உருப்படியை நீக்கவா?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">%1$d உருப்படியை நீக்கவா?</item>
+        <item quantity="other">%1$d உருப்படிகளை நீக்கவா?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">இந்த உருப்படி நிரந்தரமாக நீக்கப்படும்:</string>
+    <string name="workspace_dialog_delete_message_multiple">இந்த உருப்படிகள் நிரந்தரமாக நீக்கப்படும்:</string>
+    <string name="workspace_dialog_delete_more_items">… மேலும் %1$d</string>
+    <string name="workspace_dialog_delete_warning">இந்தச் செயலைச் செயல்தவிர்க்க முடியாது.</string>
+    <string name="workspace_dialog_delete_permanently_action">நிரந்தரமாக நீக்கு</string>
+    <string name="workspace_dialog_delete_permanently_toggle">அதற்குப் பதிலாக நிரந்தரமாக நீக்கு</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">சில உருப்படிகளைக் குப்பைத்தொட்டிக்கு நகர்த்த முடியாது. அவை தனியாகக் கையாளப்படும்.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">குப்பைத்தொட்டிக்கு நகர்த்தவா?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">%1$d உருப்படியைக் குப்பைத்தொட்டிக்கு நகர்த்தவா?</item>
+        <item quantity="other">%1$d உருப்படிகளைக் குப்பைத்தொட்டிக்கு நகர்த்தவா?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">இந்த உருப்படி குப்பைத்தொட்டிக்கு நகர்த்தப்படும்:</string>
+    <string name="workspace_dialog_trash_message_multiple">இந்த உருப்படிகள் குப்பைத்தொட்டிக்கு நகர்த்தப்படும்:</string>
+    <string name="workspace_dialog_trash_hint">குப்பைத்தொட்டி இருப்பிடத்தில் அவற்றைக் காணலாம்</string>
+    <string name="workspace_dialog_move_to_trash_action">நகர்த்து</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d தேர்ந்தெடுக்கப்பட்டது</item>
+        <item quantity="other">%d தேர்ந்தெடுக்கப்பட்டன</item>
+    </plurals>
+    <string name="workspace_action_more">மேலும் செயல்கள்</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">கோப்பு நீக்கம்</string>
+    <string name="workspace_operation_delete_description_single">\"%2$s\" இலிருந்து \"%1$s\" ஐ நீக்கு.</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">\"%2$s\" இலிருந்து %1$d உருப்படியை நீக்கு.</item>
+        <item quantity="other">\"%2$s\" இலிருந்து %1$d உருப்படிகளை நீக்கு.</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">செயலி நிறுவல்</string>
+    <string name="workspace_operation_install_description">\"%1$s\" ஐ நிறுவு.</string>
+    <string name="workspace_operation_install_progress_inspecting">தொகுப்பை வாசிக்கிறது…</string>
+    <string name="workspace_operation_install_progress_extracting">பிரித்தெடுக்கிறது…</string>
+    <string name="workspace_operation_install_progress_writing">நிறுவிக்குக் கோப்புகளை வழங்குகிறது…</string>
+    <string name="workspace_operation_install_progress_committing">நிறுவலை முடிக்கிறது…</string>
+    <string name="workspace_operation_install_progress_placing_obb">விரிவாக்கக் கோப்புகளை வைக்கிறது…</string>
+    <string name="workspace_operation_install_summary_success">%1$s நிறுவப்பட்டது.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s நிறுவப்பட்டது, ஆனால் அதன் விரிவாக்கக் கோப்புகளை வைக்க முடியவில்லை.</string>
+    <string name="workspace_install_unknown_sources_required">செயலிகளை நிறுவ Butler க்கு அனுமதி தேவை. இப்போது திறந்துள்ள அமைப்புகளில் அதை வழங்கிவிட்டு, மீண்டும் முயற்சி செய்யுங்கள்.</string>
+    <string name="workspace_install_obb_failed">செயலி நிறுவப்பட்டது, ஆனால் அதன் விரிவாக்கக் கோப்புகளை வைக்க முடியவில்லை: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d கோப்பு நீக்கப்பட்டது.</item>
+        <item quantity="other">%1$d கோப்புகள் நீக்கப்பட்டன.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d கோப்புறை நீக்கப்பட்டது.</item>
+        <item quantity="other">%1$d கோப்புறைகள் நீக்கப்பட்டன.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d உருப்படி தவிர்க்கப்பட்டது.</item>
+        <item quantity="other">%1$d உருப்படிகள் தவிர்க்கப்பட்டன.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s விடுவிக்கப்பட்டது.</item>
+        <item quantity="other">%1$s விடுவிக்கப்பட்டது.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">குப்பைத்தொட்டிக்கு நகர்த்துகிறது…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d கோப்பு குப்பைத்தொட்டிக்கு நகர்த்தப்பட்டது.</item>
+        <item quantity="other">%1$d கோப்புகள் குப்பைத்தொட்டிக்கு நகர்த்தப்பட்டன.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d கோப்புறை குப்பைத்தொட்டிக்கு நகர்த்தப்பட்டது.</item>
+        <item quantity="other">%1$d கோப்புறைகள் குப்பைத்தொட்டிக்கு நகர்த்தப்பட்டன.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/வி. விடுவிக்கப்பட்டது.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s விடுவிக்கப்பட்டது.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s மீதமுள்ளது.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">தகவல்</string>
+    <string name="workspace_file_info_name_label">பெயர்</string>
+    <string name="workspace_file_info_path_label">பாதை</string>
+    <string name="workspace_file_info_type_label">வகை</string>
+    <string name="workspace_file_info_type_file">கோப்பு</string>
+    <string name="workspace_file_info_type_directory">கோப்புறை</string>
+    <string name="workspace_file_info_type_symlink">குறியீட்டு இணைப்பு</string>
+    <string name="workspace_file_info_type_unknown">தெரியாதது</string>
+    <string name="workspace_file_info_size_label">அளவு</string>
+    <string name="workspace_file_info_modified_label">மாற்றப்பட்டது</string>
+    <string name="workspace_file_info_created_label">உருவாக்கப்பட்டது</string>
+    <string name="workspace_file_info_permissions_label">அனுமதிகள்</string>
+    <string name="workspace_file_info_owner_label">உரிமையாளர்</string>
+    <string name="workspace_file_info_child_count_label">உருப்படிகள்</string>
+    <string name="workspace_file_info_symlink_target_label">இலக்கு</string>
+    <string name="workspace_file_info_unknown">தெரியாதது</string>
+    <string name="workspace_file_info_copy_action">கிளிப்போர்டுக்கு நகலெடு</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">தேர்ந்தெடுத்தவை</string>
+    <string name="workspace_file_info_files_label">கோப்புகள்</string>
+    <string name="workspace_file_info_directories_label">கோப்புறைகள்</string>
+    <string name="workspace_file_info_total_size_label">மொத்த அளவு</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">இந்தச் செயல்பாடு இன்னும் தொடங்கவில்லை.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">செயல்திறன் தரவைச் சேகரிக்கிறது…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">வரைபடம் வரைவதற்கு இந்தச் செயல்பாட்டின் செயல்திறன் தரவு போதுமானதாக இல்லை.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">இந்தச் செயல்பாட்டுக்குச் செயல்திறன் தரவு கிடைக்கவில்லை.</string>
+    <string name="workspace_operation_performance_window_seconds">கடந்த %1$d வி.</string>
+    <string name="workspace_operation_performance_window_minutes">கடந்த %1$d நி.</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">உருப்படிகள்/வி.</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">தொழில்நுட்ப விவரங்களைக் காட்டு</string>
+    <string name="workspace_error_hide_details_action">தொழில்நுட்ப விவரங்களை மறை</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">தாவலைத் தொடங்குகிறது</string>
+    <string name="workspace_error_subtitle">எதிர்பாராத பிழை ஏற்பட்டது</string>
+    <string name="workspace_close_tab_action">தாவலை மூடு</string>
+    <string name="workspace_paused_body">நினைவகத்தையும் பேட்டரியையும் சேமிக்க இந்தத் தாவல் இடைநிறுத்தப்பட்டுள்ளது. தொடர அதை மீண்டும் இயக்கு.</string>
+    <string name="workspace_paused_error_body">இந்தத் தாவலை மீண்டும் இயக்க முடியவில்லை.</string>
+    <string name="workspace_paused_resume_action">மீண்டும் இயக்கு</string>
+    <string name="workspace_paused_label">இடைநிறுத்தப்பட்டது</string>
+    <string name="workspace_paused_content_label">தாவல் உள்ளடக்கம்</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">ஏற்கெனவே உள்ள கோப்பு</string>
+    <string name="workspace_issue_collision_existing_folder_label">ஏற்கெனவே உள்ள கோப்புறை</string>
+    <string name="workspace_issue_collision_new_file">வரும் கோப்பு</string>
+    <string name="workspace_issue_collision_new_folder">வரும் கோப்புறை</string>
+    <string name="workspace_issue_collision_overwrite">மாற்றீடு செய்</string>
+    <string name="workspace_issue_collision_merge">ஒன்றிணை</string>
+    <string name="workspace_issue_common_source_file">மூலக் கோப்பு</string>
+    <string name="workspace_issue_common_destination_file">இலக்கு</string>
+    <string name="workspace_issue_common_skip">தவிர்</string>
+    <string name="workspace_issue_common_rename">மறுபெயரிடு</string>
+    <string name="workspace_issue_common_rename_new">புதியதற்கு மறுபெயரிடு</string>
+    <string name="workspace_issue_common_rename_existing">ஏற்கெனவே உள்ளதற்கு மறுபெயரிடு</string>
+    <string name="workspace_issue_common_cancel">ரத்துசெய்</string>
+    <string name="workspace_issue_common_delete_permanently">நிரந்தரமாக நீக்கு</string>
+    <string name="workspace_issue_archive_password_label">கடவுச்சொல்</string>
+    <string name="workspace_issue_archive_password_unlock">பூட்டைத் திற</string>
+    <string name="workspace_issue_trash_move_failed_items_label">தோல்வியடைந்த உருப்படிகள்</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… மேலும் %1$d உருப்படிகள்</string>
+    <string name="workspace_issue_trash_not_supported_items_label">பாதிக்கப்பட்ட உருப்படிகள்</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… மேலும் %1$d உருப்படிகள்</string>
+    <string name="workspace_issue_apply_all">மீதமுள்ள அனைத்துச் சிக்கல்களுக்கும் பயன்படுத்து</string>
+    <string name="workspace_issue_rename_new_name">புதிய பெயர்</string>
+    <string name="workspace_issue_rename_dialog_title_new">வரும் கோப்புக்கு மறுபெயரிடு</string>
+    <string name="workspace_issue_rename_dialog_title_existing">ஏற்கெனவே உள்ள கோப்புக்கு மறுபெயரிடு</string>
+    <string name="workspace_issue_type_folder">கோப்புறை</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">பல தாவல்களைத் திறக்கவா?</string>
+    <string name="workspace_open_tabs_confirmation_message">இது %1$d தாவல்களைத் திறக்கும்.</string>
+
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">%d உருப்படியைத் திற</item>
+        <item quantity="other">%d உருப்படிகளைத் திற</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">இங்கே பார்</string>
+    <string name="workspace_open_selection_view_here_description">தேர்ந்தெடுத்த கோப்புகளை இந்தப் பலகத்தின் மேல் ஒரு பார்வையாளரில் காட்டும். முந்தையதும் அடுத்ததும் நீங்கள் தேர்ந்தெடுத்த கோப்புகளுக்கு மட்டுமே செல்லும்.</string>
+    <string name="workspace_open_selection_view_in_tab_action">புதிய தாவலில் பார்</string>
+    <string name="workspace_open_selection_view_in_tab_description">தேர்ந்தெடுத்த கோப்புகளை ஒரு பார்வையாளரில் தனித் தாவலில் காட்டும். முந்தையதும் அடுத்ததும் நீங்கள் தேர்ந்தெடுத்த கோப்புகளுக்கு மட்டுமே செல்லும்.</string>
+    <string name="workspace_open_selection_each_in_tab_action">ஒவ்வொன்றையும் தனித் தாவலில் திற</string>
+    <string name="workspace_open_selection_each_in_tab_description">தேர்ந்தெடுத்த ஒவ்வொரு உருப்படியையும் தனித் தாவலில் திறக்கும். கோப்புறைகள் கோப்பு உலாவித் தாவல்களாகத் திறக்கும்.</string>
+    <string name="workspace_open_selection_viewer_unavailable">பார்வையாளரில் கோப்புறைகளைக் காட்ட முடியாது.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">இதன் மூலம் திற</string>
+    <string name="workspace_open_with_no_app_label">வேறு செயலி கிடைக்கவில்லை</string>
+    <string name="workspace_open_with_no_app_description">நிறுவப்பட்ட வேறு எந்தச் செயலியாலும் %1$s ஐத் திறக்க முடியாது.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">%1$d தாவல் திறக்கப்பட்டது</item>
+        <item quantity="other">%1$d தாவல்கள் திறக்கப்பட்டன</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">மூட முடியாது: %1$d தாவலில் ஒரு செயல்பாடு இன்னும் இயங்குகிறது</item>
+        <item quantity="other">மூட முடியாது: %1$d தாவல்களில் செயல்பாடுகள் இன்னும் இயங்குகின்றன</item>
+    </plurals>
+
+    <!-- Workspace > Settings -->
+    <string name="workspace_settings_title">தாவல்கள்</string>
+    <string name="workspace_settings_navigation">வழிசெலுத்தல்</string>
+    <string name="workspace_settings_swipe_gestures_title">ஸ்வைப் சைகைகள்</string>
+    <string name="workspace_settings_swipe_gestures_desc">தாவல்களுக்கு இடையில் மாற இடது அல்லது வலதுபுறம் ஸ்வைப் செய்யுங்கள்.</string>
+    <string name="workspace_settings_ondemand_creation_title">தாவல்களைத் தானாக உருவாக்கு</string>
+    <string name="workspace_settings_ondemand_creation_desc">கடைசித் தாவலைத் தாண்டி ஸ்வைப் செய்யும்போது புதிய தாவலைத் தானாக உருவாக்கு.</string>
+    <string name="workspace_settings_newtab_type_title">புதிய தாவலின் வகை</string>
+    <string name="workspace_settings_newtab_type_desc">கடைசித் தாவலைத் தாண்டி ஸ்வைப் செய்யும்போது, காலிப் பலகத்தில் தாவலைச் சேர்க்கும்போது அல்லது முதல் தாவலை உருவாக்கும்போது திறக்கும் பணிப்பரப்பு.</string>
+    <string name="workspace_settings_newtab_type_ask">ஒவ்வொரு முறையும் கேள்</string>
+    <string name="workspace_settings_newtab_type_ask_desc">ஒவ்வொரு புதிய தாவலுக்கும் தாவல் வகைத் தேர்வியைக் காட்டு.</string>
+    <string name="workspace_settings_live_preview_title">நேரடி முன்னோட்டங்கள்</string>
+    <string name="workspace_settings_live_preview_desc">தாவல் மேலாளரில் தாவல்களின் நேரடி உள்ளடக்கத்தைக் காட்டு.</string>
+    <string name="workspace_settings_other">மற்றவை</string>
+    <string name="workspace_settings_layout_title">தளவமைப்பு</string>
+    <string name="workspace_settings_layout_mode_portrait_title">நெடுவாக்குத் தளவமைப்பு முறை</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">நெடுவாக்கில் தாவல் தளவமைப்பைத் தேர்ந்தெடு.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">கிடைமட்டத் தளவமைப்பு முறை</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">கிடைமட்டத்தில் தாவல் தளவமைப்பைத் தேர்ந்தெடு.</string>
+    <string name="workspace_settings_layout_mode_auto">தானியங்கி</string>
+    <string name="workspace_settings_layout_mode_auto_desc">சிறிய திரைகளில் வழக்கமான முறை, பெரிய திரைகளில் தாவல் பட்டையுடன் பலகங்கள்.</string>
+    <string name="workspace_settings_layout_mode_classic">வழக்கமானது</string>
+    <string name="workspace_settings_layout_mode_classic_desc">தாவல் பட்டையின்றி, ஒரு நேரத்தில் ஒரு பலகம்.</string>
+    <string name="workspace_settings_layout_mode_adaptive">தழுவல்</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">தாவல் பட்டையுடன் திரையில் அடங்கும் அளவு பலகங்கள். Butler மெனுவிலிருந்து ஒரு தளவமைப்பை நிலைநிறுத்துங்கள்.</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">தாவல் பட்டையுடன் திரையில் அடங்கும் அளவு பலகங்கள்.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">தழுவல் (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">தாவல் பட்டையுடன் ஒற்றைப் பலகம்</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">ஒரு தாவல் பலகமும் பல பலகத் தளவமைப்புகளில் உள்ள தாவல் பட்டையும். இந்தப் பட்டை திரையின் ஒரு பகுதியை எடுத்துக்கொள்ளும்.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">இரு செங்குத்துப் பலகங்கள்</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">அருகருகே இரண்டு பலகங்கள் (இடது/வலது).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">இரு கிடைமட்டப் பலகங்கள்</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">ஒன்றன்மேல் ஒன்றாக இரண்டு பலகங்கள் (மேல்/கீழ்).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">மூன்று பலகங்கள், பெரியது இடப்புறம்</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">இடப்புறம் ஒரு பெரிய பலகம், வலப்புறம் ஒன்றன்மேல் ஒன்றாக இரண்டு சிறிய பலகங்கள்.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">மூன்று பலகங்கள், பெரியது வலப்புறம்</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">இடப்புறம் ஒன்றன்மேல் ஒன்றாக இரண்டு சிறிய பலகங்கள், வலப்புறம் ஒரு பெரிய பலகம்.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">நான்கு பலகக் கட்டம்</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">2×2 கட்டத்தில் நான்கு பலகங்கள்.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">கவனம் செலுத்தக் கிளிக் செய்</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">கவனத்தில் இல்லாத பலகத்தின் முதல் கிளிக் அதன் மீது கவனம் செலுத்த மட்டுமே பயன்படும். கவனத்தில் இல்லாத பலகங்கள் மவுஸ் சுட்டிக்குறிக்கு எதிர்வினை செய்யாது. அவற்றுடன் நேரடியாகச் செயல்பட இதை முடக்குங்கள்.</string>
+
+    <string name="workspace_settings_rail_button_title">Butler பொத்தான்</string>
+    <string name="workspace_settings_rail_button_desc">தாவல் பட்டையில் Butler பொத்தான் எங்கே இருக்க வேண்டும் என்பதைத் தேர்ந்தெடு.</string>
+    <string name="workspace_settings_rail_button_leading">தொடக்கம்</string>
+    <string name="workspace_settings_rail_button_leading_desc">நெடுவாக்கில் தாவல்களுக்கு முன்பும், கிடைமட்டத்தில் அவற்றுக்கு மேலேயும்.</string>
+    <string name="workspace_settings_rail_button_trailing">முடிவு</string>
+    <string name="workspace_settings_rail_button_trailing_desc">நெடுவாக்கில் தாவல்களுக்குப் பிறகும், கிடைமட்டத்தில் அவற்றுக்குக் கீழேயும். ஒரு கையால் பயன்படுத்தும்போது கட்டைவிரலுக்கு எட்டும் இடத்தில்.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">அமர்வு</string>
+    <string name="workspace_settings_session_restore_title">தொடங்கும்போது தாவல்களை மீட்டெடு</string>
+    <string name="workspace_settings_session_restore_desc">செயலி தொடங்கும்போது முன்பு திறந்திருந்த தாவல்களைத் தானாக மீட்டெடு.</string>
+    <string name="workspace_settings_autopause_title">செயலற்ற தாவல்களை இடைநிறுத்து</string>
+    <string name="workspace_settings_autopause_desc">சிறிது நேரமாக நீங்கள் பார்க்காத தாவல்கள் நினைவகத்தையும் பேட்டரியையும் சேமிக்க இடைநிறுத்தப்படும். அவற்றைத் திறந்தால் மீண்டும் இயங்கும்.</string>
+    <string name="workspace_settings_autopause_delay_title">இடைநிறுத்துவதற்கு முன் காத்திருக்கும் நேரம்</string>
+    <string name="workspace_settings_autopause_delay_desc">ஒரு தாவல் கண்ணில் படாமல் எவ்வளவு நேரம் இருந்தால் இடைநிறுத்த வேண்டும்.</string>
+    <string name="workspace_settings_undoclose_title">தாவல்களை மூடுவதைச் செயல்தவிர்</string>
+    <string name="workspace_settings_undoclose_desc">தாவலை மூடிய பிறகு, அதை மீண்டும் திறக்கும் வாய்ப்பு சில வினாடிகளுக்குக் காட்டப்படும்.</string>
+    <string name="workspace_settings_session_data_title">அமர்வுத் தரவு</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d தாவல் • %2$s</item>
+        <item quantity="other">%1$d தாவல்கள் • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">\"%1$s\" மூடப்பட்டது</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">அமர்வை மீட்டெடுக்க முடியவில்லை</string>
+    <string name="workspace_session_restoration_error_description">உங்கள் முந்தைய தாவல் அமர்வை மீட்டெடுக்க முடியவில்லை. எதிர்காலப் புதுப்பிப்பில் சரிசெய்யப்படும் ஒரு மென்பொருள் பிழை இதற்குக் காரணமாக இருக்கலாம்.\n\nButler ஐத் தொடர்ந்து பயன்படுத்த சேமித்த அமர்வை அழிக்கலாம் அல்லது புதுப்பிப்புக்காகக் காத்திருக்கலாம்.</string>
+    <string name="workspace_session_restoration_error_clear_action">அமர்வை அழி</string>
+    <string name="workspace_session_restoration_error_report_action">சிக்கலைப் புகாரளி</string>
+    <string name="workspace_session_restoration_error_confirm_title">அமர்வை அழிக்கவா?</string>
+    <string name="workspace_session_restoration_error_confirm_description">இது உங்கள் சேமித்த தாவல் அமர்வை நிரந்தரமாக நீக்கும். இந்தச் செயலைச் செயல்தவிர்க்க முடியாது.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">தாவலுக்கு மறுபெயரிடு</string>
+    <string name="workspace_rename_name_label">விருப்பப் பெயர்</string>
+    <string name="workspace_rename_name_hint">தானாக அமைந்த பெயரைப் பயன்படுத்த காலியாக விடுங்கள்</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">தாவல் வரம்பை எட்டிவிட்டீர்கள்</string>
+    <string name="workspace_limit_reached_message">இலவசப் பயனர்கள் ஒரே நேரத்தில் %1$d தாவல்கள் வரை திறந்துவைக்கலாம். வரம்பற்ற தாவல்களுக்கு Butler Pro க்கு மேம்படுத்துங்கள்!</string>
+    <string name="workspace_limit_pick_tabs_message">உங்கள் இலவசத் திட்டத்தில் %1$d தாவல்களைத் திறந்துவைக்கலாம். இனி தேவையில்லாதவற்றைத் தேர்ந்தெடுத்து மூடி, இடம் உருவாக்குங்கள்.</string>
+    <string name="workspace_limit_no_slot_hint">இப்போது தாவல்களை மூடினாலும் புதிய தாவலுக்கு இடம் கிடைக்காது.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">%d தாவலை மூடு</item>
+        <item quantity="other">%d தாவல்களை மூடு</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">மூடுவதற்கு குறைந்தது %d தாவலைத் தேர்ந்தெடு.</item>
+        <item quantity="other">மூடுவதற்கு குறைந்தது %d தாவல்களைத் தேர்ந்தெடு.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">%1$s திறக்கப்பட்டது</string>
+    <string name="workspace_limit_blocker_unsaved">சேமிக்கப்படாத மாற்றங்கள்</string>
+    <string name="workspace_limit_blocker_busy">இப்போது பயன்பாட்டில் உள்ளது</string>
+    <string name="workspace_limit_blocker_attention">உங்களுக்காகக் காத்திருக்கிறது</string>
+    <string name="workspace_limit_blocker_loading">இன்னும் ஏற்றுகிறது</string>
+    <string name="workspace_limit_blocker_awaiting_result">முதலில் திறந்துள்ள தேர்வியில் தேர்வை முடிக்கவும்</string>
+    <string name="workspace_limit_blocker_unavailable">இப்போது மூட முடியாது</string>
+    <string name="workspace_limit_stacked_content_desc">இந்தத் தாவலை மூடினால் அதன் மேல் அடுக்கப்பட்டுள்ளவையும் மூடப்படும்</string>
+    <string name="workspace_limit_pro_description">விரும்பும் அளவு தாவல்களைத் திறக்கலாம்.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d உருப்படி</item>
+        <item quantity="other">%1$d உருப்படிகள்</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">குப்பைத்தொட்டியிலிருந்து மீட்டெடுத்தல்</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">குப்பைத்தொட்டியிலிருந்து %d உருப்படியை மீட்டெடு.</item>
+        <item quantity="other">குப்பைத்தொட்டியிலிருந்து %d உருப்படிகளை மீட்டெடு.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d உருப்படி மீட்டெடுக்கப்பட்டது</item>
+        <item quantity="other">%d உருப்படிகள் மீட்டெடுக்கப்பட்டன</item>
+    </plurals>
+</resources>

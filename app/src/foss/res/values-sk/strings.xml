@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Vyžaduje Butler FOSS</string>
+
+    <string name="upgrade_prompt_title">Rozšíriť Butler</string>
+    <string name="upgrade_prompt_body">Odomkni ďalšie funkcie a pridaj sa k podporovateľom, aby vývoj mohol pokračovať!</string>
+    <string name="upgrade_prompt_upgrade_action">Rozšíriť</string>
+
+    <string name="upgrade_screen_title">Rozšíriť Butler</string>
+    <string name="upgrade_screen_preamble">Butler neobsahuje reklamy a nepredáva údaje používateľov. Ďalší vývoj je možný len vďaka tebe.</string>
+    <string name="upgrade_screen_how_title">Ako pomôcť</string>
+    <string name="upgrade_screen_how_body">Pridaj sa k podporovateľom a sponzoruj vývoj! Ťuknutím na tlačidlo nižšie aktivuješ všetky doplnkové funkcie a otvoríš môj profil na GitHub Sponsors.</string>
+
+    <string name="upgrade_screen_sponsor_action">Sponzorovať vývoj</string>
+    <string name="upgrade_screen_sponsor_action_hint">Alternatívou sú reklamy, analytika a Google Play 🙁.</string>
+    <string name="upgrade_screen_thanks_toast">Ďakujem za podporu vývoja s otvoreným zdrojovým kódom ❤️</string>
+    <string name="upgrade_screen_sponsor_too_fast">Už späť? Tvoja podpora udržiava Butler pri živote — venuj, prosím, chvíľku stránke sponzorstva.</string>
+    <string name="upgrade_screen_sponsor_open_failed">Stránku sponzorstva sa nepodarilo otvoriť. Skús ju namiesto toho otvoriť v prehliadači.</string>
+
+    <string name="upgrade_screen_status_free_title">Používaš bezplatnú verziu</string>
+    <string name="upgrade_screen_status_free_body">Butler FOSS má úplne otvorený zdrojový kód. Odomkni doplnkové funkcie podporou vývoja.</string>
+    <string name="upgrade_screen_status_free_action">Zobraziť možnosti rozšírenia</string>
+    <string name="upgrade_screen_status_upgraded_title">Podporuješ vývoj</string>
+    <string name="upgrade_screen_status_upgraded_body">Ďakujem za podporu vývoja s otvoreným zdrojovým kódom ❤️ Všetky doplnkové funkcie sú odomknuté.</string>
+    <string name="upgrade_screen_supporter_since">Vývoj podporuješ od %s</string>
+    <string name="upgrade_screen_recurring_title">Nech vývoj pokračuje</string>
+    <string name="upgrade_screen_recurring_body">Butler vyvíjam vo svojom voľnom čase. Pravidelný dar ho pomáha udržiavať pri živote.</string>
+    <string name="upgrade_screen_recurring_action">Sponzorovať pravidelne</string>
+
+    <string name="upgrade_benefits_title">Výhody rozšírenia</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Neobmedzený počet kariet a operácií\n• Prispôsobenie dizajnu, ovládania a vzhľadu\n• Ďalšie možnosti a funkcie pre každý nástroj\n• Prednostný prístup k novým funkciám\n• Motivovaný vývojár 🧙\na ešte viac…</string>
+</resources>

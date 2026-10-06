@@ -1,0 +1,57 @@
+Ang Butler ay file manager para sa Android na nakasentro sa mga tab. Mag-browse, maghanap, tumingin at mag-edit ng mga file sa buong storage, gamit ang multi-pane layout at root access kapag kailangan.
+
+Ito ang file explorer para sa Android na lagi kong gusto, kaya ginawa ko ito. Mabilis, pribado, open source.
+
+Gumagana ang Butler sa internal storage, SD card at USB OTG drive, at sa network share gamit ang Butler Pro. Para rin ito sa lahat ng uri ng file, hindi lang sa media na ipinapakita ng gallery.
+
+<b>Mga tab at workspace</b>
+- Mag-browse ng file sa mga tab at gamitin ang alinmang tool ng Butler nang sabay-sabay.
+- Ayusin ang mga tab sa tab manager at gumawa ng bago sa tab picker.
+- Multi-pane layout sa phone at tablet, na may drag and drop sa pagitan ng mga pane.
+- I-pin ang mga paborito at magdagdag ng lokasyon ng storage.
+
+<b>Mga operasyon sa file</b>
+- Kumopya, maglipat, magpalit ng pangalan at mag-delete, na may bilis ng paglilipat at mga graph ng performance habang tumatakbo.
+- May trash bin para maibalik ang mga na-delete.
+- Buksan ang archive na parang folder: i-browse mismo ang ZIP, TAR at APK bundle nang hindi muna ine-extract.
+- Gumawa ng ZIP archive at mag-extract, pati ng mga naka-encrypt.
+- Tuloy ang mga operasyon kahit umalis sa app, na may progreso at pindutang pangkansela sa notification.
+- History ng mga operasyon: alin ang tumakbo, nagtagumpay at nabigo.
+
+<b>Mga network share (Butler Pro)</b>
+- Kumonekta sa Windows share at NAS folder gamit ang SMB at i-browse na parang ibang storage.
+- Kumopya at maglipat ng file sa pagitan ng device at server, sa parehong direksyon.
+- Mag-sign in bilang guest o gamit ang username at password, na naka-encrypt at nakaimbak lang sa device.
+- Libre ang pagdagdag ng share at pagsubok ng koneksyon. Kailangan ng Butler Pro upgrade para mag-browse dito.
+
+<b>Paghahanap at text</b>
+- Maghanap ayon sa pangalan ng file at sa nilalaman nito, na may suporta sa regular expression (regex).
+- Text editor na mabilis pa rin kahit napakalaki ng file.
+
+<b>Pagtingin sa mga file</b>
+- Tumingin ng larawan at mga pahina ng PDF nang hindi umaalis sa Butler.
+- Detalye ng file: laki, dimensyon, mga pahintulot at may-ari.
+- Kalkulahin ang laki ng mga folder kapag kailangan para makita kung ano ang talagang pumupuno sa storage.
+- Ang hindi kayang ipakita ng Butler ay ipinapasa sa app na kayang magpakita nito.
+
+<b>Mga app at APK</b>
+- App manager: i-browse ang mga naka-install na app, i-disable, i-export ang APK, burahin ang app data at mag-uninstall.
+- Tumanggap, magsuri at magbukas ng APK file. Dumadaan ang pag-install sa system installer ng Android.
+
+<b>Kasama ng iba pang app</b>
+- Lumalabas ang Butler sa mga file picker ng ibang app, kaya puwedeng mag-browse gamit ito saanman nagbubukas o nagse-save ng file.
+- Mag-share ng file sa Butler mula sa alinmang app at piliin ang eksaktong destinasyon at pangalan nito.
+- Direktang bumubukas ang naka-share na text sa editor ng Butler.
+
+<b>Access at hitsura</b>
+- Root o Shizuku para sa mga lokasyong karaniwang naka-lock sa Android.
+- Material You theme na may dynamic na kulay, dark mode at opsyong AMOLED.
+
+<b>Privacy</b>
+Walang pagsubaybay. Walang analytics SDK, account o cloud. Nananatili sa device ang mga ulat ng crash at error maliban kung piniling ipadala ang mga ito. Open source.
+
+Humihingi ang Butler ng "Access sa lahat ng file" dahil kailangang maabot ng file manager ang buong storage. Lahat ng ginagawa nito ay sa device lang nangyayari.
+
+Walang ad ang app na ito. Kailangan ng bayad na upgrade para sa ilang feature.
+
+Ang Butler ay file manager, file explorer at text editor para sa Android.

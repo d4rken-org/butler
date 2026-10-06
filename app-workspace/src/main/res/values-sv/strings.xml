@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Urklipp</string>
+    <string name="clipboard_clear_all">Rensa allt</string>
+    <string name="clipboard_paste">Klistra in</string>
+    <string name="clipboard_open_in_explorer">Öppna i filutforskaren</string>
+    <string name="clipboard_copy">Kopiera</string>
+    <string name="clipboard_cut">Klipp ut</string>
+    <string name="clipboard_origin">Ursprung: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Kopiera %d objekt</item>
+        <item quantity="other">Kopiera %d objekt</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d objekt från %s</item>
+        <item quantity="other">%d objekt från %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Klipp ut %d objekt</item>
+        <item quantity="other">Klipp ut %d objekt</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d objekt från %s</item>
+        <item quantity="other">%d objekt från %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d plats</item>
+        <item quantity="other">%d platser</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d objekt från %2$s</item>
+        <item quantity="other">%1$d objekt från %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d objekt från %2$s</item>
+        <item quantity="other">%1$d objekt från %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Textsnutt</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d tecken</item>
+        <item quantity="other">%1$d tecken</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Klistra in som fil</string>
+    <string name="clipboard_text_info_characters">Tecken</string>
+    <string name="clipboard_text_info_lines">Rader</string>
+    <string name="clipboard_text_info_content">Innehåll</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Översikt</string>
+    <string name="clipboard_info_operation">Åtgärd</string>
+    <string name="clipboard_info_items">Objekt</string>
+    <string name="clipboard_info_source">Källa</string>
+    <string name="clipboard_info_sources">Källor</string>
+    <string name="clipboard_info_workspace">Arbetsyta</string>
+    <string name="clipboard_info_workspace_closed">Stängd</string>
+    <string name="clipboard_info_time">Tid</string>
+    <string name="clipboard_info_items_with_count">Objekt (%1$d)</string>
+    <string name="clipboard_info_actions">Åtgärder</string>
+    <string name="clipboard_info_go_to_source">Gå till källan</string>
+    <string name="clipboard_info_go_to_first_source">Gå till första källan</string>
+    <string name="clipboard_info_remove">Ta bort från urklipp</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Urklipp</string>
+    <string name="clipboard_settings_remove_on_paste_title">Ta bort vid inklistring</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Ta bort kopierade objekt från urklipp efter inklistring</string>
+    <string name="clipboard_settings_max_items_title">Maximalt antal objekt</string>
+    <string name="clipboard_settings_max_items_desc">Maximalt antal objekt i urklipp</string>
+
+    <string name="workspace_explorer_label">Filutforskare</string>
+    <string name="workspace_searcher_label">Sökning</string>
+    <string name="workspace_editor_label">Redigerare</string>
+    <string name="workspace_templates_label">Mallar</string>
+    <string name="workspace_apps_label">Appar</string>
+    <string name="workspace_appdetails_label">Appinformation</string>
+    <string name="workspace_saver_label">Spara som</string>
+    <string name="workspace_developer_label">Utvecklare</string>
+    <string name="workspace_history_label">Historik</string>
+    <string name="workspace_bugreport_label">Buggrapporter</string>
+    <string name="workspace_viewer_label">Visare</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Foton</string>
+    <string name="workspace_searcher_target_videos">Videor</string>
+    <string name="workspace_searcher_target_music">Musik</string>
+    <string name="workspace_searcher_target_downloads">Hämtade filer</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Mer</string>
+    <string name="workspace_expand_less_action">Mindre</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Flikar och arbetsytor</string>
+    <string name="workspace_button_menu_new_workspace_format">Ny arbetsyta: %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Ny flik</string>
+    <string name="workspace_button_menu_category_recent">Senaste</string>
+    <string name="workspace_button_menu_category_other">Övrigt</string>
+    <string name="workspace_button_menu_category_current_tab">Den här fliken</string>
+    <string name="workspace_button_menu_manager_action">Flikhanterare</string>
+    <string name="workspace_button_menu_layout_action">Layout</string>
+    <string name="workspace_button_menu_close_current_action">Stäng aktuell flik</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Stäng aktuell flik (%d arbetsyta)</item>
+        <item quantity="other">Stäng aktuell flik (%d arbetsytor)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Inställningar</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Stäng alla flikar?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Detta stänger %1$d öppen flik. Åtgärden kan inte ångras.</item>
+        <item quantity="other">Detta stänger alla %1$d öppna flikar. Åtgärden kan inte ångras.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Stäng alla</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Vissa flikar har osparade ändringar som kommer att gå förlorade.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Kasta alla ändringar</string>
+    <string name="workspace_manager_close_selected_title">Stäng markerade flikar?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Detta stänger %1$d markerad flik. Åtgärden kan inte ångras.</item>
+        <item quantity="other">Detta stänger %1$d markerade flikar. Åtgärden kan inte ångras.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">Stäng markerade</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Vissa markerade flikar har osparade ändringar som kommer att gå förlorade.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Kasta ändringar i markerade</string>
+    <string name="workspace_manager_pause_partial_title">Pausa flikar?</string>
+    <string name="workspace_manager_pause_partial_message">%1$d av %2$d markerade flikar kan pausas. Resten används, har osparade ändringar eller är öppna just nu.</string>
+    <string name="workspace_manager_pause_partial_action">Pausa %1$d</string>
+    <string name="general_cancel_action">Avbryt</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Åtgärder</string>
+    <string name="operations_clear_completed">Rensa slutförda</string>
+    <string name="operations_state_queued">I kö</string>
+    <string name="operations_state_running">Pågår</string>
+    <string name="operations_state_waiting">Väntar på inmatning</string>
+    <string name="operations_state_successful">Lyckades</string>
+    <string name="operations_state_failed">Misslyckades</string>
+    <string name="operations_state_cancelled">Avbruten</string>
+    <string name="operations_state_cancelling">Avbryter…</string>
+    <string name="operations_cancel_operation">Avbryt åtgärd</string>
+    <string name="operations_cancel_dialog_title">Avbryt åtgärden?</string>
+    <string name="operations_cancel_dialog_message">Vill du verkligen avbryta den här åtgärden?</string>
+    <string name="operations_cancel_dialog_warning">Om du avbryter kan filer lämnas i ett inkonsekvent tillstånd.</string>
+    <string name="operations_details_started_at">Startad</string>
+    <string name="operations_details_completed_at">Slutförd</string>
+    <string name="operations_details_duration">Varaktighet</string>
+    <string name="operations_details_duration_not_started">Inte startad</string>
+    <string name="operations_details_progress">Förlopp</string>
+    <string name="operations_details_error">Feldetaljer</string>
+    <string name="operations_details_actions">Åtgärder</string>
+    <string name="operations_details_overview">Översikt</string>
+    <string name="operations_details_handle_issue">Hantera problem</string>
+    <string name="operations_details_open_app_action">Öppna app</string>
+    <string name="operations_details_show_in_history_action">Visa i historiken</string>
+    <string name="operations_details_status">Status</string>
+    <string name="operations_details_result">Resultat</string>
+    <string name="operations_details_destination_folder">Målmapp</string>
+    <string name="operations_details_destination_path">Målsökväg</string>
+    <string name="operations_details_affected_paths_with_count">Berörda sökvägar (%d)</string>
+    <string name="operations_details_problems_with_count">Problem (%d)</string>
+    <string name="operations_details_problems_more">Ytterligare %d visas inte</string>
+    <string name="workspace_operation_packages_section_title">Appar</string>
+    <string name="workspace_operation_package_status_done">Klart</string>
+    <string name="workspace_operation_package_status_failed">Misslyckades</string>
+    <string name="workspace_operation_package_status_declined">Nekad</string>
+    <string name="operations_details_section_expand">Expandera %1$s</string>
+    <string name="operations_details_section_collapse">Fäll ihop %1$s</string>
+    <string name="workspace_operations_performance_graph_label">Prestandadiagram</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Radera objektet?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Radera %1$d objekt?</item>
+        <item quantity="other">Radera %1$d objekt?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Det här objektet kommer att raderas permanent:</string>
+    <string name="workspace_dialog_delete_message_multiple">De här objekten kommer att raderas permanent:</string>
+    <string name="workspace_dialog_delete_more_items">… och %1$d till</string>
+    <string name="workspace_dialog_delete_warning">Åtgärden kan inte ångras.</string>
+    <string name="workspace_dialog_delete_permanently_action">Radera permanent</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Radera permanent i stället</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Vissa objekt kan inte flyttas till papperskorgen och kommer att hanteras separat.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Flytta till papperskorgen?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Flytta %1$d objekt till papperskorgen?</item>
+        <item quantity="other">Flytta %1$d objekt till papperskorgen?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Det här objektet kommer att flyttas till papperskorgen:</string>
+    <string name="workspace_dialog_trash_message_multiple">De här objekten kommer att flyttas till papperskorgen:</string>
+    <string name="workspace_dialog_trash_hint">Du hittar dem på platsen Papperskorg</string>
+    <string name="workspace_dialog_move_to_trash_action">Flytta</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d markerat</item>
+        <item quantity="other">%d markerade</item>
+    </plurals>
+    <string name="workspace_action_more">Fler åtgärder</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Filradering</string>
+    <string name="workspace_operation_delete_description_single">Radera \"%1$s\" från \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Radera %1$d objekt från \"%2$s\".</item>
+        <item quantity="other">Radera %1$d objekt från \"%2$s\".</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Appinstallation</string>
+    <string name="workspace_operation_install_description">Installera \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">Läser paket…</string>
+    <string name="workspace_operation_install_progress_extracting">Packar upp…</string>
+    <string name="workspace_operation_install_progress_writing">Lämnar över filer till installationsprogrammet…</string>
+    <string name="workspace_operation_install_progress_committing">Slutför installationen…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Placerar expansionsfiler…</string>
+    <string name="workspace_operation_install_summary_success">%1$s installerades.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s installerades, men expansionsfilerna kunde inte placeras.</string>
+    <string name="workspace_install_unknown_sources_required">Butler behöver behörighet att installera appar. Ge behörigheten i inställningarna som just öppnades och försök sedan igen.</string>
+    <string name="workspace_install_obb_failed">Appen installerades, men expansionsfilerna kunde inte placeras: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d fil raderad.</item>
+        <item quantity="other">%1$d filer raderade.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d katalog raderad.</item>
+        <item quantity="other">%1$d kataloger raderade.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d objekt överhoppat.</item>
+        <item quantity="other">%1$d objekt överhoppade.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s frigjort.</item>
+        <item quantity="other">%1$s frigjort.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Flyttar till papperskorgen…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d fil flyttad till papperskorgen.</item>
+        <item quantity="other">%1$d filer flyttade till papperskorgen.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d katalog flyttad till papperskorgen.</item>
+        <item quantity="other">%1$d kataloger flyttade till papperskorgen.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s frigjort.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s frigjort.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s återstår.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Information</string>
+    <string name="workspace_file_info_name_label">Namn</string>
+    <string name="workspace_file_info_path_label">Sökväg</string>
+    <string name="workspace_file_info_type_label">Typ</string>
+    <string name="workspace_file_info_type_file">Fil</string>
+    <string name="workspace_file_info_type_directory">Katalog</string>
+    <string name="workspace_file_info_type_symlink">Symbolisk länk</string>
+    <string name="workspace_file_info_type_unknown">Okänd</string>
+    <string name="workspace_file_info_size_label">Storlek</string>
+    <string name="workspace_file_info_modified_label">Ändrad</string>
+    <string name="workspace_file_info_created_label">Skapad</string>
+    <string name="workspace_file_info_permissions_label">Behörigheter</string>
+    <string name="workspace_file_info_owner_label">Ägare</string>
+    <string name="workspace_file_info_child_count_label">Objekt</string>
+    <string name="workspace_file_info_symlink_target_label">Mål</string>
+    <string name="workspace_file_info_unknown">Okänd</string>
+    <string name="workspace_file_info_copy_action">Kopiera till urklipp</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Markerade</string>
+    <string name="workspace_file_info_files_label">Filer</string>
+    <string name="workspace_file_info_directories_label">Kataloger</string>
+    <string name="workspace_file_info_total_size_label">Total storlek</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Den här åtgärden har inte startat än.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Samlar in prestandadata…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Det finns inte tillräckligt med prestandadata från den här åtgärden för att rita ett diagram.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Prestandadata är inte tillgängliga för den här åtgärden.</string>
+    <string name="workspace_operation_performance_window_seconds">Senaste %1$d s</string>
+    <string name="workspace_operation_performance_window_minutes">Senaste %1$d min</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">objekt/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Visa tekniska detaljer</string>
+    <string name="workspace_error_hide_details_action">Dölj tekniska detaljer</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Initierar flik</string>
+    <string name="workspace_error_subtitle">Ett oväntat fel inträffade</string>
+    <string name="workspace_close_tab_action">Stäng flik</string>
+    <string name="workspace_paused_body">Den här fliken är pausad för att spara minne och batteri. Återuppta den för att fortsätta.</string>
+    <string name="workspace_paused_error_body">Den här fliken kunde inte återupptas.</string>
+    <string name="workspace_paused_resume_action">Återuppta</string>
+    <string name="workspace_paused_label">Pausad</string>
+    <string name="workspace_paused_content_label">Flikinnehåll</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Befintlig fil</string>
+    <string name="workspace_issue_collision_existing_folder_label">Befintlig mapp</string>
+    <string name="workspace_issue_collision_new_file">Inkommande fil</string>
+    <string name="workspace_issue_collision_new_folder">Inkommande mapp</string>
+    <string name="workspace_issue_collision_overwrite">Ersätt</string>
+    <string name="workspace_issue_collision_merge">Slå samman</string>
+    <string name="workspace_issue_common_source_file">Källfil</string>
+    <string name="workspace_issue_common_destination_file">Mål</string>
+    <string name="workspace_issue_common_skip">Hoppa över</string>
+    <string name="workspace_issue_common_rename">Byt namn</string>
+    <string name="workspace_issue_common_rename_new">Byt namn på den nya</string>
+    <string name="workspace_issue_common_rename_existing">Byt namn på den befintliga</string>
+    <string name="workspace_issue_common_cancel">Avbryt</string>
+    <string name="workspace_issue_common_delete_permanently">Radera permanent</string>
+    <string name="workspace_issue_archive_password_label">Lösenord</string>
+    <string name="workspace_issue_archive_password_unlock">Lås upp</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Misslyckade objekt</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… och %1$d objekt till</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Berörda objekt</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… och %1$d objekt till</string>
+    <string name="workspace_issue_apply_all">Tillämpa på alla återstående problem</string>
+    <string name="workspace_issue_rename_new_name">Nytt namn</string>
+    <string name="workspace_issue_rename_dialog_title_new">Byt namn på inkommande fil</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Byt namn på befintlig fil</string>
+    <string name="workspace_issue_type_folder">Mapp</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Öppna flera flikar?</string>
+    <string name="workspace_open_tabs_confirmation_message">Detta öppnar %1$d flikar.</string>
+
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Öppna %d objekt</item>
+        <item quantity="other">Öppna %d objekt</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Visa här</string>
+    <string name="workspace_open_selection_view_here_description">Visar de markerade filerna i en visare ovanpå den här panelen. Föregående och nästa går bara igenom ditt urval.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Visa i ny flik</string>
+    <string name="workspace_open_selection_view_in_tab_description">Visar de markerade filerna i en visare i en egen flik. Föregående och nästa går bara igenom ditt urval.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Öppna varje objekt i en egen flik</string>
+    <string name="workspace_open_selection_each_in_tab_description">Öppnar varje markerat objekt i en separat flik. Mappar öppnas som filutforskarflikar.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Mappar kan inte visas i visaren.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Öppna med</string>
+    <string name="workspace_open_with_no_app_label">Ingen annan app hittades</string>
+    <string name="workspace_open_with_no_app_description">Ingen annan installerad app kan öppna %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Öppnade %1$d flik</item>
+        <item quantity="other">Öppnade %1$d flikar</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Kan inte stänga: en åtgärd pågår fortfarande i %1$d flik</item>
+        <item quantity="other">Kan inte stänga: åtgärder pågår fortfarande i %1$d flikar</item>
+    </plurals>
+
+    <!-- Workspace > Settings-->
+    <string name="workspace_settings_title">Flikar</string>
+    <string name="workspace_settings_navigation">Navigering</string>
+    <string name="workspace_settings_swipe_gestures_title">Svepgester</string>
+    <string name="workspace_settings_swipe_gestures_desc">Svep åt vänster eller höger för att växla mellan flikar.</string>
+    <string name="workspace_settings_ondemand_creation_title">Skapa flikar automatiskt</string>
+    <string name="workspace_settings_ondemand_creation_desc">Skapa automatiskt en ny flik när du sveper förbi den sista fliken.</string>
+    <string name="workspace_settings_newtab_type_title">Typ av ny flik</string>
+    <string name="workspace_settings_newtab_type_desc">Arbetsyta som öppnas när du sveper förbi den sista fliken, lägger till en flik i en tom panel eller skapar den första fliken.</string>
+    <string name="workspace_settings_newtab_type_ask">Fråga varje gång</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Visa väljaren för fliktyp för varje ny flik.</string>
+    <string name="workspace_settings_live_preview_title">Förhandsvisningar i realtid</string>
+    <string name="workspace_settings_live_preview_desc">Visa flikinnehåll i realtid i flikhanteraren.</string>
+    <string name="workspace_settings_other">Övrigt</string>
+    <string name="workspace_settings_layout_title">Layout</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Layoutläge i stående format</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Välj fliklayout i stående format.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Layoutläge i liggande format</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Välj fliklayout i liggande format.</string>
+    <string name="workspace_settings_layout_mode_auto">Automatiskt</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Klassisk på små skärmar, fliklist med paneler på stora.</string>
+    <string name="workspace_settings_layout_mode_classic">Klassisk</string>
+    <string name="workspace_settings_layout_mode_classic_desc">En panel åt gången, utan fliklist.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Anpassningsbar</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Fliklist och så många paneler som får plats på skärmen. Lås en layout via Butler-menyn.</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Fliklist och så många paneler som får plats på skärmen.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Anpassningsbar (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Enkel med fliklist</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">En flikpanel och samma fliklist som i layouterna med flera paneler. Listen tar upp en remsa av skärmen.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Dubbel vertikal</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">Två paneler sida vid sida (vänster/höger).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Dubbel horisontell</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Två paneler ovanför varandra (överst/underst).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Trippel med sidopanel till vänster</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">En stor panel till vänster, två mindre paneler ovanför varandra till höger.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Trippel med sidopanel till höger</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Två mindre paneler ovanför varandra till vänster, en stor panel till höger.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Rutnät med fyra paneler</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Fyra paneler i ett 2×2-rutnät.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Klicka för att fokusera</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Det första klicket på en panel utan fokus ger den bara fokus, och paneler utan fokus reagerar inte på muspekaren. Stäng av för att interagera med dem direkt.</string>
+
+    <string name="workspace_settings_rail_button_title">Butler-knapp</string>
+    <string name="workspace_settings_rail_button_desc">Välj var Butler-knappen placeras på fliklisten.</string>
+    <string name="workspace_settings_rail_button_leading">Början</string>
+    <string name="workspace_settings_rail_button_leading_desc">Före flikarna i stående format, ovanför dem i liggande format.</string>
+    <string name="workspace_settings_rail_button_trailing">Slutet</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Efter flikarna i stående format, under dem i liggande format. Inom räckhåll för tummen vid användning med en hand.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Session</string>
+    <string name="workspace_settings_session_restore_title">Återställ flikar vid start</string>
+    <string name="workspace_settings_session_restore_desc">Återställ automatiskt tidigare öppna flikar när appen startar.</string>
+    <string name="workspace_settings_autopause_title">Pausa inaktiva flikar</string>
+    <string name="workspace_settings_autopause_desc">Flikar som du inte har tittat på på ett tag pausas för att spara minne och batteri. När du öppnar en återupptas den.</string>
+    <string name="workspace_settings_autopause_delay_title">Pausa efter</string>
+    <string name="workspace_settings_autopause_delay_desc">Hur länge en flik förblir utom synhåll innan den pausas.</string>
+    <string name="workspace_settings_undoclose_title">Ångra stängning av flikar</string>
+    <string name="workspace_settings_undoclose_desc">När du stänger en flik får du under några sekunder möjlighet att öppna den igen.</string>
+    <string name="workspace_settings_session_data_title">Sessionsdata</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d flik • %2$s</item>
+        <item quantity="other">%1$d flikar • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">Stängde \"%1$s\"</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Sessionen kunde inte återställas</string>
+    <string name="workspace_session_restoration_error_description">Din tidigare fliksession kunde inte återställas. Detta kan bero på en bugg som kommer att åtgärdas i en framtida uppdatering.\n\nDu kan rensa den sparade sessionen för att fortsätta använda Butler, eller vänta på en uppdatering.</string>
+    <string name="workspace_session_restoration_error_clear_action">Rensa session</string>
+    <string name="workspace_session_restoration_error_report_action">Rapportera problem</string>
+    <string name="workspace_session_restoration_error_confirm_title">Rensa sessionen?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Detta raderar din sparade fliksession permanent. Åtgärden kan inte ångras.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Byt namn på flik</string>
+    <string name="workspace_rename_name_label">Eget namn</string>
+    <string name="workspace_rename_name_hint">Lämna tomt för att använda det automatiska namnet</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Flikgränsen har nåtts</string>
+    <string name="workspace_limit_reached_message">Användare av gratisversionen kan ha upp till %1$d flikar öppna samtidigt. Uppgradera till Butler Pro för obegränsat antal flikar!</string>
+    <string name="workspace_limit_pick_tabs_message">Din gratisversion tillåter %1$d öppna flikar. Välj de du inte längre behöver och stäng dem för att göra plats.</string>
+    <string name="workspace_limit_no_slot_hint">Att stänga flikar frigör ingen plats just nu.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Stäng %d flik</item>
+        <item quantity="other">Stäng %d flikar</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Välj minst %d flik att stänga.</item>
+        <item quantity="other">Välj minst %d flikar att stänga.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Öppnade %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Osparade ändringar</string>
+    <string name="workspace_limit_blocker_busy">Upptagen just nu</string>
+    <string name="workspace_limit_blocker_attention">Väntar på dig</string>
+    <string name="workspace_limit_blocker_loading">Läser fortfarande in</string>
+    <string name="workspace_limit_blocker_awaiting_result">Avsluta den öppna väljaren först</string>
+    <string name="workspace_limit_blocker_unavailable">Kan inte stängas just nu</string>
+    <string name="workspace_limit_stacked_content_desc">Om du stänger den här fliken stängs även det som ligger ovanpå den</string>
+    <string name="workspace_limit_pro_description">Öppna så många flikar du vill.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d objekt</item>
+        <item quantity="other">%1$d objekt</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Återställning från papperskorgen</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Återställ %d objekt från papperskorgen.</item>
+        <item quantity="other">Återställ %d objekt från papperskorgen.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d objekt återställt</item>
+        <item quantity="other">%d objekt återställda</item>
+    </plurals>
+</resources>

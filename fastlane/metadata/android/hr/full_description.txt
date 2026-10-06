@@ -1,0 +1,57 @@
+Butler je upravitelj datoteka za Android koji se temelji na karticama. Pregledavaj, pretražuj, otvaraj i uređuj datoteke u cijeloj pohrani, uz rasporede s više okana i root pristup kad ti zatreba.
+
+Butler je nastao jer mi je oduvijek trebao baš takav preglednik datoteka za Android. Brz, privatan, otvorenog koda.
+
+Butler radi s internom pohranom, SD karticama i USB OTG pogonima, a uz Butler Pro i s mrežnim mapama. I sa svim vrstama datoteka, ne samo medijima koje prikazuje galerija.
+
+<b>Kartice i radni prostori</b>
+- Pregledavaj datoteke u karticama i koristi Butlerove alate istodobno.
+- Organiziraj kartice upraviteljem kartica i otvaraj nove iz izbornika kartica.
+- Rasporedi s više okana na mobitelima i tabletima, uz povlačenje i ispuštanje između okana.
+- Prikvači favorite i dodaj još lokacija za pohranu.
+
+<b>Radnje s datotekama</b>
+- Kopiraj, premještaj, preimenuj i briši uz prikaz brzine prijenosa i grafikone performansi dok radnje traju.
+- Podrška za koš za smeće omogućuje vraćanje izbrisanih datoteka.
+- Otvaraj arhive kao mape: pregledavaj ZIP, TAR i APK pakete izravno, bez prethodnog raspakiravanja.
+- Stvaraj ZIP arhive i raspakiravaj ih, uključujući šifrirane.
+- Radnje se nastavljaju i kad napustiš aplikaciju, uz napredak i gumb za otkazivanje u obavijesti.
+- Povijest radnji pokazuje što je pokrenuto, što je uspjelo, a što nije.
+
+<b>Mrežne mape (Butler Pro)</b>
+- Poveži se s dijeljenim mapama u sustavu Windows i mapama na NAS-u putem SMB-a te ih pregledavaj kao bilo koju drugu pohranu.
+- Kopiraj i premještaj datoteke između uređaja i poslužitelja u oba smjera.
+- Prijavi se kao gost ili korisničkim imenom i lozinkom, koji se čuvaju šifrirani samo na tvom uređaju.
+- Mrežnu mapu možeš dodati i testirati vezu besplatno. Za pregledavanje je potrebna nadogradnja na Butler Pro.
+
+<b>Pretraživanje i tekst</b>
+- Pretražuj po nazivu datoteke i njezinu sadržaju, uz podršku za regularne izraze (regex).
+- Uređivač teksta koji ostaje brz i s vrlo velikim datotekama.
+
+<b>Pregled datoteka</b>
+- Pregledavaj slike i listaj PDF-ove bez napuštanja Butlera.
+- Pojedinosti o datotekama, od veličine i dimenzija do dozvola i vlasnika.
+- Izračunaj veličinu mapa na zahtjev da vidiš što zapravo zauzima pohranu.
+- Sve što Butler ne prikazuje sam prosljeđuje aplikaciji koja to može.
+
+<b>Aplikacije i APK-ovi</b>
+- Upravitelj aplikacija: pregledavaj instalirane aplikacije, onemogući ih, izvezi APK-ove, izbriši podatke aplikacija i deinstaliraj ih.
+- Primaj, pregledavaj i otvaraj APK datoteke. Instalaciju obavlja Androidov sustav za instalaciju.
+
+<b>Radi s drugim aplikacijama</b>
+- Butler se pojavljuje u odabirnicima datoteka drugih aplikacija pa ga možeš koristiti kad god otvaraš ili spremaš datoteku.
+- Podijeli datoteku s Butlerom iz bilo koje aplikacije i odaberi točno kamo ide i pod kojim nazivom.
+- Dijeljeni tekst otvara se izravno u Butlerovu uređivaču.
+
+<b>Pristup i izgled</b>
+- Root ili Shizuku za mjesta koja Android inače drži zaključanima.
+- Teme Material You s dinamičkim bojama, tamnim načinom rada i opcijom AMOLED.
+
+<b>Privatnost</b>
+Bez praćenja. Bez analitičkih SDK-ova, računa ili oblaka. Izvješća o rušenjima i pogreškama ostaju na tvom uređaju osim ako ih odlučiš poslati. Otvorenog koda.
+
+Butler traži „Pristup svim datotekama” jer upravitelj datoteka mora pristupiti cijeloj pohrani. Sve što radi odvija se na tvom uređaju.
+
+Ova aplikacija nema oglasa. Za neke je značajke potrebna plaćena nadogradnja.
+
+Butler je upravitelj datoteka, preglednik datoteka i uređivač teksta za Android.

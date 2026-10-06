@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clipboard -->
+    <string name="clipboard_header_title">Udklipsholder</string>
+    <string name="clipboard_clear_all">Ryd alt</string>
+    <string name="clipboard_paste">Indsæt</string>
+    <string name="clipboard_open_in_explorer">Åbn i filhåndtereren</string>
+    <string name="clipboard_copy">Kopiér</string>
+    <string name="clipboard_cut">Klip</string>
+    <string name="clipboard_origin">Oprindelse: %s</string>
+    <plurals name="clipboard_paths_title_copy">
+        <item quantity="one">Kopiér %d element</item>
+        <item quantity="other">Kopiér %d elementer</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy">
+        <item quantity="one">%d element fra %s</item>
+        <item quantity="other">%d elementer fra %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_title_cut">
+        <item quantity="one">Klip %d element</item>
+        <item quantity="other">Klip %d elementer</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut">
+        <item quantity="one">%d element fra %s</item>
+        <item quantity="other">%d elementer fra %s</item>
+    </plurals>
+    <plurals name="clipboard_paths_locations">
+        <item quantity="one">%d placering</item>
+        <item quantity="other">%d placeringer</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_copy_multi">
+        <item quantity="one">%1$d element fra %2$s</item>
+        <item quantity="other">%1$d elementer fra %2$s</item>
+    </plurals>
+    <plurals name="clipboard_paths_description_cut_multi">
+        <item quantity="one">%1$d element fra %2$s</item>
+        <item quantity="other">%1$d elementer fra %2$s</item>
+    </plurals>
+    <string name="clipboard_text_title">Tekststykke</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d tegn</item>
+        <item quantity="other">%1$d tegn</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Indsæt som fil</string>
+    <string name="clipboard_text_info_characters">Tegn</string>
+    <string name="clipboard_text_info_lines">Linjer</string>
+    <string name="clipboard_text_info_content">Indhold</string>
+
+    <!-- Clipboard Info Dialog -->
+    <string name="clipboard_info_overview">Oversigt</string>
+    <string name="clipboard_info_operation">Handling</string>
+    <string name="clipboard_info_items">Elementer</string>
+    <string name="clipboard_info_source">Kilde</string>
+    <string name="clipboard_info_sources">Kilder</string>
+    <string name="clipboard_info_workspace">Arbejdsområde</string>
+    <string name="clipboard_info_workspace_closed">Lukket</string>
+    <string name="clipboard_info_time">Tid</string>
+    <string name="clipboard_info_items_with_count">Elementer (%1$d)</string>
+    <string name="clipboard_info_actions">Handlinger</string>
+    <string name="clipboard_info_go_to_source">Gå til kilde</string>
+    <string name="clipboard_info_go_to_first_source">Gå til første kilde</string>
+    <string name="clipboard_info_remove">Fjern fra udklipsholderen</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Udklipsholder</string>
+    <string name="clipboard_settings_remove_on_paste_title">Fjern ved indsættelse</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Fjern kopierede elementer fra udklipsholderen efter indsættelse</string>
+    <string name="clipboard_settings_max_items_title">Maksimalt antal elementer</string>
+    <string name="clipboard_settings_max_items_desc">Maksimalt antal elementer i udklipsholderen</string>
+
+    <string name="workspace_explorer_label">Filhåndterer</string>
+    <string name="workspace_searcher_label">Søgning</string>
+    <string name="workspace_editor_label">Tekstredigering</string>
+    <string name="workspace_templates_label">Skabeloner</string>
+    <string name="workspace_apps_label">Apps</string>
+    <string name="workspace_appdetails_label">Appoplysninger</string>
+    <string name="workspace_saver_label">Gem som</string>
+    <string name="workspace_developer_label">Udvikler</string>
+    <string name="workspace_history_label">Historik</string>
+    <string name="workspace_bugreport_label">Fejlrapporter</string>
+    <string name="workspace_viewer_label">Fremviser</string>
+
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Billeder</string>
+    <string name="workspace_searcher_target_videos">Videoer</string>
+    <string name="workspace_searcher_target_music">Musik</string>
+    <string name="workspace_searcher_target_downloads">Downloads</string>
+
+    <!-- Workspace UI Actions -->
+    <string name="workspace_expand_more_action">Mere</string>
+    <string name="workspace_expand_less_action">Mindre</string>
+
+    <!-- Workspace Button Menu -->
+    <string name="workspace_button_description">Faner og arbejdsområder</string>
+    <string name="workspace_button_menu_new_workspace_format">Opret %1$s</string>
+    <string name="workspace_button_menu_new_tab_action">Ny fane</string>
+    <string name="workspace_button_menu_category_recent">For nylig</string>
+    <string name="workspace_button_menu_category_other">Andet</string>
+    <string name="workspace_button_menu_category_current_tab">Denne fane</string>
+    <string name="workspace_button_menu_manager_action">Fanehåndtering</string>
+    <string name="workspace_button_menu_layout_action">Layout</string>
+    <string name="workspace_button_menu_close_current_action">Luk aktuel fane</string>
+    <plurals name="workspace_button_menu_close_current_stack_action">
+        <item quantity="one">Luk aktuel fane (%d arbejdsområde)</item>
+        <item quantity="other">Luk aktuel fane (%d arbejdsområder)</item>
+    </plurals>
+    <string name="workspace_button_menu_settings_action">Indstillinger</string>
+
+    <!-- Workspace Manager Actions -->
+    <string name="workspace_manager_close_all_title">Luk alle faner?</string>
+    <plurals name="workspace_manager_close_all_message">
+        <item quantity="one">Dette lukker %1$d åben fane. Handlingen kan ikke fortrydes.</item>
+        <item quantity="other">Dette lukker alle %1$d åbne faner. Handlingen kan ikke fortrydes.</item>
+    </plurals>
+    <string name="workspace_manager_close_all_action">Luk alle</string>
+    <string name="workspace_manager_close_all_unsaved_warning">Nogle faner har ændringer, der ikke er gemt, og som vil gå tabt.</string>
+    <string name="workspace_manager_close_all_unsaved_action">Kassér alle</string>
+    <string name="workspace_manager_close_selected_title">Luk valgte faner?</string>
+    <plurals name="workspace_manager_close_selected_message">
+        <item quantity="one">Dette lukker %1$d valgt fane. Handlingen kan ikke fortrydes.</item>
+        <item quantity="other">Dette lukker %1$d valgte faner. Handlingen kan ikke fortrydes.</item>
+    </plurals>
+    <string name="workspace_manager_close_selected_action">Luk valgte</string>
+    <string name="workspace_manager_close_selected_unsaved_warning">Nogle valgte faner har ændringer, der ikke er gemt, og som vil gå tabt.</string>
+    <string name="workspace_manager_close_selected_unsaved_action">Kassér valgte</string>
+    <string name="workspace_manager_pause_partial_title">Sæt faner på pause?</string>
+    <string name="workspace_manager_pause_partial_message">%1$d af %2$d valgte faner kan sættes på pause. Resten er i brug, har ændringer, der ikke er gemt, eller er åbne i øjeblikket.</string>
+    <string name="workspace_manager_pause_partial_action">Sæt %1$d på pause</string>
+    <string name="general_cancel_action">Annuller</string>
+
+    <!-- Operations -->
+    <string name="operations_header_title">Handlinger</string>
+    <string name="operations_clear_completed">Ryd fuldførte</string>
+    <string name="operations_state_queued">I kø</string>
+    <string name="operations_state_running">Kører</string>
+    <string name="operations_state_waiting">Venter på input</string>
+    <string name="operations_state_successful">Lykkedes</string>
+    <string name="operations_state_failed">Mislykkedes</string>
+    <string name="operations_state_cancelled">Annulleret</string>
+    <string name="operations_state_cancelling">Annullerer…</string>
+    <string name="operations_cancel_operation">Annuller handling</string>
+    <string name="operations_cancel_dialog_title">Annuller handling?</string>
+    <string name="operations_cancel_dialog_message">Er du sikker på, at du vil annullere denne handling?</string>
+    <string name="operations_cancel_dialog_warning">Annullering kan efterlade filer i en inkonsistent tilstand.</string>
+    <string name="operations_details_started_at">Startet</string>
+    <string name="operations_details_completed_at">Fuldført</string>
+    <string name="operations_details_duration">Varighed</string>
+    <string name="operations_details_duration_not_started">Ikke startet</string>
+    <string name="operations_details_progress">Fremskridt</string>
+    <string name="operations_details_error">Fejloplysninger</string>
+    <string name="operations_details_actions">Handlinger</string>
+    <string name="operations_details_overview">Oversigt</string>
+    <string name="operations_details_handle_issue">Håndter problem</string>
+    <string name="operations_details_open_app_action">Åbn app</string>
+    <string name="operations_details_show_in_history_action">Vis i historik</string>
+    <string name="operations_details_status">Status</string>
+    <string name="operations_details_result">Resultat</string>
+    <string name="operations_details_destination_folder">Destinationsmappe</string>
+    <string name="operations_details_destination_path">Destinationssti</string>
+    <string name="operations_details_affected_paths_with_count">Berørte stier (%d)</string>
+    <string name="operations_details_problems_with_count">Problemer (%d)</string>
+    <string name="operations_details_problems_more">%d flere, som ikke er vist</string>
+    <string name="workspace_operation_packages_section_title">Apps</string>
+    <string name="workspace_operation_package_status_done">Færdig</string>
+    <string name="workspace_operation_package_status_failed">Mislykkedes</string>
+    <string name="workspace_operation_package_status_declined">Afvist</string>
+    <string name="operations_details_section_expand">Fold %1$s ud</string>
+    <string name="operations_details_section_collapse">Fold %1$s sammen</string>
+    <string name="workspace_operations_performance_graph_label">Ydelsesgraf</string>
+
+    <!-- Delete Confirmation Dialog -->
+    <string name="workspace_dialog_delete_title_single">Slet element?</string>
+    <plurals name="workspace_dialog_delete_title_multiple">
+        <item quantity="one">Slet %1$d element?</item>
+        <item quantity="other">Slet %1$d elementer?</item>
+    </plurals>
+    <string name="workspace_dialog_delete_message_single">Dette element bliver slettet permanent:</string>
+    <string name="workspace_dialog_delete_message_multiple">Disse elementer bliver slettet permanent:</string>
+    <string name="workspace_dialog_delete_more_items">… og %1$d flere</string>
+    <string name="workspace_dialog_delete_warning">Handlingen kan ikke fortrydes.</string>
+    <string name="workspace_dialog_delete_permanently_action">Slet permanent</string>
+    <string name="workspace_dialog_delete_permanently_toggle">Slet permanent i stedet</string>
+    <string name="workspace_dialog_delete_partial_trash_notice">Nogle elementer kan ikke flyttes til papirkurven og vil blive håndteret separat.</string>
+
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Flyt til papirkurven?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Flyt %1$d element til papirkurven?</item>
+        <item quantity="other">Flyt %1$d elementer til papirkurven?</item>
+    </plurals>
+    <string name="workspace_dialog_trash_message_single">Dette element bliver flyttet til papirkurven:</string>
+    <string name="workspace_dialog_trash_message_multiple">Disse elementer bliver flyttet til papirkurven:</string>
+    <string name="workspace_dialog_trash_hint">Find dem i papirkurven</string>
+    <string name="workspace_dialog_move_to_trash_action">Flyt</string>
+
+    <!-- Action Bar -->
+    <plurals name="workspace_selection_count">
+        <item quantity="one">%d valgt</item>
+        <item quantity="other">%d valgt</item>
+    </plurals>
+    <string name="workspace_action_more">Flere handlinger</string>
+
+    <!-- Delete Operation (shared across workspaces) -->
+    <string name="workspace_operation_delete_title">Filsletning</string>
+    <string name="workspace_operation_delete_description_single">Slet \"%1$s\" fra \"%2$s\".</string>
+    <plurals name="workspace_operation_delete_description">
+        <item quantity="one">Slet %1$d element fra \"%2$s\".</item>
+        <item quantity="other">Slet %1$d elementer fra \"%2$s\".</item>
+    </plurals>
+
+    <!-- App Install Operation (shared across workspaces) -->
+    <string name="workspace_operation_install_title">Appinstallation</string>
+    <string name="workspace_operation_install_description">Installér \"%1$s\".</string>
+    <string name="workspace_operation_install_progress_inspecting">Læser pakke…</string>
+    <string name="workspace_operation_install_progress_extracting">Pakker ud…</string>
+    <string name="workspace_operation_install_progress_writing">Overdrager filer til installationsprogrammet…</string>
+    <string name="workspace_operation_install_progress_committing">Afslutter installation…</string>
+    <string name="workspace_operation_install_progress_placing_obb">Placerer udvidelsesfiler…</string>
+    <string name="workspace_operation_install_summary_success">%1$s blev installeret.</string>
+    <string name="workspace_operation_install_summary_success_partial">%1$s blev installeret, men udvidelsesfilerne kunne ikke placeres.</string>
+    <string name="workspace_install_unknown_sources_required">Butler skal have tilladelse til at installere apps. Giv tilladelsen i de indstillinger, der lige er åbnet, og prøv så igen.</string>
+    <string name="workspace_install_obb_failed">Appen blev installeret, men udvidelsesfilerne kunne ikke placeres: %1$s</string>
+
+    <!-- Delete Operation Reports -->
+    <plurals name="workspace_operation_report_files_deleted">
+        <item quantity="one">%1$d fil slettet.</item>
+        <item quantity="other">%1$d filer slettet.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_deleted">
+        <item quantity="one">%1$d mappe slettet.</item>
+        <item quantity="other">%1$d mapper slettet.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_skipped_items">
+        <item quantity="one">%1$d element sprunget over.</item>
+        <item quantity="other">%1$d elementer sprunget over.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_bytes_freed">
+        <item quantity="one">%1$s frigjort.</item>
+        <item quantity="other">%1$s frigjort.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Flytter til papirkurven…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d fil flyttet til papirkurven.</item>
+        <item quantity="other">%1$d filer flyttet til papirkurven.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d mappe flyttet til papirkurven.</item>
+        <item quantity="other">%1$d mapper flyttet til papirkurven.</item>
+    </plurals>
+
+    <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s frigjort.</string>
+    <string name="workspace_operation_progress_bytes_freed">%1$s frigjort.</string>
+    <string name="workspace_operation_progress_time_remaining">%1$s tilbage.</string>
+
+    <!-- File Info Dialog (shared across workspaces) -->
+    <string name="workspace_file_info_title">Information</string>
+    <string name="workspace_file_info_name_label">Navn</string>
+    <string name="workspace_file_info_path_label">Sti</string>
+    <string name="workspace_file_info_type_label">Type</string>
+    <string name="workspace_file_info_type_file">Fil</string>
+    <string name="workspace_file_info_type_directory">Mappe</string>
+    <string name="workspace_file_info_type_symlink">Symbolsk link</string>
+    <string name="workspace_file_info_type_unknown">Ukendt</string>
+    <string name="workspace_file_info_size_label">Størrelse</string>
+    <string name="workspace_file_info_modified_label">Ændret</string>
+    <string name="workspace_file_info_created_label">Oprettet</string>
+    <string name="workspace_file_info_permissions_label">Tilladelser</string>
+    <string name="workspace_file_info_owner_label">Ejer</string>
+    <string name="workspace_file_info_child_count_label">Elementer</string>
+    <string name="workspace_file_info_symlink_target_label">Mål</string>
+    <string name="workspace_file_info_unknown">Ukendt</string>
+    <string name="workspace_file_info_copy_action">Kopiér til udklipsholderen</string>
+
+    <!-- Multiple Items Info Dialog -->
+    <string name="workspace_file_info_selected_label">Valgt</string>
+    <string name="workspace_file_info_files_label">Filer</string>
+    <string name="workspace_file_info_directories_label">Mapper</string>
+    <string name="workspace_file_info_total_size_label">Samlet størrelse</string>
+
+    <!-- Performance Graph -->
+    <string name="workspace_operation_performance_unavailable_not_started">Denne handling er ikke startet endnu.</string>
+    <string name="workspace_operation_performance_unavailable_collecting">Indsamler ydelsesdata…</string>
+    <string name="workspace_operation_performance_unavailable_insufficient">Der er ikke nok ydelsesdata fra denne handling til at tegne en graf.</string>
+    <string name="workspace_operation_performance_unavailable_not_available">Ydelsesdata er ikke tilgængelige for denne handling.</string>
+    <string name="workspace_operation_performance_window_seconds">Seneste %1$d s</string>
+    <string name="workspace_operation_performance_window_minutes">Seneste %1$d min</string>
+    <string name="workspace_operation_performance_unit_bytes">B/s</string>
+    <string name="workspace_operation_performance_unit_kilobytes">kB/s</string>
+    <string name="workspace_operation_performance_unit_megabytes">MB/s</string>
+    <string name="workspace_operation_performance_unit_gigabytes">GB/s</string>
+    <string name="workspace_operation_performance_unit_items">elementer/s</string>
+
+    <!-- Error Display (shared across workspaces) -->
+    <string name="workspace_error_show_details_action">Vis tekniske oplysninger</string>
+    <string name="workspace_error_hide_details_action">Skjul tekniske oplysninger</string>
+
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Initialiserer fane</string>
+    <string name="workspace_error_subtitle">Der opstod en uventet fejl</string>
+    <string name="workspace_close_tab_action">Luk fane</string>
+    <string name="workspace_paused_body">Denne fane er sat på pause for at spare hukommelse og batteri. Genoptag den for at fortsætte.</string>
+    <string name="workspace_paused_error_body">Denne fane kunne ikke genoptages.</string>
+    <string name="workspace_paused_resume_action">Genoptag</string>
+    <string name="workspace_paused_label">På pause</string>
+    <string name="workspace_paused_content_label">Faneindhold</string>
+
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Eksisterende fil</string>
+    <string name="workspace_issue_collision_existing_folder_label">Eksisterende mappe</string>
+    <string name="workspace_issue_collision_new_file">Indkommende fil</string>
+    <string name="workspace_issue_collision_new_folder">Indkommende mappe</string>
+    <string name="workspace_issue_collision_overwrite">Erstat</string>
+    <string name="workspace_issue_collision_merge">Flet</string>
+    <string name="workspace_issue_common_source_file">Kildefil</string>
+    <string name="workspace_issue_common_destination_file">Destination</string>
+    <string name="workspace_issue_common_skip">Spring over</string>
+    <string name="workspace_issue_common_rename">Omdøb</string>
+    <string name="workspace_issue_common_rename_new">Omdøb ny</string>
+    <string name="workspace_issue_common_rename_existing">Omdøb eksisterende</string>
+    <string name="workspace_issue_common_cancel">Annuller</string>
+    <string name="workspace_issue_common_delete_permanently">Slet permanent</string>
+    <string name="workspace_issue_archive_password_label">Adgangskode</string>
+    <string name="workspace_issue_archive_password_unlock">Lås op</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Elementer, der ikke kunne flyttes</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… og %1$d flere elementer</string>
+    <string name="workspace_issue_trash_not_supported_items_label">Berørte elementer</string>
+    <string name="workspace_issue_trash_not_supported_more_items">… og %1$d flere elementer</string>
+    <string name="workspace_issue_apply_all">Anvend på alle resterende problemer</string>
+    <string name="workspace_issue_rename_new_name">Nyt navn</string>
+    <string name="workspace_issue_rename_dialog_title_new">Omdøb indkommende fil</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Omdøb eksisterende fil</string>
+    <string name="workspace_issue_type_folder">Mappe</string>
+
+    <!-- Open in New Tabs Confirmation Dialog -->
+    <string name="workspace_open_tabs_confirmation_title">Åbn flere faner?</string>
+    <string name="workspace_open_tabs_confirmation_message">Dette åbner %1$d faner.</string>
+
+    <!-- Open Selection Dialog -->
+    <plurals name="workspace_open_selection_title">
+        <item quantity="one">Åbn %d element</item>
+        <item quantity="other">Åbn %d elementer</item>
+    </plurals>
+    <string name="workspace_open_selection_view_here_action">Vis her</string>
+    <string name="workspace_open_selection_view_here_description">Viser de valgte filer i en fremviser oven på denne rude. Forrige og næste gennemgår kun dine valgte filer.</string>
+    <string name="workspace_open_selection_view_in_tab_action">Vis i ny fane</string>
+    <string name="workspace_open_selection_view_in_tab_description">Viser de valgte filer i en fremviser i sin egen fane. Forrige og næste gennemgår kun dine valgte filer.</string>
+    <string name="workspace_open_selection_each_in_tab_action">Åbn hver i sin egen fane</string>
+    <string name="workspace_open_selection_each_in_tab_description">Åbner hvert valgt element i en separat fane. Mapper åbnes som filhåndtererfaner.</string>
+    <string name="workspace_open_selection_viewer_unavailable">Mapper kan ikke vises i fremviseren.</string>
+
+    <!-- Open with (hand a file to another app) -->
+    <string name="workspace_open_with_chooser_title">Åbn med</string>
+    <string name="workspace_open_with_no_app_label">Ingen anden app fundet</string>
+    <string name="workspace_open_with_no_app_description">Ingen anden installeret app kan åbne %1$s.</string>
+
+    <!-- Workspace Banner Feedback -->
+    <plurals name="workspace_banner_opened_tabs">
+        <item quantity="one">Åbnede %1$d fane</item>
+        <item quantity="other">Åbnede %1$d faner</item>
+    </plurals>
+    <plurals name="workspace_banner_close_blocked_busy">
+        <item quantity="one">Kan ikke lukke: en handling kører stadig i %1$d fane</item>
+        <item quantity="other">Kan ikke lukke: handlinger kører stadig i %1$d faner</item>
+    </plurals>
+
+    <!-- Workspace > Settings -->
+    <string name="workspace_settings_title">Faner</string>
+    <string name="workspace_settings_navigation">Navigation</string>
+    <string name="workspace_settings_swipe_gestures_title">Strygebevægelser</string>
+    <string name="workspace_settings_swipe_gestures_desc">Stryg til venstre eller højre for at skifte mellem faner.</string>
+    <string name="workspace_settings_ondemand_creation_title">Opret faner automatisk</string>
+    <string name="workspace_settings_ondemand_creation_desc">Opret automatisk en ny fane, når du stryger forbi den sidste fane.</string>
+    <string name="workspace_settings_newtab_type_title">Type for ny fane</string>
+    <string name="workspace_settings_newtab_type_desc">Arbejdsområde, der åbnes, når du stryger forbi den sidste fane, føjer en fane til en tom rude eller opretter den første fane.</string>
+    <string name="workspace_settings_newtab_type_ask">Spørg hver gang</string>
+    <string name="workspace_settings_newtab_type_ask_desc">Vis vælgeren til fanetype for hver ny fane.</string>
+    <string name="workspace_settings_live_preview_title">Liveforhåndsvisninger</string>
+    <string name="workspace_settings_live_preview_desc">Vis fanernes indhold live i fanehåndteringen.</string>
+    <string name="workspace_settings_other">Andet</string>
+    <string name="workspace_settings_layout_title">Layout</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Layout i stående retning</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Vælg fanelayout i stående retning.</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Layout i liggende retning</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Vælg fanelayout i liggende retning.</string>
+    <string name="workspace_settings_layout_mode_auto">Automatisk</string>
+    <string name="workspace_settings_layout_mode_auto_desc">Klassisk på små skærme, fanebjælke med ruder på store.</string>
+    <string name="workspace_settings_layout_mode_classic">Klassisk</string>
+    <string name="workspace_settings_layout_mode_classic_desc">Én rude ad gangen uden fanebjælken.</string>
+    <string name="workspace_settings_layout_mode_adaptive">Adaptivt</string>
+    <string name="workspace_settings_layout_mode_adaptive_desc">Fanebjælke og så mange ruder, som der er plads til på skærmen. Fastgør et layout fra Butler-menuen.</string>
+    <string name="workspace_layout_dialog_mode_adaptive_desc">Fanebjælke og så mange ruder, som der er plads til på skærmen.</string>
+    <string name="workspace_settings_layout_mode_adaptive_pinned_format">Adaptivt (%1$s)</string>
+    <string name="workspace_settings_layout_mode_single_rail">Enkelt med fanebjælke</string>
+    <string name="workspace_settings_layout_mode_single_rail_desc">Én fanerude samt fanebjælken fra layout med flere ruder. Bjælken optager en stribe af skærmen.</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">To lodrette ruder</string>
+    <string name="workspace_settings_layout_mode_dual_vertical_desc">To ruder side om side (venstre/højre).</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">To vandrette ruder</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal_desc">To ruder over hinanden (øverst/nederst).</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Tre ruder med sidepanel til venstre</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">Én stor rude til venstre, to mindre ruder over hinanden til højre.</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Tre ruder med sidepanel til højre</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">To mindre ruder over hinanden til venstre, én stor rude til højre.</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Fire ruder i gitter</string>
+    <string name="workspace_settings_layout_mode_quad_grid_desc">Fire ruder i et 2×2-gitter.</string>
+
+    <string name="workspace_settings_pane_click_to_focus_title">Klik for at fokusere</string>
+    <string name="workspace_settings_pane_click_to_focus_desc">Det første klik på en rude uden fokus giver den kun fokus, og ruder uden fokus reagerer ikke på en musemarkør. Slå fra for at interagere med dem direkte.</string>
+
+    <string name="workspace_settings_rail_button_title">Butler-knap</string>
+    <string name="workspace_settings_rail_button_desc">Vælg, hvor Butler-knappen skal være på fanebjælken.</string>
+    <string name="workspace_settings_rail_button_leading">Start</string>
+    <string name="workspace_settings_rail_button_leading_desc">Før fanerne i stående retning, over dem i liggende retning.</string>
+    <string name="workspace_settings_rail_button_trailing">Slut</string>
+    <string name="workspace_settings_rail_button_trailing_desc">Efter fanerne i stående retning, under dem i liggende retning. Inden for tommelfingerens rækkevidde ved brug med én hånd.</string>
+
+    <!-- Session -->
+    <string name="workspace_settings_session_title">Session</string>
+    <string name="workspace_settings_session_restore_title">Gendan faner ved opstart</string>
+    <string name="workspace_settings_session_restore_desc">Gendan automatisk tidligere åbne faner, når appen starter.</string>
+    <string name="workspace_settings_autopause_title">Sæt inaktive faner på pause</string>
+    <string name="workspace_settings_autopause_desc">Faner, du ikke har kigget på i et stykke tid, sættes på pause for at spare hukommelse og batteri. Når du åbner en, genoptages den.</string>
+    <string name="workspace_settings_autopause_delay_title">Sæt på pause efter</string>
+    <string name="workspace_settings_autopause_delay_desc">Hvor længe en fane er ude af syne, før den sættes på pause.</string>
+    <string name="workspace_settings_undoclose_title">Fortryd lukning af faner</string>
+    <string name="workspace_settings_undoclose_desc">Når du lukker en fane, får du i nogle få sekunder mulighed for at åbne den igen.</string>
+    <string name="workspace_settings_session_data_title">Sessionsdata</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d fane • %2$s</item>
+        <item quantity="other">%1$d faner • %2$s</item>
+    </plurals>
+
+    <!-- Undo close -->
+    <string name="workspace_closed_undo_message">Lukkede \"%1$s\"</string>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Gendannelse af session mislykkedes</string>
+    <string name="workspace_session_restoration_error_description">Din tidligere fanesession kunne ikke gendannes. Det kan skyldes en fejl, der bliver rettet i en kommende opdatering.\n\nDu kan rydde den gemte session for at fortsætte med at bruge Butler eller vente på en opdatering.</string>
+    <string name="workspace_session_restoration_error_clear_action">Ryd session</string>
+    <string name="workspace_session_restoration_error_report_action">Rapportér problem</string>
+    <string name="workspace_session_restoration_error_confirm_title">Ryd session?</string>
+    <string name="workspace_session_restoration_error_confirm_description">Dette sletter din gemte fanesession permanent. Handlingen kan ikke fortrydes.</string>
+
+    <!-- Rename tab -->
+    <string name="workspace_rename_dialog_title">Omdøb fane</string>
+    <string name="workspace_rename_name_label">Brugerdefineret navn</string>
+    <string name="workspace_rename_name_hint">Lad feltet være tomt for at bruge det automatiske navn</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Fanegrænse nået</string>
+    <string name="workspace_limit_reached_message">Brugere af gratisversionen kan have op til %1$d faner åbne ad gangen. Opgrader til Butler Pro for ubegrænset antal faner!</string>
+    <string name="workspace_limit_pick_tabs_message">Din gratisversion tillader %1$d åbne faner. Vælg dem, du ikke længere har brug for, og luk dem for at gøre plads.</string>
+    <string name="workspace_limit_no_slot_hint">Lukning af faner frigør ikke en plads lige nu.</string>
+    <plurals name="workspace_limit_close_selected_action">
+        <item quantity="one">Luk %d fane</item>
+        <item quantity="other">Luk %d faner</item>
+    </plurals>
+    <plurals name="workspace_limit_selection_hint">
+        <item quantity="one">Vælg mindst %d fane, der skal lukkes.</item>
+        <item quantity="other">Vælg mindst %d faner, der skal lukkes.</item>
+    </plurals>
+    <string name="workspace_limit_tab_opened">Åbnede %1$s</string>
+    <string name="workspace_limit_blocker_unsaved">Ændringer, der ikke er gemt</string>
+    <string name="workspace_limit_blocker_busy">Optaget lige nu</string>
+    <string name="workspace_limit_blocker_attention">Venter på dig</string>
+    <string name="workspace_limit_blocker_loading">Indlæser stadig</string>
+    <string name="workspace_limit_blocker_awaiting_result">Afslut først den åbne vælger</string>
+    <string name="workspace_limit_blocker_unavailable">Kan ikke lukkes lige nu</string>
+    <string name="workspace_limit_stacked_content_desc">Når du lukker denne fane, lukkes også det, der er stablet oven på den</string>
+    <string name="workspace_limit_pro_description">Åbn så mange faner, du vil.</string>
+
+    <!-- Drag and drop -->
+    <plurals name="workspace_drag_decoration_items">
+        <item quantity="one">%1$d element</item>
+        <item quantity="other">%1$d elementer</item>
+    </plurals>
+    <string name="workspace_drag_decoration_breakdown">%1$s, %2$s</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Gendannelse fra papirkurven</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Gendan %d element fra papirkurven.</item>
+        <item quantity="other">Gendan %d elementer fra papirkurven.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d element gendannet</item>
+        <item quantity="other">%d elementer gendannet</item>
+    </plurals>
+</resources>

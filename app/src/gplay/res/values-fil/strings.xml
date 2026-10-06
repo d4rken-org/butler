@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_feature_requires_pro">Kailangan ang Butler Pro</string>
+
+    <string name="upgrade_prompt_title">I-upgrade ang Butler</string>
+    <string name="upgrade_prompt_body">Nag-aalok ang Butler Pro ng mas magagandang resulta, mas maraming feature at opsyon para sa mga bihasang gumagamit.</string>
+    <string name="upgrade_prompt_upgrade_action">I-upgrade</string>
+
+    <!-- %1$s is the full brand name ("Butler Pro"), composed from the app name plus the upgrade
+         postfix. Translate the sentence around it and keep the placeholder. -->
+    <string name="upgrade_screen_title_template">Kunin ang %1$s</string>
+    <string name="upgrade_screen_preamble">Walang patalastas ang Butler at hindi ito nagbebenta ng data ng gumagamit. Ikaw ang tumutustos sa aking gawain ❤️.</string>
+
+    <string name="upgrade_screen_how_title">Mga opsyon</string>
+    <string name="upgrade_screen_subscription_trial_action">Simulan ang libreng 14 na araw na pagsubok</string>
+    <string name="upgrade_screen_subscription_action">Mag-subscribe</string>
+    <string name="upgrade_screen_iap_action">Isang beses na pagbili</string>
+    <string name="upgrade_screen_restore_purchase_action">I-restore ang pagbili</string>
+    <string name="upgrade_screen_restore_banner_title">Nakabili na ng Pro?</string>
+    <string name="upgrade_screen_restore_banner_body">Mukhang nag-upgrade ka na sa Pro sa device na ito dati. I-restore ang iyong pagbili upang muli itong paganahin.</string>
+    <string name="upgrade_screen_restore_checked_message">Katatapos lang magsuri ng Butler sa Google Play, pero walang makumpirmang pagbili ng Pro para sa account na ginagamit ng Google Play para sa app na ito.</string>
+    <string name="upgrade_screen_restore_inconclusive_message">Hindi natapos sa oras ang pagsusuri sa Google Play, kaya hindi pa rin alam ang katayuan ng iyong pagbili. Walang nagbago sa iyong account.</string>
+    <string name="upgrade_screen_restore_contact_hint">Hindi pa rin maayos? Makipag-ugnayan gamit ang email na ginamit sa pagbili at isama ang iyong numero ng order sa Google Play.</string>
+    <string name="upgrade_screen_contact_support_action">Makipag-ugnayan sa suporta</string>
+    <string name="upgrade_screen_restore_sync_patience_hint">Maaaring matagalan ang pag-sync ng Play Store. Subukang i-reboot ang device, burahin ang cache ng Google Play, o maghintay na lang.</string>
+    <string name="upgrade_screen_restore_multiaccount_hint">Maaaring malito ang Google Play kapag maraming account. Mag-log out sa ibang account o mag-install sa pamamagitan ng website ng Google Play, na nag-uugnay sa pag-install sa isang partikular na account.</string>
+    <string name="upgrade_screen_restore_success_message">Na-restore na ang iyong pagbili ❤️</string>
+    <string name="upgrade_screen_restore_status_title">Mukhang mali ang katayuan?</string>
+    <string name="upgrade_screen_restore_status_body">Muling suriin ang iyong pagbili sa Google Play. Maaari itong makatulong pagkatapos magpalit ng device o kung lumipat ka ng Google account.</string>
+
+    <string name="upgrade_screen_offers_or">o</string>
+
+    <string name="upgrade_screen_offers_title">Mga opsyon sa pag-upgrade</string>
+    <string name="upgrade_screen_offers_body">Eksaktong pareho ang mga feature ng Pro na pinapagana ng dalawang opsyon — piliin ang presyong angkop sa iyo.</string>
+    <string name="upgrade_screen_offers_unavailable_title">Hindi available ang mga presyo</string>
+    <string name="upgrade_screen_offers_unavailable_message">Hindi ma-load ng Butler ang mga opsyon sa pag-upgrade mula sa Google Play. Madalas ay pansamantala lang ito — subukang muli makalipas ang ilang sandali.</string>
+    <string name="upgrade_screen_subscription_offer_title">Taunang suskripsyon</string>
+    <string name="upgrade_screen_subscription_offer_body">Nagsisimula sa libreng 14 na araw na pagsubok, pagkatapos ay sisingilin isang beses bawat taon. Kanselahin anumang oras.</string>
+    <string name="upgrade_screen_subscription_offer_body_no_trial">Sisingilin isang beses bawat taon. Kanselahin anumang oras.</string>
+    <string name="upgrade_screen_iap_offer_title">Bumili nang isang beses</string>
+    <string name="upgrade_screen_iap_offer_body">Magbayad nang isang beses, at sa iyo na ito habambuhay. Walang suskripsyon.</string>
+    <string name="upgrade_screen_restore_body">Kapag nire-restore ang pagbili, hinihiling sa Google Play na muling suriin ang mga pagbili sa app na ito para sa kasalukuyang account.</string>
+
+    <string name="upgrade_screen_owned_hero_title">May Butler Pro ka na!</string>
+    <string name="upgrade_screen_owned_hero_iap_body">Salamat sa isang beses na pagbili — sa iyo na ito habambuhay ❤️</string>
+    <string name="upgrade_screen_owned_hero_sub_body">Salamat sa pag-subscribe ❤️</string>
+    <string name="upgrade_screen_owned_iap_title">Isang beses na pagbili</string>
+    <string name="upgrade_screen_owned_iap_body">Sa iyo na ang permanenteng pag-upgrade sa Pro.</string>
+    <string name="upgrade_screen_owned_sub_title">Suskripsyon</string>
+    <string name="upgrade_screen_owned_sub_renewing_body">Aktibo ang iyong suskripsyon at awtomatiko itong nagre-renew.</string>
+    <string name="upgrade_screen_owned_sub_not_renewing_body">Aktibo ang iyong suskripsyon pero nakatakdang hindi mag-renew. Mananatili ang Pro hanggang matapos ang kasalukuyang panahon ng suskripsyon.</string>
+    <string name="upgrade_screen_owned_both_renewing_warning">May isang beses na pagbili ka na pero nagre-renew pa rin ang iyong suskripsyon. Kanselahin ito sa Google Play upang maiwasang magbayad nang doble.</string>
+    <string name="upgrade_screen_manage_subscription_action">Pamahalaan ang suskripsyon</string>
+
+    <string name="upgrade_screen_switch_locked_note">Kanselahin muna ang pag-renew sa pamamagitan ng \"Pamahalaan ang suskripsyon\", kung hindi ay sisingilin ka para sa pareho.</string>
+    <string name="upgrade_screen_switch_purchase_note">Hindi na magre-renew ang iyong suskripsyon — maaari mo nang ligtas na gawin ang isang beses na pagbili.</string>
+
+    <string name="upgrade_screen_sub_still_renewing_title">Aktibo pa ang suskripsyon</string>
+    <string name="upgrade_screen_sub_still_renewing_message">Nakatakda pa ring mag-renew ang iyong suskripsyon. Kanselahin muna ang pag-renew sa Google Play upang hindi ka masingil para sa pareho, pagkatapos ay gawin ang isang beses na pagbili.</string>
+    <string name="upgrade_screen_purchase_check_failed_title">Hindi ma-verify</string>
+    <string name="upgrade_screen_purchase_check_failed_message">Hindi makumpirma ng Butler ang katayuan ng iyong pagbili sa Google Play, kaya itinigil ang pagbili upang maiwasang masingil ka nang doble. Subukang muli makalipas ang ilang sandali.</string>
+
+    <string name="upgrade_screen_pending_card_title">Nakabinbin ang bayad</string>
+    <string name="upgrade_screen_pending_card_body">Pinoproseso pa ng Google Play ang iyong bayad. Awtomatikong papaganahin ang Pro kapag nakumpleto na ang pagbabayad. Maaaring matagalan ang ilang paraan ng pagbabayad. Wala ka nang kailangang gawin.</string>
+    <string name="upgrade_screen_pending_dialog_message">May nakitang pagbili ang Google Play na may nakabinbing bayad at pinoproseso pa ito. Awtomatikong papaganahin ang Pro kapag nakumpleto na ang pagbabayad.</string>
+
+    <string name="upgrade_screen_grace_title">Kinukumpirma ang iyong pagbili</string>
+    <string name="upgrade_screen_grace_body_short">Kailangan ng Google Play ng ilang sandali upang kumpirmahin ang iyong katayuan sa Pro. May buong pag-access ka pa rin.</string>
+    <string name="upgrade_screen_grace_body">Hindi pa muling nakukumpirma ng Google Play ang iyong katayuan sa Pro. May pag-access ka pa rin sa ngayon. Kung mukhang mali ito, subukang i-restore ang iyong pagbili.</string>
+
+    <string name="upgrades_gplay_already_owned_error_title">Nakabili na?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Ayon sa Google Play, pag-aari mo na ang pag-upgrade na ito, pero hindi ito awtomatikong ma-restore. Tiyaking naka-log in ka gamit ang Google account na ginamit sa unang pagbili, pagkatapos ay subukan ang \"I-restore ang pagbili\".</string>
+    <string name="upgrades_gplay_unavailable_error_title">Hindi available ang Google Play</string>
+    <string name="upgrades_gplay_unavailable_error_description">Hindi makakonekta ang Butler sa Google Play. Naka-install ba ang Google Play at nasa pinakabagong bersyon? Naka-log in ba ang iyong Google account? Subukang burahin ang cache ng Google Play app at i-reboot ang iyong device.</string>
+    <!-- Toast shown when the "Google Play" button of an error dialog can't open Google Play's app info, e.g. Google Play is missing or blocked on this device. "Google Play" is a brand name, keep it untranslated. -->
+    <string name="upgrades_gplay_not_installed_message">Hindi mabuksan ang Google Play. Maaaring wala ito, hindi pinagana, o pinaghihigpitan sa device na ito.</string>
+    <string name="upgrades_gplay_billing_error_label">Problema sa Google Play</string>
+    <string name="upgrades_gplay_billing_error_description">May nagkaproblema habang nakikipag-ugnayan sa Google Play. Subukang muli sa ibang pagkakataon o i-restart ang iyong device.\n\nMga detalye: %s</string>
+    <string name="upgrades_gplay_internal_error_title">Error sa Google Play</string>
+    <string name="upgrades_gplay_internal_error_description">Nagkaroon ng panloob na error ang Google Play. Subukan ang mga sumusunod:\n\n• I-restart ang iyong device\n• Burahin ang cache ng Google Play Store\n• Subukang muli sa ibang pagkakataon</string>
+    <string name="upgrades_gplay_network_error_title">Error sa koneksyon</string>
+    <string name="upgrades_gplay_network_error_description">Hindi maabot ng Butler ang Google Play. Suriin ang iyong koneksyon sa internet at subukang muli.</string>
+    <string name="upgrades_gplay_offer_unavailable_title">Hindi available ang alok</string>
+    <string name="upgrades_gplay_offer_unavailable_description">Kasalukuyang hindi iniaalok ng Google Play ang opsyon sa pag-upgrade na ito para sa iyong account. Subukang muli sa ibang pagkakataon o tingnan ang Google Play Store.</string>
+    <string name="upgrades_no_purchases_found_check_account">Walang nahanap na pagbili. Tama ba ang account na ginagamit mo?</string>
+
+    <string name="upgrade_benefits_title">Mga benepisyo ng pag-upgrade</string>
+    <!-- Lines starting with "•" (or "-") render as checkmarked feature rows; lines without a marker
+         render as plain footnote text. Keep the markers. -->
+    <string name="upgrade_screen_benefits_body">• Walang limitasyong mga tab at operasyon\n• I-customize ang disenyo, karanasan sa paggamit, at hitsura\n• Dagdag na mga opsyon at feature para sa bawat tool\n• Maagang pag-access sa mga bagong feature\n• Isang masigasig na developer 🧙\nat marami pang iba…</string>
+</resources>

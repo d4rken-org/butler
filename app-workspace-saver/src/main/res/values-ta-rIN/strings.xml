@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">வேறாகச் சேமி</string>
+    <string name="saver_preview_label">முன்னோட்டம்</string>
+    <string name="saver_loading">ஏற்றுகிறது…</string>
+    <string name="saver_shared_from">%1$s இலிருந்து பகிரப்பட்டது</string>
+    <string name="saver_shared_generic">Butler உடன் பகிரப்பட்டது</string>
+    <string name="saver_destination_label">சேமிக்கும் இடம்</string>
+    <string name="saver_select_destination_hint">சேமிக்க வேண்டிய கோப்புறையைத் தேர்ந்தெடுங்கள்</string>
+    <string name="saver_filename_label">கோப்புப் பெயர்</string>
+    <string name="saver_save_action">சேமி</string>
+    <string name="saver_saving_progress">சேமிக்கிறது…</string>
+    <string name="saver_success_message">கோப்பு வெற்றிகரமாகச் சேமிக்கப்பட்டது</string>
+    <string name="saver_open_saved_action">கோப்புறையைத் திற</string>
+    <string name="saver_retry_action">மீண்டும் முயற்சி செய்</string>
+    <string name="saver_save_again_action">புதிய இருப்பிடத்தில் சேமி</string>
+    <string name="saver_close_tab_action">தாவலை மூடு</string>
+    <string name="saver_close_butler_action">தாவலை மூடித் திரும்பு</string>
+    <string name="saver_done_action">முடிந்தது</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">மூலக் கோப்பை இனி அணுக முடியாது. மீண்டும் பகிருங்கள்.</item>
+        <item quantity="other">%1$d மூலக் கோப்புகளை இனி அணுக முடியாது. மீண்டும் பகிருங்கள்.</item>
+    </plurals>
+    <string name="saver_error_source_expired">மூலக் கோப்பை இனி அணுக முடியாது</string>
+    <string name="saver_error_permission_denied">அனுமதி மறுக்கப்பட்டது</string>
+    <string name="saver_error_write_failed">கோப்பைச் சேமிக்க முடியவில்லை</string>
+    <string name="saver_error_file_exists">கோப்பு ஏற்கனவே உள்ளது</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">கோப்புகளைச் சேமி</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">%1$d கோப்பை %2$s இல் சேமிக்கிறது</item>
+        <item quantity="other">%1$d கோப்புகளை %2$s இல் சேமிக்கிறது</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">%1$d கோப்பைச் சேமி</item>
+        <item quantity="other">%1$d கோப்புகளைச் சேமி</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d கோப்பு சேமிக்கப்பட்டது</item>
+        <item quantity="other">%1$d கோப்புகள் சேமிக்கப்பட்டன</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d கோப்பைச் சேமிக்க முடியவில்லை</item>
+        <item quantity="other">%1$d கோப்புகளைச் சேமிக்க முடியவில்லை</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d கோப்பு தவிர்க்கப்பட்டது</item>
+        <item quantity="other">%1$d கோப்புகள் தவிர்க்கப்பட்டன</item>
+    </plurals>
+    <string name="saver_partial_success">மொத்தம் %2$d கோப்புகளில் %1$d சேமிக்கப்பட்டன</string>
+</resources>

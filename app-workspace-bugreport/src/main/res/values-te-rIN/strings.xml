@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">బగ్ నివేదికలు</string>
+    <string name="bugreport_workspace_subtitle">క్రాష్ మరియు లోప నివేదికలు</string>
+
+    <string name="bugreport_empty_title">నివేదికలు లేవు</string>
+    <string name="bugreport_empty_subtitle">క్రాష్ మరియు లోప నివేదికలు ఇక్కడ కనిపిస్తాయి. ఏదీ ఆటోమేటిక్‌గా పంపబడదు.</string>
+
+    <string name="bugreport_type_crash">క్రాష్</string>
+    <string name="bugreport_type_report">నివేదిక</string>
+    <string name="bugreport_type_recording">రికార్డింగ్</string>
+
+    <string name="bugreport_record_action">డీబగ్ లాగ్‌ను రికార్డ్ చేయండి</string>
+    <string name="bugreport_record_short_action">రికార్డ్ చేయండి</string>
+    <string name="bugreport_stop_action">రికార్డింగ్ ఆపండి</string>
+    <string name="bugreport_stop_short_action">ఆపండి</string>
+    <string name="bugreport_recording_ongoing_label">రికార్డ్ అవుతోంది…</string>
+
+    <string name="bugreport_recording_short_title">రికార్డింగ్ చాలా చిన్నగా ఉంది</string>
+    <string name="bugreport_recording_short_message">ఈ రికార్డింగ్ కొన్ని సెకన్ల నిడివి మాత్రమే ఉంది, ఉపయోగకరమైన సమాచారం అందులో ఉండకపోవచ్చు. అయినా ఆపాలా?</string>
+    <string name="bugreport_recording_short_keep_action">రికార్డింగ్ కొనసాగించండి</string>
+
+    <string name="bugreport_rename_action">పేరు మార్చండి</string>
+    <string name="bugreport_rename_dialog_title">ఈ నివేదికకు పేరు పెట్టండి</string>
+    <string name="bugreport_rename_name_label">పేరు</string>
+    <string name="bugreport_rename_name_hint">జాబితాలో మరియు షేర్ చేసిన ఫైల్ పేరులో కనిపిస్తుంది</string>
+
+    <string name="bugreport_share_action">షేర్ చేయండి</string>
+    <string name="bugreport_delete_action">తొలగించండి</string>
+    <string name="bugreport_delete_all_action">అన్నీ తొలగించండి</string>
+    <string name="bugreport_delete_all_confirm_title">అన్ని డీబగ్ లాగ్‌లను తొలగించాలా?</string>
+    <string name="bugreport_delete_all_confirm_message">దీనివల్ల రికార్డ్ చేసిన అన్ని డీబగ్ లాగ్ సెషన్‌లు శాశ్వతంగా తొలగించబడతాయి. ప్రస్తుతం కొనసాగుతున్న రికార్డింగ్‌లపై ప్రభావం ఉండదు.</string>
+    <string name="bugreport_delete_confirm_title">ఈ నివేదికను తొలగించాలా?</string>
+    <string name="bugreport_delete_confirm_message">దీనివల్ల ఈ నివేదిక మరియు దాని లాగ్ శాశ్వతంగా తొలగించబడతాయి.</string>
+    <string name="bugreport_cancel_action">రద్దు చేయండి</string>
+
+    <string name="bugreport_share_chooser_title">బగ్ నివేదికను షేర్ చేయండి</string>
+    <string name="bugreport_share_consent_title">నివేదికను షేర్ చేయాలా?</string>
+    <string name="bugreport_share_consent_message">ఈ నివేదికలో యాప్ లాగ్‌లు ఉంటాయి. వాటిలో ఫైల్ పేర్లు, పాత్‌లు, యాప్ మరియు పరికర సమాచారం ఉండవచ్చు. మీరు నమ్మే వ్యక్తులతో మాత్రమే దీన్ని షేర్ చేయండి.</string>
+
+    <string name="bugreport_detail_back_action">వెనుకకు</string>
+    <string name="bugreport_detail_section_error">లోపం</string>
+    <string name="bugreport_detail_section_log">ఇటీవలి లాగ్</string>
+    <string name="bugreport_detail_field_type">రకం</string>
+    <string name="bugreport_detail_field_time">సమయం</string>
+    <string name="bugreport_detail_field_app_version">యాప్ వెర్షన్</string>
+    <string name="bugreport_detail_field_device">పరికరం</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">బిల్డ్</string>
+    <string name="bugreport_detail_field_error_class">లోపం రకం</string>
+    <string name="bugreport_detail_field_thread">థ్రెడ్</string>
+    <string name="bugreport_detail_log_truncated">%2$d పంక్తుల్లో చివరి %1$d పంక్తులు</string>
+    <string name="bugreport_detail_log_count">%1$d పంక్తులు</string>
+    <string name="bugreport_detail_log_empty">లాగ్ ఏదీ నమోదు కాలేదు</string>
+    <string name="bugreport_detail_log_error">లాగ్‌ను లోడ్ చేయలేకపోయింది</string>
+</resources>

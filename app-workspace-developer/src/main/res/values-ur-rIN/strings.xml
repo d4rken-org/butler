@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">ڈویلپر</string>
+    <string name="developer_title">ڈویلپر ٹولز</string>
+    <string name="developer_subtitle">ڈیولپمنٹ کی سہولتیں</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">سسٹم</string>
+    <string name="developer_tab_options">اختیارات</string>
+    <string name="developer_tab_workspaces">ورک اسپیس</string>
+    <string name="developer_tab_logs">لاگز</string>
+    <string name="developer_tab_testdata">آزمائشی ڈیٹا</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">ڈیبگ کے اختیارات</string>
+    <string name="developer_options_debug_mode">ڈیبگ موڈ</string>
+    <string name="developer_options_debug_mode_desc">تفصیلی لاگنگ فعال کریں</string>
+    <string name="developer_options_trace_mode">ٹریس موڈ</string>
+    <string name="developer_options_trace_mode_desc">ٹریس کی سطح کی لاگنگ فعال کریں</string>
+    <string name="developer_options_floating_log">تیرتا ہوا لاگ پینل</string>
+    <string name="developer_options_floating_log_desc">تمام اسکرینوں پر ایسا لاگ اوورلے دکھائیں جسے گھسیٹ کر منتقل کیا جا سکے</string>
+    <string name="developer_options_services_header">سروس کی آزمائشیں</string>
+    <string name="developer_options_root_test_action">روٹ کی رسائی آزمائیں</string>
+    <string name="developer_options_root_installed_label">انسٹال شدہ</string>
+    <string name="developer_options_root_available_label">دستیاب</string>
+    <string name="developer_options_root_base_check_label">بنیادی جانچ</string>
+    <string name="developer_options_shizuku_test_action">ADB کی رسائی آزمائیں</string>
+    <string name="developer_options_shizuku_installed_label">انسٹال شدہ</string>
+    <string name="developer_options_shizuku_granted_label">اجازت</string>
+    <string name="developer_options_shizuku_compatible_label">مطابقت رکھتا ہے</string>
+    <string name="developer_options_shizuku_service_label">سروس</string>
+    <string name="developer_options_test_running">آزمائش جاری ہے…</string>
+    <string name="developer_options_result_yes">ہاں</string>
+    <string name="developer_options_result_no">نہیں</string>
+    <string name="developer_options_result_unknown">نامعلوم</string>
+    <string name="developer_options_visibility_header">نمائش</string>
+    <string name="developer_options_hide_mode">ڈویلپر موڈ چھپائیں</string>
+    <string name="developer_options_hide_mode_desc">دوبارہ فعال کرنے کے لیے ترتیبات میں ورژن پر 7 بار ٹیپ کریں۔</string>
+    <string name="developer_options_hide_action">چھپائیں</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">آلہ</string>
+    <string name="developer_system_device_model">ماڈل</string>
+    <string name="developer_system_device_manufacturer">بنانے والا</string>
+    <string name="developer_system_device_api">API کی سطح</string>
+    <string name="developer_system_build_header">بلڈ</string>
+    <string name="developer_system_build_version">ورژن</string>
+    <string name="developer_system_build_code">ورژن کوڈ</string>
+    <string name="developer_system_build_flavor">فلیور</string>
+    <string name="developer_system_build_type">بلڈ کی قسم</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">میموری</string>
+    <string name="developer_system_memory_available">دستیاب</string>
+    <string name="developer_system_memory_total">کل</string>
+    <string name="developer_system_storage_header">اسٹوریج</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d ورک اسپیس</string>
+    <string name="developer_workspaces_empty">کوئی ورک اسپیس نہیں</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">صاف کریں</string>
+    <string name="developer_logs_pause">عارضی طور پر روکیں</string>
+    <string name="developer_logs_resume">دوبارہ جاری کریں</string>
+    <string name="developer_logs_empty">کوئی لاگ نہیں</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">ہدف کے راستے</string>
+    <string name="developer_testdata_no_paths">ہدف کے کوئی راستے منتخب نہیں ہیں۔ آزمائشی ڈیٹا بنانے کے لیے راستے شامل کریں۔</string>
+    <string name="developer_testdata_add_path_action">راستہ شامل کریں</string>
+    <string name="developer_testdata_options_header">ڈیٹا بنانے کے اختیارات</string>
+    <string name="developer_testdata_large_files">بڑی فائلیں</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">در تہہ ساخت</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 فولڈر، ~1100 فائلیں</string>
+    <string name="developer_testdata_text_files">ایڈیٹر کے لیے متنی فائلیں</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">بنائیں</string>
+    <string name="developer_testdata_generating">بنایا جا رہا ہے…</string>
+    <string name="developer_testdata_history_header">سرگزشت کے نمونہ اندراجات</string>
+    <string name="developer_testdata_history_desc">آج سے 30 دن پہلے تک کے عرصے کے لیے مختلف اقسام، نتائج، ماخذ اور راستوں پر مشتمل کارروائیوں کے ~25 فرضی اندراجات بناتا ہے۔ انہیں براہ راست سرگزشت کے ڈیٹابیس میں شامل کرتا ہے؛ دوبارہ ٹیپ کرنا محفوظ ہے۔</string>
+    <string name="developer_testdata_history_generate_action">نمونہ سرگزشت بنائیں</string>
+    <string name="developer_testdata_progress">%2$s میں سے %1$s</string>
+    <string name="developer_testdata_complete">آزمائشی ڈیٹا یہاں بنایا گیا:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">بڑی فائلیں بنائیں</string>
+    <string name="developer_operation_large_files_desc">%1$s میں آزمائشی فائلیں بنائی جا رہی ہیں</string>
+    <string name="developer_operation_large_files_creating">%1$s بنایا جا رہا ہے</string>
+
+    <string name="developer_operation_nested_title">در تہہ ساخت بنائیں</string>
+    <string name="developer_operation_nested_desc">%1$s میں فولڈروں کی درجہ وار ساخت بنائی جا رہی ہے</string>
+    <string name="developer_operation_nested_starting">در تہہ ساخت بنانا شروع ہو رہا ہے…</string>
+    <string name="developer_operation_nested_creating">%1$s بنایا جا رہا ہے</string>
+    <string name="developer_operation_nested_files_created">%1$d فائلیں بنائی گئیں</string>
+
+    <string name="developer_operation_text_files_title">متنی فائلیں بنائیں</string>
+    <string name="developer_operation_text_files_desc">%1$s میں متنی فائلیں بنائی جا رہی ہیں</string>
+    <string name="developer_operation_text_files_creating">%1$s بنایا جا رہا ہے</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d فائل بنائی گئی</item>
+        <item quantity="other">%d فائلیں بنائی گئیں</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d ڈائریکٹری</item>
+        <item quantity="other">%d ڈائریکٹریاں</item>
+    </plurals>
+</resources>

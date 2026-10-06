@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar and image -->
+    <string name="viewer_open_with_action">Abrir com</string>
+    <string name="viewer_image_content_description">Imagem %1$s</string>
+    <string name="viewer_toolbar_folder_label">Pasta</string>
+    <string name="viewer_back_action">Voltar</string>
+
+    <!-- Action bar -->
+    <string name="viewer_previous_file_action">Ficheiro anterior</string>
+    <string name="viewer_next_file_action">Ficheiro seguinte</string>
+    <string name="viewer_open_location_action">Abrir localização</string>
+    <string name="viewer_clipboard_copied">%1$s copiado. Cola-o num separador do Explorador.</string>
+    <string name="viewer_clipboard_cut">%1$s cortado. Cola-o num separador do Explorador para o mover.</string>
+    <string name="viewer_share_failed_label">Não foi possível partilhar este ficheiro</string>
+    <string name="viewer_share_failed_description">Não é possível disponibilizar %1$s a outra aplicação. Isto acontece com ficheiros que precisam de acesso root ou ADB e com ficheiros que já não existem.</string>
+
+    <!-- File info card -->
+    <string name="viewer_info_size_label">Tamanho</string>
+    <string name="viewer_info_modified_label">Modificado</string>
+    <string name="viewer_info_created_label">Criado</string>
+    <string name="viewer_info_format_label">Formato</string>
+    <string name="viewer_info_dimensions_label">Dimensões</string>
+    <string name="viewer_info_dimensions_value">%1$d × %2$d</string>
+    <string name="viewer_info_permissions_label">Permissões</string>
+    <string name="viewer_info_permissions_value">%1$s (%2$s)</string>
+    <string name="viewer_info_owner_label">Proprietário</string>
+    <string name="viewer_info_caption_label">Mensagem partilhada</string>
+    <string name="viewer_info_owner_value">%1$s / %2$s</string>
+    <string name="viewer_info_expand_action">Mostrar todos os detalhes</string>
+    <string name="viewer_info_collapse_action">Ocultar detalhes</string>
+
+    <!-- PDF preview -->
+    <string name="viewer_pdf_preview_hint_single">Pré-visualização · 1 página</string>
+    <string name="viewer_pdf_page_indicator">Página %1$d de %2$d</string>
+    <string name="viewer_pdf_page_previous">Página anterior</string>
+    <string name="viewer_pdf_page_next">Página seguinte</string>
+    <string name="viewer_pdf_page_error">Não foi possível mostrar a página %1$d.</string>
+    <string name="viewer_pdf_page_content_description">Pré-visualização PDF de %1$s, página %2$d de %3$d</string>
+
+    <!-- Unsupported file -->
+    <string name="viewer_unsupported_title">Este tipo de ficheiro ainda não é suportado</string>
+
+    <!-- Archive -->
+    <string name="viewer_archive_title">Este ficheiro é um arquivo</string>
+    <string name="viewer_browse_archive_action">Explorar conteúdo</string>
+    <string name="viewer_archive_needs_copy_msg">Guarda uma cópia no teu dispositivo para que o Butler possa explorar o conteúdo.</string>
+    <string name="viewer_archive_nested_msg">Este arquivo está dentro de outro arquivo. Extrai-o primeiro para explorar o conteúdo.</string>
+
+    <!-- APK file -->
+    <string name="viewer_apk_version_label">Versão</string>
+    <string name="viewer_apk_min_sdk_label">SDK mínimo</string>
+    <string name="viewer_apk_target_sdk_label">SDK de destino</string>
+    <string name="viewer_apk_installed_label">Instalado</string>
+    <string name="viewer_apk_not_installed_value">Não instalado</string>
+    <string name="viewer_apk_installed_unknown_value">Não foi possível verificar</string>
+    <string name="viewer_apk_installed_older_hint">Versão anterior à deste ficheiro</string>
+    <string name="viewer_apk_installed_newer_hint">Versão posterior à deste ficheiro</string>
+    <string name="viewer_apk_permissions_header">Permissões (%1$d)</string>
+    <string name="viewer_apk_signing_header">Certificados de assinatura</string>
+
+    <!-- App install -->
+    <string name="viewer_install_action">Instalar</string>
+    <string name="viewer_bundle_format_label">Formato do pacote</string>
+    <string name="viewer_bundle_splits_label">APKs incluídos</string>
+    <string name="viewer_bundle_expansion_files_hint">Contém ficheiros de expansão que são colocados no destino após a instalação da aplicação.</string>
+    <string name="viewer_bundle_expansion_needs_elevation_warning">Colocar os ficheiros de expansão no destino requer acesso root ou ADB. Sem esse acesso, a aplicação é instalada, mas os ficheiros de expansão ficam por colocar.</string>
+
+    <!-- APK icon -->
+    <string name="viewer_apk_icon_content_description">Ícone da aplicação %1$s</string>
+    <string name="viewer_apk_icon_show_action">Mostrar ícone</string>
+    <string name="viewer_apk_icon_save_action">Guardar ícone</string>
+    <string name="viewer_apk_icon_dimensions">%1$d × %2$d</string>
+    <string name="viewer_apk_icon_saved">Ícone guardado como %1$s</string>
+    <string name="viewer_apk_icon_overwrite_title">Substituir ficheiro?</string>
+    <string name="viewer_apk_icon_overwrite_message">%1$s já existe nesta pasta. Ao guardar o ícone, esse ficheiro será substituído.</string>
+    <string name="viewer_apk_icon_overwrite_confirm">Substituir</string>
+
+    <!-- External change notice -->
+    <string name="viewer_external_change_title">Ficheiro alterado</string>
+    <string name="viewer_external_change_message">Este ficheiro foi alterado no dispositivo. Atualiza para o carregar novamente.</string>
+    <string name="viewer_external_change_gone_title">O ficheiro já não está disponível</string>
+    <string name="viewer_external_change_gone_message">Este ficheiro foi eliminado ou já não está acessível.</string>
+
+    <!-- Errors -->
+    <string name="viewer_error_title">Não é possível mostrar este ficheiro</string>
+    <string name="viewer_error_not_a_file_label">Não é um ficheiro</string>
+    <string name="viewer_error_not_a_file_description">%1$s não é um ficheiro normal.</string>
+    <string name="viewer_error_broken_symlink_label">Atalho inválido</string>
+    <string name="viewer_error_broken_symlink_description">%1$s aponta para algo que já não existe.</string>
+    <string name="viewer_error_undecodable_label">Imagem danificada</string>
+    <string name="viewer_error_undecodable_description">Não foi possível descodificar %1$s. O ficheiro pode estar incompleto ou danificado.</string>
+    <string name="viewer_error_file_gone_label">Ficheiro não encontrado</string>
+    <string name="viewer_error_file_gone_description">%1$s já não existe. Pode ter sido movido, ter mudado de nome ou ter sido eliminado.</string>
+    <string name="viewer_error_empty_file_label">Ficheiro vazio</string>
+    <string name="viewer_error_empty_file_description">%1$s está vazio e não tem nada para mostrar.</string>
+    <string name="viewer_error_apk_unreadable_label">APK ilegível</string>
+    <string name="viewer_error_apk_unreadable_description">Não foi possível interpretar %1$s como um pacote de aplicação Android.</string>
+    <string name="viewer_error_icon_unavailable_label">Sem ícone</string>
+    <string name="viewer_error_icon_unavailable_description">Não foi possível ler o ícone da aplicação %1$s.</string>
+    <string name="viewer_error_icon_target_notfile_label">Nome já utilizado</string>
+    <string name="viewer_error_icon_target_notfile_description">%1$s já existe aqui e não é um ficheiro normal, pelo que não pode ser substituído.</string>
+    <string name="viewer_error_icon_target_appeared_label">Surgiu um ficheiro</string>
+    <string name="viewer_error_icon_target_appeared_description">%1$s foi criado enquanto escolhias onde guardar. Nada foi substituído. Tenta novamente.</string>
+    <string name="viewer_error_content_unreadable_label">Não é possível ler este ficheiro</string>
+    <string name="viewer_error_content_unreadable_description">A aplicação que partilhou %1$s já não permite que o Butler o leia. Pede a essa aplicação que o partilhe novamente.</string>
+    <string name="viewer_save_copy_action">Guardar uma cópia…</string>
+    <string name="viewer_open_in_editor_action">Abrir no editor</string>
+    <string name="viewer_text_truncated_bytes">Pré-visualização limitada aos primeiros %1$s deste ficheiro.</string>
+    <string name="viewer_text_truncated_lines">Pré-visualização limitada às primeiras %1$s linhas deste ficheiro.</string>
+    <string name="viewer_text_truncated_width">As linhas longas são encurtadas nesta pré-visualização.</string>
+    <string name="viewer_text_unreadable_label">Não foi possível ler este ficheiro</string>
+
+    <!-- Settings -->
+    <string name="viewer_settings_title">Visualizador</string>
+    <string name="viewer_settings_show_next_after_delete_title">Mostrar o ficheiro seguinte após eliminar</string>
+    <string name="viewer_settings_show_next_after_delete_subtitle">Após eliminar um ficheiro aberto a partir de uma pasta, mostrar o ficheiro seguinte nessa pasta em vez de fechar o visualizador.</string>
+</resources>

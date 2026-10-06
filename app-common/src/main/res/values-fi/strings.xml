@@ -1,0 +1,315 @@
+<resources>
+    <string name="app_name">Butler</string>
+    <string name="app_name_subtitle">Verraton tiedostonhallinta</string>
+    <!-- Upgraded app title. %1$s is the app name, %2$s the tier qualifier ("Pro" or "FOSS", depending on the build). Reorder or repunctuate for your language; both placeholders must appear exactly once. -->
+    <string name="app_name_upgraded_template">%1$s %2$s</string>
+
+    <string name="butler_icon_description">Butler-sovelluksen kuvake</string>
+    <string name="butler_mascot_description">Butler-maskotti</string>
+    <string name="butler_mascot_animation_random_description">Butler-maskotti esittämässä erilaisia animaatioita</string>
+    <string name="butler_mascot_animation_wink_description">Butler-maskotti iskemässä silmää</string>
+    <string name="butler_mascot_animation_greeting_description">Butler-maskotti heiluttamassa tervehdykseksi</string>
+    <string name="butler_mascot_animation_hatoff_description">Butler-maskotti kohottamassa hattua kohteliaasti</string>
+    <string name="butler_mascot_animation_drink_description">Butler-maskotti juomassa</string>
+    <string name="butler_mascot_animation_moustache_description">Butler-maskotti silittämässä viiksiään</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Butler-maskotti sulkemassa silmiään nukahtaakseen</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Butler-maskotti kuorsaamassa</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Butler-maskotti heräämässä</string>
+    <string name="butler_mascot_animation_cameo_description">SD Maid -maskotti vierailulla</string>
+
+    <string name="slogan_general_message_0">Palveluksessasi.</string>
+    <string name="slogan_general_message_1">Kaikki omalla paikallaan.</string>
+    <string name="slogan_general_message_2">Järjestystä, ei kaaosta.</string>
+    <string name="slogan_general_message_3">Noutamassa tiedostojasi.</string>
+    <string name="slogan_general_message_4">Kaikki tiedostosi järjestyksessä.</string>
+    <string name="slogan_general_message_5">Aina järjestyksessä.</string>
+    <string name="slogan_general_message_6">Tiedostot löytyvät nopeasti!</string>
+    <string name="slogan_general_message_7">Helppo pääsy tiedostoihin.</string>
+    <string name="slogan_general_message_8">Tiedostosi eivät koskaan katoa.</string>
+    <string name="slogan_general_message_9">Monessa roolissa.</string>
+    <string name="slogan_newyear_message_0">Sama menettely kuin joka vuosi.</string>
+    <string name="slogan_xmas_message_0">Tiedostot tarkistetaan kahdesti.</string>
+    <string name="slogan_xmas_message_1">Kilttien listalla.</string>
+    <string name="slogan_halloween_message_0">Buu-tler palveluksessasi.</string>
+    <string name="slogan_halloween_message_1">Ei kepposia, vain tiedostoja.</string>
+    <string name="slogan_stpatricks_message_0">Tuntuuko onnekkaalta?</string>
+    <string name="slogan_stpatricks_message_1">Etsimässä kulta-aarrettasi.</string>
+    <string name="slogan_aprilfools_message_0">Ei pelleilyä.</string>
+    <string name="slogan_aprilfools_message_1">Vakavasti järjestyksessä.</string>
+    <string name="slogan_oktoberfest_message_0">Malja tiedostoillesi!</string>
+    <string name="slogan_oktoberfest_message_1">Tiedostoja hanasta.</string>
+
+    <string name="general_share_action">Jaa</string>
+    <string name="general_share_single_title">Jaa %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Jaa %d tiedosto</item>
+        <item quantity="other">Jaa %d tiedostoa</item>
+    </plurals>
+    <string name="general_done_action">Valmis</string>
+    <string name="general_copy_action">Kopioi</string>
+    <string name="general_cut_action">Leikkaa</string>
+    <string name="general_move_action">Siirrä</string>
+    <string name="general_paste_action">Liitä</string>
+    <string name="general_apply_action">Käytä</string>
+    <string name="general_open_action">Avaa</string>
+    <string name="general_cancel_action">Peruuta</string>
+    <string name="general_close_action">Sulje</string>
+    <string name="general_confirm_action">Vahvista</string>
+    <string name="general_reset_action">Nollaa</string>
+    <string name="general_save_action">Tallenna</string>
+    <string name="general_edit_action">Muokkaa</string>
+    <string name="general_na_label">Ei saatavilla</string>
+    <!-- Announced by screen readers when a dialog opens -->
+    <string name="general_dialog_a11y_label">Valintaikkuna</string>
+    <string name="general_dismiss_action">Sulje</string>
+    <string name="general_read_more_action">Lue lisää</string>
+    <string name="general_mark_as_read_action">Merkitse luetuksi</string>
+    <string name="general_back_action">Takaisin</string>
+    <string name="general_navigate_up_action">Siirry ylemmäs</string>
+    <string name="general_error_label">Virhe</string>
+    <string name="general_error_unknown_label">Tuntematon virhe</string>
+    <string name="general_error_invalid_input_label">Virheellinen syöte</string>
+    <string name="general_share_error_action">Jaa virhe</string>
+    <string name="general_error_report_subject">%1$s-virheraportti (%2$s)</string>
+    <string name="general_error_report_consent_title">Jaetaanko virheraportti?</string>
+    <string name="general_error_report_consent_message">Raportti sisältää virheen ja sen tuottaman pinojäljen, sovelluksen viimeaikaiset lokimerkinnät sekä tietoja sen tilasta: tiedostojen nimet ja polut, hakulausekkeet, pakettien nimet, URI-tunnisteet, verkko- ja SMB-isäntänimet, laitteesi ja ohjelmistokoontisi tiedot sekä nimettömän asennustunnisteen. Jaa se vain ihmisille, joihin luotat.</string>
+    <string name="general_error_report_consent_confirm">Jaa raportti</string>
+    <string name="general_privacy_policy_action">Tietosuojakäytäntö</string>
+    <string name="general_bug_report_subject">%1$s-vikailmoitus (%2$s)</string>
+    <string name="general_bug_report_subject_labeled">%1$s-vikailmoitus: %2$s (%3$s)</string>
+    <string name="general_bug_report_body_what_happened_prompt">(Kuvaile tässä, mitä tapahtui.)</string>
+    <string name="general_bug_report_body_expected_prompt">(Kuvaile, mitä odotit tapahtuvan.)</string>
+    <string name="general_duration_input_label">Kesto</string>
+    <string name="general_size_input_label">Koko</string>
+    <string name="general_upgrade_action">Avaa lisäominaisuudet</string>
+    <string name="general_refresh_action">Päivitä näkymä</string>
+    <string name="general_clear_action">Tyhjennä</string>
+    <string name="general_expand_action">Laajenna</string>
+    <string name="general_collapse_action">Supista</string>
+    <string name="general_completed_label">Valmis</string>
+    <string name="general_cancelled_label">Peruutettu</string>
+    <string name="general_searching_label">Etsitään</string>
+    <string name="general_searching_ellipsis">Etsitään…</string>
+    <string name="general_progress_loading">Ladataan</string>
+    <string name="general_progress_loading_egg_0">Silti nopeampi kuin iPhone</string>
+    <string name="general_progress_loading_egg_1">Ladataan lisää RAM-muistia</string>
+    <string name="general_progress_loading_egg_2">Valmistuu: pian™</string>
+    <string name="general_progress_loading_egg_3">Suoritin on kahvitauolla</string>
+    <string name="general_progress_loading_egg_4">Odotetaan tietoja Pepe Silvialta</string>
+    <string name="general_progress_loading_egg_5">Turboenkabulaattori käynnistyy</string>
+    <string name="general_progress_loading_egg_6">Ojennetaan voita</string>
+    <string name="general_progress_loading_egg_7">No niin. Miten jaksat?</string>
+    <string name="general_progress_loading_egg_8">Piip puup pap</string>
+    <string name="general_progress_loading_egg_9">Puskuroitaan elämänvalintoja</string>
+    <string name="general_progress_loading_egg_10">Kutsutaan Cthulhua</string>
+    <string name="general_progress_loading_egg_11">Kaikki on hyvin</string>
+    <string name="general_progress_loading_egg_12">Odota hetki</string>
+    <string name="general_progress_loading_egg_13">Et sentään jonota puhelimessa</string>
+    <string name="general_progress_loading_egg_14">Levitä suoraan otsalle</string>
+
+    <!-- Duration formatting -->
+    <plurals name="common_duration_milliseconds_short">
+        <item quantity="one">%dms</item>
+        <item quantity="other">%dms</item>
+    </plurals>
+    <plurals name="common_duration_seconds_short">
+        <item quantity="one">%ds</item>
+        <item quantity="other">%ds</item>
+    </plurals>
+    <plurals name="common_duration_minutes_short">
+        <item quantity="one">%dmin</item>
+        <item quantity="other">%dmin</item>
+    </plurals>
+    <plurals name="common_duration_hours_short">
+        <item quantity="one">%dh</item>
+        <item quantity="other">%dh</item>
+    </plurals>
+    <plurals name="common_duration_days_short">
+        <item quantity="one">%dvrk</item>
+        <item quantity="other">%dvrk</item>
+    </plurals>
+
+    <plurals name="common_duration_seconds_full">
+        <item quantity="one">%d sekunti</item>
+        <item quantity="other">%d sekuntia</item>
+    </plurals>
+    <plurals name="common_duration_minutes_full">
+        <item quantity="one">%d minuutti</item>
+        <item quantity="other">%d minuuttia</item>
+    </plurals>
+    <plurals name="common_duration_hours_full">
+        <item quantity="one">%d tunti</item>
+        <item quantity="other">%d tuntia</item>
+    </plurals>
+    <plurals name="common_duration_days_full">
+        <item quantity="one">%d päivä</item>
+        <item quantity="other">%d päivää</item>
+    </plurals>
+
+    <string name="general_view_action">Näytä</string>
+    <string name="general_delete_action">Poista</string>
+    <string name="general_show_details_action">Näytä tiedot</string>
+    <string name="general_hide_details_action">Piilota tiedot</string>
+
+    <string name="general_delete_confirmation_title">Vahvista poisto</string>
+    <string name="general_delete_confirmation_message_x">Poistetaanko \"%s\"?</string>
+    <string name="general_delete_confirmation_message_selected_x_items">Poistetaanko %d valittua kohdetta?</string>
+    <plurals name="general_delete_success_deleted_x">
+        <item quantity="one">Poistettu %d kohde.</item>
+        <item quantity="other">Poistettu %d kohdetta.</item>
+    </plurals>
+
+    <string name="general_create_action">Luo</string>
+    <string name="general_rename_action">Nimeä uudelleen</string>
+    <string name="general_retry_action">Yritä uudelleen</string>
+    <string name="general_open_setup_action">Avaa käyttöoikeuksien määritys</string>
+    <string name="general_grant_usage_stats_action">Myönnä käyttötietojen käyttöoikeus</string>
+    <string name="general_grant_storage_permission_action">Myönnä tallennustilan käyttöoikeus</string>
+    <string name="general_grant_all_files_access_action">Salli kaikkien tiedostojen käyttö</string>
+
+    <string name="general_result_user_cancel_msg">Käyttäjä peruutti toiminnon.</string>
+
+    <string name="general_path_label">Polku</string>
+    <string name="general_filename_validation_error">Nimi sisältää virheellisiä merkkejä: %1$s</string>
+
+    <string name="common_workspace_position_indicator">%1$d/%2$d: %3$s</string>
+    <string name="common_x_of_y_label">%1$d/%2$d</string>
+
+    <string name="file_type_symbolic_link">Linkki</string>
+    <string name="file_type_directory">Hakemisto</string>
+    <string name="file_type_file">Tiedosto</string>
+    <string name="file_type_unknown">Tuntematon</string>
+
+    <!-- MIME type friendly names -->
+    <string name="common_mimetype_image">Kuva</string>
+    <string name="common_mimetype_video">Video</string>
+    <string name="common_mimetype_audio">Ääni</string>
+    <string name="common_mimetype_text_plain">Pelkkä teksti</string>
+    <string name="common_mimetype_text">Tekstiasiakirja</string>
+    <string name="common_mimetype_pdf">PDF-asiakirja</string>
+    <string name="common_mimetype_document">Asiakirja</string>
+    <string name="common_mimetype_archive">Arkisto</string>
+    <string name="common_mimetype_apk">Android-paketti</string>
+    <string name="common_mimetype_json">JSON-tiedosto</string>
+    <string name="common_mimetype_xml">XML-tiedosto</string>
+    <string name="common_mimetype_unknown">Tuntematon tyyppi</string>
+
+    <string name="general_rom_type_auto_label">Automaattinen (oletus)</string>
+
+    <plurals name="general_progress_items_per_second">
+        <item quantity="one">%s kohde/s</item>
+        <item quantity="other">%s kohdetta/s</item>
+    </plurals>
+    <plurals name="general_progress_bytes_per_second">
+        <item quantity="one">%s/s</item>
+        <item quantity="other">%s/s</item>
+    </plurals>
+
+    <string name="general_error_type_mismatch_msg">Tyyppivirhe: odotettiin tyyppiä %1$s, mutta saatiin %2$s.</string>
+    <string name="general_error_cant_access_msg">Kohteeseen %s ei ole pääsyä.</string>
+    <string name="general_error_archive_not_seekable_msg">Arkistoa %s ei voi selata suoraan: sen tallennustila tukee vain peräkkäistä lukemista, mutta tämä arkistomuoto vaatii satunnaisen lukupääsyn.</string>
+    <string name="general_error_root_unavailable">Root-käyttöoikeus ei ole saatavilla.</string>
+    <string name="general_error_elevated_access_required">Tämä toiminto vaatii korotetut käyttöoikeudet. Määritä root- tai ADB-käyttöoikeus käyttöoikeuksien määrityksessä.</string>
+    <string name="general_error_no_compatible_app_found_msg">Pyynnön käsittelyyn ei löytynyt yhteensopivaa sovellusta.</string>
+    <string name="general_error_ipc_deadobject_title">Yhteys palveluun katkesi</string>
+    <string name="general_error_ipc_deadobject_description">Yhteys tärkeään palveluun (esimerkiksi Magiskiin tai muuhun järjestelmätason palveluun) katkesi odottamatta. Käynnistä laitteesi uudelleen. Jos ongelma jatkuu, tarkista päivitykset tai ota minuun yhteyttä, jotta voin korjata sen.</string>
+
+    <string name="ui_theme_mode_dark_label">Tumma</string>
+    <string name="ui_theme_mode_light_label">Vaalea</string>
+    <string name="ui_theme_mode_system_label">Järjestelmän mukainen</string>
+    <string name="ui_theme_style_default_label">Oletus</string>
+    <string name="ui_theme_style_medium_contrast_label">Keskisuuri kontrasti</string>
+    <string name="ui_theme_style_high_contrast_label">Suuri kontrasti</string>
+    <string name="ui_theme_style_materialyou_label">Material You</string>
+    <string name="ui_theme_color_green_label">Vihreä</string>
+    <string name="ui_theme_color_blue_label">Sininen</string>
+    <string name="ui_theme_color_amoled_label">AMOLED</string>
+    <string name="ui_theme_color_custom_label">Mukautettu</string>
+
+    <string name="ui_theme_palette_tonalspot_label">Sävykorostus</string>
+    <string name="ui_theme_palette_neutral_label">Neutraali</string>
+    <string name="ui_theme_palette_vibrant_label">Eloisa</string>
+    <string name="ui_theme_palette_expressive_label">Ilmeikäs</string>
+    <string name="ui_theme_palette_rainbow_label">Sateenkaari</string>
+    <string name="ui_theme_palette_fruitsalad_label">Hedelmäsalaatti</string>
+    <string name="ui_theme_palette_monochrome_label">Yksivärinen</string>
+    <string name="ui_theme_palette_fidelity_label">Väriuskollinen</string>
+    <string name="ui_theme_palette_content_label">Sisältö</string>
+
+    <string name="ui_theme_custom_dialog_title">Mukautettu teema</string>
+    <string name="ui_theme_custom_seed_label">Perusväri</string>
+    <string name="ui_theme_custom_palette_label">Paletin tyyli</string>
+    <string name="ui_theme_custom_default_action">Oletus</string>
+
+    <string name="ui_mascot_suit_dialog_title">Butlerin puku</string>
+    <string name="ui_mascot_suit_default_action">Oletus</string>
+    <string name="ui_mascot_suit_hue_label">Sävy</string>
+    <string name="ui_mascot_suit_saturation_label">Kylläisyys</string>
+    <string name="ui_mascot_suit_brightness_label">Kirkkaus</string>
+    <string name="ui_mascot_suit_value_description">Puvun väri %s</string>
+
+    <!-- Setup module types -->
+    <string name="setup_usagestats_title">Käyttötilastot</string>
+    <string name="setup_shizuku_card_title">ADB-käyttöoikeus</string>
+    <string name="setup_root_card_title">Root</string>
+    <string name="setup_notification_title">Ilmoitusten käyttöoikeus</string>
+    <string name="setup_manage_storage_card_title">Ulkoisen tallennustilan hallinta</string>
+    <string name="setup_inventory_card_title">Sovellusluettelo</string>
+
+    <!-- Common permission strings -->
+    <string name="setup_required_card_title">Käyttöoikeuksien määritys vaaditaan</string>
+    <string name="setup_required_card_body">Tämän toiminnon suorittaminen vaatii käyttöoikeuksien lisämäärityksiä.</string>
+    <string name="setup_required_card_setup_action">Avaa käyttöoikeuksien määritys</string>
+
+    <!-- Open in new tabs feature -->
+    <string name="common_open_tabs_confirmation_title">Avataanko useita välilehtiä?</string>
+    <string name="common_open_tabs_confirmation_message">Tämä avaa %1$d välilehteä.</string>
+    <string name="common_open_tabs_success">Avattu %1$d välilehteä</string>
+    <string name="common_open_tabs_success_with_skipped">Avattu %1$d välilehteä (%2$d kohdetta ohitettu)</string>
+
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">Suljetaanko välilehti?</string>
+    <string name="general_tab_close_confirmation_message">Haluatko varmasti sulkea välilehden \"%1$s\"?</string>
+    <string name="general_tab_close_unsaved_title">Tallentamattomia muutoksia</string>
+    <string name="general_tab_close_unsaved_message">Välilehdellä \"%1$s\" on tallentamattomia muutoksia. Suljetaanko se ja hylätäänkö muutokset?</string>
+    <string name="general_tab_close_unsaved_message_multiple">Kohteessa \"%1$s\" ja %2$d muussa kohteessa on tallentamattomia muutoksia. Suljetaanko välilehti ja hylätäänkö muutokset?</string>
+    <string name="general_discard_action">Hylkää</string>
+    <string name="general_tab_close_goto_action">Siirry välilehdelle</string>
+
+    <!-- Exit app -->
+    <string name="general_press_back_again_to_exit">Poistu painamalla takaisin uudelleen</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d valittu</item>
+        <item quantity="other">%d valittu</item>
+    </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d kansio</item>
+        <item quantity="other">%1$d kansiota</item>
+    </plurals>
+    <plurals name="common_files_count">
+        <item quantity="one">%1$d tiedosto</item>
+        <item quantity="other">%1$d tiedostoa</item>
+    </plurals>
+    <string name="common_select_all_folders_action">Valitse kaikki kansiot</string>
+    <string name="common_select_all_files_action">Valitse kaikki tiedostot</string>
+    <string name="general_undo_action">Kumoa</string>
+
+    <!-- Guided tours -->
+    <string name="tour_action_next">Seuraava</string>
+    <string name="tour_action_previous">Edellinen</string>
+    <string name="tour_action_cancel">Ohita</string>
+    <string name="tour_confirm_title">Ohitetaanko opastus?</string>
+    <string name="tour_confirm_message">Voit ottaa opastukset uudelleen käyttöön asetuksista milloin tahansa.</string>
+    <string name="tour_confirm_continue">Jatka opastusta</string>
+    <string name="tour_confirm_dont_show_this_tour">Älä näytä tätä opastusta</string>
+    <string name="tour_confirm_disable_all">Poista kaikki opastukset käytöstä</string>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">Käytä useita ruutuja tiedostojen vertailuun rinnakkain.</string>
+    <string name="common_tip_different_folders">Avaa eri kansio jokaiseen ruutuun, niin tiedostojen hallinta on helppoa.</string>
+    <string name="common_tip_switch_layouts">Vaihda ruutujen asettelua Butler-valikon Asettelu-kohdasta.</string>
+    <string name="common_tip_elevated_access">Ota root- tai ADB-käyttöoikeus käyttöön käyttöoikeuksien määrityksessä, jotta voit tehdä edistyneitä tiedostotoimintoja.</string>
+    <string name="common_tip_breadcrumb_home">Aseta hakemisto aloitussijainniksi painamalla pitkään sen kohtaa tiedostonhallinnan polkupalkissa.</string>
+</resources>

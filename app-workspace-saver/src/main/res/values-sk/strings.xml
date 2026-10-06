@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saver_workspace_title">Uložiť ako</string>
+    <string name="saver_preview_label">Náhľad</string>
+    <string name="saver_loading">Načítavanie…</string>
+    <string name="saver_shared_from">Zdieľané z %1$s</string>
+    <string name="saver_shared_generic">Zdieľané s aplikáciou Butler</string>
+    <string name="saver_destination_label">Cieľ</string>
+    <string name="saver_select_destination_hint">Vybrať cieľový priečinok</string>
+    <string name="saver_filename_label">Názov súboru</string>
+    <string name="saver_save_action">Uložiť</string>
+    <string name="saver_saving_progress">Ukladanie…</string>
+    <string name="saver_success_message">Súbor bol úspešne uložený</string>
+    <string name="saver_open_saved_action">Otvoriť adresár</string>
+    <string name="saver_retry_action">Skúsiť znova</string>
+    <string name="saver_save_again_action">Uložiť do nového umiestnenia</string>
+    <string name="saver_close_tab_action">Zavrieť kartu</string>
+    <string name="saver_close_butler_action">Zavrieť kartu a vrátiť sa</string>
+    <string name="saver_done_action">Hotovo</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Zdrojový súbor už nie je dostupný. Zdieľaj ho, prosím, znova.</item>
+        <item quantity="few">%1$d zdrojové súbory už nie sú dostupné. Zdieľaj ich, prosím, znova.</item>
+        <item quantity="many">Zdrojové súbory už nie sú dostupné (počet: %1$d). Zdieľaj ich, prosím, znova.</item>
+        <item quantity="other">%1$d zdrojových súborov už nie je dostupných. Zdieľaj ich, prosím, znova.</item>
+    </plurals>
+    <string name="saver_error_source_expired">Zdrojový súbor už nie je dostupný</string>
+    <string name="saver_error_permission_denied">Oprávnenie zamietnuté</string>
+    <string name="saver_error_write_failed">Súbor sa nepodarilo uložiť</string>
+    <string name="saver_error_file_exists">Súbor už existuje</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Uložiť súbory</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Ukladanie %1$d súboru do %2$s</item>
+        <item quantity="few">Ukladanie %1$d súborov do %2$s</item>
+        <item quantity="many">Ukladanie súborov do %2$s, počet: %1$d</item>
+        <item quantity="other">Ukladanie %1$d súborov do %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Uložiť %1$d súbor</item>
+        <item quantity="few">Uložiť %1$d súbory</item>
+        <item quantity="many">Uložiť súbory: %1$d</item>
+        <item quantity="other">Uložiť %1$d súborov</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d súbor uložený</item>
+        <item quantity="few">%1$d súbory uložené</item>
+        <item quantity="many">Uložené súbory: %1$d</item>
+        <item quantity="other">%1$d súborov uložených</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">Uloženie %1$d súboru zlyhalo</item>
+        <item quantity="few">Uloženie %1$d súborov zlyhalo</item>
+        <item quantity="many">Súbory, ktorých uloženie zlyhalo: %1$d</item>
+        <item quantity="other">Uloženie %1$d súborov zlyhalo</item>
+    </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d súbor preskočený</item>
+        <item quantity="few">%1$d súbory preskočené</item>
+        <item quantity="many">Preskočené súbory: %1$d</item>
+        <item quantity="other">%1$d súborov preskočených</item>
+    </plurals>
+    <string name="saver_partial_success">Uložené súbory: %1$d z %2$d</string>
+</resources>

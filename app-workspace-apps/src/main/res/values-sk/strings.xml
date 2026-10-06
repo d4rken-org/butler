@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apps Workspace -->
+    <string name="apps_title">Aplikácie</string>
+    <string name="apps_subtitle">Správa nainštalovaných aplikácií</string>
+
+    <!-- Filter Labels -->
+    <string name="apps_filter_app_type_label">Typ aplikácie</string>
+    <string name="apps_filter_type_all">Všetky</string>
+    <string name="apps_filter_type_user">Používateľské aplikácie</string>
+    <string name="apps_filter_type_system">Systémové aplikácie</string>
+    <string name="apps_filter_status_label">Stav</string>
+    <string name="apps_filter_status_all">Všetky</string>
+    <string name="apps_filter_status_enabled">Povolené</string>
+    <string name="apps_filter_status_disabled">Zakázané</string>
+
+    <!-- Sort Options -->
+    <string name="apps_sort_mode_label">Zoradiť podľa</string>
+    <string name="apps_sort_mode_name_label">Názov</string>
+    <string name="apps_sort_mode_size_label">Veľkosť</string>
+    <string name="apps_sort_mode_install_date_label">Dátum inštalácie</string>
+    <string name="apps_sort_mode_update_date_label">Dátum aktualizácie</string>
+    <string name="apps_sort_mode_package_name_label">Názov balíka</string>
+    <string name="apps_sort_descending_label">Zostupné poradie</string>
+    <string name="apps_sort_mode_size_slowdown_hint">Výpočet veľkosti aplikácií spomaľuje načítavanie</string>
+
+    <!-- Actions -->
+    <string name="apps_action_launch">Spustiť</string>
+    <string name="apps_action_open_info">Informácie o aplikácii</string>
+    <string name="apps_action_disable">Zakázať</string>
+    <string name="apps_action_enable">Povoliť</string>
+    <string name="apps_action_uninstall">Odinštalovať</string>
+    <string name="apps_action_clear_data">Vymazať údaje</string>
+    <string name="apps_action_export_apk">Exportovať APK</string>
+    <string name="apps_action_browse_path">Prehliadať cestu</string>
+    <string name="apps_action_share">Zdieľať informácie</string>
+    <string name="apps_action_refresh">Obnoviť</string>
+    <string name="apps_action_sort">Zoradiť</string>
+    <string name="apps_action_filter">Filtrovať</string>
+    <string name="apps_action_select_all">Vybrať všetko</string>
+    <string name="apps_action_deselect_all">Zrušiť celý výber</string>
+    <string name="apps_action_open_in_tab">Otvoriť na karte</string>
+    <string name="apps_action_force_stop">Vynútiť zastavenie</string>
+    <string name="apps_action_view">Rozloženie</string>
+
+    <!-- View options -->
+    <string name="apps_view_sheet_subtitle">Usporiadanie položiek a množstvo zobrazených podrobností</string>
+    <string name="apps_view_mode_list_label">Zoznam</string>
+    <string name="apps_view_mode_grid_label">Mriežka</string>
+    <string name="apps_view_density_compact_label">Kompaktné</string>
+    <string name="apps_view_density_comfortable_label">Pohodlné</string>
+    <string name="apps_view_density_detailed_label">Podrobné</string>
+    <string name="apps_view_set_default_action">Nastaviť ako predvolené</string>
+    <string name="apps_view_detail_dates_label">Nainštalované %1$s · Aktualizované %2$s</string>
+
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">Spustiť aplikáciu</string>
+    <string name="apps_action_open_info_desc">Zobraziť podrobné systémové informácie</string>
+    <string name="apps_action_enable_desc">Povoliť túto aplikáciu</string>
+    <string name="apps_action_disable_desc">Zakázať túto aplikáciu</string>
+    <string name="apps_action_uninstall_desc">Odstrániť túto aplikáciu</string>
+    <string name="apps_action_export_apk_desc">Uložiť súbor APK do úložiska</string>
+    <string name="apps_action_share_desc">Zdieľať podrobnosti aplikácie ako text</string>
+    <string name="apps_action_force_stop_desc">Okamžite zastaviť aplikáciu</string>
+    <string name="apps_action_clear_data_desc">Vymazať všetky údaje a nastavenia aplikácie</string>
+
+    <!-- App Info Labels -->
+    <string name="apps_package_name_label">Balík</string>
+    <string name="apps_version_label">Verzia</string>
+    <string name="apps_size_label">Veľkosť</string>
+    <string name="apps_size_chip_desc">Veľkosť aplikácie: %1$s</string>
+    <string name="apps_size_permission_hint">Veľkosti aplikácií vyžadujú prístup k údajom o používaní</string>
+    <string name="apps_size_permission_body">Android poskytuje veľkosti aplikácií, údajov a vyrovnávacej pamäte len aplikáciám s povolením na prístup k údajom o používaní. Udeľ ho, aby sa zobrazil prehľad využitia úložiska touto aplikáciou.</string>
+
+    <!-- App Details -->
+    <string name="apps_details_storage_locations_label">Umiestnenia v úložisku</string>
+    <string name="apps_path_internal_data_label">Interné údaje</string>
+    <string name="apps_path_external_data_label">Externé úložisko</string>
+    <string name="apps_path_requires_root_label">Vyžaduje prístup root</string>
+    <string name="apps_path_requires_shizuku_label">Vyžaduje prístup ADB</string>
+    <string name="apps_path_requires_root_or_shizuku_label">Vyžaduje prístup root alebo ADB</string>
+    <string name="apps_path_requires_access_label">Vyžaduje ďalší prístup</string>
+    <string name="apps_storage_breakdown_label">Prehľad využitia úložiska</string>
+    <string name="apps_storage_app_label">Aplikácia</string>
+
+    <!-- App Details Tabs -->
+    <string name="appdetails_tab_overview_label">Prehľad</string>
+    <string name="appdetails_tab_packageinfo_label">Informácie o balíku</string>
+
+    <!-- App Details Actions -->
+    <string name="appdetails_back_action">Späť k aplikáciám</string>
+    <string name="appdetails_close_action">Zavrieť</string>
+
+    <!-- App Details Package Info -->
+    <string name="appdetails_packageinfo_title">Informácie o balíku</string>
+    <string name="appdetails_packageinfo_view_action">Zobraziť podrobnosti balíka</string>
+    <string name="appdetails_packageinfo_unavailable_msg">Podrobnosti balíka aplikácie sa nepodarilo prečítať.</string>
+    <string name="appdetails_packageinfo_permissions_header">Povolenia (%1$d)</string>
+    <string name="appdetails_packageinfo_signing_header">Podpisové certifikáty</string>
+    <string name="appdetails_packageinfo_package_label">Balík</string>
+    <string name="appdetails_packageinfo_version_label">Verzia</string>
+    <string name="appdetails_packageinfo_min_sdk_label">Minimálna verzia SDK</string>
+    <string name="appdetails_packageinfo_target_sdk_label">Cieľová verzia SDK</string>
+
+    <!-- Empty States -->
+    <string name="apps_empty_no_apps">Nenašli sa žiadne aplikácie</string>
+    <string name="apps_empty_no_apps_desc">Skús upraviť filtre</string>
+    <string name="apps_empty_loading">Načítavanie aplikácií…</string>
+
+    <!-- Search -->
+    <string name="apps_search_hint">Hľadať aplikácie</string>
+
+    <!-- Multi-select -->
+    <plurals name="apps_selected_count">
+        <item quantity="zero">Vybrať aplikácie</item>
+        <item quantity="one">%d vybraná aplikácia</item>
+        <item quantity="few">%d vybrané aplikácie</item>
+        <item quantity="many">Počet vybraných aplikácií: %d</item>
+        <item quantity="other">%d vybraných aplikácií</item>
+    </plurals>
+
+    <!-- Info Bar -->
+    <plurals name="apps_infobar_user_apps_count">
+        <item quantity="one">%d používateľská aplikácia</item>
+        <item quantity="few">%d používateľské aplikácie</item>
+        <item quantity="many">Počet používateľských aplikácií: %d</item>
+        <item quantity="other">%d používateľských aplikácií</item>
+    </plurals>
+    <plurals name="apps_infobar_system_apps_count">
+        <item quantity="one">%d systémová aplikácia</item>
+        <item quantity="few">%d systémové aplikácie</item>
+        <item quantity="many">Počet systémových aplikácií: %d</item>
+        <item quantity="other">%d systémových aplikácií</item>
+    </plurals>
+    <plurals name="apps_infobar_selected_count">
+        <item quantity="one">%d vybraná aplikácia</item>
+        <item quantity="few">%d vybrané aplikácie</item>
+        <item quantity="many">Počet vybraných aplikácií: %d</item>
+        <item quantity="other">%d vybraných aplikácií</item>
+    </plurals>
+
+    <!-- App Details Sections -->
+    <string name="apps_details_section_actions">Akcie</string>
+    <string name="apps_details_section_overview">Prehľad</string>
+    <string name="apps_details_section_storage">Úložisko</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">Ďalšie možnosti</string>
+
+    <!-- App Details package data -->
+    <string name="apps_details_pkgdata_error_title">Údaje aplikácie sa nepodarilo načítať</string>
+    <string name="apps_details_gone_title">Aplikácia odstránená</string>
+    <string name="apps_details_gone_message">Táto aplikácia už nie je nainštalovaná v tomto zariadení.</string>
+    <string name="apps_details_gone_close_action">Zavrieť</string>
+    <string name="apps_details_uninstalled_title">Odinštalovaná pre tohto používateľa</string>
+    <string name="apps_details_uninstalled_message">Aplikácia už nie je nainštalovaná pre tohto používateľa, ale jej súbory sú stále v zariadení.</string>
+
+    <!-- App Details confirmations -->
+    <string name="apps_details_confirm_clear_data_title">Vymazať údaje aplikácie?</string>
+    <string name="apps_details_confirm_clear_data_message">Všetky údaje a nastavenia aplikácie %1$s sa vymažú. Túto akciu nemožno vrátiť späť.</string>
+    <string name="apps_details_confirm_uninstall_title">Odinštalovať aplikáciu?</string>
+    <string name="apps_details_confirm_uninstall_message">Aplikácia %1$s sa odstráni z tohto zariadenia.</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">Typ</string>
+    <string name="apps_type_system">Systémová aplikácia</string>
+    <string name="apps_type_user">Používateľská aplikácia</string>
+    <string name="apps_status_label">Stav</string>
+    <string name="apps_status_enabled">Povolená</string>
+    <string name="apps_status_disabled">Zakázaná</string>
+    <string name="apps_installed_label">Nainštalovaná</string>
+    <string name="apps_updated_label">Posledná aktualizácia</string>
+    <string name="apps_target_sdk_label">Cieľová verzia SDK</string>
+    <string name="apps_min_sdk_label">Minimálna verzia SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">Inštalátor</string>
+    <string name="apps_permissions_label">Povolenia</string>
+    <string name="apps_permissions_count">Počet povolení: %1$d</string>
+    <string name="apps_data_size_label">Údaje</string>
+    <string name="apps_cache_size_label">Vyrovnávacia pamäť</string>
+    <string name="apps_total_size_label">Celkom</string>
+
+    <!-- App Tags -->
+    <string name="apps_tag_system_label">Systémová</string>
+    <string name="apps_tag_disabled_label">Zakázaná</string>
+    <string name="apps_tag_updated_label">Aktualizovaná</string>
+    <string name="apps_tag_sideloaded_label">Nainštalovaná mimo obchodu</string>
+    <string name="apps_tag_split_label">Rozdelené APK</string>
+    <string name="apps_tag_debug_label">Ladiaca</string>
+    <string name="apps_tag_user_label">Používateľ %1$d</string>
+
+    <!-- Filter Tags (virtual tags for filtering) -->
+    <string name="apps_filter_tag_enabled_label">Povolená</string>
+    <string name="apps_filter_tag_user_app_label">Používateľská aplikácia</string>
+    <string name="apps_filter_include_label">Musí zodpovedať (všetkým vybraným)</string>
+    <string name="apps_filter_exclude_label">Nesmie zodpovedať</string>
+    <string name="apps_filter_add_action">Filtrovať</string>
+    <string name="apps_filter_hint">Ťuknutím zahrnieš, ďalším ťuknutím vylúčiš a ešte ďalším odstrániš</string>
+    <plurals name="apps_filter_count">
+        <item quantity="one">%d filter</item>
+        <item quantity="few">%d filtre</item>
+        <item quantity="many">Počet filtrov: %d</item>
+        <item quantity="other">%d filtrov</item>
+    </plurals>
+
+    <!-- Components Section -->
+    <string name="apps_details_section_components">Komponenty</string>
+    <string name="apps_components_activities_label">Aktivity</string>
+    <string name="apps_components_services_label">Služby</string>
+    <string name="apps_components_receivers_label">Prijímače vysielania</string>
+    <string name="apps_components_providers_label">Poskytovatelia obsahu</string>
+    <string name="apps_components_exported">Exportovaný</string>
+    <string name="apps_components_disabled">Zakázaný</string>
+    <string name="apps_components_empty">Nenašli sa žiadne komponenty</string>
+    <string name="apps_components_no_matches">Žiadne komponenty nezodpovedajú výrazu „%1$s“</string>
+    <string name="apps_components_and_more">… a ďalšie: %d</string>
+    <string name="apps_components_view_all_action">Zobraziť všetky komponenty</string>
+    <string name="apps_components_loading">Načítavanie komponentov…</string>
+    <string name="apps_components_error">Komponenty sa nepodarilo načítať</string>
+    <string name="apps_components_launch_failed">Aktivitu sa nepodarilo spustiť</string>
+    <string name="apps_components_kind_activity">Aktivita</string>
+    <string name="apps_components_kind_service">Služba</string>
+    <string name="apps_components_kind_receiver">Prijímač vysielania</string>
+    <string name="apps_components_kind_provider">Poskytovateľ obsahu</string>
+    <string name="apps_components_search_action">Hľadať komponenty</string>
+    <string name="apps_components_search_hint">Hľadať názov alebo balík</string>
+    <string name="apps_components_state_label">Stav</string>
+    <string name="apps_components_state_enabled">Povolený</string>
+    <string name="apps_components_state_disabled">Zakázaný</string>
+    <string name="apps_components_field_type">Typ</string>
+    <string name="apps_components_field_package">Balík</string>
+    <string name="apps_components_field_permission">Povolenie</string>
+    <string name="apps_components_field_write_permission">Povolenie na zápis</string>
+    <string name="apps_components_field_authority">Autorita</string>
+    <string name="apps_components_field_process">Proces</string>
+    <string name="apps_components_field_launch_mode">Režim spustenia</string>
+    <string name="apps_components_launch_action">Spustiť</string>
+    <string name="apps_components_copy_name_action">Kopírovať názov komponentu</string>
+    <string name="apps_components_copy_package_action">Kopírovať názov balíka</string>
+    <string name="apps_components_action_enable">Povoliť komponent</string>
+    <string name="apps_components_action_disable">Zakázať komponent</string>
+    <string name="apps_components_action_requires_elevated">Vyžaduje prístup root alebo ADB — ťuknutím ho nastavíš</string>
+    <string name="apps_components_confirm_enable_title">Povoliť komponenty?</string>
+    <string name="apps_components_confirm_disable_title">Zakázať komponenty?</string>
+    <string name="apps_components_confirm_enable_message">Nasledujúce komponenty sa povolia:</string>
+    <string name="apps_components_confirm_disable_message">Nasledujúce komponenty sa zakážu. Aplikácia tým môže prestať správne fungovať.</string>
+    <plurals name="apps_components_selected_count">
+        <item quantity="one">%d vybraný komponent</item>
+        <item quantity="few">%d vybrané komponenty</item>
+        <item quantity="many">Počet vybraných komponentov: %d</item>
+        <item quantity="other">%d vybraných komponentov</item>
+    </plurals>
+
+    <!-- Package operations -->
+    <plurals name="apps_operation_enable_title">
+        <item quantity="one">Povoliť aplikáciu</item>
+        <item quantity="few">Povoliť %d aplikácie</item>
+        <item quantity="many">Povoliť aplikácie (počet: %d)</item>
+        <item quantity="other">Povoliť %d aplikácií</item>
+    </plurals>
+    <plurals name="apps_operation_disable_title">
+        <item quantity="one">Zakázať aplikáciu</item>
+        <item quantity="few">Zakázať %d aplikácie</item>
+        <item quantity="many">Zakázať aplikácie (počet: %d)</item>
+        <item quantity="other">Zakázať %d aplikácií</item>
+    </plurals>
+    <plurals name="apps_operation_force_stop_title">
+        <item quantity="one">Vynútiť zastavenie aplikácie</item>
+        <item quantity="few">Vynútiť zastavenie %d aplikácií</item>
+        <item quantity="many">Vynútiť zastavenie aplikácií (počet: %d)</item>
+        <item quantity="other">Vynútiť zastavenie %d aplikácií</item>
+    </plurals>
+    <plurals name="apps_operation_uninstall_title">
+        <item quantity="one">Odinštalovať aplikáciu</item>
+        <item quantity="few">Odinštalovať %d aplikácie</item>
+        <item quantity="many">Odinštalovať aplikácie (počet: %d)</item>
+        <item quantity="other">Odinštalovať %d aplikácií</item>
+    </plurals>
+    <plurals name="apps_operation_clear_data_title">
+        <item quantity="one">Vymazať údaje aplikácie</item>
+        <item quantity="few">Vymazať údaje %d aplikácií</item>
+        <item quantity="many">Vymazať údaje aplikácií (počet: %d)</item>
+        <item quantity="other">Vymazať údaje %d aplikácií</item>
+    </plurals>
+    <plurals name="apps_operation_components_enable_title">
+        <item quantity="one">Povoliť komponent</item>
+        <item quantity="few">Povoliť %d komponenty</item>
+        <item quantity="many">Povoliť komponenty (počet: %d)</item>
+        <item quantity="other">Povoliť %d komponentov</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_title">
+        <item quantity="one">Zakázať komponent</item>
+        <item quantity="few">Zakázať %d komponenty</item>
+        <item quantity="many">Zakázať komponenty (počet: %d)</item>
+        <item quantity="other">Zakázať %d komponentov</item>
+    </plurals>
+    <plurals name="apps_operation_targets_description">
+        <item quantity="one">%d aplikácia</item>
+        <item quantity="few">%d aplikácie</item>
+        <item quantity="many">Počet aplikácií: %d</item>
+        <item quantity="other">%d aplikácií</item>
+    </plurals>
+    <string name="apps_operation_enable_summary">Povolené: %1$s</string>
+    <string name="apps_operation_disable_summary">Zakázané: %1$s</string>
+    <string name="apps_operation_force_stop_summary">Zastavené: %1$s</string>
+    <string name="apps_operation_uninstall_summary">Odinštalované: %1$s</string>
+    <string name="apps_operation_clear_data_summary">Údaje vymazané: %1$s</string>
+    <plurals name="apps_operation_components_enable_summary">
+        <item quantity="one">%1$d komponent povolený</item>
+        <item quantity="few">%1$d komponenty povolené</item>
+        <item quantity="many">Počet povolených komponentov: %1$d</item>
+        <item quantity="other">%1$d komponentov povolených</item>
+    </plurals>
+    <plurals name="apps_operation_components_disable_summary">
+        <item quantity="one">%1$d komponent zakázaný</item>
+        <item quantity="few">%1$d komponenty zakázané</item>
+        <item quantity="many">Počet zakázaných komponentov: %1$d</item>
+        <item quantity="other">%1$d komponentov zakázaných</item>
+    </plurals>
+    <string name="apps_operation_single_failed_summary">Operáciu sa nepodarilo dokončiť pre %1$s</string>
+    <string name="apps_operation_single_declined_summary">Odstránenie aplikácie %1$s odmietnuté</string>
+    <string name="apps_operation_batch_summary">Dokončené: %1$d z %2$d</string>
+    <!-- Quoted so the leading separator survives the resource parser -->
+    <string name="apps_operation_batch_summary_failed">" · zlyhalo: %1$d"</string>
+    <string name="apps_operation_batch_summary_declined">" · odmietnuté: %1$d"</string>
+
+    <!-- Generic navigation -->
+    <string name="appdetails_back_generic_action">Späť</string>
+</resources>

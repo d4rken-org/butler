@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Kehittäjä</string>
+    <string name="developer_title">Kehittäjätyökalut</string>
+    <string name="developer_subtitle">Kehityksen apuvälineet</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">Järjestelmä</string>
+    <string name="developer_tab_options">Asetukset</string>
+    <string name="developer_tab_workspaces">Työtilat</string>
+    <string name="developer_tab_logs">Lokit</string>
+    <string name="developer_tab_testdata">Testidata</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Virheenjäljityksen asetukset</string>
+    <string name="developer_options_debug_mode">Virheenjäljitystila</string>
+    <string name="developer_options_debug_mode_desc">Ota yksityiskohtainen lokikirjaus käyttöön</string>
+    <string name="developer_options_trace_mode">Jäljitystila</string>
+    <string name="developer_options_trace_mode_desc">Ota jäljitystason lokikirjaus käyttöön</string>
+    <string name="developer_options_floating_log">Kelluva lokipaneeli</string>
+    <string name="developer_options_floating_log_desc">Näytä vedettävä lokipaneeli kaikkien näkymien päällä</string>
+    <string name="developer_options_services_header">Palvelutestit</string>
+    <string name="developer_options_root_test_action">Testaa root-käyttöoikeus</string>
+    <string name="developer_options_root_installed_label">Asennettu</string>
+    <string name="developer_options_root_available_label">Saatavilla</string>
+    <string name="developer_options_root_base_check_label">Perustarkistus</string>
+    <string name="developer_options_shizuku_test_action">Testaa ADB-käyttöoikeus</string>
+    <string name="developer_options_shizuku_installed_label">Asennettu</string>
+    <string name="developer_options_shizuku_granted_label">Käyttöoikeus</string>
+    <string name="developer_options_shizuku_compatible_label">Yhteensopiva</string>
+    <string name="developer_options_shizuku_service_label">Palvelu</string>
+    <string name="developer_options_test_running">Testataan…</string>
+    <string name="developer_options_result_yes">Kyllä</string>
+    <string name="developer_options_result_no">Ei</string>
+    <string name="developer_options_result_unknown">Tuntematon</string>
+    <string name="developer_options_visibility_header">Näkyvyys</string>
+    <string name="developer_options_hide_mode">Piilota kehittäjätila</string>
+    <string name="developer_options_hide_mode_desc">Ota uudelleen käyttöön napauttamalla versionumeroa 7 kertaa asetuksissa.</string>
+    <string name="developer_options_hide_action">Piilota</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Laite</string>
+    <string name="developer_system_device_model">Malli</string>
+    <string name="developer_system_device_manufacturer">Valmistaja</string>
+    <string name="developer_system_device_api">API-taso</string>
+    <string name="developer_system_build_header">Koontiversio</string>
+    <string name="developer_system_build_version">Versio</string>
+    <string name="developer_system_build_code">Versiokoodi</string>
+    <string name="developer_system_build_flavor">Variantti</string>
+    <string name="developer_system_build_type">Koontityyppi</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Muisti</string>
+    <string name="developer_system_memory_available">Käytettävissä</string>
+    <string name="developer_system_memory_total">Yhteensä</string>
+    <string name="developer_system_storage_header">Tallennustila</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d työtilaa</string>
+    <string name="developer_workspaces_empty">Ei työtiloja</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Tyhjennä</string>
+    <string name="developer_logs_pause">Keskeytä</string>
+    <string name="developer_logs_resume">Jatka</string>
+    <string name="developer_logs_empty">Ei lokimerkintöjä</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_target_paths_label">Kohdepolut</string>
+    <string name="developer_testdata_no_paths">Kohdepolkuja ei ole valittu. Lisää polkuja testidatan luomista varten.</string>
+    <string name="developer_testdata_add_path_action">Lisää polku</string>
+    <string name="developer_testdata_options_header">Luontiasetukset</string>
+    <string name="developer_testdata_large_files">Suuret tiedostot</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Sisäkkäinen rakenne</string>
+    <string name="developer_testdata_nested_structure_desc">~1100 kansiota, ~1100 tiedostoa</string>
+    <string name="developer_testdata_text_files">Tekstitiedostot muokkaimelle</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate_action">Luo</string>
+    <string name="developer_testdata_generating">Luodaan…</string>
+    <string name="developer_testdata_history_header">Esimerkkimerkinnät historiaan</string>
+    <string name="developer_testdata_history_desc">Lisää noin 25 kuvitteellista toimintomerkintää ajalta tänään → 30 päivää sitten, vaihtelevilla tyypeillä, tuloksilla, lähteillä ja poluilla. Merkinnät lisätään suoraan historiatietokantaan; voit napauttaa uudelleen turvallisesti.</string>
+    <string name="developer_testdata_history_generate_action">Luo esimerkkihistoria</string>
+    <string name="developer_testdata_progress">%1$s / %2$s</string>
+    <string name="developer_testdata_complete">Testidata luotu sijaintiin:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Luo suuria tiedostoja</string>
+    <string name="developer_operation_large_files_desc">Luodaan testitiedostoja sijaintiin %1$s</string>
+    <string name="developer_operation_large_files_creating">Luodaan %1$s</string>
+
+    <string name="developer_operation_nested_title">Luo sisäkkäinen rakenne</string>
+    <string name="developer_operation_nested_desc">Luodaan kansiohierarkiaa sijaintiin %1$s</string>
+    <string name="developer_operation_nested_starting">Aloitetaan sisäkkäisen rakenteen luonti…</string>
+    <string name="developer_operation_nested_creating">Luodaan %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d tiedostoa luotu</string>
+
+    <string name="developer_operation_text_files_title">Luo tekstitiedostoja</string>
+    <string name="developer_operation_text_files_desc">Luodaan tekstitiedostoja sijaintiin %1$s</string>
+    <string name="developer_operation_text_files_creating">Luodaan %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d tiedosto luotu</item>
+        <item quantity="other">%d tiedostoa luotu</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d hakemisto</item>
+        <item quantity="other">%d hakemistoa</item>
+    </plurals>
+</resources>

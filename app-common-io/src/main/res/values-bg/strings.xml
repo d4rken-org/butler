@@ -1,0 +1,113 @@
+<resources>
+    <!-- Delete operation progress strings -->
+    <string name="general_delete_progress_title">Изтриване на елементи</string>
+
+    <!-- Copy operation progress strings -->
+    <string name="general_copy_progress_title">Копиране на елементи</string>
+
+    <!-- Move operation progress strings -->
+    <string name="general_move_progress_title">Преместване на елементи</string>
+
+    <!-- Scan operation progress strings -->
+    <string name="general_scan_progress_title">Сканиране…</string>
+
+    <!-- Path action issue strings -->
+    <string name="path_action_file_exists_title">Файлът вече съществува</string>
+    <string name="path_action_folder_exists_title">Папката вече съществува</string>
+    <string name="path_action_file_exists_description">Файл с името \"%1$s\" вече съществува в \"%2$s\".</string>
+    <string name="path_action_folder_exists_description">Папка с името \"%1$s\" вече съществува в \"%2$s\".</string>
+
+    <string name="path_action_not_found_title">Файлът вече го няма</string>
+    <string name="path_action_not_found_description">\"%1$s\" е изтрит, преименуван или преместен другаде.</string>
+
+    <string name="path_action_permission_denied_title">Достъпът е отказан</string>
+    <string name="path_action_permission_denied_description">Няма достъп до \"%1$s\" в \"%2$s\" поради недостатъчни разрешения.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Няма достъп до \"%1$s\" в \"%2$s\". Няма наличен метод за изпълнение на тази операция.</string>
+    <string name="path_action_permission_denied_readonly_description">Няма достъп до \"%1$s\" в \"%2$s\". Файловата система е само за четене.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Няма достъп до \"%1$s\" в \"%2$s\". Системата отказа операцията.</string>
+
+    <string name="path_action_insufficient_space_title">Няма достатъчно място</string>
+    <string name="path_action_insufficient_space_description">Няма достатъчно свободно място за съхранение, за да се копира \"%1$s\" от \"%2$s\".</string>
+
+    <string name="path_action_unknown_error_title">Операцията е неуспешна</string>
+
+    <!-- Failed replacement: where the user's data ended up -->
+    <string name="path_action_data_kept_title">Замяната не е завършена</string>
+    <string name="path_action_data_kept_new_data_description">Butler не успя да завърши записването на \"%1$s\". Новите ти данни са запазени в същата папка под името \"%2$s\". Преименувай файла, за да ги възстановиш, или го изтрий, за да ги премахнеш.</string>
+    <string name="path_action_data_kept_original_in_place_description">Butler не успя да завърши записването на \"%1$s\". Предишният файл е непроменен. Новите ти данни са запазени в същата папка под името \"%2$s\". Преименувай файла, за да ги възстановиш, или го изтрий, за да ги премахнеш.</string>
+    <string name="path_action_data_kept_both_description">Butler не успя да завърши записването на \"%1$s\". Нищо не е загубено: предишният файл е запазен в същата папка под името \"%2$s\", а новите ти данни — под името \"%3$s\". Преименувай файла, който искаш да запазиш.</string>
+    <string name="path_action_data_kept_maybe_partial_description">Butler не успя да завърши записването на \"%1$s\" и не успя да провери дали \"%2$s\" все още е там. Възможно е в същата папка да е запазено непълно копие под името \"%3$s\". Сравни двата файла, преди да изтриеш който и да е от тях.</string>
+    <string name="path_action_data_kept_intermediate_description">Butler не успя да завърши преместването на \"%1$s\" и не може да установи дали файлът е напуснал папката си. Данните ти са или запазени в тази папка под името \"%2$s\", или вече са в \"%3$s\". Провери и двете местоположения, преди да изтриеш някое от копията.</string>
+    <string name="path_action_data_kept_uncertain_description">Butler не успя да завърши записването на \"%1$s\" и не може да установи къде е останал файлът ти. Той е един от трите файла в тази папка: самият \"%1$s\", \"%2$s\" или \"%3$s\". Провери и трите, преди да изтриеш някой от тях.</string>
+    <string name="path_action_data_kept_uncertain_pair_description">Butler не успя да завърши записването на \"%1$s\" и не може да установи къде е останал файлът ти. Той е един от двата файла в тази папка: самият \"%1$s\" или \"%2$s\". Провери и двата, преди да изтриеш който и да е от тях.</string>
+
+    <string name="path_action_trash_size_limit_title">Елементите са твърде големи за кошчето</string>
+    <string name="path_action_trash_size_limit_description">%1$d елемента с общ размер %2$s надвишават ограничението за размера на кошчето (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">Преместването в кошчето е неуспешно</string>
+    <string name="path_action_trash_move_failed_description">%1$d елемента не можаха да бъдат преместени в кошчето.</string>
+
+    <string name="path_action_trash_not_supported_title">Кошчето не се поддържа</string>
+    <string name="path_action_trash_not_supported_description">%1$d елемента се намират в хранилище, което не поддържа кошчето.</string>
+
+    <string name="path_action_archive_password_title">Нужна е парола</string>
+    <string name="path_action_archive_password_description">\"%1$s\" е шифрован. Въведи паролата, за да прочетеш съдържанието му.</string>
+    <string name="path_action_archive_password_wrong_description">Паролата за \"%1$s\" е неправилна. Опитай отново.</string>
+
+    <!-- Network storage errors -->
+    <string name="smb_error_unreachable_title">Сървърът е недостъпен</string>
+    <string name="smb_error_unreachable_description">Butler не успя да се свърже с \"%1$s\". Провери дали устройството е в същата мрежа и дали сървърът е включен.</string>
+    <string name="smb_error_auth_title">Влизането е неуспешно</string>
+    <string name="smb_error_auth_description">\"%1$s\" отхвърли потребителското име или паролата.</string>
+    <string name="smb_error_share_access_denied_title">Няма достъп до този споделен ресурс</string>
+    <string name="smb_error_share_access_denied_description">Този профил няма право да използва \"%1$s\" на \"%2$s\". Провери разрешенията за споделения ресурс на сървъра.</string>
+    <string name="smb_error_share_not_found_title">Споделеният ресурс не е намерен</string>
+    <string name="smb_error_share_not_found_description">\"%1$s\" не съществува на \"%2$s\".</string>
+    <string name="smb_error_dialect_title">Сървърът е твърде стар</string>
+    <string name="smb_error_dialect_description">\"%1$s\" предлага само SMB1, който е несигурен и не се поддържа. Включи SMB2 или по-нова версия на сървъра.</string>
+    <string name="smb_error_credential_unavailable_title">Нужно е влизане</string>
+    <string name="smb_error_credential_unavailable_description">Запазената парола за това мрежово хранилище вече не може да бъде прочетена. Въведи я отново, за да се свържеш.</string>
+    <string name="smb_error_pro_required_title">Мрежовите споделени ресурси изискват Butler Pro</string>
+    <string name="smb_error_pro_required_description">Разглеждането на мрежови споделени ресурси е част от Butler Pro. Добавянето, тестването и премахването на местоположения е безплатно.</string>
+
+    <!-- App install errors -->
+    <string name="app_install_error_protected_bundle_title">Защитен пакет на приложение</string>
+    <string name="app_install_error_protected_bundle_description">\"%1$s\" е шифрован и може да бъде инсталиран само от приложението, което го е създало.</string>
+
+    <string name="app_install_error_unsupported_apk_set_title">Форматът на набора от APK не се поддържа</string>
+    <string name="app_install_error_unsupported_apk_set_description">\"%1$s\" е набор от APK, създаден с bundletool. Butler не може да установи кой от вариантите му е подходящ за това устройство.</string>
+
+    <string name="app_install_error_unsupported_bundle_title">Няма приложение за инсталиране</string>
+    <string name="app_install_error_unsupported_bundle_description">\"%1$s\" не съдържа APK, който може да бъде инсталиран.</string>
+
+    <string name="app_install_error_session_title">Инсталирането е неуспешно</string>
+    <string name="app_install_error_session_description">Системата отхвърли инсталирането: %1$s</string>
+
+    <string name="app_install_error_busy_title">Извършва се друго инсталиране</string>
+    <string name="app_install_error_busy_description">\"%1$s\" все още се инсталира. Потвърди или отмени това инсталиране, преди да започнеш друго.</string>
+
+    <string name="app_install_error_no_elevation_title">Няма достъп с повишени привилегии</string>
+    <string name="app_install_error_no_elevation_description">Достъпът чрез root или ADB в момента не е наличен.</string>
+
+    <!-- App install confirmation -->
+    <string name="app_install_confirm_pending_title">Нужно е потвърждение</string>
+    <string name="app_install_confirm_pending_description">Android изисква да потвърдиш инсталирането на \"%1$s\", за да го завърши.</string>
+    <string name="app_install_confirm_pending_description_unnamed">Android изисква да потвърдиш това инсталиране, за да го завърши.</string>
+    <string name="app_install_confirm_pending_action">Потвърди инсталирането</string>
+    <string name="app_install_confirm_pending_reason">Инсталаторът чака потвърждението ти</string>
+
+    <!-- App uninstall confirmation -->
+    <string name="app_uninstall_confirm_pending_title">Нужно е потвърждение</string>
+    <string name="app_uninstall_confirm_pending_description">Android изисква да потвърдиш премахването на \"%1$s\", за да го завърши.</string>
+    <string name="app_uninstall_confirm_pending_description_unnamed">Android изисква да потвърдиш това премахване, за да го завърши.</string>
+    <string name="app_uninstall_confirm_pending_action">Потвърди премахването</string>
+    <string name="app_uninstall_confirm_pending_reason">Android чака потвърждението ти</string>
+
+    <!-- App uninstall errors -->
+    <string name="app_uninstall_other_user_unsupported">Премахването на това приложение за друг потребител изисква достъп чрез root или ADB</string>
+    <string name="app_uninstall_no_result">Android не съобщи резултат</string>
+
+    <!-- Service connection errors -->
+    <string name="service_connection_lost_error_title">Файловата операция е прекъсната</string>
+    <string name="service_connection_lost_error_message">Услугата за файлови операции спря неочаквано. Опитай отново.</string>
+</resources>
