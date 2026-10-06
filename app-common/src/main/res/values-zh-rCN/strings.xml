@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">请稍候</string>
     <string name="general_progress_loading_egg_13">至少你不用排队等候</string>
     <string name="general_progress_loading_egg_14">直接敷在额头上</string>
+    <string name="general_progress_loading_egg_halloween_0">正在给缓存驱魔</string>
+    <string name="general_progress_loading_egg_halloween_1">正在清点你衣柜里的骷髅</string>
+    <string name="general_progress_loading_egg_halloween_2">正在雕南瓜灯</string>
+    <string name="general_progress_loading_egg_halloween_3">正在检查床底下有没有僵尸进程</string>
+    <string name="general_progress_loading_egg_stpatricks_0">正在追着彩虹找金罐子</string>
+    <string name="general_progress_loading_egg_stpatricks_1">正在寻找四叶草</string>
+    <string name="general_progress_loading_egg_stpatricks_2">正在贿赂小妖精</string>
+    <string name="general_progress_loading_egg_aprilfools_0">加载中。真的吗？</string>
+    <string name="general_progress_loading_egg_aprilfools_1">关机再开机试试</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">正在多拿几个扭结面包</string>
+    <string name="general_progress_loading_egg_xmas_0">正在核对两遍名单</string>
+    <string name="general_progress_loading_egg_xmas_1">正在包装你的文件</string>
+    <string name="general_progress_loading_egg_xmas_2">正在解开缠成一团的彩灯</string>
+    <string name="general_progress_loading_egg_xmas_3">正在喂驯鹿</string>
+    <string name="general_progress_loading_egg_newyear_0">正在倒数午夜钟声</string>
+    <string name="general_progress_loading_egg_newyear_1">正在开香槟</string>
+    <string name="general_progress_loading_egg_newyear_2">正在起草没人会遵守的新年计划</string>
+    <string name="general_progress_loading_egg_newyear_3">正在加载新的一年</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

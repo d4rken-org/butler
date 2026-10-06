@@ -108,6 +108,24 @@
     <string name="general_progress_loading_egg_12">Prosím, vydržte</string>
     <string name="general_progress_loading_egg_13">Aspoň nečekáte na lince</string>
     <string name="general_progress_loading_egg_14">Naneste přímo na čelo</string>
+    <string name="general_progress_loading_egg_halloween_0">Vymítám cache</string>
+    <string name="general_progress_loading_egg_halloween_1">Počítám kostlivce ve skříni</string>
+    <string name="general_progress_loading_egg_halloween_2">Vyřezávám dýně</string>
+    <string name="general_progress_loading_egg_halloween_3">Kontroluji pod postelí zombie procesy</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Honím duhu k hrnci zlata</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Hledám čtyřlístek</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Podplácím leprechauny</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Načítání. Nebo ne?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Vypínám a zapínám znovu</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Nosím další preclíky</string>
+    <string name="general_progress_loading_egg_xmas_0">Kontroluji seznam podruhé</string>
+    <string name="general_progress_loading_egg_xmas_1">Balím soubory do dárkového papíru</string>
+    <string name="general_progress_loading_egg_xmas_2">Rozplétám vánoční světýlka</string>
+    <string name="general_progress_loading_egg_xmas_3">Krmím soby</string>
+    <string name="general_progress_loading_egg_newyear_0">Odpočítávám do půlnoci</string>
+    <string name="general_progress_loading_egg_newyear_1">Otevírám šampaňské</string>
+    <string name="general_progress_loading_egg_newyear_2">Sepisuji předsevzetí, která nikdo nedodrží</string>
+    <string name="general_progress_loading_egg_newyear_3">Načítám nový rok</string>
 
     <!-- Formátování doby trvání -->
     <plurals name="common_duration_milliseconds_short">

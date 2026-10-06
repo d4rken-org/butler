@@ -105,6 +105,24 @@
     <string name="general_progress_loading_egg_12">少々お待ちください</string>
     <string name="general_progress_loading_egg_13">少なくとも、保留にはされていません</string>
     <string name="general_progress_loading_egg_14">おでこに直接塗ってください</string>
+    <string name="general_progress_loading_egg_halloween_0">キャッシュをお祓い中</string>
+    <string name="general_progress_loading_egg_halloween_1">クローゼットの骸骨を数えています</string>
+    <string name="general_progress_loading_egg_halloween_2">カボチャをくり抜き中</string>
+    <string name="general_progress_loading_egg_halloween_3">ベッドの下にゾンビプロセスがいないか確認中</string>
+    <string name="general_progress_loading_egg_stpatricks_0">虹を追いかけて黄金の壺へ</string>
+    <string name="general_progress_loading_egg_stpatricks_1">四つ葉のクローバーを探しています</string>
+    <string name="general_progress_loading_egg_stpatricks_2">レプラコーンを買収中</string>
+    <string name="general_progress_loading_egg_aprilfools_0">読み込み中。……のはずですが？</string>
+    <string name="general_progress_loading_egg_aprilfools_1">電源を入れ直しています</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">プレッツェルを追加で調達中</string>
+    <string name="general_progress_loading_egg_xmas_0">リストを二度確認中</string>
+    <string name="general_progress_loading_egg_xmas_1">ファイルをラッピング中</string>
+    <string name="general_progress_loading_egg_xmas_2">イルミネーションのもつれをほどいています</string>
+    <string name="general_progress_loading_egg_xmas_3">トナカイにエサをあげています</string>
+    <string name="general_progress_loading_egg_newyear_0">午前0時までカウントダウン中</string>
+    <string name="general_progress_loading_egg_newyear_1">シャンパンを開けています</string>
+    <string name="general_progress_loading_egg_newyear_2">誰も守らない抱負を作成中</string>
+    <string name="general_progress_loading_egg_newyear_3">新年を読み込み中</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

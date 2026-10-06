@@ -105,6 +105,24 @@
     <string name="general_progress_loading_egg_12">Vui lòng chờ</string>
     <string name="general_progress_loading_egg_13">Ít nhất bạn cũng không phải chờ máy</string>
     <string name="general_progress_loading_egg_14">Thoa trực tiếp lên trán</string>
+    <string name="general_progress_loading_egg_halloween_0">Đang trừ tà bộ nhớ đệm</string>
+    <string name="general_progress_loading_egg_halloween_1">Đang đếm bộ xương trong tủ của bạn</string>
+    <string name="general_progress_loading_egg_halloween_2">Đang khắc bí ngô</string>
+    <string name="general_progress_loading_egg_halloween_3">Đang soi gầm giường tìm tiến trình thây ma</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Đang đuổi theo cầu vồng tới nồi vàng</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Đang tìm cỏ ba lá bốn lá</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Đang hối lộ các yêu tinh leprechaun</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Đang tải. Hay là không nhỉ?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Tắt đi rồi bật lại</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Đang lấy thêm bánh pretzel</string>
+    <string name="general_progress_loading_egg_xmas_0">Đang kiểm tra danh sách hai lần</string>
+    <string name="general_progress_loading_egg_xmas_1">Đang gói quà cho tệp của bạn</string>
+    <string name="general_progress_loading_egg_xmas_2">Đang gỡ rối dây đèn nhấp nháy</string>
+    <string name="general_progress_loading_egg_xmas_3">Đang cho tuần lộc ăn</string>
+    <string name="general_progress_loading_egg_newyear_0">Đang đếm ngược đến giao thừa</string>
+    <string name="general_progress_loading_egg_newyear_1">Đang khui sâm panh</string>
+    <string name="general_progress_loading_egg_newyear_2">Đang soạn những quyết tâm không ai giữ</string>
+    <string name="general_progress_loading_egg_newyear_3">Đang tải năm mới</string>
 
     <!-- Định dạng thời lượng -->
     <plurals name="common_duration_milliseconds_short">

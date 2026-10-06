@@ -107,6 +107,24 @@
     <string name="general_progress_loading_egg_12">Espera, por favor</string>
     <string name="general_progress_loading_egg_13">Al menos tú no estás en espera</string>
     <string name="general_progress_loading_egg_14">Aplícalo directamente en la frente</string>
+    <string name="general_progress_loading_egg_halloween_0">Exorcizando la caché</string>
+    <string name="general_progress_loading_egg_halloween_1">Contando los esqueletos de tu armario</string>
+    <string name="general_progress_loading_egg_halloween_2">Tallando las calabazas</string>
+    <string name="general_progress_loading_egg_halloween_3">Mirando debajo de la cama por si hay procesos zombi</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Persiguiendo el arcoíris hasta la olla de oro</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Buscando un trébol de cuatro hojas</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Sobornando a los duendes</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Cargando. ¿O no?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Apagándolo y volviéndolo a encender</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Trayendo más pretzels</string>
+    <string name="general_progress_loading_egg_xmas_0">Revisando la lista dos veces</string>
+    <string name="general_progress_loading_egg_xmas_1">Envolviendo tus archivos para regalo</string>
+    <string name="general_progress_loading_egg_xmas_2">Desenredando las luces del árbol</string>
+    <string name="general_progress_loading_egg_xmas_3">Dando de comer a los renos</string>
+    <string name="general_progress_loading_egg_newyear_0">Cuenta atrás para medianoche</string>
+    <string name="general_progress_loading_egg_newyear_1">Descorchando el champán</string>
+    <string name="general_progress_loading_egg_newyear_2">Redactando propósitos que nadie cumplirá</string>
+    <string name="general_progress_loading_egg_newyear_3">Cargando el año nuevo</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

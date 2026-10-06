@@ -101,6 +101,24 @@
     <string name="general_progress_loading_egg_12">Sila tunggu</string>
     <string name="general_progress_loading_egg_13">Sekurang-kurangnya kamu bukan menunggu di telefon</string>
     <string name="general_progress_loading_egg_14">Sapukan terus ke dahi</string>
+    <string name="general_progress_loading_egg_halloween_0">Menghalau hantu daripada cache</string>
+    <string name="general_progress_loading_egg_halloween_1">Mengira rangka dalam almari kamu</string>
+    <string name="general_progress_loading_egg_halloween_2">Mengukir labu</string>
+    <string name="general_progress_loading_egg_halloween_3">Menjenguk bawah katil untuk proses zombi</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Mengejar pelangi demi periuk emas</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Mencari semanggi empat daun</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Merasuah leprechaun</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Sedang memuatkan. Betul ke?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Mematikan dan menghidupkannya semula</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Mengambil lebih banyak pretzel</string>
+    <string name="general_progress_loading_egg_xmas_0">Menyemak senarai buat kali kedua</string>
+    <string name="general_progress_loading_egg_xmas_1">Membungkus fail kamu</string>
+    <string name="general_progress_loading_egg_xmas_2">Merungkai lampu perhiasan yang kusut</string>
+    <string name="general_progress_loading_egg_xmas_3">Memberi makan rusa kutub</string>
+    <string name="general_progress_loading_egg_newyear_0">Mengira detik ke tengah malam</string>
+    <string name="general_progress_loading_egg_newyear_1">Membuka botol syampen</string>
+    <string name="general_progress_loading_egg_newyear_2">Merangka azam yang tiada siapa akan tunaikan</string>
+    <string name="general_progress_loading_egg_newyear_3">Memuatkan tahun baharu</string>
     <plurals name="common_duration_milliseconds_short">
         <item quantity="other">%dms</item>
     </plurals>

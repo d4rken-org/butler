@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">Een ogenblik geduld</string>
     <string name="general_progress_loading_egg_13">Gelukkig, je staat niet in de wacht</string>
     <string name="general_progress_loading_egg_14">Direct op het voorhoofd aanbrengen</string>
+    <string name="general_progress_loading_egg_halloween_0">De cache wordt uitgedreven</string>
+    <string name="general_progress_loading_egg_halloween_1">De lijken in je kast worden geteld</string>
+    <string name="general_progress_loading_egg_halloween_2">Pompoenen uithollen</string>
+    <string name="general_progress_loading_egg_halloween_3">Onder het bed kijken naar zombieprocessen</string>
+    <string name="general_progress_loading_egg_stpatricks_0">De regenboog achterna naar de pot goud</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Zoeken naar een klavertje vier</string>
+    <string name="general_progress_loading_egg_stpatricks_2">De kabouters omkopen</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Laden. Of toch niet?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Uit- en weer aanzetten</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Meer pretzels halen</string>
+    <string name="general_progress_loading_egg_xmas_0">De lijst twee keer controleren</string>
+    <string name="general_progress_loading_egg_xmas_1">Je bestanden worden ingepakt</string>
+    <string name="general_progress_loading_egg_xmas_2">De kerstverlichting ontwarren</string>
+    <string name="general_progress_loading_egg_xmas_3">De rendieren voeren</string>
+    <string name="general_progress_loading_egg_newyear_0">Aftellen tot middernacht</string>
+    <string name="general_progress_loading_egg_newyear_1">De champagne ontkurken</string>
+    <string name="general_progress_loading_egg_newyear_2">Goede voornemens opstellen die niemand haalt</string>
+    <string name="general_progress_loading_egg_newyear_3">Het nieuwe jaar wordt geladen</string>
 
     <!-- Duurweergave -->
     <plurals name="common_duration_milliseconds_short">

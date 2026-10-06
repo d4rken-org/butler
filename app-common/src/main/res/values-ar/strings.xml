@@ -111,6 +111,24 @@
     <string name="general_progress_loading_egg_12">يرجى الانتظار</string>
     <string name="general_progress_loading_egg_13">على الأقل أنت لست قيد الانتظار</string>
     <string name="general_progress_loading_egg_14">ضعه مباشرة على الجبهة</string>
+    <string name="general_progress_loading_egg_halloween_0">جارٍ طرد الأرواح من الذاكرة المؤقتة</string>
+    <string name="general_progress_loading_egg_halloween_1">جارٍ عدّ الهياكل العظمية في خزانتك</string>
+    <string name="general_progress_loading_egg_halloween_2">جارٍ نحت القرع</string>
+    <string name="general_progress_loading_egg_halloween_3">جارٍ فحص ما تحت السرير بحثًا عن عمليات زومبي</string>
+    <string name="general_progress_loading_egg_stpatricks_0">نطارد قوس قزح نحو قدر الذهب</string>
+    <string name="general_progress_loading_egg_stpatricks_1">جارٍ البحث عن برسيم رباعي الأوراق</string>
+    <string name="general_progress_loading_egg_stpatricks_2">جارٍ رشوة الجنّيات الإيرلندية</string>
+    <string name="general_progress_loading_egg_aprilfools_0">جارٍ التحميل. أم لا؟</string>
+    <string name="general_progress_loading_egg_aprilfools_1">إيقاف التشغيل ثم تشغيله من جديد</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">جارٍ جلب المزيد من البريتزل</string>
+    <string name="general_progress_loading_egg_xmas_0">جارٍ مراجعة القائمة مرتين</string>
+    <string name="general_progress_loading_egg_xmas_1">جارٍ تغليف ملفاتك كهدايا</string>
+    <string name="general_progress_loading_egg_xmas_2">جارٍ فك تشابك أضواء الزينة</string>
+    <string name="general_progress_loading_egg_xmas_3">جارٍ إطعام الرنة</string>
+    <string name="general_progress_loading_egg_newyear_0">العدّ التنازلي لمنتصف الليل</string>
+    <string name="general_progress_loading_egg_newyear_1">جارٍ فتح الشمبانيا</string>
+    <string name="general_progress_loading_egg_newyear_2">جارٍ كتابة قرارات لن يلتزم بها أحد</string>
+    <string name="general_progress_loading_egg_newyear_3">جارٍ تحميل العام الجديد</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

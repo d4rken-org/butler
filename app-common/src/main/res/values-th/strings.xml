@@ -105,6 +105,24 @@
     <string name="general_progress_loading_egg_12">กรุณารอสักครู่</string>
     <string name="general_progress_loading_egg_13">อย่างน้อยคุณก็ไม่ต้องรอสาย</string>
     <string name="general_progress_loading_egg_14">ทาตรงหน้าผากเลย</string>
+    <string name="general_progress_loading_egg_halloween_0">กำลังไล่ผีออกจากแคช</string>
+    <string name="general_progress_loading_egg_halloween_1">กำลังนับโครงกระดูกในตู้เสื้อผ้าของคุณ</string>
+    <string name="general_progress_loading_egg_halloween_2">กำลังแกะสลักฟักทอง</string>
+    <string name="general_progress_loading_egg_halloween_3">กำลังเช็กใต้เตียงหาโพรเซสซอมบี้</string>
+    <string name="general_progress_loading_egg_stpatricks_0">กำลังไล่ตามสายรุ้งไปหาหม้อทอง</string>
+    <string name="general_progress_loading_egg_stpatricks_1">กำลังหาโคลเวอร์สี่แฉก</string>
+    <string name="general_progress_loading_egg_stpatricks_2">กำลังติดสินบนเลพริคอน</string>
+    <string name="general_progress_loading_egg_aprilfools_0">กำลังโหลด หรือเปล่านะ</string>
+    <string name="general_progress_loading_egg_aprilfools_1">ปิดแล้วเปิดใหม่</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">กำลังไปเอาเพรทเซลมาเพิ่ม</string>
+    <string name="general_progress_loading_egg_xmas_0">กำลังเช็กลิสต์สองรอบ</string>
+    <string name="general_progress_loading_egg_xmas_1">กำลังห่อไฟล์ของคุณเป็นของขวัญ</string>
+    <string name="general_progress_loading_egg_xmas_2">กำลังแก้ไฟประดับที่พันกันยุ่ง</string>
+    <string name="general_progress_loading_egg_xmas_3">กำลังให้อาหารกวางเรนเดียร์</string>
+    <string name="general_progress_loading_egg_newyear_0">กำลังนับถอยหลังสู่เที่ยงคืน</string>
+    <string name="general_progress_loading_egg_newyear_1">กำลังเปิดแชมเปญ</string>
+    <string name="general_progress_loading_egg_newyear_2">กำลังร่างปณิธานปีใหม่ที่ไม่มีใครทำตาม</string>
+    <string name="general_progress_loading_egg_newyear_3">กำลังโหลดปีใหม่</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

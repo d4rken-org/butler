@@ -107,6 +107,24 @@
     <string name="general_progress_loading_egg_12">Veuillez patienter</string>
     <string name="general_progress_loading_egg_13">Au moins, pas de musique d’attente</string>
     <string name="general_progress_loading_egg_14">Appliquez directement sur le front</string>
+    <string name="general_progress_loading_egg_halloween_0">Exorcisme du cache en cours</string>
+    <string name="general_progress_loading_egg_halloween_1">Dénombrement des squelettes dans vos placards</string>
+    <string name="general_progress_loading_egg_halloween_2">Sculpture des citrouilles</string>
+    <string name="general_progress_loading_egg_halloween_3">Inspection du dessous du lit à la recherche de processus zombies</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Course derrière l’arc-en-ciel jusqu’au pot d’or</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Recherche d’un trèfle à quatre feuilles</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Corruption des lutins irlandais</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Chargement. Ou pas ?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Extinction puis rallumage</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Réapprovisionnement en bretzels</string>
+    <string name="general_progress_loading_egg_xmas_0">Vérification de la liste, deux fois</string>
+    <string name="general_progress_loading_egg_xmas_1">Emballage de vos fichiers</string>
+    <string name="general_progress_loading_egg_xmas_2">Démêlage des guirlandes lumineuses</string>
+    <string name="general_progress_loading_egg_xmas_3">Les rennes ont besoin de manger</string>
+    <string name="general_progress_loading_egg_newyear_0">Compte à rebours jusqu’à minuit</string>
+    <string name="general_progress_loading_egg_newyear_1">On débouche le champagne</string>
+    <string name="general_progress_loading_egg_newyear_2">Rédaction de bonnes résolutions que personne ne tiendra</string>
+    <string name="general_progress_loading_egg_newyear_3">Chargement de la nouvelle année</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">
