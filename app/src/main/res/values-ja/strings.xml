@@ -284,7 +284,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Kotlin Coroutinesを利用した画像読み込みライブラリ。(APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">SMB認証、署名、暗号化のための暗号プリミティブ。(MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">SMBの認証、署名、暗号化、およびSFTPの鍵交換とSSH鍵のための暗号プリミティブ。(MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">SFTPサーバーへの接続に使うSSHおよびSFTPクライアント。(APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java。Apache MINA SSHDが使うログ記録API。(MIT)</string>
     <string name="acknowledgement_square_libraries_title">Squareライブラリ</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit、OkHttp、OkIOのネットワークライブラリ。(APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

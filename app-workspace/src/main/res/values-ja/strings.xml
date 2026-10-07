@@ -140,6 +140,7 @@
     <string name="operations_details_actions">アクション</string>
     <string name="operations_details_overview">概要</string>
     <string name="operations_details_handle_issue">問題に対応</string>
+    <string name="operations_details_open_app_action">アプリを開く</string>
     <string name="operations_details_show_in_history_action">履歴に表示</string>
     <string name="operations_details_status">ステータス</string>
     <string name="operations_details_result">結果</string>

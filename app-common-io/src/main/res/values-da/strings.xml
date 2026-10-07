@@ -69,6 +69,24 @@
     <string name="smb_error_credential_unavailable_description">Den gemte adgangskode til dette netværkslager kan ikke længere læses. Indtast den igen for at oprette forbindelse igen.</string>
     <string name="smb_error_pro_required_title">Netværksdelinger kræver Butler Pro</string>
     <string name="smb_error_pro_required_description">At gennemse netværksdelinger er en del af Butler Pro. Det er gratis at tilføje, teste og fjerne placeringer.</string>
+    <string name="sftp_error_credential_unavailable_title">Login påkrævet</string>
+    <string name="sftp_error_credential_unavailable_description">Den gemte adgangskode eller nøgle til denne SFTP-server kan ikke længere læses. Indtast den igen for at oprette forbindelse igen.</string>
+    <string name="sftp_error_unreachable_title">Kan ikke nå serveren</string>
+    <string name="sftp_error_unreachable_description">Butler kunne ikke nå \"%1$s\". Kontroller adressen og porten, og at SSH-serveren kører.</string>
+    <string name="sftp_error_auth_title">Login mislykkedes</string>
+    <string name="sftp_error_auth_description">\"%1$s\" afviste brugernavnet, adgangskoden eller nøglen.</string>
+    <string name="sftp_error_host_key_unknown_title">Ukendt server</string>
+    <string name="sftp_error_host_key_unknown_description">Butler har ikke godkendt \"%1$s\" endnu. Serveren identificerer sig med nøglen %2$s.</string>
+    <string name="sftp_error_host_key_changed_title">Serverens identitet er ændret</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" fremviste en anden nøgle end den, du har godkendt. Butler loggede ikke ind.\n\nGodkendt: %2$s\nFremvist: %3$s</string>
+    <string name="sftp_error_key_format_title">Nøglen kan ikke læses</string>
+    <string name="sftp_error_key_format_description">Den private nøgle er ikke i et format, som Butler kan læse. Nøglefiler i OpenSSH-, PEM- og PKCS#8-format understøttes.</string>
+    <string name="sftp_error_key_passphrase_title">Forkert adgangssætning</string>
+    <string name="sftp_error_key_passphrase_description">Den private nøgle er beskyttet, og adgangssætningen er forkert eller mangler.</string>
+    <string name="sftp_error_access_denied_title">Ingen adgang til denne mappe</string>
+    <string name="sftp_error_access_denied_description">Denne konto har ikke tilladelse til at åbne den mappe, der er angivet for \"%1$s\". Kontroller mappens tilladelser på serveren.</string>
+    <string name="sftp_error_pro_required_title">SFTP-servere kræver Butler Pro</string>
+    <string name="sftp_error_pro_required_description">At gennemse SFTP-servere er en del af Butler Pro. Det er gratis at tilføje, teste og fjerne servere.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Beskyttet app-pakke</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" er krypteret og kan kun installeres af den app, der oprettede den.</string>

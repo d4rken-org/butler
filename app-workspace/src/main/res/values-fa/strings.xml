@@ -151,6 +151,7 @@
     <string name="operations_details_actions">اقدامات</string>
     <string name="operations_details_overview">بررسی اجمالی</string>
     <string name="operations_details_handle_issue">رسیدگی به مشکل</string>
+    <string name="operations_details_open_app_action">باز کردن برنامه</string>
     <string name="operations_details_show_in_history_action">نمایش در تاریخچه</string>
     <string name="operations_details_status">وضعیت</string>
     <string name="operations_details_result">نتیجه</string>

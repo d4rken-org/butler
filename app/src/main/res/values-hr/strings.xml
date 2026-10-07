@@ -312,7 +312,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Biblioteka za učitavanje slika koja upotrebljava Kotlin Coroutines. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">Kriptografski primitivi za SMB autentifikaciju, potpisivanje i šifriranje. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Kriptografski primitivi za SMB autentifikaciju, potpisivanje i šifriranje te za SFTP razmjenu ključeva i SSH ključeve. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">SSH i SFTP klijent za povezivanje sa SFTP poslužiteljima. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API za zapisivanje koji upotrebljava Apache MINA SSHD. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Biblioteke Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Mrežne biblioteke Retrofit, OkHttp i OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

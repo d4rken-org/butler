@@ -297,7 +297,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Pustaka pemuatan gambar berbasis Kotlin Coroutines. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">Primitif kriptografi untuk autentikasi, penandatanganan, dan enkripsi SMB. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Primitif kriptografi untuk autentikasi, penandatanganan, dan enkripsi SMB, serta untuk pertukaran kunci SFTP dan kunci SSH. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">Klien SSH dan SFTP untuk koneksi ke server SFTP. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API pencatatan log yang digunakan oleh Apache MINA SSHD. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Pustaka Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Pustaka jaringan Retrofit, OkHttp, dan OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

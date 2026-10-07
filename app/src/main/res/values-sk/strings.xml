@@ -313,7 +313,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Knižnica na načítavanie obrázkov využívajúca Kotlin Coroutines. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">Kryptografické primitíva na autentifikáciu, podpisovanie a šifrovanie SMB. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Kryptografické primitíva na autentifikáciu, podpisovanie a šifrovanie SMB a na výmenu kľúčov SFTP a kľúče SSH. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">Klient SSH a SFTP na pripojenie k serverom SFTP. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API na zaznamenávanie, ktoré používa Apache MINA SSHD. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Knižnice Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Sieťové knižnice Retrofit, OkHttp a OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

@@ -284,7 +284,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">ไลบรารีโหลดรูปภาพที่ใช้ Kotlin Coroutines (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">ฟังก์ชันการเข้ารหัสสำหรับการยืนยันตัวตน การเซ็นชื่อ และการเข้ารหัสของ SMB (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">ฟังก์ชันการเข้ารหัสสำหรับการยืนยันตัวตน การเซ็นชื่อ และการเข้ารหัสของ SMB รวมถึงการแลกเปลี่ยนคีย์ของ SFTP และคีย์ SSH (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">ไคลเอนต์ SSH และ SFTP สำหรับเชื่อมต่อกับเซิร์ฟเวอร์ SFTP (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API บันทึกที่ Apache MINA SSHD ใช้ (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Square libraries</string>
     <string name="acknowledgement_square_libraries_subtitle">ไลบรารีเครือข่าย Retrofit, OkHttp และ OkIO (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

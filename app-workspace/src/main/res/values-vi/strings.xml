@@ -140,6 +140,7 @@
     <string name="operations_details_actions">Hành động</string>
     <string name="operations_details_overview">Tổng quan</string>
     <string name="operations_details_handle_issue">Xử lý sự cố</string>
+    <string name="operations_details_open_app_action">Mở ứng dụng</string>
     <string name="operations_details_show_in_history_action">Xem trong lịch sử</string>
     <string name="operations_details_status">Trạng thái</string>
     <string name="operations_details_result">Kết quả</string>

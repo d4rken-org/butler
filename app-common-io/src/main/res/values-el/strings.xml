@@ -69,6 +69,24 @@
     <string name="smb_error_credential_unavailable_description">Ο αποθηκευμένος κωδικός για αυτόν τον αποθηκευτικό χώρο δικτύου δεν μπορεί πλέον να διαβαστεί. Εισάγετε τον ξανά για να επανασυνδεθείτε.</string>
     <string name="smb_error_pro_required_title">Τα κοινά δικτύου απαιτούν Butler Pro</string>
     <string name="smb_error_pro_required_description">Η περιήγηση σε κοινόχρηστους φακέλους δικτύου είναι μέρος του Butler Pro. Η προσθήκη, η δοκιμή και η αφαίρεση τοποθεσιών είναι δωρεάν.</string>
+    <string name="sftp_error_credential_unavailable_title">Απαιτείται σύνδεση</string>
+    <string name="sftp_error_credential_unavailable_description">Ο αποθηκευμένος κωδικός ή το κλειδί για αυτόν τον διακομιστή SFTP δεν μπορεί πλέον να διαβαστεί. Εισήγαγέ το ξανά για να επανασυνδεθείς.</string>
+    <string name="sftp_error_unreachable_title">Ο διακομιστής δεν είναι προσβάσιμος</string>
+    <string name="sftp_error_unreachable_description">Το Butler δεν μπόρεσε να προσεγγίσει το \"%1$s\". Έλεγξε τη διεύθυνση και τη θύρα, καθώς και ότι ο διακομιστής SSH εκτελείται.</string>
+    <string name="sftp_error_auth_title">Η σύνδεση απέτυχε</string>
+    <string name="sftp_error_auth_description">Το \"%1$s\" απέρριψε το όνομα χρήστη, τον κωδικό ή το κλειδί.</string>
+    <string name="sftp_error_host_key_unknown_title">Άγνωστος διακομιστής</string>
+    <string name="sftp_error_host_key_unknown_description">Το Butler δεν έχει εμπιστευτεί ακόμα το \"%1$s\". Ταυτοποιείται με το κλειδί %2$s.</string>
+    <string name="sftp_error_host_key_changed_title">Η ταυτότητα του διακομιστή άλλαξε</string>
+    <string name="sftp_error_host_key_changed_description">Το \"%1$s\" παρουσίασε διαφορετικό κλειδί από αυτό που είχες εμπιστευτεί. Το Butler δεν συνδέθηκε.\n\nΕμπιστευμένο: %2$s\nΠαρουσιάστηκε: %3$s</string>
+    <string name="sftp_error_key_format_title">Μη αναγνώσιμο κλειδί</string>
+    <string name="sftp_error_key_format_description">Το ιδιωτικό κλειδί δεν έχει μορφή που μπορεί να διαβάσει το Butler. Υποστηρίζονται αρχεία κλειδιών OpenSSH, PEM και PKCS#8.</string>
+    <string name="sftp_error_key_passphrase_title">Λάθος φράση πρόσβασης</string>
+    <string name="sftp_error_key_passphrase_description">Το ιδιωτικό κλειδί είναι προστατευμένο και η φράση πρόσβασης είναι λάθος ή λείπει.</string>
+    <string name="sftp_error_access_denied_title">Δεν υπάρχει πρόσβαση σε αυτόν τον φάκελο</string>
+    <string name="sftp_error_access_denied_description">Αυτός ο λογαριασμός ενδέχεται να μην μπορεί να ανοίξει τον φάκελο που έχει οριστεί για το \"%1$s\". Έλεγξε τα δικαιώματα του φακέλου στον διακομιστή.</string>
+    <string name="sftp_error_pro_required_title">Οι διακομιστές SFTP απαιτούν Butler Pro</string>
+    <string name="sftp_error_pro_required_description">Η περιήγηση σε διακομιστές SFTP είναι μέρος του Butler Pro. Η προσθήκη, η δοκιμή και η αφαίρεση διακομιστών είναι δωρεάν.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Προστατευμένη δέσμη εφαρμογής</string>
     <string name="app_install_error_protected_bundle_description">Το \"%1$s\" είναι κρυπτογραφημένο και μπορεί να εγκατασταθεί μόνο από την εφαρμογή που το δημιούργησε.</string>

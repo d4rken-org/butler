@@ -307,7 +307,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Kotlin Coroutines ఆధారంగా పనిచేసే చిత్రాలను లోడ్ చేసే లైబ్రరీ. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">SMB ప్రామాణీకరణ, సంతకాలు, ఎన్‌క్రిప్షన్ కోసం క్రిప్టోగ్రాఫిక్ మూల సాధనాలు. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">SMB ప్రామాణీకరణ, సంతకాలు, ఎన్‌క్రిప్షన్ కోసం, అలాగే SFTP కీ మార్పిడి, SSH కీల కోసం క్రిప్టోగ్రాఫిక్ మూల సాధనాలు. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">SFTP సర్వర్‌లకు కనెక్షన్‌ల కోసం SSH, SFTP క్లయింట్. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, Apache MINA SSHD ఉపయోగించే లాగింగ్ API. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Square లైబ్రరీలు</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp, OkIO నెట్‌వర్కింగ్ లైబ్రరీలు. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

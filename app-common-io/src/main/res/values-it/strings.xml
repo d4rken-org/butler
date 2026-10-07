@@ -70,6 +70,24 @@
     <string name="smb_error_credential_unavailable_description">La password salvata per questa archiviazione di rete non può più essere letta. Immettila di nuovo per ripristinare la connessione.</string>
     <string name="smb_error_pro_required_title">Le condivisioni di rete richiedono Butler Pro</string>
     <string name="smb_error_pro_required_description">Sfogliare le condivisioni di rete fa parte di Butler Pro. Aggiungere, verificare e rimuovere posizioni è gratuito.</string>
+    <string name="sftp_error_credential_unavailable_title">Accesso richiesto</string>
+    <string name="sftp_error_credential_unavailable_description">La password o la chiave salvata per questo server SFTP non può più essere letta. Immettila di nuovo per ripristinare la connessione.</string>
+    <string name="sftp_error_unreachable_title">Server non raggiungibile</string>
+    <string name="sftp_error_unreachable_description">Butler non ha potuto raggiungere \"%1$s\". Verifica l’indirizzo e la porta, e che il server SSH sia in esecuzione.</string>
+    <string name="sftp_error_auth_title">Accesso non riuscito</string>
+    <string name="sftp_error_auth_description">\"%1$s\" ha rifiutato il nome utente, la password o la chiave.</string>
+    <string name="sftp_error_host_key_unknown_title">Server sconosciuto</string>
+    <string name="sftp_error_host_key_unknown_description">Butler non considera ancora attendibile \"%1$s\". Il server si identifica con la chiave %2$s.</string>
+    <string name="sftp_error_host_key_changed_title">Identità del server cambiata</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" ha presentato una chiave diversa da quella che avevi reputato attendibile. Butler non ha effettuato l’accesso.\n\nAttendibile: %2$s\nPresentata: %3$s</string>
+    <string name="sftp_error_key_format_title">Chiave non leggibile</string>
+    <string name="sftp_error_key_format_description">La chiave privata non è in un formato che Butler riesce a leggere. Sono supportati i file di chiave OpenSSH, PEM e PKCS#8.</string>
+    <string name="sftp_error_key_passphrase_title">Passphrase errata</string>
+    <string name="sftp_error_key_passphrase_description">La chiave privata è protetta e la passphrase è errata o mancante.</string>
+    <string name="sftp_error_access_denied_title">Nessun accesso a questa cartella</string>
+    <string name="sftp_error_access_denied_description">Questo account potrebbe non poter aprire la cartella impostata per \"%1$s\". Verifica le autorizzazioni della cartella nel server.</string>
+    <string name="sftp_error_pro_required_title">I server SFTP richiedono Butler Pro</string>
+    <string name="sftp_error_pro_required_description">Sfogliare i server SFTP fa parte di Butler Pro. Aggiungere, verificare e rimuovere server è gratuito.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Bundle app protetto</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" è crittografato e può essere installato solo dall’app che l’ha creato.</string>

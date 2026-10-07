@@ -173,6 +173,7 @@
     <string name="operations_details_actions">Działania</string>
     <string name="operations_details_overview">Przegląd</string>
     <string name="operations_details_handle_issue">Rozwiąż problem</string>
+    <string name="operations_details_open_app_action">Otwórz aplikację</string>
     <string name="operations_details_show_in_history_action">Pokaż w historii</string>
     <string name="operations_details_status">Status</string>
     <string name="operations_details_result">Wynik</string>

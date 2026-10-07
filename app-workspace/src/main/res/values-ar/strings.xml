@@ -195,6 +195,7 @@
     <string name="operations_details_actions">الإجراءات</string>
     <string name="operations_details_overview">نظرة عامة</string>
     <string name="operations_details_handle_issue">معالجة المشكلة</string>
+    <string name="operations_details_open_app_action">فتح التطبيق</string>
     <string name="operations_details_show_in_history_action">إظهار في السجل</string>
     <string name="operations_details_status">الحالة</string>
     <string name="operations_details_result">النتيجة</string>

@@ -307,7 +307,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Kuvien latauskirjasto, joka pohjautuu Kotlin Coroutines -kirjastoon. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">Salausprimitiivit SMB-todennukseen, allekirjoitukseen ja salaukseen. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Salausprimitiivit SMB-todennukseen, allekirjoitukseen ja salaukseen sekä SFTP:n avaintenvaihtoon ja SSH-avaimiin. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">SSH- ja SFTP-asiakas SFTP-palvelinyhteyksiin. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, Apache MINA SSHD:n käyttämä lokitus-API. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Square-kirjastot</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit-, OkHttp- ja OkIO-verkkokirjastot. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

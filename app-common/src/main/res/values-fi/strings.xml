@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">Odota hetki</string>
     <string name="general_progress_loading_egg_13">Et sentään jonota puhelimessa</string>
     <string name="general_progress_loading_egg_14">Levitä suoraan otsalle</string>
+    <string name="general_progress_loading_egg_halloween_0">Manataan välimuistia ulos</string>
+    <string name="general_progress_loading_egg_halloween_1">Lasketaan luurankoja komerostasi</string>
+    <string name="general_progress_loading_egg_halloween_2">Veistetään kurpitsoja</string>
+    <string name="general_progress_loading_egg_halloween_3">Tarkistetaan sängyn alta zombiprosessit</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Jahdataan sateenkaarta kultapadalle</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Etsitään nelilehtistä apilaa</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Lahjotaan kobolteille</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Ladataan. Vai ladataanko?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Sammutetaan ja käynnistetään uudelleen</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Haetaan lisää rinkeleitä</string>
+    <string name="general_progress_loading_egg_xmas_0">Tarkistetaan lista kahdesti</string>
+    <string name="general_progress_loading_egg_xmas_1">Paketoidaan tiedostojasi</string>
+    <string name="general_progress_loading_egg_xmas_2">Selvitetään jouluvalojen vyyhtiä</string>
+    <string name="general_progress_loading_egg_xmas_3">Ruokitaan poroja</string>
+    <string name="general_progress_loading_egg_newyear_0">Lasketaan alas keskiyöhön</string>
+    <string name="general_progress_loading_egg_newyear_1">Availlaan kuohuviinipulloa</string>
+    <string name="general_progress_loading_egg_newyear_2">Laaditaan lupauksia, joita kukaan ei pidä</string>
+    <string name="general_progress_loading_egg_newyear_3">Ladataan uutta vuotta</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

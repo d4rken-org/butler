@@ -105,6 +105,24 @@
     <string name="general_progress_loading_egg_12">Sandali lang</string>
     <string name="general_progress_loading_egg_13">Buti na lang hindi ka nakapila sa telepono</string>
     <string name="general_progress_loading_egg_14">Direktang ipahid sa noo</string>
+    <string name="general_progress_loading_egg_halloween_0">Pinapalayas ang multo sa cache</string>
+    <string name="general_progress_loading_egg_halloween_1">Binibilang ang mga kalansay sa iyong aparador</string>
+    <string name="general_progress_loading_egg_halloween_2">Inuukit ang mga kalabasa</string>
+    <string name="general_progress_loading_egg_halloween_3">Sinisilip sa ilalim ng kama kung may zombie na proseso</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Hinahabol ang bahaghari papunta sa palayok na ginto</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Naghahanap ng four-leaf clover</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Sinusuhulan ang mga leprechaun</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Naglo-load. O hindi nga ba?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Pinapatay at binubuhay muli</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Kumukuha pa ng pretzel</string>
+    <string name="general_progress_loading_egg_xmas_0">Dalawang beses sinusuri ang listahan</string>
+    <string name="general_progress_loading_egg_xmas_1">Binabalot ang iyong mga file</string>
+    <string name="general_progress_loading_egg_xmas_2">Tinatanggal ang gusot ng mga parol</string>
+    <string name="general_progress_loading_egg_xmas_3">Pinapakain ang mga reindeer</string>
+    <string name="general_progress_loading_egg_newyear_0">Nagbibilang pababa hanggang hatinggabi</string>
+    <string name="general_progress_loading_egg_newyear_1">Binubuksan ang champagne</string>
+    <string name="general_progress_loading_egg_newyear_2">Bumubuo ng mga resolusyong walang tutupad</string>
+    <string name="general_progress_loading_egg_newyear_3">Nilo-load ang bagong taon</string>
 
     <plurals name="common_duration_milliseconds_short">
         <item quantity="one">%dms</item>

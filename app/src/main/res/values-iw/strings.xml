@@ -286,7 +286,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">ספריית טעינת תמונות המבוססת על Kotlin Coroutines. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">רכיבי הצפנה בסיסיים לאימות, חתימה והצפנה ב־SMB. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">רכיבי הצפנה בסיסיים לאימות, חתימה והצפנה ב־SMB, ולהחלפת מפתחות ומפתחות SSH ב־SFTP. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">לקוח SSH ו־SFTP לחיבור לשרתי SFTP. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, ממשק הרישום ביומן שבו משתמש Apache MINA SSHD. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">ספריות Square</string>
     <string name="acknowledgement_square_libraries_subtitle">ספריות הרשת Retrofit, OkHttp ו־OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

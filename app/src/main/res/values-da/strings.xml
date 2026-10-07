@@ -307,7 +307,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Bibliotek til billedindlæsning baseret på Kotlin Coroutines. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">Kryptografiske grundfunktioner til SMB-godkendelse, signering og kryptering. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Kryptografiske grundfunktioner til SMB-godkendelse, signering og kryptering samt til SFTP-nøgleudveksling og SSH-nøgler. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">SSH- og SFTP-klient til forbindelser til SFTP-servere. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, logging-API\'et, som Apache MINA SSHD bruger. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Square-biblioteker</string>
     <string name="acknowledgement_square_libraries_subtitle">Netværksbibliotekerne Retrofit, OkHttp og OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

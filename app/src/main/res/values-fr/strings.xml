@@ -302,7 +302,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Bibliothèque de chargement d’images basée sur les coroutines Kotlin. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">Primitives cryptographiques pour l’authentification, la signature et le chiffrement SMB. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Primitives cryptographiques pour l’authentification, la signature et le chiffrement SMB, ainsi que pour l’échange de clés SFTP et les clés SSH. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">Client SSH et SFTP pour les connexions aux serveurs SFTP. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, l’API de journalisation utilisée par Apache MINA SSHD. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Bibliothèques Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Bibliothèques réseau Retrofit, OkHttp et OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

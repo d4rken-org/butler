@@ -104,6 +104,24 @@
     <string name="general_progress_loading_egg_12">ذرا انتظار کریں</string>
     <string name="general_progress_loading_egg_13">کم از کم آپ فون پر انتظار میں نہیں ہیں</string>
     <string name="general_progress_loading_egg_14">براہ راست ماتھے پر لگائیں</string>
+    <string name="general_progress_loading_egg_halloween_0">کیش سے بھوت بھگائے جا رہے ہیں</string>
+    <string name="general_progress_loading_egg_halloween_1">آپ کی الماری کے ڈھانچے گنے جا رہے ہیں</string>
+    <string name="general_progress_loading_egg_halloween_2">کدو تراشے جا رہے ہیں</string>
+    <string name="general_progress_loading_egg_halloween_3">پلنگ کے نیچے زومبی پروسیس ڈھونڈے جا رہے ہیں</string>
+    <string name="general_progress_loading_egg_stpatricks_0">قوس قزح کے پیچھے سونے کی ہانڈی تک دوڑ لگ رہی ہے</string>
+    <string name="general_progress_loading_egg_stpatricks_1">چار پتیوں والا شمروک ڈھونڈا جا رہا ہے</string>
+    <string name="general_progress_loading_egg_stpatricks_2">لیپریکانوں کو رشوت دی جا رہی ہے</string>
+    <string name="general_progress_loading_egg_aprilfools_0">لوڈ ہو رہا ہے۔ یا شاید نہیں؟</string>
+    <string name="general_progress_loading_egg_aprilfools_1">بند کر کے دوبارہ چلایا جا رہا ہے</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">مزید پریٹزل منگوائے جا رہے ہیں</string>
+    <string name="general_progress_loading_egg_xmas_0">فہرست دو بار جانچی جا رہی ہے</string>
+    <string name="general_progress_loading_egg_xmas_1">آپ کی فائلوں پر ریپر چڑھایا جا رہا ہے</string>
+    <string name="general_progress_loading_egg_xmas_2">برقی قمقموں کی الجھی لڑیاں سلجھائی جا رہی ہیں</string>
+    <string name="general_progress_loading_egg_xmas_3">رینڈیئر کو چارہ کھلایا جا رہا ہے</string>
+    <string name="general_progress_loading_egg_newyear_0">آدھی رات تک الٹی گنتی جاری ہے</string>
+    <string name="general_progress_loading_egg_newyear_1">شیمپین کھولی جا رہی ہے</string>
+    <string name="general_progress_loading_egg_newyear_2">ایسے عہد لکھے جا رہے ہیں جو کوئی نبھائے گا نہیں</string>
+    <string name="general_progress_loading_egg_newyear_3">نیا سال لوڈ ہو رہا ہے</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

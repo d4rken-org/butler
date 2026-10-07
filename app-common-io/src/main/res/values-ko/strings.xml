@@ -69,6 +69,24 @@
     <string name="smb_error_credential_unavailable_description">이 네트워크 저장공간의 저장된 암호를 더 이상 읽을 수 없습니다. 다시 입력하여 재연결하십시오.</string>
     <string name="smb_error_pro_required_title">네트워크 공유는 Butler Pro 필요</string>
     <string name="smb_error_pro_required_description">네트워크 공유를 찾아보려면 Butler Pro가 필요합니다. 위치 추가, 테스트, 제거는 무료입니다.</string>
+    <string name="sftp_error_credential_unavailable_title">로그인 필요</string>
+    <string name="sftp_error_credential_unavailable_description">이 SFTP 서버에 저장된 비밀번호나 키를 더 이상 읽을 수 없어요. 다시 입력해서 재연결해 주세요.</string>
+    <string name="sftp_error_unreachable_title">서버에 연결할 수 없어요</string>
+    <string name="sftp_error_unreachable_description">Butler가 \"%1$s\"에 연결할 수 없어요. 주소와 포트를 확인하고, SSH 서버가 실행 중인지 확인해 주세요.</string>
+    <string name="sftp_error_auth_title">로그인 실패</string>
+    <string name="sftp_error_auth_description">\"%1$s\" 서버가 사용자 이름, 비밀번호 또는 키를 거부했어요.</string>
+    <string name="sftp_error_host_key_unknown_title">알 수 없는 서버</string>
+    <string name="sftp_error_host_key_unknown_description">Butler가 아직 \"%1$s\" 서버를 신뢰하지 않았어요. 이 서버는 %2$s 키로 자신을 식별해요.</string>
+    <string name="sftp_error_host_key_changed_title">서버 신원이 변경되었어요</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" 서버가 신뢰했던 키와 다른 키를 제시했어요. Butler는 로그인하지 않았어요.\n\n신뢰한 키: %2$s\n제시된 키: %3$s</string>
+    <string name="sftp_error_key_format_title">읽을 수 없는 키</string>
+    <string name="sftp_error_key_format_description">Butler가 읽을 수 없는 형식의 개인 키예요. OpenSSH, PEM, PKCS#8 키 파일을 지원해요.</string>
+    <string name="sftp_error_key_passphrase_title">잘못된 패스프레이즈</string>
+    <string name="sftp_error_key_passphrase_description">개인 키가 보호되어 있는데 패스프레이즈가 틀렸거나 입력되지 않았어요.</string>
+    <string name="sftp_error_access_denied_title">이 폴더에 접근할 수 없어요</string>
+    <string name="sftp_error_access_denied_description">이 계정으로는 \"%1$s\"에 설정된 폴더를 열 수 없을 수 있어요. 서버에서 폴더 권한을 확인해 주세요.</string>
+    <string name="sftp_error_pro_required_title">SFTP 서버는 Butler Pro 필요</string>
+    <string name="sftp_error_pro_required_description">SFTP 서버를 찾아보려면 Butler Pro가 필요해요. 서버 추가, 테스트, 제거는 무료예요.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">보호된 앱 번들</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" 앱 번들은 암호화되어 있으며 이를 만든 앱에서만 설치할 수 있습니다.</string>

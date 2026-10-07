@@ -104,6 +104,24 @@
     <string name="general_progress_loading_egg_12">Var god vänta</string>
     <string name="general_progress_loading_egg_13">Du slipper åtminstone telefonkön</string>
     <string name="general_progress_loading_egg_14">Applicera direkt på pannan</string>
+    <string name="general_progress_loading_egg_halloween_0">Driver ut andar ur cachen</string>
+    <string name="general_progress_loading_egg_halloween_1">Räknar skeletten i din garderob</string>
+    <string name="general_progress_loading_egg_halloween_2">Skär ut pumporna</string>
+    <string name="general_progress_loading_egg_halloween_3">Kollar under sängen efter zombieprocesser</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Jagar regnbågen till guldkrukan</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Letar efter en fyrklöver</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Mutar leprechaunerna</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Läser in. Eller gör jag det?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Stänger av och sätter på igen</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Hämtar fler kringlor</string>
+    <string name="general_progress_loading_egg_xmas_0">Kollar listan en gång till</string>
+    <string name="general_progress_loading_egg_xmas_1">Slår in dina filer</string>
+    <string name="general_progress_loading_egg_xmas_2">Reder ut julgransbelysningen</string>
+    <string name="general_progress_loading_egg_xmas_3">Matar renarna</string>
+    <string name="general_progress_loading_egg_newyear_0">Räknar ner till midnatt</string>
+    <string name="general_progress_loading_egg_newyear_1">Skjuter korken ur champagnen</string>
+    <string name="general_progress_loading_egg_newyear_2">Skriver nyårslöften som ingen kommer hålla</string>
+    <string name="general_progress_loading_egg_newyear_3">Läser in det nya året</string>
 
     <plurals name="common_duration_milliseconds_short">
         <item quantity="one">%dms</item>

@@ -105,6 +105,24 @@
     <string name="general_progress_loading_egg_12">சற்று காத்திருங்கள்</string>
     <string name="general_progress_loading_egg_13">குறைந்தது தொலைபேசியில் காத்திருக்க வேண்டியதில்லையே</string>
     <string name="general_progress_loading_egg_14">நேரடியாக நெற்றியில் தடவுங்கள்</string>
+    <string name="general_progress_loading_egg_halloween_0">தற்காலிகச் சேமிப்பில் உள்ள பேயை விரட்டுகிறோம்</string>
+    <string name="general_progress_loading_egg_halloween_1">உங்கள் அலமாரியில் உள்ள எலும்புக்கூடுகளை எண்ணுகிறோம்</string>
+    <string name="general_progress_loading_egg_halloween_2">பூசணிக்காய்களைச் செதுக்குகிறோம்</string>
+    <string name="general_progress_loading_egg_halloween_3">கட்டிலுக்கு அடியில் ஜாம்பி செயல்முறைகள் உள்ளனவா எனப் பார்க்கிறோம்</string>
+    <string name="general_progress_loading_egg_stpatricks_0">வானவில்லின் முடிவில் உள்ள தங்கப் பானையைத் துரத்துகிறோம்</string>
+    <string name="general_progress_loading_egg_stpatricks_1">நான்கு இதழ் க்ளோவரைத் தேடுகிறோம்</string>
+    <string name="general_progress_loading_egg_stpatricks_2">லெப்ரிகான்களுக்கு இலஞ்சம் கொடுக்கிறோம்</string>
+    <string name="general_progress_loading_egg_aprilfools_0">ஏற்றுகிறது. அல்லது இல்லையா?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">அணைத்து மீண்டும் இயக்குகிறோம்</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">இன்னும் பிரெட்சல்களைக் கொண்டுவருகிறோம்</string>
+    <string name="general_progress_loading_egg_xmas_0">பட்டியலை இருமுறை சரிபார்க்கிறோம்</string>
+    <string name="general_progress_loading_egg_xmas_1">உங்கள் கோப்புகளைப் பரிசாகப் பொதிகிறோம்</string>
+    <string name="general_progress_loading_egg_xmas_2">தேவதை விளக்குகளின் சிக்கலை அவிழ்க்கிறோம்</string>
+    <string name="general_progress_loading_egg_xmas_3">கலைமான்களுக்கு உணவளிக்கிறோம்</string>
+    <string name="general_progress_loading_egg_newyear_0">நள்ளிரவுக்கு நேரம் எண்ணுகிறோம்</string>
+    <string name="general_progress_loading_egg_newyear_1">ஷாம்பெயின் பாட்டிலைத் திறக்கிறோம்</string>
+    <string name="general_progress_loading_egg_newyear_2">யாரும் காப்பாற்றாத புத்தாண்டு உறுதிமொழிகளை எழுதுகிறோம்</string>
+    <string name="general_progress_loading_egg_newyear_3">புத்தாண்டை ஏற்றுகிறோம்</string>
 
     <plurals name="common_duration_milliseconds_short">
         <item quantity="one">%d மி.வி.</item>

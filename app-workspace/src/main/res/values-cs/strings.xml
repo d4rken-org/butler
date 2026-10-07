@@ -173,6 +173,7 @@
     <string name="operations_details_actions">Akce</string>
     <string name="operations_details_overview">Přehled</string>
     <string name="operations_details_handle_issue">Řešit problém</string>
+    <string name="operations_details_open_app_action">Otevřít aplikaci</string>
     <string name="operations_details_show_in_history_action">Zobrazit v historii</string>
     <string name="operations_details_status">Stav</string>
     <string name="operations_details_result">Výsledek</string>

@@ -69,6 +69,24 @@
     <string name="smb_error_credential_unavailable_description">此網路儲存空間的已保存密碼無法讀取。請重新輸入以重新連接。</string>
     <string name="smb_error_pro_required_title">網路共用資源需要Butler Pro</string>
     <string name="smb_error_pro_required_description">瀏覽網路共用資源是Butler Pro的功能。新增、測試與移除位置皆可免費使用。</string>
+    <string name="sftp_error_credential_unavailable_title">需要登入</string>
+    <string name="sftp_error_credential_unavailable_description">此 SFTP 伺服器的已儲存密碼或金鑰無法讀取。請重新輸入以重新連接。</string>
+    <string name="sftp_error_unreachable_title">無法連接伺服器</string>
+    <string name="sftp_error_unreachable_description">Butler無法連接\"%1$s\"。請檢查位址與連接埠，以及 SSH 伺服器是否已執行。</string>
+    <string name="sftp_error_auth_title">登入失敗</string>
+    <string name="sftp_error_auth_description">\"%1$s\"拒絕了使用者名稱、密碼或金鑰。</string>
+    <string name="sftp_error_host_key_unknown_title">未知的伺服器</string>
+    <string name="sftp_error_host_key_unknown_description">Butler尚未信任\"%1$s\"。它以金鑰 %2$s 表明身分。</string>
+    <string name="sftp_error_host_key_changed_title">伺服器身分已變更</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\"提供的金鑰與你信任的金鑰不同。Butler未進行登入。\n\n已信任：%2$s\n目前提供：%3$s</string>
+    <string name="sftp_error_key_format_title">無法讀取的金鑰</string>
+    <string name="sftp_error_key_format_description">私密金鑰的格式不是Butler可讀取的格式。支援 OpenSSH、PEM 與 PKCS#8 金鑰檔案。</string>
+    <string name="sftp_error_key_passphrase_title">密碼短語錯誤</string>
+    <string name="sftp_error_key_passphrase_description">私密金鑰受到保護，且密碼短語錯誤或未提供。</string>
+    <string name="sftp_error_access_denied_title">無法存取此資料夾</string>
+    <string name="sftp_error_access_denied_description">此帳戶可能無法開啟為\"%1$s\"設定的資料夾。請檢查伺服器上該資料夾的權限。</string>
+    <string name="sftp_error_pro_required_title">SFTP 伺服器需要Butler Pro</string>
+    <string name="sftp_error_pro_required_description">瀏覽 SFTP 伺服器是Butler Pro的功能。新增、測試與移除伺服器皆可免費使用。</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">受保護的應用程式套件</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\"已加密，只能由建立它的應用程式安裝。</string>

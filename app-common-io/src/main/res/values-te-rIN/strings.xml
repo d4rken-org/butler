@@ -70,6 +70,24 @@
     <string name="smb_error_credential_unavailable_description">ఈ నెట్‌వర్క్ నిల్వ కోసం సేవ్ చేసిన పాస్‌వర్డ్‌ను ఇక చదవలేము. మళ్లీ కనెక్ట్ కావడానికి దాన్ని తిరిగి నమోదు చేయండి.</string>
     <string name="smb_error_pro_required_title">నెట్‌వర్క్ షేర్‌లకు Butler Pro అవసరం</string>
     <string name="smb_error_pro_required_description">నెట్‌వర్క్ షేర్‌లను బ్రౌజ్ చేయడం Butler Proలో భాగం. స్థానాలను జోడించడం, పరీక్షించడం, తీసివేయడం ఉచితం.</string>
+    <string name="sftp_error_credential_unavailable_title">సైన్ ఇన్ అవసరం</string>
+    <string name="sftp_error_credential_unavailable_description">ఈ SFTP సర్వర్ కోసం సేవ్ చేసిన పాస్‌వర్డ్ లేదా కీని ఇక చదవలేము. మళ్లీ కనెక్ట్ కావడానికి దాన్ని తిరిగి నమోదు చేయండి.</string>
+    <string name="sftp_error_unreachable_title">సర్వర్‌ను చేరుకోలేము</string>
+    <string name="sftp_error_unreachable_description">Butler \"%1$s\"ను చేరుకోలేకపోయింది. చిరునామా, పోర్ట్ సరైనవో, SSH సర్వర్ నడుస్తోందో తనిఖీ చేయండి.</string>
+    <string name="sftp_error_auth_title">సైన్ ఇన్ విఫలమైంది</string>
+    <string name="sftp_error_auth_description">\"%1$s\" వినియోగదారు పేరు, పాస్‌వర్డ్ లేదా కీని నిరాకరించింది.</string>
+    <string name="sftp_error_host_key_unknown_title">తెలియని సర్వర్</string>
+    <string name="sftp_error_host_key_unknown_description">Butler ఇంకా \"%1$s\"ను విశ్వసించలేదు. అది %2$s కీతో తనను తాను గుర్తింపజేసుకుంటోంది.</string>
+    <string name="sftp_error_host_key_changed_title">సర్వర్ గుర్తింపు మారింది</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" మీరు విశ్వసించిన కీ కాకుండా వేరే కీని చూపించింది. Butler సైన్ ఇన్ చేయలేదు.\n\nవిశ్వసించినది: %2$s\nచూపినది: %3$s</string>
+    <string name="sftp_error_key_format_title">చదవలేని కీ</string>
+    <string name="sftp_error_key_format_description">ప్రైవేట్ కీ, Butler చదవగల ఫార్మాట్‌లో లేదు. OpenSSH, PEM, PKCS#8 కీ ఫైళ్లకు మద్దతు ఉంది.</string>
+    <string name="sftp_error_key_passphrase_title">తప్పు పాస్‌ఫ్రేజ్</string>
+    <string name="sftp_error_key_passphrase_description">ప్రైవేట్ కీ రక్షించబడింది, పాస్‌ఫ్రేజ్ తప్పుగా ఉంది లేదా ఇవ్వలేదు.</string>
+    <string name="sftp_error_access_denied_title">ఈ ఫోల్డర్‌కు యాక్సెస్ లేదు</string>
+    <string name="sftp_error_access_denied_description">ఈ ఖాతాకు \"%1$s\" కోసం సెట్ చేసిన ఫోల్డర్‌ను తెరవడానికి అనుమతి లేకపోవచ్చు. సర్వర్‌లో ఫోల్డర్ అనుమతులను తనిఖీ చేయండి.</string>
+    <string name="sftp_error_pro_required_title">SFTP సర్వర్‌లకు Butler Pro అవసరం</string>
+    <string name="sftp_error_pro_required_description">SFTP సర్వర్‌లను బ్రౌజ్ చేయడం Butler Proలో భాగం. సర్వర్‌లను జోడించడం, పరీక్షించడం, తీసివేయడం ఉచితం.</string>
 
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">రక్షిత యాప్ బండిల్</string>

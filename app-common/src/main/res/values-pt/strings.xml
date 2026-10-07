@@ -107,6 +107,24 @@
     <string name="general_progress_loading_egg_12">Aguarda um momento</string>
     <string name="general_progress_loading_egg_13">Ao menos não estás em espera ao telefone</string>
     <string name="general_progress_loading_egg_14">Aplicar diretamente na testa</string>
+    <string name="general_progress_loading_egg_halloween_0">A exorcizar a cache</string>
+    <string name="general_progress_loading_egg_halloween_1">A contar os esqueletos do teu armário</string>
+    <string name="general_progress_loading_egg_halloween_2">A esculpir as abóboras</string>
+    <string name="general_progress_loading_egg_halloween_3">A verificar debaixo da cama se há processos zombie</string>
+    <string name="general_progress_loading_egg_stpatricks_0">A perseguir o arco-íris até ao pote de ouro</string>
+    <string name="general_progress_loading_egg_stpatricks_1">À procura de um trevo de quatro folhas</string>
+    <string name="general_progress_loading_egg_stpatricks_2">A subornar os leprechauns</string>
+    <string name="general_progress_loading_egg_aprilfools_0">A carregar. Ou será que não?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">A desligar e voltar a ligar</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">A ir buscar mais pretzels</string>
+    <string name="general_progress_loading_egg_xmas_0">A verificar a lista duas vezes</string>
+    <string name="general_progress_loading_egg_xmas_1">A embrulhar os teus ficheiros</string>
+    <string name="general_progress_loading_egg_xmas_2">A desenrolar as luzes de Natal</string>
+    <string name="general_progress_loading_egg_xmas_3">A dar de comer às renas</string>
+    <string name="general_progress_loading_egg_newyear_0">A contar os segundos até à meia-noite</string>
+    <string name="general_progress_loading_egg_newyear_1">A abrir o champanhe</string>
+    <string name="general_progress_loading_egg_newyear_2">A redigir resoluções que ninguém vai cumprir</string>
+    <string name="general_progress_loading_egg_newyear_3">A carregar o novo ano</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

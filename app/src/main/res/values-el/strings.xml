@@ -289,7 +289,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Βιβλιοθήκη φόρτωσης εικόνων βασισμένη σε Kotlin Coroutines. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">Κρυπτογραφικά δομικά στοιχεία για έλεγχο ταυτότητας, υπογραφή και κρυπτογράφηση SMB. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Κρυπτογραφικά δομικά στοιχεία για έλεγχο ταυτότητας, υπογραφή και κρυπτογράφηση SMB, καθώς και για ανταλλαγή κλειδιών SFTP και κλειδιά SSH. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">Πελάτης SSH και SFTP για συνδέσεις με διακομιστές SFTP. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, το API καταγραφής που χρησιμοποιεί το Apache MINA SSHD. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Βιβλιοθήκες Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Βιβλιοθήκες δικτύωσης Retrofit, OkHttp και OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

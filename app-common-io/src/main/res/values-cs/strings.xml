@@ -69,6 +69,24 @@
     <string name="smb_error_credential_unavailable_description">Uložené heslo pro toto úložiště v síti již nelze přečíst. Zadejte jej znovu pro opětovné připojení.</string>
     <string name="smb_error_pro_required_title">Sdílené složky v síti vyžadují Butler Pro</string>
     <string name="smb_error_pro_required_description">Procházení sdílených složek v síti je součástí Butler Pro. Přidávání, testování a odebírání umístění je zdarma.</string>
+    <string name="sftp_error_credential_unavailable_title">Vyžaduje se přihlášení</string>
+    <string name="sftp_error_credential_unavailable_description">Uložené heslo nebo klíč pro tento server SFTP už nelze přečíst. Zadej údaje znovu pro opětovné připojení.</string>
+    <string name="sftp_error_unreachable_title">Server je nedostupný</string>
+    <string name="sftp_error_unreachable_description">Butler se nemohl připojit k \"%1$s\". Zkontroluj adresu a port a také to, zda server SSH běží.</string>
+    <string name="sftp_error_auth_title">Přihlášení se nezdařilo</string>
+    <string name="sftp_error_auth_description">\"%1$s\" odmítl uživatelské jméno, heslo nebo klíč.</string>
+    <string name="sftp_error_host_key_unknown_title">Neznámý server</string>
+    <string name="sftp_error_host_key_unknown_description">Butler zatím nedůvěřuje serveru \"%1$s\". Server se představuje klíčem %2$s.</string>
+    <string name="sftp_error_host_key_changed_title">Identita serveru se změnila</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" předložil jiný klíč, než jaký byl dříve potvrzen. Butler se nepřihlásil.\n\nDůvěryhodný: %2$s\nPředložený: %3$s</string>
+    <string name="sftp_error_key_format_title">Nečitelný klíč</string>
+    <string name="sftp_error_key_format_description">Soukromý klíč není ve formátu, který Butler umí přečíst. Podporovány jsou soubory klíčů OpenSSH, PEM a PKCS#8.</string>
+    <string name="sftp_error_key_passphrase_title">Špatná přístupová fráze</string>
+    <string name="sftp_error_key_passphrase_description">Soukromý klíč je chráněn a přístupová fráze je nesprávná nebo chybí.</string>
+    <string name="sftp_error_access_denied_title">Bez přístupu k této složce</string>
+    <string name="sftp_error_access_denied_description">Tento účet nemůže otevřít složku nastavenou pro \"%1$s\". Zkontroluj oprávnění složky na serveru.</string>
+    <string name="sftp_error_pro_required_title">Servery SFTP vyžadují Butler Pro</string>
+    <string name="sftp_error_pro_required_description">Procházení serverů SFTP je součástí Butler Pro. Přidávání, testování a odebírání serverů je zdarma.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Chráněný balíček aplikace</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" je zašifrován a lze jej instalovat pouze aplikací, která jej vytvořila.</string>

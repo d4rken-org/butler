@@ -70,6 +70,24 @@
     <string name="smb_error_credential_unavailable_description">Det sparade lösenordet för den här nätverkslagringen kan inte längre läsas. Ange det igen för att ansluta på nytt.</string>
     <string name="smb_error_pro_required_title">Delade nätverksresurser kräver Butler Pro</string>
     <string name="smb_error_pro_required_description">Att bläddra bland delade nätverksresurser ingår i Butler Pro. Det är gratis att lägga till, testa och ta bort platser.</string>
+    <string name="sftp_error_credential_unavailable_title">Inloggning krävs</string>
+    <string name="sftp_error_credential_unavailable_description">Det sparade lösenordet eller den sparade nyckeln för den här SFTP-servern kan inte längre läsas. Ange det igen för att ansluta på nytt.</string>
+    <string name="sftp_error_unreachable_title">Servern kan inte nås</string>
+    <string name="sftp_error_unreachable_description">Butler kunde inte nå \"%1$s\". Kontrollera adressen och porten samt att SSH-servern körs.</string>
+    <string name="sftp_error_auth_title">Inloggningen misslyckades</string>
+    <string name="sftp_error_auth_description">\"%1$s\" avvisade användarnamnet, lösenordet eller nyckeln.</string>
+    <string name="sftp_error_host_key_unknown_title">Okänd server</string>
+    <string name="sftp_error_host_key_unknown_description">Butler har inte litat på \"%1$s\" ännu. Servern identifierar sig med nyckeln %2$s.</string>
+    <string name="sftp_error_host_key_changed_title">Serverns identitet har ändrats</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" presenterade en annan nyckel än den du litade på. Butler loggade inte in.\n\nBetrodd: %2$s\nPresenterad: %3$s</string>
+    <string name="sftp_error_key_format_title">Nyckeln kan inte läsas</string>
+    <string name="sftp_error_key_format_description">Den privata nyckeln har ett format som Butler inte kan läsa. Nyckelfiler i formaten OpenSSH, PEM och PKCS#8 stöds.</string>
+    <string name="sftp_error_key_passphrase_title">Fel lösenfras</string>
+    <string name="sftp_error_key_passphrase_description">Den privata nyckeln är skyddad och lösenfrasen är felaktig eller saknas.</string>
+    <string name="sftp_error_access_denied_title">Ingen åtkomst till den här mappen</string>
+    <string name="sftp_error_access_denied_description">Det här kontot får inte öppna mappen som angetts för \"%1$s\". Kontrollera mappens behörigheter på servern.</string>
+    <string name="sftp_error_pro_required_title">SFTP-servrar kräver Butler Pro</string>
+    <string name="sftp_error_pro_required_description">Att bläddra bland SFTP-servrar ingår i Butler Pro. Det är gratis att lägga till, testa och ta bort servrar.</string>
 
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Skyddat app-paket</string>
