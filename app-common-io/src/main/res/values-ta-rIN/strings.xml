@@ -70,6 +70,24 @@
     <string name="smb_error_credential_unavailable_description">இந்தப் பிணையச் சேமிப்பகத்திற்குச் சேமிக்கப்பட்ட கடவுச்சொல்லை இனி வாசிக்க முடியாது. மீண்டும் இணைக்க அதை மறுபடியும் உள்ளிடுங்கள்.</string>
     <string name="smb_error_pro_required_title">பிணையப் பகிர்வுகளுக்கு Butler Pro தேவை</string>
     <string name="smb_error_pro_required_description">பிணையப் பகிர்வுகளில் உலாவுவது Butler Pro இன் ஒரு அம்சம். இருப்பிடங்களைச் சேர்ப்பது, சோதிப்பது மற்றும் அகற்றுவது இலவசம்.</string>
+    <string name="sftp_error_credential_unavailable_title">உள்நுழைவு தேவை</string>
+    <string name="sftp_error_credential_unavailable_description">இந்த SFTP சேவையகத்திற்குச் சேமிக்கப்பட்ட கடவுச்சொல் அல்லது விசையை இனி வாசிக்க முடியாது. மீண்டும் இணைக்க அதை மறுபடியும் உள்ளிடுங்கள்.</string>
+    <string name="sftp_error_unreachable_title">சேவையகத்தைத் தொடர்புகொள்ள முடியவில்லை</string>
+    <string name="sftp_error_unreachable_description">\"%1$s\" ஐ Butler ஆல் தொடர்புகொள்ள முடியவில்லை. முகவரியையும் போர்ட்டையும், SSH சேவையகம் இயக்கப்பட்டுள்ளதா என்பதையும் சரிபாருங்கள்.</string>
+    <string name="sftp_error_auth_title">உள்நுழைவு தோல்வியடைந்தது</string>
+    <string name="sftp_error_auth_description">\"%1$s\" பயனர்பெயர், கடவுச்சொல் அல்லது விசையை நிராகரித்துவிட்டது.</string>
+    <string name="sftp_error_host_key_unknown_title">அறியப்படாத சேவையகம்</string>
+    <string name="sftp_error_host_key_unknown_description">\"%1$s\" ஐ Butler இன்னும் நம்பவில்லை. அது %2$s என்ற விசையுடன் தன்னை அடையாளப்படுத்துகிறது.</string>
+    <string name="sftp_error_host_key_changed_title">சேவையக அடையாளம் மாறியுள்ளது</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" நீங்கள் நம்பிய விசையிலிருந்து வேறுபட்ட விசையை வழங்கியது. Butler உள்நுழையவில்லை.\n\nநம்பப்பட்டது: %2$s\nவழங்கப்பட்டது: %3$s</string>
+    <string name="sftp_error_key_format_title">வாசிக்க முடியாத விசை</string>
+    <string name="sftp_error_key_format_description">தனிப்பட்ட விசை Butler வாசிக்கக்கூடிய வடிவத்தில் இல்லை. OpenSSH, PEM மற்றும் PKCS#8 விசைக் கோப்புகள் ஆதரிக்கப்படுகின்றன.</string>
+    <string name="sftp_error_key_passphrase_title">தவறான கடவுச்சொற்றொடர்</string>
+    <string name="sftp_error_key_passphrase_description">தனிப்பட்ட விசை பாதுகாக்கப்பட்டுள்ளது; கடவுச்சொற்றொடர் தவறானது அல்லது கொடுக்கப்படவில்லை.</string>
+    <string name="sftp_error_access_denied_title">இந்தக் கோப்புறைக்கு அணுகல் இல்லை</string>
+    <string name="sftp_error_access_denied_description">\"%1$s\" க்கு அமைக்கப்பட்ட கோப்புறையைத் திறக்க இந்தக் கணக்குக்கு அனுமதி இல்லை. சேவையகத்தில் கோப்புறையின் அனுமதிகளைச் சரிபாருங்கள்.</string>
+    <string name="sftp_error_pro_required_title">SFTP சேவையகங்களுக்கு Butler Pro தேவை</string>
+    <string name="sftp_error_pro_required_description">SFTP சேவையகங்களில் உலாவுவது Butler Pro இன் ஒரு அம்சம். சேவையகங்களைச் சேர்ப்பது, சோதிப்பது மற்றும் அகற்றுவது இலவசம்.</string>
 
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">பாதுகாக்கப்பட்ட செயலித் தொகுப்பு</string>

@@ -69,6 +69,24 @@
     <string name="smb_error_credential_unavailable_description">此网络存储的已保存密码无法再读取。再次输入以重新连接。</string>
     <string name="smb_error_pro_required_title">网络共享需要 Butler Pro</string>
     <string name="smb_error_pro_required_description">浏览网络共享是 Butler Pro 的一部分。添加、测试和移除位置是免费的。</string>
+    <string name="sftp_error_credential_unavailable_title">需要登录</string>
+    <string name="sftp_error_credential_unavailable_description">此 SFTP 服务器已保存的密码或密钥无法再读取。请重新输入以重新连接。</string>
+    <string name="sftp_error_unreachable_title">服务器无法访问</string>
+    <string name="sftp_error_unreachable_description">Butler 无法访问 \"%1$s\"。请检查地址和端口，并确认 SSH 服务器正在运行。</string>
+    <string name="sftp_error_auth_title">登录失败</string>
+    <string name="sftp_error_auth_description">\"%1$s\" 拒绝了用户名、密码或密钥。</string>
+    <string name="sftp_error_host_key_unknown_title">未知服务器</string>
+    <string name="sftp_error_host_key_unknown_description">Butler 尚未信任 \"%1$s\"。它使用密钥 %2$s 表明身份。</string>
+    <string name="sftp_error_host_key_changed_title">服务器身份已更改</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" 提供的密钥与已信任的密钥不同。Butler 没有登录。\n\n已信任：%2$s\n当前提供：%3$s</string>
+    <string name="sftp_error_key_format_title">无法读取的密钥</string>
+    <string name="sftp_error_key_format_description">此私钥的格式 Butler 无法读取。支持 OpenSSH、PEM 和 PKCS#8 密钥文件。</string>
+    <string name="sftp_error_key_passphrase_title">密码短语错误</string>
+    <string name="sftp_error_key_passphrase_description">此私钥受到保护，但密码短语错误或缺失。</string>
+    <string name="sftp_error_access_denied_title">无权访问此文件夹</string>
+    <string name="sftp_error_access_denied_description">此账户可能无权打开为 \"%1$s\" 设置的文件夹。请检查服务器上该文件夹的权限。</string>
+    <string name="sftp_error_pro_required_title">SFTP 服务器需要 Butler Pro</string>
+    <string name="sftp_error_pro_required_description">浏览 SFTP 服务器是 Butler Pro 的一部分。添加、测试和移除服务器是免费的。</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">受保护的应用包</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" 已加密，只能由创建它的应用安装。</string>

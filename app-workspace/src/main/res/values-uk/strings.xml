@@ -173,6 +173,7 @@
     <string name="operations_details_actions">Дії</string>
     <string name="operations_details_overview">Огляд</string>
     <string name="operations_details_handle_issue">Вирішити проблему</string>
+    <string name="operations_details_open_app_action">Відкрити програму</string>
     <string name="operations_details_show_in_history_action">Показати в історії</string>
     <string name="operations_details_status">Стан</string>
     <string name="operations_details_result">Результат</string>

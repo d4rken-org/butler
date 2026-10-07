@@ -173,6 +173,7 @@
     <string name="operations_details_actions">Действия</string>
     <string name="operations_details_overview">Обзор</string>
     <string name="operations_details_handle_issue">Обработать проблему</string>
+    <string name="operations_details_open_app_action">Открыть приложение</string>
     <string name="operations_details_show_in_history_action">Показать в истории</string>
     <string name="operations_details_status">Статус</string>
     <string name="operations_details_result">Результат</string>

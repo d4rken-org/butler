@@ -276,7 +276,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Kotlin-korutinokra épülő képbetöltő könyvtár. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">Kriptográfiai primitívek SMB-hitelesítéshez, aláíráshoz és titkosításhoz. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Kriptográfiai primitívek SMB-hitelesítéshez, aláíráshoz és titkosításhoz, valamint SFTP-kulcscseréhez és SSH-kulcsokhoz. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">SSH- és SFTP-kliens az SFTP-kiszolgálókhoz való csatlakozáshoz. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, az Apache MINA SSHD által használt naplózási API. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Square-könyvtárak</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp és OkIO hálózati könyvtárak. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

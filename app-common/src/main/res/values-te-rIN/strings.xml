@@ -105,6 +105,24 @@
     <string name="general_progress_loading_egg_12">దయచేసి వేచి ఉండండి</string>
     <string name="general_progress_loading_egg_13">కనీసం ఫోన్‌లో వేచి ఉండాల్సిన పని లేదు</string>
     <string name="general_progress_loading_egg_14">నేరుగా నుదుటిపై రాయండి</string>
+    <string name="general_progress_loading_egg_halloween_0">కాష్‌కు భూతవైద్యం చేస్తున్నాం</string>
+    <string name="general_progress_loading_egg_halloween_1">మీ అల్మారాలోని అస్థిపంజరాలను లెక్కిస్తున్నాం</string>
+    <string name="general_progress_loading_egg_halloween_2">గుమ్మడికాయలను చెక్కుతున్నాం</string>
+    <string name="general_progress_loading_egg_halloween_3">మంచం కింద జాంబీ ప్రాసెస్‌ల కోసం వెతుకుతున్నాం</string>
+    <string name="general_progress_loading_egg_stpatricks_0">ఇంద్రధనుస్సు వెంట బంగారు కుండ కోసం పరుగెడుతున్నాం</string>
+    <string name="general_progress_loading_egg_stpatricks_1">నాలుగు ఆకుల క్లోవర్ కోసం వెతుకుతున్నాం</string>
+    <string name="general_progress_loading_egg_stpatricks_2">లెప్రికాన్లకు లంచం ఇస్తున్నాం</string>
+    <string name="general_progress_loading_egg_aprilfools_0">లోడ్ అవుతోంది. లేదా కాదేమో?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">ఆఫ్ చేసి మళ్లీ ఆన్ చేస్తున్నాం</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">ఇంకొన్ని ప్రెట్జెల్స్ తెస్తున్నాం</string>
+    <string name="general_progress_loading_egg_xmas_0">జాబితాను రెండుసార్లు చూస్తున్నాం</string>
+    <string name="general_progress_loading_egg_xmas_1">మీ ఫైళ్లను గిఫ్ట్ ప్యాక్ చేస్తున్నాం</string>
+    <string name="general_progress_loading_egg_xmas_2">చిక్కుబడిన దీపాల తీగలను విడదీస్తున్నాం</string>
+    <string name="general_progress_loading_egg_xmas_3">రెయిన్‌డీర్‌లకు మేత వేస్తున్నాం</string>
+    <string name="general_progress_loading_egg_newyear_0">అర్ధరాత్రి వరకు కౌంట్‌డౌన్ చేస్తున్నాం</string>
+    <string name="general_progress_loading_egg_newyear_1">షాంపేన్ తెరుస్తున్నాం</string>
+    <string name="general_progress_loading_egg_newyear_2">ఎవరూ పాటించని తీర్మానాలను రాస్తున్నాం</string>
+    <string name="general_progress_loading_egg_newyear_3">కొత్త సంవత్సరం లోడ్ అవుతోంది</string>
 
     <plurals name="common_duration_milliseconds_short">
         <item quantity="one">%d మి.సె.</item>

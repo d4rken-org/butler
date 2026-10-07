@@ -69,6 +69,24 @@
     <string name="smb_error_credential_unavailable_description">Запазената парола за това мрежово хранилище вече не може да бъде прочетена. Въведи я отново, за да се свържеш.</string>
     <string name="smb_error_pro_required_title">Мрежовите споделени ресурси изискват Butler Pro</string>
     <string name="smb_error_pro_required_description">Разглеждането на мрежови споделени ресурси е част от Butler Pro. Добавянето, тестването и премахването на местоположения е безплатно.</string>
+    <string name="sftp_error_credential_unavailable_title">Нужно е влизане</string>
+    <string name="sftp_error_credential_unavailable_description">Запазената парола или ключ за този SFTP сървър вече не може да бъде прочетена. Въведи я отново, за да се свържеш.</string>
+    <string name="sftp_error_unreachable_title">Сървърът е недостъпен</string>
+    <string name="sftp_error_unreachable_description">Butler не успя да се свърже с \"%1$s\". Провери адреса и порта, както и дали SSH сървърът работи.</string>
+    <string name="sftp_error_auth_title">Влизането е неуспешно</string>
+    <string name="sftp_error_auth_description">\"%1$s\" отхвърли потребителското име, паролата или ключа.</string>
+    <string name="sftp_error_host_key_unknown_title">Непознат сървър</string>
+    <string name="sftp_error_host_key_unknown_description">Butler още не се доверява на \"%1$s\". Сървърът се представя с ключа %2$s.</string>
+    <string name="sftp_error_host_key_changed_title">Самоличността на сървъра е променена</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" представи различен ключ от този, на който се довери. Butler не влезе.\n\nПотвърден: %2$s\nПредставен: %3$s</string>
+    <string name="sftp_error_key_format_title">Ключът не може да се прочете</string>
+    <string name="sftp_error_key_format_description">Личният ключ не е във формат, който Butler може да прочете. Поддържат се файлове с ключове във формат OpenSSH, PEM и PKCS#8.</string>
+    <string name="sftp_error_key_passphrase_title">Грешна парола за ключа</string>
+    <string name="sftp_error_key_passphrase_description">Личният ключ е защитен, а паролата за него е грешна или липсва.</string>
+    <string name="sftp_error_access_denied_title">Няма достъп до тази папка</string>
+    <string name="sftp_error_access_denied_description">Този профил няма право да отваря папката, зададена за \"%1$s\". Провери разрешенията за папката на сървъра.</string>
+    <string name="sftp_error_pro_required_title">SFTP сървърите изискват Butler Pro</string>
+    <string name="sftp_error_pro_required_description">Разглеждането на SFTP сървъри е част от Butler Pro. Добавянето, тестването и премахването на сървъри е безплатно.</string>
 
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Защитен пакет на приложение</string>

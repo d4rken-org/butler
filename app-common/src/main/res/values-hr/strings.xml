@@ -105,6 +105,24 @@
     <string name="general_progress_loading_egg_12">Pričekaj</string>
     <string name="general_progress_loading_egg_13">Barem ne čekaš na telefonskoj liniji</string>
     <string name="general_progress_loading_egg_14">Nanesi izravno na čelo</string>
+    <string name="general_progress_loading_egg_halloween_0">Istjerivanje duhova iz predmemorije</string>
+    <string name="general_progress_loading_egg_halloween_1">Brojanje kostura u tvojem ormaru</string>
+    <string name="general_progress_loading_egg_halloween_2">Rezbarenje bundeva</string>
+    <string name="general_progress_loading_egg_halloween_3">Provjera ima li zombi procesa ispod kreveta</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Jurnjava za dugom do ćupa zlata</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Traženje djeteline s četiri lista</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Podmićivanje leprekona</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Učitavanje. Ili ipak ne?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Isključivanje i ponovno uključivanje</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Donošenje još pereca</string>
+    <string name="general_progress_loading_egg_xmas_0">Dvaput provjeravam popis</string>
+    <string name="general_progress_loading_egg_xmas_1">Zamatanje tvojih datoteka</string>
+    <string name="general_progress_loading_egg_xmas_2">Odmrsivanje lampica</string>
+    <string name="general_progress_loading_egg_xmas_3">Hranjenje sobova</string>
+    <string name="general_progress_loading_egg_newyear_0">Odbrojavanje do ponoći</string>
+    <string name="general_progress_loading_egg_newyear_1">Otvaranje šampanjca</string>
+    <string name="general_progress_loading_egg_newyear_2">Pisanje odluka koje nitko neće ispuniti</string>
+    <string name="general_progress_loading_egg_newyear_3">Učitavanje nove godine</string>
 
     <!-- Trajanje -->
     <plurals name="common_duration_milliseconds_short">

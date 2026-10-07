@@ -151,6 +151,7 @@
     <string name="operations_details_actions">Ενέργειες</string>
     <string name="operations_details_overview">Επισκόπηση</string>
     <string name="operations_details_handle_issue">Διαχείριση ζητήματος</string>
+    <string name="operations_details_open_app_action">Άνοιγμα εφαρμογής</string>
     <string name="operations_details_show_in_history_action">Εμφάνιση στο ιστορικό</string>
     <string name="operations_details_status">Κατάσταση</string>
     <string name="operations_details_result">Αποτέλεσμα</string>

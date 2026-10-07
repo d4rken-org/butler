@@ -281,7 +281,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Bibliotecă de încărcare a imaginilor bazată pe Kotlin Coroutines. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">Primitive criptografice pentru autentificare, semnare și criptare SMB. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Primitive criptografice pentru autentificarea, semnarea și criptarea SMB, precum și pentru schimbul de chei SFTP și cheile SSH. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">Client SSH și SFTP pentru conexiuni la servere SFTP. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API-ul de jurnalizare folosit de Apache MINA SSHD. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Biblioteci Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Biblioteci de rețea Retrofit, OkHttp și OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

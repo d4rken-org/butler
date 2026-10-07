@@ -140,6 +140,7 @@
     <string name="operations_details_actions">การกระทำ</string>
     <string name="operations_details_overview">ภาพรวม</string>
     <string name="operations_details_handle_issue">จัดการปัญหา</string>
+    <string name="operations_details_open_app_action">เปิดแอป</string>
     <string name="operations_details_show_in_history_action">แสดงในประวัติ</string>
     <string name="operations_details_status">สถานะ</string>
     <string name="operations_details_result">ผลลัพธ์</string>

@@ -303,7 +303,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Library sa pag-load ng larawan na gumagamit ng Kotlin Coroutines. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">Mga batayang cryptographic na operasyon para sa authentication, paglagda, at pag-encrypt ng SMB. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Mga batayang cryptographic na operasyon para sa authentication, paglagda, at pag-encrypt ng SMB, at para sa key exchange ng SFTP at mga SSH key. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">SSH at SFTP client para sa mga koneksyon sa mga SFTP server. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, ang logging API na ginagamit ng Apache MINA SSHD. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Mga library ng Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Mga library sa networking na Retrofit, OkHttp, at OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

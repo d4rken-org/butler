@@ -151,6 +151,7 @@
     <string name="operations_details_actions">Eylemler</string>
     <string name="operations_details_overview">Genel bakış</string>
     <string name="operations_details_handle_issue">Sorunu çöz</string>
+    <string name="operations_details_open_app_action">Uygulamayı aç</string>
     <string name="operations_details_show_in_history_action">Geçmişte göster</string>
     <string name="operations_details_status">Durum</string>
     <string name="operations_details_result">Sonuç</string>

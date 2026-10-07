@@ -69,6 +69,24 @@
     <string name="smb_error_credential_unavailable_description">La contraseña guardada para este almacenamiento de red ya no se puede leer. Ingrésala de nuevo para reconectar.</string>
     <string name="smb_error_pro_required_title">Los recursos compartidos de red requieren Butler Pro</string>
     <string name="smb_error_pro_required_description">Explorar recursos compartidos de red es parte de Butler Pro. Agregar, probar y quitar ubicaciones es gratis.</string>
+    <string name="sftp_error_credential_unavailable_title">Se requiere iniciar sesión</string>
+    <string name="sftp_error_credential_unavailable_description">La contraseña o la clave guardada para este servidor SFTP ya no se puede leer. Ingrésala de nuevo para reconectar.</string>
+    <string name="sftp_error_unreachable_title">Servidor no disponible</string>
+    <string name="sftp_error_unreachable_description">Butler no pudo conectar con \"%1$s\". Comprueba la dirección y el puerto, y que el servidor SSH esté en ejecución.</string>
+    <string name="sftp_error_auth_title">Error al iniciar sesión</string>
+    <string name="sftp_error_auth_description">\"%1$s\" rechazó el nombre de usuario, la contraseña o la clave.</string>
+    <string name="sftp_error_host_key_unknown_title">Servidor desconocido</string>
+    <string name="sftp_error_host_key_unknown_description">Butler aún no confía en \"%1$s\". El servidor se identifica con la clave %2$s.</string>
+    <string name="sftp_error_host_key_changed_title">La identidad del servidor cambió</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" presentó una clave distinta de la que habías aceptado. Butler no inició sesión.\n\nConfiable: %2$s\nPresentada: %3$s</string>
+    <string name="sftp_error_key_format_title">Clave ilegible</string>
+    <string name="sftp_error_key_format_description">La clave privada no tiene un formato que Butler pueda leer. Se admiten archivos de clave OpenSSH, PEM y PKCS#8.</string>
+    <string name="sftp_error_key_passphrase_title">Frase de contraseña incorrecta</string>
+    <string name="sftp_error_key_passphrase_description">La clave privada está protegida y la frase de contraseña es incorrecta o falta.</string>
+    <string name="sftp_error_access_denied_title">Sin acceso a esta carpeta</string>
+    <string name="sftp_error_access_denied_description">Es posible que esta cuenta no pueda abrir la carpeta configurada para \"%1$s\". Comprueba los permisos de la carpeta en el servidor.</string>
+    <string name="sftp_error_pro_required_title">Los servidores SFTP requieren Butler Pro</string>
+    <string name="sftp_error_pro_required_description">Explorar servidores SFTP es parte de Butler Pro. Agregar, probar y quitar servidores es gratis.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Paquete de aplicación protegido</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" está cifrado y solo puede ser instalado por la aplicación que lo creó.</string>

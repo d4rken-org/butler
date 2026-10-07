@@ -104,6 +104,24 @@
     <string name="general_progress_loading_egg_12">Моля, изчакай</string>
     <string name="general_progress_loading_egg_13">Поне не чакаш на телефона</string>
     <string name="general_progress_loading_egg_14">Нанеси директно върху челото</string>
+    <string name="general_progress_loading_egg_halloween_0">Прогонване на духовете от кеша</string>
+    <string name="general_progress_loading_egg_halloween_1">Броене на скелетите в гардероба ти</string>
+    <string name="general_progress_loading_egg_halloween_2">Дълбаене на тиквите</string>
+    <string name="general_progress_loading_egg_halloween_3">Проверка под леглото за зомби процеси</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Гонене на дъгата към гърнето със злато</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Търсене на детелина с четири листа</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Подкупване на леприкони</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Зареждане. Или не?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Изключване и пак включване</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Донасяне на още претцели</string>
+    <string name="general_progress_loading_egg_xmas_0">Проверка на списъка два пъти</string>
+    <string name="general_progress_loading_egg_xmas_1">Опаковане на файловете ти</string>
+    <string name="general_progress_loading_egg_xmas_2">Разплитане на коледните лампички</string>
+    <string name="general_progress_loading_egg_xmas_3">Хранене на елените</string>
+    <string name="general_progress_loading_egg_newyear_0">Броене до полунощ</string>
+    <string name="general_progress_loading_egg_newyear_1">Отваряне на шампанското</string>
+    <string name="general_progress_loading_egg_newyear_2">Съставяне на решения, които никой няма да спази</string>
+    <string name="general_progress_loading_egg_newyear_3">Зареждане на новата година</string>
 
     <plurals name="common_duration_milliseconds_short">
         <item quantity="one">%dмс</item>

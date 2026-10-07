@@ -140,6 +140,7 @@
     <string name="operations_details_actions">동작</string>
     <string name="operations_details_overview">개요</string>
     <string name="operations_details_handle_issue">문제 처리</string>
+    <string name="operations_details_open_app_action">앱 열기</string>
     <string name="operations_details_show_in_history_action">기록에서 보기</string>
     <string name="operations_details_status">상태</string>
     <string name="operations_details_result">결과</string>

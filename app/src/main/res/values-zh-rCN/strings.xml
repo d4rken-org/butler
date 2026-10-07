@@ -296,7 +296,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">基于 Kotlin 协程的图片加载库。(APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">用于 SMB 身份验证、签名和加密的加密算法库。(MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">用于 SMB 身份验证、签名和加密，以及 SFTP 密钥交换和 SSH 密钥的加密算法库。(MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">用于连接 SFTP 服务器的 SSH 和 SFTP 客户端。(APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java，Apache MINA SSHD 使用的日志 API。(MIT)</string>
     <string name="acknowledgement_square_libraries_title">Square 库</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit、OkHttp 和 OkIO 网络库。(APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

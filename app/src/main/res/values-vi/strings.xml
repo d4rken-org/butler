@@ -284,7 +284,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Thư viện tải hình ảnh dựa trên Kotlin Coroutines. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">Các thành phần mật mã cơ bản cho xác thực, ký và mã hóa SMB. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">Các thành phần mật mã cơ bản cho xác thực, ký và mã hóa SMB, cũng như trao đổi khóa SFTP và khóa SSH. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">Ứng dụng khách SSH và SFTP để kết nối với máy chủ SFTP. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API ghi nhật ký được Apache MINA SSHD sử dụng. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Thư viện Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Thư viện mạng Retrofit, OkHttp và OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

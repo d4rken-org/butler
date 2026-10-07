@@ -151,6 +151,7 @@
     <string name="operations_details_actions">Acciones</string>
     <string name="operations_details_overview">Resumen</string>
     <string name="operations_details_handle_issue">Resolver problema</string>
+    <string name="operations_details_open_app_action">Abrir aplicación</string>
     <string name="operations_details_show_in_history_action">Mostrar en el historial</string>
     <string name="operations_details_status">Estado</string>
     <string name="operations_details_result">Resultado</string>

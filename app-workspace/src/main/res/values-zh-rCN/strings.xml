@@ -140,6 +140,7 @@
     <string name="operations_details_actions">操作</string>
     <string name="operations_details_overview">概览</string>
     <string name="operations_details_handle_issue">处理问题</string>
+    <string name="operations_details_open_app_action">打开应用</string>
     <string name="operations_details_show_in_history_action">在历史记录中显示</string>
     <string name="operations_details_status">状态</string>
     <string name="operations_details_result">结果</string>

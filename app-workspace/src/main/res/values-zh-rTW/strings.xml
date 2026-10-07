@@ -140,6 +140,7 @@
     <string name="operations_details_actions">動作</string>
     <string name="operations_details_overview">總覽</string>
     <string name="operations_details_handle_issue">處理問題</string>
+    <string name="operations_details_open_app_action">開啟應用程式</string>
     <string name="operations_details_show_in_history_action">在紀錄中顯示</string>
     <string name="operations_details_status">狀態</string>
     <string name="operations_details_result">結果</string>

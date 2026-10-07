@@ -69,6 +69,24 @@
     <string name="smb_error_credential_unavailable_description">رمز عبور ذخیره شده برای این ذخیره‌سازی شبکه دیگر قابل خواندن نیست. برای اتصال دوباره آن را وارد کنید.</string>
     <string name="smb_error_pro_required_title">اشتراک‌های شبکه نیاز به Butler Pro دارند</string>
     <string name="smb_error_pro_required_description">مرور اشتراک‌های شبکه بخشی از Butler Pro است. افزودن، آزمایش و حذف مکان‌ها رایگان است.</string>
+    <string name="sftp_error_credential_unavailable_title">ورود مورد نیاز است</string>
+    <string name="sftp_error_credential_unavailable_description">رمز عبور یا کلید ذخیره‌شده برای این سرور SFTP دیگر قابل خواندن نیست. برای اتصال دوباره آن را وارد کنید.</string>
+    <string name="sftp_error_unreachable_title">سرور در دسترس نیست</string>
+    <string name="sftp_error_unreachable_description">Butler نتوانست به \"%1$s\" دسترسی پیدا کند. نشانی و پورت را بررسی کنید و مطمئن شوید سرور SSH روشن است.</string>
+    <string name="sftp_error_auth_title">ورود ناموفق بود</string>
+    <string name="sftp_error_auth_description">\"%1$s\" نام کاربری، رمز عبور یا کلید را رد کرد.</string>
+    <string name="sftp_error_host_key_unknown_title">سرور ناشناخته</string>
+    <string name="sftp_error_host_key_unknown_description">Butler هنوز به \"%1$s\" اعتماد نکرده است. این سرور خود را با کلید %2$s معرفی می‌کند.</string>
+    <string name="sftp_error_host_key_changed_title">هویت سرور تغییر کرد</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" کلیدی متفاوت از کلیدی که به آن اعتماد کرده بودید ارائه کرد. Butler وارد نشد.\n\nمورد اعتماد: %2$s\nارائه‌شده: %3$s</string>
+    <string name="sftp_error_key_format_title">کلید قابل خواندن نیست</string>
+    <string name="sftp_error_key_format_description">کلید خصوصی در قالبی نیست که Butler بتواند بخواند. فایل‌های کلید OpenSSH، PEM و PKCS#8 پشتیبانی می‌شوند.</string>
+    <string name="sftp_error_key_passphrase_title">عبارت عبور نادرست</string>
+    <string name="sftp_error_key_passphrase_description">کلید خصوصی محافظت شده است و عبارت عبور نادرست است یا وارد نشده است.</string>
+    <string name="sftp_error_access_denied_title">بدون دسترسی به این پوشه</string>
+    <string name="sftp_error_access_denied_description">این حساب ممکن است نتواند پوشه تنظیم‌شده برای \"%1$s\" را باز کند. مجوزهای پوشه را روی سرور بررسی کنید.</string>
+    <string name="sftp_error_pro_required_title">سرورهای SFTP نیاز به Butler Pro دارند</string>
+    <string name="sftp_error_pro_required_description">مرور سرورهای SFTP بخشی از Butler Pro است. افزودن، آزمایش و حذف سرورها رایگان است.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">بسته برنامه محافظت شده</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" رمزگذاری شده است و تنها می‌تواند توسط برنامه‌ای که آن را ایجاد کرد نصب شود.</string>

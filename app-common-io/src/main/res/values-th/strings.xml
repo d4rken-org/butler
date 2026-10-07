@@ -69,6 +69,24 @@
     <string name="smb_error_credential_unavailable_description">ไม่สามารถอ่านรหัสผ่านที่บันทึกไว้สำหรับที่เก็บข้อมูลเครือข่ายนี้ได้อีกต่อไป ป้อนอีกครั้งเพื่อเชื่อมต่ออีกครั้ง</string>
     <string name="smb_error_pro_required_title">การแชร์เครือข่ายต้องใช้ Butler Pro</string>
     <string name="smb_error_pro_required_description">การเรียกดูการแชร์เครือข่ายเป็นส่วนหนึ่งของ Butler Pro ส่วนการเพิ่ม ทดสอบ และลบตำแหน่งนั้นฟรี</string>
+    <string name="sftp_error_credential_unavailable_title">ต้องเข้าสู่ระบบ</string>
+    <string name="sftp_error_credential_unavailable_description">ไม่สามารถอ่านรหัสผ่านหรือคีย์ที่บันทึกไว้สำหรับเซิร์ฟเวอร์ SFTP นี้ได้อีกต่อไป ป้อนอีกครั้งเพื่อเชื่อมต่ออีกครั้ง</string>
+    <string name="sftp_error_unreachable_title">เซิร์ฟเวอร์ไม่สามารถเข้าถึงได้</string>
+    <string name="sftp_error_unreachable_description">Butler ไม่สามารถเข้าถึง \"%1$s\" ตรวจสอบที่อยู่และพอร์ต และตรวจสอบว่าเซิร์ฟเวอร์ SSH เปิดอยู่</string>
+    <string name="sftp_error_auth_title">ล้มเหลวในการเข้าสู่ระบบ</string>
+    <string name="sftp_error_auth_description">\"%1$s\" ปฏิเสธชื่อผู้ใช้ รหัสผ่าน หรือคีย์</string>
+    <string name="sftp_error_host_key_unknown_title">เซิร์ฟเวอร์ที่ไม่รู้จัก</string>
+    <string name="sftp_error_host_key_unknown_description">Butler ยังไม่ได้เชื่อถือ \"%1$s\" เซิร์ฟเวอร์ระบุตัวตนด้วยคีย์ %2$s</string>
+    <string name="sftp_error_host_key_changed_title">ตัวตนของเซิร์ฟเวอร์เปลี่ยนไป</string>
+    <string name="sftp_error_host_key_changed_description">\"%1$s\" แสดงคีย์ที่ต่างจากคีย์ที่คุณเคยเชื่อถือ Butler จึงไม่ได้เข้าสู่ระบบ\n\nคีย์ที่เชื่อถือ: %2$s\nคีย์ที่แสดง: %3$s</string>
+    <string name="sftp_error_key_format_title">อ่านคีย์ไม่ได้</string>
+    <string name="sftp_error_key_format_description">คีย์ส่วนตัวไม่ได้อยู่ในรูปแบบที่ Butler อ่านได้ รองรับไฟล์คีย์ OpenSSH, PEM และ PKCS#8</string>
+    <string name="sftp_error_key_passphrase_title">วลีรหัสผ่านไม่ถูกต้อง</string>
+    <string name="sftp_error_key_passphrase_description">คีย์ส่วนตัวถูกป้องกันไว้ และวลีรหัสผ่านไม่ถูกต้องหรือไม่ได้ระบุ</string>
+    <string name="sftp_error_access_denied_title">ไม่มีการเข้าถึงโฟลเดอร์นี้</string>
+    <string name="sftp_error_access_denied_description">บัญชีนี้อาจไม่สามารถเปิดโฟลเดอร์ที่ตั้งไว้สำหรับ \"%1$s\" ได้ ตรวจสอบสิทธิ์ของโฟลเดอร์บนเซิร์ฟเวอร์</string>
+    <string name="sftp_error_pro_required_title">เซิร์ฟเวอร์ SFTP ต้องใช้ Butler Pro</string>
+    <string name="sftp_error_pro_required_description">การเรียกดูเซิร์ฟเวอร์ SFTP เป็นส่วนหนึ่งของ Butler Pro ส่วนการเพิ่ม ทดสอบ และลบเซิร์ฟเวอร์นั้นฟรี</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">แพคเกจแอปที่ป้องกัน</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" เข้ารหัสและสามารถติดตั้งได้โดยแอปที่สร้างเท่านั้น</string>

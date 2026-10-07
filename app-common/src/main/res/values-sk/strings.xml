@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">Chvíľku počkaj</string>
     <string name="general_progress_loading_egg_13">Aspoň nečakáš na telefónnej linke</string>
     <string name="general_progress_loading_egg_14">Aplikuj priamo na čelo</string>
+    <string name="general_progress_loading_egg_halloween_0">Vyháňam démonov z vyrovnávacej pamäte</string>
+    <string name="general_progress_loading_egg_halloween_1">Počítam kostlivcov vo tvojej skrini</string>
+    <string name="general_progress_loading_egg_halloween_2">Vyrezávam tekvice</string>
+    <string name="general_progress_loading_egg_halloween_3">Kontrolujem pod posteľou, či tam nie sú zombie procesy</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Naháňam dúhu k hrncu zlata</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Hľadám štvorlístok</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Podplácam škriatkov</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Načítavam. Alebo nie?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Vypínam a zapínam znova</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Donášam ďalšie praclíky</string>
+    <string name="general_progress_loading_egg_xmas_0">Kontrolujem zoznam dvakrát</string>
+    <string name="general_progress_loading_egg_xmas_1">Balím tvoje súbory</string>
+    <string name="general_progress_loading_egg_xmas_2">Rozmotávam vianočné svetielka</string>
+    <string name="general_progress_loading_egg_xmas_3">Kŕmim soby</string>
+    <string name="general_progress_loading_egg_newyear_0">Odpočítavam do polnoci</string>
+    <string name="general_progress_loading_egg_newyear_1">Otváram šampanské</string>
+    <string name="general_progress_loading_egg_newyear_2">Píšem novoročné predsavzatia, ktoré nikto nesplní</string>
+    <string name="general_progress_loading_egg_newyear_3">Načítavam nový rok</string>
 
     <plurals name="common_duration_milliseconds_short">
         <item quantity="one">%dms</item>

@@ -106,6 +106,24 @@
     <string name="general_progress_loading_egg_12">Vennligst vent</string>
     <string name="general_progress_loading_egg_13">Du står i det minste ikke i telefonkø</string>
     <string name="general_progress_loading_egg_14">Påføres direkte på pannen</string>
+    <string name="general_progress_loading_egg_halloween_0">Driver ut spøkelser fra hurtigbufferen</string>
+    <string name="general_progress_loading_egg_halloween_1">Teller skjelettene i skapet ditt</string>
+    <string name="general_progress_loading_egg_halloween_2">Skjærer ut gresskar</string>
+    <string name="general_progress_loading_egg_halloween_3">Sjekker under sengen etter zombieprosesser</string>
+    <string name="general_progress_loading_egg_stpatricks_0">Jager regnbuen mot gullgryten</string>
+    <string name="general_progress_loading_egg_stpatricks_1">Leter etter et firkløver</string>
+    <string name="general_progress_loading_egg_stpatricks_2">Bestikker leprechaunene</string>
+    <string name="general_progress_loading_egg_aprilfools_0">Laster. Eller gjør jeg det?</string>
+    <string name="general_progress_loading_egg_aprilfools_1">Slår den av og på igjen</string>
+    <string name="general_progress_loading_egg_oktoberfest_0">Henter flere saltkringler</string>
+    <string name="general_progress_loading_egg_xmas_0">Sjekker listen to ganger</string>
+    <string name="general_progress_loading_egg_xmas_1">Pakker inn filene dine</string>
+    <string name="general_progress_loading_egg_xmas_2">Greier ut julelysene</string>
+    <string name="general_progress_loading_egg_xmas_3">Mater reinsdyrene</string>
+    <string name="general_progress_loading_egg_newyear_0">Teller ned til midnatt</string>
+    <string name="general_progress_loading_egg_newyear_1">Åpner champagnen</string>
+    <string name="general_progress_loading_egg_newyear_2">Skriver nyttårsforsett ingen kommer til å holde</string>
+    <string name="general_progress_loading_egg_newyear_3">Laster det nye året</string>
 
     <!-- Duration formatting -->
     <plurals name="common_duration_milliseconds_short">

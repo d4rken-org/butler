@@ -284,7 +284,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Kotlin Coroutines 기반 이미지 로딩 라이브러리. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">SMB 인증, 서명, 암호화를 위한 암호화 기본 요소. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">SMB 인증, 서명, 암호화와 SFTP 키 교환, SSH 키를 위한 암호화 기본 요소. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">SFTP 서버에 연결하기 위한 SSH 및 SFTP 클라이언트. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, Apache MINA SSHD가 사용하는 로깅 API. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Square 라이브러리</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp, OkIO 네트워킹 라이브러리. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

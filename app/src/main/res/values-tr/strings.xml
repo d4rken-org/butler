@@ -290,7 +290,11 @@
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Kotlin Coroutines tabanlı görsel yükleme kitaplığı. (APACHE 2.0)</string>
     <string name="acknowledgement_bouncycastle_title">Bouncy Castle</string>
-    <string name="acknowledgement_bouncycastle_subtitle">SMB kimlik doğrulama, imzalama ve şifreleme için kriptografik temel işlevler. (MIT)</string>
+    <string name="acknowledgement_bouncycastle_subtitle">SMB kimlik doğrulama, imzalama ve şifreleme ile SFTP anahtar değişimi ve SSH anahtarları için kriptografik temel işlevler. (MIT)</string>
+    <string name="acknowledgement_apache_mina_sshd_title">Apache MINA SSHD</string>
+    <string name="acknowledgement_apache_mina_sshd_subtitle">SFTP sunucularına bağlanmak için SSH ve SFTP istemcisi. (APACHE 2.0)</string>
+    <string name="acknowledgement_slf4j_title">SLF4J</string>
+    <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, Apache MINA SSHD\'nin kullandığı günlükleme API\'si. (MIT)</string>
     <string name="acknowledgement_square_libraries_title">Square kitaplıkları</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp ve OkIO ağ kitaplıkları. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>
