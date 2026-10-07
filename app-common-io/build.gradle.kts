@@ -39,9 +39,23 @@ android {
         }
     }
 
+    packaging {
+        resources {
+            // Identical in bcprov, bcpkix and bcutil (via :lib-ssh); collides in the androidTest APK.
+            pickFirsts.add("META-INF/LICENSE.md")
+            // Build metadata of each sshd-* jar (via :lib-ssh).
+            pickFirsts.add("META-INF/DEPENDENCIES")
+        }
+    }
+
     sourceSets {
         getByName("test") {
             assets.directories.add("$projectDir/schemas")
+            // SftpGatewayIntegrationTest uses lib-ssh's test-only host keys.
+            resources.directories.add("${rootProject.projectDir}/lib-ssh/src/test/resources")
+        }
+        getByName("androidTest") {
+            assets.directories.add("${rootProject.projectDir}/lib-ssh/src/test/resources")
         }
     }
 }
@@ -61,10 +75,14 @@ dependencies {
     addIO()
     addArchive()
     implementation(project(":lib-smb"))
+    implementation(project(":lib-ssh"))
     addRoomDb()
     addWorkerManager()
 
     addTesting()
     testImplementation(libs.testcontainers)
+    // An in-process SFTP server whose users do not start in `/`.
+    testImplementation(libs.sshd.core)
+    testImplementation(libs.sshd.sftp)
     testImplementation(project(":app-common-test"))
 }

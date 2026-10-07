@@ -41,6 +41,7 @@ import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.LocalWorkspaceTitles
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import eu.darken.butler.workspace.ui.originWorkspaceLabel
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -130,7 +131,7 @@ fun ClipboardEntryRow(
                             Spacer(modifier = Modifier.width(6.dp))
 
                             Text(
-                                text = entry.description.asComposable(),
+                                text = entry.description.withLocationNames(),
                                 style = MaterialTheme.typography.bodySmall.asMaybePathStyle(),
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 maxLines = 1,
@@ -204,7 +205,7 @@ fun ClipboardEntryRow(
                         }
 
                         Text(
-                            text = entry.description.asComposable(),
+                            text = entry.description.withLocationNames(),
                             style = MaterialTheme.typography.bodySmall.asMaybePathStyle(),
                             color = MaterialTheme.colorScheme.onTertiaryContainer,
                             maxLines = 1,

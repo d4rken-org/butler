@@ -41,6 +41,7 @@ import eu.darken.butler.common.compose.asMaybePathStyle
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.label
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import kotlinx.coroutines.delay
 import eu.darken.butler.workspace.R as WorkspaceR
 
@@ -137,7 +138,7 @@ fun WorkspaceSwitchIndicator(
                 )
 
                 // Row 3: Subtitle (if present)
-                val subtitle = info.subtitle?.asComposable()
+                val subtitle = info.subtitle?.withLocationNames()
                 if (!subtitle.isNullOrBlank()) {
                     Text(
                         text = subtitle,

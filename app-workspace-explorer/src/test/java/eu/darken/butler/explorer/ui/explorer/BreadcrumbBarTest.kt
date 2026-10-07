@@ -6,10 +6,12 @@ import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Home
+import androidx.compose.material.icons.twotone.Lan
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithText
@@ -23,12 +25,14 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.ui.explorer.elements.BreadcrumbBar
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
+import kotlin.uuid.Uuid
 
 class BreadcrumbBarTest : ComposeTest() {
 
@@ -240,6 +244,50 @@ class BreadcrumbBarTest : ComposeTest() {
 
         committed?.first?.path shouldBe "/storage"
         committed?.second shouldBe "storage/Documents"
+    }
+
+    @Test
+    fun `an SFTP folder is edited relative to the server crumb`() {
+        val locationId = Uuid.parse("66666666-7777-8888-9999-000000000000")
+        val folder = SftpPath(locationId, listOf("srv", "builds"))
+        var committed: Pair<APath<*>, String>? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                BreadcrumbBar(
+                    breadcrumbs = listOf(
+                        ExplorerBreadcrumb(
+                            target = ExplorerNavigation.Target.Directory(SftpPath.root(locationId)),
+                            label = "Build server".toCaString(),
+                            icon = Icons.TwoTone.Lan,
+                        ),
+                        ExplorerBreadcrumb(
+                            target = ExplorerNavigation.Target.Directory(SftpPath(locationId, listOf("srv"))),
+                            label = "srv".toCaString(),
+                            icon = Icons.TwoTone.FolderOpen,
+                        ),
+                        ExplorerBreadcrumb(
+                            target = ExplorerNavigation.Target.Directory(folder),
+                            label = "builds".toCaString(),
+                            icon = Icons.TwoTone.FolderOpen,
+                        ),
+                    ),
+                    onBreadcrumbClick = {},
+                    onNavigateToPath = {},
+                    onCommitEditedPath = { path, text -> committed = path to text },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("builds").performClick()
+
+        composeTestRule.onNode(hasSetTextAction()).assertTextEquals("srv/builds")
+        composeTestRule.onNodeWithText("Build server").assertIsDisplayed()
+        composeTestRule.onNode(hasSetTextAction()).performTextReplacement("srv/logs")
+        composeTestRule.onNode(hasSetTextAction()).performImeAction()
+
+        committed?.first shouldBe folder
+        committed?.second shouldBe "srv/logs"
     }
 
     @OptIn(ExperimentalTestApi::class)

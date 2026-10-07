@@ -11,6 +11,9 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.errors.PathException
 import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -141,7 +144,7 @@ class OperationHistoryRepo @Inject constructor(
             completedAt = state.completedAt,
             durationMs = (state.completedAt - state.startedAt).inWholeMilliseconds.coerceAtLeast(0),
             outcome = outcome.name,
-            errorMessage = state.error?.message,
+            errorMessage = state.error?.let { historyErrorMessage(it) },
             errorClass = state.error?.javaClass?.name,
             affectedPathsCount = reportedChanges.size,
             partialErrorCount = state.report?.partialErrorCount ?: 0,
@@ -218,6 +221,9 @@ class OperationHistoryRepo @Inject constructor(
      * path string. Paths the operation merely read or intended to touch are NOT included - they'd be
      * displayed as changes they never were (a single-file copy would claim to have added the source
      * file and the destination folder). They go into the scope index instead.
+     *
+     * Network paths are deduplicated by [APath.path], which holds the location id: two locations
+     * can share a name, and `smb://photos/a.jpg` on each is two changes.
      */
     private fun collectReportedChanges(
         state: Operation.State.Completed,
@@ -227,7 +233,11 @@ class OperationHistoryRepo @Inject constructor(
 
         (state.report as? Operation.Report.Paths)?.affectedPaths?.forEach { change ->
             val pathStr = change.path.userReadablePath.get(context)
-            if (seen.add(pathStr)) {
+            val identity = when (change.path) {
+                is SmbPath, is SftpPath -> change.path.path
+                else -> pathStr
+            }
+            if (seen.add(identity)) {
                 out += HistoryEntry.PathChange(
                     path = pathStr,
                     previousPath = change.previousPath?.userReadablePath?.get(context),
@@ -237,6 +247,19 @@ class OperationHistoryRepo @Inject constructor(
         }
 
         return out
+    }
+
+    /**
+     * A [PathException] names its path by identity, `... <-> sftp://<id>/a.jpg`, which is kept for
+     * logs and bug reports. The stored text is shown to the user, so a network path gets the
+     * location's name there, `... <-> sftp://cnc-dev/a.jpg`.
+     */
+    private fun historyErrorMessage(error: Throwable): String? {
+        val message = error.message ?: return null
+        return when (val path = (error as? PathException)?.path) {
+            is SmbPath, is SftpPath -> message.replace(path.path, path.userReadablePath.get(context))
+            else -> message
+        }
     }
 
     /**

@@ -33,8 +33,14 @@ import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.files.network.NetworkCredentialAvailability
+import eu.darken.butler.common.files.network.NetworkEndpointState
+import eu.darken.butler.common.files.network.NetworkLocation
+import eu.darken.butler.common.files.sftp.SftpConnectionTester
+import eu.darken.butler.common.files.sftp.SftpHostKeyChangedException
+import eu.darken.butler.common.files.sftp.credentials.SftpCredentialStore
+import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.smb.SmbConnectionTester
-import eu.darken.butler.common.files.smb.SmbEndpointState
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialUnavailableException
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
@@ -62,7 +68,9 @@ import eu.darken.butler.workspace.core.preview.FolderPreviewObserver
 import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.SortSettings
-import eu.darken.butler.explorer.core.smbSignInLocationId
+import eu.darken.butler.explorer.core.NetworkSignInRequest
+import eu.darken.butler.explorer.core.SftpPrivateKeyReader
+import eu.darken.butler.explorer.core.networkSignInRequest
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.toFileListing
@@ -85,6 +93,8 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemType
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
+import eu.darken.butler.explorer.ui.explorer.dialogs.NetworkProtocol
+import eu.darken.butler.explorer.ui.explorer.dialogs.SftpLocationFormInput
 import eu.darken.butler.explorer.ui.explorer.dialogs.SmbLocationFormInput
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity as SingleNetworkCapacity
@@ -112,11 +122,14 @@ import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.OpenSelectionMode
 import eu.darken.butler.workspace.core.ShareIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.cancelResult
 import eu.darken.butler.workspace.core.createAndFocus
+import eu.darken.butler.workspace.core.handleResult
+import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.clipboard.ClipboardSettings
@@ -182,6 +195,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val smbLocationManager: SmbLocationManager,
     private val smbCredentialStore: SmbCredentialStore,
     private val smbConnectionTester: SmbConnectionTester,
+    private val sftpLocationManager: SftpLocationManager,
+    private val sftpCredentialStore: SftpCredentialStore,
+    private val sftpConnectionTester: SftpConnectionTester,
+    private val sftpPrivateKeyReader: SftpPrivateKeyReader,
     private val trashManager: TrashManager,
     private val trashRepo: TrashRepo,
     private val itemInfoCalculator: ItemInfoCalculator,
@@ -258,10 +275,41 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         workspace = ::getWorkspace,
         currentLocation = { cachedCurrentLocation },
         clearSelection = ::clearSelection,
-        onError = { errorEvents.tryEmit(it) },
         doLaunch = doLaunch,
         tag = tag,
         upgradeHintTimeout = { context.recommendedHintTimeout(ExplorerSmbLocationController.UPGRADE_HINT_TIMEOUT) },
+    )
+    private val sftpLocations = ExplorerSftpLocationController(
+        locationManager = sftpLocationManager,
+        credentialStore = sftpCredentialStore,
+        connectionTester = sftpConnectionTester,
+        keyReader = sftpPrivateKeyReader,
+        upgradeRepo = upgradeRepo,
+        showUpgradeHint = { smbLocations.showUpgradeHint(it) },
+        dialogs = dialogs,
+        launchKeyPicker = {
+            val result = workspaceRemote.launchPicker(
+                callerWorkspaceId = id,
+                selection = PickerConfig.Selection.FileSingle,
+            )
+            (result as? WorkspaceAction.Create.Result.Success)?.newId
+        },
+        workspace = ::getWorkspace,
+        currentLocation = { cachedCurrentLocation },
+        clearSelection = ::clearSelection,
+        doLaunch = doLaunch,
+        tag = tag,
+    )
+    private val networkLocations = ExplorerNetworkLocationController(
+        smbLocationManager = smbLocationManager,
+        sftpLocationManager = sftpLocationManager,
+        dialogs = dialogs,
+        workspace = ::getWorkspace,
+        currentLocation = { cachedCurrentLocation },
+        clearSelection = ::clearSelection,
+        onError = { errorEvents.tryEmit(it) },
+        doLaunch = doLaunch,
+        tag = tag,
     )
     private val trash = ExplorerTrashController(
         context = context,
@@ -291,6 +339,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         favoritesRepo = favoritesRepo,
         upgradeRepo = upgradeRepo,
         onNetworkLocked = { smbLocations.showUpgradeHint(SmbUpgradeHint.Reason.LOCKED) },
+        showSftpLocationForm = { location -> sftpLocations.promptSignIn(location.id) },
         selectedItems = { selection.selectedItems.value },
         toggleSelection = { selection.toggle(it) },
         clearSelection = ::clearSelection,
@@ -424,8 +473,26 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         workspaceReadyState
             .distinctUntilChangedBy { it?.error }
             .onEach { state ->
-                val locationId = state?.smbSignInLocationId() ?: return@onEach
-                smbLocations.promptSignIn(locationId)
+                when (val request = state?.networkSignInRequest()) {
+                    is NetworkSignInRequest.Smb -> smbLocations.promptSignIn(request.locationId)
+                    is NetworkSignInRequest.Sftp -> sftpLocations.promptSignIn(request.locationId)
+                    null -> Unit
+                }
+            }
+            .launchInViewModel()
+
+        // A key file picked for the SFTP form lives only as long as that form.
+        dialogs.state
+            .onEach { sftpLocations.onDialogState(it) }
+            .launchInViewModel()
+
+        workspaceRemote.events
+            .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { sftpLocations.onKeyPickerResult(it) }
+            .launchInViewModel()
+
+        workspaceRemote.events
+            .handleResult<WorkspaceEvent.ResultCancelled>(callerWorkspaceId = id) {
+                sftpLocations.onKeyPickerCancelled(it)
             }
             .launchInViewModel()
 
@@ -1318,18 +1385,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 )
             }
             is ExplorerActionBarItem.Network.AddLocation -> {
-                smbLocations.showAddForm()
+                networkLocations.showAddChooser()
             }
             is ExplorerActionBarItem.Network.EditLocation -> {
                 val selectedItem = selection.selectedItems.value
                     .filterIsInstance<ExplorerItem.Storage.Network>()
                     .single()
-                smbLocations.showEditForm(selectedItem.location.id)
+                when (val location = selectedItem.location) {
+                    is NetworkLocation.Smb -> smbLocations.showEditForm(location.id)
+                    is NetworkLocation.Sftp -> sftpLocations.showEditForm(location.id)
+                }
             }
             is ExplorerActionBarItem.Network.RemoveLocation -> {
                 val selectedItems = selection.selectedItems.value
                     .filterIsInstance<ExplorerItem.Storage.Network>()
-                if (selectedItems.isNotEmpty()) smbLocations.showRemoveConfirmation(selectedItems)
+                if (selectedItems.isNotEmpty()) networkLocations.showRemoveConfirmation(selectedItems)
             }
             is ExplorerActionBarItem.Trash.SelectAll -> {
                 selection.set(stateSnap.selectionState.selectableItems)
@@ -1722,7 +1792,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val items = (dialogs.current() as? ExplorerDialogState.RemoveLocationConfirmation)?.items ?: return
         val networkItems = items.filterIsInstance<ExplorerItem.Storage.Network>()
         if (networkItems.isNotEmpty()) {
-            smbLocations.onRemoveConfirmed(networkItems)
+            networkLocations.onRemoveConfirmed(networkItems)
         } else {
             safLocations.onRemoveLocationConfirmed()
         }
@@ -1730,13 +1800,38 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onSmbLocationFormSubmit(input: SmbLocationFormInput) = smbLocations.onFormSubmit(input)
 
+    fun onNetworkProtocolChosen(protocol: NetworkProtocol) {
+        log(tag) { "onNetworkProtocolChosen($protocol)" }
+        if (!dialogs.dismissIfCurrent(ExplorerDialogState.NetworkProtocolChooser)) return
+        when (protocol) {
+            NetworkProtocol.SMB -> smbLocations.showAddForm()
+            NetworkProtocol.SFTP -> sftpLocations.showAddForm()
+        }
+    }
+
+    fun onSftpLocationFormSubmit(input: SftpLocationFormInput) = sftpLocations.onFormSubmit(input)
+
+    fun onPickSftpKeyFile() = sftpLocations.pickKeyFile()
+
+    fun onSftpHostKeyAccepted(confirmationId: Uuid, input: SftpLocationFormInput) =
+        sftpLocations.onHostKeyAccepted(confirmationId, input)
+
+    fun onSftpHostKeyRejected(confirmationId: Uuid) = sftpLocations.onHostKeyRejected(confirmationId)
+
+    fun onSftpRetrustAccepted(confirmationId: Uuid) = sftpLocations.onRetrustAccepted(confirmationId)
+
+    fun onSftpRetrustRejected(confirmationId: Uuid) = sftpLocations.onRetrustRejected(confirmationId)
+
+    fun onReviewSftpHostKeyChange(change: SftpHostKeyChangedException) = sftpLocations.reviewHostKeyChange(change)
+
     suspend fun onRevealSmbFormPassword(form: ExplorerDialogState.SmbLocationForm): RevealedPassword? =
         withContext(dispatchers.IO) {
             smbLocations.revealPassword(form)
         }
 
     /**
-     * Puts the stored password of an open network info sheet on screen.
+     * Puts the stored password of an open network info sheet on screen. SMB only: the SFTP sheet
+     * offers no reveal action, and an SFTP id finds no SMB location here.
      *
      * The [CharArray] the vault hands over is zeroed again right away, but what reaches the sheet is
      * an immutable String, so hiding it again and dismissing the sheet can only drop the live
@@ -1796,8 +1891,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             ?.filterIsInstance<ExplorerItem.Storage.Network>()
             ?.firstOrNull { it.location.id == locationId }
             ?: return
-        if (item.credentials != SmbCredentialStore.Availability.AVAILABLE) return
-        if (item.endpoint.reachability == SmbEndpointState.Reachability.UNREACHABLE) return
+        if (item.credentials != NetworkCredentialAvailability.AVAILABLE) return
+        if (item.endpoint.reachability == NetworkEndpointState.Reachability.UNREACHABLE) return
 
         log(tag) { "loadNetworkCapacity($locationId)" }
         dialogs.updateSingleNetwork(locationId, sheetInstanceId) {
@@ -1807,10 +1902,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             val capacity = try {
                 val fileSystem = withContext(dispatchers.IO) {
                     // Same bracket a directory load uses: without an active lease on the gateway the
-                    // SMB gateway's resource never opens, and the session this read logs in is left
+                    // network gateway's resource never opens, and the session this read logs in is left
                     // to the pool's idle sweep instead of being closed when the read is done.
                     gatewaySwitch.useRes {
-                        gatewaySwitch.getFileSystem(item.location.rootPath)
+                        gatewaySwitch.getFileSystem(item.target.path)
                     }
                 }
                 val total = fileSystem.totalSpace

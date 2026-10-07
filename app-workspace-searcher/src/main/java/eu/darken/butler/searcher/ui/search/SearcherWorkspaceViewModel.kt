@@ -23,6 +23,7 @@ import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.extensions.commonParent
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -920,7 +921,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherActionBarItem.CopyPath -> {
                 log(TAG, INFO) { "Copying path to system clipboard: ${action.result.path.path}" }
-                chrome.copyToSystemClipboard(action.result.path.path)
+                chrome.copyToSystemClipboard(action.result.path.shownPath.get(appContext))
             }
             is SearcherActionBarItem.ShowProperties -> {
                 dialogStateFlow.value = SearcherDialogState.ShowItemProperties(action.result)

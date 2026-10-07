@@ -32,15 +32,17 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.compose.icons.SmbShare
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.location.SAFLocation
-import eu.darken.butler.common.files.smb.SmbEndpointState
-import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.network.NetworkCredentialAvailability
+import eu.darken.butler.common.files.network.NetworkEndpointState
+import eu.darken.butler.common.files.network.NetworkLocation
+import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.toCaString
 import eu.darken.butler.common.DateTimeStyle
@@ -51,15 +53,18 @@ import eu.darken.butler.common.theming.success
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.ui.explorer.items.basePathLabel
 import eu.darken.butler.explorer.ui.explorer.items.statusLabel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import eu.darken.butler.workspace.ui.dialogs.InfoCard
 import eu.darken.butler.workspace.ui.dialogs.InfoField
 import eu.darken.butler.workspace.ui.dialogs.InfoFieldPair
 import eu.darken.butler.workspace.ui.dialogs.InfoValueKind
 import eu.darken.butler.workspace.ui.dialogs.InfoValueStyle
 import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 /** Fixed width, so a hidden password does not leak its length. */
@@ -109,7 +114,7 @@ private fun ItemInfoContent(
     }
 
     val titleIcon: ImageVector? = when (context) {
-        is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork -> Icons.TwoTone.SmbShare
+        is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork -> context.item?.displayIcon
         else -> null
     }
 
@@ -169,15 +174,25 @@ private fun ItemInfoContent(
             is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork -> {
                 // Null while the location is on its way out of the listing, e.g. after a removal.
                 context.item?.let { item ->
-                    NetworkStorageInfo(
-                        item = item,
-                        revealed = context.revealed,
-                        isRevealing = context.isRevealing,
-                        capacity = context.capacity,
-                        onCopyToClipboard = onCopyToClipboard,
-                        onRevealPassword = { onRevealPassword(context.locationId) },
-                        onHidePassword = { onHidePassword(context.locationId) },
-                    )
+                    when (val location = item.location) {
+                        is NetworkLocation.Smb -> NetworkStorageInfo(
+                            item = item,
+                            location = location.location,
+                            revealed = context.revealed,
+                            isRevealing = context.isRevealing,
+                            capacity = context.capacity,
+                            onCopyToClipboard = onCopyToClipboard,
+                            onRevealPassword = { onRevealPassword(context.locationId) },
+                            onHidePassword = { onHidePassword(context.locationId) },
+                        )
+
+                        is NetworkLocation.Sftp -> SftpStorageInfo(
+                            item = item,
+                            location = location.location,
+                            capacity = context.capacity,
+                            onCopyToClipboard = onCopyToClipboard,
+                        )
+                    }
                 }
             }
 
@@ -202,6 +217,7 @@ private fun SingleFileInfo(
     onCopyToClipboard: (String) -> Unit,
 ) {
     val context = LocalContext.current
+    val shownPath = item.lookup.lookedUp.shownPath.withLocationNames()
 
     InfoCard {
         InfoField(
@@ -211,8 +227,8 @@ private fun SingleFileInfo(
 
         InfoField(
             label = stringResource(R.string.explorer_info_path_label),
-            value = item.lookup.path,
-            onCopy = { onCopyToClipboard(item.lookup.path) },
+            value = shownPath,
+            onCopy = { onCopyToClipboard(shownPath) },
             valueStyle = InfoValueStyle.MONOSPACE,
             valueKind = InfoValueKind.PATH,
         )
@@ -260,10 +276,11 @@ private fun SingleFileInfo(
     if (item is ExplorerItem.SymbolicLink) {
         Spacer(modifier = Modifier.height(6.dp))
         InfoCard {
+            val shownTarget = item.targetPath?.shownPath?.withLocationNames()
             InfoField(
                 label = stringResource(R.string.explorer_info_symlink_target_label),
-                value = item.targetPath ?: stringResource(R.string.explorer_info_unknown),
-                onCopy = item.targetPath?.let { targetPath -> { onCopyToClipboard(targetPath) } },
+                value = shownTarget ?: stringResource(R.string.explorer_info_unknown),
+                onCopy = shownTarget?.let { targetPath -> { onCopyToClipboard(targetPath) } },
                 valueStyle = InfoValueStyle.MONOSPACE,
                 valueKind = InfoValueKind.MIXED,
             )
@@ -283,6 +300,8 @@ private fun SingleDirectoryInfo(
     item: ExplorerItem.Directory,
     onCopyToClipboard: (String) -> Unit,
 ) {
+    val shownPath = item.lookup.lookedUp.shownPath.withLocationNames()
+
     InfoCard {
         InfoField(
             label = stringResource(R.string.explorer_info_name_label),
@@ -291,8 +310,8 @@ private fun SingleDirectoryInfo(
 
         InfoField(
             label = stringResource(R.string.explorer_info_path_label),
-            value = item.lookup.path,
-            onCopy = { onCopyToClipboard(item.lookup.path) },
+            value = shownPath,
+            onCopy = { onCopyToClipboard(shownPath) },
             valueStyle = InfoValueStyle.MONOSPACE,
             valueKind = InfoValueKind.PATH,
         )
@@ -393,6 +412,7 @@ private fun SingleSAFInfo(
 @Composable
 private fun NetworkStorageInfo(
     item: ExplorerItem.Storage.Network,
+    location: SmbLocation,
     revealed: RevealedPassword?,
     isRevealing: Boolean,
     capacity: ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity?,
@@ -400,58 +420,8 @@ private fun NetworkStorageInfo(
     onRevealPassword: () -> Unit,
     onHidePassword: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val location = item.location
-
     InfoCard {
-        InfoFieldPair(
-            left = {
-                InfoField(
-                    label = stringResource(R.string.explorer_info_name_label),
-                    value = item.displayName.get(context),
-                )
-            },
-            right = {
-                InfoField(
-                    label = stringResource(R.string.explorer_info_network_status_label),
-                    // Same wording as the row in the list, so a credential problem still outranks
-                    // reachability instead of reading "Available" next to a red row.
-                    value = item.statusLabel(context, rememberMinuteTick()),
-                    valueColor = when {
-                        item.hasIssue -> MaterialTheme.colorScheme.error
-                        item.endpoint.reachability == SmbEndpointState.Reachability.REACHABLE -> {
-                            MaterialTheme.colorScheme.success
-                        }
-                        else -> null
-                    },
-                )
-            },
-        )
-
-        InfoField(
-            label = stringResource(R.string.explorer_info_network_server_label),
-            value = location.host,
-            onCopy = { onCopyToClipboard(location.host) },
-            valueStyle = InfoValueStyle.MONOSPACE,
-        )
-
-        val address = item.endpoint.address
-        InfoFieldPair(
-            left = {
-                InfoField(
-                    label = stringResource(R.string.explorer_info_network_address_label),
-                    value = address ?: stringResource(R.string.explorer_info_unknown),
-                    onCopy = address?.let { { onCopyToClipboard(it) } },
-                    valueStyle = InfoValueStyle.MONOSPACE,
-                )
-            },
-            right = {
-                InfoField(
-                    label = stringResource(R.string.explorer_info_network_port_label),
-                    value = location.port.toString(),
-                )
-            },
-        )
+        NetworkEndpointFields(item = item, onCopyToClipboard = onCopyToClipboard)
 
         InfoField(
             label = stringResource(R.string.explorer_info_network_share_label),
@@ -471,32 +441,7 @@ private fun NetworkStorageInfo(
             )
         }
 
-        // Same four labels as a local storage sheet, so the two read alike.
-        if (capacity is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity.Data) {
-            InfoField(
-                label = stringResource(R.string.explorer_info_total_capacity_label),
-                value = formatFileSize(capacity.totalBytes),
-            )
-
-            InfoField(
-                label = stringResource(R.string.explorer_info_free_space_label),
-                value = formatFileSize(capacity.freeBytes),
-            )
-
-            InfoField(
-                label = stringResource(R.string.explorer_info_used_space_label),
-                value = formatFileSize(capacity.totalBytes - capacity.freeBytes),
-            )
-
-            if (capacity.totalBytes > 0L) {
-                val percentage = ((capacity.totalBytes - capacity.freeBytes).toDouble() /
-                    capacity.totalBytes * 100).toInt()
-                InfoField(
-                    label = stringResource(R.string.explorer_info_usage_label),
-                    value = "$percentage%",
-                )
-            }
-        }
+        NetworkCapacityFields(capacity)
     }
 
     Spacer(modifier = Modifier.height(6.dp))
@@ -526,15 +471,15 @@ private fun NetworkStorageInfo(
             // From the vault, not from the "remember password" switch: that one says what should be
             // kept, this one says what can actually be produced. Only an available credential has
             // something to reveal, the other two states keep the wording and no button.
-            val canReveal = item.credentials == SmbCredentialStore.Availability.AVAILABLE
+            val canReveal = item.credentials == NetworkCredentialAvailability.AVAILABLE
             InfoField(
                 label = stringResource(R.string.explorer_info_network_password_label),
                 value = when (item.credentials) {
-                    SmbCredentialStore.Availability.AVAILABLE -> revealed?.value ?: PASSWORD_MASK
-                    SmbCredentialStore.Availability.MISSING -> {
+                    NetworkCredentialAvailability.AVAILABLE -> revealed?.value ?: PASSWORD_MASK
+                    NetworkCredentialAvailability.MISSING -> {
                         stringResource(R.string.explorer_info_network_password_missing)
                     }
-                    SmbCredentialStore.Availability.KEY_UNAVAILABLE -> {
+                    NetworkCredentialAvailability.KEY_UNAVAILABLE -> {
                         stringResource(R.string.explorer_info_network_password_locked)
                     }
                 },
@@ -573,13 +518,197 @@ private fun NetworkStorageInfo(
             value = formatDateTime(location.updatedAt, DateTimeStyle.DETAILED),
         )
 
+        NetworkLastSeenField(location.lastSeenAt)
+    }
+}
+
+/**
+ * Everything about an SSH server. The credential is only described, never revealed: which kind it
+ * is and whether this device can still produce it.
+ */
+@Composable
+private fun SftpStorageInfo(
+    item: ExplorerItem.Storage.Network,
+    location: SftpLocation,
+    capacity: ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity?,
+    onCopyToClipboard: (String) -> Unit,
+) {
+    InfoCard {
+        NetworkEndpointFields(item = item, onCopyToClipboard = onCopyToClipboard)
+
         InfoField(
-            label = stringResource(R.string.explorer_info_network_last_seen_label),
-            value = location.lastSeenAt
-                ?.let { formatDateTime(it, DateTimeStyle.DETAILED) }
-                ?: stringResource(R.string.explorer_info_network_last_seen_never),
+            label = stringResource(R.string.explorer_info_type_label),
+            value = stringResource(R.string.explorer_info_sftp_type_value),
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_folder_label),
+            value = location.basePathLabel(LocalContext.current),
+            valueStyle = if (location.basePath.isEmpty()) InfoValueStyle.NORMAL else InfoValueStyle.MONOSPACE,
+        )
+
+        NetworkCapacityFields(capacity)
+    }
+
+    Spacer(modifier = Modifier.height(6.dp))
+
+    InfoCard {
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_auth_label),
+            value = when (location.authType) {
+                SftpLocation.AuthType.PASSWORD -> stringResource(R.string.explorer_network_form_auth_password)
+                SftpLocation.AuthType.PRIVATE_KEY -> stringResource(R.string.explorer_info_sftp_auth_private_key)
+            },
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_network_form_username_label),
+            value = location.username,
+        )
+
+        InfoField(
+            label = stringResource(
+                when (location.authType) {
+                    SftpLocation.AuthType.PASSWORD -> R.string.explorer_info_network_password_label
+                    SftpLocation.AuthType.PRIVATE_KEY -> R.string.explorer_info_sftp_private_key_label
+                }
+            ),
+            value = when (item.credentials) {
+                NetworkCredentialAvailability.AVAILABLE -> stringResource(
+                    if (location.rememberCredential) R.string.explorer_info_sftp_credential_stored
+                    else R.string.explorer_info_sftp_credential_session
+                )
+                NetworkCredentialAvailability.MISSING -> stringResource(R.string.explorer_info_network_password_missing)
+                NetworkCredentialAvailability.KEY_UNAVAILABLE -> {
+                    stringResource(R.string.explorer_info_network_password_locked)
+                }
+            },
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_sftp_host_key_type_label),
+            value = location.hostKey.type,
+            valueStyle = InfoValueStyle.MONOSPACE,
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_sftp_host_key_fingerprint_label),
+            value = location.hostKey.fingerprint,
+            onCopy = { onCopyToClipboard(location.hostKey.fingerprint) },
+            valueStyle = InfoValueStyle.MONOSPACE,
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_added_label),
+            value = formatDateTime(location.createdAt, DateTimeStyle.DETAILED),
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_updated_label),
+            value = formatDateTime(location.updatedAt, DateTimeStyle.DETAILED),
+        )
+
+        NetworkLastSeenField(location.lastSeenAt)
+    }
+}
+
+/** Name, status, server, address and port: the part of a network sheet every protocol shares. */
+@Composable
+private fun NetworkEndpointFields(
+    item: ExplorerItem.Storage.Network,
+    onCopyToClipboard: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    val location = item.location
+
+    InfoFieldPair(
+        left = {
+            InfoField(
+                label = stringResource(R.string.explorer_info_name_label),
+                value = item.displayName.get(context),
+            )
+        },
+        right = {
+            InfoField(
+                label = stringResource(R.string.explorer_info_network_status_label),
+                // Same wording as the row in the list, so a credential problem still outranks
+                // reachability instead of reading "Available" next to a red row.
+                value = item.statusLabel(context, rememberMinuteTick()),
+                valueColor = when {
+                    item.hasIssue -> MaterialTheme.colorScheme.error
+                    item.endpoint.reachability == NetworkEndpointState.Reachability.REACHABLE -> {
+                        MaterialTheme.colorScheme.success
+                    }
+                    else -> null
+                },
+            )
+        },
+    )
+
+    InfoField(
+        label = stringResource(R.string.explorer_info_network_server_label),
+        value = location.host,
+        onCopy = { onCopyToClipboard(location.host) },
+        valueStyle = InfoValueStyle.MONOSPACE,
+    )
+
+    val address = item.endpoint.address
+    InfoFieldPair(
+        left = {
+            InfoField(
+                label = stringResource(R.string.explorer_info_network_address_label),
+                value = address ?: stringResource(R.string.explorer_info_unknown),
+                onCopy = address?.let { { onCopyToClipboard(it) } },
+                valueStyle = InfoValueStyle.MONOSPACE,
+            )
+        },
+        right = {
+            InfoField(
+                label = stringResource(R.string.explorer_info_network_port_label),
+                value = location.port.toString(),
+            )
+        },
+    )
+}
+
+/** Same four labels as a local storage sheet, so the two read alike. */
+@Composable
+private fun NetworkCapacityFields(capacity: ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity?) {
+    if (capacity !is ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity.Data) return
+
+    InfoField(
+        label = stringResource(R.string.explorer_info_total_capacity_label),
+        value = formatFileSize(capacity.totalBytes),
+    )
+
+    InfoField(
+        label = stringResource(R.string.explorer_info_free_space_label),
+        value = formatFileSize(capacity.freeBytes),
+    )
+
+    InfoField(
+        label = stringResource(R.string.explorer_info_used_space_label),
+        value = formatFileSize(capacity.totalBytes - capacity.freeBytes),
+    )
+
+    if (capacity.totalBytes > 0L) {
+        val percentage = ((capacity.totalBytes - capacity.freeBytes).toDouble() /
+            capacity.totalBytes * 100).toInt()
+        InfoField(
+            label = stringResource(R.string.explorer_info_usage_label),
+            value = "$percentage%",
         )
     }
+}
+
+@Composable
+private fun NetworkLastSeenField(lastSeenAt: Instant?) {
+    InfoField(
+        label = stringResource(R.string.explorer_info_network_last_seen_label),
+        value = lastSeenAt
+            ?.let { formatDateTime(it, DateTimeStyle.DETAILED) }
+            ?: stringResource(R.string.explorer_info_network_last_seen_never),
+    )
 }
 
 @Composable
@@ -806,7 +935,7 @@ private fun ItemInfoBottomSheetPreviewSAF() {
 @Composable
 private fun ItemInfoBottomSheetPreviewNetworkReachable() {
     val item = MockDataProvider.createMockStorageNetwork(
-        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+        endpoint = NetworkEndpointState("192.168.1.50", NetworkEndpointState.Reachability.REACHABLE),
     )
 
     ItemInfoBottomSheet(
@@ -821,7 +950,7 @@ private fun ItemInfoBottomSheetPreviewNetworkReachable() {
 @Composable
 private fun ItemInfoBottomSheetPreviewNetworkWithCapacity() {
     val item = MockDataProvider.createMockStorageNetwork(
-        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+        endpoint = NetworkEndpointState("192.168.1.50", NetworkEndpointState.Reachability.REACHABLE),
     )
 
     ItemInfoBottomSheet(
@@ -843,7 +972,7 @@ private fun ItemInfoBottomSheetPreviewNetworkWithCapacity() {
 @Composable
 private fun ItemInfoBottomSheetPreviewNetworkRevealedPassword() {
     val item = MockDataProvider.createMockStorageNetwork(
-        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+        endpoint = NetworkEndpointState("192.168.1.50", NetworkEndpointState.Reachability.REACHABLE),
     )
 
     ItemInfoBottomSheet(
@@ -876,7 +1005,50 @@ private fun ItemInfoBottomSheetPreviewNetworkChecking() {
 private fun ItemInfoBottomSheetPreviewNetworkSignInRequired() {
     val item = MockDataProvider.createMockStorageNetwork(
         status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
-        endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
+        endpoint = NetworkEndpointState("192.168.1.50", NetworkEndpointState.Reachability.UNREACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewSftp() {
+    val item = MockDataProvider.createMockStorageSftp(
+        endpoint = NetworkEndpointState("192.168.1.20", NetworkEndpointState.Reachability.REACHABLE),
+        lastSeenAt = MockDataProvider.MockTimes.hoursAgo(1),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(
+            locationId = item.location.id,
+            item = item,
+            capacity = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity.Data(
+                totalBytes = MockDataProvider.MockSizes.gb(8),
+                freeBytes = MockDataProvider.MockSizes.gb(3),
+            ),
+        ),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewSftpPasswordRelativeSignInRequired() {
+    val item = MockDataProvider.createMockStorageSftp(
+        name = null,
+        port = 2222,
+        basePath = "media",
+        authType = SftpLocation.AuthType.PASSWORD,
+        status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+        endpoint = NetworkEndpointState("192.168.1.20", NetworkEndpointState.Reachability.REACHABLE),
     )
 
     ItemInfoBottomSheet(

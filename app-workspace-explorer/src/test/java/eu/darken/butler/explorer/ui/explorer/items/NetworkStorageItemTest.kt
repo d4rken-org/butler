@@ -74,6 +74,34 @@ class NetworkStorageItemTest : ComposeTest() {
         composeTestRule.onAllNodes(hasText(available.target.path.path)).fetchSemanticsNodes().size shouldBe 0
     }
 
+    @Test
+    fun `an SFTP row shows the label and user at host, never the internal path`() {
+        val sftp = MockDataProvider.createMockStorageSftp(name = "Build server", port = 2222, basePath = "/srv/builds")
+        composeTestRule.setContent {
+            PreviewWrapper {
+                StorageRow(item = sftp, density = ExplorerViewStyle.Density.COMFORTABLE, onClick = {})
+            }
+        }
+
+        composeTestRule.onNodeWithText("Build server").assertIsDisplayed()
+        composeTestRule.onNodeWithText("darken@build.lan:2222/srv/builds").assertIsDisplayed()
+        composeTestRule.onAllNodes(hasText(sftp.target.path.path)).fetchSemanticsNodes().size shouldBe 0
+    }
+
+    @Test
+    fun `an SFTP grid tile badges a location that needs a sign-in`() {
+        val sftp = MockDataProvider.createMockStorageSftp(status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Box(Modifier.size(200.dp)) {
+                    StorageGrid(item = sftp, density = ExplorerViewStyle.Density.COMFORTABLE, onClick = {})
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithText("Sign-in required").assertIsDisplayed()
+    }
+
     /**
      * The tile states the status in words next to its icon, so the wording is what is asserted here
      * as in the row. The icons carry no content description of their own on purpose: they sit right

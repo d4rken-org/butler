@@ -32,6 +32,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.DateTimeStyle
@@ -43,6 +44,7 @@ import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.getEllipsizedMatchLine
 import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import kotlin.time.Clock
 
 @Composable
@@ -110,7 +112,7 @@ fun SearchResultItemDetails(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = result.path.path,
+                        text = result.path.shownPath.withLocationNames(),
                         style = MaterialTheme.typography.bodySmall.asPathStyle(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

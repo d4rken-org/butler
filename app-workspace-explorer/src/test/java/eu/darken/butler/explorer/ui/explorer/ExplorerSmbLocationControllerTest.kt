@@ -75,7 +75,6 @@ class ExplorerSmbLocationControllerTest : BaseTest() {
         workspace = { workspace },
         currentLocation = { null },
         clearSelection = {},
-        onError = {},
         doLaunch = { block -> launch { block() } },
         tag = "test",
         upgradeHintTimeout = { upgradeHintTimeout },

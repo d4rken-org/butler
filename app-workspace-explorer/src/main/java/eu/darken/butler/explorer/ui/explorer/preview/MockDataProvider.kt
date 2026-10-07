@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.compose.icons.SmbShare
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
@@ -27,8 +26,11 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
-import eu.darken.butler.common.files.smb.SmbEndpointState
-import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.network.NetworkCredentialAvailability
+import eu.darken.butler.common.files.network.NetworkEndpointState
+import eu.darken.butler.common.files.network.NetworkLocation
+import eu.darken.butler.common.files.sftp.location.SftpLocation
+import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.progress.Progress
@@ -40,6 +42,8 @@ import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
+import eu.darken.butler.explorer.core.engine.icon
+import eu.darken.butler.explorer.core.engine.rootPath
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
 import eu.darken.butler.explorer.core.sizes.DirectorySize
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
@@ -118,7 +122,7 @@ object MockDataProvider {
         return ExplorerItem.SymbolicLink(
             lookup = createMockLookup(name, "/home/user/$name", 0L, FileType.SYMBOLIC_LINK, target = target),
             mimeType = MimeInfo("inode/symlink"),
-            targetPath = targetPath,
+            targetPath = target,
             isBroken = isBroken
         )
     }
@@ -582,7 +586,7 @@ object MockDataProvider {
         share: String = "media",
         status: ExplorerItem.Storage.Network.Status = ExplorerItem.Storage.Network.Status.AVAILABLE,
         id: Uuid = Uuid.parse("11111111-2222-3333-4444-555555555555"),
-        endpoint: SmbEndpointState = SmbEndpointState(),
+        endpoint: NetworkEndpointState = NetworkEndpointState(),
         username: String? = "hoffmann",
         domain: String? = null,
         lastSeenAt: Instant? = null,
@@ -601,19 +605,60 @@ object MockDataProvider {
             updatedAt = MockTimes.daysAgo(7),
             lastSeenAt = lastSeenAt,
         )
-        return ExplorerItem.Storage.Network(
-            location = location,
-            displayName = name.toCaString(),
-            displayIcon = Icons.TwoTone.SmbShare,
-            target = ExplorerNavigation.Target.Directory(location.rootPath),
-            subtitle = location.endpointLabel.toCaString(),
-            credentials = when (status) {
-                ExplorerItem.Storage.Network.Status.AVAILABLE -> SmbCredentialStore.Availability.AVAILABLE
-                ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> SmbCredentialStore.Availability.MISSING
-            },
-            endpoint = endpoint,
-        )
+        return createMockNetworkItem(NetworkLocation.Smb(location), status, endpoint)
     }
+
+    fun createMockStorageSftp(
+        name: String? = "Build server",
+        host: String = "build.lan",
+        port: Int = SftpLocation.DEFAULT_PORT,
+        username: String = "darken",
+        basePath: String = "/srv/builds",
+        authType: SftpLocation.AuthType = SftpLocation.AuthType.PRIVATE_KEY,
+        status: ExplorerItem.Storage.Network.Status = ExplorerItem.Storage.Network.Status.AVAILABLE,
+        id: Uuid = Uuid.parse("66666666-7777-8888-9999-000000000000"),
+        endpoint: NetworkEndpointState = NetworkEndpointState(),
+        lastSeenAt: Instant? = null,
+    ): ExplorerItem.Storage.Network {
+        val location = SftpLocation(
+            id = id,
+            label = name,
+            host = host,
+            port = port,
+            username = username,
+            basePath = basePath,
+            authType = authType,
+            rememberCredential = true,
+            credentialVersion = 1,
+            hostKey = TrustedHostKey(
+                type = "ssh-ed25519",
+                blob = ByteArray(51),
+                fingerprint = "SHA256:Utlnml924yfwY1Df/Rf4pu3A8u5JKZ118Cd9/hz+ijM",
+            ),
+            trustRevision = 1,
+            createdAt = MockTimes.daysAgo(3),
+            updatedAt = MockTimes.daysAgo(3),
+            lastSeenAt = lastSeenAt,
+        )
+        return createMockNetworkItem(NetworkLocation.Sftp(location), status, endpoint)
+    }
+
+    private fun createMockNetworkItem(
+        location: NetworkLocation,
+        status: ExplorerItem.Storage.Network.Status,
+        endpoint: NetworkEndpointState,
+    ) = ExplorerItem.Storage.Network(
+        location = location,
+        displayName = location.displayName,
+        displayIcon = location.icon,
+        target = ExplorerNavigation.Target.Directory(location.rootPath),
+        subtitle = location.endpointLabel.toCaString(),
+        credentials = when (status) {
+            ExplorerItem.Storage.Network.Status.AVAILABLE -> NetworkCredentialAvailability.AVAILABLE
+            ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED -> NetworkCredentialAvailability.MISSING
+        },
+        endpoint = endpoint,
+    )
 
     fun createMockShortcut(
         shortcutId: String = "device",

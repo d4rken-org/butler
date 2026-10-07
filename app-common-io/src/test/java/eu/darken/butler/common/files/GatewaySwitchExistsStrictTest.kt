@@ -38,6 +38,7 @@ class GatewaySwitchExistsStrictTest : BaseTest() {
         localGateway = localGateway,
         archiveGateway = archiveGateway,
         smbGateway = smbGateway,
+        sftpGateway = mockk(relaxed = true),
         safLocationManager = safLocationManager,
         proxyPfdFactory = mockk<ProxyPfdFactory>(relaxed = true),
     )

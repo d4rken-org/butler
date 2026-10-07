@@ -20,7 +20,6 @@ import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
-import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.RevealedPassword
@@ -40,7 +39,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
 /**
- * Network location management: the add/edit form, its connection test, and rename/removal.
+ * SMB location management: the add/edit form and its connection test.
  *
  * Nothing is stored until the entered details actually connect, so a location in the list is always
  * one that worked at least once. Adding, testing and removing locations is free, so a free user can
@@ -56,7 +55,6 @@ class ExplorerSmbLocationController(
     private val workspace: suspend () -> ExplorerWorkspace,
     private val currentLocation: () -> ExplorerLocation?,
     private val clearSelection: () -> Unit,
-    private val onError: (Throwable) -> Unit,
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
     private val tag: String,
     private val upgradeHintTimeout: () -> Duration = { UPGRADE_HINT_TIMEOUT },
@@ -120,11 +118,6 @@ class ExplorerSmbLocationController(
             dialogs.showIfCurrent(form, form.copy(error = e.localizedDescription()))
             null
         }
-    }
-
-    fun showRemoveConfirmation(items: List<ExplorerItem.Storage.Network>) {
-        log(tag) { "showRemoveConfirmation(${items.size} items)" }
-        dialogs.show(ExplorerDialogState.RemoveLocationConfirmation(items))
     }
 
     fun onFormSubmit(input: SmbLocationFormInput) = doLaunch {
@@ -264,19 +257,6 @@ class ExplorerSmbLocationController(
         if (upgrade.isSettled && !upgrade.isPro && upgrade.error == null) {
             showUpgradeHint(SmbUpgradeHint.Reason.SAVED)
         }
-    }
-
-    fun onRemoveConfirmed(items: List<ExplorerItem.Storage.Network>) = doLaunch {
-        log(tag) { "onRemoveConfirmed(${items.size} items)" }
-        dialogs.dismiss()
-        try {
-            items.forEach { locationManager.delete(it.location.id) }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "onRemoveConfirmed(): Failed: ${e.asLog()}" }
-            onError(e)
-        }
-        clearSelection()
-        refreshUnlessLive()
     }
 
     /** Opens the form for a location whose password has to be entered again. */

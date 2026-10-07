@@ -51,6 +51,7 @@ import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.common.WorkspacePaddings
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
 import eu.darken.butler.workspace.ui.insets.rememberPaneFloatingBarStackState
@@ -345,7 +346,7 @@ fun ViewerWorkspacePage(
                                 // The name is already the title above it, so repeating it here as
                                 // the tail of the full path told the user nothing. Null for streamed
                                 // content, which lives nowhere Butler could name.
-                                folderPath = state.source.folderPath,
+                                folderPath = state.source.folderPath?.withLocationNames(),
                                 isCollapsed = isToolbarCollapsed || collapsedFraction > 0.5f,
                                 onBackClick = if (isModal) {
                                     { onPageAction(ViewerPageAction.Close) }

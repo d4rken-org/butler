@@ -10,9 +10,9 @@ import eu.darken.butler.common.files.metadata.FileMetadata
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
-import eu.darken.butler.common.files.smb.SmbEndpointState
-import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
-import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.files.network.NetworkCredentialAvailability
+import eu.darken.butler.common.files.network.NetworkEndpointState
+import eu.darken.butler.common.files.network.NetworkLocation
 import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.sizes.DirectorySize
@@ -90,13 +90,13 @@ sealed interface ExplorerItem {
          * [endpoint] arrives after the row is first drawn, [credentials] is the vault's verdict.
          */
         data class Network(
-            val location: SmbLocation,
+            val location: NetworkLocation,
             override val displayName: CaString,
             override val displayIcon: ImageVector,
             override val target: ExplorerNavigation.Target.Directory,
             override val subtitle: CaString,
-            val credentials: SmbCredentialStore.Availability,
-            val endpoint: SmbEndpointState = SmbEndpointState(),
+            val credentials: NetworkCredentialAvailability,
+            val endpoint: NetworkEndpointState = NetworkEndpointState(),
         ) : Storage {
             override val id: String get() = "network-${location.id}"
             override val totalBytes: Long? get() = null
@@ -106,19 +106,19 @@ sealed interface ExplorerItem {
             /** What a row can say about [credentials]: either the vault can produce one, or it cannot. */
             val status: Status
                 get() = when (credentials) {
-                    SmbCredentialStore.Availability.AVAILABLE -> Status.AVAILABLE
+                    NetworkCredentialAvailability.AVAILABLE -> Status.AVAILABLE
                     else -> Status.SIGN_IN_REQUIRED
                 }
 
             /** Whether the row has something to flag: a credential problem, an absent server, or both. */
             val hasIssue: Boolean
                 get() = status == Status.SIGN_IN_REQUIRED ||
-                    endpoint.reachability == SmbEndpointState.Reachability.UNREACHABLE
+                    endpoint.reachability == NetworkEndpointState.Reachability.UNREACHABLE
 
             enum class Status {
                 AVAILABLE,
 
-                /** A password location whose credential the vault cannot produce. */
+                /** A location whose credential the vault cannot produce. */
                 SIGN_IN_REQUIRED,
             }
         }
@@ -233,7 +233,7 @@ sealed interface ExplorerItem {
         override val ownership: Ownership? = null,
         override val permissions: Permissions? = null,
         override val createdAt: Instant? = null,
-        val targetPath: String? = null,
+        val targetPath: APath<*>? = null,
         val isBroken: Boolean = false,
         override val metadata: FileMetadata? = null,
         override val canWrite: Boolean? = null,

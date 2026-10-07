@@ -2,6 +2,8 @@ package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
@@ -11,6 +13,7 @@ import io.mockk.mockk
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.uuid.Uuid
 
 class WritabilityEvaluatorTest : BaseTest() {
 
@@ -287,6 +290,32 @@ class WritabilityEvaluatorTest : BaseTest() {
             )
 
             evaluator.evaluate(path, perms, owner, context) shouldBe true
+        }
+    }
+
+    @Nested
+    inner class NetworkPaths {
+
+        private val locationId = Uuid.parse("11111111-2222-3333-4444-555555555555")
+
+        private val context = WritabilityContext(
+            hasRoot = false,
+            hasAdb = false,
+            appUid = appUid,
+        )
+
+        @Test
+        fun `an SMB path is left to the server`() {
+            evaluator.evaluate(SmbPath(locationId, listOf("media")), null, null, context) shouldBe true
+        }
+
+        /** The listed owner is an account on the server, the app's uid says nothing about it. */
+        @Test
+        fun `an SFTP path is left to the server, whatever its mode bits say`() {
+            val path = SftpPath(locationId, listOf("srv", "readonly.txt"))
+
+            evaluator.evaluate(path, permissions(0b100_100_100), ownership(0, 0), context) shouldBe true
+            evaluator.evaluate(path, null, null, context) shouldBe true
         }
     }
 }

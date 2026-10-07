@@ -5,4 +5,23 @@
         <package android:name="eu.darken.butler" />
     </queries>
 
+    <application>
+        <!-- SftpEndToEndTest selects this package for github.com links, so it wins over any browser. -->
+        <activity
+            android:name=".SponsorPageStubActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="github.com"
+                    android:pathPrefix="/sponsors/"
+                    android:scheme="https" />
+            </intent-filter>
+        </activity>
+    </application>
+
 </manifest>

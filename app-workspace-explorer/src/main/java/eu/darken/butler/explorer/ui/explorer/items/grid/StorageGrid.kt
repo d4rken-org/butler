@@ -35,7 +35,7 @@ import eu.darken.butler.common.rememberMinuteTick
 import eu.darken.butler.explorer.ui.explorer.items.AppIconImage
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.files.saf.location.SAFLocation
-import eu.darken.butler.common.files.smb.SmbEndpointState
+import eu.darken.butler.common.files.network.NetworkEndpointState
 import eu.darken.butler.common.settings.UpgradeBadge
 import eu.darken.butler.common.storage.saf.StorageProviderApp
 import eu.darken.butler.explorer.R
@@ -202,16 +202,16 @@ private fun NetworkStatusIndicator(item: ExplorerItem.Storage.Network) {
             )
         }
         when (item.endpoint.reachability) {
-            SmbEndpointState.Reachability.CHECKING -> Unit
+            NetworkEndpointState.Reachability.CHECKING -> Unit
 
-            SmbEndpointState.Reachability.REACHABLE -> Icon(
+            NetworkEndpointState.Reachability.REACHABLE -> Icon(
                 imageVector = Icons.TwoTone.NetworkOnline,
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(14.dp),
             )
 
-            SmbEndpointState.Reachability.UNREACHABLE -> Icon(
+            NetworkEndpointState.Reachability.UNREACHABLE -> Icon(
                 imageVector = Icons.TwoTone.NetworkOffline,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error,
@@ -310,7 +310,7 @@ private fun StorageGridNetworkPreview() {
             StorageGrid(
                 density = ExplorerViewStyle.Density.COMFORTABLE,
                 item = MockDataProvider.createMockStorageNetwork(
-                    endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.REACHABLE),
+                    endpoint = NetworkEndpointState("192.168.1.50", NetworkEndpointState.Reachability.REACHABLE),
                 ),
                 onClick = {}
             )
@@ -319,7 +319,7 @@ private fun StorageGridNetworkPreview() {
             StorageGrid(
                 density = ExplorerViewStyle.Density.COMFORTABLE,
                 item = MockDataProvider.createMockStorageNetwork(
-                    endpoint = SmbEndpointState("192.168.1.50", SmbEndpointState.Reachability.UNREACHABLE),
+                    endpoint = NetworkEndpointState("192.168.1.50", NetworkEndpointState.Reachability.UNREACHABLE),
                 ),
                 onClick = {}
             )
@@ -330,7 +330,16 @@ private fun StorageGridNetworkPreview() {
                 item = MockDataProvider.createMockStorageNetwork(
                     name = "Work NAS",
                     status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
-                    endpoint = SmbEndpointState("192.168.1.51", SmbEndpointState.Reachability.REACHABLE),
+                    endpoint = NetworkEndpointState("192.168.1.51", NetworkEndpointState.Reachability.REACHABLE),
+                ),
+                onClick = {}
+            )
+        }
+        item {
+            StorageGrid(
+                density = ExplorerViewStyle.Density.COMFORTABLE,
+                item = MockDataProvider.createMockStorageSftp(
+                    endpoint = NetworkEndpointState("192.168.1.20", NetworkEndpointState.Reachability.REACHABLE),
                 ),
                 onClick = {}
             )

@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
@@ -31,6 +33,12 @@ class SmbLocationManagerImpl @Inject constructor(
 
     override val locations: Flow<List<SmbLocation>> = dao.getAll()
         .map { entities -> entities.map { it.toLocation() } }
+
+    /**
+     * Serializes credential writes with the start-up reconciliation, which drops every credential its
+     * snapshot of the rows does not refer to: a credential is stored before the row that refers to it.
+     */
+    private val credentialWrites = Mutex()
 
     init {
         appScope.launch { reconcileCredentials() }
@@ -68,8 +76,10 @@ class SmbLocationManagerImpl @Inject constructor(
         )
         log(TAG, INFO) { "create(): $location" }
 
-        writeCredential(location, password)
-        dao.upsert(location.toEntity())
+        credentialWrites.withLock {
+            writeCredential(location, password)
+            dao.upsert(location.toEntity())
+        }
 
         return location
     }
@@ -129,33 +139,36 @@ class SmbLocationManagerImpl @Inject constructor(
             .copy(lastSeenAt = dao.get(id)?.lastSeenAt.takeIf { host == existing.host && port == existing.port })
             .also { dao.upsert(it.toEntity()) }
 
-        val stored = when (updated.authType) {
-            // A credential has to exist before the row pointing at it, or a failed write leaves a
-            // location nobody can sign in to.
-            SmbLocation.AuthType.PASSWORD -> {
-                if (credentialChanged) writeCredential(updated, password)
-                storeRow()
+        return credentialWrites.withLock {
+            val stored = when (updated.authType) {
+                // A credential has to exist before the row pointing at it, or a failed write leaves a
+                // location nobody can sign in to.
+                SmbLocation.AuthType.PASSWORD -> {
+                    if (credentialChanged) writeCredential(updated, password)
+                    storeRow()
+                }
+                // Guest is the other way round: the row that stops referring to the credential goes
+                // first, so a failed write keeps the password location signed in. An interrupted
+                // cleanup is what reconcile() drops.
+                SmbLocation.AuthType.GUEST -> {
+                    val row = storeRow()
+                    if (credentialChanged) writeCredential(updated, password)
+                    row
+                }
             }
-            // Guest is the other way round: the row that stops referring to the credential goes
-            // first, so a failed write keeps the password location signed in. An interrupted
-            // cleanup is what reconcile() drops.
-            SmbLocation.AuthType.GUEST -> {
-                val row = storeRow()
-                if (credentialChanged) writeCredential(updated, password)
-                row
-            }
+            // Only now is the predecessor unreachable: until the row above committed, it was the
+            // generation the location still pointed at.
+            credentialStore.dropOtherGenerations(updated.id, updated.credentialVersion)
+            stored
         }
-        // Only now is the predecessor unreachable: until the row above committed, it was the
-        // generation the location still pointed at.
-        credentialStore.dropOtherGenerations(updated.id, updated.credentialVersion)
-
-        return stored
     }
 
     override suspend fun delete(id: Uuid) {
         log(TAG, INFO) { "delete(): $id" }
-        dao.delete(id)
-        credentialStore.remove(id)
+        credentialWrites.withLock {
+            dao.delete(id)
+            credentialStore.remove(id)
+        }
     }
 
     override suspend fun recordSeen(id: Uuid, host: String, port: Int, at: Instant) {
@@ -179,7 +192,7 @@ class SmbLocationManagerImpl @Inject constructor(
         }
     }
 
-    private suspend fun reconcileCredentials() {
+    private suspend fun reconcileCredentials() = credentialWrites.withLock {
         try {
             credentialStore.reconcile(dao.getAll().first().map { it.toLocation() })
         } catch (e: Exception) {

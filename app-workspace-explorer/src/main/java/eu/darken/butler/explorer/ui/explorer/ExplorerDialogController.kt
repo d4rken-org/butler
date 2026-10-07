@@ -35,6 +35,13 @@ class ExplorerDialogController(
         dialogStateFlow.update { current -> if (current === expected) replacement else current }
     }
 
+    /**
+     * Like [showIfCurrent], but tells whether it happened: an action that must run at most once per
+     * dialog - a confirmation - only proceeds if its own swap won.
+     */
+    fun replaceIfCurrent(expected: ExplorerDialogState, replacement: ExplorerDialogState): Boolean =
+        dialogStateFlow.compareAndSet(expected, replacement)
+
     fun dismiss() {
         dialogStateFlow.value = ExplorerDialogState.None
     }

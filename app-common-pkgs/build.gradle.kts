@@ -29,6 +29,15 @@ android {
             setupTestJvm()
         }
     }
+
+    packaging {
+        resources {
+            // Identical in bcprov, bcpkix and bcutil (via :lib-ssh); collides in the androidTest APK.
+            pickFirsts.add("META-INF/LICENSE.md")
+            // Build metadata of each sshd-* jar (via :lib-ssh).
+            pickFirsts.add("META-INF/DEPENDENCIES")
+        }
+    }
 }
 
 dependencies {

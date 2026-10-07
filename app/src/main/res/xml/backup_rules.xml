@@ -7,8 +7,9 @@
       them leaves broken, non-functional locations).
     - workspace_session.db / trash.db / operation_history.db: reference device-, path- and
       cache-specific state that is meaningless after a reinstall or on another device.
-    - smb_credentials.db: network passwords encrypted with a device-bound Keystore key that
-      cannot leave the device, so restored ciphertext would never decrypt.
+    - smb_credentials.db / sftp_credentials.db: network passwords and keys encrypted with a
+      device-bound Keystore key that cannot leave the device, so restored ciphertext would
+      never decrypt.
 
   Everything else (DataStore settings, shared preferences, search history) is backed up.
 -->
@@ -32,4 +33,8 @@
     <exclude domain="database" path="smb_credentials.db" />
     <exclude domain="database" path="smb_credentials.db-shm" />
     <exclude domain="database" path="smb_credentials.db-wal" />
+
+    <exclude domain="database" path="sftp_credentials.db" />
+    <exclude domain="database" path="sftp_credentials.db-shm" />
+    <exclude domain="database" path="sftp_credentials.db-wal" />
 </full-backup-content>

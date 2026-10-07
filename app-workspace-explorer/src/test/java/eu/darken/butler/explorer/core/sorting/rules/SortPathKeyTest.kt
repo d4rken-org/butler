@@ -3,10 +3,13 @@ package eu.darken.butler.explorer.core.sorting.rules
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.SmbPath
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.uuid.Uuid
 
 class SortPathKeyTest : BaseTest() {
 
@@ -143,5 +146,31 @@ class SortPathKeyTest : BaseTest() {
     fun `different SAF authorities do not share keys`() {
         saf("content://com.android.externalstorage.documents/tree/primary%3ADocs").sortPathKey() shouldNotBe
             saf("content://com.other.provider/tree/primary%3ADocs").sortPathKey()
+    }
+
+    private val sftpLocation = Uuid.parse("11111111-2222-3333-4444-555555555555")
+
+    @Test
+    fun `SFTP keys are per location and stop at its root`() {
+        val path = SftpPath(sftpLocation, listOf("builds", "2026"))
+
+        path.sortPathKey() shouldBe "sftp/11111111-2222-3333-4444-555555555555/builds/2026"
+        path.sortAncestorKeys() shouldBe listOf(
+            "sftp/11111111-2222-3333-4444-555555555555/builds/2026",
+            "sftp/11111111-2222-3333-4444-555555555555/builds",
+            "sftp/11111111-2222-3333-4444-555555555555",
+        )
+    }
+
+    @Test
+    fun `an SFTP folder never shares a key with an SMB folder of the same location id`() {
+        SftpPath(sftpLocation, listOf("media")).sortPathKey() shouldNotBe
+            SmbPath(sftpLocation, listOf("media")).sortPathKey()
+    }
+
+    @Test
+    fun `a backslash in an SFTP name stays part of that name`() {
+        SftpPath(sftpLocation, listOf("a\\b")).sortPathKey() shouldNotBe
+            SftpPath(sftpLocation, listOf("a", "b")).sortPathKey()
     }
 }

@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -38,6 +37,7 @@ import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.engine.SearchEngine
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
+import eu.darken.butler.workspace.ui.common.withLocationNames
 
 /**
  * Detail sheet behind the progress card's "N items couldn't be accessed" line: lists the
@@ -55,7 +55,6 @@ fun AccessErrorsSheetContent(
     modifier: Modifier = Modifier,
     bottomPadding: Dp = 0.dp,
 ) {
-    val context = LocalContext.current
     val erroredTargets = targetProgress.filter { it.accessErrorCount > 0 }
     val totalErrors = erroredTargets.sumOf { it.accessErrorCount }
     // Full absolute paths, deduped across targets (overlapping roots can report the same path).
@@ -63,7 +62,7 @@ fun AccessErrorsSheetContent(
     val fullPaths = erroredTargets
         .flatMap { it.accessErrorPaths }
         .distinct()
-        .map { it.userReadablePath.get(context) }
+        .map { it.userReadablePath.withLocationNames() }
     val truncatedCount = erroredTargets.sumOf { it.accessErrorCount - it.accessErrorPaths.size }
 
     Box(

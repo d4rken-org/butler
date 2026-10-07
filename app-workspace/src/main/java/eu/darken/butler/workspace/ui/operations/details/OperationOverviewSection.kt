@@ -35,6 +35,7 @@ import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.bar.operationStateVisuals
 import kotlin.time.Clock
@@ -151,7 +152,7 @@ private fun OperationOverviewGrid(
                 stringResource(R.string.operations_details_destination_path)
             null -> null
         },
-        destinationValue = destination?.path?.userReadablePath?.asComposable(),
+        destinationValue = destination?.path?.userReadablePath?.withLocationNames(),
         resultLabel = stringResource(R.string.operations_details_result),
         resultValue = if (reportSummary != null) reportSummary.asComposable() else null,
     )

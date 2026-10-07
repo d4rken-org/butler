@@ -17,7 +17,7 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.common.files.network.NetworkLocationRepo
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.trash.TrashRepo
@@ -34,7 +34,7 @@ class HomeLocationLoader @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     private val trashRepo: TrashRepo,
     private val trashSettings: TrashSettings,
-    private val smbLocationManager: SmbLocationManager,
+    private val networkLocationRepo: NetworkLocationRepo,
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "HomeLoader")
@@ -64,7 +64,7 @@ class HomeLocationLoader @AssistedInject constructor(
         val trashSize = trashItems.sumOf { it.size }
         val trashCount = trashItems.size
         val trashEnabled = trashSettings.enabled.value()
-        val networkCount = smbLocationManager.locations.first().size
+        val networkCount = networkLocationRepo.locations.first().size
         val recentWindowDays = RECENT_WINDOW.inWholeDays.toInt()
 
         val shortcuts = buildList {

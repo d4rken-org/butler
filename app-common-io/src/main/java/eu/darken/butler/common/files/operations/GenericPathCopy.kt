@@ -383,15 +383,7 @@ internal class GenericPathCopy<
                     if (options.followSymlinks && lookup.fileType == FileType.SYMBOLIC_LINK) {
                         // This was a symlink-to-directory - list the target's children
                         // but re-parent them under the symlink path
-                        val linkTarget = sourceOps.readSymbolicLink(item.source)
-
-                        val resolvedPath = if (linkTarget.path.startsWith("/")) {
-                            linkTarget
-                        } else {
-                            val parent = item.source.parent
-                                ?: throw IllegalStateException("Symlink has no parent: ${item.source}")
-                            parent.child(linkTarget.path)
-                        }
+                        val resolvedPath = sourceOps.readSymbolicLink(item.source)
 
                         // List children of the resolved directory
                         val targetChildren = sourceOps.listFiles(resolvedPath)
@@ -1101,18 +1093,7 @@ internal class GenericPathCopy<
      */
     private suspend fun resolveSymlinkForScanning(symlinkPath: SP, symlinkLookup: SPL): SPL {
         try {
-            val linkTarget = sourceOps.readSymbolicLink(symlinkPath)
-
-            // Resolve relative paths to absolute
-            @Suppress("UNCHECKED_CAST")
-            val resolvedPath = if (linkTarget.path.startsWith("/")) {
-                // Absolute path - use as-is
-                linkTarget
-            } else {
-                // Relative path - resolve relative to symlink's parent
-                val parent = symlinkPath.parent ?: throw IllegalStateException("Symlink has no parent: $symlinkPath")
-                parent.child(linkTarget.path)
-            }
+            val resolvedPath = sourceOps.readSymbolicLink(symlinkPath)
 
             if (createsSymlinkCycle(symlinkPath, resolvedPath)) {
                 log(TAG, WARN) { "Detected symlink cycle while scanning: $symlinkPath -> $resolvedPath" }

@@ -16,10 +16,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.common.withLocationNames
 
 @Composable
 internal fun OperationAffectedFilesSection(
@@ -68,7 +68,7 @@ internal fun OperationAffectedFilesSection(
                     )
 
                     Text(
-                        text = pathChange.path.userReadablePath.asComposable(),
+                        text = pathChange.path.userReadablePath.withLocationNames(),
                         style = MaterialTheme.typography.labelSmall.asPathStyle(),
                         fontFamily = FontFamily.Monospace,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),

@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files
 
+import android.content.Context
 import android.os.Parcel
 import eu.darken.butler.common.files.extensions.crumbsTo
 import eu.darken.butler.common.files.extensions.isAncestorOf
@@ -7,15 +8,20 @@ import eu.darken.butler.common.files.extensions.isParentOf
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.extensions.removePrefix
 import eu.darken.butler.common.files.extensions.startsWith
+import eu.darken.butler.common.files.network.NetworkLocationNames
+import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.serialization.SerializationIOModule
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import kotlinx.serialization.PolymorphicSerializer
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @RunWith(RobolectricTestRunner::class)
@@ -24,6 +30,23 @@ class SmbPathTest : BaseTest() {
 
     private val locationId = Uuid.parse("11111111-2222-3333-4444-555555555555")
     private val otherLocationId = Uuid.parse("99999999-8888-7777-6666-555555555555")
+
+    private val context = mockk<Context>()
+
+    private fun location(id: Uuid, label: String?, share: String) = SmbLocation(
+        id = id,
+        label = label,
+        host = "nas.local",
+        share = share,
+        authType = SmbLocation.AuthType.GUEST,
+        rememberCredential = false,
+        credentialVersion = 1,
+        createdAt = Instant.fromEpochMilliseconds(0),
+        updatedAt = Instant.fromEpochMilliseconds(0),
+    )
+
+    @After
+    fun resetNames() = NetworkLocationNames.clear()
 
     @Test
     fun `root path has no segments`() {
@@ -120,5 +143,50 @@ class SmbPathTest : BaseTest() {
         parcel.recycle()
 
         restored shouldBe original
+    }
+
+    @Test
+    fun `a known location is shown by its name`() {
+        NetworkLocationNames.updateSmb(listOf(location(locationId, label = "Home NAS", share = "photos")))
+
+        val root = SmbPath.root(locationId)
+        root.userReadablePath.get(context) shouldBe "smb://Home NAS"
+        root.userReadableName.get(context) shouldBe "Home NAS"
+
+        val nested = SmbPath(locationId, listOf("Photos", "a.jpg"))
+        nested.userReadablePath.get(context) shouldBe "smb://Home NAS/Photos/a.jpg"
+        nested.userReadableName.get(context) shouldBe "a.jpg"
+    }
+
+    @Test
+    fun `without a label the share names the location`() {
+        NetworkLocationNames.updateSmb(listOf(location(locationId, label = " ", share = "photos")))
+
+        SmbPath(locationId, listOf("a.jpg")).userReadablePath.get(context) shouldBe "smb://photos/a.jpg"
+    }
+
+    @Test
+    fun `an unknown location is shown by its id`() {
+        NetworkLocationNames.updateSmb(listOf(location(otherLocationId, label = "Home NAS", share = "photos")))
+
+        val root = SmbPath.root(locationId)
+        root.userReadablePath.get(context) shouldBe "smb://$locationId"
+        root.userReadableName.get(context) shouldBe locationId.toString()
+        SmbPath(locationId, listOf("Photos", "a.jpg")).userReadablePath.get(context) shouldBe
+            "smb://$locationId/Photos/a.jpg"
+    }
+
+    @Test
+    fun `the path string keeps the id whether or not the name is known`() {
+        val root = SmbPath.root(locationId)
+        val nested = SmbPath(locationId, listOf("Photos", "a.jpg"))
+        root.path shouldBe "smb://$locationId"
+        nested.path shouldBe "smb://$locationId/Photos/a.jpg"
+
+        NetworkLocationNames.updateSmb(listOf(location(locationId, label = "Home NAS", share = "photos")))
+
+        root.path shouldBe "smb://$locationId"
+        root.name shouldBe locationId.toString()
+        nested.path shouldBe "smb://$locationId/Photos/a.jpg"
     }
 }

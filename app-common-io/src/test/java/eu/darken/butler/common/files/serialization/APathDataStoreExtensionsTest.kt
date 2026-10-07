@@ -145,6 +145,10 @@ class APathDataStoreExtensionsTest : BaseTest() {
                         (restored as eu.darken.butler.common.files.SmbPath).locationId shouldBe originalPath.locationId
                         restored.segments shouldBe originalPath.segments
                     }
+                    is eu.darken.butler.common.files.SftpPath -> {
+                        (restored as eu.darken.butler.common.files.SftpPath).locationId shouldBe originalPath.locationId
+                        restored.segments shouldBe originalPath.segments
+                    }
                 }
             }
         }

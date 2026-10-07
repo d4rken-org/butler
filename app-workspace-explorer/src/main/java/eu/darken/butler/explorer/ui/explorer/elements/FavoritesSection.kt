@@ -34,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -56,6 +55,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerItem.Path.Companion.toPathItemId
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
+import eu.darken.butler.workspace.ui.common.withLocationNames
 import eu.darken.butler.workspace.ui.dnd.dropZone
 
 /** List-scope variant: header item + a row per favorite. */
@@ -186,14 +186,13 @@ fun FavoriteRow(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
-    val context = LocalContext.current
     val isResolving = favorite.state is FavoriteItem.State.Resolving
     val isUnavailable = favorite.state is FavoriteItem.State.Unavailable
 
-    val displayName = favorite.displayName().get(context)
+    val displayName = favorite.displayName().withLocationNames()
     // Always the real path: with a custom name as the title it is the only thing that tells two
     // favorites apart, so neither resolving nor unavailable may take its place.
-    val subtitle = favorite.path.userReadablePath.get(context)
+    val subtitle = favorite.path.userReadablePath.withLocationNames()
     val selectActionLabel = stringResource(R.string.explorer_favorites_select_action)
 
     // Same reveal tint the file rows use, see FileRowBase.

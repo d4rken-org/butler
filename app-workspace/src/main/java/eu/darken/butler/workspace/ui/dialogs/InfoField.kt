@@ -64,7 +64,9 @@ fun InfoCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 2.dp),
+                // With an InfoField's own 2dp, its text sits 12dp from the top and bottom edge,
+                // the same as from the sides.
+                .padding(vertical = 10.dp),
             content = content,
         )
     }
