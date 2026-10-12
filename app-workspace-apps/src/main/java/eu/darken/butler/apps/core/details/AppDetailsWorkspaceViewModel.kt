@@ -11,7 +11,7 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.apps.R
-import eu.darken.butler.apps.core.apkExportFileName
+import eu.darken.butler.apps.core.apkExport
 import eu.darken.butler.apps.core.details.components.AppComponentsController
 import eu.darken.butler.apps.core.details.components.AppComponentsLoader
 import eu.darken.butler.apps.core.details.components.ComponentEntry
@@ -389,20 +389,22 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
 
     fun onExportApk(app: AppInfo) = launch {
         log(tag) { "Exporting APK: ${app.packageName}" }
-        val apkUri = (app.install as? SourceAvailable)?.sourceDir?.path?.let { "file://$it" }
-        if (apkUri != null) {
+        val source = app.install as? SourceAvailable
+        val export = apkExport(
+            sourceDir = source?.sourceDir,
+            splitSources = source?.splitSources,
+            label = app.label.get(context),
+            packageName = app.packageName,
+            versionName = app.versionName,
+            versionCode = app.versionCode,
+        )
+        if (export != null) {
             workspaceRemote.createAndFocus(
                 type = Workspace.Type.SAVER,
                 arguments = SaverArguments.Default(
-                    sourceUris = listOf(apkUri),
-                    sourceNames = listOf(
-                        apkExportFileName(
-                            label = app.label.get(context),
-                            packageName = app.packageName,
-                            versionName = app.versionName,
-                            versionCode = app.versionCode,
-                        )
-                    ),
+                    sourceUris = listOf(export.uri),
+                    sourceNames = listOf(export.name),
+                    sourceBundles = listOf(export.bundle),
                     callerPackage = null,
                     callerWorkspaceId = id,
                 ),

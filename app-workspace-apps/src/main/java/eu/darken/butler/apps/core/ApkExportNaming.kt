@@ -4,8 +4,8 @@ import eu.darken.butler.apps.core.details.normalizedAppLabel
 import eu.darken.butler.common.files.sanitizeForFileName
 
 /**
- * Name an exported APK is written under, e.g. `Butler_eu.darken.butler_0.1.0-beta0_1000000.apk`.
- * Not localized: this is a file name, not UI text.
+ * Name an exported APK is written under, e.g. `Butler_eu.darken.butler_0.1.0-beta0_1000000.apk`, or
+ * `….apks` for a [bundle] of base and split APKs. Not localized: this is a file name, not UI text.
  *
  * The label is dropped when the app reports none — both AppItem and AppInfo substitute the package
  * name then — and so is a version name the app does not report. The version code always stays: it
@@ -17,6 +17,7 @@ internal fun apkExportFileName(
     packageName: String,
     versionName: String?,
     versionCode: Long,
+    bundle: Boolean = false,
 ): String {
     // normalizedAppLabel runs before sanitizing: a package name past MAX_LABEL_LENGTH would survive
     // truncation as a shortened string that no longer equals packageName, giving
@@ -30,12 +31,12 @@ internal fun apkExportFileName(
 
     fun assemble(): String = listOfNotNull(labelPart, packageName, versionPart, versionCode.toString())
         .joinToString("_")
-        .plus(".apk")
+        .plus(if (bundle) ".apks" else ".apk")
 
     // Code-point caps alone do not bound a name: 48 CJK label characters plus a 32 character CJK
     // version name are 240 UTF-8 bytes before the package name is even added. Shrink the two
-    // descriptive parts until the name fits; "<packageName>_<versionCode>.apk" is never shortened,
-    // a truncated package name would name the wrong app.
+    // descriptive parts until the name fits; "<packageName>_<versionCode>.apk(s)" is never
+    // shortened, a truncated package name would name the wrong app.
     while (labelPart != null && assemble().utf8Size() > MAX_NAME_BYTES) {
         labelPart = labelPart.dropLastCodePoint()
     }

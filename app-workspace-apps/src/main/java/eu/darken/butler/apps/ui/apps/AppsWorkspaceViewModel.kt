@@ -14,7 +14,7 @@ import eu.darken.butler.apps.core.AppSizeCache
 import eu.darken.butler.apps.core.AppsTabViewStore
 import eu.darken.butler.apps.core.AppsSettings
 import eu.darken.butler.apps.core.AppsWorkspace
-import eu.darken.butler.apps.core.apkExportFileName
+import eu.darken.butler.apps.core.apkExport
 import eu.darken.butler.apps.core.details.normalizedAppLabel
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.standardTags
@@ -642,12 +642,13 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
             is AppsActionBarItem.ExportApk -> launch {
                 log(tag) { "Export APK action for ${action.apps.size} apps" }
-                // Paired in one pass: an app without a source drops out here, and building the two
-                // lists separately would misalign every name behind it.
+                // Paired in one pass: an app without a source drops out here, and building the lists
+                // separately would misalign every name and bundle behind it.
                 val exports = action.apps.mapNotNull { app ->
-                    val uri = (app.pkg as? SourceAvailable)?.sourceDir?.path?.let { "file://$it" }
-                        ?: return@mapNotNull null
-                    uri to apkExportFileName(
+                    val source = app.pkg as? SourceAvailable
+                    apkExport(
+                        sourceDir = source?.sourceDir,
+                        splitSources = source?.splitSources,
                         label = app.label.get(context),
                         packageName = app.packageName,
                         versionName = app.versionName,
@@ -658,8 +659,9 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                     workspaceRemote.createAndFocus(
                         type = Workspace.Type.SAVER,
                         arguments = SaverArguments.Default(
-                            sourceUris = exports.map { it.first },
-                            sourceNames = exports.map { it.second },
+                            sourceUris = exports.map { it.uri },
+                            sourceNames = exports.map { it.name },
+                            sourceBundles = exports.map { it.bundle },
                             callerPackage = null,
                             callerWorkspaceId = id,
                         ),

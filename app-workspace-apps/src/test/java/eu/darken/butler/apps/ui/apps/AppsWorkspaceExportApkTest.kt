@@ -34,9 +34,9 @@ import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 
 /**
- * A batch export hands the Saver one name per source. An app without an APK source drops out of the
- * URI list, so the names have to be built in the same pass - otherwise every name behind the gap
- * would end up on the wrong app.
+ * A batch export hands the Saver one name and one bundle per source. An app without an APK source
+ * drops out of the URI list, so the names and bundles have to be built in the same pass - otherwise
+ * every one behind the gap would end up on the wrong app.
  */
 class AppsWorkspaceExportApkTest : BaseTest() {
 
@@ -46,6 +46,7 @@ class AppsWorkspaceExportApkTest : BaseTest() {
         appVersionName: String?,
         appVersionCode: Long,
         apkPath: String,
+        splitPaths: Set<String>? = null,
     ) = appItem(
         pkg = object : SourceAvailable {
             override val id = Pkg.Id(appPackage)
@@ -54,6 +55,7 @@ class AppsWorkspaceExportApkTest : BaseTest() {
             override val icon: CaDrawable? = null
             override val userHandle = UserHandle2(0)
             override val sourceDir: APath<*> = LocalPath.build(apkPath)
+            override val splitSources: Set<APath<*>>? = splitPaths?.map { LocalPath.build(it) }?.toSet()
         },
         packageName = appPackage,
         appLabel = appLabel,
@@ -102,6 +104,18 @@ class AppsWorkspaceExportApkTest : BaseTest() {
         versionCode = 23,
     )
 
+    private val delta = exportableApp(
+        appPackage = "com.delta",
+        appLabel = "Delta",
+        appVersionName = "4.5",
+        appVersionCode = 45,
+        apkPath = "/data/app/~~d/com.delta-1/base.apk",
+        splitPaths = setOf(
+            "/data/app/~~d/com.delta-1/split_config.xxhdpi.apk",
+            "/data/app/~~d/com.delta-1/split_config.arm64_v8a.apk",
+        ),
+    )
+
     private val gamma = exportableApp(
         appPackage = "com.gamma",
         appLabel = "Gamma",
@@ -113,7 +127,7 @@ class AppsWorkspaceExportApkTest : BaseTest() {
     private val executedActions = mutableListOf<WorkspaceAction>()
 
     private fun createVM(): AppsWorkspaceViewModel {
-        val apps = listOf(alpha, beta, gamma)
+        val apps = listOf(alpha, beta, delta, gamma)
         val workspace = mockk<AppsWorkspace>(relaxed = true)
         every { workspace.state } returns flowOf(
             AppsWorkspace.State.Ready(
@@ -147,10 +161,12 @@ class AppsWorkspaceExportApkTest : BaseTest() {
     }
 
     @Test
-    fun `a source-less app in the middle does not shift the names behind it`() = runTest {
+    fun `a source-less app in the middle does not shift the names and bundles behind it`() = runTest {
         val vm = createVM()
 
-        vm.onPageAction(AppsPageAction.ActionBarClick(AppsActionBarItem.ExportApk(listOf(alpha, beta, gamma))))
+        vm.onPageAction(
+            AppsPageAction.ActionBarClick(AppsActionBarItem.ExportApk(listOf(alpha, beta, delta, gamma)))
+        )
 
         val arguments = executedActions.filterIsInstance<WorkspaceAction.Create>()
             .single()
@@ -159,11 +175,31 @@ class AppsWorkspaceExportApkTest : BaseTest() {
 
         arguments.sourceUris shouldBe listOf(
             "file:///data/app/~~a/com.alpha-1/base.apk",
+            "file:///data/app/~~d/com.delta-1/base.apk",
             "file:///data/app/~~g/com.gamma-1/base.apk",
         )
         arguments.sourceNames shouldBe listOf(
             "Alpha_com.alpha_1.2_12.apk",
+            "Delta_com.delta_4.5_45.apks",
             "Gamma_com.gamma_3.4_34.apk",
+        )
+        arguments.sourceBundles shouldBe listOf(
+            emptyList<SaverArguments.BundleMember>(),
+            listOf(
+                SaverArguments.BundleMember(
+                    uri = "file:///data/app/~~d/com.delta-1/base.apk",
+                    entryName = "base.apk",
+                ),
+                SaverArguments.BundleMember(
+                    uri = "file:///data/app/~~d/com.delta-1/split_config.arm64_v8a.apk",
+                    entryName = "split_config.arm64_v8a.apk",
+                ),
+                SaverArguments.BundleMember(
+                    uri = "file:///data/app/~~d/com.delta-1/split_config.xxhdpi.apk",
+                    entryName = "split_config.xxhdpi.apk",
+                ),
+            ),
+            emptyList(),
         )
     }
 }

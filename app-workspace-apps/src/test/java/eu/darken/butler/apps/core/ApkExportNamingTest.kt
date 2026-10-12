@@ -108,4 +108,42 @@ class ApkExportNamingTest : BaseTest() {
         name shouldBe "厨".repeat(39) + "_com.example.app_" + "房".repeat(32) + "_1234567890.apk"
         name.toByteArray(Charsets.UTF_8).size shouldBe 245
     }
+
+    @Test
+    fun `a bundle ends in apks`() {
+        apkExportFileName(
+            label = "Butler",
+            packageName = "eu.darken.butler",
+            versionName = "0.1.0-beta0",
+            versionCode = 1000000,
+            bundle = true,
+        ) shouldBe "Butler_eu.darken.butler_0.1.0-beta0_1000000.apks"
+    }
+
+    @Test
+    fun `the byte budget counts the longer bundle suffix`() {
+        // With ".apk" a 40 character label lands exactly on 247 bytes. The "s" of ".apks" pushes it
+        // over, so the label loses one more character.
+        val label = "厨".repeat(48)
+        val versionName = "房".repeat(32)
+
+        val plain = apkExportFileName(
+            label = label,
+            packageName = "com.example.app",
+            versionName = versionName,
+            versionCode = 123456789,
+        )
+        plain shouldBe "厨".repeat(40) + "_com.example.app_" + versionName + "_123456789.apk"
+        plain.toByteArray(Charsets.UTF_8).size shouldBe 247
+
+        val bundle = apkExportFileName(
+            label = label,
+            packageName = "com.example.app",
+            versionName = versionName,
+            versionCode = 123456789,
+            bundle = true,
+        )
+        bundle shouldBe "厨".repeat(39) + "_com.example.app_" + versionName + "_123456789.apks"
+        bundle.toByteArray(Charsets.UTF_8).size shouldBe 245
+    }
 }
