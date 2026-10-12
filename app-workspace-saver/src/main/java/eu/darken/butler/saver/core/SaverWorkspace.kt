@@ -245,10 +245,12 @@ class SaverWorkspace @AssistedInject constructor(
         // Extract source info for all URIs on initialization
         scope.launch {
             // Indexed, not filtered-then-zipped: a source whose extraction fails is dropped here,
-            // and pairing names afterwards would shift every later one onto the wrong URI.
+            // and pairing names or bundles afterwards would shift every later one onto the wrong URI.
             val infos = sourceUris.mapIndexedNotNull { index, uri ->
                 val info = try {
-                    contentUriHelper.extractInfo(uri)
+                    val extracted = contentUriHelper.extractInfo(uri)
+                    val bundle = creationArguments.sourceBundles.getOrNull(index).orEmpty()
+                    if (bundle.isNotEmpty()) contentUriHelper.withBundle(extracted, bundle) else extracted
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to extract source info for $uri: ${e.asLog()}" }
                     return@mapIndexedNotNull null
@@ -312,6 +314,7 @@ class SaverWorkspace @AssistedInject constructor(
     override suspend fun createArguments(): SaverArguments = SaverArguments.Default(
         sourceUris = creationArguments.sourceUris,
         sourceNames = creationArguments.sourceNames,
+        sourceBundles = creationArguments.sourceBundles,
         callerPackage = creationArguments.callerPackage,
         destinationPath = _destination.value,
         callerWorkspaceId = creationArguments.callerWorkspaceId,
@@ -342,7 +345,7 @@ class SaverWorkspace @AssistedInject constructor(
             if (currentInfos.isEmpty()) return@launch
 
             val updatedInfos = currentInfos.map { info ->
-                val isAccessible = contentUriHelper.checkAccessibility(info.uri)
+                val isAccessible = contentUriHelper.isSourceAccessible(info)
                 if (info.isAccessible != isAccessible) {
                     info.copy(isAccessible = isAccessible)
                 } else {
@@ -371,6 +374,7 @@ class SaverWorkspace @AssistedInject constructor(
                     uri = infos.first().uri,
                     filename = _filename.value,
                     size = infos.first().size,
+                    bundleMembers = infos.first().bundleMembers,
                 )
             )
         } else {
@@ -379,6 +383,7 @@ class SaverWorkspace @AssistedInject constructor(
                     uri = info.uri,
                     filename = info.displayName,
                     size = info.size,
+                    bundleMembers = info.bundleMembers,
                 )
             }
         }

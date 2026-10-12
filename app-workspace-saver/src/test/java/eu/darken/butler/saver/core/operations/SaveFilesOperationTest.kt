@@ -10,9 +10,16 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.archive.ArchiveDiskCache
+import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.archive.ArchivePasswordStore
+import eu.darken.butler.common.files.archive.ArchiveService
+import eu.darken.butler.common.files.archive.ArchiveWriteOptions
+import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
@@ -23,19 +30,29 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldNotBeInstanceOf
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.io.OutputStream
+import java.util.zip.ZipInputStream
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import org.junit.Before
 import org.junit.Test
 import testhelpers.BaseTest
+import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
+import kotlin.random.Random
 import kotlin.time.Clock
 
 class SaveFilesOperationTest : BaseTest() {
@@ -63,25 +80,71 @@ class SaveFilesOperationTest : BaseTest() {
      */
     private val present = mutableSetOf(targetPath.path)
 
+    /** Content of the files the operation wrote, following renames and deletes like [present]. */
+    private val written = mutableMapOf<String, ByteArrayOutputStream>()
+
+    private val archiveService = mockk<ArchiveService>()
+    private val realArchiveService = ArchiveService(
+        dispatcherProvider = TestDispatcherProvider(),
+        gatewaySwitchLazy = { gatewaySwitch },
+        diskCache = mockk<ArchiveDiskCache>(relaxed = true),
+        passwordStore = ArchivePasswordStore(),
+    )
+
+    private val bundleTarget = targetDirectory.child("app.apks")
+    private val memberNames = listOf("base.apk", "split_config.de.apk", "split_config.xxhdpi.apk")
+    private val memberUris = memberNames.map { mockk<Uri>() }
+    private val memberBytes = memberNames.mapIndexed { index, name ->
+        Random(index).nextBytes(12_000) + name.toByteArray()
+    }
+
     private fun isStagingOf(path: APath<*>, filename: String) =
         path.name.startsWith(".") && path.name.endsWith(".part.$filename")
 
     private fun isBackupOf(path: APath<*>, filename: String) =
         path.name.startsWith(".") && path.name.endsWith(".backup.$filename")
 
+    private fun stagingLeftovers(filename: String) = present.filter { isStagingOf(LocalPath.build(it), filename) }
+
     private fun lookupOf(path: LocalPath) = LocalPathLookup(
         lookedUp = path,
         fileType = FileType.FILE,
-        size = 4L,
+        size = written[path.path]?.size()?.toLong() ?: 4L,
         modifiedAt = null,
     )
+
+    private fun bundleSource() = SaveFilesOperation.Command.SourceFile(
+        uri = sourceUri,
+        filename = bundleTarget.name,
+        size = memberBytes.sumOf { it.size.toLong() },
+        bundleMembers = memberNames.indices.map { index ->
+            ContentUriHelper.BundleMember(
+                uri = memberUris[index],
+                entryName = memberNames[index],
+                size = memberBytes[index].size.toLong(),
+            )
+        },
+    )
+
+    private fun unzip(bytes: ByteArray): List<Pair<String, ByteArray>> = ZipInputStream(bytes.inputStream()).use { zip ->
+        generateSequence { zip.nextEntry }.map { it.name to zip.readBytes() }.toList()
+    }
 
     @Before
     fun setup() {
         every { resolver.openInputStream(any()) } returns ByteArrayInputStream("data".toByteArray())
+        memberUris.forEachIndexed { index, uri ->
+            every { resolver.openInputStream(uri) } answers { ByteArrayInputStream(memberBytes[index]) }
+        }
+
+        coEvery { archiveService.compress(any(), any(), any(), any()) } coAnswers {
+            realArchiveService.compress(arg(0), arg(1), arg(2), arg(3))
+        }
+        coEvery { archiveService.invalidate(any()) } just Runs
 
         present.clear()
         present += targetPath.path
+        written.clear()
 
         coEvery { gatewaySwitch.exists(any()) } answers { firstArg<APath<*>>().path in present }
         coEvery { gatewaySwitch.lookup(any(), any<LookupOptions>()) } answers {
@@ -92,14 +155,21 @@ class SaveFilesOperationTest : BaseTest() {
             present += firstArg<APath<*>>().path
             Unit
         }
-        coEvery { gatewaySwitch.openOutputStream(any(), any()) } returns ByteArrayOutputStream()
+        // Create-on-write, like every gateway
+        coEvery { gatewaySwitch.openOutputStream(any(), any()) } answers {
+            val path = firstArg<APath<*>>().path
+            present += path
+            ByteArrayOutputStream().also { written[path] = it }
+        }
         coEvery { gatewaySwitch.delete(any<APath<*>>(), any<Boolean>()) } answers {
             present -= firstArg<APath<*>>().path
+            written -= firstArg<APath<*>>().path
             true
         }
         coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } answers {
             present -= firstArg<APath<*>>().path
             present += secondArg<APath<*>>().path
+            written.remove(firstArg<APath<*>>().path)?.let { written[secondArg<APath<*>>().path] = it }
             MoveOutcome.Moved
         }
 
@@ -114,19 +184,26 @@ class SaveFilesOperationTest : BaseTest() {
         }
     }
 
-    private fun operation(filenames: List<String> = listOf("file.txt")) = SaveFilesOperation(
+    private fun operation(filenames: List<String> = listOf("file.txt")) =
+        operationOf(filenames.map { SaveFilesOperation.Command.SourceFile(sourceUri, it, 4L) })
+
+    private fun operationOf(sources: List<SaveFilesOperation.Command.SourceFile>) = SaveFilesOperation(
         workspaceId = workspaceId,
         command = SaveFilesOperation.Command(
-            sources = filenames.map { SaveFilesOperation.Command.SourceFile(sourceUri, it, 4L) },
+            sources = sources,
             targetDirectory = targetDirectory,
         ),
         context = context,
         gatewaySwitch = gatewaySwitch,
         issueHandler = issueHandler,
+        archiveService = archiveService,
     )
 
-    private suspend fun performToReport(filenames: List<String> = listOf("file.txt")): SaveFilesReport {
-        val states = operation(filenames)
+    private suspend fun performToReport(filenames: List<String> = listOf("file.txt")): SaveFilesReport =
+        performToReport(operation(filenames))
+
+    private suspend fun performToReport(operation: SaveFilesOperation): SaveFilesReport {
+        val states = operation
             .perform(Operation.Context(id = Operation.Id(), startedAt = Clock.System.now()))
             .toList()
         return states.last()
@@ -301,5 +378,104 @@ class SaveFilesOperationTest : BaseTest() {
         plan.destination shouldBe OperationPathPlan.Destination.Container(targetDirectory)
         plan.scopePaths shouldContainExactly listOf(targetPath)
         plan.representativePath shouldBe targetPath
+    }
+
+    @Test
+    fun `a plain source is still copied byte for byte`() = runTest2 {
+        present.clear()
+        val content = Random(42).nextBytes(20_000)
+        every { resolver.openInputStream(sourceUri) } answers { ByteArrayInputStream(content) }
+
+        val report = performToReport()
+
+        report.results.single().shouldBeInstanceOf<SaveFilesReport.FileResult.Success>().bytes shouldBe 20_000L
+        written.getValue(targetPath.path).toByteArray() shouldBe content
+        coVerify(exactly = 0) { archiveService.compress(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `a bundle is zipped onto a staging sibling and committed to its target`() = runTest2 {
+        val report = performToReport(operationOf(listOf(bundleSource())))
+
+        val success = report.results.single().shouldBeInstanceOf<SaveFilesReport.FileResult.Success>()
+        success.savedPath shouldBe bundleTarget
+
+        val entries = slot<List<ArchiveService.WriteEntry>>()
+        coVerify {
+            archiveService.compress(
+                match<ArchiveWriteOptions> { it.format == ArchiveFormat.ZIP && it.preset == CompressionPreset.FAST },
+                match<APath<*>> { isStagingOf(it, "app.apks") },
+                capture(entries),
+                any(),
+            )
+        }
+        entries.captured.map { it.name } shouldContainExactly memberNames
+        coVerify { gatewaySwitch.move(match<APath<*>> { isStagingOf(it, "app.apks") }, bundleTarget) }
+
+        val archive = written.getValue(bundleTarget.path).toByteArray()
+        unzip(archive).map { it.first } shouldContainExactly memberNames
+        unzip(archive).map { it.second.toList() } shouldContainExactly memberBytes.map { it.toList() }
+        success.bytes shouldBe archive.size.toLong()
+
+        coVerify { archiveService.invalidate(bundleTarget) }
+        verify(exactly = 0) { resolver.openInputStream(sourceUri) }
+        stagingLeftovers("app.apks").shouldBeEmpty()
+    }
+
+    private fun failingStream() = object : InputStream() {
+        override fun read(): Int = throw IOException("Provider went away")
+        override fun read(b: ByteArray, off: Int, len: Int): Int = throw IOException("Provider went away")
+    }
+
+    @Test
+    fun `a bundle whose member fails to read leaves nothing under the target name`() = runTest2 {
+        every { resolver.openInputStream(memberUris[1]) } answers { failingStream() }
+
+        val report = performToReport(operationOf(listOf(bundleSource())))
+
+        report.results.single().shouldNotBeInstanceOf<SaveFilesReport.FileResult.Success>()
+        present shouldBe setOf(targetPath.path)
+        stagingLeftovers("app.apks").shouldBeEmpty()
+        coVerify(exactly = 0) { gatewaySwitch.move(any<APath<*>>(), bundleTarget) }
+    }
+
+    @Test
+    fun `a bundle overwrite whose member fails to read keeps the existing target`() = runTest2 {
+        present += bundleTarget.path
+        written[bundleTarget.path] = ByteArrayOutputStream().apply { write("old archive".toByteArray()) }
+        every { resolver.openInputStream(memberUris[1]) } answers { failingStream() }
+
+        val report = performToReport(operationOf(listOf(bundleSource())))
+
+        report.results.single().shouldNotBeInstanceOf<SaveFilesReport.FileResult.Success>()
+        present shouldBe setOf(targetPath.path, bundleTarget.path)
+        written.getValue(bundleTarget.path).toString() shouldBe "old archive"
+        coVerify(exactly = 0) { gatewaySwitch.move(bundleTarget, any<APath<*>>()) }
+    }
+
+    @Test
+    fun `a bundle cancelled mid-write leaves nothing under the target name`() = runTest2 {
+        lateinit var job: Job
+        every { resolver.openInputStream(memberUris[1]) } answers {
+            object : InputStream() {
+                override fun read(): Int = throw UnsupportedOperationException()
+                override fun read(b: ByteArray, off: Int, len: Int): Int {
+                    job.cancel()
+                    b[off] = 1
+                    return 1
+                }
+            }
+        }
+
+        job = launch {
+            operationOf(listOf(bundleSource()))
+                .perform(Operation.Context(id = Operation.Id(), startedAt = Clock.System.now()))
+                .collect {}
+        }
+        job.join()
+
+        job.isCancelled shouldBe true
+        present shouldBe setOf(targetPath.path)
+        stagingLeftovers("app.apks").shouldBeEmpty()
     }
 }

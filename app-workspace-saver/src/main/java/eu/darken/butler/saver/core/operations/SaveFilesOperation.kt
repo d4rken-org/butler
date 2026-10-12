@@ -21,6 +21,11 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.archive.ArchiveService
+import eu.darken.butler.common.files.archive.ArchiveWriteOptions
+import eu.darken.butler.common.files.archive.CompressionPreset
+import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
@@ -31,15 +36,20 @@ import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.saver.R
+import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.buildTransferProgressMetrics
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.withContext
+import java.io.FilterInputStream
+import java.io.InputStream
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -50,6 +60,7 @@ class SaveFilesOperation @AssistedInject constructor(
     @ApplicationContext private val context: Context,
     private val gatewaySwitch: GatewaySwitch,
     private val issueHandler: IssueHandler,
+    private val archiveService: ArchiveService,
 ) : Operation {
 
     private val tag = logTag("Saver", "Operation", "SaveFiles", workspaceId.shortTag)
@@ -58,10 +69,15 @@ class SaveFilesOperation @AssistedInject constructor(
         val sources: List<SourceFile>,
         val targetDirectory: APath<*>,
     ) {
+        /**
+         * @param bundleMembers When non-empty, [filename] is written as a ZIP of these files and
+         * [uri] is never read
+         */
         data class SourceFile(
             val uri: Uri,
             val filename: String,
             val size: Long?,
+            val bundleMembers: List<ContentUriHelper.BundleMember> = emptyList(),
         )
     }
 
@@ -129,6 +145,10 @@ class SaveFilesOperation @AssistedInject constructor(
                     stateActive = newState
                     send(newState)
                 },
+                tryEmitState = { newState ->
+                    stateActive = newState
+                    trySend(newState)
+                },
             )
 
             results.add(result)
@@ -181,13 +201,19 @@ class SaveFilesOperation @AssistedInject constructor(
         progressTracker: PathOperationProgressTracker,
         issueResolver: PathOperationIssueResolver,
         emitState: suspend (State.Active) -> Unit,
+        tryEmitState: (State.Active) -> Unit,
     ): SaveFilesReport.FileResult {
         return try {
-            val inputStream = context.contentResolver.openInputStream(source.uri)
-                ?: return SaveFilesReport.FileResult.Error(
-                    filename = source.filename,
-                    error = IllegalStateException("Failed to open input stream for ${source.uri}"),
-                )
+            val isBundle = source.bundleMembers.isNotEmpty()
+            val inputStream = if (isBundle) {
+                null
+            } else {
+                context.contentResolver.openInputStream(source.uri)
+                    ?: return SaveFilesReport.FileResult.Error(
+                        filename = source.filename,
+                        error = IllegalStateException("Failed to open input stream for ${source.uri}"),
+                    )
+            }
 
             var targetPath = targetDirectory.child(source.filename)
             var replacesExisting = false
@@ -203,7 +229,7 @@ class SaveFilesOperation @AssistedInject constructor(
                     )
                 ) {
                     is ConflictOutcome.Skip -> {
-                        inputStream.close()
+                        inputStream?.close()
                         return SaveFilesReport.FileResult.Skipped(
                             filename = source.filename,
                             reason = SaveFilesReport.FileResult.Skipped.SkipReason.CONFLICT,
@@ -215,6 +241,16 @@ class SaveFilesOperation @AssistedInject constructor(
                         replacesExisting = outcome.replacesExisting
                     }
                 }
+            }
+
+            if (inputStream == null) {
+                return saveBundle(
+                    source = source,
+                    targetPath = targetPath,
+                    operationContext = operationContext,
+                    progressTracker = progressTracker,
+                    tryEmitState = tryEmitState,
+                )
             }
 
             // A replacement is written to a staging sibling and swapped in afterwards, so a failure
@@ -265,6 +301,79 @@ class SaveFilesOperation @AssistedInject constructor(
         } catch (e: Exception) {
             handleError(e, source, issueResolver)
         }
+    }
+
+    /**
+     * Writes [source]'s members as a ZIP. Always staged, for a new file too: a failed or cancelled
+     * write must not leave a truncated archive that still opens under the final name.
+     */
+    private suspend fun saveBundle(
+        source: Command.SourceFile,
+        targetPath: APath<*>,
+        operationContext: Operation.Context,
+        progressTracker: PathOperationProgressTracker,
+        tryEmitState: (State.Active) -> Unit,
+    ): SaveFilesReport.FileResult {
+        val stagingPath = StagedReplace.stagingPathFor(targetPath, gatewaySwitch)
+        var bytesRead = 0L
+        val entries = source.bundleMembers.map { member ->
+            ArchiveService.WriteEntry(
+                name = member.entryName,
+                source = targetPath,
+                isDirectory = false,
+                size = member.size,
+                openStream = {
+                    val input = context.contentResolver.openInputStream(member.uri)
+                        ?: throw ReadException("Failed to open input stream for ${member.uri}", targetPath)
+                    CountingInputStream(input) { read ->
+                        bytesRead += read
+                        progressTracker.updateFileProgress(read)
+                        if (progressTracker.shouldReportProgress()) {
+                            tryEmitState(buildActiveState(operationContext, source, progressTracker))
+                        }
+                    }
+                },
+            )
+        }
+
+        try {
+            archiveService.compress(
+                ArchiveWriteOptions(format = ArchiveFormat.ZIP, preset = CompressionPreset.FAST),
+                stagingPath,
+                entries,
+            ) { _, _ -> }
+        } catch (e: Throwable) {
+            StagedReplace.discard(stagingPath, gatewaySwitch)
+            throw e
+        }
+
+        StagedReplace.commit(stagingPath, targetPath, gatewaySwitch)
+        withContext(NonCancellable) { archiveService.invalidate(targetPath) }
+
+        val archiveSize = try {
+            gatewaySwitch.lookup(targetPath, LookupOptions(fetchSize = true)).size
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, WARN) { "Could not look up the size of $targetPath: ${e.asLog()}" }
+            null
+        }
+
+        return SaveFilesReport.FileResult.Success(
+            filename = source.filename,
+            savedPath = targetPath,
+            bytes = archiveSize ?: bytesRead,
+        )
+    }
+
+    private class CountingInputStream(
+        input: InputStream,
+        private val onRead: (Long) -> Unit,
+    ) : FilterInputStream(input) {
+        override fun read(): Int = super.read().also { if (it != -1) onRead(1) }
+
+        override fun read(b: ByteArray, off: Int, len: Int): Int =
+            super.read(b, off, len).also { if (it > 0) onRead(it.toLong()) }
     }
 
     /** What to do with a source file whose target already exists. */

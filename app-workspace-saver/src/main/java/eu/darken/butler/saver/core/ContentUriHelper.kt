@@ -3,12 +3,14 @@ package eu.darken.butler.saver.core
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import androidx.core.net.toUri
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import javax.inject.Inject
 
 /**
@@ -27,6 +29,15 @@ class ContentUriHelper @Inject constructor(
         val size: Long?,
         val mimeType: String?,
         val isAccessible: Boolean,
+        /** Non-empty when this source is saved as a ZIP of these files, see [withBundle]. */
+        val bundleMembers: List<BundleMember> = emptyList(),
+    )
+
+    /** One file of a bundle source, see [SaverArguments.Default.sourceBundles]. */
+    data class BundleMember(
+        val uri: Uri,
+        val entryName: String,
+        val size: Long?,
     )
 
     /**
@@ -89,6 +100,39 @@ class ContentUriHelper @Inject constructor(
         ).also {
             log(TAG) { "Extracted info: $it" }
         }
+    }
+
+    /**
+     * Turns [info] into a bundle source of [members]. Its size is the sum of the member sizes, or
+     * null when any of them is unknown, and it is only accessible while every member is.
+     */
+    fun withBundle(info: SourceInfo, members: List<SaverArguments.BundleMember>): SourceInfo {
+        val resolved = members.map { member ->
+            val uri = member.uri.toUri()
+            BundleMember(uri = uri, entryName = member.entryName, size = statSize(uri))
+        }
+        val sizes = resolved.map { it.size }
+        return info.copy(
+            size = if (sizes.all { it != null }) sizes.sumOf { it!! } else null,
+            isAccessible = resolved.all { checkAccessibility(it.uri) },
+            bundleMembers = resolved,
+        ).also {
+            log(TAG) { "Bundle info: $it" }
+        }
+    }
+
+    /** [checkAccessibility] for a source, covering every member of a bundle. */
+    fun isSourceAccessible(info: SourceInfo): Boolean = if (info.bundleMembers.isEmpty()) {
+        checkAccessibility(info.uri)
+    } else {
+        info.bundleMembers.all { checkAccessibility(it.uri) }
+    }
+
+    private fun statSize(uri: Uri): Long? = try {
+        context.contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize }?.takeIf { it >= 0 }
+    } catch (e: Exception) {
+        log(TAG, WARN) { "Failed to stat $uri: ${e.asLog()}" }
+        null
     }
 
     /**
