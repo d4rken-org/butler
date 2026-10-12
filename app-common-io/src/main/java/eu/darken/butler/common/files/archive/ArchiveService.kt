@@ -404,17 +404,25 @@ class ArchiveService @Inject constructor(
             }
         }
 
-    /** One file to write into a new archive. */
+    /**
+     * One file to write into a new archive.
+     *
+     * @param openStream When set, the entry's bytes come from this instead of [source] read through
+     * the gateway, for content the gateway cannot reach (e.g. a ContentResolver URI). [source] then
+     * only names the entry in errors.
+     */
     data class WriteEntry(
         val name: String,
         val source: APath<*>,
         val isDirectory: Boolean,
         val size: Long?,
+        val openStream: (suspend () -> InputStream)? = null,
     )
 
     /**
      * Writes [entries] into a new archive at [destination] per [options]. Sources are read through
-     * the gateway (any backend). [onEntry] reports bytes as each file completes.
+     * the gateway (any backend) unless an entry brings its own stream. [onEntry] reports bytes as
+     * each file completes.
      *
      * Entry names and count are validated against the same policy [index] enforces on read, so a
      * created archive is never one this service refuses or silently reinterprets.
@@ -460,7 +468,7 @@ class ArchiveService @Inject constructor(
             entries.forEach { entry ->
                 currentCoroutineContext().ensureActive()
                 zip.putNextEntry(buildZipParameters(entry, options))
-                val written = if (entry.isDirectory) 0L else pumpSource(entry.source, zip)
+                val written = if (entry.isDirectory) 0L else pumpSource(entry, zip)
                 if (!entry.isDirectory) {
                     // zip4j doesn't verify the declared size against the bytes written, and derives
                     // the ZIP64 local layout from it up front. Abort (discarding the temp) rather than
@@ -527,11 +535,12 @@ class ArchiveService @Inject constructor(
                 if (!entry.isDirectory) {
                     // Tar headers need the exact size up front; resolve it now if enumeration didn't.
                     tarEntry.size = entry.size
-                        ?: gatewaySwitch.lookup(entry.source, LookupOptions(fetchSize = true)).size
+                        ?: entry.takeIf { it.openStream == null }
+                            ?.let { gatewaySwitch.lookup(it.source, LookupOptions(fetchSize = true)).size }
                         ?: throw WriteException("Size unknown for tar entry", entry.source)
                 }
                 tar.putArchiveEntry(tarEntry)
-                val written = if (entry.isDirectory) 0L else pumpSource(entry.source, tar)
+                val written = if (entry.isDirectory) 0L else pumpSource(entry, tar)
                 tar.closeArchiveEntry()
                 onEntry(entry, written)
             }
@@ -557,9 +566,10 @@ class ArchiveService @Inject constructor(
         CompressionPreset.BEST -> 9
     }
 
-    private suspend fun pumpSource(source: APath<*>, out: java.io.OutputStream): Long {
+    private suspend fun pumpSource(entry: WriteEntry, out: java.io.OutputStream): Long {
         var count = 0L
-        gatewaySwitch.openInputStream(source).use { input ->
+        val stream = entry.openStream?.invoke() ?: gatewaySwitch.openInputStream(entry.source)
+        stream.use { input ->
             val buffer = ByteArray(COPY_BUFFER_SIZE)
             while (true) {
                 currentCoroutineContext().ensureActive()

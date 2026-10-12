@@ -20,6 +20,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldNotContain
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,7 +38,9 @@ import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
+import java.io.ByteArrayInputStream
 import java.io.File
+import kotlin.random.Random
 import kotlin.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
@@ -288,6 +291,52 @@ class ArchiveServiceCompressTest : BaseTest() {
 
         shouldThrow<WriteException> {
             service.compress(ArchiveWriteOptions(ArchiveFormat.ZIP), container, listOf(entry)) { _, _ -> }
+        }
+    }
+
+    @Test
+    fun `supplier entries are written byte-identical without reading their source`() = runTest2 {
+        val service = create()
+        val first = Random(1).nextBytes(64 * 1024)
+        val second = Random(2).nextBytes(3 * 1024)
+        val unreadSource = LocalPath.build(File(workDir, "never-read.apk"))
+        fun supplied(name: String, bytes: ByteArray) = ArchiveService.WriteEntry(
+            name = name,
+            source = unreadSource,
+            isDirectory = false,
+            size = bytes.size.toLong(),
+            openStream = { ByteArrayInputStream(bytes) },
+        )
+        val container = LocalPath.build(File(workDir, "supplied.zip"))
+
+        service.compress(
+            ArchiveWriteOptions(ArchiveFormat.ZIP, CompressionPreset.FAST),
+            container,
+            listOf(supplied("base.apk", first), supplied("split_config.de.apk", second)),
+        ) { _, _ -> }
+
+        net.lingala.zip4j.ZipFile(container.file).use { zip4j ->
+            zip4j.fileHeaders.map { it.fileName } shouldBe listOf("base.apk", "split_config.de.apk")
+        }
+        service.openEntryStream(ArchivePath(container, listOf("base.apk"))).use { it.readBytes() } shouldBe first
+        service.openEntryStream(ArchivePath(container, listOf("split_config.de.apk"))).use { it.readBytes() } shouldBe second
+        coVerify(exactly = 0) { gatewaySwitch.openInputStream(unreadSource) }
+    }
+
+    @Test
+    fun `supplier entry yielding fewer bytes than declared fails the write`() = runTest2 {
+        val service = create()
+        val entry = ArchiveService.WriteEntry(
+            name = "base.apk",
+            source = LocalPath.build(File(workDir, "never-read.apk")),
+            isDirectory = false,
+            size = 1024L,
+            openStream = { ByteArrayInputStream(ByteArray(10)) },
+        )
+        val container = LocalPath.build(File(workDir, "short.zip"))
+
+        shouldThrow<WriteException> {
+            service.compress(ArchiveWriteOptions(ArchiveFormat.ZIP, CompressionPreset.FAST), container, listOf(entry)) { _, _ -> }
         }
     }
 

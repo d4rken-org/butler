@@ -10,8 +10,11 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.archive.ArchiveDiskCache
 import eu.darken.butler.common.files.archive.ArchiveEntryMeta
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.ArchivePasswordStore
 import eu.darken.butler.common.files.archive.ArchiveService
+import eu.darken.butler.common.files.archive.ArchiveWriteOptions
+import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
@@ -98,18 +101,20 @@ class AppInstallInspectorTest : BaseTest() {
         workDir.deleteRecursively()
     }
 
+    private fun archiveService() = ArchiveService(
+        dispatcherProvider = dispatcherProvider,
+        gatewaySwitchLazy = { gatewaySwitch },
+        diskCache = ArchiveDiskCache(
+            context = context,
+            appScope = appScope,
+            dispatcherProvider = dispatcherProvider,
+        ),
+        passwordStore = ArchivePasswordStore(),
+    )
+
     private fun inspector(root: Boolean = false, adb: Boolean = false) = AppInstallInspector(
         gatewaySwitch = gatewaySwitch,
-        archiveService = ArchiveService(
-            dispatcherProvider = dispatcherProvider,
-            gatewaySwitchLazy = { gatewaySwitch },
-            diskCache = ArchiveDiskCache(
-                context = context,
-                appScope = appScope,
-                dispatcherProvider = dispatcherProvider,
-            ),
-            passwordStore = ArchivePasswordStore(),
-        ),
+        archiveService = archiveService(),
         apkArchiveParser = apkArchiveParser,
         rootManager = mockk<RootManager> { every { useRoot } returns flowOf(root) },
         adbManager = mockk<AdbManager> { every { useAdb } returns flowOf(adb) },
@@ -165,6 +170,32 @@ class AppInstallInspectorTest : BaseTest() {
         plan.splits.map { it.stagedName } shouldContainExactly listOf(
             "base.apk", "split_0001.apk", "split_0002.apk",
         )
+    }
+
+    @Test
+    fun `an apks written by ArchiveService from supplied streams installs as a flat apks`() = runTest2 {
+        coEvery { gatewaySwitch.openOutputStream(any(), any()) } answers { firstArg<LocalPath>().file.outputStream() }
+        val container = LocalPath.build(File(workDir, "export.apks"))
+        val members = listOf("base.apk", "split_config.de.apk", "split_config.xxhdpi.apk")
+        archiveService().compress(
+            ArchiveWriteOptions(format = ArchiveFormat.ZIP, preset = CompressionPreset.FAST),
+            container,
+            members.map { name ->
+                val bytes = "content of $name".toByteArray()
+                ArchiveService.WriteEntry(
+                    name = name,
+                    source = container,
+                    isDirectory = false,
+                    size = bytes.size.toLong(),
+                    openStream = { bytes.inputStream() },
+                )
+            },
+        ) { _, _ -> }
+
+        val plan = inspector().inspect(container)
+
+        plan.format shouldBe AppInstallFormat.APKS
+        plan.splits.map { it.entryPath } shouldContainExactly members
     }
 
     @Test
