@@ -40,6 +40,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
                     "file": "/sdcard/Download"
                 },
                 "sourceNames": [],
+                "sourceBundles": [],
                 "reportSavedPaths": false
             }
         """.toComparableJson()
@@ -58,6 +59,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
                 "type": "default",
                 "sourceUris": ["content://provider/file"],
                 "sourceNames": [],
+                "sourceBundles": [],
                 "reportSavedPaths": false
             }
         """.toComparableJson()
@@ -79,11 +81,69 @@ class SaverArgumentsSerializationTest : BaseTest() {
                     "file:///data/app/b/base.apk"
                 ],
                 "sourceNames": ["A_com.a_1.apk", "B_com.b_2.apk"],
+                "sourceBundles": [],
                 "reportSavedPaths": false
             }
         """.toComparableJson()
 
         json.decodeFromString<SaverArguments>(serialized.toString()) shouldBe args
+    }
+
+    @Test
+    fun `serialize Default with source bundles`() {
+        val args = SaverArguments.Default(
+            sourceUris = listOf("file:///data/app/a/base.apk", "file:///data/app/b/base.apk"),
+            sourceNames = listOf("A_com.a_1.apks", "B_com.b_2.apk"),
+            sourceBundles = listOf(
+                listOf(
+                    SaverArguments.BundleMember("file:///data/app/a/base.apk", "base.apk"),
+                    SaverArguments.BundleMember("file:///data/app/a/split_config.de.apk", "split_config.de.apk"),
+                ),
+                emptyList(),
+            ),
+        )
+        val serialized = json.encodeToJsonElement<SaverArguments>(args)
+
+        serialized.toString().toComparableJson() shouldBe """
+            {
+                "type": "default",
+                "sourceUris": [
+                    "file:///data/app/a/base.apk",
+                    "file:///data/app/b/base.apk"
+                ],
+                "sourceNames": ["A_com.a_1.apks", "B_com.b_2.apk"],
+                "sourceBundles": [
+                    [
+                        {"uri": "file:///data/app/a/base.apk", "entryName": "base.apk"},
+                        {"uri": "file:///data/app/a/split_config.de.apk", "entryName": "split_config.de.apk"}
+                    ],
+                    []
+                ],
+                "reportSavedPaths": false
+            }
+        """.toComparableJson()
+
+        json.decodeFromString<SaverArguments>(serialized.toString()) shouldBe args
+    }
+
+    @Test
+    fun `a payload from before source bundles decodes without any`() {
+        val jsonString = """
+            {
+                "type": "default",
+                "sourceUris": ["file:///data/app/a/base.apk"],
+                "sourceNames": ["A_com.a_1.apk"],
+                "reportSavedPaths": false
+            }
+        """
+
+        val args = json.decodeFromString<SaverArguments>(jsonString) as SaverArguments.Default
+
+        args.sourceBundles shouldBe emptyList()
+        args shouldBe SaverArguments.Default(
+            sourceUris = listOf("file:///data/app/a/base.apk"),
+            sourceNames = listOf("A_com.a_1.apk"),
+        )
     }
 
     @Test
@@ -176,6 +236,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
                 "type": "default",
                 "sourceUris": ["content://provider/file"],
                 "sourceNames": [],
+                "sourceBundles": [],
                 "reportSavedPaths": false
             }
         """.toComparableJson()

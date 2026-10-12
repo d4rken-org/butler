@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.contracts.saver
 
+import android.os.Parcelable
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.workspace.core.Workspace
@@ -31,6 +32,18 @@ sealed interface SaverArguments : Workspace.Arguments {
          * `base.apk`.
          */
         val sourceNames: List<String> = emptyList(),
+        /**
+         * Files to pack into a ZIP per source of [sourceUris], index-aligned. A non-empty list writes
+         * that source as an archive whose root entries are exactly these members, in this order; the
+         * source's URI still drives the display and MIME type. Empty (or a short list) copies the
+         * source as is. The split APK export uses it to save one `.apks`:
+         * ```
+         * sourceUris    = [file:///data/app/~~x/com.foo-1/base.apk]
+         * sourceNames   = [Foo_com.foo_42.apks]
+         * sourceBundles = [[base.apk, split_config.de.apk, split_config.xxhdpi.apk]]
+         * ```
+         */
+        val sourceBundles: List<List<BundleMember>> = emptyList(),
         /** Package name of the app that shared the files */
         val callerPackage: Pkg.Id? = null,
         /** Selected destination path, null if not yet selected */
@@ -60,4 +73,17 @@ sealed interface SaverArguments : Workspace.Arguments {
          */
         val reportSavedPaths: Boolean = false,
     ) : SaverArguments, Workspace.ArgumentsWithCaller
+
+    /**
+     * One file of a bundle source, see [Default.sourceBundles].
+     *
+     * @param uri Source URI as a string, like [Default.sourceUris]
+     * @param entryName Name of the root archive entry the file is written to
+     */
+    @Serializable
+    @Parcelize
+    data class BundleMember(
+        val uri: String,
+        val entryName: String,
+    ) : Parcelable
 }
