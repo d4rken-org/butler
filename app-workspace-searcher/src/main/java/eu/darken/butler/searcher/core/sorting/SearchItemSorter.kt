@@ -35,7 +35,7 @@ class SearchItemSorter @AssistedInject constructor(
         val sortedFiles = applySortMode(files, sortSettings)
 
         return if (sortSettings.reversed) {
-            sortedFiles.reversed() + sortedDirectories.reversed()
+            sortedDirectories.reversed() + sortedFiles.reversed()
         } else {
             sortedDirectories + sortedFiles
         }

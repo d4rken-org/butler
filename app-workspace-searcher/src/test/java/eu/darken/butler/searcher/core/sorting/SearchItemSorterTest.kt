@@ -83,4 +83,31 @@ class SearchItemSorterTest : BaseTest() {
 
         sorted shouldContainExactly listOf(directory, file)
     }
+
+    @Test
+    fun `descending created at keeps directories above files, each newest first`() {
+        val oldFile = item("old.txt", createdAt = Instant.fromEpochMilliseconds(1_000L))
+        val oldDir = item("oldDir", createdAt = Instant.fromEpochMilliseconds(2_000L), fileType = FileType.DIRECTORY)
+        val newDir = item("newDir", createdAt = Instant.fromEpochMilliseconds(3_000L), fileType = FileType.DIRECTORY)
+        val newFile = item("new.txt", createdAt = Instant.fromEpochMilliseconds(4_000L))
+
+        val sorted = sortByCreatedAt(listOf(oldFile, newDir, newFile, oldDir), reversed = true)
+
+        sorted shouldContainExactly listOf(newDir, oldDir, newFile, oldFile)
+    }
+
+    @Test
+    fun `descending name keeps directories above files, each Z to A`() {
+        val alphaFile = item("alpha.txt")
+        val zetaFile = item("zeta.txt")
+        val alphaDir = item("alphaDir", fileType = FileType.DIRECTORY)
+        val zetaDir = item("zetaDir", fileType = FileType.DIRECTORY)
+
+        val sorted = sorter.sortItems(
+            items = listOf(alphaFile, zetaDir, zetaFile, alphaDir),
+            sortSettings = SearchSortSettings(mode = SearchSortSettings.Mode.NAME, reversed = true),
+        )
+
+        sorted shouldContainExactly listOf(zetaDir, alphaDir, zetaFile, alphaFile)
+    }
 }

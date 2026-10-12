@@ -89,11 +89,7 @@ class ExplorerItemSorter @AssistedInject constructor(
         val sortedFiles = applySortMode(context, files, sortSettings)
             .let { if (sortSettings.reversed) it.reversed() else it }
 
-        return if (sortSettings.reversed) {
-            peeks + sortedFiles + sortedDirectories
-        } else {
-            peeks + sortedDirectories + sortedFiles
-        }
+        return peeks + sortedDirectories + sortedFiles
     }
 
     /**
@@ -167,7 +163,7 @@ class ExplorerItemSorter @AssistedInject constructor(
         val sortedFiles = applySortModeNested(context, files, sortSettings)
 
         return if (sortSettings.reversed) {
-            sortedFiles.reversed() + sortedDirectories.reversed()
+            sortedDirectories.reversed() + sortedFiles.reversed()
         } else {
             sortedDirectories + sortedFiles
         }
