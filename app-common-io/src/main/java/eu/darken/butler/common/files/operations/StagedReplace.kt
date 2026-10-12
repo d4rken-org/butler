@@ -146,12 +146,28 @@ object StagedReplace {
         val parent = destination.parent
             ?: throw WriteException("Destination has no parent directory", destination)
 
+        val name = destination.name
+        val extensionStart = name.lastIndexOf('.').takeIf { it > 0 } ?: name.length
+        val stem = name.substring(0, extensionStart)
+        val extension = name.substring(extensionStart)
+
         repeat(NAME_ATTEMPTS) {
-            val candidate = parent.child(".${Uuid.random().toString().take(8)}.$marker.${destination.name}")
+            val prefix = ".${Uuid.random().toString().take(8)}.$marker."
+            val candidate = parent.child(fitSiblingName(prefix, stem, extension))
             if (!ops.exists(candidate)) return candidate
         }
 
         throw WriteException("Could not find a free .$marker. sibling name for ${destination.name}", destination)
+    }
+
+    // The prefix pushes a near-limit destination name past the filesystem limit, so the stem gives way.
+    private fun fitSiblingName(prefix: String, stem: String, extension: String): String {
+        fun build(end: Int) = prefix + stem.substring(0, end) + extension
+        var end = stem.length
+        while (end > 0 && build(end).toByteArray(Charsets.UTF_8).size > MAX_NAME_BYTES) {
+            end = stem.offsetByCodePoints(end, -1)
+        }
+        return build(end)
     }
 
     /**
@@ -240,5 +256,6 @@ object StagedReplace {
     }
 
     private const val NAME_ATTEMPTS = 8
+    private const val MAX_NAME_BYTES = 255
     private val TAG = logTag("IO", "StagedReplace")
 }
