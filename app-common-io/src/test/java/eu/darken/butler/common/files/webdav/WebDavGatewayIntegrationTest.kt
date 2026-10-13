@@ -416,6 +416,33 @@ class WebDavGatewayIntegrationTest : BaseTest() {
     }
 
     @Test
+    fun `a failed flush is not replayed on close`(): Unit = runBlocking {
+        val server = server {
+            rejectUnknownLengthPut = true
+            putFile("flaky.txt", "abc".encodeToByteArray())
+        }
+        val recorder = Recorder(server)
+        val switch = rig(location(idA, server)).switch
+        var failed = false
+        recorder.inject = { request, response ->
+            if (!failed && request.method == "PUT" && request.headers["Content-Length"] != "0") {
+                failed = true
+                MockResponse.Builder().code(500).build()
+            } else {
+                response
+            }
+        }
+
+        val handle = switch.file(a("flaky.txt"), readWrite = true)
+        handle.write(3, "d".encodeToByteArray(), 0, 1)
+        shouldThrow<IOException> { handle.flush() }
+        runCatching { handle.close() }
+
+        recorder.of("PUT", "flaky.txt").count { it.headers["Content-Length"] != "0" } shouldBe 1
+        assertNoSpoolLeft()
+    }
+
+    @Test
     fun `appending to a missing file creates it`(): Unit = runBlocking {
         val server = server { rejectUnknownLengthPut = true }
         val switch = rig(location(idA, server)).switch

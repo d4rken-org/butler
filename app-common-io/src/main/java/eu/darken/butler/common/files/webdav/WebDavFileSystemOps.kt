@@ -521,6 +521,7 @@ class WebDavFileSystemOps @Inject constructor(
         private var loaded = false
         private var dirty = false
         private var released = false
+        private var uploadFailure: Throwable? = null
 
         private fun ensureLoaded() {
             if (loaded) return
@@ -579,17 +580,31 @@ class WebDavFileSystemOps @Inject constructor(
             dirty = true
         }
 
-        override fun protectedFlush() = synchronized(handleLock) {
-            if (!dirty) return
-            lease.uploadSpool(path, file)
-            dirty = false
+        override fun protectedFlush() {
+            synchronized(handleLock) {
+                uploadFailure?.let { throw it }
+                if (!dirty) return
+                upload()
+                dirty = false
+            }
         }
 
         override fun protectedClose() = synchronized(handleLock) {
             try {
-                if (dirty) lease.uploadSpool(path, file)
+                uploadFailure?.let { throw it }
+                if (dirty) upload()
             } finally {
                 release()
+            }
+        }
+
+        /** A failed upload is final for this handle: neither [flush] nor [close] sends it again. */
+        private fun upload() {
+            try {
+                lease.uploadSpool(path, file)
+            } catch (error: Throwable) {
+                uploadFailure = error
+                throw error
             }
         }
 
