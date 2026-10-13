@@ -33,6 +33,7 @@ internal class OkHttpWebDavSession(
             responses.firstOrNull { hrefSegments(requestUrl, it.href) == requested }
                 ?: responses.singleOrNull()
                 ?: throw protocolFailure("PROPFIND response does not describe the requested resource")
+        match.checkStatus()
         return match.toEntry(path)
     }
 
@@ -48,10 +49,11 @@ internal class OkHttpWebDavSession(
                 segments == requested -> self = response
                 segments.size == requested.size + 1 && segments.subList(0, requested.size) == requested -> {
                     val name = segments.last()
-                    if (WebDavPath.isValidSegment(name)) entries += response.toEntry(path.child(name))
+                    if (WebDavPath.isValidSegment(name) && response.failure == null) entries += response.toEntry(path.child(name))
                 }
             }
         }
+        self?.checkStatus()
         if (self != null && !self.props.isCollection) {
             throw WebDavException(WebDavException.Kind.NOT_DIRECTORY, message = "PROPFIND target is not a collection")
         }
@@ -235,6 +237,14 @@ internal class OkHttpWebDavSession(
             query == null &&
             !url.encodedPath.endsWith('/') &&
             pathSegments == url.pathSegments + ""
+
+    /** Only the response-level status counts; a `propstat` status describes single properties. */
+    private val DavResponse.failure: Int?
+        get() = status?.takeIf { it !in 200..299 }
+
+    private fun DavResponse.checkStatus() {
+        failure?.let { throw statusFailure(it, "PROPFIND") }
+    }
 
     private fun DavResponse.toEntry(path: WebDavPath) =
         WebDavEntry(

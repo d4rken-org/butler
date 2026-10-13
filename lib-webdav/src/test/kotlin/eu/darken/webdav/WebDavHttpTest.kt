@@ -179,6 +179,30 @@ class WebDavHttpTest {
     }
 
     @Test
+    fun `stat of a resource with a response-level 404 fails with MISSING`(): Unit = runBlocking {
+        connect().use {
+            server.enqueue(
+                multistatus("<d:response><d:href>/dav/gone</d:href><d:status>HTTP/1.1 404 Not Found</d:status></d:response>"),
+            )
+            assertKind(Kind.MISSING) { it.stat(path("gone")) }
+        }
+    }
+
+    @Test
+    fun `list drops members with a response-level 404`(): Unit = runBlocking {
+        connect().use {
+            server.enqueue(
+                multistatus(
+                    collection("/dav/dir/"),
+                    "<d:response><d:href>/dav/dir/gone</d:href><d:status>HTTP/1.1 404 Not Found</d:status></d:response>",
+                    file("/dav/dir/kept"),
+                ),
+            )
+            assertEquals(listOf(path("dir", "kept")), it.list(path("dir")).toList().map { entry -> entry.path })
+        }
+    }
+
+    @Test
     fun `a 206 must start at the requested offset`(): Unit = runBlocking {
         connect().use {
             server.enqueue(MockResponse.Builder().code(206).addHeader("Content-Range", "bytes 0-9/10").body("0123456789").build())
