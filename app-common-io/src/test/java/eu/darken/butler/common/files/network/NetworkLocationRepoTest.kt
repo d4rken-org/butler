@@ -18,6 +18,13 @@ import eu.darken.butler.common.files.smb.credentials.db.SmbCredentialEntity
 import eu.darken.butler.common.files.smb.credentials.db.SmbCredentialsDao
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.common.files.webdav.FakeWebDavLocationManager
+import eu.darken.butler.common.files.webdav.credentials.WebDavCredential
+import eu.darken.butler.common.files.webdav.credentials.WebDavCredentialCipher
+import eu.darken.butler.common.files.webdav.credentials.WebDavCredentialStore
+import eu.darken.butler.common.files.webdav.credentials.db.WebDavCredentialEntity
+import eu.darken.butler.common.files.webdav.credentials.db.WebDavCredentialsDao
+import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.flow.Flow
@@ -109,6 +116,23 @@ class NetworkLocationRepoTest : BaseTest() {
         override suspend fun deleteOtherGenerations(locationId: Uuid, keepVersion: Int) = Unit
     }
 
+    private class FakeWebDavDao : WebDavCredentialsDao {
+        val rows = MutableStateFlow<List<WebDavCredentialEntity>>(emptyList())
+        override fun getAll(): Flow<List<WebDavCredentialEntity>> = rows
+        override suspend fun getAllOnce() = rows.value
+        override suspend fun get(locationId: Uuid, credentialVersion: Int) = rows.value.firstOrNull {
+            it.locationId == locationId && it.credentialVersion == credentialVersion
+        }
+
+        override suspend fun upsert(entity: WebDavCredentialEntity) {
+            rows.value = rows.value + entity
+        }
+
+        override suspend fun delete(locationId: Uuid) = Unit
+        override suspend fun deleteGeneration(locationId: Uuid, credentialVersion: Int) = Unit
+        override suspend fun deleteOtherGenerations(locationId: Uuid, keepVersion: Int) = Unit
+    }
+
     private class FakeSmbCipher(var keyPresent: Boolean = true) : SmbCredentialCipher {
         override fun encrypt(locationId: Uuid, payloadVersion: Int, plaintext: ByteArray) =
             SmbCredentialCipher.Envelope(SmbCredentialCipher.ENVELOPE_VERSION, "smb", ByteArray(0), plaintext.copyOf())
@@ -129,19 +153,34 @@ class NetworkLocationRepoTest : BaseTest() {
         override fun isKeyAvailable(keyAlias: String) = keyPresent
     }
 
+    private class FakeWebDavCipher(var keyPresent: Boolean = true) : WebDavCredentialCipher {
+        override fun encrypt(locationId: Uuid, payloadVersion: Int, plaintext: ByteArray) =
+            CredentialCipher.Envelope(CredentialCipher.ENVELOPE_VERSION, "webdav", ByteArray(0), plaintext.copyOf())
+
+        override fun decrypt(locationId: Uuid, payloadVersion: Int, envelope: CredentialCipher.Envelope) =
+            envelope.ciphertext.copyOf()
+
+        override fun isKeyAvailable(keyAlias: String) = keyPresent
+    }
+
     private val context = mockk<Context>()
     private val smbLocations = FakeSmbLocations()
     private val sftpLocations = FakeSftpLocations()
+    private val webDavLocations = FakeWebDavLocationManager(emptyList())
     private val smbCipher = FakeSmbCipher()
     private val sftpCipher = FakeSftpCipher()
+    private val webDavCipher = FakeWebDavCipher()
     private val smbStore = SmbCredentialStore(FakeSmbDao(), smbCipher)
     private val sftpStore = SftpCredentialStore(FakeSftpDao(), sftpCipher)
+    private val webDavStore = WebDavCredentialStore(FakeWebDavDao(), webDavCipher)
 
     private val repo = NetworkLocationRepo(
         smbLocationManager = smbLocations,
         sftpLocationManager = sftpLocations,
+        webDavLocationManager = webDavLocations,
         smbCredentialStore = smbStore,
         sftpCredentialStore = sftpStore,
+        webDavCredentialStore = webDavStore,
     )
 
     private val smbLocation = SmbLocation(
@@ -253,5 +292,80 @@ class NetworkLocationRepoTest : BaseTest() {
 
         sftpCipher.keyPresent = false
         repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.KEY_UNAVAILABLE
+    }
+
+    private val webDavLocation = WebDavLocation(
+        id = Uuid.parse("44444444-4444-4444-4444-444444444444"),
+        label = null,
+        url = "https://cloud.example.com:8443/remote.php/dav/files/alice/",
+        authType = WebDavLocation.AuthType.BASIC,
+        username = "alice",
+        rememberCredential = true,
+        credentialVersion = 1,
+        pinnedCertificate = null,
+        trustRevision = 1,
+        createdAt = Instant.fromEpochMilliseconds(1_500),
+        updatedAt = Instant.fromEpochMilliseconds(1_500),
+        lastSeenAt = Instant.fromEpochMilliseconds(9_000),
+    )
+
+    @Test
+    fun `WebDAV locations are listed with the others in the order they were added`() = runTest {
+        smbLocations.locations.value = listOf(smbLocation)
+        sftpLocations.locations.value = listOf(sftpLocation)
+        webDavLocations.put(webDavLocation)
+
+        repo.locations.first() shouldBe listOf(
+            NetworkLocation.Sftp(sftpLocation),
+            NetworkLocation.WebDav(webDavLocation),
+            NetworkLocation.Smb(smbLocation),
+        )
+
+        webDavLocations.byId.value = emptyMap()
+        repo.locations.first() shouldBe listOf(NetworkLocation.Sftp(sftpLocation), NetworkLocation.Smb(smbLocation))
+    }
+
+    @Test
+    fun `the shared view exposes a WebDAV location's own values`() = runTest {
+        webDavLocations.put(webDavLocation)
+
+        val webDav = repo.locations.first().single()
+
+        webDav.id shouldBe webDavLocation.id
+        webDav.displayName.get(context) shouldBe "cloud.example.com"
+        webDav.endpointLabel shouldBe "alice@cloud.example.com:8443/remote.php/dav/files/alice"
+        webDav.host shouldBe "cloud.example.com"
+        webDav.port shouldBe 8443
+        webDav.lastSeenAt shouldBe Instant.fromEpochMilliseconds(9_000)
+    }
+
+    @Test
+    fun `availability of a WebDAV location comes from the WebDAV vault`() = runTest {
+        val location = NetworkLocation.WebDav(webDavLocation)
+        repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.MISSING
+
+        // A credential stored for the SFTP location with the same id must not count
+        val sftpCredential = SftpCredential.Password("alice", "hunter2".toCharArray())
+        sftpStore.store(webDavLocation.id, 1, sftpCredential, remember = true)
+        repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.MISSING
+
+        val webDavCredential = WebDavCredential.Password("alice", "hunter2".toCharArray())
+        webDavStore.store(webDavLocation.id, 1, webDavCredential, remember = true)
+        repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.AVAILABLE
+
+        webDavCipher.keyPresent = false
+        repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.KEY_UNAVAILABLE
+    }
+
+    @Test
+    fun `an anonymous WebDAV location needs no credential`() = runTest {
+        val anonymous = webDavLocation.copy(
+            authType = WebDavLocation.AuthType.ANONYMOUS,
+            username = null,
+            rememberCredential = false,
+        )
+
+        repo.credentialAvailability(NetworkLocation.WebDav(anonymous)).first() shouldBe
+            NetworkCredentialAvailability.AVAILABLE
     }
 }

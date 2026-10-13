@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.network
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
@@ -27,6 +28,16 @@ sealed interface NetworkLocation {
     }
 
     data class Sftp(val location: SftpLocation) : NetworkLocation {
+        override val id: Uuid get() = location.id
+        override val displayName: CaString get() = location.displayName
+        override val endpointLabel: String get() = location.endpointLabel
+        override val host: String get() = location.host
+        override val port: Int get() = location.port
+        override val createdAt: Instant get() = location.createdAt
+        override val lastSeenAt: Instant? get() = location.lastSeenAt
+    }
+
+    data class WebDav(val location: WebDavLocation) : NetworkLocation {
         override val id: Uuid get() = location.id
         override val displayName: CaString get() = location.displayName
         override val endpointLabel: String get() = location.endpointLabel

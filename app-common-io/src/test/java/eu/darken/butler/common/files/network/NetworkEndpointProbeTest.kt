@@ -5,6 +5,8 @@ import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.sftp.testHostKey
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.common.files.webdav.location.WebDavLocationManager
+import eu.darken.butler.common.files.webdav.testWebDavLocation
 import eu.darken.butler.common.network.NetworkStateProvider
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -664,15 +666,21 @@ class NetworkEndpointProbeTest : BaseTest() {
     fun `a sighting is recorded through the manager of the location's protocol`() = runTest {
         val smbManager = mockk<SmbLocationManager>(relaxed = true)
         val sftpManager = mockk<SftpLocationManager>(relaxed = true)
-        val recorder = NetworkEndpointProbeModule.lastSeenRecorder(smbManager, sftpManager)
+        val webDavManager = mockk<WebDavLocationManager>(relaxed = true)
+        val recorder = NetworkEndpointProbeModule.lastSeenRecorder(smbManager, sftpManager, webDavManager)
         val at = Instant.fromEpochMilliseconds(7_000)
+        val webDavId = Uuid.parse("33333333-4444-5555-6666-777777777777")
+        val webDav = NetworkLocation.WebDav(testWebDavLocation(webDavId, url = "https://cloud.example.com:8443/dav/"))
 
         recorder.recordSeen(location(), "nas.local", 445, at)
         recorder.recordSeen(sftpLocation(id = otherLocationId), "nas.local", 2222, at)
+        recorder.recordSeen(webDav, webDav.host, webDav.port, at)
 
         coVerify(exactly = 1) { smbManager.recordSeen(locationId, "nas.local", 445, at) }
         coVerify(exactly = 1) { sftpManager.recordSeen(otherLocationId, "nas.local", 2222, at) }
-        coVerify(exactly = 0) { smbManager.recordSeen(otherLocationId, any(), any(), any()) }
-        coVerify(exactly = 0) { sftpManager.recordSeen(locationId, any(), any(), any()) }
+        coVerify(exactly = 1) { webDavManager.recordSeen(webDavId, "cloud.example.com", 8443, at) }
+        coVerify(exactly = 1) { smbManager.recordSeen(any(), any(), any(), any()) }
+        coVerify(exactly = 1) { sftpManager.recordSeen(any(), any(), any(), any()) }
+        coVerify(exactly = 1) { webDavManager.recordSeen(any(), any(), any(), any()) }
     }
 }

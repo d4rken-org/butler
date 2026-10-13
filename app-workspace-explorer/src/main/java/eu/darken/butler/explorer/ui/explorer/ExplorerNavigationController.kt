@@ -167,6 +167,7 @@ class ExplorerNavigationController(
                             dialogs.show(ExplorerDialogState.SmbLocationForm(existing = location.location))
                         }
                         is NetworkLocation.Sftp -> showSftpLocationForm(location.location)
+                        is NetworkLocation.WebDav -> error("WEBDAV_PENDING: sign-in form for a WebDAV location")
                     }
 
                 else -> {

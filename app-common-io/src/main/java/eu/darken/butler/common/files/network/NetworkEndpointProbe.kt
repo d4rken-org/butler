@@ -13,6 +13,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.common.files.webdav.location.WebDavLocationManager
 import eu.darken.butler.common.network.NetworkStateProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -383,10 +384,12 @@ object NetworkEndpointProbeModule {
     fun lastSeenRecorder(
         smbLocationManager: SmbLocationManager,
         sftpLocationManager: SftpLocationManager,
+        webDavLocationManager: WebDavLocationManager,
     ): NetworkEndpointProbe.LastSeenRecorder = NetworkEndpointProbe.LastSeenRecorder { location, host, port, at ->
         when (location) {
             is NetworkLocation.Smb -> smbLocationManager.recordSeen(location.id, host, port, at)
             is NetworkLocation.Sftp -> sftpLocationManager.recordSeen(location.id, host, port, at)
+            is NetworkLocation.WebDav -> webDavLocationManager.recordSeen(location.id, host, port, at)
         }
     }
 }

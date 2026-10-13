@@ -235,6 +235,7 @@ class NetworkLocationLoaderTest : BaseTest() {
             when (it) {
                 is NetworkLocation.Smb -> NetworkCredentialAvailability.AVAILABLE
                 is NetworkLocation.Sftp -> NetworkCredentialAvailability.MISSING
+                is NetworkLocation.WebDav -> error("No WebDAV location is listed here")
             }
         }.loadNetwork().take(2).toList()
 

@@ -192,6 +192,8 @@ private fun ItemInfoContent(
                             capacity = context.capacity,
                             onCopyToClipboard = onCopyToClipboard,
                         )
+
+                        is NetworkLocation.WebDav -> error("WEBDAV_PENDING: info sheet of a WebDAV location")
                     }
                 }
             }

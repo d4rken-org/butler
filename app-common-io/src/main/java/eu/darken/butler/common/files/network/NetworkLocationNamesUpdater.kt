@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.network
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.common.files.webdav.location.WebDavLocationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -15,6 +16,7 @@ class NetworkLocationNamesUpdater @Inject constructor(
     @AppScope appScope: CoroutineScope,
     smbLocationManager: SmbLocationManager,
     sftpLocationManager: SftpLocationManager,
+    webDavLocationManager: WebDavLocationManager,
 ) {
 
     init {
@@ -24,6 +26,10 @@ class NetworkLocationNamesUpdater @Inject constructor(
 
         sftpLocationManager.locations
             .onEach { NetworkLocationNames.updateSftp(it) }
+            .launchIn(appScope)
+
+        webDavLocationManager.locations
+            .onEach { NetworkLocationNames.updateWebDav(it) }
             .launchIn(appScope)
     }
 }

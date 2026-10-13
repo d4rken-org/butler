@@ -45,6 +45,7 @@ import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialUnavailableException
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
+import eu.darken.butler.common.files.webdav.location.WebDavLocationManager
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine as combineMany
 import eu.darken.butler.common.issue.Issue
@@ -199,6 +200,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val sftpCredentialStore: SftpCredentialStore,
     private val sftpConnectionTester: SftpConnectionTester,
     private val sftpPrivateKeyReader: SftpPrivateKeyReader,
+    private val webDavLocationManager: WebDavLocationManager,
     private val trashManager: TrashManager,
     private val trashRepo: TrashRepo,
     private val itemInfoCalculator: ItemInfoCalculator,
@@ -303,6 +305,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val networkLocations = ExplorerNetworkLocationController(
         smbLocationManager = smbLocationManager,
         sftpLocationManager = sftpLocationManager,
+        webDavLocationManager = webDavLocationManager,
         dialogs = dialogs,
         workspace = ::getWorkspace,
         currentLocation = { cachedCurrentLocation },
@@ -1394,6 +1397,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 when (val location = selectedItem.location) {
                     is NetworkLocation.Smb -> smbLocations.showEditForm(location.id)
                     is NetworkLocation.Sftp -> sftpLocations.showEditForm(location.id)
+                    is NetworkLocation.WebDav -> error("WEBDAV_PENDING: edit form for a WebDAV location")
                 }
             }
             is ExplorerActionBarItem.Network.RemoveLocation -> {

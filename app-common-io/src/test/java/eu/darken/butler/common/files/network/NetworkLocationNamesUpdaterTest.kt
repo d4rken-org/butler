@@ -6,6 +6,8 @@ import eu.darken.butler.common.files.sftp.FakeSftpLocationManager
 import eu.darken.butler.common.files.sftp.testSftpLocation
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.common.files.webdav.FakeWebDavLocationManager
+import eu.darken.butler.common.files.webdav.testWebDavLocation
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +42,7 @@ class NetworkLocationNamesUpdaterTest : BaseTest() {
     private val context = mockk<Context>()
     private val smbLocations = FakeSmbLocations()
     private val sftpLocations = FakeSftpLocationManager(emptyList())
+    private val webDavLocations = FakeWebDavLocationManager(emptyList())
 
     private val id = Uuid.parse("11111111-1111-1111-1111-111111111111")
     private val otherId = Uuid.parse("22222222-2222-2222-2222-222222222222")
@@ -57,7 +60,7 @@ class NetworkLocationNamesUpdaterTest : BaseTest() {
     )
 
     private fun TestScope.startUpdater() {
-        NetworkLocationNamesUpdater(backgroundScope, smbLocations, sftpLocations)
+        NetworkLocationNamesUpdater(backgroundScope, smbLocations, sftpLocations, webDavLocations)
         runCurrent()
     }
 
@@ -106,18 +109,43 @@ class NetworkLocationNamesUpdaterTest : BaseTest() {
     }
 
     @Test
+    fun `WebDAV names follow the stored locations`() = runTest {
+        startUpdater()
+        NetworkLocationNames.webdav(id) shouldBe null
+
+        webDavLocations.put(testWebDavLocation(id, url = "https://cloud.example.com/dav/"))
+        webDavLocations.put(testWebDavLocation(otherId, url = "http://nas.local/dav/"))
+        runCurrent()
+        NetworkLocationNames.webdav(id)!!.get(context) shouldBe "cloud.example.com"
+        NetworkLocationNames.webdav(otherId)!!.get(context) shouldBe "nas.local"
+
+        webDavLocations.put(testWebDavLocation(id, url = "https://cloud.example.com/dav/").copy(label = "Nextcloud"))
+        runCurrent()
+        NetworkLocationNames.webdav(id)!!.get(context) shouldBe "Nextcloud"
+        NetworkLocationNames.snapshot.value.webdav.keys shouldBe setOf(id, otherId)
+
+        webDavLocations.byId.value = webDavLocations.byId.value - id
+        runCurrent()
+        NetworkLocationNames.webdav(id) shouldBe null
+        NetworkLocationNames.webdav(otherId)!!.get(context) shouldBe "nas.local"
+    }
+
+    @Test
     fun `the same id names different locations per protocol`() = runTest {
         startUpdater()
 
         smbLocations.locations.value = listOf(smbLocation(id, label = "Home NAS"))
         sftpLocations.put(testSftpLocation(id, host = "cnc-dev"))
+        webDavLocations.put(testWebDavLocation(id, url = "https://cloud.example.com/dav/"))
         runCurrent()
         NetworkLocationNames.smb(id)!!.get(context) shouldBe "Home NAS"
         NetworkLocationNames.sftp(id)!!.get(context) shouldBe "cnc-dev"
+        NetworkLocationNames.webdav(id)!!.get(context) shouldBe "cloud.example.com"
 
         smbLocations.locations.value = emptyList()
         runCurrent()
         NetworkLocationNames.smb(id) shouldBe null
         NetworkLocationNames.sftp(id)!!.get(context) shouldBe "cnc-dev"
+        NetworkLocationNames.webdav(id)!!.get(context) shouldBe "cloud.example.com"
     }
 }

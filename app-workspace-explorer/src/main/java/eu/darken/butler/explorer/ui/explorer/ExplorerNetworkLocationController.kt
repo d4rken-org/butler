@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.network.NetworkLocation
 import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.common.files.webdav.location.WebDavLocationManager
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -20,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 class ExplorerNetworkLocationController(
     private val smbLocationManager: SmbLocationManager,
     private val sftpLocationManager: SftpLocationManager,
+    private val webDavLocationManager: WebDavLocationManager,
     private val dialogs: ExplorerDialogController,
     private val workspace: suspend () -> ExplorerWorkspace,
     private val currentLocation: () -> ExplorerLocation?,
@@ -47,6 +49,7 @@ class ExplorerNetworkLocationController(
                 when (val location = item.location) {
                     is NetworkLocation.Smb -> smbLocationManager.delete(location.id)
                     is NetworkLocation.Sftp -> sftpLocationManager.delete(location.id)
+                    is NetworkLocation.WebDav -> webDavLocationManager.delete(location.id)
                 }
             }
         } catch (e: Exception) {
