@@ -159,5 +159,30 @@ Gradle task and `tools/e2e-test.sh` skip it; `tools/sftp-e2e-test.sh <app.apk> <
 the server, runs only this test and fails if it was skipped. CI runs it on the minified FOSS beta
 build in the minified tests job.
 
+WebDAV has a Docker contract suite in `:lib-webdav`: `NextcloudContractTest` and `ApacheContractTest`
+(tag `webdav-server`) run against digest-pinned Nextcloud and Apache httpd images through
+Testcontainers. `test` excludes the tag, `contractTest` runs only it, and
+`./gradlew :lib-webdav:koverXmlReport` runs both. In CI, the `webdav-integration` job runs that plus
+`WebDavGatewayIntegrationTest` in `:app-common-io` and fails unless every suite executed without skips.
+
+Everything else uses `FakeWebDavServer`, an in-memory WebDAV server on MockWebServer from
+`:lib-webdav`'s test fixtures (`testImplementation(testFixtures(project(":lib-webdav")))`, also
+available to `androidTest`). Seed it with `putFile`/`mkdirs`, pass a `TestCertificates.leaf()` as
+`certificate` for HTTPS, and toggle its server quirks (href style, weak ETags, slashless-collection
+redirects, ignored `Range`) through its properties.
+
+`WebDavArtDeviceTest` in `:app-common-io` runs the XML parsing and certificate checks on ART against
+`FakeWebDavServer`, so it needs no server and runs with the other device tests.
+`tools/webdav-device-results.py` fails the debug emulator job if it is missing or skipped.
+
+For manual QA, `tools/webdav-test-server.sh start|stop|status|rotate-cert` runs the contract suite's
+Apache image on loopback, HTTP on 8080 and HTTPS on 8443 (`WEBDAV_TEST_HTTP_PORT`,
+`WEBDAV_TEST_HTTPS_PORT`), which an emulator reaches as `http://10.0.2.2:8080/` and
+`https://10.0.2.2:8443/`. Log in as `butler`/`butlerpass`; `start` reseeds `hello.txt` and
+`docs/readme.md`. HTTPS serves self-signed certificate A, `rotate-cert` switches the running server
+to B, and `status` prints both SHA-256 fingerprints in the form the app's trust dialog shows. Both
+certificates are generated once under `${XDG_CACHE_HOME:-~/.cache}/butler-webdav-test-server/` and
+reused, so their fingerprints stay the same across runs.
+
 Mocking on a device uses `mockk-android`, which needs a mockk release that ships its native agent
 (1.14.9 does, 1.12.4 did not).
