@@ -87,4 +87,5 @@ dependencies {
     testImplementation(libs.sshd.sftp)
     testImplementation(project(":app-common-test"))
     testImplementation(testFixtures(project(":lib-webdav")))
+    androidTestImplementation(testFixtures(project(":lib-webdav")))
 }
