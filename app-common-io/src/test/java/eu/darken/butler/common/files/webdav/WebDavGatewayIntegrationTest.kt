@@ -4,6 +4,7 @@ import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.Existence
+import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
@@ -19,6 +20,7 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalGateway
+import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.local.routing.AccessMode
 import eu.darken.butler.common.files.local.routing.LocalPathRoutingPolicy
@@ -27,6 +29,7 @@ import eu.darken.butler.common.files.local.routing.ModeSessionFactory
 import eu.darken.butler.common.files.local.routing.RouteDecision
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.operations.TransferStrategy
 import eu.darken.butler.common.files.smb.FakeUpgradeRepo
 import eu.darken.butler.common.files.webdav.credentials.WebDavCredential
 import eu.darken.butler.common.files.webdav.credentials.WebDavCredentialStore
@@ -42,6 +45,7 @@ import eu.darken.webdav.WebDavEndpoint
 import eu.darken.webdav.WebDavException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.longs.shouldBeInRange
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -66,10 +70,15 @@ import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
+import java.io.SequenceInputStream
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.TimeUnit
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
 /**
@@ -650,7 +659,7 @@ class WebDavGatewayIntegrationTest : BaseTest() {
     }
 
     @Test
-    fun `a connection lost mid-upload fails the copy and leaves no claimed file`(@TempDir tempDir: File): Unit =
+    fun `a lost PUT response fails the copy and leaves no claimed file`(@TempDir tempDir: File): Unit =
         runBlocking {
             val server = server()
             val recorder = Recorder(server)
@@ -671,6 +680,60 @@ class WebDavGatewayIntegrationTest : BaseTest() {
             server.exists("up.bin") shouldBe false
             // An upload is a mutation and is never replayed
             recorder.of("PUT", "up.bin").count { it.headers["Content-Length"] != "0" } shouldBe 1
+            File(tempDir, "up.bin").exists() shouldBe true
+        }
+
+    @Test
+    fun `an upload interrupted mid-body fails the copy and leaves no claimed file`(@TempDir tempDir: File): Unit =
+        runBlocking {
+            val server = server()
+            val recorder = Recorder(server)
+            val rig = rig(location(idA, server))
+            val content = Random(6).nextBytes(256 * 1024)
+            File(tempDir, "up.bin").writeBytes(content)
+            val source = LocalPath.build(tempDir).child("up.bin")
+            val localOps = LocalFileSystemOps(mockk(relaxed = true))
+            // Two upload-pipe-fulls, so the PUT is on the wire when the source breaks off
+            val delivered = 128 * 1024
+            val sourceOps = object : FileSystemOps<LocalPath, LocalPathLookup> by localOps {
+                override suspend fun openInputStream(path: LocalPath): InputStream = SequenceInputStream(
+                    ByteArrayInputStream(content, 0, delivered),
+                    object : InputStream() {
+                        override fun read(): Int = throw IOException("source failed")
+                    },
+                )
+            }
+
+            val error = shouldThrow<Exception> {
+                WebDavUploadCopyStrategy<LocalPath, LocalPathLookup>(rig.ops).transferFile(
+                    sourceLookup = localOps.lookup(source, LookupOptions.BASE),
+                    destination = a("up.bin"),
+                    sourceOps = sourceOps,
+                    destOps = rig.ops,
+                    options = TransferStrategy.Options(),
+                    onProgress = {},
+                )
+            }
+            generateSequence<Throwable>(error) { it.cause }.any { it.message == "source failed" } shouldBe true
+
+            server.exists("up.bin") shouldBe false
+            // Only the empty claim was answered: no body was ever completed
+            recorder.of("PUT", "up.bin").map { it.headers["Content-Length"] } shouldBe listOf("0")
+
+            val received = buildList<RecordedRequest> {
+                val deadline = System.nanoTime() + 10.seconds.inWholeNanoseconds
+                while (none { it.method == "PUT" && it.failure != null } && System.nanoTime() < deadline) {
+                    server.server.takeRequest(100, TimeUnit.MILLISECONDS)?.let(::add)
+                }
+                generateSequence { server.server.takeRequest(0, TimeUnit.MILLISECONDS) }.forEach(::add)
+            }
+            val uploads = received.filter {
+                it.method == "PUT" && it.headers["Content-Length"] == content.size.toString()
+            }
+            uploads.size shouldBe 1
+            uploads.single().failure.shouldNotBeNull()
+            uploads.single().bodySize shouldBeInRange (1L until content.size.toLong())
+
             File(tempDir, "up.bin").exists() shouldBe true
         }
 
