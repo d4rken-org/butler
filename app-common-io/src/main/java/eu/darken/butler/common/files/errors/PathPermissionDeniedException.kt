@@ -9,6 +9,7 @@ import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.io.R
 
@@ -66,7 +67,7 @@ class PathPermissionDeniedException(
         }
         return caString {
             val pathDisplay = when (resolvedPath) {
-                is SmbPath, is SftpPath -> resolvedPath.userReadableName.get(it)
+                is SmbPath, is SftpPath, is WebDavPath -> resolvedPath.userReadableName.get(it)
                 else -> resolvedPath.name.ifBlank { resolvedPath.path }
             }
             val parentDisplay = resolvedPath.parent?.shownPath?.get(it) ?: "/"

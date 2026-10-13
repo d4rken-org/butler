@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
@@ -172,5 +173,24 @@ class SortPathKeyTest : BaseTest() {
     fun `a backslash in an SFTP name stays part of that name`() {
         SftpPath(sftpLocation, listOf("a\\b")).sortPathKey() shouldNotBe
             SftpPath(sftpLocation, listOf("a", "b")).sortPathKey()
+    }
+
+    @Test
+    fun `WebDAV keys are per location and stop at its root`() {
+        val path = WebDavPath(sftpLocation, listOf("Photos", "2026"))
+
+        path.sortPathKey() shouldBe "webdav/11111111-2222-3333-4444-555555555555/Photos/2026"
+        path.sortAncestorKeys() shouldBe listOf(
+            "webdav/11111111-2222-3333-4444-555555555555/Photos/2026",
+            "webdav/11111111-2222-3333-4444-555555555555/Photos",
+            "webdav/11111111-2222-3333-4444-555555555555",
+        )
+    }
+
+    @Test
+    fun `a WebDAV folder never shares a key with an SMB or SFTP folder of the same location id`() {
+        val key = WebDavPath(sftpLocation, listOf("media")).sortPathKey()
+        key shouldNotBe SmbPath(sftpLocation, listOf("media")).sortPathKey()
+        key shouldNotBe SftpPath(sftpLocation, listOf("media")).sortPathKey()
     }
 }

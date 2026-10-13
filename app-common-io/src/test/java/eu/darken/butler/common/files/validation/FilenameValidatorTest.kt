@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.validation
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.smb.SmbLocationInput
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -258,6 +259,35 @@ class FilenameValidatorTest : BaseTest() {
     fun `sftp rejects the traversal names`() {
         listOf(".", "..").forEach {
             validator.validate(it, sftpPath)
+                .shouldBeInstanceOf<FilenameValidator.ValidationResult.InvalidName>()
+                .reason shouldBe SmbLocationInput.NameIssue.TRAVERSAL
+        }
+    }
+
+    // WebDAV
+
+    private val webDavPath = WebDavPath.root(Uuid.parse("11111111-2222-3333-4444-555555555555"))
+
+    @Test
+    fun `webdav only rejects the separator and NUL`() {
+        val result = validator.validate("a/b\u0000c", webDavPath)
+
+        result.shouldBeInstanceOf<FilenameValidator.ValidationResult.Invalid>()
+        result.invalidChars shouldBe setOf('/', '\u0000')
+        result.context shouldBe FilenameValidator.StorageContext.WEBDAV
+    }
+
+    @Test
+    fun `webdav leaves other names to the server`() {
+        listOf("a\\b", "c:d*e?f", "\"g<h>i|j\"", "trailing.", "trailing ", "100% #1.pdf").forEach {
+            validator.validate(it, webDavPath) shouldBe FilenameValidator.ValidationResult.Valid
+        }
+    }
+
+    @Test
+    fun `webdav rejects the traversal names`() {
+        listOf(".", "..").forEach {
+            validator.validate(it, webDavPath)
                 .shouldBeInstanceOf<FilenameValidator.ValidationResult.InvalidName>()
                 .reason shouldBe SmbLocationInput.NameIssue.TRAVERSAL
         }

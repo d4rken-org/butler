@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import kotlinx.serialization.json.Json
 import java.util.Base64
 import javax.inject.Inject
@@ -54,6 +55,7 @@ class DocumentIdCodec @Inject constructor(
             // reconnect and re-authenticate on its behalf.
             is SmbPath -> throw IllegalArgumentException("SMB paths have no document ID: $path")
             is SftpPath -> throw IllegalArgumentException("SFTP paths have no document ID: $path")
+            is WebDavPath -> throw IllegalArgumentException("WebDAV paths have no document ID: $path")
         }
 
         val encodedData = when (path) {
@@ -72,6 +74,7 @@ class DocumentIdCodec @Inject constructor(
             is ArchivePath -> throw IllegalArgumentException("Archive paths have no document ID: $path")
             is SmbPath -> throw IllegalArgumentException("SMB paths have no document ID: $path")
             is SftpPath -> throw IllegalArgumentException("SFTP paths have no document ID: $path")
+            is WebDavPath -> throw IllegalArgumentException("WebDAV paths have no document ID: $path")
         }
 
         val documentId = "$pathType$SEPARATOR$encodedData"

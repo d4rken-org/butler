@@ -2,9 +2,12 @@ package eu.darken.butler.explorer.core
 
 import android.content.Context
 import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.sftp.location.TrustedHostKey
+import eu.darken.butler.common.files.webdav.location.WebDavLocation
+import eu.darken.butler.common.files.webdav.location.WebDavLocationManager
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -38,12 +41,30 @@ class BreadcrumbGeneratorTest : BaseTest() {
         updatedAt = Instant.fromEpochMilliseconds(0),
     )
 
+    private val webDavLocationId = Uuid.parse("77777777-8888-9999-0000-111111111111")
+
+    private val webDavLocation = WebDavLocation(
+        id = webDavLocationId,
+        label = "Nextcloud",
+        url = "https://cloud.example.com/remote.php/dav/files/alice/",
+        authType = WebDavLocation.AuthType.BASIC,
+        username = "alice",
+        rememberCredential = true,
+        credentialVersion = 1,
+        pinnedCertificate = null,
+        trustRevision = 1,
+        createdAt = Instant.fromEpochMilliseconds(0),
+        updatedAt = Instant.fromEpochMilliseconds(0),
+    )
+
     private val sftpLocationManager = mockk<SftpLocationManager>()
+    private val webDavLocationManager = mockk<WebDavLocationManager>()
 
     private val generator = BreadcrumbGenerator(
         safLocationManager = mockk(),
         smbLocationManager = mockk(),
         sftpLocationManager = sftpLocationManager,
+        webDavLocationManager = webDavLocationManager,
         trashSettings = mockk(),
     )
 
@@ -78,5 +99,36 @@ class BreadcrumbGeneratorTest : BaseTest() {
             ExplorerNavigation.Target.Directory(SftpPath.root(locationId)),
         )
         crumbs.last().label.get(context) shouldBe locationId.toString()
+    }
+
+    @Test
+    fun `a WebDAV folder is Home, Network, the location, then each folder`() = runTest {
+        coEvery { webDavLocationManager.get(webDavLocationId) } returns webDavLocation
+        val path = WebDavPath(webDavLocationId, listOf("Photos", "2026"))
+
+        val crumbs = generator.getBreadcrumbs(ExplorerLocation.Directory(path = path))
+
+        crumbs.map { it.target } shouldBe listOf(
+            BreadcrumbGenerator.HOME.target,
+            BreadcrumbGenerator.NETWORK.target,
+            ExplorerNavigation.Target.Directory(WebDavPath.root(webDavLocationId)),
+            ExplorerNavigation.Target.Directory(WebDavPath(webDavLocationId, listOf("Photos"))),
+            ExplorerNavigation.Target.Directory(path),
+        )
+        crumbs.drop(2).map { it.label.get(context) } shouldBe listOf("Nextcloud", "Photos", "2026")
+    }
+
+    @Test
+    fun `a removed WebDAV location still gets a root crumb`() = runTest {
+        coEvery { webDavLocationManager.get(webDavLocationId) } returns null
+
+        val crumbs = generator.getBreadcrumbs(ExplorerLocation.Directory(path = WebDavPath.root(webDavLocationId)))
+
+        crumbs.map { it.target } shouldBe listOf(
+            BreadcrumbGenerator.HOME.target,
+            BreadcrumbGenerator.NETWORK.target,
+            ExplorerNavigation.Target.Directory(WebDavPath.root(webDavLocationId)),
+        )
+        crumbs.last().label.get(context) shouldBe webDavLocationId.toString()
     }
 }

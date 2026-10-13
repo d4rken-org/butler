@@ -8,11 +8,13 @@ import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.archive.crumbsTo
 import eu.darken.butler.common.files.local.relativeSegmentsTo
 import eu.darken.butler.common.files.saf.crumbsTo
 import eu.darken.butler.common.files.sftp.crumbsTo
 import eu.darken.butler.common.files.smb.crumbsTo
+import eu.darken.butler.common.files.webdav.crumbsTo
 import java.io.File
 
 fun APath<*>.crumbsTo(child: APath<*>): Array<String> {
@@ -24,6 +26,7 @@ fun APath<*>.crumbsTo(child: APath<*>): Array<String> {
         is ArchivePath -> this.crumbsTo(child as ArchivePath)
         is SmbPath -> this.crumbsTo(child as SmbPath)
         is SftpPath -> this.crumbsTo(child as SftpPath)
+        is WebDavPath -> this.crumbsTo(child as WebDavPath)
     }
 }
 
@@ -35,6 +38,7 @@ fun APath<*>.toFile(): File = when (this) {
     // Same reasoning: a network path only exists on the server, never in the local filesystem.
     is SmbPath -> throw IllegalArgumentException("SMB paths have no File representation: $this")
     is SftpPath -> throw IllegalArgumentException("SFTP paths have no File representation: $this")
+    is WebDavPath -> throw IllegalArgumentException("WebDAV paths have no File representation: $this")
     else -> File(this.path)
 }
 
@@ -47,7 +51,7 @@ val APath<*>.extension: String?
  */
 val APath<*>.shownPath: CaString
     get() = when (this) {
-        is SmbPath, is SftpPath -> userReadablePath
+        is SmbPath, is SftpPath, is WebDavPath -> userReadablePath
         else -> path.toCaString()
     }
 
@@ -79,6 +83,9 @@ fun Collection<APath<*>>.commonParent(): APath<*>? {
     }
     (first() as? SftpPath)?.let { firstSftp ->
         if (!all { (it as SftpPath).locationId == firstSftp.locationId }) return null
+    }
+    (first() as? WebDavPath)?.let { firstWebDav ->
+        if (!all { (it as WebDavPath).locationId == firstWebDav.locationId }) return null
     }
 
     // Get all segment lists

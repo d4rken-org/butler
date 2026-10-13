@@ -19,6 +19,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.extensions.getFileSystemInfo
 import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
@@ -120,11 +121,11 @@ class DirectoryLocationLoader @AssistedInject constructor(
 
                         currentCoroutineContext().ensureActive()
                         // A second pass over the network would mean one more round trip per item: an
-                        // SMB share does not report ownership and permissions anyway, and an SFTP
-                        // listing already carried them.
+                        // SMB share does not report ownership and permissions anyway, and an SFTP or
+                        // WebDAV listing already carried every attribute the server has.
                         when (context.targetPath) {
                             is SmbPath -> context.loadNetworkWritability()
-                            is SftpPath -> {
+                            is SftpPath, is WebDavPath -> {
                                 context.loadNetworkWritability()
                                 context.applyListingAttributes()
                             }

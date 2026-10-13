@@ -18,9 +18,11 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.common.files.webdav.location.WebDavLocationManager
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -30,6 +32,7 @@ class BreadcrumbGenerator @Inject constructor(
     private val safLocationManager: SAFLocationManager,
     private val smbLocationManager: SmbLocationManager,
     private val sftpLocationManager: SftpLocationManager,
+    private val webDavLocationManager: WebDavLocationManager,
     private val trashSettings: TrashSettings,
 ) {
 
@@ -280,11 +283,38 @@ class BreadcrumbGenerator @Inject constructor(
                         )
                     }
                 }
+
+                is WebDavPath -> {
+                    val label = webDavLocationManager.get(path.locationId)?.displayName
+                        ?: path.locationId.toString().toCaString()
+
+                    add(
+                        ExplorerBreadcrumb(
+                            label = label,
+                            icon = Icons.TwoTone.Lan,
+                            target = ExplorerNavigation.Target.Directory(WebDavPath.root(path.locationId)),
+                        )
+                    )
+
+                    val accumulated = mutableListOf<String>()
+                    path.segments.forEach { segment ->
+                        accumulated.add(segment)
+                        add(
+                            ExplorerBreadcrumb(
+                                label = segment.toCaString(),
+                                icon = Icons.TwoTone.FolderOpen,
+                                target = ExplorerNavigation.Target.Directory(
+                                    WebDavPath(path.locationId, accumulated.toList())
+                                ),
+                            )
+                        )
+                    }
+                }
             }
         }
 
     private val APath<*>.isNetworkPath: Boolean
-        get() = this is SmbPath || this is SftpPath
+        get() = this is SmbPath || this is SftpPath || this is WebDavPath
 
     companion object {
 

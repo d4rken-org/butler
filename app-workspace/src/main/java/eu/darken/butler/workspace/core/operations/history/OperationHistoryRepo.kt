@@ -13,6 +13,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.errors.PathException
 import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.Operation
@@ -234,7 +235,7 @@ class OperationHistoryRepo @Inject constructor(
         (state.report as? Operation.Report.Paths)?.affectedPaths?.forEach { change ->
             val pathStr = change.path.userReadablePath.get(context)
             val identity = when (change.path) {
-                is SmbPath, is SftpPath -> change.path.path
+                is SmbPath, is SftpPath, is WebDavPath -> change.path.path
                 else -> pathStr
             }
             if (seen.add(identity)) {
@@ -257,7 +258,7 @@ class OperationHistoryRepo @Inject constructor(
     private fun historyErrorMessage(error: Throwable): String? {
         val message = error.message ?: return null
         return when (val path = (error as? PathException)?.path) {
-            is SmbPath, is SftpPath -> message.replace(path.path, path.userReadablePath.get(context))
+            is SmbPath, is SftpPath, is WebDavPath -> message.replace(path.path, path.userReadablePath.get(context))
             else -> message
         }
     }

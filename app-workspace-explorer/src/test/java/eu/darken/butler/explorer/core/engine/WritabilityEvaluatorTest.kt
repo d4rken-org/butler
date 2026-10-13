@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
@@ -316,6 +317,11 @@ class WritabilityEvaluatorTest : BaseTest() {
 
             evaluator.evaluate(path, permissions(0b100_100_100), ownership(0, 0), context) shouldBe true
             evaluator.evaluate(path, null, null, context) shouldBe true
+        }
+
+        @Test
+        fun `a WebDAV path is left to the server`() {
+            evaluator.evaluate(WebDavPath(locationId, listOf("Documents")), null, null, context) shouldBe true
         }
     }
 }

@@ -118,7 +118,11 @@ class APathDataStoreExtensionsTest : BaseTest() {
             SAFPath(
                 treeRoot = "content://com.android.externalstorage.documents/tree/primary%3A",
                 segments = listOf("test")
-            )
+            ),
+            eu.darken.butler.common.files.WebDavPath(
+                locationId = kotlin.uuid.Uuid.parse("11111111-2222-3333-4444-555555555555"),
+                segments = listOf("Documents", "a b.txt"),
+            ),
         )
 
         testStore.createAPathValue("test.path", null, json).apply {
@@ -147,6 +151,10 @@ class APathDataStoreExtensionsTest : BaseTest() {
                     }
                     is eu.darken.butler.common.files.SftpPath -> {
                         (restored as eu.darken.butler.common.files.SftpPath).locationId shouldBe originalPath.locationId
+                        restored.segments shouldBe originalPath.segments
+                    }
+                    is eu.darken.butler.common.files.WebDavPath -> {
+                        (restored as eu.darken.butler.common.files.WebDavPath).locationId shouldBe originalPath.locationId
                         restored.segments shouldBe originalPath.segments
                     }
                 }

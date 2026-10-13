@@ -26,6 +26,7 @@ import kotlin.time.Instant
  *    - FtpPath: FTP client library
  *    - SmbPath: SMB client library
  *    - SftpPath: SFTP client library
+ *    - WebDavPath: WebDAV client library
  *
  * 3. **Dependency Encapsulation**: Platform-specific dependencies (Context,
  *    ContentResolver, UriPermissions, connection pools) are hidden in the

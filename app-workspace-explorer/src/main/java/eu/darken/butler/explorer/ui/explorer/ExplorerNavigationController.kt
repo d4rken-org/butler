@@ -10,6 +10,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.network.NetworkLocation
 import eu.darken.butler.common.files.sftp.SftpLocationInput
 import eu.darken.butler.common.files.sftp.location.SftpLocation
@@ -242,6 +243,8 @@ class ExplorerNavigationController(
                 }
                 SftpPath(currentPath.locationId, segments)
             }
+
+            is WebDavPath -> error("WEBDAV_PENDING: typed path below a WebDAV location")
         }
         navigateToPath(newPath)
     }

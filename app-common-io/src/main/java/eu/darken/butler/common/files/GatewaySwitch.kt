@@ -121,6 +121,8 @@ class GatewaySwitch @Inject constructor(
             is SftpPath -> {
                 sftpGateway.also { adoptChildResource(it) }
             }
+
+            is WebDavPath -> error("WEBDAV_PENDING: gateway routing")
         }
         return gateway
     }
@@ -275,6 +277,8 @@ class GatewaySwitch @Inject constructor(
         is SmbPath -> proxyReadPfdOrNull(path)
 
         is SftpPath -> proxyReadPfdOrNull(path)
+
+        is WebDavPath -> error("WEBDAV_PENDING: preview descriptor")
     }
 
     private suspend fun directReadPfdOrNull(path: LocalPath): ParcelFileDescriptor? =
@@ -385,6 +389,7 @@ class GatewaySwitch @Inject constructor(
             // Forced modes are about the local/SAF split, a network path is unaffected by them.
             is SmbPath -> this
             is SftpPath -> this
+            is WebDavPath -> this
         }
 
         Type.FORCED_SAF -> when (this) {
@@ -393,6 +398,7 @@ class GatewaySwitch @Inject constructor(
             is ArchivePath -> throw IOException("Can't map $this to SAF")
             is SmbPath -> this
             is SftpPath -> this
+            is WebDavPath -> this
         }
     }
 
@@ -402,6 +408,7 @@ class GatewaySwitch @Inject constructor(
         is ArchivePath -> throw ReadException("No alternative mapping for archive paths", this)
         is SmbPath -> throw ReadException("No alternative mapping for network paths", this)
         is SftpPath -> throw ReadException("No alternative mapping for network paths", this)
+        is WebDavPath -> throw ReadException("No alternative mapping for network paths", this)
     }
 
     override suspend fun getFileSystem(path: APath<*>): FileSystem {
@@ -582,6 +589,8 @@ class GatewaySwitch @Inject constructor(
                 (sources as Collection<SftpPath>).copyCrossType(target, transferOptions, onIssue)
                     .collect { state -> emit(state) }
             }
+
+            is WebDavPath -> error("WEBDAV_PENDING: copy from WebDAV")
         }
     }
 
@@ -626,6 +635,8 @@ class GatewaySwitch @Inject constructor(
                 (sources as Collection<SftpPath>).moveCrossType(target, transferOptions, onIssue)
                     .collect { state -> emit(state) }
             }
+
+            is WebDavPath -> error("WEBDAV_PENDING: move from WebDAV")
         }
     }
 
@@ -668,6 +679,8 @@ class GatewaySwitch @Inject constructor(
             options = options,
             onIssue = onIssue,
         )
+
+        is WebDavPath -> error("WEBDAV_PENDING: copy from local to WebDAV")
     }
 
     @JvmName("safPathCopyCrossType")
@@ -706,6 +719,8 @@ class GatewaySwitch @Inject constructor(
             options = options,
             onIssue = onIssue,
         )
+
+        is WebDavPath -> error("WEBDAV_PENDING: copy from SAF to WebDAV")
     }
 
     @JvmName("archivePathCopyCrossType")
@@ -751,6 +766,8 @@ class GatewaySwitch @Inject constructor(
             options = options,
             onIssue = onIssue,
         )
+
+        is WebDavPath -> error("WEBDAV_PENDING: copy from archive to WebDAV")
     }
 
     // ========================================================================
@@ -792,6 +809,8 @@ class GatewaySwitch @Inject constructor(
             options = options,
             onIssue = onIssue,
         )
+
+        is WebDavPath -> error("WEBDAV_PENDING: move from local to WebDAV")
     }
 
     @JvmName("safPathMoveCrossType")
@@ -830,6 +849,8 @@ class GatewaySwitch @Inject constructor(
             options = options,
             onIssue = onIssue,
         )
+
+        is WebDavPath -> error("WEBDAV_PENDING: move from SAF to WebDAV")
     }
 
     @JvmName("smbPathCopyCrossType")
@@ -868,6 +889,8 @@ class GatewaySwitch @Inject constructor(
             options = options,
             onIssue = onIssue,
         )
+
+        is WebDavPath -> error("WEBDAV_PENDING: copy from SMB to WebDAV")
     }
 
     @JvmName("smbPathMoveCrossType")
@@ -906,6 +929,8 @@ class GatewaySwitch @Inject constructor(
             options = options,
             onIssue = onIssue,
         )
+
+        is WebDavPath -> error("WEBDAV_PENDING: move from SMB to WebDAV")
     }
 
 
@@ -945,6 +970,8 @@ class GatewaySwitch @Inject constructor(
         )
 
         is SftpPath -> error("Same-type operations should be handled by native implementation")
+
+        is WebDavPath -> error("WEBDAV_PENDING: transfer from SFTP to WebDAV")
     }
 
     @JvmName("sftpPathMoveCrossType")
@@ -983,6 +1010,8 @@ class GatewaySwitch @Inject constructor(
         )
 
         is SftpPath -> error("Same-type operations should be handled by native implementation")
+
+        is WebDavPath -> error("WEBDAV_PENDING: transfer from SFTP to WebDAV")
     }
 
     override suspend fun create(

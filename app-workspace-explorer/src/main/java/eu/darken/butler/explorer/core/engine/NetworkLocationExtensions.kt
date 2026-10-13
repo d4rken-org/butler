@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.compose.icons.SmbShare
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.network.NetworkLocation
 
 internal val NetworkLocation.icon: ImageVector
@@ -20,5 +21,5 @@ internal val NetworkLocation.rootPath: APath<*>
     get() = when (this) {
         is NetworkLocation.Smb -> location.rootPath
         is NetworkLocation.Sftp -> SftpPath.root(id)
-        is NetworkLocation.WebDav -> error("WEBDAV_PENDING: root path of a WebDAV location")
+        is NetworkLocation.WebDav -> WebDavPath.root(id)
     }

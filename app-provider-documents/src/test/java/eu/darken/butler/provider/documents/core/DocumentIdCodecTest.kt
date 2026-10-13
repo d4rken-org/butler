@@ -2,6 +2,7 @@ package eu.darken.butler.provider.documents.core
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.serialization.SerializationIOModule
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -16,6 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import testhelpers.BaseTest
 import java.util.Base64
+import kotlin.uuid.Uuid
 
 /**
  * Test-Driven Development for DocumentIdCodec
@@ -85,6 +87,13 @@ class DocumentIdCodecTest : BaseTest() {
             val encoded = codec.encode(path)
 
             encoded shouldStartWith "local|"
+        }
+
+        @Test
+        fun `a WebDAV path has no document ID`() {
+            val path = WebDavPath(Uuid.parse("11111111-2222-3333-4444-555555555555"), listOf("a.txt"))
+
+            shouldThrow<IllegalArgumentException> { codec.encode(path) }
         }
     }
 

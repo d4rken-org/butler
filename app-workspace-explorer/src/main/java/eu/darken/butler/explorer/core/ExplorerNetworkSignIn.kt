@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.core
 
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.sftp.SftpHostKeyChangedException
 import eu.darken.butler.common.files.sftp.isSftpSignInFailure
 import eu.darken.butler.common.files.smb.isSmbSignInFailure
@@ -27,6 +28,7 @@ fun ExplorerWorkspace.State.Ready.networkSignInRequest(): NetworkSignInRequest? 
     return when (val path = (currentTarget as? ExplorerNavigation.Target.Directory)?.path) {
         is SmbPath -> NetworkSignInRequest.Smb(path.locationId).takeIf { error.isSmbSignInFailure() }
         is SftpPath -> NetworkSignInRequest.Sftp(path.locationId).takeIf { error.isSftpSignInFailure() }
+        is WebDavPath -> error("WEBDAV_PENDING: sign-in request after a failed WebDAV load")
         else -> null
     }
 }

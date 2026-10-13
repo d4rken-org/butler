@@ -11,11 +11,13 @@ import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.archive.ArchivePathLookup
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.saf.SAFPathLookup
 import eu.darken.butler.common.files.sftp.SftpPathLookup
 import eu.darken.butler.common.files.smb.SmbPathLookup
+import eu.darken.butler.common.files.webdav.WebDavPathLookup
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -41,6 +43,7 @@ class SerializationIOModule {
                 subclass(ArchivePath::class)
                 subclass(SmbPath::class)
                 subclass(SftpPath::class)
+                subclass(WebDavPath::class)
             }
             polymorphic(APathLookup::class) {
                 subclass(LocalPathLookup::class)
@@ -48,6 +51,7 @@ class SerializationIOModule {
                 subclass(ArchivePathLookup::class)
                 subclass(SmbPathLookup::class)
                 subclass(SftpPathLookup::class)
+                subclass(WebDavPathLookup::class)
             }
         }
     }

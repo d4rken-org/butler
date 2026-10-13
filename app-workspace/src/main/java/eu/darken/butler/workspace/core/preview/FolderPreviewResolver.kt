@@ -11,6 +11,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
@@ -180,7 +181,7 @@ class FolderPreviewResolver @Inject constructor(
         if (dir is ArchivePath) return emptyList()
 
         // Same for network folders: no listing over the network just to draw a folder icon.
-        if (dir is SmbPath || dir is SftpPath) return emptyList()
+        if (dir is SmbPath || dir is SftpPath || dir is WebDavPath) return emptyList()
 
         // Always-denied scoped-storage roots: no preview, no lookup, no escalation attempt.
         if (isRestrictedPreviewDir(dir)) return emptyList()

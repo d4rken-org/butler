@@ -70,6 +70,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
@@ -378,6 +379,19 @@ private fun rememberBreadcrumbPathInfo(
                         val rootBreadcrumb = breadcrumbs.find {
                             it.target is ExplorerNavigation.Target.Directory &&
                                 it.target.path == SftpPath.root(path.locationId)
+                        }
+                        BreadcrumbPathInfo(
+                            displayPath = path.segments.joinToString("/"),
+                            path = path,
+                            prefixIcon = rootBreadcrumb?.icon ?: Icons.TwoTone.Lan,
+                            prefixLabel = rootBreadcrumb?.label?.get(context),
+                        )
+                    }
+
+                    is WebDavPath -> {
+                        val rootBreadcrumb = breadcrumbs.find {
+                            it.target is ExplorerNavigation.Target.Directory &&
+                                it.target.path == WebDavPath.root(path.locationId)
                         }
                         BreadcrumbPathInfo(
                             displayPath = path.segments.joinToString("/"),

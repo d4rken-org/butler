@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 
 /**
  * Stable identity of a folder for the purposes of a saved sort rule.
@@ -39,6 +40,7 @@ private const val LOCAL_PREFIX = "local"
 private const val SAF_PREFIX = "saf"
 private const val SMB_PREFIX = "smb"
 private const val SFTP_PREFIX = "sftp"
+private const val WEBDAV_PREFIX = "webdav"
 private const val ARCHIVE_MARKER = "!archive"
 
 /** [floor] is the smallest component count a key of this type may have. */
@@ -73,6 +75,11 @@ private fun APath<*>.keyComponents(): KeyComponents = when (this) {
 
     is SftpPath -> KeyComponents(
         components = (listOf(SFTP_PREFIX, locationId.toString()) + segments).escapeComponents(),
+        floor = 2,
+    )
+
+    is WebDavPath -> KeyComponents(
+        components = (listOf(WEBDAV_PREFIX, locationId.toString()) + segments).escapeComponents(),
         floor = 2,
     )
 

@@ -8,8 +8,10 @@ import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.error.PermissionFixResolver
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.network.NetworkLocationNames
 import eu.darken.butler.common.files.sftp.testSftpLocation
+import eu.darken.butler.common.files.webdav.testWebDavLocation
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
@@ -129,6 +131,21 @@ class PathPermissionDeniedExceptionTest : BaseTest() {
 
         val text = e.getLocalizedError(LocalizedErrorContext()).description.get(app)
         text shouldContain "\"cnc-dev\""
+        text shouldNotContain locationId.toString()
+    }
+
+    @Test
+    fun `path display - a WebDAV location root is named after the location`() {
+        val locationId = Uuid.parse("c0360031-0000-4000-8000-000000000002")
+        NetworkLocationNames.updateWebDav(listOf(testWebDavLocation(locationId).copy(label = "Nextcloud")))
+        val e = PathPermissionDeniedException(
+            path = WebDavPath.root(locationId),
+            operation = "createFile",
+            reason = PathPermissionDeniedException.Reason.ACCESS_DENIED,
+        )
+
+        val text = e.getLocalizedError(LocalizedErrorContext()).description.get(app)
+        text shouldContain "\"Nextcloud\""
         text shouldNotContain locationId.toString()
     }
 }

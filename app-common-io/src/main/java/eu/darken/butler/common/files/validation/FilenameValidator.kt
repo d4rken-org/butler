@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.smb.SmbLocationInput
 import javax.inject.Inject
 
@@ -15,7 +16,8 @@ class FilenameValidator @Inject constructor() {
         ROOT,    // Minimal Linux filesystem restrictions
         SAF,     // Storage Access Framework restrictions
         SMB,     // Windows/SMB server restrictions
-        SFTP     // POSIX server restrictions
+        SFTP,    // POSIX server restrictions
+        WEBDAV   // WebDAV server restrictions
     }
 
     sealed class ValidationResult {
@@ -45,6 +47,7 @@ class FilenameValidator @Inject constructor() {
             StorageContext.SAF -> SAF_RESTRICTED_CHARS
             StorageContext.SMB -> SmbLocationInput.RESTRICTED_NAME_CHARS
             StorageContext.SFTP -> POSIX_NAME_CHARS
+            StorageContext.WEBDAV -> POSIX_NAME_CHARS
         }
 
         val foundInvalidChars = name.filter { it in restrictedChars }.toSet()
@@ -54,8 +57,8 @@ class FilenameValidator @Inject constructor() {
             SmbLocationInput.nameIssue(name)?.let { return ValidationResult.InvalidName(it, context) }
         }
 
-        // An SFTP path cannot hold these at all, trailing dots and spaces are ordinary names there.
-        if (context == StorageContext.SFTP && (name == "." || name == "..")) {
+        // An SFTP or WebDAV path cannot hold these at all, trailing dots and spaces are ordinary names there.
+        if ((context == StorageContext.SFTP || context == StorageContext.WEBDAV) && (name == "." || name == "..")) {
             return ValidationResult.InvalidName(SmbLocationInput.NameIssue.TRAVERSAL, context)
         }
 
@@ -72,6 +75,7 @@ class FilenameValidator @Inject constructor() {
             is SAFPath -> StorageContext.SAF
             is SmbPath -> StorageContext.SMB
             is SftpPath -> StorageContext.SFTP
+            is WebDavPath -> StorageContext.WEBDAV
             else -> StorageContext.ROOT
         }
     }
@@ -86,7 +90,7 @@ class FilenameValidator @Inject constructor() {
         // Storage Access Framework restrictions
         private val SAF_RESTRICTED_CHARS = setOf('/', '\u0000')
 
-        // SFTP servers: POSIX names, everything but the separator and NUL
+        // SFTP and WebDAV servers: everything but the separator and NUL, the server rejects the rest
         private val POSIX_NAME_CHARS = setOf('/', '\u0000')
     }
 }

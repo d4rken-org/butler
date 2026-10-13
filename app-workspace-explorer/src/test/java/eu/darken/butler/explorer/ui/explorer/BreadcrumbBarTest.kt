@@ -26,6 +26,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.ui.explorer.elements.BreadcrumbBar
@@ -288,6 +289,50 @@ class BreadcrumbBarTest : ComposeTest() {
 
         committed?.first shouldBe folder
         committed?.second shouldBe "srv/logs"
+    }
+
+    @Test
+    fun `a WebDAV folder is edited relative to the location crumb`() {
+        val locationId = Uuid.parse("77777777-8888-9999-0000-111111111111")
+        val folder = WebDavPath(locationId, listOf("Photos", "2026"))
+        var committed: Pair<APath<*>, String>? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                BreadcrumbBar(
+                    breadcrumbs = listOf(
+                        ExplorerBreadcrumb(
+                            target = ExplorerNavigation.Target.Directory(WebDavPath.root(locationId)),
+                            label = "Nextcloud".toCaString(),
+                            icon = Icons.TwoTone.Lan,
+                        ),
+                        ExplorerBreadcrumb(
+                            target = ExplorerNavigation.Target.Directory(WebDavPath(locationId, listOf("Photos"))),
+                            label = "Photos".toCaString(),
+                            icon = Icons.TwoTone.FolderOpen,
+                        ),
+                        ExplorerBreadcrumb(
+                            target = ExplorerNavigation.Target.Directory(folder),
+                            label = "2026".toCaString(),
+                            icon = Icons.TwoTone.FolderOpen,
+                        ),
+                    ),
+                    onBreadcrumbClick = {},
+                    onNavigateToPath = {},
+                    onCommitEditedPath = { path, text -> committed = path to text },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("2026").performClick()
+
+        composeTestRule.onNode(hasSetTextAction()).assertTextEquals("Photos/2026")
+        composeTestRule.onNodeWithText("Nextcloud").assertIsDisplayed()
+        composeTestRule.onNode(hasSetTextAction()).performTextReplacement("Photos/2025")
+        composeTestRule.onNode(hasSetTextAction()).performImeAction()
+
+        committed?.first shouldBe folder
+        committed?.second shouldBe "Photos/2025"
     }
 
     @OptIn(ExperimentalTestApi::class)

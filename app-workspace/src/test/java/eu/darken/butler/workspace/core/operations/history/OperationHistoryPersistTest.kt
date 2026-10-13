@@ -8,11 +8,13 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.network.NetworkLocationNames
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.Operation
@@ -312,6 +314,72 @@ class OperationHistoryPersistTest : BaseTest() {
         val stored = database.operationHistoryDao().getById(id)!!
         stored.entry.errorMessage shouldBe "Can't read from path. <-> sftp://cnc-dev/usr/bin/photo.jpg"
         error.message shouldBe "Can't read from path. <-> sftp://$locationId/usr/bin/photo.jpg"
+    }
+
+    private fun unlabeledWebDav(id: Uuid) = WebDavLocation(
+        id = id,
+        label = null,
+        url = "https://cloud.example.com/remote.php/dav/files/$id/",
+        authType = WebDavLocation.AuthType.ANONYMOUS,
+        username = null,
+        rememberCredential = false,
+        credentialVersion = 1,
+        pinnedCertificate = null,
+        trustRevision = 1,
+        createdAt = Instant.fromEpochMilliseconds(0),
+        updatedAt = Instant.fromEpochMilliseconds(0),
+    )
+
+    @Test
+    fun `the same file on two WebDAV locations sharing a name is two changes`() = runTest {
+        val firstId = Uuid.parse("33333333-0000-4000-8000-000000000003")
+        val secondId = Uuid.parse("44444444-0000-4000-8000-000000000004")
+        NetworkLocationNames.updateWebDav(listOf(unlabeledWebDav(firstId), unlabeledWebDav(secondId)))
+        val first = WebDavPath(firstId, listOf("a.jpg"))
+        val second = WebDavPath(secondId, listOf("a.jpg"))
+
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(
+                    operationKind = Operation.Metadata.Kind.DELETE,
+                    plan = planOver(first, second),
+                ),
+                state = TestCompletedState(
+                    report = TestReport(
+                        affectedPaths = listOf(
+                            changeOf(first, Operation.Report.Paths.PathChange.Change.REMOVED),
+                            changeOf(second, Operation.Report.Paths.PathChange.Change.REMOVED),
+                        ),
+                    ),
+                ),
+            )
+        )
+
+        val stored = database.operationHistoryDao().getById(id)!!
+        stored.paths.map { it.path } shouldContainExactly listOf(
+            "webdav://cloud.example.com/a.jpg",
+            "webdav://cloud.example.com/a.jpg",
+        )
+        stored.entry.affectedPathsCount shouldBe 2
+    }
+
+    @Test
+    fun `a failed WebDAV operation records its error under the location's name`() = runTest {
+        val locationId = Uuid.parse("c0360031-0000-4000-8000-000000000002")
+        NetworkLocationNames.updateWebDav(listOf(unlabeledWebDav(locationId).copy(label = "Nextcloud")))
+        val remoteFile = WebDavPath(locationId, listOf("Photos", "photo.jpg"))
+        val error = ReadException(path = remoteFile)
+
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(Operation.Metadata.Kind.DELETE, plan = planOver(remoteFile)),
+                state = TestCompletedState(report = null, error = error),
+            )
+        )
+
+        val stored = database.operationHistoryDao().getById(id)!!
+        stored.entry.errorMessage shouldBe "Can't read from path. <-> webdav://Nextcloud/Photos/photo.jpg"
+        error.message shouldBe "Can't read from path. <-> webdav://$locationId/Photos/photo.jpg"
     }
 
     @Test
