@@ -68,8 +68,6 @@ class WebDavArtDeviceTest {
     private fun HeldCertificate.fingerprint(): String =
         MessageDigest.getInstance("SHA-256").digest(certificate.encoded).joinToString(":") { "%02X".format(it) }
 
-    private fun FakeWebDavServer.urlVia(host: String) = "https://$host:${server.port}$basePath"
-
     @Test
     fun depthOneListingParsesWithThePlatformParser() = runBlocking<Unit> {
         val held = TestCertificates.leaf("localhost")
@@ -157,7 +155,8 @@ class WebDavArtDeviceTest {
     fun pinnedLeafConnectsDespiteHostNameMismatch() = runBlocking<Unit> {
         val held = TestCertificates.leaf("other.example")
         val server = server(held)
-        val url = server.urlVia("127.0.0.1")
+        // A host name rather than an IP: without SNI, MockWebServer crashes on Android 11 when it records the request.
+        val url = server.baseUrl
 
         test(url).shouldBeInstanceOf<WebDavConnectionTester.Result.CertificateUntrusted>()
         test(url, pin = held.trusted()) shouldBe WebDavConnectionTester.Result.Success
