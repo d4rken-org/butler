@@ -48,3 +48,12 @@ val contractTest by tasks.registering(Test::class) {
     outputs.upToDateWhen { false }
     outputs.doNotCacheIf("Requires live WebDAV servers") { true }
 }
+
+// The fake server and certificates are test code shipped to other modules' tests.
+kover {
+    currentProject {
+        sources {
+            excludedSourceSets.add("testFixtures")
+        }
+    }
+}

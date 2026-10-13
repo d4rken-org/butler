@@ -385,6 +385,93 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  webdav-integration:
+    name: WebDAV integration (Docker)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
+        with:
+          persist-credentials: false
+      - name: Setup project and build environment
+        uses: ./.github/actions/common-setup
+
+      - name: Verify Docker is available
+        run: docker info
+
+      # Kover's report runs both test tasks: the unit tests and contractTest, whose contract suites
+      # need the digest-pinned Nextcloud and Apache httpd images.
+      - name: Run WebDAV unit tests and contracts with coverage
+        run: ./gradlew :lib-webdav:koverXmlReport :lib-webdav:koverHtmlReport
+
+      - name: Exercise the app gateway against the fake WebDAV server
+        run: ./gradlew :app-common-io:testFossDebugUnitTest --tests '*WebDavGatewayIntegrationTest' --rerun --no-build-cache
+
+      - name: Require executed integration suites and summarize coverage
+        run: |
+          python3 <<'PY'
+          import os
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          unit = Path("lib-webdav/build/test-results/test")
+          contract = Path("lib-webdav/build/test-results/contractTest")
+          suites = {
+              "HTTP unit tests": unit / "TEST-eu.darken.webdav.WebDavHttpTest.xml",
+              "Session unit tests": unit / "TEST-eu.darken.webdav.WebDavSessionTest.xml",
+              "TLS unit tests": unit / "TEST-eu.darken.webdav.WebDavTlsTest.xml",
+              "Type unit tests": unit / "TEST-eu.darken.webdav.WebDavTypesTest.xml",
+              "Nextcloud contract": contract / "TEST-eu.darken.webdav.NextcloudContractTest.xml",
+              "Apache mod_dav contract": contract / "TEST-eu.darken.webdav.ApacheContractTest.xml",
+              "App gateway": Path("app-common-io/build/test-results/testFossDebugUnitTest/TEST-eu.darken.butler.common.files.webdav.WebDavGatewayIntegrationTest.xml"),
+          }
+          summary = ["## WebDAV Docker integration", "", "| Suite | Passed |", "| --- | ---: |"]
+          for label, path in suites.items():
+              result = ET.parse(path).getroot()
+              count = int(result.attrib["tests"])
+              if count == 0 or any(int(result.attrib[key]) for key in ("failures", "errors", "skipped")):
+                  raise SystemExit(f"{label} did not run successfully without skips: {result.attrib}")
+              summary.append(f"| {label} | {count} |")
+
+          report = ET.parse("lib-webdav/build/reports/kover/report.xml").getroot()
+          classes = {item.attrib["name"]: item for item in report.findall(".//class")}
+          for name in ("OkHttpWebDavConnector", "OkHttpWebDavSession", "OkHttpUpload", "Multistatus$Handler", "PolicyTrustManager", "CallsKt"):
+              item = classes[f"eu/darken/webdav/{name}"]
+              lines = item.find("counter[@type='LINE']")
+              if lines is None or int(lines.attrib["covered"]) == 0:
+                  raise SystemExit(f"Missing coverage for {name}")
+          counters = {counter.attrib["type"]: counter for counter in report.findall("counter")}
+          summary += ["", "Coverage of lib-webdav production code from unit and Docker tests:"]
+          for kind in ("LINE", "BRANCH"):
+              counter = counters[kind]
+              covered = int(counter.attrib["covered"])
+              total = covered + int(counter.attrib["missed"])
+              if total == 0:
+                  raise SystemExit(f"Missing {kind} coverage")
+              summary.append(f"- {kind.title()}: {covered}/{total} ({covered / total:.1%})")
+
+          summary += ["", "Nextcloud and Apache mod_dav interoperability on the JVM; no Android coverage."]
+          text = "\n".join(summary) + "\n"
+          print(text)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as output:
+              output.write(text)
+          PY
+
+      - name: Upload WebDAV test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        with:
+          name: webdav-integration-reports
+          path: |
+            lib-webdav/build/test-results/**/*.xml
+            lib-webdav/build/reports/tests/**
+            lib-webdav/build/reports/kover/**
+            app-common-io/build/test-results/testFossDebugUnitTest/**/*.xml
+            app-common-io/build/reports/tests/testFossDebugUnitTest/**
+          if-no-files-found: error
+          retention-days: 14
+
   check-release-tooling:
     name: Release tooling
     runs-on: ubuntu-22.04
