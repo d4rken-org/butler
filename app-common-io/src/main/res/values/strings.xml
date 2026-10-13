@@ -87,6 +87,8 @@
     <string name="sftp_error_access_denied_description">This account may not open the folder set for \"%1$s\". Check the folder\'s permissions on the server.</string>
     <string name="sftp_error_pro_required_title">SFTP servers require Butler Pro</string>
     <string name="sftp_error_pro_required_description">Browsing SFTP servers is part of Butler Pro. Adding, testing and removing servers is free.</string>
+    <string name="webdav_error_credential_unavailable_title">Sign-in required</string>
+    <string name="webdav_error_credential_unavailable_description">The saved password for this WebDAV server can no longer be read. Enter it again to reconnect.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Protected app bundle</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" is encrypted and can only be installed by the app that created it.</string>

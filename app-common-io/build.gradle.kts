@@ -76,6 +76,7 @@ dependencies {
     addArchive()
     implementation(project(":lib-smb"))
     implementation(project(":lib-ssh"))
+    implementation(project(":lib-webdav"))
     addRoomDb()
     addWorkerManager()
 
@@ -85,4 +86,5 @@ dependencies {
     testImplementation(libs.sshd.core)
     testImplementation(libs.sshd.sftp)
     testImplementation(project(":app-common-test"))
+    testImplementation(testFixtures(project(":lib-webdav")))
 }

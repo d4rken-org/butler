@@ -5,6 +5,8 @@ import eu.darken.butler.common.files.sftp.credentials.SftpCredentialUnavailableE
 import eu.darken.butler.common.files.smb.credentials.KeystoreSmbCredentialCipher
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialCipher
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialUnavailableException
+import eu.darken.butler.common.files.webdav.credentials.KeystoreWebDavCredentialCipher
+import eu.darken.butler.common.files.webdav.credentials.WebDavCredentialUnavailableException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.AfterEach
@@ -109,6 +111,57 @@ class KeystoreCredentialCipherTest : BaseTest() {
                 payloadVersion = 1,
                 envelope = CredentialCipher.Envelope(smb.envelopeVersion, smb.keyAlias, smb.iv, smb.ciphertext),
             )
+        }
+    }
+
+    @Test
+    fun `WebDAV seals under its own alias and a webdav prefixed AAD`() {
+        val envelope = KeystoreWebDavCredentialCipher().encrypt(locationId, 1, plaintext.encodeToByteArray())
+
+        envelope.keyAlias shouldBe "butler_webdav_credentials"
+        open(
+            envelope.iv,
+            envelope.ciphertext,
+            aad = "webdav".encodeToByteArray() + locationId.toByteArray() + 1.toByte(),
+        ) shouldBe plaintext
+        KeystoreWebDavCredentialCipher().decrypt(locationId, 1, envelope).decodeToString() shouldBe plaintext
+    }
+
+    @Test
+    fun `a WebDAV credential never decrypts as an SMB or SFTP one`() {
+        val webDav = KeystoreWebDavCredentialCipher().encrypt(locationId, 1, plaintext.encodeToByteArray())
+
+        shouldThrow<SmbCredentialUnavailableException> {
+            KeystoreSmbCredentialCipher().decrypt(
+                locationId = locationId,
+                payloadVersion = 1,
+                envelope = SmbCredentialCipher.Envelope(
+                    webDav.envelopeVersion,
+                    webDav.keyAlias,
+                    webDav.iv,
+                    webDav.ciphertext,
+                ),
+            )
+        }
+        shouldThrow<SftpCredentialUnavailableException> {
+            KeystoreSftpCredentialCipher().decrypt(locationId, 1, webDav)
+        }
+    }
+
+    @Test
+    fun `an SMB or SFTP credential never decrypts as a WebDAV one`() {
+        val smb = KeystoreSmbCredentialCipher().encrypt(locationId, 1, plaintext.encodeToByteArray())
+        val sftp = KeystoreSftpCredentialCipher().encrypt(locationId, 1, plaintext.encodeToByteArray())
+
+        shouldThrow<WebDavCredentialUnavailableException> {
+            KeystoreWebDavCredentialCipher().decrypt(
+                locationId = locationId,
+                payloadVersion = 1,
+                envelope = CredentialCipher.Envelope(smb.envelopeVersion, smb.keyAlias, smb.iv, smb.ciphertext),
+            )
+        }
+        shouldThrow<WebDavCredentialUnavailableException> {
+            KeystoreWebDavCredentialCipher().decrypt(locationId, 1, sftp)
         }
     }
 
