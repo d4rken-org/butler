@@ -51,6 +51,7 @@ class GatewaySwitchSftpRoutingTest : BaseTest() {
         archiveGateway = archiveGateway,
         smbGateway = smbGateway,
         sftpGateway = sftpGateway,
+        webdavGateway = mockk(relaxed = true),
         safLocationManager = mockk<SAFLocationManager>(relaxed = true),
         proxyPfdFactory = mockk<ProxyPfdFactory>(relaxed = true),
     )

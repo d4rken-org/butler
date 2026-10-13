@@ -160,6 +160,7 @@ class SftpGatewayIntegrationTest : BaseTest() {
             archiveGateway = mockk(relaxed = true),
             smbGateway = smbGateway,
             sftpGateway = sftpGateway,
+            webdavGateway = mockk(relaxed = true),
             safLocationManager = mockk(relaxed = true),
             proxyPfdFactory = mockk(relaxed = true),
         )

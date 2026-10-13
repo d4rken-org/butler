@@ -10,6 +10,7 @@ import eu.darken.butler.common.files.saf.SAFGateway
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.sftp.SftpGateway
 import eu.darken.butler.common.files.smb.SmbGateway
+import eu.darken.butler.common.files.webdav.WebDavGateway
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
@@ -60,6 +61,7 @@ class GatewaySwitchPfdTest : BaseTest() {
     private lateinit var archiveGateway: ArchiveGateway
     private lateinit var smbGateway: SmbGateway
     private lateinit var sftpGateway: SftpGateway
+    private lateinit var webdavGateway: WebDavGateway
     private lateinit var safLocationManager: SAFLocationManager
     private lateinit var proxyPfdFactory: ProxyPfdFactory
     private lateinit var gatewaySwitch: GatewaySwitch
@@ -71,6 +73,7 @@ class GatewaySwitchPfdTest : BaseTest() {
         archiveGateway = mockk(relaxed = true)
         smbGateway = mockk(relaxed = true)
         sftpGateway = mockk(relaxed = true)
+        webdavGateway = mockk(relaxed = true)
         safLocationManager = mockk(relaxed = true)
         proxyPfdFactory = mockk(relaxed = true)
         gatewaySwitch = GatewaySwitch(
@@ -81,6 +84,7 @@ class GatewaySwitchPfdTest : BaseTest() {
             archiveGateway = archiveGateway,
             smbGateway = smbGateway,
             sftpGateway = sftpGateway,
+            webdavGateway = webdavGateway,
             safLocationManager = safLocationManager,
             proxyPfdFactory = proxyPfdFactory,
         )
@@ -164,6 +168,20 @@ class GatewaySwitchPfdTest : BaseTest() {
     }
 
     @Test
+    fun `a WebDAV file is served through the proxy lane`() = runTest {
+        val path = WebDavPath(Uuid.parse("11111111-2222-3333-4444-555555555555"), listOf("a.pdf"))
+        val handle = mockk<FileHandle>(relaxed = true)
+        val proxyPfd = seekablePfd()
+        coEvery { webdavGateway.file(path, false) } returns handle
+        every { proxyPfdFactory.create(handle, "r") } returns proxyPfd
+
+        gatewaySwitch.openReadPFD(path) shouldBe proxyPfd
+
+        coVerify(exactly = 1) { webdavGateway.file(path, false) }
+        verify(exactly = 1) { proxyPfdFactory.create(handle, "r") }
+    }
+
+    @Test
     fun `archive entries never reach the proxy lane`() = runTest {
         gatewaySwitch.openReadPFD(archivePath) shouldBe null
 
@@ -230,6 +248,7 @@ class GatewaySwitchPfdTest : BaseTest() {
             archiveGateway = archiveGateway,
             smbGateway = smbGateway,
             sftpGateway = mockk(relaxed = true),
+            webdavGateway = mockk(relaxed = true),
             safLocationManager = safLocationManager,
             proxyPfdFactory = proxyPfdFactory,
         )
@@ -267,6 +286,7 @@ class GatewaySwitchPfdTest : BaseTest() {
             archiveGateway = archiveGateway,
             smbGateway = smbGateway,
             sftpGateway = mockk(relaxed = true),
+            webdavGateway = mockk(relaxed = true),
             safLocationManager = safLocationManager,
             proxyPfdFactory = proxyPfdFactory,
         )
@@ -304,6 +324,7 @@ class GatewaySwitchPfdTest : BaseTest() {
             archiveGateway = archiveGateway,
             smbGateway = smbGateway,
             sftpGateway = mockk(relaxed = true),
+            webdavGateway = mockk(relaxed = true),
             safLocationManager = safLocationManager,
             proxyPfdFactory = proxyPfdFactory,
         )

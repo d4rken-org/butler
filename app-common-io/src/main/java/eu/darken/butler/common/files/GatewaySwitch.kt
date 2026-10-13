@@ -30,6 +30,8 @@ import eu.darken.butler.common.files.saf.SAFGateway
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.sftp.SftpGateway
 import eu.darken.butler.common.files.smb.SmbGateway
+import eu.darken.butler.common.files.webdav.WebDavGateway
+import eu.darken.butler.common.files.webdav.WebDavUploadCopyStrategy
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.adoptChildResource
 import android.os.ParcelFileDescriptor
@@ -55,6 +57,7 @@ class GatewaySwitch @Inject constructor(
     private val archiveGateway: ArchiveGateway,
     private val smbGateway: SmbGateway,
     private val sftpGateway: SftpGateway,
+    private val webdavGateway: WebDavGateway,
     private val safLocationManager: SAFLocationManager,
     private val proxyPfdFactory: ProxyPfdFactory,
 ) : APathGateway<APath<*>, APathLookup<APath<*>>> {
@@ -122,7 +125,9 @@ class GatewaySwitch @Inject constructor(
                 sftpGateway.also { adoptChildResource(it) }
             }
 
-            is WebDavPath -> error("WEBDAV_PENDING: gateway routing")
+            is WebDavPath -> {
+                webdavGateway.also { adoptChildResource(it) }
+            }
         }
         return gateway
     }
@@ -258,8 +263,8 @@ class GatewaySwitch @Inject constructor(
      * Best-effort seekable, read-only [ParcelFileDescriptor] for streaming previews (APK icon, PDF, …).
      *
      * A [LocalPath] the app can open itself and a [SAFPath] are served by the platform directly. Every
-     * other [LocalPath] - the ones that need root or ADB escalation - and every [SmbPath] and
-     * [SftpPath] go through [proxyReadPfdOrNull], which serves reads from the gateway's [FileHandle].
+     * other [LocalPath] - the ones that need root or ADB escalation - and every [SmbPath], [SftpPath]
+     * and [WebDavPath] go through [proxyReadPfdOrNull], which serves reads from the gateway's [FileHandle].
      * Archive entries have no descriptor at all.
      *
      * Null means "no preview": non-seekable descriptors (statSize < 0) and any failure resolve to it,
@@ -278,7 +283,7 @@ class GatewaySwitch @Inject constructor(
 
         is SftpPath -> proxyReadPfdOrNull(path)
 
-        is WebDavPath -> error("WEBDAV_PENDING: preview descriptor")
+        is WebDavPath -> proxyReadPfdOrNull(path)
     }
 
     private suspend fun directReadPfdOrNull(path: LocalPath): ParcelFileDescriptor? =
@@ -590,7 +595,11 @@ class GatewaySwitch @Inject constructor(
                     .collect { state -> emit(state) }
             }
 
-            is WebDavPath -> error("WEBDAV_PENDING: copy from WebDAV")
+            is WebDavPath -> {
+                @Suppress("UNCHECKED_CAST")
+                (sources as Collection<WebDavPath>).copyCrossType(target, transferOptions, onIssue)
+                    .collect { state -> emit(state) }
+            }
         }
     }
 
@@ -636,7 +645,11 @@ class GatewaySwitch @Inject constructor(
                     .collect { state -> emit(state) }
             }
 
-            is WebDavPath -> error("WEBDAV_PENDING: move from WebDAV")
+            is WebDavPath -> {
+                @Suppress("UNCHECKED_CAST")
+                (sources as Collection<WebDavPath>).moveCrossType(target, transferOptions, onIssue)
+                    .collect { state -> emit(state) }
+            }
         }
     }
 
@@ -680,7 +693,14 @@ class GatewaySwitch @Inject constructor(
             onIssue = onIssue,
         )
 
-        is WebDavPath -> error("WEBDAV_PENDING: copy from local to WebDAV")
+        is WebDavPath -> copyGeneric(
+            destination = destination,
+            sourceOps = localGateway,
+            destOps = webdavGateway,
+            strategy = WebDavUploadCopyStrategy(webdavGateway),
+            options = options,
+            onIssue = onIssue,
+        )
     }
 
     @JvmName("safPathCopyCrossType")
@@ -720,7 +740,14 @@ class GatewaySwitch @Inject constructor(
             onIssue = onIssue,
         )
 
-        is WebDavPath -> error("WEBDAV_PENDING: copy from SAF to WebDAV")
+        is WebDavPath -> copyGeneric(
+            destination = destination,
+            sourceOps = safGateway,
+            destOps = webdavGateway,
+            strategy = WebDavUploadCopyStrategy(webdavGateway),
+            options = options,
+            onIssue = onIssue,
+        )
     }
 
     @JvmName("archivePathCopyCrossType")
@@ -767,7 +794,14 @@ class GatewaySwitch @Inject constructor(
             onIssue = onIssue,
         )
 
-        is WebDavPath -> error("WEBDAV_PENDING: copy from archive to WebDAV")
+        is WebDavPath -> copyGeneric(
+            destination = destination,
+            sourceOps = archiveGateway,
+            destOps = webdavGateway,
+            strategy = WebDavUploadCopyStrategy(webdavGateway),
+            options = options,
+            onIssue = onIssue,
+        )
     }
 
     // ========================================================================
@@ -810,7 +844,14 @@ class GatewaySwitch @Inject constructor(
             onIssue = onIssue,
         )
 
-        is WebDavPath -> error("WEBDAV_PENDING: move from local to WebDAV")
+        is WebDavPath -> moveGeneric(
+            destination = destination,
+            sourceOps = localGateway,
+            destOps = webdavGateway,
+            strategy = GenericCrossTypeMoveStrategy(WebDavUploadCopyStrategy(webdavGateway)),
+            options = options,
+            onIssue = onIssue,
+        )
     }
 
     @JvmName("safPathMoveCrossType")
@@ -850,7 +891,14 @@ class GatewaySwitch @Inject constructor(
             onIssue = onIssue,
         )
 
-        is WebDavPath -> error("WEBDAV_PENDING: move from SAF to WebDAV")
+        is WebDavPath -> moveGeneric(
+            destination = destination,
+            sourceOps = safGateway,
+            destOps = webdavGateway,
+            strategy = GenericCrossTypeMoveStrategy(WebDavUploadCopyStrategy(webdavGateway)),
+            options = options,
+            onIssue = onIssue,
+        )
     }
 
     @JvmName("smbPathCopyCrossType")
@@ -890,7 +938,14 @@ class GatewaySwitch @Inject constructor(
             onIssue = onIssue,
         )
 
-        is WebDavPath -> error("WEBDAV_PENDING: copy from SMB to WebDAV")
+        is WebDavPath -> copyGeneric(
+            destination = destination,
+            sourceOps = smbGateway,
+            destOps = webdavGateway,
+            strategy = WebDavUploadCopyStrategy(webdavGateway),
+            options = options,
+            onIssue = onIssue,
+        )
     }
 
     @JvmName("smbPathMoveCrossType")
@@ -930,7 +985,14 @@ class GatewaySwitch @Inject constructor(
             onIssue = onIssue,
         )
 
-        is WebDavPath -> error("WEBDAV_PENDING: move from SMB to WebDAV")
+        is WebDavPath -> moveGeneric(
+            destination = destination,
+            sourceOps = smbGateway,
+            destOps = webdavGateway,
+            strategy = GenericCrossTypeMoveStrategy(WebDavUploadCopyStrategy(webdavGateway)),
+            options = options,
+            onIssue = onIssue,
+        )
     }
 
 
@@ -971,7 +1033,14 @@ class GatewaySwitch @Inject constructor(
 
         is SftpPath -> error("Same-type operations should be handled by native implementation")
 
-        is WebDavPath -> error("WEBDAV_PENDING: transfer from SFTP to WebDAV")
+        is WebDavPath -> copyGeneric(
+            destination = destination,
+            sourceOps = sftpGateway,
+            destOps = webdavGateway,
+            strategy = WebDavUploadCopyStrategy(webdavGateway),
+            options = options,
+            onIssue = onIssue,
+        )
     }
 
     @JvmName("sftpPathMoveCrossType")
@@ -1011,7 +1080,108 @@ class GatewaySwitch @Inject constructor(
 
         is SftpPath -> error("Same-type operations should be handled by native implementation")
 
-        is WebDavPath -> error("WEBDAV_PENDING: transfer from SFTP to WebDAV")
+        is WebDavPath -> moveGeneric(
+            destination = destination,
+            sourceOps = sftpGateway,
+            destOps = webdavGateway,
+            strategy = GenericCrossTypeMoveStrategy(WebDavUploadCopyStrategy(webdavGateway)),
+            options = options,
+            onIssue = onIssue,
+        )
+    }
+
+    @JvmName("webdavPathCopyCrossType")
+    private suspend fun Collection<WebDavPath>.copyCrossType(
+        destination: APath<*>,
+        options: TransferStrategy.Options,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
+    ): Flow<CopyAction.State<*, *, *, *>> = when (destination) {
+        is LocalPath -> copyGeneric(
+            destination = destination,
+            sourceOps = webdavGateway,
+            destOps = localGateway,
+            strategy = GenericCrossTypeCopyStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+
+        is SAFPath -> copyGeneric(
+            destination = destination,
+            sourceOps = webdavGateway,
+            destOps = safGateway,
+            strategy = GenericCrossTypeCopyStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+
+        is ArchivePath -> throw WriteException("Archives are read-only", destination)
+
+        is SmbPath -> copyGeneric(
+            destination = destination,
+            sourceOps = webdavGateway,
+            destOps = smbGateway,
+            strategy = GenericCrossTypeCopyStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+
+        is SftpPath -> copyGeneric(
+            destination = destination,
+            sourceOps = webdavGateway,
+            destOps = sftpGateway,
+            strategy = GenericCrossTypeCopyStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+
+        is WebDavPath -> error("Same-type operations should be handled by native implementation")
+    }
+
+    @JvmName("webdavPathMoveCrossType")
+    private suspend fun Collection<WebDavPath>.moveCrossType(
+        destination: APath<*>,
+        options: TransferStrategy.Options,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?
+    ): Flow<MoveAction.State<*, *, *, *>> = when (destination) {
+        is LocalPath -> moveGeneric(
+            destination = destination,
+            sourceOps = webdavGateway,
+            destOps = localGateway,
+            strategy = GenericCrossTypeMoveStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+
+        is SAFPath -> moveGeneric(
+            destination = destination,
+            sourceOps = webdavGateway,
+            destOps = safGateway,
+            strategy = GenericCrossTypeMoveStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+
+        is ArchivePath -> throw WriteException("Archives are read-only", destination)
+
+        is SmbPath -> moveGeneric(
+            destination = destination,
+            sourceOps = webdavGateway,
+            destOps = smbGateway,
+            strategy = GenericCrossTypeMoveStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+
+        is SftpPath -> moveGeneric(
+            destination = destination,
+            sourceOps = webdavGateway,
+            destOps = sftpGateway,
+            strategy = GenericCrossTypeMoveStrategy(),
+            options = options,
+            onIssue = onIssue,
+        )
+
+        is WebDavPath -> error("Same-type operations should be handled by native implementation")
     }
 
     override suspend fun create(

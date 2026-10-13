@@ -57,9 +57,10 @@ import kotlinx.coroutines.CancellationException
 class GenericCrossTypeMoveStrategy<
     SP : APath<SP>, SPL : APathLookup<SP>,
     DP : APath<DP>, DPL : APathLookup<DP>
-    > : TransferStrategy<SP, SPL, DP, DPL> {
-
-    private val copyStrategy = GenericCrossTypeCopyStrategy<SP, SPL, DP, DPL>()
+    >(
+    /** Performs step 1; a destination that needs its own way of writing passes its strategy. */
+    private val copyStrategy: TransferStrategy<SP, SPL, DP, DPL> = GenericCrossTypeCopyStrategy(),
+) : TransferStrategy<SP, SPL, DP, DPL> {
 
     override suspend fun transferFile(
         sourceLookup: SPL,
