@@ -326,6 +326,19 @@ private fun StorageRowSftpPreview() {
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
+private fun StorageRowWebDavPreview() {
+    StorageRow(
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+        item = MockDataProvider.createMockStorageWebDav(
+            endpoint = NetworkEndpointState("203.0.113.7", NetworkEndpointState.Reachability.REACHABLE),
+        ),
+        onClick = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
 private fun StorageRowSAFPreview() {
     StorageRow(
         item = MockDataProvider.createMockStorageSAF(),

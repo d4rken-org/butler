@@ -6,6 +6,8 @@ import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.sftp.SftpHostKeyChangedException
 import eu.darken.butler.common.files.sftp.isSftpSignInFailure
 import eu.darken.butler.common.files.smb.isSmbSignInFailure
+import eu.darken.butler.common.files.webdav.WebDavCertificateException
+import eu.darken.butler.common.files.webdav.isWebDavSignInFailure
 import kotlin.uuid.Uuid
 
 /** A network location a failed load asks the user to sign in to again, per protocol. */
@@ -15,6 +17,8 @@ sealed interface NetworkSignInRequest {
     data class Smb(override val locationId: Uuid) : NetworkSignInRequest
 
     data class Sftp(override val locationId: Uuid) : NetworkSignInRequest
+
+    data class WebDav(override val locationId: Uuid) : NetworkSignInRequest
 }
 
 /**
@@ -28,7 +32,7 @@ fun ExplorerWorkspace.State.Ready.networkSignInRequest(): NetworkSignInRequest? 
     return when (val path = (currentTarget as? ExplorerNavigation.Target.Directory)?.path) {
         is SmbPath -> NetworkSignInRequest.Smb(path.locationId).takeIf { error.isSmbSignInFailure() }
         is SftpPath -> NetworkSignInRequest.Sftp(path.locationId).takeIf { error.isSftpSignInFailure() }
-        is WebDavPath -> error("WEBDAV_PENDING: sign-in request after a failed WebDAV load")
+        is WebDavPath -> NetworkSignInRequest.WebDav(path.locationId).takeIf { error.isWebDavSignInFailure() }
         else -> null
     }
 }
@@ -42,4 +46,15 @@ fun Throwable.sftpHostKeyChange(): SftpHostKeyChangedException? {
     return generateSequence(this) { it.cause }
         .takeWhile { seen.add(it) }
         .firstNotNullOfOrNull { it as? SftpHostKeyChangedException }
+}
+
+/**
+ * The refused WebDAV certificate behind this failure, found below the wrappers generic operations
+ * add. A trust decision rather than a sign-in, like [sftpHostKeyChange].
+ */
+fun Throwable.webDavCertificateProblem(): WebDavCertificateException? {
+    val seen = mutableSetOf<Throwable>()
+    return generateSequence(this) { it.cause }
+        .takeWhile { seen.add(it) }
+        .firstNotNullOfOrNull { it as? WebDavCertificateException }
 }

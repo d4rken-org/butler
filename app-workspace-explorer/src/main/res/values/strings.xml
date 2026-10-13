@@ -153,6 +153,15 @@
     <string name="explorer_info_sftp_credential_session">Kept until Butler closes</string>
     <string name="explorer_info_sftp_host_key_type_label">Host key type</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Host key fingerprint</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Anonymous</string>
+    <string name="explorer_info_webdav_credential_stored">Stored on this device</string>
+    <string name="explorer_info_webdav_credential_session">Kept until Butler closes</string>
+    <string name="explorer_info_webdav_certificate_label">Certificate</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Trusted certificate (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Trusted by the system</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Not encrypted (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Selected</string>
@@ -344,6 +353,8 @@
     <string name="explorer_network_protocol_smb_caption">Windows shares and most NAS folders</string>
     <string name="explorer_network_protocol_sftp_label">SFTP server</string>
     <string name="explorer_network_protocol_sftp_caption">Any server you can reach over SSH</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud and other WebDAV servers</string>
 
     <!-- SFTP Server Form -->
     <string name="explorer_sftp_form_add_title">Add SFTP server</string>
@@ -398,6 +409,56 @@
     <string name="explorer_sftp_host_key_retrust_title">Replace the server key?</string>
     <string name="explorer_sftp_host_key_retrust_message">Only replace the key if you know why %1$s changed it. Butler will trust the presented key from now on.</string>
     <string name="explorer_sftp_host_key_retrust_action">Replace key</string>
+
+    <!-- WebDAV Server Form -->
+    <string name="explorer_webdav_form_add_title">Add WebDAV server</string>
+    <string name="explorer_webdav_form_edit_title">Edit WebDAV server</string>
+    <string name="explorer_webdav_form_sign_in_title">Sign in to %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Enter the password again to open this server.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">This server asks for a username and password.</string>
+    <string name="explorer_webdav_form_url_label">Server URL</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Unencrypted connection: your password and files are sent in plain text.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Anonymous</string>
+    <string name="explorer_webdav_form_error_url_blank">Enter the server URL</string>
+    <string name="explorer_webdav_form_error_url_scheme">The URL has to start with https:// or http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">Enter the username and password in their own fields, not in the URL</string>
+    <string name="explorer_webdav_form_error_url_query">The URL cannot contain a query (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">The URL cannot contain a fragment (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">The username cannot contain a colon (:) or control characters</string>
+    <string name="explorer_webdav_form_error_password_required">Enter the password again to change the username, sign-in method or remember setting</string>
+    <string name="explorer_webdav_form_error_auth">%1$s rejected the username or password</string>
+    <string name="explorer_webdav_form_error_access_denied">This account may not open this folder</string>
+    <string name="explorer_webdav_form_error_not_collection">This URL is not a WebDAV folder. For Nextcloud it ends in /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">This folder does not exist on the server</string>
+    <string name="explorer_webdav_form_error_unreachable">Cannot reach %1$s</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">The server presented a different certificate than the one trusted for it. Nothing was saved.\n\nTrusted: %1$s\nPresented: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">The server\'s certificate was not trusted. Nothing was saved.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">The server details changed after the connection test started. Nothing was saved, test again to review the server\'s certificate.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">The server\'s identity could not be confirmed. Nothing was saved.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">This server\'s URL or certificate changed since that certificate was presented. Nothing was changed, open the server again to review the certificate it presents now.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">This WebDAV server was removed. Nothing was changed.</string>
+
+    <!-- WebDAV Certificates -->
+    <string name="explorer_webdav_certificate_untrusted_title">Trust this certificate?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">This device does not trust the certificate %1$s presented. It may be self-signed, issued by a private authority or issued for another name. Only continue if its fingerprint matches the one your server shows.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">This device no longer trusts the certificate %1$s presents. Only continue if its fingerprint matches the one your server shows. Butler will trust this certificate for this server from now on.</string>
+    <string name="explorer_webdav_certificate_subject_label">Issued to</string>
+    <string name="explorer_webdav_certificate_issuer_label">Issued by</string>
+    <string name="explorer_webdav_certificate_validity_label">Valid</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s to %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">SHA-256 fingerprint</string>
+    <string name="explorer_webdav_certificate_stored_label">Trusted certificate</string>
+    <string name="explorer_webdav_certificate_presented_label">Presented certificate</string>
+    <string name="explorer_webdav_certificate_accept_action">Trust certificate</string>
+    <string name="explorer_webdav_certificate_retrust_title">Replace the trusted certificate?</string>
+    <string name="explorer_webdav_certificate_retrust_message">Only replace the certificate if you know why %1$s changed it, e.g. because it was renewed. Butler will trust the presented certificate from now on.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Replace certificate</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Certificate not trusted</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s presented a certificate this device does not trust. Nothing was sent to the server.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Server certificate changed</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s presented a different certificate than the one trusted for it. This happens when a certificate is renewed, but also when someone intercepts the connection. Nothing was sent to the server.</string>
+    <string name="explorer_webdav_certificate_review_action">Review</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Name location</string>

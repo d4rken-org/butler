@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.files.network.NetworkEndpointState
 import eu.darken.butler.common.files.network.NetworkLocation
+import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -88,6 +89,38 @@ class NetworkStorageLabelsTest : BaseTest() {
     fun `a relative SFTP base path is marked as relative to the initial folder`() {
         sftpBasePath("media/photos").basePathLabel(context) shouldBe
             "media/photos (inside the server's initial folder)"
+    }
+
+    private fun webDav(url: String, pinned: Boolean): WebDavLocation {
+        val item = MockDataProvider.createMockStorageWebDav(
+            url = url,
+            pinnedCertificate = MockDataProvider.mockTrustedCertificate(1).takeIf { pinned },
+        )
+        return (item.location as NetworkLocation.WebDav).location
+    }
+
+    @Test
+    fun `a pinned WebDAV certificate is named by its fingerprint`() {
+        webDav("https://cloud.example.com/dav/", pinned = true).certificateLabel(context) shouldBe
+            MockDataProvider.mockTrustedCertificate(1).fingerprint
+    }
+
+    @Test
+    fun `an HTTPS WebDAV server without a pin is trusted by the system`() {
+        webDav("https://cloud.example.com/dav/", pinned = false).certificateLabel(context) shouldBe
+            "Trusted by the system"
+    }
+
+    @Test
+    fun `a plain HTTP WebDAV server is not encrypted`() {
+        webDav("http://nas.local:8080/dav/", pinned = false).certificateLabel(context) shouldBe "Not encrypted (HTTP)"
+    }
+
+    @Test
+    fun `a WebDAV server reads like an SMB share`() {
+        MockDataProvider.createMockStorageWebDav(
+            status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+        ).statusLabel(context, now) shouldBe "Sign-in required"
     }
 
     /** A credential problem outranks reachability, so it wins over any "last seen" suffix. */

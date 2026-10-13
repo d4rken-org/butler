@@ -44,6 +44,7 @@ import eu.darken.butler.common.files.network.NetworkEndpointState
 import eu.darken.butler.common.files.network.NetworkLocation
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import eu.darken.butler.common.files.toCaString
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
@@ -54,6 +55,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.items.basePathLabel
+import eu.darken.butler.explorer.ui.explorer.items.certificateLabel
 import eu.darken.butler.explorer.ui.explorer.items.statusLabel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
@@ -193,7 +195,12 @@ private fun ItemInfoContent(
                             onCopyToClipboard = onCopyToClipboard,
                         )
 
-                        is NetworkLocation.WebDav -> error("WEBDAV_PENDING: info sheet of a WebDAV location")
+                        is NetworkLocation.WebDav -> WebDavStorageInfo(
+                            item = item,
+                            location = location.location,
+                            capacity = context.capacity,
+                            onCopyToClipboard = onCopyToClipboard,
+                        )
                     }
                 }
             }
@@ -598,6 +605,95 @@ private fun SftpStorageInfo(
             value = location.hostKey.fingerprint,
             onCopy = { onCopyToClipboard(location.hostKey.fingerprint) },
             valueStyle = InfoValueStyle.MONOSPACE,
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_added_label),
+            value = formatDateTime(location.createdAt, DateTimeStyle.DETAILED),
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_updated_label),
+            value = formatDateTime(location.updatedAt, DateTimeStyle.DETAILED),
+        )
+
+        NetworkLastSeenField(location.lastSeenAt)
+    }
+}
+
+/**
+ * Everything about a WebDAV server. Like [SftpStorageInfo], the password is only described, and the
+ * certificate row says what vouches for the server.
+ */
+@Composable
+private fun WebDavStorageInfo(
+    item: ExplorerItem.Storage.Network,
+    location: WebDavLocation,
+    capacity: ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity?,
+    onCopyToClipboard: (String) -> Unit,
+) {
+    InfoCard {
+        NetworkEndpointFields(item = item, onCopyToClipboard = onCopyToClipboard)
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_webdav_url_label),
+            value = location.url,
+            onCopy = { onCopyToClipboard(location.url) },
+            valueStyle = InfoValueStyle.MONOSPACE,
+        )
+
+        InfoField(
+            label = stringResource(R.string.explorer_info_type_label),
+            value = stringResource(R.string.explorer_info_webdav_type_value),
+        )
+
+        NetworkCapacityFields(capacity)
+    }
+
+    Spacer(modifier = Modifier.height(6.dp))
+
+    InfoCard {
+        InfoField(
+            label = stringResource(R.string.explorer_info_network_auth_label),
+            value = when (location.authType) {
+                WebDavLocation.AuthType.ANONYMOUS -> stringResource(R.string.explorer_info_webdav_auth_anonymous)
+                WebDavLocation.AuthType.BASIC -> stringResource(R.string.explorer_network_form_auth_password)
+            },
+        )
+
+        if (location.authType == WebDavLocation.AuthType.BASIC) {
+            InfoField(
+                label = stringResource(R.string.explorer_network_form_username_label),
+                value = location.username ?: stringResource(R.string.explorer_info_unknown),
+            )
+
+            InfoField(
+                label = stringResource(R.string.explorer_info_network_password_label),
+                value = when (item.credentials) {
+                    NetworkCredentialAvailability.AVAILABLE -> stringResource(
+                        if (location.rememberCredential) R.string.explorer_info_webdav_credential_stored
+                        else R.string.explorer_info_webdav_credential_session
+                    )
+                    NetworkCredentialAvailability.MISSING -> {
+                        stringResource(R.string.explorer_info_network_password_missing)
+                    }
+                    NetworkCredentialAvailability.KEY_UNAVAILABLE -> {
+                        stringResource(R.string.explorer_info_network_password_locked)
+                    }
+                },
+            )
+        }
+
+        val pinned = location.pinnedCertificate
+        InfoField(
+            label = stringResource(
+                if (pinned != null) R.string.explorer_info_webdav_certificate_pinned_label
+                else R.string.explorer_info_webdav_certificate_label
+            ),
+            value = location.certificateLabel(LocalContext.current),
+            onCopy = pinned?.let { { onCopyToClipboard(it.fingerprint) } },
+            valueStyle = if (pinned != null) InfoValueStyle.MONOSPACE else InfoValueStyle.NORMAL,
+            valueColor = if (location.isSecure) null else MaterialTheme.colorScheme.error,
         )
 
         InfoField(
@@ -1051,6 +1147,63 @@ private fun ItemInfoBottomSheetPreviewSftpPasswordRelativeSignInRequired() {
         authType = SftpLocation.AuthType.PASSWORD,
         status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
         endpoint = NetworkEndpointState("192.168.1.20", NetworkEndpointState.Reachability.REACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewWebDavPinned() {
+    val item = MockDataProvider.createMockStorageWebDav(
+        pinnedCertificate = MockDataProvider.mockTrustedCertificate(1),
+        endpoint = NetworkEndpointState("203.0.113.7", NetworkEndpointState.Reachability.REACHABLE),
+        lastSeenAt = MockDataProvider.MockTimes.hoursAgo(1),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(
+            locationId = item.location.id,
+            item = item,
+            capacity = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity.Data(
+                totalBytes = MockDataProvider.MockSizes.gb(100),
+                freeBytes = MockDataProvider.MockSizes.gb(42),
+            ),
+        ),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewWebDavAnonymousHttp() {
+    val item = MockDataProvider.createMockStorageWebDav(
+        name = null,
+        url = "http://nas.local:8080/dav/",
+        authType = WebDavLocation.AuthType.ANONYMOUS,
+        endpoint = NetworkEndpointState("192.168.1.30", NetworkEndpointState.Reachability.REACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewWebDavSignInRequired() {
+    val item = MockDataProvider.createMockStorageWebDav(
+        status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
     )
 
     ItemInfoBottomSheet(

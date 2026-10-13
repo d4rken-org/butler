@@ -45,6 +45,9 @@ import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialUnavailableException
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
+import eu.darken.butler.common.files.webdav.WebDavCertificateException
+import eu.darken.butler.common.files.webdav.WebDavConnectionTester
+import eu.darken.butler.common.files.webdav.credentials.WebDavCredentialStore
 import eu.darken.butler.common.files.webdav.location.WebDavLocationManager
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine as combineMany
@@ -96,6 +99,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.NetworkProtocol
 import eu.darken.butler.explorer.ui.explorer.dialogs.SftpLocationFormInput
+import eu.darken.butler.explorer.ui.explorer.dialogs.WebDavLocationFormInput
 import eu.darken.butler.explorer.ui.explorer.dialogs.SmbLocationFormInput
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork.Capacity as SingleNetworkCapacity
@@ -201,6 +205,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val sftpConnectionTester: SftpConnectionTester,
     private val sftpPrivateKeyReader: SftpPrivateKeyReader,
     private val webDavLocationManager: WebDavLocationManager,
+    private val webDavCredentialStore: WebDavCredentialStore,
+    private val webDavConnectionTester: WebDavConnectionTester,
     private val trashManager: TrashManager,
     private val trashRepo: TrashRepo,
     private val itemInfoCalculator: ItemInfoCalculator,
@@ -302,6 +308,19 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         doLaunch = doLaunch,
         tag = tag,
     )
+    private val webDavLocations = ExplorerWebDavLocationController(
+        locationManager = webDavLocationManager,
+        credentialStore = webDavCredentialStore,
+        connectionTester = webDavConnectionTester,
+        upgradeRepo = upgradeRepo,
+        showUpgradeHint = { smbLocations.showUpgradeHint(it) },
+        dialogs = dialogs,
+        workspace = ::getWorkspace,
+        currentLocation = { cachedCurrentLocation },
+        clearSelection = ::clearSelection,
+        doLaunch = doLaunch,
+        tag = tag,
+    )
     private val networkLocations = ExplorerNetworkLocationController(
         smbLocationManager = smbLocationManager,
         sftpLocationManager = sftpLocationManager,
@@ -343,6 +362,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         upgradeRepo = upgradeRepo,
         onNetworkLocked = { smbLocations.showUpgradeHint(SmbUpgradeHint.Reason.LOCKED) },
         showSftpLocationForm = { location -> sftpLocations.promptSignIn(location.id) },
+        showWebDavLocationForm = { location -> webDavLocations.promptSignIn(location.id) },
         selectedItems = { selection.selectedItems.value },
         toggleSelection = { selection.toggle(it) },
         clearSelection = ::clearSelection,
@@ -479,6 +499,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 when (val request = state?.networkSignInRequest()) {
                     is NetworkSignInRequest.Smb -> smbLocations.promptSignIn(request.locationId)
                     is NetworkSignInRequest.Sftp -> sftpLocations.promptSignIn(request.locationId)
+                    is NetworkSignInRequest.WebDav -> webDavLocations.promptSignIn(request.locationId)
                     null -> Unit
                 }
             }
@@ -1397,7 +1418,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 when (val location = selectedItem.location) {
                     is NetworkLocation.Smb -> smbLocations.showEditForm(location.id)
                     is NetworkLocation.Sftp -> sftpLocations.showEditForm(location.id)
-                    is NetworkLocation.WebDav -> error("WEBDAV_PENDING: edit form for a WebDAV location")
+                    is NetworkLocation.WebDav -> webDavLocations.showEditForm(location.id)
                 }
             }
             is ExplorerActionBarItem.Network.RemoveLocation -> {
@@ -1810,6 +1831,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         when (protocol) {
             NetworkProtocol.SMB -> smbLocations.showAddForm()
             NetworkProtocol.SFTP -> sftpLocations.showAddForm()
+            NetworkProtocol.WEBDAV -> webDavLocations.showAddForm()
         }
     }
 
@@ -1827,6 +1849,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun onSftpRetrustRejected(confirmationId: Uuid) = sftpLocations.onRetrustRejected(confirmationId)
 
     fun onReviewSftpHostKeyChange(change: SftpHostKeyChangedException) = sftpLocations.reviewHostKeyChange(change)
+
+    fun onWebDavLocationFormSubmit(input: WebDavLocationFormInput) = webDavLocations.onFormSubmit(input)
+
+    fun onWebDavCertificateAccepted(confirmationId: Uuid, input: WebDavLocationFormInput) =
+        webDavLocations.onCertificateAccepted(confirmationId, input)
+
+    fun onWebDavCertificateRejected(confirmationId: Uuid) = webDavLocations.onCertificateRejected(confirmationId)
+
+    fun onWebDavRetrustAccepted(confirmationId: Uuid) = webDavLocations.onRetrustAccepted(confirmationId)
+
+    fun onWebDavRetrustRejected(confirmationId: Uuid) = webDavLocations.onRetrustRejected(confirmationId)
+
+    fun onReviewWebDavCertificate(problem: WebDavCertificateException) =
+        webDavLocations.reviewCertificateProblem(problem)
 
     suspend fun onRevealSmbFormPassword(form: ExplorerDialogState.SmbLocationForm): RevealedPassword? =
         withContext(dispatchers.IO) {

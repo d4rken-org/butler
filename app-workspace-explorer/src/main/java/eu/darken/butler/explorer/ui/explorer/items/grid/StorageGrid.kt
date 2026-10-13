@@ -344,6 +344,15 @@ private fun StorageGridNetworkPreview() {
                 onClick = {}
             )
         }
+        item {
+            StorageGrid(
+                density = ExplorerViewStyle.Density.COMFORTABLE,
+                item = MockDataProvider.createMockStorageWebDav(
+                    endpoint = NetworkEndpointState("203.0.113.7", NetworkEndpointState.Reachability.REACHABLE),
+                ),
+                onClick = {}
+            )
+        }
     }
 }
 

@@ -111,6 +111,33 @@ fun ExplorerDialogHost(
             }
         }
 
+        is ExplorerDialogState.WebDavLocationForm -> {
+            val fields = rememberWebDavLocationFormFields(dialogState)
+            WebDavLocationFormSheet(
+                state = dialogState,
+                fields = fields,
+                onDismiss = { vm?.dismissDialog() },
+                onSubmit = { input -> vm?.onWebDavLocationFormSubmit(input) },
+                topInset = topInset,
+                bottomInset = bottomInset,
+            )
+            // Siblings after the sheet, so they stack above it within the pane.
+            dialogState.certificateConfirmation?.let { confirmation ->
+                WebDavCertificateConfirmationDialog(
+                    confirmation = confirmation,
+                    onAccept = { vm?.onWebDavCertificateAccepted(confirmation.id, fields.toInput()) },
+                    onCancel = { vm?.onWebDavCertificateRejected(confirmation.id) },
+                )
+            }
+            dialogState.retrustConfirmation?.let { confirmation ->
+                WebDavCertificateRetrustDialog(
+                    confirmation = confirmation,
+                    onAccept = { vm?.onWebDavRetrustAccepted(confirmation.id) },
+                    onCancel = { vm?.onWebDavRetrustRejected(confirmation.id) },
+                )
+            }
+        }
+
         is ExplorerDialogState.Rename -> {
             RenameDialog(
                 item = dialogState.item,

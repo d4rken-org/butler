@@ -32,6 +32,9 @@ import eu.darken.butler.common.files.network.NetworkLocation
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.files.webdav.WebDavCertificateInfo
+import eu.darken.butler.common.files.webdav.location.TrustedCertificate
+import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.storage.saf.StorageProviderApp
@@ -57,6 +60,7 @@ import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import java.io.IOException
+import java.util.Base64
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -642,6 +646,69 @@ object MockDataProvider {
         )
         return createMockNetworkItem(NetworkLocation.Sftp(location), status, endpoint)
     }
+
+    fun createMockStorageWebDav(
+        name: String? = "Nextcloud",
+        url: String = "https://cloud.example.com/remote.php/dav/files/alice/",
+        authType: WebDavLocation.AuthType = WebDavLocation.AuthType.BASIC,
+        username: String = "alice",
+        rememberCredential: Boolean = true,
+        pinnedCertificate: TrustedCertificate? = null,
+        status: ExplorerItem.Storage.Network.Status = ExplorerItem.Storage.Network.Status.AVAILABLE,
+        id: Uuid = Uuid.parse("88888888-9999-aaaa-bbbb-cccccccccccc"),
+        endpoint: NetworkEndpointState = NetworkEndpointState(),
+        lastSeenAt: Instant? = null,
+    ): ExplorerItem.Storage.Network {
+        val basic = authType == WebDavLocation.AuthType.BASIC
+        val location = WebDavLocation(
+            id = id,
+            label = name,
+            url = url,
+            authType = authType,
+            username = username.takeIf { basic },
+            rememberCredential = rememberCredential && basic,
+            credentialVersion = 1,
+            pinnedCertificate = pinnedCertificate,
+            trustRevision = 1,
+            createdAt = MockTimes.daysAgo(2),
+            updatedAt = MockTimes.daysAgo(2),
+            lastSeenAt = lastSeenAt,
+        )
+        return createMockNetworkItem(NetworkLocation.WebDav(location), status, endpoint)
+    }
+
+    /**
+     * Two self-signed `CN=cloud.example.com,O=Example` leaves valid from 2026-10-13 to 2036-10-10:
+     * real certificates, because [WebDavCertificateInfo] only describes one it could parse.
+     */
+    fun mockTrustedCertificate(seed: Int = 1): TrustedCertificate = when (seed) {
+        1 -> TrustedCertificate(
+            der = Base64.getDecoder().decode(
+                "MIIBnTCCAUSgAwIBAgIBATAKBggqhkjOPQQDAjAuMRowGAYDVQQDDBFjbG91ZC5leGFtcGxlLmNvbTEQMA4GA1UECgwHRXhh" +
+                    "bXBsZTAeFw0yNjEwMTMxMDExMDhaFw0zNjEwMTAxMDExMDhaMC4xGjAYBgNVBAMMEWNsb3VkLmV4YW1wbGUuY29tMRAwDgYD" +
+                    "VQQKDAdFeGFtcGxlMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEzfKcrTEgKHOuh0bUDW89oumpEjjZmQ4520xFk7KkYSGN" +
+                    "qtRiPRPQo6z5DhkWqmzJKq74uMzDfYSpg3i6yKbDlaNTMFEwHQYDVR0OBBYEFEsBdPr3vtfETZnsj7j+31kl1SsrMB8GA1Ud" +
+                    "IwQYMBaAFEsBdPr3vtfETZnsj7j+31kl1SsrMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwIDRwAwRAIgNgT3H7y6jot8" +
+                    "ftA4vRPnr+xSirDj6NZ30jcMCLAGtDsCIBmsBfwF5kdDAZsSBbmOMoIOOpWdRjEAN3saN2jD2aZ0"
+            ),
+            fingerprint = "0A:6D:53:BF:71:D6:48:15:A7:4C:B8:3D:67:24:1A:38:C7:E2:DB:09:D2:D6:22:B3:23:9B:D8:4C:09:4A:D3:72",
+        )
+
+        else -> TrustedCertificate(
+            der = Base64.getDecoder().decode(
+                "MIIBnTCCAUSgAwIBAgIBAjAKBggqhkjOPQQDAjAuMRowGAYDVQQDDBFjbG91ZC5leGFtcGxlLmNvbTEQMA4GA1UECgwHRXhh" +
+                    "bXBsZTAeFw0yNjEwMTMxMDExMDhaFw0zNjEwMTAxMDExMDhaMC4xGjAYBgNVBAMMEWNsb3VkLmV4YW1wbGUuY29tMRAwDgYD" +
+                    "VQQKDAdFeGFtcGxlMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEACg/tumgodoz/QE1A6vCzugSbcVOPGEx9m5cqnSBIv2N" +
+                    "JQAwtL/zkdpJnYviusmcqJDAgfa9heFBAHvpwfD8HqNTMFEwHQYDVR0OBBYEFJLAdCOIGVv61rUZM20FCwOSz4IoMB8GA1Ud" +
+                    "IwQYMBaAFJLAdCOIGVv61rUZM20FCwOSz4IoMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwIDRwAwRAIgWoy7s6HlYKpy" +
+                    "C/oyQzZDyXopFJ6m6byyVI8enzyh2RICIFyDAB3g62z4jh8x/7C6mwm81utcrsfPWnf0RxTQ7FxS"
+            ),
+            fingerprint = "2B:80:8B:C0:21:97:30:15:B3:CF:E0:5B:A0:3F:9E:22:58:44:76:58:AB:69:E7:17:79:40:8F:4B:E3:21:05:58",
+        )
+    }
+
+    fun mockWebDavCertificate(seed: Int = 1): WebDavCertificateInfo =
+        WebDavCertificateInfo.from(mockTrustedCertificate(seed))
 
     private fun createMockNetworkItem(
         location: NetworkLocation,

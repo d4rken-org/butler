@@ -89,6 +89,34 @@ class NetworkStorageItemTest : ComposeTest() {
     }
 
     @Test
+    fun `a WebDAV row shows the label and user at host with path, never the internal path`() {
+        val webDav = MockDataProvider.createMockStorageWebDav()
+        composeTestRule.setContent {
+            PreviewWrapper {
+                StorageRow(item = webDav, density = ExplorerViewStyle.Density.COMFORTABLE, onClick = {})
+            }
+        }
+
+        composeTestRule.onNodeWithText("Nextcloud").assertIsDisplayed()
+        composeTestRule.onNodeWithText("alice@cloud.example.com/remote.php/dav/files/alice").assertIsDisplayed()
+        composeTestRule.onAllNodes(hasText(webDav.target.path.path)).fetchSemanticsNodes().size shouldBe 0
+    }
+
+    @Test
+    fun `a WebDAV grid tile badges a location that needs a sign-in`() {
+        val webDav = MockDataProvider.createMockStorageWebDav(status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Box(Modifier.size(200.dp)) {
+                    StorageGrid(item = webDav, density = ExplorerViewStyle.Density.COMFORTABLE, onClick = {})
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithText("Sign-in required").assertIsDisplayed()
+    }
+
+    @Test
     fun `an SFTP grid tile badges a location that needs a sign-in`() {
         val sftp = MockDataProvider.createMockStorageSftp(status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED)
         composeTestRule.setContent {

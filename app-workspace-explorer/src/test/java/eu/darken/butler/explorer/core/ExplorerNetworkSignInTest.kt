@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.core
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.sftp.SftpAccessDeniedException
 import eu.darken.butler.common.files.sftp.SftpAuthException
@@ -12,6 +13,11 @@ import eu.darken.butler.common.files.sftp.SftpKeyPassphraseException
 import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.butler.common.files.smb.SmbAuthException
 import eu.darken.butler.common.files.smb.SmbShareAccessDeniedException
+import eu.darken.butler.common.files.webdav.WebDavAccessDeniedException
+import eu.darken.butler.common.files.webdav.WebDavAuthException
+import eu.darken.butler.common.files.webdav.WebDavCertificateException
+import eu.darken.butler.common.files.webdav.credentials.WebDavCredentialUnavailableException
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -116,5 +122,54 @@ class ExplorerNetworkSignInTest : BaseTest() {
     fun `a failure of the other protocol asks for nothing`() {
         state(SmbAuthException("nas.local"), target = sftpRoot).networkSignInRequest() shouldBe null
         state(SftpAuthException("nas.local")).networkSignInRequest() shouldBe null
+        state(SftpAuthException("nas.local"), target = webDavRoot).networkSignInRequest() shouldBe null
+        state(WebDavAuthException("cloud.example.com"), target = sftpRoot).networkSignInRequest() shouldBe null
+    }
+
+    private val webDavRoot = ExplorerNavigation.Target.Directory(WebDavPath.root(locationId))
+
+    @Test
+    fun `a WebDAV auth failure asks for a WebDAV sign-in`() {
+        state(WebDavAuthException("cloud.example.com"), target = webDavRoot).networkSignInRequest() shouldBe
+            NetworkSignInRequest.WebDav(locationId)
+    }
+
+    @Test
+    fun `a wrapped missing WebDAV credential asks for a WebDAV sign-in`() {
+        val wrapped = ReadException(
+            "browsing failed",
+            cause = WebDavCredentialUnavailableException(locationId, "No credential stored for this generation"),
+        )
+        state(wrapped, target = webDavRoot).networkSignInRequest() shouldBe NetworkSignInRequest.WebDav(locationId)
+    }
+
+    @Test
+    fun `a WebDAV permission denial does not ask for a sign-in`() {
+        state(WebDavAccessDeniedException("cloud.example.com"), target = webDavRoot).networkSignInRequest() shouldBe null
+    }
+
+    private fun certificateProblem(stored: Boolean) = WebDavCertificateException(
+        locationId = locationId,
+        endpoint = "alice@cloud.example.com",
+        presented = MockDataProvider.mockWebDavCertificate(2),
+        stored = MockDataProvider.mockWebDavCertificate(1).takeIf { stored },
+        url = "https://cloud.example.com/",
+        trustRevision = 1,
+    )
+
+    @Test
+    fun `a WebDAV certificate failure does not ask for a sign-in`() {
+        state(certificateProblem(stored = false), target = webDavRoot).networkSignInRequest() shouldBe null
+        state(ReadException("browsing failed", cause = certificateProblem(stored = true)), target = webDavRoot)
+            .networkSignInRequest() shouldBe null
+    }
+
+    @Test
+    fun `a WebDAV certificate failure is found below wrappers`() {
+        val problem = certificateProblem(stored = true)
+
+        ReadException("browsing failed", cause = ReadException(cause = problem)).webDavCertificateProblem() shouldBe
+            problem
+        WebDavAuthException("cloud.example.com").webDavCertificateProblem() shouldBe null
     }
 }

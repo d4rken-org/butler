@@ -16,6 +16,7 @@ import eu.darken.butler.common.files.sftp.SftpLocationInput
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.smb.SmbLocationInput
 import eu.darken.butler.common.files.webdav.WebDavLocationInput
+import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.matches
@@ -59,6 +60,7 @@ class ExplorerNavigationController(
     private val upgradeRepo: UpgradeRepo,
     private val onNetworkLocked: () -> Unit,
     private val showSftpLocationForm: (SftpLocation) -> Unit,
+    private val showWebDavLocationForm: (WebDavLocation) -> Unit,
     private val selectedItems: () -> Set<ExplorerItem>,
     private val toggleSelection: (ExplorerItem) -> Unit,
     private val clearSelection: () -> Unit,
@@ -169,7 +171,7 @@ class ExplorerNavigationController(
                             dialogs.show(ExplorerDialogState.SmbLocationForm(existing = location.location))
                         }
                         is NetworkLocation.Sftp -> showSftpLocationForm(location.location)
-                        is NetworkLocation.WebDav -> error("WEBDAV_PENDING: sign-in form for a WebDAV location")
+                        is NetworkLocation.WebDav -> showWebDavLocationForm(location.location)
                     }
 
                 else -> {

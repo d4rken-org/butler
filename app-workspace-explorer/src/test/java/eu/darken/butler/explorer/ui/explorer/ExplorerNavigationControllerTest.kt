@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.network.NetworkCredentialAvailability
 import eu.darken.butler.common.files.network.NetworkLocation
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
@@ -118,6 +119,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
 
     private var lockedHints = 0
     private val sftpForms = mutableListOf<SftpLocation>()
+    private val webDavForms = mutableListOf<WebDavLocation>()
 
     private fun CoroutineScope.controller(
         workspace: ExplorerWorkspace = mockWorkspace(),
@@ -139,6 +141,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         upgradeRepo = upgradeRepo,
         onNetworkLocked = { lockedHints++ },
         showSftpLocationForm = { sftpForms.add(it) },
+        showWebDavLocationForm = { webDavForms.add(it) },
         selectedItems = selectedItems,
         toggleSelection = {},
         clearSelection = clearSelection,
@@ -228,6 +231,51 @@ class ExplorerNavigationControllerTest : BaseTest() {
         sftpForms shouldBe listOf((item.location as NetworkLocation.Sftp).location)
         dialogs.current() shouldBe ExplorerDialogState.None
         coVerify(exactly = 0) { workspace.navigate(any()) }
+    }
+
+    @Test
+    fun `a free user tapping a sign-in required WebDAV location gets the upgrade hint, not the form`() = runTest {
+        val dialogs = dialogs()
+        val controller = controller(dialogs = dialogs, upgradeRepo = FakeUpgradeRepo(pro = false))
+        val item = MockDataProvider.createMockStorageWebDav(status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED)
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        lockedHints shouldBe 1
+        webDavForms shouldBe emptyList()
+        dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `a pro user tapping a sign-in required WebDAV location is routed to the WebDAV form`() = runTest {
+        val dialogs = dialogs()
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace, dialogs = dialogs)
+        val item = MockDataProvider.createMockStorageWebDav(status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED)
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        lockedHints shouldBe 0
+        webDavForms shouldBe listOf((item.location as NetworkLocation.WebDav).location)
+        sftpForms shouldBe emptyList()
+        dialogs.current() shouldBe ExplorerDialogState.None
+        coVerify(exactly = 0) { workspace.navigate(any()) }
+    }
+
+    @Test
+    fun `a pro user tapping a WebDAV location navigates into it`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace)
+        val item = MockDataProvider.createMockStorageWebDav()
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        lockedHints shouldBe 0
+        webDavForms shouldBe emptyList()
+        coVerify { workspace.navigate(item.target) }
     }
 
     @Test

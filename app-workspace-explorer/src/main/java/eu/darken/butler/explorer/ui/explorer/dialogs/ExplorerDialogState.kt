@@ -6,6 +6,9 @@ import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.files.webdav.WebDavCertificateInfo
+import eu.darken.butler.common.files.webdav.WebDavLocationInput
+import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.SortSettings
@@ -75,6 +78,22 @@ sealed interface ExplorerDialogState {
         val isReadingKey: Boolean = false,
         val hostKeyConfirmation: SftpHostKeyConfirmation? = null,
         val retrustConfirmation: SftpRetrustConfirmation? = null,
+        val formId: Uuid = Uuid.random(),
+    ) : ExplorerDialogState
+
+    /**
+     * Add, edit or sign in to a WebDAV server, see [SftpLocationForm]. [issues] are what the last
+     * submit found wrong with the fields, valid while the form is still at [issuesRevision].
+     */
+    data class WebDavLocationForm(
+        val mode: WebDavFormMode = WebDavFormMode.ADD,
+        val existing: WebDavLocation? = null,
+        val isTesting: Boolean = false,
+        val error: CaString? = null,
+        val issues: List<WebDavLocationInput.Issue> = emptyList(),
+        val issuesRevision: Int = -1,
+        val certificateConfirmation: WebDavCertificateConfirmation? = null,
+        val retrustConfirmation: WebDavRetrustConfirmation? = null,
         val formId: Uuid = Uuid.random(),
     ) : ExplorerDialogState
 
@@ -231,6 +250,7 @@ sealed interface ExplorerDialogState {
 enum class NetworkProtocol {
     SMB,
     SFTP,
+    WEBDAV,
 }
 
 enum class SftpFormMode {
@@ -269,6 +289,45 @@ data class SftpRetrustConfirmation(
     val endpoint: String,
     val storedKey: TrustedHostKey,
     val presentedKey: TrustedHostKey,
+    val trustRevision: Int,
+    val fromFormTest: Boolean = false,
+    val id: Uuid = Uuid.random(),
+)
+
+enum class WebDavFormMode {
+    ADD,
+    EDIT,
+
+    /** Opened because the stored password was rejected or is gone: a fresh one is required. */
+    SIGN_IN,
+}
+
+/**
+ * A certificate the system does not trust, presented to a connection test and waiting for the
+ * user's decision. Accepting it only counts for the [url] that was tested, with the fields as they
+ * were at [formRevision].
+ */
+data class WebDavCertificateConfirmation(
+    val url: String,
+    val presented: WebDavCertificateInfo,
+    val formRevision: Int,
+    val id: Uuid = Uuid.random(),
+)
+
+/**
+ * A certificate to pin for a stored location, taken from the failed connection as it was. [stored]
+ * is null when nothing was pinned and the system no longer trusts the server, otherwise the pin was
+ * replaced. [url] and [trustRevision] are what the re-trust is compared against.
+ *
+ * [fromFormTest] marks one found by the form's own connection test: accepting it keeps the form open,
+ * to be submitted again against the new pin.
+ */
+data class WebDavRetrustConfirmation(
+    val locationId: Uuid,
+    val url: String,
+    val endpoint: String,
+    val stored: WebDavCertificateInfo?,
+    val presented: WebDavCertificateInfo,
     val trustRevision: Int,
     val fromFormTest: Boolean = false,
     val id: Uuid = Uuid.random(),

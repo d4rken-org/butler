@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.items
 import android.content.Context
 import eu.darken.butler.common.files.network.NetworkEndpointState
 import eu.darken.butler.common.files.sftp.location.SftpLocation
+import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -46,3 +47,13 @@ internal fun SftpLocation.basePathLabel(context: Context): String = when {
     basePath.startsWith("/") -> basePath
     else -> context.getString(R.string.explorer_info_sftp_folder_relative_format, basePath)
 }
+
+/**
+ * What vouches for the server: the fingerprint of the certificate the user trusted, the system's
+ * trust store, or nothing at all over plain HTTP.
+ */
+internal fun WebDavLocation.certificateLabel(context: Context): String = pinnedCertificate?.fingerprint
+    ?: when {
+        isSecure -> context.getString(R.string.explorer_info_webdav_certificate_system)
+        else -> context.getString(R.string.explorer_info_webdav_certificate_cleartext)
+    }

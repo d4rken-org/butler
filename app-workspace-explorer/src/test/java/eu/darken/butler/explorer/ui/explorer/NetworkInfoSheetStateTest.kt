@@ -54,6 +54,21 @@ class NetworkInfoSheetStateTest : BaseTest() {
     }
 
     @Test
+    fun `a WebDAV sheet resolves to its own row`() {
+        val webDav = MockDataProvider.createMockStorageWebDav(
+            endpoint = NetworkEndpointState("203.0.113.7", NetworkEndpointState.Reachability.REACHABLE),
+        )
+        val sheet = ExplorerDialogState.ItemInfo(
+            ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(webDav.location.id),
+        )
+
+        val resolved = sheet.withLiveNetworkItem(listOf(checking, MockDataProvider.createMockStorageSftp(), webDav))
+
+        resolved.shouldBeInstanceOf<ExplorerDialogState.ItemInfo>()
+        (resolved.context as ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork).item shouldBe webDav
+    }
+
+    @Test
     fun `every other dialog is left alone`() {
         val other = ExplorerDialogState.ItemInfo(
             ExplorerDialogState.ItemInfo.InfoContext.SingleLocalStorage(MockDataProvider.createMockStorageLocal()),

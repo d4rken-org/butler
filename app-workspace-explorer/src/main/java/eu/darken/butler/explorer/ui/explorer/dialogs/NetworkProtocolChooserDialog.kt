@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Cloud
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.Terminal
 import androidx.compose.material3.Icon
@@ -46,6 +47,12 @@ fun NetworkProtocolChooserDialog(
                     label = stringResource(R.string.explorer_network_protocol_sftp_label),
                     caption = stringResource(R.string.explorer_network_protocol_sftp_caption),
                     onClick = { onChoose(NetworkProtocol.SFTP) },
+                )
+                ProtocolRow(
+                    icon = Icons.TwoTone.Cloud,
+                    label = stringResource(R.string.explorer_network_protocol_webdav_label),
+                    caption = stringResource(R.string.explorer_network_protocol_webdav_caption),
+                    onClick = { onChoose(NetworkProtocol.WEBDAV) },
                 )
             }
         },
