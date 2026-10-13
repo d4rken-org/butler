@@ -1,6 +1,8 @@
 package eu.darken.webdav
 
 import eu.darken.webdav.WebDavException.Kind
+import java.net.ConnectException
+import javax.net.ssl.SSLHandshakeException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -115,6 +117,20 @@ class WebDavTlsTest {
             assertEquals(Kind.CERTIFICATE_UNTRUSTED, error?.kind)
             assertEquals(certificates[index].server(), error?.presentedCertificate)
         }
+    }
+
+    @Test
+    fun `a rejected certificate on a later address wins over the first address's connect failure`() {
+        val leaf = TestCertificates.leaf("localhost")
+        val rejected = SSLHandshakeException("handshake").apply {
+            initCause(CertificatePolicyException(Kind.CERTIFICATE_UNTRUSTED, leaf.certificate))
+        }
+        val refused = ConnectException("Failed to connect to localhost/[0:0:0:0:0:0:0:1]:443").apply { addSuppressed(rejected) }
+
+        val mapped = refused.toWebDavException() as WebDavException
+
+        assertEquals(Kind.CERTIFICATE_UNTRUSTED, mapped.kind)
+        assertEquals(leaf.server(), mapped.presentedCertificate)
     }
 
     @Test

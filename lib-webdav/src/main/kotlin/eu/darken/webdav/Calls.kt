@@ -39,16 +39,29 @@ internal suspend fun Call.await(): Response =
 
 internal fun Throwable.toWebDavException(): Throwable {
     if (this is WebDavException || this !is IOException) return this
-    var cause: Throwable? = this
-    while (cause != null) {
-        if (cause is CertificatePolicyException) {
-            val presented = runCatching { ServerCertificate(cause.leaf.encoded) }.getOrNull()
-            return WebDavException(cause.kind, presentedCertificate = presented, cause = this)
-        }
-        cause = cause.cause.takeIf { it !== cause }
+    findPolicyFailure()?.let { policy ->
+        val presented = runCatching { ServerCertificate(policy.leaf.encoded) }.getOrNull()
+        return WebDavException(policy.kind, presentedCertificate = presented, cause = this)
     }
     val detail = if (this is SSLException) "TLS failure" else "Transport failure"
     return WebDavException(WebDavException.Kind.TRANSPORT, message = "$detail: ${javaClass.simpleName}: $message", cause = this)
+}
+
+/**
+ * When a host has several addresses, OkHttp throws the first address's failure and attaches the others
+ * as suppressed, so a refused IPv6 connection can carry the IPv4 certificate rejection.
+ */
+private fun Throwable.findPolicyFailure(): CertificatePolicyException? {
+    val seen = HashSet<Throwable>()
+    val pending = ArrayDeque(listOf(this))
+    while (pending.isNotEmpty()) {
+        val error = pending.removeFirst()
+        if (!seen.add(error)) continue
+        if (error is CertificatePolicyException) return error
+        error.cause?.let(pending::addLast)
+        pending.addAll(error.suppressed)
+    }
+    return null
 }
 
 /** Which request precondition a 412 answers. */
