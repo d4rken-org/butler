@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
 
 /** Protocol edge cases against scripted responses. */
 class WebDavHttpTest {
@@ -141,23 +142,29 @@ class WebDavHttpTest {
     }
 
     @Test
-    fun `hrefs outside the requested collection are dropped`(): Unit = runBlocking {
+    fun `member hrefs resolve by path, ignoring the host`(): Unit = runBlocking {
         connect().use {
             server.enqueue(
                 multistatus(
                     collection("/dav/dir/"),
                     file("/dav/dir/a"),
                     file("http://proxy.internal:8080/dav/dir/b%20c"),
-                    file("/dav/elsewhere/c"),
-                    file("/dav/dir/sub/deep"),
                     file("/dav/dir/x%2Fy"),
-                    file("/other/dir/d"),
                 ),
             )
             assertEquals(
                 listOf(path("dir", "a"), path("dir", "b c")),
                 it.list(path("dir")).toList().map { entry -> entry.path },
             )
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/dav/elsewhere/c", "/dav/dir/sub/deep", "/other/dir/d", "ftp://host/dav/dir/e"])
+    fun `a member href that is not a direct child fails the listing`(href: String): Unit = runBlocking {
+        connect().use {
+            server.enqueue(multistatus(collection("/dav/dir/"), file("/dav/dir/a"), file(href)))
+            assertKind(Kind.PROTOCOL) { it.list(path("dir")).toList() }
         }
     }
 
@@ -195,6 +202,47 @@ class WebDavHttpTest {
                 multistatus(
                     collection("/dav/dir/"),
                     "<d:response><d:href>/dav/dir/gone</d:href><d:status>HTTP/1.1 404 Not Found</d:status></d:response>",
+                    file("/dav/dir/kept"),
+                ),
+            )
+            assertEquals(listOf(path("dir", "kept")), it.list(path("dir")).toList().map { entry -> entry.path })
+        }
+    }
+
+    @Test
+    fun `list fails when a member is access denied`(): Unit = runBlocking {
+        connect().use {
+            server.enqueue(
+                multistatus(
+                    collection("/dav/dir/"),
+                    "<d:response><d:href>/dav/dir/secret</d:href><d:status>HTTP/1.1 403 Forbidden</d:status></d:response>",
+                    file("/dav/dir/kept"),
+                ),
+            )
+            assertKind(Kind.ACCESS_DENIED) { it.list(path("dir")).toList() }
+        }
+    }
+
+    @Test
+    fun `list fails when members are outside the requested collection`(): Unit = runBlocking {
+        connect().use {
+            server.enqueue(
+                multistatus(
+                    collection("/backend/dir/"),
+                    file("/backend/dir/hidden"),
+                ),
+            )
+            assertKind(Kind.PROTOCOL) { it.list(path("dir")).toList() }
+        }
+    }
+
+    @Test
+    fun `list drops members with a response-level 410`(): Unit = runBlocking {
+        connect().use {
+            server.enqueue(
+                multistatus(
+                    collection("/dav/dir/"),
+                    "<d:response><d:href>/dav/dir/gone</d:href><d:status>HTTP/1.1 410 Gone</d:status></d:response>",
                     file("/dav/dir/kept"),
                 ),
             )

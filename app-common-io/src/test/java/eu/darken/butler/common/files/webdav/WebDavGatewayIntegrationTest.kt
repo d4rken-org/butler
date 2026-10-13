@@ -518,6 +518,65 @@ class WebDavGatewayIntegrationTest : BaseTest() {
         server.exists("full") shouldBe false
     }
 
+    /** Answers the `Depth: 1` listing of `full` with [body] as the multistatus content. */
+    private fun Recorder.injectListingOfFull(body: (basePath: String) -> String) {
+        inject = { request, response ->
+            val name = request.url.pathSegments.filter(String::isNotEmpty).lastOrNull()
+            if (request.method == "PROPFIND" && request.headers["Depth"] == "1" && name == "full") {
+                val members = body(request.url.encodedPath.substringBefore("full"))
+                MockResponse.Builder()
+                    .code(207)
+                    .addHeader("Content-Type", "application/xml; charset=utf-8")
+                    .body("""<?xml version="1.0"?><d:multistatus xmlns:d="DAV:">$members</d:multistatus>""")
+                    .build()
+            } else {
+                response
+            }
+        }
+    }
+
+    private fun davCollection(href: String) =
+        "<d:response><d:href>$href</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype></d:prop>" +
+            "<d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>"
+
+    private fun davFile(href: String) =
+        "<d:response><d:href>$href</d:href><d:propstat><d:prop><d:resourcetype/><d:getcontentlength>1</d:getcontentlength>" +
+            "</d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>"
+
+    @Test
+    fun `a non-recursive delete refuses a collection with an unreadable member`(): Unit = runBlocking {
+        val server = server {
+            putFile("full/secret.txt", "s".encodeToByteArray())
+        }
+        val recorder = Recorder(server)
+        val switch = rig(location(idA, server)).switch
+        recorder.injectListingOfFull { base ->
+            davCollection("${base}full/") +
+                "<d:response><d:href>${base}full/secret.txt</d:href><d:status>HTTP/1.1 403 Forbidden</d:status></d:response>"
+        }
+
+        shouldThrow<PathPermissionDeniedException> { switch.delete(a("full"), recursive = false) }
+
+        recorder.of("DELETE", "full") shouldBe emptyList()
+        server.exists("full/secret.txt") shouldBe true
+    }
+
+    @Test
+    fun `a non-recursive delete refuses a collection listed under another path`(): Unit = runBlocking {
+        val server = server {
+            putFile("full/secret.txt", "s".encodeToByteArray())
+        }
+        val recorder = Recorder(server)
+        val switch = rig(location(idA, server)).switch
+        recorder.injectListingOfFull { davCollection("/backend/full/") + davFile("/backend/full/secret.txt") }
+
+        val error = shouldThrow<WriteException> { switch.delete(a("full"), recursive = false) }
+        WebDavStatusMapper.kindOf(error) shouldBe WebDavException.Kind.PROTOCOL
+
+        recorder.of("DELETE", "full") shouldBe emptyList()
+        server.exists("full/secret.txt") shouldBe true
+    }
+
     @Test
     fun `mkdir, rename and delete`(): Unit = runBlocking {
         val server = server {

@@ -43,14 +43,19 @@ internal class OkHttpWebDavSession(
         val requested = requestUrl.pathSegments.filter { it.isNotEmpty() }
         val entries = mutableListOf<WebDavEntry>()
         var self: DavResponse? = null
+        // Callers treat a listing as complete, so a member that cannot be accounted for fails it.
         for (response in responses) {
-            val segments = hrefSegments(requestUrl, response.href) ?: continue
+            val segments = hrefSegments(requestUrl, response.href)
             when {
                 segments == requested -> self = response
-                segments.size == requested.size + 1 && segments.subList(0, requested.size) == requested -> {
-                    val name = segments.last()
-                    if (WebDavPath.isValidSegment(name) && response.failure == null) entries += response.toEntry(path.child(name))
+                segments != null && segments.size == requested.size + 1 && segments.subList(0, requested.size) == requested -> {
+                    when (val failure = response.failure) {
+                        null -> segments.last().takeIf(WebDavPath::isValidSegment)?.let { entries += response.toEntry(path.child(it)) }
+                        404, 410 -> Unit
+                        else -> throw statusFailure(failure, "PROPFIND")
+                    }
                 }
+                else -> throw protocolFailure("PROPFIND member outside the requested collection")
             }
         }
         self?.checkStatus()

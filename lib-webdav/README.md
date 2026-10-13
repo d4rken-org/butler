@@ -38,8 +38,9 @@ normalizes them to a collection URL ending in `/`. `WebDavPath` is relative to i
 invalid only if it is empty, `.`, `..`, or contains `/` or NUL. Each segment is percent-encoded on
 its own, so `%`, `?`, `#` and `\` are ordinary characters. Multistatus hrefs map back to paths
 whether the server sends absolute paths, full URLs (the host is ignored), percent-encoded or raw
-names, with or without trailing slashes. Entries outside the listed collection are dropped, and
-`list` excludes the collection itself.
+names, with or without trailing slashes. `list` excludes the collection itself and skips members
+reported as 404 or 410. Any other failed member, or an entry that is neither the listed collection
+nor a direct member of it, fails the whole listing.
 
 `connect` sends `PROPFIND Depth: 0` to the endpoint, so authentication, certificate and endpoint
 problems surface there, and a non-collection endpoint fails with `NOT_DIRECTORY`. Each session owns
