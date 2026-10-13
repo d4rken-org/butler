@@ -8,6 +8,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 import okhttp3.ConnectionPool
 import okhttp3.Dispatcher
+import okhttp3.EventListener
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -19,9 +20,10 @@ import okhttp3.Response
  */
 public class OkHttpWebDavConnector internal constructor(
     private val config: WebDavConfig,
+    private val eventListenerFactory: EventListener.Factory? = null,
     systemTrustManager: () -> X509TrustManager,
 ) : WebDavConnector {
-    public constructor(config: WebDavConfig = WebDavConfig()) : this(config, ::platformTrustManager)
+    public constructor(config: WebDavConfig = WebDavConfig()) : this(config, systemTrustManager = ::platformTrustManager)
 
     private val systemTrust by lazy(systemTrustManager)
 
@@ -63,6 +65,7 @@ public class OkHttpWebDavConnector internal constructor(
                 // rarely pick a connection the server is about to close.
                 .connectionPool(ConnectionPool(5, 4, TimeUnit.SECONDS))
                 .dispatcher(Dispatcher())
+        eventListenerFactory?.let(builder::eventListenerFactory)
         if (credentials is WebDavCredentials.Basic) {
             builder.addInterceptor(BasicAuthInterceptor(endpoint.httpUrl, basicHeader(credentials)))
         }

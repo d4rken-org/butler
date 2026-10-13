@@ -1,6 +1,7 @@
 package eu.darken.webdav
 
 import eu.darken.webdav.WebDavException.Kind
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -11,6 +12,8 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import mockwebserver3.SocketEffect
+import okhttp3.Call
+import okhttp3.EventListener
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -433,5 +436,39 @@ class WebDavSessionTest {
             }
             assertTrue(mark.elapsedNow() < 5.seconds)
         }
+    }
+
+    @Test
+    fun `cancellation cancels the HTTP call while the session stays open`(): Unit = runBlocking {
+        val reached = CountDownLatch(1)
+        val canceled = CountDownLatch(1)
+        var canceledCall: Call? = null
+        var reachedBeforeCancel = false
+        val listener =
+            object : EventListener() {
+                override fun canceled(call: Call) {
+                    reachedBeforeCancel = reached.count == 0L
+                    canceledCall = call
+                    canceled.countDown()
+                }
+            }
+        val factory =
+            object : EventListener.Factory {
+                override fun create(call: Call): EventListener = listener
+            }
+        OkHttpWebDavConnector(WebDavConfig(), eventListenerFactory = factory) { platformTrustManager() }
+            .connect(WebDavEndpoint(server.baseUrl), basic(), CertificatePolicy.System)
+            .use {
+                server.responseTransformer = { _, response ->
+                    reached.countDown()
+                    response.newBuilder().headersDelay(10, TimeUnit.SECONDS).build()
+                }
+                assertThrows(TimeoutCancellationException::class.java) {
+                    runBlocking { withTimeout(1.seconds) { it.stat(WebDavPath.Root) } }
+                }
+                assertTrue(canceled.await(2, TimeUnit.SECONDS), "The blocked call was not cancelled")
+                assertTrue(reachedBeforeCancel, "The request had not reached the server when it was cancelled")
+                assertEquals("PROPFIND", canceledCall?.request()?.method)
+            }
     }
 }
