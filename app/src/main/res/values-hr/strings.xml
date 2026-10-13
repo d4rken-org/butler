@@ -386,7 +386,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Okno %1$d spremno je za sadržaj</string>
-    <string name="workspace_adaptive_add_action">Dodaj karticu</string>
 
     <string name="workspace_badge_tip_title">Savjet: pokazatelji na gumbu kartica</string>
     <string name="workspace_badge_open_workspaces">Broj otvorenih kartica</string>

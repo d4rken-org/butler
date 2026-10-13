@@ -375,7 +375,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Bereich %1$d ist bereit für Inhalte</string>
-    <string name="workspace_adaptive_add_action">Tab hinzufügen</string>
 
     <string name="workspace_badge_tip_title">Tipp: Anzeigen auf der Tab-Schaltfläche</string>
     <string name="workspace_badge_open_workspaces">Anzahl geöffneter Tabs</string>

@@ -394,7 +394,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">اللوحة %1$d جاهزة للمحتوى</string>
-    <string name="workspace_adaptive_add_action">إضافة علامة تبويب</string>
 
     <string name="workspace_badge_tip_title">نصيحة: مؤشرات زر علامة التبويب</string>
     <string name="workspace_badge_open_workspaces">عدد علامات التبويب المفتوحة</string>

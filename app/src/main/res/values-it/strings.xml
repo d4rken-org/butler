@@ -377,7 +377,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Il riquadro %1$d è pronto per il contenuto</string>
-    <string name="workspace_adaptive_add_action">Aggiungi scheda</string>
 
     <string name="workspace_badge_tip_title">Suggerimento: indicatori sul pulsante schede</string>
     <string name="workspace_badge_open_workspaces">Numero di schede aperte</string>

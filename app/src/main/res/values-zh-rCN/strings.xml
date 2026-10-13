@@ -371,7 +371,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">窗格 %1$d 已准备好加载内容</string>
-    <string name="workspace_adaptive_add_action">添加标签页</string>
 
     <string name="workspace_badge_tip_title">提示：标签页按钮指示器</string>
     <string name="workspace_badge_open_workspaces">已打开的标签页数量</string>

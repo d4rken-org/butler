@@ -374,7 +374,6 @@
 
     <!-- Адаптивний робочий простір -->
     <string name="workspace_adaptive_pane_ready">Панель %1$d готова до вмісту</string>
-    <string name="workspace_adaptive_add_action">Додати вкладку</string>
 
     <string name="workspace_badge_tip_title">Порада: індикатори кнопки вкладок</string>
     <string name="workspace_badge_open_workspaces">Кількість відкритих вкладок</string>

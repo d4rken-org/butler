@@ -372,7 +372,6 @@
 
     <!-- زبانه انطباقی -->
     <string name="workspace_adaptive_pane_ready">بخش %1$d برای محتوا آماده است</string>
-    <string name="workspace_adaptive_add_action">افزودن زبانه</string>
 
     <string name="workspace_badge_tip_title">نکته: نشانگرهای دکمه زبانه</string>
     <string name="workspace_badge_open_workspaces">تعداد زبانه‌های باز</string>

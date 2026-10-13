@@ -359,7 +359,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">พาเนล %1$d พร้อมสำหรับเนื้อหา</string>
-    <string name="workspace_adaptive_add_action">เพิ่มแท็บ</string>
 
     <string name="workspace_badge_tip_title">เคล็ดลับ: ตัวบ่งชี้บนปุ่มแท็บ</string>
     <string name="workspace_badge_open_workspaces">จำนวนแท็บที่เปิดอยู่</string>

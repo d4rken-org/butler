@@ -375,7 +375,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Panel %1$d är redo för innehåll</string>
-    <string name="workspace_adaptive_add_action">Lägg till flik</string>
 
     <string name="workspace_badge_tip_title">Tips: Indikatorer på flikknappen</string>
     <string name="workspace_badge_open_workspaces">Antal öppna flikar</string>

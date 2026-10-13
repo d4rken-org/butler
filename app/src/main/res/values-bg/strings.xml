@@ -381,7 +381,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Панел %1$d е готов за съдържание</string>
-    <string name="workspace_adaptive_add_action">Добави раздел</string>
 
     <string name="workspace_badge_tip_title">Съвет: индикатори на бутона за разделите</string>
     <string name="workspace_badge_open_workspaces">Брой отворени раздели</string>

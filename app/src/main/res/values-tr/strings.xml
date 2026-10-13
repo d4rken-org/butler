@@ -365,7 +365,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">%1$d numaralı bölme içerik için hazır</string>
-    <string name="workspace_adaptive_add_action">Sekme ekle</string>
 
     <string name="workspace_badge_tip_title">İpucu: Sekme düğmesi göstergeleri</string>
     <string name="workspace_badge_open_workspaces">Açık sekme sayısı</string>

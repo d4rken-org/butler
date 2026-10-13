@@ -386,7 +386,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">O painel %1$d está pronto para receber conteúdo</string>
-    <string name="workspace_adaptive_add_action">Adicionar separador</string>
 
     <string name="workspace_badge_tip_title">Dica: indicadores do botão de separadores</string>
     <string name="workspace_badge_open_workspaces">Número de separadores abertos</string>

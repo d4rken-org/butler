@@ -65,7 +65,13 @@ class ButlerApp {
 
     fun anyText(vararg names: String): BySelector = By.text(alternatives(names))
 
-    fun createTabAction(): BySelector = anyText("workspace_empty_create_action", "workspace_adaptive_add_action")
+    /** Older releases label the Adaptive layout's create card "Add tab", and the upgrade test drives them. */
+    fun createTabAction(): BySelector = By.text(
+        Pattern.compile(
+            listOfNotNull(string("workspace_empty_create_action"), optionalString("workspace_adaptive_add_action"))
+                .joinToString("|") { Pattern.quote(it) },
+        ),
+    )
 
     fun await(selector: BySelector): UiObject2 =
         device.wait(Until.findObject(selector), TIMEOUT_MS)
@@ -91,11 +97,11 @@ class ButlerApp {
     private fun alternatives(names: Array<out String>): Pattern =
         Pattern.compile(names.joinToString("|") { Pattern.quote(string(it)) })
 
-    private fun string(name: String): String {
-        val id = resources.getIdentifier(name, "string", PKG)
-        if (id == 0) throw AssertionError("$PKG has no string resource '$name'")
-        return resources.getString(id)
-    }
+    private fun string(name: String): String =
+        optionalString(name) ?: throw AssertionError("$PKG has no string resource '$name'")
+
+    private fun optionalString(name: String): String? =
+        resources.getIdentifier(name, "string", PKG).takeIf { it != 0 }?.let { resources.getString(it) }
 
     companion object {
         const val PKG = "eu.darken.butler"

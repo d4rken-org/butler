@@ -28,7 +28,7 @@ class GoldenPathTest {
         app.forceStop()
         app.launch()
         // A returning tour has to fail as such, not as a missing "Create tab".
-        app.await(app.anyText("tour_first_tab_title", "workspace_empty_create_action", "workspace_adaptive_add_action"))
+        app.await(app.anyText("tour_first_tab_title", "workspace_empty_create_action"))
         if (app.device.wait(Until.hasObject(app.text("tour_first_tab_title")), TOUR_GRACE_MS)) {
             throw AssertionError("The first-tab tour came back after a relaunch")
         }

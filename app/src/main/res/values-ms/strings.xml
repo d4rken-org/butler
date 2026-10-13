@@ -330,7 +330,6 @@
     <string name="workspace_creating_placeholder">Mencipta tab…</string>
     <string name="workspace_ondemand_swipe_title">Leret untuk mencipta tab baharu</string>
     <string name="workspace_adaptive_pane_ready">Panel %1$d sedia untuk kandungan</string>
-    <string name="workspace_adaptive_add_action">Tambah tab</string>
     <string name="workspace_badge_tip_title">Petua: Penunjuk butang tab</string>
     <string name="workspace_badge_open_workspaces">Bilangan tab terbuka</string>
     <string name="workspace_badge_active_operations">Operasi aktif (salinan fail, carian, dll.)</string>

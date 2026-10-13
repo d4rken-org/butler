@@ -385,7 +385,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Panel %1$d je pripravený na obsah</string>
-    <string name="workspace_adaptive_add_action">Pridať kartu</string>
 
     <string name="workspace_badge_tip_title">Tip: Indikátory na tlačidle kariet</string>
     <string name="workspace_badge_open_workspaces">Počet otvorených kariet</string>

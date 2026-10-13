@@ -372,7 +372,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Panel %1$d siap untuk konten</string>
-    <string name="workspace_adaptive_add_action">Tambah tab</string>
 
     <string name="workspace_badge_tip_title">Tip: Indikator tombol tab</string>
     <string name="workspace_badge_open_workspaces">Jumlah tab yang terbuka</string>

@@ -381,7 +381,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">پین %1$d مواد کے لیے تیار ہے</string>
-    <string name="workspace_adaptive_add_action">ٹیب شامل کریں</string>
 
     <string name="workspace_badge_tip_title">مشورہ: ٹیب بٹن کے اشارے</string>
     <string name="workspace_badge_open_workspaces">کھلے ٹیب کی تعداد</string>

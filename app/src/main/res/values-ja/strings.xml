@@ -359,7 +359,6 @@
 
     <!-- アダプティブワークスペース -->
     <string name="workspace_adaptive_pane_ready">ペイン%1$dはコンテンツの準備ができています</string>
-    <string name="workspace_adaptive_add_action">タブを追加</string>
 
     <string name="workspace_badge_tip_title">ヒント: タブボタンのインジケーター</string>
     <string name="workspace_badge_open_workspaces">開いているタブの数</string>

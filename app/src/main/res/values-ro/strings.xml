@@ -340,7 +340,6 @@
     <string name="workspace_creating_placeholder">Se creează fila…</string>
     <string name="workspace_ondemand_swipe_title">Glisează pentru a crea o filă nouă</string>
     <string name="workspace_adaptive_pane_ready">Panoul %1$d este pregătit pentru conținut</string>
-    <string name="workspace_adaptive_add_action">Adaugă o filă</string>
     <string name="workspace_badge_tip_title">Sfat: indicatorii butonului de file</string>
     <string name="workspace_badge_open_workspaces">Numărul de file deschise</string>
     <string name="workspace_badge_active_operations">Operații active (copieri de fișiere, căutări etc.)</string>

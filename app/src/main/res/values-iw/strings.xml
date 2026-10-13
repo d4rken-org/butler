@@ -345,7 +345,6 @@
     <string name="workspace_creating_placeholder">לשונית נוצרת…</string>
     <string name="workspace_ondemand_swipe_title">החלקה ליצירת לשונית חדשה</string>
     <string name="workspace_adaptive_pane_ready">חלונית %1$d מוכנה לתוכן</string>
-    <string name="workspace_adaptive_add_action">הוספת לשונית</string>
     <string name="workspace_badge_tip_title">טיפ: מחוונים בכפתור הלשוניות</string>
     <string name="workspace_badge_open_workspaces">מספר הלשוניות הפתוחות</string>
     <string name="workspace_badge_active_operations">פעולות פעילות (העתקת קבצים, חיפושים וכו׳)</string>

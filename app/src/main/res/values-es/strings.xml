@@ -375,7 +375,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">El panel %1$d está listo para contenido</string>
-    <string name="workspace_adaptive_add_action">Añadir pestaña</string>
 
     <string name="workspace_badge_tip_title">Consejo: indicadores del botón de pestañas</string>
     <string name="workspace_badge_open_workspaces">Número de pestañas abiertas</string>

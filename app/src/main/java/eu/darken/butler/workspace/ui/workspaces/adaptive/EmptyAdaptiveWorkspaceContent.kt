@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.AddCircle
+import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -37,6 +38,7 @@ import eu.darken.butler.common.compose.Preview2Tablet
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.tour.guidedTourTarget
 import eu.darken.butler.workspace.ui.insets.paneInsets
+import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign.*
 import eu.darken.butler.workspace.ui.workspaces.tour.FirstTabTour
 
@@ -52,6 +54,7 @@ internal fun EmptyAdaptiveWorkspaceContent(
     tourRequester: BringIntoViewRequester? = null,
     onAddWorkspace: (() -> Unit)? = null,
 ) {
+    val workspaceActionHandler = LocalWorkspaceButtonProvider.current
     // Vertical only - horizontal insets are applied by the pane host.
     val paneInsets = paneEdges.paneInsets()
 
@@ -97,7 +100,7 @@ internal fun EmptyAdaptiveWorkspaceContent(
 
             ButlerTip()
 
-            // Add tab button
+            // Create tab button
             if (onAddWorkspace != null) {
                 Spacer(modifier = Modifier.size(4.dp))
                 Card(
@@ -125,7 +128,7 @@ internal fun EmptyAdaptiveWorkspaceContent(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         Text(
-                            text = stringResource(R.string.workspace_adaptive_add_action),
+                            text = stringResource(R.string.workspace_empty_create_action),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.weight(1f),
@@ -134,6 +137,30 @@ internal fun EmptyAdaptiveWorkspaceContent(
                             imageVector = Icons.TwoTone.AddCircle,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                    }
+                }
+            }
+
+            // Settings is global, so several empty panes would each repeat it
+            if (paneNumber == null) {
+                Card(
+                    onClick = { workspaceActionHandler?.navToSettings() },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(20.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.workspace_empty_settings_action),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Icon(
+                            imageVector = Icons.TwoTone.Settings,
+                            contentDescription = null,
                         )
                     }
                 }

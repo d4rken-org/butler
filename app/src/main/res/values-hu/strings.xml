@@ -335,7 +335,6 @@
     <string name="workspace_creating_placeholder">Lap létrehozása…</string>
     <string name="workspace_ondemand_swipe_title">Csúsztass új lap létrehozásához</string>
     <string name="workspace_adaptive_pane_ready">A(z) %1$d. panel készen áll a tartalomra</string>
-    <string name="workspace_adaptive_add_action">Lap hozzáadása</string>
     <string name="workspace_badge_tip_title">Tipp: a lapgomb jelzői</string>
     <string name="workspace_badge_open_workspaces">Nyitott lapok száma</string>
     <string name="workspace_badge_active_operations">Aktív műveletek (fájlmásolás, keresés stb.)</string>

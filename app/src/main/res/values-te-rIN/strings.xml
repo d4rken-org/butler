@@ -381,7 +381,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">పేన్ %1$d కంటెంట్ కోసం సిద్ధంగా ఉంది</string>
-    <string name="workspace_adaptive_add_action">ట్యాబ్‌ను జోడించండి</string>
 
     <string name="workspace_badge_tip_title">చిట్కా: ట్యాబ్ బటన్ సూచికలు</string>
     <string name="workspace_badge_open_workspaces">తెరిచి ఉన్న ట్యాబ్‌ల సంఖ్య</string>

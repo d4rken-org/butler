@@ -364,7 +364,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Το τμήμα %1$d είναι έτοιμο για περιεχόμενο</string>
-    <string name="workspace_adaptive_add_action">Προσθήκη καρτέλας</string>
 
     <string name="workspace_badge_tip_title">Συμβουλή: Ενδείξεις κουμπιού καρτέλας</string>
     <string name="workspace_badge_open_workspaces">Αριθμός ανοιχτών καρτελών</string>

@@ -375,7 +375,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">பலகம் %1$d உள்ளடக்கத்திற்குத் தயாராக உள்ளது</string>
-    <string name="workspace_adaptive_add_action">தாவலைச் சேர்</string>
 
     <string name="workspace_badge_tip_title">குறிப்பு: தாவல் பொத்தானின் குறிகாட்டிகள்</string>
     <string name="workspace_badge_open_workspaces">திறந்துள்ள தாவல்களின் எண்ணிக்கை</string>

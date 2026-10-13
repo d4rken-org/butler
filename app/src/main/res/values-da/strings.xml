@@ -380,7 +380,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Rude %1$d er klar til indhold</string>
-    <string name="workspace_adaptive_add_action">Tilføj fane</string>
 
     <string name="workspace_badge_tip_title">Tip: Indikatorer på faneknappen</string>
     <string name="workspace_badge_open_workspaces">Antal åbne faner</string>

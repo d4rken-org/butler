@@ -388,7 +388,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Область %1$d готова для содержимого</string>
-    <string name="workspace_adaptive_add_action">Добавить вкладку</string>
 
     <string name="workspace_badge_tip_title">Совет: индикаторы кнопок вкладок</string>
     <string name="workspace_badge_open_workspaces">Количество открытых вкладок</string>

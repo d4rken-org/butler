@@ -359,7 +359,6 @@
 
     <!-- Không gian làm việc thích ứng -->
     <string name="workspace_adaptive_pane_ready">Khung %1$d đã sẵn sàng để hiển thị nội dung</string>
-    <string name="workspace_adaptive_add_action">Thêm thẻ</string>
 
     <string name="workspace_badge_tip_title">Mẹo: Chỉ báo trên nút thẻ</string>
     <string name="workspace_badge_open_workspaces">Số thẻ đang mở</string>

@@ -4,11 +4,16 @@ import android.content.Context
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.LocalUserActivity
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.UserActivitySignal
+import eu.darken.butler.workspace.ui.manager.FakeWorkspaceButtonProvider
+import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonProvider
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Test
@@ -28,10 +33,21 @@ class EmptyAdaptiveWorkspaceContentTest : ComposeTest() {
         override fun isActive(idleAfter: Duration): Flow<Boolean> = MutableStateFlow(false)
     }
 
+    private var settingsOpened = 0
+
+    private val buttonProvider = object : WorkspaceButtonProvider by FakeWorkspaceButtonProvider() {
+        override fun navToSettings() {
+            settingsOpened++
+        }
+    }
+
     private fun render(paneNumber: Int?) {
         composeTestRule.setContent {
             PreviewWrapper {
-                CompositionLocalProvider(LocalUserActivity provides NeverActive) {
+                CompositionLocalProvider(
+                    LocalUserActivity provides NeverActive,
+                    LocalWorkspaceButtonProvider provides buttonProvider,
+                ) {
                     EmptyAdaptiveWorkspaceContent(
                         paneNumber = paneNumber,
                         onAddWorkspace = {},
@@ -57,5 +73,28 @@ class EmptyAdaptiveWorkspaceContentTest : ComposeTest() {
 
         composeTestRule.onNodeWithText(context.getString(R.string.workspace_adaptive_pane_ready, 2))
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun `a single pane offers the same create and settings actions as the classic layout`() {
+        render(paneNumber = null)
+
+        composeTestRule.onNodeWithText(context.getString(R.string.workspace_empty_create_action))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(context.getString(R.string.workspace_empty_settings_action))
+            .assertIsDisplayed()
+            .performClick()
+
+        settingsOpened shouldBe 1
+    }
+
+    @Test
+    fun `numbered panes offer only their own create action`() {
+        render(paneNumber = 2)
+
+        composeTestRule.onNodeWithText(context.getString(R.string.workspace_empty_create_action))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(context.getString(R.string.workspace_empty_settings_action))
+            .assertDoesNotExist()
     }
 }

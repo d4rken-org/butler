@@ -381,7 +381,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Ruutu %1$d on valmis sisällölle</string>
-    <string name="workspace_adaptive_add_action">Lisää välilehti</string>
 
     <string name="workspace_badge_tip_title">Vinkki: välilehtipainikkeen ilmaisimet</string>
     <string name="workspace_badge_open_workspaces">Avoimien välilehtien määrä</string>

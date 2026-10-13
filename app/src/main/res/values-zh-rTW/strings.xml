@@ -374,7 +374,6 @@
 
     <!-- 自適應分頁 -->
     <string name="workspace_adaptive_pane_ready">窗格 %1$d 已準備好顯示內容</string>
-    <string name="workspace_adaptive_add_action">新增分頁</string>
 
     <string name="workspace_badge_tip_title">提示：分頁按鈕指示</string>
     <string name="workspace_badge_open_workspaces">已開啟的分頁數量</string>

@@ -381,7 +381,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Rute %1$d er klar for innhold</string>
-    <string name="workspace_adaptive_add_action">Legg til fane</string>
 
     <string name="workspace_badge_tip_title">Tips: Indikatorer på faneknappen</string>
     <string name="workspace_badge_open_workspaces">Antall åpne faner</string>

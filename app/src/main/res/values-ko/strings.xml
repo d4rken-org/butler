@@ -359,7 +359,6 @@
 
     <!-- 적응형 작업 영역 -->
     <string name="workspace_adaptive_pane_ready">패널 %1$d 콘텐츠 준비 완료</string>
-    <string name="workspace_adaptive_add_action">탭 추가</string>
 
     <string name="workspace_badge_tip_title">팁: 탭 버튼 표시기</string>
     <string name="workspace_badge_open_workspaces">열린 탭 수</string>

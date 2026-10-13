@@ -374,7 +374,6 @@
 
     <!-- Adaptief tabblad -->
     <string name="workspace_adaptive_pane_ready">Deelvenster %1$d is klaar voor inhoud</string>
-    <string name="workspace_adaptive_add_action">Tabblad toevoegen</string>
 
     <string name="workspace_badge_tip_title">Tip: indicatoren op de tabbladknop</string>
     <string name="workspace_badge_open_workspaces">Aantal open tabbladen</string>

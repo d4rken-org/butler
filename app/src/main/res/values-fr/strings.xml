@@ -377,7 +377,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Le panneau %1$d est prêt à recevoir du contenu</string>
-    <string name="workspace_adaptive_add_action">Ajouter un onglet</string>
 
     <string name="workspace_badge_tip_title">Astuce : indicateurs du bouton d’onglets</string>
     <string name="workspace_badge_open_workspaces">Nombre d’onglets ouverts</string>

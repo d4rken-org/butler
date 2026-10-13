@@ -335,7 +335,6 @@
     <string name="workspace_creating_placeholder">टैब बन रहा है…</string>
     <string name="workspace_ondemand_swipe_title">नया टैब बनाने के लिए स्वाइप करें</string>
     <string name="workspace_adaptive_pane_ready">पैनल %1$d सामग्री के लिए तैयार है</string>
-    <string name="workspace_adaptive_add_action">टैब जोड़ें</string>
     <string name="workspace_badge_tip_title">सुझाव: टैब बटन के संकेतक</string>
     <string name="workspace_badge_open_workspaces">खुले टैब की संख्या</string>
     <string name="workspace_badge_active_operations">चालू प्रक्रियाएँ (फ़ाइल कॉपी, खोज आदि)</string>

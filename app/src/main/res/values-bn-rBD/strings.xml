@@ -381,7 +381,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">%1$d নম্বর প্যান কনটেন্টের জন্য প্রস্তুত</string>
-    <string name="workspace_adaptive_add_action">ট্যাব যোগ করুন</string>
 
     <string name="workspace_badge_tip_title">পরামর্শ: ট্যাব বোতামের নির্দেশক</string>
     <string name="workspace_badge_open_workspaces">খোলা ট্যাবের সংখ্যা</string>

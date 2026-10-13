@@ -377,7 +377,6 @@
 
     <!-- Adaptive Workspace -->
     <string name="workspace_adaptive_pane_ready">Handa na ang panel %1$d para sa nilalaman</string>
-    <string name="workspace_adaptive_add_action">Magdagdag ng tab</string>
 
     <string name="workspace_badge_tip_title">Tip: Mga indicator sa button ng tab</string>
     <string name="workspace_badge_open_workspaces">Bilang ng mga bukas na tab</string>
