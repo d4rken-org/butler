@@ -71,6 +71,11 @@ jobs:
         if: ${{ !cancelled() }}
         run: tools/sftp-device-results.py app-common-io/build/outputs/androidTest-results/connected
 
+      # The WebDAV device tests need no server, but a skipped or missing test class still passes.
+      - name: Require executed WebDAV device tests
+        if: ${{ !cancelled() }}
+        run: tools/webdav-device-results.py app-common-io/build/outputs/androidTest-results/connected
+
       - name: Upload device test results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
