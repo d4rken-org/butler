@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.network.NetworkCredentialAvailability
 import eu.darken.butler.common.files.network.NetworkLocation
 import eu.darken.butler.common.files.sftp.location.SftpLocation
@@ -599,5 +600,48 @@ class ExplorerNavigationControllerTest : BaseTest() {
         coVerify {
             workspace.navigate(ExplorerNavigation.Target.Directory(SftpPath(sftpLocationId, listOf(" ", "draft "))))
         }
+    }
+
+    private val webdavLocationId = Uuid.parse("77777777-8888-9999-0000-111111111111")
+
+    @Test
+    fun `an edited WebDAV path is relative to the location root`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace)
+
+        controller.navigateToEditedPath(WebDavPath(webdavLocationId, listOf("docs")), "/photos//100% ?#done/ a\\b ")
+        runCurrent()
+
+        coVerify {
+            workspace.navigate(
+                ExplorerNavigation.Target.Directory(
+                    WebDavPath(webdavLocationId, listOf("photos", "100% ?#done", " a\\b ")),
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `an edited WebDAV path cannot climb out of the location`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace)
+
+        controller.navigateToEditedPath(WebDavPath(webdavLocationId, listOf("docs")), "../other")
+        controller.navigateToEditedPath(WebDavPath(webdavLocationId, listOf("docs")), "docs/./a")
+        controller.navigateToEditedPath(WebDavPath(webdavLocationId, listOf("docs")), "a\u0000b")
+        runCurrent()
+
+        coVerify(exactly = 0) { workspace.navigate(any()) }
+    }
+
+    @Test
+    fun `an empty edited WebDAV path goes to the location root`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace = workspace)
+
+        controller.navigateToEditedPath(WebDavPath(webdavLocationId, listOf("docs")), "/")
+        runCurrent()
+
+        coVerify { workspace.navigate(ExplorerNavigation.Target.Directory(WebDavPath.root(webdavLocationId))) }
     }
 }

@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.network.NetworkLocation
 import eu.darken.butler.common.files.sftp.SftpLocationInput
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.smb.SmbLocationInput
+import eu.darken.butler.common.files.webdav.WebDavLocationInput
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.matches
@@ -244,7 +245,14 @@ class ExplorerNavigationController(
                 SftpPath(currentPath.locationId, segments)
             }
 
-            is WebDavPath -> error("WEBDAV_PENDING: typed path below a WebDAV location")
+            is WebDavPath -> {
+                val segments = WebDavLocationInput.splitPath(editedPath)
+                if (segments.any { WebDavLocationInput.pathSegmentIssue(it) != null }) {
+                    log(tag, WARN) { "navigateToEditedPath(): Rejecting '$editedPath', not a usable WebDAV path" }
+                    return
+                }
+                WebDavPath(currentPath.locationId, segments)
+            }
         }
         navigateToPath(newPath)
     }
