@@ -475,11 +475,12 @@ class ExplorerNavigationControllerTest : BaseTest() {
         val dialogs = dialogs()
         val controller = controller(workspace = workspace, dialogs = dialogs, openOnTap = true)
         val item = fileItem("photos.zip", mime = "application/zip")
+        val expectedTarget = ExplorerNavigation.Target.Directory(ArchivePath.root(item.lookup.lookedUp))
 
         controller.navigate(item as ExplorerItem)
         runCurrent()
 
-        coVerify { workspace.navigate(ExplorerNavigation.Target.Directory(ArchivePath.root(item.lookup.lookedUp))) }
+        coVerify { workspace.navigate(expectedTarget) }
         openedInViewer shouldBe emptyList()
         openedExternally shouldBe emptyList()
         dialogs.current() shouldBe ExplorerDialogState.None
@@ -604,6 +605,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
             openOnTap = true,
         )
         val item = fileItem("photo.jpg", mime = "image/jpeg")
+        val expectedPath = item.lookup.lookedUp
 
         controller.navigate(item as ExplorerItem)
         runCurrent()
@@ -613,7 +615,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
                 WorkspaceEvent.PickerResult(
                     workspaceId = workspaceId,
                     callerWorkspaceId = config.callerWorkspaceId,
-                    selectedPaths = listOf(item.lookup.lookedUp),
+                    selectedPaths = listOf(expectedPath),
                 )
             )
         }
