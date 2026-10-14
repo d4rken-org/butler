@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -24,6 +26,7 @@ import eu.darken.butler.explorer.ui.explorer.items.grid.RegularFileGrid
 import eu.darken.butler.explorer.ui.explorer.items.row.RegularFileRow
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
@@ -89,7 +92,7 @@ class FileMoreButtonTest : ComposeTest() {
     @Test
     fun `more button leaves the row height unchanged at every density`() {
         render {
-            Column {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
                 ExplorerViewStyle.Density.entries.forEach { density ->
                     FileRow(modifier = Modifier.testTag("plain:$density"), density = density, onMoreClick = null)
                     FileRow(modifier = Modifier.testTag("more:$density"), density = density, onMoreClick = {})
@@ -99,6 +102,7 @@ class FileMoreButtonTest : ComposeTest() {
 
         moreButtonCount() shouldBe ExplorerViewStyle.Density.entries.size
         ExplorerViewStyle.Density.entries.forEach { density ->
+            heightOf("plain:$density") shouldBeGreaterThan 10
             heightOf("more:$density") shouldBe heightOf("plain:$density")
         }
     }
