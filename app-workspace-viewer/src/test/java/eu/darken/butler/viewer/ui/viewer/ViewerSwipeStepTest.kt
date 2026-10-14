@@ -430,7 +430,8 @@ class ViewerSwipeStepTest : ComposeTest() {
     fun `a zoom left behind by a picture does not block stepping through text`() =
         staleZoomStillSteps(text, lines = listOf(SHORT_LINE))
 
-    // (d) Without a listing, or with swiping off, the tab pager gets the swipe as it always did.
+    // (d) Without a listing, or with swiping off, a swipe goes where it always did: on a picture to
+    // the tab pager, on a text line to the line's own scroller, which keeps it in this harness.
 
     @Test
     fun `without a listing a swipe on a picture turns the tab pager`() {
@@ -456,6 +457,7 @@ class ViewerSwipeStepTest : ComposeTest() {
     private fun swipeTextLine(line: String, dx: Float, listing: Boolean, swipeToStepEnabled: Boolean) {
         pageState.value = ready(content = text, listing = listing, lines = listOf(SHORT_LINE, LONG_LINE))
         setPage(inPager = true, swipeToStepEnabled = swipeToStepEnabled)
+        val before = contentOffsetX
 
         composeTestRule.onNodeWithText(line).performTouchInput {
             swipe(start = center, end = center + Offset(dx, 0f), durationMillis = 200L)
@@ -463,30 +465,31 @@ class ViewerSwipeStepTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         actions shouldBe emptyList()
+        contentOffsetX shouldBe before
     }
 
     @Test
-    fun `without a listing a swipe on a text line that fits turns the tab pager`() {
+    fun `without a listing a swipe on a text line that fits is left to the line as before`() {
         swipeTextLine(SHORT_LINE, dx = -200f, listing = false, swipeToStepEnabled = true)
-        pagerAtRestOn(2)
+        pagerAtRestOn(1)
     }
 
     @Test
-    fun `without a listing a swipe past the start of a long text line turns the tab pager`() {
+    fun `without a listing a swipe past the start of a long text line is left to the line as before`() {
         swipeTextLine(LONG_LINE, dx = 200f, listing = false, swipeToStepEnabled = true)
-        pagerAtRestOn(0)
+        pagerAtRestOn(1)
     }
 
     @Test
-    fun `with swiping off a swipe on a text line that fits turns the tab pager`() {
+    fun `with swiping off a swipe on a text line that fits is left to the line as before`() {
         swipeTextLine(SHORT_LINE, dx = -200f, listing = true, swipeToStepEnabled = false)
-        pagerAtRestOn(2)
+        pagerAtRestOn(1)
     }
 
     @Test
-    fun `with swiping off a swipe past the start of a long text line turns the tab pager`() {
+    fun `with swiping off a swipe past the start of a long text line is left to the line as before`() {
         swipeTextLine(LONG_LINE, dx = 200f, listing = true, swipeToStepEnabled = false)
-        pagerAtRestOn(0)
+        pagerAtRestOn(1)
     }
 
     // (e) Drags the gesture leaves alone.
